@@ -1,0 +1,111 @@
+import { describe, expect, it } from 'vitest'
+import {
+  _defaultPostHogHostForTest as defaultPostHogHost,
+  resolveFrontendTelemetryConfig,
+  sanitizeTelemetryEnvValue,
+} from './telemetryConfig'
+
+function resolveConfig(overrides: {
+  VITE_SENTRY_DSN?: string
+  VITE_POSTHOG_KEY?: string
+  VITE_POSTHOG_HOST?: string
+} = {}) {
+  return resolveFrontendTelemetryConfig({
+    VITE_SENTRY_DSN: 'https://public@example.ingest.sentry.io/123456',
+    VITE_POSTHOG_KEY: 'phc_test_key',
+    VITE_POSTHOG_HOST: 'https://eu.i.posthog.com',
+    ...overrides,
+  })
+}
+
+describe('sanitizeTelemetryEnvValue', () => {
+  it('trims surrounding whitespace', () => {
+    expect(sanitizeTelemetryEnvValue('  value  ')).toBe('value')
+  })
+
+  it('unwraps matching quotes after trimming', () => {
+    expect(sanitizeTelemetryEnvValue('  "value"  ')).toBe('value')
+    expect(sanitizeTelemetryEnvValue("  'value'  ")).toBe('value')
+  })
+
+  it('returns an empty string for blank input', () => {
+    expect(sanitizeTelemetryEnvValue('   ')).toBe('')
+    expect(sanitizeTelemetryEnvValue(undefined)).toBe('')
+  })
+})
+
+describe('resolveFrontendTelemetryConfig', () => {
+  it.each([
+    {
+      name: 'keeps valid telemetry values after sanitizing them',
+      overrides: {
+        VITE_SENTRY_DSN: ' "https://public@example.ingest.sentry.io/123456" ',
+        VITE_POSTHOG_KEY: " 'phc_test_key' ",
+        VITE_POSTHOG_HOST: ' https://eu.i.posthog.com ',
+      },
+      expected: {
+        sentryDsn: 'https://public@example.ingest.sentry.io/123456',
+        posthogKey: 'phc_test_key',
+        posthogHost: 'https://eu.i.posthog.com',
+      },
+    },
+    {
+      name: 'adds https to scheme-less DSNs and PostHog hosts',
+      overrides: {
+        VITE_SENTRY_DSN: 'public@example.ingest.sentry.io/123456',
+        VITE_POSTHOG_KEY: 'phc_test_key',
+        VITE_POSTHOG_HOST: 'eu.i.posthog.com',
+      },
+      expected: {
+        sentryDsn: 'https://public@example.ingest.sentry.io/123456',
+        posthogKey: 'phc_test_key',
+        posthogHost: 'https://eu.i.posthog.com',
+      },
+    },
+  ])('$name', ({ overrides, expected }) => {
+    expect(resolveConfig(overrides)).toEqual(expected)
+  })
+
+  it('uses the default PostHog host when one is not configured', () => {
+    expect(resolveConfig({ VITE_POSTHOG_HOST: undefined }).posthogHost).toBe(defaultPostHogHost)
+  })
+
+  it('drops invalid Sentry DSNs instead of passing them to the SDK', () => {
+    expect(resolveConfig({ VITE_SENTRY_DSN: 'not a dsn' }).sentryDsn).toBe('')
+  })
+
+  it('drops invalid PostHog hosts instead of loading scripts from them', () => {
+    expect(resolveConfig({ VITE_POSTHOG_HOST: 'not a url' }).posthogHost).toBeNull()
+  })
+
+  it('drops placeholder telemetry hosts that would create broken startup requests', () => {
+    expect(resolveConfig({
+      VITE_SENTRY_DSN: 'https://public@false/123456',
+      VITE_POSTHOG_HOST: 'false',
+    })).toEqual({
+      sentryDsn: '',
+      posthogKey: 'phc_test_key',
+      posthogHost: null,
+    })
+  })
+
+  it('drops single-label telemetry hosts but keeps localhost for dev', () => {
+    expect(resolveConfig({
+      VITE_SENTRY_DSN: 'https://public@le/123456',
+      VITE_POSTHOG_HOST: 'https://le',
+    })).toEqual({
+      sentryDsn: '',
+      posthogKey: 'phc_test_key',
+      posthogHost: null,
+    })
+
+    expect(resolveConfig({
+      VITE_SENTRY_DSN: 'http://public@localhost:9000/123456',
+      VITE_POSTHOG_HOST: 'http://localhost:8010',
+    })).toEqual({
+      sentryDsn: 'http://public@localhost:9000/123456',
+      posthogKey: 'phc_test_key',
+      posthogHost: 'http://localhost:8010',
+    })
+  })
+})

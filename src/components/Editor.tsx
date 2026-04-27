@@ -1,0 +1,568 @@
+import { useRef, useEffect, useCallback, memo } from 'react'
+import { useEditorTabSwap } from '../hooks/useEditorTabSwap'
+import { useCreateBlockNote } from '@blocknote/react'
+import '@blocknote/mantine/style.css'
+import 'katex/dist/katex.min.css'
+import { uploadImageFile } from '../hooks/useImageDrop'
+import { DEFAULT_AI_AGENT, type AiAgentId } from '../lib/aiAgents'
+import { RUNTIME_STYLE_NONCE } from '../lib/runtimeStyleNonce'
+import type { VaultEntry, GitCommit, NoteLayout, NoteStatus } from '../types'
+import type { NoteListItem } from '../utils/ai-context'
+import type { FrontmatterValue } from './Inspector'
+import { ResizeHandle } from './ResizeHandle'
+import { useDiffMode, type CommitDiffRequest } from '../hooks/useDiffMode'
+import { useEditorFocus } from '../hooks/useEditorFocus'
+import { useDragRegion } from '../hooks/useDragRegion'
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
+import { EditorRightPanel } from './EditorRightPanel'
+import { EditorContent } from './EditorContent'
+import { schema } from './editorSchema'
+import {
+  applyPendingRawExitContent,
+  resolvePendingRawExitContent,
+  resolveRawModeContent,
+} from './editorRawModeSync'
+import { useRawModeWithFlush } from './useRawModeWithFlush'
+import { createArrowLigaturesExtension } from './arrowLigaturesExtension'
+import { useFilenameAutolinkGuard } from './useFilenameAutolinkGuard'
+import './Editor.css'
+import './EditorTheme.css'
+
+interface Tab {
+  entry: VaultEntry
+  content: string
+}
+
+interface EditorProps {
+  tabs: Tab[]
+  activeTabPath: string | null
+  entries: VaultEntry[]
+  onNavigateWikilink: (target: string) => void
+  onUnsupportedAiPaste?: (message: string) => void
+  onLoadDiff?: (path: string) => Promise<string>
+  onLoadDiffAtCommit?: (path: string, commitHash: string) => Promise<string>
+  pendingCommitDiffRequest?: CommitDiffRequest | null
+  onPendingCommitDiffHandled?: (requestId: number) => void
+  getNoteStatus?: (path: string) => NoteStatus
+  onCreateNote?: () => void
+  inspectorCollapsed: boolean
+  onToggleInspector: () => void
+  inspectorWidth: number
+  defaultAiAgent?: AiAgentId
+  defaultAiAgentReady?: boolean
+  onInspectorResize: (delta: number) => void
+  inspectorEntry: VaultEntry | null
+  inspectorContent: string | null
+  gitHistory: GitCommit[]
+  onUpdateFrontmatter?: (path: string, key: string, value: FrontmatterValue) => Promise<void>
+  onDeleteProperty?: (path: string, key: string) => Promise<void>
+  onAddProperty?: (path: string, key: string, value: FrontmatterValue) => Promise<void>
+  onCreateMissingType?: (path: string, missingType: string, nextTypeName: string) => Promise<boolean | void>
+  onCreateAndOpenNote?: (title: string) => Promise<boolean>
+  onInitializeProperties?: (path: string) => void
+  showAIChat?: boolean
+  onToggleAIChat?: () => void
+  vaultPath?: string
+  noteList?: NoteListItem[]
+  noteListFilter?: { type: string | null; query: string }
+  onToggleFavorite?: (path: string) => void
+  onToggleOrganized?: (path: string) => void
+  onDeleteNote?: (path: string) => void
+  onArchiveNote?: (path: string) => void
+  onUnarchiveNote?: (path: string) => void
+  onContentChange?: (path: string, content: string) => void
+  onSave?: () => void
+  /** Called when the user explicitly renames the filename from the breadcrumb. */
+  onRenameFilename?: (path: string, newFilenameStem: string) => void
+  noteLayout?: NoteLayout
+  onToggleNoteLayout?: () => void
+  canGoBack?: boolean
+  canGoForward?: boolean
+  onGoBack?: () => void
+  onGoForward?: () => void
+  leftPanelsCollapsed?: boolean
+  /** Mutable ref that Editor registers its raw-mode toggle into, for command palette access. */
+  rawToggleRef?: React.MutableRefObject<() => void>
+  /** Mutable ref that Editor registers its diff-mode toggle into, for command palette access. */
+  diffToggleRef?: React.MutableRefObject<() => void>
+  onFileCreated?: (relativePath: string) => void
+  onFileModified?: (relativePath: string) => void
+  onVaultChanged?: () => void
+  /** Whether the active note has a merge conflict. */
+  isConflicted?: boolean
+  /** Resolve conflict by keeping the local version. */
+  onKeepMine?: (path: string) => void
+  /** Resolve conflict by keeping the remote version. */
+  onKeepTheirs?: (path: string) => void
+  /** Registers a hook that flushes the raw editor buffer into app state before external actions. */
+  flushPendingRawContentRef?: React.MutableRefObject<((path: string) => void) | null>
+}
+
+function useEditorModeExclusion({
+  diffMode, rawMode, handleToggleDiff, handleToggleRaw, rawToggleRef, diffToggleRef,
+}: {
+  diffMode: boolean
+  rawMode: boolean
+  handleToggleDiff: () => void | Promise<void>
+  handleToggleRaw: () => void
+  rawToggleRef?: React.MutableRefObject<() => void>
+  diffToggleRef?: React.MutableRefObject<() => void>
+}) {
+  const handleToggleDiffExclusive = useCallback(async () => {
+    if (!diffMode && rawMode) handleToggleRaw()
+    await handleToggleDiff()
+  }, [diffMode, rawMode, handleToggleDiff, handleToggleRaw])
+
+  const handleToggleRawExclusive = useCallback(() => {
+    if (!rawMode && diffMode) handleToggleDiff()
+    handleToggleRaw()
+  }, [rawMode, diffMode, handleToggleDiff, handleToggleRaw])
+
+  useEffect(() => {
+    if (rawToggleRef) rawToggleRef.current = handleToggleRawExclusive
+  }, [rawToggleRef, handleToggleRawExclusive])
+
+  useEffect(() => {
+    if (diffToggleRef) diffToggleRef.current = handleToggleDiffExclusive
+  }, [diffToggleRef, handleToggleDiffExclusive])
+
+  return { handleToggleDiffExclusive, handleToggleRawExclusive }
+}
+
+function EditorEmptyState() {
+  const breadcrumbBarHeight = 52
+  const { onMouseDown } = useDragRegion()
+  const quickOpenShortcut = formatShortcutDisplay({ display: '⌘P / ⌘O' })
+  const newNoteShortcut = formatShortcutDisplay({ display: '⌘N' })
+
+  return (
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <div
+        aria-hidden="true"
+        data-tauri-drag-region
+        data-testid="editor-empty-state-drag-region"
+        className="shrink-0"
+        onMouseDown={onMouseDown}
+        style={{ height: breadcrumbBarHeight }}
+      />
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
+        <p className="m-0 text-[15px]">Select a note to start editing</p>
+        <span className="text-xs text-muted-foreground">{quickOpenShortcut} to search &middot; {newNoteShortcut} to create</span>
+      </div>
+    </div>
+  )
+}
+
+interface EditorSetupParams {
+  tabs: Tab[]
+  activeTabPath: string | null
+  vaultPath?: string
+  onContentChange?: (path: string, content: string) => void
+  onLoadDiff?: (path: string) => Promise<string>
+  onLoadDiffAtCommit?: (path: string, commitHash: string) => Promise<string>
+  pendingCommitDiffRequest?: CommitDiffRequest | null
+  onPendingCommitDiffHandled?: (requestId: number) => void
+  getNoteStatus?: (path: string) => NoteStatus
+  rawToggleRef?: React.MutableRefObject<() => void>
+  diffToggleRef?: React.MutableRefObject<() => void>
+}
+
+function useEditorSetup({
+  tabs, activeTabPath, vaultPath, onContentChange,
+  onLoadDiff, onLoadDiffAtCommit, pendingCommitDiffRequest, onPendingCommitDiffHandled, getNoteStatus,
+  rawToggleRef, diffToggleRef,
+}: EditorSetupParams) {
+  const vaultPathRef = useRef(vaultPath)
+  useEffect(() => { vaultPathRef.current = vaultPath }, [vaultPath])
+
+  const editor = useCreateBlockNote({
+    schema,
+    uploadFile: (file: File) => uploadImageFile(file, vaultPathRef.current),
+    _tiptapOptions: { injectNonce: RUNTIME_STYLE_NONCE },
+    extensions: [createArrowLigaturesExtension()],
+  })
+  useFilenameAutolinkGuard(editor)
+  const activeTab = tabs.find((t) => t.entry.path === activeTabPath) ?? null
+  const {
+    rawMode,
+    handleToggleRaw,
+    rawLatestContentRef,
+    pendingRawExitContent,
+    setPendingRawExitContent,
+    rawModeContentOverride,
+  } = useRawModeWithFlush(
+    editor,
+    activeTabPath,
+    activeTab?.content ?? null,
+    onContentChange,
+    vaultPath,
+  )
+  const tabsForEditorSwap = applyPendingRawExitContent(tabs, pendingRawExitContent)
+  const rawModeContent = resolveRawModeContent({ activeTab, rawModeContentOverride })
+
+  useEffect(() => {
+    setPendingRawExitContent((current) => resolvePendingRawExitContent({
+      activeTabPath,
+      tabs,
+      pendingRawExitContent: current,
+    }))
+  }, [activeTabPath, setPendingRawExitContent, tabs])
+
+  const { handleEditorChange, editorMountedRef } = useEditorTabSwap({
+    tabs: tabsForEditorSwap, activeTabPath, editor, onContentChange, rawMode, vaultPath,
+  })
+  useEditorFocus(editor, editorMountedRef)
+
+  const { diffMode, diffContent, diffLoading, handleToggleDiff, handleViewCommitDiff } = useDiffMode({
+    activeTabPath,
+    onLoadDiff,
+    onLoadDiffAtCommit,
+    pendingCommitDiffRequest,
+    onPendingCommitDiffHandled,
+  })
+
+  const { handleToggleDiffExclusive, handleToggleRawExclusive } = useEditorModeExclusion({
+    diffMode, rawMode, handleToggleDiff, handleToggleRaw, rawToggleRef, diffToggleRef,
+  })
+
+  const isLoadingNewTab = activeTabPath !== null && !activeTab
+  const activeStatus = activeTab ? getNoteStatus?.(activeTab.entry.path) ?? 'clean' : 'clean'
+  const showDiffToggle = !!(activeTab && (diffMode || activeStatus === 'modified'))
+
+  return {
+    editor, activeTab, rawLatestContentRef, rawModeContent,
+    rawMode, diffMode, diffContent, diffLoading,
+    handleToggleDiffExclusive, handleToggleRawExclusive,
+    handleEditorChange, handleViewCommitDiff,
+    isLoadingNewTab, activeStatus, showDiffToggle,
+  }
+}
+
+function useRegisterRawContentFlush({
+  activeTab,
+  rawLatestContentRef,
+  rawMode,
+  onContentChange,
+  flushPendingRawContentRef,
+}: {
+  activeTab: Tab | null
+  rawLatestContentRef: React.MutableRefObject<string | null>
+  rawMode: boolean
+  onContentChange?: (path: string, content: string) => void
+  flushPendingRawContentRef?: React.MutableRefObject<((path: string) => void) | null>
+}) {
+  const flushPendingRawContent = useCallback((path: string) => {
+    if (!rawMode || !activeTab || activeTab.entry.path !== path) return
+
+    const latestContent = rawLatestContentRef.current
+    if (latestContent === null || latestContent === activeTab.content) return
+
+    onContentChange?.(path, latestContent)
+  }, [activeTab, onContentChange, rawLatestContentRef, rawMode])
+
+  useEffect(() => {
+    if (!flushPendingRawContentRef) return
+
+    flushPendingRawContentRef.current = flushPendingRawContent
+    return () => {
+      if (flushPendingRawContentRef.current === flushPendingRawContent) {
+        flushPendingRawContentRef.current = null
+      }
+    }
+  }, [flushPendingRawContent, flushPendingRawContentRef])
+}
+
+function EditorLayout({
+  tabs,
+  activeTab,
+  isLoadingNewTab,
+  entries,
+  editor,
+  diffMode,
+  diffContent,
+  diffLoading,
+  handleToggleDiffExclusive,
+  rawMode,
+  handleToggleRawExclusive,
+  onContentChange,
+  onSave,
+  activeStatus,
+  showDiffToggle,
+  showAIChat,
+  onToggleAIChat,
+  inspectorCollapsed,
+  onToggleInspector,
+  onNavigateWikilink,
+  handleEditorChange,
+  onToggleFavorite,
+  onToggleOrganized,
+  onDeleteNote,
+  onArchiveNote,
+  onUnarchiveNote,
+  vaultPath,
+  rawModeContent,
+  rawLatestContentRef,
+  onRenameFilename,
+  noteLayout,
+  onToggleNoteLayout,
+  isConflicted,
+  onKeepMine,
+  onKeepTheirs,
+  onInspectorResize,
+  inspectorWidth,
+  defaultAiAgent,
+  defaultAiAgentReady,
+  inspectorEntry,
+  inspectorContent,
+  gitHistory,
+  noteList,
+  noteListFilter,
+  handleViewCommitDiff,
+  onUpdateFrontmatter,
+  onDeleteProperty,
+  onAddProperty,
+  onCreateMissingType,
+  onCreateAndOpenNote,
+  onInitializeProperties,
+  onFileCreated,
+  onFileModified,
+  onVaultChanged,
+  onUnsupportedAiPaste,
+}: {
+  tabs: Tab[]
+  activeTab: Tab | null
+  isLoadingNewTab: boolean
+  entries: VaultEntry[]
+  editor: ReturnType<typeof useCreateBlockNote>
+  diffMode: boolean
+  diffContent: string | null
+  diffLoading: boolean
+  handleToggleDiffExclusive: () => void | Promise<void>
+  rawMode: boolean
+  handleToggleRawExclusive: () => void
+  onContentChange?: (path: string, content: string) => void
+  onSave?: () => void
+  activeStatus: NoteStatus
+  showDiffToggle: boolean
+  showAIChat?: boolean
+  onToggleAIChat?: () => void
+  inspectorCollapsed: boolean
+  onToggleInspector: () => void
+  onNavigateWikilink: (target: string) => void
+  handleEditorChange: () => void
+  onToggleFavorite?: (path: string) => void
+  onToggleOrganized?: (path: string) => void
+  onDeleteNote?: (path: string) => void
+  onArchiveNote?: (path: string) => void
+  onUnarchiveNote?: (path: string) => void
+  vaultPath?: string
+  rawModeContent: string | null
+  rawLatestContentRef: React.MutableRefObject<string | null>
+  onRenameFilename?: (path: string, newFilenameStem: string) => void
+  noteLayout?: NoteLayout
+  onToggleNoteLayout?: () => void
+  isConflicted?: boolean
+  onKeepMine?: (path: string) => void
+  onKeepTheirs?: (path: string) => void
+  onInspectorResize: (delta: number) => void
+  inspectorWidth: number
+  defaultAiAgent: AiAgentId
+  defaultAiAgentReady: boolean
+  inspectorEntry: VaultEntry | null
+  inspectorContent: string | null
+  gitHistory: GitCommit[]
+  noteList?: NoteListItem[]
+  noteListFilter?: { type: string | null; query: string }
+  handleViewCommitDiff: (commitHash: string) => Promise<void>
+  onUpdateFrontmatter?: (path: string, key: string, value: FrontmatterValue) => Promise<void>
+  onDeleteProperty?: (path: string, key: string) => Promise<void>
+  onAddProperty?: (path: string, key: string, value: FrontmatterValue) => Promise<void>
+  onCreateMissingType?: (path: string, missingType: string, nextTypeName: string) => Promise<boolean | void>
+  onCreateAndOpenNote?: (title: string) => Promise<boolean>
+  onInitializeProperties?: (path: string) => void
+  onFileCreated?: (relativePath: string) => void
+  onFileModified?: (relativePath: string) => void
+  onVaultChanged?: () => void
+  onUnsupportedAiPaste?: (message: string) => void
+}) {
+  return (
+    <div className="editor flex flex-col min-h-0 overflow-hidden bg-background text-foreground">
+      <div className="flex flex-1 min-h-0">
+        {tabs.length === 0
+          ? <EditorEmptyState />
+          : <EditorContent
+              activeTab={activeTab}
+              isLoadingNewTab={isLoadingNewTab}
+              entries={entries}
+              editor={editor}
+              diffMode={diffMode}
+              diffContent={diffContent}
+              diffLoading={diffLoading}
+              onToggleDiff={handleToggleDiffExclusive}
+              rawMode={rawMode}
+              onToggleRaw={handleToggleRawExclusive}
+              onRawContentChange={onContentChange}
+              onSave={onSave}
+              activeStatus={activeStatus}
+              showDiffToggle={showDiffToggle}
+              showAIChat={showAIChat}
+              onToggleAIChat={onToggleAIChat}
+              inspectorCollapsed={inspectorCollapsed}
+              onToggleInspector={onToggleInspector}
+              onNavigateWikilink={onNavigateWikilink}
+              onEditorChange={handleEditorChange}
+              onToggleFavorite={onToggleFavorite}
+              onToggleOrganized={onToggleOrganized}
+              onDeleteNote={onDeleteNote}
+              onArchiveNote={onArchiveNote}
+              onUnarchiveNote={onUnarchiveNote}
+              vaultPath={vaultPath}
+              rawModeContent={rawModeContent}
+              rawLatestContentRef={rawLatestContentRef}
+              onRenameFilename={onRenameFilename}
+              noteLayout={noteLayout}
+              onToggleNoteLayout={onToggleNoteLayout}
+              isConflicted={isConflicted}
+              onKeepMine={onKeepMine}
+              onKeepTheirs={onKeepTheirs}
+            />
+        }
+        {(showAIChat || !inspectorCollapsed) && <ResizeHandle onResize={onInspectorResize} />}
+        <EditorRightPanel
+          showAIChat={showAIChat}
+          inspectorCollapsed={inspectorCollapsed}
+          inspectorWidth={inspectorWidth}
+          defaultAiAgent={defaultAiAgent}
+          defaultAiAgentReady={defaultAiAgentReady}
+          onUnsupportedAiPaste={onUnsupportedAiPaste}
+          inspectorEntry={inspectorEntry}
+          inspectorContent={inspectorContent}
+          entries={entries}
+          gitHistory={gitHistory}
+          vaultPath={vaultPath ?? ''}
+          noteList={noteList}
+          noteListFilter={noteListFilter}
+          onToggleInspector={onToggleInspector}
+          onToggleAIChat={onToggleAIChat}
+          onNavigateWikilink={onNavigateWikilink}
+          onViewCommitDiff={handleViewCommitDiff}
+          onUpdateFrontmatter={onUpdateFrontmatter}
+          onDeleteProperty={onDeleteProperty}
+          onAddProperty={onAddProperty}
+          onCreateMissingType={onCreateMissingType}
+          onCreateAndOpenNote={onCreateAndOpenNote}
+          onInitializeProperties={onInitializeProperties}
+          onToggleRawEditor={handleToggleRawExclusive}
+          onOpenNote={onNavigateWikilink}
+          onFileCreated={onFileCreated}
+          onFileModified={onFileModified}
+          onVaultChanged={onVaultChanged}
+        />
+      </div>
+    </div>
+  )
+}
+
+export const Editor = memo(function Editor(props: EditorProps) {
+  const {
+    tabs, activeTabPath, entries, onNavigateWikilink,
+    getNoteStatus,
+    inspectorCollapsed, onToggleInspector, inspectorWidth,
+    defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+    onUnsupportedAiPaste,
+    onInspectorResize,
+    inspectorEntry, inspectorContent, gitHistory,
+    onUpdateFrontmatter, onDeleteProperty, onAddProperty, onCreateMissingType, onCreateAndOpenNote, onInitializeProperties,
+    showAIChat, onToggleAIChat,
+    vaultPath, noteList, noteListFilter,
+    onToggleFavorite, onToggleOrganized, onDeleteNote, onArchiveNote, onUnarchiveNote,
+    onContentChange, onSave, onRenameFilename,
+    noteLayout, onToggleNoteLayout,
+    onFileCreated, onFileModified, onVaultChanged,
+    isConflicted, onKeepMine, onKeepTheirs,
+    flushPendingRawContentRef,
+  } = props
+
+  const {
+    editor, activeTab, rawLatestContentRef, rawModeContent,
+    rawMode, diffMode, diffContent, diffLoading,
+    handleToggleDiffExclusive, handleToggleRawExclusive,
+    handleEditorChange, handleViewCommitDiff,
+    isLoadingNewTab, activeStatus, showDiffToggle,
+  } = useEditorSetup({
+    tabs, activeTabPath, vaultPath, onContentChange,
+    onLoadDiff: props.onLoadDiff,
+    onLoadDiffAtCommit: props.onLoadDiffAtCommit,
+    pendingCommitDiffRequest: props.pendingCommitDiffRequest,
+    onPendingCommitDiffHandled: props.onPendingCommitDiffHandled,
+    getNoteStatus,
+    rawToggleRef: props.rawToggleRef, diffToggleRef: props.diffToggleRef,
+  })
+  useRegisterRawContentFlush({
+    activeTab,
+    rawLatestContentRef,
+    rawMode,
+    onContentChange,
+    flushPendingRawContentRef,
+  })
+
+  return (
+    <EditorLayout
+      tabs={tabs}
+      activeTab={activeTab}
+      isLoadingNewTab={isLoadingNewTab}
+      entries={entries}
+      editor={editor}
+      diffMode={diffMode}
+      diffContent={diffContent}
+      diffLoading={diffLoading}
+      handleToggleDiffExclusive={handleToggleDiffExclusive}
+      rawMode={rawMode}
+      handleToggleRawExclusive={handleToggleRawExclusive}
+      onContentChange={onContentChange}
+      onSave={onSave}
+      activeStatus={activeStatus}
+      showDiffToggle={showDiffToggle}
+      showAIChat={showAIChat}
+      onToggleAIChat={onToggleAIChat}
+      inspectorCollapsed={inspectorCollapsed}
+      onToggleInspector={onToggleInspector}
+      onNavigateWikilink={onNavigateWikilink}
+      handleEditorChange={handleEditorChange}
+      onToggleFavorite={onToggleFavorite}
+      onToggleOrganized={onToggleOrganized}
+      onDeleteNote={onDeleteNote}
+      onArchiveNote={onArchiveNote}
+      onUnarchiveNote={onUnarchiveNote}
+      vaultPath={vaultPath}
+      rawModeContent={rawModeContent}
+      rawLatestContentRef={rawLatestContentRef}
+      onRenameFilename={onRenameFilename}
+      noteLayout={noteLayout}
+      onToggleNoteLayout={onToggleNoteLayout}
+      isConflicted={isConflicted}
+      onKeepMine={onKeepMine}
+      onKeepTheirs={onKeepTheirs}
+      onInspectorResize={onInspectorResize}
+      inspectorWidth={inspectorWidth}
+      defaultAiAgent={defaultAiAgent}
+      defaultAiAgentReady={defaultAiAgentReady}
+      onUnsupportedAiPaste={onUnsupportedAiPaste}
+      inspectorEntry={inspectorEntry}
+      inspectorContent={inspectorContent}
+      gitHistory={gitHistory}
+      noteList={noteList}
+      noteListFilter={noteListFilter}
+      handleViewCommitDiff={handleViewCommitDiff}
+      onUpdateFrontmatter={onUpdateFrontmatter}
+      onDeleteProperty={onDeleteProperty}
+      onAddProperty={onAddProperty}
+      onCreateMissingType={onCreateMissingType}
+      onCreateAndOpenNote={onCreateAndOpenNote}
+      onInitializeProperties={onInitializeProperties}
+      onFileCreated={onFileCreated}
+      onFileModified={onFileModified}
+      onVaultChanged={onVaultChanged}
+    />
+  )
+})

@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Grimoire — Memory Stone</title>
+<style>
+  :root {
+    --bg: #F4F1EC;
+    --ink: #1a1d24;
+    --muted: #6b7280;
+    --line: rgba(15, 30, 70, 0.08);
+    --brand: #155DFF;
+  }
+
+  body.dark {
+    --bg: #0a0d14;
+    --ink: #e6e8ec;
+    --muted: #8d96a3;
+    --line: rgba(255, 255, 255, 0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                 "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    padding: 32px 48px 40px;
+    gap: 24px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  header h1 small {
+    color: var(--muted);
+    font-weight: 400;
+    margin-left: 8px;
+    font-size: 14px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  button {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.12s ease;
+  }
+  button:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+  button:active { transform: scale(0.97); }
+  button.primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: white;
+  }
+  button.primary:hover { background: #0c3fb5; }
+
+  /* ─── The stage ────────────────────────────────────────────────── */
+
+  .arena {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pedestal {
+    position: relative;
+    width: 460px;
+    height: 480px;
+    cursor: pointer;
+  }
+
+  /* Aura behind the stone — soft brand glow on the floor.
+     Pulses gently with idle, expands on bounce. */
+  .aura {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    width: 360px;
+    height: 220px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center bottom,
+      rgba(80, 120, 255, 0.28) 0%,
+      rgba(80, 120, 255, 0.1) 35%,
+      transparent 70%);
+    filter: blur(12px);
+    border-radius: 50%;
+    transform-origin: center bottom;
+    animation: aura-breathe 4s ease-in-out infinite;
+  }
+
+  /* Contact shadow — separate from aura, scales tightly with weight. */
+  .shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 60px;
+    width: 220px;
+    height: 22px;
+    transform: translateX(-50%) scaleX(0.9);
+    background: radial-gradient(ellipse at center,
+      rgba(8, 14, 40, 0.45) 0%,
+      rgba(8, 14, 40, 0.2) 40%,
+      transparent 70%);
+    filter: blur(6px);
+    border-radius: 50%;
+    transform-origin: center;
+    animation: shadow-breathe 3.6s ease-in-out infinite;
+  }
+
+  body.dark .shadow {
+    background: radial-gradient(ellipse at center,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.3) 40%,
+      transparent 70%);
+  }
+
+  .mark {
+    position: absolute;
+    left: 50%;
+    bottom: 80px;
+    width: 320px;
+    height: 360px;
+    transform: translateX(-50%);
+    transform-origin: 50% 100%;
+    will-change: transform;
+  }
+
+  .mark-inner {
+    width: 100%;
+    height: 100%;
+    transform-origin: 50% 100%;
+    animation: idle-breathe 3.6s ease-in-out infinite;
+  }
+
+  .mark-inner svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+
+  /* ─── Pixar bounce sequence ────────────────────────────────────── */
+
+  @keyframes pixar-intro {
+    0%   { transform: translate(-50%, -260%) scale(0.55, 1.45); opacity: 0; }
+    18%  { transform: translate(-50%, 0%)    scale(1.24, 0.68); opacity: 1; }
+    26%  { transform: translate(-50%, 2%)    scale(1.34, 0.60); }
+    42%  { transform: translate(-50%, -22%)  scale(0.84, 1.22); }
+    55%  { transform: translate(-50%, -28%)  scale(0.92, 1.10); }
+    70%  { transform: translate(-50%, 0%)    scale(1.14, 0.88); }
+    82%  { transform: translate(-50%, -6%)   scale(0.97, 1.04); }
+    92%  { transform: translate(-50%, 0%)    scale(1.02, 0.98); }
+    100% { transform: translate(-50%, 0%)    scale(1, 1); }
+  }
+
+  @keyframes pixar-hop {
+    0%   { transform: translate(-50%, 0)   scale(1, 1); }
+    14%  { transform: translate(-50%, 0)   scale(1.18, 0.78); }
+    36%  { transform: translate(-50%, -42%) scale(0.86, 1.18); }
+    50%  { transform: translate(-50%, -50%) scale(0.92, 1.10); }
+    72%  { transform: translate(-50%, 0)   scale(1.20, 0.74); }
+    86%  { transform: translate(-50%, -8%) scale(0.96, 1.06); }
+    100% { transform: translate(-50%, 0)   scale(1, 1); }
+  }
+
+  @keyframes pixar-squash {
+    0%   { transform: translate(-50%, 0) scale(1, 1); }
+    25%  { transform: translate(-50%, 0) scale(1.18, 0.78); }
+    55%  { transform: translate(-50%, -10%) scale(0.92, 1.10); }
+    80%  { transform: translate(-50%, 0) scale(1.04, 0.97); }
+    100% { transform: translate(-50%, 0) scale(1, 1); }
+  }
+
+  @keyframes idle-breathe {
+    0%, 100% { transform: scale(1, 1); }
+    50%      { transform: scale(1.022, 0.985); }
+  }
+
+  @keyframes shadow-intro {
+    0%  { transform: translateX(-50%) scaleX(0.4); opacity: 0; }
+    18% { transform: translateX(-50%) scaleX(1.2); opacity: 0.6; }
+    42% { transform: translateX(-50%) scaleX(0.5); opacity: 0.2; }
+    70% { transform: translateX(-50%) scaleX(1.1); opacity: 0.55; }
+    100%{ transform: translateX(-50%) scaleX(0.9); opacity: 0.45; }
+  }
+  @keyframes shadow-hop {
+    0%, 100% { transform: translateX(-50%) scaleX(0.9); opacity: 0.45; }
+    36% { transform: translateX(-50%) scaleX(0.5); opacity: 0.18; }
+    50% { transform: translateX(-50%) scaleX(0.4); opacity: 0.14; }
+    72% { transform: translateX(-50%) scaleX(1.22); opacity: 0.62; }
+  }
+  @keyframes shadow-squash {
+    0%, 100% { transform: translateX(-50%) scaleX(0.9); opacity: 0.45; }
+    25% { transform: translateX(-50%) scaleX(1.18); opacity: 0.58; }
+    55% { transform: translateX(-50%) scaleX(0.7); opacity: 0.3; }
+  }
+  @keyframes shadow-breathe {
+    0%, 100% { transform: translateX(-50%) scaleX(0.9); opacity: 0.45; }
+    50%      { transform: translateX(-50%) scaleX(0.86); opacity: 0.38; }
+  }
+
+  @keyframes aura-breathe {
+    0%, 100% { transform: translateX(-50%) scale(1, 1); opacity: 1; }
+    50%      { transform: translateX(-50%) scale(1.05, 0.96); opacity: 0.85; }
+  }
+
+  /* Trigger classes — bounce, shadow, aura all coupled. */
+  .play-intro .mark   { animation: pixar-intro 1.7s cubic-bezier(0.22, 1.0, 0.36, 1) both; }
+  .play-intro .shadow { animation: shadow-intro 1.7s cubic-bezier(0.22, 1.0, 0.36, 1) both,
+                                    shadow-breathe 3.6s ease-in-out 1.7s infinite; }
+
+  .play-hop .mark     { animation: pixar-hop 1.2s cubic-bezier(0.3, 1.2, 0.4, 1) both; }
+  .play-hop .shadow   { animation: shadow-hop 1.2s cubic-bezier(0.3, 1.2, 0.4, 1) both,
+                                    shadow-breathe 3.6s ease-in-out 1.2s infinite; }
+
+  .play-squash .mark  { animation: pixar-squash 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .play-squash .shadow{ animation: shadow-squash 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+                                    shadow-breathe 3.6s ease-in-out 0.55s infinite; }
+
+  /* ─── The mark itself — Memory Stone ───────────────────────────── */
+
+  .stone-body {
+    filter: drop-shadow(0 24px 36px rgba(15, 30, 70, 0.35));
+  }
+
+  /* The rune fades in AFTER the stone lands and settles —
+     the spell awakens. This is the Pixar charm beat. */
+  .rune-group {
+    opacity: 0;
+    animation: rune-wake 0.9s 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+               rune-pulse 3.8s ease-in-out 2.5s infinite;
+    transform-origin: 50% 50%;
+  }
+
+  .rune-stroke {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: rune-draw 0.7s 1.7s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  .rune-dot {
+    transform-origin: 168px 218px;
+    transform: scale(0);
+    animation: rune-dot-pop 0.4s 2.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes rune-wake {
+    0%   { opacity: 0; transform: scale(0.6); }
+    60%  { opacity: 1; transform: scale(1.15); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes rune-draw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes rune-dot-pop {
+    0%   { transform: scale(0); }
+    60%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+  @keyframes rune-pulse {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(180, 220, 255, 0.6))
+                        drop-shadow(0 0 8px rgba(120, 170, 255, 0.4)); }
+    50%      { filter: drop-shadow(0 0 8px rgba(180, 220, 255, 1))
+                        drop-shadow(0 0 16px rgba(120, 170, 255, 0.7)); }
+  }
+
+  /* When a bounce replays, restart the rune sequence too. */
+  .play-intro .rune-group  { animation: rune-wake 0.9s 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                                          rune-pulse 3.8s ease-in-out 2.5s infinite; }
+  .play-intro .rune-stroke { animation: rune-draw 0.7s 1.7s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+  .play-intro .rune-dot    { animation: rune-dot-pop 0.4s 2.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+  /* ─── Rationale strip ──────────────────────────────────────────── */
+
+  .rationale {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .rationale strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  footer kbd {
+    background: color-mix(in srgb, var(--ink) 8%, transparent);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <header>
+      <h1>Grimoire <small>direction · the Memory Stone</small></h1>
+      <div class="controls">
+        <button class="primary" onclick="play('intro')">Replay intro</button>
+        <button onclick="play('hop')">Big bounce</button>
+        <button onclick="play('squash')">Click squash</button>
+        <button onclick="document.body.classList.toggle('dark')">Toggle bg</button>
+      </div>
+    </header>
+
+    <main class="arena">
+      <div class="pedestal" id="pedestal" onclick="play('squash')">
+        <div class="aura"></div>
+        <div class="shadow"></div>
+        <div class="mark">
+          <div class="mark-inner">
+            <svg viewBox="0 0 320 360" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Stone body: deep indigo with a violet bias.
+                     Light source at top-left (radial center). -->
+                <radialGradient id="stoneGrad" cx="35%" cy="28%" r="78%">
+                  <stop offset="0%"  stop-color="#5470FF" />
+                  <stop offset="35%" stop-color="#1A2890" />
+                  <stop offset="78%" stop-color="#0A0E40" />
+                  <stop offset="100%" stop-color="#03051F" />
+                </radialGradient>
+                <!-- Glassy spec highlight at the upper-left curve. -->
+                <radialGradient id="stoneSpec" cx="32%" cy="22%" r="36%">
+                  <stop offset="0%"   stop-color="rgba(255, 255, 255, 0.65)" />
+                  <stop offset="60%"  stop-color="rgba(255, 255, 255, 0.05)" />
+                  <stop offset="100%" stop-color="rgba(255, 255, 255, 0)" />
+                </radialGradient>
+                <!-- Bottom rim light — bounces back from the floor aura. -->
+                <radialGradient id="stoneRim" cx="60%" cy="92%" r="42%">
+                  <stop offset="0%"   stop-color="rgba(120, 160, 255, 0.4)" />
+                  <stop offset="100%" stop-color="rgba(120, 160, 255, 0)" />
+                </radialGradient>
+                <!-- Rune color — soft cyan-white. -->
+                <linearGradient id="runeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"   stop-color="#E8F2FF" />
+                  <stop offset="100%" stop-color="#9DC2FF" />
+                </linearGradient>
+              </defs>
+
+              <!-- Stone silhouette: oblate, asymmetric (heavier on the right
+                   side, broader at top). Hand-tuned so it reads as a real
+                   river pebble, not a generic ellipse. -->
+              <path class="stone-body"
+                    d="M 38 168
+                       C 38 92, 102 38, 168 42
+                       C 240 46, 286 100, 282 178
+                       C 278 258, 222 312, 150 312
+                       C 76 312, 36 248, 38 168 Z"
+                    fill="url(#stoneGrad)" />
+
+              <!-- Bottom rim bounce light. Sits inside the silhouette. -->
+              <path d="M 38 168
+                       C 38 92, 102 38, 168 42
+                       C 240 46, 286 100, 282 178
+                       C 278 258, 222 312, 150 312
+                       C 76 312, 36 248, 38 168 Z"
+                    fill="url(#stoneRim)" />
+
+              <!-- Top-left specular sheen. -->
+              <ellipse cx="108" cy="100" rx="58" ry="28"
+                       transform="rotate(-26 108 100)"
+                       fill="url(#stoneSpec)" />
+
+              <!-- The rune. Etched into the stone face, glowing from within.
+                   A single confident curl that ends in a captured spark —
+                   "a thought caught." Not a letter, not a generic spiral. -->
+              <g class="rune-group">
+                <path class="rune-stroke"
+                      d="M 92 138
+                         C 78 174, 110 218, 152 208
+                         C 188 200, 196 168, 178 152
+                         C 162 138, 142 156, 152 174"
+                      fill="none"
+                      stroke="url(#runeGrad)"
+                      stroke-width="9"
+                      stroke-linecap="round"
+                      stroke-linejoin="round" />
+                <circle class="rune-dot" cx="168" cy="218" r="7"
+                        fill="#E8F2FF" />
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <p class="rationale">
+      Stones land. Glyphs awaken. The mark drops in with weight, settles —
+      then the rune draws itself on the face like a spell waking up.
+      <strong>This is what makes it Pixar:</strong> the rune doesn't move with the body.
+      It has its own beat, its own life. That's secondary action.
+    </p>
+
+    <footer>
+      Click the stone to squash · <kbd>R</kbd> replay · <kbd>B</kbd> bounce in place
+    </footer>
+  </div>
+
+  <script>
+    const pedestal = document.getElementById('pedestal');
+
+    function play(kind) {
+      pedestal.classList.remove('play-intro', 'play-hop', 'play-squash');
+      void pedestal.offsetWidth;
+      pedestal.classList.add('play-' + kind);
+      // Reset SVG-level draw animations so the rune redraws on every intro.
+      pedestal.querySelectorAll('.rune-stroke, .rune-dot, .rune-group').forEach((el) => {
+        el.style.animation = 'none';
+        void el.offsetWidth;
+        el.style.animation = '';
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') play('intro');
+      if (e.key === 'b' || e.key === 'B') play('hop');
+      if (e.key === 's' || e.key === 'S') play('squash');
+    });
+
+    requestAnimationFrame(() => play('intro'));
+  </script>
+</body>
+</html>

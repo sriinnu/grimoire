@@ -1,0 +1,5 @@
+export const GRIMOIRE_PRODUCT_BOARD_URL = 'https://grimoire.canny.io/'
+export const GRIMOIRE_GITHUB_DISCUSSIONS_URL = 'https://github.com/sriinnu/grimoire/discussions'
+export const GRIMOIRE_GITHUB_CONTRIBUTING_URL = 'https://github.com/sriinnu/grimoire/blob/main/CONTRIBUTING.md'
+export const GRIMOIRE_GITHUB_ISSUES_URL = 'https://github.com/sriinnu/grimoire/issues'
+export const GRIMOIRE_GITHUB_PULL_REQUESTS_URL = 'https://github.com/sriinnu/grimoire/pulls'

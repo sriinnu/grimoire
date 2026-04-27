@@ -1,0 +1,35 @@
+<svg width="860" height="340" viewBox="0 0 860 340" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="grimoire-logo-title grimoire-logo-desc">
+  <title id="grimoire-logo-title">Grimoire</title>
+  <desc id="grimoire-logo-desc">Grimoire wordmark with a connected knowledge-tree monogram.</desc>
+  <defs>
+    <filter id="logo-shadow" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#08231D" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <g transform="translate(302 6)" filter="url(#logo-shadow)">
+    <path d="M128 172V70" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M128 100C117 106 110 116 110 130V151" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M128 100C139 106 146 116 146 130V151" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M110 134C96 134 88 127 80 114L73 103" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M146 134C160 134 168 127 176 114L183 103" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M128 118C115 129 101 145 78 145H61" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M128 118C141 129 155 145 178 145H195" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M99 120V90" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M157 120V90" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M82 114H68" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <path d="M174 114H188" stroke="#102D25" stroke-width="7.5" stroke-linecap="round"/>
+    <circle cx="128" cy="64" r="13" fill="#FAF9F4" stroke="#102D25" stroke-width="7"/>
+    <circle cx="99" cy="84" r="11" fill="#FAF9F4" stroke="#102D25" stroke-width="6.5"/>
+    <circle cx="157" cy="84" r="11" fill="#FAF9F4" stroke="#102D25" stroke-width="6.5"/>
+    <circle cx="72" cy="101" r="10" fill="#FAF9F4" stroke="#102D25" stroke-width="6"/>
+    <circle cx="184" cy="101" r="10" fill="#FAF9F4" stroke="#102D25" stroke-width="6"/>
+    <circle cx="58" cy="145" r="12" fill="#FAF9F4" stroke="#102D25" stroke-width="6.5"/>
+    <circle cx="198" cy="145" r="12" fill="#FAF9F4" stroke="#102D25" stroke-width="6.5"/>
+    <text x="128" y="182" fill="#102D25" font-family="Georgia, 'Times New Roman', serif" font-size="66" font-weight="700" text-anchor="middle">G</text>
+    <path d="M88 190H168" stroke="#102D25" stroke-width="6.5" stroke-linecap="round"/>
+  </g>
+
+  <text x="430" y="266" fill="#102D25" font-family="Georgia, 'Times New Roman', serif" font-size="88" letter-spacing="13" text-anchor="middle">Grimoire</text>
+  <text x="430" y="316" fill="#102D25" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="600" letter-spacing="11" text-anchor="middle">KNOWLEDGE. CONNECTED.</text>
+</svg>
