@@ -16,6 +16,8 @@ const emptySettings: Settings = {
   anonymous_id: null,
   release_channel: null,
   theme_mode: null,
+  theme_preset: null,
+  editor_font: null,
   ui_language: null,
 }
 
@@ -102,6 +104,8 @@ describe('SettingsPanel', () => {
       autogit_inactive_threshold_seconds: 30,
       release_channel: null,
       theme_mode: 'light',
+      theme_preset: 'classic',
+      editor_font: 'system',
     }))
     expect(onClose).toHaveBeenCalled()
   })
@@ -182,6 +186,39 @@ describe('SettingsPanel', () => {
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       theme_mode: 'dark',
     }))
+  })
+
+  it('saves the selected theme preset and editor font', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByTestId('settings-theme-preset-manuscript'))
+    fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
+    fireEvent.click(screen.getByRole('option', { name: 'Serif' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      theme_preset: 'manuscript',
+      editor_font: 'serif',
+    }))
+  })
+
+  it('renders the appearance preview with the selected preset', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, theme_preset: 'graphite', editor_font: 'readable' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute(
+      'data-theme-preset-preview',
+      'graphite',
+    )
+    expect(screen.getByTestId('settings-editor-font')).toHaveAttribute('data-value', 'readable')
   })
 
   it('preserves a saved dark color mode until changed', () => {

@@ -414,7 +414,7 @@ The app uses internal app-owned light and dark themes (see [ADR-0081](adr/0081-i
 
 1. **Global CSS variables** (`src/index.css`): Semantic app colors, borders, surfaces, and interaction states. Bridged to Tailwind v4 via `@theme inline`.
 2. **Editor theme** (`src/theme.json`): BlockNote-specific typography. Flattened to CSS vars by `useEditorTheme`; editor colors resolve through the same semantic app variables.
-3. **Theme runtime**: Applies `data-theme` and the shadcn-compatible `.dark` class before React consumers render, with a localStorage mirror to avoid startup flash when dark mode is selected.
+3. **Appearance runtime** (`src/lib/appearance.ts`, `useAppearanceSettings`): Applies `data-theme`, `data-theme-preset`, `data-editor-font`, and the shadcn-compatible `.dark` class before React consumers render, with localStorage mirrors to avoid startup flash.
 
 ## Localization
 

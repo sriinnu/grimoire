@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import './index.css'
 import App from './App.tsx'
 import { LinuxTitlebar } from './components/LinuxTitlebar'
+import { applyStoredAppearance } from './lib/appearance'
 import { applyStoredThemeMode } from './lib/themeMode'
 import {
   APP_COMMAND_EVENT_NAME,
@@ -55,6 +56,7 @@ if (shouldUseLinuxWindowChrome()) {
 }
 
 applyStoredThemeMode(document, window.localStorage)
+applyStoredAppearance(document, window.localStorage)
 
 function dispatchDeterministicShortcutEvent(init: AppCommandShortcutEventInit) {
   const target =

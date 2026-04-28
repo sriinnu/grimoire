@@ -19,6 +19,8 @@ pub struct Settings {
     pub anonymous_id: Option<String>,
     pub release_channel: Option<String>,
     pub theme_mode: Option<String>,
+    pub theme_preset: Option<String>,
+    pub editor_font: Option<String>,
     pub ui_language: Option<String>,
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
@@ -59,6 +61,24 @@ pub fn normalize_default_ai_agent(value: Option<&str>) -> Option<String> {
 pub fn normalize_theme_mode(value: Option<&str>) -> Option<String> {
     match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
         Some(mode) if mode == "light" || mode == "dark" => Some(mode),
+        _ => None,
+    }
+}
+
+pub fn normalize_theme_preset(value: Option<&str>) -> Option<String> {
+    match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
+        Some(preset) if matches!(preset.as_str(), "classic" | "manuscript" | "graphite") => {
+            Some(preset)
+        }
+        _ => None,
+    }
+}
+
+pub fn normalize_editor_font(value: Option<&str>) -> Option<String> {
+    match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
+        Some(font) if matches!(font.as_str(), "system" | "serif" | "mono" | "readable") => {
+            Some(font)
+        }
         _ => None,
     }
 }
@@ -108,6 +128,8 @@ fn normalize_settings(settings: Settings) -> Settings {
         anonymous_id: normalize_optional_string(settings.anonymous_id),
         release_channel: normalize_release_channel(settings.release_channel.as_deref()),
         theme_mode: normalize_theme_mode(settings.theme_mode.as_deref()),
+        theme_preset: normalize_theme_preset(settings.theme_preset.as_deref()),
+        editor_font: normalize_editor_font(settings.editor_font.as_deref()),
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         initial_h1_auto_rename_enabled: settings.initial_h1_auto_rename_enabled,
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
@@ -257,6 +279,8 @@ mod tests {
             anonymous_id: Some("abc-123-uuid".to_string()),
             release_channel: Some("alpha".to_string()),
             theme_mode: Some("dark".to_string()),
+            theme_preset: Some("manuscript".to_string()),
+            editor_font: Some("serif".to_string()),
             ui_language: Some("zh-Hans".to_string()),
             initial_h1_auto_rename_enabled: Some(false),
             default_ai_agent: Some("codex".to_string()),
@@ -284,6 +308,8 @@ mod tests {
             auto_advance_inbox_after_organize: Some(true),
             release_channel: Some("alpha".to_string()),
             theme_mode: Some("dark".to_string()),
+            theme_preset: Some("manuscript".to_string()),
+            editor_font: Some("serif".to_string()),
             ui_language: Some("zh-Hans".to_string()),
             initial_h1_auto_rename_enabled: Some(false),
             default_ai_agent: Some("codex".to_string()),
@@ -296,6 +322,8 @@ mod tests {
         assert_eq!(loaded.auto_advance_inbox_after_organize, Some(true));
         assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
         assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
+        assert_eq!(loaded.theme_preset.as_deref(), Some("manuscript"));
+        assert_eq!(loaded.editor_font.as_deref(), Some("serif"));
         assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
         assert_eq!(loaded.initial_h1_auto_rename_enabled, Some(false));
         assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
@@ -307,6 +335,8 @@ mod tests {
             anonymous_id: Some("  test-uuid  ".to_string()),
             release_channel: Some("  alpha  ".to_string()),
             theme_mode: Some("  dark  ".to_string()),
+            theme_preset: Some("  graphite  ".to_string()),
+            editor_font: Some("  readable  ".to_string()),
             ui_language: Some("  zh-cn  ".to_string()),
             default_ai_agent: Some("  codex  ".to_string()),
             ..Default::default()
@@ -314,6 +344,8 @@ mod tests {
         assert_eq!(loaded.anonymous_id.as_deref(), Some("test-uuid"));
         assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
         assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
+        assert_eq!(loaded.theme_preset.as_deref(), Some("graphite"));
+        assert_eq!(loaded.editor_font.as_deref(), Some("readable"));
         assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
         assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
     }
@@ -363,6 +395,17 @@ mod tests {
             ..Default::default()
         });
         assert!(loaded.theme_mode.is_none());
+    }
+
+    #[test]
+    fn test_invalid_appearance_settings_are_filtered() {
+        let loaded = save_and_reload(Settings {
+            theme_preset: Some("neon".to_string()),
+            editor_font: Some("papyrus".to_string()),
+            ..Default::default()
+        });
+        assert!(loaded.theme_preset.is_none());
+        assert!(loaded.editor_font.is_none());
     }
 
     #[test]

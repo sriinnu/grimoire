@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { normalizeStoredAiAgent } from '../lib/aiAgents'
+import { normalizeEditorFont, normalizeThemePreset } from '../lib/appearance'
 import { serializeUiLanguagePreference } from '../lib/i18n'
 import { normalizeReleaseChannel, serializeReleaseChannel } from '../lib/releaseChannel'
 import { normalizeThemeMode } from '../lib/themeMode'
@@ -37,6 +38,8 @@ const EMPTY_SETTINGS: Settings = {
   anonymous_id: null,
   release_channel: null,
   theme_mode: null,
+  theme_preset: null,
+  editor_font: null,
   ui_language: null,
   default_ai_agent: null,
 }
@@ -48,6 +51,8 @@ function normalizeSettings(settings: Settings): Settings {
       normalizeReleaseChannel(settings.release_channel),
     ),
     theme_mode: normalizeThemeMode(settings.theme_mode),
+    theme_preset: normalizeThemePreset(settings.theme_preset),
+    editor_font: normalizeEditorFont(settings.editor_font),
     ui_language: serializeUiLanguagePreference(settings.ui_language),
     default_ai_agent: normalizeStoredAiAgent(settings.default_ai_agent),
   }

@@ -1,4 +1,5 @@
 import type { AiAgentId } from './lib/aiAgents'
+import type { EditorFont, ThemePreset } from './lib/appearance'
 import type { ThemeMode } from './lib/themeMode'
 import type { AppLocale } from './lib/i18n'
 
@@ -92,6 +93,8 @@ export interface Settings {
   anonymous_id: string | null
   release_channel: string | null
   theme_mode?: ThemeMode | null
+  theme_preset?: ThemePreset | null
+  editor_font?: EditorFont | null
   ui_language?: AppLocale | null
   initial_h1_auto_rename_enabled?: boolean | null
   default_ai_agent?: AiAgentId | null

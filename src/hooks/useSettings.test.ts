@@ -16,6 +16,8 @@ const defaultSettings: Settings = {
   anonymous_id: null,
   release_channel: null,
   theme_mode: null,
+  theme_preset: null,
+  editor_font: null,
   ui_language: null,
   default_ai_agent: null,
 }
@@ -32,6 +34,8 @@ const savedSettings: Settings = {
   anonymous_id: null,
   release_channel: null,
   theme_mode: null,
+  theme_preset: null,
+  editor_font: null,
   ui_language: null,
   default_ai_agent: null,
 }
@@ -81,6 +85,8 @@ function changedSettings(): Settings {
     anonymous_id: null,
     release_channel: null,
     theme_mode: null,
+    theme_preset: 'manuscript',
+    editor_font: 'serif',
     ui_language: 'zh-Hans',
     default_ai_agent: null,
   }

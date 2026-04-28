@@ -7,8 +7,11 @@
 
 :root {
   /* --- Font defaults --- */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  --grimoire-ui-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     Oxygen, Ubuntu, Cantarell, sans-serif;
+  --grimoire-editor-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --grimoire-mono-font-family: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+  font-family: var(--grimoire-ui-font-family);
   line-height: 1.5;
   font-weight: 400;
   font-size: 14px;
@@ -16,6 +19,18 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+[data-editor-font="serif"] {
+  --grimoire-editor-font-family: ui-serif, 'New York', 'Iowan Old Style', Georgia, serif;
+}
+
+[data-editor-font="mono"] {
+  --grimoire-editor-font-family: 'SF Mono', 'IBM Plex Mono', Menlo, ui-monospace, monospace;
+}
+
+[data-editor-font="readable"] {
+  --grimoire-editor-font-family: 'Atkinson Hyperlegible', 'Avenir Next', 'Inter', sans-serif;
 }
 
 :root,
@@ -313,6 +328,114 @@
   --link-hover: var(--accent-blue-hover);
 }
 
+[data-theme-preset="manuscript"][data-theme="light"] {
+  --surface-app: #FBFAF7;
+  --surface-sidebar: #EAF3EF;
+  --surface-panel: #FFFDF8;
+  --surface-card: #FFFDF8;
+  --surface-popover: #FFFDF8;
+  --surface-input: #FFFDF8;
+  --surface-editor: #FFFDF8;
+  --text-primary: #24332D;
+  --text-secondary: #60746C;
+  --text-heading: #182A24;
+  --border-default: #DCE7E1;
+  --border-subtle: #E8EFEA;
+  --border-strong: #C9D8D0;
+  --state-hover: #DFEAE5;
+  --state-hover-subtle: #EEF5F1;
+  --state-selected: #D9ECE6;
+  --state-selected-strong: #C4E0D7;
+  --accent-blue: #2C6F68;
+  --accent-blue-bg: rgba(44, 111, 104, 0.15);
+  --accent-blue-hover: #1F5A54;
+  --accent-blue-light: rgba(44, 111, 104, 0.12);
+  --accent-purple: #8663A7;
+  --accent-purple-light: rgba(134, 99, 167, 0.12);
+  --syntax-heading: #2C6F68;
+  --syntax-link: #2C6F68;
+}
+
+[data-theme-preset="manuscript"][data-theme="dark"] {
+  --surface-app: #191E1B;
+  --surface-sidebar: #121714;
+  --surface-panel: #1E2521;
+  --surface-card: #1E2521;
+  --surface-popover: #26302B;
+  --surface-input: #191E1B;
+  --surface-editor: #191E1B;
+  --text-primary: #E5EEE8;
+  --text-secondary: #B3C2BA;
+  --text-heading: #F2F8F4;
+  --border-default: #33413A;
+  --border-subtle: #26312C;
+  --border-strong: #46564F;
+  --state-hover: #26312C;
+  --state-hover-subtle: #202923;
+  --state-selected: #1D453F;
+  --state-selected-strong: #285B53;
+  --accent-blue: #85D0C2;
+  --accent-blue-bg: rgba(133, 208, 194, 0.18);
+  --accent-blue-hover: #A4E2D8;
+  --accent-blue-light: rgba(133, 208, 194, 0.14);
+  --accent-purple: #C8A8F0;
+  --accent-purple-light: rgba(200, 168, 240, 0.16);
+  --syntax-heading: #93D8CC;
+  --syntax-link: #93D8CC;
+}
+
+[data-theme-preset="graphite"][data-theme="light"] {
+  --surface-app: #F7F8FA;
+  --surface-sidebar: #E9EDF2;
+  --surface-panel: #FFFFFF;
+  --surface-card: #FFFFFF;
+  --surface-popover: #FFFFFF;
+  --surface-input: #FFFFFF;
+  --surface-editor: #FFFFFF;
+  --text-primary: #23272E;
+  --text-secondary: #68717D;
+  --text-heading: #171A1F;
+  --border-default: #D9DEE6;
+  --border-subtle: #E5E9EF;
+  --border-strong: #C5CCD6;
+  --state-hover: #E3E8EF;
+  --state-hover-subtle: #EEF2F6;
+  --state-selected: #DCE8F8;
+  --state-selected-strong: #CADCF4;
+  --accent-blue: #315D9D;
+  --accent-blue-bg: rgba(49, 93, 157, 0.14);
+  --accent-blue-hover: #244D86;
+  --accent-blue-light: rgba(49, 93, 157, 0.11);
+  --accent-orange: #B56B2C;
+  --accent-orange-light: rgba(181, 107, 44, 0.12);
+}
+
+[data-theme-preset="graphite"][data-theme="dark"] {
+  --surface-app: #17191D;
+  --surface-sidebar: #111318;
+  --surface-panel: #1D2026;
+  --surface-card: #1D2026;
+  --surface-popover: #252932;
+  --surface-input: #17191D;
+  --surface-editor: #17191D;
+  --text-primary: #E8ECF2;
+  --text-secondary: #AEB7C4;
+  --text-heading: #F6F8FB;
+  --border-default: #303640;
+  --border-subtle: #252A32;
+  --border-strong: #444B58;
+  --state-hover: #252A32;
+  --state-hover-subtle: #20242B;
+  --state-selected: #233756;
+  --state-selected-strong: #2B456A;
+  --accent-blue: #8AB4FF;
+  --accent-blue-bg: rgba(138, 180, 255, 0.18);
+  --accent-blue-hover: #A8C8FF;
+  --accent-blue-light: rgba(138, 180, 255, 0.14);
+  --accent-orange: #F0AA68;
+  --accent-orange-light: rgba(240, 170, 104, 0.15);
+}
+
 /* --- Tailwind v4 theme inline: register colors + radii --- */
 @theme inline {
   --color-background: var(--background);
@@ -389,14 +512,14 @@
 /* --- Label typography (Inter, sentence case) --- */
 /* t8: Section labels, metadata tags — 11px medium */
 .font-mono-label {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--grimoire-ui-font-family);
   font-size: 11px;
   font-weight: 500;
 }
 
 /* t9: Overlines, category labels — 10px regular */
 .font-mono-overline {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--grimoire-ui-font-family);
   font-size: 10px;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -445,7 +568,7 @@
 .ai-markdown li > ol { margin: 0.1em 0; }
 
 .ai-markdown code {
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: var(--grimoire-mono-font-family);
   font-size: 0.9em;
   background: var(--muted);
   border-radius: 3px;

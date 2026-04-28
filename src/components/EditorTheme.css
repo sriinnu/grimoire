@@ -5,7 +5,7 @@
 
 /* --- Editor root --- */
 .editor__blocknote-container .bn-editor {
-  font-family: var(--editor-font-family);
+  font-family: var(--grimoire-editor-font-family, var(--editor-font-family));
   font-size: var(--editor-font-size);
   line-height: var(--editor-line-height);
   max-width: var(--editor-max-width);
@@ -217,7 +217,7 @@
 
 /* --- Inline: code --- */
 .editor__blocknote-container .bn-inline-content code {
-  font-family: var(--inline-styles-code-font-family);
+  font-family: var(--grimoire-mono-font-family, var(--inline-styles-code-font-family));
   font-size: var(--inline-styles-code-font-size);
   background-color: var(--inline-styles-code-background-color);
   padding: var(--inline-styles-code-padding-vertical) var(--inline-styles-code-padding-horizontal);
