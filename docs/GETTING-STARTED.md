@@ -84,6 +84,8 @@ grimoire/
 │   │   ├── AiActionCard.tsx      # Agent tool action cards
 │   │   ├── AiAgentsOnboardingPrompt.tsx # First-launch AI agent installer prompt
 │   │   ├── SearchPanel.tsx       # Search interface
+│   │   ├── GraphModal.tsx        # Relationship/wikilink graph visualization
+│   │   ├── WeatherSnapshotDialog.tsx # Opt-in weather block insertion for notes
 │   │   ├── SettingsPanel.tsx     # App settings
 │   │   ├── StatusBar.tsx         # Bottom bar: vault picker + sync
 │   │   ├── CommandPalette.tsx    # Cmd+K command launcher
@@ -146,6 +148,8 @@ grimoire/
 │   │   ├── ai-chat.ts            # Token estimation utilities
 │   │   ├── ai-context.ts         # Context snapshot builder
 │   │   ├── noteListHelpers.ts    # Sorting, filtering, date formatting
+│   │   ├── noteGraph.ts          # Derived graph model for relationships and wikilinks
+│   │   ├── weatherSnapshot.ts    # Open-Meteo markdown weather snapshots
 │   │   ├── wikilink.ts           # Wikilink resolution
 │   │   ├── configMigration.ts    # localStorage → vault config migration
 │   │   ├── iconRegistry.ts       # Phosphor icon registry

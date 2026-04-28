@@ -2,7 +2,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { FeedbackDialog } from './FeedbackDialog'
 import {
-  REFACTORING_HOME_URL,
   GRIMOIRE_GITHUB_CONTRIBUTING_URL,
   GRIMOIRE_GITHUB_DISCUSSIONS_URL,
   GRIMOIRE_GITHUB_ISSUES_URL,
@@ -41,9 +40,9 @@ describe('FeedbackDialog', () => {
     expect(screen.getByText('Discussions')).toBeInTheDocument()
     expect(screen.getByText('Contribute code')).toBeInTheDocument()
     expect(screen.getByText('Report a bug')).toBeInTheDocument()
-    expect(screen.getByText(/Luca here .* newsletter for 170K\+ engineers/i)).toBeInTheDocument()
-    expect(screen.getByText(/private community of 2000\+ engineers/i)).toBeInTheDocument()
-    expect(screen.getByText(/Grimoire is FOSS and always will be/i)).toBeInTheDocument()
+    expect(screen.getByText(/Sriinu here/i)).toBeInTheDocument()
+    expect(screen.getByText(/no accounts, no subscriptions, no cloud lock-in/i)).toBeInTheDocument()
+    expect(screen.getByText(/It's FOSS and always will be/i)).toBeInTheDocument()
     expect(screen.getByText('Search on the board first, upvote existing ideas, and create new posts when genuinely new!')).toBeInTheDocument()
     expect(screen.getByText('Use Discussions for questions, conversations, show & tell, and community context.')).toBeInTheDocument()
     expect(screen.getByText('Small, focused PRs are welcome. Check the board first so you build the right things!')).toBeInTheDocument()
@@ -53,7 +52,7 @@ describe('FeedbackDialog', () => {
 
   it('focuses the primary CTA when opened', async () => {
     render(<FeedbackDialog open={true} onClose={vi.fn()} buildNumber="b281" releaseChannel={null} />)
-    const cta = screen.getByRole('button', { name: 'Check out Refactoring' })
+    const cta = screen.getByRole('button', { name: 'Star on GitHub' })
     await waitFor(() => expect(cta).toHaveFocus())
   })
 
@@ -61,14 +60,14 @@ describe('FeedbackDialog', () => {
     const onClose = vi.fn()
     render(<FeedbackDialog open={true} onClose={onClose} buildNumber="b281" releaseChannel={null} />)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Check out Refactoring' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Star on GitHub' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open Product Board' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open Discussions' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open Pull Requests' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open Contributing Guide' }))
     fireEvent.click(screen.getByRole('button', { name: 'Open GitHub Issues' }))
 
-    await waitFor(() => expect(openExternalUrl).toHaveBeenNthCalledWith(1, REFACTORING_HOME_URL))
+    await waitFor(() => expect(openExternalUrl).toHaveBeenNthCalledWith(1, 'https://github.com/sriinnu/grimoire'))
     expect(openExternalUrl).toHaveBeenNthCalledWith(2, GRIMOIRE_PRODUCT_BOARD_URL)
     expect(openExternalUrl).toHaveBeenNthCalledWith(3, GRIMOIRE_GITHUB_DISCUSSIONS_URL)
     expect(openExternalUrl).toHaveBeenNthCalledWith(4, GRIMOIRE_GITHUB_PULL_REQUESTS_URL)

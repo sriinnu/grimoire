@@ -22,6 +22,7 @@ interface NoteCommandsConfig {
   isFavorite?: boolean
   onToggleOrganized?: (path: string) => void
   isOrganized?: boolean
+  onInsertWeatherSnapshot?: () => void
   onRestoreDeletedNote?: () => void
   canRestoreDeletedNote?: boolean
 }
@@ -183,6 +184,13 @@ function buildRetargetingCommands(config: NoteCommandsConfig): CommandAction[] {
 
 function buildPresentationCommands(config: NoteCommandsConfig): CommandAction[] {
   return [
+    createNoteCommand({
+      id: 'insert-weather-snapshot',
+      label: 'Insert Weather Snapshot',
+      keywords: ['weather', 'journal', 'daily', 'location', 'temperature', 'forecast'],
+      enabled: config.hasActiveNote && !!config.onInsertWeatherSnapshot,
+      execute: () => config.onInsertWeatherSnapshot?.(),
+    }),
     createNoteCommand({
       id: 'remove-note-icon',
       label: 'Remove Note Icon',

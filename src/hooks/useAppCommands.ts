@@ -62,6 +62,7 @@ interface AppCommandsConfig {
   canAddRemote?: boolean
   onCreateType?: () => void
   onToggleAIChat?: () => void
+  onOpenGraph?: () => void
   onCheckForUpdates?: () => void
   onRemoveActiveVault?: () => void
   onRestoreGettingStarted?: () => void
@@ -96,6 +97,7 @@ interface AppCommandsConfig {
   onOpenInNewWindow?: () => void
   onToggleFavorite?: (path: string) => void
   onToggleOrganized?: (path: string) => void
+  onInsertWeatherSnapshot?: () => void
   onCustomizeNoteListColumns?: () => void
   canCustomizeNoteListColumns?: boolean
   noteListColumnsLabel?: string
@@ -145,6 +147,7 @@ type CommandRegistryCoreActions = Pick<
   | 'noteLayout'
   | 'onToggleNoteLayout'
   | 'onToggleAIChat'
+  | 'onOpenGraph'
 >
 type CommandRegistryVaultActions = Pick<
   CommandRegistryConfig,
@@ -193,6 +196,7 @@ type CommandRegistryNoteActions = Pick<
   | 'onSetNoteListFilter'
   | 'onToggleFavorite'
   | 'onToggleOrganized'
+  | 'onInsertWeatherSnapshot'
   | 'onCustomizeNoteListColumns'
   | 'canCustomizeNoteListColumns'
   | 'noteListColumnsLabel'
@@ -394,6 +398,7 @@ function createCommandRegistryCoreConfig(
     noteLayout: config.noteLayout,
     onToggleNoteLayout: config.onToggleNoteLayout,
     onToggleAIChat: config.onToggleAIChat,
+    onOpenGraph: config.onOpenGraph,
   }
 }
 
@@ -454,6 +459,7 @@ function createCommandRegistryNoteConfig(
     onSetNoteListFilter: config.onSetNoteListFilter,
     onToggleFavorite: config.onToggleFavorite,
     onToggleOrganized: config.onToggleOrganized,
+    onInsertWeatherSnapshot: config.onInsertWeatherSnapshot,
     onCustomizeNoteListColumns: config.onCustomizeNoteListColumns,
     canCustomizeNoteListColumns: config.canCustomizeNoteListColumns,
     noteListColumnsLabel: config.noteListColumnsLabel,

@@ -67,7 +67,7 @@ describe('openNoteWindow', () => {
     expect(webviewWindowCalls).toHaveBeenCalledWith(
       'note-1776182400000',
       expect.objectContaining({
-        url: '/?window=note&path=%2Fvault%2FFolder%2FMy+Note.md&vault=%2FUsers%2Fluca%2FGrimoire+Vault&title=AI+%2F+ML&windowLabel=note-1776182400000',
+        url: '/?window=note&path=%2Fvault%2FFolder%2FMy+Note.md&vault=%2FUsers%2Fsrinivas%2FGrimoire+Vault&title=AI+%2F+ML&windowLabel=note-1776182400000',
         title: 'AI / ML',
         width: 800,
         height: 700,

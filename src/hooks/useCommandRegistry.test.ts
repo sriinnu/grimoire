@@ -155,6 +155,40 @@ describe('useCommandRegistry', () => {
     expect(onSetNoteIcon).toHaveBeenCalled()
   })
 
+  it('opens the knowledge graph from the View group', () => {
+    const onOpenGraph = vi.fn()
+    const config = makeConfig({ onOpenGraph })
+    const { result } = renderHook(() => useCommandRegistry(config))
+    const cmd = findCommand(result.current, 'open-graph')
+
+    expect(cmd).toBeDefined()
+    expect(cmd!.group).toBe('View')
+    expect(cmd!.enabled).toBe(true)
+    expect(cmd!.keywords).toContain('graph')
+
+    cmd!.execute()
+    expect(onOpenGraph).toHaveBeenCalledOnce()
+  })
+
+  it('inserts a weather snapshot only when a note is active', () => {
+    const onInsertWeatherSnapshot = vi.fn()
+    const { result, rerender } = renderHook(
+      (props) => useCommandRegistry(props),
+      { initialProps: makeConfig({ onInsertWeatherSnapshot }) },
+    )
+
+    const cmd = findCommand(result.current, 'insert-weather-snapshot')
+    expect(cmd).toBeDefined()
+    expect(cmd!.group).toBe('Note')
+    expect(cmd!.enabled).toBe(true)
+
+    cmd!.execute()
+    expect(onInsertWeatherSnapshot).toHaveBeenCalledOnce()
+
+    rerender(makeConfig({ activeTabPath: null, onInsertWeatherSnapshot }))
+    expect(findCommand(result.current, 'insert-weather-snapshot')!.enabled).toBe(false)
+  })
+
   it('includes Change Note Type when the active note can be retargeted', () => {
     const onChangeNoteType = vi.fn()
     const config = makeConfig({ onChangeNoteType })

@@ -4,6 +4,12 @@ This is the north star document. It describes where Grimoire is going -- not qua
 
 The roadmap is organized into thematic sections. Items within each section are roughly ordered by impact -- the things that would transform daily use first, nice-to-haves later. Nothing is scheduled. Everything is direction.
 
+## Shipped foundations
+
+- **2026-04-28: Knowledge graph modal** -- Grimoire now has a command-palette graph view derived from frontmatter relationships and body wikilinks. This ships the first usable slice of the global/local graph direction while keeping the renderer capped for large vaults.
+- **2026-04-28: Weather snapshots for journal notes** -- Notes can opt into current weather context through `Insert Weather Snapshot`, stored as portable markdown using Open-Meteo. This is the first journal-context integration and should feed the daily cockpit/template-variable work later.
+- **2026-04-28: Appearance presets and font selection** -- The app now supports selectable visual presets and editor font choices, laying the base for the typography studio work.
+
 ---
 
 ## 1. Writing and Editing Experience

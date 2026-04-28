@@ -1003,20 +1003,20 @@ describe('person @mention autocomplete', () => {
 
   it('returns only Person entries for matching query', async () => {
     renderForMention()
-    const items = await getPersonItems!('Mat')
+    const items = await getPersonItems!('Kar')
     expect(items.length).toBe(1)
     expect(items[0].title).toBe('Karthik Reddy')
   })
 
   it('excludes non-Person entries', async () => {
     renderForMention()
-    const items = await getPersonItems!('Lap')
+    const items = await getPersonItems!('Gri')
     expect(items).toHaveLength(0)
   })
 
   it('works with single-character query', async () => {
     renderForMention()
-    const items = await getPersonItems!('M')
+    const items = await getPersonItems!('K')
     expect(items.length).toBeGreaterThan(0)
   })
 

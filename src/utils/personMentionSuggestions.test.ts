@@ -12,7 +12,7 @@ const items: WikilinkBaseItem[] = [
 
 describe('filterPersonMentions', () => {
   it('returns only Person entries matching query on title', () => {
-    const result = filterPersonMentions(items, 'mat')
+    const result = filterPersonMentions(items, 'kar')
     expect(result).toHaveLength(1)
     expect(result[0].title).toBe('Karthik Reddy')
   })
@@ -24,22 +24,22 @@ describe('filterPersonMentions', () => {
   })
 
   it('excludes non-Person entries even if they match the query', () => {
-    const result = filterPersonMentions(items, 'Lap')
+    const result = filterPersonMentions(items, 'gri')
     expect(result).toHaveLength(0)
   })
 
   it('is case-insensitive', () => {
-    const result = filterPersonMentions(items, 'MARIA')
+    const result = filterPersonMentions(items, 'MEERA')
     expect(result).toHaveLength(1)
     expect(result[0].title).toBe('Meera Krishnan')
   })
 
   it('returns multiple matches', () => {
-    const result = filterPersonMentions(items, 'ma')
+    const result = filterPersonMentions(items, 'ee')
     expect(result).toHaveLength(2)
     const titles = result.map(r => r.title)
-    expect(titles).toContain('Karthik Reddy')
     expect(titles).toContain('Meera Krishnan')
+    expect(titles).toContain('Deepti Singh')
   })
 
   it('returns empty for query shorter than minimum', () => {
@@ -49,8 +49,8 @@ describe('filterPersonMentions', () => {
 
   it('works with single-character query (min query is 1)', () => {
     expect(PERSON_MENTION_MIN_QUERY).toBe(1)
-    const result = filterPersonMentions(items, 'e')
-    expect(result).toHaveLength(2) // Karthik (alias) + Deepti
+    const result = filterPersonMentions(items, 'p')
+    expect(result).toHaveLength(1)
   })
 
   it('returns empty when no persons match', () => {
