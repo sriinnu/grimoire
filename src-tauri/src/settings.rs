@@ -5,6 +5,15 @@ use std::path::PathBuf;
 const APP_CONFIG_DIR: &str = "com.grimoire.app";
 const LEGACY_APP_CONFIG_DIR: &str = "com.tolaria.app";
 const LAPUTA_LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
+const THEME_PRESETS: &[&str] = &[
+    "classic",
+    "manuscript",
+    "graphite",
+    "studio",
+    "folio",
+    "nocturne",
+];
+const EDITOR_FONTS: &[&str] = &["system", "serif", "mono", "readable", "literary", "compact"];
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Settings {
@@ -66,21 +75,13 @@ pub fn normalize_theme_mode(value: Option<&str>) -> Option<String> {
 }
 
 pub fn normalize_theme_preset(value: Option<&str>) -> Option<String> {
-    match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
-        Some(preset) if matches!(preset.as_str(), "classic" | "manuscript" | "graphite") => {
-            Some(preset)
-        }
-        _ => None,
-    }
+    let preset = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    THEME_PRESETS.contains(&preset.as_str()).then_some(preset)
 }
 
 pub fn normalize_editor_font(value: Option<&str>) -> Option<String> {
-    match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
-        Some(font) if matches!(font.as_str(), "system" | "serif" | "mono" | "readable") => {
-            Some(font)
-        }
-        _ => None,
-    }
+    let font = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    EDITOR_FONTS.contains(&font.as_str()).then_some(font)
 }
 
 fn canonical_language_code(value: &str) -> Option<String> {
@@ -335,8 +336,8 @@ mod tests {
             anonymous_id: Some("  test-uuid  ".to_string()),
             release_channel: Some("  alpha  ".to_string()),
             theme_mode: Some("  dark  ".to_string()),
-            theme_preset: Some("  graphite  ".to_string()),
-            editor_font: Some("  readable  ".to_string()),
+            theme_preset: Some("  nocturne  ".to_string()),
+            editor_font: Some("  literary  ".to_string()),
             ui_language: Some("  zh-cn  ".to_string()),
             default_ai_agent: Some("  codex  ".to_string()),
             ..Default::default()
@@ -344,8 +345,8 @@ mod tests {
         assert_eq!(loaded.anonymous_id.as_deref(), Some("test-uuid"));
         assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
         assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
-        assert_eq!(loaded.theme_preset.as_deref(), Some("graphite"));
-        assert_eq!(loaded.editor_font.as_deref(), Some("readable"));
+        assert_eq!(loaded.theme_preset.as_deref(), Some("nocturne"));
+        assert_eq!(loaded.editor_font.as_deref(), Some("literary"));
         assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
         assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
     }
@@ -507,7 +508,11 @@ mod tests {
         assert!(result.is_ok());
         let path = result.unwrap();
         let path = path.to_str().unwrap();
-        assert!(path.contains("com.grimoire.app") || path.contains("com.tolaria.app") || path.contains("com.laputa.app"));
+        assert!(
+            path.contains("com.grimoire.app")
+                || path.contains("com.tolaria.app")
+                || path.contains("com.laputa.app")
+        );
     }
 
     #[test]

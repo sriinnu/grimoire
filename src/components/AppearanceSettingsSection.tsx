@@ -35,6 +35,9 @@ const PRESET_SWATCHES: Record<ThemePreset, [string, string, string]> = {
   classic: ['#FFFFFF', '#F7F6F3', '#155DFF'],
   manuscript: ['#FBFAF7', '#EAF3EF', '#2C6F68'],
   graphite: ['#F7F8FA', '#E9EDF2', '#315D9D'],
+  studio: ['#FEFEFD', '#EEF2F6', '#2F66D0'],
+  folio: ['#F9FAF6', '#EEF0E8', '#7C4D8D'],
+  nocturne: ['#141513', '#20251F', '#8FD6B8'],
 }
 
 const FONT_PREVIEW: Record<EditorFont, string> = {
@@ -42,6 +45,8 @@ const FONT_PREVIEW: Record<EditorFont, string> = {
   serif: "ui-serif, 'New York', 'Iowan Old Style', Georgia, serif",
   mono: "'SF Mono', 'IBM Plex Mono', Menlo, ui-monospace, monospace",
   readable: "'Atkinson Hyperlegible', 'Avenir Next', 'Inter', sans-serif",
+  literary: "ui-serif, 'New York', 'Hoefler Text', 'Iowan Old Style', Georgia, serif",
+  compact: "'Avenir Next Condensed', 'Arial Narrow', 'Inter', sans-serif",
 }
 
 /** Renders Grimoire's visual appearance controls and a compact live reading sample. */
@@ -99,6 +104,8 @@ export function AppearanceSettingsSection({
             <SelectItem value="serif">{t('settings.editorFont.serif')}</SelectItem>
             <SelectItem value="mono">{t('settings.editorFont.mono')}</SelectItem>
             <SelectItem value="readable">{t('settings.editorFont.readable')}</SelectItem>
+            <SelectItem value="literary">{t('settings.editorFont.literary')}</SelectItem>
+            <SelectItem value="compact">{t('settings.editorFont.compact')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -127,6 +134,24 @@ function buildPresetOptions(t: Translate): PresetOption[] {
       label: t('settings.themePreset.graphite'),
       description: t('settings.themePreset.graphiteDescription'),
       swatches: PRESET_SWATCHES.graphite,
+    },
+    {
+      value: 'studio',
+      label: t('settings.themePreset.studio'),
+      description: t('settings.themePreset.studioDescription'),
+      swatches: PRESET_SWATCHES.studio,
+    },
+    {
+      value: 'folio',
+      label: t('settings.themePreset.folio'),
+      description: t('settings.themePreset.folioDescription'),
+      swatches: PRESET_SWATCHES.folio,
+    },
+    {
+      value: 'nocturne',
+      label: t('settings.themePreset.nocturne'),
+      description: t('settings.themePreset.nocturneDescription'),
+      swatches: PRESET_SWATCHES.nocturne,
     },
   ]
 }

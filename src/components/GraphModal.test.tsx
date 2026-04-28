@@ -81,4 +81,35 @@ describe('GraphModal', () => {
     expect(screen.getByRole('button', { name: 'Open Beta' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Open Gamma' })).not.toBeInTheDocument()
   })
+
+  it('filters visible graph edges by kind', () => {
+    const alpha = entry({
+      filename: 'alpha.md',
+      title: 'Alpha',
+      outgoingLinks: ['Gamma'],
+      relationships: { relatedTo: ['Beta'] },
+    })
+    const beta = entry({ filename: 'beta.md', title: 'Beta' })
+    const gamma = entry({ filename: 'gamma.md', title: 'Gamma' })
+
+    render(
+      <GraphModal
+        open={true}
+        entries={[alpha, beta, gamma]}
+        activePath={alpha.path}
+        onOpenNote={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    const svg = screen.getByTestId('graph-svg')
+
+    expect(svg.querySelectorAll('line')).toHaveLength(2)
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Relations' }))
+
+    expect(svg.querySelectorAll('line')).toHaveLength(1)
+    expect(screen.getByText('1 relationships')).toBeInTheDocument()
+    expect(screen.getByText('1 wikilinks')).toBeInTheDocument()
+  })
 })

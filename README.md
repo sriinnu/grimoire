@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/grimoire-logo.svg" width="430" alt="Grimoire — Knowledge. Connected." />
+  <img src="docs/assets/grimoire-logo.svg" width="430" alt="Grimoire - Knowledge. Connected." />
 </p>
 
 <p align="center">
@@ -12,108 +12,99 @@
 
 # Grimoire
 
-Grimoire is a local-first desktop workspace for **markdown knowledge bases, journal systems, and AI-readable docs**. Think Notion-style organization without a hosted database: plain files, YAML frontmatter, wikilinks, git history, and a graph that shows how your notes connect.
+Grimoire is a local-first desktop workspace for markdown notes, journals, typed knowledge bases, and AI-readable project memory.
 
-People use it to:
-
-* Run personal journals, daily notes, and long-lived second brains
-* Organize company docs as durable context for AI agents
-* Build typed workspaces for projects, people, events, procedures, and decisions
-* Visualize relationships through the knowledge graph
-* Add opt-in context like current weather snapshots to journal notes
-* Store OpenClaw/assistant memory and operating procedures
+It is not trying to be Obsidian with another skin, and it is not trying to be Notion with local files. The useful shape is in between: plain markdown on disk, YAML frontmatter for structure, wikilinks for flow, a graph for sensemaking, Git for history, and local AI agents that can understand the vault without a hosted database.
 
 Grimoire is created and maintained by **Srinivas Pendela** ([@sriinnu](https://x.com/sriinnu)).
 
-Personally, I use it to **run my life**. I have a massive workspace of 10,000+ notes, built from years of research, writing, and personal journaling.
+## What It Is For
 
-<img width="1000" height="656" alt="1776506856823-CleanShot_2026-04-18_at_12 06 57_2x" src="" />
+- Daily journals, logs, and long-form personal notes
+- Project, person, event, procedure, responsibility, and topic workspaces
+- A Notion-like operating space without proprietary storage
+- A graph view over frontmatter relationships and body wikilinks
+- Markdown notes that can carry explicit context, such as opt-in weather snapshots
+- Local AI context for Claude Code, Codex CLI, and future agent integrations
+- Large vaults where speed, keyboard flow, and durability matter more than cloud collaboration
 
-## Walkthroughs
+## What Makes It Different
 
-You can find some Loom walkthroughs below — they are short and to the point:
-- [How I Organize My Own Grimoire Workspace](https://www.loom.com/share/bb3aaffa238b4be0bd62e4464bca2528)
-- [My Inbox Workflow](https://www.loom.com/share/dffda263317b4fa8b47b59cdf9330571)
-- [How I Save Web Resources to Grimoire](https://www.loom.com/share/8a3c1776f801402ebbf4d7b0f31e9882)
+**Files stay the source of truth.** Notes are markdown files in your vault. The app can be deleted and the vault still makes sense.
 
-## Principles
+**Structure is readable.** Types, relationships, status, icons, colors, and views are plain frontmatter or vault-local config. Humans and AI agents can inspect the same structure.
 
-- 📑 **Files-first** — Your notes are plain markdown files. They're portable, work with any editor, and require no export step. Your data belongs to you, not to any app.
-- 🔌 **Git-first** — Every vault is a git repository. You get full version history, the ability to use any git remote, and zero dependency on Grimoire servers.
-- 🛜 **Offline-first, zero lock-in** — No accounts, no subscriptions, no cloud dependencies. Your vault works completely offline and always will. If you stop using Grimoire, you lose nothing.
-- 🔬 **Open source** — Grimoire is free and open source. I built this for [myself](https://x.com/sriinnu) and for sharing it with others.
-- 📋 **Standards-based** — Notes are markdown files with YAML frontmatter. No proprietary formats, no locked-in data. Everything works with standard tools if you decide to move away from Grimoire.
-- 🕸️ **Graph-native** — Relationships and wikilinks are treated as first-class connections, so the same vault can be read as documents, a journal, a Notion-like workspace, or a knowledge graph.
-- 🔍 **Types as lenses, not schemas** — Types in Grimoire are navigation aids, not enforcement mechanisms. There's no required fields, no validation, just helpful categories for finding notes.
-- 🪄**AI-first but not AI-only** — A vault of files works very well with AI agents, but you are free to use whatever you want. We support Claude Code and Codex CLI (for now), but you can edit the vault with any AI you want. We provide an AGENTS file for your agents to figure out.
-- ⌨️ **Keyboard-first** — Grimoire is designed for power-users who want to use keyboard as much as possible. A lot of how we designed the Editor and the Command Palette is based on this.
-- 🌤️ **Context when you ask for it** — Journal notes can include explicit weather snapshots powered by Open-Meteo, but Grimoire only inserts them when you choose the command.
-- 💪 **Built from real use** — Grimoire was created to manage my personal vault of 10,000+ notes, and I use it every day. Every feature exists because it solved a real problem.
+**The graph is part of the product.** Relationships and wikilinks are not decorative backlinks. They are rendered as a typed graph, filterable by scope and edge kind.
 
-## Getting started
+**The editor respects markdown.** Rich editing, raw CodeMirror editing, math, wikilinks, code blocks, and YAML frontmatter all preserve markdown as the durable document model.
 
-Download the [latest release here](https://github.com/sriinnu/grimoire/releases/latest/download/Grimoire.app.tar.gz).
+**AI is local by default.** Grimoire integrates with local CLI agents and MCP. It does not require vault content to live on a Grimoire server.
 
-When you open Grimoire for the first time you get the chance of cloning the [getting started vault](https://github.com/sriinnu/grimoire-getting-started) — which gives you a walkthrough of the whole app.
+**The UI is meant to feel native.** The current app is Tauri + React. The product direction includes a native macOS SwiftUI/AppKit surface where that gives better text editing, menus, file watching, QuickLook, or system integration.
 
-## Open source and local setup
+## Current Product Surface
 
-Grimoire is open source and built with Tauri, React, and TypeScript. If you want to run or contribute to the app locally, here is [how to get started](https://github.com/sriinnu/grimoire/blob/main/docs/GETTING-STARTED.md). You can also find the gist below 👇
+- Local vault opening, onboarding, and Getting Started vault cloning
+- Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
+- Note list search, custom columns, sorting, saved views, and Neighborhood mode
+- BlockNote rich editor with markdown-compatible math, wikilinks, code blocks, formatting, and raw CodeMirror mode
+- Inspector for frontmatter, relationships, backlinks, instances, note metadata, and git history
+- Knowledge graph with local/vault scope, relationship/wikilink edge filters, type-colored nodes, and large-vault caps
+- Weather snapshot command for journal entries using explicit user-provided location
+- Claude Code and Codex CLI agent panel with MCP vault tooling
+- Git history, commit/push/pull/conflict flows, and non-git vault support
+- Light/dark mode, multiple theme presets, and editor font choices
+- English and Simplified Chinese UI foundations
 
-### Prerequisites
+## Getting Started
+
+Download the latest release:
+
+[Grimoire.app.tar.gz](https://github.com/sriinnu/grimoire/releases/latest/download/Grimoire.app.tar.gz)
+
+On first launch, Grimoire can clone the Getting Started vault:
+
+https://github.com/sriinnu/grimoire-getting-started
+
+That vault is the fastest way to learn the workflows without risking your own notes.
+
+## Local Development
+
+Prerequisites:
 
 - Node.js 20+
 - pnpm 8+
 - Rust stable
 - macOS or Linux for development
 
-#### Linux system dependencies
-
-Tauri 2 on Linux requires WebKit2GTK 4.1 and GTK 3:
-
-- Arch / Manjaro:
-  ```bash
-  sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl \
-    appmenu-gtk-module libappindicator-gtk3 librsvg
-  ```
-- Debian / Ubuntu (22.04+):
-  ```bash
-  sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
-    libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev \
-    libsoup-3.0-dev patchelf
-  ```
-- Fedora 38+:
-  ```bash
-  sudo dnf install webkit2gtk4.1-devel openssl-devel curl wget file \
-    libappindicator-gtk3-devel librsvg2-devel
-  ```
-
-The bundled MCP server still spawns the system `node` binary at runtime on Linux, so install Node from your distro package manager if you want the external AI tooling flow.
-
-### Quick start
+Install and run browser mock mode:
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open `http://localhost:5173` for the browser-based mock mode, or run the native desktop app with:
+Run the native desktop app:
 
 ```bash
 pnpm tauri dev
 ```
 
-## Tech Docs
+Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
 
-- 📐 [ARCHITECTURE.md](docs/ARCHITECTURE.md) — System design, tech stack, data flow
-- 🧩 [ABSTRACTIONS.md](docs/ABSTRACTIONS.md) — Core abstractions and models
-- 🚀 [GETTING-STARTED.md](docs/GETTING-STARTED.md) — How to navigate the codebase
-- 📚 [ADRs](docs/adr) — Architecture Decision Records
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) - runtime shape, platform boundaries, data flow
+- [Abstractions](docs/ABSTRACTIONS.md) - durable concepts and module contracts
+- [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map
+- [Vision](docs/VISION.md) - product direction
+- [Enhancements](ENHANCEMENTS.md) - prioritized roadmap and research tracks
+- [ADRs](docs/adr) - historical architecture decisions
 
 ## Security
 
-If you believe you have found a security issue, please report it privately as described in [SECURITY.md](./SECURITY.md).
+Report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
-Grimoire is licensed under AGPL-3.0-or-later. The Grimoire name and logo remain covered by the project’s trademark policy.
+Grimoire is licensed under AGPL-3.0-or-later. The Grimoire name and logo remain covered by the project's trademark policy.
