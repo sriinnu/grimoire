@@ -288,7 +288,8 @@ grimoire/
 
 | File | Why it matters |
 |------|---------------|
-| `src/index.css` | Semantic CSS custom properties for app-owned light/dark themes. |
+| `src/index.css` | Semantic CSS custom properties for app-owned light/dark themes, presets, and editor font choices. |
+| `src/lib/appearance.ts` | Normalizes and applies local appearance preferences before React renders. |
 | `src/theme.json` | Editor-specific typography theme (fonts, headings, lists, code blocks). |
 
 ### Settings & Config
@@ -406,7 +407,8 @@ BASE_URL="http://localhost:5173" npx playwright test tests/smoke/<slug>.spec.ts
 ### Modify styling
 
 1. **Global app/theme variables**: Edit `src/index.css`
-2. **Editor typography**: Edit `src/theme.json`
+2. **Appearance presets and app fonts**: Edit `src/index.css` and `src/lib/appearance.ts`
+3. **Editor typography scale**: Edit `src/theme.json`
 
 ### Work with the AI agent
 

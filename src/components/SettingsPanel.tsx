@@ -15,7 +15,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from 'react'
-import { Moon, Sun, X } from '@phosphor-icons/react'
+import { X } from '@phosphor-icons/react'
 import type { Settings } from '../types'
 import {
   SYSTEM_UI_LANGUAGE,
@@ -31,8 +31,15 @@ import {
   readStoredThemeMode,
   type ThemeMode,
 } from '../lib/themeMode'
+import {
+  resolveEditorFont,
+  resolveThemePreset,
+  type EditorFont,
+  type ThemePreset,
+} from '../lib/appearance'
 import { normalizeReleaseChannel, serializeReleaseChannel, type ReleaseChannel } from '../lib/releaseChannel'
 import { trackEvent } from '../lib/telemetry'
+import { AppearanceSettingsSection } from './AppearanceSettingsSection'
 import { Button } from './ui/button'
 import { Checkbox, type CheckedState } from './ui/checkbox'
 import { Input } from './ui/input'
@@ -67,6 +74,8 @@ interface SettingsDraft {
   defaultAiAgent: AiAgentId
   releaseChannel: ReleaseChannel
   themeMode: ThemeMode
+  themePreset: ThemePreset
+  editorFont: EditorFont
   uiLanguage: UiLanguagePreference
   initialH1AutoRename: boolean
   crashReporting: boolean
@@ -94,6 +103,10 @@ interface SettingsBodyProps {
   setReleaseChannel: (value: ReleaseChannel) => void
   themeMode: ThemeMode
   setThemeMode: (value: ThemeMode) => void
+  themePreset: ThemePreset
+  setThemePreset: (value: ThemePreset) => void
+  editorFont: EditorFont
+  setEditorFont: (value: EditorFont) => void
   uiLanguage: UiLanguagePreference
   setUiLanguage: (value: UiLanguagePreference) => void
   locale: AppLocale
@@ -136,6 +149,8 @@ function createSettingsDraft(
     defaultAiAgent: resolveDefaultAiAgent(settings.default_ai_agent),
     releaseChannel: normalizeReleaseChannel(settings.release_channel),
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
+    themePreset: resolveThemePreset(settings.theme_preset),
+    editorFont: resolveEditorFont(settings.editor_font),
     uiLanguage: settings.ui_language ?? SYSTEM_UI_LANGUAGE,
     initialH1AutoRename: settings.initial_h1_auto_rename_enabled ?? true,
     crashReporting: settings.crash_reporting_enabled ?? false,
@@ -176,6 +191,8 @@ function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft): Setti
     anonymous_id: resolveAnonymousId(settings, draft),
     release_channel: serializeReleaseChannel(draft.releaseChannel),
     theme_mode: draft.themeMode,
+    theme_preset: draft.themePreset,
+    editor_font: draft.editorFont,
     ui_language: serializeUiLanguagePreference(draft.uiLanguage),
     initial_h1_auto_rename_enabled: draft.initialH1AutoRename,
     default_ai_agent: draft.defaultAiAgent,
@@ -333,6 +350,10 @@ function SettingsPanelInner({
           setReleaseChannel={(value) => updateDraft('releaseChannel', value)}
           themeMode={draft.themeMode}
           setThemeMode={(value) => updateDraft('themeMode', value)}
+          themePreset={draft.themePreset}
+          setThemePreset={(value) => updateDraft('themePreset', value)}
+          editorFont={draft.editorFont}
+          setEditorFont={(value) => updateDraft('editorFont', value)}
           uiLanguage={draft.uiLanguage}
           setUiLanguage={(value) => updateDraft('uiLanguage', value)}
           initialH1AutoRename={draft.initialH1AutoRename}
@@ -392,6 +413,10 @@ function SettingsBody({
   setReleaseChannel,
   themeMode,
   setThemeMode,
+  themePreset,
+  setThemePreset,
+  editorFont,
+  setEditorFont,
   uiLanguage,
   setUiLanguage,
   initialH1AutoRename,
@@ -433,6 +458,10 @@ function SettingsBody({
           t={t}
           themeMode={themeMode}
           setThemeMode={setThemeMode}
+          themePreset={themePreset}
+          setThemePreset={setThemePreset}
+          editorFont={editorFont}
+          setEditorFont={setEditorFont}
         />
       </SettingsSection>
 
@@ -523,84 +552,6 @@ function SyncAndUpdatesSection({
         testId="settings-release-channel"
       />
     </>
-  )
-}
-
-function AppearanceSettingsSection({
-  t,
-  themeMode,
-  setThemeMode,
-}: Pick<SettingsBodyProps, 't' | 'themeMode' | 'setThemeMode'>) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.appearance.title')}
-        description={t('settings.appearance.description')}
-      />
-
-      <ThemeModeControl value={themeMode} onChange={setThemeMode} t={t} />
-    </>
-  )
-}
-
-function ThemeModeControl({
-  value,
-  onChange,
-  t,
-}: {
-  value: ThemeMode
-  onChange: (value: ThemeMode) => void
-  t: Translate
-}) {
-  return (
-    <div
-      className="inline-flex w-full rounded-md border border-border bg-muted p-1"
-      role="radiogroup"
-      aria-label={t('settings.theme.label')}
-      data-testid="settings-theme-mode"
-    >
-      <ThemeModeButton label={t('settings.theme.light')} selected={value === 'light'} value="light" onSelect={onChange}>
-        <Sun size={14} />
-      </ThemeModeButton>
-      <ThemeModeButton label={t('settings.theme.dark')} selected={value === 'dark'} value="dark" onSelect={onChange}>
-        <Moon size={14} />
-      </ThemeModeButton>
-    </div>
-  )
-}
-
-function ThemeModeButton({
-  children,
-  label,
-  selected,
-  value,
-  onSelect,
-}: {
-  children: ReactNode
-  label: string
-  selected: boolean
-  value: ThemeMode
-  onSelect: (value: ThemeMode) => void
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      role="radio"
-      aria-checked={selected}
-      aria-label={label}
-      data-testid={`settings-theme-${value}`}
-      className={
-        selected
-          ? 'h-7 flex-1 border border-border bg-background text-foreground shadow-xs hover:bg-background'
-          : 'h-7 flex-1 text-muted-foreground hover:text-foreground'
-      }
-      onClick={() => onSelect(value)}
-    >
-      {children}
-      {label}
-    </Button>
   )
 }
 

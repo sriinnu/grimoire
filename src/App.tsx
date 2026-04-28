@@ -32,7 +32,7 @@ import { useVaultLoader } from './hooks/useVaultLoader'
 import { useAiAgentPreferences } from './hooks/useAiAgentPreferences'
 import { useSettings } from './hooks/useSettings'
 import { useDocumentThemeMode } from './hooks/useDocumentThemeMode'
-import { useThemeMode } from './hooks/useThemeMode'
+import { useAppearanceSettings } from './hooks/useAppearanceSettings'
 import { useNoteActions } from './hooks/useNoteActions'
 import { planNewTypeCreation } from './hooks/useNoteCreation'
 import { useCommitFlow } from './hooks/useCommitFlow'
@@ -394,7 +394,12 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = appLocale
   }, [appLocale])
-  useThemeMode(settings.theme_mode, settingsLoaded)
+  useAppearanceSettings({
+    themeMode: settings.theme_mode,
+    themePreset: settings.theme_preset,
+    editorFont: settings.editor_font,
+    loaded: settingsLoaded,
+  })
   const documentThemeMode = useDocumentThemeMode()
   const handleToggleThemeMode = useCallback(() => {
     const theme_mode = documentThemeMode === 'dark' ? 'light' : 'dark'
