@@ -12,39 +12,37 @@
 
 # Grimoire
 
-Grimoire is a local-first desktop workspace for markdown notes, journals, typed knowledge bases, and AI-readable project memory.
+Grimoire is a local-first memory workspace for journals, project thinking, graph navigation, and AI collaborators.
 
-It is not trying to be Obsidian with another skin, and it is not trying to be Notion with local files. The useful shape is in between: plain markdown on disk, YAML frontmatter for structure, wikilinks for flow, a graph for sensemaking, Git for history, and local AI agents that can understand the vault without a hosted database.
+The core idea is simple: your notes stay as markdown files, but the app gives them enough shape to become a living operating space. A day note can hold weather and mood. A project note can connect people, decisions, meetings, and code. The graph can show what surrounds the current thought. Local agents can read the same structure without needing a hosted database.
 
 Grimoire is created and maintained by **Srinivas Pendela** ([@sriinnu](https://x.com/sriinnu)).
 
-## What It Is For
+## Product Spine
 
-- Daily journals, logs, and long-form personal notes
-- Project, person, event, procedure, responsibility, and topic workspaces
-- A Notion-like operating space without proprietary storage
-- A graph view over frontmatter relationships and body wikilinks
-- Markdown notes that can carry explicit context, such as opt-in weather snapshots
-- Local AI context for Claude Code, Codex CLI, and future agent integrations
-- Large vaults where speed, keyboard flow, and durability matter more than cloud collaboration
+Grimoire is built around five surfaces:
 
-## What Makes It Different
+- **Journal**: daily capture, long-form reflection, weather/context snapshots, and review flows.
+- **Workbench**: projects, people, procedures, decisions, sources, and typed notes.
+- **Graph**: local neighborhood first, whole-vault map when needed, with relationship-aware filters.
+- **Memory**: Git history, backlinks, frontmatter, and agent-readable structure.
+- **Native studio**: theme, typography, motion, and macOS behavior treated as product quality, not decoration.
 
-**Files stay the source of truth.** Notes are markdown files in your vault. The app can be deleted and the vault still makes sense.
+## What Makes Grimoire Different
 
-**Structure is readable.** Types, relationships, status, icons, colors, and views are plain frontmatter or vault-local config. Humans and AI agents can inspect the same structure.
+**The journal is not an afterthought.** Grimoire treats daily notes, weather, time context, reviews, and life logs as first-class knowledge, not loose text beside the "real" database.
 
-**The graph is part of the product.** Relationships and wikilinks are not decorative backlinks. They are rendered as a typed graph, filterable by scope and edge kind.
+**The graph starts from the active thought.** The first graph view is the neighborhood around what you are touching now. Whole-vault mode exists, but the product bias is sensemaking, not drawing a pretty hairball.
 
-**The editor respects markdown.** Rich editing, raw CodeMirror editing, math, wikilinks, code blocks, and YAML frontmatter all preserve markdown as the durable document model.
+**Agents read the same world you do.** Frontmatter, wikilinks, relationships, files, and Git history are meant to be legible to local AI tools without turning the vault into a black-box database.
 
-**AI is local by default.** Grimoire integrates with local CLI agents and MCP. It does not require vault content to live on a Grimoire server.
+**Markdown remains the contract.** Rich editing, raw editing, math, wikilinks, code blocks, YAML, images, and future exports must preserve understandable markdown.
 
-**The UI is meant to feel native.** The current app is Tauri + React. The product direction includes a native macOS SwiftUI/AppKit surface where that gives better text editing, menus, file watching, QuickLook, or system integration.
+**The app should feel crafted.** Themes, typography, spacing, animation, graph rendering, keyboard flow, and native macOS behavior are part of the core promise.
 
-## Current Product Surface
+## Current Status
 
-- Local vault opening, onboarding, and Getting Started vault cloning
+- Local vault opening, onboarding, and starter vault cloning
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
 - Note list search, custom columns, sorting, saved views, and Neighborhood mode
 - BlockNote rich editor with markdown-compatible math, wikilinks, code blocks, formatting, and raw CodeMirror mode
@@ -55,6 +53,15 @@ Grimoire is created and maintained by **Srinivas Pendela** ([@sriinnu](https://x
 - Git history, commit/push/pull/conflict flows, and non-git vault support
 - Light/dark mode, multiple theme presets, and editor font choices
 - English and Simplified Chinese UI foundations
+
+## Next Product Bets
+
+- Editor find/replace with a real command contract across rich, raw, and native menus
+- Daily notes, templates, weather/time context, and weekly/monthly review surfaces
+- Graph clustering, pinned nodes, minimap, incoming-link filters, and semantic suggestions
+- Vault image previews, file actions, QuickLook, and better drag/drop behavior
+- Theme studio with UI font, heading font, monospace font, line height, editor width, contrast, and motion controls
+- Native macOS exploration with SwiftUI/AppKit where text editing, menus, windows, and file watching are better than WKWebView
 
 ## Getting Started
 
@@ -98,6 +105,7 @@ Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-ST
 - [Abstractions](docs/ABSTRACTIONS.md) - durable concepts and module contracts
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map
 - [Vision](docs/VISION.md) - product direction
+- [Differentiation](docs/GRIMOIRE-DIFFERENTIATION.md) - how Grimoire stays its own product
 - [Enhancements](ENHANCEMENTS.md) - prioritized roadmap and research tracks
 - [ADRs](docs/adr) - historical architecture decisions
 
