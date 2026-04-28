@@ -31,10 +31,12 @@ function makeStorage(initial: Record<string, string> = {}): Storage {
 describe('appearance', () => {
   it('normalizes only supported appearance values', () => {
     expect(normalizeThemePreset('manuscript')).toBe('manuscript')
+    expect(normalizeThemePreset('nocturne')).toBe('nocturne')
     expect(normalizeThemePreset('neon')).toBeNull()
     expect(resolveThemePreset('neon')).toBe(DEFAULT_THEME_PRESET)
 
     expect(normalizeEditorFont('serif')).toBe('serif')
+    expect(normalizeEditorFont('literary')).toBe('literary')
     expect(normalizeEditorFont('papyrus')).toBeNull()
     expect(resolveEditorFont('papyrus')).toBe(DEFAULT_EDITOR_FONT)
   })
