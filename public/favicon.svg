@@ -1,37 +1,30 @@
 <svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="grimoire-favicon-title">
   <title id="grimoire-favicon-title">Grimoire</title>
   <defs>
-    <linearGradient id="favicon-bg" x1="48" y1="28" x2="216" y2="234" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1A4A3D"/>
-      <stop offset="0.58" stop-color="#10362C"/>
-      <stop offset="1" stop-color="#09231D"/>
+    <linearGradient id="grimoire-favicon-bg" x1="42" y1="24" x2="220" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#17463E"/>
+      <stop offset="0.56" stop-color="#0E302B"/>
+      <stop offset="1" stop-color="#081B18"/>
     </linearGradient>
-    <radialGradient id="favicon-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(92 62) rotate(50) scale(142 122)">
-      <stop stop-color="#FFFFFF" stop-opacity="0.18"/>
-      <stop offset="0.55" stop-color="#FFFFFF" stop-opacity="0.04"/>
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
+    <linearGradient id="grimoire-favicon-left" x1="63" y1="70" x2="131" y2="190" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8DF"/>
+      <stop offset="1" stop-color="#E8D9AA"/>
+    </linearGradient>
+    <linearGradient id="grimoire-favicon-right" x1="193" y1="70" x2="125" y2="190" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8DF"/>
+      <stop offset="1" stop-color="#E8D9AA"/>
+    </linearGradient>
   </defs>
-  <rect x="16" y="16" width="224" height="224" rx="50" fill="url(#favicon-bg)"/>
-  <rect x="16" y="16" width="224" height="224" rx="50" fill="url(#favicon-glow)"/>
-  <path d="M128 172V70" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M128 100C117 106 110 116 110 130V151" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M128 100C139 106 146 116 146 130V151" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M110 134C96 134 88 127 80 114L73 103" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M146 134C160 134 168 127 176 114L183 103" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M128 118C115 129 101 145 78 145H61" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M128 118C141 129 155 145 178 145H195" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M99 120V90" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M157 120V90" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M82 114H68" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <path d="M174 114H188" stroke="#F7F4EA" stroke-width="7.5" stroke-linecap="round"/>
-  <circle cx="128" cy="64" r="13" fill="#10362C" stroke="#F7F4EA" stroke-width="7"/>
-  <circle cx="99" cy="84" r="11" fill="#10362C" stroke="#F7F4EA" stroke-width="6.5"/>
-  <circle cx="157" cy="84" r="11" fill="#10362C" stroke="#F7F4EA" stroke-width="6.5"/>
-  <circle cx="72" cy="101" r="10" fill="#10362C" stroke="#F7F4EA" stroke-width="6"/>
-  <circle cx="184" cy="101" r="10" fill="#10362C" stroke="#F7F4EA" stroke-width="6"/>
-  <circle cx="58" cy="145" r="12" fill="#10362C" stroke="#F7F4EA" stroke-width="6.5"/>
-  <circle cx="198" cy="145" r="12" fill="#10362C" stroke="#F7F4EA" stroke-width="6.5"/>
-  <text x="128" y="182" fill="#F7F4EA" font-family="Georgia, 'Times New Roman', serif" font-size="66" font-weight="700" text-anchor="middle">G</text>
-  <path d="M88 190H168" stroke="#F7F4EA" stroke-width="6.5" stroke-linecap="round"/>
+
+  <rect x="14" y="14" width="228" height="228" rx="54" fill="url(#grimoire-favicon-bg)"/>
+  <path d="M64 78C84 65 105 64 128 78V188C105 171 86 170 64 185V78Z" fill="url(#grimoire-favicon-left)"/>
+  <path d="M192 78C172 65 151 64 128 78V188C151 171 170 170 192 185V78Z" fill="url(#grimoire-favicon-right)"/>
+  <path d="M128 78V188" stroke="#7B6235" stroke-opacity="0.48" stroke-width="3" stroke-linecap="round"/>
+  <path d="M78 95C94 89 108 90 120 97" stroke="#7B6235" stroke-opacity="0.42" stroke-width="3" stroke-linecap="round"/>
+  <path d="M78 119C94 113 108 114 120 121" stroke="#7B6235" stroke-opacity="0.34" stroke-width="3" stroke-linecap="round"/>
+  <path d="M141 99L166 86L181 111L158 134L142 122" stroke="#0E302B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="141" cy="99" r="8" fill="#0E302B" stroke="#F6E5A9" stroke-width="4"/>
+  <circle cx="166" cy="86" r="7" fill="#CDAA55" stroke="#FFF4CC" stroke-width="3.5"/>
+  <circle cx="181" cy="111" r="7" fill="#CDAA55" stroke="#FFF4CC" stroke-width="3.5"/>
+  <circle cx="158" cy="134" r="8" fill="#0E302B" stroke="#F6E5A9" stroke-width="4"/>
 </svg>

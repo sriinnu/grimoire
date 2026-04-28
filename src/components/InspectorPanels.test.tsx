@@ -71,7 +71,7 @@ describe('DynamicRelationshipsPanel', () => {
     {
       name: 'applies type color via typeEntryMap',
       entry: { path: '/vault/people/sriinu.md', filename: 'sriinu.md', title: 'Sriinu', isA: 'Person' as const },
-      ref: '[[Luca]]', key: 'Owner', tMap: typeEntryMap, expectedColor: 'var(--accent-yellow)',
+      ref: '[[Sriinu]]', key: 'Owner', tMap: typeEntryMap, expectedColor: 'var(--accent-yellow)',
     },
     {
       name: 'resolves by title when filename differs',
@@ -144,7 +144,7 @@ describe('DynamicRelationshipsPanel', () => {
     render(
       <DynamicRelationshipsPanel
         typeEntryMap={{}}
-        frontmatter={{ Owner: '[[person/luca]]' }}
+        frontmatter={{ Owner: '[[person/sriinu]]' }}
         entries={[makeEntry({ path: '/vault/person/sriinu.md', filename: 'sriinu.md', title: 'Sriinu', isA: 'Person' })]  }
         onNavigate={onNavigate}
       />

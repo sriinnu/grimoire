@@ -12,11 +12,16 @@
 
 # Grimoire
 
-Grimoire is a desktop app for Mac and Linux for managing **markdown knowledge bases**. People use it for a variety of use cases:
+Grimoire is a local-first desktop workspace for **markdown knowledge bases, journal systems, and AI-readable docs**. Think Notion-style organization without a hosted database: plain files, YAML frontmatter, wikilinks, git history, and a graph that shows how your notes connect.
 
-* Operate second brains and personal knowledge
-* Organize company docs as context for AI
-* Store removed/assistants memory and procedures
+People use it to:
+
+* Run personal journals, daily notes, and long-lived second brains
+* Organize company docs as durable context for AI agents
+* Build typed workspaces for projects, people, events, procedures, and decisions
+* Visualize relationships through the knowledge graph
+* Add opt-in context like current weather snapshots to journal notes
+* Store removed/assistant memory and operating procedures
 
 Grimoire is created and maintained by **Srinivas Pendela** ([@sriinnu](https://x.com/sriinnu)).
 
@@ -38,10 +43,12 @@ You can find some Loom walkthroughs below — they are short and to the point:
 - 🛜 **Offline-first, zero lock-in** — No accounts, no subscriptions, no cloud dependencies. Your vault works completely offline and always will. If you stop using Grimoire, you lose nothing.
 - 🔬 **Open source** — Grimoire is free and open source. I built this for [myself](https://x.com/sriinnu) and for sharing it with others.
 - 📋 **Standards-based** — Notes are markdown files with YAML frontmatter. No proprietary formats, no locked-in data. Everything works with standard tools if you decide to move away from Grimoire.
+- 🕸️ **Graph-native** — Relationships and wikilinks are treated as first-class connections, so the same vault can be read as documents, a journal, a Notion-like workspace, or a knowledge graph.
 - 🔍 **Types as lenses, not schemas** — Types in Grimoire are navigation aids, not enforcement mechanisms. There's no required fields, no validation, just helpful categories for finding notes.
 - 🪄**AI-first but not AI-only** — A vault of files works very well with AI agents, but you are free to use whatever you want. We support Claude Code and Codex CLI (for now), but you can edit the vault with any AI you want. We provide an AGENTS file for your agents to figure out.
 - ⌨️ **Keyboard-first** — Grimoire is designed for power-users who want to use keyboard as much as possible. A lot of how we designed the Editor and the Command Palette is based on this.
-- 💪 **Built from real use** — Grimoire was created for manage my personal vault of 10,000+ notes, and I use it every day. Every feature exists because it solved a real problem.
+- 🌤️ **Context when you ask for it** — Journal notes can include explicit weather snapshots powered by Open-Meteo, but Grimoire only inserts them when you choose the command.
+- 💪 **Built from real use** — Grimoire was created to manage my personal vault of 10,000+ notes, and I use it every day. Every feature exists because it solved a real problem.
 
 ## Getting started
 

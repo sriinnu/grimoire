@@ -20,6 +20,8 @@ import { AiAgentsOnboardingPrompt } from './components/AiAgentsOnboardingPrompt'
 import { TelemetryConsentDialog } from './components/TelemetryConsentDialog'
 import { FeedbackDialog } from './components/FeedbackDialog'
 import { McpSetupDialog } from './components/McpSetupDialog'
+import { GraphModal } from './components/GraphModal'
+import { WeatherSnapshotDialog } from './components/WeatherSnapshotDialog'
 import { NoteRetargetingDialogs } from './components/note-retargeting/NoteRetargetingDialogs'
 import { NoteRetargetingProvider } from './components/note-retargeting/noteRetargetingContext'
 import { useTelemetry } from './hooks/useTelemetry'
@@ -104,6 +106,7 @@ import {
 import { extractDeletedContentFromDiff } from './components/note-list/noteListUtils'
 import { hasNoteIconValue } from './utils/noteIcon'
 import { filenameStemToTitle } from './utils/noteTitle'
+import { appendMarkdownBlock } from './utils/weatherSnapshot'
 import {
   focusNoteListContainer,
   isEditableElement,
@@ -244,9 +247,15 @@ function App() {
   const { showAIChat, toggleAIChat } = dialogs
   const [showFeedback, setShowFeedback] = useState(false)
   const [showMcpSetupDialog, setShowMcpSetupDialog] = useState(false)
+  const [showGraphModal, setShowGraphModal] = useState(false)
+  const [showWeatherSnapshotDialog, setShowWeatherSnapshotDialog] = useState(false)
   const [mcpDialogAction, setMcpDialogAction] = useState<'connect' | 'disconnect' | null>(null)
   const openFeedback = useCallback(() => setShowFeedback(true), [])
   const closeFeedback = useCallback(() => setShowFeedback(false), [])
+  const openGraphModal = useCallback(() => setShowGraphModal(true), [])
+  const closeGraphModal = useCallback(() => setShowGraphModal(false), [])
+  const openWeatherSnapshotDialog = useCallback(() => setShowWeatherSnapshotDialog(true), [])
+  const closeWeatherSnapshotDialog = useCallback(() => setShowWeatherSnapshotDialog(false), [])
   const networkStatus = useNetworkStatus()
 
   useEffect(() => {
@@ -903,6 +912,21 @@ function App() {
     handleAppContentChange(path, content)
   }, [handleAppContentChange, recordAutoGitActivity])
 
+  const handleInsertWeatherSnapshot = useCallback((markdown: string) => {
+    const activePath = notes.activeTabPath
+    const activeTab = activePath
+      ? notes.tabs.find((tab) => tab.entry.path === activePath)
+      : null
+
+    if (!activePath || !activeTab) {
+      setToastMessage('Open a note before adding weather')
+      return
+    }
+
+    handleTrackedContentChange(activePath, appendMarkdownBlock(activeTab.content, markdown))
+    setToastMessage('Weather added to note')
+  }, [handleTrackedContentChange, notes.activeTabPath, notes.tabs, setToastMessage])
+
   const handleTrackedSave = useCallback(async (...args: Parameters<typeof handleAppSave>) => {
     const result = await handleAppSave(...args)
     recordAutoGitActivity()
@@ -1206,6 +1230,9 @@ function App() {
     || dialogs.showCreateViewDialog
     || noteRetargetingUi.isDialogOpen
     || showFeedback
+    || showMcpSetupDialog
+    || showGraphModal
+    || showWeatherSnapshotDialog
   )
 
   useEffect(() => {
@@ -1301,6 +1328,14 @@ function App() {
     () => activeDeletedFile ? () => { void handleDiscardFile(activeDeletedFile.relativePath) } : undefined,
     [activeDeletedFile, handleDiscardFile],
   )
+  const insertWeatherSnapshotCommand = useMemo(
+    () => activeDeletedFile ? undefined : openWeatherSnapshotDialog,
+    [activeDeletedFile, openWeatherSnapshotDialog],
+  )
+  const handleOpenGraphNote = useCallback((entry: VaultEntry) => {
+    void handleSelectNote(entry)
+    setShowGraphModal(false)
+  }, [handleSelectNote])
 
   const commands = useAppCommands({
     activeTabPath: notes.activeTabPath, activeTabPathRef: notes.activeTabPathRef,
@@ -1326,6 +1361,7 @@ function App() {
     onToggleInspector: handleToggleInspector,
     onToggleDiff: toggleDiffCommand,
     onToggleRawEditor: toggleRawEditorCommand,
+    onOpenGraph: openGraphModal,
     noteLayout,
     onToggleNoteLayout: toggleNoteLayout,
     onZoomIn: zoom.zoomIn, onZoomOut: zoom.zoomOut, onZoomReset: zoom.zoomReset,
@@ -1374,6 +1410,7 @@ function App() {
     onOpenInNewWindow: handleOpenInNewWindow,
     onToggleFavorite: entryActions.handleToggleFavorite,
     onToggleOrganized: toggleOrganizedCommand,
+    onInsertWeatherSnapshot: insertWeatherSnapshotCommand,
     onCustomizeNoteListColumns: handleCustomizeNoteListColumns,
     canCustomizeNoteListColumns,
     noteListColumnsLabel,
@@ -1572,6 +1609,8 @@ function App() {
           onClose={dialogs.closeCommandPalette}
         />
         <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} entries={vault.entries} onSelectNote={notes.handleSelectNote} onClose={dialogs.closeSearch} />
+        <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
+        <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <CreateTypeDialog open={dialogs.showCreateTypeDialog} onClose={dialogs.closeCreateType} onCreate={handleCreateType} />
         <NoteRetargetingDialogs
           dialogState={noteRetargetingUi.dialogState}

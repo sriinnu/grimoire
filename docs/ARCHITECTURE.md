@@ -119,10 +119,12 @@ flowchart TD
             IN["Inspector\n(metadata + relationships)"]
             AIP["AiPanel\n(selected CLI agent + tools)"]
             SP["SearchPanel\n(keyword search)"]
+            KG["GraphModal\n(relationship graph)"]
+            WD["WeatherSnapshotDialog\n(opt-in journal context)"]
             ST["StatusBar\n(vault picker + sync + version)"]
             CP["CommandPalette\n(Cmd+K launcher)"]
 
-            App --> WS & SB & NL & ED & SP & ST & CP
+            App --> WS & SB & NL & ED & SP & KG & WD & ST & CP
             ED --> IN & AIP
         end
 
@@ -141,9 +143,11 @@ flowchart TD
             MCP["MCP Server\n(ws://9710, 9711)"]
             GCLI["git CLI\n(system executable)"]
             REMOTE["Git remotes\n(GitHub/GitLab/Gitea/etc.)"]
+            OM["Open-Meteo\n(weather + geocoding)"]
         end
 
         FE -->|"Tauri IPC"| RB
+        WD -->|"explicit user action"| OM
         CLI -->|"spawn subprocess"| CCLI
         LIB -->|"register / monitor"| MCP
         GIT -->|"clone / fetch / push / pull"| GCLI
@@ -189,6 +193,12 @@ The main Tauri window derives its minimum width from the visible panes instead o
 
 Linux uses custom React-rendered window chrome instead of the native Tauri menu bar. `setup_linux_window_chrome()` drops server-side decorations on the main window, `openNoteInNewWindow()` does the same for detached note windows, and `LinuxTitlebar`/`LinuxMenuButton` route both window controls and menu actions back through the same shared command pipeline that macOS uses for native menu clicks.
 When Grimoire is launched from a Linux AppImage, `run()` also injects `WEBKIT_DISABLE_DMABUF_RENDERER=1` unless the user already set that variable. This keeps the workaround scoped to bundled WebKitGTK launches that are prone to Fedora/Wayland DMA-BUF crashes without changing native package installs.
+
+## Knowledge Graph And Journal Context
+
+`GraphModal` builds an in-memory graph from the existing `VaultEntry.relationships` and `VaultEntry.outgoingLinks` fields. Frontmatter relationships and body wikilinks are rendered as distinct edge kinds, and the modal opens notes through the same selection path as the note list. Large vaults are capped to a focused visible subset so a 10k-note workspace does not flood the SVG renderer.
+
+`WeatherSnapshotDialog` is an explicit note command, not a background integration. When the user chooses `Insert Weather Snapshot`, the renderer geocodes the requested location with Open-Meteo, fetches current conditions, and appends a markdown callout block to the active note through the normal editor content-change pipeline. No location is read automatically and no weather request runs unless the user asks for it.
 
 ## Multi-Window (Note Windows)
 

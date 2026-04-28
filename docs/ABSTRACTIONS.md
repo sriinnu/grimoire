@@ -135,6 +135,46 @@ interface VaultEntry {
 }
 ```
 
+### NoteGraph
+
+`NoteGraph` is the renderer-side projection used by `GraphModal`. It does not introduce a second storage model; it is derived from `VaultEntry[]` every time the graph opens.
+
+```typescript
+interface NoteGraphNode {
+  id: string
+  path: string
+  title: string
+  type: string
+  degree: number
+  active: boolean
+}
+
+interface NoteGraphEdge {
+  id: string
+  source: string
+  target: string
+  label: string
+  kind: 'relationship' | 'body-link'
+}
+```
+
+- `relationship` edges come from frontmatter fields captured in `VaultEntry.relationships`
+- `body-link` edges come from body `[[wikilinks]]` captured in `VaultEntry.outgoingLinks`
+- Targets resolve through the same wikilink resolver used elsewhere, including aliases and path suffixes
+
+### Weather Snapshot Blocks
+
+Weather snapshots are plain markdown callouts appended to the active note. They are intentionally content, not hidden metadata:
+
+```markdown
+> [!weather] Weather - Vienna, Vienna, Austria
+> Partly cloudy, 18°C (feels 18°C)
+> Humidity 61% · Wind 8.2 km/h · Precip 0.00 mm
+> Captured 2026-04-28T09:00. Source: Open-Meteo.
+```
+
+This keeps journal context portable across Grimoire, raw editors, git diffs, static exports, and future mobile/native clients.
+
 ### Entity Types (isA / type)
 
 Entity type is stored in the `type:` frontmatter field (e.g. `type: Quarter`). The legacy field name `Is A:` is still accepted as an alias for backwards compatibility but new notes use `type:`. The `VaultEntry.isA` property in TypeScript/Rust holds the resolved value.
