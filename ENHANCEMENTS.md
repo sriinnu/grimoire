@@ -1,6 +1,16 @@
 # Enhancements
 
-This is the working roadmap. It folds in current Grimoire needs plus lessons from the local `.tmp` reference repos without turning Grimoire into a copy of either project.
+This is the working roadmap. It folds in current Grimoire needs plus lessons from the local `.tmp` reference repos without turning Grimoire into a renamed reference app.
+
+## Grimoire-Only Product Bets
+
+These are the features that make the app ours:
+
+- **Journal operating layer**: daily notes, templates, weather, time, mood, location, reviews, and timeline.
+- **Graph as working memory**: active-neighborhood default, pinned trails, clusters, minimap, incoming/outgoing filters, semantic overlay.
+- **Agent memory packs**: active note, selected files, graph neighborhood, Git history, and explicit write audit.
+- **Theme studio**: typography, density, contrast, motion, graph readability, and reduced-motion controls.
+- **Native macOS track**: SwiftUI/AppKit where text editing, menus, file watching, QuickLook, and packaging deserve native behavior.
 
 ## Already Landed Locally
 
@@ -13,8 +23,23 @@ This is the working roadmap. It folds in current Grimoire needs plus lessons fro
 - Appearance presets: Classic, Manuscript, Graphite, Studio, Folio, Nocturne
 - Editor font choices: System, Serif, Mono, Readable, Literary, Compact
 - Rust settings sanitizer support for the appearance contract
+- Product differentiation doc: `docs/GRIMOIRE-DIFFERENTIATION.md`
 
 ## Ship Next
+
+### Grimoire Journal Layer
+
+Goal: make Grimoire excellent as a daily memory system, not just a place to store markdown files.
+
+- Daily note command and templates
+- Optional weather snapshot per note
+- Optional time, location, mood, and energy blocks
+- Weekly and monthly review views
+- Timeline view over dated notes and Git history
+- Natural date filters for saved views
+- Journal graph mode that shows days, people, projects, and decisions around a time period
+
+This is a Grimoire signature track. Do not treat it as generic "daily notes" checkbox work.
 
 ### Editor Find And Replace
 
@@ -57,7 +82,7 @@ Goal: make Grimoire feel like a real local file app.
 
 ### Graph 2
 
-Goal: make the graph useful for navigation, not decorative.
+Goal: make the graph useful for navigation and memory, not decorative.
 
 - Cluster by type and relationship family
 - Add type and edge legends with toggles
@@ -65,28 +90,20 @@ Goal: make the graph useful for navigation, not decorative.
 - Add backlinks/incoming-only filters
 - Add search result path from graph to note list
 - Add graph minimap for larger vaults
+- Add time-window graph mode for journal and review workflows
+- Add graph trails so exploration can be retraced
 - Add semantic related-note suggestions as an optional layer
-
-### Journal Workflows
-
-Goal: make Grimoire excellent as a daily journal without becoming a calendar clone.
-
-- Daily note command and templates
-- Optional weather snapshot per note
-- Optional calendar/time context block
-- Mood/energy/status frontmatter helpers
-- Weekly and monthly review views
-- Timeline view over dated notes and Git history
-- Natural date filters for saved views
 
 ### Theme And Typography Studio
 
-Goal: make the app visually calm, adjustable, and polished.
+Goal: make the app visually calm, adjustable, and polished without becoming a palette toy.
 
 - Theme preview should show editor, sidebar, graph, command palette, and code block surfaces
 - Add high-contrast and OLED-safe variants
 - Add per-vault display preferences where they describe the content
 - Add UI font, heading font, monospace font, editor width, line height, and paragraph spacing controls
+- Add density presets for focused writing, dashboard review, and compact operations
+- Add graph-specific color and motion tokens
 - Keep all themes token-based
 - Verify contrast and reduced-motion behavior
 
@@ -105,12 +122,14 @@ Reference lesson: Chops and Clearly both show places where native macOS pays off
 
 ## AI And MCP
 
-Goal: agents should understand and operate on the vault safely.
+Goal: agents should understand and operate on the vault safely, with Grimoire context instead of generic chat history.
 
 - Generic MCP config support
 - Better Codex and Claude CLI detection on macOS/Linux/Windows
 - Per-agent capability display
 - Agent context packs for active note, neighborhood, graph, and selected files
+- Journal context packs for daily/weekly review
+- Project context packs that include decisions, people, procedures, and recent Git history
 - Tool-call audit trail
 - Safer write confirmation for multi-file agent edits
 - Preserve composed AI input
@@ -164,3 +183,4 @@ Goal: improve the codebase while adding features.
 - Per-vault theme packs
 - Published read-only vault sites
 - Mobile/iPad read and capture surface
+- Timeline model for journal, project, and Git memory

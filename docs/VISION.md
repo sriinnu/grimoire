@@ -4,7 +4,7 @@ Grimoire is a local operating system for thought.
 
 Not a notes clone. Not a database clone. Not an AI chat wrapper.
 
-The durable core is simple: markdown files, readable structure, relationships, graph navigation, Git history, and local agents that can understand the same workspace the user sees.
+The durable core is simple: markdown files, readable structure, relationships, journal context, graph navigation, Git history, and local agents that can understand the same workspace the user sees.
 
 ## The Bet
 
@@ -13,12 +13,24 @@ People do not need another place to dump text. They need a system that can hold 
 Grimoire should make a vault feel like:
 
 - a journal when you are reflecting
-- a project workspace when you are executing
+- a workbench when you are executing
 - a graph when you are exploring
-- a docs site when you are explaining
+- a studio when you are shaping ideas into output
 - a memory system when you are working with AI
 
 Same files. Different lenses.
+
+## The Grimoire Shape
+
+Grimoire should not inherit its identity from its starting point. The repo can learn from reference apps and local research projects, but the product must be its own thing.
+
+The unique shape:
+
+- **Journal-native**: daily notes, weather, mood, time, review, and personal context are first-class.
+- **Graph-native**: the active note's neighborhood is the default sensemaking view.
+- **Agent-native**: local AI tools see markdown, frontmatter, graph context, and Git history.
+- **Mac-native where it matters**: text editing, menus, file watching, QuickLook, and polish can move into SwiftUI/AppKit when web tech fights the platform.
+- **Theme-studio aware**: typography, density, contrast, motion, and graph readability are adjustable surfaces, not afterthought settings.
 
 ## Product Principles
 
@@ -28,13 +40,15 @@ Same files. Different lenses.
 
 **Structure without bureaucracy.** Types and relationships should help the user move faster, not punish them for missing fields.
 
-**Graph as a lens.** The graph should reveal useful context, not just draw a spiderweb.
+**Journal as a timeline.** A day note is not a random note with a date. It is a memory anchor that can collect weather, people, meetings, decisions, tasks, and emotional context.
+
+**Graph as working memory.** The graph should reveal useful context, not just draw a spiderweb.
 
 **AI-readable by design.** If a human can understand the vault structure, a local agent should be able to understand it too.
 
 **Native where it matters.** Tauri/React is fine for broad iteration. macOS should get SwiftUI/AppKit where native text, menus, file watching, and polish are objectively better.
 
-**Taste matters.** The UI should feel calm, intentional, and alive. Pixar-level craft here means motion, spacing, contrast, icons, color, and empty states all serve comprehension.
+**Taste matters.** The UI should feel calm, intentional, and alive. High craft here means motion, spacing, contrast, icons, color, and empty states all serve comprehension.
 
 ## What Grimoire Is Not
 
@@ -44,6 +58,7 @@ Same files. Different lenses.
 - Not a cloud knowledge base.
 - Not a chatbot with a file picker.
 - Not a graph toy.
+- Not a reskinned branch of its starting point.
 
 ## North Star Workflows
 
@@ -51,8 +66,10 @@ Daily journal:
 
 - create a day note
 - insert optional weather context
+- add mood, energy, location, and time blocks when useful
 - link people, projects, events, and decisions
 - see the day in future graph and search flows
+- review weeks and months without leaving markdown
 
 Project workspace:
 
@@ -68,6 +85,14 @@ Research workspace:
 - inspect clusters through the graph
 - turn selected notes into drafts, docs, or agent briefings
 
+AI memory workspace:
+
+- select an active note or graph neighborhood
+- send a scoped context pack to a local agent
+- inspect what the agent read and changed
+- accept multi-file edits explicitly
+- keep the full trail in files and Git
+
 Personal operating system:
 
 - keep routines, goals, health notes, ideas, and decisions together
@@ -78,9 +103,9 @@ Personal operating system:
 ## Near-Term Direction
 
 1. Finish the core app polish: themes, typography, graph UX, editor find/replace, image previews, file actions, and macOS text behavior.
-2. Make the graph useful enough to navigate large vaults: filters, clusters, type coloring, local/global views, and eventually semantic suggestions.
-3. Harden the editor contract: raw/rich parity, math while typing, IME, native shortcuts, and safe markdown serialization.
-4. Improve journal workflows: templates, daily notes, weather snapshots, calendar/time context, and recurring review surfaces.
+2. Build Grimoire's journal layer: daily notes, templates, weather snapshots, mood/time context, timeline, and review surfaces.
+3. Make the graph useful enough to navigate large vaults: filters, clusters, type coloring, local/global views, minimap, and semantic suggestions.
+4. Harden the editor contract: raw/rich parity, math while typing, IME, native shortcuts, and safe markdown serialization.
 5. Explore native macOS layers where they clearly win: SwiftUI shell, AppKit text, FSEvents, QuickLook, export.
 6. Keep agent integration local, inspectable, and useful: MCP tools, strict command contracts, and vault-aware context packs.
 
