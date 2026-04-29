@@ -76,15 +76,19 @@ if [ -t 0 ]; then
 else
   PUSH_INPUT=$(cat)
 fi
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-# The full CI gate (tests, coverage, Playwright, CodeScene) runs only on
-# main pushes. Feature branches (everything else) get a light gate —
-# build, type check, and Rust lint — so PR pushes stay fast.
+# The full CI gate (tests, coverage, Playwright, CodeScene) runs only when
+# main is among the refs being pushed. Feature-branch pushes get a light
+# gate — build, type check, and Rust lint — so PR iterations stay fast.
 # Tighten back when server-side branch protection enforces CI on PRs.
 IS_MAIN=false
-if [ "$CURRENT_BRANCH" = "main" ]; then
-  IS_MAIN=true
-fi
+while IFS=' ' read -r LOCAL_REF _LOCAL_SHA _REMOTE_REF _REMOTE_SHA; do
+  [ -z "$LOCAL_REF" ] && continue
+  if [ "$LOCAL_REF" = "refs/heads/main" ]; then
+    IS_MAIN=true
+  fi
+done <<EOF
+$PUSH_INPUT
+EOF
 validate_push_branch
 ensure_node_tooling
 
