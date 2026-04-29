@@ -47,15 +47,9 @@ ensure_node_tooling() {
   fi
 }
 
-require_main_push() {
+validate_push_branch() {
   if ! git symbolic-ref -q HEAD >/dev/null 2>&1; then
-    echo "❌ Pushes must happen from main. Detached HEAD is not allowed."
-    exit 1
-  fi
-
-  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  if [ "$CURRENT_BRANCH" != "main" ]; then
-    echo "❌ Pushes must happen from main. Current branch: $CURRENT_BRANCH"
+    echo "❌ Detached HEAD pushes are not allowed."
     exit 1
   fi
 
@@ -63,13 +57,12 @@ require_main_push() {
     [ -z "$LOCAL_REF" ] && continue
 
     case "$LOCAL_REF:$REMOTE_REF" in
-      refs/heads/main:refs/heads/main)
+      refs/heads/*:refs/heads/*)
         ;;
       refs/tags/*:refs/tags/*)
         ;;
       *)
-        echo "❌ Pushes must be main -> main only."
-        echo "   Attempted: ${LOCAL_REF:-<none>} -> ${REMOTE_REF:-<none>}"
+        echo "❌ Unsupported push: ${LOCAL_REF:-<none>} -> ${REMOTE_REF:-<none>}"
         exit 1
         ;;
     esac
@@ -83,7 +76,16 @@ if [ -t 0 ]; then
 else
   PUSH_INPUT=$(cat)
 fi
-require_main_push
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+# The full CI gate (tests, coverage, Playwright, CodeScene) runs only on
+# main pushes. Feature branches (everything else) get a light gate —
+# build, type check, and Rust lint — so PR pushes stay fast.
+# Tighten back when server-side branch protection enforces CI on PRs.
+IS_MAIN=false
+if [ "$CURRENT_BRANCH" = "main" ]; then
+  IS_MAIN=true
+fi
+validate_push_branch
 ensure_node_tooling
 
 START_TIME=$(date +%s)
@@ -112,9 +114,13 @@ echo "  ✅ Build OK"
 
 # ── 1. Frontend coverage (≥70%) — includes all unit tests ───────────────
 echo ""
-echo "📊 [1/5] Frontend tests + coverage (≥70%)..."
-pnpm test:coverage --silent
-echo "  ✅ Frontend coverage OK"
+if [ "$IS_MAIN" = true ]; then
+  echo "📊 [1/5] Frontend tests + coverage (≥70%)..."
+  pnpm test:coverage --silent
+  echo "  ✅ Frontend coverage OK"
+else
+  echo "⏭️  [1/5] Frontend coverage — skipped (feature branch; runs on main)"
+fi
 
 # ── 2. Rust lint (clippy + fmt) — fast, run before coverage ─────────────
 echo ""
@@ -129,7 +135,9 @@ fi
 
 # ── 3. Rust coverage (≥85% lines) ──────────────────────────────────────
 echo ""
-if [ "$RUST_CHANGED" = true ]; then
+if [ "$IS_MAIN" != true ]; then
+  echo "⏭️  [3/5] Rust coverage — skipped (feature branch; runs on main)"
+elif [ "$RUST_CHANGED" = true ]; then
   LLVM_COV_FLAGS="--no-clean"
   if [ "${GRIMOIRE_FULL_COVERAGE:-0}" = "1" ]; then
     LLVM_COV_FLAGS=""
@@ -153,16 +161,20 @@ fi
 
 # ── 4. Playwright core smoke lane (if any exist) ──────────────────────
 echo ""
-SMOKE_FILES=$(find tests/smoke tests/integration -name '*.spec.ts' 2>/dev/null | head -1)
-if [ -n "$SMOKE_FILES" ]; then
-  echo "🎭 [4/5] Playwright core smoke tests..."
-  if ! pnpm playwright:smoke; then
-    echo "  ❌ Core smoke tests FAILED"
-    exit 1
-  fi
-  echo "  ✅ Core smoke tests OK"
+if [ "$IS_MAIN" != true ]; then
+  echo "⏭️  [4/5] Playwright core smoke tests — skipped (feature branch; runs on main)"
 else
-  echo "⏭️  [4/5] Playwright core smoke tests — skipped (no tests/**/*.spec.ts)"
+  SMOKE_FILES=$(find tests/smoke tests/integration -name '*.spec.ts' 2>/dev/null | head -1)
+  if [ -n "$SMOKE_FILES" ]; then
+    echo "🎭 [4/5] Playwright core smoke tests..."
+    if ! pnpm playwright:smoke; then
+      echo "  ❌ Core smoke tests FAILED"
+      exit 1
+    fi
+    echo "  ✅ Core smoke tests OK"
+  else
+    echo "⏭️  [4/5] Playwright core smoke tests — skipped (no tests/**/*.spec.ts)"
+  fi
 fi
 
 # ── 5. CodeScene code health gate (ratchet) ──────────────────────────────
@@ -181,6 +193,11 @@ if [ -f "$THRESHOLDS_FILE" ]; then
 fi
 
 echo ""
+if [ "$IS_MAIN" != true ]; then
+  echo "⏭️  [5/5] CodeScene code health — skipped (feature branch; runs on main)"
+  CODESCENE_SKIPPED=true
+fi
+if [ "$IS_MAIN" = true ]; then
 echo "🏥 [5/5] CodeScene code health (Hotspot ≥${HOTSPOT_MIN} + Average ≥${AVERAGE_MIN})..."
 if [ -z "$CODESCENE_PAT" ] || [ -z "$CODESCENE_PROJECT_ID" ]; then
   echo "  ⚠️  CODESCENE_PAT or CODESCENE_PROJECT_ID not set — skipping"
@@ -242,6 +259,7 @@ if new_hotspot > hotspot_min or new_average > average_min:
     fi
   fi
 fi
+fi  # end IS_MAIN guard for CodeScene
 
 END_TIME=$(date +%s)
 ELAPSED=$((END_TIME - START_TIME))

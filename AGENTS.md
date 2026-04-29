@@ -19,7 +19,7 @@ Run `/grimoire-next-task` — fetches next task (To Rework first, then Open), mo
 
 ### 1b. Implement
 
-- Work on `main` branch — **no branches, no PRs, ever**. Pre-commit and pre-push block work from any other branch.
+- Work on a `feat/*`, `fix/*`, `chore/*`, `docs/*`, or `refactor/*` branch off `main` — open a PR for review before merging. Direct pushes to `main` are still allowed for the maintainer; CI runs the full gate on `main` pushes.
 - Commit every 20–30 min: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`
 - **⛔ NEVER use --no-verify**
 - For UI tasks: open `ui-design.pen` first, study visual language, design in light mode
@@ -63,7 +63,7 @@ Then run `/grimoire-done <task_id>` → moves to In Review, self-dispatches next
 
 ### Commits & pushes
 
-- Push directly to `main` — no PRs, no branches. Pre-push blocks non-`main` pushes.
+- Feature branch pushes run a light pre-push gate (build + tsc + Rust lint). Pushes to `main` run the full gate (frontend + Rust coverage, Playwright smoke, CodeScene). Open a PR from your branch into `main`; merge once review + remote CI pass.
 - Pre-push hook runs full check suite (build + tests + core Playwright smoke + CodeScene)
 - **A task is NOT done until `git push origin main` succeeds.** If the hook blocks: read the error, fix it (clippy, tests, CodeScene, build), commit the fix, push again. **⛔ NEVER use --no-verify**
 

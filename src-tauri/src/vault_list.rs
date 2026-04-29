@@ -121,7 +121,10 @@ mod tests {
         assert_eq!(loaded.vaults[0].label, "My Vault");
         assert_eq!(loaded.vaults[0].path, "/Users/srinivas/Grimoire");
         assert_eq!(loaded.vaults[1].label, "Work");
-        assert_eq!(loaded.active_vault.as_deref(), Some("/Users/srinivas/Grimoire"));
+        assert_eq!(
+            loaded.active_vault.as_deref(),
+            Some("/Users/srinivas/Grimoire")
+        );
     }
 
     #[test]
@@ -166,7 +169,11 @@ mod tests {
         assert!(result.is_ok());
         let path = result.unwrap();
         let path = path.to_str().unwrap();
-        assert!(path.contains("com.grimoire.app") || path.contains("com.tolaria.app") || path.contains("com.laputa.app"));
+        assert!(
+            path.contains("com.grimoire.app")
+                || path.contains("com.tolaria.app")
+                || path.contains("com.laputa.app")
+        );
     }
 
     #[test]
