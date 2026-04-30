@@ -4,7 +4,7 @@ Grimoire is a local-first desktop app over a folder of markdown files. The produ
 
 **The vault on disk is the authority.**
 
-Everything else - cache, React state, graph layout, search result, agent context, and future native UI state - is derived from files and can be rebuilt.
+Everything else - cache, SwiftUI/React state, graph layout, search result, and agent context - is derived from files and can be rebuilt.
 
 ## Product Shape
 
@@ -12,7 +12,7 @@ Grimoire has five user-facing workspaces:
 
 1. **Navigation**: sidebar filters, folders, types, favorites, archive, inbox, and changes.
 2. **Selection**: note lists, saved views, search, Pulse history, and Neighborhood relationship browsing.
-3. **Editing**: BlockNote rich editing, raw CodeMirror markdown, diff mode, wikilinks, math, code blocks, and frontmatter.
+3. **Editing**: native SwiftUI editing on macOS/iOS, Tauri rich/raw markdown editing on non-Apple platforms, diff mode, wikilinks, math, code blocks, and frontmatter.
 4. **Context**: Inspector, backlinks, relationship panels, instances, note metadata, Git history, graph, and weather snapshots.
 5. **Agents**: local CLI agents through Claude Code / Codex adapters and MCP vault tooling.
 
@@ -20,7 +20,7 @@ Grimoire has five user-facing workspaces:
 flowchart LR
     Vault["Markdown vault\n.md + YAML + assets"]
     Cache["Disposable cache\nfast startup index"]
-    App["Tauri window\nReact UI today"]
+    App["SwiftUI app on Apple\nTauri React app elsewhere"]
     Rust["Rust commands\nfilesystem, git, settings"]
     Agents["Local agents\nClaude Code, Codex, MCP"]
     External["Explicit services\nGit remotes, Open-Meteo"]
@@ -39,14 +39,15 @@ flowchart LR
 
 | Layer | Current implementation | Owns | Must not own |
 |---|---|---|---|
-| Desktop shell | Tauri v2 | windows, menus, app packaging, IPC bridge | vault data model |
-| Frontend | React 19 + TypeScript | orchestration, editor UI, graph UI, settings panels | direct filesystem writes |
+| Apple shell | SwiftUI/AppKit | macOS and iOS UX, native text behavior, platform presentation | divergent vault semantics |
+| Non-Apple shell | Tauri v2 | windows, menus, app packaging, IPC bridge | vault data model |
+| Non-Apple frontend | React 19 + TypeScript | orchestration, editor UI, graph UI, settings panels | direct filesystem writes |
 | Backend | Rust | filesystem, frontmatter writes, Git, settings, native windows | presentation state |
-| Editor engines | BlockNote + CodeMirror | rich editing and raw markdown editing | permanent document format |
+| Editor core | MarkdownEditor Swift package + Tauri adapters | shared markdown semantics and platform adapters | app-only vault workflows |
+| Editor engines | SwiftUI editor surfaces, BlockNote, CodeMirror | rich editing and raw markdown editing | permanent document format |
 | Agent layer | CLI adapters + MCP | local agent sessions and vault tools | hidden cloud storage |
-| Future native macOS | SwiftUI/AppKit where useful | native text UX, windowing, QuickLook, file events | divergent vault semantics |
 
-The app may become polyglot when a language is the right tool. Swift can own native macOS text and window behavior; Rust can keep filesystem and packaging boundaries; TypeScript can keep renderer composition and web-first UI experiments; a small helper process can own indexing if it earns its keep. Packaging must still feel like one app.
+The app is intentionally polyglot where a language is the right tool. Swift owns the macOS/iOS UX. Tauri keeps the non-Apple shell. Rust keeps filesystem and packaging boundaries. TypeScript keeps the non-Apple renderer composition and web-first UI experiments. Packaging must still feel like one product.
 
 ## Source Of Truth
 
@@ -108,6 +109,7 @@ Store data in app settings when it describes this installation:
 - `components/Editor.tsx`: editor shell that delegates rich/raw/diff modes.
 - `components/SingleEditorView.tsx`: BlockNote rich editor behavior.
 - `components/RawEditorView.tsx`: CodeMirror markdown source mode.
+- `packages/MarkdownEditor`: Swift Package Manager library for reusable markdown editor semantics in the macOS/iOS SwiftUI apps, with a CLI bridge for Tauri parity work.
 - `components/Inspector.tsx`: properties, relationships, instances, and note info.
 - `components/GraphModal.tsx`: graph UI only.
 - `utils/noteGraph.ts`: graph data derived from vault entries.
@@ -159,9 +161,11 @@ Text editing shortcuts need special care on macOS. Browser-reserved shortcuts, n
 
 Markdown is the durable format. Editors are views over markdown.
 
-- BlockNote gives rich editing, slash menu, tables, code blocks, math rendering, wikilinks, and media handling.
-- CodeMirror gives raw source editing, YAML visibility, precise cursor control, and a better base for source-level features.
-- Shared utilities preserve behavior across modes: wikilinks, arrow ligatures, math serialization, raw-mode sync, and compact markdown.
+- SwiftUI gives the macOS/iOS editor its native text, input, and platform integration surface.
+- BlockNote gives the non-Apple Tauri editor rich editing, slash menu, tables, code blocks, math rendering, wikilinks, and media handling.
+- CodeMirror gives the non-Apple Tauri editor raw source editing, YAML visibility, precise cursor control, and a better base for source-level features.
+- `MarkdownEditor` owns editor-neutral markdown semantics for Apple-native surfaces: frontmatter splitting, wikilink round-tripping, math placeholder serialization, snippets, word counts, and compact markdown.
+- App-local editor utilities preserve Grimoire-specific behavior across modes: arrow ligatures, image path portability, raw-mode sync, selection repair, and vault-aware adapters. Non-Apple Tauri surfaces keep matching adapters instead of importing Swift UI concerns.
 
 Lessons from the local `.tmp` reference repos:
 
@@ -214,17 +218,17 @@ Network work must be explicit or user-triggered:
 - Update checks follow the configured release channel.
 - Telemetry obeys consent and must not include vault content, note titles, or paths.
 
-## Native macOS Direction
+## Platform-Native Direction
 
-The macOS app should eventually feel native where native matters:
+The app may use separate shells when that makes the product better. Apple platforms are SwiftUI-first. Non-Apple desktop platforms stay Tauri-first.
 
-- SwiftUI/AppKit shell for system-grade window, menu, focus, and text behavior
-- native find/replace and text bindings where web editors fall short
+- SwiftUI/AppKit/UIKit shells for system-grade window, menu, focus, touch, and text behavior on macOS and iOS
+- native find/replace, undo, IME, and text bindings where web editors fall short
 - FSEvents-backed file watching
 - QuickLook and export surfaces over the same markdown rendering pipeline
 - platform-specific polish without platform-specific vault semantics
 
-This is an adaptation path, not a rewrite fantasy. The rule is simple: move a layer native only when it improves correctness, speed, or feel enough to justify the boundary.
+This is not a "one UI everywhere" product. A shell can be rebuilt from scratch for its platform. The rule is simple: share markdown, vault, and workflow semantics; let platform UX diverge when that improves correctness, speed, or feel.
 
 ## Quality Gates
 

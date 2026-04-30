@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { FolderOpen, Plus, AlertTriangle, Loader2, Rocket } from 'lucide-react'
 import { OnboardingShell } from './OnboardingShell'
 import { Button } from '@/components/ui/button'
-import grimoireIcon from '@/assets/grimoire-icon.svg'
+import grimoireIcon from '@/assets/app-icon.png'
 
 interface WelcomeScreenProps {
   mode: 'welcome' | 'vault-missing'
@@ -110,6 +110,7 @@ const BRAND_ICON_STYLE: React.CSSProperties = {
   width: 64,
   height: 64,
   display: 'block',
+  borderRadius: 16,
 }
 
 const TITLE_STYLE: React.CSSProperties = {

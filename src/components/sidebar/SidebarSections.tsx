@@ -13,7 +13,7 @@ import { SlidersHorizontal } from 'lucide-react'
 import {
   CaretLeft, Plus,
 } from '@phosphor-icons/react'
-import grimoireIcon from '@/assets/grimoire-icon.svg'
+import grimoireIcon from '@/assets/app-icon.png'
 import { Button } from '@/components/ui/button'
 import {
   type SectionGroup, isSelectionActive, SectionContent, VisibilityPopover,

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { WelcomeScreen } from './WelcomeScreen'
-import grimoireIcon from '@/assets/grimoire-icon.svg'
+import grimoireIcon from '@/assets/app-icon.png'
 
 const dragRegionMouseDown = vi.fn()
 

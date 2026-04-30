@@ -2,7 +2,8 @@
 type: ADR
 id: "0001"
 title: "Tauri v2 + React as application stack"
-status: active
+status: superseded
+superseded_by: "0086"
 date: 2026-02-14
 ---
 

@@ -52,14 +52,15 @@ Distinctive work:
 - tool-call audit trails
 - explicit write confirmation for multi-file edits
 
-### 4. Native Mac Craft As Product Surface
+### 4. Platform-Native Craft As Product Surface
 
-Tauri + React is the iteration layer. Native macOS should be used where the platform is objectively better.
+Tauri + React remains the non-Apple desktop shell. Apple UX should be SwiftUI-first where the platform is objectively better. The apps may be separate implementations as long as the vault and markdown semantics stay one product.
 
 Distinctive work:
 
-- SwiftUI shell spike
-- AppKit text editing spike
+- SwiftUI macOS shell
+- SwiftUI iOS shell
+- AppKit/TextKit editing spike
 - native find/replace behavior
 - FSEvents-backed vault watching
 - QuickLook previews
