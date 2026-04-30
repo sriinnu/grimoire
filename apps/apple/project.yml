@@ -1,0 +1,51 @@
+name: GrimoireApple
+options:
+  bundleIdPrefix: com.sriinnu
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+packages:
+  MarkdownEditor:
+    path: ../../packages/MarkdownEditor
+
+targets:
+  Grimoire:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/Shared
+      - path: Sources/macOS
+      - path: Assets.xcassets
+    dependencies:
+      - package: MarkdownEditor
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sriinnu.grimoire
+        PRODUCT_NAME: Grimoire
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+
+  Grimoire-iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/Shared
+      - path: Sources/iOS
+      - path: Assets.xcassets
+    dependencies:
+      - package: MarkdownEditor
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.sriinnu.grimoire
+        PRODUCT_NAME: Grimoire
+        SWIFT_VERSION: "6.0"
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
