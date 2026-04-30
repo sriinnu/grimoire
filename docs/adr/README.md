@@ -56,11 +56,11 @@ proposed → active → superseded
 
 | ID | Title | Status |
 |----|-------|--------|
-| [0001](0001-tauri-react-stack.md) | Tauri v2 + React as application stack | active |
+| [0001](0001-tauri-react-stack.md) | Tauri v2 + React as application stack | superseded → [0086](0086-platform-native-app-shells.md) |
 | [0002](0002-filesystem-source-of-truth.md) | Filesystem as the single source of truth | active |
 | [0003](0003-single-note-model.md) | Single note open at a time (no tabs) | active |
 | [0004](0004-vault-vs-app-settings-storage.md) | Vault vs app settings for state storage | active |
-| [0005](0005-tauri-ios-for-ipad.md) | Tauri v2 iOS for iPad support (vs SwiftUI rewrite) | active |
+| [0005](0005-tauri-ios-for-ipad.md) | Tauri v2 iOS for iPad support (vs SwiftUI rewrite) | superseded → [0086](0086-platform-native-app-shells.md) |
 | [0006](0006-flat-vault-structure.md) | Flat vault structure (no type-based folders) | active |
 | [0007](0007-title-filename-sync.md) | Title equals filename (slug sync) | active |
 | [0008](0008-underscore-system-properties.md) | Underscore convention for system properties | active |
@@ -139,3 +139,6 @@ proposed → active → superseded
 | [0081](0081-internal-light-dark-theme-runtime.md) | Internal light and dark theme runtime | active |
 | [0082](0082-markdown-durable-math-notes.md) | Markdown-durable math in notes | active |
 | [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | active |
+| [0084](0084-app-localization-foundation.md) | App-owned localization foundation | active |
+| [0085](0085-markdown-editor-package-boundary.md) | Markdown editor package boundary | active |
+| [0086](0086-platform-native-app-shells.md) | Platform-native app shells over shared vault semantics | active |

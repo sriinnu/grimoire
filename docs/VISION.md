@@ -29,7 +29,7 @@ The unique shape:
 - **Journal-native**: daily notes, weather, mood, time, review, and personal context are first-class.
 - **Graph-native**: the active note's neighborhood is the default sensemaking view.
 - **Agent-native**: local AI tools see markdown, frontmatter, graph context, and Git history.
-- **Mac-native where it matters**: text editing, menus, file watching, QuickLook, and polish can move into SwiftUI/AppKit when web tech fights the platform.
+- **Platform-native where it matters**: Apple UX can be SwiftUI/AppKit/UIKit, while Windows/Linux stay Tauri; text editing, menus, file access, QuickLook/share surfaces, and polish should belong to the platform that does them best.
 - **Theme-studio aware**: typography, density, contrast, motion, and graph readability are adjustable surfaces, not afterthought settings.
 
 ## Product Principles
@@ -46,7 +46,7 @@ The unique shape:
 
 **AI-readable by design.** If a human can understand the vault structure, a local agent should be able to understand it too.
 
-**Native where it matters.** Tauri/React is fine for broad iteration. macOS should get SwiftUI/AppKit where native text, menus, file watching, and polish are objectively better.
+**Native where it matters.** Tauri/React is right for non-Apple desktop. macOS and iOS should be SwiftUI-first where native text, menus, gestures, file access, and polish are objectively better.
 
 **Taste matters.** The UI should feel calm, intentional, and alive. High craft here means motion, spacing, contrast, icons, color, and empty states all serve comprehension.
 
@@ -102,11 +102,11 @@ Personal operating system:
 
 ## Near-Term Direction
 
-1. Finish the core app polish: themes, typography, graph UX, editor find/replace, image previews, file actions, and macOS text behavior.
+1. Finish the core app polish: themes, typography, graph UX, editor find/replace, image previews, file actions, and Apple-native text behavior.
 2. Build Grimoire's journal layer: daily notes, templates, weather snapshots, mood/time context, timeline, and review surfaces.
 3. Make the graph useful enough to navigate large vaults: filters, clusters, type coloring, local/global views, minimap, and semantic suggestions.
 4. Harden the editor contract: raw/rich parity, math while typing, IME, native shortcuts, and safe markdown serialization.
-5. Explore native macOS layers where they clearly win: SwiftUI shell, AppKit text, FSEvents, QuickLook, export.
+5. Build the platform-native split deliberately: SwiftUI macOS/iOS shells, Tauri Windows/Linux shell, shared markdown/vault semantics, parity fixtures.
 6. Keep agent integration local, inspectable, and useful: MCP tools, strict command contracts, and vault-aware context packs.
 
 ## Long-Term Direction

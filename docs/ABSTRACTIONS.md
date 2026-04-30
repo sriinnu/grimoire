@@ -214,9 +214,11 @@ The editor has multiple views over the same markdown:
 - rich BlockNote mode
 - raw CodeMirror mode
 - diff mode
-- future native macOS mode
+- SwiftUI mode on macOS and iOS
 
-Shared editor behavior belongs in utilities or hooks. Do not implement markdown semantics separately per mode unless the behavior is genuinely mode-specific.
+Shared markdown semantics belong in the `MarkdownEditor` Swift package: frontmatter splitting, wikilink round-tripping, math placeholders, compact serialization, snippets, and word counts. The macOS/iOS SwiftUI apps import that package directly. Non-Apple Tauri surfaces keep platform adapters with parity tests until a native bridge is worth carrying.
+
+Do not implement markdown semantics separately per mode unless the behavior is genuinely mode-specific.
 
 ## Weather Snapshot
 
