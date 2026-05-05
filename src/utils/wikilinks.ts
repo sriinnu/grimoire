@@ -5,7 +5,10 @@ const WL_RE = new RegExp(`${WL_START.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^$
 
 /** Pre-process markdown: replace [[target]] with placeholder tokens */
 export function preProcessWikilinks(md: string): string {
-  return md.replace(/\[\[([^\]]+)\]\]/g, (_m, target) => `${WL_START}${target}${WL_END}`)
+  return replaceWikilinksOutsideCode(md, inner => {
+    const normalized = normalizeWikilinkInner(inner)
+    return normalized ? `${WL_START}${normalized}${WL_END}` : `[[${inner}]]`
+  })
 }
 
 // Minimal shape of a BlockNote block for wikilink processing
@@ -94,14 +97,22 @@ function collapseWikilinksInContent(content: InlineItem[]): InlineItem[] {
   return result
 }
 
+function normalizeWikilinkInner(inner: string): string | null {
+  const pipeIdx = inner.indexOf('|')
+  const rawTarget = pipeIdx === -1 ? inner : inner.slice(0, pipeIdx)
+  const target = rawTarget.trim()
+  if (!target) return null
+  if (pipeIdx === -1) return target
+
+  const display = inner.slice(pipeIdx + 1).trim()
+  return display ? `${target}|${display}` : target
+}
+
 /** Strip YAML frontmatter from markdown, returning [frontmatter, body] */
 export function splitFrontmatter(content: string): [string, string] {
-  if (!content.startsWith('---')) return ['', content]
-  const end = content.indexOf('\n---', 3)
-  if (end === -1) return ['', content]
-  let to = end + 4
-  if (content[to] === '\n') to++
-  return [content.slice(0, to), content.slice(to)]
+  const match = content.match(/^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*(?:\r?\n|$)/)
+  if (!match) return ['', content]
+  return [match[0], content.slice(match[0].length)]
 }
 
 /** Extract all outgoing wikilink targets from content.
@@ -109,12 +120,11 @@ export function splitFrontmatter(content: string): [string, string] {
  * Returns a sorted, deduplicated array. */
 export function extractOutgoingLinks(content: string): string[] {
   const links: string[] = []
-  const re = /\[\[([^\]]+)\]\]/g
-  let match
-  while ((match = re.exec(content)) !== null) {
-    const inner = match[1]
-    const pipeIdx = inner.indexOf('|')
-    const target = pipeIdx !== -1 ? inner.slice(0, pipeIdx) : inner
+  for (const inner of wikilinkInnersOutsideCode(content)) {
+    const normalized = normalizeWikilinkInner(inner)
+    if (!normalized) continue
+    const pipeIdx = normalized.indexOf('|')
+    const target = pipeIdx !== -1 ? normalized.slice(0, pipeIdx) : normalized
     if (target) links.push(target)
   }
   return [...new Set(links)].sort()
@@ -137,12 +147,11 @@ export function extractBacklinkContext(
     const trimmed = para.trim()
     if (!trimmed) continue
     // Check if this paragraph contains a wikilink matching any target
-    const re = /\[\[([^\]]+)\]\]/g
-    let match
-    while ((match = re.exec(trimmed)) !== null) {
-      const inner = match[1]
-      const pipeIdx = inner.indexOf('|')
-      const target = pipeIdx !== -1 ? inner.slice(0, pipeIdx) : inner
+    for (const inner of wikilinkInnersOutsideCode(trimmed)) {
+      const normalized = normalizeWikilinkInner(inner)
+      if (!normalized) continue
+      const pipeIdx = normalized.indexOf('|')
+      const target = pipeIdx !== -1 ? normalized.slice(0, pipeIdx) : normalized
       if (matchTargets.has(target) || matchTargets.has(target.split('/').pop() ?? '')) {
         // Collapse whitespace and truncate
         const flat = trimmed.replace(/\s+/g, ' ')
@@ -152,6 +161,86 @@ export function extractBacklinkContext(
     }
   }
   return null
+}
+
+function replaceWikilinksOutsideCode(
+  markdown: string,
+  replacement: (target: string) => string,
+): string {
+  const state = { fence: null as string | null }
+  return markdown.split('\n').map(line => {
+    const marker = fenceDelimiter(line)
+
+    if (marker !== null && state.fence === null) {
+      state.fence = marker
+      return line
+    }
+
+    if (marker !== null && state.fence === marker) {
+      state.fence = null
+      return line
+    }
+
+    return state.fence === null ? replaceInlineWikilinksOutsideCode(line, replacement) : line
+  }).join('\n')
+}
+
+function replaceInlineWikilinksOutsideCode(
+  line: string,
+  replacement: (target: string) => string,
+): string {
+  let result = ''
+  let index = 0
+
+  while (index < line.length) {
+    if (line[index] === '`') {
+      const span = readInlineCodeSpan(line, index)
+      result += span.text
+      index = span.nextIndex
+      continue
+    }
+
+    if (line[index] === '[' && line[index + 1] === '[') {
+      const end = line.indexOf(']]', index + 2)
+      if (end !== -1) {
+        result += replacement(line.slice(index + 2, end))
+        index = end + 2
+        continue
+      }
+    }
+
+    result += line[index]
+    index++
+  }
+
+  return result
+}
+
+function wikilinkInnersOutsideCode(markdown: string): string[] {
+  const inners: string[] = []
+  replaceWikilinksOutsideCode(markdown, inner => {
+    inners.push(inner)
+    return ''
+  })
+  return inners
+}
+
+function fenceDelimiter(line: string): string | null {
+  const trimmed = line.trimStart()
+  if (trimmed.startsWith('```')) return '```'
+  if (trimmed.startsWith('~~~')) return '~~~'
+  return null
+}
+
+function readInlineCodeSpan(line: string, start: number): { text: string; nextIndex: number } {
+  let markerEnd = start
+  while (markerEnd < line.length && line[markerEnd] === '`') markerEnd++
+
+  const marker = line.slice(start, markerEnd)
+  const close = line.indexOf(marker, markerEnd)
+  if (close === -1) return { text: line.slice(start), nextIndex: line.length }
+
+  return { text: line.slice(start, close + marker.length), nextIndex: close + marker.length }
 }
 
 /** Check if a line is useful for snippet extraction (not blank, heading, code fence, or rule). */
@@ -248,7 +337,7 @@ export function extractSnippet(content: string): string {
 export function countWords(content: string): number {
   const [, body] = splitFrontmatter(content)
   const withoutTitle = body.replace(/^\s*# [^\n]+\n?/, '')
-  const withoutWikilinks = withoutTitle.replace(/\[\[[^\]]*\]\]/g, '')
+  const withoutWikilinks = replaceWikilinksOutsideCode(withoutTitle, () => '')
   const text = withoutWikilinks.replace(/[#*_[\]`>~\-|]/g, '').trim()
   if (!text) return 0
   return text.split(/\s+/).filter(Boolean).length

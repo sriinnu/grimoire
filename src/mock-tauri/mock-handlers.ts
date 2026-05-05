@@ -374,10 +374,11 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   },
   get_conflict_files: (): string[] => [],
   get_conflict_mode: () => 'none',
-  check_claude_cli: () => ({ installed: false, version: null }),
+  check_claude_cli: () => ({ installed: true, version: 'mock' }),
   get_ai_agents_status: () => ({
-    claude_code: { installed: false, version: null },
-    codex: { installed: false, version: null },
+    claude_code: { installed: true, version: 'mock' },
+    codex: { installed: true, version: 'mock' },
+    chitragupta: { installed: true, version: 'mock' },
   }),
   get_vault_ai_guidance_status: () => ({ ...mockVaultAiGuidanceStatus }),
   restore_vault_ai_guidance: () => {

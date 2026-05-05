@@ -2,8 +2,9 @@
 type: ADR
 id: "0086"
 title: "Platform-native app shells over shared vault semantics"
-status: active
+status: superseded
 date: 2026-04-30
+superseded_by: "0088"
 supersedes:
   - "0001"
   - "0005"

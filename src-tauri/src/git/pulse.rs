@@ -252,7 +252,6 @@ mod tests {
     use crate::git::git_commit;
     use crate::git::tests::setup_git_repo;
     use std::fs;
-    use std::process::Command;
     use tempfile::TempDir;
 
     #[test]
@@ -361,7 +360,7 @@ mod tests {
         fs::write(vault.join("note.md"), "# Note\n").unwrap();
         git_commit(vp, "Add note").unwrap();
 
-        Command::new("git")
+        git_command()
             .args([
                 "remote",
                 "add",
@@ -472,7 +471,7 @@ mod tests {
         fs::write(vault.join("note.md"), "# Note\n").unwrap();
         git_commit(vp, "initial").unwrap();
 
-        Command::new("git")
+        git_command()
             .args([
                 "remote",
                 "add",

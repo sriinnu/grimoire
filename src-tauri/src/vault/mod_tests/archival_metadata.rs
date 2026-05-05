@@ -191,7 +191,7 @@ fn test_string_or_list_normalization_keeps_type_and_scalar_fields() {
             .properties
             .get("Owner")
             .and_then(|value| value.as_str()),
-        Some("Sriinu")
+        Some("Luca")
     );
     assert_eq!(
         scalar_fields

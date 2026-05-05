@@ -21,6 +21,15 @@ import {
 } from '@modelcontextprotocol/sdk/types.js'
 import WebSocket from 'ws'
 import { searchNotes, getNote, vaultContext } from './vault.js'
+import {
+  createProjectTask,
+  deleteProjectTask,
+  listProjectDocs,
+  listProjectTasks,
+  projectGraph,
+  readProjectBoard,
+  updateProjectTask,
+} from './project-intelligence.js'
 
 const VAULT_PATH = process.env.VAULT_PATH || process.env.HOME + '/Grimoire'
 const WS_UI_PORT = parseInt(process.env.WS_UI_PORT || '9711', 10)
@@ -118,6 +127,67 @@ const TOOLS = [
       },
     },
   },
+  {
+    name: 'list_project_docs',
+    description: 'List Markdown docs in a project/folder with roles like readme, architecture, spec, tasks, board, and review.',
+    inputSchema: projectFolderSchema(),
+  },
+  {
+    name: 'read_project_board',
+    description: 'Read the durable Markdown BOARD.md for a project/folder.',
+    inputSchema: projectFolderSchema(),
+  },
+  {
+    name: 'list_project_tasks',
+    description: 'List persisted BOARD.md tasks and TODO/FIXME/HACK/NOTE markers found in project Markdown docs.',
+    inputSchema: projectFolderSchema(),
+  },
+  {
+    name: 'create_project_task',
+    description: 'Append a durable Markdown task to a project/folder BOARD.md file.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folder: { type: 'string', description: 'Project folder relative to the vault root' },
+        title: { type: 'string', description: 'Task title' },
+        status: { type: 'string', enum: ['open', 'done'], description: 'Task status' },
+        priority: { type: 'string', description: 'Optional priority token, such as p1 or urgent' },
+      },
+      required: ['title'],
+    },
+  },
+  {
+    name: 'update_project_task',
+    description: 'Update a durable Markdown task in project/folder BOARD.md by Grimoire task id.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folder: { type: 'string', description: 'Project folder relative to the vault root' },
+        id: { type: 'string', description: 'Task id from list_project_tasks or create_project_task' },
+        title: { type: 'string', description: 'Replacement task title' },
+        status: { type: 'string', enum: ['open', 'done'], description: 'Replacement task status' },
+        priority: { type: 'string', description: 'Replacement priority token, or empty string to clear' },
+      },
+      required: ['id'],
+    },
+  },
+  {
+    name: 'delete_project_task',
+    description: 'Delete a durable Markdown task from project/folder BOARD.md by Grimoire task id.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        folder: { type: 'string', description: 'Project folder relative to the vault root' },
+        id: { type: 'string', description: 'Task id from list_project_tasks or create_project_task' },
+      },
+      required: ['id'],
+    },
+  },
+  {
+    name: 'project_graph',
+    description: 'Return project Markdown nodes and wikilink edges for graph/navigation use.',
+    inputSchema: projectFolderSchema(),
+  },
 ]
 
 const TOOL_HANDLERS = {
@@ -127,6 +197,13 @@ const TOOL_HANDLERS = {
   open_note: handleOpenNote,
   highlight_editor: handleHighlightEditor,
   refresh_vault: handleRefreshVault,
+  list_project_docs: handleListProjectDocs,
+  read_project_board: handleReadProjectBoard,
+  list_project_tasks: handleListProjectTasks,
+  create_project_task: handleCreateProjectTask,
+  update_project_task: handleUpdateProjectTask,
+  delete_project_task: handleDeleteProjectTask,
+  project_graph: handleProjectGraph,
 }
 
 async function handleSearchNotes(args) {
@@ -163,6 +240,53 @@ function handleHighlightEditor(args) {
 function handleRefreshVault(args) {
   broadcastUiAction('vault_changed', { path: args?.path })
   return { content: [{ type: 'text', text: 'Vault refresh triggered' }] }
+}
+
+async function handleListProjectDocs(args = {}) {
+  return jsonToolResponse(await listProjectDocs(VAULT_PATH, args.folder))
+}
+
+async function handleReadProjectBoard(args = {}) {
+  return jsonToolResponse(await readProjectBoard(VAULT_PATH, args.folder))
+}
+
+async function handleListProjectTasks(args = {}) {
+  return jsonToolResponse(await listProjectTasks(VAULT_PATH, args.folder))
+}
+
+async function handleCreateProjectTask(args) {
+  const result = await createProjectTask(VAULT_PATH, args)
+  broadcastUiAction('vault_changed', { path: result.path })
+  return jsonToolResponse(result)
+}
+
+async function handleUpdateProjectTask(args) {
+  const result = await updateProjectTask(VAULT_PATH, args)
+  broadcastUiAction('vault_changed', { path: result.path })
+  return jsonToolResponse(result)
+}
+
+async function handleDeleteProjectTask(args) {
+  const result = await deleteProjectTask(VAULT_PATH, args)
+  broadcastUiAction('vault_changed', { path: result.path })
+  return jsonToolResponse(result)
+}
+
+async function handleProjectGraph(args = {}) {
+  return jsonToolResponse(await projectGraph(VAULT_PATH, args.folder))
+}
+
+function projectFolderSchema() {
+  return {
+    type: 'object',
+    properties: {
+      folder: { type: 'string', description: 'Project folder relative to the vault root. Empty means the vault root.' },
+    },
+  }
+}
+
+function jsonToolResponse(value) {
+  return { content: [{ type: 'text', text: JSON.stringify(value, null, 2) }] }
 }
 
 // --- Server setup ---

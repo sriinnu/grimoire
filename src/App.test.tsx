@@ -558,19 +558,37 @@ describe('App', () => {
     })
   })
 
-  it('shows the external AI setup dialog from the menu when AI onboarding is active', async () => {
+  it('does not block startup when AI agents are already installed', async () => {
     localStorage.removeItem(AI_AGENTS_ONBOARDING_DISMISSED_KEY)
     localStorage.removeItem(CLAUDE_CODE_ONBOARDING_DISMISSED_KEY)
     mockCommandResults.get_ai_agents_status = {
       claude_code: { installed: true, version: '2.1.90' },
       codex: { installed: true, version: '0.122.0-alpha.1' },
+      chitragupta: { installed: true, version: '0.1.16' },
+    }
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByText('All Notes')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('AI agents ready')).not.toBeInTheDocument()
+  })
+
+  it('shows the external AI setup dialog from the menu when AI onboarding is active', async () => {
+    localStorage.removeItem(AI_AGENTS_ONBOARDING_DISMISSED_KEY)
+    localStorage.removeItem(CLAUDE_CODE_ONBOARDING_DISMISSED_KEY)
+    mockCommandResults.get_ai_agents_status = {
+      claude_code: { installed: false, version: null },
+      codex: { installed: false, version: null },
+      chitragupta: { installed: false, version: null },
     }
     mockCommandResults.check_mcp_status = 'installed'
 
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByText('AI agents ready')).toBeInTheDocument()
+      expect(screen.getByText('No AI agents detected')).toBeInTheDocument()
     })
 
     await waitFor(() => {
@@ -585,7 +603,7 @@ describe('App', () => {
       expect(screen.getByText('Manage External AI Tools')).toBeInTheDocument()
     })
     expect(screen.getByTestId('mcp-setup-dialog')).toBeInTheDocument()
-    expect(screen.queryByText('AI agents ready')).not.toBeInTheDocument()
+    expect(screen.queryByText('No AI agents detected')).not.toBeInTheDocument()
   })
 
   it('shows onboarding after telemetry consent when no active vault is configured', async () => {

@@ -6,6 +6,7 @@ import {
   AI_AGENT_DEFINITIONS,
   getAiAgentDefinition,
   hasAnyInstalledAiAgent,
+  isBrowserPreviewAiAgentsStatus,
   isAiAgentInstalled,
   isAiAgentsStatusChecking,
   type AiAgentId,
@@ -46,6 +47,7 @@ function badgeTooltip(
   defaultAgent: AiAgentId,
   guidanceStatus?: VaultAiGuidanceStatus,
 ): string {
+  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Live AI requires the native Grimoire app'
   const guidanceSummary = guidanceStatus && !isVaultAiGuidanceStatusChecking(guidanceStatus)
     ? getVaultAiGuidanceSummary(guidanceStatus)
     : null
@@ -173,6 +175,7 @@ function AgentMenuContent({
 }: AiAgentsBadgeProps & { selectedAgentReady: boolean }) {
   const installedAgents = installedAgentDefinitions(statuses)
   const missingAgents = missingAgentDefinitions(statuses)
+  const isBrowserPreview = isBrowserPreviewAiAgentsStatus(statuses)
 
   return (
     <DropdownMenuContent
@@ -183,7 +186,9 @@ function AgentMenuContent({
     >
       <DropdownMenuLabel>{menuHeading(defaultAgent, selectedAgentReady)}</DropdownMenuLabel>
       {installedAgents.length === 0 ? (
-        <DropdownMenuItem disabled>No AI agents detected</DropdownMenuItem>
+        <DropdownMenuItem disabled>
+          {isBrowserPreview ? 'Open native Grimoire for live AI' : 'No AI agents detected'}
+        </DropdownMenuItem>
       ) : (
         <DropdownMenuRadioGroup
           value={selectedAgentReady ? defaultAgent : undefined}
@@ -199,7 +204,7 @@ function AgentMenuContent({
           ))}
         </DropdownMenuRadioGroup>
       )}
-      {missingAgents.length > 0 && (
+      {missingAgents.length > 0 && !isBrowserPreview && (
         <>
           <DropdownMenuSeparator />
           <DropdownMenuLabel>Install</DropdownMenuLabel>

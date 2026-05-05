@@ -20,6 +20,16 @@ Non-responsibilities:
 - store local machine credentials
 - depend on a hosted Grimoire service
 
+## Vault Portability
+
+Vault portability has three separate contracts:
+
+- import source: converts another app export into a Grimoire vault
+- export target: writes a portable copy of a Grimoire vault
+- storage provider: describes where the local-first vault lives and how it syncs
+
+Git is one storage provider. iCloud Drive and Google Drive Desktop are filesystem-backed providers. S3 and Azure Blob are object-storage providers that need a local working copy plus a sync adapter.
+
 ## Note
 
 A note is one markdown file plus YAML frontmatter.
@@ -52,9 +62,23 @@ Supported product expectations:
 - inline and display math
 - tables where the editor supports them
 - images and vault attachments
+- dates, journal blocks, and tasks inserted as durable markdown
 - weather snapshot callouts inserted by command
+- canvas and handwriting attachments referenced by preview image plus `grimoire-canvas` metadata fences
 
 Editors may render this richly, but they must preserve markdown intent.
+
+## Canvas Attachment
+
+A canvas attachment is an editable drawing or handwriting artifact referenced from a note.
+
+The note stores:
+
+- a Markdown image preview, usually `attachments/<kind>-<yyyy-mm-dd-hhmmss>.png`
+- a fenced `grimoire-canvas` metadata block
+- a source attachment path, usually `attachments/<kind>-<yyyy-mm-dd-hhmmss>.grimoire-canvas.json`
+
+Tauri can render this with a web canvas/whiteboard engine. Apple support surfaces can render it with PencilKit. Both must preserve the same source + preview contract, because the vault remains the source of truth.
 
 ## Frontmatter
 
@@ -207,6 +231,10 @@ A command is an action with one identity across:
 
 Command IDs live in the app command catalog. New commands should be registered once and routed through the shared dispatcher.
 
+Editor slash commands are separate from app commands. They live inside the editor surface and produce durable markdown, such as headings, tasks, dates, tables, wikilinks, media, math, templates, or AI-assisted note transforms. Their cross-shell behavior is defined in `docs/MARKDOWN-SEMANTICS-CONTRACT.md`.
+
+Raw editor find/replace is an editor-local contract. `useCodeMirror` owns the `Mod-f` key binding, `RawEditorFindReplacePanel` owns the UI, and `utils/rawEditorFindReplace.ts` owns match calculation so the behavior can be tested without a CodeMirror DOM.
+
 ## Editor Mode
 
 The editor has multiple views over the same markdown:
@@ -214,9 +242,11 @@ The editor has multiple views over the same markdown:
 - rich BlockNote mode
 - raw CodeMirror mode
 - diff mode
-- SwiftUI mode on macOS and iOS
+- SwiftUI/WebKit support mode for Apple-native experiments
 
-Shared markdown semantics belong in the `MarkdownEditor` Swift package: frontmatter splitting, wikilink round-tripping, math placeholders, compact serialization, snippets, and word counts. The macOS/iOS SwiftUI apps import that package directly. Non-Apple Tauri surfaces keep platform adapters with parity tests until a native bridge is worth carrying.
+Shared markdown semantics belong in the `MarkdownEditor` Swift package and the Tauri adapter contract: frontmatter splitting, wikilink round-tripping, math placeholders, compact serialization, snippets, and word counts. The Tauri editor remains the primary product surface. SwiftUI/WebKit support surfaces import the package directly when Apple-native integration is worth carrying.
+
+The Tauri adapter facade is `src/utils/markdownSemanticsAdapter.ts`. It is the renderer-side boundary for semantics that must stay aligned with the Swift package.
 
 Do not implement markdown semantics separately per mode unless the behavior is genuinely mode-specific.
 
@@ -248,6 +278,16 @@ Agent rules:
 - detection should work from realistic macOS/Linux/Windows install paths
 - streamed output must preserve reasoning, tool calls, and errors clearly
 - agent tools should operate through the same safe vault commands as the app
+
+MCP project tools:
+
+- project docs are discovered from Markdown-first folder scans
+- project boards are durable `BOARD.md` files, not hidden app state
+- persisted board tasks carry `grimoire-task` ids so agents can update or delete them safely
+- generated board rows include task metadata for priority, origin, source file, and source line
+- generated scanner tasks use stable ids derived from source context, so saving `BOARD.md` does not create duplicate task signals on the next scan
+- TODO/FIXME/HACK/NOTE markers are readable task signals until source edits are explicitly supported
+- project graph edges come from Markdown wikilinks so UI and agents share the same relationship model
 
 ## Settings
 

@@ -21,6 +21,7 @@ const RAW_EDITOR_COLORS = {
 export interface CodeMirrorCallbacks {
   onDocChange: (doc: string) => void
   onCursorActivity: (view: EditorView) => void
+  onFind?: () => boolean
   onSave: () => void
   onEscape: () => boolean
 }
@@ -69,6 +70,9 @@ function buildBaseTheme() {
 
 function buildSaveKeymap(callbacks: { current: CodeMirrorCallbacks }) {
   return keymap.of([{
+    key: 'Mod-f',
+    run: () => callbacks.current.onFind?.() ?? false,
+  }, {
     key: 'Mod-s',
     run: () => { callbacks.current.onSave(); return true },
   }, {

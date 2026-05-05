@@ -23,6 +23,16 @@ describe('preProcessWikilinks', () => {
     expect(result).toContain('WIKILINK:project/my-project|My Project')
   })
 
+  it('trims accidental spaces around wikilink targets and aliases', () => {
+    const result = preProcessWikilinks('See [[  My Note  |  the note  ]]')
+    expect(result).toContain('WIKILINK:My Note|the note')
+    expect(result).not.toContain('  My Note')
+  })
+
+  it('leaves whitespace-only wikilinks as text instead of creating broken link nodes', () => {
+    expect(preProcessWikilinks('See [[  ]]')).toBe('See [[  ]]')
+  })
+
   it('handles multiple wikilinks', () => {
     const result = preProcessWikilinks('See [[A]] and [[B]]')
     expect(result).toContain('WIKILINK:A')
@@ -284,6 +294,11 @@ describe('countWords', () => {
     expect(countWords(content)).toBe(3)
   })
 
+  it('keeps wikilinks inside inline code in word count', () => {
+    const content = '# Title\n\nUse `[[Code Link]]` and [[Live Link]].'
+    expect(countWords(content)).toBe(5)
+  })
+
   it('returns 0 for note with only title and no body', () => {
     const content = '---\ntitle: Empty\n---\n\n# Empty\n'
     expect(countWords(content)).toBe(0)
@@ -419,6 +434,11 @@ describe('extractOutgoingLinks', () => {
   it('ignores empty wikilinks', () => {
     const content = 'Text [[]] and [[Valid]]'
     expect(extractOutgoingLinks(content)).toEqual(['Valid'])
+  })
+
+  it('ignores whitespace-only wikilinks and trims valid targets', () => {
+    const content = 'Text [[  ]] and [[ Valid Note ]] and [[ folder/doc | Doc ]]'
+    expect(extractOutgoingLinks(content)).toEqual(['Valid Note', 'folder/doc'])
   })
 })
 

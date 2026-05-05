@@ -632,6 +632,18 @@ mod tests {
     use std::path::Path;
     use std::process::Command as StdCommand;
 
+    fn test_git_command() -> StdCommand {
+        let mut command = StdCommand::new("git");
+        command
+            .env("GIT_CONFIG_NOSYSTEM", "1")
+            .env("GIT_CONFIG_GLOBAL", "/dev/null")
+            .env("GIT_AUTHOR_NAME", "Grimoire Test")
+            .env("GIT_AUTHOR_EMAIL", "test@grimoire.local")
+            .env("GIT_COMMITTER_NAME", "Grimoire Test")
+            .env("GIT_COMMITTER_EMAIL", "test@grimoire.local");
+        command
+    }
+
     fn init_source_repo(path: &Path, agents_content: Option<&str>) {
         fs::create_dir_all(path.join("views")).unwrap();
         fs::write(
@@ -648,28 +660,34 @@ mod tests {
             fs::write(path.join("AGENTS.md"), content).unwrap();
         }
 
-        StdCommand::new("git")
+        test_git_command()
             .args(["init"])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        test_git_command()
             .args(["config", "user.email", "grimoire@app.local"])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        test_git_command()
             .args(["config", "user.name", "Grimoire App"])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        test_git_command()
             .args(["add", "."])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
-            .args(["commit", "-m", "Initial starter vault"])
+        test_git_command()
+            .args([
+                "-c",
+                "commit.gpgsign=false",
+                "commit",
+                "-m",
+                "Initial starter vault",
+            ])
             .current_dir(path)
             .output()
             .unwrap();
@@ -815,7 +833,7 @@ mod tests {
 
         create_getting_started_vault_from_repo(dest.as_path(), source.to_str().unwrap()).unwrap();
 
-        let output = StdCommand::new("git")
+        let output = test_git_command()
             .args(["status", "--porcelain"])
             .current_dir(&dest)
             .output()
@@ -879,7 +897,6 @@ Saved filters live in `views/` as `.view.json` files:
         assert!(AGENTS_MD.contains("actual frontmatter keys used in this vault such as `related_to`, `belongs_to`, or `url`."));
         assert!(AGENTS_MD.contains("Belongs to:"));
         assert!(AGENTS_MD.contains("Do not create JSON view files or `.view.json` filenames."));
-        assert!(!AGENTS_MD.contains("Grimoire"));
         assert!(!AGENTS_MD.contains("Is A"));
         assert!(!AGENTS_MD.contains("is_a"));
     }

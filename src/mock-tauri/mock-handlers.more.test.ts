@@ -46,6 +46,15 @@ describe('mockHandlers additional coverage', () => {
     })
   })
 
+  it('keeps browser dev mock vaults small unless bulk stress data is enabled', async () => {
+    const { mockHandlers } = await loadHandlers()
+
+    const entries = mockHandlers.list_vault({})
+
+    expect(entries.length).toBeLessThan(500)
+    expect(entries.some((entry: { filename: string }) => entry.filename === 'quick-meeting-1.md')).toBe(false)
+  })
+
   it('renames a filename successfully and rewrites wikilinks that target the old path stem', async () => {
     const { mockHandlers } = await loadHandlers()
     const vaultPath = '/Users/mock/Test Vault'

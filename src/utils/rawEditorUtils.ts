@@ -1,6 +1,6 @@
 import type { EditorView } from '@codemirror/view'
 import { attachClickHandlers, enrichSuggestionItems } from './suggestionEnrichment'
-import { deduplicateByPath, preFilterWikilinks } from './wikilinkSuggestions'
+import { deduplicateByPath, getWikilinkSuggestionCandidates } from './wikilinkSuggestions'
 import type { VaultEntry } from '../types'
 import type { WikilinkSuggestionItem } from '../components/WikilinkSuggestionMenu'
 
@@ -84,9 +84,10 @@ export function buildRawEditorAutocompleteState({
   const coords = getRawEditorCursorCoords(view)
   if (!coords) return null
 
-  const candidates = preFilterWikilinks(baseItems, query)
+  const normalizedQuery = query.trim()
+  const candidates = getWikilinkSuggestionCandidates(baseItems, normalizedQuery)
   const withHandlers = attachClickHandlers(candidates, onInsertTarget, vaultPath)
-  const items = enrichSuggestionItems(withHandlers, query, typeEntryMap)
+  const items = enrichSuggestionItems(withHandlers, normalizedQuery, typeEntryMap)
 
   return {
     caretTop: coords.top,

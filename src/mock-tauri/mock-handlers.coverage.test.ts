@@ -10,6 +10,17 @@ describe('mockHandlers coverage', () => {
     vi.restoreAllMocks()
   })
 
+  it('keeps browser preview AI agents ready instead of showing false missing installs', async () => {
+    const { mockHandlers } = await loadHandlers()
+
+    expect(mockHandlers.check_claude_cli()).toEqual({ installed: true, version: 'mock' })
+    expect(mockHandlers.get_ai_agents_status()).toEqual({
+      claude_code: { installed: true, version: 'mock' },
+      codex: { installed: true, version: 'mock' },
+      chitragupta: { installed: true, version: 'mock' },
+    })
+  })
+
   it('renames a note, updates its frontmatter title, and rewrites backlinks', async () => {
     const { mockHandlers } = await loadHandlers()
     const vaultPath = '/Users/mock/Test Vault'

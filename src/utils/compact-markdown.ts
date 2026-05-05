@@ -15,11 +15,11 @@ export function compactMarkdown(md: string): string {
 
   const source = { lines: md.split('\n') }
   const result = { lines: [] as string[] }
-  let inCodeBlock = false
+  let codeFence: string | null = null
 
   for (let i = 0; i < source.lines.length; i++) {
-    const next = processMarkdownLine({ doc: source, idx: i, inCodeBlock })
-    inCodeBlock = next.inCodeBlock
+    const next = processMarkdownLine({ doc: source, idx: i, codeFence })
+    codeFence = next.codeFence
     if (next.line !== null) {
       result.lines.push(next.line)
     }
@@ -51,32 +51,40 @@ interface NormalizedLinePosition extends LinePosition {
 }
 
 interface ProcessMarkdownLineArgs extends LinePosition {
-  inCodeBlock: boolean
+  codeFence: string | null
 }
 
 function processMarkdownLine(
-  { doc, idx, inCodeBlock }: ProcessMarkdownLineArgs,
-): { inCodeBlock: boolean; line: string | null } {
+  { doc, idx, codeFence }: ProcessMarkdownLineArgs,
+): { codeFence: string | null; line: string | null } {
   const rawLine = doc.lines[idx]
+  const marker = fenceDelimiter({ line: rawLine })
 
-  if (isFenceDelimiter({ line: rawLine })) {
-    return { inCodeBlock: !inCodeBlock, line: rawLine }
+  if (marker !== null && codeFence === null) {
+    return { codeFence: marker, line: rawLine }
   }
 
-  if (inCodeBlock) {
-    return { inCodeBlock, line: rawLine }
+  if (marker !== null && codeFence === marker) {
+    return { codeFence: null, line: rawLine }
+  }
+
+  if (codeFence !== null) {
+    return { codeFence, line: rawLine }
   }
 
   const line = normalizeMarkdownLine({ line: rawLine })
   if (shouldSkipLine({ doc, idx, line })) {
-    return { inCodeBlock, line: null }
+    return { codeFence, line: null }
   }
 
-  return { inCodeBlock, line }
+  return { codeFence, line }
 }
 
-function isFenceDelimiter({ line }: MarkdownLineValue): boolean {
-  return line.trimStart().startsWith('```')
+function fenceDelimiter({ line }: MarkdownLineValue): string | null {
+  const trimmed = line.trimStart()
+  if (trimmed.startsWith('```')) return '```'
+  if (trimmed.startsWith('~~~')) return '~~~'
+  return null
 }
 
 function normalizeMarkdownLine({ line }: MarkdownLineValue): string {
@@ -152,7 +160,15 @@ function normalizeBulletMarker({ line }: MarkdownLineValue): string {
 /** Decode HTML entities that BlockNote inserts (&#x20; &#x26; etc.) */
 function decodeHtmlEntities({ line }: MarkdownLineValue): string {
   if (!line.includes('&#x')) return line
-  return line.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+  return line.replace(/&#x([0-9a-fA-F]+);/g, (entity, hex) => {
+    const value = Number.parseInt(hex, 16)
+    if (!Number.isFinite(value)) return entity
+    try {
+      return String.fromCodePoint(value)
+    } catch {
+      return entity
+    }
+  })
 }
 
 function normalizeStrongWhitespace({ line }: MarkdownLineValue): string {

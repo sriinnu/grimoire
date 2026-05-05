@@ -29,8 +29,11 @@ export function WikilinkSuggestionMenu({ items, selectedIndex, onItemClick }: Wi
           selectedIndex={selectedIndex ?? 0}
           getItemKey={(item, i) => `${item.title}-${item.path ?? i}`}
           onItemClick={(item) => {
+            if (onItemClick) {
+              onItemClick(item)
+              return
+            }
             item.onItemClick()
-            onItemClick?.(item)
           }}
           emptyMessage="No results"
         />

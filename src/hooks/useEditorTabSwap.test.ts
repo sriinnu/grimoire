@@ -518,6 +518,29 @@ describe('useEditorTabSwap raw mode sync', () => {
     })
   })
 
+  it('serializes custom math blocks when rich editor content changes', async () => {
+    const onContentChange = vi.fn()
+    const tabA = makeTab('a.md', 'Note A')
+    const { result, mockEditor } = await createSwapHarness({
+      initialProps: { tabs: [tabA], activeTabPath: 'a.md', rawMode: false },
+      onContentChange,
+    })
+    mockEditor._docRef.current = [{
+      type: 'mathBlock',
+      props: { latex: 'E=mc^2' },
+      children: [],
+    }]
+
+    act(() => {
+      result.current.handleEditorChange()
+    })
+
+    expect(onContentChange).toHaveBeenCalledWith(
+      'a.md',
+      expect.stringContaining('$$\nE=mc^2\n$$'),
+    )
+  })
+
   it('re-parses from tab.content when rawMode transitions from true to false', async () => {
     vi.spyOn(document, 'querySelector').mockReturnValue({ scrollTop: 0 } as unknown as Element)
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => { cb(0); return 0 })

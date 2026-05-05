@@ -3,6 +3,7 @@ import { NoteListLayout } from './note-list/NoteListLayout'
 import { useNoteListModel, type NoteListProps } from './note-list/useNoteListModel'
 import type { NoteListMultiSelectionCommands } from './note-list/multiSelectionCommands'
 import { useMultiSelectKeyboard } from './note-list/useMultiSelectKeyboard'
+import { ProjectIntelligenceStrip } from './ProjectIntelligenceStrip'
 
 type NoteListInnerProps = NoteListProps & {
   onBulkOrganize?: (paths: string[]) => void
@@ -47,7 +48,19 @@ function NoteListInner({ onBulkOrganize, multiSelectionCommandRef, ...props }: N
     props.onBulkDeletePermanently,
   ])
 
-  return <NoteListLayout {...model} handleBulkOrganize={onBulkOrganize ? handleBulkOrganize : undefined} />
+  return (
+    <NoteListLayout
+      {...model}
+      handleBulkOrganize={onBulkOrganize ? handleBulkOrganize : undefined}
+      projectIntelligenceNode={(
+        <ProjectIntelligenceStrip
+          entries={props.entries}
+          selection={props.selection}
+          onSelectNote={props.onSelectNote}
+        />
+      )}
+    />
+  )
 }
 
 export const NoteList = memo(NoteListInner)

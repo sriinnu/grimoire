@@ -6,13 +6,19 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev:https": "GRIMOIRE_DEV_HTTPS=1 vite",
+    "build": "pnpm --filter @grimoire/markdown-editor build && tsc -b && vite build",
+    "build:markdown-editor": "pnpm --filter @grimoire/markdown-editor build",
+    "build:markdown-editor-baseline": "pnpm --filter @grimoire/markdown-editor-baseline build",
+    "dev:markdown-editor-baseline": "pnpm --filter @grimoire/markdown-editor-baseline dev",
     "bundle-mcp": "node scripts/bundle-mcp-server.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",
+    "tauri:https": "tauri dev --config '{\"build\":{\"devUrl\":\"https://localhost:5202\",\"beforeDevCommand\":\"pnpm dev:https\"}}'",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:markdown-editor": "pnpm --filter @grimoire/markdown-editor build && pnpm exec vitest run src/utils/markdownParity.test.ts markdown-editor/packages/js/src/react/grimoireSlashCommandItems.test.tsx && swift test --disable-sandbox --package-path markdown-editor/packages/swift",
     "test:e2e": "playwright test",
     "playwright:smoke": "playwright test --config playwright.smoke.config.ts tests/smoke/delete-note-nonblocking.spec.ts tests/smoke/example.spec.ts tests/smoke/fix-ai-chat-empty-body-v3.spec.ts tests/smoke/fix-crash-create-note.spec.ts tests/smoke/fresh-start-telemetry-onboarding.spec.ts tests/smoke/getting-started-template.spec.ts tests/smoke/h1-title-decoupled.spec.ts tests/smoke/h1-untitled-auto-rename.spec.ts tests/smoke/keyboard-command-routing.spec.ts tests/smoke/linkify-init-warnings.spec.ts tests/smoke/multi-selection-shortcuts.spec.ts tests/smoke/wikilink-path-fix.spec.ts",
     "playwright:regression": "playwright test tests/smoke/",
@@ -27,6 +33,7 @@
     "@blocknote/mantine": "^0.46.2",
     "@blocknote/react": "^0.46.2",
     "@codemirror/commands": "^6.10.2",
+    "@grimoire/markdown-editor": "workspace:*",
     "@codemirror/lang-markdown": "^6.5.0",
     "@codemirror/lang-yaml": "^6.1.2",
     "@codemirror/language": "^6.12.2",
@@ -98,7 +105,9 @@
     "ws": "^8.19.0"
   },
   "workspaces": [
-    "mcp-server"
+    "mcp-server",
+    "markdown-editor/packages/js",
+    "markdown-editor/apps/baseline-web"
   ],
   "patchedDependencies": {
     "@blocknote/core@0.46.2@0.46.2": "patches/@blocknote__core@0.46.2.patch",

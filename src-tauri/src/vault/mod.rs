@@ -215,11 +215,31 @@ pub fn reload_entry(path: &Path) -> Result<VaultEntry, String> {
 
 /// Directories hidden from user-facing vault scans.
 const HIDDEN_DIRS: &[&str] = &[".git", ".grimoire", ".DS_Store"];
+/// Dependency and build output directories that make code-project vaults unusably slow.
+const SCAN_EXCLUDED_DIRS: &[&str] = &[
+    "node_modules",
+    "dist",
+    "build",
+    "out",
+    "coverage",
+    "target",
+    "deriveddata",
+    "pods",
+    "carthage",
+    "vendor",
+    "venv",
+    "__pycache__",
+];
 /// Keep type definitions in their dedicated sidebar section instead of the generic folder tree.
 const FOLDER_TREE_EXCLUDED_DIRS: &[&str] = &["type"];
 
+fn is_scan_excluded_dir(name: &str) -> bool {
+    let lower = name.to_lowercase();
+    SCAN_EXCLUDED_DIRS.contains(&lower.as_str())
+}
+
 fn is_hidden_dir(name: &str) -> bool {
-    name.starts_with('.') || HIDDEN_DIRS.contains(&name)
+    name.starts_with('.') || HIDDEN_DIRS.contains(&name) || is_scan_excluded_dir(name)
 }
 
 fn is_folder_tree_hidden_dir(name: &str) -> bool {
@@ -227,7 +247,11 @@ fn is_folder_tree_hidden_dir(name: &str) -> bool {
 }
 
 pub(crate) fn is_md_file(path: &Path) -> bool {
-    path.is_file() && path.extension().is_some_and(|ext| ext == "md")
+    path.is_file()
+        && path.extension().is_some_and(|ext| {
+            let ext = ext.to_string_lossy().to_lowercase();
+            ext == "md" || ext == "markdown"
+        })
 }
 
 /// Extensions recognized as editable text files (opened in raw editor).
@@ -380,7 +404,7 @@ fn scan_all_files(
     entries: &mut Vec<VaultEntry>,
 ) {
     let walker = WalkDir::new(vault_path)
-        .follow_links(true)
+        .follow_links(false)
         .into_iter()
         .filter_entry(|e| {
             if e.file_type().is_dir() {
@@ -394,7 +418,7 @@ fn scan_all_files(
             true
         });
     for entry in walker.filter_map(|e| e.ok()) {
-        if entry.path().is_file() {
+        if entry.file_type().is_file() {
             // Skip hidden files (starting with '.') — e.g. .gitignore, .DS_Store
             let fname = entry.file_name().to_string_lossy();
             if fname.starts_with('.') {

@@ -1,0 +1,130 @@
+{
+  "compactMarkdown": [
+    {
+      "name": "tight bullet list",
+      "input": "* Item one\n\n* Item two\n\n* Item three\n",
+      "output": "- Item one\n- Item two\n- Item three\n"
+    },
+    {
+      "name": "preserve fenced code blanks",
+      "input": "```\nline one\n\nline two\n\nline three\n```\n",
+      "output": "```\nline one\n\nline two\n\nline three\n```\n"
+    },
+    {
+      "name": "preserve tilde fenced code",
+      "input": "~~~\n* Keep entity &#x1F600;\n\n* raw\n~~~\n",
+      "output": "~~~\n* Keep entity &#x1F600;\n\n* raw\n~~~\n"
+    },
+    {
+      "name": "decode non bmp entity outside code",
+      "input": "Smile &#x1F600;\n",
+      "output": "Smile \ud83d\ude00\n"
+    },
+    {
+      "name": "decode entities around strong text",
+      "input": "**Remove&#x20;**`NoteWindow`**&#x20;and render the full&#x20;**`App`**&#x20;component.**\n",
+      "output": "**Remove** `NoteWindow` **and render the full** `App` **component.**\n"
+    }
+  ],
+  "wikilinkPreprocess": [
+    {
+      "name": "plain and aliased links",
+      "input": "See [[My Note]] and [[path/note|Alias]].",
+      "output": "See ‹WIKILINK:My Note› and ‹WIKILINK:path/note|Alias›."
+    },
+    {
+      "name": "ignore inline code wikilinks",
+      "input": "`[[Code]]` and [[Live]]",
+      "output": "`[[Code]]` and ‹WIKILINK:Live›"
+    },
+    {
+      "name": "ignore backtick fenced wikilinks",
+      "input": "```\n[[Code]]\n```\n[[Live]]",
+      "output": "```\n[[Code]]\n```\n‹WIKILINK:Live›"
+    },
+    {
+      "name": "ignore tilde fenced wikilinks",
+      "input": "~~~\n[[Code]]\n~~~\n[[Live]]",
+      "output": "~~~\n[[Code]]\n~~~\n‹WIKILINK:Live›"
+    }
+  ],
+  "frontmatterSplits": [
+    {
+      "name": "frontmatter with blank body lead",
+      "input": "---\ntitle: Hello\n---\n\n# Hello\n",
+      "frontmatter": "---\ntitle: Hello\n---\n",
+      "body": "\n# Hello\n"
+    },
+    {
+      "name": "missing closing delimiter",
+      "input": "---\ntitle: Hello\nNo closing",
+      "frontmatter": "",
+      "body": "---\ntitle: Hello\nNo closing"
+    },
+    {
+      "name": "closing delimiter with trailing spaces",
+      "input": "---\r\ntitle: Hello\r\n---   \r\nBody",
+      "frontmatter": "---\r\ntitle: Hello\r\n---   \r\n",
+      "body": "Body"
+    },
+    {
+      "name": "partial closing delimiter ignored",
+      "input": "---\ntitle: Hello\n--- not delimiter\nBody",
+      "frontmatter": "",
+      "body": "---\ntitle: Hello\n--- not delimiter\nBody"
+    }
+  ],
+  "outgoingLinks": [
+    {
+      "name": "sorted unique targets",
+      "input": "See [[B|Bee]], [[A]], [[B|Other]].",
+      "output": ["A", "B"]
+    },
+    {
+      "name": "ignore code links and keep numeric targets",
+      "input": "See `[[Code]]` and [[123]].\n~~~\n[[Fence]]\n~~~\n[[Live]].",
+      "output": ["123", "Live"]
+    }
+  ],
+  "snippets": [
+    {
+      "name": "strip heading and markdown",
+      "input": "---\ntitle: Test\n---\n# Test\n\n- **Ship** the [editor](https://example.com) with [[Notes|links]].",
+      "output": "Ship the editor with links."
+    }
+  ],
+  "wordCounts": [
+    {
+      "name": "strip title formatting and wikilinks",
+      "input": "# Title\n\nHello **bold** [[Hidden Link]] world.",
+      "output": 3
+    },
+    {
+      "name": "preserve punctuation residue after wikilink removal",
+      "input": "# Title\n\nSee [[B]].",
+      "output": 2
+    },
+    {
+      "name": "keep inline code wikilink text",
+      "input": "# Title\n\nUse `[[Code Link]]` and [[Live Link]].",
+      "output": 5
+    }
+  ],
+  "mathPreprocess": [
+    {
+      "name": "inline math",
+      "input": "Energy is $E=mc^2$.",
+      "output": "Energy is @@GRIMOIRE_MATH_INLINE:E%3Dmc%5E2@@."
+    },
+    {
+      "name": "single-line display math",
+      "input": "Before\n$$x + y$$\nAfter",
+      "output": "Before\n@@GRIMOIRE_MATH_BLOCK:x%20%2B%20y@@\nAfter"
+    },
+    {
+      "name": "ignore fenced code",
+      "input": "```\n$x$\n```\n$x$",
+      "output": "```\n$x$\n```\n@@GRIMOIRE_MATH_INLINE:x@@"
+    }
+  ]
+}

@@ -3,7 +3,6 @@ import { trackEvent } from '../lib/telemetry'
 import type { EditorView } from '@codemirror/view'
 import { useNoteWikilinkDrop } from '../hooks/useNoteWikilinkDrop'
 import { insertWikilinkAtCursor } from '../utils/rawEditorInsertions'
-import { MIN_QUERY_LENGTH } from '../utils/wikilinkSuggestions'
 import { buildTypeEntryMap } from '../utils/typeColors'
 import { NoteSearchList } from './NoteSearchList'
 import {
@@ -17,6 +16,7 @@ import {
 } from '../utils/rawEditorUtils'
 import { useCodeMirror } from '../hooks/useCodeMirror'
 import type { VaultEntry } from '../types'
+import { RawEditorFindReplacePanel } from './RawEditorFindReplacePanel'
 
 export interface RawEditorViewProps {
   content: string
@@ -206,7 +206,7 @@ function buildNextRawEditorAutocomplete({
   const doc = view.state.doc.toString()
   const cursor = view.state.selection.main.head
   const query = extractWikilinkQuery(doc, cursor)
-  if (query === null || query.length < MIN_QUERY_LENGTH) return null
+  if (query === null) return null
 
   return buildRawEditorAutocompleteState({
     view,
@@ -346,11 +346,20 @@ function useRawEditorWikilinkInsertion({
 
 export function RawEditorView({ content, path, entries, onContentChange, onSave, latestContentRef, vaultPath }: RawEditorViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const [findPanelOpen, setFindPanelOpen] = useState(false)
+  const [findFocusSignal, setFindFocusSignal] = useState(0)
   const pendingChanges = useRawEditorPendingChanges({ content, latestContentRef, onContentChange, onSave, path })
   const autocompleteController = useRawEditorAutocompleteController({ entries, vaultPath })
+  const handleFind = useCallback(() => {
+    autocompleteController.setAutocomplete(null)
+    setFindFocusSignal(signal => signal + 1)
+    setFindPanelOpen(true)
+    return true
+  }, [autocompleteController])
   const viewRef = useCodeMirror(containerRef, content, {
     onDocChange: pendingChanges.handleDocChange,
     onCursorActivity: autocompleteController.handleCursorActivity,
+    onFind: handleFind,
     onSave: pendingChanges.handleSave,
     onEscape: autocompleteController.handleEscape,
   })
@@ -370,6 +379,7 @@ export function RawEditorView({ content, path, entries, onContentChange, onSave,
 
   return (
     <div className="flex flex-1 flex-col min-h-0 relative" style={{ background: 'var(--background)' }} onKeyDown={autocompleteController.handleAutocompleteKey} role="presentation">
+      {findPanelOpen ? <RawEditorFindReplacePanel focusSignal={findFocusSignal} open={findPanelOpen} onClose={() => setFindPanelOpen(false)} viewRef={viewRef} /> : null}
       <RawEditorYamlErrorBanner error={pendingChanges.yamlError} />
       <div
         ref={containerRef}

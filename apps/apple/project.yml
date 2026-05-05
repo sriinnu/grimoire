@@ -8,7 +8,7 @@ options:
 
 packages:
   MarkdownEditor:
-    path: ../../packages/MarkdownEditor
+    path: ../../markdown-editor/packages/swift
 
 targets:
   Grimoire:
@@ -20,11 +20,16 @@ targets:
       - path: Assets.xcassets
     dependencies:
       - package: MarkdownEditor
+        product: MarkdownEditor
+      - package: MarkdownEditor
+        product: MarkdownEditorUI
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sriinnu.grimoire
         PRODUCT_NAME: Grimoire
         SWIFT_VERSION: "6.0"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
@@ -32,17 +37,23 @@ targets:
   Grimoire-iOS:
     type: application
     platform: iOS
+    productName: Grimoire
     sources:
       - path: Sources/Shared
       - path: Sources/iOS
       - path: Assets.xcassets
     dependencies:
       - package: MarkdownEditor
+        product: MarkdownEditor
+      - package: MarkdownEditor
+        product: MarkdownEditorUI
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sriinnu.grimoire
         PRODUCT_NAME: Grimoire
         SWIFT_VERSION: "6.0"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         TARGETED_DEVICE_FAMILY: "1,2"
