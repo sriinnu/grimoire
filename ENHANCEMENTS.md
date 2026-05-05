@@ -7,6 +7,7 @@ This is the working roadmap. It folds in current Grimoire needs plus lessons fro
 These are the features that make the app ours:
 
 - **Journal operating layer**: daily notes, templates, weather, time, mood, location, reviews, and timeline.
+- **Mem-grade markdown editor**: slash commands from headings through dates, `@` mentions, `#` collections/tags, cleanup, recall, related context, templates, and AI-assisted note transforms.
 - **Graph as working memory**: active-neighborhood default, pinned trails, clusters, minimap, incoming/outgoing filters, semantic overlay.
 - **Agent memory packs**: active note, selected files, graph neighborhood, Git history, and explicit write audit.
 - **Theme studio**: typography, density, contrast, motion, graph readability, and reduced-motion controls.
@@ -15,9 +16,18 @@ These are the features that make the app ours:
 ## Already Landed Locally
 
 - New Grimoire logo and generated app icons
+- MarkdownEditor Swift package and Tauri parity fixtures
+- `@grimoire/markdown-editor` package for the React/BlockNote slash catalog and markdown-safe insertion helpers
+- Baseline package consumer app at `markdown-editor/apps/baseline-web`
+- `MarkdownEditorUI` package for native SwiftUI editing and a WebKit bridge surface
+- Tauri slash menu catalog: headings, lists, dates, picked-date placeholders, due tasks, note mentions, wikilinks, collections/tags, links, tables, frontmatter/property blocks, callouts, footnotes, source blocks, math, Mermaid, weekly/monthly calendars, weekly/monthly reviews, mood/energy check-ins, task rollover, timeline entries, weather placeholders, templates, cleanup, summaries, action extraction, wikilink creation, continuation prompts, graph/wiki blocks, related-context blocks, plus vault-context rows for recent notes, existing tags, type templates, create-note, and create-tag flows
+- First-class `#` tag/collection autocomplete in the rich editor
 - Knowledge graph command and modal
 - Graph local/vault scope
 - Graph relationship vs wikilink edge filters
+- Graph incoming/outgoing edge filters for backlink and outlink inspection
+- Graph type legend with per-type visibility toggles
+- Raw editor find/replace panel with match navigation, replace current, and replace all
 - Type-colored graph nodes and motion polish
 - Weather snapshot insertion command for journal notes
 - Appearance presets: Classic, Manuscript, Graphite, Studio, Folio, Nocturne
@@ -34,7 +44,7 @@ Goal: make Grimoire excellent as a daily memory system, not just a place to stor
 - Daily note command and templates
 - Optional weather snapshot per note
 - Optional time, location, mood, and energy blocks
-- Weekly and monthly review views
+- Weekly and monthly review slash sections
 - Timeline view over dated notes and Git history
 - Natural date filters for saved views
 - Journal graph mode that shows days, people, projects, and decisions around a time period
@@ -47,9 +57,9 @@ Goal: make editor search feel native and reliable.
 
 - Add `Find in Note` command separate from `Find in Vault`
 - Keep `Cmd+F` contract clear across note list search, editor focus, and native menu events
-- Add find/replace panel for raw CodeMirror mode first
+- Harden raw CodeMirror find/replace with command-palette/native-menu routing
 - Add rich editor find highlighting and selection navigation
-- Support replace one / replace all
+- Support rich-mode replace one / replace all
 - Preserve IME composition and macOS text bindings
 - Add tests for command routing, focus, and replacement behavior
 
@@ -59,6 +69,9 @@ Reference lesson: Clearly's live editor bridge treats find as an explicit editor
 
 Goal: no markdown feature should corrupt source while typing.
 
+- Add shell parity for the `@grimoire/markdown-editor` slash command catalog from `docs/MARKDOWN-SEMANTICS-CONTRACT.md`
+- Add interactive date picker, table row/column controls, and AI-backed cleanup/write actions
+- Harden create-new note/collection slash flows with collision prompts and richer template picking
 - Keep inline math rendered while typing
 - Harden display math serialization
 - Stabilize table paste and table cell editing
@@ -85,9 +98,9 @@ Goal: make Grimoire feel like a real local file app.
 Goal: make the graph useful for navigation and memory, not decorative.
 
 - Cluster by type and relationship family
-- Add type and edge legends with toggles
+- Add edge legend toggles beyond the current edge filter controls
 - Add "open neighborhood" and "pin node" actions
-- Add backlinks/incoming-only filters
+- Add richer backlinks/incoming-only filters
 - Add search result path from graph to note list
 - Add graph minimap for larger vaults
 - Add time-window graph mode for journal and review workflows

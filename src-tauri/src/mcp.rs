@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 
 const MCP_SERVER_NAME: &str = "grimoire";
-const LEGACY_MCP_SERVER_NAME: &str = "grimoire";
+const LEGACY_MCP_SERVER_NAME: &str = "grimoire-vault";
 
 /// Status of the MCP server installation.
 #[derive(Debug, Serialize, Clone, PartialEq)]

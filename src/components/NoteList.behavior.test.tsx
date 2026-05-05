@@ -304,4 +304,70 @@ describe('NoteList filter pills', () => {
 
     expect(screen.getByText('No archived notes')).toBeInTheDocument()
   })
+
+  it('defaults folder views to markdown and lets users reveal other files', async () => {
+    const entries = [
+      makeEntry({ path: '/vault/project/readme.md', filename: 'readme.md', title: 'Readme', fileKind: 'markdown' }),
+      makeEntry({ path: '/vault/project/App.tsx', filename: 'App.tsx', title: 'App.tsx', fileKind: 'text' }),
+      makeEntry({ path: '/vault/project/logo.png', filename: 'logo.png', title: 'logo.png', fileKind: 'binary' }),
+    ]
+
+    renderNoteList({ entries, selection: { kind: 'folder', path: 'project' } })
+
+    expect(screen.getByTestId('file-scope-pills')).toBeInTheDocument()
+    expect(screen.getByText('Readme')).toBeInTheDocument()
+    expect(screen.queryByText('App.tsx')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('file-scope-pill-other'))
+    expect(screen.queryByText('Readme')).not.toBeInTheDocument()
+    expect(screen.getByText('App.tsx')).toBeInTheDocument()
+    expect(screen.getByText('logo.png')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('file-scope-pill-all'))
+    expect(screen.getByText('Readme')).toBeInTheDocument()
+    expect(screen.getByText('App.tsx')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.queryByText('scanning')).not.toBeInTheDocument()
+    })
+  })
+})
+
+describe('NoteList note context menu', () => {
+  it('offers right-click organization actions for normal note rows', () => {
+    const onUpdateFrontmatter = vi.fn()
+    const entries = [
+      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', favorite: false }),
+    ]
+
+    renderNoteList({ entries, onUpdateFrontmatter })
+
+    fireEvent.contextMenu(screen.getByText('Alpha'))
+    expect(screen.getByTestId('note-context-menu')).toHaveClass('w-[216px]')
+
+    fireEvent.click(screen.getByTestId('note-context-make-project'))
+    expect(onUpdateFrontmatter).toHaveBeenCalledWith('/vault/alpha.md', 'type', 'Project')
+  })
+
+  it('preserves existing tag arrays when adding a context-menu tag', () => {
+    const onUpdateFrontmatter = vi.fn()
+    const entries = [
+      makeEntry({
+        path: '/vault/alpha.md',
+        title: 'Alpha',
+        properties: { tags: ['alpha', 'beta'] },
+      }),
+    ]
+
+    renderNoteList({ entries, onUpdateFrontmatter })
+
+    fireEvent.contextMenu(screen.getByText('Alpha'))
+    fireEvent.click(screen.getByTestId('note-context-tag-todo'))
+
+    expect(onUpdateFrontmatter).toHaveBeenCalledWith(
+      '/vault/alpha.md',
+      'tags',
+      ['alpha', 'beta', 'todo'],
+    )
+  })
 })

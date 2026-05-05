@@ -225,7 +225,13 @@ describe('Sidebar', () => {
 
   it('renders Grimoire branding in the sidebar title bar', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
+    expect(screen.getByTestId('sidebar-title-bar')).toHaveStyle({ paddingLeft: '12px' })
+    expect(screen.getByTestId('sidebar-brand')).toHaveClass('justify-start')
     expect(screen.getByText('Grimoire')).toBeInTheDocument()
+    expect(screen.getByText('Grimoire')).toHaveStyle({ textAlign: 'left' })
+    expect(screen.getByAltText('Grimoire icon')).toBeInTheDocument()
+    expect(screen.getByText('Markdown agent')).toBeInTheDocument()
+    expect(screen.getByText('Markdown agent')).toHaveStyle({ textAlign: 'left' })
   })
 
   it('renders section group headers only for types present in entries', () => {

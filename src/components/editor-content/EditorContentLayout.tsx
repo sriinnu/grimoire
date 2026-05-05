@@ -173,6 +173,7 @@ function EditorCanvas({
   editor,
   entries,
   onNavigateWikilink,
+  onCreateAndOpenNote,
   onEditorChange,
   isDeletedPreview,
   vaultPath,
@@ -183,6 +184,7 @@ function EditorCanvas({
   | 'editor'
   | 'entries'
   | 'onNavigateWikilink'
+  | 'onCreateAndOpenNote'
   | 'onEditorChange'
   | 'isDeletedPreview'
   | 'vaultPath'
@@ -196,6 +198,7 @@ function EditorCanvas({
           editor={editor}
           entries={entries}
           onNavigateWikilink={onNavigateWikilink}
+          onCreateAndOpenNote={onCreateAndOpenNote}
           onChange={onEditorChange}
           vaultPath={vaultPath}
           editable={!isDeletedPreview}

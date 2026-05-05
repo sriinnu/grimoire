@@ -3,6 +3,7 @@ import {
   AI_AGENT_DEFINITIONS,
   getAiAgentDefinition,
   hasAnyInstalledAiAgent,
+  isBrowserPreviewAiAgentsStatus,
   isAiAgentsStatusChecking,
   type AiAgentsStatus,
 } from '../lib/aiAgents'
@@ -23,6 +24,15 @@ function getPromptCopy(statuses: AiAgentsStatus) {
       description: 'Checking which AI agents are available on this machine.',
       icon: <Loader2 className="size-7 animate-spin" />,
       title: 'Checking AI agents',
+    }
+  }
+
+  if (isBrowserPreviewAiAgentsStatus(statuses)) {
+    return {
+      accentClassName: 'bg-muted text-muted-foreground',
+      description: 'Browser preview cannot launch local CLI agents. Open the native Grimoire app for live Claude, Codex, and Chitragupta.',
+      icon: <Bot className="size-7" />,
+      title: 'Open native app for live AI',
     }
   }
 
@@ -59,7 +69,7 @@ function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
               <div className="text-xs text-muted-foreground">
                 {ready
                   ? `${definition.label}${status.version ? ` ${status.version}` : ''} is ready.`
-                  : `${definition.label} is not installed yet.`}
+                  : (status.version ?? `${definition.label} is not installed yet.`)}
               </div>
             </div>
             <span
@@ -79,6 +89,7 @@ export function AiAgentsOnboardingPrompt({
   onContinue,
 }: AiAgentsOnboardingPromptProps) {
   const copy = getPromptCopy(statuses)
+  const isBrowserPreview = isBrowserPreviewAiAgentsStatus(statuses)
   const showLegacyClaudeCompatibility = statuses.claude_code.status !== 'installed'
   const missingAgents = AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'missing')
 
@@ -104,7 +115,7 @@ export function AiAgentsOnboardingPrompt({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {showLegacyClaudeCompatibility ? (
+          {showLegacyClaudeCompatibility && !isBrowserPreview ? (
             <div
               className="rounded-lg border border-[var(--feedback-warning-border)] bg-[var(--feedback-warning-bg)] px-4 py-3 text-left"
               data-testid="claude-onboarding-screen"
@@ -119,7 +130,7 @@ export function AiAgentsOnboardingPrompt({
         </CardContent>
 
         <CardFooter className="flex-wrap justify-center gap-3">
-          {missingAgents.map((definition) => (
+          {!isBrowserPreview && missingAgents.map((definition) => (
             <Button
               key={definition.id}
               type="button"
@@ -136,9 +147,9 @@ export function AiAgentsOnboardingPrompt({
               type="button"
               onClick={onContinue}
               disabled={isAiAgentsStatusChecking(statuses)}
-              data-testid={showLegacyClaudeCompatibility ? 'claude-onboarding-continue' : undefined}
+              data-testid={showLegacyClaudeCompatibility && !isBrowserPreview ? 'claude-onboarding-continue' : undefined}
             >
-              {hasAnyInstalledAiAgent(statuses) ? 'Continue' : 'Continue without it'}
+              {isBrowserPreview ? 'Continue in preview' : hasAnyInstalledAiAgent(statuses) ? 'Continue' : 'Continue without it'}
             </Button>
           </div>
         </CardFooter>

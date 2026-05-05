@@ -1,0 +1,11 @@
+{
+  "name": "@grimoire/markdown-editor-project",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm --filter @grimoire/markdown-editor build && pnpm --dir apps/baseline-web build",
+    "dev": "pnpm --dir apps/baseline-web dev",
+    "test": "pnpm --filter @grimoire/markdown-editor build && swift test --disable-sandbox --package-path packages/swift"
+  }
+}

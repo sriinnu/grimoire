@@ -166,17 +166,17 @@ notes/daily.md
         let vault = dir.path();
 
         // Init repo
-        std::process::Command::new("git")
+        git_command()
             .args(["init"])
             .current_dir(vault)
             .output()
             .unwrap();
-        std::process::Command::new("git")
+        git_command()
             .args(["config", "user.email", "test@test.com"])
             .current_dir(vault)
             .output()
             .unwrap();
-        std::process::Command::new("git")
+        git_command()
             .args(["config", "user.name", "Test"])
             .current_dir(vault)
             .output()
@@ -184,13 +184,13 @@ notes/daily.md
 
         // First commit with one file
         std::fs::write(vault.join("first.md"), "# First\n").unwrap();
-        std::process::Command::new("git")
+        git_command()
             .args(["add", "."])
             .current_dir(vault)
             .output()
             .unwrap();
-        std::process::Command::new("git")
-            .args(["commit", "-m", "first"])
+        git_command()
+            .args(["-c", "commit.gpgsign=false", "commit", "-m", "first"])
             .current_dir(vault)
             .output()
             .unwrap();
@@ -198,13 +198,13 @@ notes/daily.md
         // Second commit with another file + modify first
         std::fs::write(vault.join("first.md"), "# First\nUpdated.\n").unwrap();
         std::fs::write(vault.join("second.md"), "# Second\n").unwrap();
-        std::process::Command::new("git")
+        git_command()
             .args(["add", "."])
             .current_dir(vault)
             .output()
             .unwrap();
-        std::process::Command::new("git")
-            .args(["commit", "-m", "second"])
+        git_command()
+            .args(["-c", "commit.gpgsign=false", "commit", "-m", "second"])
             .current_dir(vault)
             .output()
             .unwrap();

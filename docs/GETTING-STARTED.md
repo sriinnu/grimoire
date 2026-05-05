@@ -57,8 +57,10 @@ Install Node from the distro package manager too if you want the bundled MCP ser
 pnpm lint
 pnpm exec tsc --noEmit
 pnpm test
+pnpm run test:markdown-editor
 pnpm build
 cargo test --manifest-path src-tauri/Cargo.toml
+swift test --package-path markdown-editor/packages/swift
 ```
 
 Smoke tests:
@@ -97,6 +99,7 @@ src/
     i18n.ts                       app translations
     themeMode.ts                  light/dark runtime
   utils/
+    markdownSemanticsAdapter.ts       Tauri markdown semantics facade
     noteGraph.ts                  graph data model
     graphDisplay.ts               graph layout and filters
     weatherSnapshot.ts            weather markdown block generation
@@ -114,6 +117,16 @@ src-tauri/src/
   ai_agents.rs                    CLI agent facade
   claude_cli.rs                   Claude Code adapter
   mcp.rs                          MCP server support
+
+markdown-editor/packages/swift/
+  Sources/MarkdownEditor          Swift markdown semantics package
+  Sources/MarkdownEditorTool      CLI bridge for parity experiments
+  Fixtures/markdown-parity.json   shared Swift/Tauri fixture corpus
+
+apps/apple/
+  project.yml                     XcodeGen project source
+  Sources/Shared                  SwiftUI/WebKit support shell shared by macOS/iOS
+  Assets.xcassets                 Apple app icon catalog
 ```
 
 ## Development Rules
@@ -149,6 +162,11 @@ Editor:
 - raw mode: `src/components/RawEditorView.tsx`
 - CodeMirror setup: `src/hooks/useCodeMirror.ts`
 - markdown sync: `src/components/editorRawModeSync.ts`
+- semantics facade: `src/utils/markdownSemanticsAdapter.ts`
+- slash menu package: `markdown-editor/packages/js`
+- baseline package consumer: `markdown-editor/apps/baseline-web`
+- compatibility re-export: `src/components/grimoireEditorFormattingConfig.ts`
+- Swift support package: `markdown-editor/packages/swift`
 
 Commands:
 

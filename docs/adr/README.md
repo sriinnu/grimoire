@@ -77,7 +77,7 @@ proposed → active → superseded
 | [0019](0019-github-device-flow-oauth.md) | GitHub device flow OAuth for vault sync | superseded → [0056](0056-system-git-cli-auth-no-provider-oauth.md) |
 | [0020](0020-keyboard-first-design.md) | Keyboard-first design principle | active |
 | [0021](0021-push-to-main-workflow.md) | Push directly to main (no PRs) | active |
-| [0022](0022-blocknote-rich-text-editor.md) | BlockNote as the rich text editor | active |
+| [0022](0022-blocknote-rich-text-editor.md) | BlockNote as the rich text editor | superseded → [0087](0087-editor-engine-roles-by-platform.md) |
 | [0023](0023-repair-vault-auto-bootstrap.md) | Repair Vault auto-bootstrap pattern | active |
 | [0024](0024-cache-outside-vault.md) | Vault cache stored outside vault directory | active |
 | [0025](0025-type-field-canonical.md) | type: as canonical field (replacing Is A:) | active |
@@ -141,4 +141,9 @@ proposed → active → superseded
 | [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | active |
 | [0084](0084-app-localization-foundation.md) | App-owned localization foundation | active |
 | [0085](0085-markdown-editor-package-boundary.md) | Markdown editor package boundary | active |
-| [0086](0086-platform-native-app-shells.md) | Platform-native app shells over shared vault semantics | active |
+| [0086](0086-platform-native-app-shells.md) | Platform-native app shells over shared vault semantics | superseded → [0088](0088-tauri-first-editor-product.md) |
+| [0087](0087-editor-engine-roles-by-platform.md) | Editor engine roles by platform | superseded → [0088](0088-tauri-first-editor-product.md) |
+| [0088](0088-tauri-first-editor-product.md) | Tauri-first editor product with Swift as Apple support layer | active |
+| [0089](0089-project-intelligence-import-from-karya-board.md) | Project intelligence import from Karya Board | active |
+| [0090](0090-markdown-durable-canvas-attachments.md) | Markdown-durable canvas attachments | active |
+| [0091](0091-vault-portability-import-export-storage.md) | Vault portability import export and storage providers | active |

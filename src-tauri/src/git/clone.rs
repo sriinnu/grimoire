@@ -131,34 +131,39 @@ mod tests {
     use std::fs;
     use std::os::unix::process::ExitStatusExt;
     use std::path::Path;
-    use std::process::Command as StdCommand;
 
     fn init_source_repo(path: &Path) {
         fs::create_dir_all(path).unwrap();
         fs::write(path.join("welcome.md"), "# Welcome\n").unwrap();
 
-        StdCommand::new("git")
+        git_command()
             .args(["init"])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["config", "user.email", "grimoire@app.local"])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["config", "user.name", "Grimoire App"])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["add", "."])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
-            .args(["commit", "-m", "Initial commit"])
+        git_command()
+            .args([
+                "-c",
+                "commit.gpgsign=false",
+                "commit",
+                "-m",
+                "Initial commit",
+            ])
             .current_dir(path)
             .output()
             .unwrap();

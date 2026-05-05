@@ -8,6 +8,9 @@ import { evaluateView } from './viewFilters'
 import { wikilinkTarget, resolveEntry } from './wikilink'
 
 export type NoteListFilter = 'open' | 'archived'
+export type NoteFileScope = 'markdown' | 'other' | 'all'
+
+export const DEFAULT_NOTE_FILE_SCOPE: NoteFileScope = 'markdown'
 
 export interface RelationshipGroup {
   label: string
@@ -396,6 +399,17 @@ function applySubFilter(entries: VaultEntry[], subFilter: NoteListFilter): Vault
   return entries.filter(isActive)
 }
 
+function matchesFileScope(entry: VaultEntry, scope: NoteFileScope): boolean {
+  if (scope === 'all') return true
+  if (scope === 'other') return !isMarkdown(entry)
+  return isMarkdown(entry)
+}
+
+/** Filter entries to the requested file scope for code-project folder views. */
+export function filterEntriesByFileScope(entries: VaultEntry[], scope: NoteFileScope): VaultEntry[] {
+  return entries.filter((entry) => matchesFileScope(entry, scope))
+}
+
 function isInFolder(entryPath: string, folderRelPath: string): boolean {
   const needle = '/' + folderRelPath + '/'
   return entryPath.includes(needle) || entryPath.startsWith(folderRelPath + '/')
@@ -411,9 +425,16 @@ function filterViewEntries(entries: VaultEntry[], filename: string, views?: View
   return evaluateView(view.definition, entries.filter(isMarkdown))
 }
 
-function filterFolderEntries(entries: VaultEntry[], folderPath: string, subFilter?: NoteListFilter): VaultEntry[] {
-  // Folder view shows ALL files (text + binary), not just markdown
-  const folderEntries = entries.filter((entry) => isInFolder(entry.path, folderPath))
+function filterFolderEntries(
+  entries: VaultEntry[],
+  folderPath: string,
+  subFilter?: NoteListFilter,
+  fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
+): VaultEntry[] {
+  const folderEntries = filterEntriesByFileScope(
+    entries.filter((entry) => isInFolder(entry.path, folderPath)),
+    fileScope,
+  )
   return subFilter ? applySubFilter(folderEntries, subFilter) : folderEntries.filter(isActive)
 }
 
@@ -434,10 +455,16 @@ function filterTopLevelEntries(
   return filterByFilterType(filterableEntries, selection.filter)
 }
 
-function filterByKind(entries: VaultEntry[], selection: SidebarSelection, subFilter?: NoteListFilter, views?: ViewFile[]): VaultEntry[] {
+function filterByKind(
+  entries: VaultEntry[],
+  selection: SidebarSelection,
+  subFilter?: NoteListFilter,
+  views?: ViewFile[],
+  fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
+): VaultEntry[] {
   if (selection.kind === 'entity') return []
   if (selection.kind === 'view') return filterViewEntries(entries, selection.filename, views)
-  if (selection.kind === 'folder') return filterFolderEntries(entries, selection.path, subFilter)
+  if (selection.kind === 'folder') return filterFolderEntries(entries, selection.path, subFilter, fileScope)
   if (selection.kind === 'sectionGroup') return filterSectionGroupEntries(entries, selection.type, subFilter)
   if (selection.kind === 'filter') return filterTopLevelEntries(entries, selection, subFilter)
   return []
@@ -451,8 +478,14 @@ function filterByFilterType(entries: VaultEntry[], filter: string): VaultEntry[]
   return []
 }
 
-export function filterEntries(entries: VaultEntry[], selection: SidebarSelection, subFilter?: NoteListFilter, views?: ViewFile[]): VaultEntry[] {
-  return filterByKind(entries, selection, subFilter, views)
+export function filterEntries(
+  entries: VaultEntry[],
+  selection: SidebarSelection,
+  subFilter?: NoteListFilter,
+  views?: ViewFile[],
+  fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
+): VaultEntry[] {
+  return filterByKind(entries, selection, subFilter, views, fileScope)
 }
 
 /** Count notes per sub-filter for a given type. */
@@ -478,6 +511,37 @@ function countEntriesByArchiveStatus(entries: VaultEntry[]): Record<NoteListFilt
 /** Count notes per sub-filter across all entries (no type filter). */
 export function countAllByFilter(entries: VaultEntry[]): Record<NoteListFilter, number> {
   return countEntriesByArchiveStatus(entries.filter(isMarkdown))
+}
+
+/** Count folder entries by archive status within the requested file scope. */
+export function countFolderByFilter(
+  entries: VaultEntry[],
+  folderPath: string,
+  fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
+): Record<NoteListFilter, number> {
+  return countEntriesByArchiveStatus(
+    filterEntriesByFileScope(
+      entries.filter((entry) => isInFolder(entry.path, folderPath)),
+      fileScope,
+    ),
+  )
+}
+
+/** Count file-scope options for the current folder and archive filter. */
+export function countFolderFileScopes(
+  entries: VaultEntry[],
+  folderPath: string,
+  subFilter: NoteListFilter,
+): Record<NoteFileScope, number> {
+  const folderEntries = applySubFilter(
+    entries.filter((entry) => isInFolder(entry.path, folderPath)),
+    subFilter,
+  )
+  return {
+    markdown: folderEntries.filter((entry) => matchesFileScope(entry, 'markdown')).length,
+    other: folderEntries.filter((entry) => matchesFileScope(entry, 'other')).length,
+    all: folderEntries.length,
+  }
 }
 
 /** Count All Notes-eligible documents per sub-filter, excluding files under attachments/. */

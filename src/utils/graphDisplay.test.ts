@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
 import type { NoteGraph } from './noteGraph'
 import {
+  filterGraphByNodeTypes,
   filterGraphEdges,
   GRAPH_CENTER_X,
   GRAPH_CENTER_Y,
+  graphTypeStats,
   layoutGraph,
   limitGraphForDisplay,
   MAX_VISIBLE_GRAPH_NODES,
@@ -74,6 +76,33 @@ describe('graphDisplay', () => {
 
     expect(filtered.nodes).toHaveLength(4)
     expect(filtered.edges.map((edge) => edge.id)).toEqual(['alpha-beta'])
+  })
+
+  it('filters incoming and outgoing edges around the active node', () => {
+    const incoming = filterGraphEdges(graphFixture(), 'incoming')
+    const outgoing = filterGraphEdges(graphFixture(), 'outgoing')
+
+    expect(incoming.edges).toEqual([])
+    expect(outgoing.edges.map((edge) => edge.id)).toEqual(['alpha-beta', 'alpha-gamma'])
+  })
+
+  it('filters hidden node types and keeps only visible edges', () => {
+    const filtered = filterGraphByNodeTypes(graphFixture(), new Set(['Note']))
+
+    expect(filtered.nodes.map(node => node.id)).toEqual(['alpha'])
+    expect(filtered.edges).toHaveLength(0)
+  })
+
+  it('counts graph node types with their colors', () => {
+    const stats = graphTypeStats(graphFixture(), [
+      entry({ title: 'Project', isA: 'Type', color: 'green' }),
+    ])
+
+    expect(stats.map(stat => [stat.type, stat.count])).toEqual([
+      ['Note', 3],
+      ['Project', 1],
+    ])
+    expect(stats.find(stat => stat.type === 'Project')?.color).toBe('var(--accent-green)')
   })
 
   it('keeps large graph rendering bounded', () => {

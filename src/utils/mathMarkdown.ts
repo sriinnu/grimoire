@@ -1,7 +1,7 @@
 import katex from 'katex'
+import { MATH_BLOCK_TYPE, MATH_INLINE_TYPE } from '@grimoire/markdown-editor/math'
 
-export const MATH_INLINE_TYPE = 'mathInline'
-export const MATH_BLOCK_TYPE = 'mathBlock'
+export { MATH_BLOCK_TYPE, MATH_INLINE_TYPE }
 
 const INLINE_TOKEN_PREFIX = '@@GRIMOIRE_MATH_INLINE:'
 const BLOCK_TOKEN_PREFIX = '@@GRIMOIRE_MATH_BLOCK:'

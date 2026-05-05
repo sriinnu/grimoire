@@ -11,10 +11,12 @@
 		5850B02064DB46BD6B4CBF92 /* GrimoireRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */; };
 		67068215906EB30D81195453 /* GrimoireDocumentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */; };
 		736F29C5769E33A4DBA6CEDD /* GrimoireRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */; };
+		7B102A4BD23F6F83B19B8C66 /* MarkdownEditorUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9C796F9D3EF326A64A1D4D10 /* MarkdownEditorUI */; };
 		7B36A404D9C4F5DB19FC7FA4 /* GrimoireDocumentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */; };
 		7DB1E94F14B70BB6991495AA /* MarkdownEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 0E4AC7DA34E4DC5678298629 /* MarkdownEditor */; };
 		BD48F4487E31E9F5F43495BE /* GrimoireIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738200D07FF1C234DFCE049A /* GrimoireIOSApp.swift */; };
 		CD20D936D61774C7DC6BB05E /* GrimoireMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */; };
+		E517DBA82153425FE1848062 /* MarkdownEditorUI in Frameworks */ = {isa = PBXBuildFile; productRef = A8917BAEFF5A713D93222F7F /* MarkdownEditorUI */; };
 		E6A8C8770230BB2408B9DC6E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C88B60C2E294E6006CF7641C /* Assets.xcassets */; };
 		F7645632AF619C2360E621A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C88B60C2E294E6006CF7641C /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -23,11 +25,11 @@
 		0538B36E2E874361D2118DB5 /* Grimoire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Grimoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireRootView.swift; sourceTree = "<group>"; };
 		738200D07FF1C234DFCE049A /* GrimoireIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireIOSApp.swift; sourceTree = "<group>"; };
-		784BB6B665E370ACA6D3C271 /* MarkdownEditor */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MarkdownEditor; path = ../../packages/MarkdownEditor; sourceTree = SOURCE_ROOT; };
-		90B911597A0D3995861395A8 /* Grimoire-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "Grimoire-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		73B0BF9AC12C5E5F374E01EB /* Grimoire.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Grimoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireMacApp.swift; sourceTree = "<group>"; };
 		C88B60C2E294E6006CF7641C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireDocumentModel.swift; sourceTree = "<group>"; };
+		F3A787710AEFADD5F20D811D /* swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift; path = "../../markdown-editor/packages/swift"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +38,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1017CA1D06A35884E29B14D6 /* MarkdownEditor in Frameworks */,
+				7B102A4BD23F6F83B19B8C66 /* MarkdownEditorUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +47,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7DB1E94F14B70BB6991495AA /* MarkdownEditor in Frameworks */,
+				E517DBA82153425FE1848062 /* MarkdownEditorUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,7 +83,7 @@
 		6C1313A32A999F3CA1450D03 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				784BB6B665E370ACA6D3C271 /* MarkdownEditor */,
+				F3A787710AEFADD5F20D811D /* swift */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -97,8 +101,8 @@
 		87072E869E85738878EC7BED /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				90B911597A0D3995861395A8 /* Grimoire-iOS.app */,
 				0538B36E2E874361D2118DB5 /* Grimoire.app */,
+				73B0BF9AC12C5E5F374E01EB /* Grimoire.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -130,6 +134,7 @@
 			name = Grimoire;
 			packageProductDependencies = (
 				0E4AC7DA34E4DC5678298629 /* MarkdownEditor */,
+				A8917BAEFF5A713D93222F7F /* MarkdownEditorUI */,
 			);
 			productName = Grimoire;
 			productReference = 0538B36E2E874361D2118DB5 /* Grimoire.app */;
@@ -150,9 +155,10 @@
 			name = "Grimoire-iOS";
 			packageProductDependencies = (
 				ACA50019022706A5E4864349 /* MarkdownEditor */,
+				9C796F9D3EF326A64A1D4D10 /* MarkdownEditorUI */,
 			);
 			productName = "Grimoire-iOS";
-			productReference = 90B911597A0D3995861395A8 /* Grimoire-iOS.app */;
+			productReference = 73B0BF9AC12C5E5F374E01EB /* Grimoire.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -175,7 +181,7 @@
 			mainGroup = 7CFF3351C44EC2D18989B8D7;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				7DF8B71773D0037B5BAD698F /* XCLocalSwiftPackageReference "../../packages/MarkdownEditor" */,
+				816CF466740FAED7CFA3B239 /* XCLocalSwiftPackageReference "../../markdown-editor/packages/swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
@@ -235,6 +241,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -243,6 +250,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire;
 				PRODUCT_NAME = Grimoire;
 				SDKROOT = iphoneos;
@@ -256,6 +264,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -264,6 +273,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire;
 				PRODUCT_NAME = Grimoire;
 				SDKROOT = iphoneos;
@@ -277,12 +287,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire;
 				PRODUCT_NAME = Grimoire;
 				SDKROOT = macosx;
@@ -351,12 +363,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire;
 				PRODUCT_NAME = Grimoire;
 				SDKROOT = macosx;
@@ -460,9 +474,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		7DF8B71773D0037B5BAD698F /* XCLocalSwiftPackageReference "../../packages/MarkdownEditor" */ = {
+		816CF466740FAED7CFA3B239 /* XCLocalSwiftPackageReference "../../markdown-editor/packages/swift" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../packages/MarkdownEditor;
+			relativePath = "../../markdown-editor/packages/swift";
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -470,6 +484,14 @@
 		0E4AC7DA34E4DC5678298629 /* MarkdownEditor */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MarkdownEditor;
+		};
+		9C796F9D3EF326A64A1D4D10 /* MarkdownEditorUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MarkdownEditorUI;
+		};
+		A8917BAEFF5A713D93222F7F /* MarkdownEditorUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MarkdownEditorUI;
 		};
 		ACA50019022706A5E4864349 /* MarkdownEditor */ = {
 			isa = XCSwiftPackageProductDependency;

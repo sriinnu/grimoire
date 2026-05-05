@@ -34,6 +34,20 @@ fn test_scan_vault_folders_excludes_hidden() {
 }
 
 #[test]
+fn test_scan_vault_folders_excludes_dependency_and_build_dirs() {
+    let dir = TempDir::new().unwrap();
+    std::fs::create_dir_all(dir.path().join("node_modules/pkg")).unwrap();
+    std::fs::create_dir_all(dir.path().join("dist")).unwrap();
+    std::fs::create_dir_all(dir.path().join("target/debug")).unwrap();
+    std::fs::create_dir_all(dir.path().join("notes")).unwrap();
+
+    let folders = scan_vault_folders(dir.path()).unwrap();
+
+    assert_eq!(folders.len(), 1);
+    assert_eq!(folders[0].name, "notes");
+}
+
+#[test]
 fn test_scan_vault_folders_keeps_default_vault_folders_visible() {
     let dir = TempDir::new().unwrap();
     std::fs::create_dir_all(dir.path().join("attachments")).unwrap();

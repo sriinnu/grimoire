@@ -7,12 +7,5 @@ struct GrimoireMacApp: App {
             GrimoireRootView()
                 .frame(minWidth: 900, minHeight: 620)
         }
-        .commands {
-            CommandGroup(replacing: .newItem) {
-                Button("New Note") {
-                }
-                .keyboardShortcut("n", modifiers: [.command])
-            }
-        }
     }
 }

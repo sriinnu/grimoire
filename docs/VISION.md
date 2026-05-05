@@ -48,7 +48,7 @@ The unique shape:
 
 **Native where it matters.** Tauri/React is right for non-Apple desktop. macOS and iOS should be SwiftUI-first where native text, menus, gestures, file access, and polish are objectively better.
 
-**Taste matters.** The UI should feel calm, intentional, and alive. High craft here means motion, spacing, contrast, icons, color, and empty states all serve comprehension.
+**Taste matters.** The UI should feel calm, intentional, and alive. High craft here means motion, spacing, contrast, icons, color, and empty states all serve comprehension. The cinematic motion direction lives in [Cinematic Motion Direction](CINEMATIC-MOTION-DIRECTION.md).
 
 ## What Grimoire Is Not
 

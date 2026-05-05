@@ -57,8 +57,24 @@ const DEFAULT_GITIGNORE: &str = "# Grimoire app files (machine-specific, never c
 *.swo\n";
 
 fn git_command() -> Command {
-    crate::hidden_command("git")
+    let mut command = crate::hidden_command("git");
+    configure_test_git_command(&mut command);
+    command
 }
+
+#[cfg(test)]
+fn configure_test_git_command(command: &mut Command) {
+    command
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_AUTHOR_NAME", "Test User")
+        .env("GIT_AUTHOR_EMAIL", "test@test.com")
+        .env("GIT_COMMITTER_NAME", "Test User")
+        .env("GIT_COMMITTER_EMAIL", "test@test.com");
+}
+
+#[cfg(not(test))]
+fn configure_test_git_command(_command: &mut Command) {}
 
 /// Ensure a `.gitignore` with sensible defaults exists in the vault directory.
 /// Creates the file if missing; leaves existing `.gitignore` files untouched.

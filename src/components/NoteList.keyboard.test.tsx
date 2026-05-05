@@ -106,7 +106,7 @@ describe('NoteList keyboard activation', () => {
     })
   })
 
-  it('prefetches note content on hover so click opens can use the warm path', () => {
+  it('does not prefetch note content on hover', () => {
     const prefetchSpy = vi.spyOn(tabManagement, 'prefetchNoteContent').mockImplementation(() => {})
     render(<NoteListKeyboardHarness onOpen={vi.fn()} />)
 
@@ -115,6 +115,6 @@ describe('NoteList keyboard activation', () => {
 
     fireEvent.mouseEnter(noteRow!)
 
-    expect(prefetchSpy).toHaveBeenCalledWith(mockEntries[1].path)
+    expect(prefetchSpy).not.toHaveBeenCalled()
   })
 })

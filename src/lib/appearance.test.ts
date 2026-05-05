@@ -32,6 +32,8 @@ describe('appearance', () => {
   it('normalizes only supported appearance values', () => {
     expect(normalizeThemePreset('manuscript')).toBe('manuscript')
     expect(normalizeThemePreset('nocturne')).toBe('nocturne')
+    expect(normalizeThemePreset('future')).toBe('future')
+    expect(normalizeThemePreset('aurora')).toBe('aurora')
     expect(normalizeThemePreset('neon')).toBeNull()
     expect(resolveThemePreset('neon')).toBe(DEFAULT_THEME_PRESET)
 
@@ -44,12 +46,12 @@ describe('appearance', () => {
   it('reads and writes mirrored startup appearance', () => {
     const storage = makeStorage()
 
-    writeStoredThemePreset(storage, 'graphite')
+    writeStoredThemePreset(storage, 'future')
     writeStoredEditorFont(storage, 'mono')
 
-    expect(readStoredThemePreset(storage)).toBe('graphite')
+    expect(readStoredThemePreset(storage)).toBe('future')
     expect(readStoredEditorFont(storage)).toBe('mono')
-    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'graphite')
+    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'future')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_FONT_STORAGE_KEY, 'mono')
   })
 

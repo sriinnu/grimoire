@@ -45,12 +45,12 @@ Grimoire is built around five surfaces:
 - Local vault opening, onboarding, and starter vault cloning
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
 - Note list search, custom columns, sorting, saved views, and Neighborhood mode
-- BlockNote rich editor with markdown-compatible math, wikilinks, code blocks, formatting, and raw CodeMirror mode
+- BlockNote rich editor with package-owned slash commands, markdown-compatible math, wikilinks, `#` tag/collection autocomplete, code blocks, formatting, and raw CodeMirror mode
 - Inspector for frontmatter, relationships, backlinks, instances, note metadata, and git history
 - Knowledge graph with local/vault scope, relationship/wikilink edge filters, type-colored nodes, and large-vault caps
 - Weather snapshot command for journal entries using explicit user-provided location
 - Claude Code and Codex CLI agent panel with MCP vault tooling
-- Git history, commit/push/pull/conflict flows, and non-git vault support
+- Git history, commit/push/pull/conflict flows, and local-only Git repositories without a remote
 - Light/dark mode, multiple theme presets, and editor font choices
 - English and Simplified Chinese UI foundations
 
@@ -61,7 +61,7 @@ Grimoire is built around five surfaces:
 - Graph clustering, pinned nodes, minimap, incoming-link filters, and semantic suggestions
 - Vault image previews, file actions, QuickLook, and better drag/drop behavior
 - Theme studio with UI font, heading font, monospace font, line height, editor width, contrast, and motion controls
-- Native macOS exploration with SwiftUI/AppKit where text editing, menus, windows, and file watching are better than WKWebView
+- Tauri-first editor product with SwiftUI/AppKit support only where Apple-native integration clearly beats the webview path
 
 ## Getting Started
 
@@ -103,6 +103,8 @@ Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-ST
 
 - [Architecture](docs/ARCHITECTURE.md) - runtime shape, platform boundaries, data flow
 - [Abstractions](docs/ABSTRACTIONS.md) - durable concepts and module contracts
+- [Markdown Semantics](docs/MARKDOWN-SEMANTICS-CONTRACT.md) - shared markdown and slash-command contract
+- [Platform Roadmap](docs/PLATFORM-NATIVE-ENHANCEMENT-ROADMAP.md) - Tauri-first editor roadmap and Mem/Bear/Obsidian/Notion direction
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map
 - [Vision](docs/VISION.md) - product direction
 - [Differentiation](docs/GRIMOIRE-DIFFERENTIATION.md) - how Grimoire stays its own product

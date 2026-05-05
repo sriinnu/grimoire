@@ -229,16 +229,39 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
 
   return (
     <div
-      className="flex shrink-0 items-center justify-between border-b border-border"
-      style={{ height: 52, padding: '0 8px', paddingLeft: 80, cursor: 'default' }}
+      className="grid shrink-0 items-center border-b border-border"
+      style={{
+        height: 60,
+        gridTemplateColumns: 'minmax(0, 1fr) 6px auto',
+        padding: '0 8px 0 12px',
+        cursor: 'default',
+      }}
       onMouseDown={onMouseDown}
+      data-testid="sidebar-title-bar"
     >
-      <div className="flex min-w-0 items-center gap-2" aria-label="Grimoire">
-        <img src={grimoireIcon} alt="" className="h-6 w-6 shrink-0 rounded-md" />
-        <span className="truncate text-[13px] font-semibold tracking-normal text-foreground">
-          Grimoire
+      <div
+        className="flex min-w-0 items-center justify-start gap-2.5"
+        aria-label="Grimoire"
+        data-testid="sidebar-brand"
+      >
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background shadow-xs">
+          <img
+            src={grimoireIcon}
+            alt="Grimoire icon"
+            className="h-7 w-7 rounded-md object-cover"
+            data-testid="sidebar-brand-icon"
+          />
+        </span>
+        <span className="flex min-w-0 flex-col leading-none" style={{ textAlign: 'left' }}>
+          <span className="truncate text-[13px] font-semibold tracking-normal text-foreground" style={{ textAlign: 'left' }}>
+            Grimoire
+          </span>
+          <span className="mt-1 truncate text-[10px] font-medium text-muted-foreground" style={{ textAlign: 'left' }}>
+            Markdown agent
+          </span>
         </span>
       </div>
+      <span aria-hidden="true" />
       {onCollapse && (
         <Button
           type="button"

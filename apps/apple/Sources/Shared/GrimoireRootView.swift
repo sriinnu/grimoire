@@ -1,48 +1,39 @@
-import MarkdownEditor
+import MarkdownEditorUI
 import SwiftUI
 
 struct GrimoireRootView: View {
     @StateObject private var model = GrimoireDocumentModel()
+    @State private var editorSurface: EditorSurface = .native
 
     var body: some View {
         NavigationSplitView {
-            List(selection: .constant("welcome")) {
-                Label("Welcome", systemImage: "doc.text")
-                    .tag("welcome")
+            VStack(spacing: 12) {
+                Picker("Editor Surface", selection: $editorSurface) {
+                    ForEach(EditorSurface.allCases) { surface in
+                        Label(surface.title, systemImage: surface.systemImage)
+                            .tag(surface)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding([.horizontal, .top])
+
+                List(selection: .constant("welcome")) {
+                    Label("Welcome", systemImage: "doc.text")
+                        .tag("welcome")
+                }
             }
             .navigationTitle("Grimoire")
         } detail: {
-            VStack(spacing: 0) {
-                editorHeader
-                TextEditor(text: $model.markdown)
-                    .font(.system(.body, design: .serif))
-                    .scrollContentBackground(.hidden)
-                    .padding()
+            switch editorSurface {
+            case .native:
+                NativeMarkdownEditorView(
+                    markdown: $model.markdown,
+                    title: "Native Markdown Editor"
+                )
+            case .web:
+                WebMarkdownEditorView(markdown: $model.markdown)
             }
-            .background(Color.grimoireEditorBackground)
         }
-    }
-
-    private var editorHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Native Markdown Editor")
-                .font(.title2.weight(.semibold))
-
-            HStack(spacing: 12) {
-                Label("\(model.document.wordCount) words", systemImage: "text.word.spacing")
-                Label("\(model.document.outgoingLinks.count) links", systemImage: "link")
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
-
-            Text(model.document.snippet)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(.bar)
     }
 }
 
@@ -50,12 +41,23 @@ struct GrimoireRootView: View {
     GrimoireRootView()
 }
 
-private extension Color {
-    static var grimoireEditorBackground: Color {
-        #if os(macOS)
-        Color(nsColor: .textBackgroundColor)
-        #else
-        Color(uiColor: .systemBackground)
-        #endif
+private enum EditorSurface: String, CaseIterable, Identifiable {
+    case native
+    case web
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .native: "Native"
+        case .web: "Web"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .native: "text.cursor"
+        case .web: "globe"
+        }
     }
 }

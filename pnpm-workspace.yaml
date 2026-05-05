@@ -1,5 +1,7 @@
 packages:
   - mcp-server
+  - markdown-editor/packages/js
+  - markdown-editor/apps/baseline-web
 
 ignoredBuiltDependencies:
   - esbuild

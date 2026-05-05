@@ -388,11 +388,10 @@ mod tests {
     use crate::git::tests::setup_git_repo;
     use crate::git::{git_commit, git_remote_status};
     use std::fs;
-    use std::process::Command as StdCommand;
     use tempfile::TempDir;
 
     fn init_bare_remote(path: &Path) {
-        StdCommand::new("git")
+        git_command()
             .args(["init", "--bare", "--initial-branch=main"])
             .current_dir(path)
             .output()
@@ -400,12 +399,12 @@ mod tests {
     }
 
     fn configure_author(path: &Path, email: &str, name: &str) {
-        StdCommand::new("git")
+        git_command()
             .args(["config", "user.email", email])
             .current_dir(path)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["config", "user.name", name])
             .current_dir(path)
             .output()
@@ -415,24 +414,24 @@ mod tests {
     fn seed_remote_history(bare_path: &Path) {
         let working = TempDir::new().unwrap();
 
-        StdCommand::new("git")
+        git_command()
             .args(["clone", bare_path.to_str().unwrap(), "."])
             .current_dir(working.path())
             .output()
             .unwrap();
         configure_author(working.path(), "remote@test.com", "Remote User");
         fs::write(working.path().join("remote.md"), "# Remote\n").unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["add", "."])
             .current_dir(working.path())
             .output()
             .unwrap();
-        StdCommand::new("git")
-            .args(["commit", "-m", "Seed remote"])
+        git_command()
+            .args(["-c", "commit.gpgsign=false", "commit", "-m", "Seed remote"])
             .current_dir(working.path())
             .output()
             .unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["push", "origin", "main"])
             .current_dir(working.path())
             .output()
@@ -450,12 +449,12 @@ mod tests {
         let vault = dir.path();
         let vault_path = vault.to_str().unwrap();
 
-        StdCommand::new("git")
+        git_command()
             .args(["remote", "add", "origin", "https://example.com/one.git"])
             .current_dir(vault)
             .output()
             .unwrap();
-        StdCommand::new("git")
+        git_command()
             .args(["remote", "add", "backup", "https://example.com/two.git"])
             .current_dir(vault)
             .output()
@@ -496,7 +495,7 @@ mod tests {
         create_local_commit(local.path(), "note.md", "Base", "Base commit");
 
         let bare = TempDir::new().unwrap();
-        StdCommand::new("git")
+        git_command()
             .args([
                 "clone",
                 "--bare",
@@ -547,7 +546,7 @@ mod tests {
         let local = setup_git_repo();
         let vault = local.path();
 
-        StdCommand::new("git")
+        git_command()
             .args(["remote", "add", "origin", "https://example.com/repo.git"])
             .current_dir(vault)
             .output()

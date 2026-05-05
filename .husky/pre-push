@@ -88,12 +88,30 @@ echo "🧪 Frontend tests..."
 pnpm test --silent
 echo "  ✅ Tests OK"
 
-# 3. Rust lint (skipped when src-tauri/ untouched)
-echo ""
+# 3. Shared MarkdownEditor parity checks (skipped when editor semantics are untouched)
 PUSH_TARGET=$(git rev-parse @{push} 2>/dev/null || echo "")
-RUST_CHANGED=true
+CHANGED=""
+MARKDOWN_EDITOR_CHANGED=true
 if [ -n "$PUSH_TARGET" ]; then
   CHANGED=$(git diff --name-only "$PUSH_TARGET"..HEAD)
+  if ! echo "$CHANGED" | grep -qE '^(markdown-editor/packages/swift/|markdown-editor/packages/js/|src/components/(grimoireEditorFormattingConfig|tagCollectionSuggestions)(\.test)?\.tsx?|src/utils/(compact-markdown|mathMarkdown|markdownParity|markdownSemanticsAdapter|wikilinks)(\.test)?\.ts|src-tauri/tauri\.conf\.json|index\.html)'; then
+    MARKDOWN_EDITOR_CHANGED=false
+  fi
+fi
+if [ "$MARKDOWN_EDITOR_CHANGED" = true ]; then
+  echo ""
+  echo "📝 MarkdownEditor parity..."
+  pnpm run test:markdown-editor
+  echo "  ✅ MarkdownEditor parity OK"
+else
+  echo ""
+  echo "⏭️  MarkdownEditor parity — skipped (no editor semantics changes)"
+fi
+
+# 4. Rust lint (skipped when src-tauri/ untouched)
+echo ""
+RUST_CHANGED=true
+if [ -n "$PUSH_TARGET" ]; then
   if ! echo "$CHANGED" | grep -qE '^(src-tauri/|Cargo)'; then
     RUST_CHANGED=false
   fi

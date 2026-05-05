@@ -185,27 +185,24 @@ describe('MAX_HISTORY_TOKENS', () => {
 // --- streamClaudeChat ---
 
 describe('streamClaudeChat', () => {
-  it('returns mock session in non-Tauri environment', async () => {
+  it('returns the existing session and reports native-app requirement outside Tauri', async () => {
     const onText = vi.fn()
     const onDone = vi.fn()
     const onError = vi.fn()
 
-    const sessionId = await streamClaudeChat('hello', undefined, undefined, {
+    const sessionId = await streamClaudeChat('hello', undefined, 'existing-session', {
       onText,
       onError,
       onDone,
     })
 
-    // Wait for the setTimeout mock response
-    await new Promise(r => setTimeout(r, 400))
-
-    expect(sessionId).toBe('mock-session')
-    expect(onText).toHaveBeenCalledWith(expect.stringContaining('[mock-no-history]'))
+    expect(sessionId).toBe('existing-session')
+    expect(onText).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledWith(expect.stringContaining('native Grimoire app'))
     expect(onDone).toHaveBeenCalled()
-    expect(onError).not.toHaveBeenCalled()
   })
 
-  it('mock detects conversation history in message', async () => {
+  it('does not fabricate history-aware replies outside Tauri', async () => {
     const onText = vi.fn()
     const onDone = vi.fn()
     const onError = vi.fn()
@@ -219,10 +216,8 @@ describe('streamClaudeChat', () => {
       onText, onError, onDone,
     })
 
-    await new Promise(r => setTimeout(r, 400))
-
-    expect(onText).toHaveBeenCalledWith(expect.stringContaining('[mock-with-history'))
-    expect(onText).toHaveBeenCalledWith(expect.stringContaining('turns=2'))
-    expect(onText).toHaveBeenCalledWith(expect.stringContaining('What was my previous question?'))
+    expect(onText).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledWith(expect.stringContaining('Browser preview cannot launch local CLI agents'))
+    expect(onDone).toHaveBeenCalled()
   })
 })

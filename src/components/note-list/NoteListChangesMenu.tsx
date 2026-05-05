@@ -5,6 +5,7 @@ import {
   useRef,
   type MouseEvent as ReactMouseEvent,
 } from 'react'
+import { RotateCcw, Trash2 } from 'lucide-react'
 import type { ModifiedFile, VaultEntry } from '../../types'
 import {
   Dialog,
@@ -20,6 +21,18 @@ interface ChangesContextMenuParams {
   isChangesView: boolean
   onDiscardFile?: (relativePath: string) => Promise<void>
   modifiedFiles?: ModifiedFile[]
+}
+
+const CHANGES_MENU_WIDTH = 184
+const CHANGES_MENU_HEIGHT = 48
+const MENU_VIEWPORT_GAP = 8
+
+function clampMenuPosition(x: number, y: number): { left: number; top: number } {
+  if (typeof window === 'undefined') return { left: x, top: y }
+  return {
+    left: Math.max(MENU_VIEWPORT_GAP, Math.min(x, window.innerWidth - CHANGES_MENU_WIDTH - MENU_VIEWPORT_GAP)),
+    top: Math.max(MENU_VIEWPORT_GAP, Math.min(y, window.innerHeight - CHANGES_MENU_HEIGHT - MENU_VIEWPORT_GAP)),
+  }
 }
 
 export function useChangesContextMenu({
@@ -77,16 +90,21 @@ export function useChangesContextMenu({
 
   const menuActionTarget = ctxMenu ? resolveActionTarget(ctxMenu.entry) : null
   const menuActionLabel = menuActionTarget?.action === 'restore' ? 'Restore note' : 'Discard changes'
+  const menuPosition = ctxMenu ? clampMenuPosition(ctxMenu.x, ctxMenu.y) : null
+  const MenuIcon = menuActionTarget?.action === 'restore' ? RotateCcw : Trash2
 
   const contextMenuNode = ctxMenu ? (
     <div
       ref={ctxMenuRef}
-      className="fixed z-50 rounded-md border bg-popover p-1 shadow-md"
-      style={{ left: ctxMenu.x, top: ctxMenu.y, minWidth: 180 }}
+      className="fixed z-50 w-[184px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
+      style={{ left: menuPosition?.left, top: menuPosition?.top }}
       data-testid="changes-context-menu"
     >
-      <button
-        className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm cursor-default hover:bg-accent hover:text-accent-foreground transition-colors border-none bg-transparent text-left text-destructive"
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-7 w-full justify-start gap-2 rounded-[5px] px-2 text-left text-xs font-medium text-destructive hover:text-destructive"
         onClick={() => {
           if (!menuActionTarget) return
           setActionTarget(menuActionTarget)
@@ -94,8 +112,9 @@ export function useChangesContextMenu({
         }}
         data-testid={menuActionTarget?.action === 'restore' ? 'restore-note-button' : 'discard-changes-button'}
       >
+        <MenuIcon className="size-3.5" />
         {menuActionLabel}
-      </button>
+      </Button>
     </div>
   ) : null
 

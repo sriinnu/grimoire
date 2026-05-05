@@ -15,6 +15,7 @@ const settings = {
 const aiAgentsStatus = {
   claude_code: { status: 'installed' as const, version: '1.0.20' },
   codex: { status: 'missing' as const, version: null },
+  chitragupta: { status: 'installed' as const, version: '0.1.16' },
 }
 
 describe('useAiAgentPreferences', () => {
@@ -63,6 +64,7 @@ describe('useAiAgentPreferences', () => {
       aiAgentsStatus: {
         claude_code: { status: 'missing', version: null },
         codex: { status: 'missing', version: null },
+        chitragupta: { status: 'missing', version: null },
       },
     }))
 

@@ -147,6 +147,7 @@ vi.mock('../utils/typeColors', () => ({
 vi.mock('../utils/wikilinkSuggestions', () => ({
   MIN_QUERY_LENGTH: 2,
   deduplicateByPath: <T,>(items: T[]) => items,
+  getWikilinkSuggestionCandidates: <T,>(items: T[]) => items,
   preFilterWikilinks: () => [],
 }))
 
@@ -458,11 +459,34 @@ describe('SingleEditorView', () => {
 
     const onWikiItemClick = vi.fn()
     const onMentionItemClick = vi.fn()
+    const onTagItemClick = vi.fn()
     ;(state.capturedSuggestionProps['[['].onItemClick as (item: { onItemClick: () => void }) => void)({ onItemClick: onWikiItemClick })
     ;(state.capturedSuggestionProps['@'].onItemClick as (item: { onItemClick: () => void }) => void)({ onItemClick: onMentionItemClick })
+    ;(state.capturedSuggestionProps['#'].onItemClick as (item: { onItemClick: () => void }) => void)({ onItemClick: onTagItemClick })
 
     expect(onWikiItemClick).toHaveBeenCalledOnce()
     expect(onMentionItemClick).toHaveBeenCalledOnce()
+    expect(onTagItemClick).toHaveBeenCalledOnce()
+  })
+
+  it('shows wikilink suggestions immediately after typing an empty [[ trigger', async () => {
+    render(
+      <SingleEditorView
+        editor={createEditor() as never}
+        entries={[
+          makeEntry({ title: 'Doc A', filename: 'doc-a.md', path: '/vault/doc-a.md' }),
+          makeEntry({ title: 'Doc B', filename: 'doc-b.md', path: '/vault/doc-b.md' }),
+        ]}
+        onNavigateWikilink={vi.fn()}
+      />,
+    )
+
+    const getItems = state.capturedSuggestionProps['[['].getItems as (query: string) => Promise<Array<{ title: string }>>
+
+    await expect(getItems('  ')).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'Doc A' }),
+      expect.objectContaining({ title: 'Doc B' }),
+    ]))
   })
 
   it('passes the active document theme to BlockNote', () => {
