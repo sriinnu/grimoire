@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from 'react'
+import { useEffect, useMemo, useCallback, useState } from 'react'
 import type {
   VaultEntry,
   SidebarSelection,
@@ -9,11 +9,16 @@ import type {
   ViewFile,
 } from '../../types'
 import type { AppLocale } from '../../lib/i18n'
-import type { NoteListFilter } from '../../utils/noteListHelpers'
-import { countByFilter, countAllByFilter, countAllNotesByFilter } from '../../utils/noteListHelpers'
+import type { NoteFileScope, NoteListFilter } from '../../utils/noteListHelpers'
+import {
+  DEFAULT_NOTE_FILE_SCOPE,
+  countByFilter,
+  countAllNotesByFilter,
+  countFolderByFilter,
+  countFolderFileScopes,
+} from '../../utils/noteListHelpers'
 import { NoteItem } from '../NoteItem'
 import { DraggableNoteItem } from '../note-retargeting/DraggableNoteItem'
-import { prefetchNoteContent } from '../../hooks/useTabManagement'
 import type { MultiSelectState } from '../../hooks/useMultiSelect'
 import { isDeletedNoteEntry, resolveHeaderTitle, type DeletedNoteEntry } from './noteListUtils'
 import { filterEntriesByNoteListQuery, filterGroupsByNoteListQuery } from './noteListSearch'
@@ -29,6 +34,7 @@ import {
   useVisibleNotesSync,
 } from './noteListHooks'
 import { useChangesContextMenu } from './NoteListChangesMenu'
+import { useNoteListContextMenu } from './NoteListContextMenu'
 import { addNoteListSearchToggleListener, dispatchNoteListSearchAvailability } from '../../utils/noteListSearchEvents'
 
 type EntitySelection = Extract<SidebarSelection, { kind: 'entity' }>
@@ -40,7 +46,8 @@ function useViewFlags(selection: SidebarSelection) {
   const isAllNotesView = selection.kind === 'filter' && selection.filter === 'all'
   const isChangesView = selection.kind === 'filter' && selection.filter === 'changes'
   const showFilterPills = isSectionGroup || isFolderView
-  return { isSectionGroup, isFolderView, isInboxView, isAllNotesView, isChangesView, showFilterPills }
+  const showFileScopePills = isFolderView
+  return { isSectionGroup, isFolderView, isInboxView, isAllNotesView, isChangesView, showFilterPills, showFileScopePills }
 }
 
 function useBulkActions(
@@ -77,19 +84,27 @@ function useBulkActions(
   }
 }
 
-function useFilterCounts(entries: VaultEntry[], selection: SidebarSelection) {
+function useFilterCounts(entries: VaultEntry[], selection: SidebarSelection, fileScope: NoteFileScope) {
   return useMemo(() => {
     if (selection.kind === 'sectionGroup') return countByFilter(entries, selection.type)
-    if (selection.kind === 'folder') return countAllByFilter(entries)
+    if (selection.kind === 'folder') return countFolderByFilter(entries, selection.path, fileScope)
     if (selection.kind === 'filter' && selection.filter === 'all') return countAllNotesByFilter(entries)
     return { open: 0, archived: 0 }
-  }, [entries, selection])
+  }, [entries, fileScope, selection])
+}
+
+function useFileScopeCounts(entries: VaultEntry[], selection: SidebarSelection, noteListFilter: NoteListFilter) {
+  return useMemo(() => {
+    if (selection.kind !== 'folder') return { markdown: 0, other: 0, all: 0 }
+    return countFolderFileScopes(entries, selection.path, noteListFilter)
+  }, [entries, noteListFilter, selection])
 }
 
 interface UseNoteListContentParams {
   entries: VaultEntry[]
   selection: SidebarSelection
   noteListFilter: NoteListFilter
+  fileScope: NoteFileScope
   inboxPeriod: InboxPeriod
   modifiedFiles?: ModifiedFile[]
   modifiedSuffixes: string[]
@@ -110,6 +125,7 @@ function useNoteListContent({
   entries,
   selection,
   noteListFilter,
+  fileScope,
   inboxPeriod,
   modifiedFiles,
   modifiedSuffixes,
@@ -135,6 +151,7 @@ function useNoteListContent({
     modifiedPathSet,
     modifiedSuffixes,
     subFilter,
+    fileScope,
     inboxPeriod: effectiveInboxPeriod,
     views,
     onUpdateTypeSort,
@@ -182,6 +199,7 @@ function useNoteListContent({
     modifiedSuffixes,
     modifiedFiles,
     subFilter,
+    fileScope,
     inboxPeriod: effectiveInboxPeriod,
     views,
   })
@@ -241,6 +259,7 @@ interface UseNoteListInteractionStateParams {
   onOpenInNewWindow?: (entry: VaultEntry) => void
   onAutoTriggerDiff?: () => void
   onDiscardFile?: (relativePath: string) => Promise<void>
+  onUpdateFrontmatter?: (path: string, key: string, value: string | number | boolean | string[] | null) => Promise<void> | void
   onCreateNote: (type?: string) => void
   onBulkArchive?: (paths: string[]) => void
   onBulkDeletePermanently?: (paths: string[]) => void
@@ -264,11 +283,17 @@ function useNoteListInteractionState({
   onOpenInNewWindow,
   onAutoTriggerDiff,
   onDiscardFile,
+  onUpdateFrontmatter,
   onCreateNote,
   onBulkArchive,
   onBulkDeletePermanently,
 }: UseNoteListInteractionStateParams) {
   const changesContextMenu = useChangesContextMenu({ isChangesView, onDiscardFile, modifiedFiles })
+  const noteContextMenu = useNoteListContextMenu({
+    enabled: !isChangesView,
+    onUpdateFrontmatter,
+    onOpenInNewWindow,
+  })
   const {
     collapsedGroups,
     handleClickNote,
@@ -305,6 +330,7 @@ function useNoteListInteractionState({
 
   return {
     changesContextMenu,
+    noteContextMenu,
     collapsedGroups,
     getChangeStatus,
     handleBulkArchive,
@@ -324,8 +350,6 @@ interface UseRenderItemParams {
   selectedNotePath: string | null
   typeEntryMap: Record<string, VaultEntry>
   displayPropsOverride?: string[] | null
-  isChangesView: boolean
-  onDiscardFile?: (relativePath: string) => Promise<void>
   resolvedGetNoteStatus: (path: string) => NoteStatus
   getChangeStatus: (path: string) => ModifiedFile['status'] | undefined
   handleClickNote: (entry: VaultEntry, event: React.MouseEvent) => void
@@ -339,8 +363,6 @@ function useRenderItem({
   selectedNotePath,
   typeEntryMap,
   displayPropsOverride,
-  isChangesView,
-  onDiscardFile,
   resolvedGetNoteStatus,
   getChangeStatus,
   handleClickNote,
@@ -348,7 +370,7 @@ function useRenderItem({
   multiSelect,
   noteListKeyboard,
 }: UseRenderItemParams) {
-  const contextMenuHandler = isChangesView && onDiscardFile ? noteContextMenu : undefined
+  const contextMenuHandler = noteContextMenu
 
   return useCallback((entry: VaultEntry, options?: { forceSelected?: boolean }) => (
     isDeletedNoteEntry(entry) ? (
@@ -379,7 +401,6 @@ function useRenderItem({
           allEntries={entries}
           displayPropsOverride={displayPropsOverride}
           onClickNote={handleClickNote}
-          onPrefetch={prefetchNoteContent}
           onContextMenu={contextMenuHandler}
         />
       </DraggableNoteItem>
@@ -420,6 +441,7 @@ export interface NoteListProps {
   updateEntry?: (path: string, patch: Partial<VaultEntry>) => void
   onOpenInNewWindow?: (entry: VaultEntry) => void
   onDiscardFile?: (relativePath: string) => Promise<void>
+  onUpdateFrontmatter?: (path: string, key: string, value: string | number | boolean | string[] | null) => Promise<void> | void
   onAutoTriggerDiff?: () => void
   onOpenDeletedNote?: (entry: DeletedNoteEntry) => void
   allNotesNoteListProperties?: string[] | null
@@ -439,7 +461,10 @@ function buildNoteListLayoutModel(params: {
   modifiedFilesError?: string | null
   noteListFilter: NoteListFilter
   filterCounts: ReturnType<typeof useFilterCounts>
+  fileScope: NoteFileScope
+  fileScopeCounts: Record<NoteFileScope, number>
   onNoteListFilterChange: (filter: NoteListFilter) => void
+  onFileScopeChange: (scope: NoteFileScope) => void
   onOpenType: (entry: VaultEntry) => void
   locale: AppLocale
   content: ReturnType<typeof useNoteListContent> & {
@@ -494,14 +519,23 @@ function buildNoteListLayoutModel(params: {
     searched: params.content.searched,
     query: params.content.query,
     showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
+    showFileScopePills: params.selection.kind === 'folder',
     noteListFilter: params.noteListFilter,
     filterCounts: params.filterCounts,
+    fileScope: params.fileScope,
+    fileScopeCounts: params.fileScopeCounts,
     onNoteListFilterChange: params.onNoteListFilterChange,
+    onFileScopeChange: params.onFileScopeChange,
     multiSelect: params.interaction.multiSelect,
     handleBulkArchive: params.interaction.handleBulkArchive,
     handleBulkDeletePermanently: params.interaction.handleBulkDeletePermanently,
     handleBulkUnarchive: params.interaction.handleBulkUnarchive,
-    contextMenuNode: params.interaction.changesContextMenu.contextMenuNode,
+    contextMenuNode: (
+      <>
+        {params.interaction.changesContextMenu.contextMenuNode}
+        {params.interaction.noteContextMenu.contextMenuNode}
+      </>
+    ),
     dialogNode: params.interaction.changesContextMenu.dialogNode,
   }
 }
@@ -526,6 +560,7 @@ export function useNoteListModel({
   updateEntry,
   onOpenInNewWindow,
   onDiscardFile,
+  onUpdateFrontmatter,
   onAutoTriggerDiff,
   onOpenDeletedNote,
   allNotesNoteListProperties,
@@ -538,13 +573,27 @@ export function useNoteListModel({
   locale = 'en',
 }: NoteListProps) {
   const selectedNotePath = selectedNote?.path ?? null
+  const [fileScopeState, setFileScopeState] = useState<{ folderPath: string | null; scope: NoteFileScope }>({
+    folderPath: null,
+    scope: DEFAULT_NOTE_FILE_SCOPE,
+  })
   const { modifiedPathSet, modifiedSuffixes, resolvedGetNoteStatus } = useModifiedFilesState(modifiedFiles, getNoteStatus)
   const { isInboxView } = useViewFlags(selection)
-  const filterCounts = useFilterCounts(entries, selection)
+  const selectedFolderPath = selection.kind === 'folder' ? selection.path : null
+  const fileScope = fileScopeState.folderPath === selectedFolderPath
+    ? fileScopeState.scope
+    : DEFAULT_NOTE_FILE_SCOPE
+  const handleFileScopeChange = useCallback((scope: NoteFileScope) => {
+    setFileScopeState({ folderPath: selectedFolderPath, scope })
+  }, [selectedFolderPath])
+  const filterCounts = useFilterCounts(entries, selection, fileScope)
+  const fileScopeCounts = useFileScopeCounts(entries, selection, noteListFilter)
+
   const content = useNoteListContent({
     entries,
     selection,
     noteListFilter,
+    fileScope,
     inboxPeriod,
     modifiedFiles,
     modifiedSuffixes,
@@ -578,6 +627,7 @@ export function useNoteListModel({
     onOpenInNewWindow,
     onAutoTriggerDiff,
     onDiscardFile,
+    onUpdateFrontmatter,
     onCreateNote,
     onBulkArchive,
     onBulkDeletePermanently,
@@ -587,12 +637,12 @@ export function useNoteListModel({
     selectedNotePath,
     typeEntryMap: content.typeEntryMap,
     displayPropsOverride: content.displayPropsOverride,
-    isChangesView: selection.kind === 'filter' && selection.filter === 'changes',
-    onDiscardFile,
     resolvedGetNoteStatus,
     getChangeStatus: interaction.getChangeStatus,
     handleClickNote: interaction.handleClickNote,
-    noteContextMenu: interaction.changesContextMenu.handleNoteContextMenu,
+    noteContextMenu: selection.kind === 'filter' && selection.filter === 'changes'
+      ? interaction.changesContextMenu.handleNoteContextMenu
+      : interaction.noteContextMenu.handleNoteContextMenu,
     multiSelect: interaction.multiSelect,
     noteListKeyboard: interaction.noteListKeyboard,
   })
@@ -630,7 +680,10 @@ export function useNoteListModel({
     modifiedFilesError,
     noteListFilter,
     filterCounts,
+    fileScope,
+    fileScopeCounts,
     onNoteListFilterChange,
+    onFileScopeChange: handleFileScopeChange,
     locale,
     content: {
       ...content,

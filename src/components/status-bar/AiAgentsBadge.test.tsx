@@ -12,6 +12,7 @@ vi.mock('../../utils/url', async () => {
 const installedStatuses = {
   claude_code: { status: 'installed' as const, version: '1.0.20' },
   codex: { status: 'installed' as const, version: '0.37.0' },
+  chitragupta: { status: 'installed' as const, version: '0.1.16' },
 }
 
 function render(ui: ReactElement) {
@@ -83,5 +84,28 @@ describe('AiAgentsBadge', () => {
     })
 
     expect(onRestoreGuidance).toHaveBeenCalledOnce()
+  })
+
+  it('marks browser preview AI as native-app only', () => {
+    render(
+      <AiAgentsBadge
+        statuses={{
+          claude_code: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+          codex: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+          chitragupta: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+        }}
+        defaultAgent="claude_code"
+        onSetDefaultAgent={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      const trigger = screen.getByTestId('status-ai-agents')
+      trigger.focus()
+      fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+    })
+
+    expect(screen.getByText('Open native Grimoire for live AI')).toBeInTheDocument()
+    expect(screen.queryByText('Install Claude Code')).not.toBeInTheDocument()
   })
 })

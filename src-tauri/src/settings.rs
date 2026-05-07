@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
@@ -33,6 +34,7 @@ pub struct Settings {
     pub ui_language: Option<String>,
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
+    pub ai_agent_models: Option<BTreeMap<String, String>>,
 }
 
 fn normalize_optional_string(value: Option<String>) -> Option<String> {
@@ -62,9 +64,29 @@ pub fn effective_release_channel(value: Option<&str>) -> &'static str {
 
 pub fn normalize_default_ai_agent(value: Option<&str>) -> Option<String> {
     match value.map(|candidate| candidate.trim().to_ascii_lowercase()) {
-        Some(agent) if agent == "claude_code" || agent == "codex" => Some(agent),
+        Some(agent) if matches!(agent.as_str(), "claude_code" | "codex" | "chitragupta") => {
+            Some(agent)
+        }
         _ => None,
     }
+}
+
+pub fn normalize_ai_agent_models(
+    value: Option<BTreeMap<String, String>>,
+) -> Option<BTreeMap<String, String>> {
+    let mut models = BTreeMap::new();
+    for (agent, model) in value? {
+        let Some(agent) = normalize_default_ai_agent(Some(&agent)) else {
+            continue;
+        };
+        let Some(model) = normalize_optional_string(Some(model)) else {
+            continue;
+        };
+        if !model.chars().any(char::is_whitespace) {
+            models.insert(agent, model);
+        }
+    }
+    (!models.is_empty()).then_some(models)
 }
 
 pub fn normalize_theme_mode(value: Option<&str>) -> Option<String> {
@@ -134,6 +156,7 @@ fn normalize_settings(settings: Settings) -> Settings {
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         initial_h1_auto_rename_enabled: settings.initial_h1_auto_rename_enabled,
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
+        ai_agent_models: normalize_ai_agent_models(settings.ai_agent_models),
     }
 }
 
@@ -285,6 +308,10 @@ mod tests {
             ui_language: Some("zh-Hans".to_string()),
             initial_h1_auto_rename_enabled: Some(false),
             default_ai_agent: Some("codex".to_string()),
+            ai_agent_models: Some(BTreeMap::from([(
+                "codex".to_string(),
+                "gpt-5.2".to_string(),
+            )])),
         };
         let json = serde_json::to_string(&settings).unwrap();
         let parsed: Settings = serde_json::from_str(&json).unwrap();
@@ -328,6 +355,29 @@ mod tests {
         assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
         assert_eq!(loaded.initial_h1_auto_rename_enabled, Some(false));
         assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
+    }
+
+    #[test]
+    fn test_save_preserves_ai_agent_models() {
+        let loaded = save_and_reload(Settings {
+            ai_agent_models: Some(BTreeMap::from([
+                ("claude_code".to_string(), "sonnet".to_string()),
+                ("codex".to_string(), "gpt-5.2".to_string()),
+                ("chitragupta".to_string(), "deepseek-chat".to_string()),
+            ])),
+            ..Default::default()
+        });
+
+        let models = loaded.ai_agent_models.unwrap();
+        assert_eq!(
+            models.get("claude_code").map(String::as_str),
+            Some("sonnet")
+        );
+        assert_eq!(models.get("codex").map(String::as_str), Some("gpt-5.2"));
+        assert_eq!(
+            models.get("chitragupta").map(String::as_str),
+            Some("deepseek-chat")
+        );
     }
 
     #[test]
@@ -387,6 +437,31 @@ mod tests {
             ..Default::default()
         });
         assert!(loaded.default_ai_agent.is_none());
+    }
+
+    #[test]
+    fn test_chitragupta_default_ai_agent_is_supported() {
+        let loaded = save_and_reload(Settings {
+            default_ai_agent: Some(" chitragupta ".to_string()),
+            ..Default::default()
+        });
+        assert_eq!(loaded.default_ai_agent.as_deref(), Some("chitragupta"));
+    }
+
+    #[test]
+    fn test_invalid_ai_agent_models_are_filtered() {
+        let loaded = save_and_reload(Settings {
+            ai_agent_models: Some(BTreeMap::from([
+                ("cursor".to_string(), "gpt-5.2".to_string()),
+                ("codex".to_string(), "bad model".to_string()),
+                ("claude_code".to_string(), "  opus  ".to_string()),
+            ])),
+            ..Default::default()
+        });
+
+        let models = loaded.ai_agent_models.unwrap();
+        assert_eq!(models.len(), 1);
+        assert_eq!(models.get("claude_code").map(String::as_str), Some("opus"));
     }
 
     #[test]

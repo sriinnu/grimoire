@@ -195,6 +195,25 @@ pub fn save_image(
 }
 
 #[tauri::command]
+pub fn save_canvas_preview(
+    app_handle: tauri::AppHandle,
+    vault_path: PathBuf,
+    path: PathBuf,
+    data: String,
+) -> Result<(), String> {
+    with_requested_root_path(vault_path.as_path(), |requested_root| {
+        let save_result = with_validated_path(
+            path.to_string_lossy().as_ref(),
+            Some(requested_root),
+            ValidatedPathMode::Writable,
+            |validated_path| vault::save_canvas_preview(validated_path, &data),
+        );
+        sync_image_asset_scope(&app_handle, requested_root)?;
+        save_result
+    })
+}
+
+#[tauri::command]
 pub fn copy_image_to_vault(
     app_handle: tauri::AppHandle,
     vault_path: PathBuf,

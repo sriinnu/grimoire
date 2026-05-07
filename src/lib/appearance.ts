@@ -3,10 +3,33 @@ export const DEFAULT_EDITOR_FONT = 'system'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'
 
-const THEME_PRESETS = new Set(['classic', 'manuscript', 'graphite', 'studio', 'folio', 'nocturne'])
+const THEME_PRESETS = new Set([
+  'classic',
+  'manuscript',
+  'graphite',
+  'studio',
+  'folio',
+  'nocturne',
+  'retro',
+  'aurora',
+  'future',
+  'lotus',
+  'ember',
+])
 const EDITOR_FONTS = new Set(['system', 'serif', 'mono', 'readable', 'literary', 'compact'])
 
-export type ThemePreset = 'classic' | 'manuscript' | 'graphite' | 'studio' | 'folio' | 'nocturne'
+export type ThemePreset =
+  | 'classic'
+  | 'manuscript'
+  | 'graphite'
+  | 'studio'
+  | 'folio'
+  | 'nocturne'
+  | 'retro'
+  | 'aurora'
+  | 'future'
+  | 'lotus'
+  | 'ember'
 export type EditorFont = 'system' | 'serif' | 'mono' | 'readable' | 'literary' | 'compact'
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>

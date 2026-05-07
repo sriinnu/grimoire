@@ -78,20 +78,29 @@ fn assert_alias_parser_recovers(case: AliasRecoveryCase<'_>) {
 
 #[test]
 fn test_filtered_properties_stay_hidden() {
-    let cases = [
-        HiddenPropertyCase {
-            content: "---\nMentor: \"[[person/alice]]\"\nCompany: Acme Corp\n---\n# Test\n",
-            hidden_key: "Mentor",
-        },
-        HiddenPropertyCase {
-            content: "---\nTags:\n  - productivity\n  - writing\nCompany: Acme Corp\n---\n# Test\n",
-            hidden_key: "Tags",
-        },
-    ];
+    let cases = [HiddenPropertyCase {
+        content: "---\nMentor: \"[[person/alice]]\"\nCompany: Acme Corp\n---\n# Test\n",
+        hidden_key: "Mentor",
+    }];
 
     for case in cases {
         assert_filtered_property_stays_hidden(case);
     }
+}
+
+#[test]
+fn test_multi_value_tags_are_first_class_properties() {
+    let dir = TempDir::new().unwrap();
+    let entry = parse_test_entry(
+        &dir,
+        "tags.md",
+        "---\nTags:\n  - productivity\n  - writing\nCompany: Acme Corp\n---\n# Test\n",
+    );
+
+    assert_eq!(
+        entry.properties.get("Tags"),
+        Some(&serde_json::json!(["productivity", "writing"]))
+    );
 }
 
 #[test]

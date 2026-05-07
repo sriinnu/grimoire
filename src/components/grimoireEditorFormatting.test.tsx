@@ -56,23 +56,37 @@ describe('grimoireEditorFormatting', () => {
       { key: 'toggle_heading', title: 'Toggle heading', onItemClick: () => {} },
       { key: 'toggle_list', title: 'Toggle list', onItemClick: () => {} },
       { key: 'heading', title: 'Heading', onItemClick: () => {} },
+      { key: 'heading_2', title: 'Heading', onItemClick: () => {} },
       { key: 'bullet_list', title: 'Bullet List', onItemClick: () => {} },
       { key: 'code_block', title: 'Code Block', onItemClick: () => {} },
     ] satisfies GrimoireSlashMenuTestItem[])
 
     expect(items.map((item) => item.key)).toEqual([
       'heading',
+      'heading_2',
       'bullet_list',
       'code_block',
     ])
+    expect(items.find((item) => item.key === 'heading')?.title).toBe('Heading 1')
     expect(items.find((item) => item.key === 'heading')?.subtext).toContain(
-      'Markdown-safe heading',
+      'page title or major top-level section',
     )
+    expect(items.find((item) => item.key === 'heading')?.aliases).toContain('#')
+    expect(items.find((item) => item.key === 'heading')?.aliases).toContain('h1')
+    expect(items.find((item) => item.key === 'heading')?.group).toBe('Structure')
+    expect(items.find((item) => item.key === 'heading_2')?.title).toBe('Heading 2')
+    expect(items.find((item) => item.key === 'heading_2')?.subtext).toContain(
+      'Heading 2 (`##`)',
+    )
+    expect(items.find((item) => item.key === 'heading_2')?.aliases).toContain('##')
     expect(items.find((item) => item.key === 'bullet_list')?.subtext).toContain(
       'Markdown-safe bullet list',
     )
+    expect(items.find((item) => item.key === 'bullet_list')?.aliases).toContain('ul')
+    expect(items.find((item) => item.key === 'bullet_list')?.group).toBe('Lists')
     expect(items.find((item) => item.key === 'code_block')?.subtext).toContain(
       'Markdown-safe fenced code block',
     )
+    expect(items.find((item) => item.key === 'code_block')?.aliases).toContain('snippet')
   })
 })

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { buildRelationshipGroups, countAllByFilter, countAllNotesByFilter, countByFilter, filterEntries } from './noteListHelpers'
+import {
+  buildRelationshipGroups,
+  countAllByFilter,
+  countAllNotesByFilter,
+  countByFilter,
+  countFolderByFilter,
+  countFolderFileScopes,
+  filterEntries,
+} from './noteListHelpers'
 import { allSelection, makeEntry, mockEntries } from '../test-utils/noteListTestUtils'
 
 describe('filterEntries', () => {
@@ -73,6 +81,20 @@ describe('filterEntries', () => {
     const result = filterEntries(entries, allSelection, 'open')
     expect(result.map((entry) => entry.title)).toEqual(['Real Note'])
   })
+
+  it('defaults folder views to markdown files and can reveal other project files', () => {
+    const entries = [
+      makeEntry({ path: '/vault/project/readme.md', title: 'Readme', fileKind: 'markdown' }),
+      makeEntry({ path: '/vault/project/App.tsx', title: 'App.tsx', fileKind: 'text' }),
+      makeEntry({ path: '/vault/project/logo.png', title: 'logo.png', fileKind: 'binary' }),
+      makeEntry({ path: '/vault/other/notes.md', title: 'Other Note', fileKind: 'markdown' }),
+    ]
+    const folderSelection = { kind: 'folder' as const, path: 'project' }
+
+    expect(filterEntries(entries, folderSelection).map((entry) => entry.title)).toEqual(['Readme'])
+    expect(filterEntries(entries, folderSelection, 'open', undefined, 'other').map((entry) => entry.title)).toEqual(['App.tsx', 'logo.png'])
+    expect(filterEntries(entries, folderSelection, 'open', undefined, 'all').map((entry) => entry.title)).toEqual(['Readme', 'App.tsx', 'logo.png'])
+  })
 })
 
 describe('countByFilter', () => {
@@ -125,6 +147,21 @@ describe('countAllNotesByFilter', () => {
     ]
 
     expect(countAllNotesByFilter(entries)).toEqual({ open: 1, archived: 1 })
+  })
+})
+
+describe('folder file-scope counts', () => {
+  it('counts folder archive filters within the selected file scope', () => {
+    const entries = [
+      makeEntry({ path: '/vault/project/readme.md', fileKind: 'markdown' }),
+      makeEntry({ path: '/vault/project/done.md', fileKind: 'markdown', archived: true }),
+      makeEntry({ path: '/vault/project/App.tsx', fileKind: 'text' }),
+      makeEntry({ path: '/vault/project/logo.png', fileKind: 'binary' }),
+    ]
+
+    expect(countFolderByFilter(entries, 'project', 'markdown')).toEqual({ open: 1, archived: 1 })
+    expect(countFolderByFilter(entries, 'project', 'other')).toEqual({ open: 2, archived: 0 })
+    expect(countFolderFileScopes(entries, 'project', 'open')).toEqual({ markdown: 1, other: 2, all: 3 })
   })
 })
 

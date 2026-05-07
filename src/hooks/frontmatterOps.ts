@@ -39,8 +39,8 @@ function extractWikilinks(value: FrontmatterValue): string[] {
 export type RelationshipPatch = Record<string, string[] | null>
 
 /** Properties patch: a partial update to merge into `entry.properties`.
- *  Keys map to their new scalar values. A `null` value means "remove this key". */
-export type PropertiesPatch = Record<string, string | number | boolean | null>
+ *  Keys map to their new values. A `null` value means "remove this key". */
+export type PropertiesPatch = Record<string, string | string[] | number | boolean | null>
 
 export interface EntryPatchResult {
   patch: Partial<VaultEntry>
@@ -148,8 +148,8 @@ export interface FrontmatterOpOptions {
 
 /** Apply a properties patch by merging into the existing properties map. */
 export function applyPropertiesPatch(
-  existing: Record<string, string | number | boolean | null>, propPatch: PropertiesPatch,
-): Record<string, string | number | boolean | null> {
+  existing: VaultEntry['properties'], propPatch: PropertiesPatch,
+): VaultEntry['properties'] {
   return applyRecordPatch(existing, propPatch)
 }
 

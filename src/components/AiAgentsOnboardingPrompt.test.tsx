@@ -23,6 +23,7 @@ describe('AiAgentsOnboardingPrompt', () => {
         statuses={{
           claude_code: { status: 'installed', version: '1.0.20' },
           codex: { status: 'missing', version: null },
+          chitragupta: { status: 'installed', version: '0.1.16' },
         }}
         onContinue={vi.fn()}
       />,
@@ -39,6 +40,7 @@ describe('AiAgentsOnboardingPrompt', () => {
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
+          chitragupta: { status: 'missing', version: null },
         }}
         onContinue={vi.fn()}
       />,
@@ -49,6 +51,7 @@ describe('AiAgentsOnboardingPrompt', () => {
     expect(screen.getByText('Claude Code not detected')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-install-claude_code')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-install-codex')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-install-chitragupta')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-continue')).toHaveTextContent('Continue without it')
   })
 
@@ -58,6 +61,7 @@ describe('AiAgentsOnboardingPrompt', () => {
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
+          chitragupta: { status: 'missing', version: null },
         }}
         onContinue={vi.fn()}
       />,
@@ -65,9 +69,28 @@ describe('AiAgentsOnboardingPrompt', () => {
 
     fireEvent.click(screen.getByTestId('ai-agents-onboarding-install-claude_code'))
     fireEvent.click(screen.getByTestId('ai-agents-onboarding-install-codex'))
+    fireEvent.click(screen.getByTestId('ai-agents-onboarding-install-chitragupta'))
 
     expect(openExternalUrl).toHaveBeenCalledWith('https://docs.anthropic.com/en/docs/claude-code')
     expect(openExternalUrl).toHaveBeenCalledWith('https://developers.openai.com/codex/cli')
+    expect(openExternalUrl).toHaveBeenCalledWith('https://github.com/sriinnu/chitragupta')
+  })
+
+  it('explains browser preview instead of showing fake installed agents', () => {
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+          codex: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+          chitragupta: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Open native app for live AI')).toBeInTheDocument()
+    expect(screen.getByText('Continue in preview')).toBeInTheDocument()
+    expect(screen.queryByTestId('ai-agents-onboarding-install-claude_code')).not.toBeInTheDocument()
   })
 
   it('uses the surrounding surface as a drag region and excludes the card', () => {
@@ -76,6 +99,7 @@ describe('AiAgentsOnboardingPrompt', () => {
         statuses={{
           claude_code: { status: 'installed', version: '1.0.20' },
           codex: { status: 'missing', version: null },
+          chitragupta: { status: 'installed', version: '0.1.16' },
         }}
         onContinue={vi.fn()}
       />,

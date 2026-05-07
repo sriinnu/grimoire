@@ -72,6 +72,19 @@ fn test_scan_vault_includes_subdirectory_notes() {
 }
 
 #[test]
+fn test_scan_vault_recognizes_markdown_extension_variants() {
+    let dir = TempDir::new().unwrap();
+    create_test_file(dir.path(), "README.markdown", "# Readme\n");
+    create_test_file(dir.path(), "UPPER.MD", "# Upper\n");
+
+    let entries = scan_vault(dir.path(), &HashMap::new()).unwrap();
+
+    assert_eq!(entries.len(), 2);
+    assert!(entries.iter().all(|entry| entry.file_kind == "markdown"));
+    assert_filenames_include(&entries, &["README.markdown", "UPPER.MD"]);
+}
+
+#[test]
 fn test_scan_vault_includes_all_protected_folders() {
     let dir = TempDir::new().unwrap();
     create_test_file(dir.path(), "root.md", "# Root\n");
@@ -82,6 +95,25 @@ fn test_scan_vault_includes_all_protected_folders() {
     assert_eq!(entries.len(), 3);
 }
 
+#[cfg(unix)]
+#[test]
+fn test_scan_vault_does_not_follow_symlinks_outside_vault() {
+    let dir = TempDir::new().unwrap();
+    let outside = TempDir::new().unwrap();
+    create_test_file(dir.path(), "root.md", "# Root\n");
+    std::fs::write(outside.path().join("outside.md"), "# Outside\n").unwrap();
+    std::os::unix::fs::symlink(
+        outside.path().join("outside.md"),
+        dir.path().join("linked-outside.md"),
+    )
+    .unwrap();
+
+    let entries = scan_vault(dir.path(), &HashMap::new()).unwrap();
+
+    assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].filename, "root.md");
+}
+
 #[test]
 fn test_scan_vault_skips_hidden_folders() {
     let dir = TempDir::new().unwrap();
@@ -90,6 +122,20 @@ fn test_scan_vault_skips_hidden_folders() {
     create_test_file(dir.path(), ".git/objects.md", "# Git\n");
 
     let entries = scan_vault(dir.path(), &HashMap::new()).unwrap();
+    assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].filename, "root.md");
+}
+
+#[test]
+fn test_scan_vault_skips_dependency_and_build_folders() {
+    let dir = TempDir::new().unwrap();
+    create_test_file(dir.path(), "root.md", "# Root\n");
+    create_test_file(dir.path(), "node_modules/pkg/readme.md", "# Dependency\n");
+    create_test_file(dir.path(), "dist/generated.md", "# Generated\n");
+    create_test_file(dir.path(), "target/debug/artifact.md", "# Artifact\n");
+
+    let entries = scan_vault(dir.path(), &HashMap::new()).unwrap();
+
     assert_eq!(entries.len(), 1);
     assert_eq!(entries[0].filename, "root.md");
 }

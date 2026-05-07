@@ -5,11 +5,13 @@ import type { VaultEntry } from '../types'
 import { buildNoteGraph, filterGraphByQuery, type NoteGraph } from '../utils/noteGraph'
 import {
   edgeStats,
+  filterGraphByNodeTypes,
   filterGraphEdges,
   GRAPH_CENTER_X,
   GRAPH_CENTER_Y,
   GRAPH_VIEWBOX_HEIGHT,
   GRAPH_VIEWBOX_WIDTH,
+  graphTypeStats,
   layoutGraph,
   limitGraphForDisplay,
   scopeGraph,
@@ -20,6 +22,7 @@ import {
   type PositionedGraphNode,
 } from '../utils/graphDisplay'
 import { Button } from './ui/button'
+import { GraphControlPanel } from './GraphControlPanel'
 import {
   Dialog,
   DialogContent,
@@ -38,27 +41,53 @@ interface GraphModalProps {
   onClose: () => void
 }
 
-const EDGE_FILTERS: ReadonlyArray<{ value: GraphEdgeFilter; label: string }> = [
-  { value: 'all', label: 'All' },
-  { value: 'relationship', label: 'Relations' },
-  { value: 'body-link', label: 'Wikilinks' },
-]
-
 /** Shows the vault as an interactive note relationship graph. */
 export function GraphModal({ open, entries, activePath, onOpenNote, onClose }: GraphModalProps) {
+  return (
+    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
+      {open ? (
+        <GraphModalContent
+          entries={entries}
+          activePath={activePath}
+          onOpenNote={onOpenNote}
+          onClose={onClose}
+        />
+      ) : null}
+    </Dialog>
+  )
+}
+
+function GraphModalContent({
+  entries,
+  activePath,
+  onOpenNote,
+  onClose,
+}: Omit<GraphModalProps, 'open'>) {
   const [query, setQuery] = useState('')
   const [scope, setScope] = useState<GraphScope>('neighborhood')
   const [edgeFilter, setEdgeFilter] = useState<GraphEdgeFilter>('all')
+  const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set())
   const graph = useMemo(() => buildNoteGraph(entries, activePath), [activePath, entries])
   const effectiveScope = activePath ? scope : 'vault'
   const scopedGraph = useMemo(() => scopeGraph(graph, effectiveScope), [effectiveScope, graph])
   const visibleGraph = useMemo(() => filterGraphByQuery(scopedGraph, query), [query, scopedGraph])
   const displayGraph = useMemo(() => limitGraphForDisplay(visibleGraph), [visibleGraph])
-  const renderGraph = useMemo(() => filterGraphEdges(displayGraph, edgeFilter), [displayGraph, edgeFilter])
+  const typeStats = useMemo(() => graphTypeStats(displayGraph, entries), [displayGraph, entries])
+  const typedGraph = useMemo(() => filterGraphByNodeTypes(displayGraph, hiddenTypes), [displayGraph, hiddenTypes])
+  const renderGraph = useMemo(() => filterGraphEdges(typedGraph, edgeFilter), [typedGraph, edgeFilter])
   const layout = useMemo(() => layoutGraph(renderGraph, entries), [entries, renderGraph])
   const nodeById = useMemo(() => new Map(layout.nodes.map((node) => [node.id, node])), [layout.nodes])
   const entryByPath = useMemo(() => new Map(entries.map((entry) => [entry.path, entry])), [entries])
-  const stats = edgeStats(displayGraph)
+  const stats = edgeStats(typedGraph)
+
+  const toggleType = (type: string) => {
+    setHiddenTypes((current) => {
+      const next = new Set(current)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+  }
 
   const openNode = (path: string) => {
     const entry = entryByPath.get(path)
@@ -66,49 +95,50 @@ export function GraphModal({ open, entries, activePath, onOpenNote, onClose }: G
   }
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
-      <DialogContent className="max-w-[min(1160px,calc(100vw-2rem))] gap-4">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Graph size={18} />
-            Knowledge graph
-          </DialogTitle>
-          <DialogDescription className="sr-only">Vault relationships and wikilinks.</DialogDescription>
-        </DialogHeader>
+    <DialogContent className="max-w-[min(1160px,calc(100vw-2rem))] gap-4">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Graph size={18} />
+          Knowledge graph
+        </DialogTitle>
+        <DialogDescription className="sr-only">Vault relationships and wikilinks.</DialogDescription>
+      </DialogHeader>
 
-        <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
-          <div className="space-y-3">
-            <label className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-              <MagnifyingGlass size={15} className="text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Filter by title or type"
-                className="h-7 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-                data-testid="graph-filter"
-              />
-            </label>
-            <GraphCanvas layout={layout} nodeById={nodeById} onOpenNode={openNode} />
-          </div>
-
-          <GraphControlPanel
-            activePath={activePath}
-            scope={effectiveScope}
-            onScopeChange={setScope}
-            edgeFilter={edgeFilter}
-            onEdgeFilterChange={setEdgeFilter}
-            shownNodes={displayGraph.nodes.length}
-            totalMatches={visibleGraph.nodes.length}
-            shownEdges={renderGraph.edges.length}
-            stats={stats}
-          />
+      <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+            <MagnifyingGlass size={15} className="text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Filter by title or type"
+              className="h-7 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              data-testid="graph-filter"
+            />
+          </label>
+          <GraphCanvas layout={layout} nodeById={nodeById} onOpenNode={openNode} />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <GraphControlPanel
+          activePath={activePath}
+          scope={effectiveScope}
+          onScopeChange={setScope}
+          edgeFilter={edgeFilter}
+          onEdgeFilterChange={setEdgeFilter}
+          shownNodes={displayGraph.nodes.length}
+          totalMatches={visibleGraph.nodes.length}
+          shownEdges={renderGraph.edges.length}
+          stats={stats}
+          typeStats={typeStats}
+          hiddenTypes={hiddenTypes}
+          onToggleType={toggleType}
+        />
+      </div>
+
+      <DialogFooter>
+        <Button variant="outline" onClick={onClose}>Close</Button>
+      </DialogFooter>
+    </DialogContent>
   )
 }
 
@@ -234,128 +264,5 @@ function GraphNode({ node, onOpenNode }: { node: PositionedGraphNode; onOpenNode
         {node.type}
       </text>
     </g>
-  )
-}
-
-function GraphControlPanel({
-  activePath,
-  scope,
-  onScopeChange,
-  edgeFilter,
-  onEdgeFilterChange,
-  shownNodes,
-  totalMatches,
-  shownEdges,
-  stats,
-}: {
-  activePath: string | null
-  scope: GraphScope
-  onScopeChange: (scope: GraphScope) => void
-  edgeFilter: GraphEdgeFilter
-  onEdgeFilterChange: (filter: GraphEdgeFilter) => void
-  shownNodes: number
-  totalMatches: number
-  shownEdges: number
-  stats: { relationships: number; wikilinks: number }
-}) {
-  return (
-    <div className="rounded-md border border-border bg-background/80 p-3">
-      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Graph</div>
-      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-        <Metric label="Notes" value={shownNodes} />
-        <Metric label="Links" value={shownEdges} />
-      </div>
-      <div className="mt-2 text-xs text-muted-foreground">
-        {shownNodes === totalMatches ? `${totalMatches} matching notes` : `${shownNodes} of ${totalMatches} matching notes`}
-      </div>
-
-      <ControlGroup label="Scope">
-        <SegmentButton selected={scope === 'neighborhood'} disabled={!activePath} onClick={() => onScopeChange('neighborhood')}>
-          Nearby
-        </SegmentButton>
-        <SegmentButton selected={scope === 'vault'} onClick={() => onScopeChange('vault')}>
-          Vault
-        </SegmentButton>
-      </ControlGroup>
-
-      <ControlGroup label="Edges">
-        {EDGE_FILTERS.map((filter) => (
-          <SegmentButton
-            key={filter.value}
-            selected={edgeFilter === filter.value}
-            onClick={() => onEdgeFilterChange(filter.value)}
-          >
-            {filter.label}
-          </SegmentButton>
-        ))}
-      </ControlGroup>
-
-      <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-        <LegendSwatch color="var(--primary)" label={`${stats.relationships} relationships`} />
-        <LegendSwatch color="var(--muted-foreground)" dashed={true} label={`${stats.wikilinks} wikilinks`} />
-      </div>
-    </div>
-  )
-}
-
-function ControlGroup({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="mt-4 space-y-2">
-      <div className="text-xs font-medium text-muted-foreground">{label}</div>
-      <div className="grid gap-1 rounded-md bg-muted p-1" role="radiogroup" aria-label={label}>
-        {children}
-      </div>
-    </div>
-  )
-}
-
-function SegmentButton({
-  children,
-  disabled = false,
-  selected,
-  onClick,
-}: {
-  children: React.ReactNode
-  disabled?: boolean
-  selected: boolean
-  onClick: () => void
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      role="radio"
-      aria-checked={selected}
-      disabled={disabled}
-      className={cn(
-        'h-7 justify-start px-2 text-xs',
-        selected ? 'bg-background text-foreground shadow-xs hover:bg-background' : 'text-muted-foreground',
-      )}
-      onClick={onClick}
-    >
-      {children}
-    </Button>
-  )
-}
-
-function LegendSwatch({ color, dashed = false, label }: { color: string; dashed?: boolean; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        className="h-0.5 w-7 rounded-full"
-        style={{ background: dashed ? `repeating-linear-gradient(90deg, ${color} 0 5px, transparent 5px 10px)` : color }}
-      />
-      <span>{label}</span>
-    </div>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-md bg-muted p-2">
-      <div className="text-lg font-semibold text-foreground">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-    </div>
   )
 }

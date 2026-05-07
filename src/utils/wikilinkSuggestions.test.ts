@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { preFilterWikilinks, deduplicateByPath, disambiguateTitles, MIN_QUERY_LENGTH, MAX_RESULTS, type WikilinkBaseItem } from './wikilinkSuggestions'
+import { preFilterWikilinks, getWikilinkSuggestionCandidates, deduplicateByPath, disambiguateTitles, MIN_QUERY_LENGTH, MAX_RESULTS, type WikilinkBaseItem } from './wikilinkSuggestions'
 
 let pathCounter = 0
 function makeItem(title: string, aliases: string[] = [], group = 'Note', path?: string): WikilinkBaseItem {
@@ -69,6 +69,27 @@ describe('preFilterWikilinks', () => {
 
   it('handles empty items array', () => {
     expect(preFilterWikilinks([], 'test')).toEqual([])
+  })
+})
+
+describe('getWikilinkSuggestionCandidates', () => {
+  const items: WikilinkBaseItem[] = [
+    makeItem('Build Grimoire App', ['grimoire-app'], 'Project'),
+    makeItem('Quarterly Review', ['q1-review'], 'Responsibility'),
+    makeItem('TypeScript Tips', ['ts-tips']),
+  ]
+
+  it('returns top candidates immediately after an empty [[ trigger', () => {
+    expect(getWikilinkSuggestionCandidates(items, '')).toEqual(items)
+  })
+
+  it('treats whitespace-only wikilink queries as empty', () => {
+    expect(getWikilinkSuggestionCandidates(items, '  ')).toEqual(items)
+  })
+
+  it('matches one-character queries for friendlier live linking', () => {
+    const result = getWikilinkSuggestionCandidates(items, 'q')
+    expect(result.map(item => item.title)).toContain('Quarterly Review')
   })
 })
 

@@ -1115,5 +1115,10 @@ function generateBulkEntries(count: number): VaultEntry[] {
   return entries
 }
 
-// Append 9000 generated entries for realistic large-vault testing
-MOCK_ENTRIES.push(...generateBulkEntries(9000))
+const configuredBulkCount = Number(import.meta.env.VITE_GRIMOIRE_MOCK_BULK_COUNT ?? 0)
+
+// Keep browser dev mode responsive by default; enable large-vault stress data
+// explicitly with VITE_GRIMOIRE_MOCK_BULK_COUNT=9000.
+if (Number.isFinite(configuredBulkCount) && configuredBulkCount > 0) {
+  MOCK_ENTRIES.push(...generateBulkEntries(configuredBulkCount))
+}

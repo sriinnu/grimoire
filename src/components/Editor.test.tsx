@@ -815,13 +815,14 @@ describe('wikilink autocomplete', () => {
     )
   }
 
-  it('returns empty array for query shorter than 2 characters', async () => {
+  it('shows wikilink suggestions immediately after an empty trigger', async () => {
     renderWithEntries()
     expect(capturedGetItems).toBeTruthy()
-    expect(await capturedGetItems!('')).toEqual([])
-    expect(await capturedGetItems!('a')).toEqual([])
-    // filterSuggestionItems should NOT be called for short queries
-    expect(mockFilterSuggestionItems).not.toHaveBeenCalled()
+    await expect(capturedGetItems!('')).resolves.toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'Alpha Project' }),
+      expect.objectContaining({ title: 'Beta Review' }),
+      expect.objectContaining({ title: 'Gamma Notes' }),
+    ]))
   })
 
   it('returns items for query of 2+ characters', async () => {

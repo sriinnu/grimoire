@@ -1,38 +1,19 @@
-import { useEffect, useCallback, useMemo, useRef, useContext } from 'react'
-import { trackEvent } from '../lib/telemetry'
+import { useEffect, useCallback, useRef } from 'react'
 import {
   useCreateBlockNote,
   SuggestionMenuController,
-  BlockNoteViewRaw,
-  ComponentsContext,
-  DeleteLinkButton,
-  EditLinkButton,
-  LinkToolbar,
   LinkToolbarController,
   SideMenuController,
-  useComponentsContext,
-  useDictionary,
-  type LinkToolbarProps,
 } from '@blocknote/react'
-import { components } from '@blocknote/mantine'
-import { MantineContext, MantineProvider } from '@mantine/core'
-import { ExternalLink } from 'lucide-react'
 import { useDocumentThemeMode } from '../hooks/useDocumentThemeMode'
 import { useEditorTheme } from '../hooks/useTheme'
 import { useImageDrop } from '../hooks/useImageDrop'
 import { useNoteWikilinkDrop } from '../hooks/useNoteWikilinkDrop'
-import { buildTypeEntryMap } from '../utils/typeColors'
-import { preFilterWikilinks, deduplicateByPath, MIN_QUERY_LENGTH } from '../utils/wikilinkSuggestions'
-import { filterPersonMentions, PERSON_MENTION_MIN_QUERY } from '../utils/personMentionSuggestions'
-import { attachClickHandlers, enrichSuggestionItems } from '../utils/suggestionEnrichment'
-import { openExternalUrl } from '../utils/url'
 import { observeNativeTextAssistanceDisabled } from '../lib/nativeTextAssistance'
-import { getRuntimeStyleNonce } from '../lib/runtimeStyleNonce'
 import { WikilinkSuggestionMenu, type WikilinkSuggestionItem } from './WikilinkSuggestionMenu'
 import type { VaultEntry } from '../types'
 import { _wikilinkEntriesRef } from './editorSchema'
 import { useBlockNoteSideMenuHoverGuard } from './blockNoteSideMenuHoverGuard'
-import { getGrimoireSlashMenuItems } from './grimoireEditorFormattingConfig'
 import {
   GrimoireFormattingToolbar,
   GrimoireFormattingToolbarController,
@@ -40,6 +21,13 @@ import {
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
 import { useEditorLinkActivation } from './useEditorLinkActivation'
 import { findNearestTextCursorBlock } from './blockNoteCursorTarget'
+import {
+  GrimoireLinkToolbar,
+  SharedContextBlockNoteView,
+} from './singleEditorChrome'
+import { handleToolbarMouseDownCapture } from './singleEditorToolbarEvents'
+import { useSingleEditorSuggestionItems } from './singleEditorSuggestions'
+import { CanvasAttachmentLauncher } from './canvas/CanvasAttachmentLauncher'
 
 const TEST_TABLE_MARKDOWN = `| Head 1 | Head 2 | Head 3 |
 | --- | --- | --- |
@@ -55,103 +43,9 @@ const CONTAINER_CLICK_IGNORE_SELECTOR = [
   '[role="menu"]',
   '[role="dialog"]',
 ].join(', ')
-const TOOLBAR_MOUSE_DOWN_ALLOW_SELECTOR = [
-  '[role="menu"]',
-  '[role="dialog"]',
-  'button[aria-haspopup]',
-  'input',
-  'textarea',
-  '[contenteditable="true"]',
-].join(', ')
-
 type TestTableBlock = {
   type?: string
   content?: { type?: string; columnWidths?: Array<number | null> }
-}
-
-function SharedContextBlockNoteView(props: React.ComponentProps<typeof BlockNoteViewRaw>) {
-  const { children, className, theme, ...rest } = props
-  const mantineContext = useContext(MantineContext)
-  const colorScheme = theme === 'dark' ? 'dark' : 'light'
-  const view = (
-    <ComponentsContext.Provider value={components}>
-      <BlockNoteViewRaw
-        {...rest}
-        className={['bn-mantine', className].filter(Boolean).join(' ')}
-        data-mantine-color-scheme={colorScheme}
-        theme={theme}
-      >
-        {children}
-      </BlockNoteViewRaw>
-    </ComponentsContext.Provider>
-  )
-
-  if (mantineContext) return view
-
-  return (
-    <MantineProvider
-      // BlockNote scopes Mantine defaults under `.bn-mantine` instead of `:root`.
-      withCssVariables={false}
-      getStyleNonce={getRuntimeStyleNonce}
-      getRootElement={() => undefined}
-    >
-      {view}
-    </MantineProvider>
-  )
-}
-
-function shouldAllowToolbarMouseDown(target: HTMLElement) {
-  return Boolean(target.closest(TOOLBAR_MOUSE_DOWN_ALLOW_SELECTOR))
-}
-
-function handleToolbarMouseDownCapture(
-  event: Pick<React.MouseEvent<HTMLElement>, 'target' | 'preventDefault'>,
-) {
-  if (!(event.target instanceof HTMLElement) || shouldAllowToolbarMouseDown(event.target)) {
-    return
-  }
-
-  event.preventDefault()
-}
-
-function GrimoireOpenLinkButton({ url }: Pick<LinkToolbarProps, 'url'>) {
-  const Components = useComponentsContext()!
-  const dict = useDictionary()
-  const handleOpen = useCallback(() => {
-    void openExternalUrl(url).catch((error) => {
-      console.warn('[link] Failed to open URL from toolbar:', error)
-    })
-  }, [url])
-
-  return (
-    <Components.LinkToolbar.Button
-      className="bn-button"
-      label={dict.link_toolbar.open.tooltip}
-      mainTooltip={dict.link_toolbar.open.tooltip}
-      isSelected={false}
-      onClick={handleOpen}
-      icon={<ExternalLink size={16} />}
-    />
-  )
-}
-
-function GrimoireLinkToolbar(props: LinkToolbarProps) {
-  return (
-    <LinkToolbar {...props}>
-      <EditLinkButton
-        url={props.url}
-        text={props.text}
-        range={props.range}
-        setToolbarOpen={props.setToolbarOpen}
-        setToolbarPositionFrozen={props.setToolbarPositionFrozen}
-      />
-      <GrimoireOpenLinkButton url={props.url} />
-      <DeleteLinkButton
-        range={props.range}
-        setToolbarOpen={props.setToolbarOpen}
-      />
-    </LinkToolbar>
-  )
 }
 
 function applySeededColumnWidths(
@@ -208,12 +102,6 @@ function useSeedBlockNoteTableBridge(editor: ReturnType<typeof useCreateBlockNot
 
 function shouldIgnoreContainerClick(target: HTMLElement) {
   return Boolean(target.closest(CONTAINER_CLICK_IGNORE_SELECTOR))
-}
-
-function normalizeSuggestionQuery(query: string, triggerCharacter: string): string {
-  return query.startsWith(triggerCharacter)
-    ? query.slice(triggerCharacter.length)
-    : query
 }
 
 function isSelectionInsideElement(element: HTMLElement): boolean {
@@ -335,74 +223,6 @@ function useCompositionAwareEditorChange(options: {
   }, [])
 }
 
-function buildBaseSuggestionItems(entries: VaultEntry[]) {
-  return deduplicateByPath(entries.map(entry => ({
-    title: entry.title,
-    aliases: [...new Set([entry.filename.replace(/\.md$/, ''), ...entry.aliases])],
-    group: entry.isA || 'Note',
-    entryType: entry.isA,
-    entryTitle: entry.title,
-    path: entry.path,
-  })))
-}
-
-function useInsertWikilink(editor: ReturnType<typeof useCreateBlockNote>) {
-  return useCallback((target: string) => {
-    editor.insertInlineContent([
-      { type: 'wikilink' as const, props: { target } },
-      " ",
-    ], { updateSelection: true })
-    trackEvent('wikilink_inserted')
-  }, [editor])
-}
-
-function useSuggestionMenuItems(options: {
-  baseItems: ReturnType<typeof buildBaseSuggestionItems>
-  editor: ReturnType<typeof useCreateBlockNote>
-  insertWikilink: (target: string) => void
-  typeEntryMap: Record<string, VaultEntry>
-  vaultPath?: string
-}) {
-  const {
-    baseItems,
-    editor,
-    insertWikilink,
-    typeEntryMap,
-    vaultPath,
-  } = options
-
-  const buildItems = useCallback((query: string, triggerCharacter: '[[' | '@') => {
-    const normalizedQuery = normalizeSuggestionQuery(query, triggerCharacter)
-    const minLength = triggerCharacter === '[[' ? MIN_QUERY_LENGTH : PERSON_MENTION_MIN_QUERY
-    if (normalizedQuery.length < minLength) return null
-
-    const candidates = triggerCharacter === '[['
-      ? preFilterWikilinks(baseItems, normalizedQuery)
-      : filterPersonMentions(baseItems, normalizedQuery)
-
-    const items = attachClickHandlers(candidates, insertWikilink, vaultPath ?? '')
-    return enrichSuggestionItems(items, normalizedQuery, typeEntryMap)
-  }, [baseItems, insertWikilink, typeEntryMap, vaultPath])
-
-  const getWikilinkItems = useCallback(async (query: string): Promise<WikilinkSuggestionItem[]> => (
-    buildItems(query, '[[') ?? []
-  ), [buildItems])
-
-  const getPersonMentionItems = useCallback(async (query: string): Promise<WikilinkSuggestionItem[]> => (
-    buildItems(query, '@') ?? []
-  ), [buildItems])
-
-  const getSlashMenuItems = useCallback(async (query: string) => (
-    getGrimoireSlashMenuItems(editor, query)
-  ), [editor])
-
-  return {
-    getWikilinkItems,
-    getPersonMentionItems,
-    getSlashMenuItems,
-  }
-}
-
 /** Insert an image block after the current cursor position. */
 function useInsertImageCallback(editor: ReturnType<typeof useCreateBlockNote>) {
   const editorRef = useRef(editor)
@@ -415,11 +235,13 @@ function useInsertImageCallback(editor: ReturnType<typeof useCreateBlockNote>) {
 }
 
 /** Single BlockNote editor view — content is swapped via replaceBlocks */
-export function SingleEditorView({ editor, entries, onNavigateWikilink, onChange, vaultPath, editable = true }: {
+export function SingleEditorView({ activeContent, editor, entries, onNavigateWikilink, onChange, onCreateAndOpenNote, vaultPath, editable = true }: {
+  activeContent: string
   editor: ReturnType<typeof useCreateBlockNote>
   entries: VaultEntry[]
   onNavigateWikilink: (target: string) => void
   onChange?: () => void
+  onCreateAndOpenNote?: (title: string) => Promise<boolean>
   vaultPath?: string
   editable?: boolean
 }) {
@@ -445,21 +267,19 @@ export function SingleEditorView({ editor, entries, onNavigateWikilink, onChange
 
   useSeedBlockNoteTableBridge(editor)
 
-  const typeEntryMap = useMemo(() => buildTypeEntryMap(entries), [entries])
-  const baseItems = useMemo(() => buildBaseSuggestionItems(entries), [entries])
-  const insertWikilink = useInsertWikilink(editor)
-  useNoteWikilinkDrop({ containerRef, onInsertTarget: insertWikilink, vaultPath })
   const {
     getWikilinkItems,
     getPersonMentionItems,
+    getTagCollectionItems,
     getSlashMenuItems,
-  } = useSuggestionMenuItems({
-    baseItems,
-    editor,
     insertWikilink,
-    typeEntryMap,
+  } = useSingleEditorSuggestionItems({
+    editor,
+    entries,
+    onCreateAndOpenNote,
     vaultPath,
   })
+  useNoteWikilinkDrop({ containerRef, onInsertTarget: insertWikilink, vaultPath })
 
   return (
     <div ref={containerRef} className={`editor__blocknote-container${isDragOver ? ' editor__blocknote-container--drag-over' : ''}`} style={cssVars as React.CSSProperties} onClick={handleContainerClick}>
@@ -468,6 +288,11 @@ export function SingleEditorView({ editor, entries, onNavigateWikilink, onChange
           <div className="editor__drop-overlay-label">Drop image here</div>
         </div>
       )}
+      <CanvasAttachmentLauncher
+        containerRef={containerRef}
+        markdown={activeContent}
+        vaultPath={vaultPath}
+      />
       <SharedContextBlockNoteView
         editor={editor}
         theme={themeMode}
@@ -508,6 +333,12 @@ export function SingleEditorView({ editor, entries, onNavigateWikilink, onChange
         <SuggestionMenuController
           triggerCharacter="@"
           getItems={getPersonMentionItems}
+          suggestionMenuComponent={WikilinkSuggestionMenu}
+          onItemClick={(item: WikilinkSuggestionItem) => item.onItemClick()}
+        />
+        <SuggestionMenuController
+          triggerCharacter="#"
+          getItems={getTagCollectionItems}
           suggestionMenuComponent={WikilinkSuggestionMenu}
           onItemClick={(item: WikilinkSuggestionItem) => item.onItemClick()}
         />

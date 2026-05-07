@@ -36,6 +36,17 @@ describe('CreateTypeDialog', () => {
     expect(onCreate).toHaveBeenCalledWith('Recipe')
   })
 
+  it('passes a selected image badge when creating a type', () => {
+    const onCreate = vi.fn()
+    render(<CreateTypeDialog open={true} onClose={() => {}} onCreate={onCreate} />)
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. Recipe, Book, Habit...'), { target: { value: 'Recipe' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Canvas badge' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+    expect(onCreate).toHaveBeenCalledWith('Recipe', expect.stringMatching(/^data:image\/svg\+xml/))
+  })
+
   it('closes after create completes', async () => {
     const onClose = vi.fn()
     render(<CreateTypeDialog open={true} onClose={onClose} onCreate={() => Promise.resolve()} />)

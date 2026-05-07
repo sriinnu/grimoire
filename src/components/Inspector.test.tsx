@@ -138,6 +138,22 @@ describe('Inspector', () => {
     expect(screen.getByText('Words')).toBeInTheDocument()
   })
 
+  it('shows the Chitragupta memory lane for the active note', () => {
+    renderSelectedInspector({
+      entries: [
+        mockEntry,
+        { ...referrerEntry, title: 'Grow Newsletter', path: '/vault/responsibility/grow-newsletter.md' },
+      ],
+    })
+
+    expect(screen.getByTestId('memory-panel')).toBeInTheDocument()
+    expect(screen.getByTestId('memory-signal')).toBeInTheDocument()
+    expect(screen.getByText('Memory')).toBeInTheDocument()
+    expect(screen.getByText('Chitragupta')).toBeInTheDocument()
+    expect(screen.getByText('8 tools')).toBeInTheDocument()
+    expect(screen.getByText(/source-backed recall for this note/)).toBeInTheDocument()
+  })
+
   it('renders status as a colored badge with dot indicator', () => {
     render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
     const badge = screen.getByTestId('status-badge')

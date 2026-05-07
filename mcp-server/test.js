@@ -6,6 +6,15 @@ import os from 'node:os'
 import {
   findMarkdownFiles, getNote, searchNotes, vaultContext,
 } from './vault.js'
+import {
+  createProjectTask,
+  deleteProjectTask,
+  listProjectDocs,
+  listProjectTasks,
+  projectGraph,
+  readProjectBoard,
+  updateProjectTask,
+} from './project-intelligence.js'
 import { evaluateBridgeRequest } from './ws-bridge.js'
 
 let tmpDir
@@ -50,6 +59,13 @@ belongs_to:
 
 Another project for testing list and context.
 `)
+
+  await fs.writeFile(path.join(tmpDir, 'project', 'architecture.md'), `# Architecture
+
+Links back to [[test-project]].
+
+TODO: Extract project intelligence MCP tools.
+`)
 })
 
 after(async () => {
@@ -59,7 +75,7 @@ after(async () => {
 describe('findMarkdownFiles', () => {
   it('should find all .md files recursively', async () => {
     const files = await findMarkdownFiles(tmpDir)
-    assert.equal(files.length, 3)
+    assert.equal(files.length, 4)
     assert.ok(files.some(f => f.endsWith('test-project.md')))
     assert.ok(files.some(f => f.endsWith('daily-log.md')))
     assert.ok(files.some(f => f.endsWith('second-project.md')))
@@ -152,7 +168,85 @@ describe('vaultContext', () => {
 
   it('should report correct note count', async () => {
     const ctx = await vaultContext(tmpDir)
-    assert.equal(ctx.noteCount, 3)
+    assert.equal(ctx.noteCount, 4)
+  })
+})
+
+describe('project intelligence MCP helpers', () => {
+  it('lists project docs with useful roles', async () => {
+    const docs = await listProjectDocs(tmpDir, 'project')
+    assert.ok(docs.some(doc => doc.path === 'project/architecture.md' && doc.role === 'architecture'))
+    assert.ok(docs.some(doc => doc.path === 'project/test-project.md'))
+  })
+
+  it('reads missing boards as an empty durable artifact', async () => {
+    const board = await readProjectBoard(tmpDir, 'project')
+    assert.equal(board.path, 'project/BOARD.md')
+    assert.equal(board.exists, false)
+    assert.equal(board.content, '')
+  })
+
+  it('creates, updates, lists, and deletes durable board tasks', async () => {
+    const created = await createProjectTask(tmpDir, {
+      folder: 'project',
+      title: 'Ship project intelligence tools',
+      priority: 'p1',
+    })
+
+    let tasks = await listProjectTasks(tmpDir, 'project')
+    assert.ok(tasks.some(task => task.id === created.id && task.priority === 'p1'))
+
+    await updateProjectTask(tmpDir, {
+      folder: 'project',
+      id: created.id,
+      status: 'done',
+      title: 'Ship project intelligence MCP tools',
+    })
+    tasks = await listProjectTasks(tmpDir, 'project')
+    assert.ok(tasks.some(task => task.id === created.id && task.status === 'done'))
+
+    const deleted = await deleteProjectTask(tmpDir, { folder: 'project', id: created.id })
+    assert.equal(deleted.deleted, true)
+    tasks = await listProjectTasks(tmpDir, 'project')
+    assert.ok(!tasks.some(task => task.id === created.id))
+  })
+
+  it('reads generated board task metadata without duplicating scanner context', async () => {
+    await fs.writeFile(
+      path.join(tmpDir, 'project', 'BOARD.md'),
+      [
+        '# Project Board',
+        '',
+        '## Test Project',
+        '',
+        '### High',
+        '<!-- grimoire-task:scanner-abc priority:high source:scanner source-file:src%2Feditor.ts source-line:7 --> - [ ] Polish wiki links (src/editor.ts:7)',
+        '',
+      ].join('\n'),
+    )
+
+    const tasks = await listProjectTasks(tmpDir, 'project')
+    const generated = tasks.find(task => task.id === 'scanner-abc')
+    assert.equal(generated.priority, 'high')
+    assert.equal(generated.source, 'SCANNER')
+    assert.equal(generated.sourceFile, 'src/editor.ts')
+    assert.equal(generated.sourceLine, 7)
+  })
+
+  it('includes TODO markers and wikilink graph edges', async () => {
+    const tasks = await listProjectTasks(tmpDir, 'project')
+    assert.ok(tasks.some(task => task.source === 'TODO' && task.title.includes('MCP tools')))
+
+    const graph = await projectGraph(tmpDir, 'project')
+    assert.ok(graph.nodes.some(node => node.id === 'project/architecture.md'))
+    assert.ok(graph.edges.some(edge => edge.from === 'project/architecture.md' && edge.to === 'project/test-project.md'))
+  })
+
+  it('rejects project traversal outside the vault', async () => {
+    await assert.rejects(
+      () => listProjectDocs(tmpDir, '../'),
+      { message: 'Project path must stay inside the active vault' },
+    )
   })
 })
 

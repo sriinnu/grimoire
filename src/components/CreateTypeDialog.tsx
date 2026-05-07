@@ -2,28 +2,30 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { TypeImagePicker } from './TypeImagePicker'
 
 interface CreateTypeDialogProps {
   open: boolean
   onClose: () => void
-  onCreate: (name: string) => boolean | void | Promise<boolean | void>
+  onCreate: (name: string, icon?: string) => boolean | void | Promise<boolean | void>
   initialName?: string
 }
 
 interface CreateTypeDialogFormProps {
   initialName: string
   onClose: () => void
-  onCreate: (name: string) => boolean | void | Promise<boolean | void>
+  onCreate: (name: string, icon?: string) => boolean | void | Promise<boolean | void>
 }
 
 function CreateTypeDialogForm({ initialName, onClose, onCreate }: CreateTypeDialogFormProps) {
   const [name, setName] = useState(initialName)
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) return
-    const created = await onCreate(trimmed)
+    const created = selectedIcon ? await onCreate(trimmed, selectedIcon) : await onCreate(trimmed)
     if (created !== false) onClose()
   }
 
@@ -43,6 +45,12 @@ function CreateTypeDialogForm({ initialName, onClose, onCreate }: CreateTypeDial
         <p className="text-xs text-muted-foreground">
           Creates a type document. Its properties become defaults for new docs of this type.
         </p>
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">
+          Image
+        </label>
+        <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={setSelectedIcon} />
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>

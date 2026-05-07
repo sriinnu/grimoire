@@ -1,4 +1,4 @@
-export type AiAgentId = 'claude_code' | 'codex'
+export type AiAgentId = 'claude_code' | 'codex' | 'chitragupta'
 
 export type AiAgentStatus = 'checking' | 'installed' | 'missing'
 
@@ -10,6 +10,7 @@ export interface AiAgentAvailability {
 export interface AiAgentsStatus {
   claude_code: AiAgentAvailability
   codex: AiAgentAvailability
+  chitragupta: AiAgentAvailability
 }
 
 export interface AiAgentDefinition {
@@ -20,6 +21,7 @@ export interface AiAgentDefinition {
 }
 
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
+export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Open the native Grimoire app for live AI.'
 
 export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
   {
@@ -34,6 +36,12 @@ export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
     shortLabel: 'Codex',
     installUrl: 'https://developers.openai.com/codex/cli',
   },
+  {
+    id: 'chitragupta',
+    label: 'Chitragupta',
+    shortLabel: 'Chitra',
+    installUrl: 'https://github.com/sriinnu/chitragupta',
+  },
 ] as const
 
 export function createAiAgentAvailability(status: AiAgentStatus = 'checking', version: string | null = null): AiAgentAvailability {
@@ -44,6 +52,7 @@ export function createCheckingAiAgentsStatus(): AiAgentsStatus {
   return {
     claude_code: createAiAgentAvailability(),
     codex: createAiAgentAvailability(),
+    chitragupta: createAiAgentAvailability(),
   }
 }
 
@@ -51,11 +60,27 @@ export function createMissingAiAgentsStatus(): AiAgentsStatus {
   return {
     claude_code: createAiAgentAvailability('missing'),
     codex: createAiAgentAvailability('missing'),
+    chitragupta: createAiAgentAvailability('missing'),
   }
 }
 
+export function createBrowserPreviewAiAgentsStatus(): AiAgentsStatus {
+  return {
+    claude_code: createAiAgentAvailability('missing', BROWSER_PREVIEW_AI_STATUS_REASON),
+    codex: createAiAgentAvailability('missing', BROWSER_PREVIEW_AI_STATUS_REASON),
+    chitragupta: createAiAgentAvailability('missing', BROWSER_PREVIEW_AI_STATUS_REASON),
+  }
+}
+
+export function isBrowserPreviewAiAgentsStatus(statuses: AiAgentsStatus): boolean {
+  return AI_AGENT_DEFINITIONS.every((definition) => {
+    const status = statuses[definition.id]
+    return status.status === 'missing' && status.version === BROWSER_PREVIEW_AI_STATUS_REASON
+  })
+}
+
 export function normalizeStoredAiAgent(value: string | null | undefined): AiAgentId | null {
-  if (value === 'claude_code' || value === 'codex') return value
+  if (value === 'claude_code' || value === 'codex' || value === 'chitragupta') return value
   return null
 }
 
@@ -79,6 +104,7 @@ export function normalizeAiAgentsStatus(payload: Partial<Record<AiAgentId, { ins
   return {
     claude_code: normalizeAvailability(payload?.claude_code),
     codex: normalizeAvailability(payload?.codex),
+    chitragupta: normalizeAvailability(payload?.chitragupta),
   }
 }
 

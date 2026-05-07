@@ -39,6 +39,20 @@ function entry(overrides: Partial<VaultEntry>): VaultEntry {
 }
 
 describe('GraphModal', () => {
+  it('does not mount the expensive graph surface while closed', () => {
+    render(
+      <GraphModal
+        open={false}
+        entries={[entry({ filename: 'alpha.md', title: 'Alpha' })]}
+        activePath={null}
+        onOpenNote={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByTestId('graph-svg')).not.toBeInTheDocument()
+  })
+
   it('renders graph nodes and opens a note when clicked', () => {
     const alpha = entry({ filename: 'alpha.md', title: 'Alpha', outgoingLinks: ['Beta'] })
     const beta = entry({ filename: 'beta.md', title: 'Beta' })
@@ -111,5 +125,49 @@ describe('GraphModal', () => {
     expect(svg.querySelectorAll('line')).toHaveLength(1)
     expect(screen.getByText('1 relationships')).toBeInTheDocument()
     expect(screen.getByText('1 wikilinks')).toBeInTheDocument()
+  })
+
+  it('filters graph edges to incoming backlinks around the active note', () => {
+    const alpha = entry({ filename: 'alpha.md', title: 'Alpha' })
+    const beta = entry({ filename: 'beta.md', title: 'Beta', outgoingLinks: ['Alpha'] })
+    const gamma = entry({ filename: 'gamma.md', title: 'Gamma', outgoingLinks: ['Beta'] })
+
+    render(
+      <GraphModal
+        open={true}
+        entries={[alpha, beta, gamma]}
+        activePath={alpha.path}
+        onOpenNote={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    const svg = screen.getByTestId('graph-svg')
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Incoming' }))
+
+    expect(svg.querySelectorAll('line')).toHaveLength(1)
+  })
+
+  it('toggles graph nodes by type from the legend', () => {
+    const alpha = entry({ filename: 'alpha.md', title: 'Alpha', isA: 'Project', outgoingLinks: ['Beta'] })
+    const beta = entry({ filename: 'beta.md', title: 'Beta', isA: 'Reference' })
+
+    render(
+      <GraphModal
+        open={true}
+        entries={[alpha, beta]}
+        activePath={alpha.path}
+        onOpenNote={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Open Beta' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reference 1' }))
+
+    expect(screen.queryByRole('button', { name: 'Open Beta' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reference 1' })).toHaveAttribute('aria-pressed', 'false')
   })
 })

@@ -46,7 +46,7 @@ export function NoteTitleIcon({ icon, size = 14, className, color, testId }: Not
           src={resolved.src}
           alt=""
           aria-hidden="true"
-          className="block h-full w-full rounded-sm object-cover"
+          className="block h-full w-full rounded-sm object-contain"
           onError={(event) => {
             event.currentTarget.style.display = 'none'
           }}

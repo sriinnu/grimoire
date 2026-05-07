@@ -302,9 +302,9 @@ describe('RawEditorView behavior coverage', () => {
     expect(callbacks.onEscape()).toBe(false)
   })
 
-  it('clears autocomplete when the query is too short and reports escape handling while open', () => {
+  it('opens autocomplete for an empty wikilink query and reports escape handling while open', () => {
     extractWikilinkQueryMock
-      .mockReturnValueOnce('a')
+      .mockReturnValueOnce('')
       .mockReturnValueOnce('alpha')
     buildRawEditorAutocompleteStateMock.mockImplementation(({ onInsertTarget }: { onInsertTarget: (target: string) => void }) => ({
       items: [
@@ -334,17 +334,13 @@ describe('RawEditorView behavior coverage', () => {
       callbacks.onCursorActivity(mockView)
     })
 
-    expect(screen.queryByTestId('raw-editor-wikilink-dropdown')).not.toBeInTheDocument()
-
-    callbacks = useCodeMirrorMock.mock.calls.at(-1)![2] as typeof callbacks
-
-    act(() => {
-      callbacks.onCursorActivity(mockView)
-    })
-
     expect(screen.getByTestId('raw-editor-wikilink-dropdown')).toBeInTheDocument()
     callbacks = useCodeMirrorMock.mock.calls.at(-1)![2] as typeof callbacks
-    expect(callbacks.onEscape()).toBe(true)
+    let handledEscape = false
+    act(() => {
+      handledEscape = callbacks.onEscape()
+    })
+    expect(handledEscape).toBe(true)
   })
 
   it('inserts a canonical wikilink when a note is dropped onto the raw editor', () => {

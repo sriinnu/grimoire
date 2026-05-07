@@ -1,11 +1,13 @@
 import { BulkActionBar } from '../BulkActionBar'
-import { FilterPills } from './FilterPills'
 import { NoteListHeader } from './NoteListHeader'
+import { NoteListBottomFilters } from './NoteListBottomFilters'
 import { EntityView, ListView } from './NoteListViews'
 import type { useNoteListModel } from './useNoteListModel'
+import type { ReactNode } from 'react'
 
 type NoteListLayoutProps = ReturnType<typeof useNoteListModel> & {
   handleBulkOrganize?: () => void
+  projectIntelligenceNode?: ReactNode
 }
 
 function MultiSelectBar({
@@ -118,9 +120,13 @@ function NoteListBody({
   searched,
   locale,
   showFilterPills,
+  showFileScopePills,
   noteListFilter,
   filterCounts,
+  fileScope,
+  fileScopeCounts,
   onNoteListFilterChange,
+  onFileScopeChange,
 }: Pick<
   NoteListLayoutProps,
   | 'handleListKeyDown'
@@ -144,9 +150,13 @@ function NoteListBody({
   | 'searched'
   | 'locale'
   | 'showFilterPills'
+  | 'showFileScopePills'
   | 'noteListFilter'
   | 'filterCounts'
+  | 'fileScope'
+  | 'fileScopeCounts'
   | 'onNoteListFilterChange'
+  | 'onFileScopeChange'
 >) {
   return (
     <div
@@ -177,14 +187,16 @@ function NoteListBody({
         noteListVirtuosoRef={noteListVirtuosoRef}
         locale={locale}
       />
-      {showFilterPills && (
-        <FilterPills
-          active={noteListFilter}
-          counts={filterCounts}
-          onChange={onNoteListFilterChange}
-          position="bottom"
-        />
-      )}
+      <NoteListBottomFilters
+        showFilterPills={showFilterPills}
+        showFileScopePills={showFileScopePills}
+        noteListFilter={noteListFilter}
+        filterCounts={filterCounts}
+        fileScope={fileScope}
+        fileScopeCounts={fileScopeCounts}
+        onNoteListFilterChange={onNoteListFilterChange}
+        onFileScopeChange={onFileScopeChange}
+      />
     </div>
   )
 }
@@ -291,10 +303,12 @@ function NoteListFooter({
   )
 }
 
+/** Main note-list shell: header, project intelligence, list body, and footer actions. */
 export function NoteListLayout({
   noteListPanelRef,
   handleNoteListPanelBlurCapture,
   handleNoteListPanelFocusCapture,
+  projectIntelligenceNode,
   ...contentProps
 }: NoteListLayoutProps) {
   return (
@@ -306,6 +320,7 @@ export function NoteListLayout({
       onFocusCapture={handleNoteListPanelFocusCapture}
     >
       <NoteListLayoutHeader {...contentProps} />
+      {projectIntelligenceNode}
       <NoteListBody {...contentProps} />
       <NoteListFooter {...contentProps} />
     </div>

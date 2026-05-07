@@ -47,6 +47,23 @@ pub fn save_image(vault_path: &str, filename: &str, data: &str) -> Result<String
     Ok(target_path.to_string_lossy().to_string())
 }
 
+/// Save base64 image data to an exact validated attachment path.
+pub fn save_canvas_preview(path: &str, data: &str) -> Result<(), String> {
+    use base64::Engine;
+
+    let target_path = Path::new(path);
+    if let Some(parent) = target_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create canvas preview directory: {}", e))?;
+    }
+
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(data)
+        .map_err(|e| format!("Invalid canvas preview data: {}", e))?;
+
+    fs::write(target_path, bytes).map_err(|e| format!("Failed to write canvas preview: {}", e))
+}
+
 /// Copy an image file from a source path into the vault's attachments directory.
 /// Used for Tauri native drag-drop which provides absolute file paths.
 /// Returns the absolute path to the saved file.
@@ -135,6 +152,19 @@ mod tests {
         let result = save_image(vault_path, "test.png", "not-valid-base64!!!");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Invalid base64"));
+    }
+
+    #[test]
+    fn test_save_canvas_preview_writes_exact_path() {
+        use base64::Engine;
+
+        let dir = TempDir::new().unwrap();
+        let target = dir.path().join("attachments/sketch.png");
+        let data = base64::engine::general_purpose::STANDARD.encode(b"png bytes");
+
+        save_canvas_preview(target.to_str().unwrap(), &data).unwrap();
+
+        assert_eq!(fs::read(target).unwrap(), b"png bytes");
     }
 
     #[test]

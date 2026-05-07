@@ -3,7 +3,7 @@ import type { NoteGraph, NoteGraphEdgeKind } from './noteGraph'
 import { buildTypeEntryMap, getTypeColor, getTypeLightColor } from './typeColors'
 
 export type GraphScope = 'neighborhood' | 'vault'
-export type GraphEdgeFilter = 'all' | NoteGraphEdgeKind
+export type GraphEdgeFilter = 'all' | NoteGraphEdgeKind | 'incoming' | 'outgoing'
 
 export interface PositionedGraphNode {
   id: string
@@ -22,6 +22,13 @@ export interface PositionedGraphNode {
 export interface GraphLayout {
   nodes: PositionedGraphNode[]
   edges: NoteGraph['edges']
+}
+
+export interface GraphTypeStat {
+  color: string
+  count: number
+  lightColor: string
+  type: string
 }
 
 export const GRAPH_VIEWBOX_WIDTH = 1000
@@ -113,7 +120,29 @@ export function limitGraphForDisplay(graph: NoteGraph): NoteGraph {
 /** Filters rendered graph edges while preserving the current visible node set. */
 export function filterGraphEdges(graph: NoteGraph, filter: GraphEdgeFilter): NoteGraph {
   if (filter === 'all') return graph
+  if (filter === 'incoming' || filter === 'outgoing') {
+    const active = graph.nodes.find((node) => node.active)
+    if (!active) return graph
+    const edges = graph.edges.filter((edge) => (
+      filter === 'incoming' ? edge.target === active.id : edge.source === active.id
+    ))
+    return { nodes: graph.nodes, edges }
+  }
   return { nodes: graph.nodes, edges: graph.edges.filter((edge) => edge.kind === filter) }
+}
+
+/** Filters nodes and edges by hidden note types. */
+export function filterGraphByNodeTypes(graph: NoteGraph, hiddenTypes: ReadonlySet<string>): NoteGraph {
+  if (hiddenTypes.size === 0) return graph
+  const visibleIds = new Set(
+    graph.nodes
+      .filter(node => !hiddenTypes.has(node.type))
+      .map(node => node.id),
+  )
+  return {
+    nodes: graph.nodes.filter(node => visibleIds.has(node.id)),
+    edges: graph.edges.filter(edge => visibleIds.has(edge.source) && visibleIds.has(edge.target)),
+  }
 }
 
 /** Counts relationship and wikilink edges for graph controls and legends. */
@@ -126,6 +155,24 @@ export function edgeStats(graph: NoteGraph): { relationships: number; wikilinks:
     },
     { relationships: 0, wikilinks: 0 },
   )
+}
+
+/** Counts visible nodes by type and attaches their graph colors. */
+export function graphTypeStats(graph: NoteGraph, entries: VaultEntry[]): GraphTypeStat[] {
+  const typeEntryMap = buildTypeEntryMap(entries)
+  const counts = new Map<string, number>()
+  for (const node of graph.nodes) {
+    counts.set(node.type, (counts.get(node.type) ?? 0) + 1)
+  }
+  return Array.from(counts, ([type, count]) => {
+    const typeEntry = typeEntryMap[type] ?? typeEntryMap[type.toLowerCase()]
+    return {
+      color: getTypeColor(type, typeEntry?.color),
+      count,
+      lightColor: getTypeLightColor(type, typeEntry?.color),
+      type,
+    }
+  }).sort((left, right) => right.count - left.count || left.type.localeCompare(right.type))
 }
 
 /** Produces deterministic radial coordinates and type-aware colors for graph nodes. */

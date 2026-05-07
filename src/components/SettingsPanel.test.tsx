@@ -193,15 +193,27 @@ describe('SettingsPanel', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-manuscript'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-future'))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Serif' }))
     fireEvent.click(screen.getByTestId('settings-save'))
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'manuscript',
+      theme_preset: 'future',
       editor_font: 'serif',
     }))
+  })
+
+  it('renders the expanded personal theme preset set', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByTestId('settings-theme-preset-retro')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-aurora')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-future')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-lotus')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-ember')).toBeInTheDocument()
   })
 
   it('renders the appearance preview with the selected preset', () => {
@@ -269,6 +281,21 @@ describe('SettingsPanel', () => {
 
     expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
     expect(screen.getByRole('option', { name: /Codex/i })).toBeInTheDocument()
+  })
+
+  it('saves a model override for the selected default agent', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.change(screen.getByTestId('settings-default-ai-model'), {
+      target: { value: 'sonnet' },
+    })
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ai_agent_models: { claude_code: 'sonnet' },
+    }))
   })
 
   it('treats a legacy beta release channel as stable', () => {

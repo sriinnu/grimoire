@@ -37,7 +37,10 @@ function resolveField(entry: VaultEntry, field: string): { scalar?: string | num
 
   // Then properties (returns scalar)
   const propKey = Object.keys(entry.properties).find((k) => k.toLowerCase() === lower)
-  if (propKey) return { scalar: entry.properties[propKey] }
+  if (propKey) {
+    const propertyValue = entry.properties[propKey]
+    return Array.isArray(propertyValue) ? { array: propertyValue } : { scalar: propertyValue }
+  }
 
   return { scalar: null }
 }

@@ -9,6 +9,14 @@ export interface WikilinkBaseItem {
   path: string
 }
 
+function matchesWikilinkItem(item: WikilinkBaseItem, query: string): boolean {
+  const lowerQuery = query.toLowerCase()
+  return item.title.toLowerCase().includes(lowerQuery) ||
+    item.aliases.some(a => a.toLowerCase().includes(lowerQuery)) ||
+    item.group.toLowerCase().includes(lowerQuery) ||
+    item.path.toLowerCase().includes(lowerQuery)
+}
+
 /**
  * Pre-filter wikilink suggestion candidates using case-insensitive substring
  * matching on title, aliases, and group. This avoids creating expensive
@@ -21,13 +29,20 @@ export function preFilterWikilinks<T extends WikilinkBaseItem>(
   query: string,
 ): T[] {
   if (query.length < MIN_QUERY_LENGTH) return []
-  const lowerQuery = query.toLowerCase()
-  return items.filter(item =>
-    item.title.toLowerCase().includes(lowerQuery) ||
-    item.aliases.some(a => a.toLowerCase().includes(lowerQuery)) ||
-    item.group.toLowerCase().includes(lowerQuery) ||
-    item.path.toLowerCase().includes(lowerQuery)
-  )
+  return items.filter(item => matchesWikilinkItem(item, query))
+}
+
+/** Return candidates for live wikilink menus, including useful top items for empty `[[`. */
+export function getWikilinkSuggestionCandidates<T extends WikilinkBaseItem>(
+  items: T[],
+  query: string,
+): T[] {
+  const normalizedQuery = query.trim()
+  if (normalizedQuery.length === 0) return items.slice(0, MAX_RESULTS)
+  if (normalizedQuery.length < MIN_QUERY_LENGTH) {
+    return items.filter(item => matchesWikilinkItem(item, normalizedQuery)).slice(0, MAX_RESULTS)
+  }
+  return preFilterWikilinks(items, normalizedQuery)
 }
 
 /** Remove duplicate items by path, keeping the first occurrence. */

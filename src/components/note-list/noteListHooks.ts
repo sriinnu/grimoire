@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import type { VaultEntry, SidebarSelection, ModifiedFile, NoteStatus, ViewDefinition, ViewFile } from '../../types'
 import {
-  type SortOption, type SortDirection, type SortConfig, type NoteListFilter,
+  type SortOption, type SortDirection, type SortConfig, type NoteListFilter, type NoteFileScope,
   getSortComparator, extractSortableProperties,
   buildRelationshipGroups, filterEntries, filterInboxEntries,
   loadSortPreferences, saveSortPreferences,
@@ -34,6 +34,7 @@ interface FilteredEntriesParams {
   modifiedSuffixes: string[]
   modifiedFiles?: ModifiedFile[]
   subFilter?: NoteListFilter
+  fileScope?: NoteFileScope
   inboxPeriod?: InboxPeriod
   views?: ViewFile[]
 }
@@ -48,6 +49,7 @@ function buildFilteredEntries({
   modifiedSuffixes,
   modifiedFiles,
   subFilter,
+  fileScope,
   inboxPeriod,
   views,
 }: FilteredEntriesParams & {
@@ -61,7 +63,7 @@ function buildFilteredEntries({
     return entries.filter((entry) => isModifiedEntry(entry.path, modifiedPathSet, modifiedSuffixes))
   }
   if (isInboxView) return filterInboxEntries(entries, inboxPeriod ?? 'month')
-  return filterEntries(entries, selection, subFilter, views)
+  return filterEntries(entries, selection, subFilter, views, fileScope)
 }
 
 export function useFilteredEntries({
@@ -71,6 +73,7 @@ export function useFilteredEntries({
   modifiedSuffixes,
   modifiedFiles,
   subFilter,
+  fileScope,
   inboxPeriod,
   views,
 }: FilteredEntriesParams) {
@@ -88,10 +91,11 @@ export function useFilteredEntries({
       modifiedSuffixes,
       modifiedFiles,
       subFilter,
+      fileScope,
       inboxPeriod,
       views,
     })
-  }, [entries, inboxPeriod, isChangesView, isEntityView, isInboxView, modifiedFiles, modifiedPathSet, modifiedSuffixes, selection, subFilter, views])
+  }, [entries, fileScope, inboxPeriod, isChangesView, isEntityView, isInboxView, modifiedFiles, modifiedPathSet, modifiedSuffixes, selection, subFilter, views])
 }
 
 // --- useNoteListData ---
@@ -102,11 +106,12 @@ interface NoteListDataParams {
   modifiedPathSet: Set<string>; modifiedSuffixes: string[]
   modifiedFiles?: ModifiedFile[]
   subFilter?: NoteListFilter
+  fileScope?: NoteFileScope
   inboxPeriod?: InboxPeriod
   views?: ViewFile[]
 }
 
-export function useNoteListData({ entries, selection, query, listSort, listDirection, modifiedPathSet, modifiedSuffixes, modifiedFiles, subFilter, inboxPeriod, views }: NoteListDataParams) {
+export function useNoteListData({ entries, selection, query, listSort, listDirection, modifiedPathSet, modifiedSuffixes, modifiedFiles, subFilter, fileScope, inboxPeriod, views }: NoteListDataParams) {
   const isEntityView = selection.kind === 'entity'
   const isArchivedView = (selection.kind === 'filter' && selection.filter === 'archived') || subFilter === 'archived'
   const entityEntry = useMemo(() => {
@@ -121,6 +126,7 @@ export function useNoteListData({ entries, selection, query, listSort, listDirec
     modifiedSuffixes,
     modifiedFiles,
     subFilter,
+    fileScope,
     inboxPeriod,
     views,
   })
@@ -298,6 +304,7 @@ export interface UseNoteListSortParams {
   modifiedPathSet: Set<string>
   modifiedSuffixes: string[]
   subFilter?: NoteListFilter
+  fileScope?: NoteFileScope
   inboxPeriod?: InboxPeriod
   views?: ViewFile[]
   onUpdateTypeSort?: (path: string, key: string, value: string | number | boolean | string[] | null) => void
@@ -311,6 +318,7 @@ export function useNoteListSort({
   modifiedPathSet,
   modifiedSuffixes,
   subFilter,
+  fileScope,
   inboxPeriod,
   views,
   onUpdateTypeSort,
@@ -354,6 +362,7 @@ export function useNoteListSort({
     modifiedPathSet,
     modifiedSuffixes,
     subFilter,
+    fileScope,
     inboxPeriod,
     views,
   })

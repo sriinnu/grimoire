@@ -1,5 +1,5 @@
 import type { VaultEntry } from '../types'
-import { resolveEntry, wikilinkTarget } from './wikilink'
+import { wikilinkTarget } from './wikilink'
 
 export type NoteGraphEdgeKind = 'relationship' | 'body-link'
 
@@ -26,6 +26,13 @@ export interface NoteGraphEdge {
 export interface NoteGraph {
   nodes: NoteGraphNode[]
   edges: NoteGraphEdge[]
+}
+
+interface GraphTargetIndex {
+  entries: VaultEntry[]
+  filename: Map<string, VaultEntry>
+  alias: Map<string, VaultEntry>
+  title: Map<string, VaultEntry>
 }
 
 function cleanTarget(value: string): string {
@@ -59,9 +66,51 @@ function bodyLinkEntries(entry: VaultEntry): Array<{ label: string; target: stri
   }))
 }
 
-function resolveTarget(entries: VaultEntry[], target: string): VaultEntry | undefined {
+function rememberFirst(map: Map<string, VaultEntry>, key: string, entry: VaultEntry): void {
+  if (key && !map.has(key)) map.set(key, entry)
+}
+
+function buildGraphTargetIndex(entries: VaultEntry[]): GraphTargetIndex {
+  const filename = new Map<string, VaultEntry>()
+  const alias = new Map<string, VaultEntry>()
+  const title = new Map<string, VaultEntry>()
+
+  for (const entry of entries) {
+    const stem = entry.filename.replace(/\.md$/u, '').toLowerCase()
+    rememberFirst(filename, stem, entry)
+    rememberFirst(title, entry.title.toLowerCase(), entry)
+    for (const entryAlias of entry.aliases) {
+      rememberFirst(alias, entryAlias.toLowerCase(), entry)
+    }
+  }
+
+  return { entries, filename, alias, title }
+}
+
+function resolvePathTarget(index: GraphTargetIndex, normalizedTarget: string): VaultEntry | undefined {
+  const suffix = `/${normalizedTarget}.md`
+  return index.entries.find((entry) => entry.path.toLowerCase().endsWith(suffix))
+}
+
+function resolveTarget(index: GraphTargetIndex, target: string): VaultEntry | undefined {
   if (!target) return undefined
-  return resolveEntry(entries, target)
+
+  const exactTarget = target.includes('|') ? target.split('|')[0] : target
+  const normalizedTarget = exactTarget.toLowerCase()
+  const lastSegment = exactTarget.includes('/')
+    ? (exactTarget.split('/').pop() ?? exactTarget).toLowerCase()
+    : normalizedTarget
+  const humanizedTarget = lastSegment.replace(/-/gu, ' ')
+
+  return (
+    exactTarget.includes('/') ? resolvePathTarget(index, normalizedTarget) : undefined
+  )
+    ?? index.filename.get(normalizedTarget)
+    ?? index.filename.get(lastSegment)
+    ?? index.alias.get(normalizedTarget)
+    ?? index.title.get(normalizedTarget)
+    ?? index.title.get(lastSegment)
+    ?? (humanizedTarget === lastSegment ? undefined : index.title.get(humanizedTarget))
 }
 
 /** Builds the note graph from frontmatter relationships and body wikilinks. */
@@ -69,6 +118,7 @@ export function buildNoteGraph(entries: VaultEntry[], activePath: string | null 
   const edges: NoteGraphEdge[] = []
   const seen = new Set<string>()
   const degree = new Map<string, number>()
+  const targetIndex = buildGraphTargetIndex(entries)
 
   for (const entry of entries) {
     const links = [
@@ -77,7 +127,7 @@ export function buildNoteGraph(entries: VaultEntry[], activePath: string | null 
     ]
 
     for (const link of links) {
-      const target = resolveTarget(entries, link.target)
+      const target = resolveTarget(targetIndex, link.target)
       if (!target) continue
 
       addEdge(edges, seen, {
