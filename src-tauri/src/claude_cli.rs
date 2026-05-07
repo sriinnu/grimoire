@@ -1,8 +1,11 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs;
 use std::io::BufRead;
 use std::path::{Path, PathBuf};
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, ExitStatus, Output, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 /// Status returned by `check_claude_cli`.
 #[derive(Debug, Serialize, Clone)]
@@ -56,6 +59,7 @@ pub struct AgentStreamRequest {
     pub message: String,
     pub system_prompt: Option<String>,
     pub vault_path: String,
+    pub model: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -148,7 +152,7 @@ fn claude_binary_candidates() -> Vec<PathBuf> {
 }
 
 fn claude_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
-    vec![
+    let mut candidates = vec![
         home.join(".local/bin/claude"),
         home.join(".local/bin/claude.exe"),
         home.join(".claude/local/claude"),
@@ -163,6 +167,12 @@ fn claude_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
         home.join(".npm/bin/claude"),
         home.join(".npm/bin/claude.cmd"),
         home.join(".npm/bin/claude.exe"),
+        home.join(".volta/bin/claude"),
+        home.join(".volta/bin/claude.cmd"),
+        home.join(".volta/bin/claude.exe"),
+        home.join(".local/share/pnpm/claude"),
+        home.join(".local/share/pnpm/claude.cmd"),
+        home.join(".local/share/pnpm/claude.exe"),
         home.join("AppData/Roaming/npm/claude.cmd"),
         home.join("AppData/Roaming/npm/claude.exe"),
         home.join("AppData/Local/pnpm/claude.cmd"),
@@ -170,11 +180,50 @@ fn claude_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
         home.join("scoop/shims/claude.exe"),
         PathBuf::from("/opt/homebrew/bin/claude"),
         PathBuf::from("/usr/local/bin/claude"),
-    ]
+    ];
+    candidates.extend(node_version_manager_binary_candidates(home, "claude"));
+    candidates
 }
 
 fn find_existing_binary(candidates: Vec<PathBuf>) -> Option<PathBuf> {
     candidates.into_iter().find(|candidate| candidate.exists())
+}
+
+fn node_version_manager_binary_candidates(home: &Path, binary_name: &str) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    candidates.extend(versioned_child_binary_candidates(
+        &home.join(".nvm/versions/node"),
+        &["bin"],
+        binary_name,
+    ));
+    candidates.extend(versioned_child_binary_candidates(
+        &home.join(".fnm/node-versions"),
+        &["installation", "bin"],
+        binary_name,
+    ));
+    candidates
+}
+
+fn versioned_child_binary_candidates(
+    root: &Path,
+    child_segments: &[&str],
+    binary_name: &str,
+) -> Vec<PathBuf> {
+    let Ok(entries) = fs::read_dir(root) else {
+        return Vec::new();
+    };
+
+    entries
+        .filter_map(Result::ok)
+        .map(|entry| {
+            let mut path = entry.path();
+            for segment in child_segments {
+                path.push(segment);
+            }
+            path.push(binary_name);
+            path
+        })
+        .collect()
 }
 
 // ---------------------------------------------------------------------------
@@ -193,9 +242,10 @@ pub fn check_cli() -> ClaudeCliStatus {
         }
     };
 
-    let version = Command::new(&bin)
-        .arg("--version")
-        .output()
+    let mut command = Command::new(&bin);
+    command.arg("--version");
+
+    let version = output_with_timeout(command, Duration::from_secs(2))
         .ok()
         .filter(|o| o.status.success())
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
@@ -203,6 +253,28 @@ pub fn check_cli() -> ClaudeCliStatus {
     ClaudeCliStatus {
         installed: true,
         version,
+    }
+}
+
+fn output_with_timeout(mut command: Command, timeout: Duration) -> Result<Output, String> {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| error.to_string())?;
+    let deadline = Instant::now() + timeout;
+
+    loop {
+        match child.try_wait() {
+            Ok(Some(_)) => return child.wait_with_output().map_err(|error| error.to_string()),
+            Ok(None) if Instant::now() >= deadline => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("command timed out".into());
+            }
+            Ok(None) => thread::sleep(Duration::from_millis(25)),
+            Err(error) => return Err(error.to_string()),
+        }
     }
 }
 
@@ -280,7 +352,21 @@ fn build_agent_args(req: &AgentStreamRequest) -> Result<Vec<String>, String> {
         }
     }
 
+    if let Some(model) = normalize_cli_model(req.model.as_deref()) {
+        args.push("--model".into());
+        args.push(model);
+    }
+
     Ok(args)
+}
+
+fn normalize_cli_model(model: Option<&str>) -> Option<String> {
+    let model = model?.trim();
+    if model.is_empty() || model.chars().any(char::is_whitespace) {
+        None
+    } else {
+        Some(model.to_string())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -593,10 +679,10 @@ mod tests {
     #[test]
     fn check_cli_returns_status() {
         let status = check_cli();
-        if status.installed {
-            assert!(status.version.is_some());
-        } else {
+        if !status.installed {
             assert!(status.version.is_none());
+        } else if let Some(version) = status.version {
+            assert!(!version.trim().is_empty());
         }
     }
 
@@ -1062,6 +1148,7 @@ mod tests {
             message: "create note".into(),
             system_prompt: None,
             vault_path: "/tmp/vault".into(),
+            model: None,
         }) {
             assert!(args.contains(&"-p".to_string()));
             assert!(args.contains(&"create note".to_string()));
@@ -1080,6 +1167,7 @@ mod tests {
             message: "do it".into(),
             system_prompt: Some("Act as expert.".into()),
             vault_path: "/tmp/v".into(),
+            model: None,
         }) {
             assert!(args.contains(&"--append-system-prompt".to_string()));
             assert!(args.contains(&"Act as expert.".to_string()));
@@ -1092,8 +1180,34 @@ mod tests {
             message: "x".into(),
             system_prompt: Some(String::new()),
             vault_path: "/tmp/v".into(),
+            model: None,
         }) {
             assert!(!args.contains(&"--append-system-prompt".to_string()));
+        }
+    }
+
+    #[test]
+    fn build_agent_args_passes_model_override() {
+        if let Ok(args) = build_agent_args(&AgentStreamRequest {
+            message: "x".into(),
+            system_prompt: None,
+            vault_path: "/tmp/v".into(),
+            model: Some("sonnet".into()),
+        }) {
+            assert!(args.contains(&"--model".to_string()));
+            assert!(args.contains(&"sonnet".to_string()));
+        }
+    }
+
+    #[test]
+    fn build_agent_args_skips_whitespace_model_override() {
+        if let Ok(args) = build_agent_args(&AgentStreamRequest {
+            message: "x".into(),
+            system_prompt: None,
+            vault_path: "/tmp/v".into(),
+            model: Some("bad model".into()),
+        }) {
+            assert!(!args.contains(&"--model".to_string()));
         }
     }
 
@@ -1108,6 +1222,8 @@ mod tests {
             home.join(".claude/local/claude"),
             home.join(".local/share/mise/shims/claude"),
             home.join(".npm-global/bin/claude"),
+            home.join(".volta/bin/claude"),
+            home.join(".local/share/pnpm/claude"),
         ];
 
         for candidate in expected {
@@ -1117,6 +1233,37 @@ mod tests {
                 candidate.display()
             );
         }
+    }
+
+    #[test]
+    fn claude_binary_candidates_include_nvm_installs() {
+        let dir = tempfile::tempdir().unwrap();
+        let claude = dir.path().join(".nvm/versions/node/v22.22.0/bin/claude");
+        std::fs::create_dir_all(claude.parent().unwrap()).unwrap();
+        std::fs::write(&claude, "#!/bin/sh\n").unwrap();
+
+        let candidates = claude_binary_candidates_for_home(dir.path());
+
+        assert!(candidates.contains(&claude), "missing {}", claude.display());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn version_output_times_out_for_hung_cli() {
+        use std::os::unix::fs::PermissionsExt;
+        use std::time::Instant;
+
+        let dir = tempfile::tempdir().unwrap();
+        let hung_cli = dir.path().join("hung-claude");
+        std::fs::write(&hung_cli, "#!/bin/sh\nsleep 5\n").unwrap();
+        std::fs::set_permissions(&hung_cli, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let mut command = Command::new(hung_cli);
+        command.arg("--version");
+        let started = Instant::now();
+
+        assert!(output_with_timeout(command, Duration::from_millis(200)).is_err());
+        assert!(started.elapsed() < Duration::from_secs(2));
     }
 
     #[test]
@@ -1191,6 +1338,7 @@ mod tests {
             message: "test".into(),
             system_prompt: Some("sys".into()),
             vault_path: "/tmp/nonexistent".into(),
+            model: None,
         };
         let mut events = vec![];
         let result = run_agent_stream(req, |e| events.push(e));

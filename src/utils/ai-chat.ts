@@ -4,6 +4,7 @@
 
 import type { VaultEntry } from '../types'
 import { isTauri } from '../mock-tauri'
+import { liveAiNativeAppRequiredMessage } from './liveAiRuntime'
 
 // --- Token estimation ---
 
@@ -149,23 +150,6 @@ function handleChatStreamEvent(
 }
 
 /**
- * Generate a mock response for browser/test mode.
- * Inspects the message for conversation history so Playwright tests
- * can verify that history is actually being sent.
- */
-function mockChatResponse(message: string): string {
-  if (message.includes('<conversation_history>')) {
-    const allUserLines = message.match(/\[user\]: .+/g) ?? []
-    const turnCount = allUserLines.length
-    // The last [user] line is the actual new message
-    const lastLine = allUserLines[allUserLines.length - 1] ?? ''
-    const lastUserMsg = lastLine.replace('[user]: ', '')
-    return `[mock-with-history turns=${turnCount}] You asked: "${lastUserMsg}"`
-  }
-  return `[mock-no-history] You said: "${message}"`
-}
-
-/**
  * Stream a chat message through the Claude CLI subprocess.
  * Returns the session ID for conversation continuity via --resume.
  */
@@ -176,11 +160,9 @@ export async function streamClaudeChat(
   callbacks: ChatStreamCallbacks,
 ): Promise<string> {
   if (!isTauri()) {
-    setTimeout(() => {
-      callbacks.onText(mockChatResponse(message))
-      callbacks.onDone()
-    }, 300)
-    return 'mock-session'
+    callbacks.onError(liveAiNativeAppRequiredMessage('claude_code'))
+    callbacks.onDone()
+    return sessionId ?? ''
   }
 
   const { invoke } = await import('@tauri-apps/api/core')

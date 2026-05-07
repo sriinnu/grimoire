@@ -28,6 +28,7 @@ import { useTelemetry } from './hooks/useTelemetry'
 import { useMcpStatus } from './hooks/useMcpStatus'
 import { useAiAgentsOnboarding } from './hooks/useAiAgentsOnboarding'
 import { useAiAgentsStatus } from './hooks/useAiAgentsStatus'
+import { hasAnyInstalledAiAgent, isAiAgentsStatusChecking } from './lib/aiAgents'
 import { useVaultAiGuidanceStatus } from './hooks/useVaultAiGuidanceStatus'
 import { useAutoGit } from './hooks/useAutoGit'
 import { useVaultLoader } from './hooks/useVaultLoader'
@@ -36,7 +37,7 @@ import { useSettings } from './hooks/useSettings'
 import { useDocumentThemeMode } from './hooks/useDocumentThemeMode'
 import { useAppearanceSettings } from './hooks/useAppearanceSettings'
 import { useNoteActions } from './hooks/useNoteActions'
-import { planNewTypeCreation } from './hooks/useNoteCreation'
+import { planNewTypeCreation, slugify } from './hooks/useNoteCreation'
 import { useCommitFlow } from './hooks/useCommitFlow'
 import { useGitRemoteStatus } from './hooks/useGitRemoteStatus'
 import { useViewMode, type ViewMode } from './hooks/useViewMode'
@@ -992,11 +993,14 @@ function App() {
   const shouldLoadGitHistory = !layout.inspectorCollapsed && !showAIChat
   const gitHistory = useGitHistory(notes.activeTabPath, vault.loadGitHistory, shouldLoadGitHistory)
 
-  const handleCreateType = useCallback(async (name: string) => {
+  const handleCreateType = useCallback(async (name: string, icon?: string) => {
     const created = await notes.handleCreateType(name)
+    if (created && icon) {
+      await notes.handleUpdateFrontmatter(`${resolvedPath}/${slugify(name)}.md`, 'icon', icon)
+    }
     if (created) setToastMessage(`Type "${name}" created`)
     return created
-  }, [notes, setToastMessage])
+  }, [notes, resolvedPath, setToastMessage])
 
   const handleCreateMissingType = useCallback(async (path: string, missingType: string, nextTypeName: string) => {
     const trimmed = nextTypeName.trim()
@@ -1475,10 +1479,14 @@ function App() {
     return <WelcomeView onboarding={welcomeOnboarding} isOffline={networkStatus.isOffline} />
   }
 
+  const shouldBlockForAiAgentSetup = aiAgentsOnboarding.showPrompt
+    && !isAiAgentsStatusChecking(aiAgentsStatus)
+    && !hasAnyInstalledAiAgent(aiAgentsStatus)
+
   if (
     !noteWindowParams
     && onboarding.state.status === 'ready'
-    && aiAgentsOnboarding.showPrompt
+    && shouldBlockForAiAgentSetup
     && !showMcpSetupDialog
   ) {
     return (
@@ -1527,7 +1535,7 @@ function App() {
                 {effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'pulse' ? (
                   <PulseView vaultPath={resolvedPath} onOpenNote={handlePulseOpenNote} sidebarCollapsed={!sidebarVisible} onExpandSidebar={() => handleSetViewMode('all')} />
                 ) : (
-                  <NoteList entries={vault.entries} selection={effectiveSelection} selectedNote={activeTab?.entry ?? null} noteListFilter={noteListFilter} onNoteListFilterChange={setNoteListFilter} inboxPeriod={inboxPeriod} modifiedFiles={vault.modifiedFiles} modifiedFilesError={vault.modifiedFilesError} getNoteStatus={vault.getNoteStatus} sidebarCollapsed={!sidebarVisible} onSelectNote={notes.handleSelectNote} onReplaceActiveTab={handleReplaceActiveTabWithQueuedDiff} onEnterNeighborhood={handleEnterNeighborhood} onCreateNote={notes.handleCreateNoteImmediate} onBulkOrganize={explicitOrganizationEnabled ? bulkActions.handleBulkOrganize : undefined} onBulkArchive={bulkActions.handleBulkArchive} onBulkDeletePermanently={deleteActions.handleBulkDeletePermanently} onUpdateTypeSort={notes.handleUpdateFrontmatter} onUpdateViewDefinition={handleUpdateViewDefinition} updateEntry={vault.updateEntry} onOpenInNewWindow={handleOpenEntryInNewWindow} onDiscardFile={handleDiscardFile} onOpenDeletedNote={handleOpenDeletedNote} allNotesNoteListProperties={vaultConfig.allNotes?.noteListProperties ?? null} onUpdateAllNotesNoteListProperties={handleUpdateAllNotesNoteListProperties} inboxNoteListProperties={vaultConfig.inbox?.noteListProperties ?? null} onUpdateInboxNoteListProperties={handleUpdateInboxNoteListProperties} views={vault.views} visibleNotesRef={visibleNotesRef} multiSelectionCommandRef={multiSelectionCommandRef} locale={appLocale} />
+                  <NoteList entries={vault.entries} selection={effectiveSelection} selectedNote={activeTab?.entry ?? null} noteListFilter={noteListFilter} onNoteListFilterChange={setNoteListFilter} inboxPeriod={inboxPeriod} modifiedFiles={vault.modifiedFiles} modifiedFilesError={vault.modifiedFilesError} getNoteStatus={vault.getNoteStatus} sidebarCollapsed={!sidebarVisible} onSelectNote={notes.handleSelectNote} onReplaceActiveTab={handleReplaceActiveTabWithQueuedDiff} onEnterNeighborhood={handleEnterNeighborhood} onCreateNote={notes.handleCreateNoteImmediate} onBulkOrganize={explicitOrganizationEnabled ? bulkActions.handleBulkOrganize : undefined} onBulkArchive={bulkActions.handleBulkArchive} onBulkDeletePermanently={deleteActions.handleBulkDeletePermanently} onUpdateTypeSort={notes.handleUpdateFrontmatter} onUpdateFrontmatter={notes.handleUpdateFrontmatter} onUpdateViewDefinition={handleUpdateViewDefinition} updateEntry={vault.updateEntry} onOpenInNewWindow={handleOpenEntryInNewWindow} onDiscardFile={handleDiscardFile} onOpenDeletedNote={handleOpenDeletedNote} allNotesNoteListProperties={vaultConfig.allNotes?.noteListProperties ?? null} onUpdateAllNotesNoteListProperties={handleUpdateAllNotesNoteListProperties} inboxNoteListProperties={vaultConfig.inbox?.noteListProperties ?? null} onUpdateInboxNoteListProperties={handleUpdateInboxNoteListProperties} views={vault.views} visibleNotesRef={visibleNotesRef} multiSelectionCommandRef={multiSelectionCommandRef} locale={appLocale} />
                 )}
               </div>
               <ResizeHandle onResize={layout.handleNoteListResize} />
@@ -1550,6 +1558,7 @@ function App() {
               inspectorWidth={layout.inspectorWidth}
               defaultAiAgent={aiAgentPreferences.defaultAiAgent}
               defaultAiAgentReady={aiAgentPreferences.defaultAiAgentReady}
+              defaultAiModel={aiAgentPreferences.defaultAiModel}
               onUnsupportedAiPaste={setToastMessage}
               onInspectorResize={layout.handleInspectorResize}
               inspectorEntry={activeTab?.entry ?? null}

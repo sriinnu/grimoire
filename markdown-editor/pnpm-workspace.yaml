@@ -1,0 +1,6 @@
+packages:
+  - packages/js
+  - apps/baseline-web
+
+ignoredBuiltDependencies:
+  - esbuild

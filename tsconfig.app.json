@@ -9,6 +9,10 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@grimoire/markdown-editor": ["./markdown-editor/packages/js/src/index.ts"],
+      "@grimoire/markdown-editor/math": ["./markdown-editor/packages/js/src/mathTypes.ts"],
+      "@grimoire/markdown-editor/react": ["./markdown-editor/packages/js/src/react/index.ts"],
+      "@grimoire/markdown-editor/*": ["./markdown-editor/packages/js/src/*"],
       "@/*": ["./src/*"]
     },
 
@@ -28,6 +32,15 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/*.spec.ts", "src/**/*.spec.tsx"]
+  "include": ["src", "markdown-editor/packages/js/src"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "markdown-editor/packages/js/src/**/*.test.ts",
+    "markdown-editor/packages/js/src/**/*.test.tsx",
+    "markdown-editor/packages/js/src/**/*.spec.ts",
+    "markdown-editor/packages/js/src/**/*.spec.tsx"
+  ]
 }

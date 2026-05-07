@@ -28,6 +28,7 @@ export interface AgentExecutionContext {
   ready: boolean
   vaultPath: string
   systemPromptOverride?: string
+  model?: string | null
 }
 
 export interface PendingUserPrompt {

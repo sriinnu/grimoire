@@ -1,5 +1,6 @@
 import { isTauri } from '../mock-tauri'
-import { getAiAgentDefinition, type AiAgentId } from '../lib/aiAgents'
+import type { AiAgentId } from '../lib/aiAgents'
+import { liveAiNativeAppRequiredMessage } from './liveAiRuntime'
 
 type AiAgentStreamEvent =
   | { kind: 'Init'; session_id: string }
@@ -24,19 +25,8 @@ export interface StreamAiAgentRequest {
   message: string
   systemPrompt?: string
   vaultPath: string
+  model?: string | null
   callbacks: AgentStreamCallbacks
-}
-
-function mockAgentResponse(agent: AiAgentId, message: string): string {
-  const agentLabel = getAiAgentDefinition(agent).label
-  if (message.includes('<conversation_history>')) {
-    const allUserLines = message.match(/\[user\]: .+/g) ?? []
-    const turnCount = allUserLines.length
-    const lastLine = allUserLines[allUserLines.length - 1] ?? ''
-    const lastUserMsg = lastLine.replace('[user]: ', '')
-    return `[mock-${agentLabel.toLowerCase()} turns=${turnCount}] You asked: "${lastUserMsg}" — This note is related to [[Build Grimoire App]] and [[Karthik Reddy]].`
-  }
-  return `[mock-${agentLabel.toLowerCase()}] You said: "${message}" — This note is related to [[Build Grimoire App]] and [[Karthik Reddy]].`
 }
 
 function handleStreamEvent(data: AiAgentStreamEvent, callbacks: AgentStreamCallbacks): void {
@@ -70,14 +60,13 @@ export async function streamAiAgent(
     message,
     systemPrompt,
     vaultPath,
+    model,
     callbacks,
   } = request
 
   if (!isTauri()) {
-    setTimeout(() => {
-      callbacks.onText(mockAgentResponse(agent, message))
-      callbacks.onDone()
-    }, 300)
+    callbacks.onError(liveAiNativeAppRequiredMessage(agent))
+    callbacks.onDone()
     return
   }
 
@@ -107,6 +96,7 @@ export async function streamAiAgent(
         message,
         system_prompt: systemPrompt || null,
         vault_path: vaultPath,
+        model: model || null,
       },
     })
     closeStream()

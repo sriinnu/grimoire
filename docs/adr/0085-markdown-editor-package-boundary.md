@@ -20,7 +20,7 @@ Apple UX is SwiftUI on macOS and iOS. Non-Apple desktop UX remains Tauri. A big-
 
 ## Decision
 
-Create `packages/MarkdownEditor` as a Swift Package Manager package and make it the owner of editor-neutral markdown semantics for the Apple-native app surfaces first.
+Create `markdown-editor/packages/swift` as a Swift Package Manager package and make it the owner of editor-neutral markdown semantics for the Apple-native app surfaces first.
 
 The initial package boundary includes:
 

@@ -64,6 +64,9 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.4)
+      '@grimoire/markdown-editor':
+        specifier: workspace:*
+        version: link:markdown-editor/packages/js
       '@lezer/highlight':
         specifier: ^1.2.3
         version: 1.2.3
@@ -242,6 +245,88 @@ importers:
       ws:
         specifier: ^8.19.0
         version: 8.19.0
+
+  markdown-editor/apps/baseline-web:
+    dependencies:
+      '@blocknote/core':
+        specifier: ^0.46.2
+        version: 0.46.2(patch_hash=04be07f831dd538f65658669be039d5ee6f871d3cdf5c2082f236e78fee5b24b)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
+      '@blocknote/mantine':
+        specifier: ^0.46.2
+        version: 0.46.2(@floating-ui/dom@1.7.5)(@mantine/core@8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@8.3.14(react@19.2.4))(@mantine/utils@6.0.22(react@19.2.4))(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@blocknote/react':
+        specifier: ^0.46.2
+        version: 0.46.2(patch_hash=e3726d75ed65e07adb1fd48262d6a15f8e52b1cc257177aaf632937830170c97)(@floating-ui/dom@1.7.5)(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@grimoire/markdown-editor':
+        specifier: workspace:*
+        version: link:../../packages/js
+      '@mantine/core':
+        specifier: ^8.3.14
+        version: 8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      lucide-react:
+        specifier: ^0.564.0
+        version: 0.564.0(react@19.2.4)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: ^24.10.1
+        version: 24.10.13
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^5.1.1
+        version: 5.1.4(vite@7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.30.2))
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.1
+        version: 7.3.1(@types/node@24.10.13)(jiti@2.6.1)(lightningcss@1.30.2)
+
+  markdown-editor/packages/js:
+    devDependencies:
+      '@blocknote/core':
+        specifier: ^0.46.2
+        version: 0.46.2(patch_hash=04be07f831dd538f65658669be039d5ee6f871d3cdf5c2082f236e78fee5b24b)(@types/hast@3.0.4)(highlight.js@11.11.1)(lowlight@3.3.0)
+      '@blocknote/mantine':
+        specifier: ^0.46.2
+        version: 0.46.2(@floating-ui/dom@1.7.5)(@mantine/core@8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@8.3.14(react@19.2.4))(@mantine/utils@6.0.22(react@19.2.4))(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@blocknote/react':
+        specifier: ^0.46.2
+        version: 0.46.2(patch_hash=e3726d75ed65e07adb1fd48262d6a15f8e52b1cc257177aaf632937830170c97)(@floating-ui/dom@1.7.5)(@types/hast@3.0.4)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(highlight.js@11.11.1)(lowlight@3.3.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@mantine/core':
+        specifier: ^8.3.14
+        version: 8.3.14(@mantine/hooks@8.3.14(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@mantine/hooks':
+        specifier: ^8.3.14
+        version: 8.3.14(react@19.2.4)
+      '@types/react':
+        specifier: ^19.2.7
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      lucide-react:
+        specifier: ^0.564.0
+        version: 0.564.0(react@19.2.4)
+      react:
+        specifier: ^19.2.0
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.0
+        version: 19.2.4(react@19.2.4)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
   mcp-server:
     dependencies:

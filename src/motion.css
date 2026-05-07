@@ -1,0 +1,112 @@
+/* Grimoire motion tokens and cinematic UI accents. */
+
+:root {
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 180ms;
+  --motion-duration-slow: 420ms;
+  --motion-duration-cinematic: 2400ms;
+  --motion-delay-memory-thread: 620ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-expressive: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-ease-cinematic: cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+.grimoire-memory-signal {
+  position: relative;
+  display: grid;
+  min-height: 48px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--primary) 18%, transparent) 0 18%, transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card) 88%, var(--primary)) 0%, var(--background) 100%);
+}
+
+.grimoire-memory-signal::before,
+.grimoire-memory-signal::after {
+  position: absolute;
+  inset: 9px 16px;
+  content: "";
+  border-top: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+  opacity: 0.46;
+  transform: scaleX(0.64);
+  transform-origin: center;
+  animation: grimoire-memory-thread var(--motion-duration-cinematic) var(--motion-ease-cinematic) 1 both;
+}
+
+.grimoire-memory-signal::after {
+  inset: auto 18px 10px;
+  animation-delay: var(--motion-delay-memory-thread);
+}
+
+.grimoire-memory-signal__orb {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, color-mix(in srgb, white 80%, var(--primary)) 0 18%, transparent 22%),
+    radial-gradient(circle, var(--primary) 0 46%, color-mix(in srgb, var(--primary) 38%, transparent) 72%);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent),
+    0 0 24px color-mix(in srgb, var(--primary) 42%, transparent);
+  animation: grimoire-memory-breathe var(--motion-duration-cinematic) var(--motion-ease-cinematic) 1 both;
+}
+
+.grimoire-memory-signal__node {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 78%, var(--background));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 38%, transparent);
+}
+
+.grimoire-memory-signal__node:nth-child(2) {
+  transform: translate(-42px, -5px);
+}
+
+.grimoire-memory-signal__node:nth-child(3) {
+  transform: translate(42px, 6px);
+}
+
+@keyframes grimoire-memory-breathe {
+  0%, 100% {
+    transform: scale(0.94);
+    opacity: 0.78;
+  }
+
+  45% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes grimoire-memory-thread {
+  0%, 100% {
+    transform: scaleX(0.58);
+    opacity: 0.24;
+  }
+
+  48% {
+    transform: scaleX(1);
+    opacity: 0.58;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-fast: 0ms;
+    --motion-duration-base: 0ms;
+    --motion-duration-slow: 0ms;
+    --motion-duration-cinematic: 0ms;
+  }
+
+  .grimoire-memory-signal::before,
+  .grimoire-memory-signal::after,
+  .grimoire-memory-signal__orb {
+    animation: none;
+  }
+}

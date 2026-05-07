@@ -7,6 +7,7 @@
  */
 
 import { isTauri } from '../mock-tauri'
+import { liveAiNativeAppRequiredMessage } from './liveAiRuntime'
 
 // --- Agent system prompt ---
 
@@ -47,22 +48,6 @@ export interface AgentStreamCallbacks {
 }
 
 /**
- * Generate a mock response for browser/test mode.
- * Inspects the message for conversation history so Playwright tests
- * can verify that history is actually being sent.
- */
-function mockAgentResponse(message: string): string {
-  if (message.includes('<conversation_history>')) {
-    const allUserLines = message.match(/\[user\]: .+/g) ?? []
-    const turnCount = allUserLines.length
-    const lastLine = allUserLines[allUserLines.length - 1] ?? ''
-    const lastUserMsg = lastLine.replace('[user]: ', '')
-    return `[mock-with-history turns=${turnCount}] You asked: "${lastUserMsg}" — This note is related to [[Build Grimoire App]] and [[Karthik Reddy]].`
-  }
-  return `[mock-no-history] You said: "${message}" — This note is related to [[Build Grimoire App]] and [[Karthik Reddy]].`
-}
-
-/**
  * Stream an agent task through the Claude CLI subprocess with full tool access.
  * The CLI handles the tool-use loop; we receive events for UI updates.
  */
@@ -73,10 +58,8 @@ export async function streamClaudeAgent(
   callbacks: AgentStreamCallbacks,
 ): Promise<void> {
   if (!isTauri()) {
-    setTimeout(() => {
-      callbacks.onText(mockAgentResponse(message))
-      callbacks.onDone()
-    }, 300)
+    callbacks.onError(liveAiNativeAppRequiredMessage('claude_code'))
+    callbacks.onDone()
     return
   }
 

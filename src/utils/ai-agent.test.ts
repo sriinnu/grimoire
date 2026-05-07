@@ -36,23 +36,24 @@ describe('buildAgentSystemPrompt', () => {
 describe('streamClaudeAgent', () => {
   it('calls onText and onDone in non-Tauri environment', async () => {
     const onText = vi.fn()
+    const onThinking = vi.fn()
     const onToolStart = vi.fn()
+    const onToolDone = vi.fn()
     const onDone = vi.fn()
     const onError = vi.fn()
 
     await streamClaudeAgent('test message', 'system prompt', '/tmp/vault', {
       onText,
+      onThinking,
       onToolStart,
+      onToolDone,
       onError,
       onDone,
     })
 
-    // Wait for the setTimeout mock response
-    await new Promise(r => setTimeout(r, 400))
-
-    expect(onText).toHaveBeenCalledWith(expect.stringContaining('Build Grimoire App'))
+    expect(onText).not.toHaveBeenCalled()
+    expect(onError).toHaveBeenCalledWith(expect.stringContaining('native Grimoire app'))
     expect(onDone).toHaveBeenCalled()
-    expect(onError).not.toHaveBeenCalled()
     expect(onToolStart).not.toHaveBeenCalled()
   })
 })

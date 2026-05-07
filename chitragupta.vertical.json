@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/sriinnu/AUriva/main/chitragupta/docs/schemas/chitragupta.vertical.schema.json",
+  "id": "grimoire",
+  "name": "Grimoire",
+  "family": "app-consumer",
+  "description": "Markdown editor, local wiki, graph, and AI workbench that consumes Chitragupta memory intelligence.",
+  "connection": {
+    "transport": "mcp",
+    "target": "chitragupta"
+  },
+  "skill": {
+    "sourcePath": "SKILL.md"
+  },
+  "handover": {
+    "sourcePath": "docs/CHITRAGUPTA-GRIMOIRE-INTEGRATION-REQUEST.md",
+    "contractPath": "docs/CHITRAGUPTA-GRIMOIRE-MCP-CONTRACT.md"
+  },
+  "services": {
+    "required": [
+      "memory.append",
+      "memory.search",
+      "recall.unified",
+      "wiki.list",
+      "wiki.read",
+      "graph.neighborhood",
+      "diagnostics.memory",
+      "ingest.markdown"
+    ]
+  },
+  "fallbackPolicy": {
+    "preferLocal": true,
+    "allowRemoteModelFallback": true,
+    "allowSilentFilesystemWrites": false
+  }
+}

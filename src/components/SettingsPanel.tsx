@@ -72,6 +72,7 @@ interface SettingsDraft {
   autoGitInactiveThresholdSeconds: number
   autoAdvanceInboxAfterOrganize: boolean
   defaultAiAgent: AiAgentId
+  aiAgentModels: Partial<Record<AiAgentId, string>>
   releaseChannel: ReleaseChannel
   themeMode: ThemeMode
   themePreset: ThemePreset
@@ -99,6 +100,8 @@ interface SettingsBodyProps {
   aiAgentsStatus: AiAgentsStatus
   defaultAiAgent: AiAgentId
   setDefaultAiAgent: (value: AiAgentId) => void
+  aiAgentModels: Partial<Record<AiAgentId, string>>
+  setAiAgentModels: (value: Partial<Record<AiAgentId, string>>) => void
   releaseChannel: ReleaseChannel
   setReleaseChannel: (value: ReleaseChannel) => void
   themeMode: ThemeMode
@@ -147,6 +150,7 @@ function createSettingsDraft(
     ),
     autoAdvanceInboxAfterOrganize: settings.auto_advance_inbox_after_organize ?? false,
     defaultAiAgent: resolveDefaultAiAgent(settings.default_ai_agent),
+    aiAgentModels: createAiAgentModelsDraft(settings.ai_agent_models),
     releaseChannel: normalizeReleaseChannel(settings.release_channel),
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
@@ -196,7 +200,41 @@ function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft): Setti
     ui_language: serializeUiLanguagePreference(draft.uiLanguage),
     initial_h1_auto_rename_enabled: draft.initialH1AutoRename,
     default_ai_agent: draft.defaultAiAgent,
+    ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),
   }
+}
+
+function createAiAgentModelsDraft(
+  models: Settings['ai_agent_models'],
+): Partial<Record<AiAgentId, string>> {
+  const draft: Partial<Record<AiAgentId, string>> = {}
+  for (const definition of AI_AGENT_DEFINITIONS) {
+    const model = models?.[definition.id]?.trim()
+    if (model) draft[definition.id] = model
+  }
+  return draft
+}
+
+function normalizeAiAgentModelsForSave(
+  models: Partial<Record<AiAgentId, string>>,
+): Settings['ai_agent_models'] {
+  const saved = createAiAgentModelsDraft(models)
+  return Object.keys(saved).length > 0 ? saved : null
+}
+
+function updateAiAgentModelDraft(
+  models: Partial<Record<AiAgentId, string>>,
+  agent: AiAgentId,
+  model: string,
+): Partial<Record<AiAgentId, string>> {
+  const next = { ...models }
+  const normalized = model.trim()
+  if (normalized) {
+    next[agent] = normalized
+  } else {
+    delete next[agent]
+  }
+  return next
 }
 
 function trackTelemetryConsentChange(previousAnalytics: boolean, nextAnalytics: boolean): void {
@@ -346,6 +384,8 @@ function SettingsPanelInner({
           aiAgentsStatus={aiAgentsStatus}
           defaultAiAgent={draft.defaultAiAgent}
           setDefaultAiAgent={(value) => updateDraft('defaultAiAgent', value)}
+          aiAgentModels={draft.aiAgentModels}
+          setAiAgentModels={(value) => updateDraft('aiAgentModels', value)}
           releaseChannel={draft.releaseChannel}
           setReleaseChannel={(value) => updateDraft('releaseChannel', value)}
           themeMode={draft.themeMode}
@@ -409,6 +449,8 @@ function SettingsBody({
   aiAgentsStatus,
   defaultAiAgent,
   setDefaultAiAgent,
+  aiAgentModels,
+  setAiAgentModels,
   releaseChannel,
   setReleaseChannel,
   themeMode,
@@ -489,6 +531,8 @@ function SettingsBody({
           aiAgentsStatus={aiAgentsStatus}
           defaultAiAgent={defaultAiAgent}
           setDefaultAiAgent={setDefaultAiAgent}
+          aiAgentModels={aiAgentModels}
+          setAiAgentModels={setAiAgentModels}
         />
       </SettingsSection>
 
@@ -699,7 +743,21 @@ function AiAgentSettingsSection({
   aiAgentsStatus,
   defaultAiAgent,
   setDefaultAiAgent,
-}: Pick<SettingsBodyProps, 't' | 'aiAgentsStatus' | 'defaultAiAgent' | 'setDefaultAiAgent'>) {
+  aiAgentModels,
+  setAiAgentModels,
+}: Pick<SettingsBodyProps,
+  | 't'
+  | 'aiAgentsStatus'
+  | 'defaultAiAgent'
+  | 'setDefaultAiAgent'
+  | 'aiAgentModels'
+  | 'setAiAgentModels'
+>) {
+  const selectedModel = aiAgentModels[defaultAiAgent] ?? ''
+  const handleModelChange = (value: string) => {
+    setAiAgentModels(updateAiAgentModelDraft(aiAgentModels, defaultAiAgent, value))
+  }
+
   return (
     <>
       <SectionHeading
@@ -714,6 +772,34 @@ function AiAgentSettingsSection({
         options={buildDefaultAiAgentOptions(aiAgentsStatus, t)}
         testId="settings-default-ai-agent"
       />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <label
+          style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}
+          htmlFor="settings-default-ai-model"
+        >
+          {t('settings.aiAgents.model')}
+        </label>
+        <div className="flex gap-2">
+          <Input
+            id="settings-default-ai-model"
+            value={selectedModel}
+            placeholder={t('settings.aiAgents.modelPlaceholder')}
+            onChange={(event) => handleModelChange(event.target.value)}
+            data-testid="settings-default-ai-model"
+            className="w-full bg-transparent"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleModelChange('')}
+            disabled={!selectedModel}
+            data-testid="settings-default-ai-model-clear"
+          >
+            {t('settings.aiAgents.modelDefault')}
+          </Button>
+        </div>
+      </div>
 
       <div style={{ fontSize: 11, color: 'var(--muted-foreground)', lineHeight: 1.5 }}>
         {renderDefaultAiAgentSummary(defaultAiAgent, aiAgentsStatus, t)}

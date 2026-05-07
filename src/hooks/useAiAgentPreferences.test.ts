@@ -10,11 +10,13 @@ const settings = {
   anonymous_id: null,
   release_channel: 'stable',
   default_ai_agent: 'claude_code' as const,
+  ai_agent_models: null,
 }
 
 const aiAgentsStatus = {
   claude_code: { status: 'installed' as const, version: '1.0.20' },
   codex: { status: 'missing' as const, version: null },
+  chitragupta: { status: 'installed' as const, version: '0.1.16' },
 }
 
 describe('useAiAgentPreferences', () => {
@@ -63,9 +65,32 @@ describe('useAiAgentPreferences', () => {
       aiAgentsStatus: {
         claude_code: { status: 'missing', version: null },
         codex: { status: 'missing', version: null },
+        chitragupta: { status: 'missing', version: null },
       },
     }))
 
     expect(result.current.defaultAiAgentReady).toBe(true)
+  })
+
+  it('persists a model override for the selected local agent', () => {
+    const saveSettings = vi.fn()
+    const onToast = vi.fn()
+
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings,
+      saveSettings,
+      aiAgentsStatus,
+      onToast,
+    }))
+
+    act(() => {
+      result.current.setDefaultAiModel(' sonnet ')
+    })
+
+    expect(saveSettings).toHaveBeenCalledWith({
+      ...settings,
+      ai_agent_models: { claude_code: 'sonnet' },
+    })
+    expect(onToast).toHaveBeenCalledWith('Claude Code model: sonnet')
   })
 })

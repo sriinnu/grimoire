@@ -146,7 +146,7 @@ Priority: High
     assert_eq!(entry.properties.len(), 3);
     for (key, value) in [
         ("Priority", "High"),
-        ("Owner", "Sriinu"),
+        ("Owner", "Luca"),
         ("Cadence", "Weekly"),
     ] {
         assert_string_property(&entry, key, value);

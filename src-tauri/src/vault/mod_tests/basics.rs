@@ -58,7 +58,7 @@ fn test_parse_full_frontmatter_scalars() {
             .properties
             .get("Owner")
             .and_then(|value| value.as_str()),
-        Some("Sriinu")
+        Some("Luca")
     );
     assert_eq!(
         entry
@@ -66,6 +66,20 @@ fn test_parse_full_frontmatter_scalars() {
             .get("Cadence")
             .and_then(|value| value.as_str()),
         Some("Weekly")
+    );
+}
+
+#[test]
+fn test_parse_multi_value_custom_arrays() {
+    let dir = TempDir::new().unwrap();
+    let entry = parse_test_entry(
+        &dir,
+        "tagged.md",
+        "---\ntags:\n  - alpha\n  - beta\n---\n# Tagged\n",
+    );
+    assert_eq!(
+        entry.properties.get("tags"),
+        Some(&serde_json::json!(["alpha", "beta"]))
     );
 }
 

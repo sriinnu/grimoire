@@ -68,6 +68,6 @@ fn ignores_unknown_underscore_keys_in_properties_and_relationships() {
             .properties
             .get("Owner")
             .and_then(|value| value.as_str()),
-        Some("Sriinu")
+        Some("Luca")
     );
 }

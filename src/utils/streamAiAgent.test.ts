@@ -42,8 +42,7 @@ describe('streamAiAgent', () => {
     vi.useRealTimers()
   })
 
-  it('uses the mock response when Tauri is unavailable', async () => {
-    vi.useFakeTimers()
+  it('reports native-app requirement when Tauri is unavailable', async () => {
     const callbacks = {
       onText: vi.fn(),
       onThinking: vi.fn(),
@@ -53,19 +52,15 @@ describe('streamAiAgent', () => {
       onDone: vi.fn(),
     }
 
-    const promise = streamAiAgent({
+    await streamAiAgent({
       agent: 'codex',
       message: '<conversation_history>\n[user]: first\n\n[user]: latest\n</conversation_history>',
       vaultPath: '/vault',
       callbacks,
     })
 
-    await vi.advanceTimersByTimeAsync(300)
-    await promise
-
-    expect(callbacks.onText).toHaveBeenCalledWith(
-      '[mock-codex turns=2] You asked: "latest" — This note is related to [[Build Grimoire App]] and [[Karthik Reddy]].',
-    )
+    expect(callbacks.onText).not.toHaveBeenCalled()
+    expect(callbacks.onError).toHaveBeenCalledWith(expect.stringContaining('Codex is live only in the native Grimoire app'))
     expect(callbacks.onDone).toHaveBeenCalledTimes(1)
     expect(listenMock).not.toHaveBeenCalled()
     expect(invokeMock).not.toHaveBeenCalled()
@@ -104,6 +99,7 @@ describe('streamAiAgent', () => {
       message: 'Explain this',
       systemPrompt: 'SYSTEM',
       vaultPath: '/vault',
+      model: 'sonnet',
       callbacks,
     })
 
@@ -116,6 +112,7 @@ describe('streamAiAgent', () => {
         message: 'Explain this',
         system_prompt: 'SYSTEM',
         vault_path: '/vault',
+        model: 'sonnet',
       },
     })
     expect(callbacks.onThinking).toHaveBeenCalledWith('thinking...')

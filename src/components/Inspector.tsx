@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useDeferredValue, useMemo } from 'react'
 import type { VaultEntry, GitCommit } from '../types'
 import { cn } from '@/lib/utils'
 import { Separator } from './ui/separator'
 import { parseFrontmatter, detectFrontmatterState } from '../utils/frontmatter'
+import { markdownSemanticsAdapter } from '../utils/markdownSemanticsAdapter'
 import { DynamicPropertiesPanel } from './DynamicPropertiesPanel'
 import {
   DynamicRelationshipsPanel,
@@ -10,7 +11,9 @@ import {
   ReferencedByPanel,
   GitHistoryPanel,
   InstancesPanel,
+  MemoryPanel,
   NoteInfoPanel,
+  OutlinePanel,
 } from './InspectorPanels'
 import type { ReferencedByItem } from './InspectorPanels'
 import { EmptyInspector, InitializePropertiesPrompt, InspectorHeader, InvalidFrontmatterNotice } from './inspector/InspectorChrome'
@@ -36,6 +39,7 @@ interface InspectorProps {
   onCreateAndOpenNote?: (title: string) => Promise<boolean>
   onInitializeProperties?: (path: string) => void
   onToggleRawEditor?: () => void
+  onReplaceContent?: (path: string, content: string) => Promise<void> | void
 }
 
 function buildTypeEntryMap(entries: VaultEntry[]): Record<string, VaultEntry> {
@@ -177,11 +181,14 @@ function InspectorBody({
   onCreateAndOpenNote,
   onInitializeProperties,
   onToggleRawEditor,
+  onReplaceContent,
 }: Omit<InspectorProps, 'collapsed' | 'onToggle'>) {
+  const deferredContent = useDeferredValue(content ?? '')
   const referencedBy = useReferencedBy(entry, entries)
   const backlinks = useBacklinks(entry, entries, referencedBy)
-  const frontmatter = useMemo(() => parseFrontmatter(content), [content])
-  const frontmatterState = useMemo(() => detectFrontmatterState(content), [content])
+  const frontmatter = useMemo(() => parseFrontmatter(deferredContent), [deferredContent])
+  const frontmatterState = useMemo(() => detectFrontmatterState(deferredContent), [deferredContent])
+  const semantics = useMemo(() => markdownSemanticsAdapter.parseDocument(deferredContent), [deferredContent])
   const typeEntryMap = useMemo(() => buildTypeEntryMap(entries), [entries])
   const {
     handleUpdateProperty,
@@ -202,6 +209,16 @@ function InspectorBody({
 
   return (
     <>
+      <OutlinePanel
+        semantics={semantics}
+        path={entry.path}
+        content={content ?? ''}
+        onToggleRawEditor={onToggleRawEditor}
+        onReplaceContent={onReplaceContent}
+      />
+      <Separator />
+      <MemoryPanel entry={entry} entries={entries} semantics={semantics} />
+      <Separator />
       <PrimaryInspectorPanel
         entry={entry}
         frontmatterState={frontmatterState}

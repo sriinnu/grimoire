@@ -1,0 +1,54 @@
+{
+  "name": "@grimoire/markdown-editor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "AGPL-3.0-or-later",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    },
+    "./math": {
+      "types": "./dist/math/index.d.ts",
+      "import": "./dist/math/index.js"
+    }
+  },
+  "peerDependencies": {
+    "@blocknote/core": "^0.46.2",
+    "@blocknote/mantine": "^0.46.2",
+    "@blocknote/react": "^0.46.2",
+    "@mantine/core": "^8.3.14",
+    "@mantine/hooks": "^8.3.14",
+    "lucide-react": "^0.564.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@blocknote/core": "^0.46.2",
+    "@blocknote/mantine": "^0.46.2",
+    "@blocknote/react": "^0.46.2",
+    "@mantine/core": "^8.3.14",
+    "@mantine/hooks": "^8.3.14",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "lucide-react": "^0.564.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "~5.9.3"
+  }
+}

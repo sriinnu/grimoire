@@ -4,7 +4,7 @@ import { buildNoteGraph, filterGraphByQuery } from './noteGraph'
 
 function entry(overrides: Partial<VaultEntry>): VaultEntry {
   return {
-    path: `/vault/${overrides.filename ?? 'note.md'}`,
+    path: overrides.path ?? `/vault/${overrides.filename ?? 'note.md'}`,
     filename: overrides.filename ?? 'note.md',
     title: overrides.title ?? 'Note',
     isA: overrides.isA ?? 'Note',
@@ -55,6 +55,36 @@ describe('noteGraph', () => {
       expect.objectContaining({ source: note.path, target: person.path, kind: 'relationship', label: 'Owner' }),
       expect.objectContaining({ source: note.path, target: project.path, kind: 'body-link', label: 'Wikilink' }),
     ]))
+  })
+
+  it('resolves path-style, alias, and humanized wikilink targets through the graph index', () => {
+    const source = entry({
+      filename: 'source.md',
+      title: 'Source',
+      outgoingLinks: ['areas/deep-work', 'work-alias', 'Daily Review'],
+    })
+    const pathTarget = entry({
+      path: '/vault/areas/deep-work.md',
+      filename: 'deep-work.md',
+      title: 'Deep Work',
+    })
+    const aliasTarget = entry({
+      filename: 'alias-target.md',
+      title: 'Alias Target',
+      aliases: ['work-alias'],
+    })
+    const humanizedTarget = entry({
+      filename: 'daily-review.md',
+      title: 'Daily Review',
+    })
+
+    const graph = buildNoteGraph([source, pathTarget, aliasTarget, humanizedTarget])
+
+    expect(graph.edges.map((edge) => edge.target).sort()).toEqual([
+      aliasTarget.path,
+      humanizedTarget.path,
+      pathTarget.path,
+    ].sort())
   })
 
   it('filters matches plus immediate neighbors', () => {

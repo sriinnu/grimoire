@@ -16,7 +16,7 @@ use super::{is_md_file, parse_md_file, parse_non_md_file, scan_vault, VaultEntry
 /// Bump this when VaultEntry fields change to force a full rescan.
 /// v12: fix gray_matter YAML sanitization (unquoted colons / hash comments in list items)
 /// v13: preserve plain square brackets in parsed markdown H1 titles
-const CACHE_VERSION: u32 = 13;
+const CACHE_VERSION: u32 = 14;
 const CACHE_WRITE_LOCK_STALE_SECS: u64 = 30;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -742,6 +742,16 @@ mod tests {
             .current_dir(vault)
             .output()
             .unwrap();
+        crate::hidden_command("git")
+            .args(["config", "commit.gpgsign", "false"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+        crate::hidden_command("git")
+            .args(["config", "core.hooksPath", ".git/hooks-disabled"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
     }
 
     /// Common setup: acquire env lock, create temp cache dir + git-initialised vault.
@@ -1291,6 +1301,36 @@ mod tests {
             entries[0].archived,
             "stale cache with old version must be invalidated, re-parsing 'Archived: Yes' as true"
         );
+    }
+
+    #[test]
+    fn test_stale_cache_version_drops_excluded_project_files() {
+        let (_lock, _cache_tmp, dir) = setup_git_vault();
+        let vault = dir.path();
+
+        create_test_file(vault, "root.md", "# Root\n");
+        create_test_file(vault, "node_modules/pkg/readme.md", "# Dependency\n");
+        git_add_commit(vault, "init");
+
+        let hash = git_head_hash(vault).unwrap();
+        let stale_cache = VaultCache {
+            version: CACHE_VERSION - 1,
+            vault_path: vault.to_string_lossy().to_string(),
+            commit_hash: hash,
+            entries: vec![
+                parse_md_file(&vault.join("root.md"), None).unwrap(),
+                parse_md_file(&vault.join("node_modules/pkg/readme.md"), None).unwrap(),
+            ],
+        };
+        write_cache(vault, &stale_cache, None).unwrap();
+
+        let entries = scan_vault_cached(vault).unwrap();
+        let filenames: Vec<&str> = entries
+            .iter()
+            .map(|entry| entry.filename.as_str())
+            .collect();
+
+        assert_eq!(filenames, vec!["root.md"]);
     }
 
     #[test]

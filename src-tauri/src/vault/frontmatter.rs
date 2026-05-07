@@ -318,6 +318,16 @@ pub(crate) fn extract_properties(
                     if !contains_wikilink(s) {
                         properties.insert(key.clone(), serde_json::Value::String(s.clone()));
                     }
+                } else {
+                    let strings: Vec<serde_json::Value> = arr
+                        .iter()
+                        .filter_map(|value| value.as_str())
+                        .filter(|s| !contains_wikilink(s))
+                        .map(|s| serde_json::Value::String(s.to_string()))
+                        .collect();
+                    if strings.len() == arr.len() && !strings.is_empty() {
+                        properties.insert(key.clone(), serde_json::Value::Array(strings));
+                    }
                 }
             }
             _ => {}

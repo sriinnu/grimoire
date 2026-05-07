@@ -1,13 +1,17 @@
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::io::BufRead;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Command, Output, Stdio};
+use std::thread;
+use std::time::{Duration, Instant};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AiAgentId {
     ClaudeCode,
     Codex,
+    Chitragupta,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -20,6 +24,7 @@ pub struct AiAgentAvailability {
 pub struct AiAgentsStatus {
     pub claude_code: AiAgentAvailability,
     pub codex: AiAgentAvailability,
+    pub chitragupta: AiAgentAvailability,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -57,12 +62,14 @@ pub struct AiAgentStreamRequest {
     pub message: String,
     pub system_prompt: Option<String>,
     pub vault_path: String,
+    pub model: Option<String>,
 }
 
 pub fn get_ai_agents_status() -> AiAgentsStatus {
     AiAgentsStatus {
         claude_code: availability_from_claude(),
         codex: availability_from_codex(),
+        chitragupta: availability_from_chitragupta(),
     }
 }
 
@@ -76,6 +83,7 @@ where
                 message: request.message,
                 system_prompt: request.system_prompt,
                 vault_path: request.vault_path,
+                model: request.model,
             };
             crate::claude_cli::run_agent_stream(mapped, |event| {
                 if let Some(mapped_event) = map_claude_event(event) {
@@ -84,6 +92,7 @@ where
             })
         }
         AiAgentId::Codex => run_codex_agent_stream(request, emit),
+        AiAgentId::Chitragupta => run_chitragupta_agent_stream(request, emit),
     }
 }
 
@@ -112,13 +121,53 @@ fn availability_from_codex() -> AiAgentAvailability {
     }
 }
 
+fn availability_from_chitragupta() -> AiAgentAvailability {
+    let binary = match find_chitragupta_binary() {
+        Ok(binary) => binary,
+        Err(_) => {
+            return AiAgentAvailability {
+                installed: false,
+                version: None,
+            }
+        }
+    };
+
+    AiAgentAvailability {
+        installed: true,
+        version: version_for_binary(&binary),
+    }
+}
+
 fn version_for_binary(binary: &PathBuf) -> Option<String> {
-    Command::new(binary)
-        .arg("--version")
-        .output()
+    let mut command = Command::new(binary);
+    command.arg("--version");
+
+    output_with_timeout(command, Duration::from_secs(2))
         .ok()
         .filter(|output| output.status.success())
         .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
+fn output_with_timeout(mut command: Command, timeout: Duration) -> Result<Output, String> {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| error.to_string())?;
+    let deadline = Instant::now() + timeout;
+
+    loop {
+        match child.try_wait() {
+            Ok(Some(_)) => return child.wait_with_output().map_err(|error| error.to_string()),
+            Ok(None) if Instant::now() >= deadline => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("command timed out".into());
+            }
+            Ok(None) => thread::sleep(Duration::from_millis(25)),
+            Err(error) => return Err(error.to_string()),
+        }
+    }
 }
 
 fn find_codex_binary() -> Result<PathBuf, String> {
@@ -137,19 +186,43 @@ fn find_codex_binary() -> Result<PathBuf, String> {
     Err("Codex CLI not found. Install it: https://developers.openai.com/codex/cli".into())
 }
 
+fn find_chitragupta_binary() -> Result<PathBuf, String> {
+    if let Some(binary) = find_binary_on_path("chitragupta") {
+        return Ok(binary);
+    }
+
+    if let Some(binary) = find_binary_in_user_shell("chitragupta") {
+        return Ok(binary);
+    }
+
+    if let Some(binary) = find_existing_binary(chitragupta_binary_candidates()) {
+        return Ok(binary);
+    }
+
+    Err("Chitragupta CLI not found. Install it with `npm install -g @yugenlab/chitragupta`.".into())
+}
+
 fn find_codex_binary_on_path() -> Option<PathBuf> {
+    find_binary_on_path("codex")
+}
+
+fn find_binary_on_path(command: &str) -> Option<PathBuf> {
     Command::new("which")
-        .arg("codex")
+        .arg(command)
         .output()
         .ok()
         .and_then(|output| path_from_successful_output(&output))
 }
 
 fn find_codex_binary_in_user_shell() -> Option<PathBuf> {
+    find_binary_in_user_shell("codex")
+}
+
+fn find_binary_in_user_shell(command: &str) -> Option<PathBuf> {
     user_shell_candidates()
         .into_iter()
         .filter(|shell| shell.exists())
-        .find_map(|shell| command_path_from_shell(&shell, "codex"))
+        .find_map(|shell| command_path_from_shell(&shell, command))
 }
 
 fn user_shell_candidates() -> Vec<PathBuf> {
@@ -199,7 +272,7 @@ fn codex_binary_candidates() -> Vec<PathBuf> {
 }
 
 fn codex_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
-    vec![
+    let mut candidates = vec![
         home.join(".local/bin/codex"),
         home.join(".codex/bin/codex"),
         home.join(".local/share/mise/shims/codex"),
@@ -207,14 +280,78 @@ fn codex_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
         home.join(".npm-global/bin/codex"),
         home.join(".npm/bin/codex"),
         home.join(".bun/bin/codex"),
+        home.join(".volta/bin/codex"),
+        home.join(".local/share/pnpm/codex"),
         PathBuf::from("/usr/local/bin/codex"),
         PathBuf::from("/opt/homebrew/bin/codex"),
         PathBuf::from("/Applications/Codex.app/Contents/Resources/codex"),
-    ]
+    ];
+    candidates.extend(node_version_manager_binary_candidates(home, "codex"));
+    candidates
+}
+
+fn chitragupta_binary_candidates() -> Vec<PathBuf> {
+    dirs::home_dir()
+        .map(|home| chitragupta_binary_candidates_for_home(&home))
+        .unwrap_or_default()
+}
+
+fn chitragupta_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
+    let mut candidates = vec![
+        home.join(".local/bin/chitragupta"),
+        home.join(".npm-global/bin/chitragupta"),
+        home.join(".npm/bin/chitragupta"),
+        home.join(".bun/bin/chitragupta"),
+        home.join(".volta/bin/chitragupta"),
+        home.join(".local/share/pnpm/chitragupta"),
+        PathBuf::from("/usr/local/bin/chitragupta"),
+        PathBuf::from("/opt/homebrew/bin/chitragupta"),
+        PathBuf::from("/Applications/Chitragupta.app/Contents/Resources/chitragupta"),
+        PathBuf::from("/Applications/Chitragupta.app/Contents/MacOS/chitragupta"),
+    ];
+    candidates.extend(node_version_manager_binary_candidates(home, "chitragupta"));
+    candidates
 }
 
 fn find_existing_binary(candidates: Vec<PathBuf>) -> Option<PathBuf> {
     candidates.into_iter().find(|candidate| candidate.exists())
+}
+
+fn node_version_manager_binary_candidates(home: &Path, binary_name: &str) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    candidates.extend(versioned_child_binary_candidates(
+        &home.join(".nvm/versions/node"),
+        &["bin"],
+        binary_name,
+    ));
+    candidates.extend(versioned_child_binary_candidates(
+        &home.join(".fnm/node-versions"),
+        &["installation", "bin"],
+        binary_name,
+    ));
+    candidates
+}
+
+fn versioned_child_binary_candidates(
+    root: &Path,
+    child_segments: &[&str],
+    binary_name: &str,
+) -> Vec<PathBuf> {
+    let Ok(entries) = fs::read_dir(root) else {
+        return Vec::new();
+    };
+
+    entries
+        .filter_map(Result::ok)
+        .map(|entry| {
+            let mut path = entry.path();
+            for segment in child_segments {
+                path.push(segment);
+            }
+            path.push(binary_name);
+            path
+        })
+        .collect()
 }
 
 fn run_codex_agent_stream<F>(request: AiAgentStreamRequest, mut emit: F) -> Result<String, String>
@@ -289,6 +426,66 @@ where
     Ok(thread_id)
 }
 
+fn run_chitragupta_agent_stream<F>(
+    request: AiAgentStreamRequest,
+    mut emit: F,
+) -> Result<String, String>
+where
+    F: FnMut(AiAgentStreamEvent),
+{
+    let binary = find_chitragupta_binary()?;
+    let prompt = build_codex_prompt(&request);
+
+    let mut command = Command::new(binary);
+    command.arg("-p").arg(prompt);
+    if let Some(model) = normalize_cli_model(request.model.as_deref()) {
+        command.arg("--model").arg(model);
+    }
+
+    let mut child = command
+        .current_dir(&request.vault_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|error| format!("Failed to spawn chitragupta: {error}"))?;
+
+    let stdout = child.stdout.take().ok_or("No stdout handle")?;
+    let reader = std::io::BufReader::new(stdout);
+
+    for line in reader.lines() {
+        match line {
+            Ok(line) => emit(AiAgentStreamEvent::TextDelta {
+                text: format!("{line}\n"),
+            }),
+            Err(error) => {
+                emit(AiAgentStreamEvent::Error {
+                    message: format!("Read error: {error}"),
+                });
+                break;
+            }
+        }
+    }
+
+    let stderr_output = child
+        .stderr
+        .take()
+        .and_then(|stderr| std::io::read_to_string(stderr).ok())
+        .unwrap_or_default();
+
+    let status = child
+        .wait()
+        .map_err(|error| format!("Wait failed: {error}"))?;
+    if !status.success() {
+        emit(AiAgentStreamEvent::Error {
+            message: format_chitragupta_error(stderr_output, status.to_string()),
+        });
+    }
+
+    emit(AiAgentStreamEvent::Done);
+
+    Ok(String::new())
+}
+
 fn build_codex_args(request: &AiAgentStreamRequest) -> Result<Vec<String>, String> {
     let mcp_server = crate::mcp::mcp_server_dir()?.join("index.js");
     let mcp_server_path = mcp_server
@@ -296,7 +493,7 @@ fn build_codex_args(request: &AiAgentStreamRequest) -> Result<Vec<String>, Strin
         .ok_or("Invalid MCP server path")?
         .to_string();
 
-    Ok(vec![
+    let mut args = vec![
         "exec".into(),
         "--json".into(),
         "-C".into(),
@@ -310,7 +507,23 @@ fn build_codex_args(request: &AiAgentStreamRequest) -> Result<Vec<String>, Strin
             r#"mcp_servers.grimoire.env={{VAULT_PATH="{}"}}"#,
             request.vault_path
         ),
-    ])
+    ];
+
+    if let Some(model) = normalize_cli_model(request.model.as_deref()) {
+        args.push("--model".into());
+        args.push(model);
+    }
+
+    Ok(args)
+}
+
+fn normalize_cli_model(model: Option<&str>) -> Option<String> {
+    let model = model?.trim();
+    if model.is_empty() || model.chars().any(char::is_whitespace) {
+        None
+    } else {
+        Some(model.to_string())
+    }
 }
 
 fn build_codex_prompt(request: &AiAgentStreamRequest) -> String {
@@ -397,6 +610,14 @@ fn format_codex_error(stderr_output: String, status: String) -> String {
     }
 }
 
+fn format_chitragupta_error(stderr_output: String, status: String) -> String {
+    if stderr_output.trim().is_empty() {
+        format!("chitragupta exited with status {status}")
+    } else {
+        stderr_output.lines().take(3).collect::<Vec<_>>().join("\n")
+    }
+}
+
 fn is_codex_auth_error(lower: &str) -> bool {
     ["auth", "login", "sign in"]
         .iter()
@@ -439,10 +660,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn normalize_status_contains_both_agents() {
+    fn normalize_status_contains_all_agents() {
         let status = get_ai_agents_status();
         assert!(matches!(status.claude_code.installed, true | false));
         assert!(matches!(status.codex.installed, true | false));
+        assert!(matches!(status.chitragupta.installed, true | false));
     }
 
     #[test]
@@ -452,6 +674,7 @@ mod tests {
             message: "Rename the note".into(),
             system_prompt: Some("Be concise".into()),
             vault_path: "/tmp/vault".into(),
+            model: None,
         });
 
         assert!(prompt.starts_with("System instructions:\nBe concise"));
@@ -465,10 +688,25 @@ mod tests {
             message: "Rename the note".into(),
             system_prompt: None,
             vault_path: "/tmp/vault".into(),
+            model: None,
         }) {
             assert!(!args.contains(&"--dangerously-bypass-approvals-and-sandbox".to_string()));
             assert!(args.contains(&"--json".to_string()));
             assert!(args.contains(&"-C".to_string()));
+        }
+    }
+
+    #[test]
+    fn build_codex_args_passes_model_override() {
+        if let Ok(args) = build_codex_args(&AiAgentStreamRequest {
+            agent: AiAgentId::Codex,
+            message: "Rename the note".into(),
+            system_prompt: None,
+            vault_path: "/tmp/vault".into(),
+            model: Some("gpt-5.2".into()),
+        }) {
+            assert!(args.contains(&"--model".to_string()));
+            assert!(args.contains(&"gpt-5.2".to_string()));
         }
     }
 
@@ -493,6 +731,63 @@ mod tests {
                 candidate.display()
             );
         }
+    }
+
+    #[test]
+    fn chitragupta_binary_candidates_include_supported_installs() {
+        let home = PathBuf::from("/Users/alex");
+        let candidates = chitragupta_binary_candidates_for_home(&home);
+        let expected = [
+            home.join(".local/bin/chitragupta"),
+            home.join(".npm-global/bin/chitragupta"),
+            home.join(".bun/bin/chitragupta"),
+            home.join(".volta/bin/chitragupta"),
+            home.join(".local/share/pnpm/chitragupta"),
+            PathBuf::from("/Applications/Chitragupta.app/Contents/MacOS/chitragupta"),
+        ];
+
+        for candidate in expected {
+            assert!(
+                candidates.contains(&candidate),
+                "missing {}",
+                candidate.display()
+            );
+        }
+    }
+
+    #[test]
+    fn node_version_manager_candidates_include_nvm_installs() {
+        let dir = tempfile::tempdir().unwrap();
+        let nvm_bin = dir
+            .path()
+            .join(".nvm/versions/node/v22.22.0/bin/chitragupta");
+        std::fs::create_dir_all(nvm_bin.parent().unwrap()).unwrap();
+        std::fs::write(&nvm_bin, "#!/bin/sh\n").unwrap();
+
+        let candidates = chitragupta_binary_candidates_for_home(dir.path());
+
+        assert!(
+            candidates.contains(&nvm_bin),
+            "missing {}",
+            nvm_bin.display()
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn version_probe_times_out_for_hung_cli() {
+        use std::os::unix::fs::PermissionsExt;
+        use std::time::Instant;
+
+        let dir = tempfile::tempdir().unwrap();
+        let hung_cli = dir.path().join("hung-cli");
+        std::fs::write(&hung_cli, "#!/bin/sh\nsleep 5\n").unwrap();
+        std::fs::set_permissions(&hung_cli, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let started = Instant::now();
+
+        assert_eq!(version_for_binary(&hung_cli), None);
+        assert!(started.elapsed() < Duration::from_secs(3));
     }
 
     #[test]
