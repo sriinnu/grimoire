@@ -1,3 +1,5 @@
+import { applyFontRolesToDocument } from './fontConfig'
+
 export const DEFAULT_THEME_PRESET = 'manuscript'
 export const DEFAULT_EDITOR_FONT = 'system'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
@@ -108,6 +110,7 @@ export function applyAppearanceToDocument(
   const root = documentObject.documentElement
   root.setAttribute('data-theme-preset', appearance.themePreset)
   root.setAttribute('data-editor-font', appearance.editorFont)
+  applyFontRolesToDocument(documentObject, appearance)
 }
 
 /** Bootstraps mirrored appearance choices before the React settings load completes. */

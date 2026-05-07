@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Check, Moon, Palette, Sun, TextAa } from '@phosphor-icons/react'
 import type { EditorFont, ThemePreset } from '../lib/appearance'
+import { resolveFontRoles } from '../lib/fontConfig'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
 import { Button } from './ui/button'
@@ -43,15 +44,6 @@ const PRESET_SWATCHES: Record<ThemePreset, [string, string, string]> = {
   future: ['#F4F7FB', '#E7EDF6', '#00A884'],
   lotus: ['#FFF8FA', '#EEF7F1', '#9B4D88'],
   ember: ['#191411', '#2A1F1A', '#F6BF4F'],
-}
-
-const FONT_PREVIEW: Record<EditorFont, string> = {
-  system: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  serif: "ui-serif, 'New York', 'Iowan Old Style', Georgia, serif",
-  mono: "'SF Mono', 'IBM Plex Mono', Menlo, ui-monospace, monospace",
-  readable: "'Atkinson Hyperlegible', 'Avenir Next', 'Inter', sans-serif",
-  literary: "ui-serif, 'New York', 'Hoefler Text', 'Iowan Old Style', Georgia, serif",
-  compact: "'Avenir Next Condensed', 'Arial Narrow', 'Inter', sans-serif",
 }
 
 /** Renders Grimoire's visual appearance controls and a compact live reading sample. */
@@ -344,6 +336,8 @@ function AppearancePreview({
   themePreset: ThemePreset
   editorFont: EditorFont
 }) {
+  const fontRoles = resolveFontRoles({ themePreset, editorFont })
+
   return (
     <div
       className="rounded-md border border-border"
@@ -354,8 +348,8 @@ function AppearancePreview({
         padding: 14,
       }}
     >
-      <div style={{ fontFamily: FONT_PREVIEW[editorFont], color: 'var(--foreground)' }}>
-        <div style={{ fontSize: 15, fontWeight: 650, lineHeight: 1.2 }}>
+      <div style={{ fontFamily: fontRoles.editor, color: 'var(--foreground)' }}>
+        <div style={{ fontFamily: fontRoles.display, fontSize: 19, fontWeight: 650, lineHeight: 1.2 }}>
           {t('settings.appearance.previewTitle')}
         </div>
         <div style={{ color: 'var(--muted-foreground)', fontSize: 12, lineHeight: 1.55, marginTop: 6 }}>

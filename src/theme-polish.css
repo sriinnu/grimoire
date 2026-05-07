@@ -6,8 +6,8 @@
   --grimoire-parchment: #fbf4e5;
   --grimoire-parchment-2: #f4ead5;
   --grimoire-ink: #20392f;
-  --grimoire-hand-font: "Bradley Hand", "Marker Felt", "Segoe Print", "Comic Sans MS", cursive;
-  --grimoire-label-font: "Avenir Next Condensed", "DIN Condensed", "Arial Narrow", sans-serif;
+  --grimoire-hand-font: var(--grimoire-display-font-family);
+  --grimoire-label-font: var(--grimoire-label-font-family);
 }
 
 [data-theme-preset="manuscript"][data-theme="light"] {

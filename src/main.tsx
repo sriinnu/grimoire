@@ -8,6 +8,7 @@ import App from './App.tsx'
 import './theme-polish.css'
 import { LinuxTitlebar } from './components/LinuxTitlebar'
 import { applyStoredAppearance } from './lib/appearance'
+import { loadFontAssetsForAppearance } from './lib/fontConfig'
 import { applyStoredThemeMode } from './lib/themeMode'
 import {
   APP_COMMAND_EVENT_NAME,
@@ -58,7 +59,8 @@ if (shouldUseLinuxWindowChrome()) {
 }
 
 applyStoredThemeMode(document, window.localStorage)
-applyStoredAppearance(document, window.localStorage)
+const startupAppearance = applyStoredAppearance(document, window.localStorage)
+void loadFontAssetsForAppearance(document, startupAppearance)
 
 function dispatchDeterministicShortcutEvent(init: AppCommandShortcutEventInit) {
   const target =

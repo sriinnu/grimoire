@@ -221,17 +221,19 @@ The graph must stay inspectable without a graph database. If a graph database ev
 Appearance has three layers:
 
 - theme mode: light or dark
-- theme preset: Classic, Manuscript, Graphite, Studio, Folio, Nocturne
+- theme preset: Classic, Manuscript, Graphite, Studio, Folio, Nocturne, Retro, Aurora, Future, Lotus, Ember
 - editor font: System, Serif, Mono, Readable, Literary, Compact
+- font roles: UI, editor body, monospace, display headings, sidebar labels
 
 Contract:
 
 - TypeScript normalizes supported values.
+- `fontConfig.ts` maps theme and editor choices to font roles and bundled font assets.
 - Rust settings sanitize persisted values.
 - CSS consumes root attributes and semantic variables.
 - localStorage mirrors the values before native settings load to avoid startup flash.
 
-New UI must use semantic tokens instead of hardcoded palette choices.
+New UI must use semantic tokens instead of hardcoded palette choices or raw font stacks.
 
 ## Command
 
