@@ -62,6 +62,7 @@ pub struct AiAgentStreamRequest {
     pub message: String,
     pub system_prompt: Option<String>,
     pub vault_path: String,
+    pub model: Option<String>,
 }
 
 pub fn get_ai_agents_status() -> AiAgentsStatus {
@@ -82,6 +83,7 @@ where
                 message: request.message,
                 system_prompt: request.system_prompt,
                 vault_path: request.vault_path,
+                model: request.model,
             };
             crate::claude_cli::run_agent_stream(mapped, |event| {
                 if let Some(mapped_event) = map_claude_event(event) {
@@ -434,9 +436,13 @@ where
     let binary = find_chitragupta_binary()?;
     let prompt = build_codex_prompt(&request);
 
-    let mut child = Command::new(binary)
-        .arg("-p")
-        .arg(prompt)
+    let mut command = Command::new(binary);
+    command.arg("-p").arg(prompt);
+    if let Some(model) = normalize_cli_model(request.model.as_deref()) {
+        command.arg("--model").arg(model);
+    }
+
+    let mut child = command
         .current_dir(&request.vault_path)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -487,7 +493,7 @@ fn build_codex_args(request: &AiAgentStreamRequest) -> Result<Vec<String>, Strin
         .ok_or("Invalid MCP server path")?
         .to_string();
 
-    Ok(vec![
+    let mut args = vec![
         "exec".into(),
         "--json".into(),
         "-C".into(),
@@ -501,7 +507,23 @@ fn build_codex_args(request: &AiAgentStreamRequest) -> Result<Vec<String>, Strin
             r#"mcp_servers.grimoire.env={{VAULT_PATH="{}"}}"#,
             request.vault_path
         ),
-    ])
+    ];
+
+    if let Some(model) = normalize_cli_model(request.model.as_deref()) {
+        args.push("--model".into());
+        args.push(model);
+    }
+
+    Ok(args)
+}
+
+fn normalize_cli_model(model: Option<&str>) -> Option<String> {
+    let model = model?.trim();
+    if model.is_empty() || model.chars().any(char::is_whitespace) {
+        None
+    } else {
+        Some(model.to_string())
+    }
 }
 
 fn build_codex_prompt(request: &AiAgentStreamRequest) -> String {
@@ -652,6 +674,7 @@ mod tests {
             message: "Rename the note".into(),
             system_prompt: Some("Be concise".into()),
             vault_path: "/tmp/vault".into(),
+            model: None,
         });
 
         assert!(prompt.starts_with("System instructions:\nBe concise"));
@@ -665,10 +688,25 @@ mod tests {
             message: "Rename the note".into(),
             system_prompt: None,
             vault_path: "/tmp/vault".into(),
+            model: None,
         }) {
             assert!(!args.contains(&"--dangerously-bypass-approvals-and-sandbox".to_string()));
             assert!(args.contains(&"--json".to_string()));
             assert!(args.contains(&"-C".to_string()));
+        }
+    }
+
+    #[test]
+    fn build_codex_args_passes_model_override() {
+        if let Ok(args) = build_codex_args(&AiAgentStreamRequest {
+            agent: AiAgentId::Codex,
+            message: "Rename the note".into(),
+            system_prompt: None,
+            vault_path: "/tmp/vault".into(),
+            model: Some("gpt-5.2".into()),
+        }) {
+            assert!(args.contains(&"--model".to_string()));
+            assert!(args.contains(&"gpt-5.2".to_string()));
         }
     }
 

@@ -165,6 +165,7 @@ describe('mockHandlers coverage', () => {
         release_channel: 'alpha',
         ui_language: 'zh-Hans',
         default_ai_agent: 'codex',
+        ai_agent_models: { codex: 'gpt-5.2' },
       },
     })
 
@@ -184,6 +185,7 @@ describe('mockHandlers coverage', () => {
       editor_font: null,
       ui_language: 'zh-Hans',
       default_ai_agent: 'codex',
+      ai_agent_models: { codex: 'gpt-5.2' },
     })
 
     const list = {

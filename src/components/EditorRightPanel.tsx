@@ -13,6 +13,7 @@ interface EditorRightPanelProps {
   inspectorWidth: number
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  defaultAiModel?: string | null
   onUnsupportedAiPaste?: (message: string) => void
   inspectorEntry: VaultEntry | null
   inspectorContent: string | null
@@ -44,6 +45,7 @@ function AiChatRightPanel({
   vaultPath,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiModel,
   onUnsupportedAiPaste,
   inspectorEntry,
   inspectorContent,
@@ -59,6 +61,7 @@ function AiChatRightPanel({
   | 'vaultPath'
   | 'defaultAiAgent'
   | 'defaultAiAgentReady'
+  | 'defaultAiModel'
   | 'onUnsupportedAiPaste'
   | 'inspectorEntry'
   | 'inspectorContent'
@@ -75,6 +78,7 @@ function AiChatRightPanel({
     vaultPath,
     defaultAiAgent: defaultAiAgent ?? DEFAULT_AI_AGENT,
     defaultAiAgentReady: defaultAiAgentReady ?? true,
+    defaultAiModel,
     activeEntry: inspectorEntry,
     activeNoteContent: inspectorContent,
     entries,
@@ -118,6 +122,7 @@ function AiChatRightPanel({
 export function EditorRightPanel({
   showAIChat, inspectorCollapsed, inspectorWidth,
   defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+  defaultAiModel,
   onUnsupportedAiPaste,
   inspectorEntry, inspectorContent, entries, gitHistory, vaultPath,
   noteList, noteListFilter,
@@ -132,6 +137,7 @@ export function EditorRightPanel({
         vaultPath={vaultPath}
         defaultAiAgent={defaultAiAgent}
         defaultAiAgentReady={defaultAiAgentReady}
+        defaultAiModel={defaultAiModel}
         onUnsupportedAiPaste={onUnsupportedAiPaste}
         inspectorEntry={inspectorEntry}
         inspectorContent={inspectorContent}

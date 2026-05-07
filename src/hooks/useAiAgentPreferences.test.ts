@@ -10,6 +10,7 @@ const settings = {
   anonymous_id: null,
   release_channel: 'stable',
   default_ai_agent: 'claude_code' as const,
+  ai_agent_models: null,
 }
 
 const aiAgentsStatus = {
@@ -69,5 +70,27 @@ describe('useAiAgentPreferences', () => {
     }))
 
     expect(result.current.defaultAiAgentReady).toBe(true)
+  })
+
+  it('persists a model override for the selected local agent', () => {
+    const saveSettings = vi.fn()
+    const onToast = vi.fn()
+
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings,
+      saveSettings,
+      aiAgentsStatus,
+      onToast,
+    }))
+
+    act(() => {
+      result.current.setDefaultAiModel(' sonnet ')
+    })
+
+    expect(saveSettings).toHaveBeenCalledWith({
+      ...settings,
+      ai_agent_models: { claude_code: 'sonnet' },
+    })
+    expect(onToast).toHaveBeenCalledWith('Claude Code model: sonnet')
   })
 })

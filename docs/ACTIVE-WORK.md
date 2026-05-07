@@ -52,6 +52,8 @@ This file is the working stack for the current Grimoire push. New user requests 
 - Added shared motion CSS tokens with reduced-motion-safe fallbacks in `src/motion.css`.
 - Added the first subtle Chitragupta Memory signal animation in the right sidebar.
 - Removed Karya generated/runtime junk: `node_modules`, `.pnpm-store`, `dist`, `*.tsbuildinfo`, `.spanda`, and `karya.db`.
+- Added the first real canvas editor surface: pen, highlighter, eraser, hand/pan, colors, stroke sizes, undo/clear, editable JSON source, and PNG preview save.
+- Added built-in image badges and SVG/image upload support for custom Type icons.
 
 ## Next Tasks
 
@@ -86,6 +88,7 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Add a right-sidebar Memory lane as the Grimoire landing zone for Chitragupta recall/wiki/graph data.
   - [x] Add editor slash-command entry points for Chitragupta-backed memory workflows.
   - [x] Add a visible Memory signal so the lane feels alive before backend recall lands.
+  - [x] Add per-agent local CLI model overrides for Claude Code, Codex, and Chitragupta.
   - Diagnose why Chitragupta context/unified recall says daemon unavailable.
   - Keep a repo-visible active work file updated even when MCP memory is unavailable.
   - Write project memory whenever the mission stack changes.
@@ -99,8 +102,13 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Add Chitragupta memory workflow placeholders to the shared slash-command catalog.
   - [x] Add right-sidebar outline/TOC for the active Markdown document.
   - [x] Add frontmatter/YAML formatting and validation that preserves clean Markdown on disk.
-  - Build the actual canvas editor surface that opens `grimoire-canvas` blocks and writes source JSON + preview PNG.
+  - [x] Build the actual canvas editor surface that opens `grimoire-canvas` blocks and writes source JSON + preview PNG.
+  - Add shape tools, text boxes, lasso select, and stroke-to-Markdown extraction.
   - Keep Swift package and JS package aligned through fixtures.
+- [ ] Improve custom Type creation/customization.
+  - [x] Add predefined image badges for new and existing custom Types.
+  - [x] Allow users to upload SVG/image badges that adapt to current icon size.
+  - Add optional per-type icon size/crop controls if real vault usage shows it is needed.
 - [ ] Add original cinematic motion polish.
   - [x] Document animation direction as Grimoire-native cinematic storybook motion, not a copied studio style.
   - [x] Add CSS motion tokens and reduced-motion behavior.

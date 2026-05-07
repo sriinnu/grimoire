@@ -78,7 +78,21 @@ The note stores:
 - a fenced `grimoire-canvas` metadata block
 - a source attachment path, usually `attachments/<kind>-<yyyy-mm-dd-hhmmss>.grimoire-canvas.json`
 
-Tauri can render this with a web canvas/whiteboard engine. Apple support surfaces can render it with PencilKit. Both must preserve the same source + preview contract, because the vault remains the source of truth.
+Tauri renders this with a pointer-event canvas surface that supports pen, highlighter, eraser, and hand/pan tools. Saving writes the editable JSON source and refreshes the preview PNG. Apple support surfaces can render the same contract with PencilKit, because the vault remains the source of truth.
+
+## Type Icon
+
+A Type icon is a visual identifier stored on a Type document.
+
+Supported values:
+
+- Phosphor icon name, for example `rocket`
+- emoji
+- remote image URL
+- Tauri asset URL
+- `data:image/*` badge from the built-in image picker or SVG/image upload
+
+Renderers must constrain image icons to the requested icon size with containment, so uploaded SVGs with unusual dimensions do not distort sidebars, chips, search rows, or note titles.
 
 ## Frontmatter
 
@@ -271,6 +285,7 @@ Current agents:
 
 - Claude Code
 - Codex CLI
+- Chitragupta
 
 Agent rules:
 
@@ -278,6 +293,7 @@ Agent rules:
 - detection should work from realistic macOS/Linux/Windows install paths
 - streamed output must preserve reasoning, tool calls, and errors clearly
 - agent tools should operate through the same safe vault commands as the app
+- model overrides are installation-local and passed as CLI arguments only when set
 
 MCP project tools:
 
@@ -307,6 +323,7 @@ Installation-local:
 - window state
 - update channel
 - agent preference
+- per-agent model overrides
 - telemetry consent
 
 ## Native Platform Surface

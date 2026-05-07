@@ -12,6 +12,7 @@ interface UseAiPanelControllerArgs {
   vaultPath: string
   defaultAiAgent: AiAgentId
   defaultAiAgentReady: boolean
+  defaultAiModel?: string | null
   activeEntry?: VaultEntry | null
   activeNoteContent?: string | null
   entries?: VaultEntry[]
@@ -40,6 +41,7 @@ export function useAiPanelController({
   vaultPath,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiModel,
   activeEntry,
   activeNoteContent,
   entries,
@@ -71,6 +73,7 @@ export function useAiPanelController({
   const agent = useCliAiAgent(vaultPath, contextPrompt, fileCallbacks, {
     agent: defaultAiAgent,
     agentReady: defaultAiAgentReady,
+    model: defaultAiModel,
   })
   const hasContext = !!activeEntry
   const isActive = agent.status === 'thinking' || agent.status === 'tool-executing'

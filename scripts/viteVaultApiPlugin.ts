@@ -149,6 +149,24 @@ async function handleVaultSave(url: URL, req: IncomingMessage, res: ServerRespon
   return true
 }
 
+async function handleVaultSaveBinary(url: URL, req: IncomingMessage, res: ServerResponse): Promise<boolean> {
+  if (url.pathname !== '/api/vault/save-binary' || req.method !== 'POST') return false
+  try {
+    const body = await readRequestBody(req)
+    const { path: filePath, data } = JSON.parse(body)
+    if (!filePath || typeof data !== 'string') {
+      sendJson(res, { error: 'Missing path or data' }, 400)
+      return true
+    }
+    fs.mkdirSync(path.dirname(filePath), { recursive: true })
+    fs.writeFileSync(filePath, Buffer.from(data, 'base64'))
+    sendJson(res, null)
+  } catch (err: unknown) {
+    sendJson(res, { error: err instanceof Error ? err.message : 'Binary save failed' }, 500)
+  }
+  return true
+}
+
 async function handleVaultRename(url: URL, req: IncomingMessage, res: ServerResponse): Promise<boolean> {
   if (url.pathname !== '/api/vault/rename' || req.method !== 'POST') return false
   try {
@@ -244,6 +262,7 @@ async function handleVaultApiRequest(req: IncomingMessage, res: ServerResponse):
     () => Promise.resolve(handleVaultEntry(url, res)),
     () => Promise.resolve(handleVaultSearch(url, res)),
     () => handleVaultSave(url, req, res),
+    () => handleVaultSaveBinary(url, req, res),
     () => handleVaultRename(url, req, res),
     () => handleVaultRenameFilename(url, req, res),
     () => handleVaultDelete(url, req, res),

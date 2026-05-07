@@ -303,6 +303,7 @@ describe('SingleEditorView', () => {
     const entries = [makeEntry()]
     const { unmount } = render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={entries}
         onNavigateWikilink={vi.fn()}
@@ -340,6 +341,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -365,6 +367,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -392,6 +395,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -412,6 +416,7 @@ describe('SingleEditorView', () => {
     const editor = createEditor()
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -472,6 +477,7 @@ describe('SingleEditorView', () => {
   it('shows wikilink suggestions immediately after typing an empty [[ trigger', async () => {
     render(
       <SingleEditorView
+        activeContent=""
         editor={createEditor() as never}
         entries={[
           makeEntry({ title: 'Doc A', filename: 'doc-a.md', path: '/vault/doc-a.md' }),
@@ -495,6 +501,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={createEditor() as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -508,6 +515,7 @@ describe('SingleEditorView', () => {
   it('passes the runtime CSP style nonce to Mantine fallback style tags', () => {
     render(
       <SingleEditorView
+        activeContent=""
         editor={createEditor() as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -523,6 +531,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -551,6 +560,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -591,6 +601,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -619,6 +630,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -656,6 +668,7 @@ describe('SingleEditorView', () => {
 
     render(
       <SingleEditorView
+        activeContent=""
         editor={editor as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}
@@ -673,6 +686,7 @@ describe('SingleEditorView', () => {
   it('routes the custom link-toolbar open action through openExternalUrl', () => {
     render(
       <SingleEditorView
+        activeContent=""
         editor={createEditor() as never}
         entries={[makeEntry()]}
         onNavigateWikilink={vi.fn()}

@@ -25,6 +25,7 @@ export interface StreamAiAgentRequest {
   message: string
   systemPrompt?: string
   vaultPath: string
+  model?: string | null
   callbacks: AgentStreamCallbacks
 }
 
@@ -59,6 +60,7 @@ export async function streamAiAgent(
     message,
     systemPrompt,
     vaultPath,
+    model,
     callbacks,
   } = request
 
@@ -94,6 +96,7 @@ export async function streamAiAgent(
         message,
         system_prompt: systemPrompt || null,
         vault_path: vaultPath,
+        model: model || null,
       },
     })
     closeStream()

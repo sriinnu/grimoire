@@ -9,7 +9,9 @@ export type ResolvedNoteIcon =
   | { kind: 'image'; src: string }
   | { kind: 'phosphor'; Icon: ComponentType<IconProps> }
 
-function isHttpUrl(value: string): boolean {
+function isImageUrl(value: string): boolean {
+  if (value.startsWith('data:image/')) return true
+  if (value.startsWith('asset://localhost/') || value.startsWith('http://asset.localhost/')) return true
   try {
     const url = new URL(value)
     return url.protocol === 'http:' || url.protocol === 'https:'
@@ -27,7 +29,7 @@ export function resolveNoteIcon(icon: string | null | undefined): ResolvedNoteIc
 
   const trimmed = icon.trim()
   if (isEmoji(trimmed)) return { kind: 'emoji', value: trimmed }
-  if (isHttpUrl(trimmed)) return { kind: 'image', src: trimmed }
+  if (isImageUrl(trimmed)) return { kind: 'image', src: trimmed }
 
   const Icon = findIcon(trimmed)
   if (Icon) return { kind: 'phosphor', Icon }
