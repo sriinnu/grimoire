@@ -267,7 +267,7 @@ export function DynamicPropertiesPanel({
   useFocusNoteIconProperty({ onAddProperty, setEditingKey, setPendingSuggestedKey })
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="inspector-card flex flex-col gap-3">
       <div className="grid min-w-0 gap-x-2 gap-y-1.5" style={PROPERTY_PANEL_GRID_STYLE}>
         <TypeSelector
           isA={entry.isA}

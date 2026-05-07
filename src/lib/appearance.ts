@@ -1,4 +1,4 @@
-export const DEFAULT_THEME_PRESET = 'classic'
+export const DEFAULT_THEME_PRESET = 'manuscript'
 export const DEFAULT_EDITOR_FONT = 'system'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'

@@ -1296,11 +1296,11 @@ describe('Sidebar', () => {
   })
 
   describe('group separators', () => {
-    it('TYPES header and its entries share the same border-b container (no separator inside group)', () => {
+    it('LISTS header and its entries share the same border-b container (no separator inside group)', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const sectionsHeader = screen.getByText('TYPES')
+      const sectionsHeader = screen.getByText('LISTS')
       const projectsSection = screen.getByText('Projects')
-      // Walk up from TYPES header to find the border-b container
+      // Walk up from LISTS header to find the border-b container
       const borderContainer = sectionsHeader.closest('.border-b')
       expect(borderContainer).not.toBeNull()
       // The section entry should be inside the same border-b container
@@ -1347,7 +1347,7 @@ describe('Sidebar', () => {
   })
 
   describe('create type button', () => {
-    it('renders + button in TYPES header when onCreateNewType is provided', () => {
+    it('renders + button in LISTS header when onCreateNewType is provided', () => {
       render(
         <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} onCreateNewType={() => {}} />
       )
