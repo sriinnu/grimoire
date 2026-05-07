@@ -37,7 +37,7 @@ import { useSettings } from './hooks/useSettings'
 import { useDocumentThemeMode } from './hooks/useDocumentThemeMode'
 import { useAppearanceSettings } from './hooks/useAppearanceSettings'
 import { useNoteActions } from './hooks/useNoteActions'
-import { planNewTypeCreation } from './hooks/useNoteCreation'
+import { planNewTypeCreation, slugify } from './hooks/useNoteCreation'
 import { useCommitFlow } from './hooks/useCommitFlow'
 import { useGitRemoteStatus } from './hooks/useGitRemoteStatus'
 import { useViewMode, type ViewMode } from './hooks/useViewMode'
@@ -993,11 +993,14 @@ function App() {
   const shouldLoadGitHistory = !layout.inspectorCollapsed && !showAIChat
   const gitHistory = useGitHistory(notes.activeTabPath, vault.loadGitHistory, shouldLoadGitHistory)
 
-  const handleCreateType = useCallback(async (name: string) => {
+  const handleCreateType = useCallback(async (name: string, icon?: string) => {
     const created = await notes.handleCreateType(name)
+    if (created && icon) {
+      await notes.handleUpdateFrontmatter(`${resolvedPath}/${slugify(name)}.md`, 'icon', icon)
+    }
     if (created) setToastMessage(`Type "${name}" created`)
     return created
-  }, [notes, setToastMessage])
+  }, [notes, resolvedPath, setToastMessage])
 
   const handleCreateMissingType = useCallback(async (path: string, missingType: string, nextTypeName: string) => {
     const trimmed = nextTypeName.trim()
@@ -1555,6 +1558,7 @@ function App() {
               inspectorWidth={layout.inspectorWidth}
               defaultAiAgent={aiAgentPreferences.defaultAiAgent}
               defaultAiAgentReady={aiAgentPreferences.defaultAiAgentReady}
+              defaultAiModel={aiAgentPreferences.defaultAiModel}
               onUnsupportedAiPaste={setToastMessage}
               onInspectorResize={layout.handleInspectorResize}
               inspectorEntry={activeTab?.entry ?? null}

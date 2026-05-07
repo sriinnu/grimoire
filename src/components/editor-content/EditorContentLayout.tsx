@@ -177,6 +177,7 @@ function EditorCanvas({
   onEditorChange,
   isDeletedPreview,
   vaultPath,
+  activeTab,
 }: Pick<
   EditorContentModel,
   | 'showEditor'
@@ -188,6 +189,7 @@ function EditorCanvas({
   | 'onEditorChange'
   | 'isDeletedPreview'
   | 'vaultPath'
+  | 'activeTab'
 >) {
   if (!showEditor) return null
 
@@ -195,6 +197,7 @@ function EditorCanvas({
     <div className="editor-scroll-area" style={cssVars as React.CSSProperties}>
       <div className="editor-content-wrapper">
         <SingleEditorView
+          activeContent={activeTab?.content ?? ''}
           editor={editor}
           entries={entries}
           onNavigateWikilink={onNavigateWikilink}
@@ -302,6 +305,7 @@ export function EditorContentLayout(model: EditorContentModel) {
         vaultPath={vaultPath}
       />
       <EditorCanvas
+        activeTab={activeTab}
         showEditor={showEditor}
         cssVars={cssVars}
         vaultPath={vaultPath}

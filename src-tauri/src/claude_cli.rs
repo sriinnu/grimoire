@@ -59,6 +59,7 @@ pub struct AgentStreamRequest {
     pub message: String,
     pub system_prompt: Option<String>,
     pub vault_path: String,
+    pub model: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -351,7 +352,21 @@ fn build_agent_args(req: &AgentStreamRequest) -> Result<Vec<String>, String> {
         }
     }
 
+    if let Some(model) = normalize_cli_model(req.model.as_deref()) {
+        args.push("--model".into());
+        args.push(model);
+    }
+
     Ok(args)
+}
+
+fn normalize_cli_model(model: Option<&str>) -> Option<String> {
+    let model = model?.trim();
+    if model.is_empty() || model.chars().any(char::is_whitespace) {
+        None
+    } else {
+        Some(model.to_string())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1133,6 +1148,7 @@ mod tests {
             message: "create note".into(),
             system_prompt: None,
             vault_path: "/tmp/vault".into(),
+            model: None,
         }) {
             assert!(args.contains(&"-p".to_string()));
             assert!(args.contains(&"create note".to_string()));
@@ -1151,6 +1167,7 @@ mod tests {
             message: "do it".into(),
             system_prompt: Some("Act as expert.".into()),
             vault_path: "/tmp/v".into(),
+            model: None,
         }) {
             assert!(args.contains(&"--append-system-prompt".to_string()));
             assert!(args.contains(&"Act as expert.".to_string()));
@@ -1163,8 +1180,34 @@ mod tests {
             message: "x".into(),
             system_prompt: Some(String::new()),
             vault_path: "/tmp/v".into(),
+            model: None,
         }) {
             assert!(!args.contains(&"--append-system-prompt".to_string()));
+        }
+    }
+
+    #[test]
+    fn build_agent_args_passes_model_override() {
+        if let Ok(args) = build_agent_args(&AgentStreamRequest {
+            message: "x".into(),
+            system_prompt: None,
+            vault_path: "/tmp/v".into(),
+            model: Some("sonnet".into()),
+        }) {
+            assert!(args.contains(&"--model".to_string()));
+            assert!(args.contains(&"sonnet".to_string()));
+        }
+    }
+
+    #[test]
+    fn build_agent_args_skips_whitespace_model_override() {
+        if let Ok(args) = build_agent_args(&AgentStreamRequest {
+            message: "x".into(),
+            system_prompt: None,
+            vault_path: "/tmp/v".into(),
+            model: Some("bad model".into()),
+        }) {
+            assert!(!args.contains(&"--model".to_string()));
         }
     }
 
@@ -1295,6 +1338,7 @@ mod tests {
             message: "test".into(),
             system_prompt: Some("sys".into()),
             vault_path: "/tmp/nonexistent".into(),
+            model: None,
         };
         let mut events = vec![];
         let result = run_agent_stream(req, |e| events.push(e));

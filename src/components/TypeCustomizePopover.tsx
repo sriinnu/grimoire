@@ -3,6 +3,10 @@ import { MagnifyingGlass } from '@phosphor-icons/react'
 import { ICON_OPTIONS, type IconEntry } from '../utils/iconRegistry'
 import { ACCENT_COLORS } from '../utils/typeColors'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { TypeImagePicker } from './TypeImagePicker'
 
 function filterIcons(icons: IconEntry[], query: string): IconEntry[] {
   if (!query) return icons
@@ -34,6 +38,7 @@ function useDebouncedCallback(fn: (v: string) => void, delay: number): (v: strin
   }, [delay])
 }
 
+/** Popover for editing a type's visual identity and default note template. */
 export function TypeCustomizePopover({
   currentIcon,
   currentColor,
@@ -78,21 +83,28 @@ export function TypeCustomizePopover({
       <div className="font-mono-overline mb-2 text-muted-foreground">Color</div>
       <div className="flex gap-2 mb-3 flex-wrap">
         {ACCENT_COLORS.map((c) => (
-          <button
+          <Button
             key={c.key}
+            aria-label={c.label}
+            aria-pressed={selectedColor === c.key}
             className={cn(
-              "flex items-center justify-center rounded-full border-2 cursor-pointer transition-all",
+              "h-6 w-6 rounded-full border-2 p-0 transition-all",
               selectedColor === c.key ? "border-foreground scale-110" : "border-transparent hover:scale-105",
             )}
             style={{ width: 24, height: 24, backgroundColor: c.css, border: selectedColor === c.key ? '2px solid var(--foreground)' : '2px solid transparent' }}
             onClick={() => handleColorClick(c.key)}
             title={c.label}
+            type="button"
+            variant="ghost"
           />
         ))}
       </div>
 
       {/* Icon section */}
       <div className="font-mono-overline mb-2 text-muted-foreground">Icon</div>
+      <div className="mb-3">
+        <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={handleIconClick} />
+      </div>
 
       {/* Search input */}
       <div className="relative mb-2">
@@ -100,12 +112,12 @@ export function TypeCustomizePopover({
           size={14}
           className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
         />
-        <input
+        <Input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search icons…"
-          className="w-full rounded border border-border bg-background pl-7 pr-2 py-1 text-[12px] text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
+          className="h-8 pl-7 text-[12px]"
         />
       </div>
 
@@ -117,43 +129,48 @@ export function TypeCustomizePopover({
           </div>
         ) : (
           filteredIcons.map(({ name, Icon }) => (
-            <button
+            <Button
               key={name}
+              aria-label={name}
+              aria-pressed={selectedIcon === name}
               className={cn(
-                "flex items-center justify-center rounded cursor-pointer transition-colors",
+                "h-[30px] w-[30px] p-0 transition-colors",
                 selectedIcon === name
                   ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
-              style={{ width: 30, height: 30 }}
               onClick={() => handleIconClick(name)}
               title={name}
+              type="button"
+              variant="ghost"
             >
               <Icon size={16} />
-            </button>
+            </Button>
           ))
         )}
       </div>
 
       {/* Template section */}
       <div className="font-mono-overline mb-2 mt-3 text-muted-foreground">Template</div>
-      <textarea
+      <Textarea
         value={templateText}
         onChange={(e) => handleTemplateChange(e.target.value)}
         placeholder="Markdown template for new notes of this type…"
-        className="w-full rounded border border-border bg-background px-2 py-1.5 text-[12px] font-mono text-foreground placeholder:text-muted-foreground outline-none focus:border-primary resize-y"
+        className="min-h-20 max-h-[200px] resize-y px-2 py-1.5 font-mono text-[12px]"
         style={{ minHeight: 80, maxHeight: 200 }}
         data-testid="template-textarea"
       />
 
       {/* Done button */}
       <div className="mt-3 flex justify-end">
-        <button
-          className="rounded px-3 py-1 text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer transition-colors border-none bg-transparent"
+        <Button
+          size="sm"
+          type="button"
+          variant="ghost"
           onClick={onClose}
         >
           Done
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -27,6 +27,7 @@ import {
 } from './singleEditorChrome'
 import { handleToolbarMouseDownCapture } from './singleEditorToolbarEvents'
 import { useSingleEditorSuggestionItems } from './singleEditorSuggestions'
+import { CanvasAttachmentLauncher } from './canvas/CanvasAttachmentLauncher'
 
 const TEST_TABLE_MARKDOWN = `| Head 1 | Head 2 | Head 3 |
 | --- | --- | --- |
@@ -234,7 +235,8 @@ function useInsertImageCallback(editor: ReturnType<typeof useCreateBlockNote>) {
 }
 
 /** Single BlockNote editor view — content is swapped via replaceBlocks */
-export function SingleEditorView({ editor, entries, onNavigateWikilink, onChange, onCreateAndOpenNote, vaultPath, editable = true }: {
+export function SingleEditorView({ activeContent, editor, entries, onNavigateWikilink, onChange, onCreateAndOpenNote, vaultPath, editable = true }: {
+  activeContent: string
   editor: ReturnType<typeof useCreateBlockNote>
   entries: VaultEntry[]
   onNavigateWikilink: (target: string) => void
@@ -286,6 +288,11 @@ export function SingleEditorView({ editor, entries, onNavigateWikilink, onChange
           <div className="editor__drop-overlay-label">Drop image here</div>
         </div>
       )}
+      <CanvasAttachmentLauncher
+        containerRef={containerRef}
+        markdown={activeContent}
+        vaultPath={vaultPath}
+      />
       <SharedContextBlockNoteView
         editor={editor}
         theme={themeMode}

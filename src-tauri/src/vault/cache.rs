@@ -747,6 +747,11 @@ mod tests {
             .current_dir(vault)
             .output()
             .unwrap();
+        crate::hidden_command("git")
+            .args(["config", "core.hooksPath", ".git/hooks-disabled"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
     }
 
     /// Common setup: acquire env lock, create temp cache dir + git-initialised vault.

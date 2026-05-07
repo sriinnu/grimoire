@@ -116,6 +116,7 @@ let mockSettings: Settings = {
   editor_font: null,
   ui_language: null,
   default_ai_agent: 'claude_code',
+  ai_agent_models: null,
 }
 
 const DEFAULT_MOCK_VAULT_PATH = '/Users/mock/demo-vault-v2'
@@ -402,6 +403,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     const vault = args.vault_path ?? '/Users/srinivas/Grimoire'
     return `${vault}/attachments/${Date.now()}-${args.filename}`
   },
+  save_canvas_preview: () => null,
   copy_image_to_vault: (args: { vault_path?: string; source_path: string }) => {
     const vault = args.vault_path ?? '/Users/srinivas/Grimoire'
     const filename = args.source_path.split('/').pop() ?? 'image.png'
@@ -426,6 +428,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       editor_font: s.editor_font ?? null,
       ui_language: s.ui_language ?? null,
       default_ai_agent: s.default_ai_agent ?? null,
+      ai_agent_models: s.ai_agent_models ?? null,
     }
     return null
   },

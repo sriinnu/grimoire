@@ -283,6 +283,21 @@ describe('SettingsPanel', () => {
     expect(screen.getByRole('option', { name: /Codex/i })).toBeInTheDocument()
   })
 
+  it('saves a model override for the selected default agent', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.change(screen.getByTestId('settings-default-ai-model'), {
+      target: { value: 'sonnet' },
+    })
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ai_agent_models: { claude_code: 'sonnet' },
+    }))
+  })
+
   it('treats a legacy beta release channel as stable', () => {
     render(
       <SettingsPanel

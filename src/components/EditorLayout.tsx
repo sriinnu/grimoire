@@ -56,6 +56,7 @@ interface EditorLayoutProps {
   inspectorWidth: number
   defaultAiAgent: AiAgentId
   defaultAiAgentReady: boolean
+  defaultAiModel?: string | null
   inspectorEntry: VaultEntry | null
   inspectorContent: string | null
   gitHistory: GitCommit[]
@@ -148,6 +149,7 @@ export function EditorLayout({
   inspectorWidth,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiModel,
   inspectorEntry,
   inspectorContent,
   gitHistory,
@@ -215,6 +217,7 @@ export function EditorLayout({
           inspectorWidth={inspectorWidth}
           defaultAiAgent={defaultAiAgent}
           defaultAiAgentReady={defaultAiAgentReady}
+          defaultAiModel={defaultAiModel}
           onUnsupportedAiPaste={onUnsupportedAiPaste}
           inspectorEntry={inspectorEntry}
           inspectorContent={inspectorContent}

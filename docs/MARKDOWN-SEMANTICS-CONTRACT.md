@@ -137,7 +137,7 @@ Math and technical writing:
 - whiteboard canvas attachment
 - sketch note scaffold
 
-Canvas commands save as Markdown references plus a `grimoire-canvas` metadata fence. The editable strokes live in a timestamped attachment source file and the note shows a preview image, so Tauri canvas and Apple PencilKit surfaces can share one vault contract without same-day canvas collisions.
+Canvas commands save as Markdown references plus a `grimoire-canvas` metadata fence. The editable strokes live in a timestamped attachment source file and the note shows a preview image, so Tauri canvas and Apple PencilKit surfaces can share one vault contract without same-day canvas collisions. Tauri now writes the editable stroke JSON and a refreshed PNG preview; future native surfaces must preserve the same paths and metadata keys.
 
 AI and memory:
 

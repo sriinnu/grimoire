@@ -167,10 +167,11 @@ Markdown is the durable format. Editors are views over markdown.
 - CodeMirror gives the Tauri editor raw source editing, YAML visibility, precise cursor control, and a better base for source-level features.
 - `@grimoire/markdown-editor` owns the primary React/BlockNote editor package: slash commands, command aliases, Mem/Bear/Obsidian/Notion-inspired insertion UX, reusable templates, host-schema fallbacks, canvas attachment placeholders, and shared custom math block type constants.
 - `MarkdownEditor` owns editor-neutral markdown semantics for Apple support surfaces: frontmatter splitting, wikilink round-tripping, math placeholder serialization, snippets, word counts, and compact markdown.
-- Canvas and handwriting surfaces are attachment-backed: Markdown stores a preview image plus a `grimoire-canvas` fence, while Tauri canvas and Apple PencilKit can share the same editable source file contract.
+- Canvas and handwriting surfaces are attachment-backed: Markdown stores a preview image plus a `grimoire-canvas` fence. The Tauri surface edits pointer-event strokes and saves source JSON plus a PNG preview through `save_note_content` and `save_canvas_preview`; Apple PencilKit can keep the same source file contract.
 - Grimoire app code supplies vault context around that package: `[[` note links, `@` person mentions, `#` tag/collection autocomplete, file picking, weather, and future AI transform callbacks.
 - App-local editor utilities preserve Grimoire-specific behavior across modes: arrow ligatures, image path portability, raw-mode sync, selection repair, and vault-aware adapters. Tauri surfaces keep matching adapters instead of importing Swift UI concerns.
 - Slash commands are editor-level commands. Shared intent is documented in `docs/MARKDOWN-SEMANTICS-CONTRACT.md`; implementation can be shell-specific as long as the saved markdown result is portable.
+- Type icons can be Phosphor names, emoji, remote image URLs, Tauri asset URLs, or `data:image/*` badges. Renderers must fit image icons into the requested icon box instead of assuming a square source.
 
 Lessons from the local `.tmp` reference repos:
 
@@ -212,7 +213,7 @@ Grimoire favors local agents:
 - MCP exposes vault tools so agents can inspect and operate on local notes.
 - MCP also exposes project-intelligence tools for project docs, durable `BOARD.md` tasks, and wikilink graph edges.
 - Generated project board rows keep stable `grimoire-task` comments with priority/source metadata so app scans and MCP tools share one task contract.
-- Agent choice is an app setting; vault guidance files live with the vault.
+- Agent choice and per-agent CLI model overrides are app settings; vault guidance files live with the vault.
 
 The design goal is not "AI writes notes for you." The goal is that an agent can understand the same durable knowledge structure the user already uses.
 

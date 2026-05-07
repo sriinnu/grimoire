@@ -1,3 +1,6 @@
+---
+type: Note
+---
 # Grimoire Markdown Editor
 
 Standalone editor project for Grimoire and future apps.

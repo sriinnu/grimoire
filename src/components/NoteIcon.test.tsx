@@ -26,6 +26,11 @@ describe('NoteIcon', () => {
     expect(screen.getByTestId('note-icon-display').querySelector('img')).toBeInTheDocument()
   })
 
+  it('displays uploaded SVG data icons', () => {
+    render(<NoteIcon icon="data:image/svg+xml;utf8,%3Csvg%2F%3E" />)
+    expect(screen.getByTestId('note-icon-display').querySelector('img')).toBeInTheDocument()
+  })
+
   it('focuses the icon property when add button is clicked', () => {
     const handler = vi.fn()
     window.addEventListener(FOCUS_NOTE_ICON_PROPERTY_EVENT, handler)

@@ -20,6 +20,7 @@ interface AiPanelProps {
   onUnsupportedAiPaste?: (message: string) => void
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  defaultAiModel?: string | null
   onFileCreated?: (relativePath: string) => void
   onFileModified?: (relativePath: string) => void
   onVaultChanged?: () => void
@@ -140,6 +141,7 @@ export function AiPanel({
   onUnsupportedAiPaste,
   defaultAiAgent: providedDefaultAiAgent,
   defaultAiAgentReady: providedDefaultAiAgentReady,
+  defaultAiModel,
   onFileCreated,
   onFileModified,
   onVaultChanged,
@@ -155,6 +157,7 @@ export function AiPanel({
     vaultPath,
     defaultAiAgent: providedDefaultAiAgent ?? DEFAULT_AI_AGENT,
     defaultAiAgentReady: providedDefaultAiAgentReady ?? true,
+    defaultAiModel,
     activeEntry,
     activeNoteContent,
     entries,

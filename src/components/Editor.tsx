@@ -46,6 +46,7 @@ interface EditorProps {
   inspectorWidth: number
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  defaultAiModel?: string | null
   onInspectorResize: (delta: number) => void
   inspectorEntry: VaultEntry | null
   inspectorContent: string | null
@@ -250,6 +251,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
     getNoteStatus,
     inspectorCollapsed, onToggleInspector, inspectorWidth,
     defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+    defaultAiModel,
     onUnsupportedAiPaste,
     onInspectorResize,
     inspectorEntry, inspectorContent, gitHistory,
@@ -328,6 +330,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
       inspectorWidth={inspectorWidth}
       defaultAiAgent={defaultAiAgent}
       defaultAiAgentReady={defaultAiAgentReady}
+      defaultAiModel={defaultAiModel}
       onUnsupportedAiPaste={onUnsupportedAiPaste}
       inspectorEntry={inspectorEntry}
       inspectorContent={inspectorContent}

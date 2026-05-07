@@ -98,6 +98,8 @@ export interface Settings {
   ui_language?: AppLocale | null
   initial_h1_auto_rename_enabled?: boolean | null
   default_ai_agent?: AiAgentId | null
+  /** Optional per-agent model override passed to local CLI agents. */
+  ai_agent_models?: Partial<Record<AiAgentId, string>> | null
 }
 
 export interface GitPullResult {

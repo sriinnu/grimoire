@@ -320,6 +320,7 @@ macro_rules! app_invoke_handler {
             commands::sync_vault_asset_scope_for_window,
             commands::sync_note_title,
             commands::save_image,
+            commands::save_canvas_preview,
             commands::copy_image_to_vault,
             commands::delete_note,
             commands::batch_delete_notes,
