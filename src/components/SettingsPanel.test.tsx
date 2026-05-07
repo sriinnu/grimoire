@@ -104,7 +104,7 @@ describe('SettingsPanel', () => {
       autogit_inactive_threshold_seconds: 30,
       release_channel: null,
       theme_mode: 'light',
-      theme_preset: 'classic',
+      theme_preset: 'manuscript',
       editor_font: 'system',
     }))
     expect(onClose).toHaveBeenCalled()

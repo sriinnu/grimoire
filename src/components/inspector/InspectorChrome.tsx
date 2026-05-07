@@ -6,7 +6,7 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
 
   return (
     <div
-      className="flex shrink-0 items-center border-b border-border"
+      className="inspector-header flex shrink-0 items-center border-b border-border"
       style={{ height: 52, padding: '6px 12px', gap: 8, cursor: 'default' }}
       onMouseDown={onMouseDown}
     >

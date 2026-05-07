@@ -39,7 +39,7 @@ export function MemoryPanel({ entry, entries, semantics }: MemoryPanelProps) {
   const pendingCapabilities = context.requiredCapabilities.length
 
   return (
-    <section data-testid="memory-panel">
+    <section className="inspector-card" data-testid="memory-panel">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h4 className="font-mono-overline flex items-center gap-1 text-muted-foreground">
           <Brain className="size-3" />

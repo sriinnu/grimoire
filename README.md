@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/grimoire-logo.svg" width="430" alt="Grimoire - Knowledge. Connected." />
+  <img src="assets/app-icon.png" width="120" alt="Grimoire app icon" />
 </p>
 
 <p align="center">
