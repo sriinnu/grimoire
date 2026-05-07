@@ -202,7 +202,7 @@ Theme mode, theme preset, and editor font are resolved through `lib/appearance.t
 - `data-theme-preset`
 - `data-editor-font`
 
-CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors.
+`lib/fontConfig.ts` resolves the font role contract (`ui`, `editor`, `mono`, `display`, `label`) and loads bundled font assets from `assets/fonts` through `FontFace` when needed. CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors or direct font-family literals.
 
 ## AI And MCP
 
