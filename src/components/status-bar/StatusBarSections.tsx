@@ -203,7 +203,7 @@ function StatusBarWorkflowBadges({
         compact={compact}
       />
       <ConflictBadge count={conflictCount} onClick={onOpenConflictResolver} showSeparator={false} compact={compact} />
-      <PulseBadge onClick={onClickPulse} disabled={isGitVault === false} showSeparator={false} compact={compact} />
+      <PulseBadge onClick={onClickPulse} showSeparator={false} compact={compact} />
     </>
   )
 }
