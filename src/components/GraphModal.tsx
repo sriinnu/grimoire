@@ -101,7 +101,7 @@ function GraphModalContent({
           <Graph size={18} />
           Knowledge graph
         </DialogTitle>
-        <DialogDescription className="sr-only">Vault relationships and wikilinks.</DialogDescription>
+        <DialogDescription className="sr-only">Vault relationships and Spelllinks.</DialogDescription>
       </DialogHeader>
 
       <div className="grid gap-3 lg:grid-cols-[1fr_260px]">

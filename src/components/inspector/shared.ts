@@ -1,7 +1,7 @@
 import { wikilinkTarget, wikilinkDisplay } from '../../utils/wikilink'
 import type { VaultEntry } from '../../types'
 import { getTypeColor, getTypeLightColor } from '../../utils/typeColors'
-import { getTypeIcon } from '../NoteItem'
+import { getTypeIcon } from '../note-item/typeIcon'
 import { findEntryByTarget } from '../../utils/wikilinkColors'
 
 export function isWikilink(value: string): boolean {
@@ -45,5 +45,6 @@ export function resolveRefProps(ref: string, entries: VaultEntry[], typeEntryMap
     target: wikilinkTarget(ref),
     title: entryStatusTitle(resolved),
     TypeIcon: getTypeIcon(refType, te?.icon),
+    typeIconValue: te?.icon ?? null,
   }
 }

@@ -20,6 +20,11 @@ function assetUrl(path: AbsolutePath): MarkdownImageUrl {
   return convertFileSrc(path)
 }
 
+/** Resolve a vault file path to a displayable image URL without inlining SVG/XML. */
+export function resolveVaultImageSrc(path: AbsolutePath): MarkdownImageUrl {
+  return isTauri() ? assetUrl(path) : path
+}
+
 function vaultAttachmentPath(vaultPath: VaultPath, attachmentPath: AttachmentPath): AbsolutePath {
   return `${vaultPath}/${attachmentPath}`
 }

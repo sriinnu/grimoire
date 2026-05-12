@@ -23,6 +23,7 @@ interface NoteCommandsConfig {
   onToggleOrganized?: (path: string) => void
   isOrganized?: boolean
   onInsertWeatherSnapshot?: () => void
+  onTranscribeAudio?: () => void
   onRestoreDeletedNote?: () => void
   canRestoreDeletedNote?: boolean
 }
@@ -190,6 +191,13 @@ function buildPresentationCommands(config: NoteCommandsConfig): CommandAction[] 
       keywords: ['weather', 'journal', 'daily', 'location', 'temperature', 'forecast'],
       enabled: config.hasActiveNote && !!config.onInsertWeatherSnapshot,
       execute: () => config.onInsertWeatherSnapshot?.(),
+    }),
+    createNoteCommand({
+      id: 'transcribe-audio',
+      label: 'Transcribe Audio...',
+      keywords: ['audio', 'voice', 'whisper', 'transcript', 'speech', 'dictation'],
+      enabled: !!config.onTranscribeAudio,
+      execute: () => config.onTranscribeAudio?.(),
     }),
     createNoteCommand({
       id: 'remove-note-icon',

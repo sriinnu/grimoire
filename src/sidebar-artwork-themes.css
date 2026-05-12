@@ -1,0 +1,167 @@
+.app-sidebar-panel > .sidebar-artwork {
+  --art-accent: var(--accent-blue);
+  --art-glow: color-mix(in srgb, var(--art-accent) 14%, transparent);
+  --art-panel: color-mix(in srgb, var(--surface-editor) 22%, transparent);
+  --art-line: color-mix(in srgb, var(--sidebar-foreground) 22%, transparent);
+  background:
+    linear-gradient(180deg, transparent 0%, var(--art-panel) 46%, color-mix(in srgb, var(--sidebar) 92%, transparent) 100%),
+    radial-gradient(circle at 50% 64%, color-mix(in srgb, var(--art-accent) 16%, transparent), transparent 64%);
+  border: 0;
+  display: block;
+  isolation: isolate;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
+}
+
+.app-sidebar-panel > .sidebar-artwork::before,
+.app-sidebar-panel > .sidebar-artwork::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.app-sidebar-panel > .sidebar-artwork::before {
+  background:
+    linear-gradient(90deg, transparent 0 18%, var(--art-line) 18% 19%, transparent 19% 100%),
+    repeating-linear-gradient(0deg, transparent 0 13px, var(--art-line) 14px 15px);
+  inset: 18px 22px 10px;
+  opacity: 0.18;
+}
+
+.app-sidebar-panel > .sidebar-artwork::after {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 0%, transparent), var(--sidebar)),
+    radial-gradient(ellipse at 50% 100%, var(--art-glow), transparent 68%);
+  bottom: 0;
+  height: 48px;
+  left: 0;
+  opacity: 0.92;
+  right: 0;
+}
+
+.app-sidebar-panel .sidebar-artwork__image,
+[data-sidebar-preset-preview] .sidebar-artwork__image {
+  mix-blend-mode: soft-light;
+  opacity: 0.34;
+  position: absolute;
+  transform: translateY(10px) scale(1.12);
+  z-index: 2;
+}
+
+.app-sidebar-panel .sidebar-artwork__image--light,
+[data-sidebar-preset-preview] .sidebar-artwork__image--light {
+  display: block;
+}
+
+.app-sidebar-panel .sidebar-artwork__image--dark,
+[data-sidebar-preset-preview] .sidebar-artwork__image--dark,
+[data-theme="dark"] .app-sidebar-panel .sidebar-artwork__image--light,
+[data-theme-preview="dark"] .sidebar-artwork__image--light {
+  display: none;
+}
+
+[data-theme="dark"] .app-sidebar-panel .sidebar-artwork__image--dark,
+[data-theme-preview="dark"] .sidebar-artwork__image--dark {
+  display: block;
+}
+
+.app-sidebar-panel .sidebar-rosy,
+[data-sidebar-preset-preview] .sidebar-rosy {
+  display: block;
+  mix-blend-mode: screen;
+  z-index: 3;
+}
+
+[data-theme-preset="manuscript"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="manuscript"] .sidebar-artwork {
+  --art-accent: #c69a48;
+}
+
+[data-theme-preset="classic"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="classic"] .sidebar-artwork {
+  --art-accent: #155dff;
+}
+
+[data-theme-preset="graphite"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="graphite"] .sidebar-artwork {
+  --art-accent: #315d9d;
+}
+
+[data-theme-preset="studio"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="studio"] .sidebar-artwork {
+  --art-accent: #2f66d0;
+}
+
+[data-theme-preset="folio"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="folio"] .sidebar-artwork {
+  --art-accent: #7c4d8d;
+}
+
+[data-theme-preset="nocturne"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="nocturne"] .sidebar-artwork {
+  --art-accent: #8fd6b8;
+}
+
+[data-theme-preset="retro"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="retro"] .sidebar-artwork {
+  --art-accent: #e45f2b;
+}
+
+[data-theme-preset="aurora"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="aurora"] .sidebar-artwork {
+  --art-accent: #d9467d;
+}
+
+[data-theme-preset="future"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="future"] .sidebar-artwork {
+  --art-accent: #00a884;
+}
+
+[data-theme-preset="lotus"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="lotus"] .sidebar-artwork {
+  --art-accent: #9b4d88;
+}
+
+[data-theme-preset="ember"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="ember"] .sidebar-artwork {
+  --art-accent: #f6bf4f;
+}
+
+[data-theme-preset="future"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="future"] .sidebar-artwork__image,
+[data-theme-preset="aurora"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="aurora"] .sidebar-artwork__image {
+  filter: hue-rotate(108deg) saturate(1.16);
+  opacity: 0.24;
+}
+
+[data-theme-preset="graphite"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="graphite"] .sidebar-artwork__image,
+[data-theme-preset="studio"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="studio"] .sidebar-artwork__image {
+  filter: saturate(0.82) contrast(1.04);
+  opacity: 0.3;
+}
+
+[data-theme-preset="classic"] .sidebar-rosy,
+[data-sidebar-preset-preview="classic"] .sidebar-rosy,
+[data-theme-preset="graphite"] .sidebar-rosy,
+[data-sidebar-preset-preview="graphite"] .sidebar-rosy,
+[data-theme-preset="studio"] .sidebar-rosy,
+[data-sidebar-preset-preview="studio"] .sidebar-rosy {
+  opacity: 0.38;
+}
+
+@media (max-height: 760px) {
+  .app-sidebar-panel > .sidebar-artwork {
+    display: block;
+    height: 80px;
+    margin: 0;
+    min-height: 80px;
+  }
+
+  .app-sidebar-panel .sidebar-artwork__image {
+    transform: translateY(20px) scale(1.18);
+  }
+}

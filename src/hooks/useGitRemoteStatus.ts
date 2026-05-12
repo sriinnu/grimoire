@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { GitRemoteStatus } from '../types'
@@ -12,33 +12,62 @@ export interface GitRemoteState {
   refreshRemoteStatus: () => Promise<GitRemoteStatus | null>
 }
 
+interface UseGitRemoteStatusOptions {
+  enabled?: boolean
+}
+
 async function readRemoteStatus(vaultPath: string): Promise<GitRemoteStatus> {
   return tauriCall<GitRemoteStatus>('git_remote_status', { vaultPath })
 }
 
-export function useGitRemoteStatus(vaultPath: string): GitRemoteState {
+export function useGitRemoteStatus(
+  vaultPath: string,
+  options: UseGitRemoteStatusOptions = {},
+): GitRemoteState {
+  const enabled = options.enabled ?? true
   const [remoteStatus, setRemoteStatus] = useState<GitRemoteStatus | null>(null)
+  const activeRequestRef = useRef({ enabled, vaultPath })
+
+  useEffect(() => {
+    activeRequestRef.current = { enabled, vaultPath }
+  }, [enabled, vaultPath])
+
+  const shouldApply = useCallback(
+    (path: string) => activeRequestRef.current.enabled && activeRequestRef.current.vaultPath === path,
+    [],
+  )
 
   const refreshRemoteStatus = useCallback(async () => {
-    try {
-      const status = await readRemoteStatus(vaultPath)
-      setRemoteStatus(status)
-      return status
-    } catch {
+    const path = vaultPath
+    if (!enabled || !path) {
       setRemoteStatus(null)
       return null
     }
-  }, [vaultPath])
+
+    try {
+      const status = await readRemoteStatus(path)
+      if (shouldApply(path)) setRemoteStatus(status)
+      return status
+    } catch {
+      if (shouldApply(path)) setRemoteStatus(null)
+      return null
+    }
+  }, [enabled, shouldApply, vaultPath])
 
   useEffect(() => {
     let cancelled = false
 
     async function loadRemoteStatus() {
+      if (!enabled || !vaultPath) {
+        setRemoteStatus(null)
+        return
+      }
+
       try {
         const status = await readRemoteStatus(vaultPath)
-        if (!cancelled) setRemoteStatus(status)
+        if (!cancelled && shouldApply(vaultPath)) setRemoteStatus(status)
       } catch {
-        if (!cancelled) setRemoteStatus(null)
+        if (!cancelled && shouldApply(vaultPath)) setRemoteStatus(null)
       }
     }
 
@@ -46,7 +75,7 @@ export function useGitRemoteStatus(vaultPath: string): GitRemoteState {
     return () => {
       cancelled = true
     }
-  }, [vaultPath])
+  }, [enabled, shouldApply, vaultPath])
 
   return { remoteStatus, refreshRemoteStatus }
 }

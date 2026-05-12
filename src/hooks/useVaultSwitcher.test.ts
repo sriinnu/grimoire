@@ -40,6 +40,7 @@ import { NativeFolderPickerBlockedError } from '../utils/vault-dialog'
 
 type MockInvokeOverrides = {
   checkVaultExists?: boolean | ((args: { path?: string }) => boolean)
+  isGitRepo?: boolean | ((args: { vaultPath?: string }) => boolean)
   createEmptyVault?: (args: { targetPath: string }) => Promise<unknown> | unknown
   createGettingStartedVault?: (args: { targetPath: string }) => Promise<unknown> | unknown
 }
@@ -61,6 +62,12 @@ describe('useVaultSwitcher', () => {
         return Promise.resolve(typeof checkVaultExists === 'function'
           ? checkVaultExists(args as { path?: string })
           : checkVaultExists ?? true)
+      }
+      if (cmd === 'is_git_repo') {
+        const isGitRepo = overrides.isGitRepo
+        return Promise.resolve(typeof isGitRepo === 'function'
+          ? isGitRepo(args as { vaultPath?: string })
+          : isGitRepo ?? false)
       }
       if (cmd === 'create_empty_vault' && overrides.createEmptyVault) {
         return Promise.resolve().then(() => overrides.createEmptyVault?.(args as { targetPath: string }))
@@ -117,8 +124,53 @@ describe('useVaultSwitcher', () => {
     expect(result.current.allVaults[1].label).toBe('My Vault')
     expect(result.current.allVaults[1].path).toBe('/Users/srinivas/Grimoire')
     expect(result.current.allVaults[1].available).toBe(true)
+    expect(result.current.allVaults[1].storageProvider).toBe('local-folder')
+    expect(result.current.allVaults[1].syncProvider).toBe('none')
     expect(result.current.vaultPath).toBe('/Users/srinivas/Grimoire')
     expect(mockInvokeFn).toHaveBeenCalledWith('load_vault_list', {})
+  })
+
+  it('derives git sync metadata from the actual vault folder', async () => {
+    mockVaultListStore = {
+      vaults: [{ label: 'Legacy Git Vault', path: '/Users/srinivas/Grimoire', sync_provider: 'none' }],
+      active_vault: '/Users/srinivas/Grimoire',
+      hidden_defaults: [],
+    }
+    setMockInvokeBehavior({
+      isGitRepo: ({ vaultPath }) => vaultPath === '/Users/srinivas/Grimoire',
+    })
+
+    const { result } = await renderLoadedVaultSwitcher()
+
+    expect(result.current.allVaults[1]).toEqual(expect.objectContaining({
+      label: 'Legacy Git Vault',
+      syncProvider: 'git',
+    }))
+  })
+
+  it('preserves storage metadata for persisted vaults', async () => {
+    mockVaultListStore = {
+      vaults: [{
+        id: 'dreams',
+        label: 'Dreams',
+        path: '/icloud/Dreams',
+        storage_provider: 'icloud-drive',
+        sync_provider: 'none',
+      }],
+      active_vault: '/icloud/Dreams',
+      hidden_defaults: [],
+    }
+
+    const { result } = await renderLoadedVaultSwitcher()
+    const dreamsVault = result.current.allVaults.find(vault => vault.id === 'dreams')
+
+    expect(dreamsVault).toEqual(expect.objectContaining({
+      label: 'Dreams',
+      path: '/icloud/Dreams',
+      storageProvider: 'icloud-drive',
+      syncProvider: 'none',
+      available: true,
+    }))
   })
 
   it('marks unavailable vaults when check_vault_exists returns false', async () => {
@@ -167,7 +219,13 @@ describe('useVaultSwitcher', () => {
     expect(result.current.vaultPath).toBe('/selected/vault')
     expect(result.current.selectedVaultPath).toBe('/selected/vault')
     expect(mockVaultListStore).toEqual({
-      vaults: [{ label: 'Selected Vault', path: '/selected/vault' }],
+      vaults: [{
+        id: null,
+        label: 'Selected Vault',
+        path: '/selected/vault',
+        storage_provider: 'local-folder',
+        sync_provider: 'none',
+      }],
       active_vault: '/selected/vault',
       hidden_defaults: [],
     })
@@ -253,12 +311,20 @@ describe('useVaultSwitcher', () => {
 
     const { result } = await renderLoadedVaultSwitcher()
 
-    expect(result.current.allVaults).toEqual([{ label: 'Work', path: '/work/vault', available: true }])
+    expect(result.current.allVaults).toEqual([
+      expect.objectContaining({ label: 'Work', path: '/work/vault', available: true }),
+    ])
     expect(result.current.vaultPath).toBe('/work/vault')
 
     await waitFor(() => {
       expect(mockVaultListStore).toEqual({
-        vaults: [{ label: 'Work', path: '/work/vault' }],
+        vaults: [{
+          id: null,
+          label: 'Work',
+          path: '/work/vault',
+          storage_provider: 'local-folder',
+          sync_provider: 'none',
+        }],
         active_vault: '/work/vault',
         hidden_defaults: [],
       })

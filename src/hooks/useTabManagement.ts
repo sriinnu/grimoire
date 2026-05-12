@@ -9,6 +9,7 @@ import {
   markNoteOpenTrace,
 } from '../utils/noteOpenPerformance'
 import { getNoteWindowParams, isNoteWindow } from '../utils/windowMode'
+import { isOpaqueBinaryEntry, isPreviewableImageEntry } from '../utils/filePreviews'
 
 interface Tab {
   entry: VaultEntry
@@ -457,7 +458,14 @@ async function navigateToEntry(options: {
     onUnreadableNoteContent,
   } = options
 
-  if (entry.fileKind === 'binary') {
+  if (isPreviewableImageEntry(entry)) {
+    syncActiveTabPath(activeTabPathRef, setActiveTabPath, entry.path)
+    setSingleTab(tabsRef, setTabs, { entry, content: '' })
+    finishNoteOpenTrace(entry.path)
+    return
+  }
+
+  if (isOpaqueBinaryEntry(entry)) {
     failNoteOpenTrace(entry.path, 'binary-entry')
     return
   }

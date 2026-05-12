@@ -1,6 +1,6 @@
 # Grimoire Active Work
 
-Last updated: 2026-05-04
+Last updated: 2026-05-10
 
 This file is the working stack for the current Grimoire push. New user requests that are backlog/context should be appended here instead of replacing the current task.
 
@@ -14,6 +14,15 @@ This file is the working stack for the current Grimoire push. New user requests 
 6. Continue the reusable markdown editor package: slash commands, wikilinks, dates/calendar, graph/wiki, Bear/Mem/Obsidian-grade writing.
 7. Keep app polish moving: performance, right-click UX, themes, icons/logo, AI detection, startup reliability.
 8. Add vault portability: import from other Markdown apps, export clean archives, and support storage providers beyond Git.
+9. Add transcription/voice import: Whisper or local-provider transcription, audio attachments, timestamped Markdown, and cleaned-note output.
+
+## Current Focus: Items 3-7
+
+- 3 Refactor oversized core files so the app can keep moving without turning every change into a merge hazard.
+- 4 Finish import/export: Obsidian, Notion, Spanda practice imports, storage health checks, and local-working-copy sync adapters.
+- 5 Mature canvas: shapes, text boxes, lasso, image attachments, stroke extraction, and smoother launch/save behavior.
+- 6 Sweep themes/fonts: contrast, manuscript font parity, sidebar artwork, live previews, and dark-theme readability.
+- 7 Build the second-brain layer: Chitragupta recall/wiki/graph tools, diagnostics, source-backed answers, and durable Markdown write-backs.
 
 ## Done In This Push
 
@@ -54,6 +63,28 @@ This file is the working stack for the current Grimoire push. New user requests 
 - Removed Karya generated/runtime junk: `node_modules`, `.pnpm-store`, `dist`, `*.tsbuildinfo`, `.spanda`, and `karya.db`.
 - Added the first real canvas editor surface: pen, highlighter, eraser, hand/pan, colors, stroke sizes, undo/clear, editable JSON source, and PNG preview save.
 - Added built-in image badges and SVG/image upload support for custom Type icons.
+- Added Spanda-inspired Sadhana slash commands in the shared markdown package and Swift package: practice sessions, panchanga snapshots, japa logs, pranayama logs, and practice prescriptions.
+- Moved the canvas editor dialog behind a lazy chunk so handwritten/sketch tooling does not load on startup.
+- Moved live canvas Markdown snapshotting out of `SingleEditorView` and off the normal typing serialization path.
+- Split the rich editor and secondary app surfaces behind lazy chunks; empty editor state now renders without loading BlockNote.
+- Added code-block language auto-detection for common fenced-code content without overriding manual language choices.
+- Added image and SVG file previews so vault attachments can be opened directly in the center pane.
+- Replaced the AI chat `contenteditable` composer with a stable textarea while preserving wikilink references.
+- Added sandboxed HTML previews for `.html`/`.htm` files and standalone HTML documents instead of showing raw tags by default.
+- Added static bundled Caveat `@font-face` loading so web and Tauri use the same manuscript font file.
+- Added an explicit Settings sidebar appearance preview and preset-driven sidebar surface treatments.
+- Added transcription/voice capture to the active product stack.
+- Added the first transcription provider contract and Markdown transcript output builder.
+- Added the first live Markdown folder importer: Settings opens a folder picker, Rust copies notes/assets into `imports/<source>/`, and the vault gets a visible import report.
+- Added app import buttons for Bear, Day One, and Journey plus a Day One/Journey JSON/ZIP-to-Markdown importer.
+- Added Markdown ZIP import/export so the vault can round-trip through a portable archive outside the active vault.
+- Added a centered animated SVG editor loader for lazy editor startup and note-switch transitions.
+- Enhanced the properties panel with a scan-friendly header, broader quick-add slots, and property-name-based add-form type inference.
+- Added a bottom-bar presence tone and accessible status summary, then split secondary status-bar controls out of the oversized section file.
+- Stabilized Neighborhood-mode note opening so command-click note pivots can await the editor load before Escape history handling.
+- Added `docs/CHITRAGUPTA-WIRING-NEEDS.md` with the concrete MCP tools Grimoire needs for real second-brain recall, wiki, graph, ingest, and diagnostics.
+- Split local AI agent args, binary discovery, and event mapping into focused modules so `ai_agents.rs` is under the code-size guardrail.
+- Added Settings storage health checks that detect whether the active vault lives under iCloud Drive or Google Drive Desktop while keeping S3/Azure marked as planned adapters.
 
 ## Next Tasks
 
@@ -84,6 +115,7 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Keep project workspace strip below the code-size guardrail by moving helper logic out.
 - [ ] Harden Chitragupta MCP continuity.
   - [x] Write a concrete Chitragupta handoff note describing the daemon/MCP contract Grimoire needs.
+  - [x] Write the concrete Grimoire-side MCP wiring request for Chitragupta memory tools.
   - [x] Add root vertical discovery files for Chitragupta.
   - [x] Add a right-sidebar Memory lane as the Grimoire landing zone for Chitragupta recall/wiki/graph data.
   - [x] Add editor slash-command entry points for Chitragupta-backed memory workflows.
@@ -92,6 +124,11 @@ This file is the working stack for the current Grimoire push. New user requests 
   - Diagnose why Chitragupta context/unified recall says daemon unavailable.
   - Keep a repo-visible active work file updated even when MCP memory is unavailable.
   - Write project memory whenever the mission stack changes.
+- [ ] Refactor oversized native agent modules.
+  - [x] Split Codex/Chitragupta binary discovery and discovery tests out of `ai_agents.rs`.
+  - [x] Split Codex argument building, prompt assembly, stream event mapping, and error formatting out of `ai_agents.rs`.
+  - [x] Split Chitragupta argument building and error formatting out of `ai_agents.rs`.
+  - Split `claude_cli.rs` into args, streaming, detection, and tests.
 - [ ] Continue markdown editor package depth.
   - Slash commands for headings (`#`, `##`, etc.) with friendly labels.
   - Date/week/calendar commands.
@@ -103,7 +140,11 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Add right-sidebar outline/TOC for the active Markdown document.
   - [x] Add frontmatter/YAML formatting and validation that preserves clean Markdown on disk.
   - [x] Build the actual canvas editor surface that opens `grimoire-canvas` blocks and writes source JSON + preview PNG.
+  - [x] Add portable Sadhana/practice commands derived from the useful Spanda workflow model.
   - Add shape tools, text boxes, lasso select, and stroke-to-Markdown extraction.
+  - [x] Auto-detect code block languages from unlabeled code fences.
+  - [x] Render standalone HTML files/documents as sandboxed previews with raw mode still available.
+  - [x] Fix AI chat textbox typing duplication/regression; typing must not repeat words or replay composition input.
   - Keep Swift package and JS package aligned through fixtures.
 - [ ] Improve custom Type creation/customization.
   - [x] Add predefined image badges for new and existing custom Types.
@@ -115,16 +156,39 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Add the first Memory lane animation.
   - Map the CSS tokens to SwiftUI animation constants for Apple shell surfaces.
   - Apply tokenized transitions to command palette, inspector panels, graph focus, and note navigation.
+- [ ] Continue performance hardening.
+  - [x] Lazy-load Mermaid rendering, canvas editor surfaces, rich editor, and secondary app surfaces.
+  - [x] Avoid full-editor Markdown serialization during normal typing.
+  - [x] Keep empty editor startup out of the BlockNote import path.
+  - Split the remaining app-shell chunk by moving static Tauri/plugin imports behind feature boundaries.
+  - Add a startup budget test for heavyweight editor/graph/canvas imports.
+- [ ] Polish asset and preview parity.
+  - [x] Show images and SVGs as first-class vault previews.
+  - [x] Load the Caveat manuscript font through the bundled CSS asset path for Tauri/web parity.
+  - [x] Make the left sidebar appearance selectable and previewable through Settings theme presets.
+  - Verify Tauri dev visually uses the same Caveat face as the browser build.
 - [ ] Add vault portability.
   - [x] Define import/export/storage providers in a shared app registry.
   - [x] Document the import/export/storage split and storage-provider safety model.
-  - Add Settings UI for provider readiness and import/export actions.
-  - Build Markdown folder import wizard.
-  - Build Markdown ZIP export.
-  - Build Bear and Obsidian import adapters.
-  - Build Day One and Notion import adapters.
-  - Add iCloud Drive and Google Drive Desktop vault health checks.
+  - [x] Add Settings UI for provider readiness and import/export/second-brain lanes.
+  - [x] Add actionable import/export buttons once the first wizard is implemented.
+  - [x] Build Markdown folder import wizard.
+  - [x] Build Markdown ZIP import/export.
+  - [x] Build Bear import through the Markdown/TextBundle folder path.
+  - [x] Build Day One JSON/ZIP import adapter.
+  - [x] Build Journey JSON/ZIP import adapter.
+  - Build Obsidian import adapter.
+  - Build Notion import adapter.
+  - Build Spanda practice/session import adapter.
+  - [x] Add iCloud Drive and Google Drive Desktop vault health checks.
   - Design S3 and Azure Blob sync adapters around a local working copy.
+- [ ] Add transcription and voice-note workflow.
+  - [x] Define provider contract for Whisper/local transcription backends.
+  - [x] Add command-palette audio picker and "Transcribe Audio..." action.
+  - [x] Save timestamped transcript Markdown beside the source audio.
+  - [x] Support local/offline provider first through the Local Whisper CLI path.
+  - Add cleaned-note summary beside the raw transcript.
+  - Cloud Whisper only when explicitly configured.
 
 ## Parking Lot
 

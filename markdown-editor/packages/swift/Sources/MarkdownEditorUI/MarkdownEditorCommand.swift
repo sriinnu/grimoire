@@ -11,6 +11,7 @@ public enum MarkdownEditorCommandGroup: String, CaseIterable, Sendable {
     case journal = "Journal"
     case knowledge = "Knowledge"
     case canvas = "Canvas"
+    case practice = "Practice"
     case templates = "Templates"
     case intelligence = "Intelligence"
 }
@@ -281,9 +282,9 @@ public enum MarkdownEditorCommandCatalog {
         ),
         MarkdownEditorCommand(
             id: "grimoire_wikilink",
-            title: "Wikilink",
-            subtitle: "Link to another note.",
-            aliases: ["@", "mention", "note link", "backlink", "internal link", "[["],
+            title: "Spelllink",
+            subtitle: "Insert a Markdown [[note]] link placeholder.",
+            aliases: ["@", "mention", "note link", "backlink", "internal link", "wikilink", "spelllink", "[["],
             group: .inline,
             markdownTemplate: "[[Note Title]]"
         ),

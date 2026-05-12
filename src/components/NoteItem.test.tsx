@@ -21,9 +21,9 @@ describe('NoteItem', () => {
 
   it('renders binary files as non-clickable muted rows', () => {
     const binaryEntry = makeEntry({
-      path: '/vault/photo.png',
-      filename: 'photo.png',
-      title: 'photo.png',
+      path: '/vault/archive.zip',
+      filename: 'archive.zip',
+      title: 'archive.zip',
       fileKind: 'binary',
     })
     const onClickNote = vi.fn()
@@ -36,6 +36,27 @@ describe('NoteItem', () => {
 
     fireEvent.click(item)
     expect(onClickNote).not.toHaveBeenCalled()
+  })
+
+  it('renders image files as clickable preview rows', () => {
+    const imageEntry = makeEntry({
+      path: '/vault/logo.svg',
+      filename: 'logo.svg',
+      title: 'logo.svg',
+      fileKind: 'binary',
+    })
+    const onClickNote = vi.fn()
+    const { container } = render(
+      <NoteItem entry={imageEntry} isSelected={false} typeEntryMap={{}} onClickNote={onClickNote} />,
+    )
+
+    expect(screen.queryByTestId('binary-file-item')).toBeNull()
+
+    const item = container.querySelector('[data-note-path="/vault/logo.svg"]')!
+    expect(item.className).toContain('cursor-pointer')
+
+    fireEvent.click(item)
+    expect(onClickNote).toHaveBeenCalledWith(imageEntry, expect.any(Object))
   })
 
   it('renders text files as clickable rows', () => {

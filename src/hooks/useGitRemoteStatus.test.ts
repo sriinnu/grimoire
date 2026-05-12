@@ -46,4 +46,46 @@ describe('useGitRemoteStatus', () => {
 
     expect(result.current.remoteStatus).toEqual({ branch: 'main', ahead: 1, behind: 0, hasRemote: false })
   })
+
+  it('does not poll git remote status when disabled', async () => {
+    const { result } = renderHook(() => useGitRemoteStatus('/vault', { enabled: false }))
+
+    await act(async () => {
+      const status = await result.current.refreshRemoteStatus()
+      expect(status).toBeNull()
+    })
+
+    expect(result.current.remoteStatus).toBeNull()
+    expect(mockInvokeFn).not.toHaveBeenCalled()
+  })
+
+  it('does not apply a stale manual refresh after git is disabled', async () => {
+    let resolveRefresh: ((value: { branch: string; ahead: number; behind: number; hasRemote: boolean }) => void) | null = null
+    mockInvokeFn
+      .mockResolvedValueOnce({ branch: 'main', ahead: 0, behind: 0, hasRemote: false })
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveRefresh = resolve
+      }))
+
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useGitRemoteStatus('/vault', { enabled }),
+      { initialProps: { enabled: true } },
+    )
+
+    await waitFor(() => {
+      expect(result.current.remoteStatus?.hasRemote).toBe(false)
+    })
+
+    let refreshPromise: Promise<unknown> | null = null
+    await act(async () => {
+      refreshPromise = result.current.refreshRemoteStatus()
+      rerender({ enabled: false })
+    })
+    await act(async () => {
+      resolveRefresh?.({ branch: 'main', ahead: 3, behind: 0, hasRemote: true })
+      await refreshPromise
+    })
+
+    expect(result.current.remoteStatus).toBeNull()
+  })
 })

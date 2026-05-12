@@ -1,7 +1,17 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import mermaid from 'mermaid'
 import { MarkdownContent } from './MarkdownContent'
 import { preprocessWikilinks } from '../utils/chatWikilinks'
+
+vi.mock('mermaid', () => ({
+  default: {
+    initialize: vi.fn(),
+    render: vi.fn(async (id: string, chart: string) => ({
+      svg: `<svg data-testid="rendered-mermaid" data-id="${id}"><text>${chart}</text></svg>`,
+    })),
+  },
+}))
 
 describe('MarkdownContent', () => {
   it('renders bold text', () => {
@@ -21,6 +31,63 @@ describe('MarkdownContent', () => {
     const pre = container.querySelector('pre')
     expect(pre).toBeTruthy()
     expect(pre!.textContent).toContain('const x = 1')
+  })
+
+  it('auto-detects unlabeled fenced code languages', () => {
+    const code = 'def greet(name):\n    return f"Hello {name}"'
+    const { container } = render(<MarkdownContent content={`\`\`\`\n${code}\n\`\`\``} />)
+    const codeBlock = container.querySelector('pre code')
+
+    expect(codeBlock?.className).toContain('language-python')
+  })
+
+  it('renders markdown images including SVG attachments', () => {
+    render(<MarkdownContent content="![Grimoire mark](attachments/logo.svg)" />)
+
+    const image = screen.getByRole('img', { name: 'Grimoire mark' })
+    expect(image).toHaveAttribute('src', 'attachments/logo.svg')
+    expect(image).toHaveAttribute('loading', 'lazy')
+  })
+
+  it('renders mermaid fences as diagrams', async () => {
+    render(<MarkdownContent content={'```mermaid\nsequenceDiagram\nA->>B: hi\n```'} />)
+
+    expect(await screen.findByTestId('rendered-mermaid')).toBeInTheDocument()
+    expect(screen.getByTestId('rendered-mermaid')).toHaveTextContent('sequenceDiagram')
+  })
+
+  it('renders classDiagram fences as Mermaid class diagrams', async () => {
+    render(<MarkdownContent content={'```classDiagram\nclass Note {\n  +String title\n}\n```'} />)
+
+    expect(await screen.findByTestId('rendered-mermaid')).toHaveTextContent('classDiagram')
+    expect(screen.getByTestId('rendered-mermaid')).toHaveTextContent('+String title')
+  })
+
+  it('renders classDiagram-v2 fences as Mermaid class diagrams', async () => {
+    render(<MarkdownContent content={'```classDiagram-v2\nNote --> Spelllink\n```'} />)
+
+    expect(await screen.findByTestId('rendered-mermaid')).toHaveTextContent('classDiagram-v2')
+    expect(screen.getByTestId('rendered-mermaid')).toHaveTextContent('Note --> Spelllink')
+  })
+
+  it('renders unlabeled fences that start with classDiagram as Mermaid', async () => {
+    render(<MarkdownContent content={'```\nclassDiagram\nNote --> Spelllink\n```'} />)
+
+    expect(await screen.findByTestId('rendered-mermaid')).toHaveTextContent('classDiagram')
+  })
+
+  it('keeps inline classDiagram text as inline code', () => {
+    render(<MarkdownContent content="Use `classDiagram` inside a Mermaid fence." />)
+
+    expect(screen.getByText('classDiagram').tagName).toBe('CODE')
+  })
+
+  it('falls back to Mermaid source when rendering fails', async () => {
+    vi.mocked(mermaid.render).mockRejectedValueOnce(new Error('bad diagram'))
+
+    render(<MarkdownContent content={'```mermaid\nnot a diagram\n```'} />)
+
+    expect(await screen.findByTestId('mermaid-diagram-error')).toHaveTextContent('not a diagram')
   })
 
   it('renders unordered lists', () => {

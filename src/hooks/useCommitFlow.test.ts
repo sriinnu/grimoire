@@ -41,7 +41,7 @@ describe('useCommitFlow', () => {
     })
   })
 
-  function renderCommitFlow() {
+  function renderCommitFlow(overrides: Partial<Parameters<typeof useCommitFlow>[0]> = {}) {
     return renderHook(() => useCommitFlow({
       savePending,
       loadModifiedFiles,
@@ -49,6 +49,7 @@ describe('useCommitFlow', () => {
       setToastMessage,
       onPushRejected,
       vaultPath: '/vault',
+      ...overrides,
     }))
   }
 
@@ -65,6 +66,56 @@ describe('useCommitFlow', () => {
     expect(resolveRemoteStatus).toHaveBeenCalledTimes(1)
     expect(result.current.showCommitDialog).toBe(true)
     expect(result.current.commitMode).toBe('local')
+  })
+
+  it('does not open or invoke git commands when disabled for a local-only vault', async () => {
+    const { result } = renderCommitFlow({ enabled: false })
+
+    await act(async () => {
+      await result.current.openCommitDialog()
+      await result.current.handleCommitPush('test message')
+      await result.current.runAutomaticCheckpoint()
+    })
+
+    expect(result.current.showCommitDialog).toBe(false)
+    expect(savePending).not.toHaveBeenCalled()
+    expect(loadModifiedFiles).not.toHaveBeenCalled()
+    expect(resolveRemoteStatus).not.toHaveBeenCalled()
+    expect(mockInvokeFn).not.toHaveBeenCalled()
+    expect(setToastMessage).toHaveBeenCalledWith('Git is not enabled for this vault')
+  })
+
+  it('does not open the commit dialog after git is disabled mid-flight', async () => {
+    let releaseSave: (() => void) | null = null
+    savePending.mockImplementationOnce(() => new Promise<void>((resolve) => {
+      releaseSave = resolve
+    }))
+    const { result, rerender } = renderHook(
+      ({ enabled }) => useCommitFlow({
+        enabled,
+        savePending,
+        loadModifiedFiles,
+        resolveRemoteStatus,
+        setToastMessage,
+        onPushRejected,
+        vaultPath: '/vault',
+      }),
+      { initialProps: { enabled: true } },
+    )
+
+    let openPromise: Promise<void> | null = null
+    await act(async () => {
+      openPromise = result.current.openCommitDialog()
+      rerender({ enabled: false })
+    })
+    await act(async () => {
+      releaseSave?.()
+      await openPromise
+    })
+
+    expect(loadModifiedFiles).not.toHaveBeenCalled()
+    expect(resolveRemoteStatus).not.toHaveBeenCalled()
+    expect(result.current.showCommitDialog).toBe(false)
   })
 
   it('handleCommitPush commits and pushes when a remote is configured', async () => {

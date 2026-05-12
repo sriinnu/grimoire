@@ -53,6 +53,10 @@ fn test_settings_json_roundtrip() {
             "codex".to_string(),
             "gpt-5.2".to_string(),
         )])),
+        ai_agent_providers: Some(BTreeMap::from([(
+            "chitragupta".to_string(),
+            "openai".to_string(),
+        )])),
     };
     let json = serde_json::to_string(&settings).unwrap();
     let parsed: Settings = serde_json::from_str(&json).unwrap();
@@ -118,6 +122,29 @@ fn test_save_preserves_ai_agent_models() {
     assert_eq!(
         models.get("chitragupta").map(String::as_str),
         Some("deepseek-chat")
+    );
+}
+
+#[test]
+fn test_save_preserves_ai_agent_providers() {
+    let loaded = save_and_reload(Settings {
+        ai_agent_providers: Some(BTreeMap::from([
+            ("claude_code".to_string(), "anthropic".to_string()),
+            ("codex".to_string(), "openai".to_string()),
+            ("chitragupta".to_string(), "deepseek".to_string()),
+        ])),
+        ..Default::default()
+    });
+
+    let providers = loaded.ai_agent_providers.unwrap();
+    assert_eq!(
+        providers.get("claude_code").map(String::as_str),
+        Some("anthropic")
+    );
+    assert_eq!(providers.get("codex").map(String::as_str), Some("openai"));
+    assert_eq!(
+        providers.get("chitragupta").map(String::as_str),
+        Some("deepseek")
     );
 }
 
@@ -206,6 +233,25 @@ fn test_invalid_ai_agent_models_are_filtered() {
 }
 
 #[test]
+fn test_invalid_ai_agent_providers_are_filtered() {
+    let loaded = save_and_reload(Settings {
+        ai_agent_providers: Some(BTreeMap::from([
+            ("cursor".to_string(), "openai".to_string()),
+            ("chitragupta".to_string(), "bad provider".to_string()),
+            ("claude_code".to_string(), "  anthropic  ".to_string()),
+        ])),
+        ..Default::default()
+    });
+
+    let providers = loaded.ai_agent_providers.unwrap();
+    assert_eq!(providers.len(), 1);
+    assert_eq!(
+        providers.get("claude_code").map(String::as_str),
+        Some("anthropic")
+    );
+}
+
+#[test]
 fn test_invalid_theme_mode_is_filtered() {
     let loaded = save_and_reload(Settings {
         theme_mode: Some("system".to_string()),
@@ -222,6 +268,14 @@ fn test_expanded_theme_presets_are_supported() {
             Some(preset)
         );
     }
+}
+
+#[test]
+fn test_handwritten_editor_font_is_supported() {
+    assert_eq!(
+        normalize_editor_font(Some("handwritten")).as_deref(),
+        Some("handwritten")
+    );
 }
 
 #[test]

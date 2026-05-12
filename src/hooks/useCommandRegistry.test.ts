@@ -98,6 +98,16 @@ describe('useCommandRegistry', () => {
     expect(cmd!.enabled).toBe(false)
   })
 
+  it('keeps add-remote enabled but disables git-only commands for local-only vaults', () => {
+    const config = makeConfig({ isGitVault: false, modifiedCount: 5, canAddRemote: true, onAddRemote: vi.fn() })
+    const { result } = renderHook(() => useCommandRegistry(config))
+
+    expect(findCommand(result.current, 'add-remote')?.enabled).toBe(true)
+    for (const id of ['commit-push', 'git-pull', 'resolve-conflicts', 'view-changes', 'go-changes', 'go-pulse']) {
+      expect(findCommand(result.current, id)?.enabled).toBe(false)
+    }
+  })
+
   it('resolve-conflicts stays enabled across rerenders', () => {
     const config = makeConfig()
     const { result, rerender } = renderHook(
@@ -138,6 +148,20 @@ describe('useCommandRegistry', () => {
     const { result } = renderHook(() => useCommandRegistry(config))
     const cmd = findCommand(result.current, 'remove-note-icon')
     expect(cmd!.enabled).toBe(true)
+  })
+
+  it('includes a transcript command for audio files', () => {
+    const onTranscribeAudio = vi.fn()
+    const config = makeConfig({ onTranscribeAudio })
+    const { result } = renderHook(() => useCommandRegistry(config))
+    const cmd = findCommand(result.current, 'transcribe-audio')
+    expect(cmd).toMatchObject({
+      group: 'Note',
+      label: 'Transcribe Audio...',
+      enabled: true,
+    })
+    cmd?.execute()
+    expect(onTranscribeAudio).toHaveBeenCalledTimes(1)
   })
 
   it('remove-note-icon is disabled when active note has no icon', () => {

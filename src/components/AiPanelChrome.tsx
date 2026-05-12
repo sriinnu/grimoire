@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Robot, X, PaperPlaneRight, Plus, Link } from '@phosphor-icons/react'
 import { AiMessage } from './AiMessage'
-import { WikilinkChatInput } from './WikilinkChatInput'
+import { AiChatComposerInput } from './AiChatComposerInput'
 import { extractInlineWikilinkReferences } from './inlineWikilinkText'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
 import type { NoteReference } from '../utils/ai-context'
@@ -37,7 +37,7 @@ interface AiPanelComposerProps {
   agentReady: boolean
   hasContext: boolean
   input: string
-  inputRef: React.RefObject<HTMLDivElement | null>
+  inputRef: React.RefObject<HTMLElement | null>
   isActive: boolean
   legacyCopy: boolean
   onChange: (value: string) => void
@@ -218,7 +218,8 @@ export function AiPanelComposer({
   onSend,
   onUnsupportedAiPaste,
 }: AiPanelComposerProps) {
-  const composerDisabled = isActive || !agentReady
+  void isActive
+  const composerDisabled = !agentReady
   const canSend = !composerDisabled && input.trim().length > 0
   const placeholder = getComposerPlaceholder(agentLabel, agentReady, legacyCopy, hasContext)
   const sendButtonStyle = {
@@ -237,7 +238,7 @@ export function AiPanelComposer({
     >
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <WikilinkChatInput
+          <AiChatComposerInput
             entries={entries}
             value={input}
             onChange={onChange}

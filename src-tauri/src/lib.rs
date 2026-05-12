@@ -10,6 +10,7 @@ pub mod menu;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
+pub mod transcription;
 pub mod vault;
 pub mod vault_list;
 
@@ -315,6 +316,11 @@ macro_rules! app_invoke_handler {
             commands::stream_claude_chat,
             commands::stream_claude_agent,
             commands::stream_ai_agent,
+            commands::transcribe_audio,
+            commands::import_markdown_folder,
+            commands::import_markdown_zip,
+            commands::import_journal_export,
+            commands::export_markdown_zip,
             commands::reload_vault,
             commands::reload_vault_entry,
             commands::sync_vault_asset_scope_for_window,

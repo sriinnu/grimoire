@@ -2,26 +2,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
 import type { DeletedNoteEntry } from './components/note-list/noteListUtils'
-import { Editor } from './components/Editor'
+import { LazyEditor as Editor } from './components/LazyEditor'
 import { ResizeHandle } from './components/ResizeHandle'
 import { CreateTypeDialog } from './components/CreateTypeDialog'
 import { CreateViewDialog } from './components/CreateViewDialog'
 import { QuickOpenPalette } from './components/QuickOpenPalette'
-import { CommandPalette } from './components/CommandPalette'
-import { SearchPanel } from './components/SearchPanel'
 import { Toast } from './components/Toast'
 import { CommitDialog } from './components/CommitDialog'
-import { PulseView } from './components/PulseView'
 import { StatusBar } from './components/StatusBar'
-import { SettingsPanel } from './components/SettingsPanel'
-import { CloneVaultModal } from './components/CloneVaultModal'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { AiAgentsOnboardingPrompt } from './components/AiAgentsOnboardingPrompt'
+import { GrimoireRefreshAnimation } from './components/GrimoireRefreshAnimation'
 import { TelemetryConsentDialog } from './components/TelemetryConsentDialog'
-import { FeedbackDialog } from './components/FeedbackDialog'
-import { McpSetupDialog } from './components/McpSetupDialog'
-import { GraphModal } from './components/GraphModal'
-import { WeatherSnapshotDialog } from './components/WeatherSnapshotDialog'
+import {
+  LazyCloneVaultModal as CloneVaultModal,
+  LazyCommandPalette as CommandPalette,
+  LazyConflictResolverModal as ConflictResolverModal,
+  LazyFeedbackDialog as FeedbackDialog,
+  LazyGraphModal as GraphModal,
+  LazyMcpSetupDialog as McpSetupDialog,
+  LazyPulseView as PulseView,
+  LazySearchPanel as SearchPanel,
+  LazySettingsPanel as SettingsPanel,
+  LazyWeatherSnapshotDialog as WeatherSnapshotDialog,
+} from './components/AppLazySurfaces'
 import { NoteRetargetingDialogs } from './components/note-retargeting/NoteRetargetingDialogs'
 import { NoteRetargetingProvider } from './components/note-retargeting/noteRetargetingContext'
 import { useTelemetry } from './hooks/useTelemetry'
@@ -44,6 +48,7 @@ import { useViewMode, type ViewMode } from './hooks/useViewMode'
 import { useNoteLayout } from './hooks/useNoteLayout'
 import { useEntryActions } from './hooks/useEntryActions'
 import { useAppCommands } from './hooks/useAppCommands'
+import { useAudioTranscription } from './hooks/useAudioTranscription'
 import { triggerCommitEntryAction } from './utils/commitEntryAction'
 import { generateCommitMessage } from './utils/commitMessage'
 import { useDialogs } from './hooks/useDialogs'
@@ -54,6 +59,7 @@ import { useAutoSync } from './hooks/useAutoSync'
 import { useConflictResolver } from './hooks/useConflictResolver'
 import { useZoom } from './hooks/useZoom'
 import { useVaultConfig } from './hooks/useVaultConfig'
+import { useVaultPortabilityActions } from './hooks/useVaultPortabilityActions'
 import { useBuildNumber } from './hooks/useBuildNumber'
 import { useOnboarding } from './hooks/useOnboarding'
 import { useGettingStartedClone } from './hooks/useGettingStartedClone'
@@ -74,7 +80,6 @@ import { useAppSave } from './hooks/useAppSave'
 import { useNoteRetargetingUi } from './hooks/useNoteRetargetingUi'
 import { useVaultBridge } from './hooks/useVaultBridge'
 import type { CommitDiffRequest } from './hooks/useDiffMode'
-import { ConflictResolverModal } from './components/ConflictResolverModal'
 import { ConfirmDeleteDialog } from './components/ConfirmDeleteDialog'
 import { DeleteProgressNotice } from './components/DeleteProgressNotice'
 import { UpdateBanner } from './components/UpdateBanner'
@@ -87,7 +92,6 @@ import { filterEntries, filterInboxEntries, type NoteListFilter } from './utils/
 import { openNoteInNewWindow } from './utils/openNoteWindow'
 import { refreshPulledVaultState } from './utils/pulledVaultRefresh'
 import { isNoteWindow, getNoteWindowParams, getNoteWindowPathCandidates, type NoteWindowParams } from './utils/windowMode'
-import { GitRequiredModal } from './components/GitRequiredModal'
 import { RenameDetectedBanner, type DetectedRename } from './components/RenameDetectedBanner'
 import { openNoteListPropertiesPicker } from './components/note-list/noteListPropertiesEvents'
 import type { NoteListMultiSelectionCommands } from './components/note-list/multiSelectionCommands'
@@ -333,21 +337,23 @@ function App() {
   const [gitRepoState, setGitRepoState] = useState<'checking' | 'required' | 'ready'>('checking')
   useEffect(() => {
     if (!resolvedPath) return
+    let cancelled = false
     setGitRepoState('checking')
     const check = isTauri()
       ? invoke<boolean>('is_git_repo', { vaultPath: resolvedPath })
       : Promise.resolve(true) // browser mock: assume git
     check
-      .then(isGit => setGitRepoState(isGit ? 'ready' : 'required'))
-      .catch(() => setGitRepoState('ready')) // fail open
+      .then(isGit => { if (!cancelled) setGitRepoState(isGit ? 'ready' : 'required') })
+      .catch(() => { if (!cancelled) setGitRepoState('ready') }) // fail open
+    return () => { cancelled = true }
   }, [resolvedPath])
 
-  const handleInitGitRepo = useCallback(async () => {
-    if (isTauri()) await invoke('init_git_repo', { vaultPath: resolvedPath })
+  const isGitVault = gitRepoState === 'ready'
+
+  const vault = useVaultLoader(noteWindowParams ? '' : resolvedPath, { isGitVault })
+  const handleGitInitialized = useCallback(() => {
     setGitRepoState('ready')
-  }, [resolvedPath])
-
-  const vault = useVaultLoader(noteWindowParams ? '' : resolvedPath)
+  }, [])
   const {
     status: vaultAiGuidanceStatus,
     refresh: refreshVaultAiGuidance,
@@ -434,7 +440,7 @@ function App() {
     }
   }, [vault.entries.length, gitRepoState, resolvedPath])
   const { mcpStatus, connectMcp, disconnectMcp } = useMcpStatus(resolvedPath, setToastMessage)
-  const gitRemoteStatus = useGitRemoteStatus(resolvedPath)
+  const gitRemoteStatus = useGitRemoteStatus(resolvedPath, { enabled: isGitVault })
 
   const openMcpSetupDialog = useCallback(() => {
     setShowMcpSetupDialog(true)
@@ -468,7 +474,7 @@ function App() {
   // Detect external file renames on window focus
   const [detectedRenames, setDetectedRenames] = useState<DetectedRename[]>([])
   useEffect(() => {
-    if (!isTauri() || !resolvedPath) return
+    if (!isTauri() || !resolvedPath || !isGitVault) return
     const handleFocus = () => {
       invoke<DetectedRename[]>('detect_renames', { vaultPath: resolvedPath })
         .then(renames => { if (renames.length > 0) setDetectedRenames(renames) })
@@ -476,7 +482,7 @@ function App() {
     }
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
-  }, [resolvedPath])
+  }, [isGitVault, resolvedPath])
 
   const handleUpdateWikilinks = useCallback(async () => {
     if (!isTauri()) return
@@ -565,6 +571,7 @@ function App() {
     ])
   const autoSync = useAutoSync({
     vaultPath: resolvedPath,
+    enabled: isGitVault,
     intervalMinutes: settings.auto_pull_interval_minutes,
     onVaultUpdated: handlePulledVaultUpdate,
     onConflict: (files) => {
@@ -573,6 +580,8 @@ function App() {
     },
     onToast: (msg) => setToastMessage(msg),
   })
+  const effectiveRemoteStatus = autoSync.remoteStatus ?? gitRemoteStatus.remoteStatus
+  const canAddRemote = !isGitVault || effectiveRemoteStatus?.hasRemote === false
   const pendingDiffRequestIdRef = useRef(0)
   const [pendingDiffRequest, setPendingDiffRequest] = useState<CommitDiffRequest | null>(null)
 
@@ -858,13 +867,15 @@ function App() {
   }, [vault, notes, queuePendingDiff, setToastMessage])
 
   const handleReplaceActiveTabWithQueuedDiff = useCallback((entry: VaultEntry) => {
-    notes.handleReplaceActiveTab(entry)
+    const openNote = notes.handleReplaceActiveTab(entry)
     if (effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'changes') {
       queuePendingDiff(entry.path)
     }
+    return openNote
   }, [effectiveSelection, notes, queuePendingDiff])
 
   const commitFlow = useCommitFlow({
+    enabled: isGitVault,
     savePending: appSave.savePending,
     loadModifiedFiles: vault.loadModifiedFiles,
     resolveRemoteStatus: gitRemoteStatus.refreshRemoteStatus,
@@ -873,7 +884,6 @@ function App() {
     vaultPath: resolvedPath,
   })
   const suggestedCommitMessage = useMemo(() => generateCommitMessage(vault.modifiedFiles), [vault.modifiedFiles])
-  const isGitVault = !vault.modifiedFilesError
   const modifiedFilesSignature = useMemo(
     () => vault.modifiedFiles.map((file) => `${file.relativePath}:${file.status}`).sort().join('|'),
     [vault.modifiedFiles],
@@ -901,12 +911,16 @@ function App() {
   }, [modifiedFilesSignature, recordAutoGitActivity])
 
   const handleCommitPush = useCallback(() => {
+    if (!isGitVault) {
+      setToastMessage('Git is not enabled for this vault')
+      return
+    }
     triggerCommitEntryAction({
       autoGitEnabled: settings.autogit_enabled === true,
       openCommitDialog,
       runAutomaticCheckpoint,
     })
-  }, [openCommitDialog, runAutomaticCheckpoint, settings.autogit_enabled])
+  }, [isGitVault, openCommitDialog, runAutomaticCheckpoint, settings.autogit_enabled, setToastMessage])
 
   const handleTrackedContentChange = useCallback((path: string, content: string) => {
     recordAutoGitActivity()
@@ -990,7 +1004,7 @@ function App() {
     setToastMessage,
   })
 
-  const shouldLoadGitHistory = !layout.inspectorCollapsed && !showAIChat
+  const shouldLoadGitHistory = isGitVault && !layout.inspectorCollapsed && !showAIChat
   const gitHistory = useGitHistory(notes.activeTabPath, vault.loadGitHistory, shouldLoadGitHistory)
 
   const handleCreateType = useCallback(async (name: string, icon?: string) => {
@@ -1336,6 +1350,30 @@ function App() {
     () => activeDeletedFile ? undefined : openWeatherSnapshotDialog,
     [activeDeletedFile, openWeatherSnapshotDialog],
   )
+  const transcribeAudioCommand = useAudioTranscription({
+    vaultPath: resolvedPath,
+    entries: vault.entries,
+    addEntry: vault.addEntry,
+    openTabWithContent: notes.openTabWithContent,
+    loadModifiedFiles: vault.loadModifiedFiles,
+    setToastMessage,
+  })
+  const {
+    markdownImportBusy,
+    handleImportMarkdownFolder,
+    handleImportMarkdownZip,
+    handleImportBear,
+    handleImportDayOne,
+    handleImportJourney,
+    handleExportMarkdownZip,
+  } = useVaultPortabilityActions({
+    resolvedPath,
+    reloadVault: vault.reloadVault,
+    reloadFolders: vault.reloadFolders,
+    loadModifiedFiles: vault.loadModifiedFiles,
+    setToastMessage,
+  })
+
   const handleOpenGraphNote = useCallback((entry: VaultEntry) => {
     void handleSelectNote(entry)
     setShowGraphModal(false)
@@ -1346,7 +1384,8 @@ function App() {
     entries: vault.entries,
     visibleNotesRef,
     multiSelectionCommandRef,
-    modifiedCount: vault.modifiedFiles.length,
+    modifiedCount: isGitVault ? vault.modifiedFiles.length : 0,
+    isGitVault,
     activeNoteModified,
     selection: effectiveSelection,
     onQuickOpen: dialogs.openQuickOpen, onCommandPalette: dialogs.openCommandPalette,
@@ -1380,6 +1419,7 @@ function App() {
     canGoBack: canGoBack, canGoForward: canGoForward,
     onOpenVault: vaultSwitcher.handleOpenLocalFolder,
     onCreateEmptyVault: vaultSwitcher.handleCreateEmptyVault,
+    canAddRemote,
     onCreateType: dialogs.openCreateType,
     onToggleAIChat: dialogs.toggleAIChat,
     onCheckForUpdates: handleCheckForUpdates,
@@ -1415,6 +1455,7 @@ function App() {
     onToggleFavorite: entryActions.handleToggleFavorite,
     onToggleOrganized: toggleOrganizedCommand,
     onInsertWeatherSnapshot: insertWeatherSnapshotCommand,
+    onTranscribeAudio: transcribeAudioCommand,
     onCustomizeNoteListColumns: handleCustomizeNoteListColumns,
     canCustomizeNoteListColumns,
     noteListColumnsLabel,
@@ -1500,23 +1541,6 @@ function App() {
     )
   }
 
-  // Show git-required modal when vault has no git repo (skip for note windows)
-  if (!noteWindowParams && gitRepoState === 'required' && !showMcpSetupDialog) {
-    return (
-      <div className="app-shell">
-        <GitRequiredModal
-          onCreateRepo={handleInitGitRepo}
-          onChooseVault={vaultSwitcher.handleOpenLocalFolder}
-        />
-      </div>
-    )
-  }
-
-  // Show loading spinner while checking git status
-  if (!noteWindowParams && gitRepoState === 'checking' && onboarding.state.status === 'ready') {
-    return <LoadingView />
-  }
-
   return (
     <NoteRetargetingProvider value={noteRetargetingUi.contextValue}>
       <div className="app-shell">
@@ -1558,6 +1582,7 @@ function App() {
               inspectorWidth={layout.inspectorWidth}
               defaultAiAgent={aiAgentPreferences.defaultAiAgent}
               defaultAiAgentReady={aiAgentPreferences.defaultAiAgentReady}
+              defaultAiProvider={aiAgentPreferences.defaultAiProvider}
               defaultAiModel={aiAgentPreferences.defaultAiModel}
               onUnsupportedAiPaste={setToastMessage}
               onInspectorResize={layout.handleInspectorResize}
@@ -1604,7 +1629,7 @@ function App() {
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />
-        <StatusBar noteCount={vault.entries.length} modifiedCount={vault.modifiedFiles.length} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={vaultSwitcher.handleCreateEmptyVault} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onClickPending={() => handleSetSelection({ kind: 'filter', filter: 'changes' })} onClickPulse={() => handleSetSelection({ kind: 'filter', filter: 'pulse' })} onCommitPush={handleCommitPush} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={autoSync.conflictFiles.length} remoteStatus={autoSync.remoteStatus} onTriggerSync={autoSync.triggerSync} onPullAndPush={autoSync.pullAndPush} onOpenConflictResolver={conflictFlow.handleOpenConflictResolver} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
+        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={vaultSwitcher.handleCreateEmptyVault} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
         <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={notes.handleSelectNote} onClose={dialogs.closeQuickOpen} />
@@ -1632,7 +1657,7 @@ function App() {
         />
         <CreateViewDialog open={dialogs.showCreateViewDialog} onClose={dialogs.closeCreateView} onCreate={handleCreateOrUpdateView} availableFields={availableFields} editingView={dialogs.editingView?.definition ?? null} />
         <CommitDialog
-          open={commitFlow.showCommitDialog}
+          open={isGitVault && commitFlow.showCommitDialog}
           modifiedCount={vault.modifiedFiles.length}
           commitMode={commitFlow.commitMode}
           suggestedMessage={suggestedCommitMessage}
@@ -1650,7 +1675,7 @@ function App() {
           onCommit={conflictResolver.commitResolution}
           onClose={conflictFlow.handleCloseConflictResolver}
         />
-        <SettingsPanel open={dialogs.showSettings} settings={settings} aiAgentsStatus={aiAgentsStatus} locale={appLocale} systemLocale={systemLocale} isGitVault={isGitVault} onSave={saveSettings} explicitOrganizationEnabled={explicitOrganizationEnabled} onSaveExplicitOrganization={handleSaveExplicitOrganization} onClose={dialogs.closeSettings} />
+        <SettingsPanel open={dialogs.showSettings} settings={settings} aiAgentsStatus={aiAgentsStatus} locale={appLocale} systemLocale={systemLocale} vaultPath={resolvedPath} importMarkdownFolderBusy={markdownImportBusy} onImportMarkdownFolder={handleImportMarkdownFolder} onImportMarkdownZip={handleImportMarkdownZip} onImportBear={handleImportBear} onImportDayOne={handleImportDayOne} onImportJourney={handleImportJourney} onExportMarkdownZip={handleExportMarkdownZip} isGitVault={isGitVault} onSave={saveSettings} explicitOrganizationEnabled={explicitOrganizationEnabled} onSaveExplicitOrganization={handleSaveExplicitOrganization} onClose={dialogs.closeSettings} />
         <FeedbackDialog open={showFeedback} onClose={closeFeedback} />
         <McpSetupDialog open={showMcpSetupDialog} status={mcpStatus} busyAction={mcpDialogAction} onClose={closeMcpSetupDialog} onConnect={handleConnectMcp} onDisconnect={handleDisconnectMcp} />
         <CloneVaultModal key={dialogs.showCloneVault ? 'clone-open' : 'clone-closed'} open={dialogs.showCloneVault} onClose={dialogs.closeCloneVault} onVaultCloned={vaultSwitcher.handleVaultCloned} />
@@ -1721,9 +1746,7 @@ function AiAgentsOnboardingView({
 function LoadingView() {
   return (
     <div className="app-shell">
-      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--sidebar)' }}>
-        <span style={{ color: 'var(--muted-foreground)', fontSize: 14 }}>Loading…</span>
-      </div>
+      <GrimoireRefreshAnimation />
     </div>
   )
 }

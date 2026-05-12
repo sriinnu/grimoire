@@ -25,6 +25,7 @@ export { buildViewCommands } from './commands/viewCommands'
 interface CommandRegistryConfig {
   activeTabPath: string | null
   entries: VaultEntry[]
+  isGitVault?: boolean
   modifiedCount: number
   activeNoteHasIcon?: boolean
   mcpStatus?: string
@@ -52,6 +53,7 @@ interface CommandRegistryConfig {
   onToggleFavorite?: (path: string) => void
   onToggleOrganized?: (path: string) => void
   onInsertWeatherSnapshot?: () => void
+  onTranscribeAudio?: () => void
   onCustomizeNoteListColumns?: () => void
   canCustomizeNoteListColumns?: boolean
   noteListColumnsLabel?: string
@@ -107,7 +109,7 @@ interface CommandRegistryConfig {
 
 export function useCommandRegistry(config: CommandRegistryConfig): import('./commands/types').CommandAction[] {
   const {
-    activeTabPath, entries, modifiedCount,
+    activeTabPath, entries, isGitVault = true, modifiedCount,
     onQuickOpen, onCreateNote, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault,
@@ -123,7 +125,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onReloadVault, onRepairVault,
     locale, systemLocale, selectedUiLanguage, onSetUiLanguage,
     onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
-    onOpenInNewWindow, onToggleFavorite, onToggleOrganized, onInsertWeatherSnapshot,
+    onOpenInNewWindow, onToggleFavorite, onToggleOrganized, onInsertWeatherSnapshot, onTranscribeAudio,
     onCustomizeNoteListColumns, canCustomizeNoteListColumns,
     onRestoreDeletedNote, canRestoreDeletedNote,
     selection, noteListFilter, onSetNoteListFilter,
@@ -148,6 +150,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
 
   return useMemo(() => [
     ...buildNavigationCommands({
+      isGitVault,
       onQuickOpen,
       onSelect,
       selection,
@@ -166,9 +169,11 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
       onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
       onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onOpenInNewWindow, onToggleFavorite, isFavorite,
       onToggleOrganized, isOrganized: activeEntry?.organized ?? false, onInsertWeatherSnapshot,
+      onTranscribeAudio,
       onRestoreDeletedNote, canRestoreDeletedNote,
     }),
     ...buildGitCommands({
+      isGitVault,
       modifiedCount,
       canAddRemote: config.canAddRemote ?? false,
       onAddRemote: config.onAddRemote,
@@ -201,7 +206,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildTypeCommands(vaultTypes, onCreateNoteOfType, onSelect),
     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
   ], [
-    hasActiveNote, activeTabPath, isArchived, modifiedCount, activeNoteModified,
+    hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
     onQuickOpen, onCreateNote, onCreateNoteOfType, onCreateType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
@@ -218,7 +223,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
     isSectionGroup, noteListFilter, onSetNoteListFilter,
     selection,
-    onOpenInNewWindow, onToggleFavorite, isFavorite, onInsertWeatherSnapshot,
+    onOpenInNewWindow, onToggleFavorite, isFavorite, onInsertWeatherSnapshot, onTranscribeAudio,
     onToggleOrganized, onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
     onRestoreDeletedNote, canRestoreDeletedNote, activeEntry,
   ])

@@ -128,6 +128,16 @@ describe('DynamicPropertiesPanel', () => {
     expect(screen.getByText('Note')).toBeInTheDocument()
   })
 
+  it('summarizes visible property and quick-add counts', () => {
+    renderPanel({
+      frontmatter: { Status: 'Active', Owner: 'Sriinu' },
+      onAddProperty,
+    })
+
+    expect(screen.getByTestId('properties-panel-summary')).toHaveTextContent('2 fields')
+    expect(screen.getByTestId('properties-panel-summary')).toHaveTextContent('6 quick add')
+  })
+
   it('shows the shared type icon in the type row label', () => {
     renderPanel({
       content: '# Test\n\nSome words here',
@@ -253,10 +263,10 @@ describe('DynamicPropertiesPanel', () => {
 
   it('adds property via the add form', () => {
     const { keyInput, valueInput } = openAddPropertyForm()
-    fireEvent.change(keyInput, { target: { value: 'priority' } })
-    fireEvent.change(valueInput, { target: { value: 'high' } })
+    fireEvent.change(keyInput, { target: { value: 'cadence' } })
+    fireEvent.change(valueInput, { target: { value: 'Weekly' } })
     fireEvent.click(screen.getByTestId('add-property-confirm'))
-    expect(onAddProperty).toHaveBeenCalledWith('priority', 'high')
+    expect(onAddProperty).toHaveBeenCalledWith('cadence', 'Weekly')
   })
 
   it('handles navigating to type via click in read-only mode', () => {
@@ -431,8 +441,9 @@ describe('DynamicPropertiesPanel', () => {
   })
 
   it('handles comma-separated values as array', () => {
-    const { keyInput, valueInput } = openAddPropertyForm()
+    const { keyInput } = openAddPropertyForm()
     fireEvent.change(keyInput, { target: { value: 'tags' } })
+    const valueInput = screen.getByPlaceholderText('tag1, tag2, ...')
     fireEvent.change(valueInput, { target: { value: 'a, b, c' } })
     fireEvent.keyDown(valueInput, { key: 'Enter' })
     expect(onAddProperty).toHaveBeenCalledWith('tags', ['a', 'b', 'c'])
@@ -478,13 +489,17 @@ describe('DynamicPropertiesPanel', () => {
       return slot as HTMLElement
     }
 
-    it('shows Status/Date/URL/Icon slots when no properties exist and onAddProperty provided', () => {
+    it('shows core quick-add slots when no properties exist and onAddProperty provided', () => {
       renderPanel({ onAddProperty })
       const slots = screen.getAllByTestId('suggested-property')
-      expect(slots.length).toBe(4)
+      expect(slots.length).toBe(8)
       expect(screen.getByText('Status')).toBeInTheDocument()
+      expect(screen.getByText('Priority')).toBeInTheDocument()
+      expect(screen.getByText('Tags')).toBeInTheDocument()
       expect(screen.getByText('Date')).toBeInTheDocument()
+      expect(screen.getByText('Owner')).toBeInTheDocument()
       expect(screen.getByText('URL')).toBeInTheDocument()
+      expect(screen.getByText('Flag')).toBeInTheDocument()
       expect(screen.getByText('Icon')).toBeInTheDocument()
     })
 
@@ -492,8 +507,11 @@ describe('DynamicPropertiesPanel', () => {
       renderPanel({ onAddProperty })
 
       expect(within(findSuggestedSlot('Status')).getByTestId('suggested-property-icon-status')).toBeInTheDocument()
+      expect(within(findSuggestedSlot('Priority')).getByTestId('suggested-property-icon-status')).toBeInTheDocument()
+      expect(within(findSuggestedSlot('Tags')).getByTestId('suggested-property-icon-tags')).toBeInTheDocument()
       expect(within(findSuggestedSlot('Date')).getByTestId('suggested-property-icon-date')).toBeInTheDocument()
       expect(within(findSuggestedSlot('URL')).getByTestId('suggested-property-icon-url')).toBeInTheDocument()
+      expect(within(findSuggestedSlot('Flag')).getByTestId('suggested-property-icon-boolean')).toBeInTheDocument()
       expect(within(findSuggestedSlot('Icon')).getByTestId('suggested-property-icon-text')).toBeInTheDocument()
     })
 
@@ -504,13 +522,22 @@ describe('DynamicPropertiesPanel', () => {
         onUpdateProperty,
       })
       const slots = screen.getAllByTestId('suggested-property')
-      expect(slots.length).toBe(3)
+      expect(slots.length).toBe(7)
       expect(screen.queryAllByText('Status').some(el => el.closest('[data-testid="suggested-property"]'))).toBe(false)
     })
 
     it('hides all slots when all suggested properties exist', () => {
       renderPanel({
-        frontmatter: { Status: 'Active', Date: '2024-01-01', URL: 'https://example.com', icon: 'star' },
+        frontmatter: {
+          Status: 'Active',
+          Priority: 'High',
+          Tags: ['work'],
+          Date: '2024-01-01',
+          Owner: 'Sriinu',
+          URL: 'https://example.com',
+          Flag: true,
+          icon: 'star',
+        },
         onAddProperty,
         onUpdateProperty,
       })
@@ -564,6 +591,15 @@ describe('DynamicPropertiesPanel', () => {
       await waitFor(() => {
         expect(screen.getByTestId('date-picker-popover')).toBeInTheDocument()
       })
+    })
+
+    it('writes a suggested boolean flag only when toggled', () => {
+      renderPanel({ onAddProperty })
+      fireEvent.click(findSuggestedSlot('Flag'))
+      expect(onAddProperty).not.toHaveBeenCalled()
+
+      fireEvent.click(screen.getByTestId('boolean-toggle'))
+      expect(onAddProperty).toHaveBeenCalledWith('Flag', true)
     })
   })
 
@@ -874,6 +910,16 @@ describe('DynamicPropertiesPanel', () => {
       openAddPropertyForm()
       // Default mode is text
       expect(screen.getByPlaceholderText('Value')).toBeInTheDocument()
+    })
+
+    it('infers useful input controls from the property name', async () => {
+      const { keyInput } = openAddPropertyForm()
+
+      fireEvent.change(keyInput, { target: { value: 'due' } })
+      expect(await screen.findByTestId('add-property-date-trigger')).toBeInTheDocument()
+
+      fireEvent.change(keyInput, { target: { value: 'tags' } })
+      expect(screen.getByPlaceholderText('tag1, tag2, ...')).toBeInTheDocument()
     })
   })
 })

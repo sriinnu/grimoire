@@ -99,6 +99,7 @@ describe('streamAiAgent', () => {
       message: 'Explain this',
       systemPrompt: 'SYSTEM',
       vaultPath: '/vault',
+      provider: 'anthropic',
       model: 'sonnet',
       callbacks,
     })
@@ -112,6 +113,7 @@ describe('streamAiAgent', () => {
         message: 'Explain this',
         system_prompt: 'SYSTEM',
         vault_path: '/vault',
+        provider: 'anthropic',
         model: 'sonnet',
       },
     })

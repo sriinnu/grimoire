@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
 import { AiAgentsOnboardingPrompt } from './AiAgentsOnboardingPrompt'
 
 const openExternalUrl = vi.fn()
@@ -74,6 +75,27 @@ describe('AiAgentsOnboardingPrompt', () => {
     expect(openExternalUrl).toHaveBeenCalledWith('https://docs.anthropic.com/en/docs/claude-code')
     expect(openExternalUrl).toHaveBeenCalledWith('https://developers.openai.com/codex/cli')
     expect(openExternalUrl).toHaveBeenCalledWith('https://github.com/sriinnu/chitragupta')
+  })
+
+  it('lets users recheck local agent installs without restarting', () => {
+    const onRefresh = vi.fn()
+    window.addEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
+
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: null },
+          codex: { status: 'missing', version: null },
+          chitragupta: { status: 'missing', version: null },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('ai-agents-onboarding-refresh'))
+
+    expect(onRefresh).toHaveBeenCalledOnce()
+    window.removeEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
   })
 
   it('explains browser preview instead of showing fake installed agents', () => {

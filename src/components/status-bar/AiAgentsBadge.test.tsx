@@ -2,6 +2,7 @@ import { act, fireEvent, render as rtlRender, screen } from '@testing-library/re
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../../hooks/useAiAgentsStatus'
 import { AiAgentsBadge } from './AiAgentsBadge'
 
 vi.mock('../../utils/url', async () => {
@@ -107,5 +108,30 @@ describe('AiAgentsBadge', () => {
 
     expect(screen.getByText('Open native Grimoire for live AI')).toBeInTheDocument()
     expect(screen.queryByText('Install Claude Code')).not.toBeInTheDocument()
+  })
+
+  it('dispatches a local agent status refresh from the menu', () => {
+    const onRefresh = vi.fn()
+    window.addEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
+
+    render(
+      <AiAgentsBadge
+        statuses={installedStatuses}
+        defaultAgent="claude_code"
+        onSetDefaultAgent={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      const trigger = screen.getByTestId('status-ai-agents')
+      trigger.focus()
+      fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+    })
+    act(() => {
+      fireEvent.click(screen.getByTestId('status-ai-agents-refresh'))
+    })
+
+    expect(onRefresh).toHaveBeenCalledOnce()
+    window.removeEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
   })
 })

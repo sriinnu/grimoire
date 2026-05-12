@@ -253,7 +253,10 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
           />
         </span>
         <span className="flex min-w-0 flex-col leading-none" style={{ textAlign: 'left' }}>
-          <span className="truncate text-[13px] font-semibold tracking-normal text-foreground" style={{ textAlign: 'left' }}>
+          <span
+            className="truncate text-[18px] font-semibold tracking-normal text-foreground"
+            style={{ fontFamily: 'var(--grimoire-display-font-family)', lineHeight: 1, textAlign: 'left' }}
+          >
             Grimoire
           </span>
           <span className="mt-1 truncate text-[10px] font-medium text-muted-foreground" style={{ textAlign: 'left' }}>

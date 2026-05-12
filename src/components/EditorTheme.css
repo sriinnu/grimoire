@@ -71,6 +71,7 @@
 }
 .editor__blocknote-container [data-content-type="heading"]:not([data-level]) .bn-inline-content,
 .editor__blocknote-container [data-content-type="heading"][data-level="1"] .bn-inline-content {
+  font-family: var(--grimoire-display-font-family, var(--grimoire-editor-font-family));
   font-size: var(--headings-h1-font-size);
   font-weight: var(--headings-h1-font-weight);
   line-height: var(--headings-h1-line-height);
@@ -89,6 +90,7 @@
   margin-bottom: var(--headings-h2-margin-bottom) !important;
 }
 .editor__blocknote-container [data-content-type="heading"][data-level="2"] .bn-inline-content {
+  font-family: var(--grimoire-display-font-family, var(--grimoire-editor-font-family));
   font-size: var(--headings-h2-font-size);
   font-weight: var(--headings-h2-font-weight);
   line-height: var(--headings-h2-line-height);

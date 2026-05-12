@@ -4,6 +4,8 @@ import type { EditorFont, ThemePreset } from '../lib/appearance'
 import { resolveFontRoles } from '../lib/fontConfig'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
+import { SidebarAppearancePreview } from './SidebarAppearancePreview'
+import { buildPresetOptions, type PresetOption } from './appearanceSettingsOptions'
 import { Button } from './ui/button'
 import {
   Select,
@@ -23,27 +25,6 @@ interface AppearanceSettingsSectionProps {
   setThemePreset: (value: ThemePreset) => void
   editorFont: EditorFont
   setEditorFont: (value: EditorFont) => void
-}
-
-interface PresetOption {
-  value: ThemePreset
-  label: string
-  description: string
-  swatches: [string, string, string]
-}
-
-const PRESET_SWATCHES: Record<ThemePreset, [string, string, string]> = {
-  classic: ['#FFFFFF', '#F7F6F3', '#155DFF'],
-  manuscript: ['#FBFAF7', '#EAF3EF', '#2C6F68'],
-  graphite: ['#F7F8FA', '#E9EDF2', '#315D9D'],
-  studio: ['#FEFEFD', '#EEF2F6', '#2F66D0'],
-  folio: ['#F9FAF6', '#EEF0E8', '#7C4D8D'],
-  nocturne: ['#141513', '#20251F', '#8FD6B8'],
-  retro: ['#FFF4D6', '#26351F', '#E45F2B'],
-  aurora: ['#F7FBFF', '#EAF3F7', '#D9467D'],
-  future: ['#F4F7FB', '#E7EDF6', '#00A884'],
-  lotus: ['#FFF8FA', '#EEF7F1', '#9B4D88'],
-  ember: ['#191411', '#2A1F1A', '#F6BF4F'],
 }
 
 /** Renders Grimoire's visual appearance controls and a compact live reading sample. */
@@ -86,6 +67,8 @@ export function AppearanceSettingsSection({
         </div>
       </div>
 
+      <SidebarAppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} />
+
       <div className="space-y-2">
         <ControlLabel icon={<TextAa size={14} />} label={t('settings.editorFont.label')} />
         <Select value={editorFont} onValueChange={(value) => setEditorFont(value as EditorFont)}>
@@ -103,6 +86,7 @@ export function AppearanceSettingsSection({
             <SelectItem value="readable">{t('settings.editorFont.readable')}</SelectItem>
             <SelectItem value="literary">{t('settings.editorFont.literary')}</SelectItem>
             <SelectItem value="compact">{t('settings.editorFont.compact')}</SelectItem>
+            <SelectItem value="handwritten">{t('settings.editorFont.handwritten')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -110,77 +94,6 @@ export function AppearanceSettingsSection({
       <AppearancePreview t={t} themePreset={themePreset} editorFont={editorFont} />
     </>
   )
-}
-
-function buildPresetOptions(t: Translate): PresetOption[] {
-  return [
-    {
-      value: 'classic',
-      label: t('settings.themePreset.classic'),
-      description: t('settings.themePreset.classicDescription'),
-      swatches: PRESET_SWATCHES.classic,
-    },
-    {
-      value: 'manuscript',
-      label: t('settings.themePreset.manuscript'),
-      description: t('settings.themePreset.manuscriptDescription'),
-      swatches: PRESET_SWATCHES.manuscript,
-    },
-    {
-      value: 'graphite',
-      label: t('settings.themePreset.graphite'),
-      description: t('settings.themePreset.graphiteDescription'),
-      swatches: PRESET_SWATCHES.graphite,
-    },
-    {
-      value: 'studio',
-      label: t('settings.themePreset.studio'),
-      description: t('settings.themePreset.studioDescription'),
-      swatches: PRESET_SWATCHES.studio,
-    },
-    {
-      value: 'folio',
-      label: t('settings.themePreset.folio'),
-      description: t('settings.themePreset.folioDescription'),
-      swatches: PRESET_SWATCHES.folio,
-    },
-    {
-      value: 'nocturne',
-      label: t('settings.themePreset.nocturne'),
-      description: t('settings.themePreset.nocturneDescription'),
-      swatches: PRESET_SWATCHES.nocturne,
-    },
-    {
-      value: 'retro',
-      label: t('settings.themePreset.retro'),
-      description: t('settings.themePreset.retroDescription'),
-      swatches: PRESET_SWATCHES.retro,
-    },
-    {
-      value: 'aurora',
-      label: t('settings.themePreset.aurora'),
-      description: t('settings.themePreset.auroraDescription'),
-      swatches: PRESET_SWATCHES.aurora,
-    },
-    {
-      value: 'future',
-      label: t('settings.themePreset.future'),
-      description: t('settings.themePreset.futureDescription'),
-      swatches: PRESET_SWATCHES.future,
-    },
-    {
-      value: 'lotus',
-      label: t('settings.themePreset.lotus'),
-      description: t('settings.themePreset.lotusDescription'),
-      swatches: PRESET_SWATCHES.lotus,
-    },
-    {
-      value: 'ember',
-      label: t('settings.themePreset.ember'),
-      description: t('settings.themePreset.emberDescription'),
-      swatches: PRESET_SWATCHES.ember,
-    },
-  ]
 }
 
 function SectionHeading({
@@ -298,14 +211,14 @@ function ThemePresetCard({
       data-testid={`settings-theme-preset-${option.value}`}
       className={
         selected
-          ? 'h-auto justify-start rounded-md border border-primary bg-background p-3 text-left shadow-xs'
-          : 'h-auto justify-start rounded-md border border-border bg-transparent p-3 text-left hover:bg-muted'
+          ? 'h-auto min-w-0 justify-start whitespace-normal rounded-md border border-primary bg-background p-3 text-left shadow-xs'
+          : 'h-auto min-w-0 justify-start whitespace-normal rounded-md border border-border bg-transparent p-3 text-left hover:bg-muted'
       }
       onClick={() => onSelect(option.value)}
     >
-      <span className="flex w-full flex-col gap-2">
+      <span className="flex min-w-0 w-full flex-col gap-2">
         <span className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5" style={{ fontSize: 12, fontWeight: 600 }}>
+          <span className="flex min-w-0 items-center gap-1.5 break-words" style={{ fontSize: 12, fontWeight: 600 }}>
             {option.label}
           </span>
           {selected ? <Check size={14} weight="bold" /> : null}
@@ -319,7 +232,7 @@ function ThemePresetCard({
             />
           ))}
         </span>
-        <span style={{ color: 'var(--muted-foreground)', fontSize: 11, lineHeight: 1.35 }}>
+        <span className="min-w-0 break-words" style={{ color: 'var(--muted-foreground)', fontSize: 11, lineHeight: 1.35 }}>
           {option.description}
         </span>
       </span>

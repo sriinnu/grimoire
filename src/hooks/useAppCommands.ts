@@ -20,6 +20,7 @@ interface AppCommandsConfig {
   visibleNotesRef: React.RefObject<VaultEntry[]>
   multiSelectionCommandRef: React.MutableRefObject<NoteListMultiSelectionCommands | null>
   modifiedCount: number
+  isGitVault?: boolean
   selection: SidebarSelection
   onQuickOpen: () => void
   onCommandPalette: () => void
@@ -98,6 +99,7 @@ interface AppCommandsConfig {
   onToggleFavorite?: (path: string) => void
   onToggleOrganized?: (path: string) => void
   onInsertWeatherSnapshot?: () => void
+  onTranscribeAudio?: () => void
   onCustomizeNoteListColumns?: () => void
   canCustomizeNoteListColumns?: boolean
   noteListColumnsLabel?: string
@@ -197,6 +199,7 @@ type CommandRegistryNoteActions = Pick<
   | 'onToggleFavorite'
   | 'onToggleOrganized'
   | 'onInsertWeatherSnapshot'
+  | 'onTranscribeAudio'
   | 'onCustomizeNoteListColumns'
   | 'canCustomizeNoteListColumns'
   | 'noteListColumnsLabel'
@@ -313,15 +316,17 @@ function createMenuEventVaultHandlers(
   | 'onOpenInNewWindow'
   | 'onRestoreDeletedNote'
 > {
+  const isGitVault = config.isGitVault !== false
+
   return {
     onOpenVault: config.onOpenVault,
     onRemoveActiveVault: config.onRemoveActiveVault,
     onRestoreGettingStarted: config.onRestoreGettingStarted,
     onAddRemote: config.onAddRemote ?? requestAddRemote,
-    onCommitPush: config.onCommitPush,
-    onPull: config.onPull,
-    onResolveConflicts: config.onResolveConflicts,
-    onViewChanges: viewChanges,
+    onCommitPush: isGitVault ? config.onCommitPush : undefined,
+    onPull: isGitVault ? config.onPull : undefined,
+    onResolveConflicts: isGitVault ? config.onResolveConflicts : undefined,
+    onViewChanges: isGitVault ? viewChanges : undefined,
     onInstallMcp: config.onInstallMcp,
     onReloadVault: config.onReloadVault,
     onRepairVault: config.onRepairVault,
@@ -340,14 +345,18 @@ function createMenuEventState(
   | 'modifiedCount'
   | 'hasRestorableDeletedNote'
   | 'hasNoRemote'
+  | 'hasGitVault'
 > {
+  const isGitVault = config.isGitVault !== false
+
   return {
     activeTabPathRef: config.activeTabPathRef,
     multiSelectionCommandRef: config.multiSelectionCommandRef,
     activeTabPath: config.activeTabPath,
-    modifiedCount: config.modifiedCount,
+    modifiedCount: isGitVault ? config.modifiedCount : 0,
     hasRestorableDeletedNote: config.canRestoreDeletedNote,
-    hasNoRemote: config.canAddRemote ?? true,
+    hasNoRemote: !isGitVault || (config.canAddRemote ?? true),
+    hasGitVault: isGitVault,
   }
 }
 
@@ -378,7 +387,7 @@ function createCommandRegistryCoreConfig(
   return {
     activeTabPath: config.activeTabPath,
     entries: config.entries,
-    modifiedCount: config.modifiedCount,
+    modifiedCount: config.isGitVault === false ? 0 : config.modifiedCount,
     onQuickOpen: config.onQuickOpen,
     onCreateNote: config.onCreateNote,
     onCreateNoteOfType: config.onCreateNoteOfType,
@@ -405,11 +414,13 @@ function createCommandRegistryCoreConfig(
 function createCommandRegistryVaultConfig(
   config: AppCommandsConfig,
 ): CommandRegistryVaultActions {
+  const isGitVault = config.isGitVault !== false
+
   return {
     onOpenVault: config.onOpenVault,
     onCreateEmptyVault: config.onCreateEmptyVault,
     onAddRemote: config.onAddRemote ?? requestAddRemote,
-    canAddRemote: config.canAddRemote ?? true,
+    canAddRemote: !isGitVault || (config.canAddRemote ?? true),
     onCheckForUpdates: config.onCheckForUpdates,
     onCreateType: config.onCreateType,
     locale: config.locale,
@@ -460,6 +471,7 @@ function createCommandRegistryNoteConfig(
     onToggleFavorite: config.onToggleFavorite,
     onToggleOrganized: config.onToggleOrganized,
     onInsertWeatherSnapshot: config.onInsertWeatherSnapshot,
+    onTranscribeAudio: config.onTranscribeAudio,
     onCustomizeNoteListColumns: config.onCustomizeNoteListColumns,
     canCustomizeNoteListColumns: config.canCustomizeNoteListColumns,
     noteListColumnsLabel: config.noteListColumnsLabel,
@@ -468,6 +480,7 @@ function createCommandRegistryNoteConfig(
 
 function createCommandRegistryConfig(config: AppCommandsConfig): CommandRegistryConfig {
   return {
+    isGitVault: config.isGitVault !== false,
     ...createCommandRegistryCoreConfig(config),
     ...createCommandRegistrySelectionConfig(config),
     ...createCommandRegistryVaultConfig(config),
@@ -491,13 +504,17 @@ export function useAppCommands(config: AppCommandsConfig): CommandAction[] {
   const { onSelect } = config
 
   const selectFilter = useCallback((filter: SidebarFilter) => {
-    const safeFilter = !config.showInbox && filter === 'inbox' ? 'all' : filter
+    const isGitVault = config.isGitVault !== false
+    const safeFilter = (!isGitVault && (filter === 'changes' || filter === 'pulse'))
+      || (!config.showInbox && filter === 'inbox')
+      ? 'all'
+      : filter
     onSelect({ kind: 'filter', filter: safeFilter })
-  }, [config.showInbox, onSelect])
+  }, [config.isGitVault, config.showInbox, onSelect])
 
   const viewChanges = useCallback(() => {
-    onSelect({ kind: 'filter', filter: 'changes' })
-  }, [onSelect])
+    onSelect({ kind: 'filter', filter: config.isGitVault === false ? 'all' : 'changes' })
+  }, [config.isGitVault, onSelect])
 
   const keyboardActions = createKeyboardActions(config)
   const menuEventHandlers = createMenuEventHandlers(config, selectFilter, viewChanges)

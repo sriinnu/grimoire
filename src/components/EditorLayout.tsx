@@ -1,6 +1,4 @@
 import type React from 'react'
-import { useDragRegion } from '../hooks/useDragRegion'
-import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import type { AiAgentId } from '../lib/aiAgents'
 import type { FrontmatterValue } from './Inspector'
 import type { GitCommit, NoteLayout, NoteStatus, VaultEntry } from '../types'
@@ -8,6 +6,7 @@ import type { NoteListItem } from '../utils/ai-context'
 import { ResizeHandle } from './ResizeHandle'
 import { EditorRightPanel } from './EditorRightPanel'
 import { EditorContent } from './EditorContent'
+import { EditorEmptyState } from './EditorEmptyState'
 import type { useCreateBlockNote } from '@blocknote/react'
 import { persistContent } from '../hooks/useSaveNote'
 
@@ -56,6 +55,7 @@ interface EditorLayoutProps {
   inspectorWidth: number
   defaultAiAgent: AiAgentId
   defaultAiAgentReady: boolean
+  defaultAiProvider?: string | null
   defaultAiModel?: string | null
   inspectorEntry: VaultEntry | null
   inspectorContent: string | null
@@ -82,30 +82,6 @@ async function replacePersistedContent(
 ) {
   await persistContent(path, content)
   onContentChange?.(path, content)
-}
-
-function EditorEmptyState() {
-  const breadcrumbBarHeight = 52
-  const { onMouseDown } = useDragRegion()
-  const quickOpenShortcut = formatShortcutDisplay({ display: '⌘P / ⌘O' })
-  const newNoteShortcut = formatShortcutDisplay({ display: '⌘N' })
-
-  return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      <div
-        aria-hidden="true"
-        data-tauri-drag-region
-        data-testid="editor-empty-state-drag-region"
-        className="shrink-0"
-        onMouseDown={onMouseDown}
-        style={{ height: breadcrumbBarHeight }}
-      />
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
-        <p className="m-0 text-[15px]">Select a note to start editing</p>
-        <span className="text-xs text-muted-foreground">{quickOpenShortcut} to search &middot; {newNoteShortcut} to create</span>
-      </div>
-    </div>
-  )
 }
 
 /** Renders the editor canvas and right-side inspector/AI shell. */
@@ -149,6 +125,7 @@ export function EditorLayout({
   inspectorWidth,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiProvider,
   defaultAiModel,
   inspectorEntry,
   inspectorContent,
@@ -217,6 +194,7 @@ export function EditorLayout({
           inspectorWidth={inspectorWidth}
           defaultAiAgent={defaultAiAgent}
           defaultAiAgentReady={defaultAiAgentReady}
+          defaultAiProvider={defaultAiProvider}
           defaultAiModel={defaultAiModel}
           onUnsupportedAiPaste={onUnsupportedAiPaste}
           inspectorEntry={inspectorEntry}

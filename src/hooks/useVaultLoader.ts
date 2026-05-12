@@ -32,6 +32,10 @@ function loadVaultViews(vaultPath: string): Promise<ViewFile[]> {
   return tauriCall<ViewFile[]>('list_views', { vaultPath })
 }
 
+interface VaultLoaderOptions {
+  isGitVault?: boolean
+}
+
 function resetVaultState(options: {
   clearNewPaths: () => void
   clearUnsaved: () => void
@@ -132,7 +136,8 @@ export function resolveNoteStatus(
   return 'clean'
 }
 
-export function useVaultLoader(vaultPath: string) {
+export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = {}) {
+  const isGitVault = options.isGitVault ?? true
   const [entries, setEntries] = useState<VaultEntry[]>([])
   const [folders, setFolders] = useState<FolderNode[]>([])
   const [views, setViews] = useState<ViewFile[]>([])
@@ -142,6 +147,11 @@ export function useVaultLoader(vaultPath: string) {
   const pendingSave = usePendingSaveTracker()
   const unsaved = useUnsavedTracker()
   const isCurrentVaultPath = useCurrentVaultPathGuard(vaultPath)
+  const isGitVaultRef = useRef(isGitVault)
+
+  useEffect(() => {
+    isGitVaultRef.current = isGitVault
+  }, [isGitVault])
 
   useEffect(() => {
     const path = vaultPath
@@ -188,18 +198,23 @@ export function useVaultLoader(vaultPath: string) {
       return
     }
 
+    if (!isGitVault) {
+      setModifiedFiles([])
+      return
+    }
+
     try {
       const files = await tauriCall<ModifiedFile[]>('get_modified_files', { vaultPath: path }, {})
-      if (!isCurrentVaultPath(path)) return
+      if (!isCurrentVaultPath(path) || !isGitVaultRef.current) return
       setModifiedFiles(files)
     } catch (err) {
-      if (!isCurrentVaultPath(path)) return
+      if (!isCurrentVaultPath(path) || !isGitVaultRef.current) return
       const message = typeof err === 'string' ? err : 'Failed to load changes'
       console.warn('Failed to load modified files:', err)
       setModifiedFilesError(message)
       setModifiedFiles([])
     }
-  }, [vaultPath, isCurrentVaultPath])
+  }, [vaultPath, isGitVault, isCurrentVaultPath])
 
   useEffect(() => { loadModifiedFiles() }, [loadModifiedFiles]) // eslint-disable-line react-hooks/set-state-in-effect -- trigger initial load
 

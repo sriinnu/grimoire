@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type MutableRefObject } from 'react'
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import type { GitPushResult, GitRemoteStatus, ModifiedFile } from '../types'
 import { trackEvent } from '../lib/telemetry'
@@ -20,6 +20,7 @@ interface AutomaticCheckpointOptions {
 }
 
 interface CommitFlowConfig {
+  enabled?: boolean
   savePending: () => Promise<void | boolean>
   loadModifiedFiles: () => Promise<void>
   resolveRemoteStatus: () => Promise<GitRemoteStatus | null>
@@ -38,6 +39,7 @@ interface CommitArgs extends VaultPathArgs {
 
 interface CommitExecutionArgs extends CommitArgs {
   commitMode: CommitMode
+  shouldContinue: () => boolean
 }
 
 interface AutomaticCheckpointContext extends VaultPathArgs {
@@ -53,6 +55,8 @@ interface ExecutedCheckpoint {
   action: CheckpointAction
   result: CommitResult
 }
+
+const GIT_DISABLED_MESSAGE = 'Git is not enabled for this vault'
 
 function commitModeFromRemoteStatus(remoteStatus: GitRemoteStatus | null): CommitMode {
   return remoteStatus?.hasRemote === false ? 'local' : 'push'
@@ -87,13 +91,17 @@ async function executeCommitAction({
   vaultPath,
   message,
   commitMode,
-}: CommitExecutionArgs): Promise<CommitResult> {
+  shouldContinue,
+}: CommitExecutionArgs): Promise<CommitResult | null> {
+  if (!shouldContinue()) return null
   await commitLocally({ vaultPath, message })
+  if (!shouldContinue()) return null
   if (commitMode === 'local') {
     return { status: 'local_only', message: 'Committed locally (no remote configured)' }
   }
 
-  return pushCommittedChanges({ vaultPath })
+  const result = await pushCommittedChanges({ vaultPath })
+  return shouldContinue() ? result : null
 }
 
 function commitToastMessage(result: CommitResult): string {
@@ -147,11 +155,15 @@ function createAutomaticCheckpointCommand({
 
 async function executeAutomaticCheckpoint(
   command: AutomaticCheckpointCommand,
-): Promise<ExecutedCheckpoint> {
+  shouldContinue: () => boolean,
+): Promise<ExecutedCheckpoint | null> {
+  if (!shouldContinue()) return null
   if (command.action === 'push_only') {
+    const result = await pushCommittedChanges({ vaultPath: command.vaultPath })
+    if (!shouldContinue()) return null
     return {
       action: 'push_only',
-      result: await pushCommittedChanges({ vaultPath: command.vaultPath }),
+      result,
     }
   }
 
@@ -159,7 +171,9 @@ async function executeAutomaticCheckpoint(
     vaultPath: command.vaultPath,
     message: command.message ?? '',
     commitMode: commitModeFromRemoteStatus(command.remoteStatus),
+    shouldContinue,
   })
+  if (!result) return null
   trackEvent('commit_made')
   return { action: 'commit', result }
 }
@@ -199,22 +213,29 @@ function useAutomaticCheckpointAction({
   setToastMessage,
   onPushRejected,
   vaultPath,
+  enabled = true,
+  shouldContinue,
 }: CommitFlowConfig & {
   checkpointInFlightRef: MutableRefObject<boolean>
+  shouldContinue: () => boolean
 }) {
   return useCallback(async ({
     savePendingBeforeCommit = false,
   }: AutomaticCheckpointOptions = {}): Promise<boolean> => {
+    if (!enabled || !shouldContinue()) return false
     if (checkpointInFlightRef.current) return false
     checkpointInFlightRef.current = true
 
     try {
       if (savePendingBeforeCommit) {
         await savePending()
+        if (!shouldContinue()) return false
       }
 
       const remoteStatus = await resolveRemoteStatus()
+      if (!shouldContinue()) return false
       const modifiedFiles = await readModifiedFiles({ vaultPath })
+      if (!shouldContinue()) return false
       const message = generateAutomaticCommitMessage(modifiedFiles)
       const command = createAutomaticCheckpointCommand({ remoteStatus, vaultPath, message })
       if (!command) {
@@ -222,10 +243,11 @@ function useAutomaticCheckpointAction({
         return false
       }
 
-      const { action, result } = await executeAutomaticCheckpoint(command)
+      const checkpoint = await executeAutomaticCheckpoint(command, shouldContinue)
+      if (!checkpoint) return false
       await finalizeCheckpoint({
-        result,
-        toastMessage: checkpointToastMessage(result, action),
+        result: checkpoint.result,
+        toastMessage: checkpointToastMessage(checkpoint.result, checkpoint.action),
         loadModifiedFiles,
         resolveRemoteStatus,
         setToastMessage,
@@ -234,12 +256,12 @@ function useAutomaticCheckpointAction({
       return true
     } catch (err) {
       console.error('Commit failed:', err)
-      setToastMessage(`Commit failed: ${formatCommitError(err)}`)
+      if (shouldContinue()) setToastMessage(`Commit failed: ${formatCommitError(err)}`)
       return false
     } finally {
       checkpointInFlightRef.current = false
     }
-  }, [checkpointInFlightRef, loadModifiedFiles, onPushRejected, resolveRemoteStatus, savePending, setToastMessage, vaultPath])
+  }, [checkpointInFlightRef, enabled, loadModifiedFiles, onPushRejected, resolveRemoteStatus, savePending, setToastMessage, shouldContinue, vaultPath])
 }
 
 function useManualCommitPushAction({
@@ -251,23 +273,34 @@ function useManualCommitPushAction({
   onPushRejected,
   vaultPath,
   setShowCommitDialog,
+  enabled = true,
+  shouldContinue,
 }: CommitFlowConfig & {
   checkpointInFlightRef: MutableRefObject<boolean>
   setShowCommitDialog: (open: boolean) => void
+  shouldContinue: () => boolean
 }) {
   return useCallback(async (message: string) => {
     setShowCommitDialog(false)
+    if (!enabled || !shouldContinue()) {
+      setToastMessage(GIT_DISABLED_MESSAGE)
+      return
+    }
     if (checkpointInFlightRef.current) return
     checkpointInFlightRef.current = true
 
     try {
       await savePending()
+      if (!shouldContinue()) return
       const remoteStatus = await resolveRemoteStatus()
+      if (!shouldContinue()) return
       const result = await executeCommitAction({
         vaultPath,
         message,
         commitMode: commitModeFromRemoteStatus(remoteStatus),
+        shouldContinue,
       })
+      if (!result) return
 
       trackEvent('commit_made')
       await finalizeCheckpoint({
@@ -280,15 +313,16 @@ function useManualCommitPushAction({
       })
     } catch (err) {
       console.error('Commit failed:', err)
-      setToastMessage(`Commit failed: ${formatCommitError(err)}`)
+      if (shouldContinue()) setToastMessage(`Commit failed: ${formatCommitError(err)}`)
     } finally {
       checkpointInFlightRef.current = false
     }
-  }, [checkpointInFlightRef, loadModifiedFiles, onPushRejected, resolveRemoteStatus, savePending, setShowCommitDialog, setToastMessage, vaultPath])
+  }, [checkpointInFlightRef, enabled, loadModifiedFiles, onPushRejected, resolveRemoteStatus, savePending, setShowCommitDialog, setToastMessage, shouldContinue, vaultPath])
 }
 
 /** Manages the commit dialog state and the save→commit→push/local flow. */
 export function useCommitFlow({
+  enabled = true,
   savePending,
   loadModifiedFiles,
   resolveRemoteStatus,
@@ -299,17 +333,36 @@ export function useCommitFlow({
   const [showCommitDialog, setShowCommitDialog] = useState(false)
   const [commitMode, setCommitMode] = useState<CommitMode>('push')
   const checkpointInFlightRef = useRef(false)
+  const activeFlowRef = useRef({ enabled, vaultPath })
+
+  useEffect(() => {
+    activeFlowRef.current = { enabled, vaultPath }
+  }, [enabled, vaultPath])
+
+  const shouldContinue = useCallback(
+    () => activeFlowRef.current.enabled && activeFlowRef.current.vaultPath === vaultPath,
+    [vaultPath],
+  )
 
   const openCommitDialog = useCallback(async () => {
+    if (!enabled || !shouldContinue()) {
+      setToastMessage(GIT_DISABLED_MESSAGE)
+      return
+    }
     await savePending()
+    if (!shouldContinue()) return
     await loadModifiedFiles()
+    if (!shouldContinue()) return
     const remoteStatus = await resolveRemoteStatus()
+    if (!shouldContinue()) return
     setCommitMode(commitModeFromRemoteStatus(remoteStatus))
     setShowCommitDialog(true)
-  }, [loadModifiedFiles, resolveRemoteStatus, savePending])
+  }, [enabled, loadModifiedFiles, resolveRemoteStatus, savePending, setToastMessage, shouldContinue])
 
   const runAutomaticCheckpoint = useAutomaticCheckpointAction({
     checkpointInFlightRef,
+    enabled,
+    shouldContinue,
     savePending,
     loadModifiedFiles,
     resolveRemoteStatus,
@@ -320,6 +373,8 @@ export function useCommitFlow({
 
   const handleCommitPush = useManualCommitPushAction({
     checkpointInFlightRef,
+    enabled,
+    shouldContinue,
     savePending,
     loadModifiedFiles,
     resolveRemoteStatus,
