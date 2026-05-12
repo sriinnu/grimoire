@@ -11,6 +11,7 @@ export interface PropertyChipValue {
   label: string
   noteIcon: string | null
   typeIcon: ComponentType<SVGAttributes<SVGSVGElement>> | null
+  typeIconValue?: string | null
   style?: CSSProperties
   action?: { kind: 'note'; entry: VaultEntry } | { kind: 'url'; url: string }
   tone: 'neutral' | 'relationship' | 'status' | 'url'
@@ -81,6 +82,7 @@ function resolveRelationshipChip(
     label,
     noteIcon: targetEntry.icon ?? null,
     typeIcon: targetEntry.isA ? getTypeIcon(targetEntry.isA, typeEntry?.icon) : null,
+    typeIconValue: typeEntry?.icon ?? null,
     style: resolveRelationshipChipStyle(targetEntry, typeEntryMap),
     action: { kind: 'note', entry: targetEntry },
     tone: 'relationship',

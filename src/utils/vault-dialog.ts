@@ -96,3 +96,49 @@ export async function pickFolder(title?: string): Promise<string | null> {
   // Browser fallback: prompt for path
   return normalizePickedFolderPath(prompt(title ?? 'Enter folder path:'))
 }
+
+/** Opens a native file picker dialog (Tauri) or falls back to prompt (browser). */
+export async function pickFile(
+  title?: string,
+  filters?: { name: string; extensions: string[] }[],
+): Promise<string | null> {
+  if (isTauri()) {
+    if (isRestartRequiredAfterUpdate()) {
+      throw new NativeFolderPickerBlockedError()
+    }
+
+    const { open } = await import('@tauri-apps/plugin-dialog')
+    const selected = await open({
+      directory: false,
+      multiple: false,
+      title: title ?? 'Select file',
+      filters,
+    })
+    return normalizePickedFolderPath(selected)
+  }
+
+  return normalizePickedFolderPath(prompt(title ?? 'Enter file path:'))
+}
+
+/** Opens a native save dialog (Tauri) or falls back to prompt (browser). */
+export async function pickSaveFile(
+  title?: string,
+  defaultPath?: string,
+  filters?: { name: string; extensions: string[] }[],
+): Promise<string | null> {
+  if (isTauri()) {
+    if (isRestartRequiredAfterUpdate()) {
+      throw new NativeFolderPickerBlockedError()
+    }
+
+    const { save } = await import('@tauri-apps/plugin-dialog')
+    const selected = await save({
+      title: title ?? 'Save file',
+      defaultPath,
+      filters,
+    })
+    return normalizePickedFolderPath(selected)
+  }
+
+  return normalizePickedFolderPath(prompt(title ?? 'Save file path:', defaultPath ?? ''))
+}

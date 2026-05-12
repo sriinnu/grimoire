@@ -25,6 +25,7 @@ vi.mock('../utils/ai-chat', () => ({
 
 import {
   appendLocalResponse,
+  appendQueuedMessage,
   appendStreamingMessage,
   buildFormattedMessage,
   createMissingAgentResponse,
@@ -98,6 +99,28 @@ describe('aiAgentConversation', () => {
     ])
   })
 
+  it('replaces queued prompts when their turn starts streaming', () => {
+    nextMessageIdMock.mockReturnValue('msg-queued')
+    const store = createMessageStore()
+
+    const queuedMessageId = appendQueuedMessage(store.setMessages, { text: 'Second question' })
+    const streamingMessageId = appendStreamingMessage(store.setMessages, {
+      text: 'Second question',
+      queuedMessageId,
+    })
+
+    expect(streamingMessageId).toBe('msg-queued')
+    expect(store.getMessages()).toEqual([
+      {
+        userMessage: 'Second question',
+        references: undefined,
+        actions: [],
+        isStreaming: true,
+        id: 'msg-queued',
+      },
+    ])
+  })
+
   it('builds a formatted message from completed history only', () => {
     const messages: AiAgentMessage[] = [
       {
@@ -111,6 +134,12 @@ describe('aiAgentConversation', () => {
         userMessage: 'Still streaming',
         actions: [],
         isStreaming: true,
+      },
+      {
+        id: 'msg-3',
+        userMessage: 'Queued follow-up',
+        actions: [],
+        isQueued: true,
       },
     ]
 

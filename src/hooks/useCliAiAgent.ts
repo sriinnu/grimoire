@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
+import { useEffect, useMemo, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
 import type { AiAgentId } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
 import {
+  appendQueuedMessage,
   type AiAgentMessage,
+  type PendingUserPrompt,
 } from '../lib/aiAgentConversation'
 import {
   clearAgentConversation,
@@ -21,6 +23,7 @@ export type { AiAgentMessage } from '../lib/aiAgentConversation'
 interface UseCliAiAgentOptions {
   agent: AiAgentId
   agentReady: boolean
+  provider?: string | null
   model?: string | null
 }
 
@@ -47,7 +50,7 @@ function useCliAiAgentRuntime(fileCallbacks: AgentFileCallbacks | undefined): Us
   useEffect(() => { statusRef.current = status }, [status])
   useEffect(() => { fileCallbacksRef.current = fileCallbacks }, [fileCallbacks])
 
-  return {
+  return useMemo(() => ({
     messages,
     setMessages,
     status,
@@ -58,7 +61,7 @@ function useCliAiAgentRuntime(fileCallbacks: AgentFileCallbacks | undefined): Us
     toolInputMapRef,
     messagesRef,
     statusRef,
-  }
+  }), [messages, status])
 }
 
 export function useCliAiAgent(
@@ -67,27 +70,58 @@ export function useCliAiAgent(
   fileCallbacks: AgentFileCallbacks | undefined,
   options: UseCliAiAgentOptions,
 ) {
-  const { agent, agentReady, model } = options
+  const { agent, agentReady, provider, model } = options
   const runtime = useCliAiAgentRuntime(fileCallbacks)
   const { messages, status } = runtime
+  const queuedPromptsRef = useRef<PendingUserPrompt[]>([])
+  const [queuedVersion, setQueuedVersion] = useState(0)
+  const context = useMemo(() => ({
+    agent,
+    ready: agentReady,
+    vaultPath,
+    systemPromptOverride: contextPrompt,
+    provider,
+    model,
+  }), [agent, agentReady, contextPrompt, model, provider, vaultPath])
+
+  function enqueuePrompt(prompt: PendingUserPrompt): void {
+    const queuedMessageId = appendQueuedMessage(runtime.setMessages, prompt)
+    queuedPromptsRef.current.push({ ...prompt, queuedMessageId })
+    setQueuedVersion((current) => current + 1)
+  }
 
   async function sendMessage(text: string, references?: NoteReference[]): Promise<void> {
+    const prompt = { text, references }
+    if (runtime.statusRef.current === 'thinking' || runtime.statusRef.current === 'tool-executing') {
+      if (text.trim()) enqueuePrompt(prompt)
+      return
+    }
+
     await sendAgentMessage({
       runtime,
-      context: {
-        agent,
-        ready: agentReady,
-        vaultPath,
-        systemPromptOverride: contextPrompt,
-        model,
-      },
-      prompt: { text, references },
+      context,
+      prompt,
     })
   }
 
   function clearConversation(): void {
+    queuedPromptsRef.current = []
+    setQueuedVersion((current) => current + 1)
     clearAgentConversation(runtime)
   }
+
+  useEffect(() => {
+    if (status === 'thinking' || status === 'tool-executing') return
+
+    const nextPrompt = queuedPromptsRef.current.shift()
+    if (!nextPrompt) return
+
+    void sendAgentMessage({
+      runtime,
+      context,
+      prompt: nextPrompt,
+    })
+  }, [context, queuedVersion, runtime, status])
 
   return { messages, status, sendMessage, clearConversation }
 }

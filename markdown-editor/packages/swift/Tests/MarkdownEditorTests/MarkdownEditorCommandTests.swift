@@ -20,6 +20,10 @@ final class MarkdownEditorCommandTests: XCTestCase {
         XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "handwriting").first?.id, "grimoire_handwritten_canvas")
         XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "excalidraw").first?.id, "grimoire_whiteboard_canvas")
         XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "pencil note").first?.id, "grimoire_sketch_note")
+        XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "case diagram").first?.id, "grimoire_mermaid_use_case")
+        XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "api flow").first?.id, "grimoire_mermaid_sequence")
+        XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "spanda").first?.id, "grimoire_sadhana_session")
+        XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "rahu kalam").first?.id, "grimoire_panchanga_snapshot")
     }
 
     func testDateCommandsRenderDeterministically() {
@@ -38,6 +42,18 @@ final class MarkdownEditorCommandTests: XCTestCase {
             "grimoire_inline_math",
             "grimoire_display_math",
             "grimoire_mermaid",
+            "grimoire_mermaid_flowchart",
+            "grimoire_mermaid_sequence",
+            "grimoire_mermaid_class",
+            "grimoire_mermaid_state",
+            "grimoire_mermaid_er",
+            "grimoire_mermaid_gantt",
+            "grimoire_mermaid_pie",
+            "grimoire_mermaid_journey",
+            "grimoire_mermaid_timeline",
+            "grimoire_mermaid_mindmap",
+            "grimoire_mermaid_use_case",
+            "grimoire_mermaid_git_graph",
             "grimoire_handwritten_canvas",
             "grimoire_whiteboard_canvas",
             "grimoire_sketch_note",
@@ -47,7 +63,12 @@ final class MarkdownEditorCommandTests: XCTestCase {
             "grimoire_month_calendar",
             "grimoire_table_of_contents",
             "grimoire_create_wikilinks",
-            "grimoire_related_context"
+            "grimoire_related_context",
+            "grimoire_sadhana_session",
+            "grimoire_panchanga_snapshot",
+            "grimoire_japa_log",
+            "grimoire_pranayama_log",
+            "grimoire_practice_prescription",
         ]
 
         for id in requiredIds {
@@ -128,5 +149,27 @@ final class MarkdownEditorCommandTests: XCTestCase {
 
         let display = MarkdownEditorCommandCatalog.filtered(query: "display math").first?.renderedMarkdown()
         XCTAssertEqual(display, "$$\nE=mc^2\n$$")
+    }
+
+    func testSadhanaCommandsRenderPortablePracticeNotes() {
+        let date = Date(timeIntervalSince1970: 1_777_500_000)
+
+        let session = MarkdownEditorCommandCatalog.filtered(query: "spanda").first?.renderedMarkdown(now: date)
+        XCTAssertTrue(session?.contains("## Practice Session - 2026-04-30") == true)
+        XCTAssertTrue(session?.contains("| Layer | Signal | Score |") == true)
+
+        let panchanga = MarkdownEditorCommandCatalog.filtered(query: "rahu kalam").first?.renderedMarkdown(now: date)
+        XCTAssertTrue(panchanga?.contains("| Tithi |") == true)
+    }
+
+    func testMermaidCommandsRenderDurableDiagramMarkdown() {
+        let sequence = MarkdownEditorCommandCatalog.filtered(query: "api flow").first?.renderedMarkdown()
+        XCTAssertTrue(sequence?.contains("```mermaid\nsequenceDiagram") == true)
+
+        let classDiagram = MarkdownEditorCommandCatalog.filtered(query: "class").first?.renderedMarkdown()
+        XCTAssertTrue(classDiagram?.contains("classDiagram") == true)
+
+        let useCase = MarkdownEditorCommandCatalog.filtered(query: "case diagram").first?.renderedMarkdown()
+        XCTAssertTrue(useCase?.contains("User((Writer))") == true)
     }
 }

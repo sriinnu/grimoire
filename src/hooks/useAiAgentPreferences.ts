@@ -30,6 +30,7 @@ export function useAiAgentPreferences({
 
   const defaultAiAgentLabel = getAiAgentDefinition(defaultAiAgent).label
   const defaultAiAgentReady = !isTauri() || isAiAgentInstalled(aiAgentsStatus, defaultAiAgent)
+  const defaultAiProvider = settings.ai_agent_providers?.[defaultAiAgent]?.trim() || null
   const defaultAiModel = settings.ai_agent_models?.[defaultAiAgent]?.trim() || null
 
   const setDefaultAiAgent = useCallback((agent: AiAgentId) => {
@@ -56,6 +57,22 @@ export function useAiAgentPreferences({
     onToast?.(`${defaultAiAgentLabel} model: ${normalized || 'CLI default'}`)
   }, [defaultAiAgent, defaultAiAgentLabel, onToast, saveSettings, settings])
 
+  const setDefaultAiProvider = useCallback((provider: string) => {
+    const normalized = provider.trim()
+    const aiAgentProviders = { ...(settings.ai_agent_providers ?? {}) }
+    if (normalized) {
+      aiAgentProviders[defaultAiAgent] = normalized
+    } else {
+      delete aiAgentProviders[defaultAiAgent]
+    }
+
+    saveSettings({
+      ...settings,
+      ai_agent_providers: Object.keys(aiAgentProviders).length > 0 ? aiAgentProviders : null,
+    })
+    onToast?.(`${defaultAiAgentLabel} provider: ${normalized || 'CLI default'}`)
+  }, [defaultAiAgent, defaultAiAgentLabel, onToast, saveSettings, settings])
+
   const cycleDefaultAiAgent = useCallback(() => {
     setDefaultAiAgent(getNextAiAgentId(defaultAiAgent))
   }, [defaultAiAgent, setDefaultAiAgent])
@@ -64,8 +81,10 @@ export function useAiAgentPreferences({
     defaultAiAgent,
     defaultAiAgentLabel,
     defaultAiAgentReady,
+    defaultAiProvider,
     defaultAiModel,
     setDefaultAiAgent,
+    setDefaultAiProvider,
     setDefaultAiModel,
     cycleDefaultAiAgent,
   }

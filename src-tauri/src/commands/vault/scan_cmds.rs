@@ -109,6 +109,16 @@ mod tests {
     use super::{collect_registered_vault_roots, find_registered_vault_root};
     use crate::vault_list::{VaultEntry as VaultListEntry, VaultList};
 
+    fn vault_entry(label: &str, path: String) -> VaultListEntry {
+        VaultListEntry {
+            id: None,
+            label: label.to_string(),
+            path,
+            storage_provider: "local-folder".to_string(),
+            sync_provider: "none".to_string(),
+        }
+    }
+
     #[test]
     fn finds_registered_vault_root_for_an_absolute_note_path() {
         let dir = tempfile::TempDir::new().unwrap();
@@ -118,10 +128,10 @@ mod tests {
         std::fs::write(&note_path, "# Note\n").unwrap();
 
         let vault_list = VaultList {
-            vaults: vec![VaultListEntry {
-                label: "Test".to_string(),
-                path: vault_root.to_string_lossy().into_owned(),
-            }],
+            vaults: vec![vault_entry(
+                "Test",
+                vault_root.to_string_lossy().into_owned(),
+            )],
             active_vault: None,
             hidden_defaults: vec![],
         };
@@ -146,14 +156,8 @@ mod tests {
 
         let vault_list = VaultList {
             vaults: vec![
-                VaultListEntry {
-                    label: "Parent".to_string(),
-                    path: parent_root.to_string_lossy().into_owned(),
-                },
-                VaultListEntry {
-                    label: "Nested".to_string(),
-                    path: nested_root.to_string_lossy().into_owned(),
-                },
+                vault_entry("Parent", parent_root.to_string_lossy().into_owned()),
+                vault_entry("Nested", nested_root.to_string_lossy().into_owned()),
             ],
             active_vault: None,
             hidden_defaults: vec![],

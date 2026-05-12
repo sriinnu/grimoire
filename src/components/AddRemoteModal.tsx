@@ -19,6 +19,7 @@ interface AddRemoteModalProps {
   open: boolean
   vaultPath: string
   onClose: () => void
+  onGitInitialized?: () => void
   onRemoteConnected: (message: string) => void | Promise<void>
 }
 
@@ -42,18 +43,32 @@ async function submitRemoteConnection(
   })
 }
 
+async function ensureGitRepository(
+  vaultPath: string,
+  onGitInitialized?: () => void,
+): Promise<void> {
+  const isGitRepo = await tauriCall<boolean>('is_git_repo', { vaultPath })
+  if (isGitRepo) return
+
+  await tauriCall<void>('init_git_repo', { vaultPath })
+  onGitInitialized?.()
+}
+
 async function getConnectErrorMessage({
   vaultPath,
   remoteUrl,
+  onGitInitialized,
   onRemoteConnected,
   onClose,
 }: {
   vaultPath: string
   remoteUrl: string
+  onGitInitialized?: () => void
   onRemoteConnected: (message: string) => void | Promise<void>
   onClose: () => void
 }): Promise<string | null> {
   try {
+    await ensureGitRepository(vaultPath, onGitInitialized)
     const result = await submitRemoteConnection(vaultPath, remoteUrl)
 
     if (shouldCloseAfterResult(result)) {
@@ -72,6 +87,7 @@ export function AddRemoteModal({
   open,
   vaultPath,
   onClose,
+  onGitInitialized,
   onRemoteConnected,
 }: AddRemoteModalProps) {
   const [remoteUrl, setRemoteUrl] = useState('')
@@ -112,6 +128,7 @@ export function AddRemoteModal({
     const errorMessage = await getConnectErrorMessage({
       vaultPath,
       remoteUrl: trimmedUrl,
+      onGitInitialized,
       onRemoteConnected,
       onClose: handleClose,
     })
@@ -121,7 +138,7 @@ export function AddRemoteModal({
     }
 
     setConnectState('idle')
-  }, [handleClose, onRemoteConnected, remoteUrl, vaultPath])
+  }, [handleClose, onGitInitialized, onRemoteConnected, remoteUrl, vaultPath])
 
   const connectDisabled = connectState === 'connecting' || !remoteUrl.trim()
 

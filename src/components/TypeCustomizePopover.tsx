@@ -1,11 +1,12 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass, Smiley } from '@phosphor-icons/react'
 import { ICON_OPTIONS, type IconEntry } from '../utils/iconRegistry'
 import { ACCENT_COLORS } from '../utils/typeColors'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { EmojiPicker } from './EmojiPicker'
 import { TypeImagePicker } from './TypeImagePicker'
 
 function filterIcons(icons: IconEntry[], query: string): IconEntry[] {
@@ -51,6 +52,7 @@ export function TypeCustomizePopover({
   const [selectedColor, setSelectedColor] = useState(currentColor)
   const [selectedIcon, setSelectedIcon] = useState(currentIcon)
   const [search, setSearch] = useState('')
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [templateText, setTemplateText] = useState(currentTemplate ?? '')
 
   const filteredIcons = useMemo(() => filterIcons(ICON_OPTIONS, search), [search])
@@ -63,6 +65,7 @@ export function TypeCustomizePopover({
   const handleIconClick = (name: string) => {
     setSelectedIcon(name)
     onChangeIcon(name)
+    setShowEmojiPicker(false)
   }
 
   const debouncedSaveTemplate = useDebouncedCallback(onChangeTemplate, 500)
@@ -102,8 +105,26 @@ export function TypeCustomizePopover({
 
       {/* Icon section */}
       <div className="font-mono-overline mb-2 text-muted-foreground">Icon</div>
-      <div className="mb-3">
+      <div className="relative mb-3">
         <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={handleIconClick} />
+        <Button
+          aria-expanded={showEmojiPicker}
+          aria-label="Choose emoji icon"
+          className="mt-2 h-8 px-2"
+          onClick={() => setShowEmojiPicker((value) => !value)}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          <Smiley size={14} />
+          Emoji
+        </Button>
+        {showEmojiPicker && (
+          <EmojiPicker
+            onClose={() => setShowEmojiPicker(false)}
+            onSelect={handleIconClick}
+          />
+        )}
       </div>
 
       {/* Search input */}

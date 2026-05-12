@@ -12,6 +12,7 @@ interface UseAiPanelControllerArgs {
   vaultPath: string
   defaultAiAgent: AiAgentId
   defaultAiAgentReady: boolean
+  defaultAiProvider?: string | null
   defaultAiModel?: string | null
   activeEntry?: VaultEntry | null
   activeNoteContent?: string | null
@@ -41,6 +42,7 @@ export function useAiPanelController({
   vaultPath,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiProvider,
   defaultAiModel,
   activeEntry,
   activeNoteContent,
@@ -73,16 +75,17 @@ export function useAiPanelController({
   const agent = useCliAiAgent(vaultPath, contextPrompt, fileCallbacks, {
     agent: defaultAiAgent,
     agentReady: defaultAiAgentReady,
+    provider: defaultAiProvider,
     model: defaultAiModel,
   })
   const hasContext = !!activeEntry
   const isActive = agent.status === 'thinking' || agent.status === 'tool-executing'
 
   const handleSend = useCallback((text: string, references: NoteReference[]) => {
-    if (!text.trim() || isActive) return
+    if (!text.trim()) return
     agent.sendMessage(text, references)
     setInput('')
-  }, [agent, isActive])
+  }, [agent])
 
   const handleNavigateWikilink = useCallback((target: string) => {
     onOpenNote?.(target)

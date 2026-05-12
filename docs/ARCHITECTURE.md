@@ -12,7 +12,7 @@ Grimoire has five user-facing workspaces:
 
 1. **Navigation**: sidebar filters, folders, types, favorites, archive, inbox, and changes.
 2. **Selection**: note lists, saved views, search, Pulse history, and Neighborhood relationship browsing.
-3. **Editing**: Tauri rich/raw markdown editing as the primary product surface, SwiftUI/WebKit support surfaces where Apple-native integration is worth it, diff mode, wikilinks, math, code blocks, and frontmatter.
+3. **Editing**: Tauri rich/raw markdown editing as the primary product surface, SwiftUI/WebKit support surfaces where Apple-native integration is worth it, diff mode, Spelllinks (`[[note]]` wikilinks), math, code blocks, and frontmatter.
 4. **Context**: Inspector, backlinks, relationship panels, instances, note metadata, Git history, graph, and weather snapshots.
 5. **Agents**: local CLI agents through Claude Code / Codex adapters and MCP vault tooling.
 
@@ -55,6 +55,8 @@ The app is intentionally polyglot where a language is the right tool. Tauri owns
 
 The vault contains markdown notes, assets, saved view definitions, type documents, and vault-local config. Notes remain useful in other editors.
 
+Vaults are local-first folders before they are Git repositories. Git-backed vaults enable history, Changes, Pulse, commits, pull/push, and conflict tooling; local-only vaults still open, scan, edit, and save normally. The vault registry stores storage provider metadata separately from optional sync provider metadata.
+
 ### Cache
 
 The cache is a startup accelerator. If it is deleted, Grimoire rescans the vault. Cache corruption is recoverable; vault corruption is not acceptable.
@@ -85,7 +87,7 @@ Store data in the vault when it describes the vault:
 
 - note content
 - type, status, icon, color, aliases
-- relationships and wikilinks
+- relationships and Spelllinks
 - saved views and visible columns
 - type display preferences
 - vault AI guidance files
@@ -107,16 +109,22 @@ Store data in app settings when it describes this installation:
 - `hooks/useVaultLoader.ts`: loads entries, modified files, folders, views, history, and cache refreshes.
 - `hooks/useAppCommands.ts`: bridges keyboard, command palette, and native menu events.
 - `components/Editor.tsx` and `components/EditorLayout.tsx`: editor shell that delegates rich/raw/diff modes and the right-side inspector/AI shell.
+- `components/EditorLoadingState.tsx`: default centered animated SVG loader for lazy editor startup and note-switch transitions.
 - `components/SingleEditorView.tsx`: BlockNote rich editor behavior that imports the reusable slash-command package.
 - `markdown-editor/packages/js`: React/BlockNote package for the slash command catalog, command filtering metadata, date helpers, templates, markdown-safe insertion helpers, and host-schema fallbacks.
 - `components/RawEditorView.tsx`: CodeMirror markdown source mode with raw find/replace and wikilink autocomplete.
 - `markdown-editor/packages/swift`: Swift Package Manager library for reusable markdown editor semantics plus `MarkdownEditorUI` native SwiftUI and WebKit support surfaces, with a CLI bridge for Tauri parity work.
 - `utils/markdownSemanticsAdapter.ts`: Tauri adapter facade that mirrors the Swift package semantics.
 - `components/Inspector.tsx`: properties, relationships, instances, and note info.
+- `utils/propertySuggestions.ts`: property-panel quick-add definitions and property-name-to-input-type inference.
+- `components/StatusBar.tsx` and `components/status-bar/*`: bottom-bar vault, sync, AI, settings, and presence-tone controls.
 - `components/GraphModal.tsx` and `components/GraphControlPanel.tsx`: graph UI, scope controls, edge filters, and type visibility toggles.
 - `utils/noteGraph.ts`: graph data derived from vault entries.
 - `utils/graphDisplay.ts`: graph scope, caps, layout, edge/type filters, and display stats.
 - `utils/weatherSnapshot.ts`: explicit journal weather markdown generation.
+- `utils/audioTranscription.ts` and `hooks/useAudioTranscription.ts`: local-first audio picker, transcript note creation, and command-palette orchestration.
+- `utils/markdownFolderImport.ts`: settings-triggered folder, Bear/TextBundle, Markdown ZIP, Day One, and Journey import pickers plus result feedback.
+- `utils/vaultExport.ts`: settings-triggered Markdown ZIP export target picking, native command call, and result feedback.
 - `lib/appearance.ts`: theme preset and editor font contract.
 
 Feature modules should expose small contracts. If a component grows because it is thinking and rendering, split the thinking into `utils/` or a hook.
@@ -126,10 +134,15 @@ Feature modules should expose small contracts. If a component grows because it i
 Rust is split by responsibility:
 
 - `vault/`: scanning, parsing, cache, rename, views, fixtures, and migration helpers.
+- `vault/importer.rs`: safe Markdown folder importer that copies notes/assets into `imports/<source>/` and writes a visible import report.
+- `vault/journal_importer.rs`: Day One/Journey JSON or ZIP importer that writes dated Markdown journal notes plus attachments.
+- `vault/zip_importer.rs`: safe Markdown ZIP extraction before handing files to the shared Markdown folder importer.
+- `vault/exporter.rs`: portable Markdown ZIP export that refuses to write inside the active vault.
 - `frontmatter/`: safe frontmatter updates and property operations.
 - `git/`: status, history, commit, push, pull, clone, and remote flows.
 - `commands/`: Tauri command boundary grouped by domain.
 - `settings.rs`: installation settings and sanitizers.
+- `transcription.rs`: local Whisper command execution and transcript parsing.
 - `ai_agents.rs`, `claude_cli.rs`, `mcp.rs`: local agent and MCP integration.
 - `menu.rs`: native menu structure and command IDs.
 
@@ -163,11 +176,13 @@ Text editing shortcuts need special care on macOS. Browser-reserved shortcuts, n
 
 Markdown is the durable format. Editors are views over markdown.
 
-- BlockNote gives the Tauri editor rich editing, slash menu, tables, code blocks, math rendering, wikilinks, and media handling.
+- BlockNote gives the Tauri editor rich editing, slash menu, tables, code blocks, math rendering, Spelllinks, and media handling.
 - CodeMirror gives the Tauri editor raw source editing, YAML visibility, precise cursor control, and a better base for source-level features.
 - `@grimoire/markdown-editor` owns the primary React/BlockNote editor package: slash commands, command aliases, Mem/Bear/Obsidian/Notion-inspired insertion UX, reusable templates, host-schema fallbacks, canvas attachment placeholders, and shared custom math block type constants.
 - `MarkdownEditor` owns editor-neutral markdown semantics for Apple support surfaces: frontmatter splitting, wikilink round-tripping, math placeholder serialization, snippets, word counts, and compact markdown.
 - Canvas and handwriting surfaces are attachment-backed: Markdown stores a preview image plus a `grimoire-canvas` fence. The Tauri surface edits pointer-event strokes and saves source JSON plus a PNG preview through `save_note_content` and `save_canvas_preview`; Apple PencilKit can keep the same source file contract.
+- Audio transcription is also Markdown-first: the command palette opens an audio picker, native Rust runs a local Whisper CLI, and the renderer saves a `Transcript` note with source-audio metadata plus timestamped Markdown.
+- Spanda-style practice workflows are Markdown-first: practice sessions, panchanga snapshots, japa/pranayama logs, and practice prescriptions insert durable tables/sections rather than importing Spanda's app database into the vault.
 - Grimoire app code supplies vault context around that package: `[[` note links, `@` person mentions, `#` tag/collection autocomplete, file picking, weather, and future AI transform callbacks.
 - App-local editor utilities preserve Grimoire-specific behavior across modes: arrow ligatures, image path portability, raw-mode sync, selection repair, and vault-aware adapters. Tauri surfaces keep matching adapters instead of importing Swift UI concerns.
 - Slash commands are editor-level commands. Shared intent is documented in `docs/MARKDOWN-SEMANTICS-CONTRACT.md`; implementation can be shell-specific as long as the saved markdown result is portable.
@@ -189,7 +204,7 @@ Graph data is derived at runtime:
 - wikilink edges come from markdown body links
 - graph search matches title and type, then keeps immediate neighbors
 - graph display can scope to the active note neighborhood or the whole visible vault
-- graph display can filter all edges, relationships only, or wikilinks only
+- graph display can filter all edges, relationships only, or Spelllinks only
 - large graphs are capped before SVG rendering
 
 The graph does not introduce a second database. If semantic search or embeddings arrive later, they should enrich graph discovery without replacing the file-backed graph.
@@ -202,7 +217,9 @@ Theme mode, theme preset, and editor font are resolved through `lib/appearance.t
 - `data-theme-preset`
 - `data-editor-font`
 
-CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors.
+`lib/fontConfig.ts` resolves the font role contract (`ui`, `editor`, `mono`, `display`, `label`) and loads bundled font assets from `assets/fonts` through `FontFace` when needed. CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors or direct font-family literals.
+
+Sidebar artwork is theme-aware CSS loaded after the base sidebar appearance layer. It remains visible across presets and short windows, with theme-specific accent variables rather than separate layout code per theme.
 
 ## AI And MCP
 
@@ -214,6 +231,7 @@ Grimoire favors local agents:
 - MCP also exposes project-intelligence tools for project docs, durable `BOARD.md` tasks, and wikilink graph edges.
 - Generated project board rows keep stable `grimoire-task` comments with priority/source metadata so app scans and MCP tools share one task contract.
 - Agent choice and per-agent CLI model overrides are app settings; vault guidance files live with the vault.
+- Import, export, storage, and second-brain readiness are surfaced from the shared portability registry so settings, docs, and agents describe the same capability map.
 
 The design goal is not "AI writes notes for you." The goal is that an agent can understand the same durable knowledge structure the user already uses.
 

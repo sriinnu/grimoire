@@ -104,7 +104,7 @@ describe('SettingsPanel', () => {
       autogit_inactive_threshold_seconds: 30,
       release_channel: null,
       theme_mode: 'light',
-      theme_preset: 'classic',
+      theme_preset: 'manuscript',
       editor_font: 'system',
     }))
     expect(onClose).toHaveBeenCalled()
@@ -295,6 +295,26 @@ describe('SettingsPanel', () => {
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       ai_agent_models: { claude_code: 'sonnet' },
+    }))
+  })
+
+  it('saves a provider override for the selected default agent', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    fireEvent.change(screen.getByTestId('settings-default-ai-provider'), {
+      target: { value: 'openai' },
+    })
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ai_agent_providers: { chitragupta: 'openai' },
     }))
   })
 

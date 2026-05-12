@@ -32,6 +32,15 @@ describe('buildSectionGroup', () => {
     expect(group.label).toBe('Recipes')
     expect(group.customColor).toBe('orange')
     expect(group.Icon).toBe(CookingPot)
+    expect(group.iconValue).toBe('cooking-pot')
+  })
+
+  it('preserves emoji type icons for renderers that support icon values', () => {
+    const typeEntryMap: Record<string, VaultEntry> = {
+      Lab: { ...baseEntry, title: 'Lab', isA: 'Type', icon: '🧪', color: 'purple' },
+    }
+    const group = buildSectionGroup('Lab', typeEntryMap)
+    expect(group.iconValue).toBe('🧪')
   })
 
   it('falls back to pluralized name and FileText when no type entry', () => {

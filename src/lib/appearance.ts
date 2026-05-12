@@ -1,4 +1,6 @@
-export const DEFAULT_THEME_PRESET = 'classic'
+import { applyFontRolesToDocument } from './fontConfig'
+
+export const DEFAULT_THEME_PRESET = 'manuscript'
 export const DEFAULT_EDITOR_FONT = 'system'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'
@@ -16,7 +18,15 @@ const THEME_PRESETS = new Set([
   'lotus',
   'ember',
 ])
-const EDITOR_FONTS = new Set(['system', 'serif', 'mono', 'readable', 'literary', 'compact'])
+const EDITOR_FONTS = new Set([
+  'system',
+  'serif',
+  'mono',
+  'readable',
+  'literary',
+  'compact',
+  'handwritten',
+])
 
 export type ThemePreset =
   | 'classic'
@@ -30,7 +40,14 @@ export type ThemePreset =
   | 'future'
   | 'lotus'
   | 'ember'
-export type EditorFont = 'system' | 'serif' | 'mono' | 'readable' | 'literary' | 'compact'
+export type EditorFont =
+  | 'system'
+  | 'serif'
+  | 'mono'
+  | 'readable'
+  | 'literary'
+  | 'compact'
+  | 'handwritten'
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>
 type AppearanceDocument = Pick<Document, 'documentElement'>
@@ -108,6 +125,7 @@ export function applyAppearanceToDocument(
   const root = documentObject.documentElement
   root.setAttribute('data-theme-preset', appearance.themePreset)
   root.setAttribute('data-editor-font', appearance.editorFont)
+  applyFontRolesToDocument(documentObject, appearance)
 }
 
 /** Bootstraps mirrored appearance choices before the React settings load completes. */

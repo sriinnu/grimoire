@@ -23,7 +23,7 @@ export function StatusPill({ status, className }: { status: string; className?: 
         color: style.color,
         borderRadius: 16,
         padding: '1px 6px',
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: 'var(--grimoire-ui-font-family)',
         fontSize: 10,
         fontWeight: 600,
         letterSpacing: '0',
@@ -107,7 +107,7 @@ function StatusOption({
 }
 
 const SECTION_LABEL_STYLE = {
-  fontFamily: "'Inter', sans-serif",
+  fontFamily: 'var(--grimoire-ui-font-family)',
   fontSize: 9,
   fontWeight: 500,
   letterSpacing: '0',

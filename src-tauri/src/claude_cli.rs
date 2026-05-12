@@ -341,6 +341,8 @@ fn build_agent_args(req: &AgentStreamRequest) -> Result<Vec<String>, String> {
         "--include-partial-messages".into(),
         "--mcp-config".into(),
         mcp_config,
+        "--permission-mode".into(),
+        "bypassPermissions".into(),
         "--dangerously-skip-permissions".into(),
         "--no-session-persistence".into(),
     ];
@@ -1153,6 +1155,8 @@ mod tests {
             assert!(args.contains(&"-p".to_string()));
             assert!(args.contains(&"create note".to_string()));
             assert!(args.contains(&"--mcp-config".to_string()));
+            assert!(args.contains(&"--permission-mode".to_string()));
+            assert!(args.contains(&"bypassPermissions".to_string()));
             assert!(args.contains(&"--dangerously-skip-permissions".to_string()));
             assert!(args.contains(&"--no-session-persistence".to_string()));
             assert!(!args.contains(&"--append-system-prompt".to_string()));

@@ -7,10 +7,11 @@
 
 :root {
   /* --- Font defaults --- */
-  --grimoire-ui-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen, Ubuntu, Cantarell, sans-serif;
-  --grimoire-editor-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --grimoire-mono-font-family: 'IBM Plex Mono', 'SF Mono', ui-monospace, monospace;
+  --grimoire-ui-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --grimoire-editor-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --grimoire-mono-font-family: 'SF Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+  --grimoire-display-font-family: 'Grimoire Caveat', 'Caveat', 'Bradley Hand', 'Marker Felt', 'Segoe Print', cursive;
+  --grimoire-label-font-family: 'Avenir Next Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, sans-serif;
   font-family: var(--grimoire-ui-font-family);
   line-height: 1.5;
   font-weight: 400;
@@ -26,11 +27,11 @@
 }
 
 [data-editor-font="mono"] {
-  --grimoire-editor-font-family: 'SF Mono', 'IBM Plex Mono', Menlo, ui-monospace, monospace;
+  --grimoire-editor-font-family: var(--grimoire-mono-font-family);
 }
 
 [data-editor-font="readable"] {
-  --grimoire-editor-font-family: 'Atkinson Hyperlegible', 'Avenir Next', 'Inter', sans-serif;
+  --grimoire-editor-font-family: 'Atkinson Hyperlegible', 'Avenir Next', system-ui, sans-serif;
 }
 
 [data-editor-font="literary"] {
@@ -38,7 +39,11 @@
 }
 
 [data-editor-font="compact"] {
-  --grimoire-editor-font-family: 'Avenir Next Condensed', 'Arial Narrow', 'Inter', sans-serif;
+  --grimoire-editor-font-family: 'Avenir Next Condensed', 'Arial Narrow', system-ui, sans-serif;
+}
+
+[data-editor-font="handwritten"] {
+  --grimoire-editor-font-family: var(--grimoire-display-font-family);
 }
 
 :root,
@@ -1108,9 +1113,19 @@
     padding: 0;
     overflow: hidden;
   }
-  body.linux-chrome {
-    padding-top: 32px;
-  }
+body.linux-chrome {
+  padding-top: 32px;
+}
+
+body.macos-overlay-chrome {
+  --sidebar-title-bar-height: 92px;
+  --sidebar-title-bar-padding-top: 32px;
+}
+
+body.macos-overlay-chrome .sidebar-title-bar {
+  height: var(--sidebar-title-bar-height) !important;
+  padding-top: var(--sidebar-title-bar-padding-top) !important;
+}
   html, body {
     height: 100%;
     width: 100%;
@@ -1121,7 +1136,7 @@
   }
 }
 
-/* --- Label typography (Inter, sentence case) --- */
+/* --- Label typography (sentence case) --- */
 /* t8: Section labels, metadata tags — 11px medium */
 .font-mono-label {
   font-family: var(--grimoire-ui-font-family);

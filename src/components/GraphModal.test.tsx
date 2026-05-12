@@ -124,7 +124,7 @@ describe('GraphModal', () => {
 
     expect(svg.querySelectorAll('line')).toHaveLength(1)
     expect(screen.getByText('1 relationships')).toBeInTheDocument()
-    expect(screen.getByText('1 wikilinks')).toBeInTheDocument()
+    expect(screen.getByText('1 Spelllinks')).toBeInTheDocument()
   })
 
   it('filters graph edges to incoming backlinks around the active note', () => {

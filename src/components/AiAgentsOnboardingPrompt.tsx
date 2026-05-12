@@ -7,6 +7,7 @@ import {
   isAiAgentsStatusChecking,
   type AiAgentsStatus,
 } from '../lib/aiAgents'
+import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
 import { openExternalUrl } from '../utils/url'
 import { OnboardingShell } from './OnboardingShell'
 import { Button } from './ui/button'
@@ -84,6 +85,10 @@ function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
   )
 }
 
+function refreshAiAgentsStatus() {
+  window.dispatchEvent(new Event(AI_AGENTS_STATUS_REFRESH_EVENT))
+}
+
 export function AiAgentsOnboardingPrompt({
   statuses,
   onContinue,
@@ -130,6 +135,16 @@ export function AiAgentsOnboardingPrompt({
         </CardContent>
 
         <CardFooter className="flex-wrap justify-center gap-3">
+          {!isBrowserPreview && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={refreshAiAgentsStatus}
+              data-testid="ai-agents-onboarding-refresh"
+            >
+              Check again
+            </Button>
+          )}
           {!isBrowserPreview && missingAgents.map((definition) => (
             <Button
               key={definition.id}

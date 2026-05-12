@@ -4,7 +4,7 @@ This document names the durable ideas in Grimoire. Code can move; these concepts
 
 ## Vault
 
-A vault is a local folder of markdown files and assets. It may be a Git repo, but Git is not required for the vault to be readable.
+A vault is a local-first knowledge space backed by a folder of markdown files and assets. The app can track multiple vaults; each vault owns its storage location, content types, saved views, and optional sync/versioning settings. It may be a Git repo, but Git is not required for the vault to be readable.
 
 Vault responsibilities:
 
@@ -12,6 +12,7 @@ Vault responsibilities:
 - hold attachments and media
 - hold saved views
 - hold type documents and vault-local display config
+- contain any mix of notes, journals, dreams, transcripts, and user-defined types
 - remain meaningful outside Grimoire
 
 Non-responsibilities:
@@ -26,9 +27,16 @@ Vault portability has three separate contracts:
 
 - import source: converts another app export into a Grimoire vault
 - export target: writes a portable copy of a Grimoire vault
-- storage provider: describes where the local-first vault lives and how it syncs
+- storage provider: describes where the local-first vault lives
+- sync/versioning provider: describes optional history, remote sync, and conflict behavior
 
-Git is one storage provider. iCloud Drive and Google Drive Desktop are filesystem-backed providers. S3 and Azure Blob are object-storage providers that need a local working copy plus a sync adapter.
+Git is the first live sync/versioning provider. Local folders, iCloud Drive, and Google Drive Desktop are filesystem-backed storage providers. S3 and Azure Blob are object-storage providers that need a local working copy plus a sync adapter.
+
+The settings UI surfaces these lanes as readiness signals. It must not imply that planned object-storage adapters are live until they can sync a local working copy without placing credentials in the vault.
+
+The Markdown folder importer is the first live import source. It copies importable notes and attachments under `imports/<source-folder>/`, leaves the source untouched, and writes a visible Markdown import report into the imported root.
+
+Day One and Journey imports convert JSON or ZIP exports into `Journal` Markdown notes under `imports/<app-export>/`. Bear imports reuse the Markdown folder path because Bear can export Markdown/TextBundle content directly. Markdown ZIP import/export provides a safe portable archive round-trip; object storage remains a sync-adapter problem, not a direct editing surface.
 
 ## Note
 
@@ -58,15 +66,29 @@ Supported product expectations:
 - headings
 - lists
 - code blocks
-- wikilinks
+- Spelllinks (`[[note]]` Markdown wikilinks)
 - inline and display math
 - tables where the editor supports them
 - images and vault attachments
 - dates, journal blocks, and tasks inserted as durable markdown
 - weather snapshot callouts inserted by command
 - canvas and handwriting attachments referenced by preview image plus `grimoire-canvas` metadata fences
+- audio transcripts saved as Markdown notes with source-audio links and timestamped segments
 
 Editors may render this richly, but they must preserve markdown intent.
+
+## Transcript Note
+
+A transcript note is generated from an audio file through an explicit user action.
+
+The note stores:
+
+- `type: Transcript` frontmatter
+- the source audio path
+- the transcription provider, such as `local_whisper`
+- a timestamped Markdown transcript when the provider returns segments
+
+The raw audio remains an attachment or external file. Grimoire owns the Markdown transcript, not a hidden speech database.
 
 ## Canvas Attachment
 
@@ -147,9 +169,9 @@ Examples:
 
 Relationships are rendered in the Inspector, Note List Neighborhood mode, and Knowledge Graph.
 
-## Wikilink
+## Spelllink
 
-A wikilink is an inline markdown reference:
+A Spelllink is Grimoire's user-facing name for an inline Markdown wikilink:
 
 ```markdown
 See [[Project Alpha]] or [[projects/alpha|Alpha]].
@@ -173,7 +195,7 @@ It pins the source note and groups nearby notes by:
 
 - outgoing relationships
 - inverse relationships
-- backlinks / wikilinks
+- backlinks / Spelllinks
 
 The Knowledge Graph uses the same mental model visually: the user can inspect the active note's neighborhood or widen to the vault graph.
 
@@ -221,17 +243,19 @@ The graph must stay inspectable without a graph database. If a graph database ev
 Appearance has three layers:
 
 - theme mode: light or dark
-- theme preset: Classic, Manuscript, Graphite, Studio, Folio, Nocturne
+- theme preset: Classic, Manuscript, Graphite, Studio, Folio, Nocturne, Retro, Aurora, Future, Lotus, Ember
 - editor font: System, Serif, Mono, Readable, Literary, Compact
+- font roles: UI, editor body, monospace, display headings, sidebar labels
 
 Contract:
 
 - TypeScript normalizes supported values.
+- `fontConfig.ts` maps theme and editor choices to font roles and bundled font assets.
 - Rust settings sanitize persisted values.
 - CSS consumes root attributes and semantic variables.
 - localStorage mirrors the values before native settings load to avoid startup flash.
 
-New UI must use semantic tokens instead of hardcoded palette choices.
+New UI must use semantic tokens instead of hardcoded palette choices or raw font stacks.
 
 ## Command
 
@@ -245,7 +269,7 @@ A command is an action with one identity across:
 
 Command IDs live in the app command catalog. New commands should be registered once and routed through the shared dispatcher.
 
-Editor slash commands are separate from app commands. They live inside the editor surface and produce durable markdown, such as headings, tasks, dates, tables, wikilinks, media, math, templates, or AI-assisted note transforms. Their cross-shell behavior is defined in `docs/MARKDOWN-SEMANTICS-CONTRACT.md`.
+Editor slash commands are separate from app commands. They live inside the editor surface and produce durable markdown, such as headings, tasks, dates, tables, Spelllinks, media, math, templates, or AI-assisted note transforms. Their cross-shell behavior is defined in `docs/MARKDOWN-SEMANTICS-CONTRACT.md`.
 
 Raw editor find/replace is an editor-local contract. `useCodeMirror` owns the `Mod-f` key binding, `RawEditorFindReplacePanel` owns the UI, and `utils/rawEditorFindReplace.ts` owns match calculation so the behavior can be tested without a CodeMirror DOM.
 
@@ -324,6 +348,7 @@ Installation-local:
 - update channel
 - agent preference
 - per-agent model overrides
+- portability provider readiness
 - telemetry consent
 
 ## Native Platform Surface

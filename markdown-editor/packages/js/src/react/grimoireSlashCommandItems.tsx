@@ -2,7 +2,6 @@ import type { DefaultReactSuggestionItem } from '@blocknote/react'
 import { createElement } from 'react'
 import {
   AtSign,
-  Braces,
   CalendarClock,
   CalendarDays,
   CalendarMinus,
@@ -32,7 +31,6 @@ import {
   editorSupportsBlockType,
   editorSupportsInlineType,
   insertBlock,
-  insertCodeBlock,
   insertInline,
   insertMarkdown,
   insertParagraph,
@@ -49,6 +47,8 @@ import { GRIMOIRE_JOURNAL_SLASH_COMMANDS } from './grimoireSlashJournalCommands'
 import { GRIMOIRE_TEMPLATE_SLASH_COMMANDS } from './grimoireSlashTemplateCommands'
 import { GRIMOIRE_MEMORY_SLASH_COMMANDS } from './grimoireSlashMemoryCommands'
 import { GRIMOIRE_CANVAS_SLASH_COMMANDS } from './grimoireSlashCanvasCommands'
+import { GRIMOIRE_MERMAID_SLASH_COMMANDS } from './grimoireSlashMermaidCommands'
+import { GRIMOIRE_SADHANA_SLASH_COMMANDS } from './grimoireSlashSadhanaCommands'
 
 /** BlockNote suggestion item enriched with the stable Grimoire command key. */
 export type GrimoireSlashMenuItem = DefaultReactSuggestionItem & { key: string }
@@ -163,8 +163,8 @@ const GRIMOIRE_CUSTOM_COMMANDS: GrimoireCommandDefinition[] = [
   {
     key: 'grimoire_daily_note_link',
     title: 'Daily Note Link',
-    subtext: 'Insert a wikilink for today.',
-    aliases: ['daily', 'journal', 'today link', 'date link'],
+    subtext: 'Insert a Spelllink for today.',
+    aliases: ['daily', 'journal', 'today link', 'date link', 'spelllink'],
     group: 'Dates',
     icon: CalendarClock,
     run: (editor, context) => insertWikilinkOrMarkdown(editor, context.today),
@@ -204,9 +204,9 @@ const GRIMOIRE_CUSTOM_COMMANDS: GrimoireCommandDefinition[] = [
   },
   {
     key: 'grimoire_wikilink',
-    title: 'Wikilink',
-    subtext: 'Insert a note link placeholder.',
-    aliases: ['@', 'mention', 'note link', 'backlink', 'internal link', '[['],
+    title: 'Spelllink',
+    subtext: 'Insert a Markdown [[note]] link placeholder.',
+    aliases: ['@', 'mention', 'note link', 'backlink', 'internal link', 'wikilink', 'spelllink', '[['],
     group: 'Inline',
     icon: Link,
     run: editor => insertWikilinkOrMarkdown(editor, 'Note Title'),
@@ -363,15 +363,8 @@ const GRIMOIRE_CUSTOM_COMMANDS: GrimoireCommandDefinition[] = [
     icon: CircleAlert,
     run: editor => insertDisplayMathOrMarkdown(editor, 'E=mc^2'),
   },
-  {
-    key: 'grimoire_mermaid',
-    title: 'Mermaid Diagram',
-    subtext: 'Insert a fenced mermaid diagram.',
-    aliases: ['diagram', 'flowchart', 'sequence', 'chart'],
-    group: 'Technical',
-    icon: Braces,
-    run: editor => insertCodeBlock(editor, 'mermaid', 'graph TD\n  A --> B'),
-  },
+  ...GRIMOIRE_MERMAID_SLASH_COMMANDS,
+  ...GRIMOIRE_SADHANA_SLASH_COMMANDS,
   ...GRIMOIRE_JOURNAL_SLASH_COMMANDS,
   ...GRIMOIRE_KNOWLEDGE_SLASH_COMMANDS,
   ...GRIMOIRE_MEMORY_SLASH_COMMANDS,

@@ -11,6 +11,7 @@ const settings = {
   release_channel: 'stable',
   default_ai_agent: 'claude_code' as const,
   ai_agent_models: null,
+  ai_agent_providers: null,
 }
 
 const aiAgentsStatus = {
@@ -92,5 +93,28 @@ describe('useAiAgentPreferences', () => {
       ai_agent_models: { claude_code: 'sonnet' },
     })
     expect(onToast).toHaveBeenCalledWith('Claude Code model: sonnet')
+  })
+
+  it('persists a provider override for the selected local agent', () => {
+    const saveSettings = vi.fn()
+    const onToast = vi.fn()
+
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings: { ...settings, default_ai_agent: 'chitragupta' },
+      saveSettings,
+      aiAgentsStatus,
+      onToast,
+    }))
+
+    act(() => {
+      result.current.setDefaultAiProvider(' openai ')
+    })
+
+    expect(saveSettings).toHaveBeenCalledWith({
+      ...settings,
+      default_ai_agent: 'chitragupta',
+      ai_agent_providers: { chitragupta: 'openai' },
+    })
+    expect(onToast).toHaveBeenCalledWith('Chitragupta provider: openai')
   })
 })

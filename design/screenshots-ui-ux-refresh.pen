@@ -1,0 +1,27 @@
+{
+  "version": "2.9",
+  "name": "Screenshots UI UX Refresh",
+  "children": [
+    {
+      "type": "frame",
+      "id": "screenshots_ui_ux_refresh",
+      "name": "Manuscript Knowledge Desk",
+      "theme": { "Mode": "Light" },
+      "width": 1448,
+      "height": 1086,
+      "fill": "#f3ead7",
+      "notes": [
+        "Reference screenshots point toward a personal manuscript desk: deep emerald navigation, parchment work surface, restrained gold accents.",
+        "Keep interaction density high: left nav, markdown-first note list, large editor title, right outline/properties/memory lane.",
+        "Persist clean Markdown/YAML. UI polish must not introduce hidden app-only document state."
+      ],
+      "tokens": {
+        "sidebar": "#143d31",
+        "sidebarText": "#fbf0d7",
+        "gold": "#c69a48",
+        "parchment": "#fff8eb",
+        "ink": "#20392f"
+      }
+    }
+  ]
+}

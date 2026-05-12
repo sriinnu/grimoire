@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { Smiley } from '@phosphor-icons/react'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { EmojiPicker } from './EmojiPicker'
 import { TypeImagePicker } from './TypeImagePicker'
 
 interface CreateTypeDialogProps {
@@ -20,6 +22,7 @@ interface CreateTypeDialogFormProps {
 function CreateTypeDialogForm({ initialName, onClose, onCreate }: CreateTypeDialogFormProps) {
   const [name, setName] = useState(initialName)
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +53,30 @@ function CreateTypeDialogForm({ initialName, onClose, onCreate }: CreateTypeDial
         <label className="text-xs font-medium text-muted-foreground">
           Image
         </label>
-        <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={setSelectedIcon} />
+        <div className="relative">
+          <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={setSelectedIcon} />
+          <Button
+            aria-expanded={showEmojiPicker}
+            aria-label="Choose emoji icon"
+            className="mt-2 h-8 px-2"
+            onClick={() => setShowEmojiPicker((value) => !value)}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            <Smiley size={14} />
+            Emoji
+          </Button>
+          {showEmojiPicker && (
+            <EmojiPicker
+              onClose={() => setShowEmojiPicker(false)}
+              onSelect={(emoji) => {
+                setSelectedIcon(emoji)
+                setShowEmojiPicker(false)
+              }}
+            />
+          )}
+        </div>
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>

@@ -2,6 +2,8 @@ import type { ComponentType, SVGAttributes } from 'react'
 import {
   ArrowsClockwise,
   CalendarBlank,
+  File,
+  FileDashed,
   FileText,
   Flask,
   StackSimple,
@@ -34,4 +36,11 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
 export function getTypeIcon(isA: string | null, customIcon?: string | null): ComponentType<SVGAttributes<SVGSVGElement>> {
   if (customIcon) return resolveIcon(customIcon)
   return (isA && TYPE_ICON_MAP[isA]) || FileText
+}
+
+/** Returns a neutral file icon for non-markdown vault entries. */
+export function getFileKindIcon(fileKind: string | undefined): ComponentType<SVGAttributes<SVGSVGElement>> {
+  if (fileKind === 'text') return File
+  if (fileKind === 'binary') return FileDashed
+  return FileText
 }

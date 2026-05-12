@@ -127,7 +127,8 @@ describe('AiPanel', () => {
     render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
     const input = screen.getByTestId('agent-input')
     expect(input).toBeTruthy()
-    expect(input).toHaveAttribute('contenteditable', 'true')
+    expect(input.tagName).toBe('TEXTAREA')
+    expect(input).not.toBeDisabled()
   })
 
   it('has send button disabled when input is empty', () => {
@@ -136,19 +137,31 @@ describe('AiPanel', () => {
     expect((sendBtn as HTMLButtonElement).disabled).toBe(true)
   })
 
+  it('allows composing and sending a follow-up while the agent is active', () => {
+    mockStatus = 'thinking'
+    render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
+
+    const input = screen.getByTestId('agent-input')
+    fireEvent.change(input, { target: { value: 'one more thing' } })
+    fireEvent.click(screen.getByTestId('agent-send'))
+
+    expect(input).not.toBeDisabled()
+    expect(mockSendMessage).toHaveBeenCalledWith('one more thing', [])
+  })
+
   it('shows contextual placeholder when active entry exists', () => {
     const entry = makeEntry({ title: 'My Note' })
     render(
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />
     )
     const input = screen.getByTestId('agent-input')
-    expect(input).toHaveAttribute('aria-placeholder', 'Ask about this note...')
+    expect(input).toHaveAttribute('placeholder', 'Ask about this note...')
   })
 
   it('shows generic placeholder when no active entry', () => {
     render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
     const input = screen.getByTestId('agent-input')
-    expect(input).toHaveAttribute('aria-placeholder', 'Ask the AI agent...')
+    expect(input).toHaveAttribute('placeholder', 'Ask the AI agent...')
   })
 
   it('auto-focuses input on mount', async () => {

@@ -1,6 +1,7 @@
 mod boundary;
 mod file_cmds;
 mod frontmatter_cmds;
+mod import_cmds;
 mod lifecycle_cmds;
 mod rename_cmds;
 mod scan_cmds;
@@ -9,6 +10,7 @@ mod view_cmds;
 pub(super) use boundary::VaultBoundary;
 pub use file_cmds::*;
 pub use frontmatter_cmds::*;
+pub use import_cmds::*;
 pub use lifecycle_cmds::*;
 pub use rename_cmds::*;
 pub use scan_cmds::*;
@@ -108,6 +110,20 @@ mod tests {
 
         assert!(type_definition.contains("visible: false"));
         assert!(type_definition.contains("# Type"));
+    }
+
+    fn git_status_porcelain(vault_path: &Path) -> String {
+        let output = crate::hidden_command("git")
+            .args(["status", "--porcelain"])
+            .current_dir(vault_path)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "git status failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8_lossy(&output.stdout).to_string()
     }
 
     #[test]
@@ -310,15 +326,39 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         let vault_path = dir.path().join("fresh-vault");
 
-        let result = create_empty_vault(vault_path.to_string_lossy().to_string());
+        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), None);
         assert!(result.is_ok());
         assert_paths_exist(
             &vault_path,
-            &[".git", "AGENTS.md", "CLAUDE.md", "type.md", "note.md"],
+            &["AGENTS.md", "CLAUDE.md", "type.md", "note.md"],
+        );
+        assert_paths_absent(&vault_path, &[".git", "config.md"]);
+        assert_seeded_guidance_content(&vault_path);
+        assert_seeded_type_scaffolding(&vault_path);
+    }
+
+    #[test]
+    fn test_create_empty_vault_can_initialize_git_when_requested() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let vault_path = dir.path().join("fresh-git-vault");
+
+        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), Some(true));
+        assert!(result.is_ok());
+        assert_paths_exist(
+            &vault_path,
+            &[
+                ".git",
+                ".gitignore",
+                "AGENTS.md",
+                "CLAUDE.md",
+                "type.md",
+                "note.md",
+            ],
         );
         assert_paths_absent(&vault_path, &["config.md"]);
         assert_seeded_guidance_content(&vault_path);
         assert_seeded_type_scaffolding(&vault_path);
+        assert_eq!(git_status_porcelain(&vault_path), "");
     }
 
     #[test]
@@ -328,7 +368,7 @@ mod tests {
         std::fs::create_dir_all(&vault_path).unwrap();
         std::fs::write(vault_path.join("keep.txt"), "keep").unwrap();
 
-        let result = create_empty_vault(vault_path.to_string_lossy().to_string());
+        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), None);
         let err = result.expect_err("expected non-empty folder to be rejected");
 
         assert_eq!(err, "Choose an empty folder to create a new vault");

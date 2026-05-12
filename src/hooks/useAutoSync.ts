@@ -4,9 +4,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { GitPullResult, GitPushResult, GitRemoteStatus, LastCommitInfo, SyncStatus } from '../types'
 import { trackEvent } from '../lib/telemetry'
-
-const DEFAULT_INTERVAL_MS = 5 * 60_000
-const FOCUS_COOLDOWN_MS = 30_000
+import { useAutoSyncLifecycle } from './useAutoSyncLifecycle'
 
 type MaybePromise = void | Promise<void>
 
@@ -18,6 +16,7 @@ function tauriCall<T>(cmd: string, args: Record<string, unknown>): Promise<T> {
 
 interface UseAutoSyncOptions {
   vaultPath: string
+  enabled?: boolean
   intervalMinutes: number | null
   onVaultUpdated: (updatedFiles: string[]) => MaybePromise
   onSyncUpdated?: () => MaybePromise
@@ -54,6 +53,7 @@ interface PullErrorResolution {
 interface SyncTaskOptions {
   blockWhenPaused: boolean
   pauseRef: MutableRefObject<boolean>
+  shouldApply: () => boolean
   syncingRef: MutableRefObject<boolean>
   setLastSyncTime: SyncSetState<number | null>
   setSyncStatus: SyncSetState<SyncStatus>
@@ -90,16 +90,17 @@ function markPullTimestamp(
 function useRemoteStatusRefresher(
   vaultPath: string,
   setRemoteStatus: SyncSetState<GitRemoteStatus | null>,
+  shouldApply: () => boolean,
 ) {
   return useCallback(async () => {
     try {
       const status = await tauriCall<GitRemoteStatus>('git_remote_status', { vaultPath })
-      setRemoteStatus(status)
+      if (shouldApply()) setRemoteStatus(status)
       return status
     } catch {
       return null
     }
-  }, [vaultPath, setRemoteStatus])
+  }, [vaultPath, setRemoteStatus, shouldApply])
 }
 
 function useConflictChecker(
@@ -107,45 +108,53 @@ function useConflictChecker(
   setSyncStatus: SyncSetState<SyncStatus>,
   setConflictFiles: SyncSetState<string[]>,
   callbacksRef: MutableRefObject<SyncCallbacks>,
+  shouldApply: () => boolean,
 ) {
   return useCallback(async (): Promise<boolean> => {
     try {
       const files = await tauriCall<string[]>('get_conflict_files', { vaultPath })
+      if (!shouldApply()) return false
       if (!Array.isArray(files) || files.length === 0) return false
       setConflictState(files, setSyncStatus, setConflictFiles, callbacksRef)
       return true
     } catch {
       return false
     }
-  }, [vaultPath, setSyncStatus, setConflictFiles, callbacksRef])
+  }, [vaultPath, setSyncStatus, setConflictFiles, callbacksRef, shouldApply])
 }
 
 function useCommitInfoRefresher(
   vaultPath: string,
   setLastCommitInfo: SyncSetState<LastCommitInfo | null>,
+  shouldApply: () => boolean,
 ) {
   return useCallback(() => {
     tauriCall<LastCommitInfo | null>('get_last_commit_info', { vaultPath })
-      .then(info => setLastCommitInfo(info))
+      .then(info => { if (shouldApply()) setLastCommitInfo(info) })
       .catch((err) => console.warn('[sync] Failed to refresh last commit info:', err))
-  }, [vaultPath, setLastCommitInfo])
+  }, [vaultPath, setLastCommitInfo, shouldApply])
 }
 
 async function handleUpdatedPull(options: {
   result: GitPullResult
   callbacksRef: MutableRefObject<SyncCallbacks>
+  shouldApply: () => boolean
   setConflictFiles: SyncSetState<string[]>
   setSyncStatus: SyncSetState<SyncStatus>
 }): Promise<void> {
   const {
     result,
     callbacksRef,
+    shouldApply,
     setConflictFiles,
     setSyncStatus,
   } = options
+  if (!shouldApply()) return
   clearConflictState(setSyncStatus, setConflictFiles)
   await callbacksRef.current.onVaultUpdated(result.updatedFiles)
+  if (!shouldApply()) return
   await callbacksRef.current.onSyncUpdated?.()
+  if (!shouldApply()) return
   await callbacksRef.current.onToast(`Pulled ${result.updatedFiles.length} update(s) from remote`)
 }
 
@@ -192,66 +201,31 @@ async function runSyncTask(options: SyncTaskOptions): Promise<void> {
   const {
     blockWhenPaused,
     pauseRef,
+    shouldApply,
     syncingRef,
     setLastSyncTime,
     setSyncStatus,
     task,
   } = options
-  if (syncingRef.current || (blockWhenPaused && pauseRef.current)) return
+  if (syncingRef.current || (blockWhenPaused && pauseRef.current) || !shouldApply()) return
   syncingRef.current = true
   setSyncStatus('syncing')
 
   try {
     await task()
   } catch {
-    setSyncStatus('error')
-    setLastSyncTime(Date.now())
+    if (shouldApply()) {
+      setSyncStatus('error')
+      setLastSyncTime(Date.now())
+    }
   } finally {
     syncingRef.current = false
   }
 }
 
-function useAutoSyncLifecycle(options: {
-  checkExistingConflicts: () => Promise<boolean>
-  intervalMinutes: number | null
-  performPull: () => Promise<void>
-  refreshRemoteStatus: () => Promise<GitRemoteStatus | null>
-}) {
-  const {
-    checkExistingConflicts,
-    intervalMinutes,
-    performPull,
-    refreshRemoteStatus,
-  } = options
-
-  useEffect(() => {
-    void checkExistingConflicts().then(hasConflicts => {
-      if (!hasConflicts) void performPull()
-    })
-    void refreshRemoteStatus()
-  }, [checkExistingConflicts, performPull, refreshRemoteStatus])
-
-  const lastPullTimeRef = useRef(0)
-  useEffect(() => {
-    const handleFocus = () => {
-      const now = Date.now()
-      if (now - lastPullTimeRef.current < FOCUS_COOLDOWN_MS) return
-      lastPullTimeRef.current = now
-      void performPull()
-    }
-    window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
-  }, [performPull])
-
-  useEffect(() => {
-    const ms = (intervalMinutes ?? 5) * 60_000 || DEFAULT_INTERVAL_MS
-    const id = setInterval(() => { void performPull() }, ms)
-    return () => clearInterval(id)
-  }, [performPull, intervalMinutes])
-}
-
 export function useAutoSync({
   vaultPath,
+  enabled = true,
   intervalMinutes,
   onVaultUpdated,
   onSyncUpdated,
@@ -265,29 +239,59 @@ export function useAutoSync({
   const [remoteStatus, setRemoteStatus] = useState<GitRemoteStatus | null>(null)
   const syncingRef = useRef(false)
   const pauseRef = useRef(false)
+  const activeSyncRef = useRef({ enabled, vaultPath })
+  const syncSnapshotRef = useRef({ syncStatus, conflictFiles, remoteStatus, lastCommitInfo })
   const callbacksRef = useRef<SyncCallbacks>({ onVaultUpdated, onSyncUpdated, onConflict, onToast })
+  useEffect(() => {
+    activeSyncRef.current = { enabled, vaultPath }
+  }, [enabled, vaultPath])
+  useEffect(() => {
+    syncSnapshotRef.current = { syncStatus, conflictFiles, remoteStatus, lastCommitInfo }
+  }, [conflictFiles, lastCommitInfo, remoteStatus, syncStatus])
   useEffect(() => {
     callbacksRef.current = { onVaultUpdated, onSyncUpdated, onConflict, onToast }
   }, [onVaultUpdated, onSyncUpdated, onConflict, onToast])
-  const refreshRemoteStatus = useRemoteStatusRefresher(vaultPath, setRemoteStatus)
-  const checkExistingConflicts = useConflictChecker(vaultPath, setSyncStatus, setConflictFiles, callbacksRef)
-  const refreshCommitInfo = useCommitInfoRefresher(vaultPath, setLastCommitInfo)
+  const shouldApply = useCallback(
+    () => activeSyncRef.current.enabled && activeSyncRef.current.vaultPath === vaultPath,
+    [vaultPath],
+  )
+  const refreshRemoteStatus = useRemoteStatusRefresher(vaultPath, setRemoteStatus, shouldApply)
+  const checkExistingConflicts = useConflictChecker(vaultPath, setSyncStatus, setConflictFiles, callbacksRef, shouldApply)
+  const refreshCommitInfo = useCommitInfoRefresher(vaultPath, setLastCommitInfo, shouldApply)
+
+  useEffect(() => {
+    if (enabled) return
+    syncingRef.current = false
+    queueMicrotask(() => {
+      if (activeSyncRef.current.enabled || activeSyncRef.current.vaultPath !== vaultPath) return
+      const snapshot = syncSnapshotRef.current
+      if (snapshot.syncStatus !== 'idle') setSyncStatus('idle')
+      if (snapshot.conflictFiles.length > 0) setConflictFiles([])
+      if (snapshot.remoteStatus !== null) setRemoteStatus(null)
+      if (snapshot.lastCommitInfo !== null) setLastCommitInfo(null)
+    })
+  }, [enabled, vaultPath])
 
   const performPull = useCallback(async () => {
+    if (!enabled) return
+
     await runSyncTask({
       blockWhenPaused: true,
       pauseRef,
+      shouldApply,
       syncingRef,
       setLastSyncTime,
       setSyncStatus,
       task: async () => {
         const result = await tauriCall<GitPullResult>('git_pull', { vaultPath })
+        if (!shouldApply()) return
         markPullTimestamp(setLastSyncTime, refreshCommitInfo)
 
         if (result.status === 'updated') {
           await handleUpdatedPull({
             result,
             callbacksRef,
+            shouldApply,
             setConflictFiles,
             setSyncStatus,
           })
@@ -306,18 +310,22 @@ export function useAutoSync({
         void refreshRemoteStatus()
       },
     })
-  }, [vaultPath, refreshCommitInfo, checkExistingConflicts, refreshRemoteStatus])
+  }, [enabled, vaultPath, refreshCommitInfo, checkExistingConflicts, refreshRemoteStatus, shouldApply])
 
   /** Pull from remote, then auto-push if successful. Used for divergence recovery. */
   const pullAndPush = useCallback(async () => {
+    if (!enabled) return
+
     await runSyncTask({
       blockWhenPaused: false,
       pauseRef,
+      shouldApply,
       syncingRef,
       setLastSyncTime,
       setSyncStatus,
       task: async () => {
         const pullResult = await tauriCall<GitPullResult>('git_pull', { vaultPath })
+        if (!shouldApply()) return
         markPullTimestamp(setLastSyncTime, refreshCommitInfo)
 
         if (pullResult.status === 'conflict') {
@@ -337,10 +345,12 @@ export function useAutoSync({
 
         if (pullResult.status === 'updated') {
           await callbacksRef.current.onVaultUpdated(pullResult.updatedFiles)
+          if (!shouldApply()) return
           await callbacksRef.current.onSyncUpdated?.()
         }
 
         const pushResult = await tauriCall<GitPushResult>('git_push', { vaultPath })
+        if (!shouldApply()) return
         handlePushResult({
           pushResult,
           callbacksRef,
@@ -351,14 +361,16 @@ export function useAutoSync({
         void refreshRemoteStatus()
       },
     })
-  }, [vaultPath, refreshCommitInfo, checkExistingConflicts, refreshRemoteStatus])
+  }, [enabled, vaultPath, refreshCommitInfo, checkExistingConflicts, refreshRemoteStatus, shouldApply])
 
   const handlePushRejected = useCallback(() => {
+    if (!enabled) return
     setSyncStatus('pull_required')
-  }, [])
+  }, [enabled])
 
   useAutoSyncLifecycle({
     checkExistingConflicts,
+    enabled,
     intervalMinutes,
     performPull,
     refreshRemoteStatus,
@@ -368,9 +380,10 @@ export function useAutoSync({
   const resumePull = useCallback(() => { pauseRef.current = false }, [])
 
   const triggerSync = useCallback(() => {
+    if (!enabled) return
     trackEvent('sync_triggered')
     void performPull()
-  }, [performPull])
+  }, [enabled, performPull])
 
   return { syncStatus, lastSyncTime, conflictFiles, lastCommitInfo, remoteStatus, triggerSync, pullAndPush, pausePull, resumePull, handlePushRejected }
 }

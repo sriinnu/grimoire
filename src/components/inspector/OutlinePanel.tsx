@@ -58,7 +58,7 @@ export function OutlinePanel({
   }
 
   return (
-    <section>
+    <section className="inspector-card">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h4 className="font-mono-overline flex items-center gap-1 text-muted-foreground">
           <ListTree className="size-3" />

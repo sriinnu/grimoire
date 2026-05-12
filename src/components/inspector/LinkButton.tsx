@@ -1,13 +1,14 @@
 import type { ComponentType, SVGAttributes } from 'react'
 import { X } from '@phosphor-icons/react'
 import { NoteTitleIcon } from '../NoteTitleIcon'
+import { TypeIconMark } from '../TypeIconMark'
 
 export function StatusSuffix({ isArchived }: { isArchived: boolean }) {
   if (isArchived) return <span style={{ marginLeft: 4, fontSize: 10, opacity: 0.8 }}>(archived)</span>
   return null
 }
 
-export function LinkButton({ label, noteIcon, typeColor, bgColor, isArchived, onClick, onRemove, title, TypeIcon }: {
+export function LinkButton({ label, noteIcon, typeColor, bgColor, isArchived, onClick, onRemove, title, TypeIcon, typeIconValue }: {
   label: string
   noteIcon?: string | null
   typeColor: string
@@ -17,6 +18,7 @@ export function LinkButton({ label, noteIcon, typeColor, bgColor, isArchived, on
   onRemove?: () => void
   title?: string
   TypeIcon: ComponentType<SVGAttributes<SVGSVGElement>>
+  typeIconValue?: string | null
 }) {
   const isDimmed = isArchived
   const color = isDimmed ? 'var(--muted-foreground)' : typeColor
@@ -48,7 +50,13 @@ export function LinkButton({ label, noteIcon, typeColor, bgColor, isArchived, on
             <X size={14} />
           </span>
         )}
-        <TypeIcon width={14} height={14} className="shrink-0" style={{ color, opacity: 0.5 }} />
+        <TypeIconMark
+          className="shrink-0 opacity-50"
+          color={color}
+          fallbackIcon={TypeIcon}
+          iconValue={typeIconValue}
+          size={14}
+        />
       </span>
     </button>
   )

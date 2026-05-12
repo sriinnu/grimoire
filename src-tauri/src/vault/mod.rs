@@ -1,12 +1,18 @@
 mod cache;
 mod config_seed;
 mod entry;
+mod exporter;
 mod file;
 pub(crate) mod filename_rules;
 mod folders;
 mod frontmatter;
 mod getting_started;
 mod image;
+mod importer;
+mod journal_import_helpers;
+mod journal_importer;
+#[cfg(test)]
+mod journal_importer_tests;
 mod migration;
 mod parsing;
 mod rename;
@@ -14,6 +20,7 @@ mod rename_transaction;
 mod title_sync;
 mod trash;
 mod views;
+mod zip_importer;
 
 pub use cache::{invalidate_cache, scan_vault_cached};
 pub use config_seed::{
@@ -21,10 +28,13 @@ pub use config_seed::{
     seed_config_files, AiGuidanceFileState, VaultAiGuidanceStatus,
 };
 pub use entry::{FolderNode, VaultEntry};
+pub use exporter::{export_markdown_zip, VaultExportReport};
 pub use file::{create_note_content, get_note_content, save_note_content};
 pub use folders::{delete_folder, rename_folder, FolderRenameResult};
 pub use getting_started::{create_getting_started_vault, default_vault_path, vault_exists};
 pub use image::{copy_image_to_vault, save_canvas_preview, save_image};
+pub use importer::{import_markdown_folder, MarkdownFolderImportReport};
+pub use journal_importer::import_journal_export;
 pub use migration::migrate_is_a_to_type;
 pub use rename::{
     auto_rename_untitled, detect_renames, move_note_to_folder, rename_note, rename_note_filename,
@@ -37,6 +47,7 @@ pub use views::{
     delete_view, evaluate_view, save_view, scan_views, FilterCondition, FilterGroup, FilterNode,
     FilterOp, ViewDefinition, ViewFile,
 };
+pub use zip_importer::import_markdown_zip;
 
 use file::read_file_metadata;
 use frontmatter::{extract_fm_and_rels, resolve_is_a};

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { resolveImageUrls, portableImageUrls } from './vaultImages'
+import { portableImageUrls, resolveImageUrls, resolveVaultImageSrc } from './vaultImages'
 
 let tauriMode = false
 
@@ -169,5 +169,19 @@ describe('resolveImageUrls / portableImageUrls round-trip', () => {
     const markdown = '![shot](attachments/file.png)'
 
     expect(portableImageUrls(resolveImageUrls(markdown, '/vault'), '/vault')).toBe(markdown)
+  })
+})
+
+describe('resolveVaultImageSrc', () => {
+  it('returns a plain file path outside Tauri', () => {
+    tauriMode = false
+
+    expect(resolveVaultImageSrc('/vault/attachments/logo.svg')).toBe('/vault/attachments/logo.svg')
+  })
+
+  it('returns an asset URL inside Tauri', () => {
+    tauriMode = true
+
+    expect(resolveVaultImageSrc('/vault/attachments/logo.svg')).toBe(assetUrl('/vault/attachments/logo.svg'))
   })
 })

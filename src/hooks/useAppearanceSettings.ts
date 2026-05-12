@@ -9,6 +9,7 @@ import {
   writeStoredThemePreset,
 } from '../lib/appearance'
 import type { EditorFont, ThemePreset } from '../lib/appearance'
+import { loadFontAssetsForAppearance } from '../lib/fontConfig'
 import type { ThemeMode } from '../lib/themeMode'
 import { useThemeMode } from './useThemeMode'
 
@@ -38,10 +39,13 @@ export function useAppearanceSettings({
       editorFont ?? readStoredEditorFont(window.localStorage),
     )
 
-    applyAppearanceToDocument(document, {
+    const appearance = {
       themePreset: resolvedThemePreset,
       editorFont: resolvedEditorFont,
-    })
+    }
+
+    applyAppearanceToDocument(document, appearance)
+    void loadFontAssetsForAppearance(document, appearance)
     writeStoredThemePreset(window.localStorage, resolvedThemePreset)
     writeStoredEditorFont(window.localStorage, resolvedEditorFont)
   }, [editorFont, loaded, themePreset])

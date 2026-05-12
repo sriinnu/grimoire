@@ -1,9 +1,10 @@
-import { createElement, useMemo, useState, type ComponentType, type MouseEvent, type ReactNode, type SVGAttributes } from 'react'
+import { useMemo, useState, type ComponentType, type MouseEvent, type ReactNode, type SVGAttributes } from 'react'
 import { Link } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
 import type { VaultEntry } from '../../types'
 import { resolveNoteIcon } from '../../utils/noteIcon'
 import { openExternalUrl } from '../../utils/url'
+import { TypeIconMark } from '../TypeIconMark'
 import { resolvePropertyChipValues, type PropertyChipValue } from './propertyChipValues'
 
 function toChipTestId(propName: string, index: number): string {
@@ -13,11 +14,19 @@ function toChipTestId(propName: string, index: number): string {
 
 function RelationshipTypeIcon({
   typeIcon,
+  typeIconValue,
 }: {
   typeIcon?: ComponentType<SVGAttributes<SVGSVGElement>> | null
+  typeIconValue?: string | null
 }) {
-  if (!typeIcon) return null
-  return createElement(typeIcon, { 'aria-hidden': true, width: 11, height: 11, className: 'shrink-0' })
+  return (
+    <TypeIconMark
+      className="shrink-0"
+      fallbackIcon={typeIcon ?? undefined}
+      iconValue={typeIconValue}
+      size={11}
+    />
+  )
 }
 
 function renderResolvedNoteIcon(
@@ -55,10 +64,12 @@ function renderResolvedNoteIcon(
 function PropertyChipIcon({
   noteIcon,
   typeIcon,
+  typeIconValue,
   tone,
 }: {
   noteIcon?: string | null
   typeIcon?: ComponentType<SVGAttributes<SVGSVGElement>> | null
+  typeIconValue?: string | null
   tone: PropertyChipValue['tone']
 }) {
   const [imageFailed, setImageFailed] = useState(false)
@@ -69,7 +80,7 @@ function PropertyChipIcon({
 
   const noteIconElement = renderResolvedNoteIcon(noteIcon, imageFailed, () => setImageFailed(true))
   if (noteIconElement) return noteIconElement
-  return <RelationshipTypeIcon typeIcon={typeIcon} />
+  return <RelationshipTypeIcon typeIcon={typeIcon} typeIconValue={typeIconValue} />
 }
 
 async function handleChipClick(
@@ -128,7 +139,12 @@ export function PropertyChips({
             onClick={(event) => { void handleChipClick(event, chip, onOpenNote) }}
             data-testid={toChipTestId(key, index)}
           >
-            <PropertyChipIcon noteIcon={chip.noteIcon} typeIcon={chip.typeIcon} tone={chip.tone} />
+            <PropertyChipIcon
+              noteIcon={chip.noteIcon}
+              typeIcon={chip.typeIcon}
+              typeIconValue={chip.typeIconValue}
+              tone={chip.tone}
+            />
             <span className="truncate whitespace-nowrap">{chip.label}</span>
           </span>
         ))

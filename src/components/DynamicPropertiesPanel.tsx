@@ -10,6 +10,10 @@ import { SmartPropertyValueCell, DisplayModeSelector } from './PropertyValueCell
 import { TypeSelector } from './TypeSelector'
 import { AddPropertyForm } from './AddPropertyForm'
 import type { PropertyDisplayMode } from '../utils/propertyTypes'
+import {
+  inferDisplayModeFromPropertyKey,
+  SUGGESTED_PROPERTIES,
+} from '../utils/propertySuggestions'
 import { FOCUS_NOTE_ICON_PROPERTY_EVENT } from './noteIconPropertyEvents'
 import {
   PROPERTY_PANEL_GRID_STYLE,
@@ -93,22 +97,9 @@ function AddPropertyButton({ onClick, disabled }: { onClick: () => void; disable
   )
 }
 
-const SUGGESTED_PROPERTIES = [
-  { key: 'Status', label: 'Status' },
-  { key: 'Date', label: 'Date' },
-  { key: 'URL', label: 'URL' },
-  { key: 'icon', label: 'Icon' },
-] as const
-
-const SUGGESTED_PROPERTY_MODES: Record<string, PropertyDisplayMode> = {
-  Status: 'status',
-  Date: 'date',
-  URL: 'url',
-  icon: 'text',
-}
-
 function getSuggestedDisplayMode(key: string): PropertyDisplayMode {
-  return SUGGESTED_PROPERTY_MODES[key] ?? 'text'
+  return SUGGESTED_PROPERTIES.find((property) => property.key === key)?.displayMode
+    ?? inferDisplayModeFromPropertyKey(key)
 }
 
 function resolveMissingTypeName(entryIsA: string | null | undefined, availableTypes: string[]): string | null {
@@ -148,6 +139,27 @@ function SuggestedPropertySlot({ label, displayMode, onAdd }: {
       </span>
       <span className={PROPERTY_PANEL_PLACEHOLDER_VALUE_CLASS_NAME}>{'\u2014'}</span>
     </Button>
+  )
+}
+
+function PropertiesPanelHeader({ propertyCount, suggestedCount }: {
+  propertyCount: number
+  suggestedCount: number
+}) {
+  const propertyLabel = propertyCount === 1 ? '1 field' : `${propertyCount} fields`
+  const suggestionLabel = suggestedCount > 0 ? ` · ${suggestedCount} quick add` : ''
+
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-2">
+      <div className="min-w-0">
+        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          Properties
+        </div>
+        <div className="truncate text-[11px] text-muted-foreground/70" data-testid="properties-panel-summary">
+          {propertyLabel}{suggestionLabel}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -220,8 +232,25 @@ function useSuggestedPropertyActions({
     onAddProperty(key === 'icon' ? canonicalSystemMetadataKey(key) : key, trimmed)
   }, [onAddProperty, setEditingKey, setPendingSuggestedKey])
 
+  const handleSaveSuggestedList = useCallback((key: string, items: string[]) => {
+    setEditingKey(null)
+    setPendingSuggestedKey(null)
+    if (!onAddProperty || items.length === 0) {
+      return
+    }
+    onAddProperty(key, items)
+  }, [onAddProperty, setEditingKey, setPendingSuggestedKey])
+
+  const handleSaveSuggestedDirect = useCallback((key: string, value: FrontmatterValue) => {
+    setEditingKey(null)
+    setPendingSuggestedKey(null)
+    onAddProperty?.(key, value)
+  }, [onAddProperty, setEditingKey, setPendingSuggestedKey])
+
   return {
     handlePendingSuggestedEdit,
+    handleSaveSuggestedDirect,
+    handleSaveSuggestedList,
     handleSaveSuggestedValue,
     handleSuggestedAdd,
   }
@@ -256,6 +285,8 @@ export function DynamicPropertiesPanel({
   )
   const {
     handlePendingSuggestedEdit,
+    handleSaveSuggestedDirect,
+    handleSaveSuggestedList,
     handleSaveSuggestedValue,
     handleSuggestedAdd,
   } = useSuggestedPropertyActions({
@@ -267,7 +298,11 @@ export function DynamicPropertiesPanel({
   useFocusNoteIconProperty({ onAddProperty, setEditingKey, setPendingSuggestedKey })
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="inspector-card flex flex-col gap-3">
+      <PropertiesPanelHeader
+        propertyCount={propertyEntries.length}
+        suggestedCount={missingSuggested.length}
+      />
       <div className="grid min-w-0 gap-x-2 gap-y-1.5" style={PROPERTY_PANEL_GRID_STYLE}>
         <TypeSelector
           isA={entry.isA}
@@ -304,8 +339,8 @@ export function DynamicPropertiesPanel({
             vaultTags={vaultTagsByKey[pendingSuggestedKey] ?? []}
             onStartEdit={handlePendingSuggestedEdit}
             onSave={handleSaveSuggestedValue}
-            onSaveList={handleSaveList}
-            onUpdate={undefined}
+            onSaveList={handleSaveSuggestedList}
+            onUpdate={handleSaveSuggestedDirect}
             onDelete={undefined}
             onDisplayModeChange={handleDisplayModeChange}
           />

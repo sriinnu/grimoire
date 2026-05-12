@@ -115,6 +115,25 @@ describe('TypeCustomizePopover', () => {
     expect(onChangeIcon).toHaveBeenCalledWith('wrench')
   })
 
+  it('calls onChangeIcon when an image badge is clicked', () => {
+    renderPopover()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Spelllink badge' }))
+    expect(onChangeIcon).toHaveBeenCalledWith(expect.stringMatching(/^data:image\/svg\+xml/))
+  })
+
+  it('calls onChangeIcon when an emoji is selected', () => {
+    renderPopover()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose emoji icon' }))
+    fireEvent.change(screen.getByTestId('emoji-picker-search'), { target: { value: 'fire' } })
+    const fireButton = screen.getAllByTestId('emoji-option').find((button) => button.textContent === '🔥')
+    expect(fireButton).toBeDefined()
+    fireEvent.click(fireButton!)
+
+    expect(onChangeIcon).toHaveBeenCalledWith('🔥')
+  })
+
   it('calls onClose when Done is clicked', () => {
     renderPopover()
 

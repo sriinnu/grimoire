@@ -39,6 +39,7 @@ describe('appearance', () => {
 
     expect(normalizeEditorFont('serif')).toBe('serif')
     expect(normalizeEditorFont('literary')).toBe('literary')
+    expect(normalizeEditorFont('handwritten')).toBe('handwritten')
     expect(normalizeEditorFont('papyrus')).toBeNull()
     expect(resolveEditorFont('papyrus')).toBe(DEFAULT_EDITOR_FONT)
   })

@@ -89,7 +89,7 @@ proposed → active → superseded
 | [0031](0031-full-app-for-note-windows.md) | Full App instance for secondary note windows | active |
 | [0032](0032-status-bar-for-git-actions.md) | Git actions (Changes, Pulse, Commit) in status bar, not sidebar | active |
 | [0033](0033-subfolder-scanning-and-folder-tree.md) | Subfolder scanning and folder tree navigation | active |
-| [0034](0034-git-repo-required-for-vault.md) | Git repo required — blocking modal enforces vault prerequisite | active |
+| [0034](0034-git-repo-required-for-vault.md) | Git repo required — blocking modal enforces vault prerequisite | superseded → [0092](0092-local-first-vaults-with-optional-git.md) |
 | [0035](0035-path-suffix-wikilink-resolution.md) | Path-suffix wikilink resolution for subfolder vaults | active |
 | [0036](0036-external-rename-detection-via-git-diff.md) | External rename detection via git diff on focus regain | active |
 | [0037](0037-codemirror-language-markdown-highlighting.md) | Language-based markdown syntax highlighting in raw editor | active |
@@ -147,3 +147,4 @@ proposed → active → superseded
 | [0089](0089-project-intelligence-import-from-karya-board.md) | Project intelligence import from Karya Board | active |
 | [0090](0090-markdown-durable-canvas-attachments.md) | Markdown-durable canvas attachments | active |
 | [0091](0091-vault-portability-import-export-storage.md) | Vault portability import export and storage providers | active |
+| [0092](0092-local-first-vaults-with-optional-git.md) | Local-first vaults with optional Git | active |

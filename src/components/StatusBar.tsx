@@ -6,15 +6,13 @@ import type { McpStatus } from '../hooks/useMcpStatus'
 import type { ThemeMode } from '../lib/themeMode'
 import type { GitRemoteStatus, SyncStatus } from '../types'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import {
-  StatusBarPrimarySection,
-  StatusBarSecondarySection,
-} from './status-bar/StatusBarSections'
+import { StatusBarPrimarySection } from './status-bar/StatusBarSections'
+import { StatusBarSecondarySection } from './status-bar/StatusBarSecondarySection'
 import type { VaultOption } from './status-bar/types'
 
 export type { VaultOption } from './status-bar/types'
 
-const COMPACT_STATUS_BAR_MAX_WIDTH = 1000
+const COMPACT_STATUS_BAR_MAX_WIDTH = 1180
 
 function getWindowWidth() {
   return typeof window === 'undefined' ? Number.POSITIVE_INFINITY : window.innerWidth
@@ -64,6 +62,7 @@ interface StatusBarProps {
   onCreateEmptyVault?: () => void
   onCloneVault?: () => void
   onCloneGettingStarted?: () => void
+  onGitInitialized?: () => void
   onClickPending?: () => void
   onClickPulse?: () => void
   onCommitPush?: () => void
@@ -100,6 +99,51 @@ interface StatusBarFooterProps extends StatusBarProps {
   stacked: boolean
 }
 
+type StatusBarTone = 'healthy' | 'attention' | 'danger' | 'neutral'
+
+const STATUS_TONE_COLOR: Record<StatusBarTone, string> = {
+  healthy: 'color-mix(in srgb, var(--accent-green) 58%, transparent)',
+  attention: 'color-mix(in srgb, var(--accent-orange) 70%, transparent)',
+  danger: 'color-mix(in srgb, var(--destructive) 70%, transparent)',
+  neutral: 'color-mix(in srgb, var(--border) 82%, transparent)',
+}
+
+function getStatusBarTone({
+  conflictCount,
+  isOffline,
+  modifiedCount,
+  syncStatus,
+}: {
+  conflictCount: number
+  isOffline: boolean
+  modifiedCount: number
+  syncStatus: SyncStatus
+}): StatusBarTone {
+  if (isOffline || conflictCount > 0 || syncStatus === 'conflict' || syncStatus === 'error') return 'danger'
+  if (modifiedCount > 0 || syncStatus === 'pull_required' || syncStatus === 'syncing') return 'attention'
+  if (syncStatus === 'idle') return 'healthy'
+  return 'neutral'
+}
+
+function getStatusBarLabel({
+  conflictCount,
+  isOffline,
+  modifiedCount,
+  syncStatus,
+}: {
+  conflictCount: number
+  isOffline: boolean
+  modifiedCount: number
+  syncStatus: SyncStatus
+}) {
+  const parts = ['Grimoire status']
+  if (isOffline) parts.push('offline')
+  if (modifiedCount > 0) parts.push(`${modifiedCount} pending change${modifiedCount > 1 ? 's' : ''}`)
+  if (conflictCount > 0) parts.push(`${conflictCount} conflict${conflictCount > 1 ? 's' : ''}`)
+  parts.push(`sync ${syncStatus.replace(/_/g, ' ')}`)
+  return parts.join(', ')
+}
+
 function StatusBarFooter({
   noteCount,
   modifiedCount = 0,
@@ -111,11 +155,12 @@ function StatusBarFooter({
   onCreateEmptyVault,
   onCloneVault,
   onCloneGettingStarted,
+  onGitInitialized,
   onClickPending,
   onClickPulse,
   onCommitPush,
   isOffline = false,
-  isGitVault = false,
+  isGitVault = true,
   syncStatus = 'idle',
   lastSyncTime = null,
   conflictCount = 0,
@@ -143,9 +188,13 @@ function StatusBarFooter({
   compact,
   stacked,
 }: StatusBarFooterProps) {
+  const statusTone = getStatusBarTone({ conflictCount, isOffline, modifiedCount, syncStatus })
+
   return (
     <footer
       data-testid="status-bar"
+      data-status-tone={statusTone}
+      aria-label={getStatusBarLabel({ conflictCount, isOffline, modifiedCount, syncStatus })}
       style={{
         minHeight: 30,
         height: stacked ? 'auto' : 30,
@@ -156,13 +205,17 @@ function StatusBarFooter({
         justifyContent: stacked ? 'flex-start' : 'space-between',
         rowGap: stacked ? 4 : 0,
         columnGap: compact ? 8 : 12,
-        background: 'var(--sidebar)',
-        borderTop: '1px solid var(--border)',
+        background: 'linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 96%, var(--background)), var(--sidebar))',
+        borderTop: '1px solid color-mix(in srgb, var(--border) 84%, transparent)',
+        boxShadow: `inset 0 1px 0 ${STATUS_TONE_COLOR[statusTone]}, 0 -10px 24px color-mix(in srgb, #000 5%, transparent)`,
+        boxSizing: 'border-box',
+        overflow: 'visible',
         padding: stacked ? '4px 8px' : '0 8px',
         fontSize: 11,
         color: 'var(--muted-foreground)',
         position: 'relative',
-        zIndex: 10,
+        zIndex: 50,
+        backdropFilter: 'blur(12px)',
       }}
     >
       <StatusBarPrimarySection
@@ -174,6 +227,7 @@ function StatusBarFooter({
         onCreateEmptyVault={onCreateEmptyVault}
         onCloneVault={onCloneVault}
         onCloneGettingStarted={onCloneGettingStarted}
+        onGitInitialized={onGitInitialized}
         onClickPending={onClickPending}
         onClickPulse={onClickPulse}
         onCommitPush={onCommitPush}
@@ -216,6 +270,7 @@ function StatusBarFooter({
   )
 }
 
+/** Renders the persistent bottom command and system-status strip. */
 export function StatusBar(props: StatusBarProps) {
   useStatusBarTicker()
   const { compact, stacked } = useStatusBarLayout()

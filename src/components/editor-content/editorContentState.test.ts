@@ -107,4 +107,45 @@ describe('deriveEditorContentState', () => {
     expect(state.hasH1).toBe(false)
     expect(state.showEditor).toBe(true)
   })
+
+  it('routes binary image entries to the image preview instead of the markdown editor', () => {
+    const imageEntry = {
+      ...baseEntry,
+      path: '/vault/attachments/logo.svg',
+      filename: 'logo.svg',
+      title: 'logo.svg',
+      fileKind: 'binary' as const,
+    }
+
+    const state = deriveEditorContentState({
+      activeTab: { entry: imageEntry, content: '' },
+      entries: [imageEntry],
+      rawMode: false,
+      activeStatus: 'clean',
+    })
+
+    expect(state.isImagePreview).toBe(true)
+    expect(state.showEditor).toBe(false)
+  })
+
+  it('routes html files to rendered preview while keeping raw mode optional', () => {
+    const htmlEntry = {
+      ...baseEntry,
+      path: '/vault/page.html',
+      filename: 'page.html',
+      title: 'page.html',
+      fileKind: 'text' as const,
+    }
+
+    const state = deriveEditorContentState({
+      activeTab: { entry: htmlEntry, content: '<h1>Hello</h1>' },
+      entries: [htmlEntry],
+      rawMode: false,
+      activeStatus: 'clean',
+    })
+
+    expect(state.isHtmlPreview).toBe(true)
+    expect(state.effectiveRawMode).toBe(false)
+    expect(state.showEditor).toBe(false)
+  })
 })

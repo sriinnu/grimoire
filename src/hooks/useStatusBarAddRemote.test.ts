@@ -54,7 +54,7 @@ describe('useStatusBarAddRemote', () => {
     expect(result.current.showAddRemote).toBe(false)
   })
 
-  it('does nothing when the vault is not git-backed', async () => {
+  it('opens directly when the vault is local-only', async () => {
     const { result } = renderHook(() =>
       useStatusBarAddRemote({
         vaultPath: '/vault',
@@ -67,7 +67,7 @@ describe('useStatusBarAddRemote', () => {
       await result.current.openAddRemote()
     })
 
-    expect(result.current.showAddRemote).toBe(false)
+    expect(result.current.showAddRemote).toBe(true)
     expect(mockInvokeMock).not.toHaveBeenCalled()
   })
 

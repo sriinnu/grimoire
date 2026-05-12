@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react'
 import type { VaultEntry } from '../types'
 import { fuzzyMatch, bestSearchRank } from '../utils/fuzzyMatch'
 import { getTypeColor, getTypeLightColor, buildTypeEntryMap } from '../utils/typeColors'
-import { getTypeIcon } from '../components/NoteItem'
+import { getTypeIcon } from '../components/note-item/typeIcon'
 import type { NoteSearchResultItem } from '../components/NoteSearchList'
 
 const DEFAULT_MAX_RESULTS = 20
