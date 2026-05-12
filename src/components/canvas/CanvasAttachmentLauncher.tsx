@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type RefObject } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type RefObject } from 'react'
 import { PenLine, Shapes } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -6,7 +6,10 @@ import {
   parseCanvasAttachments,
   type CanvasAttachment,
 } from '../../utils/canvasAttachments'
-import { CanvasAttachmentDialog } from './CanvasAttachmentDialog'
+
+const LazyCanvasAttachmentDialog = lazy(() => import('./CanvasAttachmentDialog').then((module) => ({
+  default: module.CanvasAttachmentDialog,
+})))
 
 interface CanvasAttachmentLauncherProps {
   containerRef: RefObject<HTMLDivElement | null>
@@ -75,12 +78,16 @@ export function CanvasAttachmentLauncher({
           {attachment.title}
         </Button>
       ))}
-      <CanvasAttachmentDialog
-        attachment={selectedAttachment}
-        onOpenChange={setOpen}
-        open={open}
-        vaultPath={vaultPath}
-      />
+      {open ? (
+        <Suspense fallback={null}>
+          <LazyCanvasAttachmentDialog
+            attachment={selectedAttachment}
+            onOpenChange={setOpen}
+            open={open}
+            vaultPath={vaultPath}
+          />
+        </Suspense>
+      ) : null}
     </div>
   )
 }

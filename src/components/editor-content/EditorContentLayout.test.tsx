@@ -49,6 +49,8 @@ function createModel(overrides: Record<string, unknown> = {}) {
     onRawContentChange: vi.fn(),
     onSave: vi.fn(),
     showEditor: true,
+    isHtmlPreview: false,
+    isImagePreview: false,
     isArchived: false,
     onUnarchiveNote: undefined,
     path: '/vault/project/demo.md',
@@ -89,7 +91,7 @@ describe('EditorContentLayout', () => {
   })
 
   it('shows the loading skeleton instead of stale editor chrome while switching tabs', () => {
-    const { container } = render(
+    render(
       <EditorContentLayout
         {...createModel({
           activeTab: null,
@@ -98,7 +100,7 @@ describe('EditorContentLayout', () => {
       />,
     )
 
-    expect(container.querySelector('.animate-pulse')).not.toBeNull()
+    expect(screen.getByTestId('editor-loading-state')).toBeInTheDocument()
     expect(screen.queryByTestId('title-field-input')).not.toBeInTheDocument()
   })
 

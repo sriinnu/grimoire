@@ -11,6 +11,7 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useMemo,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
@@ -40,6 +41,8 @@ import {
 import { normalizeReleaseChannel, serializeReleaseChannel, type ReleaseChannel } from '../lib/releaseChannel'
 import { trackEvent } from '../lib/telemetry'
 import { AppearanceSettingsSection } from './AppearanceSettingsSection'
+import { PortabilitySettingsSection } from './PortabilitySettingsSection'
+import { useSettingsAppearancePreview } from './useSettingsAppearancePreview'
 import { Button } from './ui/button'
 import { Checkbox, type CheckedState } from './ui/checkbox'
 import { Input } from './ui/input'
@@ -58,6 +61,14 @@ interface SettingsPanelProps {
   aiAgentsStatus?: AiAgentsStatus
   locale?: AppLocale
   systemLocale?: AppLocale
+  vaultPath?: string
+  importMarkdownFolderBusy?: boolean
+  onImportMarkdownFolder?: () => void
+  onImportMarkdownZip?: () => void
+  onImportBear?: () => void
+  onImportDayOne?: () => void
+  onImportJourney?: () => void
+  onExportMarkdownZip?: () => void
   onSave: (settings: Settings) => void
   isGitVault?: boolean
   explicitOrganizationEnabled?: boolean
@@ -73,6 +84,7 @@ interface SettingsDraft {
   autoAdvanceInboxAfterOrganize: boolean
   defaultAiAgent: AiAgentId
   aiAgentModels: Partial<Record<AiAgentId, string>>
+  aiAgentProviders: Partial<Record<AiAgentId, string>>
   releaseChannel: ReleaseChannel
   themeMode: ThemeMode
   themePreset: ThemePreset
@@ -102,6 +114,8 @@ interface SettingsBodyProps {
   setDefaultAiAgent: (value: AiAgentId) => void
   aiAgentModels: Partial<Record<AiAgentId, string>>
   setAiAgentModels: (value: Partial<Record<AiAgentId, string>>) => void
+  aiAgentProviders: Partial<Record<AiAgentId, string>>
+  setAiAgentProviders: (value: Partial<Record<AiAgentId, string>>) => void
   releaseChannel: ReleaseChannel
   setReleaseChannel: (value: ReleaseChannel) => void
   themeMode: ThemeMode
@@ -122,6 +136,14 @@ interface SettingsBodyProps {
   setCrashReporting: (value: boolean) => void
   analytics: boolean
   setAnalytics: (value: boolean) => void
+  vaultPath: string
+  importMarkdownFolderBusy: boolean
+  onImportMarkdownFolder?: () => void
+  onImportMarkdownZip?: () => void
+  onImportBear?: () => void
+  onImportDayOne?: () => void
+  onImportJourney?: () => void
+  onExportMarkdownZip?: () => void
 }
 
 const PULL_INTERVAL_OPTIONS = [1, 2, 5, 10, 15, 30] as const
@@ -151,6 +173,7 @@ function createSettingsDraft(
     autoAdvanceInboxAfterOrganize: settings.auto_advance_inbox_after_organize ?? false,
     defaultAiAgent: resolveDefaultAiAgent(settings.default_ai_agent),
     aiAgentModels: createAiAgentModelsDraft(settings.ai_agent_models),
+    aiAgentProviders: createAiAgentStringDraft(settings.ai_agent_providers),
     releaseChannel: normalizeReleaseChannel(settings.release_channel),
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
@@ -201,24 +224,38 @@ function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft): Setti
     initial_h1_auto_rename_enabled: draft.initialH1AutoRename,
     default_ai_agent: draft.defaultAiAgent,
     ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),
+    ai_agent_providers: normalizeAiAgentProvidersForSave(draft.aiAgentProviders),
   }
+}
+
+function createAiAgentStringDraft(
+  values: Settings['ai_agent_models'] | Settings['ai_agent_providers'],
+): Partial<Record<AiAgentId, string>> {
+  const draft: Partial<Record<AiAgentId, string>> = {}
+  for (const definition of AI_AGENT_DEFINITIONS) {
+    const value = values?.[definition.id]?.trim()
+    if (value) draft[definition.id] = value
+  }
+  return draft
 }
 
 function createAiAgentModelsDraft(
   models: Settings['ai_agent_models'],
 ): Partial<Record<AiAgentId, string>> {
-  const draft: Partial<Record<AiAgentId, string>> = {}
-  for (const definition of AI_AGENT_DEFINITIONS) {
-    const model = models?.[definition.id]?.trim()
-    if (model) draft[definition.id] = model
-  }
-  return draft
+  return createAiAgentStringDraft(models)
 }
 
 function normalizeAiAgentModelsForSave(
   models: Partial<Record<AiAgentId, string>>,
 ): Settings['ai_agent_models'] {
-  const saved = createAiAgentModelsDraft(models)
+  const saved = createAiAgentStringDraft(models)
+  return Object.keys(saved).length > 0 ? saved : null
+}
+
+function normalizeAiAgentProvidersForSave(
+  providers: Partial<Record<AiAgentId, string>>,
+): Settings['ai_agent_providers'] {
+  const saved = createAiAgentStringDraft(providers)
   return Object.keys(saved).length > 0 ? saved : null
 }
 
@@ -229,6 +266,21 @@ function updateAiAgentModelDraft(
 ): Partial<Record<AiAgentId, string>> {
   const next = { ...models }
   const normalized = model.trim()
+  if (normalized) {
+    next[agent] = normalized
+  } else {
+    delete next[agent]
+  }
+  return next
+}
+
+function updateAiAgentProviderDraft(
+  providers: Partial<Record<AiAgentId, string>>,
+  agent: AiAgentId,
+  provider: string,
+): Partial<Record<AiAgentId, string>> {
+  const next = { ...providers }
+  const normalized = provider.trim()
   if (normalized) {
     next[agent] = normalized
   } else {
@@ -257,6 +309,14 @@ export function SettingsPanel({
   aiAgentsStatus = createMissingAiAgentsStatus(),
   locale = 'en',
   systemLocale = locale,
+  vaultPath = '',
+  importMarkdownFolderBusy = false,
+  onImportMarkdownFolder,
+  onImportMarkdownZip,
+  onImportBear,
+  onImportDayOne,
+  onImportJourney,
+  onExportMarkdownZip,
   onSave,
   isGitVault = true,
   explicitOrganizationEnabled = true,
@@ -271,6 +331,14 @@ export function SettingsPanel({
       aiAgentsStatus={aiAgentsStatus}
       locale={locale}
       systemLocale={systemLocale}
+      vaultPath={vaultPath}
+      importMarkdownFolderBusy={importMarkdownFolderBusy}
+      onImportMarkdownFolder={onImportMarkdownFolder}
+      onImportMarkdownZip={onImportMarkdownZip}
+      onImportBear={onImportBear}
+      onImportDayOne={onImportDayOne}
+      onImportJourney={onImportJourney}
+      onExportMarkdownZip={onExportMarkdownZip}
       onSave={onSave}
       isGitVault={isGitVault}
       explicitOrganizationEnabled={explicitOrganizationEnabled}
@@ -292,6 +360,14 @@ function SettingsPanelInner({
   settings,
   aiAgentsStatus,
   systemLocale,
+  vaultPath = '',
+  importMarkdownFolderBusy = false,
+  onImportMarkdownFolder,
+  onImportMarkdownZip,
+  onImportBear,
+  onImportDayOne,
+  onImportJourney,
+  onExportMarkdownZip,
   onSave,
   isGitVault,
   explicitOrganizationEnabled,
@@ -302,6 +378,19 @@ function SettingsPanelInner({
   const panelRef = useRef<HTMLDivElement>(null)
   const draftLocale = resolveEffectiveLocale(draft.uiLanguage, [systemLocale])
   const t = createTranslator(draftLocale)
+  const savedAppearance = useMemo(() => ({
+    themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
+    themePreset: resolveThemePreset(settings.theme_preset),
+    editorFont: resolveEditorFont(settings.editor_font),
+  }), [settings.editor_font, settings.theme_mode, settings.theme_preset])
+  const { commitAppearancePreview } = useSettingsAppearancePreview({
+    draft: {
+      themeMode: draft.themeMode,
+      themePreset: draft.themePreset,
+      editorFont: draft.editorFont,
+    },
+    saved: savedAppearance,
+  })
 
   useEffect(() => {
     setDraft(createSettingsDraft(settings, explicitOrganizationEnabled))
@@ -323,11 +412,12 @@ function SettingsPanelInner({
   )
 
   const handleSave = useCallback(() => {
+    commitAppearancePreview()
     trackTelemetryConsentChange(settings.analytics_enabled === true, draft.analytics)
     onSave(buildSettingsFromDraft(settings, draft))
     onSaveExplicitOrganization?.(draft.explicitOrganization)
     onClose()
-  }, [draft, onClose, onSave, onSaveExplicitOrganization, settings])
+  }, [commitAppearancePreview, draft, onClose, onSave, onSaveExplicitOrganization, settings])
 
   const handleBackdropClick = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
@@ -386,6 +476,16 @@ function SettingsPanelInner({
           setDefaultAiAgent={(value) => updateDraft('defaultAiAgent', value)}
           aiAgentModels={draft.aiAgentModels}
           setAiAgentModels={(value) => updateDraft('aiAgentModels', value)}
+          aiAgentProviders={draft.aiAgentProviders}
+          setAiAgentProviders={(value) => updateDraft('aiAgentProviders', value)}
+          vaultPath={vaultPath}
+          importMarkdownFolderBusy={importMarkdownFolderBusy}
+          onImportMarkdownFolder={onImportMarkdownFolder}
+          onImportMarkdownZip={onImportMarkdownZip}
+          onImportBear={onImportBear}
+          onImportDayOne={onImportDayOne}
+          onImportJourney={onImportJourney}
+          onExportMarkdownZip={onExportMarkdownZip}
           releaseChannel={draft.releaseChannel}
           setReleaseChannel={(value) => updateDraft('releaseChannel', value)}
           themeMode={draft.themeMode}
@@ -451,6 +551,16 @@ function SettingsBody({
   setDefaultAiAgent,
   aiAgentModels,
   setAiAgentModels,
+  aiAgentProviders,
+  setAiAgentProviders,
+  vaultPath,
+  importMarkdownFolderBusy,
+  onImportMarkdownFolder,
+  onImportMarkdownZip,
+  onImportBear,
+  onImportDayOne,
+  onImportJourney,
+  onExportMarkdownZip,
   releaseChannel,
   setReleaseChannel,
   themeMode,
@@ -496,6 +606,21 @@ function SettingsBody({
       </SettingsSection>
 
       <SettingsSection>
+        <PortabilitySettingsSection
+          t={t}
+          vaultPath={vaultPath}
+          vaultReady={vaultPath.trim().length > 0}
+          importBusy={importMarkdownFolderBusy}
+          onImportMarkdownFolder={onImportMarkdownFolder}
+          onImportMarkdownZip={onImportMarkdownZip}
+          onImportBear={onImportBear}
+          onImportDayOne={onImportDayOne}
+          onImportJourney={onImportJourney}
+          onExportMarkdownZip={onExportMarkdownZip}
+        />
+      </SettingsSection>
+
+      <SettingsSection>
         <AppearanceSettingsSection
           t={t}
           themeMode={themeMode}
@@ -533,6 +658,8 @@ function SettingsBody({
           setDefaultAiAgent={setDefaultAiAgent}
           aiAgentModels={aiAgentModels}
           setAiAgentModels={setAiAgentModels}
+          aiAgentProviders={aiAgentProviders}
+          setAiAgentProviders={setAiAgentProviders}
         />
       </SettingsSection>
 
@@ -745,6 +872,8 @@ function AiAgentSettingsSection({
   setDefaultAiAgent,
   aiAgentModels,
   setAiAgentModels,
+  aiAgentProviders,
+  setAiAgentProviders,
 }: Pick<SettingsBodyProps,
   | 't'
   | 'aiAgentsStatus'
@@ -752,11 +881,18 @@ function AiAgentSettingsSection({
   | 'setDefaultAiAgent'
   | 'aiAgentModels'
   | 'setAiAgentModels'
+  | 'aiAgentProviders'
+  | 'setAiAgentProviders'
 >) {
+  const selectedProvider = aiAgentProviders[defaultAiAgent] ?? ''
   const selectedModel = aiAgentModels[defaultAiAgent] ?? ''
+  const handleProviderChange = (value: string) => {
+    setAiAgentProviders(updateAiAgentProviderDraft(aiAgentProviders, defaultAiAgent, value))
+  }
   const handleModelChange = (value: string) => {
     setAiAgentModels(updateAiAgentModelDraft(aiAgentModels, defaultAiAgent, value))
   }
+  const showProviderOverride = defaultAiAgent === 'chitragupta'
 
   return (
     <>
@@ -772,6 +908,36 @@ function AiAgentSettingsSection({
         options={buildDefaultAiAgentOptions(aiAgentsStatus, t)}
         testId="settings-default-ai-agent"
       />
+
+      {showProviderOverride && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label
+            style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}
+            htmlFor="settings-default-ai-provider"
+          >
+            {t('settings.aiAgents.provider')}
+          </label>
+          <div className="flex gap-2">
+            <Input
+              id="settings-default-ai-provider"
+              value={selectedProvider}
+              placeholder={t('settings.aiAgents.providerPlaceholder')}
+              onChange={(event) => handleProviderChange(event.target.value)}
+              data-testid="settings-default-ai-provider"
+              className="w-full bg-transparent"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleProviderChange('')}
+              disabled={!selectedProvider}
+              data-testid="settings-default-ai-provider-clear"
+            >
+              {t('settings.aiAgents.providerDefault')}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <label

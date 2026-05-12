@@ -5,6 +5,7 @@ import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
 import { type IconProps } from '@phosphor-icons/react'
 import { SIDEBAR_ITEM_PADDING } from './sidebar/sidebarStyles'
 import { Button } from './ui/button'
+import { TypeIconMark } from './TypeIconMark'
 
 const SIDEBAR_COUNT_PILL_STYLE = {
   borderRadius: 9999,
@@ -18,6 +19,7 @@ export interface SectionGroup {
   type: string
   Icon: ComponentType<IconProps>
   customColor?: string | null
+  iconValue?: string | null
 }
 
 function resolveSectionColors(type: string, customColor?: string | null) {
@@ -282,12 +284,12 @@ export function SectionContent({
   onContextMenu, dragHandleProps,
   isRenaming, renameInitialValue, onRenameSubmit, onRenameCancel,
 }: SectionContentProps) {
-  const { label, type, Icon, customColor } = group
+  const { label, type, Icon, customColor, iconValue } = group
   const { sectionColor, sectionLightColor } = resolveSectionColors(type, customColor)
 
   return (
     <SectionHeader
-      label={label} type={type} Icon={Icon}
+      label={label} type={type} Icon={Icon} iconValue={iconValue}
       sectionColor={sectionColor}
       sectionLightColor={sectionLightColor}
       itemCount={itemCount}
@@ -431,8 +433,8 @@ function SectionHeaderCountPill({
   )
 }
 
-function SectionHeader({ label, type, Icon, sectionColor, sectionLightColor, itemCount, isActive, onSelect, onContextMenu, dragHandleProps, isRenaming, renameInitialValue, onRenameSubmit, onRenameCancel }: {
-  label: string; type: string; Icon: ComponentType<IconProps>
+function SectionHeader({ label, type, Icon, iconValue, sectionColor, sectionLightColor, itemCount, isActive, onSelect, onContextMenu, dragHandleProps, isRenaming, renameInitialValue, onRenameSubmit, onRenameCancel }: {
+  label: string; type: string; Icon: ComponentType<IconProps>; iconValue?: string | null
   sectionColor: string; sectionLightColor: string; itemCount: number; isActive: boolean
   onSelect: () => void; onContextMenu: (e: React.MouseEvent) => void
   dragHandleProps?: Record<string, unknown>
@@ -448,7 +450,13 @@ function SectionHeader({ label, type, Icon, sectionColor, sectionLightColor, ite
       onContextMenu={getSectionContextMenuHandler(isRenaming, onContextMenu)}
     >
       <div className="flex min-w-0 flex-1 items-center" style={{ gap: 4 }}>
-        <Icon size={16} weight={getSectionHeaderIconWeight(isActive)} style={{ color: sectionColor, flexShrink: 0 }} />
+        <TypeIconMark
+          className="shrink-0"
+          color={sectionColor}
+          fallbackIcon={(props) => <Icon {...props} weight={getSectionHeaderIconWeight(isActive)} />}
+          iconValue={iconValue}
+          size={16}
+        />
         <SectionHeaderLabel
           type={type}
           label={label}
@@ -474,7 +482,7 @@ function VisibilityPopoverItem({
   isVisible: boolean
   onToggle: (type: string) => void
 }) {
-  const { label, type, Icon, customColor } = group
+  const { label, type, Icon, customColor, iconValue } = group
   const { sectionColor } = resolveSectionColors(type, customColor)
 
   return (
@@ -487,7 +495,7 @@ function VisibilityPopoverItem({
       onClick={() => onToggle(type)}
       aria-label={`Toggle ${label}`}
     >
-      <Icon size={14} style={{ color: sectionColor }} />
+      <TypeIconMark color={sectionColor} fallbackIcon={Icon} iconValue={iconValue} size={14} />
       <span className="flex-1 text-left text-[13px] text-foreground">{label}</span>
       <ToggleSwitch on={isVisible} />
     </Button>

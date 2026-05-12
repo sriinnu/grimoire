@@ -138,6 +138,7 @@ const expectedDefaultVaultPath = DEFAULT_VAULTS[0].path || mockDefaultVaultPath
 const mockCommandResults: Record<string, unknown> = {
   load_vault_list: mockVaultList,
   list_vault: mockEntries,
+  reload_vault: mockEntries,
   list_vault_folders: [],
   list_views: [],
   get_all_content: mockAllContent,
@@ -148,8 +149,10 @@ const mockCommandResults: Record<string, unknown> = {
   get_file_history: [],
   get_settings: { auto_pull_interval_minutes: null, telemetry_consent: true, crash_reporting_enabled: null, analytics_enabled: null, anonymous_id: null, release_channel: null },
   git_pull: { status: 'up_to_date', message: 'Already up to date', updatedFiles: [], conflictFiles: [] },
+  git_remote_status: { branch: 'main', ahead: 0, behind: 0, hasRemote: false },
   save_settings: null,
   check_vault_exists: true,
+  is_git_repo: true,
   get_default_vault_path: expectedDefaultVaultPath,
   list_themes: [],
   get_vault_settings: { theme: null },
@@ -271,6 +274,7 @@ function resetMockCommandResults() {
   Object.assign(mockCommandResults, {
     load_vault_list: mockVaultList,
     list_vault: mockEntries,
+    reload_vault: mockEntries,
     list_vault_folders: [],
     list_views: [],
     get_all_content: mockAllContent,
@@ -288,8 +292,11 @@ function resetMockCommandResults() {
       anonymous_id: null,
       release_channel: null,
     },
+    git_pull: { status: 'up_to_date', message: 'Already up to date', updatedFiles: [], conflictFiles: [] },
+    git_remote_status: { branch: 'main', ahead: 0, behind: 0, hasRemote: false },
     save_settings: null,
     check_vault_exists: true,
+    is_git_repo: true,
     get_default_vault_path: expectedDefaultVaultPath,
     list_themes: [],
     get_vault_settings: { theme: null },
@@ -421,6 +428,15 @@ import { isTauri } from './mock-tauri'
 
 const AI_AGENTS_ONBOARDING_DISMISSED_KEY = 'grimoire:ai-agents-onboarding-dismissed'
 const CLAUDE_CODE_ONBOARDING_DISMISSED_KEY = 'grimoire:claude-code-onboarding-dismissed'
+const APP_TEST_DESKTOP_WIDTH = 1280
+
+function setAppTestViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    value: width,
+    writable: true,
+  })
+}
 
 function createMockUpdaterResult(
   checkForUpdates: () => Promise<{ kind: 'up-to-date' } | { kind: 'available'; version: string; displayVersion: string } | { kind: 'error'; message: string }> = async () => ({ kind: 'up-to-date' }),
@@ -443,6 +459,7 @@ describe('App', () => {
     vi.mocked(invoke).mockImplementation(async (cmd: string, args?: unknown) => resolveMockCommandResult(cmd, args))
     vi.mocked(isTauri).mockReturnValue(false)
     vi.mocked(useUpdater).mockReturnValue(createMockUpdaterResult())
+    setAppTestViewportWidth(APP_TEST_DESKTOP_WIDTH)
     localStorage.clear()
     window.history.replaceState({}, '', '/')
     localStorage.setItem(CLAUDE_CODE_ONBOARDING_DISMISSED_KEY, '1')
@@ -451,6 +468,22 @@ describe('App', () => {
   it('renders the four-panel layout', async () => {
     render(<App />)
     expect(await screen.findByText('All Notes', {}, { timeout: 5000 })).toBeInTheDocument()
+  })
+
+  it('opens a local-only vault instead of blocking on Git', async () => {
+    mockCommandResults.is_git_repo = false
+    vi.mocked(isTauri).mockReturnValue(true)
+
+    render(<App />)
+
+    expect(await screen.findByText('All Notes', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(screen.queryByTestId('git-required-shell')).not.toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('is_git_repo', { vaultPath: '/vault' })
+    expect(invoke).not.toHaveBeenCalledWith('get_modified_files', { vaultPath: '/vault' })
+    expect(invoke).not.toHaveBeenCalledWith('git_remote_status', { vaultPath: '/vault' })
+    expect(screen.queryByTestId('status-commit-push')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('status-sync')).not.toBeInTheDocument()
+    expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
   })
 
   it('loads and displays vault entries in sidebar', async () => {
@@ -748,6 +781,7 @@ describe('App', () => {
 
     mockCommandResults.load_vault_list = { vaults: [], active_vault: null, hidden_defaults: [] }
     mockCommandResults.check_vault_exists = (args?: { path?: string }) => args?.path === selectedVaultPath
+    mockCommandResults.is_git_repo = (args?: { vaultPath?: string }) => args?.vaultPath !== selectedVaultPath
     mockCommandResults.save_vault_list = (args?: {
       list?: { vaults?: Array<{ label: string; path: string }>; active_vault?: string | null }
     }) => {
@@ -766,7 +800,13 @@ describe('App', () => {
     await waitFor(() => {
       expect(saveVaultList).toHaveBeenCalledWith({
         list: {
-          vaults: [{ label: 'Work Vault', path: selectedVaultPath }],
+          vaults: [{
+            id: null,
+            label: 'Work Vault',
+            path: selectedVaultPath,
+            storage_provider: 'local-folder',
+            sync_provider: 'none',
+          }],
           active_vault: selectedVaultPath,
           hidden_defaults: [],
         },
@@ -858,7 +898,7 @@ describe('App', () => {
       expect(getHeader()).toHaveTextContent('Alpha')
     })
 
-    const editor = screen.getByTestId('mock-editor')
+    const editor = await screen.findByTestId('mock-editor', {}, { timeout: 5000 })
     editor.focus()
     expect(editor).toHaveFocus()
 

@@ -7,6 +7,9 @@ import { ConflictNoteBanner } from '../ConflictNoteBanner'
 import { RawEditorView } from '../RawEditorView'
 import { SingleEditorView } from '../SingleEditorView'
 import type { useEditorContentModel } from './useEditorContentModel'
+import { HtmlPreview } from './HtmlPreview'
+import { VaultImagePreview } from './VaultImagePreview'
+import { EditorLoadingState } from '../EditorLoadingState'
 
 type EditorContentModel = ReturnType<typeof useEditorContentModel>
 
@@ -34,15 +37,7 @@ type BreadcrumbActions = Pick<
 >
 
 function EditorLoadingSkeleton() {
-  return (
-    <div className="flex flex-1 flex-col gap-3 p-8 animate-pulse" style={{ minHeight: 0 }}>
-      <div className="h-6 w-2/5 rounded bg-muted" />
-      <div className="h-4 w-4/5 rounded bg-muted" />
-      <div className="h-4 w-3/5 rounded bg-muted" />
-      <div className="h-4 w-4/5 rounded bg-muted" />
-      <div className="h-4 w-2/5 rounded bg-muted" />
-    </div>
-  )
+  return <EditorLoadingState detail="Opening your note" />
 }
 
 function DiffModeView({ diffContent, onToggleDiff }: { diffContent: string | null; onToggleDiff: () => void }) {
@@ -304,6 +299,10 @@ export function EditorContentLayout(model: EditorContentModel) {
         rawLatestContentRef={rawLatestContentRef}
         vaultPath={vaultPath}
       />
+      {model.isImagePreview && !diffMode ? <VaultImagePreview entry={activeTab.entry} /> : null}
+      {model.isHtmlPreview && !diffMode && !effectiveRawMode ? (
+        <HtmlPreview content={activeTab.content} title={activeTab.entry.title || activeTab.entry.filename} />
+      ) : null}
       <EditorCanvas
         activeTab={activeTab}
         showEditor={showEditor}

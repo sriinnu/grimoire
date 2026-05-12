@@ -29,7 +29,7 @@ interface Tab {
   content: string
 }
 
-interface EditorProps {
+export interface EditorProps {
   tabs: Tab[]
   activeTabPath: string | null
   entries: VaultEntry[]
@@ -46,6 +46,7 @@ interface EditorProps {
   inspectorWidth: number
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onInspectorResize: (delta: number) => void
   inspectorEntry: VaultEntry | null
@@ -251,6 +252,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
     getNoteStatus,
     inspectorCollapsed, onToggleInspector, inspectorWidth,
     defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+    defaultAiProvider,
     defaultAiModel,
     onUnsupportedAiPaste,
     onInspectorResize,
@@ -330,6 +332,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
       inspectorWidth={inspectorWidth}
       defaultAiAgent={defaultAiAgent}
       defaultAiAgentReady={defaultAiAgentReady}
+      defaultAiProvider={defaultAiProvider}
       defaultAiModel={defaultAiModel}
       onUnsupportedAiPaste={onUnsupportedAiPaste}
       inspectorEntry={inspectorEntry}

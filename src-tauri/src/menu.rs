@@ -127,6 +127,9 @@ const GIT_CONFLICT_DEPENDENT_IDS: &[&str] = &[VAULT_RESOLVE_CONFLICTS];
 /// IDs of menu items that depend on the active vault having no remote configured.
 const GIT_NO_REMOTE_DEPENDENT_IDS: &[&str] = &[VAULT_ADD_REMOTE];
 
+/// IDs of menu items that depend on the active vault being a git repository.
+const GIT_VAULT_DEPENDENT_IDS: &[&str] = &[GO_CHANGES, VAULT_PULL, VAULT_VIEW_CHANGES];
+
 type MenuResult = Result<Submenu<tauri::Wry>, Box<dyn std::error::Error>>;
 
 fn build_app_menu(app: &App) -> MenuResult {
@@ -277,7 +280,10 @@ fn build_go_menu(app: &App) -> MenuResult {
     let archived = MenuItemBuilder::new("Archived")
         .id(GO_ARCHIVED)
         .build(app)?;
-    let changes = MenuItemBuilder::new("Changes").id(GO_CHANGES).build(app)?;
+    let changes = MenuItemBuilder::new("Changes")
+        .id(GO_CHANGES)
+        .enabled(false)
+        .build(app)?;
     let inbox = MenuItemBuilder::new("Inbox").id(GO_INBOX).build(app)?;
     let go_back = MenuItemBuilder::new("Go Back")
         .id(VIEW_GO_BACK)
@@ -364,6 +370,7 @@ fn build_vault_menu(app: &App) -> MenuResult {
         .build(app)?;
     let pull = MenuItemBuilder::new("Pull from Remote")
         .id(VAULT_PULL)
+        .enabled(false)
         .build(app)?;
     let resolve_conflicts = MenuItemBuilder::new("Resolve Conflicts")
         .id(VAULT_RESOLVE_CONFLICTS)
@@ -371,6 +378,7 @@ fn build_vault_menu(app: &App) -> MenuResult {
         .build(app)?;
     let view_changes = MenuItemBuilder::new("View Pending Changes")
         .id(VAULT_VIEW_CHANGES)
+        .enabled(false)
         .build(app)?;
     let install_mcp = MenuItemBuilder::new("Set Up External AI Tools…")
         .id(VAULT_INSTALL_MCP)
@@ -488,6 +496,11 @@ pub fn set_git_no_remote_items_enabled(app_handle: &AppHandle, enabled: bool) {
     set_items_enabled(app_handle, GIT_NO_REMOTE_DEPENDENT_IDS, enabled);
 }
 
+/// Enable or disable menu items that depend on git being available for the vault.
+pub fn set_git_vault_items_enabled(app_handle: &AppHandle, enabled: bool) {
+    set_items_enabled(app_handle, GIT_VAULT_DEPENDENT_IDS, enabled);
+}
+
 /// Enable or disable menu items that depend on a deleted note preview being active.
 pub fn set_restore_deleted_item_enabled(app_handle: &AppHandle, enabled: bool) {
     set_items_enabled(app_handle, RESTORE_DELETED_DEPENDENT_IDS, enabled);
@@ -582,6 +595,12 @@ mod tests {
             assert!(
                 CUSTOM_IDS.contains(id),
                 "git-no-remote-dependent ID {id} not in CUSTOM_IDS"
+            );
+        }
+        for id in GIT_VAULT_DEPENDENT_IDS {
+            assert!(
+                CUSTOM_IDS.contains(id),
+                "git-vault-dependent ID {id} not in CUSTOM_IDS"
             );
         }
     }

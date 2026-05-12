@@ -298,6 +298,26 @@ describe('SettingsPanel', () => {
     }))
   })
 
+  it('saves a provider override for the selected default agent', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    fireEvent.change(screen.getByTestId('settings-default-ai-provider'), {
+      target: { value: 'openai' },
+    })
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ai_agent_providers: { chitragupta: 'openai' },
+    }))
+  })
+
   it('treats a legacy beta release channel as stable', () => {
     render(
       <SettingsPanel

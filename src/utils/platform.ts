@@ -18,3 +18,7 @@ export function isMac(): boolean {
 export function shouldUseLinuxWindowChrome(): boolean {
   return isTauri() && isLinux()
 }
+
+export function shouldUseMacOverlayChrome(): boolean {
+  return isTauri() && isMac()
+}

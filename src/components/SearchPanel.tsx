@@ -5,7 +5,7 @@ import type { SearchResult, VaultEntry } from '../types'
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
 import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
-import { getTypeIcon } from './NoteItem'
+import { getTypeIcon } from './note-item/typeIcon'
 import { NoteTitleIcon } from './NoteTitleIcon'
 
 interface SearchPanelProps {

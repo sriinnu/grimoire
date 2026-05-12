@@ -100,6 +100,8 @@ export interface Settings {
   default_ai_agent?: AiAgentId | null
   /** Optional per-agent model override passed to local CLI agents. */
   ai_agent_models?: Partial<Record<AiAgentId, string>> | null
+  /** Optional per-agent provider override passed to local CLI agents that support provider routing. */
+  ai_agent_providers?: Partial<Record<AiAgentId, string>> | null
 }
 
 export interface GitPullResult {

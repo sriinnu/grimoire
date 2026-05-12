@@ -24,12 +24,12 @@ const SYSTEM_MONO_FONT =
 const SYSTEM_LABEL_FONT =
   "'Avenir Next Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, sans-serif"
 const CAVEAT_DISPLAY_FONT =
-  "'Caveat', 'Bradley Hand', 'Marker Felt', 'Segoe Print', cursive"
+  "'Grimoire Caveat', 'Caveat', 'Bradley Hand', 'Marker Felt', 'Segoe Print', cursive"
 
 export const FONT_ASSETS: Record<FontAssetId, FontAssetDefinition> = {
   caveat: {
     id: 'caveat',
-    family: 'Caveat',
+    family: 'Grimoire Caveat',
     source: caveatFontUrl,
     format: 'truetype',
     descriptors: {
@@ -44,7 +44,7 @@ const BASE_FONT_ROLES: FontRoleConfig = {
   ui: SYSTEM_UI_FONT,
   editor: SYSTEM_EDITOR_FONT,
   mono: SYSTEM_MONO_FONT,
-  display: 'var(--grimoire-editor-font-family)',
+  display: CAVEAT_DISPLAY_FONT,
   label: SYSTEM_LABEL_FONT,
 }
 
@@ -55,6 +55,7 @@ const EDITOR_FONT_ROLES: Record<EditorFont, Pick<FontRoleConfig, 'editor'>> = {
   readable: { editor: "'Atkinson Hyperlegible', 'Avenir Next', system-ui, sans-serif" },
   literary: { editor: "ui-serif, 'New York', 'Hoefler Text', 'Iowan Old Style', Georgia, serif" },
   compact: { editor: "'Avenir Next Condensed', 'Arial Narrow', system-ui, sans-serif" },
+  handwritten: { editor: CAVEAT_DISPLAY_FONT },
 }
 
 const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = {
@@ -65,10 +66,6 @@ const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = 
   retro: {
     label: SYSTEM_LABEL_FONT,
   },
-}
-
-const THEME_FONT_ASSETS: Partial<Record<ThemePreset, readonly FontAssetId[]>> = {
-  manuscript: ['caveat'],
 }
 
 const loadedFontAssetIds = new Set<FontAssetId>()
@@ -84,7 +81,8 @@ export function resolveFontRoles(appearance: ResolvedAppearance): FontRoleConfig
 
 /** Returns local font asset IDs needed by the selected appearance. */
 export function resolveFontAssetIds(appearance: ResolvedAppearance): FontAssetId[] {
-  return [...new Set(THEME_FONT_ASSETS[appearance.themePreset] ?? [])]
+  void appearance
+  return ['caveat']
 }
 
 /** Applies resolved font roles as CSS variables on the root document element. */

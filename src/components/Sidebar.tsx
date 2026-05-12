@@ -21,6 +21,7 @@ import {
   TypesSection,
   ViewsSection,
 } from './sidebar/SidebarSections'
+import { SidebarArtwork } from './sidebar/SidebarArtwork'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
 
 interface SidebarProps {
@@ -188,6 +189,7 @@ export const Sidebar = memo(function Sidebar({
           onToggle={() => toggleGroup('folders')}
         />
       </nav>
+      <SidebarArtwork />
       <ContextMenuOverlay
         pos={typeInteractions.contextMenuPos}
         type={typeInteractions.contextMenuType}

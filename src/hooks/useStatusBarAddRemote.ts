@@ -21,6 +21,7 @@ interface UseStatusBarAddRemoteOptions {
   isGitVault: boolean
   remoteStatus?: GitRemoteStatus | null
   onAddRemote?: () => void
+  onGitInitialized?: () => void
 }
 
 interface StatusBarAddRemoteState {
@@ -41,6 +42,7 @@ export function useStatusBarAddRemote({
   isGitVault,
   remoteStatus,
   onAddRemote,
+  onGitInitialized,
 }: UseStatusBarAddRemoteOptions): StatusBarAddRemoteState {
   const [showAddRemote, setShowAddRemote] = useState(false)
   const [remoteStatusOverride, setRemoteStatusOverride] = useState<RemoteStatusOverride | null>(null)
@@ -59,7 +61,10 @@ export function useStatusBarAddRemote({
       return
     }
 
-    if (!isGitVault) return
+    if (!isGitVault) {
+      setShowAddRemote(true)
+      return
+    }
 
     const latestStatus = await refreshRemoteStatus()
     if (latestStatus?.hasRemote) {
@@ -77,7 +82,8 @@ export function useStatusBarAddRemote({
   const handleRemoteConnected = useCallback(async (message: string) => {
     void message
     await refreshRemoteStatus()
-  }, [refreshRemoteStatus])
+    onGitInitialized?.()
+  }, [onGitInitialized, refreshRemoteStatus])
 
   useEffect(() => {
     const handleRequest = () => {

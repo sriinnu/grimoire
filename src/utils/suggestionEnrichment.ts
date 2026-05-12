@@ -1,6 +1,6 @@
 import type { VaultEntry } from '../types'
 import { getTypeColor, getTypeLightColor } from './typeColors'
-import { getTypeIcon } from '../components/NoteItem'
+import { getTypeIcon } from '../components/note-item/typeIcon'
 import { deduplicateByPath, disambiguateTitles } from './wikilinkSuggestions'
 import { bestSearchRank } from './fuzzyMatch'
 import { filterSuggestionItems } from '@blocknote/core/extensions'

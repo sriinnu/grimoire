@@ -1,11 +1,11 @@
 /* Screenshot-inspired polish: manuscript surfaces, denser cards, calmer inspector. */
 [data-theme-preset="manuscript"] {
-  --grimoire-brand-emerald: #143d31;
-  --grimoire-brand-emerald-2: #0d2d25;
+  --grimoire-brand-emerald: #244d5a;
+  --grimoire-brand-emerald-2: #18343e;
   --grimoire-brand-gold: #c69a48;
   --grimoire-parchment: #fbf4e5;
   --grimoire-parchment-2: #f4ead5;
-  --grimoire-ink: #20392f;
+  --grimoire-ink: #27383a;
   --grimoire-hand-font: var(--grimoire-display-font-family);
   --grimoire-label-font: var(--grimoire-label-font-family);
 }
@@ -20,7 +20,7 @@
   --surface-editor: #fff8eb;
   --text-primary: var(--grimoire-ink);
   --text-secondary: #6f765f;
-  --text-heading: #184936;
+  --text-heading: #244d5a;
   --border-default: #dfcfaa;
   --border-subtle: #eadcbd;
   --border-strong: #cbb57c;
@@ -28,36 +28,36 @@
   --state-hover-subtle: #f7edd5;
   --state-selected: #e8d9af;
   --state-selected-strong: #dbc07b;
-  --accent-blue: #1d6b55;
-  --accent-blue-bg: rgba(29, 107, 85, 0.13);
-  --accent-blue-hover: #124c3c;
-  --accent-blue-light: rgba(29, 107, 85, 0.11);
+  --accent-blue: #2f6f7c;
+  --accent-blue-bg: rgba(47, 111, 124, 0.13);
+  --accent-blue-hover: #245b66;
+  --accent-blue-light: rgba(47, 111, 124, 0.11);
   --accent-yellow: var(--grimoire-brand-gold);
-  --syntax-heading: #155f45;
-  --syntax-link: #1d6b55;
+  --syntax-heading: #2f6f7c;
+  --syntax-link: #2f6f7c;
   --sidebar-foreground: #fbf0d7;
   --sidebar-primary: var(--grimoire-brand-gold);
-  --sidebar-primary-foreground: #102d25;
+  --sidebar-primary-foreground: #152f36;
   --sidebar-accent: rgba(245, 216, 150, 0.13);
   --sidebar-accent-foreground: #fff7df;
   --sidebar-border: rgba(238, 211, 145, 0.22);
 }
 
 [data-theme-preset="manuscript"][data-theme="dark"] {
-  --surface-sidebar: #0a201b;
-  --surface-app: #121a16;
-  --surface-panel: #18241f;
-  --surface-card: #1d2d25;
-  --surface-editor: #14201b;
+  --surface-sidebar: #10242b;
+  --surface-app: #141b1d;
+  --surface-panel: #1a2528;
+  --surface-card: #203037;
+  --surface-editor: #162125;
   --text-heading: #f4d98d;
-  --border-default: #304538;
+  --border-default: #34464b;
   --accent-blue: #d2a85a;
   --accent-blue-hover: #e9c576;
   --syntax-heading: #f0cd79;
-  --syntax-link: #93d8bd;
+  --syntax-link: #9cd6d6;
   --sidebar-foreground: #f6e8c8;
   --sidebar-primary: #d2a85a;
-  --sidebar-primary-foreground: #0d201a;
+  --sidebar-primary-foreground: #11282e;
   --sidebar-accent: rgba(210, 168, 90, 0.14);
   --sidebar-accent-foreground: #fff1cf;
   --sidebar-border: rgba(210, 168, 90, 0.18);
@@ -95,6 +95,10 @@
 
 [data-theme-preset="manuscript"] .sidebar-brand [class*="text-foreground"] {
   color: var(--sidebar-foreground);
+  font-family: var(--grimoire-hand-font);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 0.92;
 }
 
 [data-theme-preset="manuscript"] .font-mono-overline,
@@ -186,13 +190,14 @@
 [data-theme-preset="manuscript"] .editor__blocknote-container .bn-block-outer:has(> .bn-block > [data-content-type="heading"][data-level="4"]) .bn-inline-content,
 [data-theme-preset="manuscript"] .editor__blocknote-container [data-content-type="heading"][data-level="3"] .bn-inline-content,
 [data-theme-preset="manuscript"] .editor__blocknote-container [data-content-type="heading"][data-level="4"] .bn-inline-content {
-  font-family: ui-serif, "New York", "Iowan Old Style", Georgia, serif !important;
-  font-style: normal !important;
+  font-family: var(--grimoire-hand-font) !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
 }
 
 [data-theme-preset-preview="manuscript"] {
   --surface-editor: #fff8eb;
-  --foreground: #20392f;
+  --foreground: #27383a;
   --muted-foreground: #6f765f;
   --border: #dfcfaa;
 }

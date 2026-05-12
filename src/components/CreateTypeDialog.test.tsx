@@ -47,6 +47,21 @@ describe('CreateTypeDialog', () => {
     expect(onCreate).toHaveBeenCalledWith('Recipe', expect.stringMatching(/^data:image\/svg\+xml/))
   })
 
+  it('passes a selected emoji when creating a type', () => {
+    const onCreate = vi.fn()
+    render(<CreateTypeDialog open={true} onClose={() => {}} onCreate={onCreate} />)
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. Recipe, Book, Habit...'), { target: { value: 'Lab' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Choose emoji icon' }))
+    fireEvent.change(screen.getByTestId('emoji-picker-search'), { target: { value: 'test tube' } })
+    const emojiButton = screen.getAllByTestId('emoji-option').find((button) => button.textContent === '🧪')
+    expect(emojiButton).toBeDefined()
+    fireEvent.click(emojiButton!)
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+    expect(onCreate).toHaveBeenCalledWith('Lab', '🧪')
+  })
+
   it('closes after create completes', async () => {
     const onClose = vi.fn()
     render(<CreateTypeDialog open={true} onClose={onClose} onCreate={() => Promise.resolve()} />)

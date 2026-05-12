@@ -12,6 +12,10 @@ import {
 } from '../utils/propertyTypes'
 import { StatusPill, StatusDropdown } from './StatusDropdown'
 import { DISPLAY_MODE_OPTIONS, DISPLAY_MODE_ICONS } from '../utils/propertyTypes'
+import {
+  inferDisplayModeFromPropertyKey,
+  initialPropertyValueForMode,
+} from '../utils/propertySuggestions'
 
 function parseDateValue(value: string): Date | undefined {
   const iso = toISODate(value)
@@ -145,6 +149,7 @@ function AddPropertyValueInput({ displayMode, value, onChange, onKeyDown, vaultS
   }
 }
 
+/** Renders the inline form used to add a typed frontmatter property. */
 export function AddPropertyForm({ onAdd, onCancel, vaultStatuses }: {
   onAdd: (key: string, value: string, displayMode: PropertyDisplayMode) => void; onCancel: () => void
   vaultStatuses: string[]
@@ -152,12 +157,24 @@ export function AddPropertyForm({ onAdd, onCancel, vaultStatuses }: {
   const [newKey, setNewKey] = useState('')
   const [newValue, setNewValue] = useState('')
   const [displayMode, setDisplayMode] = useState<PropertyDisplayMode>('text')
+  const [manualMode, setManualMode] = useState(false)
   const canSubmit = canSubmitProperty({ key: newKey, value: newValue, displayMode })
 
   const handleModeChange = (mode: PropertyDisplayMode) => {
+    setManualMode(true)
     setDisplayMode(mode)
-    if (mode === 'boolean') setNewValue('false')
+    if (mode === 'boolean') setNewValue(initialPropertyValueForMode(mode))
     else if (mode !== displayMode) setNewValue('')
+  }
+
+  const handleKeyChange = (key: string) => {
+    setNewKey(key)
+    if (manualMode) return
+    const nextMode = inferDisplayModeFromPropertyKey(key)
+    if (nextMode === displayMode) return
+
+    setDisplayMode(nextMode)
+    setNewValue(initialPropertyValueForMode(nextMode))
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -170,7 +187,7 @@ export function AddPropertyForm({ onAdd, onCancel, vaultStatuses }: {
       <Input
         className="h-[26px] w-20 shrink-0 rounded border border-border bg-muted px-1.5 text-[12px] text-foreground outline-none focus:border-primary"
         type="text" placeholder="Property name" value={newKey}
-        onChange={(e) => setNewKey(e.target.value)} onKeyDown={handleKeyDown} autoFocus
+        onChange={(e) => handleKeyChange(e.target.value)} onKeyDown={handleKeyDown} autoFocus
       />
       <Select value={displayMode} onValueChange={(v) => handleModeChange(v as PropertyDisplayMode)}>
         <SelectTrigger

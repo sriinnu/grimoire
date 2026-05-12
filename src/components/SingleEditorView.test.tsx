@@ -362,6 +362,49 @@ describe('SingleEditorView', () => {
     )
   })
 
+  it('shows newly inserted canvas attachments before the parent note content refreshes', async () => {
+    const editor = createEditor()
+    editor.document = [
+      { id: 'image-block', type: 'image', props: { url: 'attachments/handwriting-1.png' }, children: [] },
+      {
+        id: 'canvas-contract',
+        type: 'codeBlock',
+        props: { language: 'grimoire-canvas' },
+        content: [
+          { type: 'text', text: 'type: handwriting\nsource: attachments/handwriting-1.grimoire-canvas.json\npreview: attachments/handwriting-1.png' },
+        ],
+        children: [],
+      },
+    ]
+    editor.blocksToMarkdownLossy = vi.fn(() => [
+      '![Handwritten Canvas](attachments/handwriting-1.png)',
+      '',
+      '```grimoire-canvas',
+      'type: handwriting',
+      'source: attachments/handwriting-1.grimoire-canvas.json',
+      'preview: attachments/handwriting-1.png',
+      '```',
+    ].join('\n'))
+
+    render(
+      <SingleEditorView
+        activeContent=""
+        editor={editor as never}
+        entries={[makeEntry()]}
+        onNavigateWikilink={vi.fn()}
+        vaultPath="/vault"
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: /handwritten canvas/i })).not.toBeInTheDocument()
+
+    await act(async () => {
+      state.capturedBlockNoteOnChange?.()
+    })
+
+    expect(screen.getByRole('button', { name: /handwritten canvas/i })).toBeInTheDocument()
+  })
+
   it('inserts a canonical wikilink when a note is dropped onto the editor surface', () => {
     const editor = createEditor()
 

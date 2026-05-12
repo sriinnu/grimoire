@@ -23,6 +23,7 @@ export interface AiMessageProps {
   actions: AiAction[]
   response?: string
   isStreaming?: boolean
+  isQueued?: boolean
   onOpenNote?: (path: string) => void
   onNavigateWikilink?: (target: string) => void
 }
@@ -176,7 +177,15 @@ function StreamingIndicator() {
   )
 }
 
-export function AiMessage({ userMessage, references, reasoning, reasoningDone, actions, response, isStreaming, onOpenNote, onNavigateWikilink }: AiMessageProps) {
+function QueuedIndicator() {
+  return (
+    <div className="text-muted-foreground" style={{ fontSize: 12, padding: '2px 0 4px' }}>
+      Queued
+    </div>
+  )
+}
+
+export function AiMessage({ userMessage, references, reasoning, reasoningDone, actions, response, isStreaming, isQueued, onOpenNote, onNavigateWikilink }: AiMessageProps) {
   // Manual override: null = follow auto behavior, true/false = user forced
   const [userOverride, setUserOverride] = useState(false)
   const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set())
@@ -214,6 +223,7 @@ export function AiMessage({ userMessage, references, reasoning, reasoningDone, a
         />
       )}
       {response && <ResponseBlock text={response} onNavigateWikilink={onNavigateWikilink} />}
+      {isQueued && <QueuedIndicator />}
       {isStreaming && !response && <StreamingIndicator />}
     </div>
   )

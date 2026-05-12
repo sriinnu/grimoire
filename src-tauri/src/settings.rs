@@ -19,7 +19,15 @@ const THEME_PRESETS: &[&str] = &[
     "lotus",
     "ember",
 ];
-const EDITOR_FONTS: &[&str] = &["system", "serif", "mono", "readable", "literary", "compact"];
+const EDITOR_FONTS: &[&str] = &[
+    "system",
+    "serif",
+    "mono",
+    "readable",
+    "literary",
+    "compact",
+    "handwritten",
+];
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Settings {
@@ -40,6 +48,7 @@ pub struct Settings {
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
     pub ai_agent_models: Option<BTreeMap<String, String>>,
+    pub ai_agent_providers: Option<BTreeMap<String, String>>,
 }
 
 fn normalize_optional_string(value: Option<String>) -> Option<String> {
@@ -76,22 +85,34 @@ pub fn normalize_default_ai_agent(value: Option<&str>) -> Option<String> {
     }
 }
 
-pub fn normalize_ai_agent_models(
+fn normalize_ai_agent_string_map(
     value: Option<BTreeMap<String, String>>,
 ) -> Option<BTreeMap<String, String>> {
-    let mut models = BTreeMap::new();
-    for (agent, model) in value? {
+    let mut normalized_values = BTreeMap::new();
+    for (agent, raw_value) in value? {
         let Some(agent) = normalize_default_ai_agent(Some(&agent)) else {
             continue;
         };
-        let Some(model) = normalize_optional_string(Some(model)) else {
+        let Some(value) = normalize_optional_string(Some(raw_value)) else {
             continue;
         };
-        if !model.chars().any(char::is_whitespace) {
-            models.insert(agent, model);
+        if !value.chars().any(char::is_whitespace) {
+            normalized_values.insert(agent, value);
         }
     }
-    (!models.is_empty()).then_some(models)
+    (!normalized_values.is_empty()).then_some(normalized_values)
+}
+
+pub fn normalize_ai_agent_models(
+    value: Option<BTreeMap<String, String>>,
+) -> Option<BTreeMap<String, String>> {
+    normalize_ai_agent_string_map(value)
+}
+
+pub fn normalize_ai_agent_providers(
+    value: Option<BTreeMap<String, String>>,
+) -> Option<BTreeMap<String, String>> {
+    normalize_ai_agent_string_map(value)
 }
 
 pub fn normalize_theme_mode(value: Option<&str>) -> Option<String> {
@@ -162,6 +183,7 @@ fn normalize_settings(settings: Settings) -> Settings {
         initial_h1_auto_rename_enabled: settings.initial_h1_auto_rename_enabled,
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
         ai_agent_models: normalize_ai_agent_models(settings.ai_agent_models),
+        ai_agent_providers: normalize_ai_agent_providers(settings.ai_agent_providers),
     }
 }
 

@@ -659,6 +659,47 @@ describe('useVaultLoader', () => {
 
       warnSpy.mockRestore()
     })
+
+    it('skips git status for local-only vaults', async () => {
+      const { result } = renderHook(() => useVaultLoader('/vault', { isGitVault: false }))
+
+      await waitFor(() => {
+        expect(result.current.entries).toHaveLength(1)
+      })
+
+      expect(result.current.modifiedFiles).toEqual([])
+      expect(result.current.modifiedFilesError).toBeNull()
+      expect(backendInvokeFn).not.toHaveBeenCalledWith('get_modified_files', expect.anything())
+    })
+
+    it('ignores in-flight modified-file results after git is disabled', async () => {
+      const modifiedFiles = createDeferred<ModifiedFile[]>()
+      backendInvokeFn.mockImplementation(((cmd: string) => {
+        if (isVaultLoadCommand(cmd)) return Promise.resolve(mockEntries)
+        if (cmd === 'get_modified_files') return modifiedFiles.promise
+        if (cmd === 'list_vault_folders') return Promise.resolve([])
+        if (cmd === 'list_views') return Promise.resolve([])
+        return Promise.resolve(null)
+      }) as typeof defaultMockInvoke)
+
+      const { result, rerender } = renderHook(
+        ({ isGitVault }) => useVaultLoader('/vault', { isGitVault }),
+        { initialProps: { isGitVault: true } },
+      )
+
+      await waitFor(() => {
+        expect(result.current.entries).toHaveLength(1)
+      })
+      rerender({ isGitVault: false })
+
+      await act(async () => {
+        modifiedFiles.resolve(mockModifiedFiles)
+        await modifiedFiles.promise
+      })
+
+      expect(result.current.modifiedFiles).toEqual([])
+      expect(result.current.modifiedFilesError).toBeNull()
+    })
   })
 
   describe('replaceEntry', () => {

@@ -13,6 +13,7 @@ import {
   type AiAgentDefinition,
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
+import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../../hooks/useAiAgentsStatus'
 import {
   getVaultAiGuidanceSummary,
   isVaultAiGuidanceStatusChecking,
@@ -176,6 +177,9 @@ function AgentMenuContent({
   const installedAgents = installedAgentDefinitions(statuses)
   const missingAgents = missingAgentDefinitions(statuses)
   const isBrowserPreview = isBrowserPreviewAiAgentsStatus(statuses)
+  const refreshAgentsStatus = () => {
+    window.dispatchEvent(new Event(AI_AGENTS_STATUS_REFRESH_EVENT))
+  }
 
   return (
     <DropdownMenuContent
@@ -216,6 +220,17 @@ function AgentMenuContent({
               Install {definition.label}
             </DropdownMenuItem>
           ))}
+        </>
+      )}
+      {!isBrowserPreview && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={refreshAgentsStatus}
+            data-testid="status-ai-agents-refresh"
+          >
+            Check AI agents again
+          </DropdownMenuItem>
         </>
       )}
       <GuidanceMenuSection

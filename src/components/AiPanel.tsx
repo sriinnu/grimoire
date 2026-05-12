@@ -20,6 +20,7 @@ interface AiPanelProps {
   onUnsupportedAiPaste?: (message: string) => void
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onFileCreated?: (relativePath: string) => void
   onFileModified?: (relativePath: string) => void
@@ -58,7 +59,7 @@ export function AiPanelView({
   const defaultAiAgent = providedDefaultAiAgent ?? DEFAULT_AI_AGENT
   const defaultAiAgentReady = providedDefaultAiAgentReady ?? true
   const useLegacyAiExperience = providedDefaultAiAgent === undefined && providedDefaultAiAgentReady === undefined
-  const inputRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLElement>(null)
   const panelRef = useRef<HTMLElement>(null)
   const agentLabel = getAiAgentDefinition(defaultAiAgent).label
   const {
@@ -141,6 +142,7 @@ export function AiPanel({
   onUnsupportedAiPaste,
   defaultAiAgent: providedDefaultAiAgent,
   defaultAiAgentReady: providedDefaultAiAgentReady,
+  defaultAiProvider,
   defaultAiModel,
   onFileCreated,
   onFileModified,
@@ -157,6 +159,7 @@ export function AiPanel({
     vaultPath,
     defaultAiAgent: providedDefaultAiAgent ?? DEFAULT_AI_AGENT,
     defaultAiAgentReady: providedDefaultAiAgentReady ?? true,
+    defaultAiProvider,
     defaultAiModel,
     activeEntry,
     activeNoteContent,

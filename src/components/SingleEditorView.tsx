@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback, useRef, useState } from 'react'
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -28,6 +28,14 @@ import {
 import { handleToolbarMouseDownCapture } from './singleEditorToolbarEvents'
 import { useSingleEditorSuggestionItems } from './singleEditorSuggestions'
 import { CanvasAttachmentLauncher } from './canvas/CanvasAttachmentLauncher'
+import {
+  syncCanvasMarkdownSnapshot,
+  type MarkdownSnapshotEditor,
+} from './editorCanvasMarkdown'
+import {
+  applyDetectedCodeBlockLanguage,
+  type CodeLanguageDetectionEditor,
+} from './codeBlockLanguageDetection'
 
 const TEST_TABLE_MARKDOWN = `| Head 1 | Head 2 | Head 3 |
 | --- | --- | --- |
@@ -113,6 +121,10 @@ function isSelectionInsideElement(element: HTMLElement): boolean {
 
 const TITLE_HEADING_SELECTOR = 'h1, [data-content-type="heading"][data-level="1"], [data-content-type="heading"]:not([data-level])'
 const TITLE_HEADING_WRAPPER_SELECTOR = '.bn-block-outer, .bn-block'
+type LiveMarkdownState = {
+  activeContent: string
+  markdown: string
+}
 
 function findTitleHeadingElement(target: HTMLElement): HTMLElement | null {
   const directHeading = target.closest<HTMLElement>(TITLE_HEADING_SELECTOR)
@@ -248,8 +260,30 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
   const { cssVars } = useEditorTheme()
   const themeMode = useDocumentThemeMode()
   const containerRef = useRef<HTMLDivElement>(null)
+  const [liveMarkdownState, setLiveMarkdownState] = useState<LiveMarkdownState>(() => ({
+    activeContent,
+    markdown: activeContent,
+  }))
+  const liveMarkdown = liveMarkdownState.activeContent === activeContent
+    ? liveMarkdownState.markdown
+    : activeContent
   const handleContainerClick = useEditorContainerClickHandler({ editable, editor })
-  const handleEditorChange = useCompositionAwareEditorChange({ containerRef, onChange })
+  const handleCompositionAwareChange = useCompositionAwareEditorChange({ containerRef, onChange })
+  const updateLiveMarkdown = useCallback((nextMarkdown: string) => {
+    setLiveMarkdownState((current) => {
+      if (current.activeContent === activeContent && current.markdown === nextMarkdown) return current
+      return { activeContent, markdown: nextMarkdown }
+    })
+  }, [activeContent])
+  const handleEditorChange = useCallback(() => {
+    applyDetectedCodeBlockLanguage(editor as unknown as CodeLanguageDetectionEditor)
+    updateLiveMarkdown(syncCanvasMarkdownSnapshot(
+      editor as unknown as MarkdownSnapshotEditor,
+      activeContent,
+      liveMarkdown,
+    ))
+    handleCompositionAwareChange()
+  }, [activeContent, editor, handleCompositionAwareChange, liveMarkdown, updateLiveMarkdown])
   const onImageUrl = useInsertImageCallback(editor)
   const { isDragOver } = useImageDrop({ containerRef, onImageUrl, vaultPath })
   useBlockNoteSideMenuHoverGuard(containerRef)
@@ -290,7 +324,7 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
       )}
       <CanvasAttachmentLauncher
         containerRef={containerRef}
-        markdown={activeContent}
+        markdown={liveMarkdown}
         vaultPath={vaultPath}
       />
       <SharedContextBlockNoteView

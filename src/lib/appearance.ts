@@ -18,7 +18,15 @@ const THEME_PRESETS = new Set([
   'lotus',
   'ember',
 ])
-const EDITOR_FONTS = new Set(['system', 'serif', 'mono', 'readable', 'literary', 'compact'])
+const EDITOR_FONTS = new Set([
+  'system',
+  'serif',
+  'mono',
+  'readable',
+  'literary',
+  'compact',
+  'handwritten',
+])
 
 export type ThemePreset =
   | 'classic'
@@ -32,7 +40,14 @@ export type ThemePreset =
   | 'future'
   | 'lotus'
   | 'ember'
-export type EditorFont = 'system' | 'serif' | 'mono' | 'readable' | 'literary' | 'compact'
+export type EditorFont =
+  | 'system'
+  | 'serif'
+  | 'mono'
+  | 'readable'
+  | 'literary'
+  | 'compact'
+  | 'handwritten'
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>
 type AppearanceDocument = Pick<Document, 'documentElement'>

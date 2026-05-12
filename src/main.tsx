@@ -2,10 +2,13 @@ import { StrictMode } from 'react'
 import * as Sentry from '@sentry/react'
 import { createRoot } from 'react-dom/client'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import './fonts.css'
 import './index.css'
 import './motion.css'
 import App from './App.tsx'
 import './theme-polish.css'
+import './sidebar-appearance.css'
+import './sidebar-artwork-themes.css'
 import { LinuxTitlebar } from './components/LinuxTitlebar'
 import { applyStoredAppearance } from './lib/appearance'
 import { loadFontAssetsForAppearance } from './lib/fontConfig'
@@ -20,7 +23,7 @@ import {
   type AppCommandShortcutEventInit,
   type AppCommandShortcutEventOptions,
 } from './hooks/appCommandCatalog'
-import { shouldUseLinuxWindowChrome } from './utils/platform'
+import { shouldUseLinuxWindowChrome, shouldUseMacOverlayChrome } from './utils/platform'
 
 const EDITOR_DROP_SELECTOR = '.editor__blocknote-container'
 
@@ -56,6 +59,10 @@ if ('__TAURI__' in window || '__TAURI_INTERNALS__' in window) {
 
 if (shouldUseLinuxWindowChrome()) {
   document.body.classList.add('linux-chrome')
+}
+
+if (shouldUseMacOverlayChrome()) {
+  document.body.classList.add('macos-overlay-chrome')
 }
 
 applyStoredThemeMode(document, window.localStorage)
