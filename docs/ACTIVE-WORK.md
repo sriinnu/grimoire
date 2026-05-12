@@ -1,6 +1,6 @@
 # Grimoire Active Work
 
-Last updated: 2026-05-10
+Last updated: 2026-05-12
 
 This file is the working stack for the current Grimoire push. New user requests that are backlog/context should be appended here instead of replacing the current task.
 
@@ -23,6 +23,12 @@ This file is the working stack for the current Grimoire push. New user requests 
 - 5 Mature canvas: shapes, text boxes, lasso, image attachments, stroke extraction, and smoother launch/save behavior.
 - 6 Sweep themes/fonts: contrast, manuscript font parity, sidebar artwork, live previews, and dark-theme readability.
 - 7 Build the second-brain layer: Chitragupta recall/wiki/graph tools, diagnostics, source-backed answers, and durable Markdown write-backs.
+
+## Tomorrow Tracker: 2026-05-13
+
+- Primary task candidate: build the Obsidian import adapter in the vault portability lane.
+- First small verification task: run Tauri HTTPS mode locally and record whether the browser/Tauri Caveat font parity still holds.
+- Task source note: `/grimoire-next-task` and Todoist were not available in the 2026-05-12 session; check them first tomorrow before starting implementation.
 
 ## Done In This Push
 
