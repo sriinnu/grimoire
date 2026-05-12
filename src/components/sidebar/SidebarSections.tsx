@@ -174,7 +174,7 @@ export function TypesSection({
   return (
     <div className="border-b border-border">
       <div ref={customizeRef} style={{ position: 'relative', padding: '0 6px' }}>
-        <SidebarGroupHeader label="TYPES" collapsed={collapsed} onToggle={onToggle}>
+        <SidebarGroupHeader label="LISTS" collapsed={collapsed} onToggle={onToggle}>
           <div className="flex items-center gap-1.5">
             <Button
               type="button"
@@ -229,7 +229,7 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
 
   return (
     <div
-      className="grid shrink-0 items-center border-b border-border"
+      className="sidebar-title-bar grid shrink-0 items-center border-b border-border"
       style={{
         height: 60,
         gridTemplateColumns: 'minmax(0, 1fr) 6px auto',
@@ -240,11 +240,11 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
       data-testid="sidebar-title-bar"
     >
       <div
-        className="flex min-w-0 items-center justify-start gap-2.5"
+        className="sidebar-brand flex min-w-0 items-center justify-start gap-2.5"
         aria-label="Grimoire"
         data-testid="sidebar-brand"
       >
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background shadow-xs">
+        <span className="sidebar-brand-mark grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background shadow-xs">
           <img
             src={grimoireIcon}
             alt="Grimoire icon"
@@ -253,7 +253,10 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
           />
         </span>
         <span className="flex min-w-0 flex-col leading-none" style={{ textAlign: 'left' }}>
-          <span className="truncate text-[13px] font-semibold tracking-normal text-foreground" style={{ textAlign: 'left' }}>
+          <span
+            className="truncate text-[18px] font-semibold tracking-normal text-foreground"
+            style={{ fontFamily: 'var(--grimoire-display-font-family)', lineHeight: 1, textAlign: 'left' }}
+          >
             Grimoire
           </span>
           <span className="mt-1 truncate text-[10px] font-medium text-muted-foreground" style={{ textAlign: 'left' }}>

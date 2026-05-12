@@ -32,6 +32,11 @@ describe('isEmoji', () => {
     expect(isEmoji('🧑‍🔬')).toBe(true)
   })
 
+  it('handles flags and keycap emoji from the Unicode data set', () => {
+    expect(isEmoji('🇮🇳')).toBe(true)
+    expect(isEmoji('1️⃣')).toBe(true)
+  })
+
   it('returns false for multi-emoji strings', () => {
     expect(isEmoji('🔥🚀')).toBe(false)
     expect(isEmoji('hi 🎯')).toBe(false)

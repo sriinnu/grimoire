@@ -5,12 +5,15 @@ import emojiData from 'unicode-emoji-json'
  * Used to differentiate emoji note icons from kebab-case Phosphor icon names.
  */
 export function isEmoji(value: string): boolean {
-  if (!value) return false
+  const normalized = value.trim()
+  if (!normalized) return false
   // Phosphor icon names are always lowercase ASCII with hyphens
-  if (/^[a-z][a-z0-9-]*$/.test(value)) return false
-  // Match a single emoji (including compound emoji with ZWJ, skin tones, variation selectors, flags)
+  if (/^[a-z][a-z0-9-]*$/.test(normalized)) return false
+  if (ALL_EMOJI_VALUES.has(normalized)) return true
+
+  // Fallback for newer emoji sequences not yet present in unicode-emoji-json.
   const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\ufe0f)(\u200d(\p{Emoji_Presentation}|\p{Emoji}\ufe0f)|\p{Emoji_Modifier})*$/u
-  return emojiRegex.test(value)
+  return emojiRegex.test(normalized)
 }
 
 export interface EmojiEntry {
@@ -68,6 +71,8 @@ export const ALL_EMOJIS: EmojiEntry[] = Object.entries(raw).map(([emoji, data]) 
   name: data.name,
   group: data.group,
 }))
+
+const ALL_EMOJI_VALUES = new Set(ALL_EMOJIS.map((entry) => entry.emoji))
 
 /** Emojis grouped by category, in display order. */
 export const EMOJIS_BY_GROUP: Map<string, EmojiEntry[]> = (() => {

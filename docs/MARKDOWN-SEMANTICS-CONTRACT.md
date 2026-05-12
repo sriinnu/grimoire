@@ -16,9 +16,9 @@ Markdown is the durable document format for every Grimoire shell. SwiftUI, Tauri
 ## Semantic Rules
 
 - YAML frontmatter is split only when opening and closing delimiters are complete delimiter lines.
-- Wikilinks are recognized as [[target]] and [[target|display]].
-- Wikilinks inside inline code, backtick fences, or tilde fences are literal text.
-- Word counts remove wikilinks outside code but keep wikilink text inside inline or fenced code.
+- Spelllinks are saved as Markdown wikilinks: [[target]] and [[target|display]].
+- Spelllinks inside inline code, backtick fences, or tilde fences are literal text.
+- Word counts remove Spelllinks outside code but keep Spelllink text inside inline or fenced code.
 - Math placeholders are editor transport only; saved markdown must stay readable.
 - Compaction must not rewrite code block contents.
 - Tauri and Swift parity fixtures live in `markdown-editor/packages/swift/Fixtures/markdown-parity.json`.
@@ -37,7 +37,7 @@ Command items must have:
 - markdown-safe insertion behavior
 - shell-specific implementation only behind the same user-facing command meaning
 
-The Tauri rich editor currently imports `@grimoire/markdown-editor/react`, which ships default BlockNote structure/media command metadata plus Grimoire commands for dates, picked-date placeholders, due tasks, `@` note mentions, wikilinks, Mem-style tags/collections, markdown links, bold/code inline text, simple and comparison tables, frontmatter/property blocks, callouts, footnotes, source blocks, inline/display math, Mermaid diagrams, daily journal, meeting, decision, weekly plan, weekly/monthly calendars, weekly/monthly reviews, mood/energy check-ins, task rollover, timeline entries, weather placeholders, project brief, brain dump, clean up, summarize, extract actions, create wikilinks, continue writing, related context, prompt blocks, maps of content, backlink review, graph nodes, link maps, database tables, kanban boards, LLM research notes, and prompt labs. Apple-native editors mirror the `grimoire_*` command IDs with portable markdown templates so docs, telemetry, and future command bridges do not drift.
+The Tauri rich editor currently imports `@grimoire/markdown-editor/react`, which ships default BlockNote structure/media command metadata plus Grimoire commands for dates, picked-date placeholders, due tasks, `@` note mentions, Spelllinks, Mem-style tags/collections, markdown links, bold/code inline text, simple and comparison tables, frontmatter/property blocks, callouts, footnotes, source blocks, inline/display math, Mermaid diagrams, Spanda-inspired practice/session logs, panchanga snapshots, japa/pranayama logs, practice prescriptions, daily journal, meeting, decision, weekly plan, weekly/monthly calendars, weekly/monthly reviews, mood/energy check-ins, task rollover, timeline entries, weather placeholders, project brief, brain dump, clean up, summarize, extract actions, create Spelllinks, continue writing, related context, prompt blocks, maps of content, backlink review, graph nodes, link maps, database tables, kanban boards, LLM research notes, and prompt labs. Apple-native editors mirror the `grimoire_*` command IDs with portable markdown templates so docs, telemetry, and future command bridges do not drift.
 
 The Grimoire host app may append vault-context slash rows for recent notes, existing tags/collections, type templates, create-note, and create-tag flows. Those rows are app-owned because they depend on the open vault, but they must still insert durable markdown or call the app-owned vault creation API.
 
@@ -54,7 +54,7 @@ Mem is the interaction reference for low-friction capture:
 
 Bear is the durability reference for plain markdown:
 
-- headings, lists, todos, quotes, code, links, wikilinks, footnotes, and tables must save as readable markdown.
+- headings, lists, todos, quotes, code, links, Spelllinks, footnotes, and tables must save as readable markdown.
 - rich UI is allowed only when reopening the note preserves the markdown meaning.
 
 ## Command Catalog Target
@@ -76,7 +76,7 @@ Inline formatting:
 - strikethrough
 - inline code
 - link
-- wikilink
+- Spelllink / markdown wikilink
 - tag
 - highlight when the export format is defined
 
@@ -145,7 +145,7 @@ AI and memory:
 - clean up rough note
 - summarize current note
 - extract action items
-- create wikilinks
+- create Spelllinks
 - suggest related notes
 - continue writing
 - answer from vault context

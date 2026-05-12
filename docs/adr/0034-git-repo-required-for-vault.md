@@ -2,8 +2,9 @@
 type: ADR
 id: "0034"
 title: "Git repo required — blocking modal enforces vault prerequisite"
-status: active
+status: superseded
 date: 2026-04-01
+superseded_by: "0092"
 ---
 
 ## Context

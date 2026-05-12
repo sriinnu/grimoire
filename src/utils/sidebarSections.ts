@@ -91,10 +91,11 @@ export function buildSectionGroup(type: string, typeEntryMap: Record<string, Vau
   const customColor = typeEntry?.color ?? null
   const label = resolveLabel(type, typeEntry, builtIn)
   const icon = resolveIcon(typeEntry?.icon ?? null)
+  const iconValue = typeEntry?.icon ?? null
   if (builtIn) {
-    return { ...builtIn, label, Icon: typeEntry?.icon ? icon : builtIn.Icon, customColor }
+    return { ...builtIn, label, Icon: typeEntry?.icon ? icon : builtIn.Icon, customColor, iconValue }
   }
-  return { label, type, Icon: icon, customColor }
+  return { label, type, Icon: icon, customColor, iconValue }
 }
 
 /** Build sections dynamically from vault entries and defined types — types with 0 notes still appear */

@@ -8,8 +8,14 @@ const LAPUTA_LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VaultEntry {
+    #[serde(default)]
+    pub id: Option<String>,
     pub label: String,
     pub path: String,
+    #[serde(default = "default_storage_provider")]
+    pub storage_provider: String,
+    #[serde(default = "default_sync_provider")]
+    pub sync_provider: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -18,6 +24,14 @@ pub struct VaultList {
     pub active_vault: Option<String>,
     #[serde(default)]
     pub hidden_defaults: Vec<String>,
+}
+
+fn default_storage_provider() -> String {
+    "local-folder".to_string()
+}
+
+fn default_sync_provider() -> String {
+    "git".to_string()
 }
 
 fn app_config_dir() -> Result<PathBuf, String> {
@@ -86,6 +100,16 @@ pub fn save_vault_list(list: &VaultList) -> Result<(), String> {
 mod tests {
     use super::*;
 
+    fn test_vault_entry(label: &str, path: &str) -> VaultEntry {
+        VaultEntry {
+            id: None,
+            label: label.to_string(),
+            path: path.to_string(),
+            storage_provider: default_storage_provider(),
+            sync_provider: default_sync_provider(),
+        }
+    }
+
     fn save_and_reload(list: &VaultList) -> VaultList {
         let dir = tempfile::TempDir::new().unwrap();
         let path = dir.path().join("vaults.json");
@@ -104,14 +128,8 @@ mod tests {
     fn roundtrip_preserves_data() {
         let list = VaultList {
             vaults: vec![
-                VaultEntry {
-                    label: "My Vault".to_string(),
-                    path: "/Users/srinivas/Grimoire".to_string(),
-                },
-                VaultEntry {
-                    label: "Work".to_string(),
-                    path: "/Users/srinivas/Work".to_string(),
-                },
+                test_vault_entry("My Vault", "/Users/srinivas/Grimoire"),
+                test_vault_entry("Work", "/Users/srinivas/Work"),
             ],
             active_vault: Some("/Users/srinivas/Grimoire".to_string()),
             hidden_defaults: vec![],
@@ -150,10 +168,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         let path = dir.path().join("nested").join("dir").join("vaults.json");
         let list = VaultList {
-            vaults: vec![VaultEntry {
-                label: "Test".to_string(),
-                path: "/tmp/test".to_string(),
-            }],
+            vaults: vec![test_vault_entry("Test", "/tmp/test")],
             active_vault: None,
             hidden_defaults: vec![],
         };
@@ -209,6 +224,42 @@ mod tests {
             loaded.hidden_defaults[0],
             "/Users/srinivas/Documents/Getting Started"
         );
+    }
+
+    #[test]
+    fn roundtrip_preserves_storage_metadata() {
+        let list = VaultList {
+            vaults: vec![VaultEntry {
+                id: Some("personal".to_string()),
+                label: "Personal".to_string(),
+                path: "/Users/srinivas/Personal".to_string(),
+                storage_provider: "icloud-drive".to_string(),
+                sync_provider: "none".to_string(),
+            }],
+            active_vault: Some("/Users/srinivas/Personal".to_string()),
+            hidden_defaults: vec![],
+        };
+
+        let loaded = save_and_reload(&list);
+        assert_eq!(loaded.vaults[0].id.as_deref(), Some("personal"));
+        assert_eq!(loaded.vaults[0].storage_provider, "icloud-drive");
+        assert_eq!(loaded.vaults[0].sync_provider, "none");
+    }
+
+    #[test]
+    fn load_legacy_vault_entries_defaults_provider_metadata() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let path = dir.path().join("legacy-vaults.json");
+        fs::write(
+            &path,
+            r#"{"vaults":[{"label":"Old","path":"/tmp/old"}],"active_vault":"/tmp/old"}"#,
+        )
+        .unwrap();
+
+        let loaded = load_at(&path).unwrap();
+        assert_eq!(loaded.vaults[0].id, None);
+        assert_eq!(loaded.vaults[0].storage_provider, "local-folder");
+        assert_eq!(loaded.vaults[0].sync_provider, "git");
     }
 
     #[test]

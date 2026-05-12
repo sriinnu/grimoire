@@ -5,6 +5,7 @@ mod git;
 pub mod git_clone;
 mod git_connect;
 mod system;
+mod transcription;
 mod vault;
 mod version;
 
@@ -16,6 +17,7 @@ pub use folders::*;
 pub use git::*;
 pub use git_connect::*;
 pub use system::*;
+pub use transcription::*;
 pub use vault::*;
 pub use version::*;
 

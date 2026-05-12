@@ -117,22 +117,40 @@ let mockSettings: Settings = {
   ui_language: null,
   default_ai_agent: 'claude_code',
   ai_agent_models: null,
+  ai_agent_providers: null,
 }
 
 const DEFAULT_MOCK_VAULT_PATH = '/Users/mock/demo-vault-v2'
 const DEFAULT_MOCK_VAULT = {
+  id: null,
   label: 'demo-vault-v2',
   path: DEFAULT_MOCK_VAULT_PATH,
+  storage_provider: 'local-folder',
+  sync_provider: 'git',
 }
 
 let mockLastVaultPath: string | null = DEFAULT_MOCK_VAULT_PATH
 const mockRemoteStateByVault: Record<string, boolean> = {
   [DEFAULT_MOCK_VAULT_PATH]: true,
 }
+const mockGitStateByVault: Record<string, boolean> = {
+  [DEFAULT_MOCK_VAULT_PATH]: true,
+}
 
-let mockVaultList: { vaults: Array<{ label: string; path: string }>; active_vault: string | null } = {
+let mockVaultList: {
+  vaults: Array<{
+    id?: string | null
+    label: string
+    path: string
+    storage_provider?: string
+    sync_provider?: string
+  }>
+  active_vault: string | null
+  hidden_defaults: string[]
+} = {
   vaults: [DEFAULT_MOCK_VAULT],
   active_vault: DEFAULT_MOCK_VAULT_PATH,
+  hidden_defaults: [],
 }
 
 let mockVaultAiGuidanceStatus = {
@@ -152,10 +170,22 @@ function setMockRemoteState(path: string | null | undefined, hasRemote: boolean)
   mockRemoteStateByVault[normalizedPath] = hasRemote
 }
 
+function setMockGitState(path: string | null | undefined, isGitRepo: boolean): void {
+  const normalizedPath = normalizeMockVaultPath(path)
+  if (!normalizedPath) return
+  mockGitStateByVault[normalizedPath] = isGitRepo
+}
+
 function getMockRemoteState(path: string | null | undefined): boolean {
   const normalizedPath = normalizeMockVaultPath(path)
   if (!normalizedPath) return true
   return mockRemoteStateByVault[normalizedPath] ?? true
+}
+
+function getMockGitState(path: string | null | undefined): boolean {
+  const normalizedPath = normalizeMockVaultPath(path)
+  if (!normalizedPath) return true
+  return mockGitStateByVault[normalizedPath] ?? true
 }
 
 function escapeRegex({ text }: { text: string }) {
@@ -345,6 +375,16 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   get_last_commit_info: (): LastCommitInfo => ({ shortHash: 'a1b2c3d', commitUrl: 'https://github.com/sriinnu/grimoire-vault/commit/a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0' }),
   git_pull: (): GitPullResult => ({ status: 'up_to_date', message: 'Already up to date', updatedFiles: [], conflictFiles: [] }),
   git_push: (): GitPushResult => ({ status: 'ok', message: 'Pushed to remote' }),
+  is_git_repo: (args?: { vaultPath?: string; vault_path?: string }): boolean => {
+    const vaultPath = args?.vaultPath ?? args?.vault_path ?? mockLastVaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    return getMockGitState(vaultPath)
+  },
+  init_git_repo: (args?: { vaultPath?: string; vault_path?: string }) => {
+    const vaultPath = args?.vaultPath ?? args?.vault_path ?? mockLastVaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    setMockGitState(vaultPath, true)
+    setMockRemoteState(vaultPath, false)
+    return null
+  },
   git_remote_status: (args?: { vaultPath?: string; vault_path?: string }): GitRemoteStatus => {
     const vaultPath = args?.vaultPath ?? args?.vault_path ?? mockLastVaultPath ?? DEFAULT_MOCK_VAULT_PATH
     return { branch: 'main', ahead: 0, behind: 0, hasRemote: getMockRemoteState(vaultPath) }
@@ -393,6 +433,63 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   stream_claude_chat: () => 'mock-session',
   stream_claude_agent: () => null,
   stream_ai_agent: () => null,
+  transcribe_audio: (args: { audioPath?: string; audio_path?: string; provider?: string }) => {
+    const audioPath = args.audioPath ?? args.audio_path ?? '/tmp/voice-note.m4a'
+    const title = audioPath.split('/').pop()?.replace(/\.[^.]+$/, '') ?? 'voice-note'
+    return {
+      title: `Transcript - ${title}`,
+      audioPath,
+      provider: args.provider ?? 'local_whisper',
+      language: 'en',
+      transcript: 'Mock transcript from local Whisper.',
+      segments: [
+        { startSeconds: 0, endSeconds: 8, text: 'Mock transcript from local Whisper.' },
+      ],
+    }
+  },
+  import_markdown_folder: (args: { vaultPath?: string; sourcePath?: string }) => {
+    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    const source = args.sourcePath ?? '/Users/mock/Exports/Bear'
+    const sourceName = source.split('/').filter(Boolean).pop() ?? 'markdown-import'
+    return {
+      imported_root: `${vault}/imports/${sourceName}`,
+      report_path: `${vault}/imports/${sourceName}/import-report.md`,
+      notes_copied: 3,
+      assets_copied: 2,
+      skipped_files: 1,
+      failed_files: 0,
+    }
+  },
+  import_markdown_zip: (args: { vaultPath?: string; sourcePath?: string }) => {
+    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    const source = args.sourcePath ?? '/Users/mock/Exports/grimoire-vault.zip'
+    const sourceName = source.split('/').filter(Boolean).pop()?.replace(/\.zip$/i, '') ?? 'markdown-zip'
+    return {
+      imported_root: `${vault}/imports/${sourceName}`,
+      report_path: `${vault}/imports/${sourceName}/import-report.md`,
+      notes_copied: 5,
+      assets_copied: 3,
+      skipped_files: 1,
+      failed_files: 0,
+    }
+  },
+  import_journal_export: (args: { vaultPath?: string; sourcePath?: string; sourceKind?: string }) => {
+    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    const kind = args.sourceKind ?? 'day-one'
+    return {
+      imported_root: `${vault}/imports/${kind}-export`,
+      report_path: `${vault}/imports/${kind}-export/import-report.md`,
+      notes_copied: 8,
+      assets_copied: 4,
+      skipped_files: 0,
+      failed_files: 0,
+    }
+  },
+  export_markdown_zip: (args: { targetPath?: string }) => ({
+    export_path: args.targetPath ?? '/Users/mock/Desktop/grimoire-vault.zip',
+    files_exported: 12,
+    skipped_files: 0,
+  }),
   save_note_content: (args: { path: string; content: string }) => {
     MOCK_CONTENT[args.path] = args.content
     mockSavedSinceCommit.add(args.path)
@@ -439,11 +536,13 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   move_note_to_folder: handleMoveNoteToFolder,
   clone_repo: (args: { url: string; localPath?: string; local_path?: string }) => {
     const localPath = args.localPath ?? args.local_path ?? ''
+    setMockGitState(localPath, true)
     setMockRemoteState(localPath, true)
     return `Cloned to ${localPath}`
   },
   clone_git_repo: (args: { url: string; localPath?: string; local_path?: string }) => {
     const localPath = args.localPath ?? args.local_path ?? ''
+    setMockGitState(localPath, true)
     setMockRemoteState(localPath, true)
     return `Cloned to ${localPath}`
   },
@@ -479,13 +578,20 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     // In mock mode, the demo-vault-v2 path always "exists"
     return args.path.includes('demo-vault-v2')
   },
-  create_empty_vault: (args: { targetPath?: string; target_path?: string }) => {
+  create_empty_vault: (args: {
+    targetPath?: string
+    target_path?: string
+    initializeGit?: boolean
+    initialize_git?: boolean
+  }) => {
     const targetPath = args.targetPath || args.target_path || '/Users/mock/Documents/My Vault'
+    setMockGitState(targetPath, Boolean(args.initializeGit ?? args.initialize_git))
     setMockRemoteState(targetPath, false)
     return targetPath
   },
   create_getting_started_vault: (args: { targetPath?: string | null }) => {
     const targetPath = args.targetPath || '/Users/mock/Documents/Getting Started'
+    setMockGitState(targetPath, false)
     setMockRemoteState(targetPath, false)
     return targetPath
   },

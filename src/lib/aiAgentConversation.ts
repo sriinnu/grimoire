@@ -20,6 +20,7 @@ export interface AiAgentMessage {
   actions: AiAction[]
   response?: string
   isStreaming?: boolean
+  isQueued?: boolean
   id?: string
 }
 
@@ -28,12 +29,14 @@ export interface AgentExecutionContext {
   ready: boolean
   vaultPath: string
   systemPromptOverride?: string
+  provider?: string | null
   model?: string | null
 }
 
 export interface PendingUserPrompt {
   text: string
   references?: NoteReference[]
+  queuedMessageId?: string
 }
 
 function toChatHistory(messages: AiAgentMessage[]): ChatMessage[] {
@@ -72,6 +75,33 @@ export function appendStreamingMessage(
   setMessages: Dispatch<SetStateAction<AiAgentMessage[]>>,
   prompt: PendingUserPrompt,
 ): string {
+  const messageId = prompt.queuedMessageId ?? nextMessageId()
+  const streamingMessage: AiAgentMessage = {
+    userMessage: prompt.text,
+    references: prompt.references,
+    actions: [],
+    isStreaming: true,
+    id: messageId,
+  }
+
+  setMessages((current) => {
+    const queuedIndex = current.findIndex((message) => (
+      message.id === messageId && message.isQueued
+    ))
+    if (queuedIndex === -1) return [...current, streamingMessage]
+
+    const next = [...current]
+    next[queuedIndex] = streamingMessage
+    return next
+  })
+  return messageId
+}
+
+/** Appends a visible queued user prompt while another agent response is active. */
+export function appendQueuedMessage(
+  setMessages: Dispatch<SetStateAction<AiAgentMessage[]>>,
+  prompt: PendingUserPrompt,
+): string {
   const messageId = nextMessageId()
   setMessages((current) => [
     ...current,
@@ -79,7 +109,7 @@ export function appendStreamingMessage(
       userMessage: prompt.text,
       references: prompt.references,
       actions: [],
-      isStreaming: true,
+      isQueued: true,
       id: messageId,
     },
   ])
@@ -92,7 +122,7 @@ export function buildFormattedMessage(
   prompt: PendingUserPrompt,
 ): { formattedMessage: string; systemPrompt: string } {
   const systemPrompt = context.systemPromptOverride ?? buildAgentSystemPrompt()
-  const chatHistory = toChatHistory(messages.filter((message) => !message.isStreaming))
+  const chatHistory = toChatHistory(messages.filter((message) => !message.isStreaming && !message.isQueued))
   const trimmedHistory = trimHistory(chatHistory, MAX_HISTORY_TOKENS)
 
   return {

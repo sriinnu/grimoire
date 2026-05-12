@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
-import { useAiAgentsStatus } from './useAiAgentsStatus'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { AI_AGENTS_STATUS_REFRESH_EVENT, useAiAgentsStatus } from './useAiAgentsStatus'
 
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
@@ -53,5 +53,36 @@ describe('useAiAgentsStatus', () => {
       expect(result.current.codex.status).toBe('missing')
       expect(result.current.chitragupta.status).toBe('missing')
     })
+  })
+
+  it('refreshes stale CLI status when the app is focused again', async () => {
+    mockInvoke
+      .mockResolvedValueOnce({
+        claude_code: { installed: false, version: null },
+        codex: { installed: false, version: null },
+        chitragupta: { installed: false, version: null },
+      })
+      .mockResolvedValueOnce({
+        claude_code: { installed: true, version: '1.0.20' },
+        codex: { installed: true, version: '0.37.0' },
+        chitragupta: { installed: true, version: '0.1.16' },
+      })
+
+    const { result } = renderHook(() => useAiAgentsStatus())
+
+    await waitFor(() => {
+      expect(result.current.claude_code.status).toBe('missing')
+    })
+
+    act(() => {
+      window.dispatchEvent(new Event(AI_AGENTS_STATUS_REFRESH_EVENT))
+    })
+
+    await waitFor(() => {
+      expect(result.current.claude_code).toEqual({ status: 'installed', version: '1.0.20' })
+      expect(result.current.codex.status).toBe('installed')
+      expect(result.current.chitragupta.status).toBe('installed')
+    })
+    expect(mockInvoke).toHaveBeenCalledTimes(2)
   })
 })

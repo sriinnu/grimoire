@@ -22,6 +22,7 @@ export interface MenuEventHandlers extends AppCommandHandlers {
   conflictCount?: number
   hasRestorableDeletedNote?: boolean
   hasNoRemote?: boolean
+  hasGitVault?: boolean
 }
 
 interface MenuStatePayload {
@@ -30,6 +31,7 @@ interface MenuStatePayload {
   hasConflicts?: boolean
   hasRestorableDeletedNote?: boolean
   hasNoRemote?: boolean
+  hasGitVault?: boolean
   noteListSearchEnabled?: boolean
 }
 
@@ -169,6 +171,7 @@ export function useMenuEvents(handlers: MenuEventHandlers) {
   const hasConflicts = handlers.conflictCount != null ? handlers.conflictCount > 0 : undefined
   const hasRestorableDeletedNote = handlers.hasRestorableDeletedNote
   const hasNoRemote = handlers.hasNoRemote
+  const hasGitVault = handlers.hasGitVault
 
   useEffect(() => {
     ref.current = handlers
@@ -183,6 +186,7 @@ export function useMenuEvents(handlers: MenuEventHandlers) {
     hasConflicts,
     hasRestorableDeletedNote,
     hasNoRemote,
+    hasGitVault,
     noteListSearchEnabled,
   })
 }

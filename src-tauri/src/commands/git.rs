@@ -13,6 +13,12 @@ type ConflictStrategyArg = String;
 type RemoteUrlArg = String;
 type LocalPathArg = String;
 
+#[cfg(desktop)]
+fn has_git_metadata(vault_path: &std::path::Path) -> bool {
+    let git_path = vault_path.join(".git");
+    git_path.is_dir() || git_path.is_file()
+}
+
 // ── Git commands (desktop) ──────────────────────────────────────────────────
 
 #[cfg(desktop)]
@@ -153,9 +159,7 @@ pub fn git_discard_file(
 #[tauri::command]
 pub fn is_git_repo(vault_path: VaultPathArg) -> bool {
     let vault_path = expand_tilde(&vault_path);
-    std::path::Path::new(vault_path.as_ref())
-        .join(".git")
-        .is_dir()
+    has_git_metadata(std::path::Path::new(vault_path.as_ref()))
 }
 
 #[cfg(desktop)]
@@ -374,16 +378,20 @@ mod tests {
         );
     }
 
+    #[test]
+    fn is_git_repo_accepts_worktree_git_file() {
+        let dir = TempDir::new().unwrap();
+        fs::write(dir.path().join(".git"), "gitdir: /tmp/worktrees/example\n").unwrap();
+        assert!(is_git_repo(vault_path(&dir)));
+    }
+
     #[tokio::test]
     async fn desktop_remote_commands_report_no_remote() {
         let (_dir, vault) = create_initialized_vault();
-
         let pull = git_pull(vault.clone()).await.unwrap();
         assert_eq!(pull.status, "no_remote");
-
         let push = git_push(vault.clone()).await.unwrap();
         assert_eq!(push.status, "error");
-
         let status = git_remote_status(vault.clone()).await.unwrap();
         assert!(!status.has_remote);
         assert_eq!((status.ahead, status.behind), (0, 0));

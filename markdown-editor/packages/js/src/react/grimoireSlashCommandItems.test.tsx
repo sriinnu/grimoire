@@ -95,6 +95,18 @@ describe('grimoireSlashCommandItems', () => {
       'grimoire_callout_warning',
       'grimoire_inline_math',
       'grimoire_mermaid',
+      'grimoire_mermaid_flowchart',
+      'grimoire_mermaid_sequence',
+      'grimoire_mermaid_class',
+      'grimoire_mermaid_state',
+      'grimoire_mermaid_er',
+      'grimoire_mermaid_gantt',
+      'grimoire_mermaid_pie',
+      'grimoire_mermaid_journey',
+      'grimoire_mermaid_timeline',
+      'grimoire_mermaid_mindmap',
+      'grimoire_mermaid_use_case',
+      'grimoire_mermaid_git_graph',
       'grimoire_date_placeholder',
       'grimoire_frontmatter_block',
       'grimoire_property_block',
@@ -153,6 +165,8 @@ describe('grimoireSlashCommandItems', () => {
     expect(getItem(items, 'grimoire_handwritten_canvas').aliases).toContain('handwriting')
     expect(getItem(items, 'grimoire_whiteboard_canvas').aliases).toContain('excalidraw')
     expect(getItem(items, 'grimoire_sketch_note').aliases).toContain('pencil note')
+    expect(getItem(items, 'grimoire_mermaid_use_case').aliases).toContain('case diagram')
+    expect(getItem(items, 'grimoire_mermaid_sequence').aliases).toContain('api flow')
   })
 
   it('inserts date and task commands as markdown-safe blocks', () => {
@@ -201,6 +215,32 @@ describe('grimoireSlashCommandItems', () => {
     expect(editor.updateBlock).toHaveBeenCalledWith(
       cursorBlock,
       expect.objectContaining({ type: 'codeBlock', props: { language: 'mermaid' } }),
+    )
+  })
+
+  it('inserts Mermaid diagram templates for common technical diagrams', () => {
+    const { cursorBlock, editor } = createEditorMock()
+    const items = getGrimoireCustomSlashMenuItems(
+      editor as unknown as Parameters<typeof getGrimoireCustomSlashMenuItems>[0],
+      FIXED_DATE,
+    )
+
+    getItem(items, 'grimoire_mermaid_sequence').onItemClick()
+    expect(editor.updateBlock).toHaveBeenCalledWith(
+      cursorBlock,
+      expect.objectContaining({ content: expect.stringContaining('sequenceDiagram') }),
+    )
+
+    getItem(items, 'grimoire_mermaid_class').onItemClick()
+    expect(editor.updateBlock).toHaveBeenCalledWith(
+      cursorBlock,
+      expect.objectContaining({ content: expect.stringContaining('classDiagram') }),
+    )
+
+    getItem(items, 'grimoire_mermaid_use_case').onItemClick()
+    expect(editor.updateBlock).toHaveBeenCalledWith(
+      cursorBlock,
+      expect.objectContaining({ content: expect.stringContaining('User((Writer))') }),
     )
   })
 

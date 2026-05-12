@@ -1,13 +1,10 @@
-import { Moon, Package, Settings, Sun } from 'lucide-react'
-import { Megaphone } from '@phosphor-icons/react'
+import { Package } from 'lucide-react'
 import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
 import type { VaultAiGuidanceStatus } from '../../lib/vaultAiGuidance'
 import type { ClaudeCodeStatus } from '../../hooks/useClaudeCodeStatus'
 import type { McpStatus } from '../../hooks/useMcpStatus'
-import type { ThemeMode } from '../../lib/themeMode'
 import { useStatusBarAddRemote } from '../../hooks/useStatusBarAddRemote'
 import type { GitRemoteStatus, SyncStatus } from '../../types'
-import { rememberFeedbackDialogOpener } from '../../lib/feedbackDialogOpener'
 import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { AiAgentsBadge } from './AiAgentsBadge'
 import { AddRemoteModal } from '../AddRemoteModal'
@@ -23,23 +20,13 @@ import {
   PulseBadge,
   SyncBadge,
 } from './StatusBarBadges'
-import { ICON_STYLE, SEP_STYLE } from './styles'
+import { ICON_STYLE } from './styles'
+import { SpandaRailIntent } from './SpandaRailIntent'
+import { StatusBarGroup } from './StatusBarGroup'
 import type { VaultOption } from './types'
 import { VaultMenu } from './VaultMenu'
-import { formatShortcutDisplay } from '../../hooks/appCommandCatalog'
 
 const UPDATE_TOOLTIP = { label: 'Check for updates' } as const
-const ZOOM_RESET_TOOLTIP = {
-  label: 'Reset the zoom level',
-  shortcut: formatShortcutDisplay({ display: '⌘0' }),
-} as const
-const FEEDBACK_TOOLTIP = { label: 'Contribute to Grimoire' } as const
-const LIGHT_MODE_TOOLTIP = { label: 'Switch to light mode' } as const
-const DARK_MODE_TOOLTIP = { label: 'Switch to dark mode' } as const
-const SETTINGS_TOOLTIP = {
-  label: 'Open settings',
-  shortcut: formatShortcutDisplay({ display: '⌘,' }),
-} as const
 
 interface StatusBarPrimarySectionProps {
   modifiedCount: number
@@ -51,6 +38,7 @@ interface StatusBarPrimarySectionProps {
   onCloneVault?: () => void
   onCloneGettingStarted?: () => void
   onAddRemote?: () => void
+  onGitInitialized?: () => void
   onClickPending?: () => void
   onClickPulse?: () => void
   onCommitPush?: () => void
@@ -75,18 +63,6 @@ interface StatusBarPrimarySectionProps {
   onRestoreVaultAiGuidance?: () => void
   claudeCodeStatus?: ClaudeCodeStatus
   claudeCodeVersion?: string | null
-  stacked?: boolean
-  compact?: boolean
-}
-
-interface StatusBarSecondarySectionProps {
-  noteCount: number
-  zoomLevel: number
-  themeMode?: ThemeMode
-  onZoomReset?: () => void
-  onToggleThemeMode?: () => void
-  onOpenFeedback?: () => void
-  onOpenSettings?: () => void
   stacked?: boolean
   compact?: boolean
 }
@@ -160,10 +136,10 @@ function StatusBarAiBadge({
 
   if (!claudeCodeStatus) return null
 
-  return <ClaudeCodeBadge status={claudeCodeStatus} version={claudeCodeVersion} showSeparator={!compact} compact={compact} />
+  return <ClaudeCodeBadge status={claudeCodeStatus} version={claudeCodeVersion} showSeparator={false} compact={compact} />
 }
 
-function StatusBarPrimaryBadges({
+function StatusBarWorkflowBadges({
   modifiedCount,
   visibleRemoteStatus,
   onAddRemote,
@@ -177,15 +153,6 @@ function StatusBarPrimaryBadges({
   conflictCount,
   onClickPulse,
   isGitVault,
-  mcpStatus,
-  onInstallMcp,
-  aiAgentsStatus,
-  vaultAiGuidanceStatus,
-  defaultAiAgent,
-  onSetDefaultAiAgent,
-  onRestoreVaultAiGuidance,
-  claudeCodeStatus,
-  claudeCodeVersion,
   isOffline,
   compact,
 }: {
@@ -202,24 +169,30 @@ function StatusBarPrimaryBadges({
   conflictCount: number
   onClickPulse?: () => void
   isGitVault: boolean
-  mcpStatus?: McpStatus
-  onInstallMcp?: () => void
-  aiAgentsStatus?: AiAgentsStatus
-  vaultAiGuidanceStatus?: VaultAiGuidanceStatus
-  defaultAiAgent?: AiAgentId
-  onSetDefaultAiAgent?: (agent: AiAgentId) => void
-  onRestoreVaultAiGuidance?: () => void
-  claudeCodeStatus?: ClaudeCodeStatus
-  claudeCodeVersion?: string | null
   isOffline: boolean
   compact: boolean
 }) {
+  if (!isGitVault) {
+    return (
+      <>
+        <OfflineBadge isOffline={isOffline} showSeparator={false} compact={compact} />
+        <NoRemoteBadge
+          remoteStatus={{ branch: 'main', ahead: 0, behind: 0, hasRemote: false }}
+          onAddRemote={onAddRemote}
+          showSeparator={false}
+          compact={compact}
+        />
+        <PulseBadge disabled showSeparator={false} compact={compact} />
+      </>
+    )
+  }
+
   return (
     <>
-      <OfflineBadge isOffline={isOffline} showSeparator={!compact} compact={compact} />
-      <NoRemoteBadge remoteStatus={visibleRemoteStatus} onAddRemote={onAddRemote} showSeparator={!compact} compact={compact} />
-      <ChangesBadge count={modifiedCount} onClick={onClickPending} showSeparator={!compact} compact={compact} />
-      <CommitButton onClick={onCommitPush} remoteStatus={visibleRemoteStatus} showSeparator={!compact} compact={compact} />
+      <OfflineBadge isOffline={isOffline} showSeparator={false} compact={compact} />
+      <NoRemoteBadge remoteStatus={visibleRemoteStatus} onAddRemote={onAddRemote} showSeparator={false} compact={compact} />
+      <ChangesBadge count={modifiedCount} onClick={onClickPending} showSeparator={false} compact={compact} />
+      <CommitButton onClick={onCommitPush} remoteStatus={visibleRemoteStatus} showSeparator={false} compact={compact} />
       <SyncBadge
         status={syncStatus}
         lastSyncTime={lastSyncTime}
@@ -229,9 +202,39 @@ function StatusBarPrimaryBadges({
         onOpenConflictResolver={onOpenConflictResolver}
         compact={compact}
       />
-      <ConflictBadge count={conflictCount} onClick={onOpenConflictResolver} showSeparator={!compact} compact={compact} />
-      <PulseBadge onClick={onClickPulse} disabled={isGitVault === false} showSeparator={!compact} compact={compact} />
-      {mcpStatus && <McpBadge status={mcpStatus} onInstall={onInstallMcp} showSeparator={!compact} compact={compact} />}
+      <ConflictBadge count={conflictCount} onClick={onOpenConflictResolver} showSeparator={false} compact={compact} />
+      <PulseBadge onClick={onClickPulse} showSeparator={false} compact={compact} />
+    </>
+  )
+}
+
+function StatusBarAgentBadges({
+  mcpStatus,
+  onInstallMcp,
+  aiAgentsStatus,
+  vaultAiGuidanceStatus,
+  defaultAiAgent,
+  onSetDefaultAiAgent,
+  onRestoreVaultAiGuidance,
+  claudeCodeStatus,
+  claudeCodeVersion,
+  compact,
+}: Pick<
+  StatusBarPrimarySectionProps,
+  | 'mcpStatus'
+  | 'onInstallMcp'
+  | 'aiAgentsStatus'
+  | 'vaultAiGuidanceStatus'
+  | 'defaultAiAgent'
+  | 'onSetDefaultAiAgent'
+  | 'onRestoreVaultAiGuidance'
+  | 'claudeCodeStatus'
+  | 'claudeCodeVersion'
+  | 'compact'
+>) {
+  return (
+    <>
+      {mcpStatus && <McpBadge status={mcpStatus} onInstall={onInstallMcp} showSeparator={false} compact={compact} />}
       <StatusBarAiBadge
         aiAgentsStatus={aiAgentsStatus}
         vaultAiGuidanceStatus={vaultAiGuidanceStatus}
@@ -246,38 +249,7 @@ function StatusBarPrimaryBadges({
   )
 }
 
-function FeedbackButton({
-  compact,
-  onOpenFeedback,
-}: {
-  compact: boolean
-  onOpenFeedback: () => void
-}) {
-  const className = compact
-    ? 'h-6 w-6 rounded-sm p-0 text-muted-foreground hover:text-foreground'
-    : 'h-6 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground'
-
-  return (
-    <ActionTooltip copy={FEEDBACK_TOOLTIP} side="top">
-      <Button
-        type="button"
-        variant="ghost"
-        size="xs"
-        className={className}
-        onClick={(event) => {
-          rememberFeedbackDialogOpener(event.currentTarget)
-          onOpenFeedback()
-        }}
-        aria-label={FEEDBACK_TOOLTIP.label}
-        data-testid="status-feedback"
-      >
-        <Megaphone size={14} />
-        {compact ? null : 'Contribute'}
-      </Button>
-    </ActionTooltip>
-  )
-}
-
+/** Renders vault, sync, git, MCP, and local AI status controls in the bottom bar. */
 export function StatusBarPrimarySection({
   modifiedCount,
   vaultPath,
@@ -288,11 +260,12 @@ export function StatusBarPrimarySection({
   onCloneVault,
   onCloneGettingStarted,
   onAddRemote,
+  onGitInitialized,
   onClickPending,
   onClickPulse,
   onCommitPush,
   isOffline = false,
-  isGitVault = false,
+  isGitVault = true,
   syncStatus,
   lastSyncTime,
   conflictCount,
@@ -326,14 +299,16 @@ export function StatusBarPrimarySection({
     isGitVault,
     remoteStatus,
     onAddRemote,
+    onGitInitialized,
   })
+  const hasAgentStatus = Boolean(mcpStatus || (aiAgentsStatus && defaultAiAgent) || claudeCodeStatus)
 
   return (
     <div
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: compact ? 8 : 12,
+        gap: compact ? 6 : 8,
         rowGap: stacked ? 4 : 0,
         flex: 1,
         minWidth: 0,
@@ -342,126 +317,84 @@ export function StatusBarPrimarySection({
         flexWrap: stacked ? 'wrap' : 'nowrap',
       }}
     >
-      <VaultMenu
-        vaults={vaults}
-        vaultPath={vaultPath}
-        onSwitchVault={onSwitchVault}
-        onOpenLocalFolder={onOpenLocalFolder}
-        onCreateEmptyVault={onCreateEmptyVault}
-        onCloneVault={onCloneVault}
-        onCloneGettingStarted={onCloneGettingStarted}
-        onRemoveVault={onRemoveVault}
-        compact={compact}
-      />
-      {compact ? null : <span style={SEP_STYLE}>|</span>}
-      <BuildNumberButton buildNumber={buildNumber} onCheckForUpdates={onCheckForUpdates} compact={compact} />
-      <StatusBarPrimaryBadges
-        modifiedCount={modifiedCount}
-        visibleRemoteStatus={visibleRemoteStatus}
-        onAddRemote={() => {
-          void openAddRemote()
-        }}
-        onClickPending={onClickPending}
-        onCommitPush={onCommitPush}
-        syncStatus={syncStatus}
-        lastSyncTime={lastSyncTime}
-        onTriggerSync={onTriggerSync}
-        onPullAndPush={onPullAndPush}
-        onOpenConflictResolver={onOpenConflictResolver}
-        conflictCount={conflictCount}
-        onClickPulse={onClickPulse}
-        isGitVault={isGitVault}
-        mcpStatus={mcpStatus}
-        onInstallMcp={onInstallMcp}
-        aiAgentsStatus={aiAgentsStatus}
-        vaultAiGuidanceStatus={vaultAiGuidanceStatus}
-        defaultAiAgent={defaultAiAgent}
-        onSetDefaultAiAgent={onSetDefaultAiAgent}
-        onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
-        claudeCodeStatus={claudeCodeStatus}
-        claudeCodeVersion={claudeCodeVersion}
-        isOffline={isOffline}
-        compact={compact}
-      />
+      <StatusBarGroup compact={compact} testId="status-workspace-group">
+        <VaultMenu
+          vaults={vaults}
+          vaultPath={vaultPath}
+          onSwitchVault={onSwitchVault}
+          onOpenLocalFolder={onOpenLocalFolder}
+          onCreateEmptyVault={onCreateEmptyVault}
+          onCloneVault={onCloneVault}
+          onCloneGettingStarted={onCloneGettingStarted}
+          onRemoveVault={onRemoveVault}
+          compact={compact}
+        />
+        <BuildNumberButton buildNumber={buildNumber} onCheckForUpdates={onCheckForUpdates} compact={compact} />
+      </StatusBarGroup>
+      <StatusBarGroup compact={compact} grow testId="status-workflow-group">
+        <StatusBarWorkflowBadges
+          modifiedCount={modifiedCount}
+          visibleRemoteStatus={visibleRemoteStatus}
+          onAddRemote={() => {
+            void openAddRemote()
+          }}
+          onClickPending={onClickPending}
+          onCommitPush={onCommitPush}
+          syncStatus={syncStatus}
+          lastSyncTime={lastSyncTime}
+          onTriggerSync={onTriggerSync}
+          onPullAndPush={onPullAndPush}
+          onOpenConflictResolver={onOpenConflictResolver}
+          conflictCount={conflictCount}
+          onClickPulse={onClickPulse}
+          isGitVault={isGitVault}
+          isOffline={isOffline}
+          compact={compact}
+        />
+      </StatusBarGroup>
+      <StatusBarGroup compact={compact} testId="status-spanda-group">
+        <SpandaRailIntent
+          aiAgentsStatus={aiAgentsStatus}
+          compact={compact}
+          conflictCount={conflictCount}
+          defaultAiAgent={defaultAiAgent}
+          isGitVault={isGitVault}
+          isOffline={isOffline}
+          modifiedCount={modifiedCount}
+          onClickPending={onClickPending}
+          onClickPulse={onClickPulse}
+          onCommitPush={onCommitPush}
+          onOpenConflictResolver={onOpenConflictResolver}
+          onOpenLocalFolder={onOpenLocalFolder}
+          onPullAndPush={onPullAndPush}
+          onTriggerSync={onTriggerSync}
+          remoteStatus={visibleRemoteStatus}
+          syncStatus={syncStatus}
+        />
+      </StatusBarGroup>
+      {hasAgentStatus && (
+        <StatusBarGroup compact={compact} testId="status-agent-group">
+          <StatusBarAgentBadges
+            mcpStatus={mcpStatus}
+            onInstallMcp={onInstallMcp}
+            aiAgentsStatus={aiAgentsStatus}
+            vaultAiGuidanceStatus={vaultAiGuidanceStatus}
+            defaultAiAgent={defaultAiAgent}
+            onSetDefaultAiAgent={onSetDefaultAiAgent}
+            onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
+            claudeCodeStatus={claudeCodeStatus}
+            claudeCodeVersion={claudeCodeVersion}
+            compact={compact}
+          />
+        </StatusBarGroup>
+      )}
       <AddRemoteModal
         open={showAddRemote}
         vaultPath={vaultPath}
         onClose={closeAddRemote}
+        onGitInitialized={onGitInitialized}
         onRemoteConnected={handleRemoteConnected}
       />
-    </div>
-  )
-}
-
-export function StatusBarSecondarySection({
-  noteCount,
-  zoomLevel,
-  themeMode = 'light',
-  onZoomReset,
-  onToggleThemeMode,
-  onOpenFeedback,
-  onOpenSettings,
-  stacked = false,
-  compact = false,
-}: StatusBarSecondarySectionProps) {
-  void noteCount
-  const ThemeIcon = themeMode === 'dark' ? Sun : Moon
-  const themeTooltip = themeMode === 'dark' ? LIGHT_MODE_TOOLTIP : DARK_MODE_TOOLTIP
-
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: stacked ? 'flex-end' : 'flex-start',
-        gap: compact ? 8 : 12,
-        flexShrink: 0,
-        width: stacked ? '100%' : 'auto',
-      }}
-    >
-      {zoomLevel === 100 ? null : (
-        <ActionTooltip copy={ZOOM_RESET_TOOLTIP} side="top">
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="h-auto rounded-sm px-1 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-[var(--hover)] hover:text-foreground"
-            onClick={onZoomReset}
-            aria-label={ZOOM_RESET_TOOLTIP.label}
-            data-testid="status-zoom"
-          >
-            <span style={ICON_STYLE}>{zoomLevel}%</span>
-          </Button>
-        </ActionTooltip>
-      )}
-      {onOpenFeedback && <FeedbackButton compact={compact} onOpenFeedback={onOpenFeedback} />}
-      <ActionTooltip copy={themeTooltip} side="top">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          className="text-muted-foreground hover:bg-[var(--hover)] hover:text-foreground"
-          onClick={onToggleThemeMode}
-          disabled={!onToggleThemeMode}
-          aria-label={themeTooltip.label}
-          data-testid="status-theme-mode"
-        >
-          <ThemeIcon size={14} />
-        </Button>
-      </ActionTooltip>
-      <ActionTooltip copy={SETTINGS_TOOLTIP} side="top" align="end">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-xs"
-          className="text-muted-foreground hover:bg-[var(--hover)] hover:text-foreground"
-          onClick={onOpenSettings}
-          aria-label={SETTINGS_TOOLTIP.label}
-          data-testid="status-settings"
-        >
-          <Settings size={14} />
-        </Button>
-      </ActionTooltip>
     </div>
   )
 }

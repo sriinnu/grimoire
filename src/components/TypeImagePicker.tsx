@@ -31,7 +31,10 @@ export function TypeImagePicker({ selectedIcon, onSelectIcon }: TypeImagePickerP
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-1.5">
+      <div
+        aria-label="Built-in type image badges"
+        className="grid max-h-28 grid-cols-7 gap-1.5 overflow-y-auto pr-1"
+      >
         {TYPE_ICON_IMAGE_OPTIONS.map((option) => (
           <Button
             key={option.id}
@@ -46,6 +49,8 @@ export function TypeImagePicker({ selectedIcon, onSelectIcon }: TypeImagePickerP
             <NoteTitleIcon icon={option.value} size={20} />
           </Button>
         ))}
+      </div>
+      <div className="flex items-center gap-1.5">
         <Button
           aria-label="Upload type image"
           className="h-8 px-2"

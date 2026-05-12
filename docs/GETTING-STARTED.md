@@ -96,6 +96,7 @@ src/
     commands/                     command groups
   lib/
     appearance.ts                 theme/font contract
+    fontConfig.ts                 local font assets and role mapping
     i18n.ts                       app translations
     themeMode.ts                  light/dark runtime
   utils/
@@ -152,6 +153,7 @@ Graph behavior:
 Appearance:
 
 - supported values: `src/lib/appearance.ts`
+- bundled font roles: `src/lib/fontConfig.ts` and `assets/fonts/`
 - settings UI: `src/components/AppearanceSettingsSection.tsx`
 - CSS tokens: `src/index.css`
 - native sanitizer: `src-tauri/src/settings.rs`

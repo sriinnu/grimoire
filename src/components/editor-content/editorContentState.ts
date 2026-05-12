@@ -1,6 +1,8 @@
 import type { NoteStatus, VaultEntry } from '../../types'
 import { extractH1TitleFromContent } from '../../utils/noteTitle'
 import { countWords } from '../../utils/wikilinks'
+import { isPreviewableImageEntry } from '../../utils/filePreviews'
+import { isRenderableHtmlEntry } from '../../utils/htmlPreview'
 
 export interface EditorContentTab {
   entry: VaultEntry
@@ -17,6 +19,8 @@ interface EditorContentStateInput {
 interface VisibilityState {
   effectiveRawMode: boolean
   isDeletedPreview: boolean
+  isHtmlPreview: boolean
+  isImagePreview: boolean
   isNonMarkdownText: boolean
   showEditor: boolean
 }
@@ -41,6 +45,8 @@ export interface EditorContentState {
   isArchived: boolean
   hasH1: boolean
   isDeletedPreview: boolean
+  isHtmlPreview: boolean
+  isImagePreview: boolean
   isNonMarkdownText: boolean
   effectiveRawMode: boolean
   showEditor: boolean
@@ -72,14 +78,18 @@ function deriveVisibilityState(input: {
     rawMode,
   } = input
   const isDeletedPreview = !!activeTab && !freshEntry
-  const isNonMarkdownText = activeTab?.entry.fileKind === 'text'
+  const isImagePreview = activeTab ? isPreviewableImageEntry(activeTab.entry) : false
+  const isHtmlPreview = activeTab ? isRenderableHtmlEntry(activeTab.entry, activeTab.content) : false
+  const isNonMarkdownText = activeTab?.entry.fileKind === 'text' && !isHtmlPreview
   const effectiveRawMode = rawMode || isNonMarkdownText
 
   return {
     isDeletedPreview,
+    isHtmlPreview,
+    isImagePreview,
     isNonMarkdownText,
     effectiveRawMode,
-    showEditor: !effectiveRawMode,
+    showEditor: !effectiveRawMode && !isImagePreview && !isHtmlPreview,
   }
 }
 

@@ -59,6 +59,73 @@ describe('useAutoSync', () => {
     })
   })
 
+  it('does not poll git when disabled for a local-only vault', async () => {
+    const { result } = renderHook(() =>
+      useAutoSync({
+        vaultPath: '/Users/srinivas/Local',
+        enabled: false,
+        intervalMinutes: 5,
+        onVaultUpdated,
+        onConflict,
+        onToast,
+      }),
+    )
+
+    act(() => {
+      result.current.triggerSync()
+      result.current.pullAndPush()
+    })
+
+    expect(result.current.syncStatus).toBe('idle')
+    expect(mockInvokeFn).not.toHaveBeenCalled()
+  })
+
+  it('ignores an in-flight pull after sync is disabled', async () => {
+    let resolvePull: ((value: GitPullResult) => void) | null = null
+    mockInvokeFn.mockImplementation((cmd: string) => {
+      if (cmd === 'get_conflict_files') return Promise.resolve([])
+      if (cmd === 'git_remote_status') return Promise.resolve({ branch: 'main', ahead: 0, behind: 0, hasRemote: true })
+      if (cmd === 'get_last_commit_info') return Promise.resolve(MOCK_COMMIT_INFO)
+      if (cmd === 'git_pull') {
+        return new Promise<GitPullResult>((resolve) => {
+          resolvePull = resolve
+        })
+      }
+      return Promise.resolve(upToDate())
+    })
+
+    const { result, rerender } = renderHook(
+      ({ enabled }) =>
+        useAutoSync({
+          vaultPath: '/Users/srinivas/Grimoire',
+          enabled,
+          intervalMinutes: 5,
+          onVaultUpdated,
+          onConflict,
+          onToast,
+        }),
+      { initialProps: { enabled: true } },
+    )
+
+    await waitFor(() => {
+      expect(mockInvokeFn).toHaveBeenCalledWith('git_pull', { vaultPath: '/Users/srinivas/Grimoire' })
+    })
+
+    await act(async () => {
+      rerender({ enabled: false })
+      await Promise.resolve()
+    })
+
+    await act(async () => {
+      resolvePull?.(updated(['late.md']))
+    })
+
+    expect(result.current.syncStatus).toBe('idle')
+    expect(result.current.conflictFiles).toEqual([])
+    expect(onVaultUpdated).not.toHaveBeenCalled()
+    expect(onToast).not.toHaveBeenCalledWith('Pulled 1 update(s) from remote')
+  })
+
   it('sets syncStatus to idle after up_to_date pull', async () => {
     const { result } = renderSync()
     await waitFor(() => {
@@ -114,6 +181,49 @@ describe('useAutoSync', () => {
     await waitFor(() => {
       expect(onToast).toHaveBeenCalledWith('Pulled 1 update(s) from remote')
     })
+  })
+
+  it('does not finish an updated pull after git is disabled during vault refresh', async () => {
+    let releaseVaultRefresh: (() => void) | null = null
+    const onSyncUpdated = vi.fn()
+    const asyncVaultRefresh = vi.fn(() => new Promise<void>((resolve) => {
+      releaseVaultRefresh = resolve
+    }))
+    mockInvokeFn.mockImplementation((cmd: string) => {
+      if (cmd === 'get_conflict_files') return Promise.resolve([])
+      if (cmd === 'get_last_commit_info') return Promise.resolve(MOCK_COMMIT_INFO)
+      return Promise.resolve(updated(['note.md']))
+    })
+
+    const { result, rerender } = renderHook(
+      ({ enabled }) =>
+        useAutoSync({
+          vaultPath: '/Users/srinivas/Grimoire',
+          enabled,
+          intervalMinutes: 5,
+          onVaultUpdated: asyncVaultRefresh,
+          onSyncUpdated,
+          onConflict,
+          onToast,
+        }),
+      { initialProps: { enabled: true } },
+    )
+
+    await waitFor(() => {
+      expect(asyncVaultRefresh).toHaveBeenCalledWith(['note.md'])
+    })
+
+    await act(async () => {
+      rerender({ enabled: false })
+      await Promise.resolve()
+    })
+    await act(async () => {
+      releaseVaultRefresh?.()
+    })
+
+    expect(result.current.syncStatus).toBe('idle')
+    expect(onSyncUpdated).not.toHaveBeenCalled()
+    expect(onToast).not.toHaveBeenCalledWith('Pulled 1 update(s) from remote')
   })
 
   it('calls onConflict and sets conflict status when pull has conflicts', async () => {

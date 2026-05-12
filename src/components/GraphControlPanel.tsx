@@ -6,7 +6,7 @@ import { Button } from './ui/button'
 const EDGE_FILTERS: ReadonlyArray<{ value: GraphEdgeFilter; label: string }> = [
   { value: 'all', label: 'All' },
   { value: 'relationship', label: 'Relations' },
-  { value: 'body-link', label: 'Wikilinks' },
+  { value: 'body-link', label: 'Spelllinks' },
   { value: 'incoming', label: 'Incoming' },
   { value: 'outgoing', label: 'Outgoing' },
 ]
@@ -90,7 +90,7 @@ export function GraphControlPanel({
 
       <div className="mt-4 space-y-2 text-xs text-muted-foreground">
         <LegendSwatch color="var(--primary)" label={`${stats.relationships} relationships`} />
-        <LegendSwatch color="var(--muted-foreground)" dashed={true} label={`${stats.wikilinks} wikilinks`} />
+        <LegendSwatch color="var(--muted-foreground)" dashed={true} label={`${stats.wikilinks} Spelllinks`} />
       </div>
     </div>
   )

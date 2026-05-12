@@ -79,6 +79,7 @@ export async function sendAgentMessage({
     message: formattedMessage,
     systemPrompt,
     vaultPath: context.vaultPath,
+    provider: context.provider,
     model: context.model,
     callbacks: createStreamCallbacks({
       messageId,

@@ -142,7 +142,13 @@ function serializePersistedVaultSnapshot(
   return JSON.stringify({
     activeVault,
     hiddenDefaults,
-    vaults: vaults.map(({ label, path }) => ({ label, path })),
+    vaults: vaults.map(({ id, label, path, storageProvider, syncProvider }) => ({
+      id: id ?? null,
+      label,
+      path,
+      storageProvider: storageProvider ?? 'local-folder',
+      syncProvider: syncProvider ?? 'none',
+    })),
   })
 }
 

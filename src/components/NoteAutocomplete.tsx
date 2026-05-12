@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect, type ComponentType, type SVGAttributes } from 'react'
 import type { VaultEntry } from '../types'
 import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
-import { getTypeIcon } from './NoteItem'
+import { getTypeIcon } from './note-item/typeIcon'
 import { NoteTitleIcon } from './NoteTitleIcon'
 import './WikilinkSuggestionMenu.css'
 

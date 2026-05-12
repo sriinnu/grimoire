@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { isTauri } from '../mock-tauri'
-import { isLinux, isMac, shouldUseLinuxWindowChrome } from './platform'
+import {
+  isLinux,
+  isMac,
+  shouldUseLinuxWindowChrome,
+  shouldUseMacOverlayChrome,
+} from './platform'
 
 vi.mock('../mock-tauri', () => ({
   isTauri: vi.fn(),
@@ -41,5 +46,14 @@ describe('platform helpers', () => {
 
     vi.mocked(isTauri).mockReturnValue(true)
     expect(shouldUseLinuxWindowChrome()).toBe(true)
+  })
+
+  it('only enables macOS overlay spacing inside Tauri', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    vi.mocked(isTauri).mockReturnValue(false)
+    expect(shouldUseMacOverlayChrome()).toBe(false)
+
+    vi.mocked(isTauri).mockReturnValue(true)
+    expect(shouldUseMacOverlayChrome()).toBe(true)
   })
 })
