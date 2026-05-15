@@ -24,6 +24,25 @@ This file is the working stack for the current Grimoire push. New user requests 
 - 6 Sweep themes/fonts: contrast, manuscript font parity, sidebar artwork, live previews, and dark-theme readability.
 - 7 Build the second-brain layer: Chitragupta recall/wiki/graph tools, diagnostics, source-backed answers, and durable Markdown write-backs.
 
+## Agentic Mind OS Roadmap
+
+Thesis: Grimoire is a local-first mind OS where agents work on Markdown, but the human owns the memory.
+
+Build order:
+
+- [ ] Memory Ledger: editable/versioned Markdown memories with source, confidence, last seen, contradictions, and expiry.
+- [ ] Locality Firewall: visible per-note, per-vault, per-export "what can leave" policy; dreams, journals, and private lanes stay local forever.
+- [ ] Crystallize: AI chat/research outputs become reviewable Markdown diffs for notes, frontmatter, backlinks, and tasks.
+- [ ] Agent Council: fan one request out to Codex, Chitragupta, Claude, local search, vault graph, and import/export context; synthesize with sources.
+- [ ] Time Loom: daily notes, journals, meetings, dreams, tasks, commits, voice notes, and calendar become a temporal graph.
+- [ ] Context Capsules: inspectable agent context packages with selected notes, rules, project map, and exclusions, plus local-only safety.
+- [ ] Import Autopsy: preview exactly what imports create, map, move, and withhold before Bear, Day One, Apple Journal, Obsidian, or Notion data enters the vault.
+- [ ] Living Frontmatter: schema suggestions, missing fields, duplicate concepts, stale status, and relationship hints without turning Markdown into a hidden database.
+- [ ] Attention Mode: detect drift from too many open notes, unresolved tasks, or repeated context switching; suggest one next action quietly.
+- [ ] Dream Forge: private-only dream/journal analysis for symbols, recurring people, emotional weather, and timelines; no cloud or sync by default.
+- [ ] Finder Ghost: native macOS Quick Look/index layer, global capture, menu-bar note, CLI create/open/rebuild, and Finder-visible Markdown workflows.
+- [ ] Red-Team My Plan: critique a selected note, plan, or issue from product, code, UX, privacy, and execution-risk perspectives.
+
 ## Tomorrow Tracker: 2026-05-13
 
 - Primary task candidate: build the Obsidian import adapter in the vault portability lane.
