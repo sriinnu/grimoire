@@ -13,6 +13,7 @@ mod journal_import_helpers;
 mod journal_importer;
 #[cfg(test)]
 mod journal_importer_tests;
+mod locality;
 mod migration;
 mod parsing;
 mod rename;

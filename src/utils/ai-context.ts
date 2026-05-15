@@ -4,6 +4,7 @@
  */
 
 import type { VaultEntry } from '../types'
+import { isLocalOnlyTypeName, resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { wikilinkTarget, resolveEntry } from './wikilink'
 import { splitFrontmatter } from './wikilinks'
 
@@ -29,7 +30,7 @@ export function collectLinkedEntries(
 
   const addTarget = (target: string) => {
     const entry = resolveTarget(target, entries)
-    if (entry && !seen.has(entry.path)) {
+    if (entry && !resolveEntryLocalityPolicy(entry).localOnly && !seen.has(entry.path)) {
       seen.add(entry.path)
       linked.push(entry)
     }
@@ -90,17 +91,58 @@ function entryFrontmatter(e: VaultEntry): Record<string, unknown> {
   const cadence = e.properties?.Cadence ?? e.properties?.cadence
   if (owner) fm.owner = typeof owner === 'string' ? owner : String(owner)
   if (cadence) fm.cadence = typeof cadence === 'string' ? cadence : String(cadence)
-  if (e.belongsTo.length > 0) fm.belongsTo = e.belongsTo
-  if (e.relatedTo.length > 0) fm.relatedTo = e.relatedTo
-  if (Object.keys(e.relationships).length > 0) fm.relationships = e.relationships
   return fm
 }
 
 const MAX_NOTE_LIST_ITEMS = 100
+const LOCAL_ONLY_BODY_PLACEHOLDER = '[Local-only note protected — body omitted from AI context.]'
+
+function visibleEntryByTarget(target: string, entries: VaultEntry[]): VaultEntry | null {
+  const entry = entries.find((candidate) => candidate.path === target) ?? resolveTarget(target, entries)
+  if (!entry || resolveEntryLocalityPolicy(entry).localOnly) return null
+  return entry
+}
+
+function visibleRelationshipRefs(refs: string[], entries: VaultEntry[]): string[] {
+  return refs.filter((ref) => visibleEntryByTarget(wikilinkTarget(ref), entries) !== null)
+}
+
+function entryFrontmatterForAgents(e: VaultEntry, entries: VaultEntry[]): Record<string, unknown> {
+  const fm = entryFrontmatter(e)
+  const belongsTo = visibleRelationshipRefs(e.belongsTo, entries)
+  const relatedTo = visibleRelationshipRefs(e.relatedTo, entries)
+  const relationships = Object.fromEntries(
+    Object.entries(e.relationships)
+      .map(([key, refs]) => [key, visibleRelationshipRefs(refs, entries)] as const)
+      .filter(([, refs]) => refs.length > 0),
+  )
+  if (belongsTo.length > 0) fm.belongsTo = belongsTo
+  if (relatedTo.length > 0) fm.relatedTo = relatedTo
+  if (Object.keys(relationships).length > 0) fm.relationships = relationships
+  return fm
+}
+
+function agentVisibleNoteListItem(item: NoteListItem, entries: VaultEntry[]): NoteListItem | null {
+  const entry = visibleEntryByTarget(item.path, entries)
+  if (!entry) return null
+  return item
+}
+
+function noteListFilterForAgents(
+  filter: ContextSnapshotParams['noteListFilter'],
+  entries: VaultEntry[],
+): ContextSnapshotParams['noteListFilter'] | null {
+  if (!filter) return null
+  const type = filter.type && !isLocalOnlyTypeName(filter.type) ? filter.type : null
+  const queryEntry = filter.query ? visibleEntryByTarget(filter.query, entries) : null
+  const query = queryEntry ? queryEntry.title : ''
+  return type || query ? { type, query } : null
+}
 
 /** Build a structured context snapshot as a system prompt for Claude. */
 export function buildContextSnapshot(params: ContextSnapshotParams): string {
   const { activeEntry, activeNoteContent, openTabs, noteList, noteListFilter, entries, references } = params
+  const activeLocality = resolveEntryLocalityPolicy(activeEntry)
 
   const rawContent = activeNoteContent || ''
   let body = extractBody(rawContent)
@@ -111,61 +153,91 @@ export function buildContextSnapshot(params: ContextSnapshotParams): string {
   if (!body && activeEntry.wordCount > 0) {
     body = `[Content not available in editor context — use get_note("${activeEntry.path}") to read the full note (${activeEntry.wordCount} words)]`
   }
+  if (activeLocality.localOnly) {
+    body = LOCAL_ONLY_BODY_PLACEHOLDER
+  }
+
+  const activeNoteLocality = activeLocality.localOnly
+    ? { localOnly: true, badgeLabel: activeLocality.badgeLabel }
+    : activeLocality
 
   const snapshot: Record<string, unknown> = {
     activeNote: {
-      path: activeEntry.path,
-      title: activeEntry.title,
-      type: activeEntry.isA ?? 'Note',
-      frontmatter: entryFrontmatter(activeEntry),
+      path: activeLocality.localOnly ? '[local-only path withheld]' : activeEntry.path,
+      title: activeLocality.localOnly ? '[local-only title withheld]' : activeEntry.title,
+      type: activeLocality.localOnly ? 'Protected' : activeEntry.isA ?? 'Note',
+      frontmatter: activeLocality.localOnly ? {} : entryFrontmatterForAgents(activeEntry, entries),
+      locality: activeNoteLocality,
       body,
-      wordCount: activeEntry.wordCount,
+      wordCount: activeLocality.localOnly ? null : activeEntry.wordCount,
     },
   }
 
-  const otherTabs = openTabs?.filter(t => t.path !== activeEntry.path)
+  const otherTabs = openTabs?.filter(t => t.path !== activeEntry.path && !resolveEntryLocalityPolicy(t).localOnly)
   if (otherTabs && otherTabs.length > 0) {
     snapshot.openTabs = otherTabs.map(t => ({
       path: t.path,
       title: t.title,
       type: t.isA ?? 'Note',
-      frontmatter: entryFrontmatter(t),
+      frontmatter: entryFrontmatterForAgents(t, entries),
     }))
   }
 
   if (noteList && noteList.length > 0) {
-    const items = noteList.slice(0, MAX_NOTE_LIST_ITEMS)
-    snapshot.noteList = items
-    if (noteList.length > MAX_NOTE_LIST_ITEMS) {
-      snapshot.noteListTruncated = { shown: MAX_NOTE_LIST_ITEMS, total: noteList.length }
+    const visibleItems = noteList
+      .map((item) => agentVisibleNoteListItem(item, entries))
+      .filter((item): item is NoteListItem => item !== null)
+    const items = visibleItems.slice(0, MAX_NOTE_LIST_ITEMS)
+    if (items.length > 0) snapshot.noteList = items
+    if (visibleItems.length > MAX_NOTE_LIST_ITEMS) {
+      snapshot.noteListTruncated = { shown: MAX_NOTE_LIST_ITEMS, total: visibleItems.length }
+    }
+    const omitted = noteList.length - visibleItems.length
+    if (omitted > 0) {
+      snapshot.localOnlyOmitted = { noteList: omitted }
     }
   }
 
-  if (noteListFilter && (noteListFilter.type || noteListFilter.query)) {
-    snapshot.noteListFilter = noteListFilter
+  const visibleNoteListFilter = noteListFilterForAgents(noteListFilter, entries)
+  if (visibleNoteListFilter) {
+    snapshot.noteListFilter = visibleNoteListFilter
   }
 
+  const visibleEntries = entries.filter((entry) => !resolveEntryLocalityPolicy(entry).localOnly)
   const types = new Set<string>()
-  for (const e of entries) {
+  for (const e of visibleEntries) {
     if (e.isA) types.add(e.isA)
   }
   snapshot.vault = {
     types: [...types].sort(),
-    totalNotes: entries.length,
+    totalNotes: visibleEntries.length,
   }
 
   if (references && references.length > 0) {
-    snapshot.referencedNotes = references.map(ref => ({
-      path: ref.path,
-      title: ref.title,
-      type: ref.type ?? 'Note',
-    }))
+    const visibleReferences = references.filter((ref) => {
+      return visibleEntryByTarget(ref.path, entries) !== null
+    })
+    if (visibleReferences.length > 0) {
+      snapshot.referencedNotes = visibleReferences.map(ref => ({
+        path: ref.path,
+        title: ref.title,
+        type: ref.type ?? 'Note',
+      }))
+    }
+    const omitted = references.length - visibleReferences.length
+    if (omitted > 0) {
+      snapshot.localOnlyOmitted = {
+        ...(snapshot.localOnlyOmitted as Record<string, number> | undefined),
+        referencedNotes: omitted,
+      }
+    }
   }
 
   const preamble = [
     'You are an AI assistant integrated into Grimoire, a personal knowledge management app.',
     'The user is viewing a specific note. Use the structured context below to answer questions accurately.',
     'You can also use MCP tools to search, read, create, or edit notes in the vault.',
+    'Never read, summarize, export, sync, upload, or transmit notes marked local-only unless the user explicitly authorizes that exact action.',
     'If the body field is empty but wordCount is > 0, the content may be stale — use get_note to read the full note from disk.',
     'When you mention or reference a note by name, always use [[Note Title]] wikilink syntax so the user can click to open it.',
   ].join('\n')
@@ -178,18 +250,21 @@ export function buildContextualPrompt(
   active: VaultEntry,
   linkedEntries: VaultEntry[],
 ): string {
+  const activeLocality = resolveEntryLocalityPolicy(active)
+  const visibleLinkedEntries = linkedEntries.filter((entry) => !resolveEntryLocalityPolicy(entry).localOnly)
   const parts: string[] = [
     'You are an AI assistant integrated into Grimoire, a personal knowledge management app.',
     'The user is viewing a specific note. Use the note and its linked context to answer questions accurately.',
     'You can also use MCP tools to search, read, create, or edit notes in the vault.',
+    'Never read, summarize, export, sync, upload, or transmit notes marked local-only unless the user explicitly authorizes that exact action.',
     '',
-    `## Active Note: ${active.title}`,
-    `Type: ${active.isA ?? 'Note'} | Path: ${active.path}`,
+    `## Active Note: ${activeLocality.localOnly ? '[local-only title withheld]' : active.title}`,
+    `Type: ${activeLocality.localOnly ? 'Protected' : active.isA ?? 'Note'} | Path: ${activeLocality.localOnly ? '[local-only path withheld]' : active.path}`,
   ]
 
-  if (linkedEntries.length > 0) {
+  if (visibleLinkedEntries.length > 0) {
     parts.push('', '## Linked Notes')
-    for (const entry of linkedEntries) {
+    for (const entry of visibleLinkedEntries) {
       parts.push(
         '',
         `### ${entry.title} (${entry.isA ?? 'Note'})`,

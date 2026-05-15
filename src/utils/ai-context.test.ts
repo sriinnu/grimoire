@@ -126,6 +126,20 @@ describe('collectLinkedEntries', () => {
     const linked = collectLinkedEntries(active, [...allEntries, active])
     expect(linked.map(e => e.title)).toEqual(['Alpha'])
   })
+
+  it('omits local-only linked entries', () => {
+    const active = makeEntry({
+      path: '/vault/main.md', title: 'Main',
+      outgoingLinks: ['Alpha', 'Secret'],
+    })
+    const secret = makeEntry({
+      path: '/vault/Private/secret.md',
+      title: 'Secret',
+      properties: { local_only: true },
+    })
+    const linked = collectLinkedEntries(active, [...allEntries, active, secret])
+    expect(linked.map(e => e.title)).toEqual(['Alpha'])
+  })
 })
 
 describe('buildContextualPrompt', () => {
@@ -149,6 +163,18 @@ describe('buildContextualPrompt', () => {
     const active = makeEntry({ path: '/vault/a.md', title: 'Alpha' })
     const prompt = buildContextualPrompt(active, [])
     expect(prompt).toContain('AI assistant integrated into Grimoire')
+  })
+
+  it('withholds local-only notes from the legacy prompt path', () => {
+    const active = makeEntry({ path: '/vault/Dreams/secret.md', title: 'Secret Dream', isA: 'Dream' })
+    const linked = makeEntry({ path: '/vault/Private/beta.md', title: 'Private Beta', properties: { local_only: true } })
+    const prompt = buildContextualPrompt(active, [linked])
+
+    expect(prompt).toContain('[local-only title withheld]')
+    expect(prompt).toContain('[local-only path withheld]')
+    expect(prompt).not.toContain('Secret Dream')
+    expect(prompt).not.toContain('Dream')
+    expect(prompt).not.toContain('Private Beta')
   })
 })
 
@@ -207,11 +233,11 @@ describe('buildContextSnapshot', () => {
   it('includes noteListFilter when present', () => {
     const result = buildContextSnapshot({
       activeEntry: active, entries,
-      noteListFilter: { type: 'Project', query: 'search' },
+      noteListFilter: { type: 'Project', query: 'Beta' },
     })
     const json = JSON.parse(result.split('```json\n')[1].split('\n```')[0])
     expect(json.noteListFilter.type).toBe('Project')
-    expect(json.noteListFilter.query).toBe('search')
+    expect(json.noteListFilter.query).toBe('Beta')
   })
 
   it('omits noteListFilter when empty', () => {
@@ -262,8 +288,10 @@ describe('buildContextSnapshot', () => {
     const noteList = Array.from({ length: 150 }, (_, i) => ({
       path: `/vault/note-${i}.md`, title: `Note ${i}`, type: 'Note',
     }))
+    const noteEntries = noteList.map((item) => makeEntry({ path: item.path, title: item.title }))
     const result = buildContextSnapshot({
-      activeEntry: active, entries,
+      activeEntry: active,
+      entries: [active, ...noteEntries],
       noteList,
     })
     const json = JSON.parse(result.split('```json\n')[1].split('\n```')[0])
@@ -362,10 +390,40 @@ describe('buildContextSnapshot', () => {
       relatedTo: ['[[Sibling]]'],
       relationships: { people: ['[[Alice]]'] },
     })
-    const result = buildContextSnapshot({ activeEntry: entryWithRels, entries })
+    const result = buildContextSnapshot({
+      activeEntry: entryWithRels,
+      entries: [
+        entryWithRels,
+        makeEntry({ path: '/vault/parent.md', title: 'Parent' }),
+        makeEntry({ path: '/vault/sibling.md', title: 'Sibling' }),
+        makeEntry({ path: '/vault/alice.md', title: 'Alice' }),
+      ],
+    })
     const json = JSON.parse(result.split('```json\n')[1].split('\n```')[0])
     expect(json.activeNote.frontmatter.belongsTo).toEqual(['[[Parent]]'])
     expect(json.activeNote.frontmatter.relatedTo).toEqual(['[[Sibling]]'])
     expect(json.activeNote.frontmatter.relationships).toEqual({ people: ['[[Alice]]'] })
+  })
+
+  it('omits local-only frontmatter relationship targets and filters', () => {
+    const secret = makeEntry({ path: '/vault/Private/secret.md', title: 'Secret' })
+    const visible = makeEntry({ path: '/vault/public.md', title: 'Visible' })
+    const activeWithRels = makeEntry({
+      path: '/vault/a.md',
+      title: 'Alpha',
+      belongsTo: ['[[Secret]]', '[[Visible]]'],
+      relationships: { people: ['[[Secret]]'] },
+    })
+    const result = buildContextSnapshot({
+      activeEntry: activeWithRels,
+      entries: [activeWithRels, secret, visible],
+      noteListFilter: { type: 'Dream', query: 'Secret' },
+    })
+    const json = JSON.parse(result.split('```json\n')[1].split('\n```')[0])
+
+    expect(json.activeNote.frontmatter.belongsTo).toEqual(['[[Visible]]'])
+    expect(json.activeNote.frontmatter.relationships).toBeUndefined()
+    expect(json.noteListFilter).toBeUndefined()
+    expect(JSON.stringify(json)).not.toContain('Secret')
   })
 })

@@ -103,19 +103,24 @@
   --art-accent: #8fd6b8;
 }
 
-[data-theme-preset="retro"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="retro"] .sidebar-artwork {
-  --art-accent: #e45f2b;
+[data-theme-preset="aether"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="aether"] .sidebar-artwork {
+  --art-accent: #4ff6c8;
 }
 
-[data-theme-preset="aurora"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="aurora"] .sidebar-artwork {
-  --art-accent: #d9467d;
+[data-theme-preset="ion"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="ion"] .sidebar-artwork {
+  --art-accent: #75a7ff;
 }
 
-[data-theme-preset="future"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="future"] .sidebar-artwork {
-  --art-accent: #00a884;
+[data-theme-preset="moss"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="moss"] .sidebar-artwork {
+  --art-accent: #d48645;
+}
+
+[data-theme-preset="lumen"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="lumen"] .sidebar-artwork {
+  --art-accent: #ff5e52;
 }
 
 [data-theme-preset="lotus"] .app-sidebar-panel > .sidebar-artwork,
@@ -128,12 +133,20 @@
   --art-accent: #f6bf4f;
 }
 
-[data-theme-preset="future"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="future"] .sidebar-artwork__image,
-[data-theme-preset="aurora"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="aurora"] .sidebar-artwork__image {
+[data-theme-preset="aether"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="aether"] .sidebar-artwork__image,
+[data-theme-preset="ion"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="ion"] .sidebar-artwork__image {
   filter: hue-rotate(108deg) saturate(1.16);
   opacity: 0.24;
+}
+
+[data-theme-preset="moss"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="moss"] .sidebar-artwork__image,
+[data-theme-preset="lumen"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="lumen"] .sidebar-artwork__image {
+  filter: saturate(0.9) contrast(1.02);
+  opacity: 0.28;
 }
 
 [data-theme-preset="graphite"] .sidebar-artwork__image,

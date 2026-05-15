@@ -14,7 +14,7 @@ describe('useSettingsAppearancePreview', () => {
     const { unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'future',
+        themePreset: 'ion',
         editorFont: 'handwritten',
       },
       saved: {
@@ -25,7 +25,7 @@ describe('useSettingsAppearancePreview', () => {
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'future')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'ion')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'handwritten')
 
     unmount()

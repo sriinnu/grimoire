@@ -64,8 +64,52 @@ describe('chitraguptaIntegration', () => {
     expect(context.activeNotePath).toBe('/vault/project.md')
     expect(context.headingCount).toBe(1)
     expect(context.frontmatterFieldCount).toBe(1)
+    expect(context.outgoingLinks).toEqual(['Decision Log'])
     expect(context.relatedTitles).toEqual(['Decision Log', 'Research'])
+    expect(context.locality.localOnly).toBe(false)
+    expect(context.locality.badgeLabel).toBe('Vault context')
     expect(context.requiredCapabilities).toContain('recall.unified')
     expect(context.requiredCapabilities).toContain('graph.neighborhood')
+  })
+
+  it('redacts local-only active note metadata before memory handoff', () => {
+    const active = entry({
+      path: '/vault/Dreams/secret.md',
+      title: 'Secret Dream',
+      isA: 'Dream',
+      outgoingLinks: ['Private Thought'],
+      properties: { local_only: true },
+    })
+    const context = buildChitraguptaMemoryContext(active, [
+      active,
+      entry({ title: 'Private Thought', path: '/vault/private-thought.md' }),
+    ], semantics)
+
+    expect(context.activeNotePath).toBe('[local-only path withheld]')
+    expect(context.title).toBe('[local-only title withheld]')
+    expect(context.headingCount).toBe(0)
+    expect(context.frontmatterFieldCount).toBe(0)
+    expect(context.outgoingLinks).toEqual([])
+    expect(context.relatedTitles).toEqual([])
+    expect(context.locality).toEqual({
+      localOnly: true,
+      source: 'none',
+      reason: 'Local-only marker present',
+      badgeLabel: 'Local-only',
+    })
+  })
+
+  it('omits local-only related note titles from public note memory context', () => {
+    const active = entry({
+      outgoingLinks: ['Private Thought', 'Decision Log'],
+    })
+    const context = buildChitraguptaMemoryContext(active, [
+      active,
+      entry({ title: 'Private Thought', path: '/vault/Private/thought.md' }),
+      entry({ title: 'Decision Log', path: '/vault/decision-log.md' }),
+    ], semantics)
+
+    expect(context.relatedTitles).toEqual(['Decision Log'])
+    expect(context.outgoingLinks).toEqual(['Decision Log'])
   })
 })
