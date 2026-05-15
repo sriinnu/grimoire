@@ -12,9 +12,10 @@ const THEME_PRESETS = new Set([
   'studio',
   'folio',
   'nocturne',
-  'retro',
-  'aurora',
-  'future',
+  'aether',
+  'ion',
+  'moss',
+  'lumen',
   'lotus',
   'ember',
 ])
@@ -35,9 +36,10 @@ export type ThemePreset =
   | 'studio'
   | 'folio'
   | 'nocturne'
-  | 'retro'
-  | 'aurora'
-  | 'future'
+  | 'aether'
+  | 'ion'
+  | 'moss'
+  | 'lumen'
   | 'lotus'
   | 'ember'
 export type EditorFont =

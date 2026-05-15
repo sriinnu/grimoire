@@ -32,8 +32,13 @@ describe('appearance', () => {
   it('normalizes only supported appearance values', () => {
     expect(normalizeThemePreset('manuscript')).toBe('manuscript')
     expect(normalizeThemePreset('nocturne')).toBe('nocturne')
-    expect(normalizeThemePreset('future')).toBe('future')
-    expect(normalizeThemePreset('aurora')).toBe('aurora')
+    expect(normalizeThemePreset('aether')).toBe('aether')
+    expect(normalizeThemePreset('ion')).toBe('ion')
+    expect(normalizeThemePreset('moss')).toBe('moss')
+    expect(normalizeThemePreset('lumen')).toBe('lumen')
+    expect(normalizeThemePreset('future')).toBeNull()
+    expect(normalizeThemePreset('aurora')).toBeNull()
+    expect(normalizeThemePreset('retro')).toBeNull()
     expect(normalizeThemePreset('neon')).toBeNull()
     expect(resolveThemePreset('neon')).toBe(DEFAULT_THEME_PRESET)
 
@@ -47,12 +52,12 @@ describe('appearance', () => {
   it('reads and writes mirrored startup appearance', () => {
     const storage = makeStorage()
 
-    writeStoredThemePreset(storage, 'future')
+    writeStoredThemePreset(storage, 'ion')
     writeStoredEditorFont(storage, 'mono')
 
-    expect(readStoredThemePreset(storage)).toBe('future')
+    expect(readStoredThemePreset(storage)).toBe('ion')
     expect(readStoredEditorFont(storage)).toBe('mono')
-    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'future')
+    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'ion')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_FONT_STORAGE_KEY, 'mono')
   })
 

@@ -262,11 +262,18 @@ fn test_invalid_theme_mode_is_filtered() {
 
 #[test]
 fn test_expanded_theme_presets_are_supported() {
-    for preset in ["retro", "aurora", "future", "lotus", "ember"] {
+    for preset in ["aether", "ion", "moss", "lumen", "lotus", "ember"] {
         assert_eq!(
             normalize_theme_preset(Some(preset)).as_deref(),
             Some(preset)
         );
+    }
+}
+
+#[test]
+fn test_retired_theme_presets_are_filtered() {
+    for preset in ["retro", "aurora", "future"] {
+        assert!(normalize_theme_preset(Some(preset)).is_none());
     }
 }
 

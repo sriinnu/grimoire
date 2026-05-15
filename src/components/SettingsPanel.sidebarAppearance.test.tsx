@@ -63,11 +63,11 @@ describe('SettingsPanel sidebar appearance', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-future'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-ion'))
 
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-sidebar-preset-preview',
-      'future',
+      'ion',
     )
   })
 

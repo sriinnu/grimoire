@@ -5,6 +5,8 @@ use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 use zip::write::FileOptions;
 
+use super::locality::is_local_only_export_file;
+
 const SKIPPED_DIRS: &[&str] = &[".git", "node_modules", "target"];
 const SKIPPED_FILES: &[&str] = &[".DS_Store"];
 
@@ -44,7 +46,7 @@ pub fn export_markdown_zip(
         if !entry.file_type().is_file() {
             continue;
         }
-        if should_skip_file(&entry) {
+        if should_skip_file(&vault_root, &entry) {
             skipped_files += 1;
             continue;
         }
@@ -103,11 +105,12 @@ fn should_enter(entry: &DirEntry) -> bool {
     !SKIPPED_DIRS.contains(&name.as_str())
 }
 
-fn should_skip_file(entry: &DirEntry) -> bool {
+fn should_skip_file(vault_root: &Path, entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
         .is_some_and(|name| SKIPPED_FILES.contains(&name))
+        || is_local_only_export_file(vault_root, entry.path())
 }
 
 fn add_file_to_zip(
@@ -133,6 +136,7 @@ fn add_file_to_zip(
 mod tests {
     use super::*;
     use tempfile::TempDir;
+    use zip::ZipArchive;
 
     #[test]
     fn exports_vault_files_to_zip() {
@@ -156,5 +160,48 @@ mod tests {
             export_markdown_zip(vault.path(), &vault.path().join("export.zip")).unwrap_err();
 
         assert!(error.contains("outside the active vault"));
+    }
+
+    #[test]
+    fn excludes_local_only_lanes_from_zip_export() {
+        let vault = TempDir::new().unwrap();
+        let target_dir = TempDir::new().unwrap();
+        fs::write(
+            vault.path().join("public.md"),
+            "---\ntype: Project\n---\n# Public\n",
+        )
+        .unwrap();
+        fs::write(
+            vault.path().join("journal.md"),
+            "---\ntype: Journal\n---\n# Private day\n",
+        )
+        .unwrap();
+        fs::write(
+            vault.path().join("private-flag.md"),
+            "---\nlocal_only: true\n---\n# Secret\n",
+        )
+        .unwrap();
+        fs::create_dir_all(vault.path().join("Dreams")).unwrap();
+        fs::write(vault.path().join("Dreams/hidden.md"), "# Hidden\n").unwrap();
+        fs::create_dir_all(vault.path().join("Private/attachments")).unwrap();
+        fs::write(vault.path().join("Private/attachments/audio.m4a"), "audio").unwrap();
+
+        let result =
+            export_markdown_zip(vault.path(), &target_dir.path().join("vault.zip")).unwrap();
+
+        assert_eq!(result.files_exported, 1);
+        assert_eq!(result.skipped_files, 4);
+        let names = zip_entry_names(Path::new(&result.export_path));
+        assert_eq!(names, vec!["public.md"]);
+    }
+
+    fn zip_entry_names(path: &Path) -> Vec<String> {
+        let file = File::open(path).unwrap();
+        let mut archive = ZipArchive::new(file).unwrap();
+        let mut names = (0..archive.len())
+            .map(|index| archive.by_index(index).unwrap().name().to_string())
+            .collect::<Vec<_>>();
+        names.sort();
+        names
     }
 }

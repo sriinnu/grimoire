@@ -18,6 +18,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getAllByText('Git remote')).toHaveLength(2)
     expect(screen.getByText('iCloud Drive')).toBeInTheDocument()
     expect(screen.getByText('Amazon S3')).toBeInTheDocument()
+    expect(screen.getByText('Apple Journal')).toBeInTheDocument()
     expect(screen.getByText('Journal capture')).toBeInTheDocument()
     expect(screen.getByText('Memory graph')).toBeInTheDocument()
     expect(screen.getByText(/Current vault is inside iCloud Drive/)).toBeInTheDocument()
