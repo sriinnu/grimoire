@@ -91,7 +91,7 @@ export function AppearanceSettingsSection({
         </Select>
       </div>
 
-      <AppearancePreview t={t} themePreset={themePreset} editorFont={editorFont} />
+      <AppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} editorFont={editorFont} />
     </>
   )
 }
@@ -242,10 +242,12 @@ function ThemePresetCard({
 
 function AppearancePreview({
   t,
+  themeMode,
   themePreset,
   editorFont,
 }: {
   t: Translate
+  themeMode: ThemeMode
   themePreset: ThemePreset
   editorFont: EditorFont
 }) {
@@ -255,6 +257,7 @@ function AppearancePreview({
     <div
       className="rounded-md border border-border"
       data-testid="settings-appearance-preview"
+      data-theme-preview={themeMode}
       data-theme-preset-preview={themePreset}
       style={{
         background: 'var(--surface-editor)',

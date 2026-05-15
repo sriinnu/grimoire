@@ -27,6 +27,7 @@ describe('vaultPortability', () => {
       'bear',
       'day-one',
       'journey',
+      'apple-journal',
       'obsidian',
       'notion-markdown',
       'spanda',
@@ -62,6 +63,9 @@ describe('vaultPortability', () => {
       kind: 'object-storage',
       requiresLocalWorkingCopy: true,
     })
+    expect(listVaultImportSources()).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'apple-journal', status: 'planned' }),
+    ]))
   })
 
   it('distinguishes filesystem-backed folders from object storage adapters', () => {

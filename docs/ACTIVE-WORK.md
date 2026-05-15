@@ -28,6 +28,7 @@ This file is the working stack for the current Grimoire push. New user requests 
 
 - Primary task candidate: build the Obsidian import adapter in the vault portability lane.
 - First small verification task: run Tauri HTTPS mode locally and record whether the browser/Tauri Caveat font parity still holds.
+- Local-only audit: inspect `docs/` for operational/scratch files that should stay local forever, then move or protect them before any future PR.
 - Task source note: `/grimoire-next-task` and Todoist were not available in the 2026-05-12 session; check them first tomorrow before starting implementation.
 
 ## Done In This Push

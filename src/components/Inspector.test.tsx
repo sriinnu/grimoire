@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactElement } from 'react'
-import { render as rtlRender, screen, fireEvent } from '@testing-library/react'
+import { render as rtlRender, screen, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { Inspector } from './Inspector'
 import type { VaultEntry, GitCommit } from '../types'
@@ -146,12 +146,30 @@ describe('Inspector', () => {
       ],
     })
 
-    expect(screen.getByTestId('memory-panel')).toBeInTheDocument()
+    const panel = screen.getByTestId('memory-panel')
+    expect(panel).toBeInTheDocument()
     expect(screen.getByTestId('memory-signal')).toBeInTheDocument()
-    expect(screen.getByText('Memory')).toBeInTheDocument()
+    expect(within(panel).getByRole('heading', { name: 'Memory' })).toBeInTheDocument()
     expect(screen.getByText('Chitragupta')).toBeInTheDocument()
-    expect(screen.getByText('8 tools')).toBeInTheDocument()
-    expect(screen.getByText(/source-backed recall for this note/)).toBeInTheDocument()
+    expect(screen.getByText('Agent access')).toBeInTheDocument()
+    expect(screen.getByText('Ready for recall')).toBeInTheDocument()
+    expect(screen.getByText('Local agent')).toBeInTheDocument()
+  })
+
+  it('withholds stats and context details for local-only notes', () => {
+    renderSelectedInspector({
+      entry: {
+        ...mockEntry,
+        path: '/vault/journal/daily.md',
+        title: 'Daily Journal',
+        isA: 'Journal',
+      },
+    })
+
+    const panel = screen.getByTestId('memory-panel')
+    expect(within(panel).getByText('Local-only')).toBeInTheDocument()
+    expect(within(panel).getAllByText('Withheld').length).toBeGreaterThanOrEqual(3)
+    expect(within(panel).getAllByText(/Journal notes are protected by default/).length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders status as a colored badge with dot indicator', () => {

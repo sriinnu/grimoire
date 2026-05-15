@@ -13,9 +13,10 @@ const THEME_PRESETS: &[&str] = &[
     "studio",
     "folio",
     "nocturne",
-    "retro",
-    "aurora",
-    "future",
+    "aether",
+    "ion",
+    "moss",
+    "lumen",
     "lotus",
     "ember",
 ];

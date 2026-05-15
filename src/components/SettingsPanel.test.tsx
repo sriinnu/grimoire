@@ -193,14 +193,27 @@ describe('SettingsPanel', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-future'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-ion'))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Serif' }))
     fireEvent.click(screen.getByTestId('settings-save'))
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'future',
+      theme_preset: 'ion',
       editor_font: 'serif',
+    }))
+  })
+
+  it('saves the 2050+ theme preset', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByTestId('settings-theme-preset-aether'))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      theme_preset: 'aether',
     }))
   })
 
@@ -209,11 +222,15 @@ describe('SettingsPanel', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    expect(screen.getByTestId('settings-theme-preset-retro')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-aurora')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-future')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-aether')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-ion')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-moss')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-lumen')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-lotus')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-ember')).toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-retro')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-aurora')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-future')).not.toBeInTheDocument()
   })
 
   it('renders the appearance preview with the selected preset', () => {
