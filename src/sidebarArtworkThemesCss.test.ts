@@ -7,7 +7,9 @@ describe('sidebar artwork theme CSS', () => {
 
     expect(css).toContain('.app-sidebar-panel > .sidebar-artwork')
     expect(css).toContain('[data-theme-preset="classic"] .app-sidebar-panel > .sidebar-artwork')
-    expect(css).toContain('[data-theme-preset="future"] .app-sidebar-panel > .sidebar-artwork')
+    expect(css).toContain('[data-theme-preset="ion"] .app-sidebar-panel > .sidebar-artwork')
+    expect(css).toContain('[data-theme-preset="moss"] .app-sidebar-panel > .sidebar-artwork')
+    expect(css).toContain('[data-theme-preset="lumen"] .app-sidebar-panel > .sidebar-artwork')
     expect(css).toContain('@media (max-height: 760px)')
     expect(css).toContain('display: block')
   })

@@ -63,9 +63,6 @@ const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = 
     display: CAVEAT_DISPLAY_FONT,
     label: SYSTEM_LABEL_FONT,
   },
-  retro: {
-    label: SYSTEM_LABEL_FONT,
-  },
 }
 
 const loadedFontAssetIds = new Set<FontAssetId>()

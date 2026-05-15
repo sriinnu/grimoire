@@ -100,6 +100,15 @@ const IMPORT_SOURCES = [
     description: 'Convert Journey backups into dated Markdown journal entries with media beside them.',
   },
   {
+    id: 'apple-journal',
+    label: 'Apple Journal',
+    status: 'planned',
+    input: 'AppleJournalEntries ZIP export',
+    output: 'vault-folder',
+    preservesMarkdown: false,
+    description: 'Convert Apple Journal ZIP exports into local Markdown journal notes.',
+  },
+  {
     id: 'obsidian',
     label: 'Obsidian',
     status: 'planned',
@@ -151,7 +160,7 @@ const EXPORT_TARGETS = [
     status: 'ready',
     output: 'Portable archive of notes, attachments, and metadata',
     portable: true,
-    description: 'Package the vault as a normal archive that any Markdown app can read.',
+    description: 'Package the vault as a normal archive while excluding local-only lanes.',
   },
   {
     id: 'static-html',

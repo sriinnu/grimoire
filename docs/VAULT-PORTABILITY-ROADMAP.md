@@ -42,6 +42,7 @@ Implemented baseline:
 - Markdown ZIP import extracts a portable archive safely, skips path traversal entries, and feeds the same Markdown/attachment importer.
 - Bear import uses the same Markdown/TextBundle folder path so the original Markdown stays intact.
 - Day One and Journey import accept JSON or ZIP exports, convert entries into dated `Journal` Markdown notes, copy referenced media into `attachments/`, and write an import report.
+- Apple Journal ZIP import is planned for the `AppleJournalEntries` export format; it should not be marked ready until fixture-backed parsing lands.
 
 ## Export Targets
 
@@ -62,7 +63,7 @@ Export rules:
 Implemented baseline:
 
 - Markdown ZIP export writes a portable archive to any folder outside the active vault.
-- ZIP export includes normal vault files and skips local build/Git junk so the archive remains readable in other Markdown tools.
+- ZIP export includes normal vault files, skips local build/Git junk, and excludes local-only lanes (`Journal`, `Dream`, `Private`, `Health`, `Therapy`, `local_only`, `no_sync`, `never_sync`) so the archive remains safe and readable in other Markdown tools.
 
 ## Storage Providers
 
