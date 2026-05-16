@@ -19,6 +19,7 @@ Use this as the live review scratchpad while testing Grimoire.
 
 ## Next
 
+- [ ] Work through the Grimoire Specialness Todo tonight: signature loop, Locality Firewall, Crystallize, UX edges, and theme direction.
 - [ ] Make transcription a first-class capture path: record/import audio, local Whisper/provider routing, transcript note, summary note, backlinks.
 - [ ] Shape Grimoire into an LLM second brain: memory graph, recall, contradictions, source-backed answers, and agent-written durable notes.
 - [ ] Sweep any remaining old-font surfaces, especially manuscript H3/H4 headings.

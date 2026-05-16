@@ -1,6 +1,6 @@
 # Grimoire Active Work
 
-Last updated: 2026-05-12
+Last updated: 2026-05-16
 
 This file is the working stack for the current Grimoire push. New user requests that are backlog/context should be appended here instead of replacing the current task.
 
@@ -15,6 +15,7 @@ This file is the working stack for the current Grimoire push. New user requests 
 7. Keep app polish moving: performance, right-click UX, themes, icons/logo, AI detection, startup reliability.
 8. Add vault portability: import from other Markdown apps, export clean archives, and support storage providers beyond Git.
 9. Add transcription/voice import: Whisper or local-provider transcription, audio attachments, timestamped Markdown, and cleaned-note output.
+10. Make Grimoire unmistakably special: agent-of-agents, private journal/diary/dream catcher, Markdown memory, and visible human-owned context. Track this in [Grimoire Specialness Todo](GRIMOIRE-SPECIALNESS-TODO.md).
 
 ## Current Focus: Items 3-7
 
@@ -27,6 +28,8 @@ This file is the working stack for the current Grimoire push. New user requests 
 ## Agentic Mind OS Roadmap
 
 Thesis: Grimoire is a local-first mind OS where agents work on Markdown, but the human owns the memory.
+
+Specialness tracker: [Grimoire Specialness Todo](GRIMOIRE-SPECIALNESS-TODO.md)
 
 Build order:
 
