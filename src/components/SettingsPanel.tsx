@@ -41,6 +41,7 @@ import {
 import { normalizeReleaseChannel, serializeReleaseChannel, type ReleaseChannel } from '../lib/releaseChannel'
 import { trackEvent } from '../lib/telemetry'
 import { AppearanceSettingsSection } from './AppearanceSettingsSection'
+import { NativeSettingsSection } from './NativeSettingsSection'
 import { PortabilitySettingsSection } from './PortabilitySettingsSection'
 import { useSettingsAppearancePreview } from './useSettingsAppearancePreview'
 import { Button } from './ui/button'
@@ -90,6 +91,7 @@ interface SettingsDraft {
   themePreset: ThemePreset
   editorFont: EditorFont
   uiLanguage: UiLanguagePreference
+  menuBarIconEnabled: boolean
   initialH1AutoRename: boolean
   crashReporting: boolean
   analytics: boolean
@@ -126,6 +128,8 @@ interface SettingsBodyProps {
   setEditorFont: (value: EditorFont) => void
   uiLanguage: UiLanguagePreference
   setUiLanguage: (value: UiLanguagePreference) => void
+  menuBarIconEnabled: boolean
+  setMenuBarIconEnabled: (value: boolean) => void
   locale: AppLocale
   systemLocale: AppLocale
   initialH1AutoRename: boolean
@@ -179,6 +183,7 @@ function createSettingsDraft(
     themePreset: resolveThemePreset(settings.theme_preset),
     editorFont: resolveEditorFont(settings.editor_font),
     uiLanguage: settings.ui_language ?? SYSTEM_UI_LANGUAGE,
+    menuBarIconEnabled: settings.menu_bar_icon_enabled ?? false,
     initialH1AutoRename: settings.initial_h1_auto_rename_enabled ?? true,
     crashReporting: settings.crash_reporting_enabled ?? false,
     analytics: settings.analytics_enabled ?? false,
@@ -221,6 +226,7 @@ function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft): Setti
     theme_preset: draft.themePreset,
     editor_font: draft.editorFont,
     ui_language: serializeUiLanguagePreference(draft.uiLanguage),
+    menu_bar_icon_enabled: draft.menuBarIconEnabled,
     initial_h1_auto_rename_enabled: draft.initialH1AutoRename,
     default_ai_agent: draft.defaultAiAgent,
     ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),
@@ -496,6 +502,8 @@ function SettingsPanelInner({
           setEditorFont={(value) => updateDraft('editorFont', value)}
           uiLanguage={draft.uiLanguage}
           setUiLanguage={(value) => updateDraft('uiLanguage', value)}
+          menuBarIconEnabled={draft.menuBarIconEnabled}
+          setMenuBarIconEnabled={(value) => updateDraft('menuBarIconEnabled', value)}
           initialH1AutoRename={draft.initialH1AutoRename}
           setInitialH1AutoRename={(value) => updateDraft('initialH1AutoRename', value)}
           explicitOrganization={draft.explicitOrganization}
@@ -571,6 +579,8 @@ function SettingsBody({
   setEditorFont,
   uiLanguage,
   setUiLanguage,
+  menuBarIconEnabled,
+  setMenuBarIconEnabled,
   initialH1AutoRename,
   setInitialH1AutoRename,
   explicitOrganization,
@@ -639,6 +649,14 @@ function SettingsBody({
           systemLocale={systemLocale}
           uiLanguage={uiLanguage}
           setUiLanguage={setUiLanguage}
+        />
+      </SettingsSection>
+
+      <SettingsSection>
+        <NativeSettingsSection
+          t={t}
+          menuBarIconEnabled={menuBarIconEnabled}
+          setMenuBarIconEnabled={setMenuBarIconEnabled}
         />
       </SettingsSection>
 

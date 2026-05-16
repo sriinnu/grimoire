@@ -292,8 +292,12 @@ pub fn get_settings() -> Result<Settings, String> {
 }
 
 #[tauri::command]
-pub fn save_settings(settings: Settings) -> Result<(), String> {
-    crate::settings::save_settings(settings)
+pub fn save_settings(app_handle: tauri::AppHandle, settings: Settings) -> Result<(), String> {
+    let menu_bar_enabled = settings.menu_bar_icon_enabled == Some(true);
+    crate::settings::save_settings(settings)?;
+    #[cfg(desktop)]
+    crate::menu_bar::apply_menu_bar_icon_setting(&app_handle, menu_bar_enabled)?;
+    Ok(())
 }
 
 #[cfg(desktop)]

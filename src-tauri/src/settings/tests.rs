@@ -47,6 +47,7 @@ fn test_settings_json_roundtrip() {
         theme_preset: Some("manuscript".to_string()),
         editor_font: Some("serif".to_string()),
         ui_language: Some("zh-Hans".to_string()),
+        menu_bar_icon_enabled: Some(true),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
         ai_agent_models: Some(BTreeMap::from([(
@@ -84,6 +85,7 @@ fn test_save_and_load_preserves_values() {
         theme_preset: Some("manuscript".to_string()),
         editor_font: Some("serif".to_string()),
         ui_language: Some("zh-Hans".to_string()),
+        menu_bar_icon_enabled: Some(true),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
         ..Default::default()
@@ -98,6 +100,7 @@ fn test_save_and_load_preserves_values() {
     assert_eq!(loaded.theme_preset.as_deref(), Some("manuscript"));
     assert_eq!(loaded.editor_font.as_deref(), Some("serif"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
+    assert_eq!(loaded.menu_bar_icon_enabled, Some(true));
     assert_eq!(loaded.initial_h1_auto_rename_enabled, Some(false));
     assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
 }

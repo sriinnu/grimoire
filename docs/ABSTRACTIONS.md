@@ -345,6 +345,7 @@ Installation-local:
 - appearance
 - language
 - window state
+- menu bar icon visibility
 - update channel
 - agent preference
 - per-agent model overrides
@@ -361,6 +362,7 @@ Use native macOS code when it materially improves:
 - find/replace
 - file watching
 - window/menu behavior
+- menu bar quick actions
 - QuickLook/export
 - packaging reliability
 

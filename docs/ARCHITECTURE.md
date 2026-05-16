@@ -97,6 +97,7 @@ Store data in app settings when it describes this installation:
 - window size and placement
 - selected theme mode, theme preset, editor font
 - UI language
+- menu bar icon visibility
 - update channel
 - agent preference
 - telemetry consent
@@ -146,12 +147,13 @@ Rust is split by responsibility:
 - `transcription.rs`: local Whisper command execution and transcript parsing.
 - `ai_agents.rs`, `claude_cli.rs`, `mcp.rs`: local agent and MCP integration.
 - `menu.rs`: native menu structure and command IDs.
+- `menu_bar.rs`: optional native menu bar icon lifecycle and quick-action menu.
 
 Backend commands must validate paths and never trust renderer-provided filesystem locations blindly.
 
 ## Command Routing
 
-Keyboard shortcuts, command palette actions, Linux menu actions, and macOS native menu events share the same command catalog. This avoids the classic desktop-app failure where menu commands and renderer shortcuts drift apart.
+Keyboard shortcuts, command palette actions, Linux menu actions, macOS native menu events, and menu bar quick actions share the same command catalog. This avoids the classic desktop-app failure where menu commands and renderer shortcuts drift apart.
 
 ```mermaid
 flowchart TD

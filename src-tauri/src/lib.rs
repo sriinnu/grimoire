@@ -7,6 +7,8 @@ pub mod git;
 pub mod mcp;
 #[cfg(desktop)]
 pub mod menu;
+#[cfg(desktop)]
+pub mod menu_bar;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
@@ -154,6 +156,7 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     app.handle().plugin(tauri_plugin_opener::init())?;
     #[cfg(not(target_os = "linux"))]
     menu::setup_menu(app)?;
+    menu_bar::setup_menu_bar_icon(app)?;
     setup_linux_window_chrome(app)?;
     Ok(())
 }
