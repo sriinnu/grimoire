@@ -1,0 +1,59 @@
+{
+  "version": "1.0",
+  "name": "Create Vault Dialog",
+  "theme": {
+    "Mode": "Light"
+  },
+  "children": [
+    {
+      "type": "frame",
+      "name": "Create Vault Modal",
+      "width": 560,
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 24,
+      "fill": "$--background",
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "$--border"
+      },
+      "cornerRadius": 8,
+      "children": [
+        {
+          "type": "text",
+          "content": "Create Vault",
+          "fill": "$--foreground",
+          "fontSize": 18,
+          "fontWeight": "600"
+        },
+        {
+          "type": "text",
+          "content": "Name, storage target, path, optional Git.",
+          "fill": "$--muted-foreground",
+          "fontSize": 13
+        },
+        {
+          "type": "frame",
+          "name": "Storage Choices",
+          "width": "fill_container",
+          "layout": "grid",
+          "gap": 8,
+          "children": [
+            { "type": "rectangle", "name": "Local", "height": 56, "fill": "$--primary", "cornerRadius": 6 },
+            { "type": "rectangle", "name": "iCloud", "height": 56, "fill": "$--background", "cornerRadius": 6 },
+            { "type": "rectangle", "name": "Google Drive", "height": 56, "fill": "$--background", "cornerRadius": 6 },
+            { "type": "rectangle", "name": "Other", "height": 56, "fill": "$--background", "cornerRadius": 6 }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "name": "Path Input",
+          "height": 36,
+          "fill": "$--background",
+          "cornerRadius": 6
+        }
+      ]
+    }
+  ]
+}

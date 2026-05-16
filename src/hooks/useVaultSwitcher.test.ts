@@ -41,7 +41,7 @@ import { NativeFolderPickerBlockedError } from '../utils/vault-dialog'
 type MockInvokeOverrides = {
   checkVaultExists?: boolean | ((args: { path?: string }) => boolean)
   isGitRepo?: boolean | ((args: { vaultPath?: string }) => boolean)
-  createEmptyVault?: (args: { targetPath: string }) => Promise<unknown> | unknown
+  createEmptyVault?: (args: { targetPath: string; initializeGit?: boolean }) => Promise<unknown> | unknown
   createGettingStartedVault?: (args: { targetPath: string }) => Promise<unknown> | unknown
 }
 
@@ -435,6 +435,36 @@ describe('useVaultSwitcher', () => {
     expect(result.current.vaultPath).toBe('/Users/srinivas/New Vault')
     expect(result.current.allVaults.some(v => v.path === '/Users/srinivas/New Vault')).toBe(true)
     expect(onToast).toHaveBeenCalledWith('Vault "New Vault" created and opened')
+  })
+
+  it('creates an empty vault from an explicit modal request without prompting', async () => {
+    const { pickFolder } = await import('../utils/vault-dialog')
+    setMockInvokeBehavior({
+      createEmptyVault: ({ targetPath }) => targetPath,
+    })
+
+    const { result } = await renderLoadedVaultSwitcher()
+
+    await act(async () => {
+      await result.current.handleCreateEmptyVault({
+        targetPath: '/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals',
+        storageProvider: 'icloud-drive',
+        syncProvider: 'none',
+      })
+    })
+
+    expect(pickFolder).not.toHaveBeenCalled()
+    expect(mockInvokeFn).toHaveBeenCalledWith('create_empty_vault', {
+      targetPath: '/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals',
+    })
+    expect(result.current.vaultPath).toBe('/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals')
+    expect(result.current.allVaults).toContainEqual(expect.objectContaining({
+      label: 'Journals',
+      path: '/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals',
+      storageProvider: 'icloud-drive',
+      syncProvider: 'none',
+      available: true,
+    }))
   })
 
   it('shows a friendly toast when empty-vault creation targets a non-empty folder', async () => {

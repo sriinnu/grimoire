@@ -6,6 +6,7 @@ import { formatFolderPickerActionError, pickFolder } from '../utils/vault-dialog
 import { loadVaultList, saveVaultList } from '../utils/vaultListStore'
 import type { VaultOption } from '../components/StatusBar'
 import { trackEvent } from '../lib/telemetry'
+import type { CreateEmptyVaultRequest } from '../utils/vaultCreation'
 
 export type { PersistedVaultList } from '../utils/vaultListStore'
 
@@ -80,6 +81,8 @@ interface RegisteredVaultSelection {
 
 interface RegisterVaultSelectionOptions {
   verifyAvailability?: boolean
+  storageProvider?: VaultOption['storageProvider']
+  syncProvider?: VaultOption['syncProvider']
 }
 
 interface RestoreGettingStartedOptions {
@@ -576,14 +579,28 @@ function addVaultToList({
   setExtraVaults,
   path,
   label,
+  storageProvider,
+  syncProvider,
 }: {
   setExtraVaults: Dispatch<SetStateAction<VaultOption[]>>
   path: string
   label: string
+  storageProvider?: VaultOption['storageProvider']
+  syncProvider?: VaultOption['syncProvider']
 }) {
   setExtraVaults(previousVaults => {
     const exists = previousVaults.some(vault => vault.path === path)
-    return exists ? previousVaults : [...previousVaults, { label, path, available: true }]
+    return exists
+      ? previousVaults.map(vault => vault.path === path
+        ? {
+            ...vault,
+            label: vault.label || label,
+            storageProvider: storageProvider ?? vault.storageProvider,
+            syncProvider: syncProvider ?? vault.syncProvider,
+            available: true,
+          }
+        : vault)
+      : [...previousVaults, { label, path, storageProvider, syncProvider, available: true }]
   })
 }
 
@@ -591,15 +608,22 @@ function upsertAvailableVaultOption(
   extraVaults: VaultOption[],
   path: string,
   label: string,
+  metadata: Pick<VaultOption, 'storageProvider' | 'syncProvider'> = {},
 ): VaultOption[] {
   const existingVault = extraVaults.find((vault) => vault.path === path)
   if (!existingVault) {
-    return [...extraVaults, { label, path, available: true }]
+    return [...extraVaults, { label, path, ...metadata, available: true }]
   }
 
   return extraVaults.map((vault) => (
     vault.path === path
-      ? { ...vault, label: vault.label || label, available: true }
+      ? {
+          ...vault,
+          label: vault.label || label,
+          storageProvider: metadata.storageProvider ?? vault.storageProvider,
+          syncProvider: metadata.syncProvider ?? vault.syncProvider,
+          available: true,
+        }
       : vault
   ))
 }
@@ -611,6 +635,8 @@ function buildRegisteredVaultSelection({
   hiddenDefaults,
   label,
   path,
+  storageProvider,
+  syncProvider,
 }: {
   defaultAvailable: boolean
   defaultPath: string
@@ -618,6 +644,8 @@ function buildRegisteredVaultSelection({
   hiddenDefaults: string[]
   label: string
   path: string
+  storageProvider?: VaultOption['storageProvider']
+  syncProvider?: VaultOption['syncProvider']
 }): RegisteredVaultSelection {
   const isCanonicalDefaultVault = path === defaultPath && defaultPath.length > 0
 
@@ -625,7 +653,7 @@ function buildRegisteredVaultSelection({
     nextDefaultAvailable: isCanonicalDefaultVault ? true : defaultAvailable,
     nextExtraVaults: isCanonicalDefaultVault
       ? extraVaults.filter((vault) => vault.path !== path)
-      : upsertAvailableVaultOption(extraVaults, path, label),
+      : upsertAvailableVaultOption(extraVaults, path, label, { storageProvider, syncProvider }),
     nextHiddenDefaults: isCanonicalDefaultVault
       ? hiddenDefaults.filter((hiddenPath) => hiddenPath !== path)
       : hiddenDefaults,
@@ -837,6 +865,8 @@ function useRegisterVaultSelectionAction({
       hiddenDefaults,
       label,
       path,
+      storageProvider: options.storageProvider,
+      syncProvider: options.syncProvider,
     })
     await persistRegisteredVaultSelection({
       hiddenDefaults: nextSelection.nextHiddenDefaults,
@@ -945,26 +975,38 @@ function useOpenLocalFolderAction(
 }
 
 function useCreateEmptyVaultAction(
-  addAndSwitch: (path: string, label: string) => void,
+  addAndSwitch: (path: string, label: string, metadata?: Pick<VaultOption, 'storageProvider' | 'syncProvider'>) => void,
   onToastRef: MutableRefObject<(msg: string) => void>,
 ) {
-  return useCallback(async () => {
-    let targetPath: string | null
+  return useCallback(async (request?: CreateEmptyVaultRequest): Promise<boolean> => {
+    let targetPath: string | null = request?.targetPath?.trim() ?? null
     try {
-      targetPath = await pickFolder('Choose where to create your vault')
+      if (!targetPath) {
+        targetPath = await pickFolder('Choose where to create your vault')
+      }
     } catch (err) {
       onToastRef.current(formatFolderPickerActionError('Could not choose where to create your vault', err))
-      return
+      return false
     }
 
     try {
-      if (!targetPath) return
-      const vaultPath = await tauriCall<string>('create_empty_vault', { targetPath })
+      if (!targetPath) return false
+      const commandArgs: Record<string, unknown> = { targetPath }
+      if (request?.initializeGit) {
+        commandArgs.initializeGit = true
+      }
+
+      const vaultPath = await tauriCall<string>('create_empty_vault', commandArgs)
       const label = labelFromPath({ path: vaultPath })
-      addAndSwitch(vaultPath, label)
+      addAndSwitch(vaultPath, label, {
+        storageProvider: request?.storageProvider,
+        syncProvider: request?.syncProvider ?? (request?.initializeGit ? 'git' : undefined),
+      })
       onToastRef.current(`Vault "${label}" created and opened`)
+      return true
     } catch (err) {
       onToastRef.current(formatCreateEmptyVaultError(err))
+      return false
     }
   }, [addAndSwitch, onToastRef])
 }
@@ -1046,8 +1088,12 @@ function useVaultActions({
   setVaultPath,
   vaultPath,
 }: VaultActionOptions) {
-  const addVault = useCallback((path: string, label: string) => {
-    addVaultToList({ setExtraVaults, path, label })
+  const addVault = useCallback((
+    path: string,
+    label: string,
+    metadata: Pick<VaultOption, 'storageProvider' | 'syncProvider'> = {},
+  ) => {
+    addVaultToList({ setExtraVaults, path, label, ...metadata })
   }, [setExtraVaults])
 
   const switchVault = useSwitchVaultAction(onSwitchRef, setSelectedVaultPath, setVaultPath)
@@ -1076,8 +1122,12 @@ function useVaultActions({
     setSelectedVaultPath,
     setVaultPath,
   })
-  const addAndSwitch = useCallback((path: string, label: string) => {
-    addVault(path, label)
+  const addAndSwitch = useCallback((
+    path: string,
+    label: string,
+    metadata?: Pick<VaultOption, 'storageProvider' | 'syncProvider'>,
+  ) => {
+    addVault(path, label, metadata)
     switchVault(path)
   }, [addVault, switchVault])
 
