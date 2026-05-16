@@ -43,7 +43,8 @@ Build order:
 - [ ] Crystallize: AI chat/research outputs become reviewable Markdown diffs for notes, frontmatter, backlinks, and tasks.
   - [x] Add reviewed creation of local `type: Memory` notes from the latest AI response.
   - [ ] Add per-hunk note/frontmatter/backlink/task diffs.
-- [ ] Agent Council: fan one request out to Codex, Chitragupta, Claude, local search, vault graph, and import/export context; synthesize with sources.
+- [ ] Agent Council: fan one request out to Codex, Claude, Chitragupta, Woosh, Tring CLI, local search, vault graph, and import/export context; synthesize with sources.
+  - [ ] Treat Chitragupta, Woosh, and Tring CLI as private local agent lanes: surface capability, health, permissions, and outputs without publishing private internals.
 - [ ] Time Loom: daily notes, journals, meetings, dreams, tasks, commits, voice notes, and calendar become a temporal graph.
 - [ ] Context Capsules: inspectable agent context packages with selected notes, rules, project map, and exclusions, plus local-only safety.
 - [ ] Import Autopsy: preview exactly what imports create, map, move, and withhold before Bear, Day One, Apple Journal, Obsidian, or Notion data enters the vault.
