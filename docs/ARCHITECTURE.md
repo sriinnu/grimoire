@@ -109,6 +109,8 @@ Store data in app settings when it describes this installation:
 
 - `hooks/useVaultLoader.ts`: loads entries, modified files, folders, views, history, and cache refreshes.
 - `hooks/useAppCommands.ts`: bridges keyboard, command palette, and native menu events.
+- `hooks/useSidebarColumnCollapse.ts`: persists the app-local compact sidebar rail preference outside the vault.
+- `components/sidebar/SidebarRail.tsx`: collapsed left-column navigation rail for Inbox, All Notes, Archive, and returning to the full sidebar.
 - `components/Editor.tsx` and `components/EditorLayout.tsx`: editor shell that delegates rich/raw/diff modes and the right-side inspector/AI shell.
 - `components/EditorLoadingState.tsx`: default centered animated SVG loader for lazy editor startup and note-switch transitions.
 - `components/SingleEditorView.tsx`: BlockNote rich editor behavior that imports the reusable slash-command package.

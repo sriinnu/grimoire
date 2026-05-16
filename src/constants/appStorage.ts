@@ -9,6 +9,7 @@ export const APP_STORAGE_KEYS = {
   legacyMigrationFlag: 'grimoire:legacy-storage-migrated',
   sortPreferences: 'grimoire-sort-preferences',
   sidebarCollapsed: 'grimoire:sidebar-collapsed',
+  sidebarColumnCollapsed: 'grimoire:sidebar-column-collapsed',
   welcomeDismissed: 'grimoire_welcome_dismissed',
 } as const
 
@@ -22,6 +23,7 @@ export const LEGACY_APP_STORAGE_KEYS = {
   configMigrationFlag: 'tolaria:config-migrated-to-vault',
   sortPreferences: 'tolaria-sort-preferences',
   sidebarCollapsed: 'tolaria:sidebar-collapsed',
+  sidebarColumnCollapsed: 'tolaria:sidebar-column-collapsed',
   welcomeDismissed: 'tolaria_welcome_dismissed',
 } as const
 
@@ -35,6 +37,7 @@ export const LAPUTA_LEGACY_APP_STORAGE_KEYS = {
   configMigrationFlag: 'laputa:config-migrated-to-vault',
   sortPreferences: 'laputa-sort-preferences',
   sidebarCollapsed: 'laputa:sidebar-collapsed',
+  sidebarColumnCollapsed: 'laputa:sidebar-column-collapsed',
   welcomeDismissed: 'laputa_welcome_dismissed',
 } as const
 
@@ -50,6 +53,7 @@ const MIGRATABLE_STORAGE_KEYS: MigratableStorageKey[] = [
   'configMigrationFlag',
   'sortPreferences',
   'sidebarCollapsed',
+  'sidebarColumnCollapsed',
   'welcomeDismissed',
 ]
 

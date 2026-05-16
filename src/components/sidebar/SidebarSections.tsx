@@ -9,9 +9,9 @@ import {
   SortableContext, useSortable, verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { SlidersHorizontal } from 'lucide-react'
+import { PanelLeftClose, SlidersHorizontal } from 'lucide-react'
 import {
-  CaretLeft, Plus,
+  Plus,
 } from '@phosphor-icons/react'
 import grimoireIcon from '@/assets/app-icon.png'
 import { Button } from '@/components/ui/button'
@@ -275,7 +275,7 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
           aria-label="Collapse sidebar"
           title="Collapse sidebar"
         >
-          <CaretLeft size={14} weight="bold" />
+          <PanelLeftClose size={14} strokeWidth={2.25} />
         </Button>
       )}
     </div>

@@ -87,12 +87,14 @@ src/
     GraphModal.tsx                knowledge graph UI
     WeatherSnapshotDialog.tsx     explicit weather insertion UI
     Inspector.tsx                 properties and relationships
+    sidebar/SidebarRail.tsx       collapsed left-column icon rail
     CommandPalette.tsx            command launcher
     ui/                           shadcn/ui primitives
   hooks/
     useVaultLoader.ts             entries, folders, views, git state
     useAppCommands.ts             keyboard/menu/command wiring
     useAppSave.ts                 save and rename coordination
+    useSidebarColumnCollapse.ts   local collapsed-sidebar preference
     commands/                     command groups
   lib/
     appearance.ts                 theme/font contract

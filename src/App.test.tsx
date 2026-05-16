@@ -884,6 +884,30 @@ describe('App', () => {
     })
   })
 
+  it('collapses the left sidebar into an icon rail and expands it again', async () => {
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sidebar-title-bar')).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByLabelText('Collapse sidebar'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sidebar-rail')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('Markdown agent')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('All Notes')).toBeInTheDocument()
+    expect(document.querySelector('.app__sidebar--collapsed')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByLabelText('Expand sidebar'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sidebar-title-bar')).toBeInTheDocument()
+    })
+    expect(screen.queryByTestId('sidebar-rail')).not.toBeInTheDocument()
+  })
+
   it('pressing Escape in Neighborhood mode blurs the editor before unwinding note-list history', async () => {
     configureNeighborhoodVault()
 
