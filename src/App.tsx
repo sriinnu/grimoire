@@ -46,6 +46,7 @@ import { planNewTypeCreation, slugify } from './hooks/useNoteCreation'
 import { useCommitFlow } from './hooks/useCommitFlow'
 import { useGitRemoteStatus } from './hooks/useGitRemoteStatus'
 import { useViewMode, type ViewMode } from './hooks/useViewMode'
+import { useSidebarColumnCollapse } from './hooks/useSidebarColumnCollapse'
 import { useNoteLayout } from './hooks/useNoteLayout'
 import { useEntryActions } from './hooks/useEntryActions'
 import { useAppCommands } from './hooks/useAppCommands'
@@ -1126,6 +1127,7 @@ function App() {
   const diffToggleRef = useRef<() => void>(() => {})
 
   const { setViewMode, sidebarVisible, noteListVisible } = useViewMode(noteWindowParams ? 'editor-only' : undefined)
+  const { sidebarColumnCollapsed, setSidebarColumnCollapsed } = useSidebarColumnCollapse()
   const { noteLayout, toggleNoteLayout } = useNoteLayout()
   const zoom = useZoom()
   const buildNumber = useBuildNumber()
@@ -1134,17 +1136,19 @@ function App() {
     nextSidebarVisible: boolean,
     nextNoteListVisible: boolean,
     nextInspectorCollapsed: boolean = layout.inspectorCollapsed,
+    nextSidebarCollapsed: boolean = sidebarColumnCollapsed,
   ) => {
     if (noteWindowParams) return
 
     const minWidth = getMainWindowMinWidth({
       sidebarVisible: nextSidebarVisible,
+      sidebarCollapsed: nextSidebarCollapsed,
       noteListVisible: nextNoteListVisible,
       inspectorCollapsed: nextInspectorCollapsed,
     })
 
     void applyMainWindowSizeConstraints(minWidth).catch((err) => console.warn('[window] Size constraints failed:', err))
-  }, [layout.inspectorCollapsed, noteWindowParams])
+  }, [layout.inspectorCollapsed, noteWindowParams, sidebarColumnCollapsed])
 
   const handleSetViewMode = useCallback((mode: ViewMode) => {
     setViewMode(mode)
@@ -1162,9 +1166,21 @@ function App() {
     updateMainWindowConstraints,
   ])
 
+  const handleSetSidebarColumnCollapsed = useCallback((collapsed: boolean) => {
+    setSidebarColumnCollapsed(collapsed)
+    updateMainWindowConstraints(sidebarVisible, noteListVisible, layout.inspectorCollapsed, collapsed)
+  }, [
+    layout.inspectorCollapsed,
+    noteListVisible,
+    setSidebarColumnCollapsed,
+    sidebarVisible,
+    updateMainWindowConstraints,
+  ])
+
   useMainWindowSizeConstraints({
     enabled: !noteWindowParams,
     sidebarVisible,
+    sidebarCollapsed: sidebarColumnCollapsed,
     noteListVisible,
     inspectorCollapsed: layout.inspectorCollapsed,
   })
@@ -1568,10 +1584,13 @@ function App() {
         <div className="app">
           {sidebarVisible && (
             <>
-              <div className="app__sidebar" style={{ width: layout.sidebarWidth }}>
-                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSetSelection} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} />
+              <div
+                className={`app__sidebar${sidebarColumnCollapsed ? ' app__sidebar--collapsed' : ''}`}
+                style={{ width: sidebarColumnCollapsed ? 68 : layout.sidebarWidth }}
+              >
+                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSetSelection} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} />
               </div>
-              <ResizeHandle onResize={layout.handleSidebarResize} />
+              {!sidebarColumnCollapsed && <ResizeHandle onResize={layout.handleSidebarResize} />}
             </>
           )}
           {noteListVisible && (
