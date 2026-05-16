@@ -8,6 +8,7 @@ import {
   labelFromPath,
 } from '../utils/gettingStartedVault'
 import { formatFolderPickerActionError, pickFolder } from '../utils/vault-dialog'
+import type { CreateEmptyVaultRequest } from '../utils/vaultCreation'
 
 type OnboardingState =
   | { status: 'loading' }
@@ -21,7 +22,11 @@ type OnVaultReady = (vaultPath: string, source: ReadyVaultSource) => void
 type RegisterVault = (
   vaultPath: string,
   label: string,
-  options?: { verifyAvailability?: boolean },
+  options?: {
+    verifyAvailability?: boolean
+    storageProvider?: CreateEmptyVaultRequest['storageProvider']
+    syncProvider?: CreateEmptyVaultRequest['syncProvider']
+  },
 ) => Promise<void>
 type SetError = Dispatch<SetStateAction<string | null>>
 type SetCreatingAction = Dispatch<SetStateAction<CreatingAction>>
@@ -125,14 +130,16 @@ async function registerVaultSelection(
   registerVault: RegisterVault | undefined,
   vaultPath: string,
   options?: { verifyAvailability?: boolean },
+  metadata?: Pick<CreateEmptyVaultRequest, 'storageProvider' | 'syncProvider'>,
 ): Promise<void> {
   if (!registerVault) {
     return
   }
 
   const label = labelFromPath(vaultPath)
-  if (options) {
-    await registerVault(vaultPath, label, options)
+  const nextOptions = { ...options, ...metadata }
+  if (options || metadata?.storageProvider || metadata?.syncProvider) {
+    await registerVault(vaultPath, label, nextOptions)
     return
   }
 
@@ -206,30 +213,45 @@ function useCreateVaultHandler(
 function useCreateEmptyVaultHandler(
   options: CreateEmptyVaultHandlerOptions,
 ) {
-  return useCallback(async () => {
-    const path = await pickFolderWithOnboardingError({
+  return useCallback(async (request?: CreateEmptyVaultRequest): Promise<boolean> => {
+    const path = request?.targetPath?.trim() || await pickFolderWithOnboardingError({
       action: 'Could not choose where to create your vault',
       setError: options.setError,
       title: 'Choose where to create your vault',
     })
-    if (!path) return
+    if (!path) return false
 
     try {
       options.setCreatingAction('empty')
-      const vaultPath = await tauriCall<string>('create_empty_vault', { targetPath: path })
+      const commandArgs: Record<string, unknown> = { targetPath: path }
+      if (request?.initializeGit) {
+        commandArgs.initializeGit = true
+      }
+
+      const vaultPath = await tauriCall<string>('create_empty_vault', commandArgs)
       try {
-        await registerVaultSelection(options.registerVault, vaultPath, { verifyAvailability: false })
+        await registerVaultSelection(
+          options.registerVault,
+          vaultPath,
+          { verifyAvailability: false },
+          {
+            storageProvider: request?.storageProvider,
+            syncProvider: request?.syncProvider ?? (request?.initializeGit ? 'git' : undefined),
+          },
+        )
       } catch (err) {
         options.setError(formatOnboardingRegistrationError({
           action: 'Could not register the new vault',
           err,
         }))
-        return
+        return false
       }
       markVaultReady(options.setState, vaultPath)
       options.onVaultReady?.(vaultPath, 'empty')
+      return true
     } catch (err) {
       options.setError(typeof err === 'string' ? err : `Failed to create vault: ${err}`)
+      return false
     } finally {
       options.setCreatingAction(null)
     }

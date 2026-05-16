@@ -5,6 +5,7 @@ import type { DeletedNoteEntry } from './components/note-list/noteListUtils'
 import { LazyEditor as Editor } from './components/LazyEditor'
 import { ResizeHandle } from './components/ResizeHandle'
 import { CreateTypeDialog } from './components/CreateTypeDialog'
+import { CreateVaultDialog } from './components/CreateVaultDialog'
 import { CreateViewDialog } from './components/CreateViewDialog'
 import { QuickOpenPalette } from './components/QuickOpenPalette'
 import { Toast } from './components/Toast'
@@ -78,6 +79,7 @@ import { useLayoutPanels } from './hooks/useLayoutPanels'
 import { useConflictFlow } from './hooks/useConflictFlow'
 import { useAppSave } from './hooks/useAppSave'
 import { useNoteRetargetingUi } from './hooks/useNoteRetargetingUi'
+import type { CreateEmptyVaultRequest } from './utils/vaultCreation'
 import { useVaultBridge } from './hooks/useVaultBridge'
 import type { CommitDiffRequest } from './hooks/useDiffMode'
 import { ConfirmDeleteDialog } from './components/ConfirmDeleteDialog'
@@ -322,6 +324,16 @@ function App() {
     onVaultReady: handleOnboardingVaultReady,
     registerVault: registerVaultSelection,
   }, vaultSwitcher.loaded)
+  const [showCreateVaultDialog, setShowCreateVaultDialog] = useState(false)
+  const openCreateVaultDialog = useCallback(() => setShowCreateVaultDialog(true), [])
+  const closeCreateVaultDialog = useCallback(() => setShowCreateVaultDialog(false), [])
+  const handleCreateVaultFromDialog = useCallback(async (request: CreateEmptyVaultRequest) => {
+    if (!noteWindowParams && (onboarding.state.status === 'welcome' || onboarding.state.status === 'vault-missing')) {
+      return onboarding.handleCreateEmptyVault(request)
+    }
+
+    return vaultSwitcher.handleCreateEmptyVault(request)
+  }, [noteWindowParams, onboarding, vaultSwitcher])
   const aiAgentsStatus = useAiAgentsStatus()
   const aiAgentsOnboarding = useAiAgentsOnboarding(onboarding.state.status === 'ready' && !noteWindowParams)
 
@@ -1418,7 +1430,7 @@ function App() {
     onGoBack: handleGoBack, onGoForward: handleGoForward,
     canGoBack: canGoBack, canGoForward: canGoForward,
     onOpenVault: vaultSwitcher.handleOpenLocalFolder,
-    onCreateEmptyVault: vaultSwitcher.handleCreateEmptyVault,
+    onCreateEmptyVault: openCreateVaultDialog,
     canAddRemote,
     onCreateType: dialogs.openCreateType,
     onToggleAIChat: dialogs.toggleAIChat,
@@ -1517,7 +1529,16 @@ function App() {
     const welcomeOnboarding = shouldResumeFreshStartOnboarding
       ? { ...onboarding, state: { status: 'welcome' as const, defaultPath: vaultSwitcher.vaultPath } }
       : onboarding
-    return <WelcomeView onboarding={welcomeOnboarding} isOffline={networkStatus.isOffline} />
+    return (
+      <WelcomeView
+        onboarding={welcomeOnboarding}
+        isOffline={networkStatus.isOffline}
+        createVaultDialogOpen={showCreateVaultDialog}
+        onOpenCreateVaultDialog={openCreateVaultDialog}
+        onCloseCreateVaultDialog={closeCreateVaultDialog}
+        onCreateVaultFromDialog={handleCreateVaultFromDialog}
+      />
+    )
   }
 
   const shouldBlockForAiAgentSetup = aiAgentsOnboarding.showPrompt
@@ -1629,7 +1650,7 @@ function App() {
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />
-        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={vaultSwitcher.handleCreateEmptyVault} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
+        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
         <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={notes.handleSelectNote} onClose={dialogs.closeQuickOpen} />
@@ -1646,6 +1667,7 @@ function App() {
         <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <CreateTypeDialog open={dialogs.showCreateTypeDialog} onClose={dialogs.closeCreateType} onCreate={handleCreateType} />
+        <CreateVaultDialog open={showCreateVaultDialog} onClose={closeCreateVaultDialog} onCreate={handleCreateVaultFromDialog} />
         <NoteRetargetingDialogs
           dialogState={noteRetargetingUi.dialogState}
           dialogEntry={noteRetargetingUi.dialogEntry}
@@ -1707,7 +1729,21 @@ function App() {
 type OnboardingState = ReturnType<typeof useOnboarding>
 
 /** Welcome screen view - extracted from main App component */
-function WelcomeView({ onboarding, isOffline }: { onboarding: OnboardingState; isOffline: boolean }) {
+function WelcomeView({
+  onboarding,
+  isOffline,
+  createVaultDialogOpen,
+  onOpenCreateVaultDialog,
+  onCloseCreateVaultDialog,
+  onCreateVaultFromDialog,
+}: {
+  onboarding: OnboardingState
+  isOffline: boolean
+  createVaultDialogOpen: boolean
+  onOpenCreateVaultDialog: () => void
+  onCloseCreateVaultDialog: () => void
+  onCreateVaultFromDialog: (request: CreateEmptyVaultRequest) => Promise<boolean> | boolean
+}) {
   const state = onboarding.state as { status: 'welcome' | 'vault-missing'; defaultPath: string; vaultPath?: string }
   return (
     <div className="app-shell">
@@ -1717,12 +1753,17 @@ function WelcomeView({ onboarding, isOffline }: { onboarding: OnboardingState; i
         defaultVaultPath={state.defaultPath}
         onCreateVault={onboarding.handleCreateVault}
         onRetryCreateVault={onboarding.retryCreateVault}
-        onCreateEmptyVault={onboarding.handleCreateEmptyVault}
+        onCreateEmptyVault={onOpenCreateVaultDialog}
         onOpenFolder={onboarding.handleOpenFolder}
         isOffline={isOffline}
         creatingAction={onboarding.creatingAction}
         error={onboarding.error}
         canRetryTemplate={onboarding.canRetryTemplate}
+      />
+      <CreateVaultDialog
+        open={createVaultDialogOpen}
+        onClose={onCloseCreateVaultDialog}
+        onCreate={onCreateVaultFromDialog}
       />
     </div>
   )

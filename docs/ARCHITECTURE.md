@@ -55,7 +55,7 @@ The app is intentionally polyglot where a language is the right tool. Tauri owns
 
 The vault contains markdown notes, assets, saved view definitions, type documents, and vault-local config. Notes remain useful in other editors.
 
-Vaults are local-first folders before they are Git repositories. Git-backed vaults enable history, Changes, Pulse, commits, pull/push, and conflict tooling; local-only vaults still open, scan, edit, and save normally. The vault registry stores storage provider metadata separately from optional sync provider metadata.
+Vaults are local-first folders before they are Git repositories. Git-backed vaults enable history, Changes, Pulse, commits, pull/push, and conflict tooling; local-only vaults still open, scan, edit, and save normally. New vault creation uses an in-app dialog to choose a local folder, iCloud Drive folder, Google Drive Desktop folder, another synced folder, or a custom filesystem path. The vault registry stores storage provider metadata separately from optional sync provider metadata.
 
 ### Cache
 
@@ -118,6 +118,7 @@ Store data in app settings when it describes this installation:
 - `components/Inspector.tsx`: properties, relationships, instances, and note info.
 - `utils/propertySuggestions.ts`: property-panel quick-add definitions and property-name-to-input-type inference.
 - `components/StatusBar.tsx` and `components/status-bar/*`: bottom-bar vault, sync, AI, settings, and presence-tone controls.
+- `components/CreateVaultDialog.tsx`: local-first vault creation surface for local and cloud-synced filesystem targets.
 - `components/GraphModal.tsx` and `components/GraphControlPanel.tsx`: graph UI, scope controls, edge filters, and type visibility toggles.
 - `utils/noteGraph.ts`: graph data derived from vault entries.
 - `utils/graphDisplay.ts`: graph scope, caps, layout, edge/type filters, and display stats.
