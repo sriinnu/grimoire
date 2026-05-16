@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "pnpm --filter @grimoire/markdown-editor build && pnpm --dir apps/baseline-web build",
     "dev": "pnpm --dir apps/baseline-web dev",

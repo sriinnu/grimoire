@@ -26,8 +26,28 @@ A few things to keep in mind before opening one:
 - Include a short explanation of the problem and your solution
 - Follow the dev process described in Grimoire’s `AGENTS.md` (tests, code health, etc.)
 - Avoid bundling unrelated refactors into the same PR
+- Read [LICENSING.md](LICENSING.md) before submitting code, docs, demo vault content, or assets
+- Sign off commits with `git commit -s` so the Developer Certificate of Origin line is present
 
 If you want to contribute a feature, the best place to start is here: <https://grimoire.canny.io/>
+
+## ✍️ Contribution license
+
+Unless agreed otherwise in writing, contributions are accepted under the license that applies to the files being changed:
+
+- code contributions: AGPL-3.0-or-later
+- documentation prose: AGPL-3.0-or-later and CC BY-SA 4.0
+- demo vault content: CC BY-NC-SA 4.0
+
+By contributing, you certify that you have the right to submit the work under the [Developer Certificate of Origin 1.1](https://developercertificate.org/). Add this line to every commit:
+
+```text
+Signed-off-by: Name <email@example.com>
+```
+
+Use `git commit -s` to add it automatically.
+
+Do not include private vault content, credentials, secrets, personal journals, diary entries, or dream notes in a pull request unless the PR is explicitly about a public fixture and the content is safe to publish.
 
 ## 📋 What makes a good bug report
 
