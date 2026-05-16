@@ -143,6 +143,19 @@ describe('Inspector', () => {
       entries: [
         mockEntry,
         { ...referrerEntry, title: 'Grow Newsletter', path: '/vault/responsibility/grow-newsletter.md' },
+        {
+          ...referrerEntry,
+          path: '/vault/memory/test-project-memory.md',
+          filename: 'test-project-memory.md',
+          title: 'Test Project Memory',
+          isA: 'Memory',
+          snippet: 'Remember the project launch constraints.',
+          properties: {
+            source_note: '[[Test Project]]',
+            confidence: 'high',
+            last_seen: '2026-05-16',
+          },
+        },
       ],
     })
 
@@ -150,10 +163,11 @@ describe('Inspector', () => {
     expect(panel).toBeInTheDocument()
     expect(screen.getByTestId('memory-signal')).toBeInTheDocument()
     expect(within(panel).getByRole('heading', { name: 'Memory' })).toBeInTheDocument()
-    expect(screen.getByText('Chitragupta')).toBeInTheDocument()
-    expect(screen.getByText('Agent access')).toBeInTheDocument()
+    expect(screen.getByText('Local ledger')).toBeInTheDocument()
+    expect(screen.getByText('Ledger')).toBeInTheDocument()
     expect(screen.getByText('Ready for recall')).toBeInTheDocument()
-    expect(screen.getByText('Local agent')).toBeInTheDocument()
+    expect(within(panel).getByText('Test Project Memory')).toBeInTheDocument()
+    expect(within(panel).getByText('Remember the project launch constraints.')).toBeInTheDocument()
   })
 
   it('withholds stats and context details for local-only notes', () => {

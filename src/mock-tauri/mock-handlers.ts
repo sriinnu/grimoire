@@ -609,6 +609,9 @@ export const mockHandlers: Record<string, (args: any) => any> = {
 }
 
 export function addMockEntry(_entry: VaultEntry, content: string): void {
+  if (!MOCK_ENTRIES.some((entry) => entry.path === _entry.path)) {
+    MOCK_ENTRIES.push(_entry)
+  }
   MOCK_CONTENT[_entry.path] = content
   syncWindowContent()
 }

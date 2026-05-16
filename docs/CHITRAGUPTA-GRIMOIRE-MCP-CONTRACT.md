@@ -223,6 +223,12 @@ await call("chitragupta_ingest_markdown", {
 4. Add diagnostics for stale, orphaned, and contradictory memory.
 5. Upgrade `/recall`, `/related`, `/memory`, `/crystallize`, and `/diagnose` from placeholders to live actions.
 
+## Grimoire Slice 1
+
+- Memory Ledger records are normal Markdown notes with `type: Memory` and source/confidence/last-seen/expiry/contradiction metadata.
+- Locality Firewall is enforced before renderer AI context, Rust Markdown ZIP export, and MCP vault/project tool responses.
+- Crystallize currently creates a reviewed local Markdown memory note from the latest AI response. It does not silently patch existing notes.
+
 ## Non-Negotiables
 
 - Local-first, with no hidden cloud dependency.

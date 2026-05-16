@@ -148,3 +148,4 @@ proposed → active → superseded
 | [0090](0090-markdown-durable-canvas-attachments.md) | Markdown-durable canvas attachments | active |
 | [0091](0091-vault-portability-import-export-storage.md) | Vault portability import export and storage providers | active |
 | [0092](0092-local-first-vaults-with-optional-git.md) | Local-first vaults with optional Git | active |
+| [0093](0093-memory-ledger-locality-firewall-crystallize.md) | Memory Ledger, Locality Firewall, and Crystallize are Markdown-first | active |

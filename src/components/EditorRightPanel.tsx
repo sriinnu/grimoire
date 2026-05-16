@@ -49,16 +49,22 @@ function AiChatRightPanel({
   onUnsupportedAiPaste,
   inspectorEntry,
   entries,
+  vaultPath,
   onToggleAIChat,
   onOpenNote,
+  onFileCreated,
+  onVaultChanged,
 }: Pick<EditorRightPanelProps,
   | 'defaultAiAgent'
   | 'defaultAiAgentReady'
   | 'onUnsupportedAiPaste'
   | 'inspectorEntry'
   | 'entries'
+  | 'vaultPath'
   | 'onToggleAIChat'
   | 'onOpenNote'
+  | 'onFileCreated'
+  | 'onVaultChanged'
 > & { controller: AiPanelController; width: number }) {
   return (
     <div
@@ -67,6 +73,7 @@ function AiChatRightPanel({
     >
       <AiPanelView
         controller={controller}
+        vaultPath={vaultPath}
         onClose={() => onToggleAIChat?.()}
         onOpenNote={onOpenNote}
         onUnsupportedAiPaste={onUnsupportedAiPaste}
@@ -74,6 +81,8 @@ function AiChatRightPanel({
         defaultAiAgentReady={defaultAiAgentReady ?? true}
         activeEntry={inspectorEntry}
         entries={entries}
+        onFileCreated={onFileCreated}
+        onVaultChanged={onVaultChanged}
       />
     </div>
   )
@@ -128,8 +137,11 @@ export function EditorRightPanel({
         onUnsupportedAiPaste={onUnsupportedAiPaste}
         inspectorEntry={inspectorEntry}
         entries={entries}
+        vaultPath={vaultPath}
         onToggleAIChat={onToggleAIChat}
         onOpenNote={onOpenNote}
+        onFileCreated={onFileCreated}
+        onVaultChanged={onVaultChanged}
       />
     )
   }

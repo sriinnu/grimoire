@@ -8,6 +8,12 @@ import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import matter from 'gray-matter'
+import {
+  isLocalOnlyMarkdownFile,
+  isLocalOnlyRelativePath,
+  readVisibleMarkdownFile,
+  visibleMarkdownFiles,
+} from './locality.js'
 
 const BOARD_FILE = 'BOARD.md'
 const DEFAULT_TASK_HEADING = '## Tasks'
@@ -20,15 +26,16 @@ const TODO_PATTERN = /\b(TODO|FIXME|HACK|NOTE):\s*(.+)$/i
  * @param {string} folder
  * @returns {Promise<Array<{path: string, title: string, role: string}>>}
  */
-export async function listProjectDocs(vaultPath, folder = '') {
+export async function listProjectDocs(vaultPath, folder = '', options = {}) {
   const projectRoot = await resolveProjectRoot(vaultPath, folder)
-  const files = await findMarkdownFiles(projectRoot)
+  const vaultRoot = await fs.realpath(vaultPath)
+  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(projectRoot), options.allowLocalOnly)
   const docs = []
 
   for (const filePath of files) {
-    const raw = await fs.readFile(filePath, 'utf-8')
+    const raw = await readVisibleMarkdownFile(vaultRoot, filePath, options.allowLocalOnly)
     const parsed = matter(raw)
-    const relativePath = path.relative(await fs.realpath(vaultPath), filePath)
+    const relativePath = path.relative(vaultRoot, filePath)
     docs.push({
       path: relativePath,
       title: parsed.data.title || extractTitle(raw, path.basename(filePath, '.md')),
@@ -45,13 +52,14 @@ export async function listProjectDocs(vaultPath, folder = '') {
  * @param {string} folder
  * @returns {Promise<{path: string, exists: boolean, content: string}>}
  */
-export async function readProjectBoard(vaultPath, folder = '') {
+export async function readProjectBoard(vaultPath, folder = '', options = {}) {
   const boardPath = await resolveBoardPath(vaultPath, folder)
+  const vaultRoot = await fs.realpath(vaultPath)
   try {
     return {
       path: await relativeToVault(vaultPath, boardPath),
       exists: true,
-      content: await fs.readFile(boardPath, 'utf-8'),
+      content: await readVisibleMarkdownFile(vaultRoot, boardPath, options.allowLocalOnly),
     }
   } catch (error) {
     if (error.code !== 'ENOENT') throw error
@@ -69,13 +77,14 @@ export async function readProjectBoard(vaultPath, folder = '') {
  * @param {string} folder
  * @returns {Promise<Array<{id: string, title: string, status: string, path: string, line: number, source: string}>>}
  */
-export async function listProjectTasks(vaultPath, folder = '') {
+export async function listProjectTasks(vaultPath, folder = '', options = {}) {
   const projectRoot = await resolveProjectRoot(vaultPath, folder)
-  const files = await findMarkdownFiles(projectRoot)
+  const vaultRoot = await fs.realpath(vaultPath)
+  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(projectRoot), options.allowLocalOnly)
   const tasks = []
 
   for (const filePath of files) {
-    const content = await fs.readFile(filePath, 'utf-8')
+    const content = await readVisibleMarkdownFile(vaultRoot, filePath, options.allowLocalOnly)
     tasks.push(...extractTasks(vaultPath, filePath, content))
   }
 
@@ -90,6 +99,7 @@ export async function listProjectTasks(vaultPath, folder = '') {
  */
 export async function createProjectTask(vaultPath, args) {
   const boardPath = await resolveBoardPath(vaultPath, args.folder || '')
+  await assertProjectWriteAllowed(vaultPath, boardPath, args.allowLocalOnly)
   const id = crypto.randomUUID()
   const checked = normalizeStatus(args.status) === 'done' ? 'x' : ' '
   const suffix = args.priority ? ` #${sanitizeToken(args.priority)}` : ''
@@ -111,6 +121,7 @@ export async function createProjectTask(vaultPath, args) {
  * @returns {Promise<{id: string, path: string, task: string}>}
  */
 export async function updateProjectTask(vaultPath, args) {
+  await assertProjectWriteAllowed(vaultPath, await resolveBoardPath(vaultPath, args.folder || ''), args.allowLocalOnly)
   return mutateBoardTask(vaultPath, args.folder || '', args.id, (task) => ({
     ...task,
     title: args.title ? args.title.trim() : task.title,
@@ -127,6 +138,7 @@ export async function updateProjectTask(vaultPath, args) {
  */
 export async function deleteProjectTask(vaultPath, args) {
   const boardPath = await resolveBoardPath(vaultPath, args.folder || '')
+  await assertProjectWriteAllowed(vaultPath, boardPath, args.allowLocalOnly)
   const content = await fs.readFile(boardPath, 'utf-8')
   const lines = content.split('\n')
   const nextLines = lines.filter(line => !line.includes(`grimoire-task:${args.id}`))
@@ -141,8 +153,8 @@ export async function deleteProjectTask(vaultPath, args) {
  * @param {string} folder
  * @returns {Promise<{nodes: Array<{id: string, title: string}>, edges: Array<{from: string, to: string, label: string}>}>}
  */
-export async function projectGraph(vaultPath, folder = '') {
-  const docs = await listProjectDocs(vaultPath, folder)
+export async function projectGraph(vaultPath, folder = '', options = {}) {
+  const docs = await listProjectDocs(vaultPath, folder, options)
   const nodes = docs.map(doc => ({ id: doc.path, title: doc.title }))
   const aliases = new Map(nodes.flatMap(node => [
     [stripMarkdownExtension(node.id), node.id],
@@ -152,7 +164,11 @@ export async function projectGraph(vaultPath, folder = '') {
   const edges = []
 
   for (const doc of docs) {
-    const raw = await fs.readFile(path.join(await fs.realpath(vaultPath), doc.path), 'utf-8')
+    const raw = await readVisibleMarkdownFile(
+      await fs.realpath(vaultPath),
+      path.join(await fs.realpath(vaultPath), doc.path),
+      options.allowLocalOnly,
+    )
     for (const target of extractWikilinks(raw)) {
       const resolved = aliases.get(target) || aliases.get(stripMarkdownExtension(target))
       if (resolved) edges.push({ from: doc.path, to: resolved, label: target })
@@ -160,6 +176,21 @@ export async function projectGraph(vaultPath, folder = '') {
   }
 
   return { nodes, edges }
+}
+
+async function assertProjectWriteAllowed(vaultPath, filePath, allowLocalOnly = false) {
+  if (allowLocalOnly) return
+  const vaultRoot = await fs.realpath(vaultPath)
+  const relativePath = path.relative(vaultRoot, filePath)
+  if (isLocalOnlyRelativePath(relativePath)) throw new Error('Project write withheld by Locality Firewall')
+
+  try {
+    if (await isLocalOnlyMarkdownFile(vaultRoot, filePath)) {
+      throw new Error('Project write withheld by Locality Firewall')
+    }
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
 }
 
 async function resolveProjectRoot(vaultPath, folder) {
