@@ -37,7 +37,10 @@ A task is not done until:
   Target: create/open local vault first, then optionally connect iCloud, Google Drive Desktop, Git, S3, or Azure later.
 - [ ] Agent Council as an actual product surface.
   Problem: the agent-of-agents thesis is strong, but the UI needs to show separate stances, sources, conflicts, and synthesis.
-  Target: Codex, Chitragupta, Claude, local search, graph, and importer/exporter context can produce inspectable contributions.
+  Target: Codex, Claude, local search, graph, importer/exporter context, and private local agent lanes can produce inspectable contributions.
+- [ ] Private agent lanes stay private.
+  Problem: Chitragupta, Woosh, and Tring CLI are part of the agent-of-agents direction, but their private internals should not become public app assumptions.
+  Target: Grimoire can surface them as private/local capabilities with health, permissions, and source-backed outputs while keeping configs, prompts, credentials, and implementation details local-only.
 - [ ] Memory Ledger product depth.
   Problem: first records exist, but memory still needs edit/version/confidence/contradiction/expires workflows.
   Target: every durable AI memory is a Markdown note with editable metadata and visible provenance.
@@ -68,6 +71,7 @@ A task is not done until:
 - [ ] Do not add a feature if it could belong unchanged in any notes app.
 - [ ] Do not let AI write invisible memory.
 - [ ] Do not let dreams, journals, private notes, or local-only files leave by default.
+- [ ] Do not expose private Chitragupta, Woosh, or Tring CLI internals in public docs, logs, exports, or PRs.
 - [ ] Do not make Git required for creating or opening a vault.
 - [ ] Do not hide Markdown behind a database-shaped abstraction.
 - [ ] Do not ship cloud/provider sync without local working-copy behavior and clear failure states.
@@ -77,6 +81,7 @@ A task is not done until:
 
 - [ ] Research and rank the exact importer edge cases for Bear, Day One, Apple Journal, Obsidian, Notion, Journey, and Markdown ZIP.
 - [ ] Prototype Agent Council response cards with source links and disagreement handling.
+- [ ] Design the private-agent adapter boundary for Chitragupta, Woosh, and Tring CLI with only names, health, permissions, and outputs crossing into Grimoire.
 - [ ] Design the Dream Forge privacy model before adding any dream analytics UI.
 - [ ] Add a local-only docs/scratch audit so internal planning files do not accidentally ship when they should stay local.
 - [ ] Decide whether commercial dual licensing needs a CLA before external contributions become serious.
