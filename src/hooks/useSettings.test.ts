@@ -19,6 +19,7 @@ const defaultSettings: Settings = {
   theme_preset: null,
   editor_font: null,
   ui_language: null,
+  menu_bar_icon_enabled: null,
   default_ai_agent: null,
 }
 
@@ -37,6 +38,7 @@ const savedSettings: Settings = {
   theme_preset: null,
   editor_font: null,
   ui_language: null,
+  menu_bar_icon_enabled: true,
   default_ai_agent: null,
 }
 
@@ -88,6 +90,7 @@ function changedSettings(): Settings {
     theme_preset: 'manuscript',
     editor_font: 'serif',
     ui_language: 'zh-Hans',
+    menu_bar_icon_enabled: false,
     default_ai_agent: null,
   }
 }

@@ -19,6 +19,7 @@ const emptySettings: Settings = {
   theme_preset: null,
   editor_font: null,
   ui_language: null,
+  menu_bar_icon_enabled: null,
 }
 
 function installPointerCapturePolyfill() {
@@ -106,8 +107,22 @@ describe('SettingsPanel', () => {
       theme_mode: 'light',
       theme_preset: 'manuscript',
       editor_font: 'system',
+      menu_bar_icon_enabled: false,
     }))
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('saves the native menu bar icon preference when toggled on', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Show Grimoire in the menu bar' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      menu_bar_icon_enabled: true,
+    }))
   })
 
   it('defaults the color mode control to light', () => {

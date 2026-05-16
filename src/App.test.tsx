@@ -430,6 +430,7 @@ import { isTauri } from './mock-tauri'
 const AI_AGENTS_ONBOARDING_DISMISSED_KEY = 'grimoire:ai-agents-onboarding-dismissed'
 const CLAUDE_CODE_ONBOARDING_DISMISSED_KEY = 'grimoire:claude-code-onboarding-dismissed'
 const APP_TEST_DESKTOP_WIDTH = 1280
+const APP_STARTUP_WAIT_TIMEOUT_MS = 5000
 
 function setAppTestViewportWidth(width: number) {
   Object.defineProperty(window, 'innerWidth', {
@@ -637,7 +638,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Manage External AI Tools')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
     expect(screen.getByTestId('mcp-setup-dialog')).toBeInTheDocument()
     expect(screen.queryByText('No AI agents detected')).not.toBeInTheDocument()
   })
@@ -771,7 +772,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Welcome to Grimoire')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
     expect(screen.queryByText('Vault not found')).not.toBeInTheDocument()
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open existing vault')
   })

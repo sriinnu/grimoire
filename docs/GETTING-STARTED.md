@@ -110,6 +110,7 @@ src/
 src-tauri/src/
   lib.rs                          command registration
   menu.rs                         native menu IDs
+  menu_bar.rs                     optional native menu bar quick actions
   settings.rs                     app settings and sanitizers
   commands/                       Tauri command boundary
   vault/                          scanning, parsing, cache, views
