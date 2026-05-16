@@ -31,8 +31,15 @@ Thesis: Grimoire is a local-first mind OS where agents work on Markdown, but the
 Build order:
 
 - [ ] Memory Ledger: editable/versioned Markdown memories with source, confidence, last seen, contradictions, and expiry.
+  - [x] Add first Markdown-ledger model for `type: Memory` records and show active-note records in the Inspector.
+  - [ ] Add edit/version UI for ledger records.
 - [ ] Locality Firewall: visible per-note, per-vault, per-export "what can leave" policy; dreams, journals, and private lanes stay local forever.
+  - [x] Enforce local-only filtering in MCP vault/project read surfaces.
+  - [x] Redact local-only AI context bar titles in the AI panel.
+  - [ ] Add a fuller per-vault policy inspector.
 - [ ] Crystallize: AI chat/research outputs become reviewable Markdown diffs for notes, frontmatter, backlinks, and tasks.
+  - [x] Add reviewed creation of local `type: Memory` notes from the latest AI response.
+  - [ ] Add per-hunk note/frontmatter/backlink/task diffs.
 - [ ] Agent Council: fan one request out to Codex, Chitragupta, Claude, local search, vault graph, and import/export context; synthesize with sources.
 - [ ] Time Loom: daily notes, journals, meetings, dreams, tasks, commits, voice notes, and calendar become a temporal graph.
 - [ ] Context Capsules: inspectable agent context packages with selected notes, rules, project map, and exclusions, plus local-only safety.
@@ -111,6 +118,7 @@ Build order:
 - Added `docs/CHITRAGUPTA-WIRING-NEEDS.md` with the concrete MCP tools Grimoire needs for real second-brain recall, wiki, graph, ingest, and diagnostics.
 - Split local AI agent args, binary discovery, and event mapping into focused modules so `ai_agents.rs` is under the code-size guardrail.
 - Added Settings storage health checks that detect whether the active vault lives under iCloud Drive or Google Drive Desktop while keeping S3/Azure marked as planned adapters.
+- Added first Memory Ledger / Locality Firewall / Crystallize slice: MCP locality filtering, Inspector memory records, AI context redaction, and reviewed local memory-note creation.
 
 ## Next Tasks
 

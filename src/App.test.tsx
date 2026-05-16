@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DEFAULT_VAULTS } from './hooks/useVaultSwitcher'
 import { formatShortcutDisplay } from './hooks/appCommandCatalog'
+import { resetAppCommandDispatchStateForTests } from './hooks/appCommandDispatcher'
 import { invoke } from '@tauri-apps/api/core'
 
 // Provide a localStorage mock that supports all methods (jsdom's may be incomplete)
@@ -460,6 +461,8 @@ describe('App', () => {
     vi.mocked(isTauri).mockReturnValue(false)
     vi.mocked(useUpdater).mockReturnValue(createMockUpdaterResult())
     setAppTestViewportWidth(APP_TEST_DESKTOP_WIDTH)
+    resetAppCommandDispatchStateForTests()
+    delete window.__grimoireTest
     localStorage.clear()
     window.history.replaceState({}, '', '/')
     localStorage.setItem(CLAUDE_CODE_ONBOARDING_DISMISSED_KEY, '1')

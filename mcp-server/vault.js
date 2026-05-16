@@ -5,6 +5,10 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import matter from 'gray-matter'
+import {
+  readVisibleMarkdownFile,
+  visibleMarkdownFiles,
+} from './locality.js'
 
 const ACTIVE_VAULT_ERROR = 'Note path must stay inside the active vault'
 
@@ -43,14 +47,16 @@ async function resolveVaultNotePath(vaultPath, notePath) {
  * Read a note with parsed frontmatter and content.
  * @param {string} vaultPath
  * @param {string} notePath
+ * @param {{allowLocalOnly?: boolean}} [options]
  * @returns {Promise<{path: string, frontmatter: Record<string, unknown>, content: string}>}
  */
-export async function getNote(vaultPath, notePath) {
+export async function getNote(vaultPath, notePath, options = {}) {
   const {
+    vaultRoot,
     noteRealPath,
     relativePath,
   } = await resolveVaultNotePath(vaultPath, notePath)
-  const raw = await fs.readFile(noteRealPath, 'utf-8')
+  const raw = await readVisibleMarkdownFile(vaultRoot, noteRealPath, options.allowLocalOnly)
   const parsed = matter(raw)
   return {
     path: relativePath,
@@ -64,10 +70,12 @@ export async function getNote(vaultPath, notePath) {
  * @param {string} vaultPath
  * @param {string} query
  * @param {number} [limit=10]
+ * @param {{allowLocalOnly?: boolean}} [options]
  * @returns {Promise<Array<{path: string, title: string, snippet: string}>>}
  */
-export async function searchNotes(vaultPath, query, limit = 10) {
-  const files = await findMarkdownFiles(vaultPath)
+export async function searchNotes(vaultPath, query, limit = 10, options = {}) {
+  const vaultRoot = await fs.realpath(vaultPath)
+  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(vaultRoot), options.allowLocalOnly)
   const q = query.toLowerCase()
   const results = []
 
@@ -80,7 +88,7 @@ export async function searchNotes(vaultPath, query, limit = 10) {
 
     const snippet = extractSnippet(content, q)
     results.push({
-      path: path.relative(vaultPath, filePath),
+      path: path.relative(vaultRoot, filePath),
       title: titleMatch,
       snippet,
     })
@@ -92,16 +100,18 @@ export async function searchNotes(vaultPath, query, limit = 10) {
 /**
  * Get vault context: unique types, note count, top-level folders, and 20 most recent notes.
  * @param {string} vaultPath
+ * @param {{allowLocalOnly?: boolean}} [options]
  * @returns {Promise<{types: string[], noteCount: number, folders: string[], recentNotes: Array<{path: string, title: string, type: string|null}>, vaultPath: string}>}
  */
-export async function vaultContext(vaultPath) {
-  const files = await findMarkdownFiles(vaultPath)
+export async function vaultContext(vaultPath, options = {}) {
+  const vaultRoot = await fs.realpath(vaultPath)
+  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(vaultRoot), options.allowLocalOnly)
   const typesSet = new Set()
   const foldersSet = new Set()
   const notesWithMtime = []
 
   for (const filePath of files) {
-    const { topFolder, note, type } = await readVaultContextNote(vaultPath, filePath)
+    const { topFolder, note, type } = await readVaultContextNote(vaultRoot, filePath)
     if (type) typesSet.add(type)
     if (topFolder) foldersSet.add(topFolder)
     notesWithMtime.push(note)

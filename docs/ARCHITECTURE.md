@@ -230,6 +230,9 @@ Grimoire favors local agents:
 - The app streams agent output into `AiPanel`.
 - MCP exposes vault tools so agents can inspect and operate on local notes.
 - MCP also exposes project-intelligence tools for project docs, durable `BOARD.md` tasks, and wikilink graph edges.
+- MCP vault and project read tools pass through the Locality Firewall before returning note content, search results, recent context, project docs, tasks, or graph nodes.
+- Memory Ledger records are Markdown notes (`type: Memory`) with source, confidence, last-seen, expiry, contradiction, and locality metadata.
+- Crystallize writes start as reviewed local Markdown memory notes under `memory/crystallized/`; richer note/frontmatter/task diffs must stay review-first.
 - Generated project board rows keep stable `grimoire-task` comments with priority/source metadata so app scans and MCP tools share one task contract.
 - Agent choice and per-agent CLI model overrides are app settings; vault guidance files live with the vault.
 - Import, export, storage, and second-brain readiness are surfaced from the shared portability registry so settings, docs, and agents describe the same capability map.
