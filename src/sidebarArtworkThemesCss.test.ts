@@ -20,13 +20,16 @@ describe('sidebar artwork theme CSS', () => {
     expect(css).toContain('.app-sidebar-panel .sidebar-artwork__image--light')
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel .sidebar-artwork__image--dark')
     expect(css).toContain('[data-theme-preview="dark"] .sidebar-artwork__image--dark')
+    expect(css).toContain('[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork__image--dark')
+    expect(css).toContain('[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork__image--light')
   })
 
   it('keeps the live artwork as an ambient sidebar layer instead of a framed card', () => {
     const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-themes.css`, 'utf8')
 
     expect(css).toContain('mask-image: linear-gradient')
-    expect(css).toContain('mix-blend-mode: soft-light')
+    expect(css).toContain('mix-blend-mode: multiply')
+    expect(css).toContain('mix-blend-mode: screen')
     expect(css).toContain('border: 0')
     expect(css).not.toContain('box-shadow: inset')
   })

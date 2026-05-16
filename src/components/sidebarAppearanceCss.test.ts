@@ -17,11 +17,10 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('--muted-foreground: color-mix(in srgb, var(--sidebar-foreground) 68%, transparent)')
   })
 
-  it('enables screenshot-inspired sidebar artwork for narrative presets', () => {
+  it('enables editorial line-art sidebar artwork for narrative presets', () => {
     const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
 
     expect(css).toContain('.sidebar-artwork')
-    expect(css).toContain('.sidebar-rosy')
     expect(css).toContain('[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork')
     expect(css).toContain('[data-theme-preset="ion"] .app-sidebar-panel .sidebar-artwork')
     expect(css).toContain('[data-theme-preview="light"][data-sidebar-preset-preview="folio"] .sidebar-artwork__image--light')
