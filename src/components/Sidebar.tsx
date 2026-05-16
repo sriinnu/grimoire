@@ -22,6 +22,7 @@ import {
   ViewsSection,
 } from './sidebar/SidebarSections'
 import { SidebarArtwork } from './sidebar/SidebarArtwork'
+import { SidebarRail } from './sidebar/SidebarRail'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
 
 interface SidebarProps {
@@ -51,7 +52,9 @@ interface SidebarProps {
   onCancelRenameFolder?: () => void
   showInbox?: boolean
   inboxCount?: number
+  collapsed?: boolean
   onCollapse?: () => void
+  onExpand?: () => void
 }
 
 export const Sidebar = memo(function Sidebar({
@@ -78,7 +81,9 @@ export const Sidebar = memo(function Sidebar({
   onCancelRenameFolder,
   showInbox = true,
   inboxCount = 0,
+  collapsed = false,
   onCollapse,
+  onExpand,
   onCreateNewType,
 }: SidebarProps) {
   const { typeEntryMap, allSectionGroups, visibleSections, sectionIds } = useSidebarSections(entries)
@@ -120,6 +125,20 @@ export const Sidebar = memo(function Sidebar({
 
   const hasFavorites = entries.some((entry) => entry.favorite && !entry.archived)
   const hasViews = views.length > 0 || !!onCreateView
+
+  if (collapsed) {
+    return (
+      <SidebarRail
+        selection={selection}
+        onSelect={onSelect}
+        onExpand={onExpand}
+        showInbox={showInbox}
+        inboxCount={inboxCount}
+        activeCount={activeCount}
+        archivedCount={archivedCount}
+      />
+    )
+  }
 
   return (
     <aside className="app-sidebar-panel flex h-full flex-col overflow-hidden border-r border-[var(--sidebar-border)] bg-sidebar text-sidebar-foreground">

@@ -22,6 +22,11 @@
   flex-direction: column;
 }
 
+.app__sidebar--collapsed {
+  flex-shrink: 0;
+  min-width: 68px;
+}
+
 .app__sidebar > * {
   flex: 1;
 }

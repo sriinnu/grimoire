@@ -116,6 +116,15 @@ Supported values:
 
 Renderers must constrain image icons to the requested icon size with containment, so uploaded SVGs with unusual dimensions do not distort sidebars, chips, search rows, or note titles.
 
+## Sidebar Column
+
+The left sidebar has two app-local presentations:
+
+- full column: complete navigation tree with sections, folders, views, favorites, and artwork
+- compact rail: 68px icon navigation for fast switching between primary filters
+
+The compact rail is presentation state, not vault state. It persists to local app storage because it describes this installation's workspace preference, while section/folder/type data still comes from the vault.
+
 ## Frontmatter
 
 Frontmatter is structured metadata. It should stay readable by a human and an AI agent.

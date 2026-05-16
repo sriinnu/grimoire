@@ -44,6 +44,16 @@ describe('getMainWindowMinWidth', () => {
       expectedWidth: 700,
     },
     {
+      name: 'uses the rail width when the sidebar column is collapsed',
+      visibility: {
+        sidebarVisible: true,
+        sidebarCollapsed: true,
+        noteListVisible: true,
+        inspectorCollapsed: true,
+      },
+      expectedWidth: 768,
+    },
+    {
       name: 'adds inspector width when the properties panel is open',
       visibility: {
         sidebarVisible: false,

@@ -3,6 +3,45 @@
   "children": [
     {
       "type": "frame",
+      "id": "collapsible_left_column_note",
+      "x": 0,
+      "y": -980,
+      "name": "Collapsible Left Column — Icon Rail",
+      "theme": {
+        "Mode": "Light"
+      },
+      "width": 1440,
+      "height": 180,
+      "fill": "$--background",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 40,
+      "children": [
+        {
+          "type": "text",
+          "id": "collapsible_left_column_title",
+          "fill": "$--foreground",
+          "content": "Collapsible Left Column",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "collapsible_left_column_body",
+          "fill": "$--muted-foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Full sidebar collapses into a 68px icon rail with Inbox, All Notes, Archive, and expand controls. The note list stays visible and the editor remains primary.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
       "id": "sec1_hdr",
       "x": 0,
       "y": 0,
