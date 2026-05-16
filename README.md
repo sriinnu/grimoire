@@ -117,4 +117,6 @@ Report security issues privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
-Grimoire is licensed under AGPL-3.0-or-later. The Grimoire name and logo remain covered by the project's trademark policy.
+Grimoire's source code is licensed under AGPL-3.0-or-later. User vaults, journals, dreams, notes, attachments, and imported files remain owned by their creators and are not licensed by this repository.
+
+See [LICENSING.md](LICENSING.md) for the full project policy. The Grimoire name, logo, app icon, wordmark, and brand assets remain covered by the [trademark policy](TRADEMARKS.md).
