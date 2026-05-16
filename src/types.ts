@@ -96,6 +96,7 @@ export interface Settings {
   theme_preset?: ThemePreset | null
   editor_font?: EditorFont | null
   ui_language?: AppLocale | null
+  menu_bar_icon_enabled?: boolean | null
   initial_h1_auto_rename_enabled?: boolean | null
   default_ai_agent?: AiAgentId | null
   /** Optional per-agent model override passed to local CLI agents. */

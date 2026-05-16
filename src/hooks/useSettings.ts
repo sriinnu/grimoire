@@ -41,6 +41,7 @@ const EMPTY_SETTINGS: Settings = {
   theme_preset: null,
   editor_font: null,
   ui_language: null,
+  menu_bar_icon_enabled: null,
   default_ai_agent: null,
 }
 

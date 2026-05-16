@@ -184,8 +184,10 @@ describe('mockHandlers coverage', () => {
       theme_preset: null,
       editor_font: null,
       ui_language: 'zh-Hans',
+      menu_bar_icon_enabled: false,
       default_ai_agent: 'codex',
       ai_agent_models: { codex: 'gpt-5.2' },
+      ai_agent_providers: null,
     })
 
     const list = {

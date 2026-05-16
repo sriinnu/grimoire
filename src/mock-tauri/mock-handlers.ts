@@ -115,6 +115,7 @@ let mockSettings: Settings = {
   theme_preset: null,
   editor_font: null,
   ui_language: null,
+  menu_bar_icon_enabled: false,
   default_ai_agent: 'claude_code',
   ai_agent_models: null,
   ai_agent_providers: null,
@@ -524,8 +525,10 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       theme_preset: s.theme_preset ?? null,
       editor_font: s.editor_font ?? null,
       ui_language: s.ui_language ?? null,
+      menu_bar_icon_enabled: s.menu_bar_icon_enabled ?? false,
       default_ai_agent: s.default_ai_agent ?? null,
       ai_agent_models: s.ai_agent_models ?? null,
+      ai_agent_providers: s.ai_agent_providers ?? null,
     }
     return null
   },
