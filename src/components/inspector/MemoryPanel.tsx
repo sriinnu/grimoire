@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
-import { Bot, Brain, CircleAlert, Network, ShieldCheck, Workflow } from 'lucide-react'
+import { Brain, CircleAlert, Network, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
 import { useMemo } from 'react'
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../../types'
 import { Badge } from '../ui/badge'
 import { buildChitraguptaMemoryContext } from '../../lib/chitraguptaIntegration'
 import { resolveEntryLocalityPolicy } from '../../lib/localityPolicy'
+import { findMemoryLedgerRecordsForEntry, type MemoryLedgerRecord } from '../../lib/memoryLedger'
 
 interface MemoryPanelProps {
   entry: VaultEntry
@@ -50,6 +51,28 @@ function OrchestrationRow({
   )
 }
 
+function LedgerRecordRow({ record }: { record: MemoryLedgerRecord }) {
+  return (
+    <div className="rounded-md bg-muted/30 px-2 py-1.5 text-[11px]" data-testid="memory-ledger-record">
+      <div className="flex min-w-0 items-center gap-1.5">
+        <Sparkles className="size-3 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate text-foreground">{record.title}</span>
+        {record.confidence !== null ? (
+          <span className="shrink-0 text-muted-foreground">{record.confidence}</span>
+        ) : null}
+      </div>
+      {record.summary ? (
+        <div className="mt-0.5 line-clamp-2 text-muted-foreground">{record.summary}</div>
+      ) : null}
+      <div className="mt-1 flex flex-wrap gap-1">
+        {record.lastSeen ? <Badge variant="outline" className="rounded-md text-[10px]">Seen {record.lastSeen}</Badge> : null}
+        {record.expiresAt ? <Badge variant="outline" className="rounded-md text-[10px]">Expires {record.expiresAt}</Badge> : null}
+        {record.contradicts.length > 0 ? <Badge variant="outline" className="rounded-md text-[10px]">Contradicts {record.contradicts.length}</Badge> : null}
+      </div>
+    </div>
+  )
+}
+
 /** Chitragupta-ready memory lane for the active note. */
 export function MemoryPanel({ entry, entries, semantics }: MemoryPanelProps) {
   const context = useMemo(
@@ -57,11 +80,17 @@ export function MemoryPanel({ entry, entries, semantics }: MemoryPanelProps) {
     [entry, entries, semantics],
   )
   const displayPolicy = useMemo(() => resolveEntryLocalityPolicy(entry), [entry])
+  const ledgerRecords = useMemo(() => (
+    displayPolicy.localOnly ? [] : findMemoryLedgerRecordsForEntry(entry, entries)
+  ), [displayPolicy.localOnly, entries, entry])
   const withheldValue = displayPolicy.localOnly ? 'Withheld' : null
   const localityDetail = displayPolicy.localOnly
     ? `${displayPolicy.reason}. Body, title, path, and frontmatter stay out of AI prompts.`
     : 'Agent context can use this note while protected lanes stay withheld.'
   const memoryState = displayPolicy.localOnly ? 'Withheld' : 'Ready for recall'
+  const ledgerState = displayPolicy.localOnly
+    ? 'Withheld'
+    : ledgerRecords.length > 0 ? `${ledgerRecords.length} records` : 'No records yet'
 
   return (
     <section className="inspector-card" data-testid="memory-panel">
@@ -70,8 +99,8 @@ export function MemoryPanel({ entry, entries, semantics }: MemoryPanelProps) {
           <Brain className="size-3" />
           Memory
         </h4>
-        <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[10px]">
-          Chitragupta
+        <Badge variant={displayPolicy.localOnly ? 'outline' : 'secondary'} className="h-5 rounded-md px-1.5 text-[10px]">
+          {displayPolicy.localOnly ? 'Protected' : 'Local ledger'}
         </Badge>
       </div>
 
@@ -98,7 +127,7 @@ export function MemoryPanel({ entry, entries, semantics }: MemoryPanelProps) {
       <div className="mb-2 grid gap-1">
         <div className="mb-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
           <Workflow className="size-3" />
-          Agent access
+          Ledger
         </div>
         <OrchestrationRow
           icon={<ShieldCheck className="size-3" />}
@@ -111,11 +140,17 @@ export function MemoryPanel({ entry, entries, semantics }: MemoryPanelProps) {
           value={memoryState}
         />
         <OrchestrationRow
-          icon={<Bot className="size-3" />}
-          label="Writeback"
-          value="Local agent"
+          icon={<Sparkles className="size-3" />}
+          label="Records"
+          value={ledgerState}
         />
       </div>
+
+      {ledgerRecords.length > 0 ? (
+        <div className="mb-2 grid gap-1">
+          {ledgerRecords.slice(0, 3).map(record => <LedgerRecordRow key={record.path} record={record} />)}
+        </div>
+      ) : null}
 
       {context.relatedTitles.length > 0 && (
         <div className="mb-2">

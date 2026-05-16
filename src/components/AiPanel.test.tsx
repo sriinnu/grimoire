@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { AiPanel } from './AiPanel'
 import { UNSUPPORTED_INLINE_PASTE_MESSAGE } from './InlineWikilinkInput'
 import type { VaultEntry } from '../types'
@@ -46,6 +46,18 @@ const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
   color: null,
   order: null,
   outgoingLinks: [],
+  sidebarLabel: null,
+  template: null,
+  sort: null,
+  view: null,
+  visible: null,
+  organized: false,
+  favorite: false,
+  favoriteIndex: null,
+  listPropertiesDisplay: [],
+  properties: {},
+  hasH1: false,
+  fileKind: 'markdown',
   ...overrides,
 })
 
@@ -84,6 +96,48 @@ describe('AiPanel', () => {
     expect(mockClearConversation).toHaveBeenCalledOnce()
   })
 
+  it('disables crystallize until there is an assistant response', () => {
+    render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
+    expect(screen.getByTestId('ai-crystallize')).toBeDisabled()
+  })
+
+  it('reviews and creates a crystallized memory note from the latest AI response', async () => {
+    const activeEntry = makeEntry({ title: 'Memory Ledger Plan' })
+    mockMessages = [{
+      userMessage: 'What should we remember?',
+      actions: [],
+      response: 'Memory should stay source-backed and local-first.',
+      id: 'msg-crystallize',
+    }]
+    const onFileCreated = vi.fn()
+    const onVaultChanged = vi.fn()
+    const onOpenNote = vi.fn()
+
+    render(
+      <AiPanel
+        onClose={vi.fn()}
+        vaultPath="/tmp/vault"
+        activeEntry={activeEntry}
+        entries={[activeEntry]}
+        onFileCreated={onFileCreated}
+        onVaultChanged={onVaultChanged}
+        onOpenNote={onOpenNote}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('ai-crystallize'))
+    expect(screen.getByTestId('crystallize-review-dialog')).toBeInTheDocument()
+    const preview = screen.getByTestId('crystallize-markdown-preview') as HTMLTextAreaElement
+    expect(preview.value).toContain('type: Memory')
+    expect(preview.value).toContain('Memory should stay source-backed')
+
+    fireEvent.click(screen.getByTestId('crystallize-apply'))
+
+    await waitFor(() => expect(onVaultChanged).toHaveBeenCalledOnce())
+    expect(onFileCreated).toHaveBeenCalledWith(expect.stringMatching(/^memory\/crystallized\//))
+    expect(onOpenNote).toHaveBeenCalledWith(expect.stringMatching(/^memory\/crystallized\//))
+  })
+
   it('renders empty state without context', () => {
     render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
     expect(screen.getByText('Open a note, then ask the AI about it')).toBeTruthy()
@@ -104,6 +158,17 @@ describe('AiPanel', () => {
     )
     expect(screen.getByTestId('context-bar')).toBeTruthy()
     expect(screen.getByText('My Note')).toBeTruthy()
+  })
+
+  it('redacts the context bar title for local-only notes', () => {
+    const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
+    render(
+      <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />
+    )
+
+    expect(screen.getByTestId('context-bar')).toHaveTextContent('Local-only note')
+    expect(screen.queryByText('Hidden Dream')).toBeNull()
+    expect(screen.getByText('Protected')).toBeTruthy()
   })
 
   it('shows linked count in context bar when entry has outgoing links', () => {

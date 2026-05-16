@@ -1,17 +1,24 @@
 import { useEffect, useRef } from 'react'
-import { Robot, X, PaperPlaneRight, Plus, Link } from '@phosphor-icons/react'
+import { Link, Robot } from '@phosphor-icons/react'
+import { Plus, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { AiMessage } from './AiMessage'
 import { AiChatComposerInput } from './AiChatComposerInput'
 import { extractInlineWikilinkReferences } from './inlineWikilinkText'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
 import type { NoteReference } from '../utils/ai-context'
 import type { VaultEntry } from '../types'
+import { Button } from './ui/button'
+import { Badge } from './ui/badge'
+import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 
 interface AiPanelHeaderProps {
   agentLabel: string
   agentReady: boolean
   legacyCopy: boolean
+  canCrystallize: boolean
+  crystallizeBlockedReason?: string | null
   onClose: () => void
+  onCrystallize: () => void
   onNewChat: () => void
 }
 
@@ -110,8 +117,11 @@ function AiPanelEmptyState({
 export function AiPanelHeader({
   agentLabel,
   agentReady,
+  canCrystallize,
+  crystallizeBlockedReason,
   legacyCopy,
   onClose,
+  onCrystallize,
   onNewChat,
 }: AiPanelHeaderProps) {
   return (
@@ -131,26 +141,49 @@ export function AiPanelHeader({
           </span>
         )}
       </div>
-      <button
-        className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        className="shrink-0"
+        disabled={!canCrystallize}
+        onClick={onCrystallize}
+        aria-label="Crystallize latest AI response"
+        title={crystallizeBlockedReason ?? 'Crystallize latest AI response'}
+        data-testid="ai-crystallize"
+      >
+        <Sparkles className="size-3.5" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        className="shrink-0"
         onClick={onNewChat}
         aria-label="New AI chat"
         title="New AI chat"
       >
-        <Plus size={16} />
-      </button>
-      <button
-        className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+        <Plus className="size-3.5" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-xs"
+        className="shrink-0"
         onClick={onClose}
+        aria-label="Close AI panel"
         title="Close AI panel"
       >
-        <X size={16} />
-      </button>
+        <X className="size-3.5" />
+      </Button>
     </div>
   )
 }
 
 export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBarProps) {
+  const policy = resolveEntryLocalityPolicy(activeEntry)
+  const visibleTitle = policy.localOnly ? 'Local-only note' : activeEntry.title
+
   return (
     <div
       className="flex shrink-0 items-center border-b border-border text-muted-foreground"
@@ -158,8 +191,14 @@ export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBa
       data-testid="context-bar"
     >
       <Link size={12} className="shrink-0" />
-      <span className="truncate" style={{ fontWeight: 500 }}>{activeEntry.title}</span>
-      {linkedCount > 0 && (
+      <span className="truncate" style={{ fontWeight: 500 }}>{visibleTitle}</span>
+      {policy.localOnly ? (
+        <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[10px]">
+          <ShieldCheck className="size-3" />
+          Protected
+        </Badge>
+      ) : null}
+      {!policy.localOnly && linkedCount > 0 && (
         <span style={{ opacity: 0.6 }}>+ {linkedCount} linked</span>
       )}
     </div>
@@ -222,15 +261,6 @@ export function AiPanelComposer({
   const composerDisabled = !agentReady
   const canSend = !composerDisabled && input.trim().length > 0
   const placeholder = getComposerPlaceholder(agentLabel, agentReady, legacyCopy, hasContext)
-  const sendButtonStyle = {
-    background: canSend ? 'var(--primary)' : 'var(--muted)',
-    color: canSend ? 'var(--primary-foreground)' : 'var(--muted-foreground)',
-    borderRadius: 8,
-    width: 32,
-    height: 34,
-    cursor: canSend ? 'pointer' : 'not-allowed',
-  } as const
-
   return (
     <div
       className="flex shrink-0 flex-col border-t border-border"
@@ -249,16 +279,18 @@ export function AiPanelComposer({
             inputRef={inputRef}
           />
         </div>
-        <button
-          className="shrink-0 flex items-center justify-center border-none cursor-pointer transition-colors"
-          style={sendButtonStyle}
+        <Button
+          type="button"
+          size="icon-sm"
+          variant={canSend ? 'default' : 'secondary'}
+          className="h-[34px] w-8 shrink-0"
           onClick={() => onSend(input, extractInlineWikilinkReferences(input, entries))}
           disabled={!canSend}
           title="Send message"
           data-testid="agent-send"
         >
-          <PaperPlaneRight size={16} />
-        </button>
+          <SendHorizontal className="size-4" />
+        </Button>
       </div>
     </div>
   )

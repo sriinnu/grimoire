@@ -66,6 +66,50 @@ Links back to [[test-project]].
 
 TODO: Extract project intelligence MCP tools.
 `)
+
+  await fs.mkdir(path.join(tmpDir, 'Private'), { recursive: true })
+  await fs.writeFile(path.join(tmpDir, 'Private', 'secret.md'), `---
+title: Secret Note
+is_a: Note
+---
+
+# Secret Note
+
+secret ritual phrase
+`)
+
+  await fs.writeFile(path.join(tmpDir, 'project', 'dream-plan.md'), `---
+title: Dream Plan
+type: Dream
+---
+
+# Dream Plan
+
+TODO: keep the dream path private
+`)
+
+  await fs.mkdir(path.join(tmpDir, 'journal'), { recursive: true })
+  await fs.writeFile(path.join(tmpDir, 'journal', 'daily-private.md'), `---
+title: Private Daily
+type: Journal
+---
+
+# Private Daily
+
+local-only daily entry
+`)
+
+  await fs.mkdir(path.join(tmpDir, 'local-board'), { recursive: true })
+  await fs.writeFile(path.join(tmpDir, 'local-board', 'BOARD.md'), `---
+title: Private Board
+private: true
+---
+
+# Private Board
+
+## Tasks
+<!-- grimoire-task:private-1 --> - [ ] Keep local board private
+`)
 })
 
 after(async () => {
@@ -75,7 +119,7 @@ after(async () => {
 describe('findMarkdownFiles', () => {
   it('should find all .md files recursively', async () => {
     const files = await findMarkdownFiles(tmpDir)
-    assert.equal(files.length, 4)
+    assert.equal(files.length, 8)
     assert.ok(files.some(f => f.endsWith('test-project.md')))
     assert.ok(files.some(f => f.endsWith('daily-log.md')))
     assert.ok(files.some(f => f.endsWith('second-project.md')))
@@ -108,6 +152,17 @@ describe('getNote', () => {
       outsideNote => path.relative(tmpDir, outsideNote),
     )
   })
+
+  it('should withhold local-only notes unless a call explicitly allows them', async () => {
+    await assert.rejects(
+      () => getNote(tmpDir, 'Private/secret.md'),
+      { message: 'Note withheld by Locality Firewall' },
+    )
+
+    const note = await getNote(tmpDir, 'Private/secret.md', { allowLocalOnly: true })
+    assert.equal(note.frontmatter.title, 'Secret Note')
+    assert.ok(note.content.includes('secret ritual phrase'))
+  })
 })
 
 describe('searchNotes', () => {
@@ -130,6 +185,15 @@ describe('searchNotes', () => {
   it('should respect limit', async () => {
     const results = await searchNotes(tmpDir, 'project', 1)
     assert.ok(results.length <= 1)
+  })
+
+  it('should omit local-only matches from search by default', async () => {
+    const results = await searchNotes(tmpDir, 'secret ritual')
+    assert.equal(results.length, 0)
+
+    const allowedResults = await searchNotes(tmpDir, 'secret ritual', 10, { allowLocalOnly: true })
+    assert.equal(allowedResults.length, 1)
+    assert.equal(allowedResults[0].path, path.join('Private', 'secret.md'))
   })
 })
 
@@ -170,6 +234,15 @@ describe('vaultContext', () => {
     const ctx = await vaultContext(tmpDir)
     assert.equal(ctx.noteCount, 4)
   })
+
+  it('should omit local-only notes from recent vault context', async () => {
+    const ctx = await vaultContext(tmpDir)
+    assert.ok(!ctx.recentNotes.some(note => note.title === 'Secret Note'))
+    assert.ok(!ctx.folders.includes('Private/'))
+
+    const allowedCtx = await vaultContext(tmpDir, { allowLocalOnly: true })
+    assert.ok(allowedCtx.recentNotes.some(note => note.title === 'Secret Note'))
+  })
 })
 
 describe('project intelligence MCP helpers', () => {
@@ -177,6 +250,12 @@ describe('project intelligence MCP helpers', () => {
     const docs = await listProjectDocs(tmpDir, 'project')
     assert.ok(docs.some(doc => doc.path === 'project/architecture.md' && doc.role === 'architecture'))
     assert.ok(docs.some(doc => doc.path === 'project/test-project.md'))
+    assert.ok(!docs.some(doc => doc.path === 'project/dream-plan.md'))
+  })
+
+  it('can explicitly include protected project docs for one call', async () => {
+    const docs = await listProjectDocs(tmpDir, 'project', { allowLocalOnly: true })
+    assert.ok(docs.some(doc => doc.path === 'project/dream-plan.md'))
   })
 
   it('reads missing boards as an empty durable artifact', async () => {
@@ -236,10 +315,34 @@ describe('project intelligence MCP helpers', () => {
   it('includes TODO markers and wikilink graph edges', async () => {
     const tasks = await listProjectTasks(tmpDir, 'project')
     assert.ok(tasks.some(task => task.source === 'TODO' && task.title.includes('MCP tools')))
+    assert.ok(!tasks.some(task => task.title.includes('dream path private')))
 
     const graph = await projectGraph(tmpDir, 'project')
     assert.ok(graph.nodes.some(node => node.id === 'project/architecture.md'))
     assert.ok(graph.edges.some(edge => edge.from === 'project/architecture.md' && edge.to === 'project/test-project.md'))
+    assert.ok(!graph.nodes.some(node => node.id === 'project/dream-plan.md'))
+  })
+
+  it('blocks project task writes in protected lanes unless explicitly allowed', async () => {
+    await assert.rejects(
+      () => createProjectTask(tmpDir, { folder: 'Private', title: 'No agent writes here' }),
+      { message: 'Project write withheld by Locality Firewall' },
+    )
+  })
+
+  it('blocks project task writes to boards marked local-only in frontmatter', async () => {
+    await assert.rejects(
+      () => createProjectTask(tmpDir, { folder: 'local-board', title: 'No agent writes here either' }),
+      { message: 'Project write withheld by Locality Firewall' },
+    )
+    await assert.rejects(
+      () => updateProjectTask(tmpDir, { folder: 'local-board', id: 'private-1', status: 'done' }),
+      { message: 'Project write withheld by Locality Firewall' },
+    )
+    await assert.rejects(
+      () => deleteProjectTask(tmpDir, { folder: 'local-board', id: 'private-1' }),
+      { message: 'Project write withheld by Locality Firewall' },
+    )
   })
 
   it('rejects project traversal outside the vault', async () => {
