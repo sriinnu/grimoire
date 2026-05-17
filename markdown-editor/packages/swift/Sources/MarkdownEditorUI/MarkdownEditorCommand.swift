@@ -41,24 +41,28 @@ public struct MarkdownEditorCommand: Identifiable, Equatable, Sendable {
     }
 
     public func renderedMarkdown(now: Date = Date(), calendar: Calendar = .current) -> String {
-        let formatter = Self.dateFormatter
+        let calendar = Self.gregorianCalendar(matching: calendar)
+        let formatter = Self.formatter(dateFormat: "yyyy-MM-dd", calendar: calendar)
+        let monthFormatter = Self.formatter(dateFormat: "MMMM yyyy", calendar: calendar)
+        let timeFormatter = Self.formatter(dateFormat: "HH:mm", calendar: calendar)
+        let canvasStampFormatter = Self.formatter(dateFormat: "yyyy-MM-dd-HHmmss", calendar: calendar)
         let today = formatter.string(from: now)
         let tomorrow = formatter.string(from: calendar.date(byAdding: .day, value: 1, to: now) ?? now)
         let yesterday = formatter.string(from: calendar.date(byAdding: .day, value: -1, to: now) ?? now)
         let weekStart = Self.startOfWeek(containing: now, calendar: calendar)
         let weekEnd = calendar.date(byAdding: .day, value: 6, to: weekStart) ?? weekStart
-        let canvasStamp = Self.canvasStampFormatter.string(from: now)
+        let canvasStamp = canvasStampFormatter.string(from: now)
 
         return markdownTemplate
             .replacingOccurrences(of: "{today}", with: today)
             .replacingOccurrences(of: "{tomorrow}", with: tomorrow)
             .replacingOccurrences(of: "{yesterday}", with: yesterday)
-            .replacingOccurrences(of: "{time}", with: Self.timeFormatter.string(from: now))
+            .replacingOccurrences(of: "{time}", with: timeFormatter.string(from: now))
             .replacingOccurrences(of: "{canvasStamp}", with: canvasStamp)
             .replacingOccurrences(of: "{weekStart}", with: formatter.string(from: weekStart))
             .replacingOccurrences(of: "{weekEnd}", with: formatter.string(from: weekEnd))
-            .replacingOccurrences(of: "{weekCalendarRows}", with: Self.weekCalendarRows(starting: weekStart, calendar: calendar))
-            .replacingOccurrences(of: "{monthLabel}", with: Self.monthFormatter.string(from: now))
+            .replacingOccurrences(of: "{weekCalendarRows}", with: Self.weekCalendarRows(starting: weekStart, calendar: calendar, formatter: formatter))
+            .replacingOccurrences(of: "{monthLabel}", with: monthFormatter.string(from: now))
             .replacingOccurrences(of: "{monthCalendarRows}", with: Self.monthCalendarRows(containing: now, calendar: calendar))
     }
 
@@ -69,37 +73,20 @@ public struct MarkdownEditorCommand: Identifiable, Equatable, Sendable {
         return haystack.contains { $0.contains(normalized) }
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
+    private static func gregorianCalendar(matching calendar: Calendar) -> Calendar {
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = calendar.timeZone
+        return gregorian
+    }
 
-    private static let monthFormatter: DateFormatter = {
+    private static func formatter(dateFormat: String, calendar: Calendar) -> DateFormatter {
         let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.calendar = calendar
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "MMMM yyyy"
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = dateFormat
         return formatter
-    }()
-
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "HH:mm"
-        return formatter
-    }()
-
-    private static let canvasStampFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd-HHmmss"
-        return formatter
-    }()
+    }
 
     private static func startOfWeek(containing date: Date, calendar: Calendar) -> Date {
         let weekday = calendar.component(.weekday, from: date)
@@ -107,11 +94,11 @@ public struct MarkdownEditorCommand: Identifiable, Equatable, Sendable {
         return calendar.date(byAdding: .day, value: mondayOffset, to: date) ?? date
     }
 
-    private static func weekCalendarRows(starting weekStart: Date, calendar: Calendar) -> String {
+    private static func weekCalendarRows(starting weekStart: Date, calendar: Calendar, formatter: DateFormatter) -> String {
         let weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         return weekdays.enumerated().map { index, weekday in
             let date = calendar.date(byAdding: .day, value: index, to: weekStart) ?? weekStart
-            return "| \(weekday) | \(dateFormatter.string(from: date)) |  |  |  |"
+            return "| \(weekday) | \(formatter.string(from: date)) |  |  |  |"
         }.joined(separator: "\n")
     }
 
