@@ -255,6 +255,18 @@ Network work must be explicit or user-triggered:
 - Update checks follow the configured release channel.
 - Telemetry obeys consent and must not include vault content, note titles, or paths.
 
+## Release Artifacts
+
+Tauri bundle output under `src-tauri/target` is generated state, not release truth.
+Before local macOS packaging, `scripts/clean-tauri-bundles.mjs` removes stale
+bundle directories so old updater tarballs or DMGs cannot sit beside a fresh app.
+
+`scripts/verify-release-artifacts.mjs` is the release-artifact guard: it compares
+the app icon inside exploded `.app` bundles, updater `.app.tar.gz` files, and DMGs
+against `src-tauri/icons/icon.icns`, and can require `codesign --verify` for
+packaged apps. The GitHub release workflow runs this after producing signed
+macOS artifacts for both Apple Silicon and Intel targets.
+
 ## Platform Direction
 
 The app is Tauri-first for the editor product surface. Swift remains a support layer for Apple-native integrations and a fallback if a named WebView limitation blocks product quality.
