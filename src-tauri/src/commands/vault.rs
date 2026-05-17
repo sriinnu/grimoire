@@ -326,7 +326,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         let vault_path = dir.path().join("fresh-vault");
 
-        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), None);
+        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), None, None);
         assert!(result.is_ok());
         assert_paths_exist(
             &vault_path,
@@ -342,7 +342,7 @@ mod tests {
         let dir = tempfile::TempDir::new().unwrap();
         let vault_path = dir.path().join("fresh-git-vault");
 
-        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), Some(true));
+        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), Some(true), None);
         assert!(result.is_ok());
         assert_paths_exist(
             &vault_path,
@@ -368,11 +368,28 @@ mod tests {
         std::fs::create_dir_all(&vault_path).unwrap();
         std::fs::write(vault_path.join("keep.txt"), "keep").unwrap();
 
-        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), None);
+        let result = create_empty_vault(vault_path.to_string_lossy().to_string(), None, None);
         let err = result.expect_err("expected non-empty folder to be rejected");
 
         assert_eq!(err, "Choose an empty folder to create a new vault");
         assert_paths_exist(&vault_path, &["keep.txt"]);
         assert_paths_absent(&vault_path, &[".git", "AGENTS.md"]);
+    }
+
+    #[test]
+    fn test_create_empty_vault_can_seed_journal_template() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let vault_path = dir.path().join("journal-vault");
+
+        let result = create_empty_vault(
+            vault_path.to_string_lossy().to_string(),
+            None,
+            Some("journal".to_string()),
+        );
+        assert!(result.is_ok());
+        assert_paths_exist(&vault_path, &["journal.md", "type.md", "note.md"]);
+        let content = std::fs::read_to_string(vault_path.join("journal.md")).unwrap();
+        assert!(content.contains("sidebarLabel: Journals"));
+        assert!(content.contains("## Check-in"));
     }
 }

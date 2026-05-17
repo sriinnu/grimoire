@@ -271,6 +271,11 @@ async function pressEscape() {
   })
 }
 
+async function selectSidebarNav(label: string) {
+  const nav = await screen.findByTestId('sidebar-top-nav', {}, { timeout: 5000 })
+  fireEvent.click(within(nav).getByText(label))
+}
+
 function resetMockCommandResults() {
   Object.assign(mockCommandResults, {
     load_vault_list: mockVaultList,
@@ -499,10 +504,11 @@ describe('App', () => {
     })
   })
 
-  it('shows empty state in editor when no note is selected', async () => {
+  it('opens to the vault dashboard when no note is selected', async () => {
     render(<App />)
     await waitFor(() => {
-      expect(screen.getByText('Select a note to start editing')).toBeInTheDocument()
+      expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
+      expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
     })
   })
 
@@ -531,10 +537,11 @@ describe('App', () => {
     expect(listVault).not.toHaveBeenCalled()
   })
 
-  it('shows keyboard shortcut hints', async () => {
+  it('shows keyboard shortcut hints after opening All Notes', async () => {
     const quickOpenHint = formatShortcutDisplay({ display: '⌘P / ⌘O' })
     const newNoteHint = formatShortcutDisplay({ display: '⌘N' })
     const { container } = render(<App />)
+    await selectSidebarNav('All Notes')
     await waitFor(() => {
       const shortcutHint = Array.from(container.querySelectorAll('span.text-xs.text-muted-foreground'))
         .find((element) => element.textContent === `${quickOpenHint} to search · ${newNoteHint} to create`)
@@ -875,10 +882,11 @@ describe('App', () => {
     promptSpy.mockRestore()
   })
 
-  it('renders sidebar with correct default selection (All Notes)', async () => {
+  it('renders sidebar with Dashboard as the default selection', async () => {
     render(<App />)
     await waitFor(() => {
-      // "All Notes" should be rendered as the selected nav item
+      expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
+      expect(within(screen.getByTestId('sidebar-top-nav')).getByText('Dashboard')).toBeInTheDocument()
       expect(screen.getByText('All Notes')).toBeInTheDocument()
       expect(screen.getByText('Archive')).toBeInTheDocument()
     })
@@ -912,6 +920,7 @@ describe('App', () => {
     configureNeighborhoodVault()
 
     render(<App />)
+    await selectSidebarNav('Inbox')
 
     const noteListContainer = await screen.findByTestId('note-list-container', {}, { timeout: 5000 })
     const getHeader = () => getHeaderForNoteList(noteListContainer)
@@ -1012,6 +1021,7 @@ describe('App', () => {
     }
 
     render(<App />)
+    await selectSidebarNav('Inbox')
 
     const noteListContainer = await screen.findByTestId('note-list-container')
     await waitFor(() => {
@@ -1074,6 +1084,10 @@ describe('App', () => {
 
   it('Cmd+1 hides sidebar and note list (editor-only mode)', async () => {
     render(<App />)
+    await selectSidebarNav('All Notes')
+    await waitFor(() => {
+      expect(document.querySelector('.app__note-list')).toBeInTheDocument()
+    })
     await waitFor(() => {
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })
@@ -1092,6 +1106,10 @@ describe('App', () => {
 
   it('Cmd+2 shows editor + note list (sidebar hidden)', async () => {
     render(<App />)
+    await selectSidebarNav('All Notes')
+    await waitFor(() => {
+      expect(document.querySelector('.app__note-list')).toBeInTheDocument()
+    })
     await waitFor(() => {
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })
@@ -1105,6 +1123,10 @@ describe('App', () => {
 
   it('Cmd+3 restores all panels after Cmd+1', async () => {
     render(<App />)
+    await selectSidebarNav('All Notes')
+    await waitFor(() => {
+      expect(document.querySelector('.app__note-list')).toBeInTheDocument()
+    })
     await waitFor(() => {
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })

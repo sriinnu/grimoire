@@ -7,6 +7,18 @@ export type VaultStorageChoiceId =
   | 'synced-folder'
   | 'custom'
 
+export type VaultTemplateKindId =
+  | 'blank'
+  | 'journal'
+  | 'dreams'
+  | 'project'
+  | 'research'
+  | 'personal-os'
+  | 'reading-study'
+  | 'relationships'
+  | 'work-log'
+  | 'creative-studio'
+
 export interface VaultStorageChoice {
   id: VaultStorageChoiceId
   label: string
@@ -15,11 +27,19 @@ export interface VaultStorageChoice {
   detail: string
 }
 
+export interface VaultTemplateKind {
+  id: VaultTemplateKindId
+  label: string
+  detail: string
+  defaultName: string
+}
+
 export interface CreateEmptyVaultRequest {
   targetPath: string
   storageProvider?: VaultStorageProviderId
   syncProvider?: VaultSyncProviderId
   initializeGit?: boolean
+  templateKind?: VaultTemplateKindId
 }
 
 export const DEFAULT_VAULT_NAME = 'New Vault'
@@ -66,9 +86,77 @@ export const VAULT_STORAGE_CHOICES: VaultStorageChoice[] = [
   },
 ]
 
+export const VAULT_TEMPLATE_KINDS: VaultTemplateKind[] = [
+  {
+    id: 'blank',
+    label: 'Blank',
+    detail: 'Notes first, shape it later',
+    defaultName: DEFAULT_VAULT_NAME,
+  },
+  {
+    id: 'journal',
+    label: 'Journal',
+    detail: 'Daily check-in, evening review, decisions, weekly review',
+    defaultName: 'Journal',
+  },
+  {
+    id: 'dreams',
+    label: 'Dreams',
+    detail: 'Dream capture, recurring symbols, nightmares, lucid dreams',
+    defaultName: 'Dreams',
+  },
+  {
+    id: 'project',
+    label: 'Project',
+    detail: 'Open loops, research, decisions, next actions',
+    defaultName: 'Project Vault',
+  },
+  {
+    id: 'research',
+    label: 'Research',
+    detail: 'Sources, claims, findings, synthesis',
+    defaultName: 'Research',
+  },
+  {
+    id: 'personal-os',
+    label: 'Personal OS',
+    detail: 'Notes, journals, dreams, tasks, memory',
+    defaultName: 'Sriinnu',
+  },
+  {
+    id: 'reading-study',
+    label: 'Reading',
+    detail: 'Books, papers, excerpts, study trails',
+    defaultName: 'Reading',
+  },
+  {
+    id: 'relationships',
+    label: 'People',
+    detail: 'People, conversations, promises, follow-ups',
+    defaultName: 'People',
+  },
+  {
+    id: 'work-log',
+    label: 'Work Log',
+    detail: 'Daily work, blockers, commits, decisions',
+    defaultName: 'Work Log',
+  },
+  {
+    id: 'creative-studio',
+    label: 'Creative',
+    detail: 'Ideas, drafts, references, releases',
+    defaultName: 'Creative Studio',
+  },
+]
+
 /** Returns a storage choice, falling back to local folder creation. */
 export function getVaultStorageChoice(id: VaultStorageChoiceId): VaultStorageChoice {
   return VAULT_STORAGE_CHOICES.find((choice) => choice.id === id) ?? VAULT_STORAGE_CHOICES[0]
+}
+
+/** Returns a vault template kind, falling back to a blank local vault. */
+export function getVaultTemplateKind(id: VaultTemplateKindId): VaultTemplateKind {
+  return VAULT_TEMPLATE_KINDS.find((kind) => kind.id === id) ?? VAULT_TEMPLATE_KINDS[0]
 }
 
 /** Produces a filesystem-safe vault folder name while preserving readable spacing. */

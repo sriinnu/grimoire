@@ -586,6 +586,8 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     target_path?: string
     initializeGit?: boolean
     initialize_git?: boolean
+    templateKind?: string
+    template_kind?: string
   }) => {
     const targetPath = args.targetPath || args.target_path || '/Users/mock/Documents/My Vault'
     setMockGitState(targetPath, Boolean(args.initializeGit ?? args.initialize_git))

@@ -15,10 +15,13 @@ import {
   buildVaultTargetPath,
   DEFAULT_VAULT_NAME,
   getVaultStorageChoice,
+  getVaultTemplateKind,
   sanitizeVaultFolderName,
   type CreateEmptyVaultRequest,
   type VaultStorageChoiceId,
+  type VaultTemplateKindId,
   VAULT_STORAGE_CHOICES,
+  VAULT_TEMPLATE_KINDS,
 } from '@/utils/vaultCreation'
 import { isTauri } from '@/mock-tauri'
 import { pickFolder } from '@/utils/vault-dialog'
@@ -46,6 +49,7 @@ function shouldUpdateSuggestedPath(pathDirty: boolean, targetPath: string, previ
 /** Dialog for creating local-first vaults in local or cloud-synced folders. */
 export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialogProps) {
   const [vaultName, setVaultName] = useState(DEFAULT_VAULT_NAME)
+  const [templateKind, setTemplateKind] = useState<VaultTemplateKindId>('blank')
   const [storageChoice, setStorageChoice] = useState<VaultStorageChoiceId>('local')
   const [targetPath, setTargetPath] = useState(() => buildVaultTargetPath('local', DEFAULT_VAULT_NAME))
   const [pathDirty, setPathDirty] = useState(false)
@@ -61,6 +65,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
   const resetState = useCallback(() => {
     const defaultPath = buildVaultTargetPath('local', DEFAULT_VAULT_NAME)
     setVaultName(DEFAULT_VAULT_NAME)
+    setTemplateKind('blank')
     setStorageChoice('local')
     setTargetPath(defaultPath)
     setPathDirty(false)
@@ -93,6 +98,14 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     setVaultName(nextName)
     setError(null)
     syncSuggestedPath(storageChoice, nextName)
+  }, [storageChoice, syncSuggestedPath])
+
+  const handleTemplateKindChange = useCallback((nextKind: VaultTemplateKindId) => {
+    const kind = getVaultTemplateKind(nextKind)
+    setTemplateKind(nextKind)
+    setVaultName(kind.defaultName)
+    setError(null)
+    syncSuggestedPath(storageChoice, kind.defaultName)
   }, [storageChoice, syncSuggestedPath])
 
   const handleStorageChoiceChange = useCallback((nextChoice: VaultStorageChoiceId) => {
@@ -143,6 +156,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
         storageProvider: selectedChoice.storageProvider,
         syncProvider: initializeGit ? 'git' : 'none',
         initializeGit,
+        templateKind,
       })
       if (ok) {
         resetState()
@@ -153,7 +167,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     } finally {
       setSubmitState('idle')
     }
-  }, [initializeGit, onClose, onCreate, resetState, selectedChoice.storageProvider, targetPath])
+  }, [initializeGit, onClose, onCreate, resetState, selectedChoice.storageProvider, targetPath, templateKind])
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -166,6 +180,31 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
         </DialogHeader>
 
         <form className="grid gap-4" onSubmit={handleSubmit}>
+          <div className="grid gap-2">
+            <div className="text-xs font-medium text-muted-foreground">Vault template</div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {VAULT_TEMPLATE_KINDS.map((kind) => {
+                const selected = kind.id === templateKind
+                return (
+                  <Button
+                    key={kind.id}
+                    type="button"
+                    variant={selected ? 'default' : 'outline'}
+                    className="h-auto justify-start gap-3 rounded-md px-3 py-2 text-left"
+                    onClick={() => handleTemplateKindChange(kind.id)}
+                    data-testid={`create-vault-template-${kind.id}`}
+                  >
+                    <Sparkles className="size-4" />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium">{kind.label}</span>
+                      <span className="block truncate text-xs opacity-75">{kind.detail}</span>
+                    </span>
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
+
           <div className="grid gap-2">
             <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-name">Name</label>
             <Input

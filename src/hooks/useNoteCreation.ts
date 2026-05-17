@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { isTauri, addMockEntry } from '../mock-tauri'
 import type { VaultEntry } from '../types'
 import { slugifyNoteStem as slugify } from '../utils/noteSlug'
+import { DEFAULT_TEMPLATES } from '../utils/noteTemplates'
 import { resolveEntry } from '../utils/wikilink'
 import { trackEvent } from '../lib/telemetry'
 
@@ -26,6 +27,7 @@ export function buildNewEntry({ path, slug, title, type, status }: NewEntryParam
 }
 
 export { slugify }
+export { DEFAULT_TEMPLATES }
 
 /** Convert a filename slug to a human-readable title (hyphens → spaces, title case). */
 function slug_to_title(slug: string): string {
@@ -59,14 +61,6 @@ export interface EntryMatchParams {
 
 export function entryMatchesTarget({ entry, target }: EntryMatchParams): boolean {
   return resolveEntry([entry], target) === entry
-}
-
-/** Default templates for built-in types. Used when the type entry has no custom template. */
-export const DEFAULT_TEMPLATES: Record<string, string> = {
-  Project: '## Objective\n\n\n\n## Key Results\n\n\n\n## Notes\n\n',
-  Person: '## Role\n\n\n\n## Contact\n\n\n\n## Notes\n\n',
-  Responsibility: '## Description\n\n\n\n## Key Activities\n\n\n\n## Notes\n\n',
-  Experiment: '## Hypothesis\n\n\n\n## Method\n\n\n\n## Results\n\n\n\n## Conclusion\n\n',
 }
 
 /** Look up the template for a given type from the type entry or defaults. */

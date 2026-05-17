@@ -227,6 +227,9 @@ function useCreateEmptyVaultHandler(
       if (request?.initializeGit) {
         commandArgs.initializeGit = true
       }
+      if (request?.templateKind) {
+        commandArgs.templateKind = request.templateKind
+      }
 
       const vaultPath = await tauriCall<string>('create_empty_vault', commandArgs)
       try {
