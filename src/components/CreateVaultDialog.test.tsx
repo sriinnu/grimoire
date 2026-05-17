@@ -23,6 +23,7 @@ describe('CreateVaultDialog', () => {
         storageProvider: 'local-folder',
         syncProvider: 'none',
         initializeGit: false,
+        templateKind: 'blank',
       })
     })
     expect(promptSpy).not.toHaveBeenCalled()
@@ -45,6 +46,7 @@ describe('CreateVaultDialog', () => {
         storageProvider: 'icloud-drive',
         syncProvider: 'git',
         initializeGit: true,
+        templateKind: 'blank',
       })
     })
   })
@@ -63,6 +65,24 @@ describe('CreateVaultDialog', () => {
     await waitFor(() => {
       expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({
         targetPath: '~/Somewhere/Private Vault',
+      }))
+    })
+  })
+
+  it('applies vault templates to the name, path, and create request', async () => {
+    const onCreate = vi.fn().mockResolvedValue(true)
+
+    render(<CreateVaultDialog open={true} onClose={vi.fn()} onCreate={onCreate} />)
+
+    fireEvent.click(screen.getByTestId('create-vault-template-dreams'))
+    expect(screen.getByTestId('create-vault-name')).toHaveValue('Dreams')
+    expect(screen.getByTestId('create-vault-path')).toHaveValue('~/Grimoire/Vaults/Dreams')
+    fireEvent.click(screen.getByTestId('create-vault-submit'))
+
+    await waitFor(() => {
+      expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({
+        targetPath: '~/Grimoire/Vaults/Dreams',
+        templateKind: 'dreams',
       }))
     })
   })

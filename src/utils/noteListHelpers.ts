@@ -462,6 +462,7 @@ function filterByKind(
   views?: ViewFile[],
   fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
 ): VaultEntry[] {
+  if (selection.kind === 'dashboard') return []
   if (selection.kind === 'entity') return []
   if (selection.kind === 'view') return filterViewEntries(entries, selection.filename, views)
   if (selection.kind === 'folder') return filterFolderEntries(entries, selection.path, subFilter, fileScope)

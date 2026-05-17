@@ -198,6 +198,7 @@ export type SidebarFilter = 'all' | 'archived' | 'changes' | 'pulse' | 'inbox' |
 export type InboxPeriod = 'week' | 'month' | 'quarter' | 'all'
 
 export type SidebarSelection =
+  | { kind: 'dashboard' }
   | { kind: 'filter'; filter: SidebarFilter }
   | { kind: 'sectionGroup'; type: string }
   | { kind: 'folder'; path: string }

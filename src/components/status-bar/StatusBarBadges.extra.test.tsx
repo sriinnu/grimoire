@@ -94,17 +94,16 @@ describe('StatusBarBadges extra coverage', () => {
 
     fireEvent.click(screen.getByTestId('status-sync'))
 
+    expect(screen.getByTestId('git-status-popup')).toHaveTextContent('Sync Panel')
     expect(screen.getByTestId('git-status-popup')).toHaveTextContent('main')
+    expect(screen.getByText('Files')).toBeInTheDocument()
+    expect(screen.getByText('Local')).toBeInTheDocument()
+    expect(screen.getAllByText('Gate required')).toHaveLength(2)
     expect(screen.getByText('↑ 2 ahead')).toBeInTheDocument()
     expect(screen.getByText('↓ 1 behind')).toBeInTheDocument()
     expect(screen.getByText(/Status: Synced/)).toBeInTheDocument()
 
     const pullButton = screen.getByTestId('git-status-pull-btn')
-    fireEvent.mouseEnter(pullButton)
-    expect(pullButton.style.background).toBe('var(--hover)')
-    fireEvent.mouseLeave(pullButton)
-    expect(pullButton.style.background).toBe('transparent')
-
     fireEvent.click(pullButton)
     expect(onTriggerSync).toHaveBeenCalledTimes(1)
     expect(screen.queryByTestId('git-status-popup')).not.toBeInTheDocument()

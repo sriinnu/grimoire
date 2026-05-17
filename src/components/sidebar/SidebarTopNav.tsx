@@ -1,4 +1,4 @@
-import { Archive, FileText, Tray } from '@phosphor-icons/react'
+import { Archive, FileText, Sparkle, Tray } from '@phosphor-icons/react'
 import type { SidebarSelection } from '../../types'
 import { isSelectionActive, NavItem } from '../SidebarParts'
 
@@ -21,6 +21,13 @@ export function SidebarTopNav({
 }: SidebarTopNavProps) {
   return (
     <div className="border-b border-border" data-testid="sidebar-top-nav" style={{ padding: '4px 6px' }}>
+      <NavItem
+        icon={Sparkle}
+        label="Dashboard"
+        isActive={isSelectionActive(selection, { kind: 'dashboard' })}
+        activeClassName="bg-primary/10 text-primary"
+        onClick={() => onSelect({ kind: 'dashboard' })}
+      />
       {showInbox && (
         <NavItem
           icon={Tray}

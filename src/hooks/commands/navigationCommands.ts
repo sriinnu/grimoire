@@ -54,6 +54,7 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
 
   return [
     { id: 'search-notes', label: 'Search Notes', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileQuickOpen), keywords: ['find', 'open', 'quick'], enabled: true, execute: onQuickOpen },
+    { id: 'go-dashboard', label: 'Go to Dashboard', group: 'Navigation', keywords: ['home', 'today', 'assistant', 'capture'], enabled: true, execute: () => onSelect({ kind: 'dashboard' }) },
     { id: 'go-all', label: 'Go to All Notes', group: 'Navigation', keywords: ['filter'], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'all' }) },
     { id: 'go-archived', label: 'Go to Archived', group: 'Navigation', keywords: [], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'archived' }) },
     { id: 'go-changes', label: 'Go to Changes', group: 'Navigation', keywords: ['git', 'modified', 'pending'], enabled: isGitVault, execute: () => onSelect({ kind: 'filter', filter: 'changes' }) },
@@ -66,7 +67,8 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
 function insertInboxCommand(commands: CommandAction[], showInbox: boolean, onSelect: (sel: SidebarSelection) => void) {
   if (!showInbox) return commands
 
-  commands.splice(5, 0, {
+  const backCommandIndex = commands.findIndex((command) => command.id === 'go-back')
+  commands.splice(backCommandIndex === -1 ? commands.length : backCommandIndex, 0, {
     id: 'go-inbox',
     label: 'Go to Inbox',
     group: 'Navigation',

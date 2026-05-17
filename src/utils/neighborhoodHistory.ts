@@ -27,6 +27,8 @@ export function selectionsEqual(a: SidebarSelection, b: SidebarSelection): boole
   if (a.kind !== b.kind) return false
 
   switch (a.kind) {
+    case 'dashboard':
+      return true
     case 'filter':
       return isSameFilterSelection(a, b as Extract<SidebarSelection, { kind: 'filter' }>)
     case 'sectionGroup':

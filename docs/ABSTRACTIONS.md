@@ -21,6 +21,40 @@ Non-responsibilities:
 - store local machine credentials
 - depend on a hosted Grimoire service
 
+## Dashboard
+
+The dashboard is the default vault surface. It is not a marketing home page; it is the daily assistant loop over the current local vault.
+
+It shows:
+
+- quick capture for notes, journals, dreams, tasks, memory, and `/ask`
+- open-loop counts by type and total
+- private journal and dream prompts
+- memory queue status
+- recent notes
+- locality and sync badges
+
+Dashboard capture writes normal Markdown notes with readable frontmatter. `/ask` routes into the AI panel instead of creating a note; durable AI output still goes through Crystallize.
+
+## Vault Template
+
+A vault template is a creation-time seed for local Markdown Type definitions. It is not a hosted workspace and does not make Git required.
+
+Current templates:
+
+- Blank
+- Journal
+- Dreams
+- Project
+- Research
+- Personal OS
+- Reading
+- People
+- Work Log
+- Creative Studio
+
+Templates may seed Type notes such as `journal.md`, `dream.md`, `task.md`, or `memory.md`. The files are ordinary Markdown and remain editable by the user.
+
 ## Vault Portability
 
 Vault portability has three separate contracts:
