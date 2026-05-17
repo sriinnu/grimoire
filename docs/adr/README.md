@@ -149,3 +149,5 @@ proposed → active → superseded
 | [0091](0091-vault-portability-import-export-storage.md) | Vault portability import export and storage providers | active |
 | [0092](0092-local-first-vaults-with-optional-git.md) | Local-first vaults with optional Git | active |
 | [0093](0093-memory-ledger-locality-firewall-crystallize.md) | Memory Ledger, Locality Firewall, and Crystallize are Markdown-first | active |
+| [0094](0094-native-menu-bar-icon.md) | Native menu bar icon is an installation-local setting | active |
+| [0095](0095-release-artifact-verification-guardrails.md) | Release artifact verification guardrails | active |

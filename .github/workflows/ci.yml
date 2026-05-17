@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Build, Test, And Lint
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy,rustfmt
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify Release Artifact Guard
+        run: pnpm test:release-artifacts
+
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Build
+        run: pnpm build
+
+      - name: Frontend Tests
+        run: pnpm test --silent
+
+      - name: Markdown Editor Parity
+        run: pnpm test:markdown-editor
+
+      - name: Rust Lint
+        run: |
+          cargo clippy --manifest-path=src-tauri/Cargo.toml -- -D warnings
+          cargo fmt --manifest-path=src-tauri/Cargo.toml -- --check
