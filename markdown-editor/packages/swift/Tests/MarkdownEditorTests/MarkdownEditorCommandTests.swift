@@ -2,6 +2,20 @@ import XCTest
 @testable import MarkdownEditorUI
 
 final class MarkdownEditorCommandTests: XCTestCase {
+    private let commandDate = Date(timeIntervalSince1970: 1_777_500_000)
+    private var commandCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Vienna")!
+        return calendar
+    }
+
+    private func renderedMarkdown(query: String) -> String? {
+        MarkdownEditorCommandCatalog
+            .filtered(query: query)
+            .first?
+            .renderedMarkdown(now: commandDate, calendar: commandCalendar)
+    }
+
     func testCatalogFiltersByAliasAndTitle() {
         XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "todo").first?.id, "task")
         XCTAssertEqual(MarkdownEditorCommandCatalog.filtered(query: "#").first?.id, "heading-one")
@@ -28,8 +42,7 @@ final class MarkdownEditorCommandTests: XCTestCase {
 
     func testDateCommandsRenderDeterministically() {
         let command = MarkdownEditorCommandCatalog.filtered(query: "today").first
-        let date = Date(timeIntervalSince1970: 1_777_500_000)
-        XCTAssertEqual(command?.renderedMarkdown(now: date), "2026-04-30")
+        XCTAssertEqual(command?.renderedMarkdown(now: commandDate, calendar: commandCalendar), "2026-04-30")
     }
 
     func testPortableCommandIdsMirrorReactSlashKeys() {
@@ -77,65 +90,57 @@ final class MarkdownEditorCommandTests: XCTestCase {
     }
 
     func testCalendarCommandsRenderWeekAndMonthTables() {
-        let date = Date(timeIntervalSince1970: 1_777_500_000)
-
-        let week = MarkdownEditorCommandCatalog.filtered(query: "week cal").first?.renderedMarkdown(now: date)
+        let week = renderedMarkdown(query: "week cal")
         XCTAssertTrue(week?.contains("## Week Calendar - 2026-04-27 to 2026-05-03") == true)
         XCTAssertTrue(week?.contains("| Thu | 2026-04-30 |") == true)
 
-        let month = MarkdownEditorCommandCatalog.filtered(query: "month cal").first?.renderedMarkdown(now: date)
+        let month = renderedMarkdown(query: "month cal")
         XCTAssertTrue(month?.contains("## Calendar - April 2026") == true)
         XCTAssertTrue(month?.contains("| 27 | 28 | 29 | 30 |  |  |  |") == true)
     }
 
     func testKnowledgeCommandsRenderPortableGraphMarkdown() {
-        let date = Date(timeIntervalSince1970: 1_777_500_000)
-
-        let moc = MarkdownEditorCommandCatalog.filtered(query: "obsidian").first?.renderedMarkdown(now: date)
+        let moc = renderedMarkdown(query: "obsidian")
         XCTAssertTrue(moc?.contains("## Map of Content - 2026-04-30") == true)
         XCTAssertTrue(moc?.contains("[[Source Note]] -> [[Target Note]]") == true)
 
-        let linkMap = MarkdownEditorCommandCatalog.filtered(query: "nodes").first?.renderedMarkdown(now: date)
+        let linkMap = renderedMarkdown(query: "nodes")
         XCTAssertTrue(linkMap?.contains("| From | Relation | To | Why |") == true)
 
-        let toc = MarkdownEditorCommandCatalog.filtered(query: "toc").first?.renderedMarkdown(now: date)
+        let toc = renderedMarkdown(query: "toc")
         XCTAssertTrue(toc?.contains("## Table of Contents") == true)
 
-        let llm = MarkdownEditorCommandCatalog.filtered(query: "karpathy").first?.renderedMarkdown(now: date)
+        let llm = renderedMarkdown(query: "karpathy")
         XCTAssertTrue(llm?.contains("## LLM Research Note - 2026-04-30") == true)
         XCTAssertTrue(llm?.contains("[[Transformers]]") == true)
     }
 
     func testJournalCommandsRenderDatesAndReviewSections() {
-        let date = Date(timeIntervalSince1970: 1_777_500_000)
-
-        let frontmatter = MarkdownEditorCommandCatalog.filtered(query: "frontmatter field").first?.renderedMarkdown(now: date)
+        let frontmatter = renderedMarkdown(query: "frontmatter field")
         XCTAssertTrue(frontmatter?.contains("date: 2026-04-30") == true)
 
-        let weekly = MarkdownEditorCommandCatalog.filtered(query: "weekly retro").first?.renderedMarkdown(now: date)
+        let weekly = renderedMarkdown(query: "weekly retro")
         XCTAssertTrue(weekly?.contains("## Weekly Review - 2026-04-27 to 2026-05-03") == true)
 
-        let monthly = MarkdownEditorCommandCatalog.filtered(query: "monthly retro").first?.renderedMarkdown(now: date)
+        let monthly = renderedMarkdown(query: "monthly retro")
         XCTAssertTrue(monthly?.contains("## Monthly Review - April 2026") == true)
 
-        let rollover = MarkdownEditorCommandCatalog.filtered(query: "carry forward").first?.renderedMarkdown(now: date)
+        let rollover = renderedMarkdown(query: "carry forward")
         XCTAssertTrue(rollover?.contains("## Task Rollover - 2026-04-30") == true)
     }
 
     func testCanvasCommandsRenderDurableMarkdownAttachments() {
-        let date = Date(timeIntervalSince1970: 1_777_500_000)
-
-        let handwriting = MarkdownEditorCommandCatalog.filtered(query: "handwriting").first?.renderedMarkdown(now: date)
+        let handwriting = renderedMarkdown(query: "handwriting")
         XCTAssertTrue(handwriting?.contains("```grimoire-canvas") == true)
         XCTAssertTrue(handwriting?.contains("type: handwriting") == true)
         XCTAssertTrue(handwriting?.contains("attachments/handwriting-2026-04-30-000000.grimoire-canvas.json") == true)
         XCTAssertTrue(handwriting?.contains("preview: attachments/handwriting-2026-04-30-000000.png") == true)
 
-        let whiteboard = MarkdownEditorCommandCatalog.filtered(query: "excalidraw").first?.renderedMarkdown(now: date)
+        let whiteboard = renderedMarkdown(query: "excalidraw")
         XCTAssertTrue(whiteboard?.contains("type: whiteboard") == true)
         XCTAssertTrue(whiteboard?.contains("attachments/whiteboard-2026-04-30-000000.png") == true)
 
-        let sketch = MarkdownEditorCommandCatalog.filtered(query: "pencil note").first?.renderedMarkdown(now: date)
+        let sketch = renderedMarkdown(query: "pencil note")
         XCTAssertTrue(sketch?.contains("## Sketch Note - 2026-04-30") == true)
         XCTAssertTrue(sketch?.contains("Prompt\n- \n\n## Handwritten Canvas - 2026-04-30") == true)
         XCTAssertTrue(sketch?.contains("```grimoire-canvas\ntype: handwriting") == true)
@@ -152,13 +157,11 @@ final class MarkdownEditorCommandTests: XCTestCase {
     }
 
     func testSadhanaCommandsRenderPortablePracticeNotes() {
-        let date = Date(timeIntervalSince1970: 1_777_500_000)
-
-        let session = MarkdownEditorCommandCatalog.filtered(query: "spanda").first?.renderedMarkdown(now: date)
+        let session = renderedMarkdown(query: "spanda")
         XCTAssertTrue(session?.contains("## Practice Session - 2026-04-30") == true)
         XCTAssertTrue(session?.contains("| Layer | Signal | Score |") == true)
 
-        let panchanga = MarkdownEditorCommandCatalog.filtered(query: "rahu kalam").first?.renderedMarkdown(now: date)
+        let panchanga = renderedMarkdown(query: "rahu kalam")
         XCTAssertTrue(panchanga?.contains("| Tithi |") == true)
     }
 
