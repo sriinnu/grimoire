@@ -12,6 +12,7 @@ import { Toast } from './components/Toast'
 import { CommitDialog } from './components/CommitDialog'
 import { StatusBar } from './components/StatusBar'
 import { WelcomeScreen } from './components/WelcomeScreen'
+import { VaultDashboard } from './components/dashboard/VaultDashboard'
 import { AiAgentsOnboardingPrompt } from './components/AiAgentsOnboardingPrompt'
 import { GrimoireRefreshAnimation } from './components/GrimoireRefreshAnimation'
 import { TelemetryConsentDialog } from './components/TelemetryConsentDialog'
@@ -42,6 +43,7 @@ import { useSettings } from './hooks/useSettings'
 import { useDocumentThemeMode } from './hooks/useDocumentThemeMode'
 import { useAppearanceSettings } from './hooks/useAppearanceSettings'
 import { useNoteActions } from './hooks/useNoteActions'
+import { useDashboardCapture } from './hooks/useDashboardCapture'
 import { planNewTypeCreation, slugify } from './hooks/useNoteCreation'
 import { useCommitFlow } from './hooks/useCommitFlow'
 import { useGitRemoteStatus } from './hooks/useGitRemoteStatus'
@@ -125,7 +127,7 @@ import {
 } from './utils/neighborhoodHistory'
 import { OPEN_AI_CHAT_EVENT } from './utils/aiPromptBridge'
 import {
-  INBOX_SELECTION,
+  DASHBOARD_SELECTION,
   isExplicitOrganizationEnabled,
   sanitizeSelectionForOrganization,
 } from './utils/organizationWorkflow'
@@ -140,7 +142,7 @@ declare global {
   }
 }
 
-const DEFAULT_SELECTION: SidebarSelection = INBOX_SELECTION
+const DEFAULT_SELECTION: SidebarSelection = DASHBOARD_SELECTION
 
 function getNextVisibleInboxEntry(entries: VaultEntry[], currentPath: string): VaultEntry | null {
   const currentIndex = entries.findIndex((entry) => entry.path === currentPath)
@@ -560,6 +562,35 @@ function App() {
   useEffect(() => {
     noteWindowActionsRef.current = { handleSelectNote, openTabWithContent }
   }, [handleSelectNote, openTabWithContent])
+  const createDashboardCapture = useDashboardCapture({
+    addEntry: vault.addEntry,
+    addPendingSave: vault.addPendingSave,
+    createTypeEntry: notes.createTypeEntrySilent,
+    entries: vault.entries,
+    loadModifiedFiles: vault.loadModifiedFiles,
+    openTabWithContent,
+    removeEntry: vault.removeEntry,
+    removePendingSave: vault.removePendingSave,
+    setToastMessage,
+    vaultPath: resolvedPath,
+  })
+  const handleDashboardCapture = useCallback(async (...args: Parameters<typeof createDashboardCapture>) => {
+    const result = await createDashboardCapture(...args)
+    if (result.status === 'created') {
+      const typeName = result.entry.isA
+      handleSetSelection(typeName && typeName !== 'Note'
+        ? { kind: 'sectionGroup', type: typeName }
+        : { kind: 'filter', filter: 'all' })
+    }
+    return result
+  }, [createDashboardCapture, handleSetSelection])
+  const handleDashboardOpenNote = useCallback((entry: VaultEntry) => {
+    const typeName = entry.isA
+    handleSetSelection(typeName && typeName !== 'Note'
+      ? { kind: 'sectionGroup', type: typeName }
+      : { kind: 'filter', filter: 'all' })
+    void handleSelectNote(entry)
+  }, [handleSelectNote, handleSetSelection])
   const handlePulledVaultUpdate = useCallback(async (updatedFiles: string[]) => {
     await refreshPulledVaultState({
       activeTabPath: notes.activeTabPath,
@@ -1508,6 +1539,11 @@ function App() {
     if (effectiveSelection.kind === 'entity') return { type: null, query: effectiveSelection.entry.title }
     return { type: null, query: '' }
   }, [effectiveSelection])
+  const activeVaultOption = useMemo(
+    () => vaultSwitcher.allVaults.find((candidate) => candidate.path === resolvedPath),
+    [resolvedPath, vaultSwitcher.allVaults],
+  )
+  const dashboardSelected = effectiveSelection.kind === 'dashboard'
 
   const shouldResumeFreshStartOnboarding = useMemo(() => {
     if (onboarding.state.status !== 'ready' || !vaultSwitcher.loaded) return false
@@ -1593,7 +1629,7 @@ function App() {
               {!sidebarColumnCollapsed && <ResizeHandle onResize={layout.handleSidebarResize} />}
             </>
           )}
-          {noteListVisible && (
+          {noteListVisible && !dashboardSelected && (
             <>
               <div className={`app__note-list${aiActivity.highlightElement === 'notelist' ? ' ai-highlight' : ''}`} style={{ width: layout.noteListWidth }}>
                 {effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'pulse' ? (
@@ -1605,8 +1641,24 @@ function App() {
               <ResizeHandle onResize={layout.handleNoteListResize} />
             </>
           )}
-          <div className={`app__editor${aiActivity.highlightElement === 'editor' || aiActivity.highlightElement === 'tab' ? ' ai-highlight' : ''}`}>
-            <Editor
+          {dashboardSelected ? (
+            <div className="app__dashboard">
+              <VaultDashboard
+                activeVault={activeVaultOption}
+                conflictCount={isGitVault ? autoSync.conflictFiles.length : 0}
+                entries={vault.entries}
+                isGitVault={isGitVault}
+                modifiedCount={isGitVault ? vault.modifiedFiles.length : 0}
+                onCapture={handleDashboardCapture}
+                onOpenCreateVault={openCreateVaultDialog}
+                onOpenNote={handleDashboardOpenNote}
+                syncStatus={autoSync.syncStatus}
+                vaultPath={resolvedPath}
+              />
+            </div>
+          ) : (
+            <div className={`app__editor${aiActivity.highlightElement === 'editor' || aiActivity.highlightElement === 'tab' ? ' ai-highlight' : ''}`}>
+              <Editor
               tabs={notes.tabs}
               activeTabPath={notes.activeTabPath}
               entries={vault.entries}
@@ -1665,7 +1717,8 @@ function App() {
               onKeepTheirs={conflictFlow.handleKeepTheirs}
               flushPendingRawContentRef={flushPendingRawContentRef}
             />
-          </div>
+            </div>
+          )}
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />

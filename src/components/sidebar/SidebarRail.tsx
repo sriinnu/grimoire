@@ -1,4 +1,4 @@
-import { Archive, FileText, Inbox, PanelLeftOpen } from 'lucide-react'
+import { Archive, FileText, Inbox, LayoutDashboard, PanelLeftOpen } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { LucideProps } from 'lucide-react'
 import grimoireIcon from '@/assets/app-icon.png'
@@ -84,6 +84,11 @@ export function SidebarRail({
   archivedCount,
 }: SidebarRailProps) {
   const items: RailItem[] = [
+    {
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      selection: { kind: 'dashboard' },
+    },
     ...(showInbox
       ? [{
           label: 'Inbox',

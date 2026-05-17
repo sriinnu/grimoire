@@ -8,13 +8,14 @@ Everything else - cache, React/SwiftUI state, graph layout, search result, and a
 
 ## Product Shape
 
-Grimoire has five user-facing workspaces:
+Grimoire has six user-facing workspaces:
 
-1. **Navigation**: sidebar filters, folders, types, favorites, archive, inbox, and changes.
-2. **Selection**: note lists, saved views, search, Pulse history, and Neighborhood relationship browsing.
-3. **Editing**: Tauri rich/raw markdown editing as the primary product surface, SwiftUI/WebKit support surfaces where Apple-native integration is worth it, diff mode, Spelllinks (`[[note]]` wikilinks), math, code blocks, and frontmatter.
-4. **Context**: Inspector, backlinks, relationship panels, instances, note metadata, Git history, graph, and weather snapshots.
-5. **Agents**: local CLI agents through Claude Code / Codex adapters and MCP vault tooling.
+1. **Dashboard**: the default assistant board for quick capture, open loops, private journal/dream prompts, memory queue, recent notes, and visible local-first status.
+2. **Navigation**: sidebar filters, folders, types, favorites, archive, inbox, and changes.
+3. **Selection**: note lists, saved views, search, Pulse history, and Neighborhood relationship browsing.
+4. **Editing**: Tauri rich/raw markdown editing as the primary product surface, SwiftUI/WebKit support surfaces where Apple-native integration is worth it, diff mode, Spelllinks (`[[note]]` wikilinks), math, code blocks, and frontmatter.
+5. **Context**: Inspector, backlinks, relationship panels, instances, note metadata, Git history, graph, and weather snapshots.
+6. **Agents**: local CLI agents through Claude Code / Codex adapters and MCP vault tooling.
 
 ```mermaid
 flowchart LR
@@ -108,6 +109,8 @@ Store data in app settings when it describes this installation:
 `src/App.tsx` remains the main orchestrator. It wires hooks and top-level modals, but feature logic should live in smaller modules:
 
 - `hooks/useVaultLoader.ts`: loads entries, modified files, folders, views, history, and cache refreshes.
+- `components/dashboard/VaultDashboard.tsx`: default vault assistant board for capture, local-first privacy signals, open loops, daily prompts, and recent-note re-entry.
+- `hooks/useDashboardCapture.ts` and `utils/dashboardCapture.ts`: slash-routed capture creation for notes, journals, dreams, tasks, memory, and `/ask` agent prompts without requiring Git.
 - `hooks/useAppCommands.ts`: bridges keyboard, command palette, and native menu events.
 - `hooks/useSidebarColumnCollapse.ts`: persists the app-local compact sidebar rail preference outside the vault.
 - `components/sidebar/SidebarRail.tsx`: collapsed left-column navigation rail for Inbox, All Notes, Archive, and returning to the full sidebar.

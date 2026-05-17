@@ -48,9 +48,15 @@ describe('localityPolicy', () => {
     expect(policy.reason).toContain('local_only')
   })
 
-  it('treats journal and dream types as local-only by default', () => {
+  it('treats dashboard locality and egress markers as protected', () => {
+    expect(resolveEntryLocalityPolicy(entry({ properties: { locality: 'local' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { egress: 'blocked' } })).localOnly).toBe(true)
+  })
+
+  it('treats journal, dream, and memory types as local-only by default', () => {
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Journal' })).localOnly).toBe(true)
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Dream' })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ isA: 'Memory' })).localOnly).toBe(true)
     expect(isLocalOnlyTypeName('Health')).toBe(true)
   })
 

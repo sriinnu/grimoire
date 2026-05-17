@@ -11,8 +11,10 @@ export interface EntryLocalityPolicy {
 
 const LOCAL_ONLY_FIELD_KEYS = new Set([
   'localonly',
+  'locality',
   'nosync',
   'neversync',
+  'egress',
   'private',
 ])
 
@@ -22,6 +24,7 @@ const LOCAL_ONLY_TYPE_NAMES = new Set([
   'health',
   'journal',
   'journals',
+  'memory',
   'private',
   'therapy',
 ])
@@ -33,6 +36,7 @@ const LOCAL_ONLY_PATH_SEGMENTS = new Set([
   'journal',
   'journals',
   'local-only',
+  'memory',
   'private',
   'therapy',
 ])
@@ -40,6 +44,7 @@ const LOCAL_ONLY_PATH_SEGMENTS = new Set([
 const TRUE_LOCALITY_VALUES = new Set([
   '1',
   'always',
+  'blocked',
   'local',
   'local-only',
   'local_only',

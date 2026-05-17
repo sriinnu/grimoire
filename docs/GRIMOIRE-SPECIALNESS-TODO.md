@@ -16,9 +16,15 @@ A task is not done until:
 
 ## Tonight Pick List
 
+- [x] Add the first signature dashboard: greeting, quick capture, open loops, journal/dream prompts, memory queue, recent notes, and visible locality/sync badges.
+  Acceptance: Grimoire opens to the dashboard without Git and can route local captures or `/ask`.
+- [x] Add vault creation templates for Blank, Journal, Dreams, Project, Research, Personal OS, Reading, People, Work Log, and Creative Studio.
+  Acceptance: the create-vault modal uses template cards, storage choices, local/iCloud/GDrive paths, and sends the selected template to vault creation.
+- [x] Seed created vaults with matching Type templates where the template needs them.
+  Acceptance: Journal/Dream/Project/Research/Personal OS-style vaults get readable Markdown Type definitions on disk.
 - [ ] Tighten the signature loop: capture -> local context -> agent suggestion -> reviewable diff -> accepted Markdown memory.
   Acceptance: one flow demonstrates the whole loop without requiring Git, remote sync, or hidden AI memory.
-- [ ] Make the Locality Firewall visible enough that a user can tell what can leave before agents, exports, or sync run.
+- [x] Make the Locality Firewall visible enough that a user can tell what can leave before agents, exports, or sync run.
   Acceptance: journals, dreams, private notes, and local-only vaults show explicit local-only treatment in the UI.
 - [ ] Make Crystallize feel like the soul of the app, not a utility button.
   Acceptance: AI output turns into a proposed Markdown change with source, confidence, frontmatter, backlinks, and an explicit accept path.
