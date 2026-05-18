@@ -56,7 +56,9 @@ The app is intentionally polyglot where a language is the right tool. Tauri owns
 
 The vault contains markdown notes, assets, saved view definitions, type documents, and vault-local config. Notes remain useful in other editors.
 
-Vaults are local-first folders before they are Git repositories. Git-backed vaults enable history, Changes, Pulse, commits, pull/push, and conflict tooling; local-only vaults still open, scan, edit, and save normally. New vault creation uses an in-app dialog to choose a local folder, iCloud Drive folder, Google Drive Desktop folder, another synced folder, or a custom filesystem path. The vault registry stores storage provider metadata separately from optional sync provider metadata.
+Vaults are local-first folders before they are Git repositories. Git-backed vaults enable history, Changes, Pulse, commits, pull/push, and conflict tooling; local-only vaults still open, scan, edit, and save normally. Git is an explicit per-vault capability in the local vault registry: a folder may contain `.git` metadata while Grimoire is still instructed to treat it as local-only, which disables status checks, commits, pulls, pushes, and AutoGit from the app.
+
+New vault creation uses an in-app dialog to choose a local folder, iCloud Drive folder, Google Drive Desktop folder, another synced folder, or a custom filesystem path. The vault registry stores storage provider metadata separately from optional sync provider metadata.
 
 ### Cache
 

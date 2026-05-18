@@ -70,7 +70,7 @@ describe('SettingsPanel', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
     expect(screen.getByText('Settings')).toBeInTheDocument()
-    expect(screen.getByText('Sync & Updates')).toBeInTheDocument()
+    expect(screen.getAllByText('Sync & Updates')).not.toHaveLength(0)
   })
 
   it('updates the draft language when stored settings finish loading', () => {
@@ -443,6 +443,47 @@ describe('SettingsPanel', () => {
     expect(screen.getByRole('switch', { name: 'Enable AutoGit' })).toBeDisabled()
     expect(screen.getByTestId('settings-autogit-idle-threshold')).toBeDisabled()
     expect(screen.getByTestId('settings-autogit-inactive-threshold')).toBeDisabled()
+  })
+
+  it('shows an explicit local-only Git capability when Git metadata is paused', () => {
+    const onSetGitEnabled = vi.fn()
+    render(
+      <SettingsPanel
+        open={true}
+        settings={emptySettings}
+        isGitVault={false}
+        hasGitMetadata={true}
+        onSetGitEnabled={onSetGitEnabled}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getAllByText('Local only')).not.toHaveLength(0)
+    expect(screen.getByText(/intentionally keeping the vault local-only/i)).toBeInTheDocument()
+
+    fireEvent.click(within(screen.getByTestId('settings-git-enabled')).getByRole('switch', { name: 'Git' }))
+
+    expect(onSetGitEnabled).toHaveBeenCalledWith(true)
+  })
+
+  it('can turn Git off for the current vault from Settings', () => {
+    const onSetGitEnabled = vi.fn()
+    render(
+      <SettingsPanel
+        open={true}
+        settings={emptySettings}
+        isGitVault={true}
+        hasGitMetadata={true}
+        onSetGitEnabled={onSetGitEnabled}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    fireEvent.click(within(screen.getByTestId('settings-git-enabled')).getByRole('switch', { name: 'Git' }))
+
+    expect(onSetGitEnabled).toHaveBeenCalledWith(false)
   })
 
   it('saves the initial H1 auto-rename preference when toggled off', () => {

@@ -1,12 +1,4 @@
 import {
-  AI_AGENT_DEFINITIONS,
-  createMissingAiAgentsStatus,
-  getAiAgentDefinition,
-  resolveDefaultAiAgent,
-  type AiAgentId,
-  type AiAgentsStatus,
-} from '../lib/aiAgents'
-import {
   useState,
   useRef,
   useCallback,
@@ -14,47 +6,29 @@ import {
   useMemo,
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
-  type ReactNode,
 } from 'react'
 import { X } from '@phosphor-icons/react'
-import type { Settings } from '../types'
 import {
-  SYSTEM_UI_LANGUAGE,
+  createMissingAiAgentsStatus,
+  type AiAgentsStatus,
+} from '../lib/aiAgents'
+import {
   createTranslator,
-  localeDisplayName,
   resolveEffectiveLocale,
-  serializeUiLanguagePreference,
   type AppLocale,
-  type UiLanguagePreference,
 } from '../lib/i18n'
-import {
-  DEFAULT_THEME_MODE,
-  readStoredThemeMode,
-  type ThemeMode,
-} from '../lib/themeMode'
-import {
-  resolveEditorFont,
-  resolveThemePreset,
-  type EditorFont,
-  type ThemePreset,
-} from '../lib/appearance'
-import { normalizeReleaseChannel, serializeReleaseChannel, type ReleaseChannel } from '../lib/releaseChannel'
-import { trackEvent } from '../lib/telemetry'
-import { AppearanceSettingsSection } from './AppearanceSettingsSection'
-import { NativeSettingsSection } from './NativeSettingsSection'
-import { PortabilitySettingsSection } from './PortabilitySettingsSection'
-import { useSettingsAppearancePreview } from './useSettingsAppearancePreview'
+import { resolveEditorFont, resolveThemePreset } from '../lib/appearance'
+import type { Settings } from '../types'
 import { Button } from './ui/button'
-import { Checkbox, type CheckedState } from './ui/checkbox'
-import { Input } from './ui/input'
+import { SettingsBody } from './settings/SettingsBody'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select'
-import { Switch } from './ui/switch'
+  buildSettingsFromDraft,
+  createSettingsDraft,
+  resolveSettingsDraftThemeMode,
+  trackTelemetryConsentChange,
+} from './settings/settingsDraft'
+import type { SettingsDraft } from './settings/settingsTypes'
+import { useSettingsAppearancePreview } from './useSettingsAppearancePreview'
 
 interface SettingsPanelProps {
   open: boolean
@@ -72,243 +46,29 @@ interface SettingsPanelProps {
   onExportMarkdownZip?: () => void
   onSave: (settings: Settings) => void
   isGitVault?: boolean
+  hasGitMetadata?: boolean
+  gitCapabilityUpdating?: boolean
+  onSetGitEnabled?: (enabled: boolean) => void
   explicitOrganizationEnabled?: boolean
   onSaveExplicitOrganization?: (enabled: boolean) => void
   onClose: () => void
 }
 
-interface SettingsDraft {
-  pullInterval: number
-  autoGitEnabled: boolean
-  autoGitIdleThresholdSeconds: number
-  autoGitInactiveThresholdSeconds: number
-  autoAdvanceInboxAfterOrganize: boolean
-  defaultAiAgent: AiAgentId
-  aiAgentModels: Partial<Record<AiAgentId, string>>
-  aiAgentProviders: Partial<Record<AiAgentId, string>>
-  releaseChannel: ReleaseChannel
-  themeMode: ThemeMode
-  themePreset: ThemePreset
-  editorFont: EditorFont
-  uiLanguage: UiLanguagePreference
-  menuBarIconEnabled: boolean
-  initialH1AutoRename: boolean
-  crashReporting: boolean
-  analytics: boolean
-  explicitOrganization: boolean
-}
-
-interface SettingsBodyProps {
-  t: Translate
-  pullInterval: number
-  setPullInterval: (value: number) => void
-  isGitVault: boolean
-  autoGitEnabled: boolean
-  setAutoGitEnabled: (value: boolean) => void
-  autoGitIdleThresholdSeconds: number
-  setAutoGitIdleThresholdSeconds: (value: number) => void
-  autoGitInactiveThresholdSeconds: number
-  setAutoGitInactiveThresholdSeconds: (value: number) => void
-  autoAdvanceInboxAfterOrganize: boolean
-  setAutoAdvanceInboxAfterOrganize: (value: boolean) => void
+type SettingsPanelInnerProps = Omit<SettingsPanelProps, 'open' | 'explicitOrganizationEnabled' | 'aiAgentsStatus' | 'isGitVault' | 'hasGitMetadata' | 'gitCapabilityUpdating'> & {
   aiAgentsStatus: AiAgentsStatus
-  defaultAiAgent: AiAgentId
-  setDefaultAiAgent: (value: AiAgentId) => void
-  aiAgentModels: Partial<Record<AiAgentId, string>>
-  setAiAgentModels: (value: Partial<Record<AiAgentId, string>>) => void
-  aiAgentProviders: Partial<Record<AiAgentId, string>>
-  setAiAgentProviders: (value: Partial<Record<AiAgentId, string>>) => void
-  releaseChannel: ReleaseChannel
-  setReleaseChannel: (value: ReleaseChannel) => void
-  themeMode: ThemeMode
-  setThemeMode: (value: ThemeMode) => void
-  themePreset: ThemePreset
-  setThemePreset: (value: ThemePreset) => void
-  editorFont: EditorFont
-  setEditorFont: (value: EditorFont) => void
-  uiLanguage: UiLanguagePreference
-  setUiLanguage: (value: UiLanguagePreference) => void
-  menuBarIconEnabled: boolean
-  setMenuBarIconEnabled: (value: boolean) => void
   locale: AppLocale
   systemLocale: AppLocale
-  initialH1AutoRename: boolean
-  setInitialH1AutoRename: (value: boolean) => void
-  explicitOrganization: boolean
-  setExplicitOrganization: (value: boolean) => void
-  crashReporting: boolean
-  setCrashReporting: (value: boolean) => void
-  analytics: boolean
-  setAnalytics: (value: boolean) => void
-  vaultPath: string
-  importMarkdownFolderBusy: boolean
-  onImportMarkdownFolder?: () => void
-  onImportMarkdownZip?: () => void
-  onImportBear?: () => void
-  onImportDayOne?: () => void
-  onImportJourney?: () => void
-  onExportMarkdownZip?: () => void
+  isGitVault: boolean
+  hasGitMetadata: boolean
+  gitCapabilityUpdating: boolean
+  explicitOrganizationEnabled: boolean
 }
-
-const PULL_INTERVAL_OPTIONS = [1, 2, 5, 10, 15, 30] as const
-const DEFAULT_AUTOGIT_IDLE_THRESHOLD_SECONDS = 90
-const DEFAULT_AUTOGIT_INACTIVE_THRESHOLD_SECONDS = 30
-type Translate = ReturnType<typeof createTranslator>
 
 function isSaveShortcut(event: ReactKeyboardEvent): boolean {
   return event.key === 'Enter' && (event.metaKey || event.ctrlKey)
 }
 
-function createSettingsDraft(
-  settings: Settings,
-  explicitOrganizationEnabled: boolean,
-): SettingsDraft {
-  return {
-    pullInterval: settings.auto_pull_interval_minutes ?? 5,
-    autoGitEnabled: settings.autogit_enabled ?? false,
-    autoGitIdleThresholdSeconds: sanitizePositiveInteger(
-      settings.autogit_idle_threshold_seconds,
-      DEFAULT_AUTOGIT_IDLE_THRESHOLD_SECONDS,
-    ),
-    autoGitInactiveThresholdSeconds: sanitizePositiveInteger(
-      settings.autogit_inactive_threshold_seconds,
-      DEFAULT_AUTOGIT_INACTIVE_THRESHOLD_SECONDS,
-    ),
-    autoAdvanceInboxAfterOrganize: settings.auto_advance_inbox_after_organize ?? false,
-    defaultAiAgent: resolveDefaultAiAgent(settings.default_ai_agent),
-    aiAgentModels: createAiAgentModelsDraft(settings.ai_agent_models),
-    aiAgentProviders: createAiAgentStringDraft(settings.ai_agent_providers),
-    releaseChannel: normalizeReleaseChannel(settings.release_channel),
-    themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
-    themePreset: resolveThemePreset(settings.theme_preset),
-    editorFont: resolveEditorFont(settings.editor_font),
-    uiLanguage: settings.ui_language ?? SYSTEM_UI_LANGUAGE,
-    menuBarIconEnabled: settings.menu_bar_icon_enabled ?? false,
-    initialH1AutoRename: settings.initial_h1_auto_rename_enabled ?? true,
-    crashReporting: settings.crash_reporting_enabled ?? false,
-    analytics: settings.analytics_enabled ?? false,
-    explicitOrganization: explicitOrganizationEnabled,
-  }
-}
-
-function resolveSettingsDraftThemeMode(themeMode: Settings['theme_mode']): ThemeMode {
-  if (themeMode) return themeMode
-  if (typeof window === 'undefined') return DEFAULT_THEME_MODE
-  return readStoredThemeMode(window.localStorage) ?? DEFAULT_THEME_MODE
-}
-
-function resolveTelemetryConsent(settings: Settings, draft: SettingsDraft): boolean | null {
-  if (draft.crashReporting || draft.analytics) return true
-  return settings.telemetry_consent === null ? null : false
-}
-
-function resolveAnonymousId(settings: Settings, draft: SettingsDraft): string | null {
-  if (draft.crashReporting || draft.analytics) {
-    return settings.anonymous_id ?? crypto.randomUUID()
-  }
-
-  return settings.anonymous_id
-}
-
-function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft): Settings {
-  return {
-    auto_pull_interval_minutes: draft.pullInterval,
-    autogit_enabled: draft.autoGitEnabled,
-    autogit_idle_threshold_seconds: draft.autoGitIdleThresholdSeconds,
-    autogit_inactive_threshold_seconds: draft.autoGitInactiveThresholdSeconds,
-    auto_advance_inbox_after_organize: draft.autoAdvanceInboxAfterOrganize,
-    telemetry_consent: resolveTelemetryConsent(settings, draft),
-    crash_reporting_enabled: draft.crashReporting,
-    analytics_enabled: draft.analytics,
-    anonymous_id: resolveAnonymousId(settings, draft),
-    release_channel: serializeReleaseChannel(draft.releaseChannel),
-    theme_mode: draft.themeMode,
-    theme_preset: draft.themePreset,
-    editor_font: draft.editorFont,
-    ui_language: serializeUiLanguagePreference(draft.uiLanguage),
-    menu_bar_icon_enabled: draft.menuBarIconEnabled,
-    initial_h1_auto_rename_enabled: draft.initialH1AutoRename,
-    default_ai_agent: draft.defaultAiAgent,
-    ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),
-    ai_agent_providers: normalizeAiAgentProvidersForSave(draft.aiAgentProviders),
-  }
-}
-
-function createAiAgentStringDraft(
-  values: Settings['ai_agent_models'] | Settings['ai_agent_providers'],
-): Partial<Record<AiAgentId, string>> {
-  const draft: Partial<Record<AiAgentId, string>> = {}
-  for (const definition of AI_AGENT_DEFINITIONS) {
-    const value = values?.[definition.id]?.trim()
-    if (value) draft[definition.id] = value
-  }
-  return draft
-}
-
-function createAiAgentModelsDraft(
-  models: Settings['ai_agent_models'],
-): Partial<Record<AiAgentId, string>> {
-  return createAiAgentStringDraft(models)
-}
-
-function normalizeAiAgentModelsForSave(
-  models: Partial<Record<AiAgentId, string>>,
-): Settings['ai_agent_models'] {
-  const saved = createAiAgentStringDraft(models)
-  return Object.keys(saved).length > 0 ? saved : null
-}
-
-function normalizeAiAgentProvidersForSave(
-  providers: Partial<Record<AiAgentId, string>>,
-): Settings['ai_agent_providers'] {
-  const saved = createAiAgentStringDraft(providers)
-  return Object.keys(saved).length > 0 ? saved : null
-}
-
-function updateAiAgentModelDraft(
-  models: Partial<Record<AiAgentId, string>>,
-  agent: AiAgentId,
-  model: string,
-): Partial<Record<AiAgentId, string>> {
-  const next = { ...models }
-  const normalized = model.trim()
-  if (normalized) {
-    next[agent] = normalized
-  } else {
-    delete next[agent]
-  }
-  return next
-}
-
-function updateAiAgentProviderDraft(
-  providers: Partial<Record<AiAgentId, string>>,
-  agent: AiAgentId,
-  provider: string,
-): Partial<Record<AiAgentId, string>> {
-  const next = { ...providers }
-  const normalized = provider.trim()
-  if (normalized) {
-    next[agent] = normalized
-  } else {
-    delete next[agent]
-  }
-  return next
-}
-
-function trackTelemetryConsentChange(previousAnalytics: boolean, nextAnalytics: boolean): void {
-  if (!previousAnalytics && nextAnalytics) trackEvent('telemetry_opted_in')
-  if (previousAnalytics && !nextAnalytics) trackEvent('telemetry_opted_out')
-}
-
-function isChecked(checked: CheckedState): boolean {
-  return checked === true
-}
-
-function sanitizePositiveInteger(value: number | null | undefined, fallback: number): number {
-  if (value === null || value === undefined || !Number.isFinite(value) || value < 1) return fallback
-  return Math.round(value)
-}
-
+/** Modal surface for application, vault, Git, and appearance settings. */
 export function SettingsPanel({
   open,
   settings,
@@ -325,6 +85,9 @@ export function SettingsPanel({
   onExportMarkdownZip,
   onSave,
   isGitVault = true,
+  hasGitMetadata = isGitVault,
+  gitCapabilityUpdating = false,
+  onSetGitEnabled,
   explicitOrganizationEnabled = true,
   onSaveExplicitOrganization,
   onClose,
@@ -347,19 +110,14 @@ export function SettingsPanel({
       onExportMarkdownZip={onExportMarkdownZip}
       onSave={onSave}
       isGitVault={isGitVault}
+      hasGitMetadata={hasGitMetadata}
+      gitCapabilityUpdating={gitCapabilityUpdating}
+      onSetGitEnabled={onSetGitEnabled}
       explicitOrganizationEnabled={explicitOrganizationEnabled}
       onSaveExplicitOrganization={onSaveExplicitOrganization}
       onClose={onClose}
     />
   )
-}
-
-type SettingsPanelInnerProps = Omit<SettingsPanelProps, 'open' | 'explicitOrganizationEnabled' | 'aiAgentsStatus' | 'isGitVault'> & {
-  aiAgentsStatus: AiAgentsStatus
-  locale: AppLocale
-  systemLocale: AppLocale
-  isGitVault: boolean
-  explicitOrganizationEnabled: boolean
 }
 
 function SettingsPanelInner({
@@ -376,6 +134,9 @@ function SettingsPanelInner({
   onExportMarkdownZip,
   onSave,
   isGitVault,
+  hasGitMetadata,
+  gitCapabilityUpdating,
+  onSetGitEnabled,
   explicitOrganizationEnabled,
   onSaveExplicitOrganization,
   onClose,
@@ -450,7 +211,7 @@ function SettingsPanelInner({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'var(--shadow-overlay)' }}
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
@@ -458,8 +219,7 @@ function SettingsPanelInner({
     >
       <div
         ref={panelRef}
-        className="rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
-        style={{ width: 520, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
+        className="flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
       >
         <SettingsHeader onClose={onClose} t={t} />
         <SettingsBody
@@ -469,6 +229,9 @@ function SettingsPanelInner({
           pullInterval={draft.pullInterval}
           setPullInterval={(value) => updateDraft('pullInterval', value)}
           isGitVault={isGitVault}
+          hasGitMetadata={hasGitMetadata}
+          gitCapabilityUpdating={gitCapabilityUpdating}
+          onSetGitEnabled={onSetGitEnabled}
           autoGitEnabled={draft.autoGitEnabled}
           setAutoGitEnabled={(value) => updateDraft('autoGitEnabled', value)}
           autoGitIdleThresholdSeconds={draft.autoGitIdleThresholdSeconds}
@@ -519,13 +282,10 @@ function SettingsPanelInner({
   )
 }
 
-function SettingsHeader({ onClose, t }: { onClose: () => void; t: Translate }) {
+function SettingsHeader({ onClose, t }: { onClose: () => void; t: ReturnType<typeof createTranslator> }) {
   return (
-    <div
-      className="flex items-center justify-between shrink-0"
-      style={{ height: 56, padding: '0 24px', borderBottom: '1px solid var(--border)' }}
-    >
-      <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--foreground)' }}>{t('settings.title')}</span>
+    <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
+      <span className="text-base font-semibold text-foreground">{t('settings.title')}</span>
       <Button
         variant="ghost"
         size="icon-sm"
@@ -539,719 +299,10 @@ function SettingsHeader({ onClose, t }: { onClose: () => void; t: Translate }) {
   )
 }
 
-function SettingsBody({
-  t,
-  locale,
-  systemLocale,
-  pullInterval,
-  setPullInterval,
-  isGitVault,
-  autoGitEnabled,
-  setAutoGitEnabled,
-  autoGitIdleThresholdSeconds,
-  setAutoGitIdleThresholdSeconds,
-  autoGitInactiveThresholdSeconds,
-  setAutoGitInactiveThresholdSeconds,
-  autoAdvanceInboxAfterOrganize,
-  setAutoAdvanceInboxAfterOrganize,
-  aiAgentsStatus,
-  defaultAiAgent,
-  setDefaultAiAgent,
-  aiAgentModels,
-  setAiAgentModels,
-  aiAgentProviders,
-  setAiAgentProviders,
-  vaultPath,
-  importMarkdownFolderBusy,
-  onImportMarkdownFolder,
-  onImportMarkdownZip,
-  onImportBear,
-  onImportDayOne,
-  onImportJourney,
-  onExportMarkdownZip,
-  releaseChannel,
-  setReleaseChannel,
-  themeMode,
-  setThemeMode,
-  themePreset,
-  setThemePreset,
-  editorFont,
-  setEditorFont,
-  uiLanguage,
-  setUiLanguage,
-  menuBarIconEnabled,
-  setMenuBarIconEnabled,
-  initialH1AutoRename,
-  setInitialH1AutoRename,
-  explicitOrganization,
-  setExplicitOrganization,
-  crashReporting,
-  setCrashReporting,
-  analytics,
-  setAnalytics,
-}: SettingsBodyProps) {
+function SettingsFooter({ onClose, onSave, t }: { onClose: () => void; onSave: () => void; t: ReturnType<typeof createTranslator> }) {
   return (
-    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'auto' }}>
-      <SettingsSection showDivider={false}>
-        <SyncAndUpdatesSection
-          t={t}
-          pullInterval={pullInterval}
-          setPullInterval={setPullInterval}
-          releaseChannel={releaseChannel}
-          setReleaseChannel={setReleaseChannel}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <AutoGitSettingsSection
-          t={t}
-          isGitVault={isGitVault}
-          autoGitEnabled={autoGitEnabled}
-          setAutoGitEnabled={setAutoGitEnabled}
-          autoGitIdleThresholdSeconds={autoGitIdleThresholdSeconds}
-          setAutoGitIdleThresholdSeconds={setAutoGitIdleThresholdSeconds}
-          autoGitInactiveThresholdSeconds={autoGitInactiveThresholdSeconds}
-          setAutoGitInactiveThresholdSeconds={setAutoGitInactiveThresholdSeconds}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <PortabilitySettingsSection
-          t={t}
-          vaultPath={vaultPath}
-          vaultReady={vaultPath.trim().length > 0}
-          importBusy={importMarkdownFolderBusy}
-          onImportMarkdownFolder={onImportMarkdownFolder}
-          onImportMarkdownZip={onImportMarkdownZip}
-          onImportBear={onImportBear}
-          onImportDayOne={onImportDayOne}
-          onImportJourney={onImportJourney}
-          onExportMarkdownZip={onExportMarkdownZip}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <AppearanceSettingsSection
-          t={t}
-          themeMode={themeMode}
-          setThemeMode={setThemeMode}
-          themePreset={themePreset}
-          setThemePreset={setThemePreset}
-          editorFont={editorFont}
-          setEditorFont={setEditorFont}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <LanguageSettingsSection
-          t={t}
-          locale={locale}
-          systemLocale={systemLocale}
-          uiLanguage={uiLanguage}
-          setUiLanguage={setUiLanguage}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <NativeSettingsSection
-          t={t}
-          menuBarIconEnabled={menuBarIconEnabled}
-          setMenuBarIconEnabled={setMenuBarIconEnabled}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <TitleSettingsSection
-          t={t}
-          initialH1AutoRename={initialH1AutoRename}
-          setInitialH1AutoRename={setInitialH1AutoRename}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <AiAgentSettingsSection
-          t={t}
-          aiAgentsStatus={aiAgentsStatus}
-          defaultAiAgent={defaultAiAgent}
-          setDefaultAiAgent={setDefaultAiAgent}
-          aiAgentModels={aiAgentModels}
-          setAiAgentModels={setAiAgentModels}
-          aiAgentProviders={aiAgentProviders}
-          setAiAgentProviders={setAiAgentProviders}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <OrganizationWorkflowSection
-          t={t}
-          checked={explicitOrganization}
-          onChange={setExplicitOrganization}
-          autoAdvanceInboxAfterOrganize={autoAdvanceInboxAfterOrganize}
-          onChangeAutoAdvanceInboxAfterOrganize={setAutoAdvanceInboxAfterOrganize}
-        />
-      </SettingsSection>
-
-      <SettingsSection>
-        <PrivacySettingsSection
-          t={t}
-          crashReporting={crashReporting}
-          setCrashReporting={setCrashReporting}
-          analytics={analytics}
-          setAnalytics={setAnalytics}
-        />
-      </SettingsSection>
-    </div>
-  )
-}
-
-function SyncAndUpdatesSection({
-  t,
-  pullInterval,
-  setPullInterval,
-  releaseChannel,
-  setReleaseChannel,
-}: Pick<SettingsBodyProps, 't' | 'pullInterval' | 'setPullInterval' | 'releaseChannel' | 'setReleaseChannel'>) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.sync.title')}
-        description={t('settings.sync.description')}
-      />
-
-      <LabeledSelect
-        label={t('settings.pullInterval')}
-        value={`${pullInterval}`}
-        onValueChange={(value) => setPullInterval(Number(value))}
-        options={PULL_INTERVAL_OPTIONS.map((value) => ({
-          value: `${value}`,
-          label: `${value}`,
-        }))}
-        testId="settings-pull-interval"
-        autoFocus={true}
-      />
-
-      <LabeledSelect
-        label={t('settings.releaseChannel')}
-        value={releaseChannel}
-        onValueChange={(value) => setReleaseChannel(value as ReleaseChannel)}
-        options={[
-          { value: 'stable', label: t('settings.releaseStable') },
-          { value: 'alpha', label: t('settings.releaseAlpha') },
-        ]}
-        testId="settings-release-channel"
-      />
-    </>
-  )
-}
-
-function autoGitSectionDescription(isGitVault: boolean, t: Translate): string {
-  return isGitVault
-    ? t('settings.autogit.description.enabled')
-    : t('settings.autogit.description.disabled')
-}
-
-function AutoGitSettingsSection({
-  t,
-  isGitVault,
-  autoGitEnabled,
-  setAutoGitEnabled,
-  autoGitIdleThresholdSeconds,
-  setAutoGitIdleThresholdSeconds,
-  autoGitInactiveThresholdSeconds,
-  setAutoGitInactiveThresholdSeconds,
-}: Pick<
-  SettingsBodyProps,
-  | 't'
-  | 'isGitVault'
-  | 'autoGitEnabled'
-  | 'setAutoGitEnabled'
-  | 'autoGitIdleThresholdSeconds'
-  | 'setAutoGitIdleThresholdSeconds'
-  | 'autoGitInactiveThresholdSeconds'
-  | 'setAutoGitInactiveThresholdSeconds'
->) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.autogit.title')}
-        description={autoGitSectionDescription(isGitVault, t)}
-      />
-
-      <SettingsSwitchRow
-        label={t('settings.autogit.enable')}
-        description={t('settings.autogit.enableDescription')}
-        checked={autoGitEnabled}
-        onChange={setAutoGitEnabled}
-        disabled={!isGitVault}
-        testId="settings-autogit-enabled"
-      />
-
-      <LabeledNumberInput
-        label={t('settings.autogit.idleThreshold')}
-        value={autoGitIdleThresholdSeconds}
-        onValueChange={setAutoGitIdleThresholdSeconds}
-        testId="settings-autogit-idle-threshold"
-        disabled={!isGitVault}
-      />
-
-      <LabeledNumberInput
-        label={t('settings.autogit.inactiveThreshold')}
-        value={autoGitInactiveThresholdSeconds}
-        onValueChange={setAutoGitInactiveThresholdSeconds}
-        testId="settings-autogit-inactive-threshold"
-        disabled={!isGitVault}
-      />
-    </>
-  )
-}
-
-function buildLanguageOptions(t: Translate, locale: AppLocale, systemLocale: AppLocale) {
-  return [
-    {
-      value: SYSTEM_UI_LANGUAGE,
-      label: t('settings.language.system', {
-        language: localeDisplayName(systemLocale, locale),
-      }),
-    },
-    { value: 'en', label: t('settings.language.en') },
-    { value: 'zh-Hans', label: t('settings.language.zhHans') },
-  ]
-}
-
-function LanguageSettingsSection({
-  t,
-  locale,
-  systemLocale,
-  uiLanguage,
-  setUiLanguage,
-}: Pick<SettingsBodyProps, 't' | 'locale' | 'systemLocale' | 'uiLanguage' | 'setUiLanguage'>) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.language.title')}
-        description={t('settings.language.description')}
-      />
-
-      <LabeledSelect
-        label={t('settings.language.label')}
-        value={uiLanguage}
-        onValueChange={(value) => setUiLanguage(value as UiLanguagePreference)}
-        options={buildLanguageOptions(t, locale, systemLocale)}
-        testId="settings-ui-language"
-      />
-
-      <div style={{ fontSize: 11, color: 'var(--muted-foreground)', lineHeight: 1.5 }}>
-        {t('settings.language.summary')}
-      </div>
-    </>
-  )
-}
-
-function TitleSettingsSection({
-  t,
-  initialH1AutoRename,
-  setInitialH1AutoRename,
-}: Pick<SettingsBodyProps, 't' | 'initialH1AutoRename' | 'setInitialH1AutoRename'>) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.titles.title')}
-        description={t('settings.titles.description')}
-      />
-
-      <SettingsSwitchRow
-        label={t('settings.titles.autoRename')}
-        description={t('settings.titles.autoRenameDescription')}
-        checked={initialH1AutoRename}
-        onChange={setInitialH1AutoRename}
-        testId="settings-initial-h1-auto-rename"
-      />
-    </>
-  )
-}
-
-function buildDefaultAiAgentOptions(aiAgentsStatus: AiAgentsStatus, t: Translate): Array<{ value: string; label: string }> {
-  return AI_AGENT_DEFINITIONS.map((definition) => {
-    const status = aiAgentsStatus[definition.id]
-    const suffix = status.status === 'installed'
-      ? ` (${t('settings.aiAgents.installed')}${status.version ? ` ${status.version}` : ''})`
-      : ` (${t('settings.aiAgents.missing')})`
-    return {
-      value: definition.id,
-      label: `${definition.label}${suffix}`,
-    }
-  })
-}
-
-function AiAgentSettingsSection({
-  t,
-  aiAgentsStatus,
-  defaultAiAgent,
-  setDefaultAiAgent,
-  aiAgentModels,
-  setAiAgentModels,
-  aiAgentProviders,
-  setAiAgentProviders,
-}: Pick<SettingsBodyProps,
-  | 't'
-  | 'aiAgentsStatus'
-  | 'defaultAiAgent'
-  | 'setDefaultAiAgent'
-  | 'aiAgentModels'
-  | 'setAiAgentModels'
-  | 'aiAgentProviders'
-  | 'setAiAgentProviders'
->) {
-  const selectedProvider = aiAgentProviders[defaultAiAgent] ?? ''
-  const selectedModel = aiAgentModels[defaultAiAgent] ?? ''
-  const handleProviderChange = (value: string) => {
-    setAiAgentProviders(updateAiAgentProviderDraft(aiAgentProviders, defaultAiAgent, value))
-  }
-  const handleModelChange = (value: string) => {
-    setAiAgentModels(updateAiAgentModelDraft(aiAgentModels, defaultAiAgent, value))
-  }
-  const showProviderOverride = defaultAiAgent === 'chitragupta'
-
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.aiAgents.title')}
-        description={t('settings.aiAgents.description')}
-      />
-
-      <LabeledSelect
-        label={t('settings.aiAgents.default')}
-        value={defaultAiAgent}
-        onValueChange={(value) => setDefaultAiAgent(value as AiAgentId)}
-        options={buildDefaultAiAgentOptions(aiAgentsStatus, t)}
-        testId="settings-default-ai-agent"
-      />
-
-      {showProviderOverride && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label
-            style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}
-            htmlFor="settings-default-ai-provider"
-          >
-            {t('settings.aiAgents.provider')}
-          </label>
-          <div className="flex gap-2">
-            <Input
-              id="settings-default-ai-provider"
-              value={selectedProvider}
-              placeholder={t('settings.aiAgents.providerPlaceholder')}
-              onChange={(event) => handleProviderChange(event.target.value)}
-              data-testid="settings-default-ai-provider"
-              className="w-full bg-transparent"
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleProviderChange('')}
-              disabled={!selectedProvider}
-              data-testid="settings-default-ai-provider-clear"
-            >
-              {t('settings.aiAgents.providerDefault')}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label
-          style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}
-          htmlFor="settings-default-ai-model"
-        >
-          {t('settings.aiAgents.model')}
-        </label>
-        <div className="flex gap-2">
-          <Input
-            id="settings-default-ai-model"
-            value={selectedModel}
-            placeholder={t('settings.aiAgents.modelPlaceholder')}
-            onChange={(event) => handleModelChange(event.target.value)}
-            data-testid="settings-default-ai-model"
-            className="w-full bg-transparent"
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleModelChange('')}
-            disabled={!selectedModel}
-            data-testid="settings-default-ai-model-clear"
-          >
-            {t('settings.aiAgents.modelDefault')}
-          </Button>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 11, color: 'var(--muted-foreground)', lineHeight: 1.5 }}>
-        {renderDefaultAiAgentSummary(defaultAiAgent, aiAgentsStatus, t)}
-      </div>
-    </>
-  )
-}
-
-function PrivacySettingsSection({
-  t,
-  crashReporting,
-  setCrashReporting,
-  analytics,
-  setAnalytics,
-}: Pick<SettingsBodyProps, 't' | 'crashReporting' | 'setCrashReporting' | 'analytics' | 'setAnalytics'>) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.privacy.title')}
-        description={t('settings.privacy.description')}
-      />
-
-      <TelemetryToggle
-        label={t('settings.privacy.crashReporting')}
-        description={t('settings.privacy.crashReportingDescription')}
-        checked={crashReporting}
-        onChange={setCrashReporting}
-        testId="settings-crash-reporting"
-      />
-      <TelemetryToggle
-        label={t('settings.privacy.analytics')}
-        description={t('settings.privacy.analyticsDescription')}
-        checked={analytics}
-        onChange={setAnalytics}
-        testId="settings-analytics"
-      />
-    </>
-  )
-}
-
-function SettingsSection({
-  children,
-  showDivider = true,
-}: {
-  children: ReactNode
-  showDivider?: boolean
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, padding: '18px 0' }}>
-      {showDivider ? <Divider /> : null}
-      {children}
-    </div>
-  )
-}
-
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--muted-foreground)',
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.55, maxWidth: 420 }}>
-        {description}
-      </div>
-    </div>
-  )
-}
-
-function Divider() {
-  return <div style={{ height: 1, background: 'color-mix(in srgb, var(--border) 82%, transparent)' }} />
-}
-
-function renderDefaultAiAgentSummary(defaultAiAgent: AiAgentId, aiAgentsStatus: AiAgentsStatus, t: Translate): string {
-  const definition = getAiAgentDefinition(defaultAiAgent)
-  const status = aiAgentsStatus[defaultAiAgent]
-  if (status.status === 'installed') {
-    return t('settings.aiAgents.ready', {
-      agent: definition.label,
-      version: status.version ? ` ${status.version}` : '',
-    })
-  }
-  return t('settings.aiAgents.notInstalled', { agent: definition.label })
-}
-
-function LabeledSelect({
-  label,
-  value,
-  onValueChange,
-  options,
-  testId,
-  autoFocus = false,
-}: {
-  label: string
-  value: string
-  onValueChange: (value: string) => void
-  options: Array<{ value: string; label: string }>
-  testId: string
-  autoFocus?: boolean
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }}>{label}</label>
-      <Select value={value} onValueChange={onValueChange}>
-        <SelectTrigger
-          className="w-full bg-transparent"
-          data-testid={testId}
-          data-value={value}
-          data-settings-autofocus={autoFocus ? 'true' : undefined}
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent position="popper" data-anchor-strategy="popper">
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
-}
-
-function LabeledNumberInput({
-  label,
-  value,
-  onValueChange,
-  testId,
-  disabled = false,
-}: {
-  label: string
-  value: number
-  onValueChange: (value: number) => void
-  testId: string
-  disabled?: boolean
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--foreground)' }} htmlFor={testId}>{label}</label>
-      <Input
-        id={testId}
-        type="number"
-        min={1}
-        step={1}
-        value={value}
-        disabled={disabled}
-        onChange={(event) => onValueChange(sanitizePositiveInteger(Number(event.target.value), value))}
-        data-testid={testId}
-        className="w-full bg-transparent"
-      />
-    </div>
-  )
-}
-
-function OrganizationWorkflowSection({
-  t,
-  checked,
-  onChange,
-  autoAdvanceInboxAfterOrganize,
-  onChangeAutoAdvanceInboxAfterOrganize,
-}: {
-  t: Translate
-  checked: boolean
-  onChange: (value: boolean) => void
-  autoAdvanceInboxAfterOrganize: boolean
-  onChangeAutoAdvanceInboxAfterOrganize: (value: boolean) => void
-}) {
-  return (
-    <>
-      <SectionHeading
-        title={t('settings.workflow.title')}
-        description={t('settings.workflow.description')}
-      />
-
-      <SettingsSwitchRow
-        label={t('settings.workflow.explicit')}
-        description={t('settings.workflow.explicitDescription')}
-        checked={checked}
-        onChange={onChange}
-        testId="settings-explicit-organization"
-      />
-
-      <SettingsSwitchRow
-        label={t('settings.workflow.autoAdvance')}
-        description={t('settings.workflow.autoAdvanceDescription')}
-        checked={autoAdvanceInboxAfterOrganize}
-        onChange={onChangeAutoAdvanceInboxAfterOrganize}
-        testId="settings-auto-advance-inbox-after-organize"
-      />
-    </>
-  )
-}
-
-function SettingsSwitchRow({
-  label,
-  description,
-  checked,
-  onChange,
-  disabled = false,
-  testId,
-}: {
-  label: string
-  description: string
-  checked: boolean
-  onChange: (value: boolean) => void
-  disabled?: boolean
-  testId?: string
-}) {
-  return (
-    <label
-      className="flex items-start justify-between gap-3"
-      style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1 }}
-      data-testid={testId}
-    >
-      <div className="space-y-1">
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)' }}>{label}</div>
-        <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{description}</div>
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} aria-label={label} disabled={disabled} />
-    </label>
-  )
-}
-
-function TelemetryToggle({
-  label,
-  description,
-  checked,
-  onChange,
-  testId,
-}: {
-  label: string
-  description: string
-  checked: boolean
-  onChange: (value: boolean) => void
-  testId: string
-}) {
-  return (
-    <label className="flex items-center gap-3" style={{ cursor: 'pointer' }} data-testid={testId}>
-      <Checkbox checked={checked} onCheckedChange={(value) => onChange(isChecked(value))} />
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)' }}>{label}</div>
-        <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{description}</div>
-      </div>
-    </label>
-  )
-}
-
-function SettingsFooter({ onClose, onSave, t }: { onClose: () => void; onSave: () => void; t: Translate }) {
-  return (
-    <div
-      className="flex items-center justify-between shrink-0"
-      style={{ height: 56, padding: '0 24px', borderTop: '1px solid var(--border)' }}
-    >
-      <span style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>{t('settings.footerShortcut')}</span>
+    <div className="flex h-14 shrink-0 items-center justify-between border-t border-border px-6">
+      <span className="text-[11px] text-muted-foreground">{t('settings.footerShortcut')}</span>
       <div className="flex gap-2">
         <Button variant="outline" onClick={onClose}>
           {t('settings.cancel')}

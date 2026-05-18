@@ -595,12 +595,18 @@ function addVaultToList({
         ? {
             ...vault,
             label: vault.label || label,
-            storageProvider: storageProvider ?? vault.storageProvider,
-            syncProvider: syncProvider ?? vault.syncProvider,
+            storageProvider: storageProvider ?? vault.storageProvider ?? 'local-folder',
+            syncProvider: syncProvider ?? vault.syncProvider ?? 'none',
             available: true,
           }
         : vault)
-      : [...previousVaults, { label, path, storageProvider, syncProvider, available: true }]
+      : [...previousVaults, {
+          label,
+          path,
+          storageProvider: storageProvider ?? 'local-folder',
+          syncProvider: syncProvider ?? 'none',
+          available: true,
+        }]
   })
 }
 
@@ -612,7 +618,13 @@ function upsertAvailableVaultOption(
 ): VaultOption[] {
   const existingVault = extraVaults.find((vault) => vault.path === path)
   if (!existingVault) {
-    return [...extraVaults, { label, path, ...metadata, available: true }]
+    return [...extraVaults, {
+      label,
+      path,
+      storageProvider: metadata.storageProvider ?? 'local-folder',
+      syncProvider: metadata.syncProvider ?? 'none',
+      available: true,
+    }]
   }
 
   return extraVaults.map((vault) => (
@@ -620,8 +632,8 @@ function upsertAvailableVaultOption(
       ? {
           ...vault,
           label: vault.label || label,
-          storageProvider: metadata.storageProvider ?? vault.storageProvider,
-          syncProvider: metadata.syncProvider ?? vault.syncProvider,
+          storageProvider: metadata.storageProvider ?? vault.storageProvider ?? 'local-folder',
+          syncProvider: metadata.syncProvider ?? vault.syncProvider ?? 'none',
           available: true,
         }
       : vault
@@ -819,11 +831,11 @@ function useSwitchVaultAction(
 }
 
 function useVaultClonedAction(
-  addAndSwitch: (path: string, label: string) => void,
+  addAndSwitch: (path: string, label: string, metadata?: Pick<VaultOption, 'storageProvider' | 'syncProvider'>) => void,
   onToastRef: MutableRefObject<(msg: string) => void>,
 ) {
   return useCallback((path: string, label: string) => {
-    addAndSwitch(path, label)
+    addAndSwitch(path, label, { storageProvider: 'local-folder', syncProvider: 'git' })
     onToastRef.current(`Vault "${label}" cloned and opened`)
   }, [addAndSwitch, onToastRef])
 }
