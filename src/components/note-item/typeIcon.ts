@@ -31,6 +31,16 @@ const TYPE_ICON_MAP: Record<string, ComponentType<SVGAttributes<SVGSVGElement>>>
   topic: Tag,
   Type: StackSimple,
   type: StackSimple,
+  Vedas: resolveIcon('vedas'),
+  vedas: resolveIcon('vedas'),
+  Shaastras: resolveIcon('shaastras'),
+  shaastras: resolveIcon('shaastras'),
+  Puranas: resolveIcon('puranas'),
+  puranas: resolveIcon('puranas'),
+  Rishi: resolveIcon('rishi'),
+  rishi: resolveIcon('rishi'),
+  'Second Brain': resolveIcon('second-brain'),
+  'second brain': resolveIcon('second-brain'),
 }
 
 export function getTypeIcon(isA: string | null, customIcon?: string | null): ComponentType<SVGAttributes<SVGSVGElement>> {

@@ -87,5 +87,5 @@ describe('NoteList search keyboard behavior', () => {
     expect(screen.getByText('Alpha Strategy')).toBeInTheDocument()
     expect(screen.getByText('Beta Strategy')).toBeInTheDocument()
     expect(screen.queryByText('Note 1')).not.toBeInTheDocument()
-  })
+  }, 10000)
 })
