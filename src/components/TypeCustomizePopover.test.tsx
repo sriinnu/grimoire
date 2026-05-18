@@ -21,6 +21,14 @@ describe('resolveIcon', () => {
     const Icon = resolveIcon('nonexistent-icon')
     expect(Icon).toBeDefined()
   })
+
+  it('returns Grimoire knowledge icons for custom names', () => {
+    expect(resolveIcon('vedas')).toBe(resolveIcon('veda'))
+    expect(resolveIcon('shaastras')).toBe(resolveIcon('shastra'))
+    expect(resolveIcon('puranas')).toBe(resolveIcon('purana'))
+    expect(resolveIcon('rishi')).toBeDefined()
+    expect(resolveIcon('second-brain')).toBeDefined()
+  })
 })
 
 describe('ICON_OPTIONS', () => {
@@ -37,6 +45,19 @@ describe('ICON_OPTIONS', () => {
     for (const option of ICON_OPTIONS) {
       expect(option.name).toMatch(/^[a-z][a-z0-9-]*$/)
     }
+  })
+
+  it('includes the Grimoire knowledge icon pack', () => {
+    const names = ICON_OPTIONS.map((o) => o.name)
+    expect(names).toEqual(expect.arrayContaining([
+      'vedas',
+      'shaastras',
+      'puranas',
+      'rishi',
+      'second-brain',
+      'star',
+      'brain',
+    ]))
   })
 })
 

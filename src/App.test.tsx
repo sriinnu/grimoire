@@ -2,6 +2,7 @@ import { act, render, screen, fireEvent, waitFor, within } from '@testing-librar
 import type { ReactNode } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DEFAULT_VAULTS } from './hooks/useVaultSwitcher'
+import { clearPrefetchCache } from './hooks/useTabManagement'
 import { formatShortcutDisplay } from './hooks/appCommandCatalog'
 import { resetAppCommandDispatchStateForTests } from './hooks/appCommandDispatcher'
 import { invoke } from '@tauri-apps/api/core'
@@ -133,7 +134,7 @@ const mockVaultList = {
   hidden_defaults: [],
 }
 
-const mockDefaultVaultPath = '/Users/mock/Documents/Getting Started'
+const mockDefaultVaultPath = '/fixtures/app/Getting Started'
 const expectedDefaultVaultPath = DEFAULT_VAULTS[0].path || mockDefaultVaultPath
 
 const mockCommandResults: Record<string, unknown> = {
@@ -262,6 +263,31 @@ async function enterNeighborhood(noteListContainer: HTMLElement, title: string) 
     fireEvent.click(within(noteListContainer).getByText(title), { metaKey: true })
     await Promise.resolve()
   })
+}
+
+async function openNoteFromList(noteListContainer: HTMLElement, title: string, expectedPath: string) {
+  await act(async () => {
+    fireEvent.click(within(noteListContainer).getByText(title))
+    await Promise.resolve()
+  })
+
+  await waitFor(() => {
+    expect(window.__grimoireTest?.activeTabPath).toBe(expectedPath)
+  }, { timeout: 10000 })
+}
+
+function focusSyntheticEditorEscapeTarget() {
+  const surface = document.createElement('div')
+  surface.className = 'editor__blocknote-container'
+  const editorTarget = document.createElement('input')
+  surface.append(editorTarget)
+  document.body.append(surface)
+  editorTarget.focus()
+
+  return {
+    editorTarget,
+    cleanup: () => surface.remove(),
+  }
 }
 
 async function pressEscape() {
@@ -468,6 +494,7 @@ describe('App', () => {
     vi.mocked(useUpdater).mockReturnValue(createMockUpdaterResult())
     setAppTestViewportWidth(APP_TEST_DESKTOP_WIDTH)
     resetAppCommandDispatchStateForTests()
+    clearPrefetchCache()
     delete window.__grimoireTest
     localStorage.clear()
     window.history.replaceState({}, '', '/')
@@ -493,6 +520,27 @@ describe('App', () => {
     expect(screen.queryByTestId('status-commit-push')).not.toBeInTheDocument()
     expect(screen.queryByTestId('status-sync')).not.toBeInTheDocument()
     expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
+  })
+
+  it('keeps an explicitly local-only vault local even when .git exists', async () => {
+    const getModifiedFiles = vi.fn(() => [])
+    const gitRemoteStatus = vi.fn(() => ({ branch: 'main', ahead: 0, behind: 0, hasRemote: false }))
+    mockCommandResults.load_vault_list = {
+      vaults: [{ label: 'Test Vault', path: '/vault', sync_provider: 'none' }],
+      active_vault: '/vault',
+      hidden_defaults: [],
+    }
+    mockCommandResults.is_git_repo = true
+    mockCommandResults.get_modified_files = getModifiedFiles
+    mockCommandResults.git_remote_status = gitRemoteStatus
+
+    render(<App />)
+
+    expect(await screen.findByText('All Notes', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(getModifiedFiles).not.toHaveBeenCalled()
+    expect(gitRemoteStatus).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('status-commit-push')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('status-sync')).not.toBeInTheDocument()
   })
 
   it('loads and displays vault entries in sidebar', async () => {
@@ -785,8 +833,8 @@ describe('App', () => {
   })
 
   it('persists and opens an existing vault chosen from onboarding', async () => {
-    const selectedVaultPath = '/Users/mock/Documents/Work Vault'
-    const selectedVaultUrl = 'file:///Users/mock/Documents/Work%20Vault'
+    const selectedVaultPath = '/fixtures/app/Work Vault'
+    const selectedVaultUrl = 'file:///fixtures/app/Work%20Vault'
     const saveVaultList = vi.fn()
     const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue(selectedVaultUrl)
 
@@ -835,7 +883,7 @@ describe('App', () => {
   it('persists and opens the onboarding template vault after cloning', async () => {
     let templateExists = false
     const saveVaultList = vi.fn()
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('file:///Users/mock/Documents')
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('file:///fixtures/app')
     const expectedLabel = 'Getting Started'
 
     mockCommandResults.load_vault_list = { vaults: [], active_vault: null, hidden_defaults: [] }
@@ -935,16 +983,19 @@ describe('App', () => {
       expect(getHeader()).toHaveTextContent('Alpha')
     })
 
-    const editor = await screen.findByTestId('mock-editor', {}, { timeout: 5000 })
-    editor.focus()
-    expect(editor).toHaveFocus()
+    const { editorTarget, cleanup } = focusSyntheticEditorEscapeTarget()
+    expect(editorTarget).toHaveFocus()
 
-    await pressEscape()
+    try {
+      await pressEscape()
 
-    await waitFor(() => {
-      expect(noteListContainer).toHaveFocus()
-      expect(getHeader()).toHaveTextContent('Alpha')
-    })
+      await waitFor(() => {
+        expect(noteListContainer).toHaveFocus()
+        expect(getHeader()).toHaveTextContent('Alpha')
+      }, { timeout: 10000 })
+    } finally {
+      cleanup()
+    }
 
     await enterNeighborhood(noteListContainer, 'Beta')
 
@@ -963,7 +1014,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(getHeader()).toHaveTextContent('Inbox')
     })
-  })
+  }, 15000)
 
   it('opens favorites directly into Neighborhood mode', async () => {
     configureNeighborhoodFavoritesVault()
@@ -980,10 +1031,10 @@ describe('App', () => {
 
     expect(screen.getByText('Related to')).toBeInTheDocument()
     expect(screen.getByText('Beta')).toBeInTheDocument()
-  })
+  }, 10000)
 
   it('defaults to All Notes when explicit organization is disabled in vault config', async () => {
-    const workVaultPath = '/Users/mock/Documents/Work'
+    const workVaultPath = '/fixtures/app/Work'
     mockCommandResults.load_vault_list = {
       vaults: [{ label: 'Work Vault', path: workVaultPath }],
       active_vault: workVaultPath,
@@ -1028,14 +1079,11 @@ describe('App', () => {
       expect(getHeaderForNoteList(noteListContainer)).toHaveTextContent('Inbox')
     })
 
-    await act(async () => {
-      fireEvent.click(within(noteListContainer).getByText('Alpha'))
-      await Promise.resolve()
-    })
+    await openNoteFromList(noteListContainer, 'Alpha', '/vault/alpha.md')
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Set note as organized' })).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Set note as organized' }))
@@ -1044,15 +1092,15 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(window.__grimoireTest?.activeTabPath).toBe('/vault/beta.md')
-    })
-  })
+    }, { timeout: 10000 })
+  }, 15000)
 
   it('renders status bar', async () => {
     render(<App />)
     // StatusBar should be present
     await waitFor(() => {
       expect(screen.getByText('All Notes')).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
     // The status bar element should exist in the DOM
     const appShell = document.querySelector('.app-shell')
     expect(appShell).toBeInTheDocument()

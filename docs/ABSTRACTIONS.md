@@ -64,7 +64,7 @@ Vault portability has three separate contracts:
 - storage provider: describes where the local-first vault lives
 - sync/versioning provider: describes optional history, remote sync, and conflict behavior
 
-Git is the first live sync/versioning provider. Local folders, iCloud Drive, Google Drive Desktop, and other desktop sync clients are filesystem-backed storage providers: Grimoire creates and edits a normal local vault folder, and the sync client moves bytes afterward. S3 and Azure Blob are object-storage providers that need a local working copy plus a sync adapter.
+Git is the first live sync/versioning provider. It is optional and per-vault: the registry can store `syncProvider: none` for a folder that has `.git`, and Grimoire must then behave as local-only until the user turns Git back on. Local folders, iCloud Drive, Google Drive Desktop, and other desktop sync clients are filesystem-backed storage providers: Grimoire creates and edits a normal local vault folder, and the sync client moves bytes afterward. S3 and Azure Blob are object-storage providers that need a local working copy plus a sync adapter.
 
 The settings UI surfaces these lanes as readiness signals. It must not imply that planned object-storage adapters are live until they can sync a local working copy without placing credentials in the vault.
 

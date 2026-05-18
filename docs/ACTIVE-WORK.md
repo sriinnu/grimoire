@@ -218,6 +218,20 @@ Build order:
   - Build Obsidian import adapter.
   - Build Notion import adapter.
   - Build Spanda practice/session import adapter.
+
+- [x] Local-first Settings and Git capability pass.
+  - [x] Split SettingsPanel into focused sub-400-line modules.
+  - [x] Redesign Settings as a two-pane local-first control surface.
+  - [x] Add per-vault Git on/off intent so `.git` metadata does not force Grimoire to use Git.
+  - [x] Keep opened local folders local-only by default; cloned Git vaults stay Git-enabled.
+  - [x] Add Vedas, Shaastras, Puranas, Rishi, Star, Brain, and Second Brain icon choices.
+  - [x] Add regression coverage for explicit local-only Git behavior.
+  - [x] Run lint, test, and build gates.
+
+- [ ] Follow-up UI polish from screenshots.
+  - [ ] Fix collapsed left-column traffic-light/logo overlap.
+  - [ ] Fix editor top-left floating control overlap.
+  - [ ] Add project/folder breadcrumb chips to note rows so center-pane notes show which project they belong to.
   - [x] Add iCloud Drive and Google Drive Desktop vault health checks.
   - Design S3 and Azure Blob sync adapters around a local working copy.
 - [ ] Add transcription and voice-note workflow.

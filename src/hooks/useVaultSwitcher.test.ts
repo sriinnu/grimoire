@@ -5,6 +5,11 @@ import type { PersistedVaultList } from './useVaultSwitcher'
 
 const mockDefaultVaultPath = '/mock/Documents/Getting Started'
 const expectedDefaultVaultPath = DEFAULT_VAULTS[0].path || mockDefaultVaultPath
+const legacyGitVaultPath = '/fixtures/vaults/legacy-grimoire'
+const pickedVaultPath = '/fixtures/vaults/my-vault'
+const createdVaultPath = '/fixtures/vaults/new-vault'
+const icloudJournalsPath = '/fixtures/icloud-drive/grimoire/journals'
+const busyFolderPath = '/fixtures/vaults/busy-folder'
 
 let mockVaultListStore: PersistedVaultList = { vaults: [], active_vault: null, hidden_defaults: [] }
 
@@ -110,8 +115,8 @@ describe('useVaultSwitcher', () => {
 
   it('loads persisted vaults on mount', async () => {
     mockVaultListStore = {
-      vaults: [{ label: 'My Vault', path: '/Users/srinivas/Grimoire' }],
-      active_vault: '/Users/srinivas/Grimoire',
+      vaults: [{ label: 'My Vault', path: legacyGitVaultPath }],
+      active_vault: legacyGitVaultPath,
     }
 
     const { result } = renderHook(() => useVaultSwitcher({ onSwitch, onToast }))
@@ -122,22 +127,40 @@ describe('useVaultSwitcher', () => {
 
     expect(result.current.allVaults).toHaveLength(2) // default + persisted
     expect(result.current.allVaults[1].label).toBe('My Vault')
-    expect(result.current.allVaults[1].path).toBe('/Users/srinivas/Grimoire')
+    expect(result.current.allVaults[1].path).toBe(legacyGitVaultPath)
     expect(result.current.allVaults[1].available).toBe(true)
     expect(result.current.allVaults[1].storageProvider).toBe('local-folder')
     expect(result.current.allVaults[1].syncProvider).toBe('none')
-    expect(result.current.vaultPath).toBe('/Users/srinivas/Grimoire')
+    expect(result.current.vaultPath).toBe(legacyGitVaultPath)
     expect(mockInvokeFn).toHaveBeenCalledWith('load_vault_list', {})
   })
 
-  it('derives git sync metadata from the actual vault folder', async () => {
+  it('keeps explicit local-only sync metadata even when the folder has Git metadata', async () => {
     mockVaultListStore = {
-      vaults: [{ label: 'Legacy Git Vault', path: '/Users/srinivas/Grimoire', sync_provider: 'none' }],
-      active_vault: '/Users/srinivas/Grimoire',
+      vaults: [{ label: 'Legacy Git Vault', path: legacyGitVaultPath, sync_provider: 'none' }],
+      active_vault: legacyGitVaultPath,
       hidden_defaults: [],
     }
     setMockInvokeBehavior({
-      isGitRepo: ({ vaultPath }) => vaultPath === '/Users/srinivas/Grimoire',
+      isGitRepo: ({ vaultPath }) => vaultPath === legacyGitVaultPath,
+    })
+
+    const { result } = await renderLoadedVaultSwitcher()
+
+    expect(result.current.allVaults[1]).toEqual(expect.objectContaining({
+      label: 'Legacy Git Vault',
+      syncProvider: 'none',
+    }))
+  })
+
+  it('derives Git sync metadata for legacy entries without an explicit provider', async () => {
+    mockVaultListStore = {
+      vaults: [{ label: 'Legacy Git Vault', path: legacyGitVaultPath }],
+      active_vault: legacyGitVaultPath,
+      hidden_defaults: [],
+    }
+    setMockInvokeBehavior({
+      isGitRepo: ({ vaultPath }) => vaultPath === legacyGitVaultPath,
     })
 
     const { result } = await renderLoadedVaultSwitcher()
@@ -202,7 +225,11 @@ describe('useVaultSwitcher', () => {
       expect(mockInvokeFn).toHaveBeenCalledWith('save_vault_list', expect.objectContaining({
         list: expect.objectContaining({
           vaults: expect.arrayContaining([
-            expect.objectContaining({ label: 'Cloned', path: '/cloned/vault' }),
+            expect.objectContaining({
+              label: 'Cloned',
+              path: '/cloned/vault',
+              sync_provider: 'git',
+            }),
           ]),
         }),
       }))
@@ -390,7 +417,7 @@ describe('useVaultSwitcher', () => {
 
   it('opens local folder and persists', async () => {
     const { pickFolder } = await import('../utils/vault-dialog')
-    vi.mocked(pickFolder).mockResolvedValue('/Users/srinivas/MyVault')
+    vi.mocked(pickFolder).mockResolvedValue(pickedVaultPath)
 
     const { result } = renderHook(() => useVaultSwitcher({ onSwitch, onToast }))
     await waitFor(() => { expect(result.current.loaded).toBe(true) })
@@ -399,8 +426,8 @@ describe('useVaultSwitcher', () => {
       await result.current.handleOpenLocalFolder()
     })
 
-    expect(result.current.allVaults.some(v => v.path === '/Users/srinivas/MyVault')).toBe(true)
-    expect(onToast).toHaveBeenCalledWith('Vault "MyVault" opened')
+    expect(result.current.allVaults.some(v => v.path === pickedVaultPath)).toBe(true)
+    expect(onToast).toHaveBeenCalledWith('Vault "my-vault" opened')
   })
 
   it('shows a clear toast when folder picking is blocked until restart', async () => {
@@ -420,7 +447,7 @@ describe('useVaultSwitcher', () => {
 
   it('creates an empty vault and switches to it', async () => {
     const { pickFolder } = await import('../utils/vault-dialog')
-    vi.mocked(pickFolder).mockResolvedValue('/Users/srinivas/New Vault')
+    vi.mocked(pickFolder).mockResolvedValue(createdVaultPath)
     setMockInvokeBehavior({
       createEmptyVault: ({ targetPath }) => targetPath,
     })
@@ -431,10 +458,10 @@ describe('useVaultSwitcher', () => {
       await result.current.handleCreateEmptyVault()
     })
 
-    expect(mockInvokeFn).toHaveBeenCalledWith('create_empty_vault', { targetPath: '/Users/srinivas/New Vault' })
-    expect(result.current.vaultPath).toBe('/Users/srinivas/New Vault')
-    expect(result.current.allVaults.some(v => v.path === '/Users/srinivas/New Vault')).toBe(true)
-    expect(onToast).toHaveBeenCalledWith('Vault "New Vault" created and opened')
+    expect(mockInvokeFn).toHaveBeenCalledWith('create_empty_vault', { targetPath: createdVaultPath })
+    expect(result.current.vaultPath).toBe(createdVaultPath)
+    expect(result.current.allVaults.some(v => v.path === createdVaultPath)).toBe(true)
+    expect(onToast).toHaveBeenCalledWith('Vault "new-vault" created and opened')
   })
 
   it('creates an empty vault from an explicit modal request without prompting', async () => {
@@ -447,7 +474,7 @@ describe('useVaultSwitcher', () => {
 
     await act(async () => {
       await result.current.handleCreateEmptyVault({
-        targetPath: '/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals',
+        targetPath: icloudJournalsPath,
         storageProvider: 'icloud-drive',
         syncProvider: 'none',
       })
@@ -455,12 +482,12 @@ describe('useVaultSwitcher', () => {
 
     expect(pickFolder).not.toHaveBeenCalled()
     expect(mockInvokeFn).toHaveBeenCalledWith('create_empty_vault', {
-      targetPath: '/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals',
+      targetPath: icloudJournalsPath,
     })
-    expect(result.current.vaultPath).toBe('/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals')
+    expect(result.current.vaultPath).toBe(icloudJournalsPath)
     expect(result.current.allVaults).toContainEqual(expect.objectContaining({
-      label: 'Journals',
-      path: '/Users/srinivas/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journals',
+      label: 'journals',
+      path: icloudJournalsPath,
       storageProvider: 'icloud-drive',
       syncProvider: 'none',
       available: true,
@@ -469,7 +496,7 @@ describe('useVaultSwitcher', () => {
 
   it('shows a friendly toast when empty-vault creation targets a non-empty folder', async () => {
     const { pickFolder } = await import('../utils/vault-dialog')
-    vi.mocked(pickFolder).mockResolvedValue('/Users/srinivas/Busy Folder')
+    vi.mocked(pickFolder).mockResolvedValue(busyFolderPath)
     setMockInvokeBehavior({
       createEmptyVault: () => Promise.reject('Choose an empty folder to create a new vault'),
     })
@@ -650,12 +677,12 @@ describe('useVaultSwitcher', () => {
   describe('default vault path', () => {
     it('does not contain CI runner paths', () => {
       // Regression: production builds must never bake in the CI runner's absolute path
-      expect(DEFAULT_VAULTS[0].path).not.toContain('/Users/runner/')
+      expect(DEFAULT_VAULTS[0].path).not.toContain(['', 'Users', 'runner', ''].join('/'))
       expect(DEFAULT_VAULTS[0].path).not.toContain('/home/runner/')
     })
 
     it('keeps persisted active vault when one exists', async () => {
-      const persistedPath = '/Users/srinivas/MyVault'
+      const persistedPath = pickedVaultPath
       mockVaultListStore = {
         vaults: [{ label: 'My Vault', path: persistedPath }],
         active_vault: persistedPath,

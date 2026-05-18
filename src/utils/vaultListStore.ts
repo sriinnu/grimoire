@@ -31,9 +31,10 @@ async function detectGitSync(path: string): Promise<boolean> {
 }
 
 async function resolveEntrySyncProvider(v: PersistedVaultEntry, available: boolean): Promise<string> {
+  if (v.sync_provider && v.sync_provider !== 'git') return v.sync_provider
   if (!available) return v.sync_provider ?? 'git'
   if (await detectGitSync(v.path)) return 'git'
-  return v.sync_provider && v.sync_provider !== 'git' ? v.sync_provider : 'none'
+  return 'none'
 }
 
 async function toVaultOption(v: PersistedVaultEntry, available: boolean): Promise<VaultOption> {
@@ -56,11 +57,9 @@ async function checkAvailability(v: PersistedVaultEntry): Promise<VaultOption> {
   }
 }
 
-async function resolveOptionSyncProvider(v: VaultOption): Promise<string> {
+function resolveOptionSyncProvider(v: VaultOption): string {
   const configuredProvider = v.syncProvider ?? 'none'
-  if (v.available === false) return configuredProvider
-  if (await detectGitSync(v.path)) return 'git'
-  return configuredProvider === 'git' ? 'none' : configuredProvider
+  return configuredProvider
 }
 
 async function toPersistedVaultEntry(v: VaultOption): Promise<PersistedVaultEntry> {
@@ -69,7 +68,7 @@ async function toPersistedVaultEntry(v: VaultOption): Promise<PersistedVaultEntr
     label: v.label,
     path: v.path,
     storage_provider: v.storageProvider ?? DEFAULT_STORAGE_PROVIDER,
-    sync_provider: await resolveOptionSyncProvider(v),
+    sync_provider: resolveOptionSyncProvider(v),
   }
 }
 
