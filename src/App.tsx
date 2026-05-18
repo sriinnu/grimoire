@@ -160,6 +160,10 @@ function shouldPreferOnboardingVaultPath(
     && !vaults.some((vault) => vault.path === onboardingState.vaultPath)
 }
 
+function labelFromVaultPath(path: string): string {
+  return path.split('/').filter(Boolean).pop() || 'Local Vault'
+}
+
 async function resolveNoteWindowEntry(noteWindowParams: NoteWindowParams): Promise<VaultEntry | undefined> {
   for (const path of getNoteWindowPathCandidates(noteWindowParams)) {
     try {
@@ -348,8 +352,13 @@ function App() {
       ? onboarding.state.vaultPath
       : vaultSwitcher.vaultPath
   )
+  const activeVaultOption = useMemo(
+    () => vaultSwitcher.allVaults.find((vault) => vault.path === resolvedPath) ?? null,
+    [resolvedPath, vaultSwitcher.allVaults],
+  )
   // Git repo check: 'checking' | 'required' | 'ready'
   const [gitRepoState, setGitRepoState] = useState<'checking' | 'required' | 'ready'>('checking')
+  const [gitCapabilityUpdating, setGitCapabilityUpdating] = useState(false)
   useEffect(() => {
     if (!resolvedPath) return
     let cancelled = false
@@ -363,12 +372,60 @@ function App() {
     return () => { cancelled = true }
   }, [resolvedPath])
 
-  const isGitVault = gitRepoState === 'ready'
+  const hasGitMetadata = gitRepoState === 'ready'
+  const gitSyncProvider = activeVaultOption?.syncProvider
+  const gitCapabilityEnabled = gitSyncProvider === 'git' || (gitSyncProvider == null && hasGitMetadata)
+  const isGitVault = hasGitMetadata && gitCapabilityEnabled
+
+  const persistActiveVaultSyncProvider = useCallback(async (syncProvider: 'git' | 'none') => {
+    if (!resolvedPath) return
+    await registerVaultSelection(
+      resolvedPath,
+      activeVaultOption?.label ?? labelFromVaultPath(resolvedPath),
+      {
+        verifyAvailability: false,
+        storageProvider: activeVaultOption?.storageProvider,
+        syncProvider,
+      },
+    )
+  }, [activeVaultOption, registerVaultSelection, resolvedPath])
+
+  const handleSetGitEnabled = useCallback(async (enabled: boolean) => {
+    if (!resolvedPath || gitCapabilityUpdating) return
+    setGitCapabilityUpdating(true)
+    try {
+      if (enabled && !hasGitMetadata) {
+        const args = { vaultPath: resolvedPath }
+        if (isTauri()) {
+          await invoke('init_git_repo', args)
+        } else {
+          await mockInvoke('init_git_repo', args)
+        }
+        setGitRepoState('ready')
+      }
+
+      await persistActiveVaultSyncProvider(enabled ? 'git' : 'none')
+      setToastMessage(enabled
+        ? 'Git is on for this vault. Commits and sync stay under your control.'
+        : 'Git is off for this vault. Grimoire will keep it local-only.')
+    } catch (err) {
+      setToastMessage(`Could not update Git for this vault: ${err}`)
+    } finally {
+      setGitCapabilityUpdating(false)
+    }
+  }, [
+    gitCapabilityUpdating,
+    hasGitMetadata,
+    persistActiveVaultSyncProvider,
+    resolvedPath,
+    setToastMessage,
+  ])
 
   const vault = useVaultLoader(noteWindowParams ? '' : resolvedPath, { isGitVault })
   const handleGitInitialized = useCallback(() => {
     setGitRepoState('ready')
-  }, [])
+    void persistActiveVaultSyncProvider('git')
+  }, [persistActiveVaultSyncProvider])
   const {
     status: vaultAiGuidanceStatus,
     refresh: refreshVaultAiGuidance,
@@ -451,9 +508,9 @@ function App() {
   useEffect(() => {
     if (vault.entries.length > 0 && gitRepoState !== 'checking' && resolvedPath !== vaultOpenedRef.current) {
       vaultOpenedRef.current = resolvedPath
-      trackEvent('vault_opened', { has_git: gitRepoState === 'ready' ? 1 : 0, note_count: vault.entries.length })
+      trackEvent('vault_opened', { has_git: isGitVault ? 1 : 0, note_count: vault.entries.length })
     }
-  }, [vault.entries.length, gitRepoState, resolvedPath])
+  }, [vault.entries.length, gitRepoState, isGitVault, resolvedPath])
   const { mcpStatus, connectMcp, disconnectMcp } = useMcpStatus(resolvedPath, setToastMessage)
   const gitRemoteStatus = useGitRemoteStatus(resolvedPath, { enabled: isGitVault })
 
@@ -1539,10 +1596,6 @@ function App() {
     if (effectiveSelection.kind === 'entity') return { type: null, query: effectiveSelection.entry.title }
     return { type: null, query: '' }
   }, [effectiveSelection])
-  const activeVaultOption = useMemo(
-    () => vaultSwitcher.allVaults.find((candidate) => candidate.path === resolvedPath),
-    [resolvedPath, vaultSwitcher.allVaults],
-  )
   const dashboardSelected = effectiveSelection.kind === 'dashboard'
 
   const shouldResumeFreshStartOnboarding = useMemo(() => {
@@ -1644,7 +1697,7 @@ function App() {
           {dashboardSelected ? (
             <div className="app__dashboard">
               <VaultDashboard
-                activeVault={activeVaultOption}
+                activeVault={activeVaultOption ?? undefined}
                 conflictCount={isGitVault ? autoSync.conflictFiles.length : 0}
                 entries={vault.entries}
                 isGitVault={isGitVault}
@@ -1769,7 +1822,7 @@ function App() {
           onCommit={conflictResolver.commitResolution}
           onClose={conflictFlow.handleCloseConflictResolver}
         />
-        <SettingsPanel open={dialogs.showSettings} settings={settings} aiAgentsStatus={aiAgentsStatus} locale={appLocale} systemLocale={systemLocale} vaultPath={resolvedPath} importMarkdownFolderBusy={markdownImportBusy} onImportMarkdownFolder={handleImportMarkdownFolder} onImportMarkdownZip={handleImportMarkdownZip} onImportBear={handleImportBear} onImportDayOne={handleImportDayOne} onImportJourney={handleImportJourney} onExportMarkdownZip={handleExportMarkdownZip} isGitVault={isGitVault} onSave={saveSettings} explicitOrganizationEnabled={explicitOrganizationEnabled} onSaveExplicitOrganization={handleSaveExplicitOrganization} onClose={dialogs.closeSettings} />
+        <SettingsPanel open={dialogs.showSettings} settings={settings} aiAgentsStatus={aiAgentsStatus} locale={appLocale} systemLocale={systemLocale} vaultPath={resolvedPath} importMarkdownFolderBusy={markdownImportBusy} onImportMarkdownFolder={handleImportMarkdownFolder} onImportMarkdownZip={handleImportMarkdownZip} onImportBear={handleImportBear} onImportDayOne={handleImportDayOne} onImportJourney={handleImportJourney} onExportMarkdownZip={handleExportMarkdownZip} isGitVault={isGitVault} hasGitMetadata={hasGitMetadata} gitCapabilityUpdating={gitCapabilityUpdating} onSetGitEnabled={(enabled) => { void handleSetGitEnabled(enabled) }} onSave={saveSettings} explicitOrganizationEnabled={explicitOrganizationEnabled} onSaveExplicitOrganization={handleSaveExplicitOrganization} onClose={dialogs.closeSettings} />
         <FeedbackDialog open={showFeedback} onClose={closeFeedback} />
         <McpSetupDialog open={showMcpSetupDialog} status={mcpStatus} busyAction={mcpDialogAction} onClose={closeMcpSetupDialog} onConnect={handleConnectMcp} onDisconnect={handleDisconnectMcp} />
         <CloneVaultModal key={dialogs.showCloneVault ? 'clone-open' : 'clone-closed'} open={dialogs.showCloneVault} onClose={dialogs.closeCloneVault} onVaultCloned={vaultSwitcher.handleVaultCloned} />

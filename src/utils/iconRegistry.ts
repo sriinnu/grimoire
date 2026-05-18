@@ -31,6 +31,13 @@ import {
   Warning, Watch, Waves, Wind, Wine, Wrench,
   type IconProps,
 } from '@phosphor-icons/react'
+import {
+  PuranasIcon,
+  RishiIcon,
+  SecondBrainIcon,
+  ShaastrasIcon,
+  VedasIcon,
+} from '../components/icons/grimoireKnowledgeIcons'
 
 export type { IconProps }
 export type IconEntry = { name: string; Icon: ComponentType<IconProps> }
@@ -79,6 +86,7 @@ export const ICON_OPTIONS: IconEntry[] = [
   { name: 'books', Icon: Books },
   { name: 'bowl-food', Icon: BowlFood },
   { name: 'brain', Icon: Brain },
+  { name: 'second-brain', Icon: SecondBrainIcon },
   { name: 'bread', Icon: Bread },
   { name: 'bridge', Icon: Bridge },
   { name: 'briefcase', Icon: Briefcase },
@@ -261,6 +269,8 @@ export const ICON_OPTIONS: IconEntry[] = [
   { name: 'prescription', Icon: Prescription },
   { name: 'presentation', Icon: Presentation },
   { name: 'printer', Icon: Printer },
+  { name: 'puranas', Icon: PuranasIcon },
+  { name: 'purana', Icon: PuranasIcon },
   { name: 'push-pin', Icon: PushPin },
   { name: 'puzzle-piece', Icon: PuzzlePiece },
   { name: 'qr-code', Icon: QrCode },
@@ -272,6 +282,7 @@ export const ICON_OPTIONS: IconEntry[] = [
   { name: 'robot', Icon: Robot },
   { name: 'rocket', Icon: Rocket },
   { name: 'ruler', Icon: Ruler },
+  { name: 'rishi', Icon: RishiIcon },
   { name: 'sailboat', Icon: Sailboat },
   { name: 'scales', Icon: Scales },
   { name: 'scissors', Icon: Scissors },
@@ -283,6 +294,8 @@ export const ICON_OPTIONS: IconEntry[] = [
   { name: 'shooting-star', Icon: ShootingStar },
   { name: 'shopping-bag', Icon: ShoppingBag },
   { name: 'shopping-cart', Icon: ShoppingCart },
+  { name: 'shaastras', Icon: ShaastrasIcon },
+  { name: 'shastra', Icon: ShaastrasIcon },
   { name: 'signature', Icon: Signature },
   { name: 'smiley', Icon: Smiley },
   { name: 'sneaker', Icon: Sneaker },
@@ -320,6 +333,8 @@ export const ICON_OPTIONS: IconEntry[] = [
   { name: 'user-circle', Icon: UserCircle },
   { name: 'users', Icon: Users },
   { name: 'vault', Icon: Vault },
+  { name: 'vedas', Icon: VedasIcon },
+  { name: 'veda', Icon: VedasIcon },
   { name: 'vinyl-record', Icon: VinylRecord },
   { name: 'wallet', Icon: Wallet },
   { name: 'warning', Icon: Warning },

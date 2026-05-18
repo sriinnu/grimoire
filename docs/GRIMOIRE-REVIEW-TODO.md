@@ -43,7 +43,11 @@ Use this as the live review scratchpad while testing Grimoire.
 - [x] Split native AI launcher modules so permission/model routing stays below the code-size guardrail.
 - [x] Move Codex/Chitragupta binary discovery, args, and event mapping out of the main AI launcher module.
 - [ ] Split the oversized Claude CLI module.
-- [ ] Split the oversized SettingsPanel into sub-400-line setting section modules.
+- [x] Split the oversized SettingsPanel into sub-400-line setting section modules.
+- [ ] Fix collapsed left-column traffic-light overlap: reserve a titlebar-safe top zone so the compact rail logo/actions never sit under macOS window controls.
+- [ ] Fix editor top-left floating controls: breadcrumb/titlebar owns the top row; the floating insert/control pill needs a stable inset below it.
+- [ ] Show project ownership in the center note list with a compact folder breadcrumb chip, e.g. `astral / docs / architecture`, plus an optional subtle project color stripe.
+- [x] Add first knowledge icon pack entries: Vedas, Shaastras, Puranas, Rishi, Star, Brain, and Second Brain.
 
 ## Parking Lot
 
