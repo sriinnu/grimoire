@@ -117,7 +117,7 @@ export function SidebarRail({
       data-testid="sidebar-rail"
       aria-label="Collapsed sidebar"
     >
-      <div className="mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background shadow-xs">
+      <div className="app-sidebar-rail__mark mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background shadow-xs">
         <img
           src={grimoireIcon}
           alt="Grimoire icon"

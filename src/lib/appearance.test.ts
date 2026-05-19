@@ -30,12 +30,18 @@ function makeStorage(initial: Record<string, string> = {}): Storage {
 
 describe('appearance', () => {
   it('normalizes only supported appearance values', () => {
+    expect(normalizeThemePreset('constellation')).toBe('constellation')
+    expect(normalizeThemePreset('living-archive')).toBe('living-archive')
+    expect(normalizeThemePreset('research-cockpit')).toBe('research-cockpit')
     expect(normalizeThemePreset('manuscript')).toBe('manuscript')
     expect(normalizeThemePreset('nocturne')).toBe('nocturne')
-    expect(normalizeThemePreset('aether')).toBe('aether')
-    expect(normalizeThemePreset('ion')).toBe('ion')
-    expect(normalizeThemePreset('moss')).toBe('moss')
-    expect(normalizeThemePreset('lumen')).toBe('lumen')
+    expect(normalizeThemePreset('retro-terminal')).toBe('retro-terminal')
+    expect(normalizeThemePreset('classic')).toBeNull()
+    expect(normalizeThemePreset('graphite')).toBeNull()
+    expect(normalizeThemePreset('aether')).toBeNull()
+    expect(normalizeThemePreset('ion')).toBeNull()
+    expect(normalizeThemePreset('moss')).toBeNull()
+    expect(normalizeThemePreset('lumen')).toBeNull()
     expect(normalizeThemePreset('future')).toBeNull()
     expect(normalizeThemePreset('aurora')).toBeNull()
     expect(normalizeThemePreset('retro')).toBeNull()
@@ -52,36 +58,36 @@ describe('appearance', () => {
   it('reads and writes mirrored startup appearance', () => {
     const storage = makeStorage()
 
-    writeStoredThemePreset(storage, 'ion')
+    writeStoredThemePreset(storage, 'retro-terminal')
     writeStoredEditorFont(storage, 'mono')
 
-    expect(readStoredThemePreset(storage)).toBe('ion')
+    expect(readStoredThemePreset(storage)).toBe('retro-terminal')
     expect(readStoredEditorFont(storage)).toBe('mono')
-    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'ion')
+    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'retro-terminal')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_FONT_STORAGE_KEY, 'mono')
   })
 
   it('applies appearance attributes to the root document', () => {
     applyAppearanceToDocument(document, {
-      themePreset: 'manuscript',
+      themePreset: 'constellation',
       editorFont: 'serif',
     })
 
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'manuscript')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'constellation')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
   })
 
   it('bootstraps stored appearance choices', () => {
     const storage = makeStorage({
-      [THEME_PRESET_STORAGE_KEY]: 'graphite',
+      [THEME_PRESET_STORAGE_KEY]: 'nocturne',
       [EDITOR_FONT_STORAGE_KEY]: 'readable',
     })
 
     expect(applyStoredAppearance(document, storage)).toEqual({
-      themePreset: 'graphite',
+      themePreset: 'nocturne',
       editorFont: 'readable',
     })
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'graphite')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
   })
 })

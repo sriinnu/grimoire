@@ -6,11 +6,8 @@ describe('sidebar appearance CSS', () => {
     const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
 
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="ion"][data-theme="light"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="moss"][data-theme="light"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="aether"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="aether"][data-theme="light"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="aether"][data-theme="light"] .app-sidebar-panel .text-primary')
+    expect(css).toContain('[data-theme-preset="retro-terminal"] .app-sidebar-panel')
+    expect(css).toContain('[data-theme-preset="retro-terminal"] .app-sidebar-panel .text-primary')
     expect(css).toContain('--foreground: var(--sidebar-foreground)')
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel .text-primary')
     expect(css).toContain('color: var(--sidebar-foreground)')
@@ -22,8 +19,8 @@ describe('sidebar appearance CSS', () => {
 
     expect(css).toContain('.sidebar-artwork')
     expect(css).toContain('[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork')
-    expect(css).toContain('[data-theme-preset="ion"] .app-sidebar-panel .sidebar-artwork')
-    expect(css).toContain('[data-theme-preview="light"][data-sidebar-preset-preview="folio"] .sidebar-artwork__image--light')
+    expect(css).toContain('[data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork')
+    expect(css).toContain('[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork')
   })
 
   it('places live sidebar artwork behind navigation while previews stay inline', () => {

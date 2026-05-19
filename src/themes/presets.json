@@ -1,0 +1,38 @@
+[
+  {
+    "id": "constellation",
+    "label": "Nocturne Constellation",
+    "description": "Agent graph, luminous memory, calm local-first command.",
+    "swatches": ["#F6FAFB", "#071119", "#54E1D2"]
+  },
+  {
+    "id": "living-archive",
+    "label": "Living Archive",
+    "description": "Parchment, forest ink, journal and dream-library warmth.",
+    "swatches": ["#FAF4E6", "#203121", "#C8A454"]
+  },
+  {
+    "id": "research-cockpit",
+    "label": "Research Cockpit",
+    "description": "Dense signal, agent rails, execution-focused workbench.",
+    "swatches": ["#111827", "#18202B", "#65D6FF"]
+  },
+  {
+    "id": "nocturne",
+    "label": "Nocturne",
+    "description": "Dark desk, quiet focus, luminous links.",
+    "swatches": ["#141513", "#20251F", "#8FD6B8"]
+  },
+  {
+    "id": "manuscript",
+    "label": "Manuscript",
+    "description": "Ink-teal sidebar, parchment page, gold marginalia.",
+    "swatches": ["#FBFAF7", "#244D5A", "#C69A48"]
+  },
+  {
+    "id": "retro-terminal",
+    "label": "Retro Terminal",
+    "description": "Private CLI cockpit: phosphor text, amber actions, local machine soul.",
+    "swatches": ["#070806", "#12170E", "#9BFF7A"]
+  }
+]

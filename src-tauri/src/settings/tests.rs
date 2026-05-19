@@ -12,19 +12,6 @@ fn save_and_reload(settings: Settings) -> Settings {
     get_settings_at(&path).unwrap()
 }
 
-fn create_last_vault_path(path_parts: &[&str]) -> (tempfile::TempDir, PathBuf) {
-    let dir = tempfile::TempDir::new().unwrap();
-    let path = path_parts
-        .iter()
-        .fold(dir.path().to_path_buf(), |acc, part| acc.join(part));
-    (dir, path)
-}
-
-fn write_and_assert_last_vault(path: &PathBuf, value: &str) {
-    set_last_vault_at(path, value).unwrap();
-    assert_eq!(get_last_vault_at(path).as_deref(), Some(value));
-}
-
 #[test]
 fn test_default_settings_all_none() {
     assert_empty_settings(&Settings::default());
@@ -264,23 +251,6 @@ fn test_invalid_theme_mode_is_filtered() {
 }
 
 #[test]
-fn test_expanded_theme_presets_are_supported() {
-    for preset in ["aether", "ion", "moss", "lumen", "lotus", "ember"] {
-        assert_eq!(
-            normalize_theme_preset(Some(preset)).as_deref(),
-            Some(preset)
-        );
-    }
-}
-
-#[test]
-fn test_retired_theme_presets_are_filtered() {
-    for preset in ["retro", "aurora", "future"] {
-        assert!(normalize_theme_preset(Some(preset)).is_none());
-    }
-}
-
-#[test]
 fn test_handwritten_editor_font_is_supported() {
     assert_eq!(
         normalize_editor_font(Some("handwritten")).as_deref(),
@@ -414,45 +384,4 @@ fn test_preferred_settings_path_uses_grimoire_namespace() {
         .to_str()
         .unwrap()
         .contains("com.grimoire.app"));
-}
-
-#[test]
-fn test_get_last_vault_returns_none_for_missing_file() {
-    let dir = tempfile::TempDir::new().unwrap();
-    let path = dir.path().join("last-vault.txt");
-    assert!(get_last_vault_at(&path).is_none());
-}
-
-#[test]
-fn test_set_and_get_last_vault_roundtrip() {
-    let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/MyVault");
-}
-
-#[test]
-fn test_set_last_vault_trims_whitespace() {
-    let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/Vault");
-}
-
-#[test]
-fn test_get_last_vault_returns_none_for_empty_file() {
-    let dir = tempfile::TempDir::new().unwrap();
-    let path = dir.path().join("last-vault.txt");
-    fs::write(&path, "   \n  ").unwrap();
-    assert!(get_last_vault_at(&path).is_none());
-}
-
-#[test]
-fn test_set_last_vault_creates_parent_directories() {
-    let (_dir, path) = create_last_vault_path(&["nested", "dir", "last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/Vault");
-    assert!(path.exists());
-}
-
-#[test]
-fn test_set_last_vault_overwrites_previous() {
-    let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/OldVault");
-    write_and_assert_last_vault(&path, "/Users/test/NewVault");
 }

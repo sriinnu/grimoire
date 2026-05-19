@@ -7,18 +7,12 @@ const APP_CONFIG_DIR: &str = "com.grimoire.app";
 const LEGACY_APP_CONFIG_DIR: &str = "com.tolaria.app";
 const LAPUTA_LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 const THEME_PRESETS: &[&str] = &[
-    "classic",
+    "constellation",
+    "living-archive",
+    "research-cockpit",
     "manuscript",
-    "graphite",
-    "studio",
-    "folio",
     "nocturne",
-    "aether",
-    "ion",
-    "moss",
-    "lumen",
-    "lotus",
-    "ember",
+    "retro-terminal",
 ];
 const EDITOR_FONTS: &[&str] = &[
     "system",
@@ -287,3 +281,11 @@ pub fn set_last_vault(vault_path: &str) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "settings/theme_preset_tests.rs"]
+mod theme_preset_tests;
+
+#[cfg(test)]
+#[path = "settings/last_vault_tests.rs"]
+mod last_vault_tests;

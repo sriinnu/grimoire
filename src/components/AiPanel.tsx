@@ -131,16 +131,16 @@ export function AiPanelView({
       <aside
         ref={panelRef}
         tabIndex={-1}
-        className="flex flex-1 flex-col overflow-hidden bg-background text-foreground"
+        className="ai-panel flex flex-1 flex-col overflow-hidden bg-background text-foreground"
         style={{
           outline: 'none',
           borderLeft: isActive
             ? '2px solid var(--accent-blue)'
             : '1px solid var(--border)',
-          animation: isActive ? 'ai-border-pulse 2s ease-in-out infinite' : undefined,
           transition: 'border-color 0.3s ease',
         }}
         data-testid="ai-panel"
+        data-panel-role="ai-panel"
         data-ai-active={isActive || undefined}
       >
         <AiPanelHeader

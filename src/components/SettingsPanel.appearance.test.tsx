@@ -1,0 +1,384 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { SettingsPanel } from './SettingsPanel'
+import type { Settings } from '../types'
+import { THEME_MODE_STORAGE_KEY } from '../lib/themeMode'
+
+const emptySettings: Settings = {
+  auto_pull_interval_minutes: null,
+  autogit_enabled: null,
+  autogit_idle_threshold_seconds: null,
+  autogit_inactive_threshold_seconds: null,
+  auto_advance_inbox_after_organize: null,
+  telemetry_consent: null,
+  crash_reporting_enabled: null,
+  analytics_enabled: null,
+  anonymous_id: null,
+  release_channel: null,
+  theme_mode: null,
+  theme_preset: null,
+  editor_font: null,
+  ui_language: null,
+  menu_bar_icon_enabled: null,
+}
+
+function installPointerCapturePolyfill() {
+  if (!HTMLElement.prototype.hasPointerCapture) {
+    HTMLElement.prototype.hasPointerCapture = () => false
+  }
+  if (!HTMLElement.prototype.setPointerCapture) {
+    HTMLElement.prototype.setPointerCapture = () => {}
+  }
+  if (!HTMLElement.prototype.releasePointerCapture) {
+    HTMLElement.prototype.releasePointerCapture = () => {}
+  }
+}
+
+function createStorageMock(): Storage {
+  const values = new Map<string, string>()
+  return {
+    get length() { return values.size },
+    clear: vi.fn(() => { values.clear() }),
+    getItem: vi.fn((key: string) => values.get(key) ?? null),
+    key: vi.fn((index: number) => Array.from(values.keys())[index] ?? null),
+    removeItem: vi.fn((key: string) => { values.delete(key) }),
+    setItem: vi.fn((key: string, value: string) => { values.set(key, value) }),
+  }
+}
+
+describe('SettingsPanel appearance and agent settings', () => {
+  const onSave = vi.fn()
+  const onClose = vi.fn()
+  const localStorageMock = createStorageMock()
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock, configurable: true })
+    window.localStorage.clear()
+    installPointerCapturePolyfill()
+  })
+
+  it('renders nothing when not open', () => {
+    const { container } = render(
+      <SettingsPanel open={false} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+    expect(container.innerHTML).toBe('')
+  })
+
+  it('renders modal when open', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getAllByText('Sync & Updates')).not.toHaveLength(0)
+  })
+
+  it('updates the draft language when stored settings finish loading', () => {
+    const { rerender } = render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    rerender(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, ui_language: 'zh-Hans' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByText('设置')).toBeInTheDocument()
+    expect(screen.queryByText('Settings')).not.toBeInTheDocument()
+  })
+
+  it('calls onSave with stable defaults on save', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      auto_pull_interval_minutes: 5,
+      autogit_enabled: false,
+      autogit_idle_threshold_seconds: 90,
+      autogit_inactive_threshold_seconds: 30,
+      release_channel: null,
+      theme_mode: 'light',
+      theme_preset: 'constellation',
+      editor_font: 'system',
+      menu_bar_icon_enabled: false,
+    }))
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('saves the native menu bar icon preference when toggled on', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Show Grimoire in the menu bar' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      menu_bar_icon_enabled: true,
+    }))
+  })
+
+  it('defaults the color mode control to light', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByTestId('settings-theme-mode')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Light' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'false')
+  })
+
+  it('defaults the language selector to system language', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={emptySettings}
+        locale="en"
+        systemLocale="zh-Hans"
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByTestId('settings-ui-language')).toHaveAttribute('data-value', 'system')
+    expect(screen.getByText('系统（简体中文）')).toBeInTheDocument()
+  })
+
+  it('keeps the language selector keyboard accessible', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    const trigger = screen.getByTestId('settings-ui-language')
+    trigger.focus()
+    fireEvent.keyDown(trigger, { key: 'ArrowDown', code: 'ArrowDown' })
+
+    expect(screen.getByRole('option', { name: 'Simplified Chinese' })).toBeInTheDocument()
+  })
+
+  it('saves the selected UI language and updates visible settings text', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.pointerDown(screen.getByTestId('settings-ui-language'), { button: 0, pointerType: 'mouse' })
+    fireEvent.click(screen.getByRole('option', { name: 'Simplified Chinese' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(screen.getByText('设置')).toBeInTheDocument()
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ui_language: 'zh-Hans',
+    }))
+  })
+
+  it('uses the stored color mode mirror when settings have no saved mode', () => {
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
+
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('saves the selected dark color mode', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      theme_mode: 'dark',
+    }))
+  })
+
+  it('saves the selected theme preset and editor font', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByTestId('settings-theme-preset-retro-terminal'))
+    fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
+    fireEvent.click(screen.getByRole('option', { name: 'Serif' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      theme_preset: 'retro-terminal',
+      editor_font: 'serif',
+    }))
+  })
+
+  it('saves the nocturne theme preset', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByTestId('settings-theme-preset-nocturne'))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      theme_preset: 'nocturne',
+    }))
+  })
+
+  it('renders the curated personal theme preset set', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-living-archive')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-research-cockpit')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-nocturne')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-manuscript')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-retro-terminal')).toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-aether')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-ion')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-moss')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-retro')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-aurora')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-future')).not.toBeInTheDocument()
+  })
+
+  it('renders the appearance preview with the selected preset', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, theme_preset: 'nocturne', editor_font: 'readable' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute(
+      'data-theme-preset-preview',
+      'nocturne',
+    )
+    expect(screen.getByTestId('settings-editor-font')).toHaveAttribute('data-value', 'readable')
+  })
+
+  it('preserves a saved dark color mode until changed', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, theme_mode: 'dark' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      theme_mode: 'dark',
+    }))
+  })
+
+  it('defaults the release channel trigger to stable', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByTestId('settings-release-channel')).toHaveAttribute('data-value', 'stable')
+    expect(screen.queryByText(/Beta\/Stable/i)).not.toBeInTheDocument()
+  })
+
+  it('treats a legacy beta release channel as stable', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, release_channel: 'beta' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByTestId('settings-release-channel')).toHaveAttribute('data-value', 'stable')
+    expect(screen.queryByText('Beta')).not.toBeInTheDocument()
+  })
+
+  it('preserves alpha when alpha is already selected', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, release_channel: 'alpha' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      release_channel: 'alpha',
+    }))
+  })
+
+  it('anchors the default agent dropdown with the popper strategy', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.pointerDown(screen.getByTestId('settings-default-ai-agent'), { button: 0, pointerType: 'mouse' })
+
+    expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
+  })
+
+  it('keeps keyboard opening enabled for the default agent dropdown', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    const trigger = screen.getByTestId('settings-default-ai-agent')
+    trigger.focus()
+    fireEvent.keyDown(trigger, { key: 'ArrowDown', code: 'ArrowDown' })
+
+    expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: /Codex/i })).toBeInTheDocument()
+  })
+
+  it('saves a model override for the selected default agent', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.change(screen.getByTestId('settings-default-ai-model'), {
+      target: { value: 'sonnet' },
+    })
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ai_agent_models: { claude_code: 'sonnet' },
+    }))
+  })
+
+  it('saves a provider override for the selected default agent', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    fireEvent.change(screen.getByTestId('settings-default-ai-provider'), {
+      target: { value: 'openai' },
+    })
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ai_agent_providers: { chitragupta: 'openai' },
+    }))
+  })
+})

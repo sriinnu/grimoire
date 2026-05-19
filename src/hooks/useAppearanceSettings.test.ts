@@ -33,7 +33,7 @@ describe('useAppearanceSettings', () => {
   it('waits until settings have loaded', () => {
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'graphite',
+      themePreset: 'nocturne',
       editorFont: 'mono',
       loaded: false,
     }))
@@ -58,7 +58,7 @@ describe('useAppearanceSettings', () => {
   })
 
   it('uses mirrored appearance when persisted settings are empty', () => {
-    window.localStorage.setItem(THEME_PRESET_STORAGE_KEY, 'graphite')
+    window.localStorage.setItem(THEME_PRESET_STORAGE_KEY, 'nocturne')
     window.localStorage.setItem(EDITOR_FONT_STORAGE_KEY, 'readable')
 
     renderHook(() => useAppearanceSettings({
@@ -68,7 +68,7 @@ describe('useAppearanceSettings', () => {
       loaded: true,
     }))
 
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'graphite')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
   })
 })

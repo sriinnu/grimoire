@@ -1,0 +1,36 @@
+.grimoire-graph-node {
+  transition: opacity 160ms ease, transform 160ms ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.grimoire-graph-node:hover {
+  opacity: 1;
+  transform: scale(1.035);
+}
+
+.grimoire-graph-node-halo {
+  fill: var(--node-color);
+  opacity: 0.16;
+  animation: grimoire-graph-halo 2.6s ease-in-out infinite;
+}
+
+@keyframes grimoire-graph-halo {
+  0%, 100% {
+    transform: scale(0.92);
+    opacity: 0.12;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.22;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-graph-node,
+  .grimoire-graph-node-halo {
+    animation: none;
+    transition: none;
+  }
+}

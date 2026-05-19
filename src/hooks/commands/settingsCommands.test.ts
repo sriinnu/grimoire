@@ -31,6 +31,30 @@ describe('buildSettingsCommands', () => {
     })
   })
 
+  it('indexes current theme presets without retired theme keywords', () => {
+    const commands = buildSettingsCommands({ onOpenSettings: vi.fn() })
+    const keywords = commands.find((item) => item.id === 'open-settings')?.keywords ?? []
+
+    expect(keywords).toEqual(expect.arrayContaining([
+      'constellation',
+      'living',
+      'archive',
+      'research',
+      'cockpit',
+      'nocturne',
+      'manuscript',
+      'retro',
+      'terminal',
+    ]))
+    expect(keywords).not.toEqual(expect.arrayContaining([
+      '2050',
+      'aether',
+      'ion',
+      'moss',
+      'lumen',
+    ]))
+  })
+
   it('adds a discoverable language settings command', () => {
     const onOpenSettings = vi.fn()
 

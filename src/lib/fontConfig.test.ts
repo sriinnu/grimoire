@@ -10,13 +10,13 @@ import {
 describe('fontConfig', () => {
   it('uses bundled Caveat as the display font across presets', () => {
     const roles = resolveFontRoles({
-      themePreset: 'ion',
+      themePreset: 'retro-terminal',
       editorFont: 'system',
     })
 
     expect(roles.display).toContain("'Grimoire Caveat'")
     expect(resolveFontAssetIds({
-      themePreset: 'ion',
+      themePreset: 'retro-terminal',
       editorFont: 'system',
     })).toEqual(['caveat'])
   })

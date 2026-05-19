@@ -42,7 +42,7 @@ describe('SettingsPanel sidebar appearance', () => {
     render(
       <SettingsPanel
         open={true}
-        settings={{ ...emptySettings, theme_preset: 'graphite' }}
+        settings={{ ...emptySettings, theme_preset: 'nocturne' }}
         onSave={vi.fn()}
         onClose={vi.fn()}
       />
@@ -50,7 +50,7 @@ describe('SettingsPanel sidebar appearance', () => {
 
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-sidebar-preset-preview',
-      'graphite',
+      'nocturne',
     )
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-theme-preview',
@@ -63,11 +63,11 @@ describe('SettingsPanel sidebar appearance', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-ion'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-retro-terminal'))
 
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-sidebar-preset-preview',
-      'ion',
+      'retro-terminal',
     )
   })
 

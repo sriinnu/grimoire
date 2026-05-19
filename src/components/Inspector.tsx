@@ -19,6 +19,7 @@ import type { ReferencedByItem } from './InspectorPanels'
 import { EmptyInspector, InitializePropertiesPrompt, InspectorHeader, InvalidFrontmatterNotice } from './inspector/InspectorChrome'
 import { useBacklinks, useReferencedBy } from './inspector/useInspectorData'
 import { useInspectorPropertyActions } from './inspector/useInspectorPropertyActions'
+import { ConstellationInsightsPanel } from './ConstellationInsightsPanel'
 
 export type FrontmatterValue = string | number | boolean | string[] | null
 
@@ -209,6 +210,7 @@ function InspectorBody({
 
   return (
     <>
+      <ConstellationInsightsPanel entry={entry} content={content} />
       <OutlinePanel
         semantics={semantics}
         path={entry.path}
@@ -248,7 +250,10 @@ function InspectorBody({
 
 export function Inspector({ collapsed, onToggle, ...bodyProps }: InspectorProps) {
   return (
-    <aside className={cn('inspector-panel flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}>
+    <aside
+      className={cn('inspector-panel flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}
+      data-panel-role="inspector"
+    >
       <InspectorHeader collapsed={collapsed} onToggle={onToggle} />
       {!collapsed && (
         <div className="inspector-body flex flex-1 flex-col gap-4 overflow-y-auto p-3">

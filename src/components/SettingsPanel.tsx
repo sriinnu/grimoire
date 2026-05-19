@@ -219,7 +219,7 @@ function SettingsPanelInner({
     >
       <div
         ref={panelRef}
-        className="flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
+        className="settings-panel-shell flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
       >
         <SettingsHeader onClose={onClose} t={t} />
         <SettingsBody

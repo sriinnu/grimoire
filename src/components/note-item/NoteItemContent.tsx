@@ -111,6 +111,41 @@ function NotePropertySection({
   )
 }
 
+function normalizeChipValue(value: VaultEntry['properties'][string]): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean)
+  if (value === null || value === undefined || value === false) return []
+  return [String(value)]
+}
+
+function getSignalChips(entry: VaultEntry): string[] {
+  const source = [
+    entry.isA,
+    entry.status,
+    ...normalizeChipValue(entry.properties.status),
+    ...normalizeChipValue(entry.properties.Status),
+    ...normalizeChipValue(entry.properties.tags),
+    ...normalizeChipValue(entry.properties.Tags),
+    ...entry.belongsTo.map((target) => target.replace(/^\[\[|\]\]$/gu, '')),
+  ]
+
+  return [...new Set(source.map((chip) => chip?.trim()).filter(Boolean) as string[])].slice(0, 4)
+}
+
+function NoteSignalChips({ entry }: { entry: VaultEntry }) {
+  const chips = getSignalChips(entry)
+  if (chips.length === 0) return null
+
+  return (
+    <div className="note-signal-chips flex flex-wrap gap-1.5" aria-label="Note signals">
+      {chips.map((chip) => (
+        <span key={chip} className="note-signal-chip" data-note-chip>
+          {chip}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function NoteTitleRow({
   entry,
   isBinary,
@@ -154,6 +189,7 @@ function InteractiveNoteDetails({
     <>
       <NoteTitleRow entry={entry} isBinary={false} isSelected={isSelected} noteStatus={noteStatus} />
       <NoteSnippet snippet={entry.snippet} />
+      <NoteSignalChips entry={entry} />
       <NotePropertySection
         entry={entry}
         displayProps={displayProps}

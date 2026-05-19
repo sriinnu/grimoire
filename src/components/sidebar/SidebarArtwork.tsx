@@ -26,6 +26,13 @@ export function SidebarArtwork({ compact = false }: SidebarArtworkProps) {
         draggable={false}
         src={lightArtwork}
       />
+      <div className="sidebar-artwork__agent-card">
+        <span className="sidebar-artwork__agent-mark" />
+        <span className="sidebar-artwork__agent-copy">
+          <strong>Vault map</strong>
+          <span>Local notes</span>
+        </span>
+      </div>
     </div>
   )
 }

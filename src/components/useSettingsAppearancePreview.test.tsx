@@ -14,24 +14,24 @@ describe('useSettingsAppearancePreview', () => {
     const { unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'ion',
+        themePreset: 'retro-terminal',
         editorFont: 'handwritten',
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'classic',
+        themePreset: 'manuscript',
         editorFont: 'system',
       },
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'ion')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'retro-terminal')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'handwritten')
 
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'classic')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'manuscript')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'system')
   })
 
@@ -44,7 +44,7 @@ describe('useSettingsAppearancePreview', () => {
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'classic',
+        themePreset: 'nocturne',
         editorFont: 'system',
       },
     }))

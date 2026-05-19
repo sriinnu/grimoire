@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { VaultEntry, FolderNode, GitCommit, ModifiedFile, NoteStatus, GitPushResult, ViewFile } from '../types'
+import { setCurrentVaultPath } from '../utils/currentVaultPath'
 import { clearPrefetchCache } from './useTabManagement'
 
 function tauriCall<T>(command: string, tauriArgs: Record<string, unknown>, mockArgs?: Record<string, unknown>): Promise<T> {
@@ -148,6 +149,10 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
   const unsaved = useUnsavedTracker()
   const isCurrentVaultPath = useCurrentVaultPathGuard(vaultPath)
   const isGitVaultRef = useRef(isGitVault)
+
+  useEffect(() => {
+    setCurrentVaultPath(vaultPath)
+  }, [vaultPath])
 
   useEffect(() => {
     isGitVaultRef.current = isGitVault

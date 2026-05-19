@@ -12,6 +12,14 @@ describe('SidebarArtwork', () => {
     expect(document.querySelector('.sidebar-rosy')).not.toBeInTheDocument()
   })
 
+  it('uses neutral decorative copy instead of a mock agent status', () => {
+    render(<SidebarArtwork />)
+
+    expect(screen.getByText('Vault map')).toBeInTheDocument()
+    expect(screen.getByText('Local notes')).toBeInTheDocument()
+    expect(screen.queryByText(/Grimoire Agent|Observing|Ready/i)).not.toBeInTheDocument()
+  })
+
   it('uses a compact test id for appearance previews', () => {
     render(<SidebarArtwork compact />)
 

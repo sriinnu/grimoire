@@ -7,26 +7,27 @@ import { SidebarArtwork } from './sidebar/SidebarArtwork'
 type Translate = ReturnType<typeof createTranslator>
 
 const DARK_SIDEBAR_PRESETS = new Set<ThemePreset>([
+  'constellation',
+  'living-archive',
+  'research-cockpit',
   'manuscript',
   'nocturne',
-  'aether',
-  'ion',
-  'moss',
-  'ember',
+  'retro-terminal',
 ])
 
 function sidebarForegroundForPreset(preset: ThemePreset): string {
-  if (preset === 'aether') return '#E7FFF7'
-  if (preset === 'ion') return '#EFF5FF'
-  if (preset === 'moss') return '#EEF6E7'
+  if (preset === 'constellation') return '#E8FBFF'
+  if (preset === 'living-archive') return '#F9ECCE'
+  if (preset === 'research-cockpit') return '#E9F6FF'
+  if (preset === 'retro-terminal') return '#EAFFDF'
   return DARK_SIDEBAR_PRESETS.has(preset) ? '#FFF7E6' : '#23312B'
 }
 
 function activeForegroundForPreset(preset: ThemePreset): string {
-  if (preset === 'aether') return '#07110F'
-  if (preset === 'ion') return '#F8FAFD'
-  if (preset === 'moss') return '#1D160C'
-  if (preset === 'lumen') return '#25110F'
+  if (preset === 'constellation') return '#061217'
+  if (preset === 'living-archive') return '#1A2419'
+  if (preset === 'research-cockpit') return '#071018'
+  if (preset === 'retro-terminal') return '#071006'
   return '#FFFFFF'
 }
 
