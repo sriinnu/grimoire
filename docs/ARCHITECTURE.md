@@ -114,9 +114,11 @@ Store data in app settings when it describes this installation:
 - `components/dashboard/VaultDashboard.tsx`: default vault assistant board for capture, local-first privacy signals, open loops, daily prompts, and recent-note re-entry.
 - `hooks/useDashboardCapture.ts` and `utils/dashboardCapture.ts`: slash-routed capture creation for notes, journals, dreams, tasks, memory, and `/ask` agent prompts without requiring Git.
 - `hooks/useAppCommands.ts`: bridges keyboard, command palette, and native menu events.
+- `hooks/useLayoutPanels.ts`: owns default sidebar, note-list, and inspector widths. It keeps wide monitors on the full layout while narrower laptop viewports start with editor-safe navigation widths and a collapsed inspector.
 - `hooks/useSidebarColumnCollapse.ts`: persists the app-local compact sidebar rail preference outside the vault.
 - `components/sidebar/SidebarRail.tsx`: collapsed left-column navigation rail for Inbox, All Notes, Archive, and returning to the full sidebar.
 - `components/Editor.tsx` and `components/EditorLayout.tsx`: editor shell that delegates rich/raw/diff modes and the right-side inspector/AI shell.
+- `components/EditorAgentComposerBar.tsx`, `components/EditorNavigatorPopover.tsx`, and `utils/noteNavigation.ts`: editor-adjacent composer affordance plus local search and table-of-contents navigation over the active Markdown note.
 - `components/EditorLoadingState.tsx`: default centered animated SVG loader for lazy editor startup and note-switch transitions.
 - `components/SingleEditorView.tsx`: BlockNote rich editor behavior that imports the reusable slash-command package.
 - `markdown-editor/packages/js`: React/BlockNote package for the slash command catalog, command filtering metadata, date helpers, templates, markdown-safe insertion helpers, and host-schema fallbacks.
@@ -124,6 +126,7 @@ Store data in app settings when it describes this installation:
 - `markdown-editor/packages/swift`: Swift Package Manager library for reusable markdown editor semantics plus `MarkdownEditorUI` native SwiftUI and WebKit support surfaces, with a CLI bridge for Tauri parity work.
 - `utils/markdownSemanticsAdapter.ts`: Tauri adapter facade that mirrors the Swift package semantics.
 - `components/Inspector.tsx`: properties, relationships, instances, and note info.
+- `components/ConstellationInsightsPanel.tsx`: local heuristic insight surface in the Inspector. It derives summaries, key points, linked concepts, and recent activity from `VaultEntry` and current note content; it does not imply remote inference.
 - `utils/propertySuggestions.ts`: property-panel quick-add definitions and property-name-to-input-type inference.
 - `components/StatusBar.tsx` and `components/status-bar/*`: bottom-bar vault, sync, AI, settings, and presence-tone controls.
 - `components/CreateVaultDialog.tsx`: local-first vault creation surface for local and cloud-synced filesystem targets.
@@ -227,9 +230,9 @@ Theme mode, theme preset, and editor font are resolved through `lib/appearance.t
 - `data-theme-preset`
 - `data-editor-font`
 
-`lib/fontConfig.ts` resolves the font role contract (`ui`, `editor`, `mono`, `display`, `label`) and loads bundled font assets from `assets/fonts` through `FontFace` when needed. CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors or direct font-family literals.
+`lib/fontConfig.ts` resolves the font role contract (`ui`, `editor`, `mono`, `display`, `label`) and loads bundled font assets from `assets/fonts` through `FontFace` when needed. Theme preset metadata comes from `src/themes/presets.json`, is validated against `themePresetIds.ts`, and hot-reloads in Vite for Settings previews. CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors or direct font-family literals.
 
-Sidebar artwork is theme-aware CSS loaded after the base sidebar appearance layer. It remains visible across presets and short windows, with theme-specific accent variables rather than separate layout code per theme.
+Sidebar artwork and flagship system themes are theme-aware CSS loaded after the base sidebar appearance layer. The flagship presets own the whole shell contract: sidebar, collapsed rail, note-list path ribbons, editor canvas, inspector, AI panel, dashboard cards, settings previews, and reduced-motion-safe animation timing.
 
 ## AI And MCP
 

@@ -1,25 +1,17 @@
 import { applyFontRolesToDocument } from './fontConfig'
+export {
+  SUPPORTED_THEME_PRESETS,
+  type ThemePreset,
+} from '../themes/themePresetIds'
+import { SUPPORTED_THEME_PRESETS } from '../themes/themePresetIds'
+import type { ThemePreset } from '../themes/themePresetIds'
 
-export const DEFAULT_THEME_PRESET = 'manuscript'
+export const DEFAULT_THEME_PRESET = 'constellation'
 export const DEFAULT_EDITOR_FONT = 'system'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'
 
-const THEME_PRESETS = new Set([
-  'classic',
-  'manuscript',
-  'graphite',
-  'studio',
-  'folio',
-  'nocturne',
-  'aether',
-  'ion',
-  'moss',
-  'lumen',
-  'lotus',
-  'ember',
-])
-const EDITOR_FONTS = new Set([
+export const SUPPORTED_EDITOR_FONTS = [
   'system',
   'serif',
   'mono',
@@ -27,29 +19,12 @@ const EDITOR_FONTS = new Set([
   'literary',
   'compact',
   'handwritten',
-])
+] as const
 
-export type ThemePreset =
-  | 'classic'
-  | 'manuscript'
-  | 'graphite'
-  | 'studio'
-  | 'folio'
-  | 'nocturne'
-  | 'aether'
-  | 'ion'
-  | 'moss'
-  | 'lumen'
-  | 'lotus'
-  | 'ember'
-export type EditorFont =
-  | 'system'
-  | 'serif'
-  | 'mono'
-  | 'readable'
-  | 'literary'
-  | 'compact'
-  | 'handwritten'
+const THEME_PRESETS = new Set<string>(SUPPORTED_THEME_PRESETS)
+const EDITOR_FONTS = new Set<string>(SUPPORTED_EDITOR_FONTS)
+
+export type EditorFont = typeof SUPPORTED_EDITOR_FONTS[number]
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>
 type AppearanceDocument = Pick<Document, 'documentElement'>
@@ -59,14 +34,21 @@ export interface ResolvedAppearance {
   editorFont: EditorFont
 }
 
+function isSupportedValue<T extends string>(
+  values: ReadonlySet<string>,
+  value: unknown,
+): value is T {
+  return typeof value === 'string' && values.has(value)
+}
+
 /** Returns a supported theme preset or null for untrusted persisted values. */
 export function normalizeThemePreset(value: unknown): ThemePreset | null {
-  return typeof value === 'string' && THEME_PRESETS.has(value) ? value as ThemePreset : null
+  return isSupportedValue<ThemePreset>(THEME_PRESETS, value) ? value : null
 }
 
 /** Returns a supported editor font or null for untrusted persisted values. */
 export function normalizeEditorFont(value: unknown): EditorFont | null {
-  return typeof value === 'string' && EDITOR_FONTS.has(value) ? value as EditorFont : null
+  return isSupportedValue<EditorFont>(EDITOR_FONTS, value) ? value : null
 }
 
 /** Resolves any theme preset input to the product default when it is missing or invalid. */

@@ -1,0 +1,47 @@
+@import './theme-system-tokens.css';
+@import './theme-constellation.css';
+@import './theme-flagship-shared.css';
+@import './theme-editor-navigator.css';
+
+[data-theme-preset-preview="constellation"] {
+  --surface-editor: #07111a;
+  --foreground: #e8fbff;
+  --muted-foreground: #91a7b7;
+  --border: #203141;
+}
+
+[data-theme-preset-preview="living-archive"] {
+  --surface-editor: #fff7e8;
+  --foreground: #2d3428;
+  --muted-foreground: #6c6e58;
+  --border: #dbc99d;
+}
+
+[data-theme-preset-preview="research-cockpit"] {
+  --surface-editor: #0d141d;
+  --foreground: #e1edf7;
+  --muted-foreground: #93a5b6;
+  --border: #243446;
+}
+
+[data-theme-preset-preview="nocturne"] {
+  --surface-editor: #141513;
+  --foreground: #eef3ea;
+  --muted-foreground: #b6c2b7;
+  --border: #2b3129;
+}
+
+[data-theme-preset-preview="manuscript"] {
+  --surface-editor: #fff8eb;
+  --foreground: #27383a;
+  --muted-foreground: #6f765f;
+  --border: #dfcfaa;
+}
+
+[data-theme-preset-preview="retro-terminal"] {
+  --surface-editor: #070907;
+  --foreground: #dcf8cf;
+  --muted-foreground: #8daa80;
+  --border: #26341f;
+  --primary: #9bff7a;
+}

@@ -40,18 +40,7 @@ Dashboard capture writes normal Markdown notes with readable frontmatter. `/ask`
 
 A vault template is a creation-time seed for local Markdown Type definitions. It is not a hosted workspace and does not make Git required.
 
-Current templates:
-
-- Blank
-- Journal
-- Dreams
-- Project
-- Research
-- Personal OS
-- Reading
-- People
-- Work Log
-- Creative Studio
+Current templates include Blank, Journal, Dreams, Project, Research, Personal OS, Reading, People, Work Log, and Creative Studio.
 
 Templates may seed Type notes such as `journal.md`, `dream.md`, `task.md`, or `memory.md`. The files are ordinary Markdown and remain editable by the user.
 
@@ -78,16 +67,7 @@ A note is one markdown file plus YAML frontmatter.
 
 Current renderer shape: `VaultEntry`.
 
-Important fields:
-
-- `path`, `filename`, `title`
-- `isA` / type
-- `aliases`
-- `relationships`
-- `outgoingLinks`
-- `icon`, `color`
-- `status`, `archived`, `favorite`, `organized`
-- `wordCount`, `snippet`, dates
+Important fields include `path`, `filename`, `title`, `isA`, aliases, relationships, outgoing links, icon/color, status, archive/favorite/organized flags, word count, snippet, and dates.
 
 The `VaultEntry` is an index record, not a second source of truth. If it conflicts with the markdown file, reload from disk.
 
@@ -95,19 +75,7 @@ The `VaultEntry` is an index record, not a second source of truth. If it conflic
 
 The markdown body is the durable content surface.
 
-Supported product expectations:
-
-- headings
-- lists
-- code blocks
-- Spelllinks (`[[note]]` Markdown wikilinks)
-- inline and display math
-- tables where the editor supports them
-- images and vault attachments
-- dates, journal blocks, and tasks inserted as durable markdown
-- weather snapshot callouts inserted by command
-- canvas and handwriting attachments referenced by preview image plus `grimoire-canvas` metadata fences
-- audio transcripts saved as Markdown notes with source-audio links and timestamped segments
+Supported product expectations include headings, lists, code blocks, Spelllinks (`[[note]]` Markdown wikilinks), inline/display math, tables, images, vault attachments, dates, journal blocks, tasks, weather snapshot callouts, canvas/handwriting attachments, and audio transcripts.
 
 Editors may render this richly, but they must preserve markdown intent.
 
@@ -286,13 +254,14 @@ The graph must stay inspectable without a graph database. If a graph database ev
 Appearance has three layers:
 
 - theme mode: light or dark
-- theme preset: Classic, Manuscript, Graphite, Studio, Folio, Nocturne, Retro, Aurora, Future, Lotus, Ember
-- editor font: System, Serif, Mono, Readable, Literary, Compact
+- theme preset: Nocturne Constellation, Living Archive, Research Cockpit, Nocturne, Manuscript, Retro Terminal
+- editor font: System, Serif, Mono, Readable, Literary, Compact, Handwritten
 - font roles: UI, editor body, monospace, display headings, sidebar labels
 
 Contract:
 
 - TypeScript normalizes supported values.
+- preset metadata lives in `src/themes/presets.json` and must match the supported preset IDs.
 - `fontConfig.ts` maps theme and editor choices to font roles and bundled font assets.
 - Rust settings sanitize persisted values.
 - CSS consumes root attributes and semantic variables.
@@ -330,6 +299,23 @@ Shared markdown semantics belong in the `MarkdownEditor` Swift package and the T
 The Tauri adapter facade is `src/utils/markdownSemanticsAdapter.ts`. It is the renderer-side boundary for semantics that must stay aligned with the Swift package.
 
 Do not implement markdown semantics separately per mode unless the behavior is genuinely mode-specific.
+
+## Editor Navigator
+
+The editor navigator is a local tool over the active Markdown buffer, not a vault-wide search index.
+
+It has two modes:
+
+- search: line-level matches with previews, using the same raw-editor match semantics
+- table of contents: headings parsed through the shared Markdown semantics adapter
+
+The composer bar hosts the navigator beside the prompt affordance. Its note tools must stay usable without a live agent, and opening the prompt still routes through the configured local agent panel rather than inventing a second chat surface.
+
+## Local Insight Surface
+
+The Inspector can show a local heuristic insight surface for the active note.
+
+It may summarize the first readable sentences, show frontmatter/checklist key points, map linked concepts from relationships and Spelllinks, and display recent edit activity. These are transparent derivations from `VaultEntry` plus current note content; they are not remote inference, hidden embeddings, or proof that an agent is watching.
 
 ## Weather Snapshot
 

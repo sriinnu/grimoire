@@ -58,16 +58,10 @@
 
 [data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork__image,
 [data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork__image,
-[data-theme-preset="aether"] .app-sidebar-panel .sidebar-artwork__image,
-[data-theme-preset="ion"] .app-sidebar-panel .sidebar-artwork__image,
-[data-theme-preset="moss"] .app-sidebar-panel .sidebar-artwork__image,
-[data-theme-preset="ember"] .app-sidebar-panel .sidebar-artwork__image,
+[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork__image,
 [data-sidebar-preset-preview="manuscript"] .sidebar-artwork__image,
 [data-sidebar-preset-preview="nocturne"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="aether"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="ion"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="moss"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="ember"] .sidebar-artwork__image {
+[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__image {
   mix-blend-mode: screen;
   opacity: 0.52;
 }
@@ -91,31 +85,19 @@
 
 [data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork__image--dark,
 [data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-theme-preset="aether"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-theme-preset="ion"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-theme-preset="moss"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-theme-preset="ember"] .app-sidebar-panel .sidebar-artwork__image--dark,
+[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork__image--dark,
 [data-sidebar-preset-preview="manuscript"] .sidebar-artwork__image--dark,
 [data-sidebar-preset-preview="nocturne"] .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="aether"] .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="ion"] .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="moss"] .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="ember"] .sidebar-artwork__image--dark {
+[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__image--dark {
   display: block;
 }
 
 [data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork__image--light,
 [data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork__image--light,
-[data-theme-preset="aether"] .app-sidebar-panel .sidebar-artwork__image--light,
-[data-theme-preset="ion"] .app-sidebar-panel .sidebar-artwork__image--light,
-[data-theme-preset="moss"] .app-sidebar-panel .sidebar-artwork__image--light,
-[data-theme-preset="ember"] .app-sidebar-panel .sidebar-artwork__image--light,
+[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork__image--light,
 [data-sidebar-preset-preview="manuscript"] .sidebar-artwork__image--light,
 [data-sidebar-preset-preview="nocturne"] .sidebar-artwork__image--light,
-[data-sidebar-preset-preview="aether"] .sidebar-artwork__image--light,
-[data-sidebar-preset-preview="ion"] .sidebar-artwork__image--light,
-[data-sidebar-preset-preview="moss"] .sidebar-artwork__image--light,
-[data-sidebar-preset-preview="ember"] .sidebar-artwork__image--light {
+[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__image--light {
   display: none;
 }
 
@@ -124,83 +106,20 @@
   --art-accent: #c69a48;
 }
 
-[data-theme-preset="classic"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="classic"] .sidebar-artwork {
-  --art-accent: #155dff;
-}
-
-[data-theme-preset="graphite"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="graphite"] .sidebar-artwork {
-  --art-accent: #315d9d;
-}
-
-[data-theme-preset="studio"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="studio"] .sidebar-artwork {
-  --art-accent: #2f66d0;
-}
-
-[data-theme-preset="folio"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="folio"] .sidebar-artwork {
-  --art-accent: #7c4d8d;
-}
-
 [data-theme-preset="nocturne"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="nocturne"] .sidebar-artwork {
   --art-accent: #8fd6b8;
 }
 
-[data-theme-preset="aether"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="aether"] .sidebar-artwork {
-  --art-accent: #4ff6c8;
+[data-theme-preset="retro-terminal"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork {
+  --art-accent: #9bff7a;
 }
 
-[data-theme-preset="ion"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="ion"] .sidebar-artwork {
-  --art-accent: #75a7ff;
-}
-
-[data-theme-preset="moss"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="moss"] .sidebar-artwork {
-  --art-accent: #d48645;
-}
-
-[data-theme-preset="lumen"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="lumen"] .sidebar-artwork {
-  --art-accent: #ff5e52;
-}
-
-[data-theme-preset="lotus"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="lotus"] .sidebar-artwork {
-  --art-accent: #9b4d88;
-}
-
-[data-theme-preset="ember"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="ember"] .sidebar-artwork {
-  --art-accent: #f6bf4f;
-}
-
-[data-theme-preset="aether"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="aether"] .sidebar-artwork__image,
-[data-theme-preset="ion"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="ion"] .sidebar-artwork__image {
+[data-theme-preset="retro-terminal"] .sidebar-artwork__image,
+[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__image {
   filter: none;
   opacity: 0.38;
-}
-
-[data-theme-preset="moss"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="moss"] .sidebar-artwork__image,
-[data-theme-preset="lumen"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="lumen"] .sidebar-artwork__image {
-  filter: none;
-  opacity: 0.4;
-}
-
-[data-theme-preset="graphite"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="graphite"] .sidebar-artwork__image,
-[data-theme-preset="studio"] .sidebar-artwork__image,
-[data-sidebar-preset-preview="studio"] .sidebar-artwork__image {
-  filter: none;
-  opacity: 0.42;
 }
 
 @media (max-height: 760px) {

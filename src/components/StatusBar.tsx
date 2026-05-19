@@ -192,7 +192,9 @@ function StatusBarFooter({
 
   return (
     <footer
+      className="status-bar"
       data-testid="status-bar"
+      data-panel-role="status-bar"
       data-status-tone={statusTone}
       aria-label={getStatusBarLabel({ conflictCount, isOffline, modifiedCount, syncStatus })}
       style={{

@@ -10,6 +10,8 @@ import type { useEditorContentModel } from './useEditorContentModel'
 import { HtmlPreview } from './HtmlPreview'
 import { VaultImagePreview } from './VaultImagePreview'
 import { EditorLoadingState } from '../EditorLoadingState'
+import { EditorConstellationMeta } from '../EditorConstellationMeta'
+import { EditorAgentComposerBar } from '../EditorAgentComposerBar'
 
 type EditorContentModel = ReturnType<typeof useEditorContentModel>
 
@@ -278,6 +280,7 @@ export function EditorContentLayout(model: EditorContentModel) {
           onToggleNoteLayout: model.onToggleNoteLayout,
         }}
       />
+      <EditorConstellationMeta entry={activeTab.entry} />
       <EditorChrome
         isArchived={isArchived}
         onUnarchiveNote={onUnarchiveNote}
@@ -314,6 +317,13 @@ export function EditorContentLayout(model: EditorContentModel) {
         onEditorChange={onEditorChange}
         isDeletedPreview={isDeletedPreview}
       />
+      {!diffMode && !effectiveRawMode && !model.isImagePreview && !model.isHtmlPreview ? (
+        <EditorAgentComposerBar
+          content={activeTab.content}
+          disabled={model.showAIChat}
+          onOpen={model.onToggleAIChat}
+        />
+      ) : null}
       {isLoadingNewTab && showEditor && <EditorLoadingSkeleton />}
     </div>
   )
