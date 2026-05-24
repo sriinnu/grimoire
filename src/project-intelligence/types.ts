@@ -49,6 +49,8 @@ export interface ExtractedProjectIssue {
   priority: ProjectIssuePriority
   /** Source file where the issue was found. */
   sourceFile: string
+  /** Exact vault entry path when the scanner knows it. */
+  sourcePath?: string
   /** One-based line number in the source file. */
   sourceLine: number
   /** Source marker that produced the issue. */

@@ -24,6 +24,7 @@ interface NoteCommandsConfig {
   isOrganized?: boolean
   onInsertWeatherSnapshot?: () => void
   onTranscribeAudio?: () => void
+  onRecordAudio?: () => void
   onRestoreDeletedNote?: () => void
   canRestoreDeletedNote?: boolean
 }
@@ -198,6 +199,13 @@ function buildPresentationCommands(config: NoteCommandsConfig): CommandAction[] 
       keywords: ['audio', 'voice', 'whisper', 'transcript', 'speech', 'dictation'],
       enabled: !!config.onTranscribeAudio,
       execute: () => config.onTranscribeAudio?.(),
+    }),
+    createNoteCommand({
+      id: 'record-audio',
+      label: 'Record Audio...',
+      keywords: ['audio', 'voice', 'microphone', 'record', 'whisper', 'dictation'],
+      enabled: !!config.onRecordAudio,
+      execute: () => config.onRecordAudio?.(),
     }),
     createNoteCommand({
       id: 'remove-note-icon',

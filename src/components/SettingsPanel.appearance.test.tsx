@@ -70,7 +70,18 @@ describe('SettingsPanel appearance and agent settings', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
     expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(document.querySelector('.settings-panel-shell')).toHaveClass('grimoire-settings-stage')
     expect(screen.getAllByText('Sync & Updates')).not.toHaveLength(0)
+  })
+
+  it('renders a native settings rail with active section state', () => {
+    render(<SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />)
+    expect(screen.getByTestId('settings-navigation-rail')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-main-surface')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-nav-settings-sync')).toHaveAttribute('aria-current', 'page')
+    fireEvent.click(screen.getByTestId('settings-nav-settings-appearance'))
+    expect(screen.getByTestId('settings-nav-settings-appearance')).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByTestId('settings-nav-settings-sync')).not.toHaveAttribute('aria-current')
   })
 
   it('updates the draft language when stored settings finish loading', () => {
@@ -236,11 +247,12 @@ describe('SettingsPanel appearance and agent settings', () => {
     )
 
     expect(screen.getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-daylight-atelier')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-living-archive')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-research-cockpit')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-nocturne')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-manuscript')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-retro-terminal')).toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-research-cockpit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-manuscript')).not.toBeInTheDocument()
     expect(screen.queryByTestId('settings-theme-preset-aether')).not.toBeInTheDocument()
     expect(screen.queryByTestId('settings-theme-preset-ion')).not.toBeInTheDocument()
     expect(screen.queryByTestId('settings-theme-preset-moss')).not.toBeInTheDocument()
@@ -375,10 +387,33 @@ describe('SettingsPanel appearance and agent settings', () => {
     fireEvent.change(screen.getByTestId('settings-default-ai-provider'), {
       target: { value: 'openai' },
     })
+
+    expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
+      'passes --provider openai'
+    )
+
     fireEvent.click(screen.getByTestId('settings-save'))
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       ai_agent_providers: { chitragupta: 'openai' },
     }))
+  })
+
+  it('explains that Chitragupta uses the local CLI route when no provider override is set', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
+      'does not pass --provider and lets the local Chitragupta CLI choose'
+    )
+    expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
+      'does not pass --model'
+    )
   })
 })

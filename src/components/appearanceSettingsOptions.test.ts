@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { createTranslator } from '../lib/i18n'
 import { THEME_PRESET_CATALOG } from '../themes/themeRegistry'
-import { buildPresetOptions } from './appearanceSettingsOptions'
+import { buildPresetGroups, buildPresetOptions } from './appearanceSettingsOptions'
 
 describe('buildPresetOptions', () => {
   it('uses localization for preset copy before JSON metadata', () => {
     const options = buildPresetOptions(createTranslator('zh-Hans'))
-    const research = options.find((option) => option.value === 'research-cockpit')
-    const jsonResearch = THEME_PRESET_CATALOG.find((preset) => preset.id === 'research-cockpit')
+    const daylight = options.find((option) => option.value === 'daylight-atelier')
+    const jsonDaylight = THEME_PRESET_CATALOG.find((preset) => preset.id === 'daylight-atelier')
 
-    expect(research?.label).toBe('Research Cockpit')
-    expect(research?.description).toBe('高密度信号、代理侧栏、以执行为中心的工作台。')
-    expect(research?.description).not.toBe(jsonResearch?.description)
+    expect(daylight?.label).toBe('Daylight Atelier')
+    expect(daylight?.description).toBe('明亮工作室面板、清爽墨色书写、珊瑚与薄荷信号。')
+    expect(daylight?.description).not.toBe(jsonDaylight?.description)
   })
 
   it('keeps JSON swatches available for hot-reloaded preset metadata', () => {
@@ -20,5 +20,19 @@ describe('buildPresetOptions', () => {
     const jsonRetro = THEME_PRESET_CATALOG.find((preset) => preset.id === 'retro-terminal')
 
     expect(retro?.swatches).toEqual(jsonRetro?.swatches)
+  })
+
+  it('promotes signature themes before studio and lab presets', () => {
+    const groups = buildPresetGroups(createTranslator('en'))
+
+    expect(groups.map((group) => group.id)).toEqual(['signature', 'studio', 'lab'])
+    expect(groups[0].options.map((option) => option.value)).toEqual([
+      'living-archive',
+      'nocturne',
+      'constellation',
+    ])
+    expect(groups[2].options.map((option) => option.value)).toEqual([
+      'retro-terminal',
+    ])
   })
 })

@@ -23,7 +23,7 @@ describe('fontConfig', () => {
 
   it('keeps editor font preference separate from display font', () => {
     const roles = resolveFontRoles({
-      themePreset: 'manuscript',
+      themePreset: 'living-archive',
       editorFont: 'serif',
     })
 
@@ -33,7 +33,7 @@ describe('fontConfig', () => {
 
   it('can use Caveat as the editor font when handwritten is selected', () => {
     const roles = resolveFontRoles({
-      themePreset: 'manuscript',
+      themePreset: 'living-archive',
       editorFont: 'handwritten',
     })
 
@@ -42,7 +42,7 @@ describe('fontConfig', () => {
 
   it('applies resolved font roles as root CSS variables', () => {
     applyFontRolesToDocument(document, {
-      themePreset: 'manuscript',
+      themePreset: 'living-archive',
       editorFont: 'mono',
     })
 

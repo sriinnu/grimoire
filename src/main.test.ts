@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { createElement, type ReactNode } from 'react'
+import { createElement } from 'react'
 
 type ReactRootErrorInfo = { componentStack?: string }
 type ReactRootOptions = {
@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => {
   const sentryHandler = vi.fn()
   const reactErrorHandler = vi.fn(() => sentryHandler)
   const getShortcutEventInit = vi.fn(() => ({ key: 'x' }))
+  const TooltipProvider = vi.fn(({ children }: { children?: unknown }) => children)
 
   return {
     createRoot,
@@ -21,6 +22,7 @@ const mocks = vi.hoisted(() => {
     reactErrorHandler,
     render,
     sentryHandler,
+    TooltipProvider,
   }
 })
 
@@ -30,7 +32,7 @@ vi.mock('./App.tsx', () => ({
   default: () => createElement('div', { 'data-testid': 'mock-app' }),
 }))
 vi.mock('@/components/ui/tooltip', () => ({
-  TooltipProvider: ({ children }: { children: ReactNode }) => createElement('div', null, children),
+  TooltipProvider: mocks.TooltipProvider,
 }))
 vi.mock('./hooks/appCommandDispatcher', () => ({
   APP_COMMAND_EVENT_NAME: 'grimoire:command',
@@ -90,7 +92,7 @@ describe('main entrypoint', () => {
   it('captures React root errors through Sentry with component stack context', async () => {
     await importEntrypoint()
 
-    expect(mocks.reactErrorHandler).toHaveBeenCalledOnce()
+    expect(mocks.reactErrorHandler).not.toHaveBeenCalled()
     expect(mocks.createRoot).toHaveBeenCalledWith(
       document.getElementById('root'),
       expect.objectContaining({
@@ -99,10 +101,12 @@ describe('main entrypoint', () => {
         onRecoverableError: expect.any(Function),
       }),
     )
+    expect(mocks.render.mock.calls[0]?.[0].props.children.type).toBe(mocks.TooltipProvider)
 
     const error = new Error('Maximum update depth exceeded')
     rootOptions().onCaughtError?.(error, { componentStack: '\n    in App' })
 
+    await vi.waitFor(() => expect(mocks.reactErrorHandler).toHaveBeenCalledOnce())
     expect(mocks.sentryHandler).toHaveBeenCalledWith(error, { componentStack: '\n    in App' })
   }, 10_000)
 
@@ -112,7 +116,9 @@ describe('main entrypoint', () => {
     const error = new Error('recoverable render error')
     rootOptions().onRecoverableError?.(error, {})
 
-    expect(mocks.sentryHandler).toHaveBeenCalledWith(error, { componentStack: '' })
+    await vi.waitFor(() => {
+      expect(mocks.sentryHandler).toHaveBeenCalledWith(error, { componentStack: '' })
+    })
   })
 
   it('prevents browser navigation for file drags and still lets app drop handlers run', async () => {

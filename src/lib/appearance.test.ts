@@ -15,6 +15,8 @@ import {
   writeStoredEditorFont,
   writeStoredThemePreset,
 } from './appearance'
+import { writeStoredLocalThemeDefinition } from '../themes/localThemePacks'
+import { THEME_PRESET_CATALOG } from '../themes/themeRegistry'
 
 function makeStorage(initial: Record<string, string> = {}): Storage {
   const values = new Map(Object.entries(initial))
@@ -31,11 +33,12 @@ function makeStorage(initial: Record<string, string> = {}): Storage {
 describe('appearance', () => {
   it('normalizes only supported appearance values', () => {
     expect(normalizeThemePreset('constellation')).toBe('constellation')
+    expect(normalizeThemePreset('daylight-atelier')).toBe('daylight-atelier')
     expect(normalizeThemePreset('living-archive')).toBe('living-archive')
-    expect(normalizeThemePreset('research-cockpit')).toBe('research-cockpit')
-    expect(normalizeThemePreset('manuscript')).toBe('manuscript')
     expect(normalizeThemePreset('nocturne')).toBe('nocturne')
     expect(normalizeThemePreset('retro-terminal')).toBe('retro-terminal')
+    expect(normalizeThemePreset('research-cockpit')).toBeNull()
+    expect(normalizeThemePreset('manuscript')).toBeNull()
     expect(normalizeThemePreset('classic')).toBeNull()
     expect(normalizeThemePreset('graphite')).toBeNull()
     expect(normalizeThemePreset('aether')).toBeNull()
@@ -68,13 +71,20 @@ describe('appearance', () => {
   })
 
   it('applies appearance attributes to the root document', () => {
+    document.documentElement.setAttribute('data-theme', 'dark')
     applyAppearanceToDocument(document, {
       themePreset: 'constellation',
       editorFont: 'serif',
     })
 
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'constellation')
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-id', 'constellation')
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'dark')
+    expect(document.documentElement).toHaveAttribute('data-sidebar-artwork', 'grimoire-sigil')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
+    expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#07111a')
+    expect(document.documentElement.style.getPropertyValue('--background')).toBe('#07111a')
+    expect(document.documentElement.style.getPropertyValue('--sidebar-artwork-opacity')).toBe('0.24')
   })
 
   it('bootstraps stored appearance choices', () => {
@@ -89,5 +99,18 @@ describe('appearance', () => {
     })
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
+  })
+
+  it('bootstraps a local-only theme pack override over the saved preset', () => {
+    const storage = makeStorage({
+      [THEME_PRESET_STORAGE_KEY]: 'nocturne',
+      [EDITOR_FONT_STORAGE_KEY]: 'readable',
+    })
+    writeStoredLocalThemeDefinition(storage, THEME_PRESET_CATALOG[0])
+
+    applyStoredAppearance(document, storage)
+
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-id', THEME_PRESET_CATALOG[0].id)
   })
 })

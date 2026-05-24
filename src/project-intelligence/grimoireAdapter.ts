@@ -63,7 +63,8 @@ export function buildGrimoireProjectIntelligence(
     .filter((document): document is GrimoireProjectDocument => document !== null)
 
   const issues = activeEntries.flatMap((entry) =>
-    parseProjectIssuesFromContent(candidateContent(entry, contentByPath), relativePath(entry.path)),
+    parseProjectIssuesFromContent(candidateContent(entry, contentByPath), relativePath(entry.path))
+      .map((issue) => ({ ...issue, sourcePath: entry.path })),
   )
   const project = {
     id: PROJECT_ID,

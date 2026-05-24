@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke, updateMockContent } from '../mock-tauri'
 import { cacheNoteContent } from './useTabManagement'
 

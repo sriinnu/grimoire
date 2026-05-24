@@ -19,6 +19,7 @@ describe('vaultPortability', () => {
       expect.objectContaining({ id: 'vault-folder', status: 'ready', portable: true }),
       expect.objectContaining({ id: 'git-remote', status: 'ready', portable: true }),
       expect.objectContaining({ id: 'markdown-zip', status: 'ready', portable: true }),
+      expect.objectContaining({ id: 'static-html', status: 'ready', portable: true }),
     ]))
   })
 
@@ -31,6 +32,12 @@ describe('vaultPortability', () => {
       'obsidian',
       'notion-markdown',
       'spanda',
+    ]))
+    expect(listVaultImportSources()).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'obsidian', status: 'ready', preservesMarkdown: true }),
+      expect.objectContaining({ id: 'notion-markdown', status: 'ready' }),
+      expect.objectContaining({ id: 'spanda', status: 'ready' }),
+      expect.objectContaining({ id: 'apple-journal', status: 'ready' }),
     ]))
     expect(listVaultStorageProviders().map(provider => provider.id)).toEqual(expect.arrayContaining([
       'icloud-drive',
@@ -56,16 +63,15 @@ describe('vaultPortability', () => {
     expect(getVaultStorageProvider('s3')).toMatchObject({
       status: 'planned',
       kind: 'object-storage',
+      localFirst: true,
       requiresLocalWorkingCopy: true,
     })
     expect(getVaultStorageProvider('azure-blob')).toMatchObject({
       status: 'planned',
       kind: 'object-storage',
+      localFirst: true,
       requiresLocalWorkingCopy: true,
     })
-    expect(listVaultImportSources()).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'apple-journal', status: 'planned' }),
-    ]))
   })
 
   it('distinguishes filesystem-backed folders from object storage adapters', () => {
@@ -74,6 +80,11 @@ describe('vaultPortability', () => {
 
     expect(iCloud && isFilesystemBackedStorageProvider(iCloud)).toBe(true)
     expect(s3 && isFilesystemBackedStorageProvider(s3)).toBe(false)
+  })
+
+  it('never treats object-storage URLs as active vault folders', () => {
+    expect(isVaultPathInStorageProvider('s3', 's3://my-bucket/grimoire')).toBe(false)
+    expect(isVaultPathInStorageProvider('azure-blob', 'https://acct.blob.core.windows.net/vault')).toBe(false)
   })
 
   it('detects filesystem-backed cloud vaults from normal desktop paths', () => {
@@ -94,5 +105,21 @@ describe('vaultPortability', () => {
       expect.objectContaining({ providerId: 's3', state: 'planned' }),
       expect.objectContaining({ providerId: 'azure-blob', state: 'planned' }),
     ]))
+  })
+
+  it('explains active cloud-folder privacy without weakening local-first storage', () => {
+    const health = getVaultStorageHealth('/Users/sri/Library/CloudStorage/GoogleDrive-sri@example.com/My Drive/Grimoire')
+
+    expect(health).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        providerId: 'google-drive-desktop',
+        state: 'active',
+        privacyNote: expect.stringContaining('Grimoire only edits the local files'),
+      }),
+    ]))
+    expect(getVaultStorageProvider('google-drive-desktop')).toMatchObject({
+      localFirst: true,
+      requiresLocalWorkingCopy: true,
+    })
   })
 })

@@ -85,4 +85,20 @@ describe('useProjectFileContents', () => {
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.contentByPath.size).toBe(0)
   })
+
+  it('applies the project scanner allow and deny policy before reading files', async () => {
+    const selection: SidebarSelection = { kind: 'folder', path: 'project' }
+    const entries = [
+      entry({ path: '/fixture/project/.env', filename: '.env', fileKind: 'text' }),
+      entry({ path: '/fixture/project/node_modules/pkg/todo.md' }),
+      entry({ path: '/fixture/project/src/app.ts', fileKind: 'text' }),
+    ]
+    const { result } = renderHook(() =>
+      useProjectFileContents(entries, selection, true),
+    )
+
+    await waitFor(() => expect(result.current.contentByPath.has('/fixture/project/src/app.ts')).toBe(true))
+    expect(result.current.contentByPath.has('/fixture/project/.env')).toBe(false)
+    expect(result.current.contentByPath.has('/fixture/project/node_modules/pkg/todo.md')).toBe(false)
+  })
 })

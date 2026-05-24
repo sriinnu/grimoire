@@ -1,9 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { VaultEntry } from '../../types'
+import type { PulseCommit, VaultEntry } from '../../types'
 import { VaultDashboard } from './VaultDashboard'
 
-function entry(title: string, type = 'Note'): VaultEntry {
+function entry(title: string, type = 'Note', overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
     path: `/vault/${title.toLowerCase().replace(/\s+/g, '-')}.md`,
     filename: `${title.toLowerCase().replace(/\s+/g, '-')}.md`,
@@ -36,6 +36,22 @@ function entry(title: string, type = 'Note'): VaultEntry {
     properties: {},
     hasH1: true,
     fileKind: 'markdown',
+    ...overrides,
+  }
+}
+
+function commit(overrides: Partial<PulseCommit> = {}): PulseCommit {
+  return {
+    hash: 'private-commit-hash',
+    shortHash: 'prv1234',
+    message: 'Journal sync with private details',
+    date: Math.floor(Date.now() / 1000),
+    githubUrl: null,
+    files: [{ path: 'journal/private-checkin.md', status: 'modified', title: 'private checkin' }],
+    added: 0,
+    modified: 1,
+    deleted: 0,
+    ...overrides,
   }
 }
 
@@ -85,10 +101,288 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    fireEvent.click(screen.getByText('Catch a dream'))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Catch a dream' })[0])
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
 
     fireEvent.click(screen.getByText('A recent note'))
     expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ title: 'A recent note' }))
+  })
+
+  it('shows Dream Forge as a local-only private pattern surface', () => {
+    const dream = {
+      ...entry('River Door', 'Dream'),
+      properties: { symbols: ['river', 'door'], emotional_weather: 'awe' },
+      relationships: { people: ['[[Guide]]'] },
+    }
+
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[dream, entry('Daily Checkin', 'Journal')]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByTestId('dream-forge-panel')
+    expect(panel).toHaveTextContent('Dream Forge')
+    expect(panel).toHaveTextContent('Local only')
+    expect(panel).toHaveTextContent('2 protected')
+    expect(panel).toHaveTextContent('Latest dream: River Door')
+    expect(panel).toHaveTextContent('river')
+    expect(panel).toHaveTextContent('awe')
+    expect(panel).toHaveTextContent('Guide')
+
+    fireEvent.click(screen.getByTestId('dream-forge-capture'))
+    expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
+  })
+
+  it('shows Time Loom as metadata-only timeline without protected labels', () => {
+    const now = Math.floor(Date.now() / 1000)
+    const yesterday = now - 24 * 60 * 60
+    const protectedDream = {
+      ...entry('Secret River Dream', 'Dream'),
+      path: '/vault/dreams/secret-river.md',
+      modifiedAt: now,
+      createdAt: now,
+    }
+    const protectedJournal = {
+      ...entry('Private Checkin', 'Journal'),
+      path: '/vault/journal/private-checkin.md',
+      modifiedAt: now,
+      createdAt: now,
+    }
+    const task = { ...entry('Open Task', 'Task'), status: 'blocked but private language' }
+    const meeting = {
+      ...entry('Yesterday Sync', 'Meeting'),
+      modifiedAt: yesterday,
+      createdAt: yesterday,
+    }
+    const voice = {
+      ...entry('Transcript - private voice memo', 'Transcript'),
+      path: '/vault/Private/transcript-private-voice-memo.md',
+      properties: {
+        locality: 'local',
+        source_audio: '/vault/Private/attachments/recordings/private-voice.webm',
+        transcription_provider: 'local_whisper',
+      },
+      modifiedAt: now,
+      createdAt: now,
+    }
+
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[protectedDream, protectedJournal, task, meeting, voice]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByTestId('time-loom-panel')
+    expect(panel).toHaveTextContent('Time Loom')
+    expect(panel).toHaveTextContent('Local timeline')
+    expect(panel).toHaveTextContent('3 private')
+    expect(panel).toHaveTextContent('1 voice')
+    expect(panel).toHaveTextContent('Today')
+    expect(panel).toHaveTextContent('Yesterday')
+    expect(panel).toHaveTextContent('Dream 1')
+    expect(panel).toHaveTextContent('Journal 1')
+    expect(panel).toHaveTextContent('Voice 1')
+    expect(panel).toHaveTextContent('Open 1')
+    expect(panel).toHaveTextContent('Unmarked 3')
+    expect(panel).not.toHaveTextContent('Secret River Dream')
+    expect(panel).not.toHaveTextContent('private voice memo')
+    expect(panel).not.toHaveTextContent('private-voice.webm')
+    expect(panel).not.toHaveTextContent('/vault/dreams/secret-river.md')
+    expect(panel).not.toHaveTextContent('blocked but private language')
+
+    fireEvent.click(screen.getByTestId('time-loom-capture'))
+    expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
+  })
+
+  it('shows vault commits in Time Loom without leaking git history details', () => {
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[entry('Plain Note')]}
+        isGitVault={true}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        pulseCommits={[commit()]}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByTestId('time-loom-panel')
+    expect(panel).toHaveTextContent('1 commit')
+    expect(panel).toHaveTextContent('Commit 1')
+    expect(panel).not.toHaveTextContent('Journal sync with private details')
+    expect(panel).not.toHaveTextContent('private-commit-hash')
+    expect(panel).not.toHaveTextContent('prv1234')
+    expect(panel).not.toHaveTextContent('journal/private-checkin.md')
+  })
+
+  it('shows scheduled calendar entries in Time Loom without leaking event details', () => {
+    const now = new Date()
+    const today = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-')
+    const yesterday = Math.floor(Date.now() / 1000) - 24 * 60 * 60
+
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[
+          entry('Private Appointment', 'Event', {
+            path: '/vault/private/calendar/private-appointment.md',
+            modifiedAt: yesterday,
+            createdAt: yesterday,
+            properties: {
+              date: today,
+              locality: 'local-only',
+              location: 'Secret room',
+            },
+          }),
+        ]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByTestId('time-loom-panel')
+    expect(panel).toHaveTextContent('1 scheduled')
+    expect(panel).toHaveTextContent('Calendar 1')
+    expect(panel).not.toHaveTextContent('Private Appointment')
+    expect(panel).not.toHaveTextContent('/vault/private/calendar/private-appointment.md')
+    expect(panel).not.toHaveTextContent('Secret room')
+  })
+
+  it('shows Attention Mode as a quiet local next action', () => {
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[entry('Loose task', 'Task')]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    expect(panel).toHaveTextContent('Attention Mode')
+    expect(panel).toHaveTextContent('Journal')
+    expect(panel).toHaveTextContent('No journal today')
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Journal' }))
+    expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
+  })
+
+  it('opens memory review items from Attention Mode instead of adding more capture', () => {
+    const onOpenNote = vi.fn()
+    const memory = entry('Agent memory', 'Memory', { status: 'Review' })
+
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[memory, entry('Journal today', 'Journal')]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={onOpenNote}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    expect(panel).toHaveTextContent('Review memory')
+    fireEvent.click(within(panel).getByRole('button', { name: 'Review' }))
+    expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ title: 'Agent memory' }))
+  })
+
+  it('captures a local defer-sync reason from Attention Mode', () => {
+    const now = new Date()
+    const today = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-')
+
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[entry(`Journal ${today}`, 'Journal')]}
+        isGitVault={true}
+        modifiedCount={6}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    expect(panel).toHaveTextContent('Defer sync')
+    fireEvent.click(within(panel).getByRole('button', { name: 'Capture reason' }))
+    expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/memory ')
+  })
+
+  it('previews dashboard ask context without protected note labels', () => {
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[
+          entry('Public Project', 'Project'),
+          entry('Secret River Dream', 'Dream', { path: '/vault/dreams/secret-river.md' }),
+          entry('Private Plan', 'Note', { properties: { locality: 'local' } }),
+        ]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    expect(screen.queryByTestId('dashboard-ask-context-preview')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('dashboard-capture-kind-ask'))
+
+    const preview = screen.getByTestId('dashboard-ask-context-preview')
+    expect(preview).toHaveTextContent('Agent Context')
+    expect(preview).toHaveTextContent('1 public note')
+    expect(preview).toHaveTextContent('Public Project')
+    expect(preview).toHaveTextContent('2 protected notes withheld')
+    expect(preview).not.toHaveTextContent('Secret River Dream')
+    expect(preview).not.toHaveTextContent('Private Plan')
+    expect(preview).not.toHaveTextContent('/vault/dreams')
   })
 })

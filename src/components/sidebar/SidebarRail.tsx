@@ -113,7 +113,7 @@ export function SidebarRail({
 
   return (
     <aside
-      className="app-sidebar-rail flex h-full flex-col items-center border-r border-[var(--sidebar-border)] bg-sidebar px-2 py-3 text-sidebar-foreground"
+      className="app-sidebar-rail flex h-full flex-col items-center border-r border-[var(--sidebar-border)] bg-sidebar px-2 pb-3 pt-[72px] text-sidebar-foreground"
       data-testid="sidebar-rail"
       aria-label="Collapsed sidebar"
     >

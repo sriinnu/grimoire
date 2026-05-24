@@ -36,30 +36,31 @@ describe('IconEditableValue', () => {
     expect(screen.getByTestId('icon-editable-display')).toHaveClass('text-left')
   })
 
-  it('shows searchable icon results with previews while editing', () => {
+  it('shows searchable icon results with previews while editing', async () => {
     renderIconValue()
 
     expect(screen.getByTestId('icon-editable-input')).toHaveAttribute('role', 'combobox')
     expect(screen.getByTestId('icon-picker-results')).toBeInTheDocument()
-    expect(screen.getAllByRole('option').length).toBeGreaterThan(0)
+    expect((await screen.findAllByRole('option')).length).toBeGreaterThan(0)
   })
 
-  it('selects the first matching icon on Enter for icon-name queries', () => {
+  it('selects the first matching icon on Enter for icon-name queries', async () => {
     const { onSave } = renderIconValue()
     const input = screen.getByTestId('icon-editable-input')
 
     fireEvent.change(input, { target: { value: 'rocket' } })
+    await screen.findByRole('option', { name: 'rocket' })
     fireEvent.keyDown(input, { key: 'Enter' })
 
     expect(onSave).toHaveBeenCalledWith('rocket')
   })
 
-  it('supports keyboard navigation before selecting an icon', () => {
+  it('supports keyboard navigation before selecting an icon', async () => {
     const { onSave } = renderIconValue()
     const input = screen.getByTestId('icon-editable-input')
 
     fireEvent.change(input, { target: { value: 'file' } })
-    const options = screen.getAllByRole('option')
+    const options = await screen.findAllByRole('option')
 
     expect(options.length).toBeGreaterThan(1)
 
@@ -69,9 +70,10 @@ describe('IconEditableValue', () => {
     expect(onSave).toHaveBeenCalledWith(options[1].textContent ?? '')
   })
 
-  it('keeps manual URL values instead of forcing an icon suggestion', () => {
+  it('keeps manual URL values instead of forcing an icon suggestion', async () => {
     const { onSave } = renderIconValue()
     const input = screen.getByTestId('icon-editable-input')
+    await screen.findByRole('option', { name: 'acorn' })
 
     fireEvent.change(input, { target: { value: 'https://example.com/icon.png' } })
     fireEvent.keyDown(input, { key: 'Enter' })
@@ -79,12 +81,12 @@ describe('IconEditableValue', () => {
     expect(onSave).toHaveBeenCalledWith('https://example.com/icon.png')
   })
 
-  it('shows an empty state when no icon matches the query', () => {
+  it('shows an empty state when no icon matches the query', async () => {
     renderIconValue()
     const input = screen.getByTestId('icon-editable-input')
 
     fireEvent.change(input, { target: { value: 'totally-not-a-real-icon' } })
 
-    expect(screen.getByTestId('icon-picker-empty')).toHaveTextContent('No icons found')
+    expect(await screen.findByTestId('icon-picker-empty')).toHaveTextContent('No icons found')
   })
 })

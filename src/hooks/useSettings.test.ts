@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import type { Settings } from '../types'
 import { useSettings } from './useSettings'
 
@@ -21,6 +21,8 @@ const defaultSettings: Settings = {
   ui_language: null,
   menu_bar_icon_enabled: null,
   default_ai_agent: null,
+  transcription_provider: null,
+  cloud_transcription_enabled: null,
 }
 
 const savedSettings: Settings = {
@@ -40,6 +42,14 @@ const savedSettings: Settings = {
   ui_language: null,
   menu_bar_icon_enabled: true,
   default_ai_agent: null,
+  transcription_provider: 'local_whisper',
+  cloud_transcription_enabled: false,
+}
+
+const loadedDefaultSettings: Settings = {
+  ...defaultSettings,
+  transcription_provider: 'local_whisper',
+  cloud_transcription_enabled: false,
 }
 
 let mockSettingsStore: Settings = { ...defaultSettings }
@@ -56,6 +66,9 @@ const mockInvokeFn = vi.fn((cmd: string, args?: Record<string, unknown>): Promis
 const nativeInvoke = vi.mocked(invoke)
 
 vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
+}))
+vi.mock('../lib/tauriRuntime', () => ({
   invoke: vi.fn(),
 }))
 
@@ -87,11 +100,13 @@ function changedSettings(): Settings {
     anonymous_id: null,
     release_channel: null,
     theme_mode: null,
-    theme_preset: 'manuscript',
+    theme_preset: 'living-archive',
     editor_font: 'serif',
     ui_language: 'zh-Hans',
     menu_bar_icon_enabled: false,
     default_ai_agent: null,
+    transcription_provider: 'local_voice_model',
+    cloud_transcription_enabled: false,
   }
 }
 
@@ -220,7 +235,7 @@ describe('useSettings', () => {
     })
 
     // Settings should not have changed on error
-    expect(result.current.settings).toEqual(defaultSettings)
+    expect(result.current.settings).toEqual(loadedDefaultSettings)
     errorSpy.mockRestore()
   })
 })

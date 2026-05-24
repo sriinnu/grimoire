@@ -1,5 +1,43 @@
-import { describe, it, expect } from 'vitest'
-import { _scrubPathsForTest as scrubPaths, trackEvent, isFeatureEnabled, setReleaseChannel } from './telemetry'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const telemetryMocks = vi.hoisted(() => ({
+  sentryClose: vi.fn(),
+  sentryInit: vi.fn(),
+  sentrySetUser: vi.fn(),
+}))
+
+vi.mock('./telemetryConfig', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('./telemetryConfig')>()
+  return {
+    ...actual,
+    resolveFrontendTelemetryConfig: () => ({
+      posthogHost: null,
+      posthogKey: '',
+      sentryDsn: 'https://public@example.ingest.sentry.io/123456',
+    }),
+  }
+})
+
+vi.mock('@sentry/react', () => ({
+  close: telemetryMocks.sentryClose,
+  init: telemetryMocks.sentryInit,
+  setUser: telemetryMocks.sentrySetUser,
+}))
+
+import {
+  _resetTelemetryStateForTest,
+  _scrubPathsForTest as scrubPaths,
+  initSentry,
+  isFeatureEnabled,
+  setReleaseChannel,
+  teardownSentry,
+  trackEvent,
+} from './telemetry'
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  _resetTelemetryStateForTest()
+})
 
 describe('telemetry scrubPaths', () => {
   it('redacts macOS absolute paths', () => {
@@ -41,6 +79,32 @@ describe('trackEvent', () => {
 
   it('accepts event name with string and number properties', () => {
     expect(() => trackEvent('note_created', { has_type: 1, creation_path: 'cmd_n' })).not.toThrow()
+  })
+})
+
+describe('Sentry lifecycle', () => {
+  it('initializes crash reporting when no teardown interrupts it', async () => {
+    await initSentry('test-uuid')
+
+    expect(telemetryMocks.sentryInit).toHaveBeenCalledOnce()
+    expect(telemetryMocks.sentrySetUser).toHaveBeenCalledWith({ id: 'test-uuid' })
+  })
+
+  it('cancels a pending crash-reporting init when teardown wins the race', async () => {
+    const pendingInit = initSentry('test-uuid')
+
+    await teardownSentry()
+    await pendingInit
+
+    expect(telemetryMocks.sentryInit).not.toHaveBeenCalled()
+    expect(telemetryMocks.sentrySetUser).not.toHaveBeenCalled()
+  })
+
+  it('closes crash reporting after initialization', async () => {
+    await initSentry('test-uuid')
+    await teardownSentry()
+
+    expect(telemetryMocks.sentryClose).toHaveBeenCalledOnce()
   })
 })
 

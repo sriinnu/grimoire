@@ -53,6 +53,16 @@ fn normalize_provider(provider: Option<&str>) -> Result<&'static str, String> {
     }
 }
 
+fn ensure_provider_allowed(provider: &str, allow_cloud: Option<bool>) -> Result<(), String> {
+    if provider == WHISPER_API_PROVIDER && allow_cloud != Some(true) {
+        return Err(
+            "Cloud transcription is disabled. Enable it in Settings before using Whisper API."
+                .to_string(),
+        );
+    }
+    Ok(())
+}
+
 fn validate_audio_path(audio_path: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(audio_path);
     if !path.exists() {
@@ -189,8 +199,10 @@ pub fn transcribe_audio(
     provider: Option<String>,
     language: Option<String>,
     model: Option<String>,
+    allow_cloud: Option<bool>,
 ) -> Result<TranscriptionResult, String> {
     let provider = normalize_provider(provider.as_deref())?;
+    ensure_provider_allowed(provider, allow_cloud)?;
     let audio_path = validate_audio_path(&audio_path)?;
     match provider {
         LOCAL_WHISPER_PROVIDER | LOCAL_VOICE_MODEL_PROVIDER => {
@@ -258,5 +270,40 @@ mod tests {
             .unwrap();
 
         assert!(validate_audio_path(audio_path.to_str().unwrap()).is_err());
+    }
+
+    #[test]
+    fn rejects_cloud_transcription_without_explicit_opt_in() {
+        let err = transcribe_audio(
+            "/tmp/voice-note.m4a".to_string(),
+            Some(WHISPER_API_PROVIDER.to_string()),
+            None,
+            None,
+            Some(false),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("Cloud transcription is disabled"));
+    }
+
+    #[test]
+    fn reaches_api_transport_guard_after_cloud_opt_in() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let audio_path = dir.path().join("voice-note.m4a");
+        fs::File::create(&audio_path)
+            .unwrap()
+            .write_all(b"audio")
+            .unwrap();
+
+        let err = transcribe_audio(
+            audio_path.to_string_lossy().to_string(),
+            Some(WHISPER_API_PROVIDER.to_string()),
+            None,
+            None,
+            Some(true),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("needs API key transport"));
     }
 }

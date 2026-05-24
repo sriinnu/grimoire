@@ -61,6 +61,8 @@ describe('memoryLedger', () => {
         expires_at: '2026-06-16',
         contradicts: ['[[Old Note]]'],
         locality: 'local',
+        memory_version: 2,
+        reviewed_at: '2026-05-23T12:00:00.000Z',
       },
     }))
 
@@ -73,6 +75,8 @@ describe('memoryLedger', () => {
       expiresAt: '2026-06-16',
       contradicts: ['[[Old Note]]'],
       locality: 'local',
+      version: '2',
+      reviewedAt: '2026-05-23T12:00:00.000Z',
     })
   })
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { resolveIcon, ICON_OPTIONS } from './iconRegistry'
-import { FileText, GearSix, CookingPot } from '@phosphor-icons/react'
+import { resolveIcon } from './iconRegistry'
+import { ICON_OPTIONS } from './iconOptions'
+import { Calendar, CookingPot, FileText, GearSix, Leaf, Megaphone, Sparkle, User } from '@phosphor-icons/react'
 
 describe('resolveIcon', () => {
   it('returns FileText for null', () => {
@@ -17,6 +18,14 @@ describe('resolveIcon', () => {
 
   it('resolves cooking-pot to CookingPot', () => {
     expect(resolveIcon('cooking-pot')).toBe(CookingPot)
+  })
+
+  it('keeps common saved type icons in the hot runtime map', () => {
+    expect(resolveIcon('calendar')).toBe(Calendar)
+    expect(resolveIcon('leaf')).toBe(Leaf)
+    expect(resolveIcon('megaphone')).toBe(Megaphone)
+    expect(resolveIcon('sparkles')).toBe(Sparkle)
+    expect(resolveIcon('user')).toBe(User)
   })
 })
 

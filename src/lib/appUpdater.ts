@@ -1,5 +1,5 @@
-import { Channel, invoke } from '@tauri-apps/api/core'
 import { normalizeReleaseChannel } from './releaseChannel'
+import { createTauriChannel, invoke } from './tauriRuntime'
 
 export interface AppUpdateMetadata {
   currentVersion: string
@@ -43,7 +43,7 @@ export async function downloadAndInstallAppUpdate(
   expectedVersion: string,
   onEvent: (event: AppUpdateDownloadEvent) => void,
 ): Promise<void> {
-  const channel = new Channel<AppUpdateDownloadEvent>()
+  const channel = await createTauriChannel<AppUpdateDownloadEvent>()
   channel.onmessage = onEvent
 
   await invoke('download_and_install_app_update', {

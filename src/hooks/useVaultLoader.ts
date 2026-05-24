@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { VaultEntry, FolderNode, GitCommit, ModifiedFile, NoteStatus, GitPushResult, ViewFile } from '../types'
 import { setCurrentVaultPath } from '../utils/currentVaultPath'
-import { clearPrefetchCache } from './useTabManagement'
+import { useVaultRebuildProgress } from './useVaultRebuildProgress'
 
 function tauriCall<T>(command: string, tauriArgs: Record<string, unknown>, mockArgs?: Record<string, unknown>): Promise<T> {
   return isTauri() ? invoke<T>(command, tauriArgs) : mockInvoke<T>(command, mockArgs ?? tauriArgs)
@@ -288,20 +288,15 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     [vaultPath, isCurrentVaultPath],
   )
 
-  const reloadVault = useCallback(
-    () => {
-      const path = vaultPath
-      clearPrefetchCache()
-      return tauriCall<VaultEntry[]>('reload_vault', { path })
-        .then((entries) => {
-          if (!isCurrentVaultPath(path)) return [] as VaultEntry[]
-          setEntries(entries)
-          void loadModifiedFiles()
-          return entries
-        })
-        .catch((err) => { console.warn('Vault reload failed:', err); return [] as VaultEntry[] })
-    },
-    [vaultPath, loadModifiedFiles, isCurrentVaultPath],
+  const {
+    rebuildProgress,
+    reloadVault,
+    cancelVaultReload,
+  } = useVaultRebuildProgress(
+    vaultPath,
+    isCurrentVaultPath,
+    loadModifiedFiles,
+    setEntries,
   )
 
   const reloadViews = useCallback(async () => {
@@ -321,6 +316,7 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     addEntry, updateEntry, removeEntry, removeEntries, replaceEntry,
     loadModifiedFiles, loadGitHistory, loadDiff, loadDiffAtCommit,
     getNoteStatus, commitAndPush, reloadVault, reloadFolders, reloadViews,
+    rebuildProgress, cancelVaultReload,
     addPendingSave: pendingSave.addPendingSave,
     removePendingSave: pendingSave.removePendingSave,
     unsavedPaths: unsaved.unsavedPaths,

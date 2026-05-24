@@ -117,4 +117,28 @@ describe('useAiAgentPreferences', () => {
     })
     expect(onToast).toHaveBeenCalledWith('Chitragupta provider: openai')
   })
+
+  it('uses Chitragupta CLI defaults when no provider override is set', () => {
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings: { ...settings, default_ai_agent: 'chitragupta' },
+      saveSettings: vi.fn(),
+      aiAgentsStatus,
+    }))
+
+    expect(result.current.defaultAiProvider).toBeNull()
+  })
+
+  it('ignores stale provider overrides for Codex', () => {
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings: {
+        ...settings,
+        default_ai_agent: 'codex',
+        ai_agent_providers: { codex: 'google', chitragupta: 'openai' },
+      },
+      saveSettings: vi.fn(),
+      aiAgentsStatus,
+    }))
+
+    expect(result.current.defaultAiProvider).toBeNull()
+  })
 })

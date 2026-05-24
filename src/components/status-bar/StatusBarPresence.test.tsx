@@ -41,4 +41,17 @@ describe('StatusBar presence tone', () => {
 
     expect(screen.getByTestId('status-bar')).toHaveAttribute('data-status-tone', 'healthy')
   })
+
+  it('scopes foreground tokens to the sidebar surface for darker bottom bars', () => {
+    renderStatusBar({ modifiedCount: 0, syncStatus: 'idle' })
+
+    const statusBar = screen.getByTestId('status-bar')
+    expect(statusBar.style.getPropertyValue('--foreground')).toBe('var(--status-bar-foreground)')
+    expect(statusBar.style.getPropertyValue('--muted-foreground')).toBe('var(--status-bar-muted-foreground)')
+    expect(statusBar.style.getPropertyValue('--status-bar-foreground')).toBe('var(--sidebar-foreground)')
+    expect(statusBar.style.getPropertyValue('--status-bar-muted-foreground')).toBe('color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)')
+    expect(statusBar.style.getPropertyValue('--status-bar-warning-fg')).toBe('color-mix(in srgb, var(--accent-orange) 24%, var(--status-bar-foreground))')
+    expect(statusBar.style.getPropertyValue('--status-bar-badge-fg')).toBe('var(--status-bar-foreground)')
+    expect(statusBar).toHaveStyle({ color: 'var(--status-bar-muted-foreground)' })
+  })
 })

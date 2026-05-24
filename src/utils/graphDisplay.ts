@@ -36,6 +36,9 @@ export const GRAPH_VIEWBOX_HEIGHT = 620
 export const GRAPH_CENTER_X = GRAPH_VIEWBOX_WIDTH / 2
 export const GRAPH_CENTER_Y = GRAPH_VIEWBOX_HEIGHT / 2
 export const MAX_VISIBLE_GRAPH_NODES = 180
+const GRAPH_LABEL_SAFE_MARGIN = 78
+const GRAPH_MIN_RING_RADIUS = 104
+const GRAPH_MAX_RING_RADIUS = Math.min(GRAPH_CENTER_X, GRAPH_CENTER_Y) - GRAPH_LABEL_SAFE_MARGIN
 
 function sortNodesForLayout(graph: NoteGraph): NoteGraph['nodes'] {
   return [...graph.nodes].sort((a, b) => {
@@ -73,12 +76,32 @@ function ringPosition(index: number, total: number): Pick<PositionedGraphNode, '
   const nodesInRing = Math.max(1, Math.min(capacity, total - ringStart))
   const offset = (-Math.PI / 2) + (ringIndex % 2 === 0 ? 0 : Math.PI / nodesInRing)
   const angle = offset + (position / nodesInRing) * Math.PI * 2
-  const radius = 118 + ringIndex * 104
+  const radius = ringRadius(ringIndex, total)
 
   return {
     x: GRAPH_CENTER_X + Math.cos(angle) * radius,
     y: GRAPH_CENTER_Y + Math.sin(angle) * radius,
   }
+}
+
+function ringRadius(ringIndex: number, total: number): number {
+  const ringCount = totalRingCount(total)
+  if (ringCount <= 1) return Math.min(118, GRAPH_MAX_RING_RADIUS)
+
+  const progress = ringIndex / (ringCount - 1)
+  return GRAPH_MIN_RING_RADIUS + progress * (GRAPH_MAX_RING_RADIUS - GRAPH_MIN_RING_RADIUS)
+}
+
+function totalRingCount(total: number): number {
+  if (total <= 1) return 0
+
+  let remaining = total - 1
+  let ringIndex = 0
+  while (remaining > 0) {
+    remaining -= 12 + ringIndex * 8
+    ringIndex += 1
+  }
+  return ringIndex
 }
 
 /** Returns the active note plus its directly connected notes for local graph focus. */

@@ -1,16 +1,15 @@
 import { StrictMode } from 'react'
-import * as Sentry from '@sentry/react'
 import { createRoot } from 'react-dom/client'
-import { TooltipProvider } from '@/components/ui/tooltip'
 import './fonts.css'
 import './index.css'
 import './motion.css'
+import './motion-agent-council.css'
 import App from './App.tsx'
 import './theme-polish.css'
 import './sidebar-appearance.css'
 import './sidebar-artwork-themes.css'
 import './system-themes.css'
-import { LinuxTitlebar } from './components/LinuxTitlebar'
+import { PlatformChrome } from './components/PlatformChrome'
 import { applyStoredAppearance } from './lib/appearance'
 import { loadFontAssetsForAppearance } from './lib/fontConfig'
 import { applyStoredThemeMode } from './lib/themeMode'
@@ -25,6 +24,7 @@ import {
   type AppCommandShortcutEventOptions,
 } from './hooks/appCommandCatalog'
 import { shouldUseLinuxWindowChrome, shouldUseMacOverlayChrome } from './utils/platform'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 const EDITOR_DROP_SELECTOR = '.editor__blocknote-container'
 
@@ -120,13 +120,42 @@ window.__grimoireTest = {
   },
 }
 
-const sentryReactErrorHandler = Sentry.reactErrorHandler()
+type ReactRootErrorPayload = {
+  componentStack: string
+}
+
+type ReactRootErrorHandler = (
+  error: unknown,
+  errorInfo: ReactRootErrorPayload,
+) => void
+
+let sentryReactErrorHandler: ReactRootErrorHandler | null = null
+let sentryReactErrorHandlerImport: Promise<ReactRootErrorHandler> | null = null
+
+function loadSentryReactErrorHandler(): Promise<ReactRootErrorHandler> {
+  sentryReactErrorHandlerImport ??= import('@sentry/react').then((Sentry) => {
+    const handler = Sentry.reactErrorHandler()
+    sentryReactErrorHandler = handler
+    return handler
+  })
+  return sentryReactErrorHandlerImport
+}
 
 function captureReactRootError(
   error: unknown,
   errorInfo: { componentStack?: string },
 ): void {
-  sentryReactErrorHandler(error, { componentStack: errorInfo.componentStack ?? '' })
+  const payload = { componentStack: errorInfo.componentStack ?? '' }
+  if (import.meta.env.DEV && import.meta.env.MODE !== 'test') {
+    console.error('[react-root]', error, payload)
+  }
+
+  if (sentryReactErrorHandler) {
+    sentryReactErrorHandler(error, payload)
+    return
+  }
+
+  void loadSentryReactErrorHandler().then((handler) => handler(error, payload))
 }
 
 createRoot(document.getElementById('root')!, {
@@ -136,7 +165,7 @@ createRoot(document.getElementById('root')!, {
 }).render(
   <StrictMode>
     <TooltipProvider>
-      <LinuxTitlebar />
+      <PlatformChrome />
       <App />
     </TooltipProvider>
   </StrictMode>,

@@ -26,7 +26,7 @@ export function SettingsSection({
   showDivider?: boolean
 }) {
   return (
-    <section id={id} className="flex scroll-mt-6 flex-col gap-4 py-5">
+    <section id={id} className="settings-section flex scroll-mt-6 flex-col gap-4 py-5">
       {showDivider ? <Divider /> : null}
       {children}
     </section>
@@ -43,7 +43,7 @@ export function SectionHeading({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="text-[11px] font-bold uppercase text-muted-foreground" style={{ letterSpacing: '0.08em' }}>
+      <div className="text-[11px] font-bold uppercase text-muted-foreground">
         {title}
       </div>
       <div className="max-w-[560px] text-xs leading-relaxed text-muted-foreground">
@@ -70,7 +70,7 @@ export function LabeledSelect({
   label: string
   value: string
   onValueChange: (value: string) => void
-  options: Array<{ value: string; label: string }>
+  options: Array<{ value: string; label: string; disabled?: boolean }>
   testId: string
   autoFocus?: boolean
 }) {
@@ -88,7 +88,7 @@ export function LabeledSelect({
         </SelectTrigger>
         <SelectContent position="popper" data-anchor-strategy="popper">
           {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </SelectItem>
           ))}

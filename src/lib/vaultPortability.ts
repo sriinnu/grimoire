@@ -1,6 +1,31 @@
 export type VaultPortabilityStatus = 'ready' | 'planned'
 export type VaultStorageKind = 'local-folder' | 'git' | 'cloud-folder' | 'object-storage'
 export type VaultStorageHealthState = 'active' | 'available' | 'not_selected' | 'planned'
+export type VaultPortabilityActionId =
+  | 'markdown-folder-preview'
+  | 'markdown-folder'
+  | 'markdown-zip-preview'
+  | 'markdown-zip'
+  | 'bear-preview'
+  | 'bear'
+  | 'obsidian-preview'
+  | 'obsidian'
+  | 'notion-markdown-preview'
+  | 'notion-markdown'
+  | 'notion-folder-preview'
+  | 'notion-folder'
+  | 'spanda-preview'
+  | 'spanda'
+  | 'apple-journal-preview'
+  | 'apple-journal'
+  | 'day-one-preview'
+  | 'day-one'
+  | 'journey-preview'
+  | 'journey'
+  | 'export-markdown-zip'
+  | 'export-static-html'
+  | 'storage-s3-preview' | 'storage-s3-apply' | 'storage-s3-pull-preview' | 'storage-s3-pull-apply'
+  | 'storage-azure-preview' | 'storage-azure-apply' | 'storage-azure-pull-preview' | 'storage-azure-pull-apply'
 
 export interface VaultImportSource {
   id: string
@@ -36,6 +61,7 @@ export interface VaultStorageHealth {
   providerId: string
   state: VaultStorageHealthState
   message: string
+  privacyNote?: string
 }
 
 export interface MarkdownFolderImportResult {
@@ -45,6 +71,31 @@ export interface MarkdownFolderImportResult {
   assets_copied: number
   skipped_files: number
   failed_files: number
+}
+
+export interface MarkdownFolderImportPreviewResult {
+  source_path: string
+  planned_import_root: string
+  notes_to_copy: number
+  assets_to_copy: number
+  skipped_files: number
+  failed_files: number
+  writes_local_only_report: boolean
+}
+
+export interface ImportAutopsyPreviewState {
+  sourceId: VaultPortabilityActionId
+  result: MarkdownFolderImportPreviewResult
+}
+
+export interface PortabilityProgressState {
+  actionId: VaultPortabilityActionId
+  operationId: string
+  label: string
+  processedFiles: number
+  totalFiles: number | null
+  currentPath: string | null
+  phase: 'starting' | 'copying' | 'cancelling'
 }
 
 export interface MarkdownZipExportResult {
@@ -102,38 +153,38 @@ const IMPORT_SOURCES = [
   {
     id: 'apple-journal',
     label: 'Apple Journal',
-    status: 'planned',
-    input: 'AppleJournalEntries ZIP export',
+    status: 'ready',
+    input: 'AppleJournalEntries ZIP, HTML, or JSON export',
     output: 'vault-folder',
     preservesMarkdown: false,
-    description: 'Convert Apple Journal ZIP exports into local Markdown journal notes.',
+    description: 'Convert Apple Journal exports into local Markdown journal notes with media.',
   },
   {
     id: 'obsidian',
     label: 'Obsidian',
-    status: 'planned',
+    status: 'ready',
     input: 'Obsidian vault folder',
     output: 'vault-folder',
     preservesMarkdown: true,
-    description: 'Read an Obsidian vault directly and normalize links where needed.',
+    description: 'Copy Markdown vault files and attachments while skipping Obsidian runtime config.',
   },
   {
     id: 'notion-markdown',
     label: 'Notion Markdown',
-    status: 'planned',
+    status: 'ready',
     input: 'Notion Markdown + CSV export',
     output: 'vault-folder',
     preservesMarkdown: false,
-    description: 'Convert Notion Markdown exports into clean files and documented metadata.',
+    description: 'Import Markdown ZIP/folder exports, clean page IDs, and preserve CSV/assets.',
   },
   {
     id: 'spanda',
     label: 'Spanda',
-    status: 'planned',
+    status: 'ready',
     input: 'Spanda practice sessions, panchanga context, and practice library exports',
     output: 'vault-folder',
     preservesMarkdown: false,
-    description: 'Map practice sessions and rituals into durable Sadhana Markdown notes.',
+    description: 'Map practice sessions and rituals into local-only Sadhana Markdown notes.',
   },
 ] as const satisfies readonly VaultImportSource[]
 
@@ -165,10 +216,10 @@ const EXPORT_TARGETS = [
   {
     id: 'static-html',
     label: 'Static HTML archive',
-    status: 'planned',
+    status: 'ready',
     output: 'Read-only HTML pages generated from Markdown',
     portable: true,
-    description: 'Generate a browsable archive for sharing and long-term reading.',
+    description: 'Generate a browsable read-only archive while excluding local-only lanes.',
   },
 ] as const satisfies readonly VaultExportTarget[]
 
@@ -279,7 +330,7 @@ export function isVaultPathInStorageProvider(providerId: string, vaultPath: stri
 function healthForProvider(
   provider: VaultStorageProvider,
   normalizedPath: string,
-): Pick<VaultStorageHealth, 'state' | 'message'> {
+): Pick<VaultStorageHealth, 'state' | 'message' | 'privacyNote'> {
   if (provider.status === 'planned') {
     return { state: 'planned', message: 'Adapter planned around a local working copy.' }
   }
@@ -292,7 +343,12 @@ function healthForProvider(
     return { state: 'available', message: 'Git health is shown in the status bar.' }
   }
   if (provider.id === 'icloud-drive') {
-    return cloudFolderHealth(normalizedPath, isICloudDrivePath, 'Current vault is inside iCloud Drive.', provider.userAction)
+    return cloudFolderHealth(
+      normalizedPath,
+      isICloudDrivePath,
+      'Current vault is inside iCloud Drive.',
+      provider.userAction,
+    )
   }
   if (provider.id === 'google-drive-desktop') {
     return cloudFolderHealth(
@@ -310,9 +366,13 @@ function cloudFolderHealth(
   matcher: (path: string) => boolean,
   activeMessage: string,
   fallbackMessage: string,
-): Pick<VaultStorageHealth, 'state' | 'message'> {
+): Pick<VaultStorageHealth, 'state' | 'message' | 'privacyNote'> {
   return normalizedPath && matcher(normalizedPath)
-    ? { state: 'active', message: activeMessage }
+    ? {
+        state: 'active',
+        message: activeMessage,
+        privacyNote: 'Cloud sync is handled by the folder provider; Grimoire only edits the local files and never stores cloud credentials in the vault.',
+      }
     : { state: 'not_selected', message: fallbackMessage }
 }
 

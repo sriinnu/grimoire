@@ -9,6 +9,27 @@ export interface EntryLocalityPolicy {
   badgeLabel: string
 }
 
+export interface VaultLocalitySummary {
+  total: number
+  localOnly: number
+  vaultContext: number
+  frontmatter: number
+  type: number
+  path: number
+  examples: VaultLocalityExample[]
+  protectedTypes: VaultLocalityTypeCount[]
+}
+
+export interface VaultLocalityExample {
+  title: string
+  reason: string
+}
+
+export interface VaultLocalityTypeCount {
+  type: string
+  count: number
+}
+
 const LOCAL_ONLY_FIELD_KEYS = new Set([
   'localonly',
   'locality',
@@ -22,10 +43,13 @@ const LOCAL_ONLY_TYPE_NAMES = new Set([
   'dream',
   'dreams',
   'health',
+  'import report',
+  'import-report',
   'journal',
   'journals',
   'memory',
   'private',
+  'sadhana',
   'therapy',
 ])
 
@@ -45,9 +69,12 @@ const TRUE_LOCALITY_VALUES = new Set([
   '1',
   'always',
   'blocked',
+  'deny',
+  'denied',
   'local',
   'local-only',
   'local_only',
+  'never',
   'private',
   'true',
   'yes',
@@ -138,6 +165,45 @@ export function resolveEntryLocalityPolicy(entry: VaultEntry): EntryLocalityPoli
 /** True when an entry should not be placed in remote, export, or AI context by default. */
 export function isEntryLocalOnly(entry: VaultEntry): boolean {
   return resolveEntryLocalityPolicy(entry).localOnly
+}
+
+/** Summarizes the vault-level Locality Firewall policy for Settings and reviews. */
+export function summarizeVaultLocality(entries: VaultEntry[], exampleLimit = 3): VaultLocalitySummary {
+  const summary: VaultLocalitySummary = {
+    total: entries.length,
+    localOnly: 0,
+    vaultContext: 0,
+    frontmatter: 0,
+    type: 0,
+    path: 0,
+    examples: [],
+    protectedTypes: [],
+  }
+  const typeCounts = new Map<string, number>()
+
+  for (const entry of entries) {
+    const policy = resolveEntryLocalityPolicy(entry)
+    if (!policy.localOnly) {
+      summary.vaultContext += 1
+      continue
+    }
+
+    summary.localOnly += 1
+    if (policy.source === 'frontmatter') summary.frontmatter += 1
+    if (policy.source === 'type') summary.type += 1
+    if (policy.source === 'path') summary.path += 1
+    if (summary.examples.length < exampleLimit) {
+      summary.examples.push({ title: entry.title || entry.filename, reason: policy.reason })
+    }
+    const typeName = entry.isA?.trim() || 'Untyped'
+    typeCounts.set(typeName, (typeCounts.get(typeName) ?? 0) + 1)
+  }
+
+  summary.protectedTypes = [...typeCounts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 4)
+    .map(([type, count]) => ({ type, count }))
+  return summary
 }
 
 /** True when a type lane is protected even before resolving an individual note. */

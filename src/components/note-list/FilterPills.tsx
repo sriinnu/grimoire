@@ -16,11 +16,11 @@ const PILLS: { value: NoteListFilter; label: string }[] = [
 
 const BOTTOM_GRADIENT = 'linear-gradient(to bottom, transparent 0%, var(--card) 30%, var(--card) 100%)'
 
-const BASE_BUTTON_CLASSNAME = 'h-7 rounded-full px-2.5 text-[12px] font-medium'
+const BASE_BUTTON_CLASSNAME = 'note-list-segment-pill'
 
 function buttonClassName(active: boolean): string {
   return active
-    ? `${BASE_BUTTON_CLASSNAME} border border-foreground/20 bg-foreground/10 text-foreground hover:bg-foreground/10`
+    ? `${BASE_BUTTON_CLASSNAME} border bg-foreground/10 text-foreground hover:bg-foreground/10`
     : `${BASE_BUTTON_CLASSNAME} border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground`
 }
 
@@ -30,7 +30,7 @@ function FilterPillsInner({ active, counts, onChange, position = 'top' }: Filter
   return (
     <div
       className={isInline
-        ? 'flex flex-wrap items-center justify-center gap-1.5'
+        ? 'note-list-pill-group'
         : isBottom
         ? 'absolute bottom-0 left-0 right-0 z-10 flex flex-wrap items-center justify-center gap-2 px-4 py-3'
         : 'flex h-auto min-h-[45px] shrink-0 flex-wrap items-center gap-1 border-b border-border px-4 py-1.5'}

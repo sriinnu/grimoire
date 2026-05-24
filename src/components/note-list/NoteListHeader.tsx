@@ -35,7 +35,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
   const { onMouseDown: onDragMouseDown } = useDragRegion()
   return (
     <>
-      <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-border px-4" onMouseDown={onDragMouseDown} style={{ cursor: 'default', paddingLeft: sidebarCollapsed ? 80 : undefined }}>
+      <div className="note-list-chrome-row flex h-[52px] shrink-0 items-center justify-between border-b px-4" onMouseDown={onDragMouseDown} style={{ cursor: 'default', paddingLeft: sidebarCollapsed ? 80 : undefined }}>
         <h3
           className="m-0 min-w-0 flex-1 truncate text-[14px] font-semibold"
           style={typeDocument ? { cursor: 'pointer' } : undefined}
@@ -56,7 +56,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
         </div>
       </div>
       {searchVisible && (
-        <div className="border-b border-border px-3 py-2">
+        <div className="note-list-search-row border-b px-3 py-2">
           <div className="relative flex-1" aria-live="polite">
             <Input
               ref={searchInputRef}

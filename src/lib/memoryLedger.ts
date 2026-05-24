@@ -10,6 +10,8 @@ export interface MemoryLedgerRecord {
   expiresAt: string | null
   contradicts: string[]
   locality: string
+  version: string | number | null
+  reviewedAt: string | null
 }
 
 const MEMORY_TYPE_NAMES = new Set(['memory', 'memories'])
@@ -33,6 +35,8 @@ export function buildMemoryLedgerRecord(entry: VaultEntry): MemoryLedgerRecord {
     expiresAt: stringProperty(entry, 'expires_at') ?? stringProperty(entry, 'expiresAt'),
     contradicts: propertyList(entry, CONTRADICTION_KEYS),
     locality: stringProperty(entry, 'locality') ?? 'vault',
+    version: stringProperty(entry, 'memory_version') ?? stringProperty(entry, 'version'),
+    reviewedAt: stringProperty(entry, 'reviewed_at') ?? stringProperty(entry, 'reviewedAt'),
   }
 }
 

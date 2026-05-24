@@ -577,7 +577,9 @@ describe('StatusBar', () => {
     const onCommitPush = vi.fn()
     render(<StatusBar noteCount={100} modifiedCount={5} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={vi.fn()} onCommitPush={onCommitPush} />)
     const commitButton = screen.getByTestId('status-commit-push')
-    commitButton.focus()
+    act(() => {
+      commitButton.focus()
+    })
     fireEvent.keyDown(commitButton, { key: 'Enter' })
     expect(onCommitPush).toHaveBeenCalledOnce()
   })
@@ -676,14 +678,14 @@ describe('StatusBar', () => {
     )
 
     const trigger = screen.getByTestId('status-ai-agents')
-    trigger.focus()
     act(() => {
+      trigger.focus()
       fireEvent.keyDown(trigger, { key: 'ArrowDown' })
     })
 
     const codexOption = screen.getByRole('menuitemradio', { name: /Codex/ })
-    codexOption.focus()
     act(() => {
+      codexOption.focus()
       fireEvent.keyDown(codexOption, { key: 'Enter' })
     })
 

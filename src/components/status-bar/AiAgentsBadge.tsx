@@ -1,6 +1,6 @@
+import { useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { AlertTriangle, ChevronsUpDown } from 'lucide-react'
 import { Sparkle } from '@phosphor-icons/react'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
 import {
   AI_AGENT_DEFINITIONS,
@@ -22,17 +22,9 @@ import {
   type VaultAiGuidanceStatus,
 } from '../../lib/vaultAiGuidance'
 import { openExternalUrl } from '../../utils/url'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { ICON_STYLE, SEP_STYLE } from './styles'
+import { StatusBarHint } from './StatusBarHint'
+import { useDismissibleLayer } from './useDismissibleLayer'
 
 interface AiAgentsBadgeProps {
   statuses: AiAgentsStatus
@@ -141,6 +133,79 @@ function TriggerStateIcon({
   return null
 }
 
+function MenuSeparator() {
+  return <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+}
+
+function MenuLabel({ children }: { children: string }) {
+  return <div className="px-2 py-1 text-[11px] font-semibold text-muted-foreground">{children}</div>
+}
+
+function MenuItem({
+  children,
+  disabled = false,
+  onSelect,
+  testId,
+}: {
+  children: React.ReactNode
+  disabled?: boolean
+  onSelect?: () => void
+  testId?: string
+}) {
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (!onSelect || (event.key !== 'Enter' && event.key !== ' ')) return
+    event.preventDefault()
+    onSelect()
+  }
+
+  return (
+    <Button
+      type="button"
+      role="menuitem"
+      variant="ghost"
+      size="xs"
+      disabled={disabled}
+      onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      data-testid={testId}
+      className="h-auto w-full justify-start rounded-sm px-2 py-1 text-left text-xs font-normal"
+    >
+      {children}
+    </Button>
+  )
+}
+
+function AgentRadioItem({
+  checked,
+  children,
+  onSelect,
+}: {
+  checked: boolean
+  children: React.ReactNode
+  onSelect: () => void
+}) {
+  function handleKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    onSelect()
+  }
+
+  return (
+    <Button
+      type="button"
+      role="menuitemradio"
+      aria-checked={checked}
+      variant="ghost"
+      size="xs"
+      onClick={onSelect}
+      onKeyDown={handleKeyDown}
+      className="h-auto w-full justify-start rounded-sm px-2 py-1 text-left text-xs font-normal"
+    >
+      {children}
+    </Button>
+  )
+}
+
 function GuidanceMenuSection({
   guidanceStatus,
   onRestoreGuidance,
@@ -149,18 +214,18 @@ function GuidanceMenuSection({
 
   return (
     <>
-      <DropdownMenuSeparator />
-      <DropdownMenuLabel>Vault guidance</DropdownMenuLabel>
-      <DropdownMenuItem disabled data-testid="status-ai-guidance-summary">
+      <MenuSeparator />
+      <MenuLabel>Vault guidance</MenuLabel>
+      <MenuItem disabled testId="status-ai-guidance-summary">
         {getVaultAiGuidanceSummary(guidanceStatus)}
-      </DropdownMenuItem>
+      </MenuItem>
       {vaultAiGuidanceNeedsRestore(guidanceStatus) && guidanceStatus.canRestore && (
-        <DropdownMenuItem
-          onSelect={() => onRestoreGuidance?.()}
-          data-testid="status-ai-guidance-restore"
+        <MenuItem
+          onSelect={onRestoreGuidance}
+          testId="status-ai-guidance-restore"
         >
           Restore Grimoire AI Guidance
-        </DropdownMenuItem>
+        </MenuItem>
       )}
     </>
   )
@@ -182,62 +247,74 @@ function AgentMenuContent({
   }
 
   return (
-    <DropdownMenuContent
-      align="start"
-      side="top"
-      className="min-w-[18rem]"
+    <div
+      role="menu"
+      style={{
+        background: 'var(--popover)',
+        border: '1px solid var(--border)',
+        borderRadius: 6,
+        bottom: 'calc(100% + 6px)',
+        boxShadow: '0 10px 26px color-mix(in srgb, #000 16%, transparent)',
+        color: 'var(--popover-foreground)',
+        left: 0,
+        minWidth: 288,
+        padding: 4,
+        position: 'absolute',
+        zIndex: 1200,
+      }}
       data-testid="status-ai-agents-menu"
     >
-      <DropdownMenuLabel>{menuHeading(defaultAgent, selectedAgentReady)}</DropdownMenuLabel>
+      <MenuLabel>{menuHeading(defaultAgent, selectedAgentReady)}</MenuLabel>
       {installedAgents.length === 0 ? (
-        <DropdownMenuItem disabled>
+        <MenuItem disabled>
           {isBrowserPreview ? 'Open native Grimoire for live AI' : 'No AI agents detected'}
-        </DropdownMenuItem>
+        </MenuItem>
       ) : (
-        <DropdownMenuRadioGroup
-          value={selectedAgentReady ? defaultAgent : undefined}
-          onValueChange={(value) => onSetDefaultAgent?.(value as AiAgentId)}
-        >
+        <div role="group" aria-label="Installed AI agents">
           {installedAgents.map((definition) => (
-            <DropdownMenuRadioItem key={definition.id} value={definition.id}>
+            <AgentRadioItem
+              key={definition.id}
+              checked={selectedAgentReady && definition.id === defaultAgent}
+              onSelect={() => onSetDefaultAgent?.(definition.id)}
+            >
               <span>{definition.label}</span>
               <span className="ml-auto text-xs text-muted-foreground">
                 {statusText(statuses, definition)}
               </span>
-            </DropdownMenuRadioItem>
+            </AgentRadioItem>
           ))}
-        </DropdownMenuRadioGroup>
+        </div>
       )}
       {missingAgents.length > 0 && !isBrowserPreview && (
         <>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Install</DropdownMenuLabel>
+          <MenuSeparator />
+          <MenuLabel>Install</MenuLabel>
           {missingAgents.map((definition) => (
-            <DropdownMenuItem
+            <MenuItem
               key={definition.id}
               onSelect={() => void openExternalUrl(definition.installUrl)}
             >
               Install {definition.label}
-            </DropdownMenuItem>
+            </MenuItem>
           ))}
         </>
       )}
       {!isBrowserPreview && (
         <>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
+          <MenuSeparator />
+          <MenuItem
             onSelect={refreshAgentsStatus}
-            data-testid="status-ai-agents-refresh"
+            testId="status-ai-agents-refresh"
           >
             Check AI agents again
-          </DropdownMenuItem>
+          </MenuItem>
         </>
       )}
       <GuidanceMenuSection
         guidanceStatus={guidanceStatus}
         onRestoreGuidance={onRestoreGuidance}
       />
-    </DropdownMenuContent>
+    </div>
   )
 }
 
@@ -249,43 +326,58 @@ export function AiAgentsBadge({
   onRestoreGuidance,
   compact = false,
 }: AiAgentsBadgeProps) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const selectedAgentReady = isAiAgentInstalled(statuses, defaultAgent)
   const showWarning = hasAiAgentWarning(statuses, defaultAgent, guidanceStatus)
   const showSwitcherCue = !showWarning && canShowSwitcherCue(statuses, defaultAgent)
+
+  useDismissibleLayer(open, containerRef, () => setOpen(false))
 
   if (isAiAgentsStatusChecking(statuses)) return null
 
   return (
     <>
       <CompactSeparator compact={compact} />
-      <DropdownMenu>
-        <ActionTooltip copy={{ label: badgeTooltip(statuses, defaultAgent, guidanceStatus) }} side="top">
-          <DropdownMenuTrigger asChild={true}>
-            <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              className={triggerButtonClassName(compact)}
-              aria-label="Open AI agent options"
-              data-testid="status-ai-agents"
-            >
-              <span style={{ ...ICON_STYLE, color: showWarning ? 'var(--accent-orange)' : 'var(--muted-foreground)' }}>
-                <Sparkle size={13} weight="fill" />
-                <TriggerLabel compact={compact} defaultAgent={defaultAgent} />
-                <TriggerStateIcon showWarning={showWarning} showSwitcherCue={showSwitcherCue} />
-              </span>
-            </Button>
-          </DropdownMenuTrigger>
-        </ActionTooltip>
-        <AgentMenuContent
-          statuses={statuses}
-          guidanceStatus={guidanceStatus}
-          defaultAgent={defaultAgent}
-          onSetDefaultAgent={onSetDefaultAgent}
-          onRestoreGuidance={onRestoreGuidance}
-          selectedAgentReady={selectedAgentReady}
-        />
-      </DropdownMenu>
+      <div ref={containerRef} style={{ position: 'relative' }}>
+        <StatusBarHint copy={{ label: badgeTooltip(statuses, defaultAgent, guidanceStatus) }}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            className={triggerButtonClassName(compact)}
+            aria-label="Open AI agent options"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            data-testid="status-ai-agents"
+            onClick={() => setOpen((value) => !value)}
+            onKeyDown={(event) => {
+              if (event.key !== 'ArrowDown') return
+              event.preventDefault()
+              setOpen(true)
+            }}
+          >
+            <span style={{ ...ICON_STYLE, color: showWarning ? 'var(--status-bar-warning-fg, var(--accent-orange))' : 'var(--muted-foreground)' }}>
+              <Sparkle size={13} weight="fill" />
+              <TriggerLabel compact={compact} defaultAgent={defaultAgent} />
+              <TriggerStateIcon showWarning={showWarning} showSwitcherCue={showSwitcherCue} />
+            </span>
+          </Button>
+        </StatusBarHint>
+        {open ? (
+          <AgentMenuContent
+            statuses={statuses}
+            guidanceStatus={guidanceStatus}
+            defaultAgent={defaultAgent}
+            onSetDefaultAgent={(agent) => {
+              onSetDefaultAgent?.(agent)
+              setOpen(false)
+            }}
+            onRestoreGuidance={onRestoreGuidance}
+            selectedAgentReady={selectedAgentReady}
+          />
+        ) : null}
+      </div>
     </>
   )
 }

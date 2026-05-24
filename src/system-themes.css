@@ -1,13 +1,32 @@
 @import './theme-system-tokens.css';
+@import './theme-semantic-tokens.css';
 @import './theme-constellation.css';
 @import './theme-flagship-shared.css';
 @import './theme-editor-navigator.css';
+@import './theme-coherence.css';
+@import './theme-accessibility.css';
 
 [data-theme-preset-preview="constellation"] {
   --surface-editor: #07111a;
   --foreground: #e8fbff;
   --muted-foreground: #91a7b7;
   --border: #203141;
+}
+
+[data-theme-preset-preview="daylight-atelier"] {
+  --surface-editor: #fffefb;
+  --foreground: #233038;
+  --muted-foreground: #5c6d73;
+  --border: #c8dce1;
+  --primary: #377484;
+}
+
+[data-theme-preset-preview="daylight-atelier"][data-theme-preview="dark"] {
+  --surface-editor: #0f1c22;
+  --foreground: #e6f3f2;
+  --muted-foreground: #9ebabe;
+  --border: #2d4147;
+  --primary: #8ddbe4;
 }
 
 [data-theme-preset-preview="living-archive"] {
@@ -17,11 +36,11 @@
   --border: #dbc99d;
 }
 
-[data-theme-preset-preview="research-cockpit"] {
-  --surface-editor: #0d141d;
-  --foreground: #e1edf7;
-  --muted-foreground: #93a5b6;
-  --border: #243446;
+[data-theme-preset-preview="living-archive"][data-theme-preview="dark"] {
+  --surface-editor: #182017;
+  --foreground: #efe6cc;
+  --muted-foreground: #c5b88f;
+  --border: #3a472e;
 }
 
 [data-theme-preset-preview="nocturne"] {
@@ -31,11 +50,11 @@
   --border: #2b3129;
 }
 
-[data-theme-preset-preview="manuscript"] {
-  --surface-editor: #fff8eb;
-  --foreground: #27383a;
-  --muted-foreground: #6f765f;
-  --border: #dfcfaa;
+[data-theme-preset-preview="nocturne"][data-theme-preview="light"] {
+  --surface-editor: #ffffff;
+  --foreground: #202723;
+  --muted-foreground: #63716a;
+  --border: #d9e5dd;
 }
 
 [data-theme-preset-preview="retro-terminal"] {

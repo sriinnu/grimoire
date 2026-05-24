@@ -195,6 +195,18 @@ pub fn save_image(
 }
 
 #[tauri::command]
+pub fn save_audio_recording(
+    app_handle: tauri::AppHandle,
+    vault_path: PathBuf,
+    filename: String,
+    data: String,
+) -> Result<String, String> {
+    with_image_asset_scope(&app_handle, vault_path.as_path(), |requested_root| {
+        vault::save_audio_recording(requested_root, &filename, &data)
+    })
+}
+
+#[tauri::command]
 pub fn save_canvas_preview(
     app_handle: tauri::AppHandle,
     vault_path: PathBuf,

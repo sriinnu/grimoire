@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import {
   applyAppearanceToDocument,
   type EditorFont,
+  type ResolvedAppearance,
   type ThemePreset,
 } from '../lib/appearance'
 import { loadFontAssetsForAppearance } from '../lib/fontConfig'
@@ -9,6 +10,7 @@ import {
   applyThemeModeToDocument,
   type ThemeMode,
 } from '../lib/themeMode'
+import { readStoredLocalThemeDefinition } from '../themes/localThemePacks'
 
 export interface SettingsAppearanceState {
   themeMode: ThemeMode
@@ -22,10 +24,12 @@ interface SettingsAppearancePreviewInput {
 }
 
 function applySettingsAppearance(state: SettingsAppearanceState): void {
-  const appearance = {
+  const appearance: ResolvedAppearance = {
     themePreset: state.themePreset,
     editorFont: state.editorFont,
   }
+  const localThemeDefinition = readStoredLocalThemeDefinition(window.localStorage)
+  if (localThemeDefinition) appearance.themeDefinition = localThemeDefinition
   applyThemeModeToDocument(document, state.themeMode)
   applyAppearanceToDocument(document, appearance)
   void loadFontAssetsForAppearance(document, appearance)

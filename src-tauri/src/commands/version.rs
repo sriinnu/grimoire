@@ -48,13 +48,18 @@ fn parse_semver_build_label(version: &str) -> Option<String> {
     let (core, prerelease) = semver
         .split_once('-')
         .map_or((semver, None), |(base, suffix)| (base, Some(suffix)));
-    split_numeric_version_parts(core)?;
+    let [major, minor, patch] = split_numeric_version_parts(core)?;
 
     match prerelease {
         Some(suffix) if suffix.starts_with("alpha.") => Some(format!("Alpha {}", semver)),
-        Some(_) => Some(format!("v{}", semver)),
+        Some(_) => Some(semver.to_string()),
         None if semver == "0.1.0" || semver == "0.0.0" => Some("dev".to_string()),
-        None => Some(format!("v{}", semver)),
+        None => Some(format!(
+            "{}.{}.{}",
+            major.parse::<u32>().ok()?,
+            minor.parse::<u32>().ok()?,
+            patch.parse::<u32>().ok()?
+        )),
     }
 }
 
@@ -96,7 +101,10 @@ mod tests {
 
     #[test]
     fn parse_build_label_legacy_semver_releases() {
-        assert_eq!(parse_build_label("1.2.3"), "v1.2.3");
+        assert_eq!(parse_build_label("0.1.1"), "0.1.1");
+        assert_eq!(parse_build_label("0.1.100"), "0.1.100");
+        assert_eq!(parse_build_label("0.1.211"), "0.1.211");
+        assert_eq!(parse_build_label("1.2.3"), "1.2.3");
         assert_eq!(
             parse_build_label("1.2.4-alpha.202604122135.7"),
             "Alpha 1.2.4-alpha.202604122135.7"

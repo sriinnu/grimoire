@@ -76,7 +76,7 @@ export function useDashboardCapture({
     }
 
     if (plan.kind === 'ask') {
-      queueAiPrompt(plan.prompt, [])
+      queueAiPrompt(plan.prompt, plan.references, plan.contextPackage)
       requestOpenAiChat()
       return { status: 'ask', prompt: plan.prompt }
     }

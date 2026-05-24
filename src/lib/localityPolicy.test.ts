@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { isLocalOnlyTypeName, resolveEntryLocalityPolicy } from './localityPolicy'
+import { isLocalOnlyTypeName, resolveEntryLocalityPolicy, summarizeVaultLocality } from './localityPolicy'
 
 function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
@@ -57,6 +57,8 @@ describe('localityPolicy', () => {
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Journal' })).localOnly).toBe(true)
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Dream' })).localOnly).toBe(true)
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Memory' })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ isA: 'Import Report' })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ isA: 'Sadhana' })).localOnly).toBe(true)
     expect(isLocalOnlyTypeName('Health')).toBe(true)
   })
 
@@ -72,5 +74,32 @@ describe('localityPolicy', () => {
 
     expect(policy.localOnly).toBe(false)
     expect(policy.badgeLabel).toBe('Vault context')
+  })
+
+  it('summarizes protected and vault-context lanes for the whole vault', () => {
+    const summary = summarizeVaultLocality([
+      entry({ title: 'Public Plan' }),
+      entry({ title: 'Dream', isA: 'Dream' }),
+      entry({ title: 'Pinned Private', properties: { egress: 'blocked' } }),
+      entry({ title: 'Private Folder', path: '/vault/Private/folder-note.md' }),
+    ])
+
+    expect(summary).toMatchObject({
+      total: 4,
+      localOnly: 3,
+      vaultContext: 1,
+      frontmatter: 1,
+      type: 1,
+      path: 1,
+    })
+    expect(summary.examples).toEqual([
+      { title: 'Dream', reason: 'Dream notes are protected by default' },
+      { title: 'Pinned Private', reason: 'Marked egress in frontmatter' },
+      { title: 'Private Folder', reason: 'Path is under private' },
+    ])
+    expect(summary.protectedTypes).toEqual([
+      { type: 'Note', count: 2 },
+      { type: 'Dream', count: 1 },
+    ])
   })
 })

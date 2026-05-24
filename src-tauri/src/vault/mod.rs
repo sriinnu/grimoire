@@ -1,28 +1,70 @@
+mod app_importer;
+mod app_importer_io;
+mod app_importer_preview;
+mod app_importer_progress;
+#[cfg(test)]
+mod app_importer_progress_tests;
+#[cfg(test)]
+mod app_importer_tests;
 mod cache;
 mod config_seed;
 mod entry;
 mod exporter;
+mod exporter_progress;
+#[cfg(test)]
+mod exporter_progress_tests;
 mod file;
 pub(crate) mod filename_rules;
 mod folders;
 mod frontmatter;
 mod getting_started;
+mod html_exporter;
+mod html_exporter_progress;
+#[cfg(test)]
+mod html_exporter_progress_tests;
+#[cfg(test)]
+mod html_exporter_tests;
 mod image;
 mod importer;
+mod importer_progress;
+mod journal_html_import_helpers;
 mod journal_import_helpers;
 mod journal_importer;
+mod journal_importer_preview;
+mod journal_importer_progress;
+#[cfg(test)]
+mod journal_importer_progress_tests;
 #[cfg(test)]
 mod journal_importer_tests;
-mod locality;
+pub(crate) mod locality;
+pub(crate) mod locality_attachments;
 mod migration;
+mod object_storage_signature;
+mod object_storage_sync;
+mod object_storage_sync_progress;
+#[cfg(test)]
+mod object_storage_sync_progress_tests;
+mod object_storage_sync_report;
+#[cfg(test)]
+mod object_storage_sync_tests;
 mod parsing;
 mod rename;
 mod rename_transaction;
+mod scanner;
+mod scanner_progress;
+#[cfg(test)]
+mod scanner_progress_tests;
+mod spanda_importer;
 mod title_sync;
 mod trash;
 mod views;
 mod zip_importer;
+#[cfg(test)]
+mod zip_importer_progress_tests;
 
+pub use app_importer::import_app_export;
+pub use app_importer_preview::preview_app_export;
+pub use app_importer_progress::import_app_export_with_progress;
 pub use cache::{invalidate_cache, scan_vault_cached};
 pub use config_seed::{
     get_ai_guidance_status, migrate_agents_md, repair_config_files, restore_ai_guidance_files,
@@ -30,25 +72,50 @@ pub use config_seed::{
 };
 pub use entry::{FolderNode, VaultEntry};
 pub use exporter::{export_markdown_zip, VaultExportReport};
+pub use exporter_progress::{export_markdown_zip_with_progress, VaultExportProgressEvent};
 pub use file::{create_note_content, get_note_content, save_note_content};
 pub use folders::{delete_folder, rename_folder, FolderRenameResult};
 pub use getting_started::{create_getting_started_vault, default_vault_path, vault_exists};
-pub use image::{copy_image_to_vault, save_canvas_preview, save_image};
-pub use importer::{import_markdown_folder, MarkdownFolderImportReport};
+pub use html_exporter::export_static_html_archive;
+pub use html_exporter_progress::export_static_html_archive_with_progress;
+pub use image::{copy_image_to_vault, save_audio_recording, save_canvas_preview, save_image};
+pub use importer::{
+    import_markdown_folder, preview_markdown_folder_import, MarkdownFolderImportPreview,
+    MarkdownFolderImportReport,
+};
+pub use importer_progress::{
+    import_markdown_folder_with_progress, MarkdownFolderImportProgressEvent,
+};
 pub use journal_importer::import_journal_export;
+pub use journal_importer_preview::preview_journal_export;
+pub use journal_importer_progress::import_journal_export_with_progress;
 pub use migration::migrate_is_a_to_type;
+pub use object_storage_sync::{apply_object_storage_sync, preview_object_storage_sync};
+pub use object_storage_sync_progress::{
+    apply_object_storage_sync_with_progress, preview_object_storage_sync_with_progress,
+    ObjectStorageSyncProgressEvent,
+};
+pub use object_storage_sync_report::{
+    ObjectStorageSyncOperation, ObjectStorageSyncOperationKind, ObjectStorageSyncReport,
+};
 pub use rename::{
     auto_rename_untitled, detect_renames, move_note_to_folder, rename_note, rename_note_filename,
     update_wikilinks_for_renames, AutoRenameUntitledRequest, DetectedRename,
     MoveNoteToFolderRequest, RenameNoteFilenameRequest, RenameNoteRequest, RenameResult,
 };
+use scanner::extract_yml_name;
+pub(crate) use scanner::{classify_file_kind, is_md_file};
+pub use scanner::{scan_vault, scan_vault_folders};
+pub use scanner_progress::{scan_vault_with_progress, VaultRebuildProgressEvent};
 pub use title_sync::{sync_title_on_open, SyncAction};
 pub use trash::{batch_delete_notes, delete_note};
 pub use views::{
     delete_view, evaluate_view, save_view, scan_views, FilterCondition, FilterGroup, FilterNode,
     FilterOp, ViewDefinition, ViewFile,
 };
-pub use zip_importer::import_markdown_zip;
+pub use zip_importer::{
+    import_markdown_zip, import_markdown_zip_with_progress, preview_markdown_zip_import,
+};
 
 use file::read_file_metadata;
 use frontmatter::{extract_fm_and_rels, resolve_is_a};
@@ -58,7 +125,6 @@ use gray_matter::engine::YAML;
 use gray_matter::Matter;
 use std::fs;
 use std::path::Path;
-use walkdir::WalkDir;
 
 fn preferred_relationship_refs(
     relationships: &std::collections::HashMap<String, Vec<String>>,
@@ -201,17 +267,6 @@ pub(crate) fn parse_non_md_file(
     })
 }
 
-/// For `.yml` files, try to extract the `name` field from the YAML content.
-fn extract_yml_name(path: &Path) -> Option<String> {
-    let ext = path.extension()?.to_str()?;
-    if ext != "yml" && ext != "yaml" {
-        return None;
-    }
-    let content = std::fs::read_to_string(path).ok()?;
-    let mapping: serde_yaml::Value = serde_yaml::from_str(&content).ok()?;
-    mapping.get("name")?.as_str().map(|s| s.to_string())
-}
-
 /// Re-read a single file from disk and return a fresh VaultEntry.
 /// Uses filesystem dates (no git lookup) since the file was likely just saved.
 pub fn reload_entry(path: &Path) -> Result<VaultEntry, String> {
@@ -223,294 +278,6 @@ pub fn reload_entry(path: &Path) -> Result<VaultEntry, String> {
     } else {
         parse_non_md_file(path, None)
     }
-}
-
-/// Directories hidden from user-facing vault scans.
-const HIDDEN_DIRS: &[&str] = &[".git", ".grimoire", ".DS_Store"];
-/// Dependency and build output directories that make code-project vaults unusably slow.
-const SCAN_EXCLUDED_DIRS: &[&str] = &[
-    "node_modules",
-    "dist",
-    "build",
-    "out",
-    "coverage",
-    "target",
-    "deriveddata",
-    "pods",
-    "carthage",
-    "vendor",
-    "venv",
-    "__pycache__",
-];
-/// Keep type definitions in their dedicated sidebar section instead of the generic folder tree.
-const FOLDER_TREE_EXCLUDED_DIRS: &[&str] = &["type"];
-
-fn is_scan_excluded_dir(name: &str) -> bool {
-    let lower = name.to_lowercase();
-    SCAN_EXCLUDED_DIRS.contains(&lower.as_str())
-}
-
-fn is_hidden_dir(name: &str) -> bool {
-    name.starts_with('.') || HIDDEN_DIRS.contains(&name) || is_scan_excluded_dir(name)
-}
-
-fn is_folder_tree_hidden_dir(name: &str) -> bool {
-    is_hidden_dir(name) || FOLDER_TREE_EXCLUDED_DIRS.contains(&name)
-}
-
-pub(crate) fn is_md_file(path: &Path) -> bool {
-    path.is_file()
-        && path.extension().is_some_and(|ext| {
-            let ext = ext.to_string_lossy().to_lowercase();
-            ext == "md" || ext == "markdown"
-        })
-}
-
-/// Extensions recognized as editable text files (opened in raw editor).
-const TEXT_EXTENSIONS: &[&str] = &[
-    "yml",
-    "yaml",
-    "json",
-    "txt",
-    "toml",
-    "csv",
-    "xml",
-    "html",
-    "htm",
-    "css",
-    "scss",
-    "less",
-    "ts",
-    "tsx",
-    "js",
-    "jsx",
-    "py",
-    "rs",
-    "sh",
-    "bash",
-    "zsh",
-    "fish",
-    "rb",
-    "go",
-    "java",
-    "kt",
-    "c",
-    "cpp",
-    "h",
-    "hpp",
-    "swift",
-    "lua",
-    "sql",
-    "graphql",
-    "env",
-    "ini",
-    "cfg",
-    "conf",
-    "properties",
-    "makefile",
-    "dockerfile",
-    "gitignore",
-    "editorconfig",
-    "mdx",
-    "svelte",
-    "vue",
-    "astro",
-    "tf",
-    "hcl",
-    "nix",
-    "zig",
-    "hs",
-    "ml",
-    "ex",
-    "exs",
-    "erl",
-    "clj",
-    "lisp",
-    "el",
-    "vim",
-    "r",
-    "jl",
-    "ps1",
-    "bat",
-    "cmd",
-];
-
-/// Classify a file extension into "markdown", "text", or "binary".
-pub(crate) fn classify_file_kind(path: &Path) -> &'static str {
-    let ext = match path.extension() {
-        Some(e) => e.to_string_lossy().to_lowercase(),
-        None => {
-            // Files without extension: check if name itself is a known text file
-            let name = path
-                .file_name()
-                .map(|n| n.to_string_lossy().to_lowercase())
-                .unwrap_or_default();
-            return if [
-                "makefile",
-                "dockerfile",
-                "rakefile",
-                "gemfile",
-                "procfile",
-                "brewfile",
-                ".gitignore",
-                ".gitattributes",
-                ".editorconfig",
-                ".env",
-            ]
-            .contains(&name.as_str())
-            {
-                "text"
-            } else {
-                "binary"
-            };
-        }
-    };
-    if ext == "md" || ext == "markdown" {
-        "markdown"
-    } else if TEXT_EXTENSIONS.contains(&ext.as_str()) {
-        "text"
-    } else {
-        "binary"
-    }
-}
-
-use crate::git::GitDates;
-use std::collections::HashMap;
-
-fn lookup_git_dates(
-    path: &Path,
-    vault_path: &Path,
-    git_dates: &HashMap<String, GitDates>,
-) -> Option<(u64, u64)> {
-    let rel = path
-        .strip_prefix(vault_path)
-        .ok()?
-        .to_string_lossy()
-        .to_string();
-    git_dates.get(&rel).map(|d| (d.modified_at, d.created_at))
-}
-
-fn try_parse_file(
-    path: &Path,
-    vault_path: &Path,
-    git_dates: &HashMap<String, GitDates>,
-    entries: &mut Vec<VaultEntry>,
-) {
-    let dates = lookup_git_dates(path, vault_path, git_dates);
-    let result = if is_md_file(path) {
-        parse_md_file(path, dates)
-    } else {
-        parse_non_md_file(path, dates)
-    };
-    match result {
-        Ok(vault_entry) => entries.push(vault_entry),
-        Err(e) => log::warn!("Skipping file: {}", e),
-    }
-}
-
-/// Scan all files in the vault, including subdirectories.
-/// Hidden directories (starting with `.`) are excluded.
-fn scan_all_files(
-    vault_path: &Path,
-    git_dates: &HashMap<String, GitDates>,
-    entries: &mut Vec<VaultEntry>,
-) {
-    let walker = WalkDir::new(vault_path)
-        .follow_links(false)
-        .into_iter()
-        .filter_entry(|e| {
-            if e.file_type().is_dir() {
-                let name = e.file_name().to_string_lossy();
-                // Skip the vault root itself (depth 0) — we only filter subdirs
-                if e.depth() == 0 {
-                    return true;
-                }
-                return !is_hidden_dir(&name);
-            }
-            true
-        });
-    for entry in walker.filter_map(|e| e.ok()) {
-        if entry.file_type().is_file() {
-            // Skip hidden files (starting with '.') — e.g. .gitignore, .DS_Store
-            let fname = entry.file_name().to_string_lossy();
-            if fname.starts_with('.') {
-                continue;
-            }
-            try_parse_file(entry.path(), vault_path, git_dates, entries);
-        }
-    }
-}
-
-/// Scan a directory recursively for all files and return VaultEntry for each.
-/// Pass an empty map for `git_dates` to use filesystem dates only.
-pub fn scan_vault(
-    vault_path: &Path,
-    git_dates: &HashMap<String, GitDates>,
-) -> Result<Vec<VaultEntry>, String> {
-    if !vault_path.exists() {
-        return Err(format!(
-            "Vault path does not exist: {}",
-            vault_path.display()
-        ));
-    }
-    if !vault_path.is_dir() {
-        return Err(format!(
-            "Vault path is not a directory: {}",
-            vault_path.display()
-        ));
-    }
-
-    if let Err(err) = rename::recover_pending_rename_transactions(vault_path) {
-        log::warn!(
-            "Failed to recover pending rename transactions in {}: {}",
-            vault_path.display(),
-            err
-        );
-    }
-
-    let mut entries = Vec::new();
-    scan_all_files(vault_path, git_dates, &mut entries);
-
-    entries.sort_by_key(|entry| std::cmp::Reverse(entry.modified_at));
-    Ok(entries)
-}
-
-/// Build a tree of user-created folders in the vault.
-pub fn scan_vault_folders(vault_path: &Path) -> Result<Vec<FolderNode>, String> {
-    if !vault_path.is_dir() {
-        return Err(format!("Not a directory: {}", vault_path.display()));
-    }
-    fn build_tree(dir: &Path, vault_root: &Path) -> Vec<FolderNode> {
-        let mut nodes: Vec<FolderNode> = Vec::new();
-        let entries = match fs::read_dir(dir) {
-            Ok(d) => d,
-            Err(_) => return nodes,
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if !path.is_dir() {
-                continue;
-            }
-            let name = entry.file_name().to_string_lossy().to_string();
-            if is_folder_tree_hidden_dir(&name) {
-                continue;
-            }
-            let rel_path = path
-                .strip_prefix(vault_root)
-                .unwrap_or(&path)
-                .to_string_lossy()
-                .replace('\\', "/");
-            let children = build_tree(&path, vault_root);
-            nodes.push(FolderNode {
-                name,
-                path: rel_path,
-                children,
-            });
-        }
-        nodes.sort_by_key(|node| node.name.to_lowercase());
-        nodes
-    }
-    Ok(build_tree(vault_path, vault_path))
 }
 
 #[cfg(test)]

@@ -38,6 +38,7 @@ const mockEditor = vi.hoisted(() => ({
 const blockNoteCreation = vi.hoisted(() => ({
   options: [] as unknown[],
 }))
+const WAIT_FOR_EDITOR_TIMEOUT_MS = 5000
 
 // Mock BlockNote components
 vi.mock('@blocknote/core', () => ({
@@ -216,9 +217,38 @@ function renderEditor(overrides: Partial<EditorComponentProps> = {}) {
   return render(<Editor {...defaultProps} {...overrides} />)
 }
 
+async function findBlocknoteContainer(): Promise<HTMLElement> {
+  await screen.findByTestId('blocknote-view', {}, { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS })
+  const container = document.querySelector<HTMLElement>('.editor__blocknote-container')
+  expect(container).toBeTruthy()
+  return container!
+}
+
+async function waitForWikilinkItems() {
+  await vi.waitFor(() => {
+    expect(capturedGetItems).toBeTruthy()
+  }, { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS })
+  return capturedGetItems!
+}
+
+async function waitForPersonItems() {
+  await vi.waitFor(() => {
+    expect(capturedGetItemsByTrigger['@']).toBeTruthy()
+  }, { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS })
+  return capturedGetItemsByTrigger['@']!
+}
+
 describe('Editor', () => {
   beforeEach(() => {
+    resetVaultConfigStore()
     blockNoteCreation.options = []
+    capturedGetItems = null
+    for (const key of Object.keys(capturedGetItemsByTrigger)) {
+      delete capturedGetItemsByTrigger[key]
+    }
+    mockFilterSuggestionItems.mockClear()
+    mockFilterSuggestionItems.mockImplementation((items: unknown[]) => items)
+    mockEditor.document = [{ id: '1', type: 'paragraph', content: [], props: {}, children: [] }]
   })
 
   it('shows empty state when no tabs are open', () => {
@@ -332,7 +362,7 @@ describe('Editor', () => {
     expect(diffBtn).toBeInTheDocument()
   })
 
-  it('includes inspector panel', () => {
+  it('includes inspector panel', async () => {
     render(
       <Editor
         {...defaultProps}
@@ -342,7 +372,7 @@ describe('Editor', () => {
       />
     )
     // Inspector renders "Properties" header
-    expect(screen.getAllByText('Properties').length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Properties', {}, { timeout: 5000 })).length).toBeGreaterThan(0)
   })
 
   // Regression: editor content did not appear on first load because BlockNote's
@@ -508,29 +538,34 @@ describe('Editor', () => {
       expect(typeof rawToggleRef.current).toBe('function')
     })
 
-    await act(async () => {
-      await rawToggleRef.current()
-    })
+    try {
+      await act(async () => {
+        await rawToggleRef.current()
+      })
 
-    await vi.waitFor(() => {
-      expect(screen.getByTestId('raw-editor-codemirror').textContent).toContain('owner: [[Alice]]')
-    })
+      const rawEditor = await screen.findByTestId(
+        'raw-editor-codemirror',
+        {},
+        { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS },
+      )
+      expect(rawEditor.textContent).toContain('owner: [[Alice]]')
 
-    rerender(
-      <Editor
-        {...defaultProps}
-        tabs={[updatedTab]}
-        activeTabPath={mockEntry.path}
-        entries={[mockEntry]}
-        rawToggleRef={rawToggleRef}
-      />,
-    )
+      rerender(
+        <Editor
+          {...defaultProps}
+          tabs={[updatedTab]}
+          activeTabPath={mockEntry.path}
+          entries={[mockEntry]}
+          rawToggleRef={rawToggleRef}
+        />,
+      )
 
-    await vi.waitFor(() => {
-      expect(screen.getByTestId('raw-editor-codemirror').textContent).toContain('owner: [[Bob]]')
-    })
-
-    resetVaultConfigStore()
+      await vi.waitFor(() => {
+        expect(screen.getByTestId('raw-editor-codemirror').textContent).toContain('owner: [[Bob]]')
+      }, { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS })
+    } finally {
+      resetVaultConfigStore()
+    }
   })
 })
 
@@ -691,7 +726,7 @@ describe('raw-mode sync content guards', () => {
 })
 
 describe('click empty editor space', () => {
-  it('focuses editor at end of last block when clicking empty space below content', () => {
+  it('focuses editor at end of last block when clicking empty space below content', async () => {
     mockEditor.focus.mockClear()
     mockEditor.setTextCursorPosition.mockClear()
 
@@ -699,17 +734,16 @@ describe('click empty editor space', () => {
       <Editor {...defaultProps} tabs={[mockTab]} activeTabPath={mockEntry.path} />
     )
 
-    const container = document.querySelector('.editor__blocknote-container')
-    expect(container).toBeTruthy()
+    const container = await findBlocknoteContainer()
 
     // Click directly on the container (simulates clicking empty space below content)
-    fireEvent.click(container!)
+    fireEvent.click(container)
 
     expect(mockEditor.setTextCursorPosition).toHaveBeenCalledWith('1', 'end')
     expect(mockEditor.focus).toHaveBeenCalled()
   })
 
-  it('does not interfere with clicks on contenteditable elements', () => {
+  it('does not interfere with clicks on contenteditable elements', async () => {
     mockEditor.focus.mockClear()
     mockEditor.setTextCursorPosition.mockClear()
 
@@ -718,7 +752,7 @@ describe('click empty editor space', () => {
     )
 
     // Simulate clicking on a contenteditable child (which ProseMirror would handle)
-    const container = document.querySelector('.editor__blocknote-container')!
+    const container = await findBlocknoteContainer()
     const editableDiv = document.createElement('div')
     editableDiv.setAttribute('contenteditable', 'true')
     container.appendChild(editableDiv)
@@ -742,7 +776,7 @@ describe('click empty editor space', () => {
       <Editor {...defaultProps} tabs={[mockTab]} activeTabPath={mockEntry.path} />
     )
 
-    const container = document.querySelector('.editor__blocknote-container')!
+    const container = await findBlocknoteContainer()
     const editableDiv = document.createElement('div')
     editableDiv.setAttribute('contenteditable', 'true')
     const heading = document.createElement('h1')
@@ -817,8 +851,8 @@ describe('wikilink autocomplete', () => {
 
   it('shows wikilink suggestions immediately after an empty trigger', async () => {
     renderWithEntries()
-    expect(capturedGetItems).toBeTruthy()
-    await expect(capturedGetItems!('')).resolves.toEqual(expect.arrayContaining([
+    const getItems = await waitForWikilinkItems()
+    await expect(getItems('')).resolves.toEqual(expect.arrayContaining([
       expect.objectContaining({ title: 'Alpha Project' }),
       expect.objectContaining({ title: 'Beta Review' }),
       expect.objectContaining({ title: 'Gamma Notes' }),
@@ -827,14 +861,16 @@ describe('wikilink autocomplete', () => {
 
   it('returns items for query of 2+ characters', async () => {
     renderWithEntries()
-    const items = await capturedGetItems!('Al')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('Al')
     expect(items.length).toBeGreaterThan(0)
     expect(mockFilterSuggestionItems).toHaveBeenCalled()
   })
 
   it('normalizes BlockNote trigger-prefixed wikilink queries before filtering', async () => {
     renderWithEntries()
-    const items = await capturedGetItems!('[[Al')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('[[Al')
     expect(items.length).toBeGreaterThan(0)
   })
 
@@ -859,7 +895,8 @@ describe('wikilink autocomplete', () => {
       />
     )
 
-    const items = await capturedGetItems!('Match')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('Match')
     expect(items.length).toBeLessThanOrEqual(20)
     mockFilterSuggestionItems.mockImplementation((items: unknown[]) => items)
   })
@@ -867,7 +904,8 @@ describe('wikilink autocomplete', () => {
   it('each item has onItemClick that inserts wikilink', async () => {
     renderWithEntries()
     mockEditor.insertInlineContent.mockClear()
-    const items = await capturedGetItems!('Alpha')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('Alpha')
     expect(items.length).toBeGreaterThan(0)
     items[0].onItemClick()
     expect(mockEditor.insertInlineContent).toHaveBeenCalledWith([
@@ -892,7 +930,8 @@ describe('wikilink autocomplete', () => {
         entries={dupEntries}
       />
     )
-    const items = await capturedGetItems!('Note')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('Note')
     const paths = items.map((i: { path: string }) => i.path)
     expect(new Set(paths).size).toBe(paths.length)
     mockFilterSuggestionItems.mockImplementation((items: unknown[]) => items)
@@ -914,7 +953,8 @@ describe('wikilink autocomplete', () => {
         entries={mixedEntries}
       />
     )
-    const items = await capturedGetItems!('Test')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('Test')
     // Typed entries should have noteType, color, and a left-side icon
     const project = items.find((i: { title: string }) => i.title === 'Test Project')
     expect(project).toBeDefined()
@@ -951,7 +991,8 @@ describe('wikilink autocomplete', () => {
         entries={sameTitle}
       />
     )
-    const items = await capturedGetItems!('Standup')
+    const getItems = await waitForWikilinkItems()
+    const items = await getItems('Standup')
     expect(items).toHaveLength(2)
     const titles = items.map((i: { title: string }) => i.title)
     expect(new Set(titles).size).toBe(2)
@@ -997,34 +1038,35 @@ describe('person @mention autocomplete', () => {
     getPersonItems = capturedGetItemsByTrigger['@'] ?? null
   }
 
-  it('registers a SuggestionMenuController with @ trigger', () => {
+  it('registers a SuggestionMenuController with @ trigger', async () => {
     renderForMention()
+    getPersonItems = await waitForPersonItems()
     expect(getPersonItems).toBeTruthy()
   })
 
   it('returns only Person entries for matching query', async () => {
     renderForMention()
-    const items = await getPersonItems!('Kar')
+    const items = await (await waitForPersonItems())('Kar')
     expect(items.length).toBe(1)
     expect(items[0].title).toBe('Karthik Reddy')
   })
 
   it('excludes non-Person entries', async () => {
     renderForMention()
-    const items = await getPersonItems!('Gri')
+    const items = await (await waitForPersonItems())('Gri')
     expect(items).toHaveLength(0)
   })
 
   it('works with single-character query', async () => {
     renderForMention()
-    const items = await getPersonItems!('K')
+    const items = await (await waitForPersonItems())('K')
     expect(items.length).toBeGreaterThan(0)
   })
 
   it('inserts a wikilink when person item is clicked', async () => {
     renderForMention()
     mockEditor.insertInlineContent.mockClear()
-    const items = await getPersonItems!('Karthik')
+    const items = await (await waitForPersonItems())('Karthik')
     expect(items.length).toBeGreaterThan(0)
     items[0].onItemClick()
     expect(mockEditor.insertInlineContent).toHaveBeenCalledWith([
@@ -1035,7 +1077,7 @@ describe('person @mention autocomplete', () => {
 
   it('shows Person type badge on results', async () => {
     renderForMention()
-    const items = await getPersonItems!('Karthik')
+    const items = await (await waitForPersonItems())('Karthik')
     expect(items[0].noteType).toBe('Person')
     expect(items[0].typeColor).toBeTruthy()
   })

@@ -59,7 +59,7 @@ const EDITOR_FONT_ROLES: Record<EditorFont, Pick<FontRoleConfig, 'editor'>> = {
 }
 
 const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = {
-  manuscript: {
+  'living-archive': {
     display: CAVEAT_DISPLAY_FONT,
     label: SYSTEM_LABEL_FONT,
   },

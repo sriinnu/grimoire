@@ -1,12 +1,7 @@
 import { useCallback, memo } from 'react'
 import type { VaultEntry, FolderNode, SidebarSelection, ViewFile } from '../types'
-import {
-  KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent,
-} from '@dnd-kit/core'
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { FolderTree } from './FolderTree'
 import {
-  computeReorder,
   useEntryCounts,
   useSidebarCollapsed,
   useSidebarSections,
@@ -100,18 +95,6 @@ export const Sidebar = memo(function Sidebar({
   const isSectionVisible = useCallback((type: string) => typeEntryMap[type]?.visible !== false, [typeEntryMap])
   const toggleVisibility = useCallback((type: string) => onToggleTypeVisibility?.(type), [onToggleTypeVisibility])
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  )
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const reordered = computeReorder(sectionIds, active.id as string, over.id as string)
-    if (reordered) onReorderSections?.(reordered.map((typeName, order) => ({ typeName, order })))
-  }, [sectionIds, onReorderSections])
-
   const sectionProps: SidebarSectionProps = {
     entries,
     selection,
@@ -182,8 +165,7 @@ export const Sidebar = memo(function Sidebar({
           visibleSections={visibleSections}
           allSectionGroups={allSectionGroups}
           sectionIds={sectionIds}
-          sensors={sensors}
-          handleDragEnd={handleDragEnd}
+          onReorderSections={onReorderSections}
           sectionProps={sectionProps}
           collapsed={groupCollapsed.sections}
           onToggle={() => toggleGroup('sections')}

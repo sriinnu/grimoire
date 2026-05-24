@@ -37,12 +37,11 @@ describe('buildSettingsCommands', () => {
 
     expect(keywords).toEqual(expect.arrayContaining([
       'constellation',
+      'daylight',
+      'atelier',
       'living',
       'archive',
-      'research',
-      'cockpit',
       'nocturne',
-      'manuscript',
       'retro',
       'terminal',
     ]))

@@ -1,5 +1,5 @@
 [data-theme-preset="constellation"] .app-shell {
-  background: #040a11;
+  background: var(--surface-app);
   color: var(--text-primary);
 }
 
@@ -7,10 +7,10 @@
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(circle at 8% 18%, rgba(84, 225, 210, 0.17) 0 1px, transparent 2px),
-    radial-gradient(circle at 72% 10%, rgba(167, 139, 250, 0.2) 0 1px, transparent 2px),
-    linear-gradient(115deg, rgba(84, 225, 210, 0.08), transparent 34%),
-    linear-gradient(180deg, #07121c 0%, #050912 100%);
+    radial-gradient(circle at 8% 18%, color-mix(in srgb, var(--sidebar-primary) 17%, transparent) 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 10%, color-mix(in srgb, var(--accent-purple) 18%, transparent) 0 1px, transparent 2px),
+    linear-gradient(115deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 64%, var(--surface-app)) 0%, var(--surface-app) 100%);
   background-size: 180px 180px, 240px 240px, auto, auto;
 }
 
@@ -24,10 +24,12 @@
   --primary: var(--sidebar-primary);
   --primary-foreground: var(--sidebar-primary-foreground);
   background:
-    linear-gradient(145deg, rgba(84, 225, 210, 0.12), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 18rem),
+    linear-gradient(145deg, color-mix(in srgb, var(--sidebar-primary) 12%, transparent), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-foreground) 5%, transparent), transparent 18rem),
     var(--surface-sidebar);
-  box-shadow: inset -1px 0 0 var(--sidebar-border), 12px 0 46px rgba(0, 0, 0, 0.28);
+  box-shadow:
+    inset -1px 0 0 var(--sidebar-border),
+    12px 0 46px color-mix(in srgb, black 28%, transparent);
 }
 
 [data-theme-preset="constellation"] .app-sidebar-panel::before {
@@ -35,22 +37,28 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(125deg, transparent 0 58%, rgba(84, 225, 210, 0.1) 58.2%, transparent 59%),
-    linear-gradient(22deg, transparent 0 68%, rgba(167, 139, 250, 0.1) 68.2%, transparent 69%);
+    linear-gradient(125deg, transparent 0 58%, color-mix(in srgb, var(--sidebar-primary) 10%, transparent) 58.2%, transparent 59%),
+    linear-gradient(22deg, transparent 0 68%, color-mix(in srgb, var(--accent-purple) 10%, transparent) 68.2%, transparent 69%);
   content: "";
   opacity: 0.75;
 }
 
 [data-theme-preset="constellation"] .sidebar-title-bar {
   height: 72px !important;
-  border-bottom-color: rgba(129, 221, 236, 0.16);
+  border-bottom-color: color-mix(in srgb, var(--sidebar-border) 86%, transparent);
 }
 
 [data-theme-preset="constellation"] .sidebar-brand-mark,
 [data-theme-preset="constellation"] .app-sidebar-rail__mark {
-  border-color: rgba(84, 225, 210, 0.42);
-  background: radial-gradient(circle, rgba(84, 225, 210, 0.24), rgba(9, 22, 34, 0.86));
-  box-shadow: 0 0 0 1px rgba(84, 225, 210, 0.08), 0 0 28px rgba(84, 225, 210, 0.25);
+  border-color: color-mix(in srgb, var(--sidebar-primary) 42%, var(--sidebar-border));
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--sidebar-primary) 24%, transparent),
+    color-mix(in srgb, var(--surface-sidebar) 86%, var(--surface-card))
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--sidebar-primary) 8%, transparent),
+    0 0 28px color-mix(in srgb, var(--sidebar-primary) 25%, transparent);
 }
 
 [data-theme-preset="constellation"] .app-sidebar-nav button {
@@ -64,68 +72,52 @@
 
 [data-theme-preset="constellation"] .note-list-panel {
   background:
-    linear-gradient(180deg, rgba(13, 24, 36, 0.96), rgba(7, 15, 24, 0.98)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 66%, var(--surface-panel)), var(--surface-panel)),
     var(--surface-panel);
-  border-right-color: rgba(129, 221, 236, 0.16);
+  border-right-color: color-mix(in srgb, var(--border-default) 78%, transparent);
 }
 
 [data-theme-preset="constellation"] .note-list-panel [data-note-path] {
   margin: 10px 12px 0;
-  border: 1px solid rgba(129, 221, 236, 0.14);
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, transparent);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(101, 214, 255, 0.08), transparent 42%),
-    rgba(11, 22, 34, 0.86);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.23), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface-card) 86%, transparent);
+  box-shadow:
+    0 14px 35px color-mix(in srgb, black 23%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--text-primary) 3%, transparent);
 }
 
 [data-theme-preset="constellation"] .note-list-panel [data-note-path][data-selected="true"] {
   background:
-    linear-gradient(135deg, rgba(84, 225, 210, 0.16), transparent 48%),
-    rgba(11, 25, 36, 0.94) !important;
-}
-
-[data-theme-preset="constellation"] .note-list-panel [data-note-location]::before {
-  display: inline-flex;
-  max-width: calc(100% - 32px);
-  overflow: hidden;
-  margin: 0 0 7px;
-  padding: 2px 7px;
-  border: 1px solid rgba(84, 225, 210, 0.16);
-  border-radius: 999px;
-  background: rgba(84, 225, 210, 0.08);
-  color: rgba(232, 251, 255, 0.74);
-  content: attr(data-note-location);
-  font-family: var(--grimoire-mono-font-family);
-  font-size: 10px;
-  line-height: 1.4;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    linear-gradient(135deg, color-mix(in srgb, var(--sidebar-primary) 16%, transparent), transparent 48%),
+    color-mix(in srgb, var(--state-selected) 72%, var(--surface-card)) !important;
 }
 
 [data-theme-preset="constellation"] .note-signal-chip {
   display: inline-flex;
   align-items: center;
   min-height: 19px;
-  border: 1px solid rgba(129, 221, 236, 0.14);
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, transparent);
   border-radius: 5px;
   padding: 0 7px;
-  background: rgba(101, 214, 255, 0.08);
-  color: rgba(220, 236, 247, 0.78);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 78%, transparent);
   font-size: 10px;
   font-weight: 560;
 }
 
 [data-theme-preset="constellation"] :is(.editor, .editor-scroll-area) {
   background:
-    linear-gradient(180deg, rgba(101, 214, 255, 0.06), transparent 18rem),
-    radial-gradient(circle at 50% 8%, rgba(84, 225, 210, 0.08), transparent 32rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 6%, transparent), transparent 18rem),
+    radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--sidebar-primary) 8%, transparent), transparent 32rem),
     var(--surface-editor);
 }
 
 [data-theme-preset="constellation"] .breadcrumb-bar {
-  border-bottom-color: rgba(129, 221, 236, 0.16);
-  background: rgba(6, 13, 21, 0.84);
+  border-bottom-color: color-mix(in srgb, var(--border-default) 76%, transparent);
+  background: color-mix(in srgb, var(--surface-panel) 84%, transparent);
   backdrop-filter: blur(18px);
 }
 
@@ -144,11 +136,11 @@
   align-items: center;
   gap: 7px;
   min-height: 31px;
-  border: 1px solid rgba(129, 221, 236, 0.14);
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, transparent);
   border-radius: 6px;
   padding: 0 10px;
-  background: rgba(13, 26, 39, 0.84);
-  color: rgba(220, 236, 247, 0.72);
+  background: color-mix(in srgb, var(--surface-card) 84%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 72%, transparent);
   font-size: 12px;
 }
 
@@ -167,6 +159,11 @@
 
 [data-theme-preset="constellation"] .editor-content-wrapper {
   max-width: min(var(--editor-max-width, 820px), calc(100vw - 96px));
+  border: 1px solid color-mix(in srgb, var(--border-default) 52%, transparent);
+  border-radius: var(--grimoire-shell-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 76%, var(--surface-editor)), var(--surface-editor));
+  box-shadow: var(--grimoire-card-shadow);
 }
 
 [data-theme-preset="constellation"] .editor__blocknote-container .bn-container {
@@ -196,11 +193,13 @@
   justify-content: flex-start;
   width: 100%;
   min-height: 52px;
-  border: 1px solid rgba(84, 225, 210, 0.44);
+  border: 1px solid color-mix(in srgb, var(--sidebar-primary) 44%, var(--border-default));
   border-radius: 8px;
-  background: rgba(12, 25, 38, 0.88);
-  color: rgba(220, 236, 247, 0.72);
-  box-shadow: 0 0 0 1px rgba(84, 225, 210, 0.06), 0 18px 44px rgba(0, 0, 0, 0.24);
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 72%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--sidebar-primary) 6%, transparent),
+    0 18px 44px color-mix(in srgb, black 24%, transparent);
 }
 
 [data-theme-preset="constellation"] .editor-agent-composer__mark {
@@ -216,7 +215,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: rgba(220, 236, 247, 0.54);
+  color: color-mix(in srgb, var(--text-primary) 54%, transparent);
 }
 
 [data-theme-preset="constellation"] .editor-agent-composer__send {
@@ -225,22 +224,22 @@
   height: 34px;
   place-items: center;
   border-radius: 7px;
-  background: rgba(101, 214, 255, 0.12);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
   color: var(--accent-blue);
 }
 
 [data-theme-preset="constellation"] :is(.inspector-panel, .ai-panel) {
   background:
-    linear-gradient(180deg, rgba(84, 225, 210, 0.06), transparent 18rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-primary) 6%, transparent), transparent 18rem),
     var(--surface-panel);
-  border-left-color: rgba(129, 221, 236, 0.16);
+  border-left-color: color-mix(in srgb, var(--border-default) 76%, transparent);
 }
 
 [data-theme-preset="constellation"] .constellation-insights {
-  border: 1px solid rgba(129, 221, 236, 0.16);
+  border: 1px solid color-mix(in srgb, var(--border-default) 76%, transparent);
   border-radius: 8px;
   padding: 14px;
-  background: rgba(8, 18, 28, 0.75);
+  background: color-mix(in srgb, var(--surface-card) 75%, transparent);
   box-shadow: var(--grimoire-card-shadow);
 }
 
@@ -267,7 +266,7 @@
 
 [data-theme-preset="constellation"] .constellation-insights p,
 [data-theme-preset="constellation"] .constellation-insights li {
-  color: rgba(220, 236, 247, 0.76);
+  color: color-mix(in srgb, var(--text-primary) 76%, transparent);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -291,9 +290,9 @@
   overflow: hidden;
   border-radius: 8px;
   background:
-    radial-gradient(circle at 50% 52%, rgba(84, 225, 210, 0.18), transparent 5px),
-    radial-gradient(circle at 50% 52%, rgba(84, 225, 210, 0.12), transparent 42px),
-    linear-gradient(135deg, rgba(84, 225, 210, 0.07), rgba(167, 139, 250, 0.04));
+    radial-gradient(circle at 50% 52%, color-mix(in srgb, var(--sidebar-primary) 18%, transparent), transparent 5px),
+    radial-gradient(circle at 50% 52%, color-mix(in srgb, var(--sidebar-primary) 12%, transparent), transparent 42px),
+    linear-gradient(135deg, color-mix(in srgb, var(--sidebar-primary) 7%, transparent), color-mix(in srgb, var(--accent-purple) 4%, transparent));
 }
 
 [data-theme-preset="constellation"] .constellation-concept-map::before,
@@ -306,14 +305,14 @@
 
 [data-theme-preset="constellation"] .constellation-concept-map::before {
   background:
-    linear-gradient(28deg, transparent 0 48%, rgba(84, 225, 210, 0.36) 48.5% 49.5%, transparent 50%),
-    linear-gradient(150deg, transparent 0 48%, rgba(167, 139, 250, 0.3) 48.5% 49.5%, transparent 50%),
-    linear-gradient(90deg, transparent 0 49%, rgba(84, 225, 210, 0.28) 49.5% 50.5%, transparent 51%);
+    linear-gradient(28deg, transparent 0 48%, color-mix(in srgb, var(--sidebar-primary) 36%, transparent) 48.5% 49.5%, transparent 50%),
+    linear-gradient(150deg, transparent 0 48%, color-mix(in srgb, var(--accent-purple) 30%, transparent) 48.5% 49.5%, transparent 50%),
+    linear-gradient(90deg, transparent 0 49%, color-mix(in srgb, var(--sidebar-primary) 28%, transparent) 49.5% 50.5%, transparent 51%);
   opacity: 0.8;
 }
 
 [data-theme-preset="constellation"] .constellation-concept-map::after {
-  border: 1px solid rgba(84, 225, 210, 0.09);
+  border: 1px solid color-mix(in srgb, var(--sidebar-primary) 9%, transparent);
   border-radius: 999px;
   opacity: 0.75;
 }
@@ -325,10 +324,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(84, 225, 210, 0.34);
-  background: rgba(7, 18, 28, 0.9);
-  box-shadow: 0 0 18px rgba(84, 225, 210, 0.22);
-  color: rgba(232, 251, 255, 0.86);
+  border: 1px solid color-mix(in srgb, var(--sidebar-primary) 34%, var(--border-default));
+  background: color-mix(in srgb, var(--surface-card) 90%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--sidebar-primary) 22%, transparent);
+  color: color-mix(in srgb, var(--sidebar-foreground) 86%, transparent);
 }
 
 [data-theme-preset="constellation"] .constellation-concept-map__core {
@@ -359,15 +358,39 @@
 [data-theme-preset="constellation"] .constellation-concept-map__node--6 { top: 46px; left: 8px; }
 
 [data-theme-preset="constellation"] .status-bar {
-  background: linear-gradient(180deg, rgba(7, 17, 26, 0.95), #050912) !important;
-  border-top-color: rgba(129, 221, 236, 0.18) !important;
-  color: rgba(232, 251, 255, 0.68) !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 88%, var(--surface-panel)), var(--surface-sidebar)) !important;
+  border-top-color: var(--sidebar-border) !important;
+  color: var(--status-bar-muted-foreground, color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)) !important;
 }
 
 [data-theme-preset="constellation"] .settings-panel-shell {
-  border-color: rgba(129, 221, 236, 0.18);
+  border-color: color-mix(in srgb, var(--border-default) 82%, transparent);
   background:
-    linear-gradient(145deg, rgba(84, 225, 210, 0.07), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--sidebar-primary) 7%, transparent), transparent 34%),
     var(--surface-panel);
   color: var(--text-primary);
+}
+
+[data-theme-preset="constellation"] .settings-navigation-rail {
+  border-right-color: color-mix(in srgb, var(--border-default) 82%, transparent);
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--sidebar-primary) 12%, transparent), transparent 14rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 88%, var(--surface-panel)), var(--surface-panel));
+}
+
+[data-theme-preset="constellation"] .settings-main-surface {
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 19rem),
+    radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--accent-purple) 8%, transparent), transparent 18rem),
+    var(--surface-app);
+}
+
+[data-theme-preset="constellation"] .settings-section {
+  border-bottom: 1px solid color-mix(in srgb, var(--border-default) 58%, transparent);
+}
+
+[data-theme-preset="constellation"] :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
+  border-color: color-mix(in srgb, var(--border-default) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-card) 82%, transparent);
+  box-shadow: 0 12px 28px color-mix(in srgb, black 22%, transparent);
 }

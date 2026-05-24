@@ -1,11 +1,14 @@
 import type { ComponentType, MouseEvent as ReactMouseEvent, SVGAttributes } from 'react'
+import { FolderTree } from 'lucide-react'
 import type { NoteStatus, VaultEntry } from '../../types'
 import { cn } from '@/lib/utils'
 import { getDisplayDate, relativeDate } from '../../utils/noteListHelpers'
+import { getTypeColor } from '../../utils/typeColors'
 import { NoteTitleIcon } from '../NoteTitleIcon'
 import { TypeIconMark } from '../TypeIconMark'
 import { ChangeNoteContent } from './ChangeNoteContent'
 import { PropertyChips } from './PropertyChips'
+import { getNoteProjectContexts, isProjectContextPropertyName, type NoteProjectContext } from './noteContext'
 import { getFileKindIcon, getTypeIcon } from './typeIcon'
 
 type ChangeStatus = 'modified' | 'added' | 'deleted' | 'untracked' | 'renamed'
@@ -14,6 +17,7 @@ type NoteItemContentProps = {
   entry: VaultEntry
   isBinary: boolean
   isSelected: boolean
+  locationLabel: string
   noteStatus: NoteStatus
   changeStatus?: ChangeStatus
   typeColor: string
@@ -91,6 +95,98 @@ function NoteSnippet({ snippet }: { snippet?: string | null }) {
   )
 }
 
+function splitLocationLabel(locationLabel: string): { parent: string | null; leaf: string } {
+  const parts = locationLabel.split(' / ').map((part) => part.trim()).filter(Boolean)
+  const leaf = parts.pop() ?? locationLabel
+  return { parent: parts.length > 0 ? parts.join(' / ') : null, leaf }
+}
+
+function NoteLocationChip({ locationLabel }: { locationLabel: string }) {
+  const location = splitLocationLabel(locationLabel)
+
+  return (
+    <div
+      className="note-context-chip note-location-chip inline-flex min-w-0 max-w-full items-center gap-1 self-start rounded border border-border bg-muted/55 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+      data-testid="note-location-chip"
+      title={locationLabel}
+    >
+      <FolderTree className="size-3 shrink-0" aria-hidden="true" />
+      {location.parent ? <span className="min-w-0 truncate text-muted-foreground">{location.parent} / </span> : null}
+      <span className="min-w-0 truncate font-semibold text-foreground/85">{location.leaf}</span>
+    </div>
+  )
+}
+
+function NoteProjectChips({
+  projects,
+  typeEntryMap,
+  onClickNote,
+}: {
+  projects: NoteProjectContext[]
+  typeEntryMap: NoteItemContentProps['typeEntryMap']
+  onClickNote: NoteItemContentProps['onClickNote']
+}) {
+  if (projects.length === 0) return null
+
+  const projectType = typeEntryMap.Project ?? typeEntryMap.project
+  const ProjectIcon = getTypeIcon('Project', projectType?.icon)
+  const color = getTypeColor('Project', projectType?.color)
+
+  return (
+    <>
+      {projects.map((project) => (
+        <span
+          key={project.key}
+          className={cn(
+            'note-context-chip note-project-chip inline-flex min-w-0 max-w-full items-center gap-1 self-start rounded border px-1.5 py-0.5 text-[10px] font-semibold',
+            project.entry && 'cursor-pointer',
+          )}
+          data-testid="note-project-chip"
+          onClick={(event) => {
+            event.preventDefault()
+            event.stopPropagation()
+            if (event.metaKey && project.entry) onClickNote(project.entry, event)
+          }}
+          style={{
+            backgroundColor: 'var(--muted)',
+            borderColor: `color-mix(in srgb, ${color} 42%, var(--border))`,
+            color: 'var(--foreground)',
+          }}
+          title={project.entry ? `${project.entry.path} - Cmd-click to open project` : project.label}
+        >
+          <TypeIconMark
+            className="shrink-0"
+            color={color}
+            fallbackIcon={ProjectIcon}
+            iconValue={projectType?.icon ?? null}
+            size={11}
+          />
+          <span className="truncate">{`Project · ${project.label}`}</span>
+        </span>
+      ))}
+    </>
+  )
+}
+
+function NoteContextChips({
+  locationLabel,
+  projects,
+  displayProps,
+  typeEntryMap,
+  onClickNote,
+}: Pick<NoteItemContentProps, 'locationLabel' | 'displayProps' | 'typeEntryMap' | 'onClickNote'> & {
+  projects: NoteProjectContext[]
+}) {
+  const showProjectChips = !displayProps.some(isProjectContextPropertyName)
+
+  return (
+    <div className="flex max-w-full flex-wrap gap-1.5">
+      <NoteLocationChip locationLabel={locationLabel} />
+      {showProjectChips ? <NoteProjectChips projects={projects} typeEntryMap={typeEntryMap} onClickNote={onClickNote} /> : null}
+    </div>
+  )
+}
+
 function NotePropertySection({
   entry,
   displayProps,
@@ -117,7 +213,26 @@ function normalizeChipValue(value: VaultEntry['properties'][string]): string[] {
   return [String(value)]
 }
 
-function getSignalChips(entry: VaultEntry): string[] {
+function getProjectSignalExclusions(projects: NoteProjectContext[]): Set<string> {
+  return new Set(projects.flatMap((project) => [
+    project.label.toLowerCase(),
+    project.target.toLowerCase(),
+    project.entry?.title.toLowerCase() ?? '',
+  ]).filter(Boolean))
+}
+
+function belongsToSignalChips(entry: VaultEntry, projects: NoteProjectContext[]): string[] {
+  const exclusions = getProjectSignalExclusions(projects)
+  return entry.belongsTo
+    .map((target) => target.replace(/^\[\[|\]\]$/gu, ''))
+    .filter((target) => {
+      const normalizedTarget = target.toLowerCase()
+      const label = target.includes('|') ? target.split('|').at(-1)?.toLowerCase() : ''
+      return !exclusions.has(normalizedTarget) && (!label || !exclusions.has(label))
+    })
+}
+
+function getSignalChips(entry: VaultEntry, projects: NoteProjectContext[]): string[] {
   const source = [
     entry.isA,
     entry.status,
@@ -125,14 +240,14 @@ function getSignalChips(entry: VaultEntry): string[] {
     ...normalizeChipValue(entry.properties.Status),
     ...normalizeChipValue(entry.properties.tags),
     ...normalizeChipValue(entry.properties.Tags),
-    ...entry.belongsTo.map((target) => target.replace(/^\[\[|\]\]$/gu, '')),
+    ...belongsToSignalChips(entry, projects),
   ]
 
   return [...new Set(source.map((chip) => chip?.trim()).filter(Boolean) as string[])].slice(0, 4)
 }
 
-function NoteSignalChips({ entry }: { entry: VaultEntry }) {
-  const chips = getSignalChips(entry)
+function NoteSignalChips({ entry, isSelected, projects }: { entry: VaultEntry; isSelected: boolean; projects: NoteProjectContext[] }) {
+  const chips = getSignalChips(entry, projects).slice(0, isSelected ? 4 : 2)
   if (chips.length === 0) return null
 
   return (
@@ -153,7 +268,10 @@ function NoteTitleRow({
   noteStatus,
 }: Pick<NoteItemContentProps, 'entry' | 'isBinary' | 'isSelected' | 'noteStatus'>) {
   return (
-    <div className={cn('truncate pr-5 text-[13px]', isBinary ? 'text-muted-foreground' : 'text-foreground', isSelected && !isBinary ? 'font-semibold' : 'font-medium')}>
+    <div
+      className={cn('truncate pr-5 text-[13px]', isBinary ? 'text-muted-foreground' : 'text-foreground', isSelected && !isBinary ? 'font-semibold' : 'font-medium')}
+      data-testid="note-title"
+    >
       {noteStatus !== 'clean' && !isBinary && <StatusDot noteStatus={noteStatus} />}
       <NoteTitleIcon icon={entry.icon} size={15} className="mr-1" testId="note-title-icon" />
       {entry.title}
@@ -178,6 +296,7 @@ function NoteDateRow({ entry }: { entry: VaultEntry }) {
 
 function InteractiveNoteDetails({
   entry,
+  locationLabel,
   noteStatus,
   isSelected,
   displayProps,
@@ -185,11 +304,20 @@ function InteractiveNoteDetails({
   typeEntryMap,
   onClickNote,
 }: Omit<NoteItemContentProps, 'isBinary' | 'changeStatus' | 'typeColor'>) {
+  const projects = getNoteProjectContexts(entry, allEntries)
+
   return (
     <>
       <NoteTitleRow entry={entry} isBinary={false} isSelected={isSelected} noteStatus={noteStatus} />
+      <NoteContextChips
+        locationLabel={locationLabel}
+        projects={projects}
+        displayProps={displayProps}
+        typeEntryMap={typeEntryMap}
+        onClickNote={onClickNote}
+      />
       <NoteSnippet snippet={entry.snippet} />
-      <NoteSignalChips entry={entry} />
+      <NoteSignalChips entry={entry} isSelected={isSelected} projects={projects} />
       <NotePropertySection
         entry={entry}
         displayProps={displayProps}
@@ -210,6 +338,7 @@ function resolveNoteTypeIcon(entry: VaultEntry, customIcon?: string | null): Com
 function StandardNoteContent({
   entry,
   isBinary,
+  locationLabel,
   noteStatus,
   isSelected,
   typeColor,
@@ -231,6 +360,7 @@ function StandardNoteContent({
         ) : (
           <InteractiveNoteDetails
             entry={entry}
+            locationLabel={locationLabel}
             noteStatus={noteStatus}
             isSelected={isSelected}
             displayProps={displayProps}

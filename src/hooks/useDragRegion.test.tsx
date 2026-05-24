@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDragRegion } from './useDragRegion'
 
@@ -32,21 +32,21 @@ describe('useDragRegion', () => {
     vi.clearAllMocks()
   })
 
-  it('starts dragging from the background surface', () => {
+  it('starts dragging from the background surface', async () => {
     render(<DragRegionHarness />)
 
     fireEvent.mouseDown(screen.getByTestId('drag-surface'), { button: 0 })
 
-    expect(startDragging).toHaveBeenCalledOnce()
+    await waitFor(() => expect(startDragging).toHaveBeenCalledOnce())
     expect(invoke).not.toHaveBeenCalled()
   })
 
-  it('runs the native title-bar action on a double-click', () => {
+  it('runs the native title-bar action on a double-click', async () => {
     render(<DragRegionHarness />)
 
     fireEvent.mouseDown(screen.getByTestId('drag-surface'), { button: 0, detail: 2 })
 
-    expect(invoke).toHaveBeenCalledWith('perform_current_window_titlebar_double_click')
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('perform_current_window_titlebar_double_click'))
     expect(startDragging).not.toHaveBeenCalled()
   })
 

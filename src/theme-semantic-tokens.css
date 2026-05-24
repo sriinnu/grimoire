@@ -1,0 +1,59 @@
+:where(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) {
+  --accent-green-light: color-mix(in srgb, var(--accent-green) 14%, transparent);
+  --accent-orange-light: color-mix(in srgb, var(--accent-orange) 14%, transparent);
+  --accent-purple-light: color-mix(in srgb, var(--accent-purple) 14%, transparent);
+  --accent-red-light: color-mix(in srgb, var(--accent-red) 14%, transparent);
+  --accent-yellow-light: color-mix(in srgb, var(--accent-yellow) 14%, transparent);
+  --destructive: var(--accent-red);
+  --text-faint: color-mix(in srgb, var(--text-secondary) 62%, transparent);
+  --text-muted: color-mix(in srgb, var(--text-secondary) 76%, transparent);
+  --text-tertiary: color-mix(in srgb, var(--text-secondary) 88%, transparent);
+}
+
+[data-theme-preset="constellation"] {
+  --accent-red: #ff7a7a;
+}
+
+[data-theme-preset="daylight-atelier"][data-theme="light"] {
+  --accent-red: #b85c54;
+  --accent-yellow: #b8862f;
+}
+
+[data-theme-preset="daylight-atelier"][data-theme="dark"] {
+  --accent-red: #ff8a86;
+  --accent-yellow: #f0c66f;
+}
+
+[data-theme-preset="living-archive"][data-theme="light"] {
+  --accent-purple: #6e5aa7;
+  --accent-red: #9d5f45;
+}
+
+[data-theme-preset="living-archive"][data-theme="dark"] {
+  --accent-purple: #c6b0f3;
+  --accent-red: #d98970;
+}
+
+[data-theme-preset="nocturne"][data-theme="light"] {
+  --accent-green: var(--accent-blue);
+  --accent-red: #a8564f;
+  --accent-yellow: #9c7a31;
+}
+
+[data-theme-preset="nocturne"][data-theme="dark"] {
+  --accent-green: var(--accent-blue);
+  --accent-red: #d98970;
+  --accent-yellow: #d6b158;
+}
+
+[data-theme-preset="retro-terminal"] {
+  --accent-orange-light: color-mix(in srgb, var(--accent-orange) 15%, transparent);
+  --accent-purple-light: color-mix(in srgb, var(--accent-purple) 14%, transparent);
+  --accent-red-light: color-mix(in srgb, var(--accent-red) 15%, transparent);
+}

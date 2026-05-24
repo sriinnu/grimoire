@@ -40,6 +40,14 @@
   margin-left: auto;
 }
 
+.canvas-attachment__text-tool {
+  min-width: min(180px, 100%);
+}
+
+.canvas-attachment__text-tool input {
+  height: 32px;
+}
+
 .canvas-attachment__icon-button svg {
   width: 16px;
   height: 16px;
@@ -90,4 +98,11 @@
   height: 100%;
   min-height: 360px;
   place-items: center;
+}
+
+.canvas-attachment__status {
+  margin-right: auto;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.4;
 }

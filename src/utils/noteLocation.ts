@@ -1,6 +1,6 @@
 import { getCurrentVaultPath } from './currentVaultPath'
 
-const VAULT_ROOT_MARKERS = new Set(['Grimoire', 'demo-vault', 'demo-vault-v2'])
+const VAULT_ROOT_MARKERS = new Set(['Grimoire'])
 
 function normalizePath(path: string): string {
   return path.replaceAll('\\', '/').replace(/\/+$/u, '')

@@ -11,6 +11,7 @@ import {
   ReferencedByPanel,
   GitHistoryPanel,
   InstancesPanel,
+  LivingFrontmatterPanel,
   MemoryPanel,
   NoteInfoPanel,
   OutlinePanel,
@@ -89,6 +90,11 @@ function ValidFrontmatterPanels({
         onAddProperty={onAddProperty}
         onNavigate={onNavigate}
         onCreateMissingType={onCreateMissingType}
+      />
+      <LivingFrontmatterPanel
+        entry={entry}
+        entries={entries}
+        frontmatter={frontmatter}
       />
       <Separator data-testid="inspector-properties-relationships-separator" />
       <DynamicRelationshipsPanel
@@ -219,7 +225,14 @@ function InspectorBody({
         onReplaceContent={onReplaceContent}
       />
       <Separator />
-      <MemoryPanel entry={entry} entries={entries} semantics={semantics} />
+      <MemoryPanel
+        entry={entry}
+        entries={entries}
+        semantics={semantics}
+        onNavigate={onNavigate}
+        onUpdateRecordProperty={onUpdateFrontmatter}
+        onDeleteRecordProperty={onDeleteProperty}
+      />
       <Separator />
       <PrimaryInspectorPanel
         entry={entry}
@@ -251,12 +264,12 @@ function InspectorBody({
 export function Inspector({ collapsed, onToggle, ...bodyProps }: InspectorProps) {
   return (
     <aside
-      className={cn('inspector-panel flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}
+      className={cn('inspector-panel grimoire-inspector-stage flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}
       data-panel-role="inspector"
     >
       <InspectorHeader collapsed={collapsed} onToggle={onToggle} />
       {!collapsed && (
-        <div className="inspector-body flex flex-1 flex-col gap-4 overflow-y-auto p-3">
+        <div className="inspector-body grimoire-panel-reveal flex flex-1 flex-col gap-4 overflow-y-auto p-3">
           <InspectorBody {...bodyProps} />
         </div>
       )}

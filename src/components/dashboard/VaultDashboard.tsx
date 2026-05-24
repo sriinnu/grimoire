@@ -12,13 +12,24 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import type { SyncStatus, VaultEntry } from '../../types'
+import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
 import type { VaultOption } from '../status-bar/types'
 import type { DashboardCaptureResult } from '../../hooks/useDashboardCapture'
-import { CAPTURE_KIND_CONFIGS, type CaptureKind } from '../../utils/dashboardCapture'
+import { buildAttentionModeSuggestion } from '../../lib/attentionMode'
+import {
+  buildDashboardAskContextPreview,
+  CAPTURE_KIND_CONFIGS,
+  type CaptureKind,
+} from '../../utils/dashboardCapture'
 import { buildDashboardSummary } from '../../utils/dashboardModel'
+import { buildDreamForgeSummary } from '../../lib/dreamForge'
+import { buildTimeLoomSummary } from '../../lib/timeLoom'
 import { relativeDate } from '../../utils/noteListHelpers'
 import { cn } from '../../lib/utils'
+import { DashboardAskContextPreview } from './DashboardAskContextPreview'
+import { DailyFlowRail } from './DailyFlowRail'
+import { DreamForgePanel } from './DreamForgePanel'
+import { TimeLoomPanel } from './TimeLoomPanel'
 
 interface VaultDashboardProps {
   activeVault?: VaultOption
@@ -29,6 +40,7 @@ interface VaultDashboardProps {
   onCapture: (input: string, kind: CaptureKind) => Promise<DashboardCaptureResult>
   onOpenCreateVault: () => void
   onOpenNote: (entry: VaultEntry) => void
+  pulseCommits?: PulseCommit[]
   syncStatus: SyncStatus
   vaultPath: string
 }
@@ -142,6 +154,7 @@ export function VaultDashboard({
   onCapture,
   onOpenCreateVault,
   onOpenNote,
+  pulseCommits = [],
   syncStatus,
   vaultPath,
 }: VaultDashboardProps) {
@@ -150,7 +163,26 @@ export function VaultDashboard({
   const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const summary = useMemo(() => buildDashboardSummary(entries), [entries])
+  const dreamForgeSummary = useMemo(() => buildDreamForgeSummary(entries), [entries])
+  const timeLoomSummary = useMemo(
+    () => buildTimeLoomSummary(entries, new Date(), { commits: pulseCommits }),
+    [entries, pulseCommits],
+  )
+  const attentionSuggestion = useMemo(
+    () => buildAttentionModeSuggestion({ conflictCount, modifiedCount, summary, syncStatus }),
+    [conflictCount, modifiedCount, summary, syncStatus],
+  )
+  const askContextPreview = useMemo(() => buildDashboardAskContextPreview(entries), [entries])
+  const attentionCaptureKind = attentionSuggestion.captureKind
+  const attentionOpenEntry = useMemo(
+    () => attentionSuggestion.openEntryPath
+      ? entries.find((entry) => entry.path === attentionSuggestion.openEntryPath) ?? null
+      : null,
+    [attentionSuggestion.openEntryPath, entries],
+  )
   const activeVaultLabel = activeVault?.label ?? vaultPath.split('/').filter(Boolean).pop() ?? 'Vault'
+  const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
+  const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -171,6 +203,14 @@ export function VaultDashboard({
     setSelectedKind(kind)
     setInput((value) => value.trim() ? value : `${config.slash} `)
     requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  function handleAttentionAction() {
+    if (attentionCaptureKind) {
+      seedPrompt(attentionCaptureKind)
+      return
+    }
+    if (attentionOpenEntry) onOpenNote(attentionOpenEntry)
   }
 
   return (
@@ -196,6 +236,14 @@ export function VaultDashboard({
       </section>
 
       <section className="vault-dashboard__grid">
+        <DailyFlowRail
+          attentionActionLabel={attentionSuggestion.actionLabel}
+          canUseAttentionAction={canUseAttentionAction}
+          onAttentionAction={handleAttentionAction}
+          onSeedPrompt={seedPrompt}
+          summary={summary}
+        />
+
         <div className="vault-dashboard__panel vault-dashboard__panel--capture">
           <div className="vault-dashboard__panel-head">
             <div>
@@ -213,6 +261,7 @@ export function VaultDashboard({
               className="vault-dashboard__textarea"
               data-testid="dashboard-capture-input"
             />
+            {showAskContextPreview ? <DashboardAskContextPreview preview={askContextPreview} /> : null}
             <div className="vault-dashboard__capture-actions">
               <div className="vault-dashboard__capture-kinds">
                 {CAPTURE_KIND_CONFIGS.map((config) => (
@@ -275,6 +324,31 @@ export function VaultDashboard({
           <StatTile label="Journals" value={summary.journalCount} detail="private by default" />
           <StatTile label="Dreams" value={summary.dreamCount} detail="local lane" />
           <StatTile label="Memory" value={summary.memoryQueueCount} detail="review queue" />
+        </div>
+
+        <DreamForgePanel summary={dreamForgeSummary} onCaptureDream={() => seedPrompt('dream')} />
+        <TimeLoomPanel summary={timeLoomSummary} onCaptureJournal={() => seedPrompt('journal')} />
+
+        <div className="vault-dashboard__panel">
+          <div className="vault-dashboard__panel-head">
+            <div>
+              <div className="vault-dashboard__panel-label">Attention Mode</div>
+              <h2>{attentionSuggestion.title}</h2>
+            </div>
+            <Sparkles size={18} />
+          </div>
+          <p className="vault-dashboard__panel-copy">{attentionSuggestion.detail}</p>
+          {attentionSuggestion.actionLabel && (attentionCaptureKind || attentionOpenEntry) ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="vault-dashboard__panel-action"
+              onClick={handleAttentionAction}
+            >
+              {attentionSuggestion.actionLabel}
+            </Button>
+          ) : null}
         </div>
 
         <div className="vault-dashboard__panel vault-dashboard__panel--wide">

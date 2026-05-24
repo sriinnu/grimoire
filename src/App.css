@@ -305,6 +305,47 @@
   font-size: 12px;
 }
 
+.vault-dashboard__dream-forge {
+  grid-column: 1 / -1;
+}
+
+.vault-dashboard__dream-forge-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.vault-dashboard__panel-copy {
+  margin: 0 0 10px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.vault-dashboard__dream-forge-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
+  min-height: 30px;
+  align-items: center;
+  border-top: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
+  font-size: 12px;
+}
+
+.vault-dashboard__dream-forge-row span {
+  color: var(--muted-foreground);
+}
+
+.vault-dashboard__dream-forge-row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__panel-action {
+  margin-top: 12px;
+}
+
 .vault-dashboard__recent {
   display: grid;
   height: auto;
@@ -335,6 +376,7 @@
   }
 
   .vault-dashboard__panel--capture,
+  .vault-dashboard__dream-forge,
   .vault-dashboard__panel--wide,
   .vault-dashboard__stats {
     grid-column: auto;

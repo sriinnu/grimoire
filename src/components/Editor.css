@@ -220,7 +220,6 @@
   margin-right: auto;
 }
 
-/* --- Note Icon Area --- */
 .note-icon-area {
   display: flex;
   align-items: flex-start;
@@ -341,6 +340,7 @@
 
 @container editor (max-width: 900px) {
   .editor-content-layout--left .editor-content-wrapper,
+  .editor-content-layout--left .editor-meta-strip,
   .editor-content-layout--left .raw-editor-codemirror {
     margin-left: auto;
     margin-right: auto;

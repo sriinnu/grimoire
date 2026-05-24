@@ -16,10 +16,32 @@ fn sanitize_filename(name: &str) -> String {
 
 /// Image file extensions considered valid for drag-drop import.
 const IMAGE_EXTENSIONS: &[&str] = &["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp", "tiff"];
+const AUDIO_EXTENSIONS: &[&str] = &[
+    "aac", "flac", "m4a", "mp3", "mp4", "ogg", "opus", "wav", "webm",
+];
 
 /// Prepare the attachments directory and generate a unique target path.
 fn prepare_attachment_path(vault_path: &str, filename: &str) -> Result<std::path::PathBuf, String> {
-    let attachments_dir = Path::new(vault_path).join("attachments");
+    prepare_attachment_path_in(Path::new(vault_path).join("attachments"), filename)
+}
+
+fn prepare_local_recording_path(
+    vault_path: &str,
+    filename: &str,
+) -> Result<std::path::PathBuf, String> {
+    prepare_attachment_path_in(
+        Path::new(vault_path)
+            .join("Private")
+            .join("attachments")
+            .join("recordings"),
+        filename,
+    )
+}
+
+fn prepare_attachment_path_in(
+    attachments_dir: std::path::PathBuf,
+    filename: &str,
+) -> Result<std::path::PathBuf, String> {
     fs::create_dir_all(&attachments_dir)
         .map_err(|e| format!("Failed to create attachments directory: {}", e))?;
 
@@ -31,35 +53,63 @@ fn prepare_attachment_path(vault_path: &str, filename: &str) -> Result<std::path
     Ok(attachments_dir.join(unique_name))
 }
 
+fn supported_extension(filename: &str, allowed: &[&str]) -> bool {
+    Path::new(&sanitize_filename(filename))
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(str::to_ascii_lowercase)
+        .is_some_and(|extension| allowed.contains(&extension.as_str()))
+}
+
+fn decode_base64_data(data: &str) -> Result<Vec<u8>, String> {
+    use base64::Engine;
+
+    base64::engine::general_purpose::STANDARD
+        .decode(data)
+        .map_err(|e| format!("Invalid base64 data: {}", e))
+}
+
 /// Save an uploaded image to the vault's attachments directory.
 /// Returns the absolute path to the saved file.
 pub fn save_image(vault_path: &str, filename: &str, data: &str) -> Result<String, String> {
-    use base64::Engine;
-
     let target_path = prepare_attachment_path(vault_path, filename)?;
-
-    let bytes = base64::engine::general_purpose::STANDARD
-        .decode(data)
-        .map_err(|e| format!("Invalid base64 data: {}", e))?;
-
+    let bytes = decode_base64_data(data)?;
     fs::write(&target_path, bytes).map_err(|e| format!("Failed to write image: {}", e))?;
+
+    Ok(target_path.to_string_lossy().to_string())
+}
+
+/// Save app-recorded audio to the vault's local-only private recording lane.
+pub fn save_audio_recording(
+    vault_path: &str,
+    filename: &str,
+    data: &str,
+) -> Result<String, String> {
+    if !supported_extension(filename, AUDIO_EXTENSIONS) {
+        return Err(format!(
+            "Not a supported audio recording format: {}",
+            filename
+        ));
+    }
+
+    let target_path = prepare_local_recording_path(vault_path, filename)?;
+    let bytes = decode_base64_data(data)?;
+    fs::write(&target_path, bytes)
+        .map_err(|e| format!("Failed to write audio recording: {}", e))?;
 
     Ok(target_path.to_string_lossy().to_string())
 }
 
 /// Save base64 image data to an exact validated attachment path.
 pub fn save_canvas_preview(path: &str, data: &str) -> Result<(), String> {
-    use base64::Engine;
-
     let target_path = Path::new(path);
     if let Some(parent) = target_path.parent() {
         fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create canvas preview directory: {}", e))?;
     }
 
-    let bytes = base64::engine::general_purpose::STANDARD
-        .decode(data)
-        .map_err(|e| format!("Invalid canvas preview data: {}", e))?;
+    let bytes =
+        decode_base64_data(data).map_err(|e| e.replace("base64 data", "canvas preview data"))?;
 
     fs::write(target_path, bytes).map_err(|e| format!("Failed to write canvas preview: {}", e))
 }
@@ -152,6 +202,62 @@ mod tests {
         let result = save_image(vault_path, "test.png", "not-valid-base64!!!");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Invalid base64"));
+    }
+
+    #[test]
+    fn test_save_audio_recording_creates_private_local_file() {
+        use base64::Engine;
+
+        let dir = TempDir::new().unwrap();
+        let vault_path = dir.path().to_str().unwrap();
+        let data = base64::engine::general_purpose::STANDARD.encode(b"voice note data");
+
+        let saved_path = save_audio_recording(vault_path, "voice-note.webm", &data).unwrap();
+
+        assert!(std::path::Path::new(&saved_path).exists());
+        assert!(saved_path.contains("Private/attachments/recordings"));
+        assert!(saved_path.contains("voice-note.webm"));
+        assert_eq!(fs::read(&saved_path).unwrap(), b"voice note data");
+    }
+
+    #[test]
+    fn test_save_audio_recording_rejects_unsupported_extension() {
+        use base64::Engine;
+
+        let dir = TempDir::new().unwrap();
+        let vault_path = dir.path().to_str().unwrap();
+        let data = base64::engine::general_purpose::STANDARD.encode(b"text");
+
+        let result = save_audio_recording(vault_path, "voice-note.txt", &data);
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Not a supported audio"));
+    }
+
+    #[test]
+    fn test_save_audio_recording_rejects_invalid_base64() {
+        let dir = TempDir::new().unwrap();
+        let vault_path = dir.path().to_str().unwrap();
+
+        let result = save_audio_recording(vault_path, "voice-note.webm", "not-valid-base64!!!");
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Invalid base64"));
+    }
+
+    #[test]
+    fn test_save_audio_recording_sanitizes_filename_inside_private_lane() {
+        use base64::Engine;
+
+        let dir = TempDir::new().unwrap();
+        let vault_path = dir.path().to_str().unwrap();
+        let data = base64::engine::general_purpose::STANDARD.encode(b"audio");
+
+        let saved_path = save_audio_recording(vault_path, "../../voice note.webm", &data).unwrap();
+        let saved = std::path::Path::new(&saved_path);
+
+        assert!(saved.starts_with(dir.path().join("Private/attachments/recordings")));
+        assert!(saved_path.contains(".._.._voice_note.webm"));
     }
 
     #[test]

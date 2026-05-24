@@ -1,35 +1,18 @@
 import type { ThemePreset } from '../lib/appearance'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
-import { PRESET_SWATCHES } from './appearanceSettingsOptions'
+import { useEffect, useState, type CSSProperties } from 'react'
+import {
+  resolveThemeDefinitionMode,
+  resolveThemePresetDefinition,
+} from '../themes/themeRegistry'
+import {
+  LOCAL_THEME_PACK_CHANGE_EVENT,
+  readStoredLocalThemeDefinition,
+} from '../themes/localThemePacks'
 import { SidebarArtwork } from './sidebar/SidebarArtwork'
 
 type Translate = ReturnType<typeof createTranslator>
-
-const DARK_SIDEBAR_PRESETS = new Set<ThemePreset>([
-  'constellation',
-  'living-archive',
-  'research-cockpit',
-  'manuscript',
-  'nocturne',
-  'retro-terminal',
-])
-
-function sidebarForegroundForPreset(preset: ThemePreset): string {
-  if (preset === 'constellation') return '#E8FBFF'
-  if (preset === 'living-archive') return '#F9ECCE'
-  if (preset === 'research-cockpit') return '#E9F6FF'
-  if (preset === 'retro-terminal') return '#EAFFDF'
-  return DARK_SIDEBAR_PRESETS.has(preset) ? '#FFF7E6' : '#23312B'
-}
-
-function activeForegroundForPreset(preset: ThemePreset): string {
-  if (preset === 'constellation') return '#061217'
-  if (preset === 'living-archive') return '#1A2419'
-  if (preset === 'research-cockpit') return '#071018'
-  if (preset === 'retro-terminal') return '#071006'
-  return '#FFFFFF'
-}
 
 /** Shows how the selected appearance preset changes the left sidebar surface. */
 export function SidebarAppearancePreview({
@@ -41,12 +24,22 @@ export function SidebarAppearancePreview({
   themeMode: ThemeMode
   themePreset: ThemePreset
 }) {
-  const [, sidebar, accent] = PRESET_SWATCHES[themePreset]
-  const foreground = sidebarForegroundForPreset(themePreset)
-  const activeForeground = activeForegroundForPreset(themePreset)
-  const muted = DARK_SIDEBAR_PRESETS.has(themePreset)
-    ? 'rgba(255, 247, 230, 0.66)'
-    : 'rgba(35, 49, 43, 0.58)'
+  const [localDefinition, setLocalDefinition] = useState(() => readStoredLocalThemeDefinition(window.localStorage))
+
+  useEffect(() => {
+    const handleLocalThemeChange = () => setLocalDefinition(readStoredLocalThemeDefinition(window.localStorage))
+    window.addEventListener(LOCAL_THEME_PACK_CHANGE_EVENT, handleLocalThemeChange)
+    return () => window.removeEventListener(LOCAL_THEME_PACK_CHANGE_EVENT, handleLocalThemeChange)
+  }, [])
+
+  const definition = localDefinition ?? resolveThemePresetDefinition(themePreset)
+  const mode = resolveThemeDefinitionMode(definition, themeMode)
+  const tokens = definition.modes[mode]?.tokens
+  const sidebar = tokens?.['surface.sidebar'] ?? definition.swatches[1]
+  const accent = tokens?.['sidebar.primary'] ?? definition.swatches[2]
+  const foreground = tokens?.['sidebar.foreground'] ?? definition.swatches[0]
+  const activeForeground = tokens?.['sidebar.primaryForeground'] ?? definition.swatches[0]
+  const muted = tokens?.['sidebar.border'] ?? tokens?.['text.secondary'] ?? definition.swatches[2]
 
   return (
     <div className="space-y-2">
@@ -55,12 +48,18 @@ export function SidebarAppearancePreview({
         className="overflow-hidden rounded-md border border-border"
         data-testid="settings-sidebar-preview"
         data-theme-preview={themeMode}
+        data-theme-definition-preview={definition.id}
+        data-sidebar-artwork-preview={definition.sidebar.artwork}
         data-sidebar-preset-preview={themePreset}
         style={{
           background: sidebar,
           color: foreground,
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
-        }}
+          '--sidebar': sidebar,
+          '--sidebar-foreground': foreground,
+          '--art-accent': accent,
+          '--sidebar-artwork-opacity': String(definition.sidebar.artworkOpacity),
+        } as CSSProperties}
       >
         <div className="flex items-center gap-1 border-b px-3 py-2" style={{ borderColor: muted }}>
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: '#FF6B5F' }} />

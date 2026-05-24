@@ -5,7 +5,14 @@ import {
   AiPanelHeader,
   AiPanelMessageHistory,
 } from './AiPanelChrome'
-import { DEFAULT_AI_AGENT, getAiAgentDefinition, type AiAgentId } from '../lib/aiAgents'
+import {
+  DEFAULT_AI_AGENT,
+  describeAiAgentRoute,
+  getAiAgentDefinition,
+  type AiAgentId,
+  type AiAgentsStatus,
+} from '../lib/aiAgents'
+import type { AskContextPackage } from '../lib/askContextPackage'
 import { type NoteListItem } from '../utils/ai-context'
 import type { VaultEntry } from '../types'
 import { useAiPanelController, type AiPanelController } from './useAiPanelController'
@@ -14,10 +21,12 @@ import { useAiPanelFocus } from './useAiPanelFocus'
 import { CrystallizeReviewDialog } from './CrystallizeReviewDialog'
 import {
   buildCrystallizeProposal,
-  latestCrystallizableResponse,
+  latestCrystallizableMessage,
   persistCrystallizedNote,
+  summarizeCrystallizeProposal,
 } from '../lib/crystallizeProposal'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
+import { AiPanelIntelligenceRail } from './AiPanelIntelligenceRail'
 
 export type { AiAgentMessage } from '../hooks/useCliAiAgent'
 
@@ -27,6 +36,7 @@ interface AiPanelProps {
   onUnsupportedAiPaste?: (message: string) => void
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  aiAgentsStatus?: AiAgentsStatus
   defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onFileCreated?: (relativePath: string) => void
@@ -50,8 +60,15 @@ interface AiPanelViewProps {
   onUnsupportedAiPaste?: (message: string) => void
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  aiAgentsStatus?: AiAgentsStatus
+  defaultAiProvider?: string | null
+  defaultAiModel?: string | null
   activeEntry?: VaultEntry | null
+  activeNoteContent?: string | null
   entries?: VaultEntry[]
+  openTabs?: VaultEntry[]
+  noteList?: NoteListItem[]
+  noteListFilter?: { type: string | null; query: string }
   onFileCreated?: (relativePath: string) => void
   onVaultChanged?: () => void
 }
@@ -64,8 +81,15 @@ export function AiPanelView({
   onUnsupportedAiPaste,
   defaultAiAgent: providedDefaultAiAgent,
   defaultAiAgentReady: providedDefaultAiAgentReady,
+  aiAgentsStatus: providedAiAgentsStatus,
+  defaultAiProvider,
+  defaultAiModel,
   activeEntry,
+  activeNoteContent,
   entries,
+  openTabs,
+  noteList,
+  noteListFilter,
   onFileCreated,
   onVaultChanged,
 }: AiPanelViewProps) {
@@ -77,7 +101,9 @@ export function AiPanelView({
   const [crystallizeOpen, setCrystallizeOpen] = useState(false)
   const [crystallizeApplying, setCrystallizeApplying] = useState(false)
   const [crystallizeError, setCrystallizeError] = useState<string | null>(null)
+  const [askContextPackage, setAskContextPackage] = useState<AskContextPackage | null>(null)
   const agentLabel = getAiAgentDefinition(defaultAiAgent).label
+  const agentRouteLabel = describeAiAgentRoute(defaultAiAgent, defaultAiProvider, defaultAiModel)
   const {
     agent,
     input,
@@ -90,7 +116,13 @@ export function AiPanelView({
     handleNewChat,
   } = controller
 
-  useAiPanelPromptQueue({ agent, input, isActive, setInput })
+  useAiPanelPromptQueue({
+    agent,
+    input,
+    isActive,
+    onContextPackage: setAskContextPackage,
+    setInput,
+  })
   useAiPanelFocus({
     inputRef,
     panelRef,
@@ -98,23 +130,33 @@ export function AiPanelView({
     isActive,
     onClose,
   })
-  const latestResponse = useMemo(() => latestCrystallizableResponse(agent.messages), [agent.messages])
+  const latestCrystallizable = useMemo(() => latestCrystallizableMessage(agent.messages), [agent.messages])
+  const latestResponse = latestCrystallizable?.response ?? null
   const activePolicy = useMemo(() => activeEntry ? resolveEntryLocalityPolicy(activeEntry) : null, [activeEntry])
   const crystallizeBlockedReason = activePolicy?.localOnly
     ? 'Local-only context is protected. Crystallize from a public note or start a fresh chat.'
     : latestResponse ? null : 'Send an AI message first.'
   const crystallizeProposal = useMemo(() => {
-    if (!latestResponse || !vaultPath) return null
-    return buildCrystallizeProposal({ response: latestResponse, vaultPath, activeEntry })
-  }, [activeEntry, latestResponse, vaultPath])
+    if (!latestResponse || !vaultPath || crystallizeBlockedReason) return null
+    return buildCrystallizeProposal({
+      activeEntry,
+      askContextPackage: latestCrystallizable?.contextPackage ?? null,
+      response: latestResponse,
+      vaultPath,
+    })
+  }, [activeEntry, crystallizeBlockedReason, latestCrystallizable?.contextPackage, latestResponse, vaultPath])
+  const crystallizeProposalSummary = useMemo(
+    () => summarizeCrystallizeProposal(crystallizeProposal),
+    [crystallizeProposal],
+  )
   const canCrystallize = !!crystallizeProposal && !crystallizeBlockedReason
 
-  async function handleApplyCrystallize(): Promise<void> {
+  async function handleApplyCrystallize(markdown: string): Promise<void> {
     if (!crystallizeProposal || crystallizeBlockedReason) return
     setCrystallizeApplying(true)
     setCrystallizeError(null)
     try {
-      await persistCrystallizedNote(crystallizeProposal)
+      await persistCrystallizedNote({ ...crystallizeProposal, markdown })
       onFileCreated?.(crystallizeProposal.relativePath)
       onVaultChanged?.()
       onOpenNote?.(crystallizeProposal.relativePath.replace(/\.md$/i, ''))
@@ -126,6 +168,11 @@ export function AiPanelView({
     }
   }
 
+  function handlePanelNewChat(): void {
+    setAskContextPackage(null)
+    handleNewChat()
+  }
+
   return (
     <>
       <aside
@@ -135,7 +182,7 @@ export function AiPanelView({
         style={{
           outline: 'none',
           borderLeft: isActive
-            ? '2px solid var(--accent-blue)'
+            ? '2px solid var(--grimoire-signal-accent, var(--accent-blue))'
             : '1px solid var(--border)',
           transition: 'border-color 0.3s ease',
         }}
@@ -145,17 +192,39 @@ export function AiPanelView({
       >
         <AiPanelHeader
           agentLabel={agentLabel}
+          agentRouteLabel={agentRouteLabel}
           agentReady={defaultAiAgentReady}
           canCrystallize={canCrystallize}
           crystallizeBlockedReason={crystallizeBlockedReason}
           legacyCopy={useLegacyAiExperience}
           onClose={onClose}
           onCrystallize={() => setCrystallizeOpen(true)}
-          onNewChat={handleNewChat}
+          onNewChat={handlePanelNewChat}
         />
         {activeEntry && (
           <AiPanelContextBar activeEntry={activeEntry} linkedCount={linkedEntries.length} />
         )}
+        <AiPanelIntelligenceRail
+          activeEntry={activeEntry}
+          activeNoteContent={activeNoteContent}
+          activePolicy={activePolicy}
+          aiAgentsStatus={providedAiAgentsStatus}
+          canCrystallize={canCrystallize}
+          crystallizeBlockedReason={crystallizeBlockedReason}
+          defaultAiAgent={defaultAiAgent}
+          defaultAiAgentReady={defaultAiAgentReady}
+          entries={entries ?? []}
+          hasContext={hasContext}
+          hasLatestResponse={!!latestResponse}
+          linkedEntries={linkedEntries}
+          noteList={noteList}
+          noteListFilter={noteListFilter}
+          onCrystallize={() => setCrystallizeOpen(true)}
+          onOpenNote={onOpenNote}
+          openTabs={openTabs}
+          proposalSummary={crystallizeProposalSummary}
+          askContextPackage={askContextPackage}
+        />
         <AiPanelMessageHistory
           agentLabel={agentLabel}
           agentReady={defaultAiAgentReady}
@@ -186,7 +255,7 @@ export function AiPanelView({
         blockedReason={crystallizeBlockedReason}
         applying={crystallizeApplying}
         error={crystallizeError}
-        onApply={() => { void handleApplyCrystallize() }}
+        onApply={(markdown) => { void handleApplyCrystallize(markdown) }}
         onClose={() => setCrystallizeOpen(false)}
       />
     </>
@@ -199,6 +268,7 @@ export function AiPanel({
   onUnsupportedAiPaste,
   defaultAiAgent: providedDefaultAiAgent,
   defaultAiAgentReady: providedDefaultAiAgentReady,
+  aiAgentsStatus,
   defaultAiProvider,
   defaultAiModel,
   onFileCreated,
@@ -239,8 +309,15 @@ export function AiPanel({
       onUnsupportedAiPaste={onUnsupportedAiPaste}
       defaultAiAgent={providedDefaultAiAgent}
       defaultAiAgentReady={providedDefaultAiAgentReady}
+      aiAgentsStatus={aiAgentsStatus}
+      defaultAiProvider={defaultAiProvider}
+      defaultAiModel={defaultAiModel}
       activeEntry={activeEntry}
+      activeNoteContent={activeNoteContent}
       entries={entries}
+      openTabs={openTabs}
+      noteList={noteList}
+      noteListFilter={noteListFilter}
       onFileCreated={onFileCreated}
       onVaultChanged={onVaultChanged}
     />

@@ -6,6 +6,8 @@ import {
   filterGraphEdges,
   GRAPH_CENTER_X,
   GRAPH_CENTER_Y,
+  GRAPH_VIEWBOX_HEIGHT,
+  GRAPH_VIEWBOX_WIDTH,
   graphTypeStats,
   layoutGraph,
   limitGraphForDisplay,
@@ -119,6 +121,29 @@ describe('graphDisplay', () => {
     }
 
     expect(limitGraphForDisplay(graph).nodes).toHaveLength(MAX_VISIBLE_GRAPH_NODES)
+  })
+
+  it('keeps all large graph coordinates inside the SVG label-safe viewport', () => {
+    const graph: NoteGraph = {
+      nodes: Array.from({ length: MAX_VISIBLE_GRAPH_NODES }, (_, index) => ({
+        id: `note-${index}`,
+        path: `note-${index}.md`,
+        title: `Note ${index}`,
+        type: 'Note',
+        degree: index,
+        active: index === 0,
+      })),
+      edges: [],
+    }
+
+    const layout = layoutGraph(graph, [])
+
+    for (const node of layout.nodes) {
+      expect(node.x).toBeGreaterThanOrEqual(78)
+      expect(node.x).toBeLessThanOrEqual(GRAPH_VIEWBOX_WIDTH - 78)
+      expect(node.y).toBeGreaterThanOrEqual(78)
+      expect(node.y).toBeLessThanOrEqual(GRAPH_VIEWBOX_HEIGHT - 78)
+    }
   })
 
   it('lays out the active node first and applies custom type color', () => {

@@ -1,9 +1,8 @@
 export const SUPPORTED_THEME_PRESETS = [
   'constellation',
+  'daylight-atelier',
   'living-archive',
-  'research-cockpit',
   'nocturne',
-  'manuscript',
   'retro-terminal',
 ] as const
 

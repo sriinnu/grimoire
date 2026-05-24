@@ -26,6 +26,50 @@ describe('NoteList rendering', () => {
     expect(screen.queryByText('Build Grimoire App')).not.toBeInTheDocument()
   })
 
+  it('lazy-loads project intelligence only for folder selections', async () => {
+    renderNoteList({
+      selection: { kind: 'folder', path: 'project' },
+      entries: [
+        makeEntry({
+          path: '/vault/project/README.md',
+          filename: 'README.md',
+          title: 'README',
+          snippet: '- [ ] Wire project board',
+        }),
+      ],
+    })
+
+    expect(await screen.findByTestId('project-workspace-strip')).toBeInTheDocument()
+    const chrome = await screen.findByTestId('project-workspace-chrome')
+    expect(chrome).toHaveClass('project-workspace-chrome')
+    expect(chrome.querySelector('.project-workspace-chrome__overview')).toBeInTheDocument()
+    expect(chrome.querySelector('.project-workspace-chrome__metrics')).toBeInTheDocument()
+    expect(chrome.querySelector('.project-workspace-chrome__actions')).toBeInTheDocument()
+    expect(chrome.querySelector('.project-workspace-chrome__search')).toBeInTheDocument()
+    expect(chrome.querySelector('.project-workspace-chrome__search-actions')).toBeInTheDocument()
+  })
+
+  it('renders folder filters as a footer instead of overlaying note cards', () => {
+    renderNoteList({
+      selection: { kind: 'folder', path: 'project' },
+      entries: [
+        makeEntry({
+          path: '/vault/project/README.md',
+          filename: 'README.md',
+          title: 'README',
+        }),
+      ],
+    })
+
+    const filters = screen.getByTestId('note-list-bottom-filters')
+    expect(filters).toHaveClass('shrink-0')
+    expect(filters.querySelector('.note-list-filter-shelf')).toBeInTheDocument()
+    expect(filters.querySelector('.note-list-filter-shelf')).toHaveClass('note-list-filter-shelf')
+    expect(screen.getByTestId('note-list-file-scope-group')).toHaveClass('note-list-filter-group')
+    expect(screen.getByTestId('note-list-state-filter-group')).toHaveClass('note-list-filter-group')
+    expect(filters).not.toHaveClass('absolute')
+  })
+
   it('supports event sections', () => {
     renderNoteList({ selection: { kind: 'sectionGroup', type: 'Event' } })
     expect(screen.getByText('Kickoff Meeting')).toBeInTheDocument()
@@ -126,7 +170,7 @@ describe('NoteList rendering', () => {
       ],
     })
 
-    const titles = screen.getAllByText(/Oldest|Newest|Middle/).map((element) => element.textContent)
+    const titles = screen.getAllByTestId('note-title').map((element) => element.textContent)
     expect(titles).toEqual(['Newest', 'Middle', 'Oldest'])
   })
 

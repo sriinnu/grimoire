@@ -1,41 +1,54 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  cancelPortabilityOperation,
   formatMarkdownImportToast,
-  importJournalExportIntoVault,
-  importMarkdownFolderIntoVault,
-  importMarkdownZipIntoVault,
+  formatMarkdownImportPreviewToast,
+  importAppExportIntoVaultWithProgress,
+  importJournalExportIntoVaultWithProgress,
+  importMarkdownFolderIntoVaultWithProgress,
+  importMarkdownZipIntoVaultWithProgress,
+  pickAppImportSource,
   pickBearImportFolder,
   pickJournalImportSource,
   pickMarkdownImportFolder,
   pickMarkdownZipImportFile,
+  previewAppExportIntoVault,
+  previewJournalExportIntoVault,
+  previewMarkdownFolderImport,
+  previewMarkdownZipImport,
+  type AppImportSource,
   type JournalImportSource,
 } from '../utils/markdownFolderImport'
 import {
-  exportMarkdownZip,
-  formatMarkdownZipExportToast,
-  pickMarkdownZipExportTarget,
-} from '../utils/vaultExport'
+  runMarkdownZipExportAction,
+  runStaticHtmlExportAction,
+} from './vaultExportActionRunners'
+import {
+  previewKey,
+  runObjectStorageSyncAction,
+  type ObjectStoragePreviewKey,
+} from './vaultStorageSyncActionRunners'
+import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
+import type { ObjectStorageProviderId } from '../lib/objectStorageAdapterDesign'
+import {
+  type ActivePortabilityOperation,
+  appImportActionId,
+  appImportLabel,
+  beginPortabilityOperation,
+  clearPortabilityOperation,
+  errorMessage,
+  isCurrentPortabilityOperation,
+  journalActionId,
+  journalImportLabel,
+  nextPortabilityImportProgress,
+  type PortabilityOperationProgressEvent,
+  type VaultPortabilityActions,
+  type VaultPortabilityActionsOptions,
+} from './vaultPortabilityActionHelpers'
+import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
 
-interface VaultPortabilityActionsOptions {
-  resolvedPath: string
-  reloadVault: () => Promise<unknown>
-  reloadFolders: () => Promise<unknown>
-  loadModifiedFiles: () => Promise<unknown>
-  setToastMessage: (message: string) => void
-}
-
-interface VaultPortabilityActions {
-  markdownImportBusy: boolean
-  handleImportMarkdownFolder: () => void
-  handleImportMarkdownZip: () => void
-  handleImportBear: () => void
-  handleImportDayOne: () => void
-  handleImportJourney: () => void
-  handleExportMarkdownZip: () => void
-}
-
-type MarkdownFolderSource = 'markdown-folder' | 'bear'
-
+type MarkdownFolderSource = 'markdown-folder' | 'bear' | 'markdown-zip'
+type ObjectStoragePreviewReports = Partial<Record<ObjectStoragePreviewKey, ObjectStorageSyncReport>>
 /** Owns vault import/export actions so App only wires the surface. */
 export function useVaultPortabilityActions({
   resolvedPath,
@@ -44,116 +57,291 @@ export function useVaultPortabilityActions({
   loadModifiedFiles,
   setToastMessage,
 }: VaultPortabilityActionsOptions): VaultPortabilityActions {
-  const [activeAction, setActiveAction] = useState<string | null>(null)
+  const [activeAction, setActiveAction] = useState<VaultPortabilityActionId | null>(null)
+  const [portabilityProgress, setPortabilityProgress] = useState<PortabilityProgressState | null>(null)
+  const [lastImportPreview, setLastImportPreview] = useState<ImportAutopsyPreviewState | null>(null)
+  const [objectStoragePreviewReports, setObjectStoragePreviewReports] = useState<ObjectStoragePreviewReports>({})
+  const activeOperationRef = useRef<ActivePortabilityOperation | null>(null)
   const markdownImportBusy = activeAction !== null
+
+  useEffect(() => {
+    setObjectStoragePreviewReports({})
+    setLastImportPreview(null)
+    setPortabilityProgress(null)
+    activeOperationRef.current = null
+  }, [resolvedPath])
 
   const reloadAfterImport = useCallback(async () => {
     await reloadVault()
     await reloadFolders()
     await loadModifiedFiles()
   }, [loadModifiedFiles, reloadFolders, reloadVault])
+  const rememberImportPreview = useCallback((
+    sourceId: VaultPortabilityActionId,
+    result: ImportAutopsyPreviewState['result'],
+  ) => setLastImportPreview({ sourceId, result }), [])
+  const updateImportProgress = useCallback((
+    operation: ActivePortabilityOperation,
+    label: string,
+    event: PortabilityOperationProgressEvent,
+  ) => {
+    if (!isCurrentPortabilityOperation(activeOperationRef.current, operation.operationId)) return
+    setPortabilityProgress((current) => nextPortabilityImportProgress(current, operation, label, event))
+  }, [])
+  const handleCancelPortabilityAction = useCallback(() => {
+    const operation = activeOperationRef.current
+    if (!operation) return
+    operation.cancelled = true
+    setPortabilityProgress((current) => current ? { ...current, phase: 'cancelling' } : current)
+    void cancelPortabilityOperation(operation.operationId)
+    activeOperationRef.current = null
+    setActiveAction(null)
+    setPortabilityProgress(null)
+    setToastMessage(cancelToastForAction(operation.actionId))
+  }, [setToastMessage])
+  const handlePreviewFolder = useCallback(async (source: MarkdownFolderSource) => {
+    if (!resolvedPath.trim()) {
+      setToastMessage('Open a vault before previewing an import')
+      return
+    }
+    const label = source === 'bear' ? 'Bear export' : 'Markdown folder'
+    const actionId = source === 'bear' ? 'bear-preview' : 'markdown-folder-preview'
+    setActiveAction(actionId)
+    try {
+      const sourcePath = source === 'bear' ? await pickBearImportFolder() : await pickMarkdownImportFolder()
+      if (!sourcePath) return
+
+      setToastMessage(`Previewing ${label} import...`)
+      const result = await previewMarkdownFolderImport(resolvedPath, sourcePath)
+      rememberImportPreview(actionId, result)
+      setToastMessage(formatMarkdownImportPreviewToast(result))
+    } catch (error) {
+      setLastImportPreview(null)
+      setToastMessage(`Preview failed: ${errorMessage(error, 'Preview failed')}`)
+    } finally {
+      setActiveAction(null)
+    }
+  }, [rememberImportPreview, resolvedPath, setToastMessage])
 
   const handleImportFolder = useCallback(async (source: MarkdownFolderSource) => {
     if (!resolvedPath.trim()) {
       setToastMessage('Open a vault before importing Markdown')
       return
     }
-
-    const label = source === 'bear' ? 'Bear export' : 'Markdown folder'
+    const label = source === 'bear' ? 'Bear export' : source === 'markdown-zip' ? 'Markdown ZIP' : 'Markdown folder'
+    setActiveAction(source)
+    let operation: ActivePortabilityOperation | null = null
     try {
-      const sourcePath = source === 'bear' ? await pickBearImportFolder() : await pickMarkdownImportFolder()
+      const sourcePath = source === 'bear'
+        ? await pickBearImportFolder()
+        : source === 'markdown-zip'
+          ? await pickMarkdownZipImportFile()
+          : await pickMarkdownImportFolder()
       if (!sourcePath) return
-
-      setActiveAction(source)
+      const activeOperation = beginPortabilityOperation(source, label, activeOperationRef, setPortabilityProgress)
+      operation = activeOperation
+      setLastImportPreview(null)
       setToastMessage(`Importing ${label}...`)
-      const result = await importMarkdownFolderIntoVault(resolvedPath, sourcePath)
+      const importWithProgress = source === 'markdown-zip'
+        ? importMarkdownZipIntoVaultWithProgress
+        : importMarkdownFolderIntoVaultWithProgress
+      const result = await importWithProgress(resolvedPath, sourcePath, activeOperation.operationId, (event) => {
+        updateImportProgress(activeOperation, label, event)
+      })
+      if (!isCurrentPortabilityOperation(activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return
       await reloadAfterImport()
       setToastMessage(formatMarkdownImportToast(result))
     } catch (error) {
-      setToastMessage(`Import failed: ${errorMessage(error, 'Import failed')}`)
+      if (!operation?.cancelled) {
+        setToastMessage(`Import failed: ${errorMessage(error, 'Import failed')}`)
+      }
     } finally {
+      clearPortabilityOperation(operation, activeOperationRef, setPortabilityProgress)
       setActiveAction(null)
     }
-  }, [reloadAfterImport, resolvedPath, setToastMessage])
+  }, [reloadAfterImport, resolvedPath, setToastMessage, updateImportProgress])
 
-  const handleImportMarkdownZip = useCallback(async () => {
+  const handlePreviewMarkdownZip = useCallback(async () => {
     if (!resolvedPath.trim()) {
-      setToastMessage('Open a vault before importing Markdown')
+      setToastMessage('Open a vault before previewing an import')
       return
     }
-
+    const actionId = 'markdown-zip-preview'
+    setActiveAction(actionId)
     try {
       const sourcePath = await pickMarkdownZipImportFile()
       if (!sourcePath) return
-
-      setActiveAction('markdown-zip')
-      setToastMessage('Importing Markdown ZIP...')
-      const result = await importMarkdownZipIntoVault(resolvedPath, sourcePath)
-      await reloadAfterImport()
-      setToastMessage(formatMarkdownImportToast(result))
+      setToastMessage('Previewing Markdown ZIP import...')
+      const result = await previewMarkdownZipImport(resolvedPath, sourcePath)
+      rememberImportPreview(actionId, result)
+      setToastMessage(formatMarkdownImportPreviewToast(result))
     } catch (error) {
-      setToastMessage(`Import failed: ${errorMessage(error, 'Import failed')}`)
+      setLastImportPreview(null)
+      setToastMessage(`Preview failed: ${errorMessage(error, 'Preview failed')}`)
     } finally {
       setActiveAction(null)
     }
-  }, [reloadAfterImport, resolvedPath, setToastMessage])
+  }, [rememberImportPreview, resolvedPath, setToastMessage])
 
-  const handleImportJournalExport = useCallback(async (source: JournalImportSource) => {
+  const handleJournalExport = useCallback(async (source: JournalImportSource, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
-      setToastMessage('Open a vault before importing journals')
+      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} journals`)
       return
     }
-
+    const actionId = journalActionId(source, mode)
+    const label = journalImportLabel(source)
+    setActiveAction(actionId)
+    let operation: ActivePortabilityOperation | null = null
     try {
       const sourcePath = await pickJournalImportSource(source)
       if (!sourcePath) return
-
-      setActiveAction(source)
-      setToastMessage(`Importing ${source === 'day-one' ? 'Day One' : 'Journey'} export...`)
-      const result = await importJournalExportIntoVault(resolvedPath, sourcePath, source)
-      await reloadAfterImport()
-      setToastMessage(formatMarkdownImportToast(result))
+      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label} export...`)
+      if (mode === 'preview') {
+        const result = await previewJournalExportIntoVault(resolvedPath, sourcePath, source)
+        rememberImportPreview(actionId, result)
+        setToastMessage(formatMarkdownImportPreviewToast(result))
+      } else {
+        const activeOperation = beginPortabilityOperation(source, label, activeOperationRef, setPortabilityProgress)
+        operation = activeOperation
+        setLastImportPreview(null)
+        const result = await importJournalExportIntoVaultWithProgress(
+          resolvedPath, sourcePath, source, activeOperation.operationId,
+          (event) => updateImportProgress(activeOperation, label, event),
+        )
+        if (!isCurrentPortabilityOperation(activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return
+        await reloadAfterImport()
+        setToastMessage(formatMarkdownImportToast(result))
+      }
     } catch (error) {
-      setToastMessage(`Import failed: ${errorMessage(error, 'Import failed')}`)
+      if (mode === 'preview') setLastImportPreview(null)
+      if (mode === 'preview' || !operation?.cancelled) {
+        setToastMessage(`${mode === 'preview' ? 'Preview' : 'Import'} failed: ${errorMessage(error, 'Import failed')}`)
+      }
     } finally {
+      clearPortabilityOperation(operation, activeOperationRef, setPortabilityProgress)
       setActiveAction(null)
     }
-  }, [reloadAfterImport, resolvedPath, setToastMessage])
+  }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
 
-  const handleExportMarkdownZip = useCallback(async () => {
+  const handleAppExport = useCallback(async (source: AppImportSource, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
-      setToastMessage('Open a vault before exporting Markdown')
+      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} app exports`)
       return
     }
-
+    const label = appImportLabel(source)
+    setActiveAction(appImportActionId(source, mode))
+    let operation: ActivePortabilityOperation | null = null
     try {
-      const targetPath = await pickMarkdownZipExportTarget()
-      if (!targetPath) return
+      const sourcePath = await pickAppImportSource(source)
+      if (!sourcePath) return
 
-      setActiveAction('export-markdown-zip')
-      setToastMessage('Exporting Markdown ZIP...')
-      const result = await exportMarkdownZip(resolvedPath, targetPath)
-      setToastMessage(formatMarkdownZipExportToast(result))
+      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label}...`)
+      if (mode === 'preview') {
+        const result = await previewAppExportIntoVault(resolvedPath, sourcePath, source)
+        rememberImportPreview(appImportActionId(source, mode), result)
+        setToastMessage(formatMarkdownImportPreviewToast(result))
+      } else {
+        const activeOperation = beginPortabilityOperation(source, label, activeOperationRef, setPortabilityProgress)
+        operation = activeOperation
+        setLastImportPreview(null)
+        const result = await importAppExportIntoVaultWithProgress(
+          resolvedPath, sourcePath, source, activeOperation.operationId,
+          (event) => updateImportProgress(activeOperation, label, event),
+        )
+        if (!isCurrentPortabilityOperation(activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return
+        await reloadAfterImport()
+        setToastMessage(formatMarkdownImportToast(result))
+      }
     } catch (error) {
-      setToastMessage(`Export failed: ${errorMessage(error, 'Export failed')}`)
+      if (mode === 'preview') setLastImportPreview(null)
+      if (mode === 'preview' || !operation?.cancelled) {
+        setToastMessage(`${mode === 'preview' ? 'Preview' : 'Import'} failed: ${errorMessage(error, 'Import failed')}`)
+      }
     } finally {
+      clearPortabilityOperation(operation, activeOperationRef, setPortabilityProgress)
       setActiveAction(null)
     }
-  }, [resolvedPath, setToastMessage])
+  }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
+
+  const handleExportMarkdownZip = useCallback(async () => {
+    await runMarkdownZipExportAction({
+      resolvedPath,
+      activeOperationRef,
+      setActiveAction,
+      setPortabilityProgress,
+      setToastMessage,
+      updateProgress: updateImportProgress,
+    })
+  }, [resolvedPath, setToastMessage, updateImportProgress])
+
+  const handleExportStaticHtmlArchive = useCallback(async () => {
+    await runStaticHtmlExportAction({
+      resolvedPath,
+      activeOperationRef,
+      setActiveAction,
+      setPortabilityProgress,
+      setToastMessage,
+      updateProgress: updateImportProgress,
+    })
+  }, [resolvedPath, setToastMessage, updateImportProgress])
+
+  const handleObjectStorageSync = useCallback(async (
+    providerId: ObjectStorageProviderId,
+    direction: 'push' | 'pull',
+    mode: 'preview' | 'apply',
+  ) => {
+    await runObjectStorageSyncAction(providerId, direction, mode, {
+      resolvedPath,
+      objectStoragePreviewReports,
+      setObjectStoragePreviewReports,
+      activeOperationRef,
+      setActiveAction,
+      setPortabilityProgress,
+      setToastMessage,
+      loadModifiedFiles,
+      updateProgress: updateImportProgress,
+    })
+  }, [loadModifiedFiles, objectStoragePreviewReports, resolvedPath, setToastMessage, updateImportProgress])
 
   return {
     markdownImportBusy,
-    handleImportMarkdownFolder: () => { void handleImportFolder('markdown-folder') },
-    handleImportMarkdownZip: () => { void handleImportMarkdownZip() },
-    handleImportBear: () => { void handleImportFolder('bear') },
-    handleImportDayOne: () => { void handleImportJournalExport('day-one') },
-    handleImportJourney: () => { void handleImportJournalExport('journey') },
+    portabilityBusyAction: activeAction,
+    portabilityProgress,
+    lastImportPreview,
+    handleCancelPortabilityAction,
+    handlePreviewMarkdownFolder: () => { void handlePreviewFolder('markdown-folder') }, handleImportMarkdownFolder: () => { void handleImportFolder('markdown-folder') },
+    handlePreviewMarkdownZip: () => { void handlePreviewMarkdownZip() }, handleImportMarkdownZip: () => { void handleImportFolder('markdown-zip') },
+    handlePreviewBear: () => { void handlePreviewFolder('bear') }, handleImportBear: () => { void handleImportFolder('bear') },
+    handlePreviewObsidian: () => { void handleAppExport('obsidian', 'preview') }, handleImportObsidian: () => { void handleAppExport('obsidian', 'import') },
+    handlePreviewNotion: () => { void handleAppExport('notion-markdown', 'preview') }, handleImportNotion: () => { void handleAppExport('notion-markdown', 'import') },
+    handlePreviewNotionFolder: () => { void handleAppExport('notion-folder', 'preview') }, handleImportNotionFolder: () => { void handleAppExport('notion-folder', 'import') },
+    handlePreviewSpanda: () => { void handleAppExport('spanda', 'preview') }, handleImportSpanda: () => { void handleAppExport('spanda', 'import') },
+    handlePreviewAppleJournal: () => { void handleJournalExport('apple-journal', 'preview') }, handleImportAppleJournal: () => { void handleJournalExport('apple-journal', 'import') },
+    handlePreviewDayOne: () => { void handleJournalExport('day-one', 'preview') }, handleImportDayOne: () => { void handleJournalExport('day-one', 'import') },
+    handlePreviewJourney: () => { void handleJournalExport('journey', 'preview') }, handleImportJourney: () => { void handleJournalExport('journey', 'import') },
     handleExportMarkdownZip: () => { void handleExportMarkdownZip() },
+    handleExportStaticHtmlArchive: () => { void handleExportStaticHtmlArchive() },
+    s3MirrorPreviewReady: Boolean(objectStoragePreviewReports[previewKey('s3', 'push')]),
+    s3MirrorPullPreviewReady: Boolean(objectStoragePreviewReports[previewKey('s3', 'pull')]),
+    azureMirrorPreviewReady: Boolean(objectStoragePreviewReports[previewKey('azure-blob', 'push')]),
+    azureMirrorPullPreviewReady: Boolean(objectStoragePreviewReports[previewKey('azure-blob', 'pull')]),
+    s3MirrorPreviewReport: objectStoragePreviewReports[previewKey('s3', 'push')],
+    s3MirrorPullPreviewReport: objectStoragePreviewReports[previewKey('s3', 'pull')],
+    azureMirrorPreviewReport: objectStoragePreviewReports[previewKey('azure-blob', 'push')],
+    azureMirrorPullPreviewReport: objectStoragePreviewReports[previewKey('azure-blob', 'pull')],
+    handlePreviewS3MirrorPush: () => { void handleObjectStorageSync('s3', 'push', 'preview') },
+    handleApplyS3MirrorPush: () => { void handleObjectStorageSync('s3', 'push', 'apply') },
+    handlePreviewS3MirrorPull: () => { void handleObjectStorageSync('s3', 'pull', 'preview') },
+    handleApplyS3MirrorPull: () => { void handleObjectStorageSync('s3', 'pull', 'apply') },
+    handlePreviewAzureMirrorPush: () => { void handleObjectStorageSync('azure-blob', 'push', 'preview') },
+    handleApplyAzureMirrorPush: () => { void handleObjectStorageSync('azure-blob', 'push', 'apply') },
+    handlePreviewAzureMirrorPull: () => { void handleObjectStorageSync('azure-blob', 'pull', 'preview') },
+    handleApplyAzureMirrorPull: () => { void handleObjectStorageSync('azure-blob', 'pull', 'apply') },
   }
 }
 
-function errorMessage(error: unknown, fallback: string): string {
-  if (typeof error === 'string') return error
-  if (error instanceof Error) return error.message
-  return fallback
+function cancelToastForAction(actionId: VaultPortabilityActionId): string {
+  if (actionId.startsWith('export')) return 'Export cancelled'
+  if (actionId.startsWith('storage')) return 'Storage sync cancelled'
+  return 'Import cancelled'
 }

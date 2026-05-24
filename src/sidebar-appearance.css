@@ -37,31 +37,23 @@
   width: 100%;
 }
 
-.sidebar-artwork__image {
+.sidebar-artwork__glyph {
   display: none;
   height: 112%;
+  inset: auto -5% -4%;
   object-fit: contain;
   object-position: center bottom;
   position: absolute;
-  inset: auto -5% -4%;
   width: 110%;
 }
 
-[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork,
-[data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork,
-[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork,
-[data-sidebar-preset-preview="manuscript"] .sidebar-artwork,
-[data-sidebar-preset-preview="nocturne"] .sidebar-artwork,
-[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork {
+[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork,
+[data-sidebar-artwork-preview]:not([data-sidebar-artwork-preview="none"]) .sidebar-artwork {
   display: block;
 }
 
-[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="manuscript"] .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="nocturne"] .sidebar-artwork__image--dark,
-[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__image--dark {
+[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork__glyph--sigil,
+[data-sidebar-artwork-preview]:not([data-sidebar-artwork-preview="none"]) .sidebar-artwork__glyph--sigil {
   display: block;
 }
 
@@ -92,14 +84,14 @@
 
 [data-theme-preset="nocturne"] .app-sidebar-panel {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent-yellow) 11%, transparent), transparent 18rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-primary) 11%, transparent), transparent 18rem),
     var(--surface-sidebar);
 }
 
 [data-theme-preset="retro-terminal"] .app-sidebar-panel {
   background:
-    repeating-linear-gradient(180deg, rgba(155, 255, 122, 0.05) 0 1px, transparent 1px 7px),
-    linear-gradient(145deg, rgba(155, 255, 122, 0.08), transparent 14rem),
+    repeating-linear-gradient(180deg, color-mix(in srgb, var(--sidebar-primary) 5%, transparent) 0 1px, transparent 1px 7px),
+    linear-gradient(145deg, color-mix(in srgb, var(--sidebar-primary) 8%, transparent), transparent 14rem),
     var(--surface-sidebar);
 }
 

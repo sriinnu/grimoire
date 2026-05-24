@@ -3,6 +3,10 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import type { VaultEntry, ModifiedFile, GitCommit } from '../types'
 import { useVaultLoader, resolveNoteStatus } from './useVaultLoader'
 
+const { tauriInvokeMock } = vi.hoisted(() => ({
+  tauriInvokeMock: vi.fn(),
+}))
+
 const mockEntries: VaultEntry[] = [
   {
     path: '/vault/note/hello.md', filename: 'hello.md', title: 'Hello',
@@ -38,6 +42,7 @@ const defaultMockHandlers: Record<string, MockCommandHandler> = {
   get_file_diff_at_commit: (args) => `diff for ${(args as Record<string, string>)?.commitHash}`,
   git_commit: () => 'committed',
   git_push: () => ({ status: 'ok', message: 'Pushed to remote' }),
+  cancel_markdown_folder_import: () => true,
 }
 
 function defaultMockInvoke(cmd: string, args?: Record<string, unknown>) {
@@ -100,6 +105,10 @@ function createDeferred<T>() {
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }))
+vi.mock('../lib/tauriRuntime', () => ({
+  invoke: tauriInvokeMock,
+  createTauriChannel: vi.fn(),
+}))
 
 vi.mock('../mock-tauri', () => ({
   isTauri: () => mockIsTauri,
@@ -133,8 +142,7 @@ async function renderVaultLoader() {
 
 async function enableTauriMode() {
   mockIsTauri = true
-  const tauri = await import('@tauri-apps/api/core')
-  vi.mocked(tauri.invoke).mockImplementation((command: string, args?: Record<string, unknown>) =>
+  tauriInvokeMock.mockImplementation((command: string, args?: Record<string, unknown>) =>
     backendInvokeFn(command, args),
   )
 }
@@ -142,6 +150,7 @@ async function enableTauriMode() {
 describe('useVaultLoader', () => {
   beforeEach(() => {
     mockIsTauri = false
+    tauriInvokeMock.mockReset()
     backendInvokeFn.mockReset()
     backendInvokeFn.mockImplementation(defaultMockInvoke)
   })
@@ -750,6 +759,47 @@ describe('useVaultLoader', () => {
       expect(entries.map((entry) => entry.title)).toEqual(['Reloaded'])
       expect(result.current.entries.map((entry) => entry.title)).toEqual(['Reloaded'])
       expect(result.current.modifiedFiles).toEqual([])
+    })
+
+    it('shows cancellable progress while reload_vault is running', async () => {
+      const reload = createDeferred<VaultEntry[]>()
+      backendInvokeFn.mockImplementation(((cmd: string) => {
+        if (cmd === 'list_vault') return Promise.resolve(mockEntries)
+        if (cmd === 'reload_vault') return reload.promise
+        if (cmd === 'get_modified_files') return Promise.resolve([])
+        if (cmd === 'list_vault_folders') return Promise.resolve([])
+        if (cmd === 'list_views') return Promise.resolve([])
+        if (cmd === 'cancel_markdown_folder_import') return Promise.resolve(true)
+        return Promise.resolve(null)
+      }) as typeof defaultMockInvoke)
+
+      const { result } = await renderVaultLoader()
+      let reloadPromise: Promise<VaultEntry[]> = Promise.resolve([])
+
+      act(() => {
+        reloadPromise = result.current.reloadVault()
+      })
+
+      await waitFor(() => {
+        expect(result.current.rebuildProgress?.phase).toBe('starting')
+      })
+
+      await act(async () => {
+        await result.current.cancelVaultReload()
+      })
+
+      expect(result.current.rebuildProgress?.phase).toBe('cancelling')
+      expect(backendInvokeFn).toHaveBeenCalledWith(
+        'cancel_markdown_folder_import',
+        expect.objectContaining({ operationId: expect.stringContaining('vault-rebuild-') }),
+      )
+
+      await act(async () => {
+        reload.resolve(mockEntries)
+        await reloadPromise
+      })
+
+      expect(result.current.rebuildProgress).toBeNull()
     })
 
     it('returns an empty list when reloading the vault fails', async () => {

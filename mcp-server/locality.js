@@ -2,10 +2,52 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import matter from 'gray-matter'
 
-const LOCAL_ONLY_FIELD_KEYS = new Set(['localonly', 'nosync', 'neversync', 'private'])
-const LOCAL_ONLY_TYPE_NAMES = new Set(['dream', 'dreams', 'health', 'journal', 'journals', 'private', 'therapy'])
-const LOCAL_ONLY_PATH_SEGMENTS = new Set(['dream', 'dreams', 'health', 'journal', 'journals', 'local-only', 'private', 'therapy'])
-const TRUE_LOCALITY_VALUES = new Set(['1', 'always', 'local', 'local-only', 'local_only', 'private', 'true', 'yes'])
+const LOCAL_ONLY_FIELD_KEYS = new Set([
+  'egress',
+  'locality',
+  'localonly',
+  'nosync',
+  'neversync',
+  'private',
+])
+const LOCAL_ONLY_TYPE_NAMES = new Set([
+  'dream',
+  'dreams',
+  'health',
+  'import report',
+  'import-report',
+  'journal',
+  'journals',
+  'memory',
+  'private',
+  'sadhana',
+  'therapy',
+])
+const LOCAL_ONLY_PATH_SEGMENTS = new Set([
+  'dream',
+  'dreams',
+  'health',
+  'journal',
+  'journals',
+  'local-only',
+  'memory',
+  'private',
+  'therapy',
+])
+const TRUE_LOCALITY_VALUES = new Set([
+  '1',
+  'always',
+  'blocked',
+  'deny',
+  'denied',
+  'local',
+  'local-only',
+  'local_only',
+  'never',
+  'private',
+  'true',
+  'yes',
+])
 
 /** Returns true when a vault-relative path is protected by its lane/folder. */
 export function isLocalOnlyRelativePath(relativePath) {

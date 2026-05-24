@@ -19,7 +19,7 @@ describe('useSettingsAppearancePreview', () => {
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'manuscript',
+        themePreset: 'living-archive',
         editorFont: 'system',
       },
     }))
@@ -31,7 +31,7 @@ describe('useSettingsAppearancePreview', () => {
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'manuscript')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'system')
   })
 
@@ -39,7 +39,7 @@ describe('useSettingsAppearancePreview', () => {
     const { result, unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'manuscript',
+        themePreset: 'living-archive',
         editorFont: 'serif',
       },
       saved: {
@@ -53,7 +53,7 @@ describe('useSettingsAppearancePreview', () => {
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'manuscript')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
   })
 })

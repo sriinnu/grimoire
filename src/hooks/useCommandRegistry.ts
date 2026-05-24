@@ -54,6 +54,7 @@ interface CommandRegistryConfig {
   onToggleOrganized?: (path: string) => void
   onInsertWeatherSnapshot?: () => void
   onTranscribeAudio?: () => void
+  onRecordAudio?: () => void
   onCustomizeNoteListColumns?: () => void
   canCustomizeNoteListColumns?: boolean
   noteListColumnsLabel?: string
@@ -125,7 +126,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onReloadVault, onRepairVault,
     locale, systemLocale, selectedUiLanguage, onSetUiLanguage,
     onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
-    onOpenInNewWindow, onToggleFavorite, onToggleOrganized, onInsertWeatherSnapshot, onTranscribeAudio,
+    onOpenInNewWindow, onToggleFavorite, onToggleOrganized, onInsertWeatherSnapshot, onTranscribeAudio, onRecordAudio,
     onCustomizeNoteListColumns, canCustomizeNoteListColumns,
     onRestoreDeletedNote, canRestoreDeletedNote,
     selection, noteListFilter, onSetNoteListFilter,
@@ -169,7 +170,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
       onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
       onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onOpenInNewWindow, onToggleFavorite, isFavorite,
       onToggleOrganized, isOrganized: activeEntry?.organized ?? false, onInsertWeatherSnapshot,
-      onTranscribeAudio,
+      onTranscribeAudio, onRecordAudio,
       onRestoreDeletedNote, canRestoreDeletedNote,
     }),
     ...buildGitCommands({
@@ -223,7 +224,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
     isSectionGroup, noteListFilter, onSetNoteListFilter,
     selection,
-    onOpenInNewWindow, onToggleFavorite, isFavorite, onInsertWeatherSnapshot, onTranscribeAudio,
+    onOpenInNewWindow, onToggleFavorite, isFavorite, onInsertWeatherSnapshot, onTranscribeAudio, onRecordAudio,
     onToggleOrganized, onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
     onRestoreDeletedNote, canRestoreDeletedNote, activeEntry,
   ])

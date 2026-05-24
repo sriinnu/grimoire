@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   createBrowserPreviewAiAgentsStatus,
+  describeAiAgentRoute,
   getNextAiAgentId,
   isBrowserPreviewAiAgentsStatus,
   normalizeAiAgentsStatus,
   normalizeStoredAiAgent,
   resolveDefaultAiAgent,
+  resolveDefaultAiProvider,
+  supportsAiAgentProviderRoute,
 } from './aiAgents'
 
 describe('aiAgents helpers', () => {
@@ -45,5 +48,21 @@ describe('aiAgents helpers', () => {
     expect(isBrowserPreviewAiAgentsStatus(statuses)).toBe(true)
     expect(statuses.claude_code.status).toBe('missing')
     expect(statuses.claude_code.version).toContain('native Grimoire app')
+  })
+
+  it('describes the visible runtime route for Chitragupta', () => {
+    expect(describeAiAgentRoute('chitragupta', null, null)).toBe('provider: CLI default · model: CLI default')
+    expect(describeAiAgentRoute('chitragupta', ' google ', ' gemini-2.5-pro ')).toBe(
+      'provider: google · model: gemini-2.5-pro',
+    )
+    expect(describeAiAgentRoute('codex', null, null)).toBeNull()
+    expect(describeAiAgentRoute('codex', null, 'gpt-5.3-codex')).toBe('model: gpt-5.3-codex')
+  })
+
+  it('only honors provider overrides for agents that support provider routing', () => {
+    expect(supportsAiAgentProviderRoute('chitragupta')).toBe(true)
+    expect(supportsAiAgentProviderRoute('codex')).toBe(false)
+    expect(resolveDefaultAiProvider('chitragupta', ' google ')).toBe('google')
+    expect(resolveDefaultAiProvider('codex', ' google ')).toBeNull()
   })
 })

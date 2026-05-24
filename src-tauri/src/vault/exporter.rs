@@ -6,9 +6,20 @@ use walkdir::{DirEntry, WalkDir};
 use zip::write::FileOptions;
 
 use super::locality::is_local_only_export_file;
+use super::locality_attachments::local_only_referenced_attachments;
 
-const SKIPPED_DIRS: &[&str] = &[".git", "node_modules", "target"];
-const SKIPPED_FILES: &[&str] = &[".DS_Store"];
+const SKIPPED_DIRS: &[&str] = &[
+    ".claude",
+    ".codex",
+    ".git",
+    ".grimoire",
+    ".grimoire-local",
+    "certs",
+    "mockups",
+    "node_modules",
+    "target",
+];
+const SKIPPED_FILES: &[&str] = &[".ds_store", ".mcp.json"];
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct VaultExportReport {
@@ -34,6 +45,7 @@ pub fn export_markdown_zip(
     let options = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
+    let local_only_attachments = local_only_referenced_attachments(&vault_root)?;
     let mut files_exported = 0;
     let mut skipped_files = 0;
 
@@ -46,7 +58,7 @@ pub fn export_markdown_zip(
         if !entry.file_type().is_file() {
             continue;
         }
-        if should_skip_file(&vault_root, &entry) {
+        if should_skip_file(&vault_root, &entry, &local_only_attachments) {
             skipped_files += 1;
             continue;
         }
@@ -63,7 +75,7 @@ pub fn export_markdown_zip(
     })
 }
 
-fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
+pub(super) fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
     let canonical = path
         .canonicalize()
         .map_err(|e| format!("{label} folder is not available: {e}"))?;
@@ -73,14 +85,14 @@ fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
     Ok(canonical)
 }
 
-fn resolve_target_path(path: &Path) -> PathBuf {
+pub(super) fn resolve_target_path(path: &Path) -> PathBuf {
     if path.extension().is_some() {
         return path.to_path_buf();
     }
     path.with_extension("zip")
 }
 
-fn validate_target(vault_root: &Path, target: &Path) -> Result<(), String> {
+pub(super) fn validate_target(vault_root: &Path, target: &Path) -> Result<(), String> {
     let parent = target
         .parent()
         .unwrap_or_else(|| Path::new("."))
@@ -97,23 +109,39 @@ fn validate_target(vault_root: &Path, target: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn should_enter(entry: &DirEntry) -> bool {
+pub(super) fn should_enter(entry: &DirEntry) -> bool {
+    if entry.depth() == 0 {
+        return true;
+    }
     if !entry.file_type().is_dir() {
         return true;
     }
     let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
-    !SKIPPED_DIRS.contains(&name.as_str())
+    !is_skipped_name(&name)
 }
 
-fn should_skip_file(vault_root: &Path, entry: &DirEntry) -> bool {
-    entry
-        .file_name()
-        .to_str()
-        .is_some_and(|name| SKIPPED_FILES.contains(&name))
+pub(super) fn should_skip_file(
+    vault_root: &Path,
+    entry: &DirEntry,
+    local_only_attachments: &std::collections::BTreeSet<String>,
+) -> bool {
+    let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
+    let relative = entry
+        .path()
+        .strip_prefix(vault_root)
+        .map(|path| path.to_string_lossy().replace('\\', "/"))
+        .unwrap_or_default();
+    is_skipped_name(&name)
+        || name.starts_with(".env")
+        || local_only_attachments.contains(&relative)
         || is_local_only_export_file(vault_root, entry.path())
 }
 
-fn add_file_to_zip(
+fn is_skipped_name(name: &str) -> bool {
+    name.starts_with('.') || SKIPPED_DIRS.contains(&name) || SKIPPED_FILES.contains(&name)
+}
+
+pub(super) fn add_file_to_zip(
     vault_root: &Path,
     source_path: &Path,
     zip: &mut zip::ZipWriter<File>,
@@ -185,14 +213,104 @@ mod tests {
         fs::write(vault.path().join("Dreams/hidden.md"), "# Hidden\n").unwrap();
         fs::create_dir_all(vault.path().join("Private/attachments")).unwrap();
         fs::write(vault.path().join("Private/attachments/audio.m4a"), "audio").unwrap();
+        fs::write(
+            vault.path().join("sadhana.md"),
+            "---\ntype: Sadhana\nlocality: local\n---\n# Practice\n",
+        )
+        .unwrap();
+        fs::write(
+            vault.path().join("import-report.md"),
+            "---\ntype: Import Report\n---\n# Import Report\n",
+        )
+        .unwrap();
 
         let result =
             export_markdown_zip(vault.path(), &target_dir.path().join("vault.zip")).unwrap();
 
         assert_eq!(result.files_exported, 1);
-        assert_eq!(result.skipped_files, 4);
+        assert_eq!(result.skipped_files, 6);
         let names = zip_entry_names(Path::new(&result.export_path));
         assert_eq!(names, vec!["public.md"]);
+    }
+
+    #[test]
+    fn excludes_local_only_import_attachments_from_zip_export() {
+        let vault = TempDir::new().unwrap();
+        let target_dir = TempDir::new().unwrap();
+        let private_import = vault.path().join("imports/spanda-export");
+        let public_import = vault.path().join("imports/notion-export");
+        fs::create_dir_all(private_import.join("attachments")).unwrap();
+        fs::create_dir_all(public_import.join("attachments")).unwrap();
+        fs::write(
+            private_import.join("practice.md"),
+            "---\ntype: Sadhana\nlocality: local\n---\n# Practice\n",
+        )
+        .unwrap();
+        fs::write(private_import.join("attachments/audio.m4a"), "audio").unwrap();
+        fs::write(
+            public_import.join("project.md"),
+            "---\ntype: Project\n---\n# Project\n",
+        )
+        .unwrap();
+        fs::write(public_import.join("attachments/diagram.png"), "image").unwrap();
+
+        let result =
+            export_markdown_zip(vault.path(), &target_dir.path().join("vault.zip")).unwrap();
+
+        assert_eq!(result.files_exported, 2);
+        assert_eq!(result.skipped_files, 2);
+        let names = zip_entry_names(Path::new(&result.export_path));
+        assert_eq!(
+            names,
+            vec![
+                "imports/notion-export/attachments/diagram.png",
+                "imports/notion-export/project.md"
+            ]
+        );
+    }
+
+    #[test]
+    fn excludes_attachments_referenced_only_by_local_only_notes() {
+        let vault = TempDir::new().unwrap();
+        let target_dir = TempDir::new().unwrap();
+        fs::create_dir_all(vault.path().join("attachments")).unwrap();
+        fs::write(
+            vault.path().join("private-transcript.md"),
+            "---\nlocality: local\nsource_audio: attachments/private-audio.m4a\n---\n# Transcript\n\n![wave](attachments/private-wave.png)\n```grimoire-canvas\ntype: handwriting\nsource: attachments/private-canvas.grimoire-canvas.json\npreview: attachments/private-canvas.png\n```\n",
+        )
+        .unwrap();
+        fs::write(
+            vault.path().join("public-note.md"),
+            "---\ntype: Project\n---\n# Public\n\n![diagram](attachments/public-diagram.png)\n",
+        )
+        .unwrap();
+        fs::write(vault.path().join("attachments/private-audio.m4a"), "audio").unwrap();
+        fs::write(vault.path().join("attachments/private-wave.png"), "wave").unwrap();
+        fs::write(vault.path().join("attachments/private-photo.png"), "photo").unwrap();
+        fs::write(
+            vault
+                .path()
+                .join("attachments/private-canvas.grimoire-canvas.json"),
+            r#"{"version":1,"images":[{"src":"attachments/private-photo.png"}],"strokes":[]}"#,
+        )
+        .unwrap();
+        fs::write(vault.path().join("attachments/private-canvas.png"), "image").unwrap();
+        fs::write(
+            vault.path().join("attachments/public-diagram.png"),
+            "diagram",
+        )
+        .unwrap();
+
+        let result =
+            export_markdown_zip(vault.path(), &target_dir.path().join("vault.zip")).unwrap();
+
+        assert_eq!(result.files_exported, 2);
+        assert_eq!(result.skipped_files, 6);
+        let names = zip_entry_names(Path::new(&result.export_path));
+        assert_eq!(
+            names,
+            vec!["attachments/public-diagram.png", "public-note.md"]
+        );
     }
 
     fn zip_entry_names(path: &Path) -> Vec<String> {

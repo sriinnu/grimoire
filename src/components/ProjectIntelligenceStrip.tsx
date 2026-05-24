@@ -1,28 +1,20 @@
-import {
-  AlertCircle,
-  BookOpenText,
-  ClipboardList,
-  Code2,
-  Eye,
-  FilePlus2,
-  FileText,
-  ListTodo,
-  Network,
-  Search,
-} from 'lucide-react'
-import { memo, useMemo, useState } from 'react'
+import { Eye } from 'lucide-react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import type { SidebarSelection, VaultEntry } from '../types'
+import { buildGrimoireProjectIntelligence } from '../project-intelligence/grimoireAdapter'
 import {
-  buildGrimoireProjectIntelligence,
-  type GrimoireProjectDocument,
-} from '../project-intelligence/grimoireAdapter'
-import { useProjectFileContents } from '../project-intelligence/useProjectFileContents'
+  readProjectFileContent,
+  useProjectFileContents,
+} from '../project-intelligence/useProjectFileContents'
 import { persistContent } from '../hooks/useSaveNote'
-import { MarkdownContent } from './MarkdownContent'
-import { ProjectLinkGraph } from './ProjectLinkGraph'
-import { ProjectTaskList } from './ProjectTaskList'
+import { resolveSourceTaskUpdate } from '../project-intelligence/sourceTaskActions'
+import { projectIssueKey } from '../project-intelligence/sourceTaskUpdates'
+import {
+  mergeProjectContentByPath,
+  pruneSyncedProjectContentOverrides,
+} from '../project-intelligence/sourceTaskEntries'
+import type { ExtractedProjectIssue } from '../project-intelligence/types'
 import {
   buildProjectFileResults,
   createProjectDocContent,
@@ -32,29 +24,22 @@ import {
   slugifyProjectDocName,
   type ProjectFileResult,
 } from './projectWorkspaceUtils'
+import { ProjectWorkspaceChrome } from './ProjectWorkspaceChrome'
+
+function projectScopeLabel(selection: SidebarSelection): string {
+  if (selection.kind !== 'folder') return 'Current view'
+  const parts = selection.path.replaceAll('\\', '/').split('/').filter(Boolean)
+  return parts.slice(-4).join(' / ') || 'Vault folder'
+}
+
+const MarkdownContentPreview = lazy(async () => ({ default: (await import('./MarkdownContent')).MarkdownContent }))
+const ProjectLinkGraphPanel = lazy(async () => ({ default: (await import('./ProjectLinkGraph')).ProjectLinkGraph }))
+const ProjectTaskListPanel = lazy(async () => ({ default: (await import('./ProjectTaskList')).ProjectTaskList }))
 
 interface ProjectIntelligenceStripProps {
   entries: VaultEntry[]
   selection: SidebarSelection
   onSelectNote: (entry: VaultEntry) => void
-}
-
-function documentLabel(document: GrimoireProjectDocument): string {
-  if (document.kind === 'readme') return 'README'
-  if (document.kind === 'architecture') return 'Architecture'
-  if (document.kind === 'spec') return 'Spec'
-  if (document.kind === 'todo') return 'Todo'
-  if (document.kind === 'review') return 'Review'
-  return document.title
-}
-
-function Metric({ icon: Icon, label }: { icon: typeof FileText; label: string }) {
-  return (
-    <span className="inline-flex min-w-0 items-center gap-1 rounded-md bg-muted/60 px-2 py-1 text-[11px] text-muted-foreground">
-      <Icon className="size-3" />
-      <span className="truncate">{label}</span>
-    </span>
-  )
 }
 
 function ProjectPreview({
@@ -69,8 +54,10 @@ function ProjectPreview({
   if (!previewContent) return null
 
   return (
-    <div className="mt-2 max-h-48 overflow-y-auto rounded-md border border-border bg-background px-3 py-2">
-      <MarkdownContent content={previewContent} />
+    <div className="grimoire-panel-reveal mt-2 max-h-48 overflow-y-auto rounded-md border border-border bg-background px-3 py-2">
+      <Suspense fallback={<div className="text-[11px] text-muted-foreground">Loading preview...</div>}>
+        <MarkdownContentPreview content={previewContent} />
+      </Suspense>
     </div>
   )
 }
@@ -91,16 +78,58 @@ function ProjectIntelligenceStripInner({
   const [graphOpen, setGraphOpen] = useState(false)
   const [tasksOpen, setTasksOpen] = useState(false)
   const [createdDoc, setCreatedDoc] = useState<string | null>(null)
+  const [contentOverrides, setContentOverrides] = useState<ReadonlyMap<string, string>>(new Map())
+  const [resolvingIssueKey, setResolvingIssueKey] = useState<string | null>(null)
+  const [taskUpdateError, setTaskUpdateError] = useState<string | null>(null)
+  const selectionKey = selection.kind === 'folder' ? `folder:${selection.path}` : selection.kind
+  const contentByPath = useMemo(
+    () => mergeProjectContentByPath(projectContents.contentByPath, contentOverrides),
+    [contentOverrides, projectContents.contentByPath],
+  )
   const intelligence = useMemo(
-    () => buildGrimoireProjectIntelligence(entries, selection, projectContents.contentByPath),
-    [entries, projectContents.contentByPath, selection],
+    () => buildGrimoireProjectIntelligence(entries, selection, contentByPath),
+    [contentByPath, entries, selection],
   )
   const fileResults = useMemo(
-    () => buildProjectFileResults(entries, selection, projectContents.contentByPath, includeSource),
-    [entries, includeSource, projectContents.contentByPath, selection],
+    () => buildProjectFileResults(entries, selection, contentByPath, includeSource),
+    [contentByPath, entries, includeSource, selection],
   )
   const visibleResults = useMemo(() => filterProjectFileResults(fileResults, query), [fileResults, query])
   const selectedPreview = visibleResults.find((result) => result.path === previewPath) ?? null
+
+  useEffect(() => {
+    setContentOverrides(new Map())
+    setTaskUpdateError(null)
+    setResolvingIssueKey(null)
+  }, [selectionKey])
+
+  useEffect(() => {
+    if (projectContents.loading || contentOverrides.size === 0) return
+    setContentOverrides((previous) => pruneSyncedProjectContentOverrides(
+      projectContents.contentByPath,
+      previous,
+    ))
+  }, [contentOverrides.size, projectContents.contentByPath, projectContents.loading])
+
+  const resolveSourceTask = useCallback(async (issue: ExtractedProjectIssue) => {
+    const key = projectIssueKey(issue)
+    setResolvingIssueKey(key)
+    try {
+      const result = await resolveSourceTaskUpdate(issue, entries, readProjectFileContent, persistContent)
+      if (result.status === 'conflict') {
+        setTaskUpdateError(result.reason)
+        return
+      }
+
+      setContentOverrides((previous) => new Map(previous).set(result.entry.path, result.content))
+      setTaskUpdateError(null)
+      setScanEnabled(true)
+    } catch {
+      setTaskUpdateError('Source task update failed.')
+    } finally {
+      setResolvingIssueKey(null)
+    }
+  }, [entries])
 
   if (!intelligence) return null
   const hasDocuments = intelligence.documents.length > 0
@@ -121,161 +150,52 @@ function ProjectIntelligenceStripInner({
   }
 
   return (
-    <div className="border-b border-border/70 bg-card px-3 pb-2" data-testid="project-workspace-strip">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Metric icon={FileText} label={`${intelligence.markdownCount} md`} />
-        {intelligence.otherCount > 0 && (
-          <Metric icon={BookOpenText} label={`${intelligence.otherCount} other`} />
-        )}
-        {intelligence.issues.length > 0 && (
-          <Metric icon={ListTodo} label={`${intelligence.issues.length} tasks`} />
-        )}
-        {intelligence.analytics.urgentCount > 0 && (
-          <Metric icon={AlertCircle} label={`${intelligence.analytics.urgentCount} urgent`} />
-        )}
-        {projectContents.loading && <Metric icon={BookOpenText} label="scanning" />}
-        {projectContents.skippedCount > 0 && (
-          <Metric icon={BookOpenText} label={`${projectContents.skippedCount} skipped`} />
-        )}
-        {hasDocuments && <div className="mx-0.5 h-4 w-px bg-border" />}
-        <Button
-          type="button"
-          variant={scanEnabled ? 'secondary' : 'ghost'}
-          size="xs"
-          className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-          title="Scan selected folder contents"
-          onClick={() => setScanEnabled(true)}
-        >
-          <Search className="size-3.5" />
-          <span>{projectContents.loading ? 'Scanning' : scanEnabled ? 'Scanned' : 'Scan'}</span>
-        </Button>
-        {intelligence.issues.length > 0 && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-            title="Copy generated project board"
-            onClick={() => {
-              void navigator.clipboard?.writeText(intelligence.boardMarkdown)
-              setCopiedBoard(true)
-              window.setTimeout(() => setCopiedBoard(false), 1200)
-            }}
-          >
-            <ClipboardList className="size-3.5" />
-            <span>{copiedBoard ? 'Copied' : 'Board'}</span>
-          </Button>
-        )}
-        {intelligence.issues.length > 0 && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-            title="Preview generated project board"
-            onClick={() => {
-              setBoardPreviewOpen((open) => !open)
-              setPreviewPath(null)
-            }}
-          >
-            <Eye className="size-3.5" />
-            <span>Preview</span>
-          </Button>
-        )}
-        {intelligence.issues.length > 0 && (
-          <Button
-            type="button"
-            variant={tasksOpen ? 'secondary' : 'ghost'}
-            size="xs"
-            className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-            title="Show project tasks"
-            onClick={() => setTasksOpen((open) => !open)}
-          >
-            <ListTodo className="size-3.5" />
-            <span>Tasks</span>
-          </Button>
-        )}
-        {intelligence.boardPath && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-            title={`Save generated board to ${intelligence.boardPath}`}
-            onClick={() => {
-              void persistContent(intelligence.boardPath ?? '', intelligence.boardMarkdown).then(() => {
-                setSavedBoard(true)
-                window.setTimeout(() => setSavedBoard(false), 1200)
-              })
-            }}
-          >
-            <ClipboardList className="size-3.5" />
-            <span>{savedBoard ? 'Saved' : 'Save Board'}</span>
-          </Button>
-        )}
-        <Button
-          type="button"
-          variant={graphOpen ? 'secondary' : 'ghost'}
-          size="xs"
-          className="h-7 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-          title="Show project doc graph"
-          onClick={() => setGraphOpen((open) => !open)}
-        >
-          <Network className="size-3.5" />
-          <span>Graph</span>
-        </Button>
-        {intelligence.documents.map((document) => (
-          <Button
-            key={document.relativePath}
-            type="button"
-            variant="ghost"
-            size="xs"
-            className="h-7 max-w-32 rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-            title={document.title}
-            onClick={() => onSelectNote(document.entry)}
-          >
-            <span className="truncate">{documentLabel(document)}</span>
-          </Button>
-        ))}
-      </div>
-      <div className="mt-2 flex items-center gap-1.5">
-        <div className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search project docs..."
-            className="h-8 rounded-md border-border bg-background pl-7 text-xs"
-            aria-label="Search project docs"
-          />
-        </div>
-        <Button
-          type="button"
-          variant={includeSource ? 'secondary' : 'ghost'}
-          size="icon-sm"
-          className="size-8"
-          title={includeSource ? 'Hide source files' : 'Show source files'}
-          aria-label={includeSource ? 'Hide source files' : 'Show source files'}
-          onClick={() => {
-            setIncludeSource((value) => !value)
-            setScanEnabled(true)
-          }}
-        >
-          <Code2 className="size-3.5" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="size-8"
-          title={createdDoc ?? 'Create project doc'}
-          aria-label="Create project doc"
-          disabled={!canCreateDoc}
-          onClick={() => void createProjectDoc()}
-        >
-          <FilePlus2 className="size-3.5" />
-        </Button>
-      </div>
+    <div className="project-workspace-strip grimoire-panel-reveal" data-testid="project-workspace-strip">
+      <ProjectWorkspaceChrome
+        boardAvailable={Boolean(intelligence.boardPath)}
+        canCreateDoc={canCreateDoc}
+        copiedBoard={copiedBoard}
+        createdDoc={createdDoc}
+        documents={hasDocuments ? intelligence.documents : []}
+        graphOpen={graphOpen}
+        includeSource={includeSource}
+        loading={projectContents.loading}
+        markdownCount={intelligence.markdownCount}
+        onCopyBoard={() => {
+          void navigator.clipboard?.writeText(intelligence.boardMarkdown)
+          setCopiedBoard(true)
+          window.setTimeout(() => setCopiedBoard(false), 1200)
+        }}
+        onCreateDoc={() => void createProjectDoc()}
+        onPreviewBoard={() => {
+          setBoardPreviewOpen((open) => !open)
+          setPreviewPath(null)
+        }}
+        onQueryChange={setQuery}
+        onSaveBoard={() => {
+          void persistContent(intelligence.boardPath ?? '', intelligence.boardMarkdown).then(() => {
+            setSavedBoard(true)
+            window.setTimeout(() => setSavedBoard(false), 1200)
+          })
+        }}
+        onScan={() => setScanEnabled(true)}
+        onSelectNote={onSelectNote}
+        onToggleGraph={() => setGraphOpen((open) => !open)}
+        onToggleSource={() => {
+          setIncludeSource((value) => !value)
+          setScanEnabled(true)
+        }}
+        onToggleTasks={() => setTasksOpen((open) => !open)}
+        otherCount={intelligence.otherCount}
+        query={query}
+        savedBoard={savedBoard}
+        scanEnabled={scanEnabled}
+        skippedCount={projectContents.skippedCount}
+        scopeLabel={projectScopeLabel(selection)}
+        taskCount={intelligence.issues.length}
+        tasksOpen={tasksOpen}
+        urgentCount={intelligence.analytics.urgentCount}
+      />
       {(query.trim() || includeSource) && (
         <div className="mt-1.5 grid max-h-28 gap-1 overflow-y-auto">
           {visibleResults.map((result) => (
@@ -313,10 +233,25 @@ function ProjectIntelligenceStripInner({
         boardMarkdown={boardPreviewOpen ? intelligence.boardMarkdown : null}
       />
       {graphOpen && (
-        <ProjectLinkGraph entries={entries} selection={selection} onSelectNote={onSelectNote} />
+        <Suspense fallback={null}>
+          <ProjectLinkGraphPanel entries={entries} selection={selection} onSelectNote={onSelectNote} />
+        </Suspense>
       )}
       {tasksOpen && (
-        <ProjectTaskList issues={intelligence.issues} entries={entries} onSelectNote={onSelectNote} />
+        <Suspense fallback={null}>
+          <ProjectTaskListPanel
+            issues={intelligence.issues}
+            entries={entries}
+            onSelectNote={onSelectNote}
+            onResolveIssue={resolveSourceTask}
+            resolvingIssueKey={resolvingIssueKey}
+          />
+        </Suspense>
+      )}
+      {taskUpdateError && (
+        <div className="mt-1.5 text-[11px] text-destructive" role="status">
+          {taskUpdateError}
+        </div>
       )}
     </div>
   )

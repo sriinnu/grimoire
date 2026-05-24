@@ -22,6 +22,7 @@ export interface AiAgentDefinition {
 
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
 export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Open the native Grimoire app for live AI.'
+export const AI_AGENT_CLI_DEFAULT_ROUTE = 'CLI default'
 
 export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
   {
@@ -86,6 +87,37 @@ export function normalizeStoredAiAgent(value: string | null | undefined): AiAgen
 
 export function resolveDefaultAiAgent(value: string | null | undefined): AiAgentId {
   return normalizeStoredAiAgent(value) ?? DEFAULT_AI_AGENT
+}
+
+export function supportsAiAgentProviderRoute(agent: AiAgentId): boolean {
+  return agent === 'chitragupta'
+}
+
+export function resolveDefaultAiProvider(agent: AiAgentId, value: string | null | undefined): string | null {
+  if (!supportsAiAgentProviderRoute(agent)) return null
+
+  const provider = value?.trim()
+  if (provider) return provider
+  return null
+}
+
+export function describeAiAgentRoute(
+  agent: AiAgentId,
+  provider: string | null | undefined,
+  model: string | null | undefined,
+): string | null {
+  const trimmedProvider = provider?.trim()
+  const trimmedModel = model?.trim()
+  const parts: string[] = []
+
+  if (agent === 'chitragupta') {
+    parts.push(`provider: ${trimmedProvider || AI_AGENT_CLI_DEFAULT_ROUTE}`)
+    parts.push(`model: ${trimmedModel || AI_AGENT_CLI_DEFAULT_ROUTE}`)
+  } else if (trimmedModel) {
+    parts.push(`model: ${trimmedModel}`)
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null
 }
 
 export function getAiAgentDefinition(agent: AiAgentId): AiAgentDefinition {

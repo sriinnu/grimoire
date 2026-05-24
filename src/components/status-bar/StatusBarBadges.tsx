@@ -6,11 +6,11 @@ import {
   Terminal,
 } from 'lucide-react'
 import { GitDiff, Pulse } from '@phosphor-icons/react'
-import type { ActionTooltipCopy } from '@/components/ui/action-tooltip'
 import type { ClaudeCodeStatus } from '../../hooks/useClaudeCodeStatus'
 import type { McpStatus } from '../../hooks/useMcpStatus'
 import type { GitRemoteStatus, LastCommitInfo } from '../../types'
 import { openExternalUrl } from '../../utils/url'
+import type { StatusBarHintCopy } from './StatusBarHint'
 import { ICON_STYLE } from './styles'
 import { StatusBarAction, StatusBarSeparator } from './StatusBarAction'
 export { SyncBadge } from './SyncBadge'
@@ -25,7 +25,7 @@ function isRemoteMissing(remoteStatus: GitRemoteStatus | null | undefined): bool
   return remoteStatus?.hasRemote === false
 }
 
-function commitButtonTooltipCopy(remoteStatus: GitRemoteStatus | null | undefined): ActionTooltipCopy {
+function commitButtonTooltipCopy(remoteStatus: GitRemoteStatus | null | undefined): StatusBarHintCopy {
   return {
     label: isRemoteMissing(remoteStatus)
       ? 'Commit changes locally'
@@ -99,7 +99,7 @@ export function OfflineBadge({
       <span
         style={{
           ...ICON_STYLE,
-          color: 'var(--destructive)',
+          color: 'var(--status-bar-danger-fg, var(--destructive))',
           background: 'var(--feedback-error-bg)',
           borderRadius: 999,
           padding: '2px 6px',
@@ -221,14 +221,14 @@ export function ChangesBadge({
       <StatusBarSeparator show={showSeparator} />
       <StatusBarAction copy={{ label: 'View pending changes' }} onClick={onClick} testId="status-modified-count" compact={compact}>
         <span style={ICON_STYLE}>
-          <GitDiff size={13} style={{ color: 'var(--accent-orange)' }} />
+          <GitDiff size={13} style={{ color: 'var(--status-bar-warning-fg, var(--accent-orange))' }} />
           <span
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'var(--accent-orange)',
-              color: 'var(--text-inverse)',
+              background: 'var(--status-bar-badge-bg, var(--accent-orange))',
+              color: 'var(--status-bar-badge-fg, var(--text-inverse))',
               borderRadius: 9,
               padding: '0 5px',
               fontSize: 10,
@@ -323,7 +323,7 @@ export function McpBadge({
         copy={{ label: config.tooltip }}
         onClick={config.onClick}
         testId="status-mcp"
-        className="text-[var(--accent-orange)]"
+        style={{ color: 'var(--status-bar-warning-fg, var(--accent-orange))' }}
         compact={compact}
       >
         <span style={ICON_STYLE}>
@@ -357,7 +357,7 @@ export function ClaudeCodeBadge({
         copy={{ label: config.tooltip }}
         onClick={config.onActivate}
         testId="status-claude-code"
-        className={config.missing ? 'text-[var(--accent-orange)]' : undefined}
+        style={config.missing ? { color: 'var(--status-bar-warning-fg, var(--accent-orange))' } : undefined}
         compact={compact}
       >
         <span style={ICON_STYLE}>

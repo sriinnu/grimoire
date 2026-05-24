@@ -12,6 +12,7 @@ vi.mock('../mock-tauri', () => ({
 }))
 
 const originalUserAgent = navigator.userAgent
+const originalPlatform = navigator.platform
 
 function setUserAgent(userAgent: string) {
   Object.defineProperty(window.navigator, 'userAgent', {
@@ -20,9 +21,17 @@ function setUserAgent(userAgent: string) {
   })
 }
 
+function setPlatform(platform: string) {
+  Object.defineProperty(window.navigator, 'platform', {
+    configurable: true,
+    value: platform,
+  })
+}
+
 describe('platform helpers', () => {
   afterEach(() => {
     setUserAgent(originalUserAgent)
+    setPlatform(originalPlatform)
     vi.mocked(isTauri).mockReturnValue(false)
   })
 
@@ -36,6 +45,12 @@ describe('platform helpers', () => {
 
   it('detects macOS user agents', () => {
     setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    expect(isMac()).toBe(true)
+  })
+
+  it('detects macOS from navigator.platform when WebView user agents are sparse', () => {
+    setUserAgent('Mozilla/5.0 AppleWebKit/605.1.15')
+    setPlatform('MacIntel')
     expect(isMac()).toBe(true)
   })
 
