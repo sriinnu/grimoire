@@ -18,6 +18,15 @@ import { fileURLToPath } from 'node:url'
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const SOURCE_ICON_PATH = resolve(REPO_ROOT, 'src-tauri/icons/icon.icns')
+const FORBIDDEN_FIXTURE_STRINGS = [
+  '/Users/srinivas/Grimoire',
+  '/Users/mock',
+  'demo-vault',
+  'demo-vault-v2',
+  'mock-content',
+  'mock-handlers',
+  'MOCK_CONTENT',
+]
 
 function formatPath(path) {
   const relativePath = relative(REPO_ROOT, path)
@@ -59,6 +68,27 @@ function assertIconMatchesSource(iconPath, label) {
       `${label} has stale icon ${formatPath(iconPath)}\n`
       + `expected ${expectedHash}\n`
       + `actual   ${actualHash}`,
+    )
+  }
+}
+
+function assertNoMockFixtures(root, label) {
+  assertExists(root, label)
+
+  const violations = []
+  for (const file of walkFiles(root)) {
+    const content = readFileSync(file)
+    for (const needle of FORBIDDEN_FIXTURE_STRINGS) {
+      if (content.includes(Buffer.from(needle))) {
+        violations.push(`${formatPath(file)} contains ${needle}`)
+      }
+    }
+  }
+
+  if (violations.length > 0) {
+    throw new Error(
+      `${label} contains browser-only mock fixture strings:\n`
+      + violations.slice(0, 20).join('\n'),
     )
   }
 }
@@ -111,9 +141,16 @@ function verifyApp(appPath, options = {}) {
 
   const iconPath = join(resolvedAppPath, 'Contents/Resources/icon.icns')
   assertIconMatchesSource(iconPath, `${formatPath(resolvedAppPath)}`)
+  assertNoMockFixtures(join(resolvedAppPath, 'Contents/Resources'), `${formatPath(resolvedAppPath)} resources`)
 
   if (options.requireCodesign) verifyCodesign(resolvedAppPath)
   console.log(`ok app ${formatPath(resolvedAppPath)}`)
+}
+
+function verifyWebBuild(webDir) {
+  const resolvedWebDir = resolve(webDir)
+  assertNoMockFixtures(resolvedWebDir, 'Web build')
+  console.log(`ok web ${formatPath(resolvedWebDir)}`)
 }
 
 function verifyUpdater(tarballPath, options = {}) {
@@ -186,6 +223,7 @@ function parseArgs(argv) {
     requireCodesign: false,
     selfTest: false,
     tarballs: [],
+    webDirs: [],
   }
 
   function nextValue(optionName, index) {
@@ -221,12 +259,23 @@ function parseArgs(argv) {
         config.tarballs.push(nextValue(arg, index))
         index += 1
         break
+      case '--web-dir':
+        config.webDirs.push(nextValue(arg, index))
+        index += 1
+        break
       default:
         throw new Error(`Unknown argument: ${arg}`)
     }
   }
 
-  if (!config.selfTest && !config.apps.length && !config.bundleDirs.length && !config.dmgs.length && !config.tarballs.length) {
+  if (
+    !config.selfTest
+    && !config.apps.length
+    && !config.bundleDirs.length
+    && !config.dmgs.length
+    && !config.tarballs.length
+    && !config.webDirs.length
+  ) {
     config.bundleDirs.push(resolve(REPO_ROOT, 'src-tauri/target/release/bundle'))
   }
 
@@ -246,6 +295,11 @@ function runSelfTest() {
     copySourceIconToApp(appPath)
     verifyApp(appPath)
 
+    const webDir = join(tempDir, 'web')
+    mkdirSync(webDir, { recursive: true })
+    writeFileSync(join(webDir, 'index.js'), 'console.log("clean")')
+    verifyWebBuild(webDir)
+
     const tarballPath = join(tempDir, 'Grimoire.app.tar.gz')
     run('tar', ['-czf', tarballPath, '-C', tempDir, 'Grimoire.app'])
     verifyUpdater(tarballPath)
@@ -263,6 +317,21 @@ function runSelfTest() {
 
     if (!failedAsExpected) {
       throw new Error('Self-test did not reject a stale app icon')
+    }
+
+    const leakingWebDir = join(tempDir, 'leaking-web')
+    mkdirSync(leakingWebDir, { recursive: true })
+    writeFileSync(join(leakingWebDir, 'asset.js'), 'const path = "/Users/mock/demo-vault-v2"')
+
+    failedAsExpected = false
+    try {
+      verifyWebBuild(leakingWebDir)
+    } catch {
+      failedAsExpected = true
+    }
+
+    if (!failedAsExpected) {
+      throw new Error('Self-test did not reject mock fixture strings')
     }
 
     console.log('self-test passed')
@@ -284,6 +353,7 @@ function main() {
   for (const app of config.apps) verifyApp(app, options)
   for (const tarball of config.tarballs) verifyUpdater(tarball, options)
   for (const dmg of config.dmgs) verifyDmg(dmg, options)
+  for (const webDir of config.webDirs) verifyWebBuild(webDir)
 }
 
 try {

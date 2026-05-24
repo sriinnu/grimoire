@@ -1,11 +1,10 @@
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { VaultAiGuidanceStatus } from '../lib/vaultAiGuidance'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import type { ClaudeCodeStatus } from '../hooks/useClaudeCodeStatus'
 import type { McpStatus } from '../hooks/useMcpStatus'
 import type { ThemeMode } from '../lib/themeMode'
 import type { GitRemoteStatus, SyncStatus } from '../types'
-import { TooltipProvider } from '@/components/ui/tooltip'
 import { StatusBarPrimarySection } from './status-bar/StatusBarSections'
 import { StatusBarSecondarySection } from './status-bar/StatusBarSecondarySection'
 import type { VaultOption } from './status-bar/types'
@@ -102,11 +101,13 @@ interface StatusBarFooterProps extends StatusBarProps {
 type StatusBarTone = 'healthy' | 'attention' | 'danger' | 'neutral'
 
 const STATUS_TONE_COLOR: Record<StatusBarTone, string> = {
-  healthy: 'color-mix(in srgb, var(--accent-green) 58%, transparent)',
-  attention: 'color-mix(in srgb, var(--accent-orange) 70%, transparent)',
-  danger: 'color-mix(in srgb, var(--destructive) 70%, transparent)',
+  healthy: 'color-mix(in srgb, var(--status-bar-success-fg, var(--accent-green)) 58%, transparent)',
+  attention: 'color-mix(in srgb, var(--status-bar-warning-fg, var(--accent-orange)) 70%, transparent)',
+  danger: 'color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 70%, transparent)',
   neutral: 'color-mix(in srgb, var(--border) 82%, transparent)',
 }
+
+type StatusBarCssVars = CSSProperties & Record<`--${string}`, string>
 
 function getStatusBarTone({
   conflictCount,
@@ -189,6 +190,44 @@ function StatusBarFooter({
   stacked,
 }: StatusBarFooterProps) {
   const statusTone = getStatusBarTone({ conflictCount, isOffline, modifiedCount, syncStatus })
+  const style: StatusBarCssVars = {
+    '--border': 'color-mix(in srgb, var(--sidebar-border) 72%, transparent)',
+    '--foreground': 'var(--status-bar-foreground)',
+    '--muted-foreground': 'var(--status-bar-muted-foreground)',
+    '--background': 'var(--status-bar-background)',
+    '--status-bar-background': 'var(--sidebar)',
+    '--status-bar-foreground': 'var(--sidebar-foreground)',
+    '--status-bar-muted-foreground': 'color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)',
+    '--status-bar-tooltip-bg': 'var(--status-bar-foreground)',
+    '--status-bar-tooltip-fg': 'var(--status-bar-background)',
+    '--status-bar-accent-fg': 'color-mix(in srgb, var(--sidebar-primary) 34%, var(--status-bar-foreground))',
+    '--status-bar-agent-fg': 'color-mix(in srgb, var(--accent-purple) 24%, var(--status-bar-foreground))',
+    '--status-bar-warning-fg': 'color-mix(in srgb, var(--accent-orange) 24%, var(--status-bar-foreground))',
+    '--status-bar-success-fg': 'color-mix(in srgb, var(--accent-green) 24%, var(--status-bar-foreground))',
+    '--status-bar-danger-fg': 'color-mix(in srgb, var(--accent-red) 42%, var(--status-bar-foreground))',
+    '--status-bar-badge-bg': 'color-mix(in srgb, var(--status-bar-warning-fg) 22%, transparent)',
+    '--status-bar-badge-fg': 'var(--status-bar-foreground)',
+    minHeight: 30,
+    height: stacked ? 'auto' : 30,
+    flexShrink: 0,
+    display: 'flex',
+    flexWrap: stacked ? 'wrap' : 'nowrap',
+    alignItems: stacked ? 'flex-start' : 'center',
+    justifyContent: stacked ? 'flex-start' : 'space-between',
+    rowGap: stacked ? 4 : 0,
+    columnGap: compact ? 8 : 12,
+    background: 'linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 96%, var(--background)), var(--sidebar))',
+    borderTop: '1px solid color-mix(in srgb, var(--border) 84%, transparent)',
+    boxShadow: `inset 0 1px 0 ${STATUS_TONE_COLOR[statusTone]}, 0 -10px 24px color-mix(in srgb, var(--status-bar-background) 28%, transparent)`,
+    boxSizing: 'border-box',
+    overflow: 'visible',
+    padding: stacked ? '4px 8px' : '0 8px',
+    fontSize: 11,
+    color: 'var(--status-bar-muted-foreground)',
+    position: 'relative',
+    zIndex: 50,
+    backdropFilter: 'blur(12px)',
+  }
 
   return (
     <footer
@@ -197,28 +236,7 @@ function StatusBarFooter({
       data-panel-role="status-bar"
       data-status-tone={statusTone}
       aria-label={getStatusBarLabel({ conflictCount, isOffline, modifiedCount, syncStatus })}
-      style={{
-        minHeight: 30,
-        height: stacked ? 'auto' : 30,
-        flexShrink: 0,
-        display: 'flex',
-        flexWrap: stacked ? 'wrap' : 'nowrap',
-        alignItems: stacked ? 'flex-start' : 'center',
-        justifyContent: stacked ? 'flex-start' : 'space-between',
-        rowGap: stacked ? 4 : 0,
-        columnGap: compact ? 8 : 12,
-        background: 'linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 96%, var(--background)), var(--sidebar))',
-        borderTop: '1px solid color-mix(in srgb, var(--border) 84%, transparent)',
-        boxShadow: `inset 0 1px 0 ${STATUS_TONE_COLOR[statusTone]}, 0 -10px 24px color-mix(in srgb, #000 5%, transparent)`,
-        boxSizing: 'border-box',
-        overflow: 'visible',
-        padding: stacked ? '4px 8px' : '0 8px',
-        fontSize: 11,
-        color: 'var(--muted-foreground)',
-        position: 'relative',
-        zIndex: 50,
-        backdropFilter: 'blur(12px)',
-      }}
+      style={style}
     >
       <StatusBarPrimarySection
         modifiedCount={modifiedCount}
@@ -277,9 +295,5 @@ export function StatusBar(props: StatusBarProps) {
   useStatusBarTicker()
   const { compact, stacked } = useStatusBarLayout()
 
-  return (
-    <TooltipProvider>
-      <StatusBarFooter {...props} compact={compact} stacked={stacked} />
-    </TooltipProvider>
-  )
+  return <StatusBarFooter {...props} compact={compact} stacked={stacked} />
 }

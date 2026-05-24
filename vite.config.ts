@@ -19,6 +19,7 @@ const devServerWatchIgnored = [
 
 const devHttpsCertPath = path.resolve(__dirname, 'certs/localhost+2.pem')
 const devHttpsKeyPath = path.resolve(__dirname, 'certs/localhost+2-key.pem')
+const localThemePackPath = path.resolve(__dirname, '.grimoire-local/theme-pack.json')
 
 /** Return local HTTPS config only when explicitly requested and cert files exist. */
 function localDevHttpsConfig(): ServerOptions['https'] | undefined {
@@ -51,9 +52,40 @@ function mcpBridgeInfoPlugin(): Plugin {
   }
 }
 
+/** Serves and hot-reloads the gitignored local theme-pack file in dev only. */
+function localThemePackPlugin(): Plugin {
+  return {
+    name: 'grimoire-local-theme-pack',
+    configureServer(server) {
+      server.watcher.add(localThemePackPath)
+      server.watcher.on('change', (changedPath) => {
+        if (path.resolve(changedPath) !== localThemePackPath) return
+        server.ws.send({
+          type: 'custom',
+          event: 'grimoire:local-theme-pack-changed',
+          data: { updatedAt: Date.now() },
+        })
+      })
+
+      server.middlewares.use((req, res, next) => {
+        if (req.method !== 'GET' || req.url !== '/api/theme-pack/local') return next()
+        fs.readFile(localThemePackPath, 'utf8', (error, content) => {
+          if (error) {
+            res.statusCode = error.code === 'ENOENT' ? 404 : 500
+            res.end('')
+            return
+          }
+          res.setHeader('Content-Type', 'application/json')
+          res.end(content)
+        })
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), vaultApiPlugin(), mcpBridgeInfoPlugin()],
+export default defineConfig(({ command }) => ({
+  plugins: [react(), tailwindcss(), vaultApiPlugin(), mcpBridgeInfoPlugin(), localThemePackPlugin()],
 
   resolve: {
     alias: {
@@ -68,7 +100,7 @@ export default defineConfig({
   // CI must resolve the default vault path at runtime via the backend to avoid
   // baking the CI runner's absolute path into the distributed bundle.
   define: {
-    ...(process.env.CI || (process.env.TAURI_PLATFORM && !process.env.TAURI_DEBUG)
+    ...(command !== 'serve' || process.env.CI || (process.env.TAURI_PLATFORM && !process.env.TAURI_DEBUG)
       ? {}
       : { __DEMO_VAULT_PATH__: JSON.stringify(path.resolve(__dirname, 'demo-vault-v2')) }),
   },
@@ -102,6 +134,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    pool: 'threads',
     setupFiles: ['./src/test/setup.ts'],
     include: [
       'src/**/*.{test,spec}.{ts,tsx}',
@@ -141,4 +174,4 @@ export default defineConfig({
       },
     },
   },
-})
+}))

@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 
 const MAIN_WINDOW_MIN_HEIGHT = 400
 const EDITOR_ONLY_MAIN_WINDOW_MIN_WIDTH = 480

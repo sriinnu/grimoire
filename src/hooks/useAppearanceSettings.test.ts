@@ -4,6 +4,11 @@ import {
   EDITOR_FONT_STORAGE_KEY,
   THEME_PRESET_STORAGE_KEY,
 } from '../lib/appearance'
+import {
+  emitLocalThemePackChange,
+  writeStoredLocalThemeDefinition,
+} from '../themes/localThemePacks'
+import { THEME_PRESET_CATALOG } from '../themes/themeRegistry'
 import { useAppearanceSettings } from './useAppearanceSettings'
 
 function createStorageMock(): Storage {
@@ -45,15 +50,15 @@ describe('useAppearanceSettings', () => {
   it('applies and mirrors loaded appearance settings', () => {
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'manuscript',
+      themePreset: 'living-archive',
       editorFont: 'serif',
       loaded: true,
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'manuscript')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
-    expect(window.localStorage.getItem(THEME_PRESET_STORAGE_KEY)).toBe('manuscript')
+    expect(window.localStorage.getItem(THEME_PRESET_STORAGE_KEY)).toBe('living-archive')
     expect(window.localStorage.getItem(EDITOR_FONT_STORAGE_KEY)).toBe('serif')
   })
 
@@ -70,5 +75,40 @@ describe('useAppearanceSettings', () => {
 
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
+  })
+
+  it('refreshes mode-specific theme tokens when light/dark changes', () => {
+    const { rerender } = renderHook(
+      ({ themeMode }) => useAppearanceSettings({
+        themeMode,
+        themePreset: 'nocturne',
+        editorFont: 'system',
+        loaded: true,
+      }),
+      { initialProps: { themeMode: 'light' as 'light' | 'dark' } },
+    )
+
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'light')
+    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#f7faf8')
+
+    rerender({ themeMode: 'dark' })
+
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'dark')
+    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#141513')
+  })
+
+  it('applies local-only theme pack changes without changing the saved preset', () => {
+    renderHook(() => useAppearanceSettings({
+      themeMode: 'dark',
+      themePreset: 'nocturne',
+      editorFont: 'system',
+      loaded: true,
+    }))
+
+    writeStoredLocalThemeDefinition(window.localStorage, THEME_PRESET_CATALOG[0])
+    emitLocalThemePackChange()
+
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-id', THEME_PRESET_CATALOG[0].id)
   })
 })

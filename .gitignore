@@ -39,6 +39,7 @@ final_selection.py
 # Claude Code task signals
 .claude-done
 .claude-blocked
+.claude/settings.local.json
 src-tauri/target
 
 # Generated mcp-server bundle (built by scripts/bundle-mcp-server.mjs)
@@ -81,6 +82,18 @@ src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset/.!*
 # Local environment variables (never commit)
 .env.local
 .env.*.local
+
+# Local-only Grimoire design/theme experiments.
+.grimoire-local/
+mockups/
+docs/scratch/
+docs/local/
+docs/private/
+docs/*.local.md
+docs/**/*.local.md
+
+# Local Codex/MCP wiring contains machine-specific absolute paths.
+.codex/
 
 # Local development TLS certs (machine-specific; regenerate or copy locally)
 certs/*.pem

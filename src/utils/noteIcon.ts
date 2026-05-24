@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 import type { IconProps } from './iconRegistry'
-import { isEmoji } from './emoji'
+import { isEmoji } from './emojiRuntime'
 import { findIcon } from './iconRegistry'
 
 export type ResolvedNoteIcon =

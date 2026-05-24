@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LinuxTitlebar } from './LinuxTitlebar'
 import { shouldUseLinuxWindowChrome } from '../utils/platform'
@@ -43,6 +43,19 @@ vi.mock('@tauri-apps/api/window', () => ({
   }),
 }))
 
+vi.mock('../lib/tauriRuntime', () => ({
+  invoke,
+  getCurrentTauriWindow: vi.fn(async () => ({
+    startDragging,
+    startResizeDragging,
+    minimize,
+    toggleMaximize,
+    close,
+    isMaximized,
+    onResized,
+  })),
+}))
+
 describe('LinuxTitlebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -57,12 +70,14 @@ describe('LinuxTitlebar', () => {
     expect(screen.queryByTestId('linux-titlebar')).toBeNull()
   })
 
-  it('routes titlebar double-click through the shared drag-region command only once', () => {
+  it('routes titlebar double-click through the shared drag-region command only once', async () => {
     render(<LinuxTitlebar />)
 
     fireEvent.mouseDown(screen.getByTestId('linux-titlebar'), { button: 0, detail: 2 })
 
-    expect(invoke).toHaveBeenCalledWith('perform_current_window_titlebar_double_click')
+    await waitFor(() => {
+      expect(invoke).toHaveBeenCalledWith('perform_current_window_titlebar_double_click')
+    })
     expect(toggleMaximize).not.toHaveBeenCalled()
     expect(startDragging).not.toHaveBeenCalled()
   })

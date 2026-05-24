@@ -7,10 +7,10 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { ActionTooltipCopy } from '@/components/ui/action-tooltip'
 import type { GitRemoteStatus, SyncStatus } from '../../types'
 import { ICON_STYLE } from './styles'
 import { StatusBarAction } from './StatusBarAction'
+import type { StatusBarHintCopy } from './StatusBarHint'
 import { useDismissibleLayer } from './useDismissibleLayer'
 
 const SYNC_ICON_MAP: Record<string, typeof RefreshCw> = {
@@ -27,9 +27,9 @@ const SYNC_LABELS: Record<string, string> = {
 }
 
 const SYNC_COLORS: Record<string, string> = {
-  conflict: 'var(--accent-orange)',
+  conflict: 'var(--status-bar-warning-fg, var(--accent-orange))',
   error: 'var(--muted-foreground)',
-  pull_required: 'var(--accent-orange)',
+  pull_required: 'var(--status-bar-warning-fg, var(--accent-orange))',
 }
 
 function formatElapsedSync(lastSyncTime: number | null): string {
@@ -43,10 +43,10 @@ function formatSyncLabel(status: SyncStatus, lastSyncTime: number | null): strin
 }
 
 function syncIconColor(status: SyncStatus): string {
-  return SYNC_COLORS[status] ?? 'var(--accent-green)'
+  return SYNC_COLORS[status] ?? 'var(--status-bar-success-fg, var(--accent-green))'
 }
 
-function syncBadgeTooltipCopy(status: SyncStatus): ActionTooltipCopy {
+function syncBadgeTooltipCopy(status: SyncStatus): StatusBarHintCopy {
   if (status === 'conflict') return { label: 'Resolve merge conflicts' }
   if (status === 'syncing') return { label: 'Sync in progress' }
   if (status === 'pull_required') return { label: 'Pull from remote and push' }
@@ -83,7 +83,7 @@ function RemoteStatusSummary({ remoteStatus }: { remoteStatus: GitRemoteStatus |
     <div style={{ display: 'flex', gap: 12, marginBottom: 6, color: 'var(--muted-foreground)' }}>
       {ahead > 0 && <span title={`${ahead} commit${ahead > 1 ? 's' : ''} ahead of remote`}>↑ {ahead} ahead</span>}
       {behind > 0 && (
-        <span title={`${behind} commit${behind > 1 ? 's' : ''} behind remote`} style={{ color: 'var(--accent-orange)' }}>
+        <span title={`${behind} commit${behind > 1 ? 's' : ''} behind remote`} style={{ color: 'var(--status-bar-warning-fg, var(--accent-orange))' }}>
           ↓ {behind} behind
         </span>
       )}

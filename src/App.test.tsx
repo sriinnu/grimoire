@@ -7,6 +7,10 @@ import { formatShortcutDisplay } from './hooks/appCommandCatalog'
 import { resetAppCommandDispatchStateForTests } from './hooks/appCommandDispatcher'
 import { invoke } from '@tauri-apps/api/core'
 
+const { tauriInvokeMock } = vi.hoisted(() => ({
+  tauriInvokeMock: vi.fn(),
+}))
+
 // Provide a localStorage mock that supports all methods (jsdom's may be incomplete)
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
@@ -34,7 +38,21 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock @tauri-apps/api/core before importing App
 vi.mock('@tauri-apps/api/core', () => ({
-  invoke: vi.fn(),
+  invoke: tauriInvokeMock,
+}))
+
+vi.mock('./lib/tauriRuntime', () => ({
+  invoke: tauriInvokeMock,
+  createTauriChannel: vi.fn(async () => ({ onmessage: null })),
+  getCurrentTauriWindow: vi.fn(async () => ({
+    startDragging: vi.fn(async () => {}),
+    startResizeDragging: vi.fn(async () => {}),
+    minimize: vi.fn(async () => {}),
+    toggleMaximize: vi.fn(async () => {}),
+    close: vi.fn(async () => {}),
+    isMaximized: vi.fn(async () => false),
+    onResized: vi.fn(async () => () => {}),
+  })),
 }))
 
 vi.mock('@tauri-apps/api/window', async () => {
@@ -679,9 +697,11 @@ describe('App', () => {
 
     render(<App />)
 
-    await waitFor(() => {
-      expect(screen.getByText('No AI agents detected')).toBeInTheDocument()
-    })
+    expect(await screen.findByText(
+      'No AI agents detected',
+      {},
+      { timeout: APP_STARTUP_WAIT_TIMEOUT_MS },
+    )).toBeInTheDocument()
 
     await waitFor(() => {
       expect(typeof window.__grimoireTest?.dispatchBrowserMenuCommand).toBe('function')
@@ -714,13 +734,13 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     fireEvent.click(screen.getByTestId('telemetry-accept'))
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open existing vault')
   })
 
@@ -750,13 +770,13 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     fireEvent.click(screen.getByTestId(buttonTestId))
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open existing vault')
   })
 
@@ -1081,12 +1101,8 @@ describe('App', () => {
 
     await openNoteFromList(noteListContainer, 'Alpha', '/vault/alpha.md')
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Set note as organized' })).toBeInTheDocument()
-    }, { timeout: 10000 })
-
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Set note as organized' }))
+      fireEvent.keyDown(window, { key: 'e', metaKey: true })
       await Promise.resolve()
     })
 

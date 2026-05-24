@@ -101,4 +101,48 @@ describe('ai-context locality policy', () => {
     expect(json.localOnlyOmitted).toEqual({ noteList: 1, referencedNotes: 1 })
     expect(json.openTabs).toEqual([{ path: publicNote.path, title: 'Public', type: 'Note', frontmatter: { type: 'Note' } }])
   })
+
+  it('keeps protected graph neighborhoods label-free in the prompt snapshot', () => {
+    const active = entry({
+      path: '/vault/Dreams/hidden.md',
+      title: 'Hidden Dream',
+      isA: 'Dream',
+    })
+    const prompt = buildContextSnapshot({
+      activeEntry: active,
+      entries: [active],
+      graphContext: {
+        state: 'protected-active',
+        nodes: [],
+        edges: [],
+        omitted: {
+          protectedEdges: 2,
+          protectedNodes: 1,
+          truncatedEdges: 0,
+          truncatedNodes: 0,
+        },
+        totals: {
+          visibleEdges: 0,
+          visibleNodes: 0,
+        },
+      },
+    })
+    const json = snapshotJson(prompt)
+
+    expect(json.graphNeighborhood).toEqual({
+      state: 'protected-active',
+      omitted: {
+        protectedEdges: 2,
+        protectedNodes: 1,
+        truncatedEdges: 0,
+        truncatedNodes: 0,
+      },
+      totals: {
+        visibleEdges: 0,
+        visibleNodes: 0,
+      },
+    })
+    expect(prompt).not.toContain('Hidden Dream')
+    expect(prompt).not.toContain('/vault/Dreams/hidden.md')
+  })
 })

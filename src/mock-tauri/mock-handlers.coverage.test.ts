@@ -188,6 +188,8 @@ describe('mockHandlers coverage', () => {
       default_ai_agent: 'codex',
       ai_agent_models: { codex: 'gpt-5.2' },
       ai_agent_providers: null,
+      transcription_provider: 'local_whisper',
+      cloud_transcription_enabled: false,
     })
 
     const list = {
@@ -214,6 +216,12 @@ describe('mockHandlers coverage', () => {
       filename: 'diagram.png',
       data: 'base64',
     })).toBe('/vault/attachments/12345-diagram.png')
+
+    expect(mockHandlers.save_audio_recording({
+      vault_path: '/vault',
+      filename: 'voice-note.webm',
+      data: 'base64',
+    })).toBe('/vault/Private/attachments/recordings/12345-voice-note.webm')
 
     expect(mockHandlers.copy_image_to_vault({
       vault_path: '/vault',

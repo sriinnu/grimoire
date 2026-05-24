@@ -10,6 +10,10 @@ let mockIsTauri = false
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => backendInvokeFn(...args),
 }))
+vi.mock('../lib/tauriRuntime', () => ({
+  invoke: (...args: unknown[]) => backendInvokeFn(...args),
+  createTauriChannel: vi.fn(),
+}))
 
 vi.mock('../mock-tauri', () => ({
   isTauri: () => mockIsTauri,

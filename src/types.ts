@@ -1,5 +1,6 @@
 import type { AiAgentId } from './lib/aiAgents'
 import type { EditorFont, ThemePreset } from './lib/appearance'
+import type { TranscriptionProviderId } from './lib/transcriptionProviders'
 import type { ThemeMode } from './lib/themeMode'
 import type { AppLocale } from './lib/i18n'
 
@@ -103,6 +104,10 @@ export interface Settings {
   ai_agent_models?: Partial<Record<AiAgentId, string>> | null
   /** Optional per-agent provider override passed to local CLI agents that support provider routing. */
   ai_agent_providers?: Partial<Record<AiAgentId, string>> | null
+  /** Speech-to-text backend. Cloud-capable providers require cloud_transcription_enabled=true. */
+  transcription_provider?: TranscriptionProviderId | null
+  /** Explicit opt-in before any transcription audio may leave the local machine. */
+  cloud_transcription_enabled?: boolean | null
 }
 
 export interface GitPullResult {

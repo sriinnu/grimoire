@@ -8,9 +8,8 @@ const LEGACY_APP_CONFIG_DIR: &str = "com.tolaria.app";
 const LAPUTA_LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 const THEME_PRESETS: &[&str] = &[
     "constellation",
+    "daylight-atelier",
     "living-archive",
-    "research-cockpit",
-    "manuscript",
     "nocturne",
     "retro-terminal",
 ];
@@ -23,6 +22,7 @@ const EDITOR_FONTS: &[&str] = &[
     "compact",
     "handwritten",
 ];
+const TRANSCRIPTION_PROVIDERS: &[&str] = &["local_whisper", "whisper_api", "local_voice_model"];
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Settings {
@@ -45,6 +45,8 @@ pub struct Settings {
     pub default_ai_agent: Option<String>,
     pub ai_agent_models: Option<BTreeMap<String, String>>,
     pub ai_agent_providers: Option<BTreeMap<String, String>>,
+    pub transcription_provider: Option<String>,
+    pub cloud_transcription_enabled: Option<bool>,
 }
 
 fn normalize_optional_string(value: Option<String>) -> Option<String> {
@@ -128,6 +130,13 @@ pub fn normalize_editor_font(value: Option<&str>) -> Option<String> {
     EDITOR_FONTS.contains(&font.as_str()).then_some(font)
 }
 
+pub fn normalize_transcription_provider(value: Option<&str>) -> Option<String> {
+    let provider = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    TRANSCRIPTION_PROVIDERS
+        .contains(&provider.as_str())
+        .then_some(provider)
+}
+
 fn canonical_language_code(value: &str) -> Option<String> {
     let code = value.trim().replace('_', "-").to_ascii_lowercase();
     if code.is_empty() {
@@ -181,6 +190,10 @@ fn normalize_settings(settings: Settings) -> Settings {
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
         ai_agent_models: normalize_ai_agent_models(settings.ai_agent_models),
         ai_agent_providers: normalize_ai_agent_providers(settings.ai_agent_providers),
+        transcription_provider: normalize_transcription_provider(
+            settings.transcription_provider.as_deref(),
+        ),
+        cloud_transcription_enabled: settings.cloud_transcription_enabled,
     }
 }
 

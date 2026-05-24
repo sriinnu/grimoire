@@ -1,5 +1,6 @@
 import type { VaultEntry } from '../types'
 import type { NoteReference } from '../utils/ai-context'
+import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { resolveEntry } from '../utils/wikilink'
 import {
   chipToken,
@@ -70,6 +71,7 @@ export function extractInlineWikilinkReferences(
   for (const segment of buildInlineWikilinkSegments(value, entries)) {
     if (segment.kind !== 'chip') continue
     if (seenPaths.has(segment.chip.entry.path)) continue
+    if (resolveEntryLocalityPolicy(segment.chip.entry).localOnly) continue
 
     seenPaths.add(segment.chip.entry.path)
     references.push({

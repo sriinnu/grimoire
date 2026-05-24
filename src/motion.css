@@ -5,10 +5,133 @@
   --motion-duration-base: 180ms;
   --motion-duration-slow: 420ms;
   --motion-duration-cinematic: 2400ms;
+  --motion-duration-panel: 260ms;
+  --motion-duration-control: 160ms;
+  --motion-duration-hover: var(--motion-duration-base);
+  --motion-duration-page-settle: 360ms;
+  --motion-duration-ink-settle: 320ms;
+  --motion-duration-state-pulse: 720ms;
   --motion-delay-memory-thread: 620ms;
+  --motion-stagger-delay: 0ms;
   --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --motion-ease-expressive: cubic-bezier(0.34, 1.56, 0.64, 1);
   --motion-ease-cinematic: cubic-bezier(0.37, 0, 0.63, 1);
+  --motion-distance-panel-y: 10px;
+  --motion-distance-control-y: 4px;
+  --motion-distance-page-y: 6px;
+  --motion-distance-ink-y: 3px;
+  --motion-hover-lift-distance: -2px;
+  --motion-hover-shadow: 0 10px 24px color-mix(in srgb, var(--foreground) 10%, transparent);
+  --motion-hover-border: color-mix(in srgb, var(--primary) 24%, var(--border));
+  --motion-state-pulse-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent);
+}
+
+.grimoire-panel-reveal {
+  animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+.grimoire-command-stage {
+  animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-expressive) both;
+}
+
+.grimoire-settings-stage,
+.grimoire-inspector-stage {
+  animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+.grimoire-page-arrive {
+  animation: grimoire-page-settle var(--motion-duration-page-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-ink-settle {
+  animation: grimoire-ink-settle var(--motion-duration-ink-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-constellation-focus {
+  animation: grimoire-page-settle var(--motion-duration-page-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-control-entrance {
+  animation: grimoire-control-entrance var(--motion-duration-control) var(--motion-ease-standard) both;
+  animation-delay: var(--motion-stagger-delay);
+}
+
+.grimoire-soft-hover-lift {
+  transition:
+    transform var(--motion-duration-hover) var(--motion-ease-standard),
+    border-color var(--motion-duration-hover) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-hover) var(--motion-ease-standard),
+    background var(--motion-duration-hover) var(--motion-ease-standard);
+}
+
+.grimoire-page-settle {
+  animation: grimoire-page-settle var(--motion-duration-page-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-state-pulse {
+  animation: grimoire-state-pulse var(--motion-duration-state-pulse) var(--motion-ease-standard) 1 both;
+}
+
+.grimoire-memory-trace {
+  animation: grimoire-memory-trace var(--motion-duration-state-pulse) var(--motion-ease-standard) 1 both;
+  animation-delay: var(--motion-stagger-delay);
+}
+
+.grimoire-crystallize-accept {
+  animation: grimoire-crystallize-accept var(--motion-duration-state-pulse) var(--motion-ease-expressive) 1 both;
+}
+
+.grimoire-crystallize-accept__consequence {
+  animation: grimoire-crystallize-consequence var(--motion-duration-control) var(--motion-ease-standard) 1 both;
+}
+
+.grimoire-import-autopsy {
+  position: relative;
+  overflow: hidden;
+}
+
+.grimoire-import-autopsy__rail {
+  position: relative;
+}
+
+.grimoire-import-autopsy__rail::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 10px;
+  width: 1px;
+  content: "";
+  background: color-mix(in srgb, var(--primary) 34%, var(--border));
+  opacity: 0.62;
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: grimoire-import-autopsy-rail var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+.grimoire-import-autopsy__step {
+  position: relative;
+  margin-left: 18px;
+}
+
+.grimoire-import-autopsy__step::before {
+  position: absolute;
+  top: 13px;
+  left: -14px;
+  width: 7px;
+  height: 7px;
+  content: "";
+  border: 1px solid color-mix(in srgb, var(--primary) 42%, var(--border));
+  border-radius: 999px;
+  background: var(--background);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 9%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .grimoire-soft-hover-lift:is(:hover, :focus-visible) {
+    border-color: var(--motion-hover-border);
+    box-shadow: var(--motion-hover-shadow);
+    transform: translateY(var(--motion-hover-lift-distance));
+  }
 }
 
 .grimoire-memory-signal {
@@ -96,17 +219,177 @@
   }
 }
 
+@keyframes grimoire-panel-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-panel-y)) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-control-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y)) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-page-settle {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-page-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grimoire-ink-settle {
+  from {
+    opacity: 0.88;
+    transform: translateY(var(--motion-distance-ink-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grimoire-state-pulse {
+  0% {
+    box-shadow: var(--motion-state-pulse-shadow);
+  }
+
+  42% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+  }
+
+  100% {
+    box-shadow: var(--motion-state-pulse-shadow);
+  }
+}
+
+@keyframes grimoire-memory-trace {
+  0% {
+    opacity: 0.72;
+    transform: translateY(4px) scale(0.985);
+  }
+
+  46% {
+    opacity: 1;
+    transform: translateY(0) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-crystallize-accept {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  42% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.006);
+  }
+}
+
+@keyframes grimoire-crystallize-consequence {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grimoire-import-autopsy-rail {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+
+  to {
+    opacity: 0.62;
+    transform: scaleY(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --motion-duration-fast: 0ms;
     --motion-duration-base: 0ms;
     --motion-duration-slow: 0ms;
     --motion-duration-cinematic: 0ms;
+    --motion-duration-panel: 0ms;
+    --motion-duration-control: 0ms;
+    --motion-duration-hover: 0ms;
+    --motion-duration-page-settle: 0ms;
+    --motion-duration-ink-settle: 0ms;
+    --motion-duration-state-pulse: 0ms;
+    --motion-distance-panel-y: 0px;
+    --motion-distance-control-y: 0px;
+    --motion-distance-page-y: 0px;
+    --motion-distance-ink-y: 0px;
+    --motion-hover-lift-distance: 0px;
+  }
+
+  .grimoire-panel-reveal,
+  .grimoire-command-stage,
+  .grimoire-settings-stage,
+  .grimoire-inspector-stage,
+  .grimoire-page-arrive,
+  .grimoire-ink-settle,
+  .grimoire-constellation-focus,
+  .grimoire-control-entrance,
+  .grimoire-page-settle,
+  .grimoire-state-pulse,
+  .grimoire-memory-trace,
+  .grimoire-crystallize-accept,
+  .grimoire-crystallize-accept__consequence,
+  .grimoire-import-autopsy__rail,
+  .grimoire-import-autopsy__step {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .grimoire-soft-hover-lift {
+    transition: none;
+  }
+
+  .grimoire-soft-hover-lift:is(:hover, :focus-visible) {
+    transform: none;
   }
 
   .grimoire-memory-signal::before,
   .grimoire-memory-signal::after,
-  .grimoire-memory-signal__orb {
+  .grimoire-memory-signal__orb,
+  .grimoire-import-autopsy__rail::before {
     animation: none;
+  }
+
+  .grimoire-import-autopsy__rail::before {
+    opacity: 0.62;
+    transform: scaleY(1);
   }
 }

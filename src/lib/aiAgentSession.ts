@@ -32,6 +32,7 @@ interface SendAgentMessageOptions {
 
 function normalizePrompt(prompt: PendingUserPrompt): PendingUserPrompt {
   return {
+    contextPackage: prompt.contextPackage,
     text: prompt.text.trim(),
     references: prompt.references && prompt.references.length > 0 ? prompt.references : undefined,
   }

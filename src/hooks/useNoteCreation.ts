@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, addMockEntry } from '../mock-tauri'
 import type { VaultEntry } from '../types'
 import { slugifyNoteStem as slugify } from '../utils/noteSlug'

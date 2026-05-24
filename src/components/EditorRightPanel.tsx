@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { DEFAULT_AI_AGENT, type AiAgentId } from '../lib/aiAgents'
+import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import type { VaultEntry, GitCommit } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { Inspector, type FrontmatterValue } from './Inspector'
@@ -13,6 +13,7 @@ interface EditorRightPanelProps {
   inspectorWidth: number
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  aiAgentsStatus?: AiAgentsStatus
   defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onUnsupportedAiPaste?: (message: string) => void
@@ -46,6 +47,9 @@ function AiChatRightPanel({
   controller,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiProvider,
+  defaultAiModel,
+  aiAgentsStatus,
   onUnsupportedAiPaste,
   inspectorEntry,
   entries,
@@ -57,6 +61,9 @@ function AiChatRightPanel({
 }: Pick<EditorRightPanelProps,
   | 'defaultAiAgent'
   | 'defaultAiAgentReady'
+  | 'defaultAiProvider'
+  | 'defaultAiModel'
+  | 'aiAgentsStatus'
   | 'onUnsupportedAiPaste'
   | 'inspectorEntry'
   | 'entries'
@@ -79,6 +86,9 @@ function AiChatRightPanel({
         onUnsupportedAiPaste={onUnsupportedAiPaste}
         defaultAiAgent={defaultAiAgent ?? DEFAULT_AI_AGENT}
         defaultAiAgentReady={defaultAiAgentReady ?? true}
+        defaultAiProvider={defaultAiProvider}
+        defaultAiModel={defaultAiModel}
+        aiAgentsStatus={aiAgentsStatus}
         activeEntry={inspectorEntry}
         entries={entries}
         onFileCreated={onFileCreated}
@@ -91,6 +101,7 @@ function AiChatRightPanel({
 export function EditorRightPanel({
   showAIChat, inspectorCollapsed, inspectorWidth,
   defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+  aiAgentsStatus,
   defaultAiProvider,
   defaultAiModel,
   onUnsupportedAiPaste,
@@ -134,6 +145,9 @@ export function EditorRightPanel({
         controller={aiPanelController}
         defaultAiAgent={defaultAiAgent}
         defaultAiAgentReady={defaultAiAgentReady}
+        defaultAiProvider={defaultAiProvider}
+        defaultAiModel={defaultAiModel}
+        aiAgentsStatus={aiAgentsStatus}
         onUnsupportedAiPaste={onUnsupportedAiPaste}
         inspectorEntry={inspectorEntry}
         entries={entries}

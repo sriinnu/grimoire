@@ -1,7 +1,7 @@
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
-import { ActionTooltip, type ActionTooltipCopy } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { StatusBarHint, type StatusBarHintCopy } from './StatusBarHint'
 import { SEP_STYLE } from './styles'
 
 function handleStatusBarActionKeyDown(
@@ -25,7 +25,7 @@ export function StatusBarAction({
   disabled = false,
   compact = false,
 }: {
-  copy: ActionTooltipCopy
+  copy: StatusBarHintCopy
   children: ReactNode
   onClick?: () => void
   testId?: string
@@ -36,7 +36,7 @@ export function StatusBarAction({
   compact?: boolean
 }) {
   return (
-    <ActionTooltip copy={copy} side="top">
+    <StatusBarHint copy={copy}>
       <Button
         type="button"
         variant="ghost"
@@ -56,7 +56,7 @@ export function StatusBarAction({
       >
         {children}
       </Button>
-    </ActionTooltip>
+    </StatusBarHint>
   )
 }
 

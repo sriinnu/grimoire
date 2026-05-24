@@ -31,11 +31,7 @@ import {
   createMissingAgentResponse,
   type AiAgentMessage,
 } from './aiAgentConversation'
-import {
-  markReasoningDone,
-  updateMessage,
-  updateToolAction,
-} from './aiAgentMessageState'
+import { markReasoningDone, updateMessage, updateToolAction } from './aiAgentMessageState'
 
 function createMessageStore(initial: AiAgentMessage[] = []) {
   let messages = initial
@@ -164,6 +160,92 @@ describe('aiAgentConversation', () => {
     })
   })
 
+  it('adds selected Grimoire references to the provider prompt', () => {
+    buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault' },
+      [],
+      {
+        text: 'summarize the open loop',
+        references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
+      },
+    )
+
+    expect(formatMessageWithHistoryMock).toHaveBeenCalledWith([], [
+      'summarize the open loop',
+      '',
+      '## Selected Grimoire References',
+      '- [[Grimoire]] (type: Project, path: /vault/projects/grimoire.md)',
+      '',
+      'Use these local vault references as context. Read note bodies only through Grimoire tools and keep local-only material withheld.',
+    ].join('\n'))
+  })
+
+  it('adds the shared ask context package to the provider prompt', () => {
+    buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault' },
+      [],
+      {
+        text: 'what needs attention?',
+        references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
+        contextPackage: {
+          kind: 'dashboard-ask',
+          prompt: 'what needs attention?',
+          references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
+          sourceLabels: ['Grimoire', 'Grimoire Memory'],
+          memoryReferences: [{
+            confidence: 'medium',
+            lastSeen: '2026-05-24',
+            path: '/vault/memory/grimoire.md',
+            sourceLabels: ['[[Grimoire]]'],
+            title: 'Grimoire Memory',
+          }],
+          visibleCount: 4,
+          withheld: {
+            protectedMemories: 1,
+            protectedNotes: 2,
+          },
+        },
+      },
+    )
+
+    const prompt = formatMessageWithHistoryMock.mock.calls.at(-1)?.[1] as string
+    expect(prompt).toContain('## Grimoire Ask Context Package')
+    expect(prompt).toContain('Visible public notes: 1 of 4')
+    expect(prompt).toContain('Withheld: 2 protected notes, 1 protected memories')
+    expect(prompt).toContain('Source labels: [[Grimoire]], [[Grimoire Memory]]')
+    expect(prompt).toContain('- [[Grimoire Memory]] (path: /vault/memory/grimoire.md, confidence: medium)')
+    expect(prompt).toContain('## Selected Grimoire References')
+  })
+
+  it('adds graph Council packages to the provider prompt without dashboard wording', () => {
+    buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault' },
+      [],
+      {
+        text: 'ask graph council',
+        references: [{ path: '/vault/beta.md', title: 'Beta', type: 'Reference' }],
+        contextPackage: {
+          kind: 'graph-council',
+          prompt: 'ask graph council',
+          references: [{ path: '/vault/beta.md', title: 'Beta', type: 'Reference' }],
+          sourceLabels: ['Beta'],
+          memoryReferences: [],
+          visibleCount: 2,
+          withheld: { protectedMemories: 0, protectedNotes: 1 },
+          graph: { protectedEdges: 2, truncatedEdges: 0, truncatedNodes: 1, visibleEdges: 3, visibleNodes: 2 },
+        },
+      },
+    )
+
+    const prompt = formatMessageWithHistoryMock.mock.calls.at(-1)?.[1] as string
+    expect(prompt).toContain('## Grimoire Graph Council Package')
+    expect(prompt).toContain('Visible public graph notes: 1 of 2')
+    expect(prompt).toContain('Visible graph links: 3')
+    expect(prompt).toContain('Withheld: 1 protected graph notes, 2 protected graph links')
+    expect(prompt).toContain('Trimmed: 1 graph items')
+    expect(prompt).not.toContain('Dashboard ask package')
+  })
+
   it('prefers a system prompt override when provided', () => {
     const result = buildFormattedMessage(
       { agent: 'codex', ready: true, vaultPath: '/vault', systemPromptOverride: 'OVERRIDE' },
@@ -173,6 +255,52 @@ describe('aiAgentConversation', () => {
 
     expect(buildAgentSystemPromptMock).not.toHaveBeenCalled()
     expect(result.systemPrompt).toBe('OVERRIDE')
+  })
+
+  it('adds a runtime route disclosure for Chitragupta identity questions', () => {
+    const result = buildFormattedMessage(
+      {
+        agent: 'chitragupta',
+        ready: true,
+        vaultPath: '/vault',
+        provider: 'google',
+        model: 'gemini-2.5-pro',
+      },
+      [],
+      { text: 'which model are you using?' },
+    )
+
+    expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
+    expect(result.systemPrompt).toContain('- Agent: Chitragupta')
+    expect(result.systemPrompt).toContain('- Provider: google')
+    expect(result.systemPrompt).toContain('- Model: gemini-2.5-pro')
+    expect(result.systemPrompt).toContain('Do not guess a model family')
+  })
+
+  it('keeps Chitragupta on CLI defaults when no provider override is configured', () => {
+    const result = buildFormattedMessage(
+      { agent: 'chitragupta', ready: true, vaultPath: '/vault' },
+      [],
+      { text: 'which model are you using?' },
+    )
+
+    expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
+    expect(result.systemPrompt).toContain('- Provider: CLI default')
+    expect(result.systemPrompt).toContain('- Model: CLI default')
+  })
+
+  it('ignores stale provider settings for agents without provider routing', () => {
+    const result = buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault', provider: 'google', model: 'gpt-5.3-codex' },
+      [],
+      { text: 'which provider are you using?' },
+    )
+
+    expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
+    expect(result.systemPrompt).toContain('- Agent: Codex')
+    expect(result.systemPrompt).toContain('- Provider: CLI default')
+    expect(result.systemPrompt).toContain('- Model: gpt-5.3-codex')
+    expect(result.systemPrompt).not.toContain('- Provider: google')
   })
 })
 

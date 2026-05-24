@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { Button } from '@/components/ui/button'
 import type { InboxPeriod } from '../../types'
 
 interface InboxFilterPillsProps {
@@ -15,6 +16,13 @@ const PILLS: { value: InboxPeriod; label: string }[] = [
 ]
 
 const BOTTOM_GRADIENT = 'linear-gradient(to bottom, transparent 0%, var(--card) 30%, var(--card) 100%)'
+const BASE_BUTTON_CLASSNAME = 'h-7 rounded-full px-2.5 text-[12px] font-medium'
+
+function buttonClassName(active: boolean): string {
+  return active
+    ? `${BASE_BUTTON_CLASSNAME} border border-foreground/20 bg-foreground/10 text-foreground hover:bg-foreground/10`
+    : `${BASE_BUTTON_CLASSNAME} border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground`
+}
 
 function InboxFilterPillsInner({ active, counts, onChange, position = 'top' }: InboxFilterPillsProps) {
   const isBottom = position === 'bottom'
@@ -27,16 +35,14 @@ function InboxFilterPillsInner({ active, counts, onChange, position = 'top' }: I
       data-testid="inbox-filter-pills"
     >
       {PILLS.map(({ value, label }) => (
-        <button
+        <Button
           key={value}
           type="button"
+          variant="ghost"
+          size="xs"
           role="tab"
           aria-selected={active === value}
-          className={`inline-flex whitespace-nowrap items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
-            active === value
-              ? 'border-foreground/20 bg-foreground/10 text-foreground'
-              : 'border-transparent text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
+          className={buttonClassName(active === value)}
           onClick={() => onChange(value)}
           data-testid={`inbox-pill-${value}`}
         >
@@ -44,7 +50,7 @@ function InboxFilterPillsInner({ active, counts, onChange, position = 'top' }: I
           <span className={`text-[10px] tabular-nums ${active === value ? 'text-foreground/70' : 'text-muted-foreground/70'}`}>
             {counts[value]}
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   )

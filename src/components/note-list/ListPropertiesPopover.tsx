@@ -1,8 +1,7 @@
-import { useState, useMemo, useCallback, useEffect, useId, useRef, type KeyboardEvent, type RefObject } from 'react'
-import { SlidersHorizontal, DotsSixVertical } from '@phosphor-icons/react'
+import { lazy, Suspense, useState, useMemo, useCallback, useEffect, useId, useRef, type KeyboardEvent, type RefObject } from 'react'
+import { SlidersHorizontal } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import {
@@ -11,17 +10,14 @@ import {
   type OpenListPropertiesEventDetail,
 } from './noteListPropertiesEvents'
 import {
-  DndContext, closestCenter, PointerSensor,
-  useSensor, useSensors, type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  SortableContext, useSortable, verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+  ListPropertyOption,
+  type NoteListPropertyKey,
+} from './listPropertiesOptions'
 
-type NoteListPropertyKey = string
+const LazyListPropertiesSortableOptions = lazy(() => import('./ListPropertiesSortableOptions')
+  .then((module) => ({ default: module.ListPropertiesSortableOptions })))
 
+/** Props for the note-list column/property picker trigger and panel. */
 export interface ListPropertiesPopoverProps {
   scope: NoteListPropertiesScope
   availableProperties: NoteListPropertyKey[]
@@ -29,10 +25,6 @@ export interface ListPropertiesPopoverProps {
   onSave: (value: NoteListPropertyKey[] | null) => void
   triggerTitle: string
   triggerClassName?: string
-}
-
-function propertyInputId(id: NoteListPropertyKey): string {
-  return `list-prop-${id.replace(/[^a-z0-9_-]+/gi, '-')}`
 }
 
 function getSelectedProperties(currentDisplay: NoteListPropertyKey[], availableProperties: NoteListPropertyKey[]) {
@@ -62,62 +54,6 @@ function toggleDisplayProperty(currentDisplay: NoteListPropertyKey[], selectedSe
   }
 
   return [...currentDisplay, key]
-}
-
-function reorderDisplayProperties(event: DragEndEvent, currentDisplay: NoteListPropertyKey[], availableProperties: NoteListPropertyKey[]) {
-  const { active, over } = event
-  if (!over || active.id === over.id) return undefined
-
-  const selected = getSelectedProperties(currentDisplay, availableProperties)
-  const oldIndex = selected.indexOf(String(active.id) as NoteListPropertyKey)
-  const newIndex = selected.indexOf(String(over.id) as NoteListPropertyKey)
-  if (oldIndex === -1 || newIndex === -1) return undefined
-
-  return arrayMove(selected, oldIndex, newIndex)
-}
-
-function SortablePropertyItem({ id, checked, onToggle }: { id: NoteListPropertyKey; checked: boolean; onToggle: (key: NoteListPropertyKey) => void }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id })
-  const style = { transform: CSS.Transform.toString(transform), transition }
-  const inputId = propertyInputId(id)
-  const dragAttributes = { ...attributes, tabIndex: -1 }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="flex items-center gap-2 rounded px-1 py-1 hover:bg-muted"
-      data-testid={`list-prop-item-${id}`}
-    >
-      <Checkbox
-        id={inputId}
-        checked={checked}
-        onCheckedChange={() => onToggle(id)}
-        aria-label={id}
-      />
-      <label
-        htmlFor={inputId}
-        className="flex flex-1 cursor-pointer items-center gap-2 text-[13px]"
-        onClick={(event) => {
-          event.preventDefault()
-          onToggle(id)
-        }}
-      >
-        <span className="truncate">{id}</span>
-      </label>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon-xs"
-        className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
-        aria-label={`Reorder ${id}`}
-        {...dragAttributes}
-        {...listeners}
-      >
-        <DotsSixVertical size={14} />
-      </Button>
-    </div>
-  )
 }
 
 function ListPropertiesSearchInput({
@@ -159,17 +95,32 @@ function ListPropertiesOptionsList({
   listboxId,
   filteredItems,
   selectedSet,
-  sensors,
-  onDragEnd,
+  currentDisplay,
+  availableProperties,
+  onSave,
   onToggle,
 }: {
   listboxId: string
   filteredItems: NoteListPropertyKey[]
   selectedSet: Set<NoteListPropertyKey>
-  sensors: ReturnType<typeof useSensors>
-  onDragEnd: (event: DragEndEvent) => void
+  currentDisplay: NoteListPropertyKey[]
+  availableProperties: NoteListPropertyKey[]
+  onSave: (value: NoteListPropertyKey[] | null) => void
   onToggle: (key: string) => void
 }) {
+  const staticOptions = (
+    <div id={listboxId} role="listbox" aria-multiselectable="true" className="pr-3">
+      {filteredItems.map((key) => (
+        <ListPropertyOption
+          key={key}
+          id={key}
+          checked={selectedSet.has(key)}
+          onToggle={onToggle}
+        />
+      ))}
+    </div>
+  )
+
   return (
     <div className="max-h-60 overflow-y-auto" data-testid="list-properties-scroll-area">
       {filteredItems.length === 0 ? (
@@ -177,20 +128,17 @@ function ListPropertiesOptionsList({
           No properties match this search.
         </div>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-          <div id={listboxId} role="listbox" aria-multiselectable="true" className="pr-3">
-            <SortableContext items={filteredItems} strategy={verticalListSortingStrategy}>
-              {filteredItems.map((key) => (
-                <SortablePropertyItem
-                  key={key}
-                  id={key}
-                  checked={selectedSet.has(key)}
-                  onToggle={onToggle}
-                />
-              ))}
-            </SortableContext>
-          </div>
-        </DndContext>
+        <Suspense fallback={staticOptions}>
+          <LazyListPropertiesSortableOptions
+            listboxId={listboxId}
+            filteredItems={filteredItems}
+            selectedSet={selectedSet}
+            currentDisplay={currentDisplay}
+            availableProperties={availableProperties}
+            onSave={onSave}
+            onToggle={onToggle}
+          />
+        </Suspense>
       )}
     </div>
   )
@@ -203,11 +151,12 @@ function ListPropertiesPopoverPanel({
   listboxId,
   filteredItems,
   selectedSet,
-  sensors,
+  currentDisplay,
+  availableProperties,
   onQueryChange,
   onSearchKeyDown,
   onPanelKeyDown,
-  onDragEnd,
+  onSave,
   onToggle,
 }: {
   inputRef: RefObject<HTMLInputElement | null>
@@ -216,13 +165,16 @@ function ListPropertiesPopoverPanel({
   listboxId: string
   filteredItems: NoteListPropertyKey[]
   selectedSet: Set<NoteListPropertyKey>
-  sensors: ReturnType<typeof useSensors>
+  currentDisplay: NoteListPropertyKey[]
+  availableProperties: NoteListPropertyKey[]
   onQueryChange: (value: string) => void
   onSearchKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void
   onPanelKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
-  onDragEnd: (event: DragEndEvent) => void
+  onSave: (value: NoteListPropertyKey[] | null) => void
   onToggle: (key: string) => void
 }) {
+  if (!open) return null
+
   return (
     <PopoverContent
       align="end"
@@ -246,8 +198,9 @@ function ListPropertiesPopoverPanel({
           listboxId={listboxId}
           filteredItems={filteredItems}
           selectedSet={selectedSet}
-          sensors={sensors}
-          onDragEnd={onDragEnd}
+          currentDisplay={currentDisplay}
+          availableProperties={availableProperties}
+          onSave={onSave}
           onToggle={onToggle}
         />
       </div>
@@ -288,9 +241,6 @@ function useListPropertiesPopoverState({
     () => new Set(getSelectedProperties(currentDisplay, availableProperties)),
     [availableProperties, currentDisplay],
   )
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-  )
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -310,13 +260,6 @@ function useListPropertiesPopoverState({
     const nextSelected = toggleDisplayProperty(currentDisplay, selectedSet, key)
     onSave(nextSelected)
   }, [currentDisplay, onSave, selectedSet])
-
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const reordered = reorderDisplayProperties(event, currentDisplay, availableProperties)
-    if (!reordered) return
-
-    onSave(reordered)
-  }, [availableProperties, currentDisplay, onSave])
 
   const handleSearchKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
     handleEscapeKey(event, closePopover)
@@ -338,16 +281,17 @@ function useListPropertiesPopoverState({
     listboxId,
     filteredItems,
     selectedSet,
-    sensors,
     setQuery,
     handleSearchKeyDown,
     handlePanelKeyDown,
-    handleDragEnd,
     handleOpenChange,
     handleToggle,
   }
 }
 
+/**
+ * Renders a searchable property picker for note-list metadata columns.
+ */
 export function ListPropertiesPopover({
   scope,
   availableProperties,
@@ -363,11 +307,9 @@ export function ListPropertiesPopover({
     listboxId,
     filteredItems,
     selectedSet,
-    sensors,
     setQuery,
     handleSearchKeyDown,
     handlePanelKeyDown,
-    handleDragEnd,
     handleOpenChange,
     handleToggle,
   } = useListPropertiesPopoverState({ scope, availableProperties, currentDisplay, onSave })
@@ -394,11 +336,12 @@ export function ListPropertiesPopover({
         listboxId={listboxId}
         filteredItems={filteredItems}
         selectedSet={selectedSet}
-        sensors={sensors}
+        currentDisplay={currentDisplay}
+        availableProperties={availableProperties}
         onQueryChange={setQuery}
         onSearchKeyDown={handleSearchKeyDown}
         onPanelKeyDown={handlePanelKeyDown}
-        onDragEnd={handleDragEnd}
+        onSave={onSave}
         onToggle={handleToggle}
       />
     </Popover>

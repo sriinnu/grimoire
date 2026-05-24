@@ -1,4 +1,11 @@
 import { applyFontRolesToDocument } from './fontConfig'
+import {
+  applyThemeDefinitionToRoot,
+  resolveThemePresetDefinition,
+  type ThemeDefinition,
+  type ThemeDefinitionMode,
+} from '../themes/themeRegistry'
+import { readStoredLocalThemeDefinition } from '../themes/localThemePacks'
 export {
   SUPPORTED_THEME_PRESETS,
   type ThemePreset,
@@ -32,6 +39,7 @@ type AppearanceDocument = Pick<Document, 'documentElement'>
 export interface ResolvedAppearance {
   themePreset: ThemePreset
   editorFont: EditorFont
+  themeDefinition?: ThemeDefinition
 }
 
 function isSupportedValue<T extends string>(
@@ -39,6 +47,10 @@ function isSupportedValue<T extends string>(
   value: unknown,
 ): value is T {
   return typeof value === 'string' && values.has(value)
+}
+
+function readDocumentThemeMode(root: Element): ThemeDefinitionMode {
+  return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
 }
 
 /** Returns a supported theme preset or null for untrusted persisted values. */
@@ -109,6 +121,11 @@ export function applyAppearanceToDocument(
   const root = documentObject.documentElement
   root.setAttribute('data-theme-preset', appearance.themePreset)
   root.setAttribute('data-editor-font', appearance.editorFont)
+  applyThemeDefinitionToRoot(
+    root,
+    appearance.themeDefinition ?? resolveThemePresetDefinition(appearance.themePreset),
+    readDocumentThemeMode(root),
+  )
   applyFontRolesToDocument(documentObject, appearance)
 }
 
@@ -117,10 +134,12 @@ export function applyStoredAppearance(
   documentObject: AppearanceDocument,
   storage: AppearanceStorage,
 ): ResolvedAppearance {
-  const appearance = {
+  const appearance: ResolvedAppearance = {
     themePreset: readStoredThemePreset(storage) ?? DEFAULT_THEME_PRESET,
     editorFont: readStoredEditorFont(storage) ?? DEFAULT_EDITOR_FONT,
   }
+  const localThemeDefinition = readStoredLocalThemeDefinition(storage)
+  if (localThemeDefinition) appearance.themeDefinition = localThemeDefinition
   applyAppearanceToDocument(documentObject, appearance)
   return appearance
 }

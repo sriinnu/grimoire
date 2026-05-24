@@ -1,0 +1,30 @@
+/* Agent Council motion keeps multi-agent stance changes staged and brief. */
+
+.grimoire-agent-council__member {
+  animation-duration: calc(var(--motion-duration-control) + 40ms);
+}
+
+.grimoire-agent-council__brief {
+  animation: grimoire-agent-council-synthesis var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+@keyframes grimoire-agent-council-synthesis {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y)) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-agent-council__member,
+  .grimoire-agent-council__brief {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

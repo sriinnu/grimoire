@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import type { GitPushResult, GitRemoteStatus, ModifiedFile } from '../types'
 import { trackEvent } from '../lib/telemetry'
 import { isTauri, mockInvoke } from '../mock-tauri'

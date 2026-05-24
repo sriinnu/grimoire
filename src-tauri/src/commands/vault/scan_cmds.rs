@@ -1,10 +1,14 @@
 use crate::commands::expand_tilde;
 use crate::search::SearchResponse;
-use crate::vault::VaultEntry;
+use crate::vault::{VaultEntry, VaultRebuildProgressEvent};
 use crate::{search, vault, vault_list};
 use std::path::{Path, PathBuf};
+use tauri::ipc::Channel;
 
 use super::boundary::{with_validated_path, ValidatedPathMode};
+use super::portability_progress::{
+    operation_id_error, register_portability_operation, unregister_portability_operation,
+};
 
 fn collect_registered_vault_roots(vault_list: &vault_list::VaultList) -> Vec<PathBuf> {
     let mut roots = vault_list
@@ -88,6 +92,36 @@ pub async fn reload_vault(
     })
     .await
     .map_err(|e| format!("Task panicked: {e}"))?
+}
+
+#[tauri::command]
+pub async fn reload_vault_with_progress(
+    app_handle: tauri::AppHandle,
+    path: String,
+    operation_id: String,
+    on_event: Channel<VaultRebuildProgressEvent>,
+) -> Result<(), String> {
+    if let Some(error) = operation_id_error(&operation_id) {
+        return Err(error);
+    }
+
+    let path = expand_tilde(&path).into_owned();
+    crate::sync_vault_asset_scope(&app_handle, Path::new(&path))?;
+    let cancellation = register_portability_operation(&operation_id)?;
+    let cleanup_operation_id = operation_id.clone();
+    let task_result = tauri::async_runtime::spawn_blocking(move || {
+        let vault_path = Path::new(&path);
+        vault::invalidate_cache(vault_path);
+        let git_dates = crate::git::get_all_file_dates(vault_path);
+        vault::scan_vault_with_progress(vault_path, &git_dates, cancellation.as_ref(), &|event| {
+            let _ = on_event.send(event);
+        })
+    })
+    .await;
+
+    unregister_portability_operation(&cleanup_operation_id);
+    let result = task_result.map_err(|e| format!("Vault reload task failed: {e}"))?;
+    result.map(|_| ())
 }
 
 #[tauri::command]

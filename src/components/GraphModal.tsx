@@ -1,28 +1,22 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
 import { Graph, MagnifyingGlass } from '@phosphor-icons/react'
-import { cn } from '@/lib/utils'
 import type { VaultEntry } from '../types'
-import { buildNoteGraph, filterGraphByQuery, type NoteGraph } from '../utils/noteGraph'
+import { buildNoteGraph, filterGraphByQuery } from '../utils/noteGraph'
 import {
   edgeStats,
   filterGraphByNodeTypes,
   filterGraphEdges,
-  GRAPH_CENTER_X,
-  GRAPH_CENTER_Y,
-  GRAPH_VIEWBOX_HEIGHT,
-  GRAPH_VIEWBOX_WIDTH,
   graphTypeStats,
   layoutGraph,
   limitGraphForDisplay,
   scopeGraph,
-  truncateGraphLabel,
   type GraphEdgeFilter,
-  type GraphLayout,
   type GraphScope,
-  type PositionedGraphNode,
 } from '../utils/graphDisplay'
 import { Button } from './ui/button'
+import { GraphCanvas } from './GraphCanvas'
 import { GraphControlPanel } from './GraphControlPanel'
+import { GraphInsightPanel } from './GraphInsightPanel'
 import {
   Dialog,
   DialogContent,
@@ -32,6 +26,11 @@ import {
   DialogTitle,
 } from './ui/dialog'
 import { Input } from './ui/input'
+import { buildAgentGraphContext } from '../utils/agentGraphContext'
+import { buildGraphCouncilPrompt } from '../utils/graphCouncilPrompt'
+import { queueAiPrompt, requestOpenAiChat } from '../utils/aiPromptBridge'
+import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
+import { buildGraphAskContextPackage } from '../lib/askContextPackage'
 
 interface GraphModalProps {
   open: boolean
@@ -67,6 +66,7 @@ function GraphModalContent({
   const [scope, setScope] = useState<GraphScope>('neighborhood')
   const [edgeFilter, setEdgeFilter] = useState<GraphEdgeFilter>('all')
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set())
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const graph = useMemo(() => buildNoteGraph(entries, activePath), [activePath, entries])
   const effectiveScope = activePath ? scope : 'vault'
   const scopedGraph = useMemo(() => scopeGraph(graph, effectiveScope), [effectiveScope, graph])
@@ -78,6 +78,22 @@ function GraphModalContent({
   const layout = useMemo(() => layoutGraph(renderGraph, entries), [entries, renderGraph])
   const nodeById = useMemo(() => new Map(layout.nodes.map((node) => [node.id, node])), [layout.nodes])
   const entryByPath = useMemo(() => new Map(entries.map((entry) => [entry.path, entry])), [entries])
+  const localOnlyNodeIds = useMemo(() => new Set(
+    entries
+      .filter((entry) => resolveEntryLocalityPolicy(entry).localOnly)
+      .map((entry) => entry.path),
+  ), [entries])
+  const selectedNode = (selectedNodeId ? nodeById.get(selectedNodeId) : null)
+    ?? layout.nodes.find((node) => node.active)
+    ?? layout.nodes[0]
+    ?? null
+  const selectedEntry = selectedNode ? entryByPath.get(selectedNode.path) ?? null : null
+  const activeEntry = activePath ? entryByPath.get(activePath) ?? null : null
+  const packageRootEntry = selectedEntry ?? activeEntry
+  const agentGraphContext = useMemo(
+    () => buildAgentGraphContext({ activeEntry: packageRootEntry, entries, graph: renderGraph }),
+    [entries, packageRootEntry, renderGraph],
+  )
   const stats = edgeStats(typedGraph)
 
   const toggleType = (type: string) => {
@@ -94,8 +110,23 @@ function GraphModalContent({
     if (entry) onOpenNote(entry)
   }
 
+  const askCouncilAboutSelection = () => {
+    if (!selectedNode) return
+    const prompt = buildGraphCouncilPrompt({
+      agentGraphContext,
+      selectedEntry,
+      selectedNode,
+    })
+    queueAiPrompt(prompt.text, prompt.references, buildGraphAskContextPackage({
+      agentGraphContext,
+      prompt: prompt.text,
+      selectedReference: prompt.references[0] ?? null,
+    }))
+    requestOpenAiChat()
+  }
+
   return (
-    <DialogContent className="max-w-[min(1160px,calc(100vw-2rem))] gap-4">
+    <DialogContent className="grimoire-panel-reveal max-w-[min(1160px,calc(100vw-2rem))] gap-4">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Graph size={18} />
@@ -104,7 +135,7 @@ function GraphModalContent({
         <DialogDescription className="sr-only">Vault relationships and Spelllinks.</DialogDescription>
       </DialogHeader>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_260px]">
+      <div className="grid gap-3 lg:grid-cols-[1fr_300px]">
         <div className="space-y-3">
           <label className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
             <MagnifyingGlass size={15} className="text-muted-foreground" />
@@ -116,153 +147,48 @@ function GraphModalContent({
               data-testid="graph-filter"
             />
           </label>
-          <GraphCanvas layout={layout} nodeById={nodeById} onOpenNode={openNode} />
+          <GraphCanvas
+            agentGraphContext={agentGraphContext}
+            layout={layout}
+            localOnlyNodeIds={localOnlyNodeIds}
+            nodeById={nodeById}
+            selectedNodeId={selectedNode?.id ?? null}
+            onOpenNode={openNode}
+            onSelectNode={(node) => setSelectedNodeId(node.id)}
+          />
         </div>
 
-        <GraphControlPanel
-          activePath={activePath}
-          scope={effectiveScope}
-          onScopeChange={setScope}
-          edgeFilter={edgeFilter}
-          onEdgeFilterChange={setEdgeFilter}
-          shownNodes={displayGraph.nodes.length}
-          totalMatches={visibleGraph.nodes.length}
-          shownEdges={renderGraph.edges.length}
-          stats={stats}
-          typeStats={typeStats}
-          hiddenTypes={hiddenTypes}
-          onToggleType={toggleType}
-        />
+        <div className="space-y-3">
+          <GraphControlPanel
+            activePath={activePath}
+            scope={effectiveScope}
+            onScopeChange={setScope}
+            edgeFilter={edgeFilter}
+            onEdgeFilterChange={setEdgeFilter}
+            shownNodes={displayGraph.nodes.length}
+            totalMatches={visibleGraph.nodes.length}
+            shownEdges={renderGraph.edges.length}
+            stats={stats}
+            typeStats={typeStats}
+            hiddenTypes={hiddenTypes}
+            onToggleType={toggleType}
+          />
+          <GraphInsightPanel
+            activeEntry={activeEntry}
+            agentGraphContext={agentGraphContext}
+            entries={entries}
+            nodes={layout.nodes}
+            selectedEntry={selectedEntry}
+            selectedNode={selectedNode}
+            onAskCouncil={askCouncilAboutSelection}
+            onOpenNode={openNode}
+          />
+        </div>
       </div>
 
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>Close</Button>
       </DialogFooter>
     </DialogContent>
-  )
-}
-
-function GraphCanvas({
-  layout,
-  nodeById,
-  onOpenNode,
-}: {
-  layout: GraphLayout
-  nodeById: Map<string, PositionedGraphNode>
-  onOpenNode: (path: string) => void
-}) {
-  return (
-    <div className="overflow-hidden rounded-md border border-border bg-[var(--surface-editor)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <svg
-        viewBox={`0 0 ${GRAPH_VIEWBOX_WIDTH} ${GRAPH_VIEWBOX_HEIGHT}`}
-        className="block h-[min(60vh,640px)] w-full"
-        role="img"
-        aria-label="Vault relationship graph"
-        data-testid="graph-svg"
-      >
-        <defs>
-          <pattern id="graph-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--border-subtle)" strokeOpacity="0.5" />
-          </pattern>
-        </defs>
-        <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="var(--surface-editor)" />
-        <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="url(#graph-grid)" />
-        {layout.edges.map((edge) => {
-          const source = nodeById.get(edge.source)
-          const target = nodeById.get(edge.target)
-          if (!source || !target) return null
-          return <GraphEdge key={edge.id} edge={edge} source={source} target={target} />
-        })}
-        {layout.nodes.map((node) => (
-          <GraphNode key={node.id} node={node} onOpenNode={onOpenNode} />
-        ))}
-        {layout.nodes.length === 0 ? (
-          <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y} textAnchor="middle" fill="var(--muted-foreground)" fontSize="18">
-            No matching notes
-          </text>
-        ) : null}
-      </svg>
-    </div>
-  )
-}
-
-function GraphEdge({
-  edge,
-  source,
-  target,
-}: {
-  edge: NoteGraph['edges'][number]
-  source: PositionedGraphNode
-  target: PositionedGraphNode
-}) {
-  const relationship = edge.kind === 'relationship'
-  return (
-    <line
-      x1={source.x}
-      y1={source.y}
-      x2={target.x}
-      y2={target.y}
-      stroke={relationship ? 'var(--primary)' : 'var(--muted-foreground)'}
-      strokeDasharray={relationship ? undefined : '5 8'}
-      strokeLinecap="round"
-      strokeOpacity={relationship ? 0.46 : 0.34}
-      strokeWidth={relationship ? 2.4 : 1.4}
-    />
-  )
-}
-
-function GraphNode({ node, onOpenNode }: { node: PositionedGraphNode; onOpenNode: (path: string) => void }) {
-  const radius = node.active ? 23 : Math.min(19, 10 + node.degree * 1.7)
-  const dimmed = !node.neighborhood && !node.active
-  const style = { '--node-color': node.color, '--node-fill': node.lightColor } as CSSProperties
-
-  return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={`Open ${node.title}`}
-      onClick={() => onOpenNode(node.path)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onOpenNode(node.path)
-        }
-      }}
-      data-testid="graph-node"
-      className={cn('grimoire-graph-node cursor-pointer', dimmed && 'opacity-70')}
-      style={style}
-    >
-      {node.active ? <circle className="grimoire-graph-node-halo" cx={node.x} cy={node.y} r={36} /> : null}
-      <circle
-        cx={node.x}
-        cy={node.y}
-        r={radius}
-        fill={node.active ? 'var(--node-color)' : 'var(--node-fill)'}
-        stroke="var(--node-color)"
-        strokeWidth={node.active ? 3 : 1.7}
-      />
-      <circle cx={node.x - radius * 0.35} cy={node.y - radius * 0.38} r={Math.max(2.6, radius * 0.18)} fill="rgba(255,255,255,0.42)" />
-      <text
-        x={node.x}
-        y={node.y + 38}
-        textAnchor="middle"
-        fill="var(--foreground)"
-        fontSize="16"
-        fontWeight={node.active ? 720 : 600}
-        pointerEvents="none"
-      >
-        {truncateGraphLabel(node.title)}
-      </text>
-      <text
-        x={node.x}
-        y={node.y + 57}
-        textAnchor="middle"
-        fill="var(--muted-foreground)"
-        fontSize="12"
-        pointerEvents="none"
-      >
-        {node.type}
-      </text>
-    </g>
   )
 }

@@ -28,6 +28,13 @@ vi.mock('@tauri-apps/api/core', () => ({
   },
 }))
 
+vi.mock('../lib/tauriRuntime', () => ({
+  invoke: (...args: unknown[]) => mockInvoke(...args),
+  createTauriChannel: vi.fn(async () => ({
+    onmessage: () => {},
+  })),
+}))
+
 import { isTauri } from '../mock-tauri'
 
 interface AppUpdateMetadata {

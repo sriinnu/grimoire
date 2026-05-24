@@ -1,12 +1,4 @@
-import {
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type MouseEvent as ReactMouseEvent,
-} from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { X } from '@phosphor-icons/react'
 import {
   createMissingAiAgentsStatus,
@@ -18,7 +10,13 @@ import {
   type AppLocale,
 } from '../lib/i18n'
 import { resolveEditorFont, resolveThemePreset } from '../lib/appearance'
-import type { Settings } from '../types'
+import {
+  DEFAULT_TRANSCRIPTION_PROVIDER,
+  isCloudTranscriptionProvider,
+  type TranscriptionProviderId,
+} from '../lib/transcriptionProviders'
+import type { Settings, VaultEntry } from '../types'
+import { useVaultPortabilityActions } from '../hooks/useVaultPortabilityActions'
 import { Button } from './ui/button'
 import { SettingsBody } from './settings/SettingsBody'
 import {
@@ -37,13 +35,11 @@ interface SettingsPanelProps {
   locale?: AppLocale
   systemLocale?: AppLocale
   vaultPath?: string
-  importMarkdownFolderBusy?: boolean
-  onImportMarkdownFolder?: () => void
-  onImportMarkdownZip?: () => void
-  onImportBear?: () => void
-  onImportDayOne?: () => void
-  onImportJourney?: () => void
-  onExportMarkdownZip?: () => void
+  entries?: VaultEntry[]
+  reloadVault?: () => Promise<unknown>
+  reloadFolders?: () => Promise<unknown>
+  loadModifiedFiles?: () => Promise<unknown>
+  setToastMessage?: (message: string) => void
   onSave: (settings: Settings) => void
   isGitVault?: boolean
   hasGitMetadata?: boolean
@@ -64,6 +60,9 @@ type SettingsPanelInnerProps = Omit<SettingsPanelProps, 'open' | 'explicitOrgani
   explicitOrganizationEnabled: boolean
 }
 
+const noopAsync = () => Promise.resolve()
+const noopToast = () => {}
+
 function isSaveShortcut(event: ReactKeyboardEvent): boolean {
   return event.key === 'Enter' && (event.metaKey || event.ctrlKey)
 }
@@ -76,13 +75,11 @@ export function SettingsPanel({
   locale = 'en',
   systemLocale = locale,
   vaultPath = '',
-  importMarkdownFolderBusy = false,
-  onImportMarkdownFolder,
-  onImportMarkdownZip,
-  onImportBear,
-  onImportDayOne,
-  onImportJourney,
-  onExportMarkdownZip,
+  entries = [],
+  reloadVault = noopAsync,
+  reloadFolders = noopAsync,
+  loadModifiedFiles = noopAsync,
+  setToastMessage = noopToast,
   onSave,
   isGitVault = true,
   hasGitMetadata = isGitVault,
@@ -101,13 +98,11 @@ export function SettingsPanel({
       locale={locale}
       systemLocale={systemLocale}
       vaultPath={vaultPath}
-      importMarkdownFolderBusy={importMarkdownFolderBusy}
-      onImportMarkdownFolder={onImportMarkdownFolder}
-      onImportMarkdownZip={onImportMarkdownZip}
-      onImportBear={onImportBear}
-      onImportDayOne={onImportDayOne}
-      onImportJourney={onImportJourney}
-      onExportMarkdownZip={onExportMarkdownZip}
+      entries={entries}
+      reloadVault={reloadVault}
+      reloadFolders={reloadFolders}
+      loadModifiedFiles={loadModifiedFiles}
+      setToastMessage={setToastMessage}
       onSave={onSave}
       isGitVault={isGitVault}
       hasGitMetadata={hasGitMetadata}
@@ -125,13 +120,11 @@ function SettingsPanelInner({
   aiAgentsStatus,
   systemLocale,
   vaultPath = '',
-  importMarkdownFolderBusy = false,
-  onImportMarkdownFolder,
-  onImportMarkdownZip,
-  onImportBear,
-  onImportDayOne,
-  onImportJourney,
-  onExportMarkdownZip,
+  entries = [],
+  reloadVault = noopAsync,
+  reloadFolders = noopAsync,
+  loadModifiedFiles = noopAsync,
+  setToastMessage = noopToast,
   onSave,
   isGitVault,
   hasGitMetadata,
@@ -158,6 +151,13 @@ function SettingsPanelInner({
     },
     saved: savedAppearance,
   })
+  const portabilityActions = useVaultPortabilityActions({
+    resolvedPath: vaultPath,
+    reloadVault,
+    reloadFolders,
+    loadModifiedFiles,
+    setToastMessage,
+  })
 
   useEffect(() => {
     setDraft(createSettingsDraft(settings, explicitOrganizationEnabled))
@@ -177,6 +177,20 @@ function SettingsPanelInner({
     },
     [],
   )
+  const updateTranscriptionProvider = useCallback((provider: TranscriptionProviderId) => {
+    setDraft((current) => {
+      const requiresCloud = isCloudTranscriptionProvider(provider)
+      if (requiresCloud && !current.cloudTranscriptionEnabled) return current
+      return { ...current, transcriptionProvider: provider }
+    })
+  }, [])
+  const updateCloudTranscriptionEnabled = useCallback((enabled: boolean) => {
+    setDraft((current) => ({
+      ...current,
+      cloudTranscriptionEnabled: enabled,
+      transcriptionProvider: enabled ? current.transcriptionProvider : DEFAULT_TRANSCRIPTION_PROVIDER,
+    }))
+  }, [])
 
   const handleSave = useCallback(() => {
     commitAppearancePreview()
@@ -219,7 +233,7 @@ function SettingsPanelInner({
     >
       <div
         ref={panelRef}
-        className="settings-panel-shell flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
+        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
       >
         <SettingsHeader onClose={onClose} t={t} />
         <SettingsBody
@@ -248,13 +262,50 @@ function SettingsPanelInner({
           aiAgentProviders={draft.aiAgentProviders}
           setAiAgentProviders={(value) => updateDraft('aiAgentProviders', value)}
           vaultPath={vaultPath}
-          importMarkdownFolderBusy={importMarkdownFolderBusy}
-          onImportMarkdownFolder={onImportMarkdownFolder}
-          onImportMarkdownZip={onImportMarkdownZip}
-          onImportBear={onImportBear}
-          onImportDayOne={onImportDayOne}
-          onImportJourney={onImportJourney}
-          onExportMarkdownZip={onExportMarkdownZip}
+          entries={entries}
+          importMarkdownFolderBusy={portabilityActions.markdownImportBusy}
+          portabilityBusyAction={portabilityActions.portabilityBusyAction}
+          portabilityProgress={portabilityActions.portabilityProgress}
+          importPreview={portabilityActions.lastImportPreview}
+          onCancelPortabilityAction={portabilityActions.handleCancelPortabilityAction}
+          onPreviewMarkdownFolder={portabilityActions.handlePreviewMarkdownFolder}
+          onImportMarkdownFolder={portabilityActions.handleImportMarkdownFolder}
+          onPreviewMarkdownZip={portabilityActions.handlePreviewMarkdownZip}
+          onImportMarkdownZip={portabilityActions.handleImportMarkdownZip}
+          onPreviewBear={portabilityActions.handlePreviewBear}
+          onImportBear={portabilityActions.handleImportBear}
+          onPreviewObsidian={portabilityActions.handlePreviewObsidian}
+          onImportObsidian={portabilityActions.handleImportObsidian}
+          onPreviewNotion={portabilityActions.handlePreviewNotion}
+          onImportNotion={portabilityActions.handleImportNotion}
+          onPreviewNotionFolder={portabilityActions.handlePreviewNotionFolder}
+          onImportNotionFolder={portabilityActions.handleImportNotionFolder}
+          onPreviewSpanda={portabilityActions.handlePreviewSpanda}
+          onImportSpanda={portabilityActions.handleImportSpanda}
+          onPreviewAppleJournal={portabilityActions.handlePreviewAppleJournal}
+          onImportAppleJournal={portabilityActions.handleImportAppleJournal}
+          onPreviewDayOne={portabilityActions.handlePreviewDayOne}
+          onImportDayOne={portabilityActions.handleImportDayOne}
+          onPreviewJourney={portabilityActions.handlePreviewJourney}
+          onImportJourney={portabilityActions.handleImportJourney}
+          onExportMarkdownZip={portabilityActions.handleExportMarkdownZip}
+          onExportStaticHtmlArchive={portabilityActions.handleExportStaticHtmlArchive}
+          s3MirrorPreviewReady={portabilityActions.s3MirrorPreviewReady}
+          s3MirrorPullPreviewReady={portabilityActions.s3MirrorPullPreviewReady}
+          azureMirrorPreviewReady={portabilityActions.azureMirrorPreviewReady}
+          azureMirrorPullPreviewReady={portabilityActions.azureMirrorPullPreviewReady}
+          s3MirrorPreviewReport={portabilityActions.s3MirrorPreviewReport}
+          s3MirrorPullPreviewReport={portabilityActions.s3MirrorPullPreviewReport}
+          azureMirrorPreviewReport={portabilityActions.azureMirrorPreviewReport}
+          azureMirrorPullPreviewReport={portabilityActions.azureMirrorPullPreviewReport}
+          onPreviewS3MirrorPush={portabilityActions.handlePreviewS3MirrorPush}
+          onApplyS3MirrorPush={portabilityActions.handleApplyS3MirrorPush}
+          onPreviewS3MirrorPull={portabilityActions.handlePreviewS3MirrorPull}
+          onApplyS3MirrorPull={portabilityActions.handleApplyS3MirrorPull}
+          onPreviewAzureMirrorPush={portabilityActions.handlePreviewAzureMirrorPush}
+          onApplyAzureMirrorPush={portabilityActions.handleApplyAzureMirrorPush}
+          onPreviewAzureMirrorPull={portabilityActions.handlePreviewAzureMirrorPull}
+          onApplyAzureMirrorPull={portabilityActions.handleApplyAzureMirrorPull}
           releaseChannel={draft.releaseChannel}
           setReleaseChannel={(value) => updateDraft('releaseChannel', value)}
           themeMode={draft.themeMode}
@@ -275,6 +326,10 @@ function SettingsPanelInner({
           setCrashReporting={(value) => updateDraft('crashReporting', value)}
           analytics={draft.analytics}
           setAnalytics={(value) => updateDraft('analytics', value)}
+          transcriptionProvider={draft.transcriptionProvider}
+          setTranscriptionProvider={updateTranscriptionProvider}
+          cloudTranscriptionEnabled={draft.cloudTranscriptionEnabled}
+          setCloudTranscriptionEnabled={updateCloudTranscriptionEnabled}
         />
         <SettingsFooter onClose={onClose} onSave={handleSave} t={t} />
       </div>

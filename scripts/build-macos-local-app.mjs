@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const APP_PATH = resolve(REPO_ROOT, 'src-tauri/target/release/bundle/macos/Grimoire.app')
+const PACKAGE_JSON = resolve(REPO_ROOT, 'package.json')
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -19,11 +20,16 @@ function run(command, args) {
   }
 }
 
+function packageVersion() {
+  return JSON.parse(readFileSync(PACKAGE_JSON, 'utf8')).version
+}
+
 function main() {
   if (process.platform !== 'darwin') {
     throw new Error('Local macOS app builds require macOS')
   }
 
+  run('node', ['scripts/bump-build-version.mjs'])
   run('node', ['scripts/clean-tauri-bundles.mjs'])
   run('pnpm', [
     'tauri',
@@ -40,6 +46,13 @@ function main() {
 
   run('codesign', ['--force', '--deep', '--sign', '-', APP_PATH])
   run('node', ['scripts/verify-release-artifacts.mjs', '--app', APP_PATH, '--require-codesign'])
+  run('node', [
+    'scripts/verify-app-bundle-version.mjs',
+    '--app',
+    APP_PATH,
+    '--expected-version',
+    packageVersion(),
+  ])
 }
 
 try {

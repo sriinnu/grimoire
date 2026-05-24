@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { formatFolderPickerActionError, pickFolder } from '../utils/vault-dialog'
 import { loadVaultList, saveVaultList } from '../utils/vaultListStore'

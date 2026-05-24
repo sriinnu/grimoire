@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
+import type { AiAgentId } from '../lib/aiAgents'
 import type { VaultEntry } from '../types'
 import { EditorRightPanel } from './EditorRightPanel'
 
@@ -50,9 +51,19 @@ const entry: VaultEntry = {
   wordCount: 2,
 }
 
-function renderRightPanel(showAIChat: boolean) {
+function renderRightPanel(
+  showAIChat: boolean,
+  route: {
+    defaultAiAgent?: AiAgentId
+    defaultAiProvider?: string | null
+    defaultAiModel?: string | null
+  } = {},
+) {
   return (
     <EditorRightPanel
+      defaultAiAgent={route.defaultAiAgent}
+      defaultAiModel={route.defaultAiModel}
+      defaultAiProvider={route.defaultAiProvider}
       entries={[entry]}
       gitHistory={[]}
       inspectorCollapsed
@@ -82,5 +93,15 @@ describe('EditorRightPanel AI chat lifecycle', () => {
     rerender(renderRightPanel(true))
     expect(screen.getByText('remember this')).toBeInTheDocument()
     expect(screen.getByText('Still here.')).toBeInTheDocument()
+  })
+
+  it('keeps Chitragupta provider and model route visible in the production AI panel', () => {
+    render(renderRightPanel(true, {
+      defaultAiAgent: 'chitragupta',
+      defaultAiModel: 'gemini-2.5-pro',
+      defaultAiProvider: 'google',
+    }))
+
+    expect(screen.getByText('Chitragupta · provider: google · model: gemini-2.5-pro')).toBeInTheDocument()
   })
 })

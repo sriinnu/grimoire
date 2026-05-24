@@ -1,6 +1,7 @@
 import {
   AI_AGENT_DEFINITIONS,
   resolveDefaultAiAgent,
+  supportsAiAgentProviderRoute,
   type AiAgentId,
 } from '../../lib/aiAgents'
 import {
@@ -10,6 +11,9 @@ import {
 import { SYSTEM_UI_LANGUAGE, serializeUiLanguagePreference } from '../../lib/i18n'
 import { normalizeReleaseChannel, serializeReleaseChannel } from '../../lib/releaseChannel'
 import { trackEvent } from '../../lib/telemetry'
+import {
+  resolveConfiguredTranscriptionProvider,
+} from '../../lib/transcriptionProviders'
 import { DEFAULT_THEME_MODE, readStoredThemeMode, type ThemeMode } from '../../lib/themeMode'
 import type { Settings } from '../../types'
 import type { SettingsDraft } from './settingsTypes'
@@ -42,7 +46,7 @@ export function createSettingsDraft(
     autoAdvanceInboxAfterOrganize: settings.auto_advance_inbox_after_organize ?? false,
     defaultAiAgent: resolveDefaultAiAgent(settings.default_ai_agent),
     aiAgentModels: createAiAgentModelsDraft(settings.ai_agent_models),
-    aiAgentProviders: createAiAgentStringDraft(settings.ai_agent_providers),
+    aiAgentProviders: createAiAgentProvidersDraft(settings.ai_agent_providers),
     releaseChannel: normalizeReleaseChannel(settings.release_channel),
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
@@ -52,6 +56,11 @@ export function createSettingsDraft(
     initialH1AutoRename: settings.initial_h1_auto_rename_enabled ?? true,
     crashReporting: settings.crash_reporting_enabled ?? false,
     analytics: settings.analytics_enabled ?? false,
+    cloudTranscriptionEnabled: settings.cloud_transcription_enabled === true,
+    transcriptionProvider: resolveConfiguredTranscriptionProvider({
+      provider: settings.transcription_provider,
+      cloudTranscriptionEnabled: settings.cloud_transcription_enabled,
+    }),
     explicitOrganization: explicitOrganizationEnabled,
   }
 }
@@ -98,6 +107,11 @@ export function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft)
     default_ai_agent: draft.defaultAiAgent,
     ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),
     ai_agent_providers: normalizeAiAgentProvidersForSave(draft.aiAgentProviders),
+    transcription_provider: resolveConfiguredTranscriptionProvider({
+      provider: draft.transcriptionProvider,
+      cloudTranscriptionEnabled: draft.cloudTranscriptionEnabled,
+    }),
+    cloud_transcription_enabled: draft.cloudTranscriptionEnabled,
   }
 }
 
@@ -118,6 +132,16 @@ function createAiAgentModelsDraft(
   return createAiAgentStringDraft(models)
 }
 
+function createAiAgentProvidersDraft(
+  providers: Settings['ai_agent_providers'],
+): Partial<Record<AiAgentId, string>> {
+  const draft = createAiAgentStringDraft(providers)
+  for (const agent of Object.keys(draft) as AiAgentId[]) {
+    if (!supportsAiAgentProviderRoute(agent)) delete draft[agent]
+  }
+  return draft
+}
+
 function normalizeAiAgentModelsForSave(
   models: Partial<Record<AiAgentId, string>>,
 ): Settings['ai_agent_models'] {
@@ -128,7 +152,7 @@ function normalizeAiAgentModelsForSave(
 function normalizeAiAgentProvidersForSave(
   providers: Partial<Record<AiAgentId, string>>,
 ): Settings['ai_agent_providers'] {
-  const saved = createAiAgentStringDraft(providers)
+  const saved = createAiAgentProvidersDraft(providers)
   return Object.keys(saved).length > 0 ? saved : null
 }
 
@@ -155,6 +179,11 @@ export function updateAiAgentProviderDraft(
   provider: string,
 ): Partial<Record<AiAgentId, string>> {
   const next = { ...providers }
+  if (!supportsAiAgentProviderRoute(agent)) {
+    delete next[agent]
+    return next
+  }
+
   const normalized = provider.trim()
   if (normalized) {
     next[agent] = normalized

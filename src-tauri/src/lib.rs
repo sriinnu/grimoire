@@ -4,6 +4,7 @@ pub mod claude_cli;
 mod commands;
 pub mod frontmatter;
 pub mod git;
+mod invoke_handler;
 pub mod mcp;
 #[cfg(desktop)]
 pub mod menu;
@@ -277,100 +278,6 @@ pub(crate) fn sync_vault_asset_scope(
     Ok(())
 }
 
-macro_rules! app_invoke_handler {
-    () => {
-        tauri::generate_handler![
-            commands::list_vault,
-            commands::list_vault_folders,
-            commands::get_note_content,
-            commands::create_note_content,
-            commands::save_note_content,
-            commands::update_frontmatter,
-            commands::delete_frontmatter_property,
-            commands::rename_note,
-            commands::rename_note_filename,
-            commands::move_note_to_folder,
-            commands::auto_rename_untitled,
-            commands::detect_renames,
-            commands::update_wikilinks_for_renames,
-            commands::get_file_history,
-            commands::get_modified_files,
-            commands::get_file_diff,
-            commands::get_file_diff_at_commit,
-            commands::get_vault_pulse,
-            commands::git_commit,
-            commands::get_build_number,
-            commands::get_last_commit_info,
-            commands::git_pull,
-            commands::git_push,
-            commands::git_remote_status,
-            commands::git_add_remote,
-            commands::get_conflict_files,
-            commands::get_conflict_mode,
-            commands::git_resolve_conflict,
-            commands::git_commit_conflict_resolution,
-            commands::git_discard_file,
-            commands::is_git_repo,
-            commands::init_git_repo,
-            commands::check_claude_cli,
-            commands::get_ai_agents_status,
-            commands::get_vault_ai_guidance_status,
-            commands::restore_vault_ai_guidance,
-            commands::stream_claude_chat,
-            commands::stream_claude_agent,
-            commands::stream_ai_agent,
-            commands::transcribe_audio,
-            commands::import_markdown_folder,
-            commands::import_markdown_zip,
-            commands::import_journal_export,
-            commands::export_markdown_zip,
-            commands::reload_vault,
-            commands::reload_vault_entry,
-            commands::sync_vault_asset_scope_for_window,
-            commands::sync_note_title,
-            commands::save_image,
-            commands::save_canvas_preview,
-            commands::copy_image_to_vault,
-            commands::delete_note,
-            commands::batch_delete_notes,
-            commands::batch_delete_notes_async,
-            commands::migrate_is_a_to_type,
-            commands::create_vault_folder,
-            commands::rename_vault_folder,
-            commands::delete_vault_folder,
-            commands::batch_archive_notes,
-            commands::get_settings,
-            commands::check_for_app_update,
-            commands::update_menu_state,
-            commands::trigger_menu_command,
-            commands::update_current_window_min_size,
-            commands::perform_current_window_titlebar_double_click,
-            commands::save_settings,
-            commands::download_and_install_app_update,
-            commands::load_vault_list,
-            commands::save_vault_list,
-            commands::git_clone::clone_git_repo,
-            commands::search_vault,
-            commands::create_empty_vault,
-            commands::create_getting_started_vault,
-            commands::check_vault_exists,
-            commands::get_default_vault_path,
-            commands::register_mcp_tools,
-            commands::remove_mcp_tools,
-            commands::check_mcp_status,
-            commands::repair_vault,
-            commands::reinit_telemetry,
-            commands::list_views,
-            commands::save_view_cmd,
-            commands::delete_view_cmd
-        ]
-    };
-}
-
-fn with_invoke_handler(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
-    builder.invoke_handler(app_invoke_handler!())
-}
-
 #[cfg(desktop)]
 fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
     use tauri::Manager;
@@ -395,7 +302,7 @@ pub fn run() {
         .manage(WsBridgeChild(Mutex::new(None)))
         .manage(ActiveAssetScopeRoots(Mutex::new(Vec::new())));
 
-    with_invoke_handler(builder)
+    invoke_handler::with_invoke_handler(builder)
         .setup(setup_app)
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

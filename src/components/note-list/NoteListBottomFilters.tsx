@@ -13,8 +13,6 @@ interface NoteListBottomFiltersProps {
   onFileScopeChange: (scope: NoteFileScope) => void
 }
 
-const BOTTOM_GRADIENT = 'linear-gradient(to bottom, transparent 0%, var(--card) 25%, var(--card) 100%)'
-
 /** Bottom filter stack for archive and file-scope controls in the note list. */
 export function NoteListBottomFilters({
   showFilterPills,
@@ -29,26 +27,30 @@ export function NoteListBottomFilters({
   if (!showFilterPills && !showFileScopePills) return null
 
   return (
-    <div
-      className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-1.5 px-4 pb-3 pt-6"
-      style={{ background: BOTTOM_GRADIENT }}
-      data-testid="note-list-bottom-filters"
-    >
-      {showFileScopePills && (
-        <FileScopePills
-          active={fileScope}
-          counts={fileScopeCounts}
-          onChange={onFileScopeChange}
-        />
-      )}
-      {showFilterPills && (
-        <FilterPills
-          active={noteListFilter}
-          counts={filterCounts}
-          onChange={onNoteListFilterChange}
-          position="inline"
-        />
-      )}
+    <div className="note-list-filter-footer shrink-0" data-testid="note-list-bottom-filters">
+      <div className="note-list-filter-shelf">
+        {showFileScopePills && (
+          <div className="note-list-filter-group" data-testid="note-list-file-scope-group">
+            <span className="note-list-filter-group__label">Scope</span>
+            <FileScopePills
+              active={fileScope}
+              counts={fileScopeCounts}
+              onChange={onFileScopeChange}
+            />
+          </div>
+        )}
+        {showFilterPills && (
+          <div className="note-list-filter-group" data-testid="note-list-state-filter-group">
+            <span className="note-list-filter-group__label">State</span>
+            <FilterPills
+              active={noteListFilter}
+              counts={filterCounts}
+              onChange={onNoteListFilterChange}
+              position="inline"
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

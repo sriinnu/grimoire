@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractNoteHeadings, findNoteSearchMatches } from './noteNavigation'
+import { extractNoteHeadings, findNoteSearchMatches, findNoteWikilinks } from './noteNavigation'
 
 describe('note navigation utilities', () => {
   it('extracts document headings outside frontmatter and code fences', () => {
@@ -41,5 +41,32 @@ title: Search Notes
 
   it('does not search until the query has text', () => {
     expect(findNoteSearchMatches('# Title', '   ')).toEqual([])
+  })
+
+  it('finds navigable wikilinks outside code spans and fences', () => {
+    const matches = findNoteWikilinks([
+      'See [[Core Note]] and [[projects/alpha|Alpha Project]].',
+      'Skip `[[Inline Code]]`.',
+      '```',
+      '[[Fenced Code]]',
+      '```',
+    ].join('\n'))
+
+    expect(matches).toEqual([
+      expect.objectContaining({
+        line: 1,
+        column: 5,
+        match: 'Core Note',
+        target: 'Core Note',
+        label: 'Core Note',
+      }),
+      expect.objectContaining({
+        line: 1,
+        column: 23,
+        match: 'Alpha Project',
+        target: 'projects/alpha',
+        label: 'Alpha Project',
+      }),
+    ])
   })
 })

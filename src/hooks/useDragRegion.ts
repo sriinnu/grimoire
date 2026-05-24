@@ -1,5 +1,4 @@
-import { invoke } from '@tauri-apps/api/core'
-import { getCurrentWindow } from '@tauri-apps/api/window'
+import { getCurrentTauriWindow, invoke } from '../lib/tauriRuntime'
 import { useCallback } from 'react'
 
 const NO_DRAG_SELECTOR = 'button, input, select, a, [data-no-drag]'
@@ -25,7 +24,9 @@ export function useDragRegion() {
       void performCurrentWindowTitlebarDoubleClick().catch(() => {})
       return
     }
-    void getCurrentWindow().startDragging().catch(() => {})
+    void getCurrentTauriWindow()
+      .then((window) => window.startDragging())
+      .catch(() => {})
   }, [])
 
   return { onMouseDown }

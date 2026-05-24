@@ -30,7 +30,10 @@ fn test_set_and_get_last_vault_roundtrip() {
 fn test_set_last_vault_trims_whitespace() {
     let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
     set_last_vault_at(&path, " \n\t/Users/test/Vault \r\n").unwrap();
-    assert_eq!(get_last_vault_at(&path).as_deref(), Some("/Users/test/Vault"));
+    assert_eq!(
+        get_last_vault_at(&path).as_deref(),
+        Some("/Users/test/Vault")
+    );
     assert_eq!(fs::read_to_string(&path).unwrap(), "/Users/test/Vault");
 }
 

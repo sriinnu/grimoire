@@ -1,5 +1,5 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Cloud, FolderOpen, GitBranch, HardDrive, Sparkles } from 'lucide-react'
+import { Cloud, FileText, FolderOpen, GitBranch, HardDrive, ShieldCheck, Sparkles } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -35,6 +35,11 @@ interface CreateVaultDialogProps {
 type SubmitState = 'idle' | 'creating'
 
 const CLOUD_CHOICE_IDS = new Set<VaultStorageChoiceId>(['icloud', 'google-drive', 'synced-folder'])
+const VAULT_PROMISES = [
+  { label: 'Plain Markdown', detail: 'Readable outside Grimoire', icon: FileText },
+  { label: 'Private by default', detail: 'Journals and dreams stay local', icon: ShieldCheck },
+  { label: 'Git optional', detail: 'History can stay off', icon: GitBranch },
+]
 
 function choiceIcon(choiceId: VaultStorageChoiceId) {
   if (choiceId === 'local') return <HardDrive className="size-4" />
@@ -175,11 +180,26 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
         <DialogHeader>
           <DialogTitle>Create Vault</DialogTitle>
           <DialogDescription>
-            Create a local-first markdown vault in a folder you own.
+            Make a private Markdown space. Sync is only the folder you choose.
           </DialogDescription>
         </DialogHeader>
 
         <form className="grid gap-4" onSubmit={handleSubmit}>
+          <div className="grid gap-2 rounded-md border border-border bg-muted/30 p-3" data-testid="create-vault-local-contract">
+            <div className="text-xs font-medium text-muted-foreground">Local-first contract</div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {VAULT_PROMISES.map(({ detail, icon: Icon, label }) => (
+                <div key={label} className="min-w-0 rounded-md border border-border/70 bg-background/70 px-3 py-2">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Icon className="size-4 text-muted-foreground" />
+                    <span className="truncate">{label}</span>
+                  </div>
+                  <div className="mt-1 truncate text-xs text-muted-foreground">{detail}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="grid gap-2">
             <div className="text-xs font-medium text-muted-foreground">Vault template</div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -217,7 +237,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
           </div>
 
           <div className="grid gap-2">
-            <div className="text-xs font-medium text-muted-foreground">Storage</div>
+            <div className="text-xs font-medium text-muted-foreground">Vault home</div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {VAULT_STORAGE_CHOICES.map((choice) => {
                 const selected = choice.id === storageChoice
@@ -242,7 +262,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
           </div>
 
           <div className="grid gap-2">
-            <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-path">Folder path</label>
+            <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-path">Markdown folder</label>
             <div className="flex gap-2">
               <Input
                 id="create-vault-path"

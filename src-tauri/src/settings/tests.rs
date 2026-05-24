@@ -31,7 +31,7 @@ fn test_settings_json_roundtrip() {
         anonymous_id: Some("abc-123-uuid".to_string()),
         release_channel: Some("alpha".to_string()),
         theme_mode: Some("dark".to_string()),
-        theme_preset: Some("manuscript".to_string()),
+        theme_preset: Some("living-archive".to_string()),
         editor_font: Some("serif".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
@@ -45,6 +45,8 @@ fn test_settings_json_roundtrip() {
             "chitragupta".to_string(),
             "openai".to_string(),
         )])),
+        transcription_provider: Some("local_voice_model".to_string()),
+        cloud_transcription_enabled: Some(false),
     };
     let json = serde_json::to_string(&settings).unwrap();
     let parsed: Settings = serde_json::from_str(&json).unwrap();
@@ -69,12 +71,14 @@ fn test_save_and_load_preserves_values() {
         auto_advance_inbox_after_organize: Some(true),
         release_channel: Some("alpha".to_string()),
         theme_mode: Some("dark".to_string()),
-        theme_preset: Some("manuscript".to_string()),
+        theme_preset: Some("living-archive".to_string()),
         editor_font: Some("serif".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
+        transcription_provider: Some("local_whisper".to_string()),
+        cloud_transcription_enabled: Some(false),
         ..Default::default()
     });
     assert_eq!(loaded.auto_pull_interval_minutes, Some(10));
@@ -84,12 +88,17 @@ fn test_save_and_load_preserves_values() {
     assert_eq!(loaded.auto_advance_inbox_after_organize, Some(true));
     assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
     assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
-    assert_eq!(loaded.theme_preset.as_deref(), Some("manuscript"));
+    assert_eq!(loaded.theme_preset.as_deref(), Some("living-archive"));
     assert_eq!(loaded.editor_font.as_deref(), Some("serif"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
     assert_eq!(loaded.menu_bar_icon_enabled, Some(true));
     assert_eq!(loaded.initial_h1_auto_rename_enabled, Some(false));
     assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
+    assert_eq!(
+        loaded.transcription_provider.as_deref(),
+        Some("local_whisper")
+    );
+    assert_eq!(loaded.cloud_transcription_enabled, Some(false));
 }
 
 #[test]
@@ -267,6 +276,17 @@ fn test_invalid_appearance_settings_are_filtered() {
     });
     assert!(loaded.theme_preset.is_none());
     assert!(loaded.editor_font.is_none());
+}
+
+#[test]
+fn test_invalid_transcription_provider_is_filtered() {
+    let loaded = save_and_reload(Settings {
+        transcription_provider: Some("cloudy".to_string()),
+        cloud_transcription_enabled: Some(true),
+        ..Default::default()
+    });
+    assert!(loaded.transcription_provider.is_none());
+    assert_eq!(loaded.cloud_transcription_enabled, Some(true));
 }
 
 #[test]

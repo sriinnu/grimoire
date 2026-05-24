@@ -14,13 +14,14 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('--muted-foreground: color-mix(in srgb, var(--sidebar-foreground) 68%, transparent)')
   })
 
-  it('enables editorial line-art sidebar artwork for narrative presets', () => {
+  it('enables the ambient brand sigil for narrative presets', () => {
     const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
 
     expect(css).toContain('.sidebar-artwork')
-    expect(css).toContain('[data-theme-preset="manuscript"] .app-sidebar-panel .sidebar-artwork')
-    expect(css).toContain('[data-theme-preset="nocturne"] .app-sidebar-panel .sidebar-artwork')
-    expect(css).toContain('[data-theme-preset="retro-terminal"] .app-sidebar-panel .sidebar-artwork')
+    expect(css).toContain('[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork')
+    expect(css).toContain('[data-sidebar-artwork-preview]:not([data-sidebar-artwork-preview="none"]) .sidebar-artwork')
+    expect(css).toContain('[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork__glyph--sigil')
+    expect(css).toContain('[data-sidebar-artwork-preview]:not([data-sidebar-artwork-preview="none"]) .sidebar-artwork__glyph--sigil')
   })
 
   it('places live sidebar artwork behind navigation while previews stay inline', () => {

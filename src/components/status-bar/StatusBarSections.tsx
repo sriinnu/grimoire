@@ -1,14 +1,11 @@
-import { Package } from 'lucide-react'
+import { lazy, Suspense } from 'react'
 import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
 import type { VaultAiGuidanceStatus } from '../../lib/vaultAiGuidance'
 import type { ClaudeCodeStatus } from '../../hooks/useClaudeCodeStatus'
 import type { McpStatus } from '../../hooks/useMcpStatus'
 import { useStatusBarAddRemote } from '../../hooks/useStatusBarAddRemote'
 import type { GitRemoteStatus, SyncStatus } from '../../types'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { AiAgentsBadge } from './AiAgentsBadge'
-import { AddRemoteModal } from '../AddRemoteModal'
-import { Button } from '@/components/ui/button'
 import {
   ClaudeCodeBadge,
   CommitButton,
@@ -20,13 +17,13 @@ import {
   PulseBadge,
   SyncBadge,
 } from './StatusBarBadges'
-import { ICON_STYLE } from './styles'
+import { BuildNumberButton } from './BuildNumberButton'
 import { SpandaRailIntent } from './SpandaRailIntent'
 import { StatusBarGroup } from './StatusBarGroup'
 import type { VaultOption } from './types'
 import { VaultMenu } from './VaultMenu'
 
-const UPDATE_TOOLTIP = { label: 'Check for updates' } as const
+const AddRemoteModalSurface = lazy(async () => ({ default: (await import('../AddRemoteModal')).AddRemoteModal }))
 
 interface StatusBarPrimarySectionProps {
   modifiedCount: number
@@ -65,40 +62,6 @@ interface StatusBarPrimarySectionProps {
   claudeCodeVersion?: string | null
   stacked?: boolean
   compact?: boolean
-}
-
-function BuildNumberButton({
-  buildNumber,
-  onCheckForUpdates,
-  compact,
-}: {
-  buildNumber?: string
-  onCheckForUpdates?: () => void
-  compact: boolean
-}) {
-  const className = compact
-    ? 'h-6 min-w-0 gap-1 rounded-sm px-1 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-[var(--hover)] hover:text-foreground'
-    : 'h-auto gap-1 rounded-sm px-1 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-[var(--hover)] hover:text-foreground'
-
-  return (
-    <ActionTooltip copy={UPDATE_TOOLTIP} side="top">
-      <Button
-        type="button"
-        variant="ghost"
-        size="xs"
-        className={className}
-        onClick={onCheckForUpdates}
-        aria-label={UPDATE_TOOLTIP.label}
-        aria-disabled={onCheckForUpdates ? undefined : true}
-        data-testid="status-build-number"
-      >
-        <span style={ICON_STYLE}>
-          <Package size={13} />
-          {compact ? null : buildNumber ?? 'b?'}
-        </span>
-      </Button>
-    </ActionTooltip>
-  )
 }
 
 function StatusBarAiBadge({
@@ -388,13 +351,17 @@ export function StatusBarPrimarySection({
           />
         </StatusBarGroup>
       )}
-      <AddRemoteModal
-        open={showAddRemote}
-        vaultPath={vaultPath}
-        onClose={closeAddRemote}
-        onGitInitialized={onGitInitialized}
-        onRemoteConnected={handleRemoteConnected}
-      />
+      {showAddRemote ? (
+        <Suspense fallback={null}>
+          <AddRemoteModalSurface
+            open={showAddRemote}
+            vaultPath={vaultPath}
+            onClose={closeAddRemote}
+            onGitInitialized={onGitInitialized}
+            onRemoteConnected={handleRemoteConnected}
+          />
+        </Suspense>
+      ) : null}
     </div>
   )
 }

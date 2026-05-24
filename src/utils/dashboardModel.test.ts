@@ -55,6 +55,7 @@ describe('buildDashboardSummary', () => {
     expect(summary.hasJournalToday).toBe(true)
     expect(summary.hasDreamToday).toBe(true)
     expect(summary.memoryQueueCount).toBe(1)
+    expect(summary.memoryQueueEntries[0].title).toBe('Agent memory')
     expect(summary.openLoopCount).toBe(4)
     expect(summary.openLoopBuckets[0]).toEqual({ label: 'Dream', count: 1 })
     expect(summary.recentEntries[0].title).toBe('Journal 2026-05-17')

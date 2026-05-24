@@ -22,6 +22,7 @@ function toResult(e: VaultEntry, typeEntryMap: Record<string, VaultEntry>): Note
     typeColor: noteType ? getTypeColor(e.isA, te?.color) : undefined,
     typeLightColor: noteType ? getTypeLightColor(e.isA, te?.color) : undefined,
     TypeIcon: noteType ? getTypeIcon(e.isA, te?.icon) : undefined,
+    typeIconValue: noteType ? te?.icon ?? null : null,
   }
 }
 

@@ -5,7 +5,8 @@ import { resolveFontRoles } from '../lib/fontConfig'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
 import { SidebarAppearancePreview } from './SidebarAppearancePreview'
-import { buildPresetOptions, type PresetOption } from './appearanceSettingsOptions'
+import { ThemePackSettingsControls } from './ThemePackSettingsControls'
+import { buildPresetGroups, type PresetOption } from './appearanceSettingsOptions'
 import { Button } from './ui/button'
 import {
   Select,
@@ -37,7 +38,7 @@ export function AppearanceSettingsSection({
   editorFont,
   setEditorFont,
 }: AppearanceSettingsSectionProps) {
-  const presets = buildPresetOptions(t)
+  const presetGroups = buildPresetGroups(t)
 
   return (
     <>
@@ -51,21 +52,42 @@ export function AppearanceSettingsSection({
       <div className="space-y-2">
         <ControlLabel icon={<Palette size={14} />} label={t('settings.themePreset.label')} />
         <div
-          className="grid gap-2"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))' }}
+          className="space-y-3"
           role="radiogroup"
           aria-label={t('settings.themePreset.label')}
         >
-          {presets.map((preset) => (
-            <ThemePresetCard
-              key={preset.value}
-              option={preset}
-              selected={themePreset === preset.value}
-              onSelect={setThemePreset}
-            />
+          {presetGroups.map((group) => (
+            <div key={group.id} className="space-y-1.5" data-testid={`settings-theme-preset-group-${group.id}`}>
+              <div
+                style={{
+                  color: 'var(--muted-foreground)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {group.label}
+              </div>
+              <div
+                className="grid gap-2"
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))' }}
+              >
+                {group.options.map((preset) => (
+                  <ThemePresetCard
+                    key={preset.value}
+                    option={preset}
+                    selected={themePreset === preset.value}
+                    onSelect={setThemePreset}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
+
+      <ThemePackSettingsControls themePreset={themePreset} />
 
       <SidebarAppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} />
 
@@ -109,7 +131,6 @@ function SectionHeading({
         style={{
           fontSize: 11,
           fontWeight: 700,
-          letterSpacing: '0.08em',
           textTransform: 'uppercase',
           color: 'var(--muted-foreground)',
         }}
@@ -202,6 +223,7 @@ function ThemePresetCard({
   selected: boolean
   onSelect: (value: ThemePreset) => void
 }) {
+  const surface = getThemePresetCardSurface(option, selected)
   return (
     <Button
       type="button"
@@ -211,9 +233,10 @@ function ThemePresetCard({
       data-testid={`settings-theme-preset-${option.value}`}
       className={
         selected
-          ? 'h-auto min-w-0 justify-start whitespace-normal rounded-md border border-primary bg-background p-3 text-left shadow-xs'
-          : 'h-auto min-w-0 justify-start whitespace-normal rounded-md border border-border bg-transparent p-3 text-left hover:bg-muted'
+          ? 'h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left shadow-xs'
+          : 'h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left hover:bg-muted'
       }
+      style={surface}
       onClick={() => onSelect(option.value)}
     >
       <span className="flex min-w-0 w-full flex-col gap-2">
@@ -238,6 +261,27 @@ function ThemePresetCard({
       </span>
     </Button>
   )
+}
+
+function getThemePresetCardSurface(option: PresetOption, selected: boolean) {
+  if (selected) {
+    return {
+      background: 'var(--background)',
+      borderColor: 'var(--primary)',
+    }
+  }
+
+  if (option.group === 'signature') {
+    return {
+      background: 'linear-gradient(135deg, var(--surface-editor), color-mix(in srgb, var(--accent-soft) 46%, var(--surface-panel)))',
+      borderColor: 'color-mix(in srgb, var(--primary) 36%, var(--border))',
+    }
+  }
+
+  return {
+    background: 'transparent',
+    borderColor: 'var(--border)',
+  }
 }
 
 function AppearancePreview({

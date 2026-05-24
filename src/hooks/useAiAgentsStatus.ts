@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import {
   createBrowserPreviewAiAgentsStatus,

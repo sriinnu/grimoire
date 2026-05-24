@@ -13,6 +13,7 @@ import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 
 interface AiPanelHeaderProps {
   agentLabel: string
+  agentRouteLabel?: string | null
   agentReady: boolean
   legacyCopy: boolean
   canCrystallize: boolean
@@ -116,6 +117,7 @@ function AiPanelEmptyState({
 
 export function AiPanelHeader({
   agentLabel,
+  agentRouteLabel,
   agentReady,
   canCrystallize,
   crystallizeBlockedReason,
@@ -137,6 +139,7 @@ export function AiPanelHeader({
         {!legacyCopy && (
           <span className="truncate text-[11px] text-muted-foreground">
             {agentLabel}
+            {agentRouteLabel ? ` · ${agentRouteLabel}` : ''}
             {!agentReady ? ' · not installed' : ''}
           </span>
         )}

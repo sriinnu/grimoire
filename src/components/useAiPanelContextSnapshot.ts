@@ -5,6 +5,7 @@ import {
   collectLinkedEntries,
   type NoteListItem,
 } from '../utils/ai-context'
+import { buildAgentGraphContext } from '../utils/agentGraphContext'
 import { extractInlineWikilinkReferences } from './inlineWikilinkText'
 
 interface UseAiPanelContextSnapshotArgs {
@@ -35,6 +36,10 @@ export function useAiPanelContextSnapshot({
     () => extractInlineWikilinkReferences(input, entries ?? []),
     [entries, input],
   )
+  const graphContext = useMemo(() => {
+    if (!activeEntry || !entries) return undefined
+    return buildAgentGraphContext({ activeEntry, entries })
+  }, [activeEntry, entries])
 
   const contextPrompt = useMemo(() => {
     if (!activeEntry || !entries) return undefined
@@ -45,9 +50,10 @@ export function useAiPanelContextSnapshot({
       noteList,
       noteListFilter,
       entries,
+      graphContext,
       references: draftReferences.length > 0 ? draftReferences : undefined,
     })
-  }, [activeEntry, activeNoteContent, draftReferences, entries, noteList, noteListFilter, openTabs])
+  }, [activeEntry, activeNoteContent, draftReferences, entries, graphContext, noteList, noteListFilter, openTabs])
 
   return { linkedEntries, contextPrompt }
 }

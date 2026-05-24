@@ -42,6 +42,57 @@ export const REQUIRED_CHITRAGUPTA_CAPABILITIES: ChitraguptaCapability[] = [
   'ingest.markdown',
 ]
 
+export type ChitraguptaDaemonState = 'running' | 'stopped' | 'degraded'
+export type ChitraguptaContractState = 'ready' | 'blocked'
+
+export interface ChitraguptaStatusPayload {
+  ok?: boolean
+  daemon?: ChitraguptaDaemonState | string
+  capabilities?: string[] | null
+  warnings?: string[] | null
+}
+
+export interface ChitraguptaCapabilityStatus {
+  name: ChitraguptaCapability
+  available: boolean
+}
+
+export interface ChitraguptaContractStatus {
+  state: ChitraguptaContractState
+  daemon: ChitraguptaDaemonState | 'unknown'
+  capabilities: ChitraguptaCapabilityStatus[]
+  missingCapabilities: ChitraguptaCapability[]
+  warnings: string[]
+}
+
+/** Evaluates the public Chitragupta MCP contract without exposing private runtime details. */
+export function evaluateChitraguptaContractStatus(
+  payload: ChitraguptaStatusPayload | null | undefined,
+): ChitraguptaContractStatus {
+  const availableCapabilities = new Set(payload?.capabilities ?? [])
+  const missingCapabilities = REQUIRED_CHITRAGUPTA_CAPABILITIES.filter(
+    capability => !availableCapabilities.has(capability),
+  )
+  const daemon = normalizeDaemonState(payload?.daemon)
+  const warnings = [
+    ...(payload?.warnings ?? []).filter(warning => warning.trim().length > 0),
+    ...contractWarnings(payload, daemon, missingCapabilities),
+  ]
+
+  return {
+    state: payload?.ok === true && daemon === 'running' && missingCapabilities.length === 0
+      ? 'ready'
+      : 'blocked',
+    daemon,
+    capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES.map(capability => ({
+      name: capability,
+      available: availableCapabilities.has(capability),
+    })),
+    missingCapabilities,
+    warnings: [...new Set(warnings)],
+  }
+}
+
 /** Builds the active-note context packet Grimoire will send to Chitragupta. */
 export function buildChitraguptaMemoryContext(
   entry: VaultEntry,
@@ -72,6 +123,31 @@ export function buildChitraguptaMemoryContext(
     requiredCapabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
     locality,
   }
+}
+
+function contractWarnings(
+  payload: ChitraguptaStatusPayload | null | undefined,
+  daemon: ChitraguptaContractStatus['daemon'],
+  missingCapabilities: ChitraguptaCapability[],
+): string[] {
+  const warnings: string[] = []
+  if (!payload) {
+    warnings.push('Chitragupta status is unavailable.')
+  } else if (payload.ok !== true) {
+    warnings.push('Chitragupta status is not healthy.')
+  }
+  if (daemon !== 'running') {
+    warnings.push('Chitragupta daemon is not running.')
+  }
+  if (missingCapabilities.length > 0) {
+    warnings.push(`Missing Chitragupta capabilities: ${missingCapabilities.join(', ')}`)
+  }
+  return warnings
+}
+
+function normalizeDaemonState(value: ChitraguptaStatusPayload['daemon']): ChitraguptaContractStatus['daemon'] {
+  if (value === 'running' || value === 'stopped' || value === 'degraded') return value
+  return 'unknown'
 }
 
 function relatedNoteTitles(entry: VaultEntry, entries: VaultEntry[]): string[] {

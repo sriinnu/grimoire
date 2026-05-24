@@ -15,18 +15,18 @@ const SCOPES: Array<{ value: NoteFileScope; label: string; Icon: ComponentType<{
   { value: 'all', label: 'All', Icon: Files },
 ]
 
-const BASE_CLASSNAME = 'h-7 rounded-full px-2.5 text-[12px] font-medium'
+const BASE_CLASSNAME = 'note-list-segment-pill'
 
 function scopeClassName(active: boolean): string {
   return active
-    ? `${BASE_CLASSNAME} border border-foreground/20 bg-foreground/10 text-foreground hover:bg-foreground/10`
+    ? `${BASE_CLASSNAME} border bg-foreground/10 text-foreground hover:bg-foreground/10`
     : `${BASE_CLASSNAME} border border-transparent text-muted-foreground hover:bg-muted hover:text-foreground`
 }
 
 function FileScopePillsInner({ active, counts, onChange }: FileScopePillsProps) {
   return (
     <div
-      className="flex flex-wrap items-center justify-center gap-1.5"
+      className="note-list-pill-group"
       data-testid="file-scope-pills"
     >
       {SCOPES.map(({ value, label, Icon }) => (

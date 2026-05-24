@@ -1,7 +1,7 @@
 import type { CSSProperties, MouseEvent as ReactMouseEvent, MouseEventHandler, ReactNode } from 'react'
 import type { VaultEntry, NoteStatus } from '../types'
 import { cn } from '@/lib/utils'
-import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
+import { getTypeColor } from '../utils/typeColors'
 import { NoteItemContent } from './note-item/NoteItemContent'
 import { isOpaqueBinaryEntry } from '../utils/filePreviews'
 import { getNoteLocationLabel } from '../utils/noteLocation'
@@ -47,10 +47,15 @@ function noteItemClassName(state: NoteItemVisualState) {
   return cn(NOTE_ITEM_BASE_CLASS_NAME, NOTE_ITEM_ROW_CLASS_NAMES[resolveNoteItemRowState(state)])
 }
 
-function noteItemStyle(isSelected: boolean, isMultiSelected: boolean, typeColor: string, typeLightColor: string): CSSProperties {
-  const base: CSSProperties = { padding: isSelected && !isMultiSelected ? '14px 16px 14px 13px' : '14px 16px' }
+type NoteItemStyle = CSSProperties & { '--note-type-color': string }
+
+function noteItemStyle(isSelected: boolean, isMultiSelected: boolean, typeColor: string): NoteItemStyle {
+  const base: NoteItemStyle = {
+    '--note-type-color': typeColor,
+    padding: isSelected && !isMultiSelected ? '14px 16px 14px 13px' : '14px 16px',
+  }
   if (isMultiSelected) base.backgroundColor = 'color-mix(in srgb, var(--accent-blue) 10%, transparent)'
-  else if (isSelected) { base.borderLeftColor = typeColor; base.backgroundColor = typeLightColor }
+  else if (isSelected) base.borderLeftColor = typeColor
   return base
 }
 
@@ -100,18 +105,16 @@ function resolveNoteItemSurfaceProps({
   onPrefetch,
   onContextMenu,
   typeColor,
-  typeLightColor,
 }: NoteItemVisualState & {
   entry: VaultEntry
   onClickNote: NoteItemProps['onClickNote']
   onPrefetch?: NoteItemProps['onPrefetch']
   onContextMenu?: NoteItemProps['onContextMenu']
   typeColor: string
-  typeLightColor: string
 }): NoteItemSurfaceProps {
   return {
     className: noteItemClassName({ isBinary, isSelected, isMultiSelected, isHighlighted }),
-    style: isBinary ? BINARY_NOTE_STYLE : noteItemStyle(isSelected, isMultiSelected, typeColor, typeLightColor),
+    style: isBinary ? BINARY_NOTE_STYLE : noteItemStyle(isSelected, isMultiSelected, typeColor),
     onClick: createNoteItemClickHandler(entry, isBinary, onClickNote),
     onContextMenu: onContextMenu ? (event) => onContextMenu(entry, event) : undefined,
     onMouseEnter: !isBinary && onPrefetch ? () => onPrefetch(entry.path) : undefined,
@@ -163,7 +166,6 @@ export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlig
   const te = typeEntryMap[entry.isA ?? '']
   const displayProps = resolveDisplayProps(entry, typeEntryMap, displayPropsOverride)
   const typeColor = isBinary ? 'var(--muted-foreground)' : getTypeColor(entry.isA ?? 'Note', te?.color)
-  const typeLightColor = getTypeLightColor(entry.isA ?? 'Note', te?.color)
   const surfaceProps = resolveNoteItemSurfaceProps({
     entry,
     isBinary,
@@ -174,7 +176,6 @@ export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlig
     onPrefetch,
     onContextMenu,
     typeColor,
-    typeLightColor,
   })
 
   return (
@@ -190,6 +191,7 @@ export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlig
         entry={entry}
         isBinary={isBinary}
         isSelected={isSelected}
+        locationLabel={getNoteLocationLabel(entry.path, vaultPath)}
         noteStatus={noteStatus}
         changeStatus={changeStatus}
         typeColor={typeColor}

@@ -117,6 +117,9 @@ describe('AiMessage', () => {
     expect(pills).toHaveLength(2)
     expect(pills[0].textContent).toBe('Marco')
     expect(pills[1].textContent).toBe('Project X')
+    expect(pills[0]).toHaveAttribute('data-reference-pill', 'true')
+    expect(pills[0].getAttribute('style')).toContain('--reference-type-color')
+    expect(pills[0].getAttribute('style')).toContain('--ai-reference-pill-bg')
   })
 
   it('does not render pills when no references', () => {

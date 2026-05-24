@@ -23,13 +23,52 @@ export interface CanvasStroke {
   points: CanvasPoint[]
 }
 
+export type CanvasShapeKind = 'rectangle' | 'ellipse' | 'line'
+
+/** A vector shape layer inside an editable Grimoire canvas source file. */
+export interface CanvasShape {
+  id: string
+  kind: CanvasShapeKind
+  x: number
+  y: number
+  width: number
+  height: number
+  color: string
+  size: number
+}
+
+/** A vault-relative image layer inside an editable Grimoire canvas source file. */
+export interface CanvasPlacedImage {
+  id: string
+  src: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/** A readable text layer inside an editable Grimoire canvas source file. */
+export interface CanvasTextBox {
+  id: string
+  text: string
+  x: number
+  y: number
+  width: number
+  color: string
+  size: number
+}
+
 export interface CanvasDocument {
   version: 1
   kind: CanvasKind
   width: number
   height: number
   background: string
+  images: CanvasPlacedImage[]
+  layerOrder: string[]
+  shapes: CanvasShape[]
   strokes: CanvasStroke[]
+  textBoxes: CanvasTextBox[]
   updatedAt: string
 }
 
@@ -84,7 +123,11 @@ export function createCanvasDocument(kind: CanvasKind): CanvasDocument {
     width: DEFAULT_CANVAS_SIZE.width,
     height: DEFAULT_CANVAS_SIZE.height,
     background: '#fffdf8',
+    images: [],
+    layerOrder: [],
+    shapes: [],
     strokes: [],
+    textBoxes: [],
     updatedAt: new Date().toISOString(),
   }
 }
@@ -120,11 +163,32 @@ function isCanvasDocument(value: unknown): value is CanvasDocument {
     && Array.isArray(candidate.strokes)
 }
 
+function normalizeCanvasDocument(document: CanvasDocument, kind: CanvasKind): CanvasDocument {
+  const layerOrder = Array.isArray(document.layerOrder)
+    ? document.layerOrder
+    : [
+        ...(Array.isArray(document.images) ? document.images.map((image) => image.id) : []),
+        ...(Array.isArray(document.shapes) ? document.shapes.map((shape) => shape.id) : []),
+        ...(Array.isArray(document.strokes) ? document.strokes.map((stroke) => stroke.id) : []),
+        ...(Array.isArray(document.textBoxes) ? document.textBoxes.map((textBox) => textBox.id) : []),
+      ]
+
+  return {
+    ...createCanvasDocument(kind),
+    ...document,
+    images: Array.isArray(document.images) ? document.images : [],
+    layerOrder,
+    shapes: Array.isArray(document.shapes) ? document.shapes : [],
+    strokes: Array.isArray(document.strokes) ? document.strokes : [],
+    textBoxes: Array.isArray(document.textBoxes) ? document.textBoxes : [],
+  }
+}
+
 /** Parses saved canvas JSON, falling back to a blank document when the source is missing or stale. */
 export function parseCanvasDocumentJson(raw: string, kind: CanvasKind): CanvasDocument {
   try {
     const parsed = JSON.parse(raw) as unknown
-    if (isCanvasDocument(parsed)) return parsed
+    if (isCanvasDocument(parsed)) return normalizeCanvasDocument(parsed, kind)
   } catch {
     // Missing or malformed canvas sources should not break note editing.
   }

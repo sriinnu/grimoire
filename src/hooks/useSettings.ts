@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { normalizeStoredAiAgent } from '../lib/aiAgents'
 import { normalizeEditorFont, normalizeThemePreset } from '../lib/appearance'
 import { serializeUiLanguagePreference } from '../lib/i18n'
 import { normalizeReleaseChannel, serializeReleaseChannel } from '../lib/releaseChannel'
+import { resolveConfiguredTranscriptionProvider } from '../lib/transcriptionProviders'
 import { normalizeThemeMode } from '../lib/themeMode'
 import type { Settings } from '../types'
 
@@ -43,6 +44,8 @@ const EMPTY_SETTINGS: Settings = {
   ui_language: null,
   menu_bar_icon_enabled: null,
   default_ai_agent: null,
+  transcription_provider: null,
+  cloud_transcription_enabled: null,
 }
 
 function normalizeSettings(settings: Settings): Settings {
@@ -56,6 +59,11 @@ function normalizeSettings(settings: Settings): Settings {
     editor_font: normalizeEditorFont(settings.editor_font),
     ui_language: serializeUiLanguagePreference(settings.ui_language),
     default_ai_agent: normalizeStoredAiAgent(settings.default_ai_agent),
+    cloud_transcription_enabled: settings.cloud_transcription_enabled === true,
+    transcription_provider: resolveConfiguredTranscriptionProvider({
+      provider: settings.transcription_provider,
+      cloudTranscriptionEnabled: settings.cloud_transcription_enabled,
+    }),
   }
 }
 

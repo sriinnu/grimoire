@@ -247,8 +247,26 @@ describe('SettingsPanel workflow settings', () => {
       render(
         <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
       )
+      expect(screen.getByTestId('settings-cloud-transcription')).toBeInTheDocument()
       expect(screen.getByTestId('settings-crash-reporting')).toBeInTheDocument()
       expect(screen.getByTestId('settings-analytics')).toBeInTheDocument()
+    })
+
+    it('keeps cloud transcription off until explicitly enabled', () => {
+      render(
+        <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+      )
+
+      const cloudSwitch = within(screen.getByTestId('settings-cloud-transcription')).getByRole('switch')
+      expect(cloudSwitch).toHaveAttribute('aria-checked', 'false')
+
+      fireEvent.click(cloudSwitch)
+      fireEvent.click(screen.getByTestId('settings-save'))
+
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+        cloud_transcription_enabled: true,
+        transcription_provider: 'local_whisper',
+      }))
     })
 
     it('toggles reflect initial settings state', () => {

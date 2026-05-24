@@ -1,31 +1,75 @@
 import { Brain, Cloud, DownloadSimple, FolderOpen, GitBranch, UploadSimple } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
+import type { VaultEntry } from '../types'
 import type { createTranslator } from '../lib/i18n'
 import {
   getVaultStorageHealth,
   listVaultExportTargets,
   listVaultImportSources,
   listVaultStorageProviders,
+  type ImportAutopsyPreviewState,
+  type PortabilityProgressState,
+  type VaultPortabilityActionId,
   type VaultStorageHealth,
   type VaultStorageHealthState,
   type VaultPortabilityStatus,
 } from '../lib/vaultPortability'
+import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
+import { LocalityFirewallSettingsCard } from './LocalityFirewallSettingsCard'
+import { PortabilityActionDeck } from './PortabilityActionDeck'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
 
 type Translate = ReturnType<typeof createTranslator>
 
 interface PortabilitySettingsSectionProps {
   t: Translate
   vaultPath?: string
+  entries?: VaultEntry[]
   vaultReady?: boolean
   importBusy?: boolean
+  busyAction?: VaultPortabilityActionId | null
+  progress?: PortabilityProgressState | null
+  importPreview?: ImportAutopsyPreviewState | null
+  onCancelProgress?: () => void
+  onPreviewMarkdownFolder?: () => void
   onImportMarkdownFolder?: () => void
+  onPreviewMarkdownZip?: () => void
   onImportMarkdownZip?: () => void
+  onPreviewBear?: () => void
   onImportBear?: () => void
+  onPreviewObsidian?: () => void
+  onImportObsidian?: () => void
+  onPreviewNotion?: () => void
+  onImportNotion?: () => void
+  onPreviewNotionFolder?: () => void
+  onImportNotionFolder?: () => void
+  onPreviewSpanda?: () => void
+  onImportSpanda?: () => void
+  onPreviewAppleJournal?: () => void
+  onImportAppleJournal?: () => void
+  onPreviewDayOne?: () => void
   onImportDayOne?: () => void
+  onPreviewJourney?: () => void
   onImportJourney?: () => void
   onExportMarkdownZip?: () => void
+  onExportStaticHtmlArchive?: () => void
+  s3MirrorPreviewReady?: boolean
+  s3MirrorPullPreviewReady?: boolean
+  azureMirrorPreviewReady?: boolean
+  azureMirrorPullPreviewReady?: boolean
+  s3MirrorPreviewReport?: ObjectStorageSyncReport
+  s3MirrorPullPreviewReport?: ObjectStorageSyncReport
+  azureMirrorPreviewReport?: ObjectStorageSyncReport
+  azureMirrorPullPreviewReport?: ObjectStorageSyncReport
+  onPreviewS3MirrorPush?: () => void
+  onApplyS3MirrorPush?: () => void
+  onPreviewS3MirrorPull?: () => void
+  onApplyS3MirrorPull?: () => void
+  onPreviewAzureMirrorPush?: () => void
+  onApplyAzureMirrorPush?: () => void
+  onPreviewAzureMirrorPull?: () => void
+  onApplyAzureMirrorPull?: () => void
 }
 
 interface PortabilityGroup {
@@ -40,14 +84,51 @@ interface PortabilityGroup {
 export function PortabilitySettingsSection({
   t,
   vaultPath = '',
+  entries = [],
   vaultReady = true,
   importBusy = false,
+  busyAction = importBusy ? 'markdown-folder' : null,
+  progress = null,
+  importPreview = null,
+  onCancelProgress,
+  onPreviewMarkdownFolder,
   onImportMarkdownFolder,
+  onPreviewMarkdownZip,
   onImportMarkdownZip,
+  onPreviewBear,
   onImportBear,
+  onPreviewObsidian,
+  onImportObsidian,
+  onPreviewNotion,
+  onImportNotion,
+  onPreviewNotionFolder,
+  onImportNotionFolder,
+  onPreviewSpanda,
+  onImportSpanda,
+  onPreviewAppleJournal,
+  onImportAppleJournal,
+  onPreviewDayOne,
   onImportDayOne,
+  onPreviewJourney,
   onImportJourney,
   onExportMarkdownZip,
+  onExportStaticHtmlArchive,
+  s3MirrorPreviewReady,
+  s3MirrorPullPreviewReady,
+  azureMirrorPreviewReady,
+  azureMirrorPullPreviewReady,
+  s3MirrorPreviewReport,
+  s3MirrorPullPreviewReport,
+  azureMirrorPreviewReport,
+  azureMirrorPullPreviewReport,
+  onPreviewS3MirrorPush,
+  onApplyS3MirrorPush,
+  onPreviewS3MirrorPull,
+  onApplyS3MirrorPull,
+  onPreviewAzureMirrorPush,
+  onApplyAzureMirrorPush,
+  onPreviewAzureMirrorPull,
+  onApplyAzureMirrorPull,
 }: PortabilitySettingsSectionProps) {
   const groups = buildPortabilityGroups(t, vaultPath)
 
@@ -63,127 +144,70 @@ export function PortabilitySettingsSection({
       </div>
 
       <div className="grid gap-2" data-testid="settings-portability-section">
+        <LocalityFirewallSettingsCard entries={entries} />
         {groups.map((group) => (
           <PortabilityGroupCard key={group.title} group={group} t={t} />
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <ImportButton
-          label={t('settings.portability.importMarkdownFolder')}
-          testId="settings-import-markdown-folder"
-          busy={importBusy}
-          disabled={!vaultReady || !onImportMarkdownFolder}
-          onClick={onImportMarkdownFolder}
-          t={t}
-        />
-        <ImportButton
-          label={t('settings.portability.importMarkdownZip')}
-          testId="settings-import-markdown-zip"
-          busy={importBusy}
-          disabled={!vaultReady || !onImportMarkdownZip}
-          onClick={onImportMarkdownZip}
-          t={t}
-        />
-        <ImportButton
-          label={t('settings.portability.importBear')}
-          testId="settings-import-bear"
-          busy={importBusy}
-          disabled={!vaultReady || !onImportBear}
-          onClick={onImportBear}
-          t={t}
-        />
-        <ImportButton
-          label={t('settings.portability.importDayOne')}
-          testId="settings-import-day-one"
-          busy={importBusy}
-          disabled={!vaultReady || !onImportDayOne}
-          onClick={onImportDayOne}
-          t={t}
-        />
-        <ImportButton
-          label={t('settings.portability.importJourney')}
-          testId="settings-import-journey"
-          busy={importBusy}
-          disabled={!vaultReady || !onImportJourney}
-          onClick={onImportJourney}
-          t={t}
-        />
-        <PortabilityActionButton
-          icon={<UploadSimple size={14} />}
-          label={t('settings.portability.exportMarkdownZip')}
-          testId="settings-export-markdown-zip"
-          busy={importBusy}
-          busyLabel={t('settings.portability.exporting')}
-          disabled={!vaultReady || !onExportMarkdownZip}
-          onClick={onExportMarkdownZip}
-          t={t}
-        />
-      </div>
+      <PortabilityActionDeck
+        t={t}
+        vaultReady={vaultReady}
+        busyAction={busyAction}
+        progress={progress}
+        onCancelProgress={onCancelProgress}
+        s3MirrorPreviewReady={s3MirrorPreviewReady}
+        s3MirrorPullPreviewReady={s3MirrorPullPreviewReady}
+        azureMirrorPreviewReady={azureMirrorPreviewReady}
+        azureMirrorPullPreviewReady={azureMirrorPullPreviewReady}
+        s3MirrorPreviewReport={s3MirrorPreviewReport}
+        s3MirrorPullPreviewReport={s3MirrorPullPreviewReport}
+        azureMirrorPreviewReport={azureMirrorPreviewReport}
+        azureMirrorPullPreviewReport={azureMirrorPullPreviewReport}
+        onPreviewMarkdownFolder={onPreviewMarkdownFolder}
+        onImportMarkdownFolder={onImportMarkdownFolder}
+        onPreviewMarkdownZip={onPreviewMarkdownZip}
+        onImportMarkdownZip={onImportMarkdownZip}
+        onPreviewBear={onPreviewBear}
+        onImportBear={onImportBear}
+        onPreviewObsidian={onPreviewObsidian}
+        onImportObsidian={onImportObsidian}
+        onPreviewNotion={onPreviewNotion}
+        onImportNotion={onImportNotion}
+        onPreviewNotionFolder={onPreviewNotionFolder}
+        onImportNotionFolder={onImportNotionFolder}
+        onPreviewSpanda={onPreviewSpanda}
+        onImportSpanda={onImportSpanda}
+        onPreviewAppleJournal={onPreviewAppleJournal}
+        onImportAppleJournal={onImportAppleJournal}
+        onPreviewDayOne={onPreviewDayOne}
+        onImportDayOne={onImportDayOne}
+        onPreviewJourney={onPreviewJourney}
+        onImportJourney={onImportJourney}
+        onExportMarkdownZip={onExportMarkdownZip}
+        onExportStaticHtmlArchive={onExportStaticHtmlArchive}
+        onPreviewS3MirrorPush={onPreviewS3MirrorPush}
+        onApplyS3MirrorPush={onApplyS3MirrorPush}
+        onPreviewS3MirrorPull={onPreviewS3MirrorPull}
+        onApplyS3MirrorPull={onApplyS3MirrorPull}
+        onPreviewAzureMirrorPush={onPreviewAzureMirrorPush}
+        onApplyAzureMirrorPush={onApplyAzureMirrorPush}
+        onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}
+        onApplyAzureMirrorPull={onApplyAzureMirrorPull}
+      />
+
+      <ImportAutopsyTimeline
+        preview={importPreview}
+        vaultPath={vaultPath}
+        isRefreshing={isImportPreviewAction(busyAction)}
+      />
+
     </>
   )
 }
 
-function ImportButton({
-  label,
-  testId,
-  busy,
-  disabled,
-  onClick,
-  t,
-}: {
-  label: string
-  testId: string
-  busy: boolean
-  disabled: boolean
-  onClick?: () => void
-  t: Translate
-}) {
-  return (
-    <PortabilityActionButton
-      icon={<DownloadSimple size={14} />}
-      label={label}
-      testId={testId}
-      busy={busy}
-      disabled={disabled}
-      onClick={onClick}
-      t={t}
-    />
-  )
-}
-
-function PortabilityActionButton({
-  icon,
-  label,
-  testId,
-  busy,
-  busyLabel,
-  disabled,
-  onClick,
-  t,
-}: {
-  icon: ReactNode
-  label: string
-  testId: string
-  busy: boolean
-  busyLabel?: string
-  disabled: boolean
-  onClick?: () => void
-  t: Translate
-}) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      data-testid={testId}
-      disabled={busy || disabled}
-      onClick={onClick}
-    >
-      {icon}
-      {busy ? (busyLabel ?? t('settings.portability.importing')) : label}
-    </Button>
-  )
+function isImportPreviewAction(action: VaultPortabilityActionId | null): boolean {
+  return Boolean(action?.endsWith('-preview') && !action.startsWith('storage-'))
 }
 
 function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGroup[] {
@@ -258,6 +282,9 @@ function StorageHealthRows({ health, t }: { health: readonly VaultStorageHealth[
           <span className="min-w-0 flex-1 text-muted-foreground">
             <span className="font-medium text-foreground">{storageHealthLabel(item.state, t)}</span>
             <span> · {item.message}</span>
+            {item.privacyNote ? (
+              <span className="block pt-0.5 text-[10px] leading-snug">{item.privacyNote}</span>
+            ) : null}
           </span>
         </div>
       ))}
@@ -283,8 +310,8 @@ function storageHealthLabel(state: VaultStorageHealthState, t: Translate): strin
 }
 
 function healthDotClass(state: VaultStorageHealthState): string {
-  if (state === 'active') return 'bg-emerald-500'
-  if (state === 'available') return 'bg-blue-500'
+  if (state === 'active') return 'bg-[var(--accent-green)]'
+  if (state === 'available') return 'bg-[var(--accent-blue)]'
   if (state === 'planned') return 'bg-muted-foreground/45'
-  return 'bg-amber-500'
+  return 'bg-[var(--accent-orange)]'
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri } from '../mock-tauri'
 import type { VaultEntry } from '../types'
 import {
@@ -19,6 +19,7 @@ import {
 import type { NoteCreationConfig } from './useNoteCreation'
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }))
+vi.mock('../lib/tauriRuntime', () => ({ invoke: vi.fn() }))
 vi.mock('../mock-tauri', () => ({
   isTauri: vi.fn(() => false),
   addMockEntry: vi.fn(),

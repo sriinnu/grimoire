@@ -12,6 +12,7 @@ export interface DashboardSummary {
   hasDreamToday: boolean
   hasJournalToday: boolean
   journalCount: number
+  memoryQueueEntries: VaultEntry[]
   memoryQueueCount: number
   openLoopBuckets: OpenLoopBucket[]
   openLoopCount: number
@@ -72,6 +73,7 @@ function countOpenLoops(entries: VaultEntry[]): number {
 export function buildDashboardSummary(entries: VaultEntry[], now: Date = new Date()): DashboardSummary {
   const activeContent = entries.filter((entry) => isContentEntry(entry) && !entry.archived)
   const openLoopBuckets = buildOpenLoopBuckets(entries)
+  const memoryQueueEntries = activeContent.filter((entry) => typeIs(entry, 'Memory') && isOpenEntry(entry))
   const todayKey = localDateKey(now)
 
   return {
@@ -80,7 +82,8 @@ export function buildDashboardSummary(entries: VaultEntry[], now: Date = new Dat
     hasDreamToday: activeContent.some((entry) => typeIs(entry, 'Dream') && entryMatchesDate(entry, todayKey)),
     hasJournalToday: activeContent.some((entry) => typeIs(entry, 'Journal') && entryMatchesDate(entry, todayKey)),
     journalCount: activeContent.filter((entry) => typeIs(entry, 'Journal')).length,
-    memoryQueueCount: activeContent.filter((entry) => typeIs(entry, 'Memory') && isOpenEntry(entry)).length,
+    memoryQueueEntries: [...memoryQueueEntries].sort(sortByModified).slice(0, 3),
+    memoryQueueCount: memoryQueueEntries.length,
     openLoopBuckets,
     openLoopCount: countOpenLoops(entries),
     recentEntries: [...activeContent].sort(sortByModified).slice(0, 6),

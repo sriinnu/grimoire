@@ -1,3 +1,96 @@
+.graph-canvas-hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  display: flex;
+  max-width: calc(100% - 20px);
+  flex-wrap: wrap;
+  gap: 5px;
+  pointer-events: none;
+}
+
+.graph-canvas-hud span {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-editor) 76%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 6px 9px;
+}
+
+.graph-canvas-hud span[data-state="ready"] {
+  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
+  color: var(--foreground);
+}
+
+.graph-canvas-hud span[data-state="protected-active"] {
+  border-color: color-mix(in srgb, var(--destructive) 34%, transparent);
+  color: var(--foreground);
+}
+
+.graph-canvas-legend {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1;
+  display: flex;
+  max-width: calc(100% - 20px);
+  flex-wrap: wrap;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.graph-canvas-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-editor) 82%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, #000 14%, transparent);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 6px 9px;
+}
+
+.graph-canvas-legend__mark {
+  width: 18px;
+  height: 0;
+  border-top: 2px solid color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+.graph-canvas-legend__item[data-tone="selected"] .graph-canvas-legend__mark {
+  border-top-width: 3px;
+  border-top-color: var(--primary);
+}
+
+.graph-canvas-legend__item[data-tone="local"] .graph-canvas-legend__mark {
+  border-top-color: color-mix(in srgb, var(--destructive) 62%, var(--muted-foreground));
+  border-top-style: dashed;
+}
+
+.grimoire-graph-edge {
+  transition: opacity 160ms ease, stroke-width 160ms ease;
+}
+
+.grimoire-graph-edge--source-safe {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--primary) 16%, transparent));
+}
+
+.grimoire-graph-edge--selected {
+  filter: drop-shadow(0 0 11px color-mix(in srgb, var(--primary) 28%, transparent));
+}
+
+.grimoire-graph-edge--local {
+  filter: none;
+}
+
 .grimoire-graph-node {
   transition: opacity 160ms ease, transform 160ms ease;
   transform-box: fill-box;
@@ -12,7 +105,64 @@
 .grimoire-graph-node-halo {
   fill: var(--node-color);
   opacity: 0.16;
-  animation: grimoire-graph-halo 2.6s ease-in-out infinite;
+  animation: grimoire-graph-halo 1.4s var(--motion-ease-cinematic) 1 both;
+}
+
+.grimoire-graph-node-package-orbit {
+  fill: none;
+  stroke: color-mix(in srgb, var(--node-color) 42%, transparent);
+  stroke-dasharray: 3 7;
+  stroke-linecap: round;
+  stroke-width: 2;
+  animation: grimoire-graph-package-orbit 7s linear infinite;
+}
+
+.grimoire-graph-node--active .grimoire-graph-node-halo {
+  opacity: 0.22;
+}
+
+.grimoire-graph-node--selected .grimoire-graph-node-halo {
+  opacity: 0.28;
+}
+
+.grimoire-graph-node-type-pill {
+  fill: color-mix(in srgb, var(--node-fill) 52%, var(--surface-editor));
+  stroke: color-mix(in srgb, var(--node-color) 28%, transparent);
+  stroke-width: 1;
+}
+
+.grimoire-graph-node-title-backdrop {
+  fill: color-mix(in srgb, var(--surface-editor) 82%, transparent);
+  stroke: color-mix(in srgb, var(--node-color) 20%, transparent);
+  stroke-width: 1;
+}
+
+.grimoire-graph-node-core {
+  filter: drop-shadow(0 9px 16px color-mix(in srgb, var(--node-color) 18%, transparent));
+}
+
+.grimoire-graph-node-degree-badge circle {
+  fill: color-mix(in srgb, var(--node-color) 88%, var(--surface-editor));
+  stroke: var(--surface-editor);
+  stroke-width: 2;
+}
+
+.grimoire-graph-node-degree-badge text {
+  fill: var(--surface-editor);
+}
+
+.grimoire-graph-node-local-badge circle {
+  fill: color-mix(in srgb, var(--surface-editor) 88%, var(--destructive));
+  stroke: color-mix(in srgb, var(--destructive) 52%, transparent);
+  stroke-width: 1.5;
+}
+
+.grimoire-graph-node-local-badge text {
+  fill: var(--foreground);
+}
+
+.grimoire-graph-node--local .grimoire-graph-node-core {
+  stroke-dasharray: 4 4;
 }
 
 @keyframes grimoire-graph-halo {
@@ -27,9 +177,17 @@
   }
 }
 
+@keyframes grimoire-graph-package-orbit {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .grimoire-graph-node,
-  .grimoire-graph-node-halo {
+  .grimoire-graph-edge,
+  .grimoire-graph-node-halo,
+  .grimoire-graph-node-package-orbit {
     animation: none;
     transition: none;
   }

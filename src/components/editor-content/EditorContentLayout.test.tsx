@@ -109,5 +109,6 @@ describe('EditorContentLayout', () => {
 
     expect(container.firstElementChild).toHaveClass('editor-content-layout--left')
     expect(screen.getByTestId('breadcrumb-bar')).toHaveAttribute('data-note-layout', 'left')
+    expect(container.querySelector('.editor-scroll-area')).toHaveClass('grimoire-ink-settle')
   })
 })

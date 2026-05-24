@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { AlertTriangle, Check, FolderOpen, GitBranch, Plus, Rocket, X } from 'lucide-react'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
+import { StatusBarHint } from './StatusBarHint'
 import type { VaultOption } from './types'
 import { useDismissibleLayer } from './useDismissibleLayer'
 
@@ -177,7 +177,7 @@ function VaultMenuAction({ icon, label, testId, accent = false, onClick }: Vault
       size="xs"
       onClick={onClick}
       className="h-auto w-full justify-start rounded-sm px-2 py-1 text-xs font-normal"
-      style={{ color: accent ? 'var(--accent-blue)' : 'var(--muted-foreground)' }}
+      style={{ color: accent ? 'var(--status-bar-accent-fg, var(--accent-blue))' : 'var(--muted-foreground)' }}
       data-testid={testId}
     >
       {icon}
@@ -218,7 +218,7 @@ export function VaultMenu({
 
   return (
     <div ref={menuRef} style={{ position: 'relative' }}>
-      <ActionTooltip copy={{ label: 'Switch vault' }} side="top">
+      <StatusBarHint copy={{ label: 'Switch vault' }}>
         <Button
           type="button"
           variant="ghost"
@@ -231,7 +231,7 @@ export function VaultMenu({
           <FolderOpen size={13} />
           {compact ? null : <span className="max-w-32 truncate">{activeVaultLabel}</span>}
         </Button>
-      </ActionTooltip>
+      </StatusBarHint>
       {open && (
         <div
           style={{

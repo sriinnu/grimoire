@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../types'
-import { buildChitraguptaMemoryContext } from './chitraguptaIntegration'
+import {
+  REQUIRED_CHITRAGUPTA_CAPABILITIES,
+  buildChitraguptaMemoryContext,
+  evaluateChitraguptaContractStatus,
+} from './chitraguptaIntegration'
 
 function entry(overrides: Partial<VaultEntry>): VaultEntry {
   return {
@@ -50,6 +54,51 @@ const semantics: MarkdownDocumentSemantics = {
 }
 
 describe('chitraguptaIntegration', () => {
+  it('marks the contract ready only when daemon health and required capabilities are present', () => {
+    const status = evaluateChitraguptaContractStatus({
+      ok: true,
+      daemon: 'running',
+      capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
+      warnings: [],
+    })
+
+    expect(status.state).toBe('ready')
+    expect(status.daemon).toBe('running')
+    expect(status.missingCapabilities).toEqual([])
+    expect(status.capabilities.every(capability => capability.available)).toBe(true)
+  })
+
+  it('blocks live memory UX when Chitragupta exposes only health-level tools', () => {
+    const status = evaluateChitraguptaContractStatus({
+      ok: true,
+      daemon: 'running',
+      capabilities: ['health.status', 'memory.search'],
+      warnings: ['Project access denied'],
+    })
+
+    expect(status.state).toBe('blocked')
+    expect(status.warnings).toContain('Project access denied')
+    expect(status.warnings).toContain('Missing Chitragupta capabilities: memory.append, recall.unified, wiki.list, wiki.read, graph.neighborhood, diagnostics.memory, ingest.markdown')
+    expect(status.missingCapabilities).toEqual([
+      'memory.append',
+      'recall.unified',
+      'wiki.list',
+      'wiki.read',
+      'graph.neighborhood',
+      'diagnostics.memory',
+      'ingest.markdown',
+    ])
+  })
+
+  it('fails closed when Chitragupta status is unavailable', () => {
+    const status = evaluateChitraguptaContractStatus(null)
+
+    expect(status.state).toBe('blocked')
+    expect(status.daemon).toBe('unknown')
+    expect(status.warnings).toContain('Chitragupta status is unavailable.')
+    expect(status.missingCapabilities).toEqual(REQUIRED_CHITRAGUPTA_CAPABILITIES)
+  })
+
   it('builds source-backed active note context for memory recall', () => {
     const active = entry({
       outgoingLinks: ['Decision Log'],

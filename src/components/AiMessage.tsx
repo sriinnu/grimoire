@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
 import { CaretRight, CaretDown, Brain, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { AiActionCard, type AiActionStatus } from './AiActionCard'
 import { MarkdownContent } from './MarkdownContent'
 import type { NoteReference } from '../utils/ai-context'
-import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
+import { getTypeColor } from '../utils/typeColors'
 
 export interface AiAction {
   tool: string
@@ -33,21 +33,25 @@ function ReferencePill({ reference, onClick }: {
   onClick?: (path: string) => void
 }) {
   const color = getTypeColor(reference.type)
-  const lightColor = getTypeLightColor(reference.type)
+  const style = {
+    '--reference-type-color': color,
+    background: 'var(--ai-reference-pill-bg, color-mix(in srgb, var(--reference-type-color) 11%, var(--card)))',
+    borderColor: 'var(--ai-reference-pill-border, color-mix(in srgb, var(--reference-type-color) 22%, var(--border)))',
+    color: 'var(--ai-reference-pill-fg, var(--reference-type-color))',
+    borderRadius: 9999,
+    padding: '1px 8px',
+    fontSize: 11,
+    fontWeight: 500,
+    fontFamily: 'inherit',
+    lineHeight: 1.4,
+  } as CSSProperties & { '--reference-type-color': string }
+
   return (
     <button
-      className="inline-flex items-center border-none cursor-pointer transition-opacity hover:opacity-80"
-      style={{
-        background: lightColor,
-        color,
-        borderRadius: 9999,
-        padding: '1px 8px',
-        fontSize: 11,
-        fontWeight: 500,
-        fontFamily: 'inherit',
-        lineHeight: 1.4,
-      }}
+      className="ai-reference-pill inline-flex items-center cursor-pointer border transition-opacity hover:opacity-80"
+      style={style}
       onClick={() => onClick?.(reference.path)}
+      data-reference-pill="true"
       data-testid="message-reference-pill"
     >
       {reference.title}
@@ -63,9 +67,11 @@ function UserBubble({ content, references, onOpenNote }: {
   return (
     <div className="flex justify-end" style={{ marginBottom: 8 }}>
       <div
+        data-ai-message-bubble="user"
         style={{
-          background: 'var(--muted)',
-          color: 'var(--foreground)',
+          background: 'var(--ai-message-user-bg, var(--muted))',
+          border: '1px solid var(--ai-message-user-border, transparent)',
+          color: 'var(--ai-message-user-fg, var(--foreground))',
           borderRadius: '12px 12px 2px 12px',
           maxWidth: '85%',
           padding: '8px 12px',

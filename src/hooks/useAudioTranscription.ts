@@ -1,14 +1,30 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import type { VaultEntry } from '../types'
-import { createTranscriptNote, transcribeAudioIntoNote } from '../utils/audioTranscription'
+import {
+  getTranscriptionProviderDefinition,
+  resolveConfiguredTranscriptionProvider,
+  type TranscriptionProviderId,
+} from '../lib/transcriptionProviders'
+import {
+  createTranscriptionNotes,
+  transcribeAudioIntoNotes,
+  transcribeAudioPathIntoNotes,
+} from '../utils/audioTranscription'
 
 interface UseAudioTranscriptionParams {
   vaultPath: string
   entries: VaultEntry[]
+  transcriptionProvider?: TranscriptionProviderId | null
+  cloudTranscriptionEnabled?: boolean | null
   addEntry: (entry: VaultEntry) => void
   openTabWithContent: (entry: VaultEntry, content: string) => void
   loadModifiedFiles: () => Promise<void>
   setToastMessage: (message: string | null) => void
+}
+
+interface AudioTranscriptionActions {
+  transcribePickedAudio: () => Promise<void>
+  transcribeRecordedAudio: (audioPath: string) => Promise<void>
 }
 
 function isCancelledTranscription(error: unknown): boolean {
@@ -23,16 +39,28 @@ function errorMessage(error: unknown): string {
       : 'Failed to transcribe audio'
 }
 
-/** Provides the command-palette flow for creating Markdown transcript notes from audio. */
+/** Provides local-first flows for creating Markdown transcript notes from audio. */
 export function useAudioTranscription({
   vaultPath,
   entries,
+  transcriptionProvider,
+  cloudTranscriptionEnabled,
   addEntry,
   openTabWithContent,
   loadModifiedFiles,
   setToastMessage,
-}: UseAudioTranscriptionParams): () => Promise<void> {
-  return useCallback(async () => {
+}: UseAudioTranscriptionParams): AudioTranscriptionActions {
+  const resolvedProvider = resolveConfiguredTranscriptionProvider({
+    provider: transcriptionProvider,
+    cloudTranscriptionEnabled,
+  })
+  const providerLabel = getTranscriptionProviderDefinition(resolvedProvider).label
+  const transcriptionPreference = useMemo(() => ({
+    provider: transcriptionProvider,
+    cloudTranscriptionEnabled,
+  }), [cloudTranscriptionEnabled, transcriptionProvider])
+
+  const transcribePickedAudio = useCallback(async () => {
     if (!vaultPath.trim()) {
       setToastMessage('Open a vault before transcribing audio')
       return
@@ -40,13 +68,58 @@ export function useAudioTranscription({
 
     setToastMessage('Choose an audio file to transcribe')
     try {
-      const note = await transcribeAudioIntoNote({ vaultPath, entries })
-      setToastMessage('Transcribing audio with Local Whisper...')
-      await createTranscriptNote(note, addEntry, openTabWithContent)
+      const bundle = await transcribeAudioIntoNotes({
+        vaultPath,
+        entries,
+        transcriptionPreference,
+      })
+      setToastMessage(`Transcribing audio with ${providerLabel}...`)
+      await createTranscriptionNotes(bundle, addEntry, openTabWithContent)
       await loadModifiedFiles()
-      setToastMessage(`Transcript created: ${note.entry.title}`)
+      setToastMessage(`Transcript and clean note created: ${bundle.cleaned.entry.title}`)
     } catch (error) {
       if (!isCancelledTranscription(error)) setToastMessage(errorMessage(error))
     }
-  }, [addEntry, entries, loadModifiedFiles, openTabWithContent, setToastMessage, vaultPath])
+  }, [
+    addEntry,
+    entries,
+    loadModifiedFiles,
+    openTabWithContent,
+    providerLabel,
+    setToastMessage,
+    transcriptionPreference,
+    vaultPath,
+  ])
+
+  const transcribeRecordedAudio = useCallback(async (audioPath: string) => {
+    if (!vaultPath.trim()) {
+      setToastMessage('Open a vault before transcribing audio')
+      return
+    }
+
+    try {
+      setToastMessage(`Transcribing recorded audio with ${providerLabel}...`)
+      const bundle = await transcribeAudioPathIntoNotes(audioPath, {
+        vaultPath,
+        entries,
+        transcriptionPreference,
+      })
+      await createTranscriptionNotes(bundle, addEntry, openTabWithContent)
+      await loadModifiedFiles()
+      setToastMessage(`Recorded transcript created: ${bundle.cleaned.entry.title}`)
+    } catch (error) {
+      if (!isCancelledTranscription(error)) setToastMessage(errorMessage(error))
+    }
+  }, [
+    addEntry,
+    entries,
+    loadModifiedFiles,
+    openTabWithContent,
+    providerLabel,
+    setToastMessage,
+    transcriptionPreference,
+    vaultPath,
+  ])
+
+  return { transcribePickedAudio, transcribeRecordedAudio }
 }

@@ -26,7 +26,31 @@
   --group-wrap: nowrap !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
-  gap: 0 !important;
+  align-items: center !important;
+  gap: 2px !important;
+  width: max-content !important;
+  max-width: 68px !important;
+  min-height: 32px !important;
+  margin-top: 18px !important;
+  overflow: hidden;
+  padding: 2px !important;
+  border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 80%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--surface-popover, var(--background)) 92%, transparent);
+  box-shadow: 0 12px 28px color-mix(in srgb, #000 16%, transparent);
+  isolation: isolate;
+  translate: -4px 6px;
+}
+
+.editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root) {
+  flex-wrap: nowrap !important;
+  gap: 2px !important;
+}
+
+.editor__blocknote-container .bn-side-menu button {
+  flex: 0 0 28px !important;
+  width: 28px !important;
+  height: 28px !important;
 }
 
 /* More horizontal space between drag handle and content */

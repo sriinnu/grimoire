@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor, within } from '@testing-library/react'
 import { AiPanel } from './AiPanel'
 import { UNSUPPORTED_INLINE_PASTE_MESSAGE } from './InlineWikilinkInput'
 import type { VaultEntry } from '../types'
 import { queueAiPrompt } from '../utils/aiPromptBridge'
+import { createAiAgentAvailability } from '../lib/aiAgents'
 
 // Mock the hooks and utils to isolate component tests
 let mockMessages: ReturnType<typeof import('../hooks/useCliAiAgent').useCliAiAgent>['messages'] = []
@@ -127,15 +128,60 @@ describe('AiPanel', () => {
 
     fireEvent.click(screen.getByTestId('ai-crystallize'))
     expect(screen.getByTestId('crystallize-review-dialog')).toBeInTheDocument()
+    expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Create Memory note')
+    expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Write ledger frontmatter')
+    expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Write source backlinks')
+    expect(screen.getByTestId('crystallize-change-kind-frontmatter')).toBeInTheDocument()
+    expect(screen.getByTestId('crystallize-change-kind-backlink')).toBeInTheDocument()
+    expect(screen.getByTestId('crystallize-change-kind-body')).toBeInTheDocument()
     const preview = screen.getByTestId('crystallize-markdown-preview') as HTMLTextAreaElement
     expect(preview.value).toContain('type: Memory')
+    expect(preview.value).toContain('memory_version: 1')
+    expect(preview.value).toContain('## Source Links')
     expect(preview.value).toContain('Memory should stay source-backed')
+    fireEvent.change(preview, {
+      target: { value: preview.value.replace('Memory should stay source-backed', 'Human edited memory should stay source-backed') },
+    })
 
     fireEvent.click(screen.getByTestId('crystallize-apply'))
 
     await waitFor(() => expect(onVaultChanged).toHaveBeenCalledOnce())
     expect(onFileCreated).toHaveBeenCalledWith(expect.stringMatching(/^memory\/crystallized\//))
     expect(onOpenNote).toHaveBeenCalledWith(expect.stringMatching(/^memory\/crystallized\//))
+    expect(Object.values(window.__mockContent ?? {}).some((content) => (
+      content.includes('Human edited memory should stay source-backed')
+    ))).toBe(true)
+  })
+
+  it('shows dashboard ask package source labels in the Crystallize review dialog', () => {
+    const askPackage = {
+      kind: 'dashboard-ask' as const,
+      prompt: 'what needs attention?',
+      references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
+      sourceLabels: ['Grimoire', 'Identity Pass'],
+      memoryReferences: [],
+      visibleCount: 2,
+      withheld: { protectedMemories: 1, protectedNotes: 2 },
+    }
+    mockMessages = [{
+      userMessage: 'what needs attention?',
+      references: askPackage.references,
+      contextPackage: askPackage,
+      actions: [],
+      response: 'Sharpen the daily workflow into one memorable loop.',
+      id: 'msg-dashboard-ask-crystallize',
+    }]
+
+    render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" entries={[]} />)
+
+    fireEvent.click(screen.getByTestId('ai-crystallize'))
+
+    const preview = screen.getByTestId('crystallize-markdown-preview') as HTMLTextAreaElement
+    expect(preview.value).toContain('source_note: "[[Grimoire]]"')
+    expect(preview.value).toContain('- [[Grimoire]]')
+    expect(preview.value).toContain('- [[Identity Pass]]')
+    expect(preview.value).not.toContain('protected')
+    expect(preview.value).not.toContain('withheld')
   })
 
   it('renders empty state without context', () => {
@@ -157,7 +203,7 @@ describe('AiPanel', () => {
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />
     )
     expect(screen.getByTestId('context-bar')).toBeTruthy()
-    expect(screen.getByText('My Note')).toBeTruthy()
+    expect(within(screen.getByTestId('context-bar')).getByText('My Note')).toBeTruthy()
   })
 
   it('redacts the context bar title for local-only notes', () => {
@@ -168,7 +214,55 @@ describe('AiPanel', () => {
 
     expect(screen.getByTestId('context-bar')).toHaveTextContent('Local-only note')
     expect(screen.queryByText('Hidden Dream')).toBeNull()
-    expect(screen.getByText('Protected')).toBeTruthy()
+    expect(within(screen.getByTestId('context-bar')).getByText('Protected')).toBeTruthy()
+  })
+
+  it('does not surface a crystallize review packet for local-only active context', () => {
+    const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
+    mockMessages = [{
+      userMessage: 'remember this',
+      actions: [],
+      response: 'This response should not become durable memory from protected context.',
+      id: 'msg-local-only-crystallize',
+    }]
+
+    render(
+      <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />,
+    )
+
+    expect(screen.getByTestId('ai-crystallize')).toBeDisabled()
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Protected context stays local')
+    expect(screen.getByTestId('crystallize-loop-card')).not.toHaveTextContent('Review packet')
+    expect(screen.queryByText('Hidden Dream')).toBeNull()
+    expect(screen.queryByText(/hidden-dream/i)).toBeNull()
+  })
+
+  it('shows an Agent Council with private lanes and protected-context permissions', () => {
+    const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
+    render(
+      <AiPanel
+        onClose={vi.fn()}
+        vaultPath="/tmp/vault"
+        activeEntry={entry}
+        defaultAiAgent="chitragupta"
+        defaultAiAgentReady
+        aiAgentsStatus={{
+          claude_code: createAiAgentAvailability('installed', '1.0.0'),
+          codex: createAiAgentAvailability('missing'),
+          chitragupta: createAiAgentAvailability('installed', '0.9.0'),
+        }}
+      />,
+    )
+
+    const council = screen.getByTestId('agent-council')
+    expect(council).toHaveTextContent('Agent Council')
+    expect(council).toHaveTextContent('Protected context')
+    expect(council).toHaveTextContent('Claude Code')
+    expect(council).toHaveTextContent('Codex')
+    expect(council).toHaveTextContent('Chitragupta')
+    expect(council).toHaveTextContent('Woosh')
+    expect(council).toHaveTextContent('Tring CLI')
+    expect(council).toHaveTextContent('Active local-only note withheld')
   })
 
   it('shows linked count in context bar when entry has outgoing links', () => {
@@ -323,6 +417,37 @@ describe('AiPanel', () => {
       { title: 'Alpha', path: '/vault/alpha.md', type: 'Project' },
     ])
     expect(screen.getByTestId('agent-send')).toBeDisabled()
+  })
+
+  it('keeps dashboard ask packages visible in Council and Context Capsule after queueing', async () => {
+    const askPackage = {
+      kind: 'dashboard-ask' as const,
+      prompt: 'what needs attention?',
+      references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
+      sourceLabels: ['Grimoire', 'Grimoire Memory'],
+      memoryReferences: [{
+        confidence: 'medium',
+        lastSeen: '2026-05-24',
+        path: '/vault/memory/grimoire.md',
+        sourceLabels: ['[[Grimoire]]'],
+        title: 'Grimoire Memory',
+      }],
+      visibleCount: 5,
+      withheld: { protectedMemories: 1, protectedNotes: 2 },
+    }
+
+    render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" entries={[]} />)
+
+    await act(async () => {
+      queueAiPrompt('what needs attention?', askPackage.references, askPackage)
+    })
+
+    expect(mockSendMessage).toHaveBeenCalledWith('what needs attention?', askPackage.references, askPackage)
+    expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('Context Capsule')
+    expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('2')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('Grimoire')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('Grimoire Memory')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('dashboard ask package')
   })
 
   it('surfaces an unsupported image paste notice without locking the composer', () => {

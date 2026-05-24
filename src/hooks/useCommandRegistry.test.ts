@@ -164,6 +164,20 @@ describe('useCommandRegistry', () => {
     expect(onTranscribeAudio).toHaveBeenCalledTimes(1)
   })
 
+  it('includes a record command for in-app audio capture', () => {
+    const onRecordAudio = vi.fn()
+    const config = makeConfig({ onRecordAudio })
+    const { result } = renderHook(() => useCommandRegistry(config))
+    const cmd = findCommand(result.current, 'record-audio')
+    expect(cmd).toMatchObject({
+      group: 'Note',
+      label: 'Record Audio...',
+      enabled: true,
+    })
+    cmd?.execute()
+    expect(onRecordAudio).toHaveBeenCalledTimes(1)
+  })
+
   it('remove-note-icon is disabled when active note has no icon', () => {
     const config = makeConfig({ onRemoveNoteIcon: vi.fn(), activeNoteHasIcon: false })
     const { result } = renderHook(() => useCommandRegistry(config))

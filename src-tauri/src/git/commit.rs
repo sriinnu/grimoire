@@ -1,4 +1,4 @@
-use super::git_command;
+use super::{git_command, locality::stage_non_local_changes};
 use std::path::Path;
 
 struct CommitFailure {
@@ -10,17 +10,7 @@ struct CommitFailure {
 pub fn git_commit(vault_path: &str, message: &str) -> Result<String, String> {
     let vault = Path::new(vault_path);
 
-    // Stage all changes
-    let add = git_command()
-        .args(["add", "-A"])
-        .current_dir(vault)
-        .output()
-        .map_err(|e| format!("Failed to run git add: {}", e))?;
-
-    if !add.status.success() {
-        let stderr = String::from_utf8_lossy(&add.stderr);
-        return Err(format!("git add failed: {}", stderr));
-    }
+    stage_non_local_changes(vault)?;
 
     match run_commit(vault, message, false) {
         Ok(stdout) => Ok(stdout),
@@ -166,6 +156,57 @@ mod tests {
             .output()
             .unwrap();
         assert_eq!(String::from_utf8_lossy(&config.stdout).trim(), "true");
+    }
+
+    #[test]
+    fn test_git_commit_skips_local_only_files_and_attachments() {
+        let dir = setup_git_repo();
+        let vault = dir.path();
+        let vp = vault.to_str().unwrap();
+
+        fs::write(vault.join("public.md"), "# Public\n").unwrap();
+        fs::create_dir_all(vault.join("attachments")).unwrap();
+        fs::create_dir_all(vault.join("imports/spanda-export/attachments")).unwrap();
+        fs::write(
+            vault.join("journal.md"),
+            "---\ntype: Journal\n---\n# Private\n\n![wave](attachments/private-wave.png)\n```grimoire-canvas\ntype: handwriting\nsource: attachments/private-canvas.grimoire-canvas.json\npreview: attachments/private-canvas.png\n```\n",
+        )
+        .unwrap();
+        fs::write(vault.join("attachments/private-wave.png"), "wave").unwrap();
+        fs::write(vault.join("attachments/private-photo.png"), "photo").unwrap();
+        fs::write(
+            vault.join("attachments/private-canvas.grimoire-canvas.json"),
+            r#"{"version":1,"images":[{"src":"attachments/private-photo.png"}],"strokes":[]}"#,
+        )
+        .unwrap();
+        fs::write(vault.join("attachments/private-canvas.png"), "image").unwrap();
+        fs::write(
+            vault.join("imports/spanda-export/practice.md"),
+            "---\ntype: Sadhana\nlocality: local\n---\n# Practice\n",
+        )
+        .unwrap();
+        fs::write(
+            vault.join("imports/spanda-export/attachments/audio.m4a"),
+            "audio",
+        )
+        .unwrap();
+
+        git_commit(vp, "Commit public only").unwrap();
+
+        let files = git_command()
+            .args(["show", "--name-only", "--pretty=", "HEAD"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+        let committed = String::from_utf8_lossy(&files.stdout);
+        assert!(committed.contains("public.md"));
+        assert!(!committed.contains("journal.md"));
+        assert!(!committed.contains("practice.md"));
+        assert!(!committed.contains("audio.m4a"));
+        assert!(!committed.contains("private-wave.png"));
+        assert!(!committed.contains("private-photo.png"));
+        assert!(!committed.contains("private-canvas.grimoire-canvas.json"));
+        assert!(!committed.contains("private-canvas.png"));
     }
 
     #[test]
