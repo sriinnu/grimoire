@@ -86,6 +86,8 @@ src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset/.!*
 # Local-only Grimoire design/theme experiments.
 .grimoire-local/
 mockups/
+docs/mockups/
+docs/**/mockups/
 docs/scratch/
 docs/local/
 docs/private/

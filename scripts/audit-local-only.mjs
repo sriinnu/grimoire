@@ -19,6 +19,8 @@ const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 export const REQUIRED_GITIGNORE_PATTERNS = [
   '.grimoire-local/',
   'mockups/',
+  'docs/mockups/',
+  'docs/**/mockups/',
   'docs/scratch/',
   'docs/local/',
   'docs/private/',
@@ -35,6 +37,7 @@ export const REQUIRED_GITIGNORE_PATTERNS = [
 const FORBIDDEN_TRACKED_RULES = [
   { label: '.grimoire-local/', test: (path) => hasPrefix(path, '.grimoire-local/') },
   { label: 'mockups/', test: (path) => hasPrefix(path, 'mockups/') },
+  { label: 'docs/**/mockups/', test: (path) => isDocsMockupPath(path) },
   { label: 'docs/scratch/', test: (path) => hasPrefix(path, 'docs/scratch/') },
   { label: 'docs/local/', test: (path) => hasPrefix(path, 'docs/local/') },
   { label: 'docs/private/', test: (path) => hasPrefix(path, 'docs/private/') },
@@ -59,6 +62,10 @@ const STRONG_LOCAL_MARKERS = [
 
 function hasPrefix(path, prefix) {
   return path === prefix.slice(0, -1) || path.startsWith(prefix)
+}
+
+function isDocsMockupPath(path) {
+  return path === 'docs/mockups' || (path.startsWith('docs/') && path.includes('/mockups/'))
 }
 
 function normalizePath(path) {
@@ -97,10 +104,28 @@ function listTrackedFiles(root) {
     .map(normalizePath)
 }
 
-function readPreview(root, trackedPath) {
-  const absolutePath = resolve(root, trackedPath)
+function listUntrackedFiles(root) {
+  const result = spawnSync('git', ['ls-files', '--others', '--exclude-standard', '-z'], {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: 'pipe',
+  })
+
+  if (result.status !== 0) {
+    const detail = result.stderr.trim() || result.stdout.trim() || 'git ls-files --others failed'
+    throw new Error(detail)
+  }
+
+  return result.stdout
+    .split('\0')
+    .filter(Boolean)
+    .map(normalizePath)
+}
+
+function readCandidateText(root, candidatePath) {
+  const absolutePath = resolve(root, candidatePath)
   if (!existsSync(absolutePath)) return ''
-  return readFileSync(absolutePath, 'utf8').slice(0, 8192)
+  return readFileSync(absolutePath, 'utf8')
 }
 
 function isDocsTextFile(path) {
@@ -122,23 +147,29 @@ export function auditLocalOnly(root = REPO_ROOT, options = {}) {
   }
 
   const trackedFiles = (options.trackedFiles ?? listTrackedFiles(root)).map(normalizePath)
-  for (const trackedPath of trackedFiles) {
-    const rule = findForbiddenRule(trackedPath)
+  const worktreeFiles = (options.worktreeFiles ?? listUntrackedFiles(root)).map(normalizePath)
+  auditCandidateFiles({ files: trackedFiles, issues, label: 'Tracked', root })
+  auditCandidateFiles({ files: worktreeFiles, issues, label: 'Untracked worktree', root })
+
+  return { issues, ok: issues.length === 0 }
+}
+
+function auditCandidateFiles({ files, issues, label, root }) {
+  for (const candidatePath of files) {
+    const rule = findForbiddenRule(candidatePath)
     if (rule) {
-      issues.push(`Tracked local-only file matches ${rule.label}: ${trackedPath}`)
+      issues.push(`${label} local-only file matches ${rule.label}: ${candidatePath}`)
       continue
     }
 
-    if (!isDocsTextFile(trackedPath)) continue
+    if (!isDocsTextFile(candidatePath)) continue
 
-    const preview = readPreview(root, trackedPath)
-    const marker = STRONG_LOCAL_MARKERS.find((needle) => preview.includes(needle))
+    const content = readCandidateText(root, candidatePath)
+    const marker = STRONG_LOCAL_MARKERS.find((needle) => content.includes(needle))
     if (marker) {
-      issues.push(`Tracked docs file contains local-only marker "${marker}": ${trackedPath}`)
+      issues.push(`${label} docs file contains local-only marker "${marker}": ${candidatePath}`)
     }
   }
-
-  return { issues, ok: issues.length === 0 }
 }
 
 function parseArgs(argv) {
@@ -185,21 +216,56 @@ function runSelfTest() {
     mkdirSync(resolve(root, 'docs'), { recursive: true })
     writeRequiredGitignore(root)
     writeFileSync(resolve(root, 'docs/ARCHITECTURE.md'), 'This public doc mentions local-only product policy.\n')
-    assertOk('safe docs', auditLocalOnly(root, { trackedFiles: ['docs/ARCHITECTURE.md'] }))
+    assertOk('safe docs', auditLocalOnly(root, {
+      trackedFiles: ['docs/ARCHITECTURE.md'],
+      worktreeFiles: [],
+    }))
 
     const missingPatterns = REQUIRED_GITIGNORE_PATTERNS.filter((pattern) => pattern !== 'mockups/')
     writeRequiredGitignore(root, missingPatterns)
-    assertIssue('missing gitignore pattern', auditLocalOnly(root, { trackedFiles: [] }), 'mockups/')
+    assertIssue('missing gitignore pattern', auditLocalOnly(root, {
+      trackedFiles: [],
+      worktreeFiles: [],
+    }), 'mockups/')
 
     writeRequiredGitignore(root)
-    assertIssue('tracked mockup', auditLocalOnly(root, { trackedFiles: ['mockups/wire.png'] }), 'mockups/')
-    assertIssue('tracked scratch doc', auditLocalOnly(root, { trackedFiles: ['docs/scratch/plan.md'] }), 'docs/scratch/')
-    assertIssue('tracked local md', auditLocalOnly(root, { trackedFiles: ['docs/plan.local.md'] }), 'docs/*.local.md')
+    assertIssue('tracked mockup', auditLocalOnly(root, {
+      trackedFiles: ['mockups/wire.png'],
+      worktreeFiles: [],
+    }), 'mockups/')
+    assertIssue('tracked docs mockup', auditLocalOnly(root, {
+      trackedFiles: ['docs/mockups/wire.png'],
+      worktreeFiles: [],
+    }), 'docs/**/mockups/')
+    assertIssue('tracked nested docs mockup', auditLocalOnly(root, {
+      trackedFiles: ['docs/design/mockups/wire.png'],
+      worktreeFiles: [],
+    }), 'docs/**/mockups/')
+    assertIssue('tracked scratch doc', auditLocalOnly(root, {
+      trackedFiles: ['docs/scratch/plan.md'],
+      worktreeFiles: [],
+    }), 'docs/scratch/')
+    assertIssue('tracked local md', auditLocalOnly(root, {
+      trackedFiles: ['docs/plan.local.md'],
+      worktreeFiles: [],
+    }), 'docs/*.local.md')
 
     writeFileSync(resolve(root, 'docs/private-plan.md'), 'DO NOT COMMIT\n')
     assertIssue(
       'strong local marker',
-      auditLocalOnly(root, { trackedFiles: ['docs/private-plan.md'] }),
+      auditLocalOnly(root, { trackedFiles: ['docs/private-plan.md'], worktreeFiles: [] }),
+      'DO NOT COMMIT',
+    )
+    assertIssue(
+      'untracked strong local marker',
+      auditLocalOnly(root, { trackedFiles: [], worktreeFiles: ['docs/private-plan.md'] }),
+      'DO NOT COMMIT',
+    )
+
+    writeFileSync(resolve(root, 'docs/deep-private-plan.md'), `${'x'.repeat(9000)}\nDO NOT COMMIT\n`)
+    assertIssue(
+      'deep strong local marker',
+      auditLocalOnly(root, { trackedFiles: ['docs/deep-private-plan.md'], worktreeFiles: [] }),
       'DO NOT COMMIT',
     )
 
