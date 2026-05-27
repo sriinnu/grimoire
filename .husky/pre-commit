@@ -45,6 +45,10 @@ fi
 
 echo "🔍 Pre-commit checks..."
 
+# Local-only files are allowed to exist on disk, but never in commit-ready paths.
+echo "  → local-only audit..."
+pnpm audit:local-only
+
 # Lint + types — only if TS files staged.
 STAGED_TS=$(git diff --cached --name-only | grep -E '\.(ts|tsx)$' || true)
 if [ -n "$STAGED_TS" ]; then
