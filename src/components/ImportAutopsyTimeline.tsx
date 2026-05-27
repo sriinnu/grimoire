@@ -1,6 +1,16 @@
-import { type CSSProperties } from 'react'
-import type { ImportAutopsyPreviewState, MarkdownFolderImportPreviewResult } from '../lib/vaultPortability'
+import { type CSSProperties, useState } from 'react'
+import { ClipboardCheck, Copy } from 'lucide-react'
+import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
 import { Badge } from './ui/badge'
+import { Button } from './ui/button'
+import {
+  buildExactManifestRows,
+  buildPortableManifestMarkdown,
+  buildPreflightBuckets,
+  buildTimelineSteps,
+  importPreviewLabel,
+  livePreviewSummary,
+} from './import-autopsy/importAutopsyTimelineModel'
 
 interface ImportAutopsyTimelineProps {
   preview: ImportAutopsyPreviewState | null
@@ -8,24 +18,46 @@ interface ImportAutopsyTimelineProps {
   isRefreshing?: boolean
 }
 
-interface TimelineStep {
-  label: string
-  value: string
-  tone?: 'default' | 'warn'
-}
+type CopyState = 'idle' | 'copied' | 'failed' | 'unavailable'
 
-interface DestinationSummary {
-  value: string
-  insideVault: boolean
-  tone?: 'warn'
+interface CopyStateSnapshot {
+  preview: ImportAutopsyPreviewState | null
+  state: CopyState
+  vaultPath: string
 }
 
 /** Shows the last no-write import preview as a local-only category timeline. */
 export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = false }: ImportAutopsyTimelineProps) {
+  const [copySnapshot, setCopySnapshot] = useState<CopyStateSnapshot>(() => ({
+    preview,
+    state: 'idle',
+    vaultPath,
+  }))
+  const copyState = copySnapshot.preview === preview && copySnapshot.vaultPath === vaultPath ? copySnapshot.state : 'idle'
+  const setCurrentCopyState = (state: CopyState) => {
+    setCopySnapshot({ preview, state, vaultPath })
+  }
+
   if (!preview) return null
 
   const sourceLabel = importPreviewLabel(preview.sourceId)
+  const manifest = buildPreflightBuckets(preview.result)
+  const exactManifest = buildExactManifestRows(preview.result, vaultPath)
   const steps = buildTimelineSteps(preview, vaultPath)
+  const portableManifest = buildPortableManifestMarkdown(sourceLabel, manifest, exactManifest, steps)
+
+  async function copyPortableManifest() {
+    if (!navigator.clipboard?.writeText) {
+      setCurrentCopyState('unavailable')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(portableManifest)
+      setCurrentCopyState('copied')
+    } catch {
+      setCurrentCopyState('failed')
+    }
+  }
 
   return (
     <section
@@ -38,10 +70,69 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
         <Badge variant="outline" className="rounded-md">No writes yet</Badge>
         {isRefreshing ? <Badge variant="outline" className="rounded-md">Refreshing...</Badge> : null}
         <span className="text-xs font-medium text-foreground">{sourceLabel}</span>
+        <Button
+          type="button"
+          variant="outline"
+          size="xs"
+          className="ml-auto"
+          onClick={copyPortableManifest}
+          data-testid="import-autopsy-copy-manifest"
+        >
+          {copyState === 'copied' ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
+          {copyButtonLabel(copyState)}
+        </Button>
       </div>
+      <p
+        className="text-[11px] text-muted-foreground"
+        aria-live="polite"
+        data-testid="import-autopsy-copy-status"
+      >
+        {copyStatus(copyState)}
+      </p>
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {livePreviewSummary(sourceLabel, preview.result, isRefreshing)}
       </p>
+      <div
+        className="grid gap-2 sm:grid-cols-2"
+        data-testid="import-autopsy-manifest"
+        aria-label="Source-safe import manifest"
+      >
+        {manifest.map((bucket) => (
+          <div
+            key={bucket.label}
+            className="rounded border border-border bg-background/60 px-2.5 py-2"
+            data-tone={bucket.tone ?? 'default'}
+          >
+            <div className="text-[11px] font-semibold uppercase text-muted-foreground">{bucket.label}</div>
+            <div className="grimoire-import-autopsy__value text-xs font-medium">{bucket.value}</div>
+            <div className="mt-1 text-[11px] leading-snug text-muted-foreground">{bucket.detail}</div>
+          </div>
+        ))}
+      </div>
+      {exactManifest.length > 0 ? (
+        <div
+          className="grid gap-1.5 rounded-md border border-border bg-background/60 p-2"
+          data-testid="import-autopsy-exact-manifest"
+          aria-label="Exact redacted import manifest"
+        >
+          <div className="text-[11px] font-semibold uppercase text-muted-foreground">Exact manifest</div>
+          {exactManifest.map((row) => (
+            <div
+              key={`${row.kind}:${row.source}:${row.destination}:${row.detail}`}
+              className="grid gap-1 rounded border border-border bg-background/70 px-2 py-1.5 text-[11px] sm:grid-cols-[6rem_minmax(0,1fr)]"
+              data-tone={row.tone ?? 'default'}
+            >
+              <span className="font-semibold uppercase text-muted-foreground">{row.kind}</span>
+              <span className="min-w-0 text-foreground">
+                <span className="font-medium">{row.source}</span>
+                <span className="text-muted-foreground">{' -> '}</span>
+                <span>{row.destination}</span>
+                <span className="text-muted-foreground"> / {row.detail}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <ol className="grimoire-import-autopsy__rail grid gap-2" aria-label="Import preview steps">
         {steps.map((step, index) => (
           <li
@@ -53,7 +144,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
             <div className="text-[11px] font-semibold uppercase text-muted-foreground">
               {step.label}
             </div>
-            <div className={step.tone === 'warn' ? 'text-xs text-amber-600' : 'text-xs text-foreground'}>
+            <div className="grimoire-import-autopsy__value text-xs">
               {step.value}
             </div>
           </li>
@@ -63,107 +154,15 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
   )
 }
 
-function buildTimelineSteps(preview: ImportAutopsyPreviewState, vaultPath: string): TimelineStep[] {
-  const result = preview.result
-  const sourceLabel = importPreviewLabel(preview.sourceId)
-  const destination = destinationSummary(result.planned_import_root, vaultPath)
-  return [
-    { label: 'Source', value: `${sourceLabel} selected: ${compactSourcePath(result.source_path)}` },
-    { label: 'Destination', value: destination.value, tone: destination.tone },
-    { label: 'Metadata', value: metadataSummary(result) },
-    { label: 'Notes', value: countSummary(result.notes_to_copy, 'note') },
-    { label: 'Attachments', value: countSummary(result.assets_to_copy, 'asset') },
-    {
-      label: 'Skipped',
-      value: skippedSummary(result),
-      tone: result.skipped_files > 0 || result.failed_files > 0 ? 'warn' : 'default',
-    },
-    {
-      label: 'Local Report',
-      value: localReportSummary(result, destination.insideVault),
-      tone: destination.insideVault ? 'default' : 'warn',
-    },
-  ]
+function copyButtonLabel(state: CopyState): string {
+  if (state === 'copied') return 'Copied'
+  if (state === 'failed') return 'Retry copy'
+  return 'Copy manifest'
 }
 
-function importPreviewLabel(sourceId: ImportAutopsyPreviewState['sourceId']): string {
-  if (sourceId === 'bear-preview') return 'Bear export'
-  if (sourceId === 'markdown-zip-preview') return 'Markdown ZIP'
-  if (sourceId === 'obsidian-preview') return 'Obsidian vault'
-  if (sourceId === 'notion-markdown-preview') return 'Notion Markdown ZIP'
-  if (sourceId === 'notion-folder-preview') return 'Notion Markdown folder'
-  if (sourceId === 'spanda-preview') return 'Spanda export'
-  if (sourceId === 'apple-journal-preview') return 'Apple Journal'
-  if (sourceId === 'day-one-preview') return 'Day One'
-  if (sourceId === 'journey-preview') return 'Journey'
-  return 'Markdown folder'
-}
-
-function metadataSummary(result: MarkdownFolderImportPreviewResult): string {
-  const report = result.writes_local_only_report ? 'local-only import report planned' : 'no report needed'
-  return `Frontmatter and source metadata will be mapped; ${report}.`
-}
-
-function skippedSummary(result: MarkdownFolderImportPreviewResult): string {
-  if (result.skipped_files === 0 && result.failed_files === 0) return 'No skipped or failed files in this preview.'
-  const skipped = countSummary(result.skipped_files, 'skipped file')
-  const failed = countSummary(result.failed_files, 'failed preview')
-  return `${skipped}; ${failed}.`
-}
-
-function localReportSummary(result: MarkdownFolderImportPreviewResult, destinationInsideVault: boolean): string {
-  if (result.writes_local_only_report && !destinationInsideVault) {
-    return 'Local-only report is planned, but destination is outside the active vault.'
-  }
-  return result.writes_local_only_report
-    ? 'A local-only report will stay inside the vault import lane.'
-    : 'No local-only report will be written for this preview.'
-}
-
-function countSummary(count: number, singular: string): string {
-  const plural = singular.endsWith('y') ? `${singular.slice(0, -1)}ies` : `${singular}s`
-  return `${count} ${count === 1 ? singular : plural}`
-}
-
-function compactSourcePath(path: string): string {
-  return basename(path) || 'selected source'
-}
-
-function destinationSummary(path: string, vaultPath: string): DestinationSummary {
-  const relativePath = compactVaultPath(path, vaultPath)
-  if (vaultPath.trim() && relativePath === null) {
-    return {
-      value: `Warning: planned destination is outside the active vault (${basename(path) || 'selected folder'}).`,
-      insideVault: false,
-      tone: 'warn',
-    }
-  }
-  return {
-    value: `Will land in ${relativePath ?? (basename(path) || 'planned import folder')}`,
-    insideVault: true,
-  }
-}
-
-function compactVaultPath(path: string, vaultPath: string): string | null {
-  const normalizedVault = normalizePath(vaultPath)
-  const normalizedPath = normalizePath(path)
-  if (normalizedVault && normalizedPath.startsWith(`${normalizedVault}/`)) {
-    return `./${normalizedPath.slice(normalizedVault.length + 1)}`
-  }
-  return normalizedVault ? null : basename(path) || 'planned import folder'
-}
-
-function livePreviewSummary(sourceLabel: string, result: MarkdownFolderImportPreviewResult, isRefreshing: boolean): string {
-  const staleNote = isRefreshing ? ' A newer import preview is running.' : ''
-  return `${sourceLabel} import preview ready: ${countSummary(result.notes_to_copy, 'note')}, ${
-    countSummary(result.assets_to_copy, 'asset')
-  }; ${skippedSummary(result)}${staleNote}`
-}
-
-function basename(path: string): string {
-  return path.split(/[\\/]/u).filter(Boolean).pop() ?? ''
-}
-
-function normalizePath(path: string): string {
-  return path.replace(/[\\/]+/gu, '/').replace(/\/$/u, '')
+function copyStatus(state: CopyState): string {
+  if (state === 'copied') return 'Redacted manifest copied locally.'
+  if (state === 'failed') return 'Copy failed. Full paths stayed local.'
+  if (state === 'unavailable') return 'Clipboard unavailable. Full paths stayed local.'
+  return 'Copies the redacted no-write manifest only.'
 }
