@@ -5,6 +5,7 @@ import {
   buildPortableManifestMarkdown,
   buildPreflightBuckets,
   buildTimelineSteps,
+  exactManifestDisclosure,
 } from './importAutopsyTimelineModel'
 
 const preview: ImportAutopsyPreviewState = {
@@ -96,5 +97,31 @@ describe('importAutopsyTimelineModel', () => {
     }
 
     expect(buildExactManifestRows(result, '/Users/sri/Vault')).toHaveLength(8)
+  })
+
+  it('discloses redacted overflow without leaking local paths', () => {
+    const result = {
+      ...preview.result,
+      manifest_rows: Array.from({ length: 10 }, (_value, index) => ({
+        kind: 'note' as const,
+        source_path: `/Users/sri/Private/Export/note-${index}.md`,
+        destination_path: `/Users/sri/Vault/imports/notes/note-${index}.md`,
+        detail: `planned /Users/sri/Private/Export/note-${index}.md`,
+      })),
+    }
+    const rows = buildExactManifestRows(result, '/Users/sri/Vault')
+    const disclosure = exactManifestDisclosure(result.manifest_rows.length, rows.length)
+    const markdown = buildPortableManifestMarkdown(
+      'Markdown folder',
+      buildPreflightBuckets(result),
+      rows,
+      buildTimelineSteps({ ...preview, sourceId: 'markdown-folder-preview', result }, '/Users/sri/Vault'),
+      result.manifest_rows.length,
+    )
+
+    expect(disclosure).toBe('Showing first 8 of 10 redacted rows. Full absolute-path report stays local-only.')
+    expect(markdown).toContain('- Showing first 8 of 10 redacted rows. Full absolute-path report stays local-only.')
+    expect(markdown).not.toContain('/Users/')
+    expect(markdown).not.toContain('/Private/')
   })
 })

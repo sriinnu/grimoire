@@ -8,6 +8,7 @@ import {
   buildPortableManifestMarkdown,
   buildPreflightBuckets,
   buildTimelineSteps,
+  exactManifestDisclosure,
   importPreviewLabel,
   livePreviewSummary,
 } from './import-autopsy/importAutopsyTimelineModel'
@@ -43,8 +44,10 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
   const sourceLabel = importPreviewLabel(preview.sourceId)
   const manifest = buildPreflightBuckets(preview.result)
   const exactManifest = buildExactManifestRows(preview.result, vaultPath)
+  const exactManifestTotal = preview.result.manifest_rows?.length ?? exactManifest.length
+  const exactDisclosure = exactManifestDisclosure(exactManifestTotal, exactManifest.length)
   const steps = buildTimelineSteps(preview, vaultPath)
-  const portableManifest = buildPortableManifestMarkdown(sourceLabel, manifest, exactManifest, steps)
+  const portableManifest = buildPortableManifestMarkdown(sourceLabel, manifest, exactManifest, steps, exactManifestTotal)
 
   async function copyPortableManifest() {
     if (!navigator.clipboard?.writeText) {
@@ -116,6 +119,9 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
           aria-label="Exact redacted import manifest"
         >
           <div className="text-[11px] font-semibold uppercase text-muted-foreground">Exact manifest</div>
+          {exactDisclosure ? (
+            <div className="text-[11px] leading-snug text-muted-foreground">{exactDisclosure}</div>
+          ) : null}
           {exactManifest.map((row) => (
             <div
               key={`${row.kind}:${row.source}:${row.destination}:${row.detail}`}

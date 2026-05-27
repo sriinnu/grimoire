@@ -25,6 +25,8 @@ interface DestinationSummary {
   tone?: 'warn'
 }
 
+const EXACT_MANIFEST_PREVIEW_LIMIT = 8
+
 /** Source-safe row rendered in the exact import manifest. */
 export interface ImportAutopsyManifestRowView {
   destination: string
@@ -40,7 +42,9 @@ export function buildPortableManifestMarkdown(
   manifest: ImportAutopsyPreflightBucket[],
   exactManifest: ImportAutopsyManifestRowView[],
   steps: ImportAutopsyTimelineStep[],
+  exactManifestTotal = exactManifest.length,
 ): string {
+  const disclosure = exactManifestDisclosure(exactManifestTotal, exactManifest.length)
   return [
     '# Import Autopsy Manifest',
     '',
@@ -52,6 +56,7 @@ export function buildPortableManifestMarkdown(
     ...manifest.map((bucket) => `- ${bucket.label}: ${bucket.value}; ${bucket.detail}`),
     '',
     '## Exact Manifest',
+    ...(disclosure ? [`- ${disclosure}`] : []),
     ...(exactManifest.length > 0
       ? exactManifest.map((row) => `- ${row.kind}: ${row.source} -> ${row.destination}; ${row.detail}`)
       : ['- No exact rows reported by this preview.']),
@@ -70,13 +75,19 @@ export function buildExactManifestRows(
   result: MarkdownFolderImportPreviewResult,
   vaultPath: string,
 ): ImportAutopsyManifestRowView[] {
-  return (result.manifest_rows ?? []).slice(0, 8).map((row) => ({
+  return (result.manifest_rows ?? []).slice(0, EXACT_MANIFEST_PREVIEW_LIMIT).map((row) => ({
     destination: manifestDestination(row, vaultPath),
     detail: sanitizeManifestText(row.detail, vaultPath, [row.source_path, row.destination_path]),
     kind: manifestKind(row.kind),
     source: compactSourcePath(row.source_path),
     tone: row.kind === 'withheld' ? 'warn' : 'default',
   }))
+}
+
+/** Names when the UI is showing a redacted sample instead of every exact row. */
+export function exactManifestDisclosure(totalRows: number, visibleRows: number): string | null {
+  if (totalRows <= visibleRows) return null
+  return `Showing first ${visibleRows} of ${totalRows} redacted rows. Full absolute-path report stays local-only.`
 }
 
 /** Builds the local-only timeline narrative for an import preview. */
