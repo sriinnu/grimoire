@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { VaultEntry } from '../types'
 import { AiPanel } from './AiPanel'
@@ -77,6 +77,7 @@ describe('AiPanel Context Capsule', () => {
       />,
     )
 
+    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
     const card = screen.getByTestId('context-capsule-card')
     expect(within(card).getByText('Context Capsule')).toBeInTheDocument()
     expect(within(card).getByText('Local-only notes withheld')).toBeInTheDocument()
@@ -100,6 +101,7 @@ describe('AiPanel Context Capsule', () => {
       />,
     )
 
+    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
     const card = screen.getByTestId('context-capsule-card')
     expect(within(card).getByText('Protected active note')).toBeInTheDocument()
     expect(screen.queryByText('River Dream')).toBeNull()

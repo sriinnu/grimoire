@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
 import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
 
@@ -17,6 +17,11 @@ const preview: ImportAutopsyPreviewState = {
 }
 
 describe('ImportAutopsyTimeline', () => {
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'clipboard')
+    vi.restoreAllMocks()
+  })
+
   it('renders the last no-write preview as a compact local timeline', () => {
     render(<ImportAutopsyTimeline preview={preview} vaultPath="/Users/sri/Vault" />)
 
@@ -29,11 +34,20 @@ describe('ImportAutopsyTimeline', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       'Day One import preview ready: 4 notes, 2 assets; 1 skipped file; 0 failed previews.',
     )
+    expect(screen.getByTestId('import-autopsy-copy-status')).toHaveTextContent('Copies the redacted no-write manifest only.')
+    const manifest = screen.getByTestId('import-autopsy-manifest')
+    expect(manifest).toHaveAccessibleName('Source-safe import manifest')
+    expect(manifest).toHaveTextContent('Files')
+    expect(manifest).toHaveTextContent('Metadata')
+    expect(manifest).toHaveTextContent('Attachments')
+    expect(manifest).toHaveTextContent('Withheld')
+    expect(manifest).toHaveTextContent('1 guarded item')
+    expect(manifest).toHaveTextContent('Source metadata becomes visible Markdown/frontmatter, not hidden state.')
     expect(timeline).toHaveTextContent('Day One selected: DayOneExport.zip')
     expect(timeline).toHaveTextContent('Will land in ./imports/day-one')
-    expect(timeline).toHaveTextContent('4 notes')
-    expect(timeline).toHaveTextContent('2 assets')
-    expect(timeline).toHaveTextContent('1 skipped file; 0 failed previews.')
+    expect(timeline).toHaveTextContent('4 notes queued for Markdown copy.')
+    expect(timeline).toHaveTextContent('2 assets queued beside imported notes.')
+    expect(timeline).toHaveTextContent('1 skipped file; 0 failed previews. Skipped or failed content will not be imported silently.')
     expect(timeline).toHaveTextContent('A local-only report will stay inside the vault import lane.')
     expect(timeline).not.toHaveTextContent('/Users/sri/Private')
   })
@@ -45,6 +59,7 @@ describe('ImportAutopsyTimeline', () => {
     expect(items).toHaveLength(7)
     expect(items[0]).toHaveClass('grimoire-import-autopsy__step')
     expect(items[0]).toHaveStyle({ '--motion-stagger-delay': '0ms' })
+    expect(items[0].querySelector('.grimoire-import-autopsy__value')).toBeInTheDocument()
     expect(items[6]).toHaveClass('grimoire-import-autopsy__step')
     expect(items[6]).toHaveStyle({ '--motion-stagger-delay': '210ms' })
   })
@@ -54,6 +69,96 @@ describe('ImportAutopsyTimeline', () => {
 
     expect(screen.getByText('Refreshing...')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('A newer import preview is running.')
+  })
+
+  it('shows exact source-to-destination manifest rows without leaking absolute paths', () => {
+    render(
+      <ImportAutopsyTimeline
+        preview={{
+          ...preview,
+          result: {
+            ...preview.result,
+            manifest_rows: [
+              {
+                kind: 'note',
+                source_path: '/Users/sri/Private/DayOneExport/entries/entry.json',
+                destination_path: '/Users/sri/Vault/imports/day-one/2026-05-26.md',
+                detail: 'title/date/frontmatter from /Users/sri/Private/DayOneExport/entries/entry.json',
+              },
+              {
+                kind: 'asset',
+                source_path: '/Users/sri/Private/DayOneExport/photos/moon.png',
+                destination_path: '/Users/sri/Vault/imports/day-one/assets/moon.png',
+                detail: 'attachment move',
+              },
+              {
+                kind: 'withheld',
+                source_path: '/Users/sri/Private/DayOneExport/.env',
+                destination_path: null,
+                detail: 'local-only skip from /Users/sri/Private/DayOneExport/.env',
+              },
+            ],
+          },
+        }}
+        vaultPath="/Users/sri/Vault"
+      />,
+    )
+
+    const manifest = screen.getByTestId('import-autopsy-exact-manifest')
+    expect(manifest).toHaveAccessibleName('Exact redacted import manifest')
+    expect(manifest).toHaveTextContent('entry.json -> ./imports/day-one/2026-05-26.md')
+    expect(manifest).toHaveTextContent('moon.png -> ./imports/day-one/assets/moon.png')
+    expect(manifest).toHaveTextContent('.env -> withheld')
+    expect(manifest).toHaveTextContent('title/date/frontmatter from entry.json')
+    expect(manifest).not.toHaveTextContent('/Users/sri/Private')
+    expect(manifest.querySelector('[data-tone="warn"]')).not.toBeNull()
+  })
+
+  it('copies a redacted portable Markdown manifest without leaking absolute source paths', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+
+    render(
+      <ImportAutopsyTimeline
+        preview={{
+          ...preview,
+          result: {
+            ...preview.result,
+            manifest_rows: [
+              {
+                kind: 'note',
+                source_path: '/Users/sri/Private/DayOneExport/entries/entry.json',
+                destination_path: '/Users/sri/Vault/imports/day-one/2026-05-26.md',
+                detail: 'title/date/frontmatter from /Users/sri/Private/DayOneExport/entries/entry.json',
+              },
+              {
+                kind: 'withheld',
+                source_path: '/Users/sri/Private/DayOneExport/.env',
+                destination_path: null,
+                detail: 'local-only skip from /Users/sri/Private/DayOneExport/.env',
+              },
+            ],
+          },
+        }}
+        vaultPath="/Users/sri/Vault"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy manifest' }))
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
+    const copied = writeText.mock.calls[0][0] as string
+    expect(copied).toContain('# Import Autopsy Manifest')
+    expect(copied).toContain('Source: Day One')
+    expect(copied).toContain('Note: entry.json -> ./imports/day-one/2026-05-26.md')
+    expect(copied).toContain('Withheld: .env -> withheld; local-only skip from .env')
+    expect(copied).toContain('Original import reports with absolute source paths stay local-only.')
+    expect(copied).not.toContain('/Users/sri/Private')
+    expect(screen.getByTestId('import-autopsy-copy-manifest')).toHaveTextContent('Copied')
+    expect(screen.getByTestId('import-autopsy-copy-status')).toHaveTextContent('Redacted manifest copied locally.')
   })
 
   it('warns when a preview destination is outside the active vault', () => {

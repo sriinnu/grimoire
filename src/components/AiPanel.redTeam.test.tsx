@@ -73,6 +73,7 @@ describe('AiPanel red-team card', () => {
       />,
     )
 
+    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
     const card = screen.getByTestId('red-team-plan-card')
     expect(card).toHaveTextContent('Red-Team My Plan')
     expect(card).toHaveTextContent('Local-only')
@@ -94,6 +95,7 @@ describe('AiPanel red-team card', () => {
       />,
     )
 
+    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
     fireEvent.click(screen.getByTestId('red-team-review-plan'))
 
     const dialog = screen.getByTestId('red-team-plan-dialog')
