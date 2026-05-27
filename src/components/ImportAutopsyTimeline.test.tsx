@@ -114,6 +114,32 @@ describe('ImportAutopsyTimeline', () => {
     expect(manifest.querySelector('[data-tone="warn"]')).not.toBeNull()
   })
 
+  it('discloses when the exact manifest is redacted to a visible sample', () => {
+    render(
+      <ImportAutopsyTimeline
+        preview={{
+          ...preview,
+          result: {
+            ...preview.result,
+            manifest_rows: Array.from({ length: 10 }, (_value, index) => ({
+              kind: 'note' as const,
+              source_path: `/Users/sri/Private/DayOneExport/entries/entry-${index}.json`,
+              destination_path: `/Users/sri/Vault/imports/day-one/entry-${index}.md`,
+              detail: `title/date/frontmatter from /Users/sri/Private/DayOneExport/entries/entry-${index}.json`,
+            })),
+          },
+        }}
+        vaultPath="/Users/sri/Vault"
+      />,
+    )
+
+    const manifest = screen.getByTestId('import-autopsy-exact-manifest')
+    expect(manifest).toHaveTextContent('Showing first 8 of 10 redacted rows. Full absolute-path report stays local-only.')
+    expect(manifest).toHaveTextContent('entry-7.json -> ./imports/day-one/entry-7.md')
+    expect(manifest).not.toHaveTextContent('entry-8.json')
+    expect(manifest).not.toHaveTextContent('/Users/sri/Private')
+  })
+
   it('copies a redacted portable Markdown manifest without leaking absolute source paths', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {
