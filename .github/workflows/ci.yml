@@ -35,6 +35,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify Local-Only Audit Guard
+        run: pnpm test:local-only-audit
+
+      - name: Local-Only Audit
+        run: pnpm audit:local-only
+
       - name: Verify Release Artifact Guard
         run: pnpm test:release-artifacts
 
