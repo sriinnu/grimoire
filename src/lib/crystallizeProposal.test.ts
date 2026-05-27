@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
 import {
+  appendCrystallizePatchToContent,
   buildCrystallizeProposal,
   latestCrystallizableMessage,
   latestCrystallizableResponse,
   persistCrystallizedNote,
   summarizeCrystallizeProposal,
 } from './crystallizeProposal'
+import { buildCrystallizeMockEntry } from './crystallizeMockEntry'
 
 function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
@@ -84,16 +86,30 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('type: Memory')
     expect(proposal.markdown).toContain('source_note: "[[Test Project]]"')
     expect(proposal.sourceLabels).toEqual(['[[Test Project]]'])
+    expect(proposal.ledgerContract).toEqual({
+      confidence: 'proposed',
+      locality: 'vault',
+      reviewState: 'reviewed',
+      sourceCount: 1,
+      status: 'proposed',
+      version: 1,
+    })
+    expect(proposal.markdown).toContain('memory_status: proposed')
+    expect(proposal.markdown).toContain('memory_review_state: reviewed')
+    expect(proposal.markdown).toContain('memory_source_count: 1')
     expect(proposal.markdown).toContain('memory_version: 1')
     expect(proposal.markdown).toContain('reviewed_at: "2026-05-16T12:00:00.000Z"')
     expect(proposal.markdown).toContain('## Source Links')
     expect(proposal.markdown).toContain('- [[Test Project]]')
     expect(proposal.markdown).toContain('- [[Related Note]]')
+    expect(proposal.markdown).toContain('## Ledger Contract')
+    expect(proposal.markdown).toContain('- Review state: reviewed')
     expect(proposal.markdown).toContain('Keep the Memory Ledger source-backed.')
     expect(proposal.changes).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'create-memory-note', kind: 'file', target: proposal.relativePath }),
       expect.objectContaining({ id: 'write-frontmatter', kind: 'frontmatter', after: expect.stringContaining('memory_version: 1') }),
       expect.objectContaining({ id: 'link-sources', kind: 'backlink', after: expect.stringContaining('- [[Related Note]]') }),
+      expect.objectContaining({ id: 'write-ledger-contract', kind: 'body', after: expect.stringContaining('Review state: reviewed') }),
       expect.objectContaining({ id: 'write-memory-body', kind: 'body', after: expect.stringContaining('Keep the Memory Ledger') }),
     ]))
   })
@@ -132,6 +148,111 @@ describe('crystallizeProposal', () => {
     ]))
   })
 
+  it('builds Agent Council synthesis as reviewed Markdown memory without pretending it is chat output', () => {
+    const proposal = buildCrystallizeProposal({
+      response: '# Agent Council synthesis\n\n## Handoff Gate\n\n- Review required: yes',
+      handoffMetadata: {
+        kind: 'agent_council',
+        localHold: false,
+        mode: 'review-gated',
+        privateGatedLaneCount: 2,
+        readyLaneCount: 3,
+        sourceCount: 4,
+        unavailableLaneCount: 1,
+      },
+      sourceLabels: ['Agent Council', 'Public Plan', 'Conflicts: Old Plan', '3 graph items withheld'],
+      sourceName: 'Agent Council',
+      titleSubject: 'Agent Council',
+      vaultPath: '/vault',
+      now: new Date('2026-05-16T12:00:00.000Z'),
+    })
+
+    expect(proposal.title).toBe('Crystallized - Agent Council - 2026-05-16')
+    expect(proposal.sourceName).toBe('Agent Council')
+    expect(proposal.sourceLabel).toBe('Agent Council')
+    expect(proposal.sourceLabels).toEqual(['Agent Council', '[[Public Plan]]'])
+    expect(proposal.markdown).toContain('source: "Agent Council"')
+    expect(proposal.markdown).toContain('source_note: "Agent Council"')
+    expect(proposal.markdown).toContain('source_notes:\n  - "Agent Council"\n  - "[[Public Plan]]"')
+    expect(proposal.markdown).toContain('handoff: agent_council')
+    expect(proposal.markdown).toContain('handoff_mode: "review-gated"')
+    expect(proposal.markdown).toContain('handoff_ready_lanes: 3')
+    expect(proposal.markdown).toContain('handoff_private_gated_lanes: 2')
+    expect(proposal.markdown).toContain('handoff_unavailable_lanes: 1')
+    expect(proposal.markdown).toContain('handoff_local_hold: false')
+    expect(proposal.markdown).not.toContain('handoff_held_local')
+    expect(proposal.markdown).toContain('handoff_source_count: 4')
+    expect(proposal.markdown).toContain('- [[Public Plan]]')
+    expect(proposal.markdown).not.toContain('Conflicts: Old Plan')
+    expect(proposal.markdown).not.toContain('3 graph items withheld')
+    expect(proposal.markdown).toContain('# Agent Council synthesis')
+    expect(proposal.handoffMetadata).toEqual(expect.objectContaining({ mode: 'review-gated', readyLaneCount: 3 }))
+    expect(proposal.markdown).not.toContain('source: AI Chat')
+    expect(proposal.activeNotePatch).toBeNull()
+  })
+
+  it('blocks policy-only handoff metadata from durable Memory frontmatter', () => {
+    expect(() => buildCrystallizeProposal({
+      response: 'Policy-only guidance should not become a shared Memory handoff.',
+      handoffMetadata: {
+        kind: 'agent_council',
+        localHold: true,
+        mode: 'policy-only',
+        privateGatedLaneCount: 0,
+        readyLaneCount: 0,
+        sourceCount: 0,
+        unavailableLaneCount: 0,
+      } as never,
+      sourceName: 'Agent Council',
+      vaultPath: '/vault',
+      now: new Date('2026-05-16T12:00:00.000Z'),
+    })).toThrow(/review-gated Council packets/)
+  })
+
+  it('builds mock entries from edited Markdown frontmatter instead of stale proposal metadata', () => {
+    const proposal = buildCrystallizeProposal({
+      response: 'Council memory can be edited before apply.',
+      handoffMetadata: {
+        kind: 'agent_council',
+        localHold: false,
+        mode: 'review-gated',
+        privateGatedLaneCount: 1,
+        readyLaneCount: 3,
+        sourceCount: 2,
+        unavailableLaneCount: 0,
+      },
+      sourceName: 'Agent Council',
+      vaultPath: '/vault',
+      now: new Date('2026-05-16T12:00:00.000Z'),
+    })
+    const editedMarkdown = proposal.markdown.replace(/^handoff.*\n/gm, '')
+    const mockEntry = buildCrystallizeMockEntry({ ...proposal, markdown: editedMarkdown })
+
+    expect(mockEntry.properties.handoff).toBeUndefined()
+    expect(mockEntry.properties.source).toBe('Agent Council')
+    expect(mockEntry.properties.reviewed_at).toBe('2026-05-16T12:00:00.000Z')
+  })
+
+  it('filters protected or stale Council source labels at the durable Crystallize boundary', () => {
+    const proposal = buildCrystallizeProposal({
+      response: 'Only public source labels belong in durable Memory.',
+      sourceEntries: [
+        entry({ path: '/vault/public-plan.md', filename: 'public-plan.md', title: 'Public Plan' }),
+        entry({ path: '/vault/dreams/secret.md', filename: 'secret.md', title: 'Secret Dream', isA: 'Dream' }),
+      ],
+      sourceLabels: ['Agent Council', 'Public Plan', 'Secret Dream', 'Conflicts: Secret Dream', '2 dashboard items withheld'],
+      sourceName: 'Agent Council',
+      titleSubject: 'Agent Council',
+      vaultPath: '/vault',
+      now: new Date('2026-05-16T12:00:00.000Z'),
+    })
+
+    expect(proposal.sourceLabels).toEqual(['Agent Council', '[[Public Plan]]'])
+    expect(proposal.markdown).toContain('- "[[Public Plan]]"')
+    expect(proposal.markdown).not.toContain('Secret Dream')
+    expect(proposal.markdown).not.toContain('dashboard items withheld')
+  })
+
   it('adds a task hunk when the response contains checklist items', () => {
     const proposal = buildCrystallizeProposal({
       response: '- [ ] Verify Memory Ledger diffs\n- [x] Keep local-only markers',
@@ -146,6 +267,40 @@ describe('crystallizeProposal', () => {
         after: '- [ ] Verify Memory Ledger diffs\n- [x] Keep local-only markers',
       }),
     ]))
+  })
+
+  it('adds a reviewable active note append hunk when editor content is available', () => {
+    const proposal = buildCrystallizeProposal({
+      response: 'Make Crystallize write reviewed diffs, not invisible AI memory.',
+      vaultPath: '/vault',
+      activeEntry: entry({ path: '/vault/projects/grimoire.md', title: 'Grimoire' }),
+      activeNoteContent: '# Grimoire\n\nCurrent plan.',
+      now: new Date('2026-05-16T12:00:00.000Z'),
+    })
+
+    expect(proposal.activeNotePatch).toEqual(expect.objectContaining({
+      targetPath: '/vault/projects/grimoire.md',
+      relativePath: 'projects/grimoire.md',
+      appendMarkdown: expect.stringContaining('## Crystallized Follow-up'),
+    }))
+    expect(proposal.activeNotePatch?.appendMarkdown).toContain('[[Crystallized - Grimoire - 2026-05-16]]')
+    expect(proposal.activeNotePatch?.appendMarkdown).toContain('- Source: [[Grimoire]]')
+    expect(proposal.changes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'append-active-note',
+        kind: 'note',
+        target: 'projects/grimoire.md',
+        after: expect.stringContaining('Make Crystallize write reviewed diffs'),
+      }),
+    ]))
+  })
+
+  it('appends a reviewed active note hunk with stable spacing', () => {
+    expect(appendCrystallizePatchToContent('# Note\n\nBody\n\n', '## Crystallized Follow-up\n\nNext')).toBe(
+      '# Note\n\nBody\n\n## Crystallized Follow-up\n\nNext\n',
+    )
+    expect(appendCrystallizePatchToContent('', '## First')).toBe('## First\n')
+    expect(appendCrystallizePatchToContent('# Note\n', '  ')).toBe('# Note\n')
   })
 
   it('deduplicates source backlinks that are also mentioned in the response', () => {
@@ -169,7 +324,8 @@ describe('crystallizeProposal', () => {
     })
 
     expect(summarizeCrystallizeProposal(proposal)).toEqual({
-      hunkCount: 5,
+      hunkCount: 6,
+      ledgerFieldCount: 7,
       sourceCount: 2,
       targetFolder: 'memory/crystallized',
       taskCount: 1,

@@ -2,42 +2,51 @@ import { invoke } from './tauriRuntime'
 import { isTauri, addMockEntry } from '../mock-tauri'
 import type { VaultEntry } from '../types'
 import { slugifyNoteStem } from '../utils/noteSlug'
-import { extractOutgoingLinks } from '../utils/wikilinks'
 import type { AiAgentMessage } from './aiAgentConversation'
 import type { AskContextPackage } from './askContextPackage'
+import {
+  handoffFrontmatter,
+  type CrystallizeHandoffMetadata,
+} from './crystallizeHandoff'
+import { buildCrystallizeMockEntry } from './crystallizeMockEntry'
+import {
+  buildCrystallizeSourceLabels,
+  buildSourceLinkLines,
+  sourceNotesFrontmatter,
+  wikilinkLabel,
+} from './crystallizeProvenance'
+import type {
+  CrystallizeActiveNotePatch,
+  CrystallizeProposal,
+  CrystallizeProposalSummary,
+} from './crystallizeProposalTypes'
+import {
+  buildLedgerContract,
+  buildLedgerContractLines,
+  buildReviewChanges,
+  countLedgerFrontmatterFields,
+} from './crystallizeProposalReview'
 
-export interface CrystallizeProposal {
-  title: string
-  targetPath: string
-  relativePath: string
-  sourceLabel: string
-  sourceLabels: string[]
-  changes: CrystallizeChange[]
-  markdown: string
-  reviewedAt: string
-}
-
-export interface CrystallizeChange {
-  id: string
-  kind: 'file' | 'frontmatter' | 'backlink' | 'body' | 'task'
-  label: string
-  target: string
-  before: string
-  after: string
-}
-
-export interface CrystallizeProposalSummary {
-  hunkCount: number
-  sourceCount: number
-  targetFolder: string
-  taskCount: number
-}
+export type {
+  CrystallizeActiveNotePatch,
+  CrystallizeChange,
+  CrystallizeLedgerContract,
+  CrystallizeProposal,
+  CrystallizeProposalSummary,
+} from './crystallizeProposalTypes'
+export { appendCrystallizePatchToContent } from './crystallizeProposalReview'
 
 interface CrystallizeProposalParams {
   askContextPackage?: AskContextPackage | null
+  handoffMetadata?: CrystallizeHandoffMetadata | null
   response: string
+  sourceEntries?: VaultEntry[]
+  sourceLabels?: string[]
+  sourceName?: string
+  titleSubject?: string
   vaultPath: string
   activeEntry?: VaultEntry | null
+  activeNoteContent?: string | null
   now?: Date
 }
 
@@ -65,33 +74,61 @@ export function latestCrystallizableMessage(
 /** Builds the reviewed Markdown artifact for a crystallized AI response. */
 export function buildCrystallizeProposal({
   askContextPackage,
+  handoffMetadata = null,
   response,
   vaultPath,
   activeEntry,
+  activeNoteContent,
+  sourceEntries,
+  sourceLabels: providedSourceLabels,
+  sourceName = 'AI Chat',
+  titleSubject,
   now = new Date(),
 }: CrystallizeProposalParams): CrystallizeProposal {
   const date = now.toISOString().slice(0, 10)
   const reviewedAt = now.toISOString()
-  const sourceLabels = buildSourceLabels(activeEntry, askContextPackage)
+  const sourceLabels = buildCrystallizeSourceLabels({
+    activeEntry,
+    askContextPackage,
+    sourceEntries,
+    sourceLabels: providedSourceLabels,
+    sourceName,
+  })
   const sourceLabel = sourceLabels[0] ?? 'AI chat'
-  const title = `Crystallized - ${activeEntry?.title ?? 'AI Chat'} - ${date}`
+  const ledgerContract = buildLedgerContract(sourceLabels.length)
+  const subject = titleSubject ?? activeEntry?.title ?? sourceName
+  const title = `Crystallized - ${subject} - ${date}`
   const slug = `${slugifyNoteStem(title)}-${now.getTime()}`
   const relativePath = `${CRYSTALLIZED_FOLDER}/${slug}.md`
   const targetPath = `${vaultPath.replace(/\/+$/, '')}/${relativePath}`
+  const activeNotePatch = buildActiveNotePatch({
+    activeEntry,
+    activeNoteContent,
+    memoryTitle: title,
+    response: response.trim(),
+    reviewedAt,
+    sourceLabel,
+    vaultPath,
+  })
   const frontmatter = [
     `title: ${yamlString(title)}`,
     'type: Memory',
-    'source: AI Chat',
+    `source: ${yamlString(sourceName)}`,
     `source_note: ${yamlString(sourceLabel)}`,
     ...sourceNotesFrontmatter(sourceLabels),
-    'confidence: proposed',
+    ...handoffFrontmatter(handoffMetadata),
+    `confidence: ${ledgerContract.confidence}`,
+    `memory_status: ${ledgerContract.status}`,
+    `memory_review_state: ${ledgerContract.reviewState}`,
+    `memory_source_count: ${ledgerContract.sourceCount}`,
     `last_seen: ${date}`,
-    'memory_version: 1',
+    `memory_version: ${ledgerContract.version}`,
     `reviewed_at: ${yamlString(reviewedAt)}`,
-    'locality: vault',
+    `locality: ${ledgerContract.locality}`,
     'crystallized: true',
   ]
   const sourceLinks = buildSourceLinkLines(sourceLabels, response)
+  const ledgerContractLines = buildLedgerContractLines(ledgerContract)
   const markdown = [
     '---',
     ...frontmatter,
@@ -103,6 +140,10 @@ export function buildCrystallizeProposal({
     '',
     ...sourceLinks,
     '',
+    '## Ledger Contract',
+    '',
+    ...ledgerContractLines,
+    '',
     '## Proposed Memory',
     '',
     response.trim(),
@@ -113,9 +154,20 @@ export function buildCrystallizeProposal({
     title,
     targetPath,
     relativePath,
+    sourceName,
     sourceLabel,
     sourceLabels,
-    changes: buildReviewChanges(relativePath, sourceLinks, frontmatter, response.trim()),
+    handoffMetadata,
+    ledgerContract,
+    activeNotePatch,
+    changes: buildReviewChanges(
+      relativePath,
+      sourceLinks,
+      frontmatter,
+      ledgerContractLines,
+      response.trim(),
+      activeNotePatch,
+    ),
     markdown,
     reviewedAt,
   }
@@ -128,7 +180,7 @@ export async function persistCrystallizedNote(proposal: CrystallizeProposal): Pr
     return
   }
 
-  addMockEntry(buildMockEntry(proposal), proposal.markdown)
+  addMockEntry(buildCrystallizeMockEntry(proposal), proposal.markdown)
 }
 
 /** Summarizes the review packet without exposing source note body text. */
@@ -142,160 +194,56 @@ export function summarizeCrystallizeProposal(proposal: CrystallizeProposal | nul
     .length ?? 0
   return {
     hunkCount: proposal.changes.length,
+    ledgerFieldCount: countLedgerFrontmatterFields(proposal),
     sourceCount,
     targetFolder: proposal.relativePath.split('/').slice(0, -1).join('/'),
     taskCount: proposal.changes.filter(change => change.kind === 'task').length,
   }
 }
 
-function buildMockEntry(proposal: CrystallizeProposal): VaultEntry {
-  const now = Math.floor(Date.now() / 1000)
+function buildActiveNotePatch({
+  activeEntry,
+  activeNoteContent,
+  memoryTitle,
+  response,
+  reviewedAt,
+  sourceLabel,
+  vaultPath,
+}: {
+  activeEntry?: VaultEntry | null
+  activeNoteContent?: string | null
+  memoryTitle: string
+  response: string
+  reviewedAt: string
+  sourceLabel: string
+  vaultPath: string
+}): CrystallizeActiveNotePatch | null {
+  if (!activeEntry || activeNoteContent == null) return null
+
+  const reviewedDate = reviewedAt.slice(0, 10)
+  const appendMarkdown = [
+    '## Crystallized Follow-up',
+    '',
+    `- Memory: ${wikilinkLabel(memoryTitle)}`,
+    `- Source: ${sourceLabel}`,
+    `- Reviewed: ${reviewedDate}`,
+    '',
+    response,
+  ].join('\n')
+
   return {
-    path: proposal.targetPath,
-    filename: proposal.relativePath.split('/').pop() ?? 'crystallized.md',
-    title: proposal.title,
-    isA: 'Memory',
-    aliases: [],
-    belongsTo: [],
-    relatedTo: [],
-    status: null,
-    archived: false,
-    modifiedAt: now,
-    createdAt: now,
-    fileSize: proposal.markdown.length,
-    snippet: 'Crystallized AI memory',
-    wordCount: proposal.markdown.trim().split(/\s+/).length,
-    relationships: {},
-    icon: null,
-    color: null,
-    order: null,
-    sidebarLabel: null,
-    template: null,
-    sort: null,
-    view: null,
-    visible: null,
-    organized: true,
-    favorite: false,
-    favoriteIndex: null,
-    listPropertiesDisplay: [],
-    outgoingLinks: [],
-    properties: {
-      source: 'AI Chat',
-      source_note: proposal.sourceLabel,
-      ...(proposal.sourceLabels.length > 1 ? { source_notes: proposal.sourceLabels } : {}),
-      confidence: 'proposed',
-      memory_version: 1,
-      reviewed_at: proposal.reviewedAt,
-      locality: 'vault',
-      crystallized: true,
-    },
-    hasH1: true,
-    fileKind: 'markdown',
+    targetPath: activeEntry.path,
+    relativePath: relativeToVaultPath(activeEntry.path, vaultPath),
+    appendMarkdown,
   }
 }
 
-function buildReviewChanges(
-  relativePath: string,
-  sourceLinks: string[],
-  frontmatter: string[],
-  response: string,
-): CrystallizeChange[] {
-  const taskLines = extractTaskLines(response)
-  const changes: CrystallizeChange[] = [
-    {
-      id: 'create-memory-note',
-      kind: 'file',
-      label: 'Create Memory note',
-      target: relativePath,
-      before: '(no file)',
-      after: `Create ${relativePath}`,
-    },
-    {
-      id: 'write-frontmatter',
-      kind: 'frontmatter',
-      label: 'Write ledger frontmatter',
-      target: relativePath,
-      before: '(no frontmatter)',
-      after: frontmatter.join('\n'),
-    },
-    {
-      id: 'link-sources',
-      kind: 'backlink',
-      label: 'Write source backlinks',
-      target: relativePath,
-      before: '(no source links)',
-      after: sourceLinks.join('\n'),
-    },
-    {
-      id: 'write-memory-body',
-      kind: 'body',
-      label: 'Write memory body',
-      target: relativePath,
-      before: '(no proposed memory)',
-      after: response,
-    },
-  ]
-  if (taskLines.length > 0) {
-    changes.push({
-      id: 'preserve-tasks',
-      kind: 'task',
-      label: 'Preserve checklist tasks',
-      target: relativePath,
-      before: '(no extracted tasks)',
-      after: taskLines.join('\n'),
-    })
+function relativeToVaultPath(path: string, vaultPath: string): string {
+  const normalizedVault = vaultPath.replace(/\/+$/, '')
+  if (normalizedVault && path.startsWith(`${normalizedVault}/`)) {
+    return path.slice(normalizedVault.length + 1)
   }
-  return changes
-}
-
-function buildSourceLabels(activeEntry?: VaultEntry | null, askContextPackage?: AskContextPackage | null): string[] {
-  if (activeEntry?.title) return [wikilinkLabel(activeEntry.title)]
-  if (askContextPackage && askContextPackage.sourceLabels.length > 0) {
-    return askContextPackage.sourceLabels.map(wikilinkLabel)
-  }
-  return ['AI chat']
-}
-
-function sourceNotesFrontmatter(sourceLabels: string[]): string[] {
-  if (sourceLabels.length <= 1) return []
-  return [
-    'source_notes:',
-    ...sourceLabels.map((label) => `  - ${yamlString(label)}`),
-  ]
-}
-
-function buildSourceLinkLines(sourceLabels: string[], response: string): string[] {
-  const seen = new Set<string>()
-  const labels = [...sourceLabels, ...extractOutgoingLinks(response).map(target => `[[${target}]]`)]
-  return labels.filter((label) => {
-    const normalized = normalizeLinkLabel(label)
-    if (!normalized || seen.has(normalized)) return false
-    seen.add(normalized)
-    return true
-  }).map(label => `- ${label}`)
-}
-
-function wikilinkLabel(value: string): string {
-  const trimmed = value.trim()
-  if (!trimmed || trimmed === 'AI chat') return 'AI chat'
-  if (/^\[\[.+\]\]$/.test(trimmed)) return trimmed
-  return `[[${trimmed}]]`
-}
-
-function extractTaskLines(value: string): string[] {
-  return value
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => /^[-*]\s+\[[ xX]\]\s+\S/.test(line))
-}
-
-function normalizeLinkLabel(value: string): string {
-  return value
-    .replace(/^\[\[/, '')
-    .replace(/\]\]$/, '')
-    .split('|')[0]
-    .trim()
-    .toLowerCase()
+  return path.replace(/^\/+/, '')
 }
 
 function yamlString(value: string): string {
