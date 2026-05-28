@@ -1,7 +1,40 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Clock, GitBranch, UserRound } from 'lucide-react'
 import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
+
+const DEFAULT_METADATA_FIELDS = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
+type MetadataField = typeof DEFAULT_METADATA_FIELDS[number]
+
+const SUPPORTED_METADATA_FIELDS = new Set<string>(DEFAULT_METADATA_FIELDS)
+
+function normalizeMetadataFields(value: string | null): MetadataField[] {
+  if (!value) return [...DEFAULT_METADATA_FIELDS]
+  const fields = value
+    .split(/\s+/u)
+    .filter((field): field is MetadataField => SUPPORTED_METADATA_FIELDS.has(field))
+  return fields.length > 0 ? fields : [...DEFAULT_METADATA_FIELDS]
+}
+
+function readDocumentMetadataFields(): MetadataField[] {
+  if (typeof document === 'undefined') return [...DEFAULT_METADATA_FIELDS]
+  return normalizeMetadataFields(document.documentElement.getAttribute('data-theme-metadata-fields'))
+}
+
+function useVisibleMetadataFields(): ReadonlySet<MetadataField> {
+  const [fields, setFields] = useState(readDocumentMetadataFields)
+
+  useEffect(() => {
+    const root = document.documentElement
+    const syncFields = () => setFields(readDocumentMetadataFields())
+    const observer = new MutationObserver(syncFields)
+    observer.observe(root, { attributes: true, attributeFilter: ['data-theme-metadata-fields'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return useMemo(() => new Set(fields), [fields])
+}
 
 function propertyText(entry: VaultEntry, keys: string[]): string | null {
   const properties = entry.properties ?? {}
@@ -23,16 +56,18 @@ function formatModified(entry: VaultEntry): string | null {
 }
 
 function MetaPill({
+  field,
   label,
   value,
   tone,
 }: {
+  field: MetadataField
   label: string
   value: string
   tone?: 'active' | 'high'
 }) {
   return (
-    <span className="editor-meta-pill" data-tone={tone}>
+    <span className="editor-meta-pill" data-field={field} data-tone={tone}>
       <span className="editor-meta-pill__label">{label}</span>
       <strong className="editor-meta-pill__value">{value}</strong>
     </span>
@@ -41,6 +76,7 @@ function MetaPill({
 
 /** Compact note intelligence strip shown above the editor body. */
 export function EditorConstellationMeta({ content, entry }: { content: string; entry: VaultEntry }) {
+  const visibleFields = useVisibleMetadataFields()
   const status = propertyText(entry, ['status', 'Status']) ?? entry.status ?? 'active'
   const owner = propertyText(entry, ['owner', 'Owner', 'author', 'Author'])
   const priority = propertyText(entry, ['priority', 'Priority'])
@@ -48,25 +84,31 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
 
   return (
     <div className="editor-meta-strip" aria-label="Note metadata" data-testid="editor-meta-strip">
-      <MetaPill label="type" value={shortType(entry)} />
-      <MetaPill label="status" value={status} tone={status.toLowerCase() === 'active' ? 'active' : undefined} />
-      {owner ? (
-        <span className="editor-meta-pill editor-meta-pill--icon">
+      {visibleFields.has('type') ? <MetaPill field="type" label="type" value={shortType(entry)} /> : null}
+      {visibleFields.has('status') ? (
+        <MetaPill field="status" label="status" value={status} tone={status.toLowerCase() === 'active' ? 'active' : undefined} />
+      ) : null}
+      {visibleFields.has('owner') && owner ? (
+        <span className="editor-meta-pill editor-meta-pill--icon" data-field="owner">
           <UserRound className="size-3.5" />
           <strong className="editor-meta-pill__value">{owner}</strong>
         </span>
       ) : null}
-      {priority ? <MetaPill label="priority" value={priority} tone={priority.toLowerCase() === 'high' ? 'high' : undefined} /> : null}
-      {modified ? (
-        <span className="editor-meta-pill editor-meta-pill--icon">
+      {visibleFields.has('priority') && priority ? (
+        <MetaPill field="priority" label="priority" value={priority} tone={priority.toLowerCase() === 'high' ? 'high' : undefined} />
+      ) : null}
+      {visibleFields.has('modified') && modified ? (
+        <span className="editor-meta-pill editor-meta-pill--icon" data-field="modified">
           <Clock className="size-3.5" />
           <strong className="editor-meta-pill__value">{modified}</strong>
         </span>
       ) : null}
-      <span className="editor-meta-pill editor-meta-pill--icon editor-meta-pill--source">
-        <GitBranch className="size-3.5" />
-        <strong className="editor-meta-pill__value">local markdown</strong>
-      </span>
+      {visibleFields.has('locality') ? (
+        <span className="editor-meta-pill editor-meta-pill--icon editor-meta-pill--source" data-field="locality">
+          <GitBranch className="size-3.5" />
+          <strong className="editor-meta-pill__value">local markdown</strong>
+        </span>
+      ) : null}
       <EditorNavigatorControls content={content} enableFindShortcut variant="meta" />
     </div>
   )

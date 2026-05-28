@@ -18,21 +18,28 @@ describe('EditorNavigatorControls', () => {
     render(<EditorNavigatorControls content={note} variant="meta" />)
 
     expect(screen.getByRole('button', { name: /search this note/i })).toHaveTextContent('Find')
-    expect(screen.getByRole('button', { name: /table of contents/i })).toHaveTextContent('TOC')
-    expect(screen.getByRole('button', { name: /spelllinks in this note/i })).toHaveTextContent('Links')
+    expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('TOC2')
+    expect(screen.getByRole('button', { name: /spelllinks in this note, 0 links/i })).toHaveTextContent('Links0')
   })
 
-  it('opens the note Spelllinks navigator from the editor metadata strip', () => {
+  it('summarizes headings and links without counting code fences as document navigation', () => {
+    render(<EditorNavigatorControls content={`${linkedNote}\n\n\`\`\`\n## Ignored\n[[Hidden]]\n\`\`\``} variant="meta" />)
+
+    expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('TOC2')
+    expect(screen.getByRole('button', { name: /spelllinks in this note, 2 links/i })).toHaveTextContent('Links2')
+  })
+
+  it('opens the note Spelllinks navigator from the editor metadata strip', async () => {
     render(<EditorNavigatorControls content={linkedNote} variant="meta" />)
 
     fireEvent.click(screen.getByRole('button', { name: /spelllinks in this note/i }))
 
-    expect(screen.getByText('2 Spelllinks')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Line 9: Core Note/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Line 9: Alpha Project/i })).toBeInTheDocument()
+    expect(await screen.findByText('2 Spelllinks')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Line 9: Core Note/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Line 9: Alpha Project/i })).toBeInTheDocument()
   })
 
-  it('opens note search with Cmd+F when focus is inside the editor', () => {
+  it('opens note search with Cmd+F when focus is inside the editor', async () => {
     render(
       <div className="editor-content-layout--centered">
         <button type="button">Editor focus target</button>
@@ -43,7 +50,7 @@ describe('EditorNavigatorControls', () => {
     screen.getByRole('button', { name: /editor focus target/i }).focus()
     fireEvent.keyDown(document, { key: 'f', code: 'KeyF', metaKey: true })
 
-    expect(screen.getByRole('textbox', { name: /search this note/i })).toBeInTheDocument()
+    expect(await screen.findByRole('textbox', { name: /search this note/i })).toBeInTheDocument()
   })
 
   it('leaves Cmd+F alone when focus is outside the editor', () => {

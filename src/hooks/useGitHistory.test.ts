@@ -7,13 +7,20 @@ const mockHistory: GitCommit[] = [
   { hash: 'abc', shortHash: 'abc', author: 'luca', date: 1_700_000_000, message: 'Initial commit' },
 ]
 
+let visibilityState: DocumentVisibilityState = 'visible'
+let visibilitySpy: ReturnType<typeof vi.spyOn> | null = null
+
 describe('useGitHistory', () => {
   beforeEach(() => {
+    visibilityState = 'visible'
     vi.useFakeTimers()
+    visibilitySpy = vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    visibilitySpy?.mockRestore()
+    visibilitySpy = null
   })
 
   it('waits briefly before loading note history', async () => {
@@ -28,6 +35,35 @@ describe('useGitHistory', () => {
       await vi.advanceTimersByTimeAsync(199)
     })
 
+    expect(loadGitHistory).not.toHaveBeenCalled()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1)
+    })
+
+    expect(loadGitHistory).toHaveBeenCalledWith('/vault/a.md')
+    expect(result.current).toEqual(mockHistory)
+  })
+
+  it('waits for visibility before starting the delayed history load', async () => {
+    visibilityState = 'hidden'
+    const loadGitHistory = vi.fn().mockResolvedValue(mockHistory)
+
+    const { result } = renderHook(() => useGitHistory('/vault/a.md', loadGitHistory, true))
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500)
+    })
+
+    expect(result.current).toEqual([])
+    expect(loadGitHistory).not.toHaveBeenCalled()
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(199)
+    })
     expect(loadGitHistory).not.toHaveBeenCalled()
 
     await act(async () => {

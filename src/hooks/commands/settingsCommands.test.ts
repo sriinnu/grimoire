@@ -124,4 +124,24 @@ describe('buildSettingsCommands', () => {
     command?.execute()
     expect(onCreateEmptyVault).toHaveBeenCalledTimes(1)
   })
+
+  it('adds a Finder reveal command for the active vault', () => {
+    const onRevealVaultInFinder = vi.fn()
+
+    const commands = buildSettingsCommands({
+      onOpenSettings: vi.fn(),
+      onRevealVaultInFinder,
+    })
+    const command = commands.find((item) => item.id === 'reveal-vault-in-finder')
+
+    expect(command).toMatchObject({
+      label: 'Reveal Vault in Finder',
+      enabled: true,
+      group: 'Settings',
+      keywords: expect.arrayContaining(['vault', 'finder', 'local']),
+    })
+
+    command?.execute()
+    expect(onRevealVaultInFinder).toHaveBeenCalledTimes(1)
+  })
 })

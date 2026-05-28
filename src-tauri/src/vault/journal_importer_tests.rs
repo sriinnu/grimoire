@@ -1,7 +1,16 @@
+use super::import_manifest::ImportAutopsyManifestKind;
 use super::{import_journal_export, preview_journal_export};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tempfile::TempDir;
+
+#[derive(Debug, serde::Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+struct GoldenManifestRow {
+    destination_path: Option<String>,
+    detail: String,
+    kind: String,
+    source_path: String,
+}
 
 fn write_file(path: &Path, content: &str) {
     if let Some(parent) = path.parent() {
@@ -67,6 +76,22 @@ fn previews_day_one_json_entries_without_writing_to_vault() {
         .contains("/imports/day-one-day-one-export"));
     assert!(preview.writes_local_only_report);
     assert!(!vault.join("imports").exists());
+    assert!(preview.manifest_rows.iter().any(|row| {
+        row.kind == ImportAutopsyManifestKind::Note
+            && row.source_path.ends_with("export.json")
+            && row
+                .destination_path
+                .as_deref()
+                .is_some_and(|path| path.ends_with("2026-05-09-morning.md"))
+    }));
+    assert!(preview.manifest_rows.iter().any(|row| {
+        row.kind == ImportAutopsyManifestKind::Asset
+            && row.source_path.ends_with("photos/photo-1.jpg")
+            && row
+                .destination_path
+                .as_deref()
+                .is_some_and(|path| path.ends_with("attachments/photo-1.jpg"))
+    }));
 }
 
 #[test]
@@ -121,6 +146,94 @@ fn previews_apple_journal_html_entries_without_writing_to_vault() {
         .planned_import_root
         .contains("/imports/apple-journal-apple-journal-export"));
     assert!(!vault.join("imports").exists());
+}
+
+#[test]
+fn previews_sanitized_day_one_corpus_against_golden_manifest() {
+    assert_golden_manifest(
+        "day-one-json",
+        "day-one-json.golden.json",
+        "day-one",
+        2,
+        2,
+        0,
+    );
+}
+
+#[test]
+fn previews_sanitized_day_one_media_categories_against_golden_manifest() {
+    assert_golden_manifest(
+        "day-one-media-categories",
+        "day-one-media-categories.golden.json",
+        "day-one",
+        1,
+        4,
+        0,
+    );
+}
+
+#[test]
+fn previews_sanitized_apple_journal_corpus_against_golden_manifest() {
+    assert_golden_manifest(
+        "apple-journal-html",
+        "apple-journal-html.golden.json",
+        "apple-journal",
+        1,
+        2,
+        0,
+    );
+}
+
+#[test]
+fn previews_sanitized_journey_corpus_against_golden_manifest() {
+    assert_golden_manifest(
+        "journey-json",
+        "journey-json.golden.json",
+        "journey",
+        2,
+        2,
+        0,
+    );
+}
+
+fn assert_golden_manifest(
+    corpus_name: &str,
+    golden_name: &str,
+    source_kind: &str,
+    expected_notes: usize,
+    expected_assets: usize,
+    expected_skipped: usize,
+) {
+    let vault = TempDir::new().unwrap();
+    let source = import_corpus_path(corpus_name);
+    let preview = preview_journal_export(vault.path(), &source, source_kind).unwrap();
+    let import_root = Path::new(&preview.planned_import_root);
+
+    let mut actual: Vec<GoldenManifestRow> = preview
+        .manifest_rows
+        .iter()
+        .map(|row| GoldenManifestRow {
+            destination_path: row
+                .destination_path
+                .as_deref()
+                .map(|path| normalize_path(import_root, Path::new(path))),
+            detail: row.detail.clone(),
+            kind: manifest_kind_name(&row.kind).to_string(),
+            source_path: normalize_path(&source, Path::new(&row.source_path)),
+        })
+        .collect();
+    actual.sort();
+
+    let expected_path = import_corpus_path(golden_name);
+    let mut expected: Vec<GoldenManifestRow> =
+        serde_json::from_str(&fs::read_to_string(expected_path).unwrap()).unwrap();
+    expected.sort();
+
+    assert_eq!(actual, expected);
+    assert_eq!(preview.notes_to_copy, expected_notes);
+    assert_eq!(preview.assets_to_copy, expected_assets);
+    assert_eq!(preview.skipped_files, expected_skipped);
+    assert!(!vault.path().join("imports").exists());
 }
 
 #[test]
@@ -228,4 +341,26 @@ fn rejects_journal_source_inside_vault() {
     let error = import_journal_export(vault.path(), &source, "journey").unwrap_err();
 
     assert!(error.contains("outside the active vault"));
+}
+
+fn import_corpus_path(name: &str) -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("fixtures/import-corpora")
+        .join(name)
+}
+
+fn normalize_path(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
+}
+
+fn manifest_kind_name(kind: &ImportAutopsyManifestKind) -> &'static str {
+    match kind {
+        ImportAutopsyManifestKind::Asset => "asset",
+        ImportAutopsyManifestKind::Metadata => "metadata",
+        ImportAutopsyManifestKind::Note => "note",
+        ImportAutopsyManifestKind::Withheld => "withheld",
+    }
 }

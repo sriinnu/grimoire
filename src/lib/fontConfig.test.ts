@@ -8,9 +8,9 @@ import {
 } from './fontConfig'
 
 describe('fontConfig', () => {
-  it('uses bundled Caveat as the display font across presets', () => {
+  it('keeps the bundled Caveat asset available for themes that use handwritten display', () => {
     const roles = resolveFontRoles({
-      themePreset: 'retro-terminal',
+      themePreset: 'living-archive',
       editorFont: 'system',
     })
 
@@ -31,6 +31,28 @@ describe('fontConfig', () => {
     expect(roles.editor).toContain('Iowan Old Style')
   })
 
+  it('uses built-in theme-pack typography roles before user editor overrides', () => {
+    const daylightRoles = resolveFontRoles({
+      themePreset: 'daylight-atelier',
+      editorFont: 'system',
+    })
+    const retroRoles = resolveFontRoles({
+      themePreset: 'retro-terminal',
+      editorFont: 'mono',
+    })
+
+    expect(daylightRoles.display).toContain('New York')
+    expect(daylightRoles.label).toContain('Avenir Next')
+    expect(retroRoles.ui).toContain('SF Pro')
+    expect(retroRoles.editor).toContain('Berkeley Mono')
+    expect(retroRoles.editor).toMatch(/^'Grimoire Berkeley Mono'/)
+    expect(retroRoles.editor).toContain('TX-02 Berkeley Mono')
+    expect(retroRoles.editor).toContain('SF Mono')
+    expect(retroRoles.mono).toContain('Berkeley Mono')
+    expect(retroRoles.mono).toMatch(/^'Grimoire Berkeley Mono'/)
+    expect(retroRoles.mono).toContain('SF Mono')
+  })
+
   it('can use Caveat as the editor font when handwritten is selected', () => {
     const roles = resolveFontRoles({
       themePreset: 'living-archive',
@@ -47,7 +69,9 @@ describe('fontConfig', () => {
     })
 
     expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Grimoire Caveat'")
-    expect(document.documentElement.style.getPropertyValue('--grimoire-editor-font-family')).toContain('SF Mono')
+    expect(document.documentElement.style.getPropertyValue('--grimoire-editor-font-family')).toContain('TX-02 Berkeley Mono')
+    expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toContain('TX-02 Berkeley Mono')
+    expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toMatch(/^'Grimoire Berkeley Mono'/)
   })
 
   it('points the Caveat asset at the local bundled font file', () => {
@@ -61,5 +85,15 @@ describe('fontConfig', () => {
     expect(css).toContain("@font-face")
     expect(css).toContain("font-family: 'Grimoire Caveat'")
     expect(css).toContain("../assets/fonts/Caveat-VariableFont_wght.ttf")
+  })
+
+  it('declares Berkeley Mono as a local-only app mono face', () => {
+    const css = readFileSync(`${process.cwd()}/src/fonts.css`, 'utf8')
+
+    expect(css).toContain("font-family: 'Grimoire Berkeley Mono'")
+    expect(css).toContain("local('TX-02 Berkeley Mono')")
+    expect(css).toContain("local('TX-02 Berkeley Mono Regular')")
+    expect(css).toContain("local('Berkeley Mono')")
+    expect(css).not.toContain("url('../assets/fonts/Berkeley")
   })
 })

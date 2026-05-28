@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useVaultPortabilityActions } from './useVaultPortabilityActions'
 import type { MarkdownFolderImportPreviewResult, MarkdownFolderImportResult } from '../lib/vaultPortability'
 import type { MarkdownFolderImportProgressEvent } from '../utils/markdownFolderImport'
-import type { ObjectStorageSyncProgressEvent, ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import type { AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
+import type { ObjectStorageSyncProgressEvent, ObjectStorageSyncReport, S3LivePreflightReport } from '../utils/objectStorageSync'
 
 const previewResult: MarkdownFolderImportPreviewResult = {
   source_path: '/source/research',
@@ -26,6 +27,8 @@ const importResult: MarkdownFolderImportResult = {
 
 const storagePreviewResult: ObjectStorageSyncReport = {
   provider_id: 's3',
+  adapter_phase: 'local-mirror-prototype',
+  prototype_mode: 'local-mirror-fixture',
   direction: 'push',
   mirror_path: '/mirror',
   preview_signature: 'sync-v1-test',
@@ -38,6 +41,34 @@ const storagePreviewResult: ObjectStorageSyncReport = {
   operations: [{ kind: 'exclude', path: 'Journal/private.md', reason: 'local-only' }],
   sync_report_path: null,
   conflict_artifacts: [],
+}
+
+const s3LivePreflightResult: S3LivePreflightReport = {
+  provider_id: 's3',
+  proof_level: 'live-read-only-preflight',
+  configured: true,
+  status: 'reachable',
+  bucket_configured: true,
+  region_configured: true,
+  prefix_configured: false,
+  head_bucket_checked: true,
+  list_prefix_checked: true,
+  message: 'S3 bucket and prefix are reachable through read-only HeadBucket/ListObjectsV2 checks.',
+  checked_at: '2026-05-25T00:00:00Z',
+}
+
+const azureLivePreflightResult: AzureLivePreflightReport = {
+  provider_id: 'azure-blob',
+  proof_level: 'live-read-only-preflight',
+  configured: true,
+  status: 'reachable',
+  account_configured: true,
+  container_configured: true,
+  prefix_configured: true,
+  container_checked: true,
+  list_prefix_checked: true,
+  message: 'Azure container and prefix are reachable through read-only CLI container/list checks.',
+  checked_at: '2026-05-25T00:00:00Z',
 }
 
 const storagePullPreviewResult: ObjectStorageSyncReport = {
@@ -97,9 +128,17 @@ const objectStorageMocks = vi.hoisted(() => ({
   previewObjectStoragePullWithProgress: vi.fn(),
   applyObjectStoragePullWithProgress: vi.fn(),
   applyObjectStoragePushWithProgress: vi.fn(),
+  runS3LivePreflight: vi.fn(),
+  formatS3LivePreflightToast: vi.fn(() => 's3 live toast'),
 }))
 
 vi.mock('../utils/objectStorageSync', () => objectStorageMocks)
+const livePreflightMocks = vi.hoisted(() => ({
+  runAzureLivePreflight: vi.fn(),
+  formatAzureLivePreflightToast: vi.fn(() => 'azure live toast'),
+}))
+
+vi.mock('../utils/objectStorageLivePreflight', () => livePreflightMocks)
 
 function renderActions(resolvedPath = '/vault') {
   const reloadVault = vi.fn(() => Promise.resolve())
@@ -265,6 +304,8 @@ describe('useVaultPortabilityActions', () => {
       onEvent({ event: 'Finished', data: { result } })
       return result
     })
+    objectStorageMocks.runS3LivePreflight.mockResolvedValue(s3LivePreflightResult)
+    livePreflightMocks.runAzureLivePreflight.mockResolvedValue(azureLivePreflightResult)
   })
 
   it('stores the last no-write import preview in memory', async () => {
@@ -398,7 +439,7 @@ describe('useVaultPortabilityActions', () => {
   })
 
   it('previews and applies object-storage pull through the same exact-preview path', async () => {
-    const { result, loadModifiedFiles } = renderActions()
+    const { result, loadModifiedFiles, reloadFolders, reloadVault } = renderActions()
 
     act(() => result.current.handlePreviewS3MirrorPull())
 
@@ -410,7 +451,47 @@ describe('useVaultPortabilityActions', () => {
 
     await waitFor(() => expect(result.current.s3MirrorPullPreviewReady).toBe(false))
     expect(objectStorageMocks.applyObjectStoragePullWithProgress).toHaveBeenCalled()
+    expect(reloadVault).toHaveBeenCalledOnce()
+    expect(reloadFolders).toHaveBeenCalledOnce()
     expect(loadModifiedFiles).toHaveBeenCalledOnce()
+  })
+
+  it('stores the S3 live read-only preflight report without touching sync previews', async () => {
+    const { result, setToastMessage } = renderActions()
+
+    act(() => result.current.handleS3LivePreflight({
+      bucket: 'sriinnu-vault',
+      region: 'us-east-1',
+      prefix: 'journals/dreams/',
+    }))
+
+    await waitFor(() => expect(result.current.s3LivePreflightReport).toEqual(s3LivePreflightResult))
+    expect(objectStorageMocks.runS3LivePreflight).toHaveBeenCalledWith({
+      bucket: 'sriinnu-vault',
+      region: 'us-east-1',
+      prefix: 'journals/dreams/',
+    })
+    expect(objectStorageMocks.previewObjectStoragePushWithProgress).not.toHaveBeenCalled()
+    expect(setToastMessage).toHaveBeenLastCalledWith('s3 live toast')
+  })
+
+  it('stores the Azure live read-only preflight report without touching sync previews', async () => {
+    const { result, setToastMessage } = renderActions()
+
+    act(() => result.current.handleAzureLivePreflight({
+      account: 'sriinnuacct',
+      container: 'grimoire',
+      prefix: 'notes/',
+    }))
+
+    await waitFor(() => expect(result.current.azureLivePreflightReport).toEqual(azureLivePreflightResult))
+    expect(livePreflightMocks.runAzureLivePreflight).toHaveBeenCalledWith({
+      account: 'sriinnuacct',
+      container: 'grimoire',
+      prefix: 'notes/',
+    })
+    expect(objectStorageMocks.previewObjectStoragePushWithProgress).not.toHaveBeenCalled()
+    expect(setToastMessage).toHaveBeenLastCalledWith('azure live toast')
   })
 
   it('cancels an active object-storage apply without clearing preview from a late result', async () => {

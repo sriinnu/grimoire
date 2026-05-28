@@ -4,6 +4,13 @@
 @import './theme-flagship-shared.css';
 @import './theme-editor-navigator.css';
 @import './theme-coherence.css';
+@import './theme-status-bar.css';
+@import './theme-surface-coherence.css';
+@import './theme-settings.css';
+@import './theme-agent-council.css';
+@import './theme-ai-brief.css';
+@import './theme-memory-ledger.css';
+@import './native-shell-material.css';
 @import './theme-accessibility.css';
 
 [data-theme-preset-preview="constellation"] {

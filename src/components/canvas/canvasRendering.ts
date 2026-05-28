@@ -36,10 +36,18 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
   })
 }
 
+function readCanvasThemeColor(variableName: string, fallback: string): string {
+  const root = globalThis.document?.documentElement
+  if (!root || typeof globalThis.getComputedStyle !== 'function') return fallback
+  const value = globalThis.getComputedStyle(root).getPropertyValue(variableName).trim()
+  if (!value || value.includes('var(')) return fallback
+  return value
+}
+
 function drawImagePlaceholder(ctx: CanvasRenderingContext2D, image: CanvasPlacedImage) {
   ctx.save()
-  ctx.fillStyle = 'rgba(148, 163, 184, 0.22)'
-  ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)'
+  ctx.fillStyle = readCanvasThemeColor('--muted', '#e5e7eb')
+  ctx.strokeStyle = readCanvasThemeColor('--muted-foreground', '#64748b')
   ctx.lineWidth = 2
   ctx.fillRect(image.x, image.y, image.width, image.height)
   ctx.strokeRect(image.x, image.y, image.width, image.height)

@@ -1,0 +1,38 @@
+[
+  {
+    "destination_path": null,
+    "detail": "local-only skip",
+    "kind": "withheld",
+    "source_path": ".env"
+  },
+  {
+    "destination_path": null,
+    "detail": "local-only folder skip",
+    "kind": "withheld",
+    "source_path": ".codex/session.json"
+  },
+  {
+    "destination_path": "attachments/chart.png",
+    "detail": "attachment move",
+    "kind": "asset",
+    "source_path": "attachments/chart.png"
+  },
+  {
+    "destination_path": "notes/Readme.md",
+    "detail": "Markdown copy",
+    "kind": "note",
+    "source_path": "notes/Readme.md"
+  },
+  {
+    "destination_path": null,
+    "detail": "local-only skip",
+    "kind": "withheld",
+    "source_path": "src/app.ts"
+  },
+  {
+    "destination_path": null,
+    "detail": "unsafe ZIP traversal skip",
+    "kind": "withheld",
+    "source_path": "mixed-markdown.zip!/../escape.md"
+  }
+]

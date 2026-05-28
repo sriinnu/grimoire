@@ -150,7 +150,7 @@ pub(super) fn validate_mirror_outside_vault(
     Ok(())
 }
 
-fn collect_sync_files(
+pub(super) fn collect_sync_files(
     root: &Path,
     locality_root: &Path,
     role: &str,
@@ -169,12 +169,13 @@ fn collect_sync_files(
         .filter_entry(should_enter)
     {
         let entry = entry.map_err(|e| format!("Failed to inspect sync folder: {e}"))?;
-        if !entry.file_type().is_file() || should_skip_file(&entry) {
+        if !entry.file_type().is_file() {
             continue;
         }
         let relative = relative_path(root, entry.path())?;
-        file_fingerprints.push(file_fingerprint(role, &relative, entry.path())?);
-        if local_only_attachments.contains(&relative)
+        if should_skip_file(&entry)
+            || has_skipped_component(Path::new(&relative))
+            || local_only_attachments.contains(&relative)
             || is_local_only_export_file(locality_root, entry.path())
             || is_local_only_relative_path(Path::new(&relative))
         {
@@ -185,6 +186,7 @@ fn collect_sync_files(
             });
             continue;
         }
+        file_fingerprints.push(file_fingerprint(role, &relative, entry.path())?);
         files.insert(relative, entry.path().to_path_buf());
     }
 
@@ -290,6 +292,8 @@ pub(super) fn build_report(
     );
     ObjectStorageSyncReport {
         provider_id,
+        adapter_phase: "local-mirror-prototype".to_string(),
+        prototype_mode: "local-mirror-fixture".to_string(),
         direction,
         mirror_path: path_to_string(mirror_root),
         preview_signature,
@@ -320,7 +324,7 @@ pub(super) fn should_enter(entry: &DirEntry) -> bool {
         return true;
     }
     let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
-    !is_skipped_name(&name)
+    !matches!(name.as_str(), ".git" | "node_modules" | "target")
 }
 
 pub(super) fn should_skip_file(entry: &DirEntry) -> bool {
@@ -328,8 +332,15 @@ pub(super) fn should_skip_file(entry: &DirEntry) -> bool {
     is_skipped_name(&name) || name.starts_with(".env")
 }
 
-fn is_skipped_name(name: &str) -> bool {
+pub(super) fn is_skipped_name(name: &str) -> bool {
     name.starts_with('.') || SKIPPED_DIRS.contains(&name) || SKIPPED_FILES.contains(&name)
+}
+
+pub(super) fn has_skipped_component(path: &Path) -> bool {
+    path.components().rev().skip(1).any(|component| {
+        let name = component.as_os_str().to_string_lossy().to_ascii_lowercase();
+        is_skipped_name(&name)
+    })
 }
 
 pub(super) fn relative_path(root: &Path, path: &Path) -> Result<String, String> {
@@ -339,10 +350,10 @@ pub(super) fn relative_path(root: &Path, path: &Path) -> Result<String, String> 
 }
 
 fn files_differ(left: &Path, right: &Path) -> Result<bool, String> {
-    let left_bytes =
-        fs::read(left).map_err(|e| format!("Failed to read {}: {e}", left.display()))?;
-    let right_bytes =
-        fs::read(right).map_err(|e| format!("Failed to read {}: {e}", right.display()))?;
+    let left_bytes = fs::read(left)
+        .map_err(|_| "Object-storage sync could not read a local file.".to_string())?;
+    let right_bytes = fs::read(right)
+        .map_err(|_| "Object-storage sync could not read a mirror file.".to_string())?;
     Ok(left_bytes != right_bytes)
 }
 
@@ -358,14 +369,14 @@ pub(super) fn copy_relative_file(
     }
     fs::copy(&source, &target)
         .map(|_| ())
-        .map_err(|e| format!("Failed to copy {}: {e}", source.display()))
+        .map_err(|_| "Object-storage sync could not copy a file.".to_string())
 }
 
 pub(super) fn remove_relative_file(root: &Path, relative: &str) -> Result<(), String> {
     let target = root.join(relative);
     if target.exists() {
         fs::remove_file(&target)
-            .map_err(|e| format!("Failed to delete mirror file {}: {e}", target.display()))?;
+            .map_err(|_| "Object-storage sync could not delete a mirror file.".to_string())?;
     }
     Ok(())
 }

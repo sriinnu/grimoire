@@ -10,9 +10,9 @@ use super::locality_attachments::local_only_referenced_attachments;
 use super::object_storage_signature::file_fingerprint;
 use super::object_storage_sync::{
     add_pull_operations, add_push_operations, build_report, canonical_dir, copy_relative_file,
-    parse_direction, path_to_string, relative_path, remove_relative_file, resolve_mirror_root,
-    should_enter, should_skip_file, validate_mirror_outside_vault, validate_provider_id,
-    SyncDirection, SyncReportExtras,
+    has_skipped_component, parse_direction, path_to_string, relative_path, remove_relative_file,
+    resolve_mirror_root, should_enter, should_skip_file, validate_mirror_outside_vault,
+    validate_provider_id, SyncDirection, SyncReportExtras,
 };
 use super::object_storage_sync_report::{
     write_conflict_artifact, write_sync_report, ObjectStorageSyncOperation,
@@ -35,7 +35,7 @@ pub enum ObjectStorageSyncProgressEvent {
     Cancelled,
     #[serde(rename_all = "camelCase")]
     Finished {
-        result: ObjectStorageSyncReport,
+        result: Box<ObjectStorageSyncReport>,
     },
 }
 
@@ -117,7 +117,7 @@ where
         },
     );
     on_progress(ObjectStorageSyncProgressEvent::Finished {
-        result: report.clone(),
+        result: Box::new(report.clone()),
     });
     Ok(report)
 }
@@ -148,6 +148,9 @@ where
         return Err(
             "Object-storage preview changed; run preview again before applying sync".to_string(),
         );
+    }
+    if report.conflicts > 0 {
+        return Err("Resolve object-storage conflicts before applying sync".to_string());
     }
 
     let vault_root = canonical_dir(vault_path, "Vault")?;
@@ -181,7 +184,7 @@ where
     report.sync_report_path = Some(path_to_string(&report_path));
     report.conflict_artifacts = conflict_artifacts;
     on_progress(ObjectStorageSyncProgressEvent::Finished {
-        result: report.clone(),
+        result: Box::new(report.clone()),
     });
     Ok(report)
 }
@@ -206,15 +209,14 @@ where
         .filter_entry(should_enter)
     {
         let entry = entry.map_err(|e| format!("Failed to inspect sync folder: {e}"))?;
-        if !entry.file_type().is_file() || should_skip_file(&entry) {
+        if !entry.file_type().is_file() {
             continue;
         }
         check_cancelled(context.cancelled, context.on_progress)?;
         let relative = relative_path(root, entry.path())?;
-        context
-            .file_fingerprints
-            .push(file_fingerprint(role, &relative, entry.path())?);
-        if local_only_attachments.contains(&relative)
+        if should_skip_file(&entry)
+            || has_skipped_component(Path::new(&relative))
+            || local_only_attachments.contains(&relative)
             || is_local_only_export_file(locality_root, entry.path())
             || is_local_only_relative_path(Path::new(&relative))
         {
@@ -224,6 +226,9 @@ where
                 reason: "Protected by local-only policy".to_string(),
             });
         } else {
+            context
+                .file_fingerprints
+                .push(file_fingerprint(role, &relative, entry.path())?);
             files.insert(relative.clone(), entry.path().to_path_buf());
         }
         context.counter.processed += 1;
@@ -246,7 +251,7 @@ fn count_sync_candidates(root: &Path) -> Result<usize, String> {
         .filter_entry(should_enter)
         .try_fold(0usize, |count, entry| {
             let entry = entry.map_err(|e| format!("Failed to inspect sync folder: {e}"))?;
-            Ok(count + usize::from(entry.file_type().is_file() && !should_skip_file(&entry)))
+            Ok(count + usize::from(entry.file_type().is_file()))
         })
 }
 

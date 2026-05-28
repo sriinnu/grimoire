@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { GitRemoteStatus } from '../types'
+import { scheduleVisibleWork } from './visibleDocument'
 
 function tauriCall<T>(command: string, args: Record<string, unknown>): Promise<T> {
   return isTauri() ? invoke<T>(command, args) : mockInvoke<T>(command, args)
@@ -71,9 +72,13 @@ export function useGitRemoteStatus(
       }
     }
 
-    void loadRemoteStatus()
+    const cancelVisibleWork = scheduleVisibleWork(() => {
+      void loadRemoteStatus()
+    })
+
     return () => {
       cancelled = true
+      cancelVisibleWork()
     }
   }, [enabled, shouldApply, vaultPath])
 

@@ -1,5 +1,6 @@
 import caveatFontUrl from '../../assets/fonts/Caveat-VariableFont_wght.ttf?url'
 import type { EditorFont, ResolvedAppearance, ThemePreset } from './appearance'
+import { resolveThemePresetDefinition } from '../themes/themeRegistry'
 
 export type FontRole = 'ui' | 'editor' | 'mono' | 'display' | 'label'
 export type FontRoleConfig = Record<FontRole, string>
@@ -20,7 +21,7 @@ const SYSTEM_UI_FONT =
 const SYSTEM_EDITOR_FONT =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
 const SYSTEM_MONO_FONT =
-  "'SF Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace"
+  "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace"
 const SYSTEM_LABEL_FONT =
   "'Avenir Next Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, sans-serif"
 const CAVEAT_DISPLAY_FONT =
@@ -71,8 +72,10 @@ const loadedFontAssetIds = new Set<FontAssetId>()
 export function resolveFontRoles(appearance: ResolvedAppearance): FontRoleConfig {
   return {
     ...BASE_FONT_ROLES,
+    ...resolveThemePresetDefinition(appearance.themePreset).typography,
     ...THEME_FONT_ROLES[appearance.themePreset],
     ...EDITOR_FONT_ROLES[appearance.editorFont],
+    ...appearance.themeDefinition?.typography,
   }
 }
 

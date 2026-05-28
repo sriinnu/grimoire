@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::Path;
 
+use sha2::{Digest, Sha256};
+
 use super::object_storage_sync_report::{
     ObjectStorageSyncOperation, ObjectStorageSyncOperationKind,
 };
@@ -13,11 +15,28 @@ pub(crate) fn build_preview_signature(
     operations: &[ObjectStorageSyncOperation],
     file_fingerprints: &[String],
 ) -> String {
+    build_preview_signature_for_target(
+        provider_id,
+        direction,
+        &mirror_path.display().to_string(),
+        operations,
+        file_fingerprints,
+    )
+}
+
+/// Builds an opaque apply token for a provider target label.
+pub(crate) fn build_preview_signature_for_target(
+    provider_id: &str,
+    direction: &str,
+    target_label: &str,
+    operations: &[ObjectStorageSyncOperation],
+    file_fingerprints: &[String],
+) -> String {
     let mut lines = vec![
         "object-storage-preview-v1".to_string(),
         format!("provider={provider_id}"),
         format!("direction={direction}"),
-        format!("mirror={}", mirror_path.display()),
+        format!("target={target_label}"),
     ];
 
     let mut operation_lines = operations
@@ -51,14 +70,28 @@ pub(crate) fn file_fingerprint(
     relative_path: &str,
     path: &Path,
 ) -> Result<String, String> {
-    let bytes = fs::read(path).map_err(|e| format!("Failed to read {}: {e}", path.display()))?;
-    let mut payload = Vec::with_capacity(role.len() + relative_path.len() + bytes.len() + 2);
+    let content_hash = file_content_sha256(path)?;
+    let mut payload = Vec::with_capacity(role.len() + relative_path.len() + content_hash.len() + 2);
     payload.extend_from_slice(role.as_bytes());
     payload.push(0);
     payload.extend_from_slice(relative_path.as_bytes());
     payload.push(0);
-    payload.extend_from_slice(&bytes);
+    payload.extend_from_slice(content_hash.as_bytes());
     Ok(format!("{role}:{:016x}", fnv1a64(&payload)))
+}
+
+/// Hashes a local sync candidate for provider-side content comparison.
+pub(crate) fn file_content_sha256(path: &Path) -> Result<String, String> {
+    let bytes = fs::read(path)
+        .map_err(|_| "Object-storage preview could not read a local sync candidate.".to_string())?;
+    Ok(hex_sha256(&bytes))
+}
+
+fn hex_sha256(bytes: &[u8]) -> String {
+    Sha256::digest(bytes)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn operation_kind_label(kind: &ObjectStorageSyncOperationKind) -> &'static str {

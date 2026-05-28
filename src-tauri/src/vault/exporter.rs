@@ -2,6 +2,7 @@ use serde::Serialize;
 use std::fs::{self, File};
 use std::io;
 use std::path::{Path, PathBuf};
+use tempfile::TempPath;
 use walkdir::{DirEntry, WalkDir};
 use zip::write::FileOptions;
 
@@ -40,14 +41,15 @@ pub fn export_markdown_zip(
         fs::create_dir_all(parent).map_err(|e| format!("Failed to create export folder: {e}"))?;
     }
 
-    let file = File::create(&target).map_err(|e| format!("Failed to create ZIP export: {e}"))?;
+    let local_only_attachments = local_only_referenced_attachments(&vault_root)?;
+    let mut files_exported = 0;
+    let mut skipped_files = 0;
+    let temp_path = create_export_temp_path(&target)?;
+    let file = File::create(&temp_path).map_err(|e| format!("Failed to create ZIP export: {e}"))?;
     let mut zip = zip::ZipWriter::new(file);
     let options = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
-    let local_only_attachments = local_only_referenced_attachments(&vault_root)?;
-    let mut files_exported = 0;
-    let mut skipped_files = 0;
 
     for entry in WalkDir::new(&vault_root)
         .follow_links(false)
@@ -68,6 +70,7 @@ pub fn export_markdown_zip(
 
     zip.finish()
         .map_err(|e| format!("Failed to finish ZIP export: {e}"))?;
+    persist_export_temp_path(temp_path, &target)?;
     Ok(VaultExportReport {
         export_path: target.to_string_lossy().into_owned(),
         files_exported,
@@ -109,6 +112,23 @@ pub(super) fn validate_target(vault_root: &Path, target: &Path) -> Result<(), St
     Ok(())
 }
 
+pub(super) fn create_export_temp_path(target: &Path) -> Result<TempPath, String> {
+    let parent = target.parent().unwrap_or_else(|| Path::new("."));
+    tempfile::Builder::new()
+        .prefix(".grimoire-export-")
+        .suffix(".zip.tmp")
+        .tempfile_in(parent)
+        .map(|file| file.into_temp_path())
+        .map_err(|e| format!("Failed to create temporary ZIP export: {e}"))
+}
+
+pub(super) fn persist_export_temp_path(temp_path: TempPath, target: &Path) -> Result<(), String> {
+    temp_path
+        .persist(target)
+        .map(|_| ())
+        .map_err(|e| format!("Failed to finalize ZIP export: {e}"))
+}
+
 pub(super) fn should_enter(entry: &DirEntry) -> bool {
     if entry.depth() == 0 {
         return true;
@@ -117,7 +137,7 @@ pub(super) fn should_enter(entry: &DirEntry) -> bool {
         return true;
     }
     let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
-    !is_skipped_name(&name)
+    !matches!(name.as_str(), ".git" | "node_modules" | "target")
 }
 
 pub(super) fn should_skip_file(
@@ -133,12 +153,20 @@ pub(super) fn should_skip_file(
         .unwrap_or_default();
     is_skipped_name(&name)
         || name.starts_with(".env")
+        || has_skipped_component(Path::new(&relative))
         || local_only_attachments.contains(&relative)
         || is_local_only_export_file(vault_root, entry.path())
 }
 
 fn is_skipped_name(name: &str) -> bool {
     name.starts_with('.') || SKIPPED_DIRS.contains(&name) || SKIPPED_FILES.contains(&name)
+}
+
+fn has_skipped_component(path: &Path) -> bool {
+    path.components().rev().skip(1).any(|component| {
+        let name = component.as_os_str().to_string_lossy().to_ascii_lowercase();
+        is_skipped_name(&name)
+    })
 }
 
 pub(super) fn add_file_to_zip(
@@ -229,6 +257,27 @@ mod tests {
 
         assert_eq!(result.files_exported, 1);
         assert_eq!(result.skipped_files, 6);
+        let names = zip_entry_names(Path::new(&result.export_path));
+        assert_eq!(names, vec!["public.md"]);
+    }
+
+    #[test]
+    fn counts_pruned_local_only_files_as_skipped_in_zip_export() {
+        let vault = TempDir::new().unwrap();
+        let target_dir = TempDir::new().unwrap();
+        fs::write(vault.path().join("public.md"), "# Public\n").unwrap();
+        fs::create_dir_all(vault.path().join(".grimoire-local/cache")).unwrap();
+        fs::create_dir_all(vault.path().join("mockups")).unwrap();
+        fs::write(vault.path().join(".mcp.json"), "{}").unwrap();
+        fs::write(vault.path().join(".env.local"), "secret").unwrap();
+        fs::write(vault.path().join(".grimoire-local/cache/state.json"), "{}").unwrap();
+        fs::write(vault.path().join("mockups/private.png"), "mock").unwrap();
+
+        let result =
+            export_markdown_zip(vault.path(), &target_dir.path().join("vault.zip")).unwrap();
+
+        assert_eq!(result.files_exported, 1);
+        assert_eq!(result.skipped_files, 4);
         let names = zip_entry_names(Path::new(&result.export_path));
         assert_eq!(names, vec!["public.md"]);
     }

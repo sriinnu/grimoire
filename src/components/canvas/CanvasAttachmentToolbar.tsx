@@ -1,5 +1,7 @@
 import {
   Circle,
+  Clipboard,
+  ClipboardCheck,
   Eraser,
   Hand,
   Highlighter,
@@ -16,7 +18,7 @@ import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CanvasDocument } from '../../utils/canvasAttachments'
-import { CANVAS_COLORS, CANVAS_SIZES, undoCanvasDocument } from './canvasDrawing'
+import { CANVAS_SIZES, undoCanvasDocument } from './canvasDrawing'
 import type { CanvasTool } from './CanvasDrawingSurface'
 
 const TOOLS: Array<{ id: CanvasTool; label: string; icon: typeof PenLine }> = [
@@ -105,8 +107,12 @@ interface CanvasAttachmentToolbarProps {
   addingImage: boolean
   canAddImage: boolean
   color: string
+  copyMarkdownDisabled: boolean
+  copyMarkdownState: 'idle' | 'copied' | 'failed'
   document: CanvasDocument
+  inkColors: readonly string[]
   onAddImage: () => void
+  onCopyMarkdown: () => void
   setColor: (color: string) => void
   setDocument: (updater: (document: CanvasDocument) => CanvasDocument) => void
   setSize: (size: number) => void
@@ -122,8 +128,12 @@ export function CanvasAttachmentToolbar({
   addingImage,
   canAddImage,
   color,
+  copyMarkdownDisabled,
+  copyMarkdownState,
   document,
+  inkColors,
   onAddImage,
+  onCopyMarkdown,
   setColor,
   setDocument,
   setSize,
@@ -152,7 +162,7 @@ export function CanvasAttachmentToolbar({
         ))}
       </div>
       <div className="canvas-attachment__tool-group">
-        {CANVAS_COLORS.map((swatch) => (
+        {inkColors.map((swatch) => (
           <ColorButton key={swatch} active={color === swatch} color={swatch} onClick={() => setColor(swatch)} />
         ))}
       </div>
@@ -176,6 +186,13 @@ export function CanvasAttachmentToolbar({
           icon={ImagePlus}
           label={addingImage ? 'Adding image' : 'Add Image'}
           onClick={onAddImage}
+        />
+        <ToolButton
+          active={copyMarkdownState === 'copied'}
+          disabled={copyMarkdownDisabled}
+          icon={copyMarkdownState === 'copied' ? ClipboardCheck : Clipboard}
+          label={copyMarkdownState === 'failed' ? 'Retry Copy Markdown' : 'Copy Markdown'}
+          onClick={onCopyMarkdown}
         />
         <ToolButton
           active={false}

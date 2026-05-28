@@ -123,7 +123,7 @@ pub(super) fn should_enter(entry: &DirEntry) -> bool {
         return true;
     }
     let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
-    !is_skipped_name(&name)
+    !matches!(name.as_str(), ".git" | "node_modules" | "target")
 }
 
 pub(super) fn should_skip_file(
@@ -139,12 +139,20 @@ pub(super) fn should_skip_file(
         .unwrap_or_default();
     is_skipped_name(&name)
         || name.starts_with(".env")
+        || has_skipped_component(Path::new(&relative))
         || local_only_attachments.contains(&relative)
         || is_local_only_export_file(vault_root, entry.path())
 }
 
 fn is_skipped_name(name: &str) -> bool {
     name.starts_with('.') || SKIPPED_DIRS.contains(&name) || SKIPPED_FILES.contains(&name)
+}
+
+fn has_skipped_component(path: &Path) -> bool {
+    path.components().rev().skip(1).any(|component| {
+        let name = component.as_os_str().to_string_lossy().to_ascii_lowercase();
+        is_skipped_name(&name)
+    })
 }
 
 pub(super) fn relative_path(vault_root: &Path, source_path: &Path) -> Result<PathBuf, String> {

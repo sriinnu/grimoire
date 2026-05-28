@@ -1,0 +1,18 @@
+[
+  {
+    "id": "journey-temple",
+    "created": "2026-05-13T07:00:00Z",
+    "updated": "2026-05-13T07:20:00Z",
+    "title": "Temple Bell",
+    "content": "Quiet morning by the inner courtyard.",
+    "labels": ["journal", "travel"],
+    "media": [{ "path": "media/bell.m4a" }]
+  },
+  {
+    "id": "journey-map",
+    "created": "2026-05-14T18:45:00Z",
+    "summary": "Sketch Map",
+    "body": "Marked the walk back from the river.",
+    "attachments": [{ "fileName": "temple.jpg" }]
+  }
+]

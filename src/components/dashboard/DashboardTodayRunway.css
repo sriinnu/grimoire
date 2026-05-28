@@ -1,0 +1,387 @@
+.vault-dashboard__assistant-brief {
+  position: relative;
+  isolation: isolate;
+  grid-column: 1 / -1;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--card) 88%, var(--primary) 7%), color-mix(in srgb, var(--background) 90%, var(--accent-blue, var(--primary)) 5%)),
+    var(--card);
+}
+
+.vault-dashboard__flow {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(260px, 0.92fr) minmax(420px, 1.4fr);
+  gap: 14px;
+  border: 1px solid var(--grimoire-hairline, color-mix(in srgb, var(--accent-blue) 24%, var(--border)));
+  border-radius: var(--grimoire-surface-radius, 8px);
+  padding: 14px;
+  background: var(--grimoire-rail-material, linear-gradient(135deg, color-mix(in srgb, var(--card) 82%, var(--accent-blue) 10%), color-mix(in srgb, var(--card) 90%, var(--background))));
+  box-shadow: var(--grimoire-surface-shadow, 0 18px 44px color-mix(in srgb, var(--foreground) 8%, transparent));
+}
+
+.vault-dashboard__flow-copy {
+  display: grid;
+  align-content: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.vault-dashboard__flow-states,
+.vault-dashboard__flow-runway {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vault-dashboard__flow-runway {
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
+  padding: 8px 10px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 64%),
+    color-mix(in srgb, var(--background) 72%, transparent);
+}
+
+.vault-dashboard__flow-runway span,
+.vault-dashboard__flow-runway strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__flow-runway strong {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.vault-dashboard__flow-meter {
+  --flow-progress: 0%;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: center;
+  min-height: 18px;
+  padding: 0 7px;
+}
+
+.vault-dashboard__flow-meter[data-progress="1"] { --flow-progress: 25%; }
+.vault-dashboard__flow-meter[data-progress="2"] { --flow-progress: 50%; }
+.vault-dashboard__flow-meter[data-progress="3"] { --flow-progress: 75%; }
+.vault-dashboard__flow-meter[data-progress="4"] { --flow-progress: 100%; }
+
+.vault-dashboard__flow-meter::before,
+.vault-dashboard__flow-meter::after {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  height: 2px;
+  border-radius: 999px;
+  content: "";
+  transform: translateY(-50%);
+}
+
+.vault-dashboard__flow-meter::before {
+  right: 14px;
+  background: color-mix(in srgb, var(--grimoire-hairline, var(--border)) 76%, transparent);
+}
+
+.vault-dashboard__flow-meter::after {
+  width: var(--flow-progress);
+  max-width: calc(100% - 28px);
+  min-width: 0;
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 72%, var(--foreground)));
+}
+
+.vault-dashboard__flow-meter span {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--grimoire-hairline, var(--border));
+  border-radius: 999px;
+  background: var(--grimoire-rail-card-material, var(--background));
+  box-shadow: 0 0 0 3px var(--grimoire-rail-chip-material, transparent);
+}
+
+.vault-dashboard__flow-meter span[data-state="done"] {
+  border-color: color-mix(in srgb, var(--grimoire-success, var(--primary)) 52%, var(--grimoire-hairline, var(--border)));
+  background: color-mix(in srgb, var(--grimoire-success, var(--primary)) 54%, var(--surface-card, var(--card)));
+}
+
+.vault-dashboard__flow-meter span[data-state="next"] {
+  border-color: color-mix(in srgb, var(--primary) 64%, var(--grimoire-hairline, var(--border)));
+  background: var(--primary);
+}
+
+.vault-dashboard__flow-states span {
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--background) 70%, transparent);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 680;
+}
+
+.vault-dashboard__flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.vault-dashboard__flow-step {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  height: auto;
+  min-height: 76px;
+  justify-content: start;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
+  padding: 10px;
+  background: var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 64%, transparent));
+  color: var(--foreground);
+  text-align: left;
+}
+
+.vault-dashboard__flow-step[data-state="done"] {
+  border-color: color-mix(in srgb, var(--grimoire-success, var(--primary)) 42%, var(--border));
+  background: color-mix(in srgb, var(--grimoire-success, var(--primary)) 12%, var(--background));
+}
+
+.vault-dashboard__flow-step[data-state="next"] {
+  border-color: color-mix(in srgb, var(--primary) 56%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%),
+    var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 74%, transparent));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.vault-dashboard__flow-step span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vault-dashboard__flow-step strong,
+.vault-dashboard__flow-step small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__flow-step small {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 620;
+}
+
+.vault-dashboard__today-runway-shell {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+}
+
+.vault-dashboard__today-runway .vault-dashboard__flow {
+  grid-column: auto;
+  margin-top: 2px;
+  border-width: 1px 0 0;
+  border-radius: 0;
+  padding: 14px 0 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.vault-dashboard__assistant-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 13px;
+}
+
+.vault-dashboard__assistant-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vault-dashboard__assistant-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.vault-dashboard__assistant-lock {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--grimoire-private-chip-border, var(--border));
+  border-radius: 999px;
+  padding: 0 10px;
+  background: var(--grimoire-private-chip-bg, color-mix(in srgb, var(--primary) 8%, transparent));
+  color: var(--grimoire-private-chip-fg, var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 680;
+  white-space: nowrap;
+}
+
+.vault-dashboard__assistant-action {
+  min-height: 28px;
+  border-radius: 999px;
+  padding-inline: 11px;
+}
+
+.vault-dashboard__assistant-items {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vault-dashboard__assistant-focus {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+  border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
+  padding: 10px 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 72%),
+    color-mix(in srgb, var(--surface-card, var(--card)) 78%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+.vault-dashboard__assistant-focus span,
+.vault-dashboard__assistant-focus strong,
+.vault-dashboard__assistant-focus p {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vault-dashboard__assistant-focus span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.vault-dashboard__assistant-focus strong {
+  color: var(--foreground);
+  font-size: 18px;
+  line-height: 1.16;
+}
+
+.vault-dashboard__assistant-focus p {
+  margin: 0;
+  color: color-mix(in srgb, var(--foreground) 80%, var(--muted-foreground));
+  font-size: 13px;
+  font-weight: 620;
+  line-height: 1.35;
+}
+
+.vault-dashboard__assistant-items span {
+  display: inline-flex;
+  max-width: 100%;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 999px;
+  padding: 0 11px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 74%, transparent);
+  color: color-mix(in srgb, var(--foreground) 88%, var(--muted-foreground));
+  font-size: 12px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.vault-dashboard__assistant-lines {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.vault-dashboard__assistant-lines span {
+  position: absolute;
+  right: -34px;
+  width: 220px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 26%, transparent), transparent);
+  opacity: 0.68;
+  transform: rotate(-24deg);
+}
+
+.vault-dashboard__assistant-lines span:nth-child(1) { top: 22px; }
+.vault-dashboard__assistant-lines span:nth-child(2) { top: 58px; right: 34px; opacity: 0.42; }
+.vault-dashboard__assistant-lines span:nth-child(3) { right: 118px; bottom: 24px; opacity: 0.32; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .vault-dashboard__assistant-brief {
+    animation: grimoire-assistant-brief-arrive var(--motion-duration-panel, 260ms) var(--motion-ease-cinematic, ease-out) 1 both;
+  }
+
+  .vault-dashboard__flow-meter span[data-state="next"] {
+    animation: grimoire-flow-next-arrive var(--motion-duration-cinematic, 720ms) var(--motion-ease-cinematic, ease-out) 1 both;
+  }
+}
+
+@media (max-width: 920px) {
+  .vault-dashboard__flow {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .vault-dashboard__flow-steps {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .vault-dashboard__assistant-head {
+    flex-direction: column;
+  }
+
+  .vault-dashboard__assistant-actions {
+    justify-content: flex-start;
+  }
+
+  .vault-dashboard__assistant-lock {
+    white-space: normal;
+  }
+}
+
+@keyframes grimoire-assistant-brief-arrive {
+  from { opacity: 0; transform: translateY(var(--motion-distance-panel-y, 6px)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes grimoire-flow-next-arrive {
+  from { opacity: 0.56; transform: scale(0.72); }
+  72% { transform: scale(1.18); }
+  to { opacity: 1; transform: scale(1); }
+}

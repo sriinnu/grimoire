@@ -5,7 +5,20 @@ import {
 } from './themeDefinition'
 import { SUPPORTED_THEME_PRESETS, type ThemePreset } from './themePresetIds'
 
-export type { ThemeDefinition, ThemeDefinitionMode, ThemeDefinitionParseResult, ThemeTokenMap } from './themeDefinition'
+export type {
+  ThemeDefinition,
+  ThemeDefinitionMode,
+  ThemeDefinitionParseResult,
+  ThemeCanvasStyle,
+  ThemeCodeBlockStyle,
+  ThemeDensityDefinition,
+  ThemeDensityScale,
+  ThemeGraphStyle,
+  ThemeMotionDefinition,
+  ThemeMotionProfile,
+  ThemeVisualDefinition,
+  ThemeTokenMap,
+} from './themeDefinition'
 export {
   applyThemeDefinitionToRoot,
   parseThemeDefinition,

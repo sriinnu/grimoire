@@ -199,6 +199,12 @@ describe('aiAgentSession', () => {
     expect(getMessages().at(-1)).toEqual({
       userMessage: 'Latest question',
       references: [{ path: '/vault/ref.md', title: 'Ref' }],
+      route: {
+        agent: 'codex',
+        provider: null,
+        model: null,
+        source: 'cli-default',
+      },
       actions: [],
       isStreaming: true,
       id: 'msg-stream',
@@ -230,6 +236,8 @@ describe('aiAgentSession', () => {
       message: `formatted:${referencedPrompt}`,
       systemPrompt: 'OVERRIDE',
       vaultPath: '/vault',
+      provider: undefined,
+      model: undefined,
       callbacks: { stream: 'callbacks' },
     })
   })

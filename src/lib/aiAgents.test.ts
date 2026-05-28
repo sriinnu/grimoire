@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CHITRAGUPTA_MCP_READINESS_COPY,
+  CHITRAGUPTA_MCP_REQUIRED_SURFACES,
   createBrowserPreviewAiAgentsStatus,
   describeAiAgentRoute,
   getNextAiAgentId,
@@ -51,7 +53,7 @@ describe('aiAgents helpers', () => {
   })
 
   it('describes the visible runtime route for Chitragupta', () => {
-    expect(describeAiAgentRoute('chitragupta', null, null)).toBe('provider: CLI default · model: CLI default')
+    expect(describeAiAgentRoute('chitragupta', null, null)).toBe('provider: resolved by stream · model: resolved by stream')
     expect(describeAiAgentRoute('chitragupta', ' google ', ' gemini-2.5-pro ')).toBe(
       'provider: google · model: gemini-2.5-pro',
     )
@@ -64,5 +66,22 @@ describe('aiAgents helpers', () => {
     expect(supportsAiAgentProviderRoute('codex')).toBe(false)
     expect(resolveDefaultAiProvider('chitragupta', ' google ')).toBe('google')
     expect(resolveDefaultAiProvider('codex', ' google ')).toBeNull()
+  })
+
+  it('keeps Chitragupta MCP readiness explicit and provider-agnostic', () => {
+    expect(CHITRAGUPTA_MCP_REQUIRED_SURFACES).toEqual([
+      'memory search',
+      'recall',
+      'wiki',
+      'graph',
+      'ingest',
+      'diagnostics',
+      'write suggestions',
+    ])
+    expect(CHITRAGUPTA_MCP_READINESS_COPY).toContain('Live memory lanes stay local-ledger only')
+    expect(CHITRAGUPTA_MCP_READINESS_COPY).toContain('source-backed write suggestions')
+    expect(`${CHITRAGUPTA_MCP_READINESS_COPY} ${CHITRAGUPTA_MCP_REQUIRED_SURFACES.join(' ')}`).not.toMatch(
+      /google|gemini|anthropic|openai|\/Users/i,
+    )
   })
 })

@@ -24,7 +24,14 @@ import {
   handleRenameNote,
   handleRenameNoteFilename,
 } from './mock-rename-handlers'
-import { mockObjectStorageReport } from './mock-object-storage-handlers'
+import {
+  mockAzureProviderSyncReport,
+  mockAzureLivePreflightReport,
+  mockDesktopStorageHealthReport,
+  mockObjectStorageReport,
+  mockS3LivePreflightReport,
+  mockS3ProviderSyncReport,
+} from './mock-object-storage-handlers'
 import { mockImportHandlers } from './mock-import-handlers'
 
 function syncWindowContent(): void {
@@ -221,6 +228,24 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     files_exported: 10,
     skipped_files: 2,
   }),
+  storage_s3_live_preflight: (args: { bucket?: string | null; region?: string | null; prefix?: string | null }) =>
+    mockS3LivePreflightReport(args),
+  storage_s3_provider_push_preview: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null }) =>
+    mockS3ProviderSyncReport({ ...args, direction: 'push' }, false),
+  storage_s3_provider_pull_preview: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null }) =>
+    mockS3ProviderSyncReport({ ...args, direction: 'pull' }, false),
+  storage_s3_provider_sync_apply: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null; direction?: 'push' | 'pull'; previewSignature?: string }) =>
+    mockS3ProviderSyncReport(args, true),
+  storage_azure_live_preflight: (args: { account?: string | null; container?: string | null; prefix?: string | null }) =>
+    mockAzureLivePreflightReport(args),
+  storage_azure_provider_push_preview: (args: { vaultPath?: string; account?: string | null; container?: string | null; prefix?: string | null }) =>
+    mockAzureProviderSyncReport({ ...args, direction: 'push' }, false),
+  storage_azure_provider_pull_preview: (args: { vaultPath?: string; account?: string | null; container?: string | null; prefix?: string | null }) =>
+    mockAzureProviderSyncReport({ ...args, direction: 'pull' }, false),
+  storage_azure_provider_sync_apply: (args: { vaultPath?: string; account?: string | null; container?: string | null; prefix?: string | null; direction?: 'push' | 'pull'; previewSignature?: string }) =>
+    mockAzureProviderSyncReport(args, true),
+  storage_desktop_provider_health_check: (args: { vaultPath?: string; providerId?: 'icloud-drive' | 'google-drive-desktop' }) =>
+    mockDesktopStorageHealthReport(args),
   storage_push_preview: (args: { vaultPath?: string; mirrorPath?: string; providerId?: string }) =>
     mockObjectStorageReport({ ...args, direction: 'push' }, false),
   storage_pull_preview: (args: { vaultPath?: string; mirrorPath?: string; providerId?: string }) =>

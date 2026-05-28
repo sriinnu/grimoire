@@ -1,5 +1,6 @@
 import type { createTranslator } from '../lib/i18n'
-import { Switch } from './ui/switch'
+import type { NativeShellMaterial } from '../lib/appearance'
+import { LabeledSelect, SettingsSwitchRow } from './settings/SettingsControls'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -7,6 +8,8 @@ interface NativeSettingsSectionProps {
   t: Translate
   menuBarIconEnabled: boolean
   setMenuBarIconEnabled: (value: boolean) => void
+  nativeShellMaterial: NativeShellMaterial
+  setNativeShellMaterial: (value: NativeShellMaterial) => void
 }
 
 /** Renders installation-local controls for native desktop affordances. */
@@ -14,6 +17,8 @@ export function NativeSettingsSection({
   t,
   menuBarIconEnabled,
   setMenuBarIconEnabled,
+  nativeShellMaterial,
+  setNativeShellMaterial,
 }: NativeSettingsSectionProps) {
   return (
     <>
@@ -22,25 +27,29 @@ export function NativeSettingsSection({
         description={t('settings.native.description')}
       />
 
-      <label
-        className="flex items-start justify-between gap-3"
-        style={{ cursor: 'pointer' }}
-        data-testid="settings-menu-bar-icon-enabled"
-      >
-        <div className="space-y-1">
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)' }}>
-            {t('settings.native.menuBarIcon')}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-            {t('settings.native.menuBarIconDescription')}
-          </div>
-        </div>
-        <Switch
-          checked={menuBarIconEnabled}
-          onCheckedChange={setMenuBarIconEnabled}
-          aria-label={t('settings.native.menuBarIcon')}
-        />
-      </label>
+      <SettingsSwitchRow
+        label={t('settings.native.menuBarIcon')}
+        description={t('settings.native.menuBarIconDescription')}
+        checked={menuBarIconEnabled}
+        onChange={setMenuBarIconEnabled}
+        testId="settings-menu-bar-icon-enabled"
+      />
+
+      <LabeledSelect
+        label={t('settings.native.shellMaterial')}
+        value={nativeShellMaterial}
+        onValueChange={(value) => setNativeShellMaterial(value as NativeShellMaterial)}
+        options={[
+          { value: 'standard', label: t('settings.native.shellMaterialStandard') },
+          { value: 'unified', label: t('settings.native.shellMaterialUnified') },
+          { value: 'glass-preview', label: t('settings.native.shellMaterialGlassPreview') },
+        ]}
+        testId="settings-native-shell-material"
+      />
+
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        {t('settings.native.shellMaterialDescription')}
+      </p>
     </>
   )
 }

@@ -3,11 +3,13 @@ import { addMockEntry, isTauri, mockInvoke } from '../mock-tauri'
 import {
   buildCleanTranscriptMarkdown,
   buildTranscriptMarkdown,
-  createTranscriptionRequestConfig,
   type TranscriptMarkdownInput,
+} from '../lib/transcriptionProviders'
+import {
+  createTranscriptionRequestConfig,
   type TranscriptionProviderId,
   type TranscriptionProviderPreference,
-} from '../lib/transcriptionProviders'
+} from '../lib/transcriptionProviderConfig'
 import type { VaultEntry } from '../types'
 import { buildNewEntry, slugify } from '../hooks/useNoteCreation'
 

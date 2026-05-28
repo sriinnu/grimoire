@@ -1,5 +1,5 @@
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useGitRemoteStatus } from './useGitRemoteStatus'
 
 const mockInvokeFn = vi.fn()
@@ -13,15 +13,43 @@ vi.mock('../mock-tauri', () => ({
   mockInvoke: (command: string, args: Record<string, unknown>) => mockInvokeFn(command, args),
 }))
 
+let visibilityState: DocumentVisibilityState = 'visible'
+let visibilitySpy: ReturnType<typeof vi.spyOn> | null = null
+
 describe('useGitRemoteStatus', () => {
   beforeEach(() => {
+    visibilityState = 'visible'
     vi.clearAllMocks()
+    visibilitySpy = vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
+  })
+
+  afterEach(() => {
+    visibilitySpy?.mockRestore()
+    visibilitySpy = null
   })
 
   it('loads remote status on mount', async () => {
     mockInvokeFn.mockResolvedValue({ branch: 'main', ahead: 0, behind: 0, hasRemote: false })
 
     const { result } = renderHook(() => useGitRemoteStatus('/vault'))
+
+    await waitFor(() => {
+      expect(result.current.remoteStatus).toEqual({ branch: 'main', ahead: 0, behind: 0, hasRemote: false })
+    })
+    expect(mockInvokeFn).toHaveBeenCalledWith('git_remote_status', { vaultPath: '/vault' })
+  })
+
+  it('waits until visible before checking git remote status on mount', async () => {
+    visibilityState = 'hidden'
+    mockInvokeFn.mockResolvedValue({ branch: 'main', ahead: 0, behind: 0, hasRemote: false })
+
+    const { result } = renderHook(() => useGitRemoteStatus('/vault'))
+
+    expect(result.current.remoteStatus).toBeNull()
+    expect(mockInvokeFn).not.toHaveBeenCalled()
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
 
     await waitFor(() => {
       expect(result.current.remoteStatus).toEqual({ branch: 'main', ahead: 0, behind: 0, hasRemote: false })

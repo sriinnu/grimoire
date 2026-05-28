@@ -2,12 +2,11 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import type { VaultEntry } from '../types'
 import type { NoteReference } from '../utils/ai-context'
+import { buildProviderPromptDraft } from '../lib/providerPromptPrivacy'
 import { buildTypeEntryMap } from '../utils/typeColors'
 import {
-  extractInlineWikilinkReferences,
   findActiveWikilinkQuery,
 } from './inlineWikilinkText'
-import { normalizeInlineWikilinkValue } from './inlineWikilinkTokens'
 import {
   InlineWikilinkSuggestionList,
 } from './InlineWikilinkParts'
@@ -91,9 +90,9 @@ export function AiChatComposerInput({
     if (inputRef) inputRef.current = node
   }, [inputRef])
   const submitValue = useCallback(() => {
-    const normalized = normalizeInlineWikilinkValue(value)
-    if (!normalized.trim()) return
-    onSend(normalized, extractInlineWikilinkReferences(normalized, entries))
+    const draft = buildProviderPromptDraft(value, entries)
+    if (!draft.text.trim()) return
+    onSend(draft.text, draft.references)
   }, [entries, onSend, value])
   const handlePaste = useCallback((event: React.ClipboardEvent<HTMLTextAreaElement>) => {
     if (!hasUnsupportedClipboardPayload(event.clipboardData)) return

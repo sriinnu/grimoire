@@ -6,13 +6,14 @@
  *
  * Connection is lazy — only opens when first tool is called.
  */
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const DEFAULT_WS_URL = 'ws://localhost:9710'
 
 interface PendingRequest {
   resolve: (value: unknown) => void
   reject: (reason: unknown) => void
+  timeoutId: ReturnType<typeof window.setTimeout>
 }
 
 interface SearchResult {
@@ -23,20 +24,34 @@ interface SearchResult {
 
 export function useMcpBridge(wsUrl = DEFAULT_WS_URL) {
   const wsRef = useRef<WebSocket | null>(null)
+  const connectingRef = useRef<Promise<WebSocket> | null>(null)
   const pendingRef = useRef<Map<string, PendingRequest>>(new Map())
   const idCounterRef = useRef(0)
+  const mountedRef = useRef(true)
   const [connected, setConnected] = useState(false)
+
+  const clearPendingRequests = useCallback((reason: Error) => {
+    for (const pending of pendingRef.current.values()) {
+      window.clearTimeout(pending.timeoutId)
+      pending.reject(reason)
+    }
+    pendingRef.current.clear()
+  }, [])
 
   const ensureConnection = useCallback((): Promise<WebSocket> => {
     const ws = wsRef.current
     if (ws && ws.readyState === WebSocket.OPEN) return Promise.resolve(ws)
+    if (connectingRef.current) return connectingRef.current
 
-    return new Promise((resolve, reject) => {
+    const connecting = new Promise<WebSocket>((resolve, reject) => {
+      let settled = false
       const newWs = new WebSocket(wsUrl)
+      wsRef.current = newWs
 
       newWs.onopen = () => {
-        wsRef.current = newWs
-        setConnected(true)
+        settled = true
+        connectingRef.current = null
+        if (mountedRef.current) setConnected(true)
         resolve(newWs)
       }
 
@@ -46,6 +61,7 @@ export function useMcpBridge(wsUrl = DEFAULT_WS_URL) {
           const pending = pendingRef.current.get(msg.id)
           if (pending) {
             pendingRef.current.delete(msg.id)
+            window.clearTimeout(pending.timeoutId)
             if (msg.error) {
               pending.reject(new Error(msg.error))
             } else {
@@ -58,31 +74,59 @@ export function useMcpBridge(wsUrl = DEFAULT_WS_URL) {
       }
 
       newWs.onclose = () => {
-        wsRef.current = null
-        setConnected(false)
+        if (wsRef.current === newWs) wsRef.current = null
+        connectingRef.current = null
+        if (mountedRef.current) setConnected(false)
+        clearPendingRequests(new Error('MCP bridge disconnected'))
+        if (!settled) {
+          settled = true
+          reject(new Error('WebSocket connection closed'))
+        }
       }
 
       newWs.onerror = () => {
+        if (wsRef.current === newWs) wsRef.current = null
+        connectingRef.current = null
+        if (mountedRef.current) setConnected(false)
+        if (settled) return
+        settled = true
         reject(new Error('WebSocket connection failed'))
       }
     })
-  }, [wsUrl])
+
+    connectingRef.current = connecting
+    return connecting
+  }, [clearPendingRequests, wsUrl])
+
+  useEffect(() => () => {
+    mountedRef.current = false
+    connectingRef.current = null
+    clearPendingRequests(new Error('MCP bridge unmounted'))
+    wsRef.current?.close()
+    wsRef.current = null
+  }, [clearPendingRequests])
 
   const callTool = useCallback(async <T>(tool: string, args: Record<string, unknown>): Promise<T> => {
     const ws = await ensureConnection()
     const id = `mcp-${++idCounterRef.current}`
 
     return new Promise((resolve, reject) => {
-      pendingRef.current.set(id, { resolve: resolve as (value: unknown) => void, reject })
-      ws.send(JSON.stringify({ id, tool, args }))
-
-      // Timeout after 30 seconds
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         if (pendingRef.current.has(id)) {
           pendingRef.current.delete(id)
           reject(new Error('MCP tool call timed out'))
         }
       }, 30_000)
+
+      pendingRef.current.set(id, { resolve: resolve as (value: unknown) => void, reject, timeoutId })
+
+      try {
+        ws.send(JSON.stringify({ id, tool, args }))
+      } catch (error) {
+        window.clearTimeout(timeoutId)
+        pendingRef.current.delete(id)
+        reject(error instanceof Error ? error : new Error('MCP tool call failed'))
+      }
     })
   }, [ensureConnection])
 

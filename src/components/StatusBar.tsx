@@ -12,6 +12,7 @@ import type { VaultOption } from './status-bar/types'
 export type { VaultOption } from './status-bar/types'
 
 const COMPACT_STATUS_BAR_MAX_WIDTH = 1180
+const STACKED_STATUS_BAR_MAX_WIDTH = 720
 
 function getWindowWidth() {
   return typeof window === 'undefined' ? Number.POSITIVE_INFINITY : window.innerWidth
@@ -19,19 +20,55 @@ function getWindowWidth() {
 
 function getStatusBarLayout(windowWidth: number) {
   const compact = windowWidth <= COMPACT_STATUS_BAR_MAX_WIDTH
+  const stacked = windowWidth <= STACKED_STATUS_BAR_MAX_WIDTH
 
   return {
     compact,
-    stacked: false,
+    stacked,
   }
+}
+
+function isDocumentVisible() {
+  return typeof document === 'undefined' || document.visibilityState !== 'hidden'
 }
 
 function useStatusBarTicker() {
   const [, setTick] = useState(0)
 
   useEffect(() => {
-    const id = setInterval(() => setTick((tick) => tick + 1), 30_000)
-    return () => clearInterval(id)
+    if (typeof document === 'undefined' || typeof window === 'undefined') return
+
+    let intervalId: ReturnType<typeof window.setInterval> | null = null
+
+    const stopTicker = () => {
+      if (intervalId === null) return
+      window.clearInterval(intervalId)
+      intervalId = null
+    }
+
+    const startTicker = () => {
+      if (intervalId !== null) return
+      intervalId = window.setInterval(() => setTick((tick) => tick + 1), 30_000)
+    }
+
+    const syncTicker = () => {
+      if (!isDocumentVisible()) {
+        stopTicker()
+        return
+      }
+      setTick((tick) => tick + 1)
+      startTicker()
+    }
+
+    syncTicker()
+    document.addEventListener('visibilitychange', syncTicker)
+    window.addEventListener('focus', syncTicker)
+
+    return () => {
+      stopTicker()
+      document.removeEventListener('visibilitychange', syncTicker)
+      window.removeEventListener('focus', syncTicker)
+    }
   }, [])
 }
 
@@ -87,6 +124,8 @@ interface StatusBarProps {
   aiAgentsStatus?: AiAgentsStatus
   vaultAiGuidanceStatus?: VaultAiGuidanceStatus
   defaultAiAgent?: AiAgentId
+  defaultAiProvider?: string | null
+  defaultAiModel?: string | null
   onSetDefaultAiAgent?: (agent: AiAgentId) => void
   onRestoreVaultAiGuidance?: () => void
   claudeCodeStatus?: ClaudeCodeStatus
@@ -99,15 +138,6 @@ interface StatusBarFooterProps extends StatusBarProps {
 }
 
 type StatusBarTone = 'healthy' | 'attention' | 'danger' | 'neutral'
-
-const STATUS_TONE_COLOR: Record<StatusBarTone, string> = {
-  healthy: 'color-mix(in srgb, var(--status-bar-success-fg, var(--accent-green)) 58%, transparent)',
-  attention: 'color-mix(in srgb, var(--status-bar-warning-fg, var(--accent-orange)) 70%, transparent)',
-  danger: 'color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 70%, transparent)',
-  neutral: 'color-mix(in srgb, var(--border) 82%, transparent)',
-}
-
-type StatusBarCssVars = CSSProperties & Record<`--${string}`, string>
 
 function getStatusBarTone({
   conflictCount,
@@ -182,6 +212,8 @@ function StatusBarFooter({
   aiAgentsStatus,
   vaultAiGuidanceStatus,
   defaultAiAgent,
+  defaultAiProvider,
+  defaultAiModel,
   onSetDefaultAiAgent,
   onRestoreVaultAiGuidance,
   claudeCodeStatus,
@@ -190,23 +222,7 @@ function StatusBarFooter({
   stacked,
 }: StatusBarFooterProps) {
   const statusTone = getStatusBarTone({ conflictCount, isOffline, modifiedCount, syncStatus })
-  const style: StatusBarCssVars = {
-    '--border': 'color-mix(in srgb, var(--sidebar-border) 72%, transparent)',
-    '--foreground': 'var(--status-bar-foreground)',
-    '--muted-foreground': 'var(--status-bar-muted-foreground)',
-    '--background': 'var(--status-bar-background)',
-    '--status-bar-background': 'var(--sidebar)',
-    '--status-bar-foreground': 'var(--sidebar-foreground)',
-    '--status-bar-muted-foreground': 'color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)',
-    '--status-bar-tooltip-bg': 'var(--status-bar-foreground)',
-    '--status-bar-tooltip-fg': 'var(--status-bar-background)',
-    '--status-bar-accent-fg': 'color-mix(in srgb, var(--sidebar-primary) 34%, var(--status-bar-foreground))',
-    '--status-bar-agent-fg': 'color-mix(in srgb, var(--accent-purple) 24%, var(--status-bar-foreground))',
-    '--status-bar-warning-fg': 'color-mix(in srgb, var(--accent-orange) 24%, var(--status-bar-foreground))',
-    '--status-bar-success-fg': 'color-mix(in srgb, var(--accent-green) 24%, var(--status-bar-foreground))',
-    '--status-bar-danger-fg': 'color-mix(in srgb, var(--accent-red) 42%, var(--status-bar-foreground))',
-    '--status-bar-badge-bg': 'color-mix(in srgb, var(--status-bar-warning-fg) 22%, transparent)',
-    '--status-bar-badge-fg': 'var(--status-bar-foreground)',
+  const style: CSSProperties = {
     minHeight: 30,
     height: stacked ? 'auto' : 30,
     flexShrink: 0,
@@ -216,17 +232,12 @@ function StatusBarFooter({
     justifyContent: stacked ? 'flex-start' : 'space-between',
     rowGap: stacked ? 4 : 0,
     columnGap: compact ? 8 : 12,
-    background: 'linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 96%, var(--background)), var(--sidebar))',
-    borderTop: '1px solid color-mix(in srgb, var(--border) 84%, transparent)',
-    boxShadow: `inset 0 1px 0 ${STATUS_TONE_COLOR[statusTone]}, 0 -10px 24px color-mix(in srgb, var(--status-bar-background) 28%, transparent)`,
     boxSizing: 'border-box',
     overflow: 'visible',
     padding: stacked ? '4px 8px' : '0 8px',
     fontSize: 11,
-    color: 'var(--status-bar-muted-foreground)',
     position: 'relative',
     zIndex: 50,
-    backdropFilter: 'blur(12px)',
   }
 
   return (
@@ -268,6 +279,8 @@ function StatusBarFooter({
         aiAgentsStatus={aiAgentsStatus}
         vaultAiGuidanceStatus={vaultAiGuidanceStatus}
         defaultAiAgent={defaultAiAgent}
+        defaultAiProvider={defaultAiProvider}
+        defaultAiModel={defaultAiModel}
         onSetDefaultAiAgent={onSetDefaultAiAgent}
         onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
         claudeCodeStatus={claudeCodeStatus}

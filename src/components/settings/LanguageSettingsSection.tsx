@@ -3,7 +3,7 @@ import {
   localeDisplayName,
   type AppLocale,
   type UiLanguagePreference,
-} from '../../lib/i18n'
+} from '../../lib/i18nCore'
 import { LabeledSelect, SectionHeading } from './SettingsControls'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
 

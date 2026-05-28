@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { assertAppBundleVersion, writeTestAppInfoPlist } from './app-bundle-version.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -27,6 +28,11 @@ const FORBIDDEN_FIXTURE_STRINGS = [
   'mock-handlers',
   'MOCK_CONTENT',
 ]
+
+function readPackageVersion() {
+  const packageJson = JSON.parse(readFileSync(resolve(REPO_ROOT, 'package.json'), 'utf8'))
+  return packageJson.version
+}
 
 function formatPath(path) {
   const relativePath = relative(REPO_ROOT, path)
@@ -142,6 +148,7 @@ function verifyApp(appPath, options = {}) {
   const iconPath = join(resolvedAppPath, 'Contents/Resources/icon.icns')
   assertIconMatchesSource(iconPath, `${formatPath(resolvedAppPath)}`)
   assertNoMockFixtures(join(resolvedAppPath, 'Contents/Resources'), `${formatPath(resolvedAppPath)} resources`)
+  if (options.expectedVersion) assertAppBundleVersion(resolvedAppPath, options.expectedVersion)
 
   if (options.requireCodesign) verifyCodesign(resolvedAppPath)
   console.log(`ok app ${formatPath(resolvedAppPath)}`)
@@ -224,6 +231,7 @@ function parseArgs(argv) {
     selfTest: false,
     tarballs: [],
     webDirs: [],
+    expectedVersion: null,
   }
 
   function nextValue(optionName, index) {
@@ -251,6 +259,10 @@ function parseArgs(argv) {
         break
       case '--require-codesign':
         config.requireCodesign = true
+        break
+      case '--expected-version':
+        config.expectedVersion = nextValue(arg, index)
+        index += 1
         break
       case '--self-test':
         config.selfTest = true
@@ -293,7 +305,8 @@ function runSelfTest() {
   try {
     const appPath = join(tempDir, 'Grimoire.app')
     copySourceIconToApp(appPath)
-    verifyApp(appPath)
+    writeTestAppInfoPlist(appPath, '9.9.9')
+    verifyApp(appPath, { expectedVersion: '9.9.9' })
 
     const webDir = join(tempDir, 'web')
     mkdirSync(webDir, { recursive: true })
@@ -306,6 +319,7 @@ function runSelfTest() {
 
     const staleAppPath = join(tempDir, 'Stale.app')
     copySourceIconToApp(staleAppPath)
+    writeTestAppInfoPlist(staleAppPath, '9.9.9')
     writeFileSync(join(staleAppPath, 'Contents/Resources/icon.icns'), 'stale')
 
     let failedAsExpected = false
@@ -317,6 +331,19 @@ function runSelfTest() {
 
     if (!failedAsExpected) {
       throw new Error('Self-test did not reject a stale app icon')
+    }
+
+    const staleVersionAppPath = join(tempDir, 'StaleVersion.app')
+    copySourceIconToApp(staleVersionAppPath)
+    writeTestAppInfoPlist(staleVersionAppPath, '9.9.8')
+    failedAsExpected = false
+    try {
+      verifyApp(staleVersionAppPath, { expectedVersion: '9.9.9' })
+    } catch {
+      failedAsExpected = true
+    }
+    if (!failedAsExpected) {
+      throw new Error('Self-test did not reject a stale app version')
     }
 
     const leakingWebDir = join(tempDir, 'leaking-web')
@@ -348,7 +375,10 @@ function main() {
     return
   }
 
-  const options = { requireCodesign: config.requireCodesign }
+  const options = {
+    expectedVersion: config.expectedVersion ?? readPackageVersion(),
+    requireCodesign: config.requireCodesign,
+  }
   for (const bundleDir of config.bundleDirs) verifyBundleDirectory(bundleDir, options)
   for (const app of config.apps) verifyApp(app, options)
   for (const tarball of config.tarballs) verifyUpdater(tarball, options)

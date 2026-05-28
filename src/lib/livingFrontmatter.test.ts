@@ -52,8 +52,25 @@ describe('buildLivingFrontmatterHints', () => {
         field: 'status',
         kind: 'missing-field',
         label: 'Add status',
+        suggestedValue: 'Active',
       }),
     ])
+  })
+
+  it('adds safe suggested values for durable memory metadata', () => {
+    const hints = buildLivingFrontmatterHints({
+      entry: entry({ isA: 'Memory' }),
+      entries: [],
+      frontmatter: { type: 'Memory', source_note: '[[Research]]' },
+      now: new Date('2026-05-24T12:00:00.000Z'),
+    })
+
+    expect(hints).toEqual(expect.arrayContaining([
+      expect.objectContaining({ field: 'confidence', suggestedValue: 'proposed' }),
+      expect.objectContaining({ field: 'last_seen', suggestedValue: '2026-05-24' }),
+      expect.objectContaining({ field: 'locality', suggestedValue: 'local-only' }),
+      expect.objectContaining({ field: 'memory_version', suggestedValue: 1 }),
+    ]))
   })
 
   it('flags active notes that have gone stale', () => {
@@ -103,6 +120,7 @@ describe('buildLivingFrontmatterHints', () => {
       id: 'promote-wikilinks',
       field: 'related_to',
       kind: 'relationship-hint',
+      suggestedValue: ['[[Agent Council]]'],
     }))
   })
 

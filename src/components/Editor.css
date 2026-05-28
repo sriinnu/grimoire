@@ -321,6 +321,7 @@
    Scoped to .editor__blocknote-container so app-wide
    components (dialogs, sidebar, etc.) are unaffected.
    Preserves cursor blink and text selection. */
+.editor__blocknote-container,
 .editor__blocknote-container *,
 .editor__blocknote-container *::before,
 .editor__blocknote-container *::after {

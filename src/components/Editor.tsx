@@ -22,6 +22,7 @@ import { useRawModeWithFlush } from './useRawModeWithFlush'
 import { createArrowLigaturesExtension } from './arrowLigaturesExtension'
 import { useFilenameAutolinkGuard } from './useFilenameAutolinkGuard'
 import './Editor.css'
+import './EditorHeadingProfiles.css'
 import './EditorMeta.css'
 import './EditorTheme.css'
 

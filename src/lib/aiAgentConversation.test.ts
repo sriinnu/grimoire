@@ -27,6 +27,7 @@ import {
   appendLocalResponse,
   appendQueuedMessage,
   appendStreamingMessage,
+  buildMessageRouteDisclosure,
   buildFormattedMessage,
   createMissingAgentResponse,
   type AiAgentMessage,
@@ -180,72 +181,6 @@ describe('aiAgentConversation', () => {
     ].join('\n'))
   })
 
-  it('adds the shared ask context package to the provider prompt', () => {
-    buildFormattedMessage(
-      { agent: 'codex', ready: true, vaultPath: '/vault' },
-      [],
-      {
-        text: 'what needs attention?',
-        references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
-        contextPackage: {
-          kind: 'dashboard-ask',
-          prompt: 'what needs attention?',
-          references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
-          sourceLabels: ['Grimoire', 'Grimoire Memory'],
-          memoryReferences: [{
-            confidence: 'medium',
-            lastSeen: '2026-05-24',
-            path: '/vault/memory/grimoire.md',
-            sourceLabels: ['[[Grimoire]]'],
-            title: 'Grimoire Memory',
-          }],
-          visibleCount: 4,
-          withheld: {
-            protectedMemories: 1,
-            protectedNotes: 2,
-          },
-        },
-      },
-    )
-
-    const prompt = formatMessageWithHistoryMock.mock.calls.at(-1)?.[1] as string
-    expect(prompt).toContain('## Grimoire Ask Context Package')
-    expect(prompt).toContain('Visible public notes: 1 of 4')
-    expect(prompt).toContain('Withheld: 2 protected notes, 1 protected memories')
-    expect(prompt).toContain('Source labels: [[Grimoire]], [[Grimoire Memory]]')
-    expect(prompt).toContain('- [[Grimoire Memory]] (path: /vault/memory/grimoire.md, confidence: medium)')
-    expect(prompt).toContain('## Selected Grimoire References')
-  })
-
-  it('adds graph Council packages to the provider prompt without dashboard wording', () => {
-    buildFormattedMessage(
-      { agent: 'codex', ready: true, vaultPath: '/vault' },
-      [],
-      {
-        text: 'ask graph council',
-        references: [{ path: '/vault/beta.md', title: 'Beta', type: 'Reference' }],
-        contextPackage: {
-          kind: 'graph-council',
-          prompt: 'ask graph council',
-          references: [{ path: '/vault/beta.md', title: 'Beta', type: 'Reference' }],
-          sourceLabels: ['Beta'],
-          memoryReferences: [],
-          visibleCount: 2,
-          withheld: { protectedMemories: 0, protectedNotes: 1 },
-          graph: { protectedEdges: 2, truncatedEdges: 0, truncatedNodes: 1, visibleEdges: 3, visibleNodes: 2 },
-        },
-      },
-    )
-
-    const prompt = formatMessageWithHistoryMock.mock.calls.at(-1)?.[1] as string
-    expect(prompt).toContain('## Grimoire Graph Council Package')
-    expect(prompt).toContain('Visible public graph notes: 1 of 2')
-    expect(prompt).toContain('Visible graph links: 3')
-    expect(prompt).toContain('Withheld: 1 protected graph notes, 2 protected graph links')
-    expect(prompt).toContain('Trimmed: 1 graph items')
-    expect(prompt).not.toContain('Dashboard ask package')
-  })
-
   it('prefers a system prompt override when provided', () => {
     const result = buildFormattedMessage(
       { agent: 'codex', ready: true, vaultPath: '/vault', systemPromptOverride: 'OVERRIDE' },
@@ -277,7 +212,7 @@ describe('aiAgentConversation', () => {
     expect(result.systemPrompt).toContain('Do not guess a model family')
   })
 
-  it('keeps Chitragupta on CLI defaults when no provider override is configured', () => {
+  it('keeps Chitragupta route identity unresolved until the CLI stream resolves it', () => {
     const result = buildFormattedMessage(
       { agent: 'chitragupta', ready: true, vaultPath: '/vault' },
       [],
@@ -285,8 +220,22 @@ describe('aiAgentConversation', () => {
     )
 
     expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
-    expect(result.systemPrompt).toContain('- Provider: CLI default')
-    expect(result.systemPrompt).toContain('- Model: CLI default')
+    expect(result.systemPrompt).toContain('- Provider: resolved by stream')
+    expect(result.systemPrompt).toContain('- Model: resolved by stream')
+    expect(result.systemPrompt).toContain('exact model is resolved by the CLI stream')
+  })
+
+  it('builds app-owned route metadata for pending Chitragupta streams', () => {
+    expect(buildMessageRouteDisclosure({
+      agent: 'chitragupta',
+      ready: true,
+      vaultPath: '/vault',
+    })).toEqual({
+      agent: 'chitragupta',
+      provider: 'resolved by stream',
+      model: 'resolved by stream',
+      source: 'cli-default',
+    })
   })
 
   it('ignores stale provider settings for agents without provider routing', () => {

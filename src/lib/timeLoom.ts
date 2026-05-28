@@ -1,5 +1,7 @@
 import type { PulseCommit, VaultEntry } from '../types'
+import { isMobileCaptureEntry, mobileCapturedTimestamp } from './mobileCaptureMetadata'
 import { resolveEntryLocalityPolicy } from './localityPolicy'
+import { buildTimeLoomPatterns, type TimeLoomPattern } from './timeLoomPatterns'
 
 /** Count of one note type inside a temporal bucket. */
 export interface TimeLoomTypeCount {
@@ -29,8 +31,11 @@ export interface TimeLoomSummary {
   totalEvents: number
   protectedEvents: number
   voiceEvents: number
+  mobileEvents: number
   commitEvents: number
   calendarEvents: number
+  taskEvents: number
+  patterns: TimeLoomPattern[]
   activeSpanLabel: string
 }
 
@@ -53,9 +58,22 @@ const CALENDAR_PROPERTY_KEYS = [
   'starts_on',
 ]
 const CALENDAR_TYPE_DATE_KEYS = ['date', 'day', 'start', 'starts']
+const TASK_TYPES = new Set(['task', 'todo'])
+const TASK_DUE_PROPERTY_KEYS = [
+  'due',
+  'due_at',
+  'due_date',
+  'deadline',
+  'task_due',
+  'scheduled_at',
+  'scheduled_for',
+  'scheduled_on',
+  'target_date',
+]
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const STATUS_ORDER: TimeLoomStatusCount['label'][] = ['Open', 'Done', 'Unmarked']
-const TYPE_ORDER = ['Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Task', 'Meeting', 'Note']
+const SAFE_PROTECTED_TYPE_LABELS = new Set(['Calendar', 'Voice', 'Mobile', 'Commit', 'Dream', 'Journal'])
+const TYPE_ORDER = ['Mobile', 'Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Private', 'Task', 'Meeting', 'Note']
 
 /** Builds a local temporal graph preview without reading note bodies or returning titles. */
 export function buildTimeLoomSummary(
@@ -67,41 +85,56 @@ export function buildTimeLoomSummary(
   let totalEvents = 0
   let protectedEvents = 0
   let voiceEvents = 0
+  let mobileEvents = 0
   let commitEvents = 0
   let calendarEvents = 0
+  let taskEvents = 0
+  const statusTotals = new Map<TimeLoomStatusCount['label'], number>()
+  const typeTotals = new Map<string, number>()
 
   for (const entry of entries) {
     if (!shouldIncludeEntry(entry)) continue
-    const scheduledTimestamp = calendarEventTimestamp(entry)
-    const timestamp = scheduledTimestamp ?? entry.modifiedAt ?? entry.createdAt
+    const taskTimestamp = taskDueTimestamp(entry)
+    const scheduledTimestamp = taskTimestamp ? null : calendarEventTimestamp(entry)
+    const mobileTimestamp = isMobileCaptureEntry(entry) ? mobileCapturedTimestamp(entry) : null
+    const timestamp = taskTimestamp ?? scheduledTimestamp ?? mobileTimestamp ?? entry.modifiedAt ?? entry.createdAt
     if (!timestamp) continue
 
     const date = new Date(timestamp * 1000)
     const bucket = getOrCreateBucket(buckets, date, now)
     const localOnly = resolveEntryLocalityPolicy(entry).localOnly
-    const typeLabel = scheduledTimestamp ? 'Calendar' : eventTypeLabel(entry)
+    const mobileCapture = isMobileCaptureEntry(entry)
+    const rawTypeLabel = taskTimestamp ? 'Task' : scheduledTimestamp ? 'Calendar' : eventTypeLabel(entry)
+    const typeLabel = displayTypeLabel(rawTypeLabel, localOnly)
+    const status = statusLabel(entry)
 
     addBucketEvent(bucket, {
       isProtected: localOnly,
-      status: statusLabel(entry),
+      status,
       type: typeLabel,
     })
+    incrementSummaryTotals(statusTotals, typeTotals, status, typeLabel)
     totalEvents += 1
     if (localOnly) protectedEvents += 1
     if (typeLabel === 'Voice') voiceEvents += 1
+    if (mobileCapture) mobileEvents += 1
     if (typeLabel === 'Calendar') calendarEvents += 1
+    if (taskTimestamp) taskEvents += 1
     buckets.set(bucket.dateKey, bucket)
   }
 
   for (const commit of sources.commits ?? []) {
     if (!isUsableCommitEvent(commit)) continue
     const bucket = getOrCreateBucket(buckets, new Date(commit.date * 1000), now)
+    const localOnly = commitTouchesLocalOnlyPath(commit)
     addBucketEvent(bucket, {
-      isProtected: false,
+      isProtected: localOnly,
       status: 'Done',
       type: 'Commit',
     })
+    incrementSummaryTotals(statusTotals, typeTotals, 'Done', 'Commit')
     totalEvents += 1
+    if (localOnly) protectedEvents += 1
     commitEvents += 1
     buckets.set(bucket.dateKey, bucket)
   }
@@ -127,8 +160,21 @@ export function buildTimeLoomSummary(
     totalEvents,
     protectedEvents,
     voiceEvents,
+    mobileEvents,
     commitEvents,
     calendarEvents,
+    taskEvents,
+    patterns: buildTimeLoomPatterns({
+      activeDays: sortedBuckets.length,
+      calendarEvents,
+      commitEvents,
+      mobileEvents,
+      protectedEvents,
+      statusTotals,
+      taskEvents,
+      typeTotals,
+      voiceEvents,
+    }),
     activeSpanLabel: spanLabel(sortedBuckets),
   }
 }
@@ -174,8 +220,14 @@ function statusLabel(entry: VaultEntry): TimeLoomStatusCount['label'] {
 }
 
 function eventTypeLabel(entry: VaultEntry): string {
+  if (isMobileCaptureEntry(entry)) return 'Mobile'
   if (isVoiceCaptureEntry(entry)) return 'Voice'
   return entry.isA?.trim() || 'Note'
+}
+
+function displayTypeLabel(label: string, localOnly: boolean): string {
+  if (!localOnly) return label
+  return SAFE_PROTECTED_TYPE_LABELS.has(label) ? label : 'Private'
 }
 
 function typeRank(label: string): number {
@@ -198,6 +250,15 @@ function calendarEventTimestamp(entry: VaultEntry): number | null {
 
 function isCalendarTypedEntry(entry: VaultEntry): boolean {
   return CALENDAR_TYPES.has(entry.isA?.trim().toLowerCase() ?? '')
+}
+
+function taskDueTimestamp(entry: VaultEntry): number | null {
+  if (!isTaskTypedEntry(entry)) return null
+  return firstTemporalProperty(entry, TASK_DUE_PROPERTY_KEYS)
+}
+
+function isTaskTypedEntry(entry: VaultEntry): boolean {
+  return TASK_TYPES.has(entry.isA?.trim().toLowerCase() ?? '')
 }
 
 function firstTemporalProperty(entry: VaultEntry, keys: string[]): number | null {
@@ -243,6 +304,14 @@ function isUsableCommitEvent(commit: PulseCommit): boolean {
   return Number.isFinite(commit.date) && commit.date > 0
 }
 
+function commitTouchesLocalOnlyPath(commit: PulseCommit): boolean {
+  return commit.files.some((file) => resolveEntryLocalityPolicy({
+    isA: 'Note',
+    path: file.path,
+    properties: {},
+  }).localOnly)
+}
+
 function incrementStatus(
   statusCounts: TimeLoomStatusCount[],
   label: TimeLoomStatusCount['label'],
@@ -262,6 +331,16 @@ function incrementType(typeCounts: TimeLoomTypeCount[], label: string) {
     return
   }
   typeCounts.push({ label, count: 1 })
+}
+
+function incrementSummaryTotals(
+  statusTotals: Map<TimeLoomStatusCount['label'], number>,
+  typeTotals: Map<string, number>,
+  status: TimeLoomStatusCount['label'],
+  type: string,
+) {
+  statusTotals.set(status, (statusTotals.get(status) ?? 0) + 1)
+  typeTotals.set(type, (typeTotals.get(type) ?? 0) + 1)
 }
 
 function spanLabel(buckets: TimeLoomBucket[]): string {

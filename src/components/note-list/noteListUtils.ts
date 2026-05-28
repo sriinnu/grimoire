@@ -1,6 +1,7 @@
 import type { VaultEntry, SidebarSelection, SidebarFilter, ModifiedFile, NoteStatus, ViewFile } from '../../types'
 import type { RelationshipGroup } from '../../utils/noteListHelpers'
-import { translate, type AppLocale } from '../../lib/i18n'
+import type { AppLocale } from '../../lib/i18nCore'
+import { translateNoteList } from '../../lib/i18nNoteList'
 import { filenameStemToTitle } from '../../utils/noteTitle'
 
 export interface DeletedNoteEntry extends VaultEntry {
@@ -27,18 +28,18 @@ function isLocalizedFilter(filter: SidebarFilter): filter is LocalizedFilter {
 function resolveSelectionFilterTitle(selection: SidebarSelection, locale: AppLocale): string | null {
   if (selection.kind !== 'filter') return null
   if (!isLocalizedFilter(selection.filter)) return null
-  return translate(locale, FILTER_TITLE_KEYS[selection.filter])
+  return translateNoteList(locale, FILTER_TITLE_KEYS[selection.filter])
 }
 
 export function resolveHeaderTitle(selection: SidebarSelection, typeDocument: VaultEntry | null, views?: ViewFile[], locale: AppLocale = 'en'): string {
   if (selection.kind === 'view') {
     const view = views?.find((v) => v.filename === selection.filename)
-    return view?.definition.name ?? translate(locale, 'noteList.title.view')
+    return view?.definition.name ?? translateNoteList(locale, 'noteList.title.view')
   }
   if (selection.kind === 'entity') return selection.entry.title
   if (typeDocument) return typeDocument.title
 
-  return resolveSelectionFilterTitle(selection, locale) ?? translate(locale, 'noteList.title.notes')
+  return resolveSelectionFilterTitle(selection, locale) ?? translateNoteList(locale, 'noteList.title.notes')
 }
 
 export function filterByQuery<T extends { title: string }>(items: T[], query: string): T[] {

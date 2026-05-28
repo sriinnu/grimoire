@@ -102,13 +102,19 @@ export async function exportStaticHtmlArchiveWithProgress(
 /** Builds concise user feedback for a completed Markdown ZIP export. */
 export function formatMarkdownZipExportToast(result: MarkdownZipExportResult): string {
   const fileLabel = result.files_exported === 1 ? 'file' : 'files'
-  return `Exported ${result.files_exported} ${fileLabel} to Markdown ZIP`
+  return `Exported ${result.files_exported} ${fileLabel} to Markdown ZIP${withheldSuffix(result)}`
 }
 
 /** Builds concise user feedback for a completed static HTML export. */
 export function formatStaticHtmlExportToast(result: MarkdownZipExportResult): string {
   const fileLabel = result.files_exported === 1 ? 'file' : 'files'
-  return `Exported ${result.files_exported} ${fileLabel} to static HTML`
+  return `Exported ${result.files_exported} ${fileLabel} to static HTML${withheldSuffix(result)}`
+}
+
+function withheldSuffix(result: MarkdownZipExportResult): string {
+  if (result.skipped_files <= 0) return ''
+  const fileLabel = result.skipped_files === 1 ? 'file' : 'files'
+  return `; withheld ${result.skipped_files} local-only ${fileLabel}`
 }
 
 async function runMockMarkdownZipExportWithProgress(

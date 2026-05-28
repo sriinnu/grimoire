@@ -95,7 +95,13 @@ export async function refreshDevelopmentThemePack(
   storage: ThemePackStorage,
   fetchThemePack: typeof fetch = fetch,
 ): Promise<DevelopmentThemePackRefreshResult> {
-  const response = await fetchThemePack(DEV_THEME_PACK_ENDPOINT, { cache: 'no-store' })
+  let response: Response
+  try {
+    response = await fetchThemePack(DEV_THEME_PACK_ENDPOINT, { cache: 'no-store' })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not load local theme endpoint.'
+    return { status: 'invalid', errors: [message] }
+  }
   if (response.status === 404) {
     clearStoredLocalThemeDefinition(storage)
     return { status: 'missing' }

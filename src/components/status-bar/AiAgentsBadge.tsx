@@ -3,14 +3,12 @@ import { AlertTriangle, ChevronsUpDown } from 'lucide-react'
 import { Sparkle } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import {
-  AI_AGENT_DEFINITIONS,
-  getAiAgentDefinition,
-  hasAnyInstalledAiAgent,
+  CHITRAGUPTA_CLI_MCP_BOUNDARY,
+  describeAiAgentRoute,
   isBrowserPreviewAiAgentsStatus,
   isAiAgentInstalled,
   isAiAgentsStatusChecking,
   type AiAgentId,
-  type AiAgentDefinition,
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../../hooks/useAiAgentsStatus'
@@ -18,97 +16,33 @@ import {
   getVaultAiGuidanceSummary,
   isVaultAiGuidanceStatusChecking,
   vaultAiGuidanceNeedsRestore,
-  vaultAiGuidanceUsesCustomFiles,
   type VaultAiGuidanceStatus,
 } from '../../lib/vaultAiGuidance'
 import { openExternalUrl } from '../../utils/url'
-import { ICON_STYLE, SEP_STYLE } from './styles'
+import { ICON_STYLE, SEP_STYLE, STATUS_BAR_MUTED_FOREGROUND } from './styles'
 import { StatusBarHint } from './StatusBarHint'
 import { useDismissibleLayer } from './useDismissibleLayer'
+import {
+  badgeTooltip,
+  canShowSwitcherCue,
+  hasAiAgentWarning,
+  installedAgentDefinitions,
+  menuHeading,
+  missingAgentDefinitions,
+  statusText,
+  triggerButtonClassName,
+  triggerLabel,
+} from './AiAgentsBadgeModel'
 
 interface AiAgentsBadgeProps {
   statuses: AiAgentsStatus
   guidanceStatus?: VaultAiGuidanceStatus
   defaultAgent: AiAgentId
+  defaultAgentProvider?: string | null
+  defaultAgentModel?: string | null
   onSetDefaultAgent?: (agent: AiAgentId) => void
   onRestoreGuidance?: () => void
   compact?: boolean
-}
-
-function badgeTooltip(
-  statuses: AiAgentsStatus,
-  defaultAgent: AiAgentId,
-  guidanceStatus?: VaultAiGuidanceStatus,
-): string {
-  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Live AI requires the native Grimoire app'
-  const guidanceSummary = guidanceStatus && !isVaultAiGuidanceStatusChecking(guidanceStatus)
-    ? getVaultAiGuidanceSummary(guidanceStatus)
-    : null
-  if (!hasAnyInstalledAiAgent(statuses)) return 'No AI agents detected — click for setup details'
-  const definition = getAiAgentDefinition(defaultAgent)
-  if (!isAiAgentInstalled(statuses, defaultAgent)) {
-    return `${definition.label} is selected but not installed — click for setup details`
-  }
-  const version = statuses[defaultAgent].version
-  const base = `Default AI agent: ${definition.label}${version ? ` ${version}` : ''}`
-  if (!guidanceSummary) return base
-  if (vaultAiGuidanceNeedsRestore(guidanceStatus!)) {
-    return `${base}. ${guidanceSummary} — click for restore details`
-  }
-  if (vaultAiGuidanceUsesCustomFiles(guidanceStatus!)) {
-    return `${base}. ${guidanceSummary}`
-  }
-  return base
-}
-
-function installedAgentDefinitions(statuses: AiAgentsStatus): AiAgentDefinition[] {
-  return AI_AGENT_DEFINITIONS.filter((definition) => isAiAgentInstalled(statuses, definition.id))
-}
-
-function missingAgentDefinitions(statuses: AiAgentsStatus): AiAgentDefinition[] {
-  return AI_AGENT_DEFINITIONS.filter((definition) => !isAiAgentInstalled(statuses, definition.id))
-}
-
-function triggerLabel(defaultAgent: AiAgentId): string {
-  return getAiAgentDefinition(defaultAgent).shortLabel
-}
-
-function menuHeading(defaultAgent: AiAgentId, selectedAgentReady: boolean): string {
-  return selectedAgentReady
-    ? `Active AI agent: ${getAiAgentDefinition(defaultAgent).label}`
-    : `Selected AI agent unavailable: ${getAiAgentDefinition(defaultAgent).label}`
-}
-
-function statusText(statuses: AiAgentsStatus, definition: AiAgentDefinition): string {
-  const version = statuses[definition.id].version
-  return version ? `${definition.label} ${version}` : definition.label
-}
-
-function canSwitchAgents(
-  installedAgents: AiAgentDefinition[],
-  defaultAgent: AiAgentId,
-): boolean {
-  return installedAgents.some((definition) => definition.id !== defaultAgent)
-}
-
-function hasAiAgentWarning(
-  statuses: AiAgentsStatus,
-  defaultAgent: AiAgentId,
-  guidanceStatus?: VaultAiGuidanceStatus,
-): boolean {
-  return !hasAnyInstalledAiAgent(statuses)
-    || !isAiAgentInstalled(statuses, defaultAgent)
-    || !!(guidanceStatus && vaultAiGuidanceNeedsRestore(guidanceStatus))
-}
-
-function canShowSwitcherCue(statuses: AiAgentsStatus, defaultAgent: AiAgentId): boolean {
-  return canSwitchAgents(installedAgentDefinitions(statuses), defaultAgent)
-}
-
-function triggerButtonClassName(compact: boolean): string {
-  return compact
-    ? 'h-6 w-6 rounded-sm p-0 text-[11px] font-medium'
-    : 'h-6 px-2 text-[11px] font-medium'
 }
 
 function CompactSeparator({ compact }: { compact: boolean }) {
@@ -235,6 +169,8 @@ function AgentMenuContent({
   statuses,
   guidanceStatus,
   defaultAgent,
+  defaultAgentProvider,
+  defaultAgentModel,
   selectedAgentReady,
   onSetDefaultAgent,
   onRestoreGuidance,
@@ -242,6 +178,7 @@ function AgentMenuContent({
   const installedAgents = installedAgentDefinitions(statuses)
   const missingAgents = missingAgentDefinitions(statuses)
   const isBrowserPreview = isBrowserPreviewAiAgentsStatus(statuses)
+  const routeLabel = describeAiAgentRoute(defaultAgent, defaultAgentProvider, defaultAgentModel)
   const refreshAgentsStatus = () => {
     window.dispatchEvent(new Event(AI_AGENTS_STATUS_REFRESH_EVENT))
   }
@@ -265,6 +202,11 @@ function AgentMenuContent({
       data-testid="status-ai-agents-menu"
     >
       <MenuLabel>{menuHeading(defaultAgent, selectedAgentReady)}</MenuLabel>
+      {routeLabel ? (
+        <MenuItem disabled testId="status-ai-agents-route-truth">
+          Route: {routeLabel}
+        </MenuItem>
+      ) : null}
       {installedAgents.length === 0 ? (
         <MenuItem disabled>
           {isBrowserPreview ? 'Open native Grimoire for live AI' : 'No AI agents detected'}
@@ -284,6 +226,11 @@ function AgentMenuContent({
             </AgentRadioItem>
           ))}
         </div>
+      )}
+      {statuses.chitragupta.status === 'installed' && (
+        <MenuItem disabled testId="status-ai-agents-chitragupta-boundary">
+          {CHITRAGUPTA_CLI_MCP_BOUNDARY}
+        </MenuItem>
       )}
       {missingAgents.length > 0 && !isBrowserPreview && (
         <>
@@ -322,6 +269,8 @@ export function AiAgentsBadge({
   statuses,
   guidanceStatus,
   defaultAgent,
+  defaultAgentProvider,
+  defaultAgentModel,
   onSetDefaultAgent,
   onRestoreGuidance,
   compact = false,
@@ -357,7 +306,7 @@ export function AiAgentsBadge({
               setOpen(true)
             }}
           >
-            <span style={{ ...ICON_STYLE, color: showWarning ? 'var(--status-bar-warning-fg, var(--accent-orange))' : 'var(--muted-foreground)' }}>
+            <span style={{ ...ICON_STYLE, color: showWarning ? 'var(--status-bar-warning-fg, var(--accent-orange))' : STATUS_BAR_MUTED_FOREGROUND }}>
               <Sparkle size={13} weight="fill" />
               <TriggerLabel compact={compact} defaultAgent={defaultAgent} />
               <TriggerStateIcon showWarning={showWarning} showSwitcherCue={showSwitcherCue} />
@@ -369,6 +318,8 @@ export function AiAgentsBadge({
             statuses={statuses}
             guidanceStatus={guidanceStatus}
             defaultAgent={defaultAgent}
+            defaultAgentProvider={defaultAgentProvider}
+            defaultAgentModel={defaultAgentModel}
             onSetDefaultAgent={(agent) => {
               onSetDefaultAgent?.(agent)
               setOpen(false)

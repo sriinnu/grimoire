@@ -1,6 +1,6 @@
 import type { MutableRefObject, RefObject } from 'react'
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
-import type { AppLocale, UiLanguagePreference } from '../lib/i18n'
+import type { AppLocale, UiLanguagePreference } from '../lib/i18nCore'
 import type { VaultAiGuidanceStatus } from '../lib/vaultAiGuidance'
 import type { NoteListMultiSelectionCommands } from '../components/note-list/multiSelectionCommands'
 import type { NoteLayout, SidebarSelection, VaultEntry } from '../types'
@@ -21,6 +21,9 @@ export interface AppCommandsConfig {
   onCommandPalette: () => void
   onSearch: () => void
   onCreateNote: () => void
+  onCaptureThought?: () => void
+  onCaptureJournal?: () => void
+  onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
   onOpenSettings: () => void
@@ -91,6 +94,9 @@ export interface AppCommandsConfig {
   noteListFilter?: NoteListFilter
   onSetNoteListFilter?: (filter: NoteListFilter) => void
   onOpenInNewWindow?: () => void
+  onRevealNoteInFinder?: (path: string) => void
+  onPreviewNoteWithQuickLook?: (path: string) => void
+  onRevealVaultInFinder?: () => void
   onToggleFavorite?: (path: string) => void
   onToggleOrganized?: (path: string) => void
   onInsertWeatherSnapshot?: () => void
@@ -128,6 +134,9 @@ export type CommandRegistryCoreActions = Pick<
   | 'modifiedCount'
   | 'onQuickOpen'
   | 'onCreateNote'
+  | 'onCaptureThought'
+  | 'onCaptureJournal'
+  | 'onCaptureDream'
   | 'onCreateNoteOfType'
   | 'onSave'
   | 'onOpenSettings'
@@ -166,6 +175,7 @@ export type CommandRegistryVaultActions = Pick<
   | 'onReloadVault'
   | 'onRepairVault'
   | 'onOpenInNewWindow'
+  | 'onRevealVaultInFinder'
   | 'onRestoreDeletedNote'
   | 'canRestoreDeletedNote'
 >
@@ -194,6 +204,8 @@ export type CommandRegistryNoteActions = Pick<
   | 'onSetNoteListFilter'
   | 'onToggleFavorite'
   | 'onToggleOrganized'
+  | 'onRevealNoteInFinder'
+  | 'onPreviewNoteWithQuickLook'
   | 'onInsertWeatherSnapshot'
   | 'onTranscribeAudio'
   | 'onRecordAudio'

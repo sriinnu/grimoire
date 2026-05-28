@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "media/bell.m4a",
+    "destination_path": "attachments/bell.m4a",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "asset",
+    "source_path": "photos/temple.jpg",
+    "destination_path": "attachments/temple.jpg",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "note",
+    "source_path": "entries.json",
+    "destination_path": "2026-05-13-temple-bell.md",
+    "detail": "journal metadata/frontmatter map"
+  },
+  {
+    "kind": "note",
+    "source_path": "entries.json",
+    "destination_path": "2026-05-14-sketch-map.md",
+    "detail": "journal metadata/frontmatter map"
+  }
+]

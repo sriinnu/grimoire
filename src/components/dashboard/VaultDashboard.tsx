@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import {
   Brain,
   CalendarDays,
@@ -15,21 +15,27 @@ import { Textarea } from '@/components/ui/textarea'
 import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
 import type { VaultOption } from '../status-bar/types'
 import type { DashboardCaptureResult } from '../../hooks/useDashboardCapture'
+import type { DashboardAskContextPreview as DashboardAskContextPreviewModel } from '../../utils/dashboardAskContext'
 import { buildAttentionModeSuggestion } from '../../lib/attentionMode'
 import {
-  buildDashboardAskContextPreview,
   CAPTURE_KIND_CONFIGS,
   type CaptureKind,
+  type DashboardCaptureRequest,
 } from '../../utils/dashboardCapture'
 import { buildDashboardSummary } from '../../utils/dashboardModel'
-import { buildDreamForgeSummary } from '../../lib/dreamForge'
-import { buildTimeLoomSummary } from '../../lib/timeLoom'
-import { relativeDate } from '../../utils/noteListHelpers'
 import { cn } from '../../lib/utils'
-import { DashboardAskContextPreview } from './DashboardAskContextPreview'
-import { DailyFlowRail } from './DailyFlowRail'
-import { DreamForgePanel } from './DreamForgePanel'
-import { TimeLoomPanel } from './TimeLoomPanel'
+import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
+import { DashboardInsightPanelsFallback } from './DashboardInsightPanelsFallback'
+import { DashboardTodayRunway } from './DashboardTodayRunway'
+import './VaultDashboard.css'
+
+const DashboardAskContextPreview = lazy(async () => ({
+  default: (await import('./DashboardAskContextPreview')).DashboardAskContextPreview,
+}))
+
+const DashboardInsightPanels = lazy(async () => ({
+  default: (await import('./DashboardInsightPanels')).DashboardInsightPanels,
+}))
 
 interface VaultDashboardProps {
   activeVault?: VaultOption
@@ -40,6 +46,8 @@ interface VaultDashboardProps {
   onCapture: (input: string, kind: CaptureKind) => Promise<DashboardCaptureResult>
   onOpenCreateVault: () => void
   onOpenNote: (entry: VaultEntry) => void
+  onPendingCaptureConsumed?: () => void
+  pendingCaptureRequest?: DashboardCaptureRequest | null
   pulseCommits?: PulseCommit[]
   syncStatus: SyncStatus
   vaultPath: string
@@ -128,22 +136,6 @@ function PromptButton({
   )
 }
 
-function RecentNoteButton({ entry, onOpen }: { entry: VaultEntry; onOpen: (entry: VaultEntry) => void }) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      className="vault-dashboard__recent"
-      onClick={() => onOpen(entry)}
-    >
-      <span className="vault-dashboard__recent-title">{entry.title}</span>
-      <span className="vault-dashboard__recent-meta">
-        {entry.isA ?? 'Note'} - {relativeDate(entry.modifiedAt ?? entry.createdAt)}
-      </span>
-    </Button>
-  )
-}
-
 /** First screen for the local-first assistant loop. */
 export function VaultDashboard({
   activeVault,
@@ -154,6 +146,8 @@ export function VaultDashboard({
   onCapture,
   onOpenCreateVault,
   onOpenNote,
+  onPendingCaptureConsumed,
+  pendingCaptureRequest,
   pulseCommits = [],
   syncStatus,
   vaultPath,
@@ -161,18 +155,13 @@ export function VaultDashboard({
   const [selectedKind, setSelectedKind] = useState<CaptureKind>('note')
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
+  const [askContextPreview, setAskContextPreview] = useState<DashboardAskContextPreviewModel | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const summary = useMemo(() => buildDashboardSummary(entries), [entries])
-  const dreamForgeSummary = useMemo(() => buildDreamForgeSummary(entries), [entries])
-  const timeLoomSummary = useMemo(
-    () => buildTimeLoomSummary(entries, new Date(), { commits: pulseCommits }),
-    [entries, pulseCommits],
-  )
   const attentionSuggestion = useMemo(
     () => buildAttentionModeSuggestion({ conflictCount, modifiedCount, summary, syncStatus }),
     [conflictCount, modifiedCount, summary, syncStatus],
   )
-  const askContextPreview = useMemo(() => buildDashboardAskContextPreview(entries), [entries])
   const attentionCaptureKind = attentionSuggestion.captureKind
   const attentionOpenEntry = useMemo(
     () => attentionSuggestion.openEntryPath
@@ -183,6 +172,30 @@ export function VaultDashboard({
   const activeVaultLabel = activeVault?.label ?? vaultPath.split('/').filter(Boolean).pop() ?? 'Vault'
   const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
   const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)
+
+  useEffect(() => {
+    if (!showAskContextPreview) {
+      setAskContextPreview(null)
+      return
+    }
+
+    let cancelled = false
+    import('../../utils/dashboardAskContext').then(({ buildDashboardAskContextPreview }) => {
+      if (!cancelled) setAskContextPreview(buildDashboardAskContextPreview(entries, 5, input))
+    })
+    return () => { cancelled = true }
+  }, [entries, input, showAskContextPreview])
+
+  useEffect(() => {
+    if (!pendingCaptureRequest) return
+    const { kind } = pendingCaptureRequest
+    const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === kind)
+    if (!config) return
+    setSelectedKind(kind)
+    setInput((value) => value.trim() ? value : `${config.slash} `)
+    requestAnimationFrame(() => inputRef.current?.focus())
+    onPendingCaptureConsumed?.()
+  }, [onPendingCaptureConsumed, pendingCaptureRequest])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -198,16 +211,16 @@ export function VaultDashboard({
     }
   }
 
-  function seedPrompt(kind: CaptureKind) {
+  function seedPrompt(kind: CaptureKind, promptSeed?: string) {
     const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === kind)!
     setSelectedKind(kind)
-    setInput((value) => value.trim() ? value : `${config.slash} `)
+    setInput((value) => value.trim() ? value : promptSeed ?? `${config.slash} `)
     requestAnimationFrame(() => inputRef.current?.focus())
   }
 
   function handleAttentionAction() {
     if (attentionCaptureKind) {
-      seedPrompt(attentionCaptureKind)
+      seedPrompt(attentionCaptureKind, attentionSuggestion.promptSeed)
       return
     }
     if (attentionOpenEntry) onOpenNote(attentionOpenEntry)
@@ -236,8 +249,10 @@ export function VaultDashboard({
       </section>
 
       <section className="vault-dashboard__grid">
-        <DailyFlowRail
-          attentionActionLabel={attentionSuggestion.actionLabel}
+        <DashboardTodayRunway
+          attention={attentionSuggestion}
+          attentionCaptureKind={attentionCaptureKind}
+          brief={summary.dailyBrief}
           canUseAttentionAction={canUseAttentionAction}
           onAttentionAction={handleAttentionAction}
           onSeedPrompt={seedPrompt}
@@ -261,7 +276,11 @@ export function VaultDashboard({
               className="vault-dashboard__textarea"
               data-testid="dashboard-capture-input"
             />
-            {showAskContextPreview ? <DashboardAskContextPreview preview={askContextPreview} /> : null}
+            {showAskContextPreview && askContextPreview ? (
+              <Suspense fallback={null}>
+                <DashboardAskContextPreview preview={askContextPreview} />
+              </Suspense>
+            ) : null}
             <div className="vault-dashboard__capture-actions">
               <div className="vault-dashboard__capture-kinds">
                 {CAPTURE_KIND_CONFIGS.map((config) => (
@@ -326,47 +345,22 @@ export function VaultDashboard({
           <StatTile label="Memory" value={summary.memoryQueueCount} detail="review queue" />
         </div>
 
-        <DreamForgePanel summary={dreamForgeSummary} onCaptureDream={() => seedPrompt('dream')} />
-        <TimeLoomPanel summary={timeLoomSummary} onCaptureJournal={() => seedPrompt('journal')} />
+        <Suspense fallback={<DashboardInsightPanelsFallback />}>
+          <DashboardInsightPanels
+            crystallizedTodayCount={summary.crystallizedTodayCount}
+            entries={entries}
+            onCaptureDream={() => seedPrompt('dream')}
+            onCaptureJournal={() => seedPrompt('journal')}
+            onStartAsk={(promptSeed) => seedPrompt('ask', promptSeed)}
+            pulseCommits={pulseCommits}
+          />
+        </Suspense>
 
-        <div className="vault-dashboard__panel">
-          <div className="vault-dashboard__panel-head">
-            <div>
-              <div className="vault-dashboard__panel-label">Attention Mode</div>
-              <h2>{attentionSuggestion.title}</h2>
-            </div>
-            <Sparkles size={18} />
-          </div>
-          <p className="vault-dashboard__panel-copy">{attentionSuggestion.detail}</p>
-          {attentionSuggestion.actionLabel && (attentionCaptureKind || attentionOpenEntry) ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="vault-dashboard__panel-action"
-              onClick={handleAttentionAction}
-            >
-              {attentionSuggestion.actionLabel}
-            </Button>
-          ) : null}
-        </div>
-
-        <div className="vault-dashboard__panel vault-dashboard__panel--wide">
-          <div className="vault-dashboard__panel-head">
-            <div>
-              <div className="vault-dashboard__panel-label">Recent Notes</div>
-              <h2>Pick up the thread.</h2>
-            </div>
-            <NotebookTabs size={18} />
-          </div>
-          <div className="vault-dashboard__recent-list">
-            {summary.recentEntries.length > 0 ? summary.recentEntries.map((entry) => (
-              <RecentNoteButton key={entry.path} entry={entry} onOpen={onOpenNote} />
-            )) : (
-              <div className="vault-dashboard__empty">Create the first note.</div>
-            )}
-          </div>
-        </div>
+        <DashboardRecentNotesPanel
+          entries={summary.recentEntries}
+          onOpenNote={onOpenNote}
+          protectedCount={summary.recentProtectedCount}
+        />
       </section>
     </main>
   )

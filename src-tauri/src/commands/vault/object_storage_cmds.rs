@@ -40,6 +40,38 @@ pub fn storage_health_check(
     })
 }
 
+/// Checks S3 reachability through read-only provider APIs without moving vault files.
+#[tauri::command]
+pub async fn storage_s3_live_preflight(
+    bucket: Option<String>,
+    region: Option<String>,
+    prefix: Option<String>,
+) -> Result<vault::S3LivePreflightReport, String> {
+    vault::s3_live_preflight(vault::S3LivePreflightInput {
+        bucket,
+        region,
+        prefix,
+        allow_env_fallback: Some(false),
+    })
+    .await
+}
+
+/// Checks Azure Blob reachability through read-only local Azure CLI commands.
+#[tauri::command]
+pub async fn storage_azure_live_preflight(
+    account: Option<String>,
+    container: Option<String>,
+    prefix: Option<String>,
+) -> Result<vault::AzureLivePreflightReport, String> {
+    vault::azure_live_preflight(vault::AzureLivePreflightInput {
+        account,
+        container,
+        prefix,
+        allow_env_fallback: Some(false),
+    })
+    .await
+}
+
 /// Previews local working-copy changes that would be pushed to object storage.
 #[tauri::command]
 pub fn storage_push_preview(

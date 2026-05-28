@@ -30,7 +30,7 @@ const BINARY_NOTE_STYLE: CSSProperties = { padding: '14px 16px' }
 const NOTE_ITEM_ROW_CLASS_NAMES: Record<NoteItemRowState, string> = {
   binary: 'cursor-default opacity-50',
   multiSelected: 'cursor-pointer',
-  selected: 'cursor-pointer border-l-[3px]',
+  selected: 'cursor-pointer',
   highlighted: 'cursor-pointer bg-muted hover:bg-muted',
   default: 'cursor-pointer hover:bg-muted',
 }
@@ -49,13 +49,12 @@ function noteItemClassName(state: NoteItemVisualState) {
 
 type NoteItemStyle = CSSProperties & { '--note-type-color': string }
 
-function noteItemStyle(isSelected: boolean, isMultiSelected: boolean, typeColor: string): NoteItemStyle {
+function noteItemStyle(isMultiSelected: boolean, typeColor: string): NoteItemStyle {
   const base: NoteItemStyle = {
     '--note-type-color': typeColor,
-    padding: isSelected && !isMultiSelected ? '14px 16px 14px 13px' : '14px 16px',
+    padding: '14px 16px',
   }
   if (isMultiSelected) base.backgroundColor = 'color-mix(in srgb, var(--accent-blue) 10%, transparent)'
-  else if (isSelected) base.borderLeftColor = typeColor
   return base
 }
 
@@ -114,7 +113,7 @@ function resolveNoteItemSurfaceProps({
 }): NoteItemSurfaceProps {
   return {
     className: noteItemClassName({ isBinary, isSelected, isMultiSelected, isHighlighted }),
-    style: isBinary ? BINARY_NOTE_STYLE : noteItemStyle(isSelected, isMultiSelected, typeColor),
+    style: isBinary ? BINARY_NOTE_STYLE : noteItemStyle(isMultiSelected, typeColor),
     onClick: createNoteItemClickHandler(entry, isBinary, onClickNote),
     onContextMenu: onContextMenu ? (event) => onContextMenu(entry, event) : undefined,
     onMouseEnter: !isBinary && onPrefetch ? () => onPrefetch(entry.path) : undefined,

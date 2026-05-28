@@ -299,7 +299,13 @@
   cursor: pointer;
 }
 
-/* Code blocks intentionally keep BlockNote's dark shell and syntax-highlighted content. */
+.editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre {
+  border: 1px solid var(--grimoire-code-block-border, var(--border-default));
+  border-radius: var(--grimoire-code-block-radius, 8px);
+  background: var(--grimoire-code-block-bg, var(--surface-input));
+  box-shadow: var(--grimoire-code-block-shadow, none);
+}
+
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre code {
   background-color: transparent;
   padding: 0;
@@ -308,6 +314,18 @@
 
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre code .shiki {
   background-color: transparent !important;
+}
+
+/* --- Sandboxed HTML preview --- */
+.html-preview-shell {
+  background: var(--surface-editor);
+  padding: var(--grimoire-density-page-padding, 28px);
+}
+
+.html-preview-frame {
+  background: var(--grimoire-html-preview-bg, var(--surface-card));
+  border-color: var(--grimoire-html-preview-border, var(--border-default));
+  box-shadow: var(--grimoire-html-preview-shadow, none);
 }
 
 /* --- Blockquote --- */
@@ -342,4 +360,15 @@
   border: none;
   border-top: var(--horizontal-rule-thickness) solid var(--horizontal-rule-color);
   margin: var(--horizontal-rule-margin-vertical) 0;
+}
+
+/* Keep the core writing surface immediate after all theme overrides.
+   Native caret and text selection remain browser-driven; editor UI motion
+   belongs on outer shells, not typing, checklist, or selection surfaces. */
+.editor__blocknote-container,
+.editor__blocknote-container *,
+.editor__blocknote-container *::before,
+.editor__blocknote-container *::after {
+  transition: none !important;
+  animation: none !important;
 }

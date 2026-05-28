@@ -18,6 +18,8 @@ interface NoteCommandsConfig {
   onSetNoteIcon?: () => void
   onRemoveNoteIcon?: () => void
   onOpenInNewWindow?: () => void
+  onRevealNoteInFinder?: (path: string) => void
+  onPreviewNoteWithQuickLook?: (path: string) => void
   onToggleFavorite?: (path: string) => void
   isFavorite?: boolean
   onToggleOrganized?: (path: string) => void
@@ -221,6 +223,22 @@ function buildPresentationCommands(config: NoteCommandsConfig): CommandAction[] 
       keywords: ['window', 'new', 'detach', 'pop', 'external', 'separate'],
       enabled: config.hasActiveNote,
       execute: () => config.onOpenInNewWindow?.(),
+    }),
+    createNoteCommand({
+      id: 'reveal-note-in-finder',
+      label: 'Reveal Note in Finder',
+      keywords: ['finder', 'reveal', 'file', 'local', 'markdown', 'path'],
+      enabled: config.hasActiveNote && !!config.onRevealNoteInFinder,
+      path: config.activeTabPath,
+      run: (path) => config.onRevealNoteInFinder?.(path),
+    }),
+    createNoteCommand({
+      id: 'preview-note-with-quick-look',
+      label: 'Preview Note with Quick Look',
+      keywords: ['quicklook', 'quick', 'look', 'finder', 'preview', 'markdown', 'native'],
+      enabled: config.hasActiveNote && !!config.onPreviewNoteWithQuickLook,
+      path: config.activeTabPath,
+      run: (path) => config.onPreviewNoteWithQuickLook?.(path),
     }),
   ]
 }

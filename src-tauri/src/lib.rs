@@ -282,14 +282,29 @@ pub(crate) fn sync_vault_asset_scope(
 fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
     use tauri::Manager;
 
-    if let tauri::RunEvent::Exit = event {
-        let state: tauri::State<'_, WsBridgeChild> = app_handle.state();
-        let mut guard = state.0.lock().unwrap();
-        if let Some(ref mut child) = *guard {
-            let _ = child.kill();
-            log::info!("ws-bridge child process killed on exit");
+    match event {
+        tauri::RunEvent::Ready => menu_bar::show_main_window(app_handle),
+        tauri::RunEvent::Reopen {
+            has_visible_windows,
+            ..
+        } if should_show_window_on_reopen(*has_visible_windows) => {
+            menu_bar::show_main_window(app_handle)
         }
+        tauri::RunEvent::Exit => {
+            let state: tauri::State<'_, WsBridgeChild> = app_handle.state();
+            let mut guard = state.0.lock().unwrap();
+            if let Some(ref mut child) = *guard {
+                let _ = child.kill();
+                log::info!("ws-bridge child process killed on exit");
+            }
+        }
+        _ => {}
     }
+}
+
+#[cfg(any(test, desktop))]
+fn should_show_window_on_reopen(has_visible_windows: bool) -> bool {
+    !has_visible_windows
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -315,6 +330,7 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::linux_appimage_startup_env_overrides_with;
+    use super::should_show_window_on_reopen;
     use super::StartupEnvOverride;
     use super::MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS;
 
@@ -324,6 +340,12 @@ mod tests {
     #[test]
     fn macos_webview_shortcut_prevention_includes_ai_panel_shortcut() {
         assert_eq!(MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS, ["L"]);
+    }
+
+    #[test]
+    fn macos_reopen_only_shows_window_when_none_are_visible() {
+        assert!(should_show_window_on_reopen(false));
+        assert!(!should_show_window_on_reopen(true));
     }
 
     #[test]

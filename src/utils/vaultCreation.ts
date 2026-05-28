@@ -42,6 +42,14 @@ export interface CreateEmptyVaultRequest {
   templateKind?: VaultTemplateKindId
 }
 
+export interface VaultCreationPlan {
+  privacyDetail: string
+  storageDetail: string
+  syncDetail: string
+  targetPath: string
+  templateLabel: string
+}
+
 export const DEFAULT_VAULT_NAME = 'New Vault'
 
 function replaceControlCharacters(value: string): string {
@@ -174,4 +182,33 @@ export function sanitizeVaultFolderName(name: string): string {
 export function buildVaultTargetPath(choiceId: VaultStorageChoiceId, name: string): string {
   const choice = getVaultStorageChoice(choiceId)
   return `${choice.basePath.replace(/\/+$/g, '')}/${sanitizeVaultFolderName(name)}`
+}
+
+/** Describes the create-vault result in user language before any disk write. */
+export function buildVaultCreationPlan({
+  choiceId,
+  initializeGit,
+  targetPath,
+  templateKind,
+}: {
+  choiceId: VaultStorageChoiceId
+  initializeGit: boolean
+  targetPath: string
+  templateKind: VaultTemplateKindId
+}): VaultCreationPlan {
+  const choice = getVaultStorageChoice(choiceId)
+  const template = getVaultTemplateKind(templateKind)
+  const isDesktopSync = choice.storageProvider !== 'local-folder'
+
+  return {
+    privacyDetail: 'Private lanes stay local until you explicitly export or sync them.',
+    storageDetail: isDesktopSync
+      ? `${choice.label} is still a local folder. Grimoire stores no cloud credentials.`
+      : 'A normal local folder on this Mac; no account or remote required.',
+    syncDetail: initializeGit
+      ? 'Git history starts in this vault, but storage still stays under your chosen folder.'
+      : 'Git stays off. The vault opens and saves as plain Markdown without a repo.',
+    targetPath: targetPath.trim(),
+    templateLabel: template.label,
+  }
 }

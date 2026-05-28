@@ -4,11 +4,14 @@ import { useAutoGit } from './useAutoGit'
 
 describe('useAutoGit', () => {
   let hasFocus = true
+  let visibilityState: DocumentVisibilityState = 'visible'
 
   beforeEach(() => {
     vi.useFakeTimers()
     vi.spyOn(document, 'hasFocus').mockImplementation(() => hasFocus)
+    vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
     hasFocus = true
+    visibilityState = 'visible'
   })
 
   afterEach(() => {
@@ -77,6 +80,107 @@ describe('useAutoGit', () => {
     })
 
     expect(onCheckpoint).not.toHaveBeenCalled()
+  })
+
+  it('does not start a scheduler when the vault cannot checkpoint yet', () => {
+    const intervalSpy = vi.spyOn(window, 'setInterval')
+    const timeoutSpy = vi.spyOn(window, 'setTimeout')
+    const onCheckpoint = vi.fn().mockResolvedValue(true)
+    const baseOptions = {
+      enabled: true,
+      idleThresholdSeconds: 1,
+      inactiveThresholdSeconds: 1,
+      onCheckpoint,
+    }
+
+    const localVault = renderHook(() => useAutoGit({
+      ...baseOptions,
+      isGitVault: false,
+      hasPendingChanges: true,
+      hasUnsavedChanges: false,
+    }))
+    localVault.unmount()
+
+    const cleanVault = renderHook(() => useAutoGit({
+      ...baseOptions,
+      isGitVault: true,
+      hasPendingChanges: false,
+      hasUnsavedChanges: false,
+    }))
+    cleanVault.unmount()
+
+    const unsavedVault = renderHook(() => useAutoGit({
+      ...baseOptions,
+      isGitVault: true,
+      hasPendingChanges: true,
+      hasUnsavedChanges: true,
+    }))
+    unsavedVault.unmount()
+
+    expect(intervalSpy).not.toHaveBeenCalled()
+    expect(timeoutSpy).not.toHaveBeenCalled()
+  })
+
+  it('schedules one-shot work instead of a polling interval when saved pending Git work becomes eligible', () => {
+    const intervalSpy = vi.spyOn(window, 'setInterval')
+    const timeoutSpy = vi.spyOn(window, 'setTimeout')
+    const onCheckpoint = vi.fn().mockResolvedValue(true)
+    const { rerender } = renderHook(({ hasPendingChanges, hasUnsavedChanges }) => useAutoGit({
+      enabled: true,
+      idleThresholdSeconds: 1,
+      inactiveThresholdSeconds: 1,
+      isGitVault: true,
+      hasPendingChanges,
+      hasUnsavedChanges,
+      onCheckpoint,
+    }), {
+      initialProps: {
+        hasPendingChanges: true,
+        hasUnsavedChanges: true,
+      },
+    })
+
+    expect(intervalSpy).not.toHaveBeenCalled()
+
+    rerender({
+      hasPendingChanges: true,
+      hasUnsavedChanges: false,
+    })
+
+    expect(intervalSpy).not.toHaveBeenCalled()
+    expect(timeoutSpy).toHaveBeenCalled()
+  })
+
+  it('does not checkpoint or schedule while the app is hidden', async () => {
+    visibilityState = 'hidden'
+    hasFocus = false
+    const timeoutSpy = vi.spyOn(window, 'setTimeout')
+    const onCheckpoint = vi.fn().mockResolvedValue(true)
+    renderHook(() => useAutoGit({
+      enabled: true,
+      idleThresholdSeconds: 1,
+      inactiveThresholdSeconds: 1,
+      isGitVault: true,
+      hasPendingChanges: true,
+      hasUnsavedChanges: false,
+      onCheckpoint,
+    }))
+
+    expect(timeoutSpy).not.toHaveBeenCalled()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000)
+    })
+    expect(onCheckpoint).not.toHaveBeenCalled()
+
+    visibilityState = 'visible'
+    hasFocus = true
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+
+    expect(onCheckpoint).toHaveBeenCalledWith('idle')
   })
 
   it('only triggers once per activity burst until activity is recorded again', async () => {

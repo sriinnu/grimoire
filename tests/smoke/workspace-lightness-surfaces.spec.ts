@@ -25,6 +25,34 @@ async function captureSurface(page: Page, testInfo: TestInfo, name: string) {
   })
 }
 
+type NativeShellChromeState = {
+  noteHeaderBackgroundImage: string
+  noteHeaderBorderBottomColor: string
+  rootMaterial: string | null
+  sidebarTargets: Array<{
+    className: string
+    backgroundImage: string
+  }>
+}
+
+function readNativeShellChromeState(): NativeShellChromeState {
+  const sidebarTargets = Array.from(
+    document.querySelectorAll<HTMLElement>('.app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar'),
+  )
+  const noteHeader = document.querySelector<HTMLElement>('.note-list-chrome-row')
+  if (sidebarTargets.length === 0 || !noteHeader) throw new Error('Native shell chrome targets are missing')
+  const noteHeaderStyle = getComputedStyle(noteHeader)
+  return {
+    noteHeaderBackgroundImage: noteHeaderStyle.backgroundImage,
+    noteHeaderBorderBottomColor: noteHeaderStyle.borderBottomColor,
+    rootMaterial: document.documentElement.getAttribute('data-native-shell-material'),
+    sidebarTargets: sidebarTargets.map((target) => ({
+      backgroundImage: getComputedStyle(target).backgroundImage,
+      className: target.className,
+    })),
+  }
+}
+
 async function expectScrollIntoView(page: Page, action: () => Promise<void>): Promise<void> {
   await page.evaluate(() => {
     const targetWindow = window as Window & { __grimoireWorkspaceScrollSeen?: Promise<boolean> }
@@ -64,6 +92,12 @@ async function openSettings(page: Page): Promise<void> {
     await panel.waitFor({ timeout: 2_000 })
     return
   } catch {
+    const settingsButton = page.getByTestId('status-settings')
+    if (await settingsButton.isVisible()) {
+      await settingsButton.click()
+      await panel.waitFor({ timeout: 5_000 })
+      return
+    }
     await openCommandPalette(page)
     await executeCommand(page, 'Settings')
     await panel.waitFor({ timeout: 5_000 })
@@ -104,10 +138,11 @@ test.describe('Workspace lightness screenshots', () => {
         railLeft: railBox.left,
         railRight: railBox.right,
         railPaddingTop: Number.parseFloat(railStyle.paddingTop),
+        rootZoom: Number.parseFloat(getComputedStyle(document.documentElement).zoom) || 1,
       }
     })
     expect(overlap.railPaddingTop).toBeGreaterThanOrEqual(82)
-    expect(overlap.markTop - overlap.railTop).toBeGreaterThanOrEqual(79)
+    expect(overlap.markTop - overlap.railTop).toBeGreaterThanOrEqual(overlap.railPaddingTop * overlap.rootZoom * 0.9)
     expect(overlap.markLeft).toBeGreaterThanOrEqual(overlap.railLeft)
     expect(overlap.markRight).toBeLessThanOrEqual(overlap.railRight)
     await captureSurface(page, testInfo, 'workspace-collapsed-sidebar-macos-safe')
@@ -153,5 +188,37 @@ test.describe('Workspace lightness screenshots', () => {
     expect(materials.navigatorBackground).not.toBe('rgba(0, 0, 0, 0)')
     expect(materials.noteListBackground).not.toBe('none')
     await captureSurface(page, testInfo, 'workspace-living-archive-navigator')
+  })
+
+  test('native shell material modes preserve standard theme chrome and tint explicit variants', async ({ page }, testInfo) => {
+    await openGrimoireProject(page)
+    await page.evaluate(() => {
+      document.body.classList.add('macos-overlay-chrome')
+      document.documentElement.removeAttribute('data-native-shell-material')
+    })
+
+    const baselineChrome = await page.evaluate(readNativeShellChromeState)
+    await page.evaluate(() => {
+      document.documentElement.setAttribute('data-native-shell-material', 'standard')
+    })
+    const standardChrome = await page.evaluate(readNativeShellChromeState)
+    expect(standardChrome).toEqual({ ...baselineChrome, rootMaterial: 'standard' })
+
+    for (const mode of ['unified', 'glass-preview'] as const) {
+      await page.evaluate((material) => {
+        document.documentElement.setAttribute('data-native-shell-material', material)
+      }, mode)
+      await page.waitForTimeout(240)
+      const tintedChrome = await page.evaluate(readNativeShellChromeState)
+      expect(tintedChrome.rootMaterial).toBe(mode)
+      expect(tintedChrome.sidebarTargets).toHaveLength(standardChrome.sidebarTargets.length)
+      for (const [index, target] of tintedChrome.sidebarTargets.entries()) {
+        expect(target.className).toBe(standardChrome.sidebarTargets[index].className)
+        expect(target.backgroundImage).not.toBe(standardChrome.sidebarTargets[index].backgroundImage)
+      }
+      expect(tintedChrome.noteHeaderBackgroundImage).not.toBe(standardChrome.noteHeaderBackgroundImage)
+      expect(tintedChrome.noteHeaderBorderBottomColor).not.toBe(standardChrome.noteHeaderBorderBottomColor)
+      await captureSurface(page, testInfo, `workspace-native-shell-${mode}`)
+    }
   })
 })

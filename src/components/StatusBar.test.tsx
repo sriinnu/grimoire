@@ -378,6 +378,19 @@ describe('StatusBar', () => {
     expect(screen.queryByText('Claude Code missing')).not.toBeInTheDocument()
   })
 
+  it('stacks the footer rails on mobile and iPad-width windows instead of overflowing one line', () => {
+    setWindowWidth(680)
+    renderDenseStatusBar()
+
+    expect(screen.getByTestId('status-bar')).toHaveStyle({
+      flexWrap: 'wrap',
+      height: 'auto',
+    })
+    expect(screen.getByTestId('status-workspace-group')).toHaveAttribute('data-status-compact', 'true')
+    expect(screen.getByTestId('status-workflow-group')).toBeInTheDocument()
+    expect(screen.getByTestId('status-utility-group')).toBeInTheDocument()
+  })
+
   it('hides the active AI agent label in compact status layout', () => {
     setWindowWidth(880)
     render(
@@ -494,6 +507,20 @@ describe('StatusBar', () => {
       />
     )
     expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
+  })
+
+  it('shows a local-only chip instead of no-remote for non-git vaults', () => {
+    render(
+      <StatusBar
+        noteCount={100}
+        vaultPath="/Users/srinivas/Grimoire"
+        vaults={vaults}
+        onSwitchVault={vi.fn()}
+        isGitVault={false}
+      />
+    )
+    expect(screen.getByTestId('status-local-only')).toHaveTextContent('Local only')
+    expect(screen.queryByTestId('status-no-remote')).not.toBeInTheDocument()
   })
 
   it('opens the add-remote flow when clicking the no-remote chip', () => {

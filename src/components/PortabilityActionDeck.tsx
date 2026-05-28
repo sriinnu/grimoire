@@ -1,11 +1,11 @@
 import { Cloud, DownloadSimple, FolderOpen, UploadSimple } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
-import type { PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
-import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import type { VaultPortabilityActionId } from '../lib/vaultPortability'
 import { AppImportAutopsyActions } from './AppImportAutopsyActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
+import type { PortabilityActionDeckProps } from './PortabilityActionDeck.types'
 import { PortabilityActionButton, PortabilityImportButton } from './PortabilityActionButton'
 import { PortabilityActionProgress } from './PortabilityActionProgress'
 import { Button } from './ui/button'
@@ -13,58 +13,7 @@ import { Button } from './ui/button'
 type Translate = ReturnType<typeof createTranslator>
 type PortabilityActionLane = 'markdown' | 'apps' | 'journals' | 'export' | 'storage'
 
-interface PortabilityActionDeckProps {
-  t: Translate
-  vaultReady: boolean
-  busyAction: VaultPortabilityActionId | null
-  progress?: PortabilityProgressState | null
-  onCancelProgress?: () => void
-  s3MirrorPreviewReady?: boolean
-  s3MirrorPullPreviewReady?: boolean
-  azureMirrorPreviewReady?: boolean
-  azureMirrorPullPreviewReady?: boolean
-  s3MirrorPreviewReport?: ObjectStorageSyncReport
-  s3MirrorPullPreviewReport?: ObjectStorageSyncReport
-  azureMirrorPreviewReport?: ObjectStorageSyncReport
-  azureMirrorPullPreviewReport?: ObjectStorageSyncReport
-  onPreviewMarkdownFolder?: () => void
-  onImportMarkdownFolder?: () => void
-  onPreviewMarkdownZip?: () => void
-  onImportMarkdownZip?: () => void
-  onPreviewBear?: () => void
-  onImportBear?: () => void
-  onPreviewObsidian?: () => void
-  onImportObsidian?: () => void
-  onPreviewNotion?: () => void
-  onImportNotion?: () => void
-  onPreviewNotionFolder?: () => void
-  onImportNotionFolder?: () => void
-  onPreviewSpanda?: () => void
-  onImportSpanda?: () => void
-  onPreviewAppleJournal?: () => void
-  onImportAppleJournal?: () => void
-  onPreviewDayOne?: () => void
-  onImportDayOne?: () => void
-  onPreviewJourney?: () => void
-  onImportJourney?: () => void
-  onExportMarkdownZip?: () => void
-  onExportStaticHtmlArchive?: () => void
-  onPreviewS3MirrorPush?: () => void
-  onApplyS3MirrorPush?: () => void
-  onPreviewS3MirrorPull?: () => void
-  onApplyS3MirrorPull?: () => void
-  onPreviewAzureMirrorPush?: () => void
-  onApplyAzureMirrorPush?: () => void
-  onPreviewAzureMirrorPull?: () => void
-  onApplyAzureMirrorPull?: () => void
-}
-
-interface LaneConfig {
-  id: PortabilityActionLane
-  label: string
-  description: string
-  icon: ReactNode
-}
+interface LaneConfig { id: PortabilityActionLane; label: string; description: string; icon: ReactNode }
 
 /** Shows import/export/storage actions one lane at a time so Settings stays inspectable. */
 export function PortabilityActionDeck({
@@ -75,12 +24,22 @@ export function PortabilityActionDeck({
   onCancelProgress,
   s3MirrorPreviewReady,
   s3MirrorPullPreviewReady,
+  s3ProviderPushPreviewReady,
+  s3ProviderPullPreviewReady,
+  azureProviderPushPreviewReady,
+  azureProviderPullPreviewReady,
   azureMirrorPreviewReady,
   azureMirrorPullPreviewReady,
   s3MirrorPreviewReport,
   s3MirrorPullPreviewReport,
+  s3ProviderPushPreviewReport,
+  s3ProviderPullPreviewReport,
+  azureProviderPushPreviewReport,
+  azureProviderPullPreviewReport,
   azureMirrorPreviewReport,
   azureMirrorPullPreviewReport,
+  s3LivePreflightReport,
+  azureLivePreflightReport,
   onPreviewMarkdownFolder,
   onImportMarkdownFolder,
   onPreviewMarkdownZip,
@@ -103,16 +62,26 @@ export function PortabilityActionDeck({
   onImportJourney,
   onExportMarkdownZip,
   onExportStaticHtmlArchive,
+  onRunS3LivePreflight,
+  onRunAzureLivePreflight,
   onPreviewS3MirrorPush,
   onApplyS3MirrorPush,
   onPreviewS3MirrorPull,
   onApplyS3MirrorPull,
+  onPreviewS3ProviderPush,
+  onApplyS3ProviderPush,
+  onPreviewS3ProviderPull,
+  onApplyS3ProviderPull,
+  onPreviewAzureProviderPush,
+  onApplyAzureProviderPush,
+  onPreviewAzureProviderPull,
+  onApplyAzureProviderPull,
   onPreviewAzureMirrorPush,
   onApplyAzureMirrorPush,
   onPreviewAzureMirrorPull,
   onApplyAzureMirrorPull,
 }: PortabilityActionDeckProps) {
-  const previewLane = s3MirrorPreviewReport || s3MirrorPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport
+  const previewLane = s3LivePreflightReport || azureLivePreflightReport || s3MirrorPreviewReport || s3MirrorPullPreviewReport || s3ProviderPushPreviewReport || s3ProviderPullPreviewReport || azureProviderPushPreviewReport || azureProviderPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport
     ? 'storage'
     : 'markdown'
   const [activeLane, setActiveLane] = useState<PortabilityActionLane>(previewLane)
@@ -123,17 +92,17 @@ export function PortabilityActionDeck({
   }, [busyAction])
 
   useEffect(() => {
-    if (s3MirrorPreviewReport || s3MirrorPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport) {
+    if (s3LivePreflightReport || azureLivePreflightReport || s3MirrorPreviewReport || s3MirrorPullPreviewReport || s3ProviderPushPreviewReport || s3ProviderPullPreviewReport || azureProviderPushPreviewReport || azureProviderPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport) {
       setActiveLane('storage')
     }
-  }, [azureMirrorPreviewReport, azureMirrorPullPreviewReport, s3MirrorPreviewReport, s3MirrorPullPreviewReport])
+  }, [azureLivePreflightReport, azureMirrorPreviewReport, azureMirrorPullPreviewReport, azureProviderPullPreviewReport, azureProviderPushPreviewReport, s3LivePreflightReport, s3MirrorPreviewReport, s3MirrorPullPreviewReport, s3ProviderPullPreviewReport, s3ProviderPushPreviewReport])
 
   const lanes = useMemo(() => buildLanes(t), [t])
   const activeConfig = lanes.find((lane) => lane.id === activeLane) ?? lanes[0]
 
   return (
     <section
-      className="grid gap-3 rounded-md border border-border bg-background/55 p-3"
+      className="grimoire-portability-action-deck grid gap-3 rounded-md border border-border bg-background/55 p-3"
       data-testid="settings-portability-action-deck"
     >
       <div className="flex flex-col gap-1">
@@ -143,7 +112,7 @@ export function PortabilityActionDeck({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1 rounded-md border border-border bg-muted/30 p-1" role="tablist">
+      <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border bg-muted/30 p-1" role="tablist">
         {lanes.map((lane) => (
           <Button
             key={lane.id}
@@ -216,16 +185,36 @@ export function PortabilityActionDeck({
         busyAction={busyAction}
         s3MirrorPreviewReady={s3MirrorPreviewReady}
         s3MirrorPullPreviewReady={s3MirrorPullPreviewReady}
+        s3ProviderPushPreviewReady={s3ProviderPushPreviewReady}
+        s3ProviderPullPreviewReady={s3ProviderPullPreviewReady}
+        azureProviderPushPreviewReady={azureProviderPushPreviewReady}
+        azureProviderPullPreviewReady={azureProviderPullPreviewReady}
         azureMirrorPreviewReady={azureMirrorPreviewReady}
         azureMirrorPullPreviewReady={azureMirrorPullPreviewReady}
         s3MirrorPreviewReport={s3MirrorPreviewReport}
         s3MirrorPullPreviewReport={s3MirrorPullPreviewReport}
+        s3ProviderPushPreviewReport={s3ProviderPushPreviewReport}
+        s3ProviderPullPreviewReport={s3ProviderPullPreviewReport}
+        azureProviderPushPreviewReport={azureProviderPushPreviewReport}
+        azureProviderPullPreviewReport={azureProviderPullPreviewReport}
         azureMirrorPreviewReport={azureMirrorPreviewReport}
         azureMirrorPullPreviewReport={azureMirrorPullPreviewReport}
+        s3LivePreflightReport={s3LivePreflightReport}
+        azureLivePreflightReport={azureLivePreflightReport}
+        onRunS3LivePreflight={onRunS3LivePreflight}
+        onRunAzureLivePreflight={onRunAzureLivePreflight}
         onPreviewS3MirrorPush={onPreviewS3MirrorPush}
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onPreviewS3MirrorPull={onPreviewS3MirrorPull}
         onApplyS3MirrorPull={onApplyS3MirrorPull}
+        onPreviewS3ProviderPush={onPreviewS3ProviderPush}
+        onApplyS3ProviderPush={onApplyS3ProviderPush}
+        onPreviewS3ProviderPull={onPreviewS3ProviderPull}
+        onApplyS3ProviderPull={onApplyS3ProviderPull}
+        onPreviewAzureProviderPush={onPreviewAzureProviderPush}
+        onApplyAzureProviderPush={onApplyAzureProviderPush}
+        onPreviewAzureProviderPull={onPreviewAzureProviderPull}
+        onApplyAzureProviderPull={onApplyAzureProviderPull}
         onPreviewAzureMirrorPush={onPreviewAzureMirrorPush}
         onApplyAzureMirrorPush={onApplyAzureMirrorPush}
         onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}

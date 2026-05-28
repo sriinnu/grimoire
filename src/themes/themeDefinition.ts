@@ -7,6 +7,26 @@ import {
   TOKEN_CSS_VARIABLES,
   type ThemeTokenMap,
 } from './themeTokens'
+import {
+  CANVAS_TOKENS,
+  CODE_BLOCK_TOKENS,
+  DENSITY_TOKENS,
+  GRAPH_TOKENS,
+  MOTION_TOKENS,
+  THEME_CANVAS_STYLES,
+  THEME_CODE_BLOCK_STYLES,
+  THEME_DENSITY_SCALES,
+  THEME_GRAPH_STYLES,
+  THEME_MOTION_PROFILES,
+  type ThemeCanvasStyle,
+  type ThemeCodeBlockStyle,
+  type ThemeDensityDefinition,
+  type ThemeDensityScale,
+  type ThemeGraphStyle,
+  type ThemeMotionDefinition,
+  type ThemeMotionProfile,
+  type ThemeVisualDefinition,
+} from './themeRuntimeProfiles'
 
 /** Theme modes that can be expressed by a validated preset definition. */
 export type ThemeDefinitionMode = 'light' | 'dark'
@@ -15,6 +35,7 @@ export { REQUIRED_THEME_TOKEN_KEYS } from './themeTokens'
 
 /** Editor-level knobs imported from a theme definition. */
 export interface ThemeEditorDefinition {
+  codeBlockStyle: ThemeCodeBlockStyle
   headingStyle: 'graph' | 'manuscript' | 'system' | 'terminal'
   lineHeight: number
   maxWidth: number
@@ -32,6 +53,19 @@ export interface ThemeMetadataStripDefinition {
   visibleFields: readonly string[]
 }
 
+export type ThemeTypographyRole = 'ui' | 'editor' | 'mono' | 'display' | 'label'
+export type ThemeTypographyDefinition = Partial<Record<ThemeTypographyRole, string>>
+export type {
+  ThemeCodeBlockStyle,
+  ThemeCanvasStyle,
+  ThemeDensityDefinition,
+  ThemeDensityScale,
+  ThemeGraphStyle,
+  ThemeMotionDefinition,
+  ThemeMotionProfile,
+  ThemeVisualDefinition,
+} from './themeRuntimeProfiles'
+
 /** Runtime-safe preset definition loaded from JSON. */
 export interface ThemeDefinition {
   description: string
@@ -44,6 +78,10 @@ export interface ThemeDefinition {
   schemaVersion: 1
   sidebar: ThemeSidebarDefinition
   swatches: [string, string, string]
+  typography: ThemeTypographyDefinition
+  density: ThemeDensityDefinition
+  motion: ThemeMotionDefinition
+  visuals: ThemeVisualDefinition
 }
 
 /** Result returned by JSON theme import validation. */
@@ -59,6 +97,12 @@ const SIDEBAR_ARTWORK = new Set<ThemeSidebarDefinition['artwork']>(['grimoire-si
 const LEGACY_SIDEBAR_ARTWORK = new Set(['agent-graph', 'archive', 'desk', 'manuscript', 'terminal'])
 const METADATA_STYLES = new Set<ThemeMetadataStripDefinition['style']>(['badges', 'quiet', 'terminal'])
 const MODES: readonly ThemeDefinitionMode[] = ['light', 'dark']
+const TYPOGRAPHY_ROLES = new Set<ThemeTypographyRole>(['ui', 'editor', 'mono', 'display', 'label'])
+const CODE_BLOCK_STYLES = new Set<ThemeCodeBlockStyle>(THEME_CODE_BLOCK_STYLES)
+const CANVAS_STYLES = new Set<ThemeCanvasStyle>(THEME_CANVAS_STYLES)
+const DENSITY_SCALES = new Set<ThemeDensityScale>(THEME_DENSITY_SCALES)
+const GRAPH_STYLES = new Set<ThemeGraphStyle>(THEME_GRAPH_STYLES)
+const MOTION_PROFILES = new Set<ThemeMotionProfile>(THEME_MOTION_PROFILES)
 
 function isRecord(value: unknown): value is RawRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -95,6 +139,18 @@ function readEnum<T extends string>(
   if (typeof value === 'string' && allowed.has(value as T)) return value as T
   errors.push(`${path}.${key} is not supported.`)
   return Array.from(allowed)[0]
+}
+
+function readOptionalEnum<T extends string>(
+  record: RawRecord,
+  key: string,
+  allowed: ReadonlySet<T>,
+  fallback: T,
+  path: string,
+  errors: string[],
+): T {
+  if (record[key] === undefined) return fallback
+  return readEnum(record, key, allowed, path, errors)
 }
 
 function readSidebarArtwork(record: RawRecord, errors: string[]): ThemeSidebarDefinition['artwork'] {
@@ -173,6 +229,48 @@ function normalizeModes(raw: RawRecord, errors: string[]): ThemeDefinition['mode
   return modes
 }
 
+function normalizeTypography(value: unknown, errors: string[]): ThemeTypographyDefinition {
+  if (value === undefined) return {}
+  const raw = asRecord(value, 'typography', errors)
+  const typography: ThemeTypographyDefinition = {}
+
+  for (const key of Object.keys(raw)) {
+    if (!TYPOGRAPHY_ROLES.has(key as ThemeTypographyRole)) {
+      errors.push(`typography.${key} is not supported.`)
+      continue
+    }
+    const value = raw[key]
+    if (typeof value !== 'string' || !value.trim() || !isSafeCssValue(value)) {
+      errors.push(`typography.${key} must be a safe CSS font stack.`)
+      continue
+    }
+    typography[key as ThemeTypographyRole] = value
+  }
+
+  return typography
+}
+
+function normalizeDensity(value: unknown, errors: string[]): ThemeDensityDefinition {
+  if (value === undefined) return { scale: 'comfortable' }
+  const raw = asRecord(value, 'density', errors)
+  return { scale: readEnum(raw, 'scale', DENSITY_SCALES, 'density', errors) }
+}
+
+function normalizeMotion(value: unknown, errors: string[]): ThemeMotionDefinition {
+  if (value === undefined) return { profile: 'standard' }
+  const raw = asRecord(value, 'motion', errors)
+  return { profile: readEnum(raw, 'profile', MOTION_PROFILES, 'motion', errors) }
+}
+
+function normalizeVisuals(value: unknown, errors: string[]): ThemeVisualDefinition {
+  if (value === undefined) return { graphStyle: 'constellation', canvasStyle: 'paper' }
+  const raw = asRecord(value, 'visuals', errors)
+  return {
+    graphStyle: readEnum(raw, 'graphStyle', GRAPH_STYLES, 'visuals', errors),
+    canvasStyle: readEnum(raw, 'canvasStyle', CANVAS_STYLES, 'visuals', errors),
+  }
+}
+
 /** Validates unknown JSON into a runtime-safe Grimoire theme definition. */
 export function parseThemeDefinition(value: unknown): ThemeDefinitionParseResult {
   const errors: string[] = []
@@ -195,6 +293,7 @@ export function parseThemeDefinition(value: unknown): ThemeDefinitionParseResult
     swatches: normalizeSwatches(raw.swatches, id, errors),
     modes,
     editor: {
+      codeBlockStyle: readOptionalEnum(editor, 'codeBlockStyle', CODE_BLOCK_STYLES, 'notebook', 'editor', errors),
       headingStyle: readEnum(editor, 'headingStyle', HEADING_STYLES, 'editor', errors),
       lineHeight: readNumber(editor, 'lineHeight', 'editor', errors),
       maxWidth: readNumber(editor, 'maxWidth', 'editor', errors),
@@ -207,6 +306,10 @@ export function parseThemeDefinition(value: unknown): ThemeDefinitionParseResult
       style: readEnum(metadataStrip, 'style', METADATA_STYLES, 'metadataStrip', errors),
       visibleFields: readStringArray(metadataStrip, 'visibleFields', 'metadataStrip', errors),
     },
+    typography: normalizeTypography(raw.typography, errors),
+    density: normalizeDensity(raw.density, errors),
+    motion: normalizeMotion(raw.motion, errors),
+    visuals: normalizeVisuals(raw.visuals, errors),
   }
 
   return errors.length > 0 ? { ok: false, errors } : { ok: true, definition }
@@ -247,10 +350,34 @@ export function applyThemeDefinitionToRoot(
 
   root.setAttribute('data-theme-definition-id', definition.id)
   root.setAttribute('data-theme-definition-mode', mode)
+  root.setAttribute('data-theme-code-block', definition.editor.codeBlockStyle)
+  root.setAttribute('data-theme-canvas', definition.visuals.canvasStyle)
+  root.setAttribute('data-theme-density', definition.density.scale)
+  root.setAttribute('data-theme-graph', definition.visuals.graphStyle)
+  root.setAttribute('data-theme-heading', definition.editor.headingStyle)
+  root.setAttribute('data-theme-metadata-fields', definition.metadataStrip.visibleFields.join(' '))
+  root.setAttribute('data-theme-metadata-strip', definition.metadataStrip.style)
+  root.setAttribute('data-theme-motion', definition.motion.profile)
   root.setAttribute('data-sidebar-artwork', definition.sidebar.artwork)
   root.style.setProperty('--editor-max-width', `${definition.editor.maxWidth}px`)
   root.style.setProperty('--editor-line-height', String(definition.editor.lineHeight))
   root.style.setProperty('--sidebar-artwork-opacity', String(definition.sidebar.artworkOpacity))
+
+  for (const [property, value] of Object.entries(DENSITY_TOKENS[definition.density.scale])) {
+    root.style.setProperty(property, value)
+  }
+  for (const [property, value] of Object.entries(CODE_BLOCK_TOKENS[definition.editor.codeBlockStyle])) {
+    root.style.setProperty(property, value)
+  }
+  for (const [property, value] of Object.entries(GRAPH_TOKENS[definition.visuals.graphStyle])) {
+    root.style.setProperty(property, value)
+  }
+  for (const [property, value] of Object.entries(CANVAS_TOKENS[definition.visuals.canvasStyle])) {
+    root.style.setProperty(property, value)
+  }
+  for (const [property, value] of Object.entries(MOTION_TOKENS[definition.motion.profile])) {
+    root.style.setProperty(property, value)
+  }
 
   for (const key of REQUIRED_THEME_TOKEN_KEYS) {
     const value = tokens[key]

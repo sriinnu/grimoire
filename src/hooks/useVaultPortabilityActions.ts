@@ -23,13 +23,7 @@ import {
   runMarkdownZipExportAction,
   runStaticHtmlExportAction,
 } from './vaultExportActionRunners'
-import {
-  previewKey,
-  runObjectStorageSyncAction,
-  type ObjectStoragePreviewKey,
-} from './vaultStorageSyncActionRunners'
 import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
-import type { ObjectStorageProviderId } from '../lib/objectStorageAdapterDesign'
 import {
   type ActivePortabilityOperation,
   appImportActionId,
@@ -45,10 +39,9 @@ import {
   type VaultPortabilityActions,
   type VaultPortabilityActionsOptions,
 } from './vaultPortabilityActionHelpers'
-import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import { useObjectStoragePortabilityActions } from './useObjectStoragePortabilityActions'
 
 type MarkdownFolderSource = 'markdown-folder' | 'bear' | 'markdown-zip'
-type ObjectStoragePreviewReports = Partial<Record<ObjectStoragePreviewKey, ObjectStorageSyncReport>>
 /** Owns vault import/export actions so App only wires the surface. */
 export function useVaultPortabilityActions({
   resolvedPath,
@@ -60,12 +53,10 @@ export function useVaultPortabilityActions({
   const [activeAction, setActiveAction] = useState<VaultPortabilityActionId | null>(null)
   const [portabilityProgress, setPortabilityProgress] = useState<PortabilityProgressState | null>(null)
   const [lastImportPreview, setLastImportPreview] = useState<ImportAutopsyPreviewState | null>(null)
-  const [objectStoragePreviewReports, setObjectStoragePreviewReports] = useState<ObjectStoragePreviewReports>({})
   const activeOperationRef = useRef<ActivePortabilityOperation | null>(null)
   const markdownImportBusy = activeAction !== null
 
   useEffect(() => {
-    setObjectStoragePreviewReports({})
     setLastImportPreview(null)
     setPortabilityProgress(null)
     activeOperationRef.current = null
@@ -88,6 +79,17 @@ export function useVaultPortabilityActions({
     if (!isCurrentPortabilityOperation(activeOperationRef.current, operation.operationId)) return
     setPortabilityProgress((current) => nextPortabilityImportProgress(current, operation, label, event))
   }, [])
+  const objectStorageActions = useObjectStoragePortabilityActions({
+    resolvedPath,
+    reloadVault,
+    reloadFolders,
+    loadModifiedFiles,
+    setToastMessage,
+    activeOperationRef,
+    setActiveAction,
+    setPortabilityProgress,
+    updateProgress: updateImportProgress,
+  })
   const handleCancelPortabilityAction = useCallback(() => {
     const operation = activeOperationRef.current
     if (!operation) return
@@ -285,24 +287,6 @@ export function useVaultPortabilityActions({
     })
   }, [resolvedPath, setToastMessage, updateImportProgress])
 
-  const handleObjectStorageSync = useCallback(async (
-    providerId: ObjectStorageProviderId,
-    direction: 'push' | 'pull',
-    mode: 'preview' | 'apply',
-  ) => {
-    await runObjectStorageSyncAction(providerId, direction, mode, {
-      resolvedPath,
-      objectStoragePreviewReports,
-      setObjectStoragePreviewReports,
-      activeOperationRef,
-      setActiveAction,
-      setPortabilityProgress,
-      setToastMessage,
-      loadModifiedFiles,
-      updateProgress: updateImportProgress,
-    })
-  }, [loadModifiedFiles, objectStoragePreviewReports, resolvedPath, setToastMessage, updateImportProgress])
-
   return {
     markdownImportBusy,
     portabilityBusyAction: activeAction,
@@ -321,22 +305,7 @@ export function useVaultPortabilityActions({
     handlePreviewJourney: () => { void handleJournalExport('journey', 'preview') }, handleImportJourney: () => { void handleJournalExport('journey', 'import') },
     handleExportMarkdownZip: () => { void handleExportMarkdownZip() },
     handleExportStaticHtmlArchive: () => { void handleExportStaticHtmlArchive() },
-    s3MirrorPreviewReady: Boolean(objectStoragePreviewReports[previewKey('s3', 'push')]),
-    s3MirrorPullPreviewReady: Boolean(objectStoragePreviewReports[previewKey('s3', 'pull')]),
-    azureMirrorPreviewReady: Boolean(objectStoragePreviewReports[previewKey('azure-blob', 'push')]),
-    azureMirrorPullPreviewReady: Boolean(objectStoragePreviewReports[previewKey('azure-blob', 'pull')]),
-    s3MirrorPreviewReport: objectStoragePreviewReports[previewKey('s3', 'push')],
-    s3MirrorPullPreviewReport: objectStoragePreviewReports[previewKey('s3', 'pull')],
-    azureMirrorPreviewReport: objectStoragePreviewReports[previewKey('azure-blob', 'push')],
-    azureMirrorPullPreviewReport: objectStoragePreviewReports[previewKey('azure-blob', 'pull')],
-    handlePreviewS3MirrorPush: () => { void handleObjectStorageSync('s3', 'push', 'preview') },
-    handleApplyS3MirrorPush: () => { void handleObjectStorageSync('s3', 'push', 'apply') },
-    handlePreviewS3MirrorPull: () => { void handleObjectStorageSync('s3', 'pull', 'preview') },
-    handleApplyS3MirrorPull: () => { void handleObjectStorageSync('s3', 'pull', 'apply') },
-    handlePreviewAzureMirrorPush: () => { void handleObjectStorageSync('azure-blob', 'push', 'preview') },
-    handleApplyAzureMirrorPush: () => { void handleObjectStorageSync('azure-blob', 'push', 'apply') },
-    handlePreviewAzureMirrorPull: () => { void handleObjectStorageSync('azure-blob', 'pull', 'preview') },
-    handleApplyAzureMirrorPull: () => { void handleObjectStorageSync('azure-blob', 'pull', 'apply') },
+    ...objectStorageActions,
   }
 }
 

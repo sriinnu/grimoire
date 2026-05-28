@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
 use super::app_importer_io::{
-    canonical_dir, canonical_existing, copy_file, is_attachment, is_markdown,
-    prepare_import_source, record_failure, unique_destination_path, validate_source_boundary,
-    walk_files, write_text_file,
+    canonical_dir, canonical_existing, copy_file, count_policy_skipped_files, is_attachment,
+    is_markdown, prepare_import_source, record_failure, unique_destination_path,
+    validate_source_boundary, walk_files, write_text_file,
 };
 use super::importer::MarkdownFolderImportReport;
 use super::journal_import_helpers::slugify_name;
@@ -56,11 +56,13 @@ pub fn import_app_export(
 
     let temp_dir =
         TempDir::new().map_err(|e| format!("Failed to prepare import workspace: {e}"))?;
-    let import_source = prepare_import_source(&source, temp_dir.path())?;
+    let prepared_source = prepare_import_source(&source, temp_dir.path())?;
+    let import_source = prepared_source.path;
     let import_root = unique_import_root(&vault_root, kind, &source)?;
     fs::create_dir_all(&import_root).map_err(|e| format!("Failed to create import folder: {e}"))?;
 
     let mut state = AppImportState::new();
+    state.skipped += prepared_source.skipped_zip_entries;
     match kind {
         AppImportKind::Spanda => {
             import_spanda_export(&source, &import_source, &import_root, &mut state)?
@@ -121,6 +123,7 @@ pub(super) fn import_markdown_like_export(
     import_root: &Path,
     state: &mut AppImportState,
 ) -> Result<(), String> {
+    state.skipped += count_policy_skipped_files(source_root)?;
     let source_files = if source_root.is_file() {
         vec![source_root.to_path_buf()]
     } else {
@@ -231,7 +234,7 @@ fn split_frontmatter(content: &str) -> Option<(&str, &str)> {
     None
 }
 
-fn clean_relative_path(relative: &Path, kind: AppImportKind) -> PathBuf {
+pub(super) fn clean_relative_path(relative: &Path, kind: AppImportKind) -> PathBuf {
     if kind != AppImportKind::Notion {
         return relative.to_path_buf();
     }

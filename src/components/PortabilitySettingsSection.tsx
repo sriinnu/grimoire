@@ -14,10 +14,13 @@ import {
   type VaultStorageHealthState,
   type VaultPortabilityStatus,
 } from '../lib/vaultPortability'
-import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
+import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
+import { DesktopStorageHealthPanel } from './DesktopStorageHealthPanel'
 import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
 import { LocalityFirewallSettingsCard } from './LocalityFirewallSettingsCard'
 import { PortabilityActionDeck } from './PortabilityActionDeck'
+import { PortabilityProofLedger } from './PortabilityProofLedger'
 import { Badge } from './ui/badge'
 
 type Translate = ReturnType<typeof createTranslator>
@@ -56,16 +59,36 @@ interface PortabilitySettingsSectionProps {
   onExportStaticHtmlArchive?: () => void
   s3MirrorPreviewReady?: boolean
   s3MirrorPullPreviewReady?: boolean
+  s3ProviderPushPreviewReady?: boolean
+  s3ProviderPullPreviewReady?: boolean
+  azureProviderPushPreviewReady?: boolean
+  azureProviderPullPreviewReady?: boolean
   azureMirrorPreviewReady?: boolean
   azureMirrorPullPreviewReady?: boolean
   s3MirrorPreviewReport?: ObjectStorageSyncReport
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewReport?: ObjectStorageSyncReport
+  azureProviderPullPreviewReport?: ObjectStorageSyncReport
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3LivePreflightReport?: S3LivePreflightReport
+  azureLivePreflightReport?: AzureLivePreflightReport
+  onRunS3LivePreflight?: (args: S3LivePreflightArgs) => void
+  onRunAzureLivePreflight?: (args: AzureLivePreflightArgs) => void
   onPreviewS3MirrorPush?: () => void
   onApplyS3MirrorPush?: () => void
   onPreviewS3MirrorPull?: () => void
   onApplyS3MirrorPull?: () => void
+  onPreviewS3ProviderPush?: (args: S3LivePreflightArgs) => void
+  onApplyS3ProviderPush?: (args: S3LivePreflightArgs) => void
+  onPreviewS3ProviderPull?: (args: S3LivePreflightArgs) => void
+  onApplyS3ProviderPull?: (args: S3LivePreflightArgs) => void
+  onPreviewAzureProviderPush?: (args: AzureLivePreflightArgs) => void
+  onApplyAzureProviderPush?: (args: AzureLivePreflightArgs) => void
+  onPreviewAzureProviderPull?: (args: AzureLivePreflightArgs) => void
+  onApplyAzureProviderPull?: (args: AzureLivePreflightArgs) => void
   onPreviewAzureMirrorPush?: () => void
   onApplyAzureMirrorPush?: () => void
   onPreviewAzureMirrorPull?: () => void
@@ -115,16 +138,36 @@ export function PortabilitySettingsSection({
   onExportStaticHtmlArchive,
   s3MirrorPreviewReady,
   s3MirrorPullPreviewReady,
+  s3ProviderPushPreviewReady,
+  s3ProviderPullPreviewReady,
+  azureProviderPushPreviewReady,
+  azureProviderPullPreviewReady,
   azureMirrorPreviewReady,
   azureMirrorPullPreviewReady,
   s3MirrorPreviewReport,
   s3MirrorPullPreviewReport,
+  s3ProviderPushPreviewReport,
+  s3ProviderPullPreviewReport,
+  azureProviderPushPreviewReport,
+  azureProviderPullPreviewReport,
   azureMirrorPreviewReport,
   azureMirrorPullPreviewReport,
+  s3LivePreflightReport,
+  azureLivePreflightReport,
+  onRunS3LivePreflight,
+  onRunAzureLivePreflight,
   onPreviewS3MirrorPush,
   onApplyS3MirrorPush,
   onPreviewS3MirrorPull,
   onApplyS3MirrorPull,
+  onPreviewS3ProviderPush,
+  onApplyS3ProviderPush,
+  onPreviewS3ProviderPull,
+  onApplyS3ProviderPull,
+  onPreviewAzureProviderPush,
+  onApplyAzureProviderPush,
+  onPreviewAzureProviderPull,
+  onApplyAzureProviderPull,
   onPreviewAzureMirrorPush,
   onApplyAzureMirrorPush,
   onPreviewAzureMirrorPull,
@@ -145,8 +188,9 @@ export function PortabilitySettingsSection({
 
       <div className="grid gap-2" data-testid="settings-portability-section">
         <LocalityFirewallSettingsCard entries={entries} />
+        <PortabilityProofLedger />
         {groups.map((group) => (
-          <PortabilityGroupCard key={group.title} group={group} t={t} />
+          <PortabilityGroupCard key={group.title} group={group} t={t} vaultPath={vaultPath} />
         ))}
       </div>
 
@@ -158,12 +202,24 @@ export function PortabilitySettingsSection({
         onCancelProgress={onCancelProgress}
         s3MirrorPreviewReady={s3MirrorPreviewReady}
         s3MirrorPullPreviewReady={s3MirrorPullPreviewReady}
+        s3ProviderPushPreviewReady={s3ProviderPushPreviewReady}
+        s3ProviderPullPreviewReady={s3ProviderPullPreviewReady}
+        azureProviderPushPreviewReady={azureProviderPushPreviewReady}
+        azureProviderPullPreviewReady={azureProviderPullPreviewReady}
         azureMirrorPreviewReady={azureMirrorPreviewReady}
         azureMirrorPullPreviewReady={azureMirrorPullPreviewReady}
         s3MirrorPreviewReport={s3MirrorPreviewReport}
         s3MirrorPullPreviewReport={s3MirrorPullPreviewReport}
+        s3ProviderPushPreviewReport={s3ProviderPushPreviewReport}
+        s3ProviderPullPreviewReport={s3ProviderPullPreviewReport}
+        azureProviderPushPreviewReport={azureProviderPushPreviewReport}
+        azureProviderPullPreviewReport={azureProviderPullPreviewReport}
         azureMirrorPreviewReport={azureMirrorPreviewReport}
         azureMirrorPullPreviewReport={azureMirrorPullPreviewReport}
+        s3LivePreflightReport={s3LivePreflightReport}
+        azureLivePreflightReport={azureLivePreflightReport}
+        onRunS3LivePreflight={onRunS3LivePreflight}
+        onRunAzureLivePreflight={onRunAzureLivePreflight}
         onPreviewMarkdownFolder={onPreviewMarkdownFolder}
         onImportMarkdownFolder={onImportMarkdownFolder}
         onPreviewMarkdownZip={onPreviewMarkdownZip}
@@ -190,6 +246,14 @@ export function PortabilitySettingsSection({
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onPreviewS3MirrorPull={onPreviewS3MirrorPull}
         onApplyS3MirrorPull={onApplyS3MirrorPull}
+        onPreviewS3ProviderPush={onPreviewS3ProviderPush}
+        onApplyS3ProviderPush={onApplyS3ProviderPush}
+        onPreviewS3ProviderPull={onPreviewS3ProviderPull}
+        onApplyS3ProviderPull={onApplyS3ProviderPull}
+        onPreviewAzureProviderPush={onPreviewAzureProviderPush}
+        onApplyAzureProviderPush={onApplyAzureProviderPush}
+        onPreviewAzureProviderPull={onPreviewAzureProviderPull}
+        onApplyAzureProviderPull={onApplyAzureProviderPull}
         onPreviewAzureMirrorPush={onPreviewAzureMirrorPush}
         onApplyAzureMirrorPush={onApplyAzureMirrorPush}
         onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}
@@ -245,9 +309,9 @@ function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGro
   ]
 }
 
-function PortabilityGroupCard({ group, t }: { group: PortabilityGroup; t: Translate }) {
+function PortabilityGroupCard({ group, t, vaultPath }: { group: PortabilityGroup; t: Translate; vaultPath: string }) {
   return (
-    <div className="rounded-md border border-border bg-muted/35 p-3">
+    <div className="grimoire-portability-card rounded-md border border-border bg-muted/35 p-3">
       <div className="mb-2 flex items-start gap-2">
         <span className="mt-0.5 text-muted-foreground">{group.icon}</span>
         <span className="min-w-0">
@@ -268,7 +332,12 @@ function PortabilityGroupCard({ group, t }: { group: PortabilityGroup; t: Transl
           </Badge>
         ))}
       </div>
-      {group.storageHealth ? <StorageHealthRows health={group.storageHealth} t={t} /> : null}
+      {group.storageHealth ? (
+        <>
+          <StorageHealthRows health={group.storageHealth} t={t} />
+          <DesktopStorageHealthPanel vaultPath={vaultPath} t={t} />
+        </>
+      ) : null}
     </div>
   )
 }

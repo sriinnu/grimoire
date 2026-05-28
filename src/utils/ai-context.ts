@@ -145,7 +145,7 @@ function graphContextForAgents(graphContext?: AgentGraphContext): Record<string,
   if (!graphContext || graphContext.state === 'empty') return null
   const base = {
     state: graphContext.state,
-    omitted: graphContext.omitted,
+    omitted: graphOmissionsForAgents(graphContext.omitted),
     totals: graphContext.totals,
   }
   if (graphContext.state === 'protected-active') return base
@@ -166,6 +166,26 @@ function graphContextForAgents(graphContext?: AgentGraphContext): Record<string,
       targetPath: edge.targetPath,
       targetTitle: edge.targetTitle,
     })),
+  }
+}
+
+function graphOmissionsForAgents(omitted: AgentGraphContext['omitted']): Record<string, unknown> {
+  return {
+    localOnly: omitted.protectedNodes + omitted.protectedEdges > 0 ? 'held-by-policy' : 'none',
+    truncatedEdges: omitted.truncatedEdges,
+    truncatedNodes: omitted.truncatedNodes,
+  }
+}
+
+function addLocalOnlyOmission(
+  snapshot: Record<string, unknown>,
+  key: string,
+  omitted: number,
+): void {
+  if (omitted <= 0) return
+  snapshot.localOnlyOmitted = {
+    ...(snapshot.localOnlyOmitted as Record<string, string> | undefined),
+    [key]: 'held-by-policy',
   }
 }
 
@@ -223,9 +243,7 @@ export function buildContextSnapshot(params: ContextSnapshotParams): string {
       snapshot.noteListTruncated = { shown: MAX_NOTE_LIST_ITEMS, total: visibleItems.length }
     }
     const omitted = noteList.length - visibleItems.length
-    if (omitted > 0) {
-      snapshot.localOnlyOmitted = { noteList: omitted }
-    }
+    addLocalOnlyOmission(snapshot, 'noteList', omitted)
   }
 
   const visibleNoteListFilter = noteListFilterForAgents(noteListFilter, entries)
@@ -260,12 +278,7 @@ export function buildContextSnapshot(params: ContextSnapshotParams): string {
       }))
     }
     const omitted = references.length - visibleReferences.length
-    if (omitted > 0) {
-      snapshot.localOnlyOmitted = {
-        ...(snapshot.localOnlyOmitted as Record<string, number> | undefined),
-        referencedNotes: omitted,
-      }
-    }
+    addLocalOnlyOmission(snapshot, 'referencedNotes', omitted)
   }
 
   const preamble = [

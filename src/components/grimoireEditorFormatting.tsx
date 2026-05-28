@@ -1,9 +1,6 @@
 import {
-  FormattingToolbar,
-  getFormattingToolbarItems,
   PositionPopover,
   useBlockNoteEditor,
-  useComponentsContext,
   useEditorState,
   useExtension,
   useExtensionState,
@@ -12,14 +9,7 @@ import type {
   FloatingUIOptions,
   FormattingToolbarProps,
 } from '@blocknote/react'
-import {
-  blockHasType,
-  defaultProps,
-  editorHasBlockWithType,
-  type DefaultProps,
-} from '@blocknote/core'
 import type {
-  BlockNoteEditor,
   BlockSchema,
   InlineContentSchema,
   StyleSchema,
@@ -34,29 +24,17 @@ import {
   type Dispatch,
   type FC,
   type MutableRefObject,
-  type ReactElement,
   type SetStateAction,
 } from 'react'
-import {
-  Button as MantineButton,
-  CheckIcon as MantineCheckIcon,
-  Menu as MantineMenu,
-} from '@mantine/core'
-import {
-  Bold,
-  ChevronDown,
-  Code2,
-  Italic,
-  Strikethrough,
-  type LucideIcon,
-} from 'lucide-react'
-import {
-  filterGrimoireFormattingToolbarItems,
-  getGrimoireBlockTypeSelectItems,
-} from './grimoireEditorFormattingConfig'
 import { useBlockNoteFormattingToolbarHoverGuard } from './blockNoteFormattingToolbarHoverGuard'
+import { GrimoireFormattingToolbar } from './grimoireEditorFormattingControls'
+import {
+  getCurrentToolbarPlacement,
+  getFormattingToolbarAnchorElement,
+  getFormattingToolbarBridgeBlockId,
+} from './grimoireEditorFormattingModel'
 
-type GrimoireBasicTextStyle = 'bold' | 'italic' | 'strike' | 'code'
+export { GrimoireFormattingToolbar }
 
 const FORMATTER_CLOSE_GRACE_MS = 160
 
@@ -130,372 +108,14 @@ function useFormattingToolbarCloseGrace({
   return { closeGraceActive, clearCloseGrace }
 }
 
-const GRIMOIRE_BASIC_TEXT_STYLE_TOOLTIPS = {
-  bold: {
-    label: 'Bold',
-    mainTooltip: 'Bold (persists in markdown)',
-    secondaryTooltip: '**strong**',
-  },
-  italic: {
-    label: 'Italic',
-    mainTooltip: 'Italic (persists in markdown)',
-    secondaryTooltip: '*emphasis*',
-  },
-  strike: {
-    label: 'Strikethrough',
-    mainTooltip: 'Strikethrough (persists in markdown)',
-    secondaryTooltip: '~~strike~~',
-  },
-  code: {
-    label: 'Inline code',
-    mainTooltip: 'Inline code (persists in markdown)',
-    secondaryTooltip: '`code`',
-  },
-} satisfies Record<
-  GrimoireBasicTextStyle,
-  { label: string; mainTooltip: string; secondaryTooltip: string }
->
-
-const GRIMOIRE_BASIC_TEXT_STYLE_ICONS = {
-  bold: Bold,
-  italic: Italic,
-  strike: Strikethrough,
-  code: Code2,
-} satisfies Record<GrimoireBasicTextStyle, LucideIcon>
-
-type GrimoireSelectedBlock = ReturnType<
-  BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>['getTextCursorPosition']
->['block']
-
-const FORMATTING_TOOLBAR_FILE_BLOCK_TYPES = new Set([
-  'audio',
-  'file',
-  'image',
-  'video',
-])
-
-type GrimoireBlockTypeSelectOption = ReturnType<
-  typeof getGrimoireBlockTypeSelectItems
->[number] & {
-  iconElement: ReactElement
-  isSelected: boolean
-}
-
-function textAlignmentToPlacement(
-  textAlignment: DefaultProps['textAlignment'],
-) {
-  switch (textAlignment) {
-    case 'left':
-      return 'top-start'
-    case 'center':
-      return 'top'
-    case 'right':
-      return 'top-end'
-    default:
-      return 'top-start'
-  }
-}
-
-function editorSupportsTextStyle(
-  style: GrimoireBasicTextStyle,
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-) {
-  return (
-    style in editor.schema.styleSchema &&
-    editor.schema.styleSchema[style].type === style &&
-    editor.schema.styleSchema[style].propSchema === 'boolean'
-  )
-}
-
-function getSelectedBlocksSafely(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-): GrimoireSelectedBlock[] {
-  try {
-    const selectionBlocks = editor.getSelection()?.blocks
-    if (selectionBlocks?.length) {
-      return selectionBlocks as GrimoireSelectedBlock[]
-    }
-  } catch {
-    // BlockNote can briefly expose an invalid selection while inline actions remount blocks.
-  }
-
-  try {
-    return [editor.getTextCursorPosition().block as GrimoireSelectedBlock]
-  } catch {
-    return []
-  }
-}
-
-function getCursorBlockSafely(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-): GrimoireSelectedBlock | null {
-  try {
-    return editor.getTextCursorPosition().block as GrimoireSelectedBlock
-  } catch {
-    return null
-  }
-}
-
-function selectionSupportsInlineFormatting(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-) {
-  return getSelectedBlocksSafely(editor).some((block) => block.content !== undefined)
-}
-
-function getBasicTextStyleButtonState(
-  basicTextStyle: GrimoireBasicTextStyle,
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-) {
-  if (!editor.isEditable) return undefined
-  if (!editorSupportsTextStyle(basicTextStyle, editor)) return undefined
-  if (!selectionSupportsInlineFormatting(editor)) return undefined
-
-  return {
-    active: basicTextStyle in editor.getActiveStyles(),
-  }
-}
-
-function getBlockTypeItemIconElement(
-  item: ReturnType<typeof getGrimoireBlockTypeSelectItems>[number],
-) {
-  const Icon = item.icon
-  return <Icon size={16} />
-}
-
-function isSelectedBlockTypeItem(
-  item: ReturnType<typeof getGrimoireBlockTypeSelectItems>[number],
-  firstSelectedBlock: GrimoireSelectedBlock,
-) {
-  if (item.type !== firstSelectedBlock.type) return false
-
-  return Object.entries(item.props || {}).every(
-    ([propName, propValue]) =>
-      propValue === firstSelectedBlock.props[propName],
-  )
-}
-
-function getGrimoireBlockTypeSelectOptions(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-  firstSelectedBlock: GrimoireSelectedBlock,
-) {
-  return getGrimoireBlockTypeSelectItems()
-    .filter((item) =>
-      editorHasBlockWithType(
-        editor,
-        item.type,
-        Object.fromEntries(
-          Object.entries(item.props || {}).map(([propName, propValue]) => [
-            propName,
-            typeof propValue,
-          ]),
-        ) as Record<string, 'string' | 'number' | 'boolean'>,
-      ),
-    )
-    .map((item) => ({
-      ...item,
-      iconElement: getBlockTypeItemIconElement(item),
-      isSelected: isSelectedBlockTypeItem(item, firstSelectedBlock),
-    }))
-}
-
-function getFormattingToolbarBridgeBlockId(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-) {
-  const selectedBlock = getSelectedBlocksSafely(editor)[0]
-  if (!selectedBlock) return null
-
-  return FORMATTING_TOOLBAR_FILE_BLOCK_TYPES.has(selectedBlock.type)
-    ? selectedBlock.id
-    : null
-}
-
-function getFormattingToolbarAnchorElement(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-) {
-  const anchor = editor.domElement?.firstElementChild
-  return anchor instanceof Element && anchor.isConnected ? anchor : null
-}
-
-function updateSelectedBlocksToType(
-  editor: BlockNoteEditor<BlockSchema, InlineContentSchema, StyleSchema>,
-  selectedBlocks: GrimoireSelectedBlock[],
-  item: ReturnType<typeof getGrimoireBlockTypeSelectItems>[number],
-) {
-  editor.focus()
-  editor.transact(() => {
-    for (const block of selectedBlocks) {
-      editor.updateBlock(block, {
-        type: item.type as never,
-        props: item.props as never,
-      })
-    }
-  })
-}
-
-function GrimoireBasicTextStyleButton({
-  basicTextStyle,
-}: {
-  basicTextStyle: GrimoireBasicTextStyle
-}) {
-  const Components = useComponentsContext()!
+function useGrimoireFormattingToolbarState() {
   const editor = useBlockNoteEditor<
     BlockSchema,
     InlineContentSchema,
     StyleSchema
   >()
-  const buttonState = useEditorState({
-    editor,
-    selector: ({ editor }) => getBasicTextStyleButtonState(basicTextStyle, editor),
-  })
-
-  const toggleStyle = useCallback(() => {
-    editor.focus()
-    editor.toggleStyles({ [basicTextStyle]: true } as never)
-  }, [basicTextStyle, editor])
-
-  if (buttonState === undefined) return null
-
-  const Icon = GRIMOIRE_BASIC_TEXT_STYLE_ICONS[basicTextStyle]
-  const copy = GRIMOIRE_BASIC_TEXT_STYLE_TOOLTIPS[basicTextStyle]
-
-  return (
-    <Components.FormattingToolbar.Button
-      className="bn-button"
-      data-test={basicTextStyle}
-      onClick={toggleStyle}
-      isSelected={buttonState.active}
-      label={copy.label}
-      mainTooltip={copy.mainTooltip}
-      secondaryTooltip={copy.secondaryTooltip}
-      icon={<Icon />}
-    />
-  )
-}
-
-function GrimoireBlockTypeSelect() {
-  const editor = useBlockNoteEditor<
-    BlockSchema,
-    InlineContentSchema,
-    StyleSchema
-  >()
-  const selectedBlocks = useEditorState({
-    editor,
-    selector: ({ editor }): GrimoireSelectedBlock[] => getSelectedBlocksSafely(editor),
-  })
-  const firstSelectedBlock = selectedBlocks[0] ?? null
-  const selectItems = useMemo(
-    () => (
-      firstSelectedBlock
-        ? getGrimoireBlockTypeSelectOptions(editor, firstSelectedBlock)
-        : []
-    ),
-    [editor, firstSelectedBlock],
-  )
-  const selectedItem = selectItems.find(
-    (item): item is GrimoireBlockTypeSelectOption => item.isSelected,
-  )
-
-  if (!selectedItem || !editor.isEditable) return null
-
-  return (
-    <MantineMenu
-      withinPortal={false}
-      transitionProps={{ exitDuration: 0 }}
-      middlewares={{ flip: true, shift: true, inline: false, size: true }}
-    >
-      <MantineMenu.Target>
-        <MantineButton
-          onMouseDown={(event) => {
-            event.preventDefault()
-            event.currentTarget.focus()
-          }}
-          leftSection={selectedItem.iconElement}
-          rightSection={<ChevronDown size={16} />}
-          size="xs"
-          variant="subtle"
-        >
-          {selectedItem.name}
-        </MantineButton>
-      </MantineMenu.Target>
-      <MantineMenu.Dropdown className="bn-select">
-        {selectItems.map((item) => (
-          <MantineMenu.Item
-            key={item.name}
-            onClick={() => {
-              updateSelectedBlocksToType(editor, selectedBlocks, item)
-            }}
-            leftSection={item.iconElement}
-            rightSection={item.isSelected
-              ? <MantineCheckIcon size={10} className="bn-tick-icon" />
-              : <div className="bn-tick-space" />}
-          >
-            {item.name}
-          </MantineMenu.Item>
-        ))}
-      </MantineMenu.Dropdown>
-    </MantineMenu>
-  )
-}
-
-function replaceToolbarControls(items: ReactElement[]) {
-  return items.flatMap((item) => {
-    switch (String(item.key)) {
-      case 'blockTypeSelect':
-        return [<GrimoireBlockTypeSelect key={item.key} />]
-      case 'boldStyleButton':
-        return [<GrimoireBasicTextStyleButton basicTextStyle="bold" key={item.key} />]
-      case 'italicStyleButton':
-        return [<GrimoireBasicTextStyleButton basicTextStyle="italic" key={item.key} />]
-      case 'strikeStyleButton':
-        return [<GrimoireBasicTextStyleButton basicTextStyle="strike" key={item.key} />]
-      default:
-        return [item]
-    }
-  })
-}
-
-function insertInlineCodeButton(items: ReactElement[]) {
-  const strikeButtonIndex = items.findIndex(
-    (item) => String(item.key) === 'strikeStyleButton',
-  )
-  if (strikeButtonIndex === -1) return items
-
-  return [
-    ...items.slice(0, strikeButtonIndex + 1),
-    <GrimoireBasicTextStyleButton basicTextStyle="code" key="codeStyleButton" />,
-    ...items.slice(strikeButtonIndex + 1),
-  ]
-}
-
-function getGrimoireFormattingToolbarItems() {
-  return insertInlineCodeButton(
-    replaceToolbarControls(
-      filterGrimoireFormattingToolbarItems(
-        getFormattingToolbarItems(),
-      ),
-    ),
-  )
-}
-
-export function GrimoireFormattingToolbar() {
-  return <FormattingToolbar>{getGrimoireFormattingToolbarItems()}</FormattingToolbar>
-}
-
-export function GrimoireFormattingToolbarController(props: {
-  formattingToolbar?: FC<FormattingToolbarProps>;
-  floatingUIOptions?: FloatingUIOptions;
-}) {
-  const editor = useBlockNoteEditor<
-    BlockSchema,
-    InlineContentSchema,
-    StyleSchema
-  >()
-  const formattingToolbar = useExtension(FormattingToolbarExtension, {
-    editor,
-  })
-  const show = useExtensionState(FormattingToolbarExtension, {
-    editor,
-  })
+  const formattingToolbar = useExtension(FormattingToolbarExtension, { editor })
+  const show = useExtensionState(FormattingToolbarExtension, { editor })
   const [toolbarHasFocus, setToolbarHasFocus] = useState(false)
   const [toolbarHovered, setToolbarHovered] = useState(false)
   const { closeGraceActive, clearCloseGrace } = useFormattingToolbarCloseGrace({
@@ -522,6 +142,30 @@ export function GrimoireFormattingToolbarController(props: {
     isOpen,
   })
 
+  return {
+    editor,
+    formattingToolbar,
+    shouldRenderFloatingToolbar,
+    setToolbarHasFocus,
+    setToolbarHovered,
+    clearCloseGrace,
+  }
+}
+
+/** Controls BlockNote's floating formatting toolbar visibility, placement, and hover grace. */
+export function GrimoireFormattingToolbarController(props: {
+  formattingToolbar?: FC<FormattingToolbarProps>;
+  floatingUIOptions?: FloatingUIOptions;
+}) {
+  const {
+    editor,
+    formattingToolbar,
+    shouldRenderFloatingToolbar,
+    setToolbarHasFocus,
+    setToolbarHovered,
+    clearCloseGrace,
+  } = useGrimoireFormattingToolbarState()
+
   const position = useEditorState({
     editor,
     selector: ({ editor }) => (
@@ -536,18 +180,7 @@ export function GrimoireFormattingToolbarController(props: {
 
   const placement = useEditorState({
     editor,
-    selector: ({ editor }) => {
-      const block = getCursorBlockSafely(editor)
-      if (!block) return 'top-start'
-
-      if (!blockHasType(block, editor, block.type, {
-        textAlignment: defaultProps.textAlignment,
-      })) {
-        return 'top-start'
-      }
-
-      return textAlignmentToPlacement(block.props.textAlignment)
-    },
+    selector: ({ editor }) => getCurrentToolbarPlacement(editor),
   })
 
   const floatingUIOptions = useMemo<FloatingUIOptions>(
@@ -583,6 +216,8 @@ export function GrimoireFormattingToolbarController(props: {
       placement,
       props.floatingUIOptions,
       shouldRenderFloatingToolbar,
+      setToolbarHasFocus,
+      setToolbarHovered,
     ],
   )
 

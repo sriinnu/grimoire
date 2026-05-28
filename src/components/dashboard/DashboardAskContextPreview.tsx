@@ -1,5 +1,5 @@
-import { ShieldCheck, Sparkles } from 'lucide-react'
-import type { DashboardAskContextPreview as DashboardAskContextPreviewModel } from '../../utils/dashboardCapture'
+import { FileCheck2, ShieldCheck, Sparkles } from 'lucide-react'
+import type { DashboardAskContextPreview as DashboardAskContextPreviewModel } from '../../utils/dashboardAskContext'
 import './DashboardAskContextPreview.css'
 
 interface DashboardAskContextPreviewProps {
@@ -27,16 +27,11 @@ export function DashboardAskContextPreview({ preview }: DashboardAskContextPrevi
       </div>
       {preview.references.length > 0 ? (
         <div className="vault-dashboard__ask-preview-chips" aria-label="Attached public notes">
-          {preview.references.slice(0, 3).map((reference) => (
+          {preview.references.map((reference) => (
             <span key={reference.path} className="vault-dashboard__ask-preview-chip">
               {reference.title}
             </span>
           ))}
-          {preview.references.length > 3 ? (
-            <span className="vault-dashboard__ask-preview-chip">
-              +{preview.references.length - 3}
-            </span>
-          ) : null}
         </div>
       ) : (
         <p className="vault-dashboard__ask-preview-copy">No public notes are attached yet.</p>
@@ -50,9 +45,18 @@ export function DashboardAskContextPreview({ preview }: DashboardAskContextPrevi
           ))}
         </div>
       ) : null}
+      {preview.intent ? (
+        <div className="vault-dashboard__ask-preview-intent" aria-label="Ask intent">
+          <FileCheck2 size={13} />
+          <span>
+            <strong>{preview.intent.label}</strong>
+            Review-before-write Markdown memory; public references only.
+          </span>
+        </div>
+      ) : null}
       <div className="vault-dashboard__ask-preview-rule">
         <ShieldCheck size={13} />
-        {protectedLabel}; {protectedMemoryLabel}. Bodies are read only through Grimoire tools after review.
+        {protectedLabel}; {protectedMemoryLabel}. Only listed public references can travel.
       </div>
     </div>
   )

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { useClaudeCodeStatus } from './useClaudeCodeStatus'
 
 vi.mock('@tauri-apps/api/core', () => ({
@@ -13,9 +13,19 @@ vi.mock('../mock-tauri', () => ({
 
 const { mockInvoke } = await import('../mock-tauri') as { mockInvoke: ReturnType<typeof vi.fn> }
 
+let visibilityState: DocumentVisibilityState = 'visible'
+let visibilitySpy: ReturnType<typeof vi.spyOn> | null = null
+
 describe('useClaudeCodeStatus', () => {
   beforeEach(() => {
+    visibilityState = 'visible'
     vi.clearAllMocks()
+    visibilitySpy = vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
+  })
+
+  afterEach(() => {
+    visibilitySpy?.mockRestore()
+    visibilitySpy = null
   })
 
   it('starts in checking state and resolves to installed', async () => {
@@ -59,5 +69,23 @@ describe('useClaudeCodeStatus', () => {
     await waitFor(() => {
       expect(result.current.status).toBe('missing')
     })
+  })
+
+  it('waits for a visible window before checking the claude CLI', async () => {
+    visibilityState = 'hidden'
+    mockInvoke.mockResolvedValue({ installed: true, version: '1.0.20' })
+
+    const { result } = renderHook(() => useClaudeCodeStatus())
+
+    expect(result.current.status).toBe('checking')
+    expect(mockInvoke).not.toHaveBeenCalled()
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('installed')
+    })
+    expect(mockInvoke).toHaveBeenCalledWith('check_claude_cli')
   })
 })

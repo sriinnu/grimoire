@@ -1,3 +1,4 @@
+use super::import_manifest::{manifest_withheld, ImportAutopsyManifestRow};
 use super::importer::{
     import_markdown_folder, preview_markdown_folder_import, MarkdownFolderImportPreview,
     MarkdownFolderImportReport,
@@ -26,9 +27,9 @@ pub fn import_markdown_zip(
     fs::create_dir_all(&source_root)
         .map_err(|e| format!("Failed to prepare extracted ZIP folder: {e}"))?;
 
-    let skipped_zip_entries = extract_zip_archive(&zip_file, &source_root)?;
+    let extraction = extract_zip_archive(&zip_file, &source_root)?;
     let mut report = import_markdown_folder(&vault_root, &source_root)?;
-    report.skipped_files += skipped_zip_entries;
+    report.skipped_files += extraction.skipped_count();
     Ok(report)
 }
 
@@ -51,7 +52,7 @@ where
     fs::create_dir_all(&source_root)
         .map_err(|e| format!("Failed to prepare extracted ZIP folder: {e}"))?;
 
-    let skipped_zip_entries =
+    let extraction =
         extract_zip_archive_with_progress(&zip_file, &source_root, cancelled, on_progress)?;
     check_zip_cancelled(cancelled, on_progress)?;
     let relay_progress = |event| {
@@ -65,7 +66,7 @@ where
         cancelled,
         &relay_progress,
     )?;
-    report.skipped_files += skipped_zip_entries;
+    report.skipped_files += extraction.skipped_count();
     on_progress(MarkdownFolderImportProgressEvent::Finished {
         result: report.clone(),
     });
@@ -86,10 +87,14 @@ pub fn preview_markdown_zip_import(
     fs::create_dir_all(&source_root)
         .map_err(|e| format!("Failed to prepare extracted ZIP folder: {e}"))?;
 
-    let skipped_zip_entries = extract_zip_archive(&zip_file, &source_root)?;
+    let extraction = extract_zip_archive(&zip_file, &source_root)?;
     let mut preview = preview_markdown_folder_import(&vault_root, &source_root)?;
     preview.source_path = zip_file.to_string_lossy().into_owned();
-    preview.skipped_files += skipped_zip_entries;
+    preview.skipped_files += extraction.skipped_count();
+    preview.manifest_rows.extend(unsafe_zip_manifest_rows(
+        &zip_file,
+        &extraction.skipped_entries,
+    ));
     Ok(preview)
 }
 
@@ -135,18 +140,32 @@ fn zip_source_name(zip_file: &Path) -> String {
         .unwrap_or_else(|| "markdown-zip".to_string())
 }
 
-fn extract_zip_archive(zip_file: &Path, target_root: &Path) -> Result<usize, String> {
+#[derive(Debug, Default)]
+struct ZipExtractionSummary {
+    skipped_entries: Vec<String>,
+}
+
+impl ZipExtractionSummary {
+    fn skipped_count(&self) -> usize {
+        self.skipped_entries.len()
+    }
+}
+
+fn extract_zip_archive(
+    zip_file: &Path,
+    target_root: &Path,
+) -> Result<ZipExtractionSummary, String> {
     let file = File::open(zip_file).map_err(|e| format!("Failed to open ZIP import: {e}"))?;
     let mut archive =
         ZipArchive::new(file).map_err(|e| format!("Failed to read ZIP import: {e}"))?;
-    let mut skipped_entries = 0;
+    let mut summary = ZipExtractionSummary::default();
 
     for index in 0..archive.len() {
         let mut zipped = archive
             .by_index(index)
             .map_err(|e| format!("Failed to read ZIP entry: {e}"))?;
         let Some(enclosed_name) = zipped.enclosed_name().map(PathBuf::from) else {
-            skipped_entries += 1;
+            summary.skipped_entries.push(zipped.name().to_string());
             continue;
         };
         let output_path = target_root.join(enclosed_name);
@@ -165,7 +184,7 @@ fn extract_zip_archive(zip_file: &Path, target_root: &Path) -> Result<usize, Str
         io::copy(&mut zipped, &mut output).map_err(|e| format!("Failed to write ZIP file: {e}"))?;
     }
 
-    Ok(skipped_entries)
+    Ok(summary)
 }
 
 fn extract_zip_archive_with_progress<F>(
@@ -173,7 +192,7 @@ fn extract_zip_archive_with_progress<F>(
     target_root: &Path,
     cancelled: &AtomicBool,
     on_progress: &F,
-) -> Result<usize, String>
+) -> Result<ZipExtractionSummary, String>
 where
     F: Fn(MarkdownFolderImportProgressEvent),
 {
@@ -181,7 +200,7 @@ where
     let mut archive =
         ZipArchive::new(file).map_err(|e| format!("Failed to read ZIP import: {e}"))?;
     let total_files = archive.len();
-    let mut skipped_entries = 0;
+    let mut summary = ZipExtractionSummary::default();
     on_progress(MarkdownFolderImportProgressEvent::Started { total_files });
 
     for index in 0..total_files {
@@ -191,7 +210,7 @@ where
             .map_err(|e| format!("Failed to read ZIP entry: {e}"))?;
         let current_path = zipped.name().to_string();
         let Some(enclosed_name) = zipped.enclosed_name().map(PathBuf::from) else {
-            skipped_entries += 1;
+            summary.skipped_entries.push(current_path.clone());
             on_progress(MarkdownFolderImportProgressEvent::Progress {
                 processed_files: index + 1,
                 total_files,
@@ -221,7 +240,27 @@ where
         });
     }
 
-    Ok(skipped_entries)
+    Ok(summary)
+}
+
+fn unsafe_zip_manifest_rows(
+    zip_file: &Path,
+    skipped_entries: &[String],
+) -> Vec<ImportAutopsyManifestRow> {
+    skipped_entries
+        .iter()
+        .map(|entry| {
+            let source = format!("{}!/{entry}", zip_entry_source_name(zip_file));
+            manifest_withheld(Path::new(&source), "unsafe ZIP traversal skip")
+        })
+        .collect()
+}
+
+fn zip_entry_source_name(zip_file: &Path) -> String {
+    zip_file
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "markdown.zip".to_string())
 }
 
 fn check_zip_cancelled<F>(cancelled: &AtomicBool, on_progress: &F) -> Result<(), String>

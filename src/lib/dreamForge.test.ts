@@ -65,13 +65,52 @@ describe('buildDreamForgeSummary', () => {
     expect(summary.privacy).toMatchObject({
       locality: 'local-only',
       bodyAccess: 'forbidden',
+      titlePolicy: 'never',
       pathPolicy: 'never',
       agentPolicy: 'counts-and-redaction-only',
     })
-    expect(summary.latestDreamTitle).toBe('River Door')
+    expect(summary.latestDreamAt).toBe(30)
+    expect(summary.rhythm).toHaveLength(3)
     expect(summary.symbols[0]).toEqual({ label: 'river', count: 2 })
     expect(summary.emotionalWeather[0]).toEqual({ label: 'awe', count: 3 })
     expect(summary.recurringPeople.map((item) => item.label)).toEqual(['Amma', 'Guide'])
+    expect(JSON.stringify(summary)).not.toContain('River Door')
+  })
+
+  it('builds a private rhythm from metadata counts without title or path leakage', () => {
+    const day = 24 * 60 * 60
+    const now = 40 * day
+    const summary = buildDreamForgeSummary([
+      entry({ title: 'Last Night River', type: 'Dream', modifiedAt: now - 60 }),
+      entry({
+        title: 'Week Checkin',
+        type: 'Journal',
+        modifiedAt: now - 2 * day,
+        properties: { feeling: 'quiet' },
+      }),
+      entry({ title: 'Month Mountain', type: 'Dream', modifiedAt: now - 12 * day, properties: { symbols: 'mountain' } }),
+      entry({ title: 'Old Ocean', type: 'Dream', modifiedAt: now - 31 * day, properties: { symbols: 'ocean' } }),
+    ], now)
+
+    expect(summary.rhythm).toEqual([
+      { label: 'Last night', dreamCount: 1, journalCount: 0, protectedCount: 1, tone: 'active' },
+      { label: 'This week', dreamCount: 0, journalCount: 1, protectedCount: 1, tone: 'recent' },
+      { label: 'Earlier', dreamCount: 2, journalCount: 0, protectedCount: 2, tone: 'deep' },
+    ])
+    expect(summary.timeline).toEqual([
+      { label: 'Last night', dreamCount: 1, journalCount: 0, protectedCount: 1, signalCount: 0, state: 'spark' },
+      { label: 'This week', dreamCount: 0, journalCount: 1, protectedCount: 1, signalCount: 1, state: 'thread' },
+      { label: 'This month', dreamCount: 1, journalCount: 0, protectedCount: 1, signalCount: 1, state: 'thread' },
+      { label: 'Deep archive', dreamCount: 1, journalCount: 0, protectedCount: 1, signalCount: 1, state: 'archive' },
+    ])
+    const payload = JSON.stringify({ rhythm: summary.rhythm, timeline: summary.timeline })
+    expect(payload).not.toContain('Last Night River')
+    expect(payload).not.toContain('Month Mountain')
+    expect(payload).not.toContain('Old Ocean')
+    expect(payload).not.toContain('/vault/')
+    expect(payload).not.toContain('body text')
+    expect(payload).not.toContain('mountain')
+    expect(payload).not.toContain('ocean')
   })
 
   it('builds a non-local privacy report without protected labels, paths, bodies, or signal names', () => {

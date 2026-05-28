@@ -1,6 +1,9 @@
 import type { VaultEntry } from '../types'
 import type { NoteReference } from '../utils/ai-context'
-import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
+import {
+  extractProviderPromptReferences,
+  sanitizeProviderPromptText,
+} from '../lib/providerPromptPrivacy'
 import { resolveEntry } from '../utils/wikilink'
 import {
   chipToken,
@@ -65,23 +68,12 @@ export function extractInlineWikilinkReferences(
   value: string,
   entries: VaultEntry[],
 ): NoteReference[] {
-  const references: NoteReference[] = []
-  const seenPaths = new Set<string>()
+  return extractProviderPromptReferences(value, entries)
+}
 
-  for (const segment of buildInlineWikilinkSegments(value, entries)) {
-    if (segment.kind !== 'chip') continue
-    if (seenPaths.has(segment.chip.entry.path)) continue
-    if (resolveEntryLocalityPolicy(segment.chip.entry).localOnly) continue
-
-    seenPaths.add(segment.chip.entry.path)
-    references.push({
-      title: segment.chip.entry.title,
-      path: segment.chip.entry.path,
-      type: segment.chip.entry.isA,
-    })
-  }
-
-  return references
+/** Removes protected wikilink labels from text before it becomes agent prompt content. */
+export function sanitizeInlineWikilinksForAgent(value: string, entries: VaultEntry[]): string {
+  return sanitizeProviderPromptText(value, entries)
 }
 
 function hasClosedQuery(openText: string): boolean {

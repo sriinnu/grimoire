@@ -10,6 +10,7 @@ import {
   appendCanvasShape,
   appendCanvasTextBox,
   appendStroke,
+  CANVAS_COLORS,
   canvasLayerBounds,
   drawCanvasDocument,
   EMPTY_CANVAS_SELECTION,
@@ -94,6 +95,14 @@ function drawRectOverlay(ctx: CanvasRenderingContext2D, rect: CanvasRect, color:
   ctx.restore()
 }
 
+function readCanvasStyleColor(variableName: string, fallback: string): string {
+  const root = globalThis.document?.documentElement
+  if (!root || typeof globalThis.getComputedStyle !== 'function') return fallback
+  const value = globalThis.getComputedStyle(root).getPropertyValue(variableName).trim()
+  if (!value || value.includes('var(')) return fallback
+  return value
+}
+
 /** Pointer-driven drawing surface for Grimoire canvas attachments. */
 export function CanvasDrawingSurface({
   color,
@@ -124,11 +133,13 @@ export function CanvasDrawingSurface({
       vaultPath ? resolveVaultImageSrc(resolveVaultAttachmentPath(vaultPath, src)) : src
     ), () => !cancelled).then(() => {
       if (cancelled) return
+      const selectionColor = readCanvasStyleColor('--accent-blue', CANVAS_COLORS[2])
+      const lassoColor = readCanvasStyleColor('--accent-purple', CANVAS_COLORS[4])
       for (const id of selectionIds(selection)) {
         const bounds = canvasLayerBounds(snapshot, id)
-        if (bounds) drawRectOverlay(ctx, bounds, 'rgba(14, 165, 233, 0.9)')
+        if (bounds) drawRectOverlay(ctx, bounds, selectionColor)
       }
-      if (lassoRect) drawRectOverlay(ctx, lassoRect, 'rgba(124, 58, 237, 0.9)')
+      if (lassoRect) drawRectOverlay(ctx, lassoRect, lassoColor)
     })
     return () => { cancelled = true }
   }, [activeStroke, document, lassoRect, selection, vaultPath])

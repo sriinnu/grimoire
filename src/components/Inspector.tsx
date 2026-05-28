@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { Separator } from './ui/separator'
 import { parseFrontmatter, detectFrontmatterState } from '../utils/frontmatter'
 import { markdownSemanticsAdapter } from '../utils/markdownSemanticsAdapter'
+import { mobileReviewState } from '../lib/mobileCaptureMetadata'
 import { DynamicPropertiesPanel } from './DynamicPropertiesPanel'
 import {
   DynamicRelationshipsPanel,
@@ -12,7 +13,9 @@ import {
   GitHistoryPanel,
   InstancesPanel,
   LivingFrontmatterPanel,
+  LocalityFirewallPanel,
   MemoryPanel,
+  MobileCaptureReviewPanel,
   NoteInfoPanel,
   OutlinePanel,
 } from './InspectorPanels'
@@ -95,6 +98,7 @@ function ValidFrontmatterPanels({
         entry={entry}
         entries={entries}
         frontmatter={frontmatter}
+        onApplySuggestion={onUpdateProperty}
       />
       <Separator data-testid="inspector-properties-relationships-separator" />
       <DynamicRelationshipsPanel
@@ -197,6 +201,7 @@ function InspectorBody({
   const frontmatterState = useMemo(() => detectFrontmatterState(deferredContent), [deferredContent])
   const semantics = useMemo(() => markdownSemanticsAdapter.parseDocument(deferredContent), [deferredContent])
   const typeEntryMap = useMemo(() => buildTypeEntryMap(entries), [entries])
+  const hasMobileReview = entry ? mobileReviewState(entry) !== null : false
   const {
     handleUpdateProperty,
     handleDeleteProperty,
@@ -224,6 +229,17 @@ function InspectorBody({
         onToggleRawEditor={onToggleRawEditor}
         onReplaceContent={onReplaceContent}
       />
+      <Separator />
+      <LocalityFirewallPanel entry={entry} />
+      {hasMobileReview && (
+        <>
+          <Separator />
+          <MobileCaptureReviewPanel
+            entry={entry}
+            onUpdateReviewProperty={onUpdateFrontmatter ? handleUpdateProperty : undefined}
+          />
+        </>
+      )}
       <Separator />
       <MemoryPanel
         entry={entry}

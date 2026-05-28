@@ -3,11 +3,11 @@ import type { CommandAction } from './types'
 import { rememberFeedbackDialogOpener } from '../../lib/feedbackDialogOpener'
 import {
   SYSTEM_UI_LANGUAGE,
-  createTranslator,
   localeDisplayName,
   type AppLocale,
   type UiLanguagePreference,
-} from '../../lib/i18n'
+} from '../../lib/i18nCore'
+import { createCommandTranslator } from '../../lib/i18nCommands'
 
 interface SettingsCommandsConfig {
   mcpStatus?: string
@@ -23,6 +23,7 @@ interface SettingsCommandsConfig {
   onInstallMcp?: () => void
   onReloadVault?: () => void
   onRepairVault?: () => void
+  onRevealVaultInFinder?: () => void
   locale?: AppLocale
   systemLocale?: AppLocale
   selectedUiLanguage?: UiLanguagePreference
@@ -39,7 +40,7 @@ function buildPrimarySettingsCommands({
   onOpenFeedback,
   onCheckForUpdates,
 }: Pick<SettingsCommandsConfig, 'locale' | 'onOpenSettings' | 'onOpenFeedback' | 'onCheckForUpdates'>): CommandAction[] {
-  const t = createTranslator(locale)
+  const t = createCommandTranslator(locale)
   return [
     {
       id: 'open-settings',
@@ -80,7 +81,7 @@ function buildLanguageCommands({
   onOpenSettings,
   onSetUiLanguage,
 }: Pick<SettingsCommandsConfig, 'locale' | 'systemLocale' | 'selectedUiLanguage' | 'onOpenSettings' | 'onSetUiLanguage'>): CommandAction[] {
-  const t = createTranslator(locale)
+  const t = createCommandTranslator(locale)
   const canSwitchLanguage = !!onSetUiLanguage
 
   return [
@@ -126,10 +127,12 @@ function buildVaultSettingsCommands({
   onCreateEmptyVault,
   onRemoveActiveVault,
   onRestoreGettingStarted,
-}: Pick<SettingsCommandsConfig, 'vaultCount' | 'isGettingStartedHidden' | 'onOpenVault' | 'onCreateEmptyVault' | 'onRemoveActiveVault' | 'onRestoreGettingStarted'>): CommandAction[] {
+  onRevealVaultInFinder,
+}: Pick<SettingsCommandsConfig, 'vaultCount' | 'isGettingStartedHidden' | 'onOpenVault' | 'onCreateEmptyVault' | 'onRemoveActiveVault' | 'onRestoreGettingStarted' | 'onRevealVaultInFinder'>): CommandAction[] {
   return [
     { id: 'create-empty-vault', label: 'Create Empty Vault…', group: 'Settings', keywords: ['vault', 'create', 'new', 'empty', 'folder'], enabled: !!onCreateEmptyVault, execute: () => onCreateEmptyVault?.() },
     { id: 'open-vault', label: 'Open Vault…', group: 'Settings', keywords: ['vault', 'folder', 'switch', 'open', 'workspace'], enabled: true, execute: () => onOpenVault?.() },
+    { id: 'reveal-vault-in-finder', label: 'Reveal Vault in Finder', group: 'Settings', keywords: ['vault', 'finder', 'reveal', 'folder', 'local', 'files'], enabled: !!onRevealVaultInFinder, execute: () => onRevealVaultInFinder?.() },
     { id: 'remove-vault', label: 'Remove Vault from List', group: 'Settings', keywords: ['vault', 'remove', 'disconnect', 'hide'], enabled: (vaultCount ?? 0) > 1 && !!onRemoveActiveVault, execute: () => onRemoveActiveVault?.() },
     { id: 'restore-getting-started', label: 'Restore Getting Started Vault', group: 'Settings', keywords: ['vault', 'restore', 'demo', 'getting started', 'reset'], enabled: !!isGettingStartedHidden && !!onRestoreGettingStarted, execute: () => onRestoreGettingStarted?.() },
   ]
@@ -159,7 +162,7 @@ export function buildSettingsCommands(config: SettingsCommandsConfig): CommandAc
   const {
     mcpStatus, vaultCount, isGettingStartedHidden,
     onOpenSettings, onOpenFeedback, onOpenVault, onCreateEmptyVault, onRemoveActiveVault, onRestoreGettingStarted,
-    onCheckForUpdates, onInstallMcp, onReloadVault, onRepairVault,
+    onCheckForUpdates, onInstallMcp, onReloadVault, onRepairVault, onRevealVaultInFinder,
     locale = 'en', systemLocale = locale, selectedUiLanguage = SYSTEM_UI_LANGUAGE, onSetUiLanguage,
   } = config
 
@@ -179,6 +182,7 @@ export function buildSettingsCommands(config: SettingsCommandsConfig): CommandAc
       onCreateEmptyVault,
       onRemoveActiveVault,
       onRestoreGettingStarted,
+      onRevealVaultInFinder,
     }),
     ...buildMaintenanceCommands({ mcpStatus, onInstallMcp, onReloadVault, onRepairVault }),
   ]

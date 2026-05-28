@@ -3,8 +3,10 @@ import { renderHook, act } from '@testing-library/react'
 import { useAiActivity } from './useAiActivity'
 
 let lastWsInstance: MockWebSocket | null = null
+let visibilityState: DocumentVisibilityState = 'visible'
 
 class MockWebSocket {
+  onopen: (() => void) | null = null
   onmessage: ((event: MessageEvent) => void) | null = null
   onerror: (() => void) | null = null
   onclose: (() => void) | null = null
@@ -19,7 +21,9 @@ class MockWebSocket {
 
 beforeEach(() => {
   lastWsInstance = null
+  visibilityState = 'visible'
   vi.stubGlobal('WebSocket', MockWebSocket)
+  vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
   vi.useFakeTimers()
 })
 
@@ -164,6 +168,53 @@ describe('useAiActivity', () => {
     const firstWs = lastWsInstance
     act(() => { firstWs?.onclose?.() })
     act(() => { vi.advanceTimersByTime(3000) })
+    expect(lastWsInstance).not.toBe(firstWs)
+  })
+
+  it('backs off reconnect attempts when the bridge remains unavailable', () => {
+    renderHook(() => useAiActivity())
+    const firstWs = lastWsInstance
+
+    act(() => { firstWs?.onclose?.() })
+    act(() => { vi.advanceTimersByTime(3000) })
+    const secondWs = lastWsInstance
+    expect(secondWs).not.toBe(firstWs)
+
+    act(() => { secondWs?.onclose?.() })
+    act(() => { vi.advanceTimersByTime(2999) })
+    expect(lastWsInstance).toBe(secondWs)
+
+    act(() => { vi.advanceTimersByTime(3001) })
+    expect(lastWsInstance).not.toBe(secondWs)
+  })
+
+  it('does not run the bridge socket while the app is hidden', () => {
+    visibilityState = 'hidden'
+    renderHook(() => useAiActivity())
+
+    expect(lastWsInstance).toBeNull()
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+
+    expect(lastWsInstance).not.toBeNull()
+  })
+
+  it('closes the bridge socket and cancels reconnects while hidden', () => {
+    renderHook(() => useAiActivity())
+    const firstWs = lastWsInstance
+
+    visibilityState = 'hidden'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+    act(() => { firstWs?.onclose?.() })
+    act(() => { vi.advanceTimersByTime(30_000) })
+
+    expect(firstWs!.close).toHaveBeenCalled()
+    expect(lastWsInstance).toBe(firstWs)
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+
     expect(lastWsInstance).not.toBe(firstWs)
   })
 })

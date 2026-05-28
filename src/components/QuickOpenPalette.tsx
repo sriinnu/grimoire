@@ -53,11 +53,11 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
   return (
     <div
       data-testid="quick-open-palette"
-      className="fixed inset-0 z-[1000] flex justify-center bg-[var(--shadow-dialog)] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
       onClick={onClose}
     >
       <div
-        className="flex w-[500px] max-w-[90vw] max-h-[400px] flex-col self-start overflow-hidden rounded-xl border border-[var(--border-dialog)] bg-popover shadow-[0_8px_32px_var(--shadow-dialog)]"
+        className="grimoire-command-stage grimoire-command-surface flex w-[500px] max-w-[90vw] max-h-[400px] flex-col self-start overflow-hidden border"
         onClick={(e) => e.stopPropagation()}
       >
         <Input

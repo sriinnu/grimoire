@@ -28,7 +28,8 @@ export function PortabilityActionProgress({
 
   return (
     <div
-      className="grid gap-2 rounded-md border border-border bg-background/70 p-3"
+      className="grid gap-2 rounded-md border border-border bg-background/70 p-3 pointer-events-auto"
+      data-motion-cancellable="true"
       data-testid="settings-portability-progress"
       aria-live="polite"
     >
@@ -47,6 +48,8 @@ export function PortabilityActionProgress({
           variant="outline"
           size="sm"
           data-testid="settings-portability-cancel"
+          data-motion-cancel-action="true"
+          className="relative z-10 pointer-events-auto"
           disabled={!onCancel || progress.phase === 'cancelling'}
           onClick={onCancel}
         >
@@ -55,7 +58,7 @@ export function PortabilityActionProgress({
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
         <div
-          className="h-full rounded-full bg-primary transition-[width]"
+          className="h-full rounded-full bg-primary transition-[width] motion-reduce:transition-none"
           style={{ width: `${percent}%` }}
         />
       </div>

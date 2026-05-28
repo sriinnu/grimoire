@@ -55,7 +55,7 @@ export function SectionHeading({
 
 /** Hairline divider used between settings groups. */
 export function Divider() {
-  return <div className="h-px bg-[color-mix(in_srgb,var(--border)_82%,transparent)]" />
+  return <div className="settings-section-divider h-px" />
 }
 
 /** Labelled shadcn Select wrapper with test-friendly metadata. */
@@ -80,6 +80,7 @@ export function LabeledSelect({
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger
           className="w-full bg-transparent"
+          aria-label={label}
           data-testid={testId}
           data-value={value}
           data-settings-autofocus={autoFocus ? 'true' : undefined}

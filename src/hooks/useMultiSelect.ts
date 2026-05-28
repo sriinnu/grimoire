@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import type { VaultEntry } from '../types'
 
 export interface MultiSelectState {
@@ -7,6 +7,7 @@ export interface MultiSelectState {
   toggle: (path: string) => void
   selectRange: (toPath: string) => void
   clear: () => void
+  pruneToVisible: () => void
   setAnchor: (path: string) => void
   selectAll: () => void
 }
@@ -14,6 +15,10 @@ export interface MultiSelectState {
 export function useMultiSelect(visibleEntries: VaultEntry[], activePath: string | null = null): MultiSelectState {
   const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set())
   const lastClickedRef = useRef<string | null>(null)
+  const visiblePathSet = useMemo(
+    () => new Set(visibleEntries.map((entry) => entry.path)),
+    [visibleEntries],
+  )
 
   const toggle = useCallback((path: string) => {
     setSelectedPaths((prev) => {
@@ -53,6 +58,24 @@ export function useMultiSelect(visibleEntries: VaultEntry[], activePath: string 
     lastClickedRef.current = null
   }, [])
 
+  const pruneToVisible = useCallback(() => {
+    setSelectedPaths((prev) => {
+      let changed = false
+      const next = new Set<string>()
+      for (const path of prev) {
+        if (visiblePathSet.has(path)) {
+          next.add(path)
+        } else {
+          changed = true
+        }
+      }
+      if (lastClickedRef.current && !visiblePathSet.has(lastClickedRef.current)) {
+        lastClickedRef.current = null
+      }
+      return changed ? next : prev
+    })
+  }, [visiblePathSet])
+
   const setAnchor = useCallback((path: string) => {
     lastClickedRef.current = path
   }, [])
@@ -67,6 +90,7 @@ export function useMultiSelect(visibleEntries: VaultEntry[], activePath: string 
     toggle,
     selectRange,
     clear,
+    pruneToVisible,
     setAnchor,
     selectAll,
   }

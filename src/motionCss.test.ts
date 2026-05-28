@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const css = readFileSync(`${process.cwd()}/src/motion.css`, 'utf8')
+const MOTION_FILES = ['src/motion.css', 'src/motion-memory.css'] as const
+const css = MOTION_FILES.map((file) => readFileSync(`${process.cwd()}/${file}`, 'utf8')).join('\n')
 
 function cssSection(start: string, end?: string): string {
   const startIndex = css.indexOf(start)
@@ -15,6 +16,13 @@ function cssSection(start: string, end?: string): string {
 }
 
 describe('motion CSS foundation', () => {
+  it('keeps split motion files under the source LOC guardrail', () => {
+    for (const file of MOTION_FILES) {
+      const lines = readFileSync(`${process.cwd()}/${file}`, 'utf8').split('\n').length
+      expect(lines, file).toBeLessThanOrEqual(400)
+    }
+  })
+
   it('defines reusable panel, control, and hover-lift primitives', () => {
     for (const token of [
       '--motion-duration-panel',
@@ -30,6 +38,7 @@ describe('motion CSS foundation', () => {
       '--motion-hover-lift-distance',
       '--motion-hover-shadow',
       '--motion-hover-border',
+      '--motion-cancel-action-z-index',
     ]) {
       expect(css).toContain(token)
     }
@@ -60,6 +69,22 @@ describe('motion CSS foundation', () => {
     expect(css).toContain('@keyframes grimoire-crystallize-accept')
     expect(css).toContain('@keyframes grimoire-crystallize-consequence')
     expect(css).toContain('@keyframes grimoire-import-autopsy-rail')
+  })
+
+  it('keeps cancel actions interactive above animated progress layers', () => {
+    const cancellableSurface = cssSection(
+      '[data-motion-cancellable="true"]',
+      '[data-motion-cancellable="true"] [data-motion-cancel-action="true"]',
+    )
+    const cancelAction = cssSection(
+      '[data-motion-cancellable="true"] [data-motion-cancel-action="true"]',
+      '.grimoire-import-autopsy__step::before',
+    )
+
+    expect(cancellableSurface).toContain('isolation: isolate')
+    expect(cancellableSurface).toContain('pointer-events: auto')
+    expect(cancelAction).toContain('z-index: var(--motion-cancel-action-z-index)')
+    expect(cancelAction).toContain('pointer-events: auto')
   })
 
   it('keeps entrance and page-settle animations limited to compositor-friendly properties', () => {

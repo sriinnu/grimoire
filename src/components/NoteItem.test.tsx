@@ -162,7 +162,8 @@ describe('NoteItem', () => {
 
     expect(item.style.backgroundColor).toBe('')
     expect(item.style.getPropertyValue('--note-type-color')).toBe('var(--accent-green)')
-    expect(item.style.borderLeftColor).toBe('var(--accent-green)')
+    expect(item.style.borderLeftColor).toBe('')
+    expect(item.className).not.toContain('border-l-[3px]')
   })
 
   it('shows created date on the right side of the date row when available', () => {

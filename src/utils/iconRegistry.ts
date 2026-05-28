@@ -3,7 +3,6 @@ import {
   ArrowsClockwise,
   Book,
   BookOpen,
-  Brain,
   Calendar,
   CalendarBlank,
   CookingPot,
@@ -15,7 +14,6 @@ import {
   Rocket,
   Sparkle,
   StackSimple,
-  Star,
   Tag,
   Target,
   User,
@@ -24,24 +22,24 @@ import {
   type IconProps,
 } from '@phosphor-icons/react'
 import {
+  BrainIcon,
+  GrimoireStarIcon,
   PuranasIcon,
   RishiIcon,
   SecondBrainIcon,
   ShaastrasIcon,
   VedasIcon,
 } from '../components/icons/grimoireKnowledgeIcons'
-import { isKnownIconOptionName } from './iconOptionNames'
+import { ICON_OPTION_NAMES, isKnownIconOptionName } from './iconOptionNames'
 
 export type { IconProps }
 export type IconEntry = { name: string; Icon: ComponentType<IconProps> }
-
-type IconOptionsModule = typeof import('./iconOptions')
 
 const RUNTIME_ICON_MAP: Record<string, ComponentType<IconProps>> = {
   'arrows-clockwise': ArrowsClockwise,
   book: Book,
   'book-open': BookOpen,
-  brain: Brain,
+  brain: BrainIcon,
   calendar: Calendar,
   'calendar-blank': CalendarBlank,
   'cooking-pot': CookingPot,
@@ -55,7 +53,7 @@ const RUNTIME_ICON_MAP: Record<string, ComponentType<IconProps>> = {
   sparkles: Sparkle,
   stack: StackSimple,
   'stack-simple': StackSimple,
-  star: Star,
+  star: GrimoireStarIcon,
   tag: Tag,
   target: Target,
   user: User,
@@ -70,18 +68,44 @@ const RUNTIME_ICON_MAP: Record<string, ComponentType<IconProps>> = {
   'second-brain': SecondBrainIcon,
   wrench: Wrench,
 }
+const COMMON_ICON_NAMES = [
+  'file-text',
+  'brain',
+  'second-brain',
+  'vedas',
+  'shaastras',
+  'puranas',
+  'rishi',
+  'star',
+  'book-open',
+  'calendar',
+  'tag',
+  'target',
+  'rocket',
+  'sparkle',
+  'wrench',
+  'cooking-pot',
+  'leaf',
+  'flask',
+] as const
+
+export const COMMON_ICON_OPTIONS: IconEntry[] = COMMON_ICON_NAMES.map((name) => ({
+  Icon: RUNTIME_ICON_MAP[name],
+  name,
+}))
 
 const deferredIconCache = new Map<string, ComponentType<IconProps>>()
 const resolvedFullIconCache = new Map<string, ComponentType<IconProps> | null>()
-let iconOptionsImport: Promise<IconOptionsModule> | null = null
 
 export function normalizeIconName(name: string): string {
   return name.trim().toLowerCase().replace(/[_\s]+/g, '-')
 }
 
 export function loadIconOptions(): Promise<IconEntry[]> {
-  iconOptionsImport ??= import('./iconOptions')
-  return iconOptionsImport.then((module) => module.ICON_OPTIONS)
+  return Promise.resolve(ICON_OPTION_NAMES.map((name) => ({
+    Icon: RUNTIME_ICON_MAP[name] ?? createDeferredIcon(name),
+    name,
+  })))
 }
 
 async function loadFullIcon(normalizedName: string): Promise<ComponentType<IconProps> | null> {
@@ -89,9 +113,8 @@ async function loadFullIcon(normalizedName: string): Promise<ComponentType<IconP
     return resolvedFullIconCache.get(normalizedName) ?? null
   }
 
-  iconOptionsImport ??= import('./iconOptions')
-  const module = await iconOptionsImport
-  const Icon = module.findIcon(normalizedName)
+  const module = await import('./phosphorIconLoaders')
+  const Icon = await module.loadPhosphorIcon(normalizedName)
   resolvedFullIconCache.set(normalizedName, Icon)
   return Icon
 }

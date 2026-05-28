@@ -2,21 +2,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { APP_STORAGE_KEYS, LEGACY_APP_STORAGE_KEYS } from '../constants/appStorage'
 import { allSelection, makeEntry } from '../test-utils/noteListTestUtils'
 import {
-  clearListSortFromLocalStorage,
   countInboxByPeriod,
-  extractSortableProperties,
   filterEntries,
   filterInboxEntries,
   formatSearchSubtitle,
   formatSubtitle,
+  relativeDate,
+} from './noteListHelpers'
+import {
+  clearListSortFromLocalStorage,
+  extractSortableProperties,
   getSortComparator,
   getSortOptionLabel,
   loadSortPreferences,
   parseSortConfig,
-  relativeDate,
   saveSortPreferences,
   serializeSortConfig,
-} from './noteListHelpers'
+} from './noteListSorting'
 
 const localStorageMock = (() => {
   let store: Record<string, string> = {}

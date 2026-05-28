@@ -277,10 +277,8 @@ function getHeaderForNoteList(noteListContainer: HTMLElement) {
 }
 
 async function enterNeighborhood(noteListContainer: HTMLElement, title: string) {
-  await act(async () => {
-    fireEvent.click(within(noteListContainer).getByText(title), { metaKey: true })
-    await Promise.resolve()
-  })
+  const note = await within(noteListContainer).findByText(title, {}, { timeout: 10000 })
+  fireEvent.click(note, { metaKey: true })
 }
 
 async function openNoteFromList(noteListContainer: HTMLElement, title: string, expectedPath: string) {
@@ -537,7 +535,8 @@ describe('App', () => {
     expect(invoke).not.toHaveBeenCalledWith('git_remote_status', { vaultPath: '/vault' })
     expect(screen.queryByTestId('status-commit-push')).not.toBeInTheDocument()
     expect(screen.queryByTestId('status-sync')).not.toBeInTheDocument()
-    expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
+    expect(screen.getByTestId('status-local-only')).toHaveTextContent('Local only')
+    expect(screen.queryByTestId('status-no-remote')).not.toBeInTheDocument()
   })
 
   it('keeps an explicitly local-only vault local even when .git exists', async () => {
@@ -575,6 +574,23 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
       expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
+    })
+  })
+
+  it('routes menu-bar dream capture to the dashboard capture surface', async () => {
+    render(<App />)
+
+    await waitFor(() => {
+      expect(typeof window.__grimoireTest?.dispatchBrowserMenuCommand).toBe('function')
+    })
+
+    act(() => {
+      window.__grimoireTest?.dispatchBrowserMenuCommand?.('file-capture-dream')
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
+      expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
     })
   })
 
@@ -642,7 +658,7 @@ describe('App', () => {
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByTestId('status-build-number'))
+    fireEvent.click(await screen.findByTestId('status-build-number'))
 
     await waitFor(() => {
       expect(screen.getByText('Grimoire 2026.4.25 is available')).toBeInTheDocument()

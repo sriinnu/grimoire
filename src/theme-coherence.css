@@ -8,41 +8,35 @@
   --grimoire-hairline: color-mix(in srgb, var(--border-default) 76%, transparent);
   --grimoire-panel-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 18%, var(--surface-panel)), var(--surface-panel));
   --grimoire-toolbar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 30%, var(--surface-panel)), var(--surface-panel));
+  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 18rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 92%, var(--surface-panel)), var(--surface-app));
   --grimoire-card-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)));
   --grimoire-card-selected-material: linear-gradient(135deg, color-mix(in srgb, var(--note-type-color, var(--primary)) 16%, var(--surface-card)), color-mix(in srgb, var(--state-selected) 68%, var(--surface-card)));
   --grimoire-dialog-material: linear-gradient(145deg, color-mix(in srgb, var(--primary) 7%, transparent), transparent 34%), var(--surface-panel);
+  --grimoire-dialog-overlay: color-mix(in srgb, var(--shadow-overlay) 82%, transparent);
+  --grimoire-dialog-shadow: 0 18px 54px color-mix(in srgb, var(--shadow-dialog) 84%, transparent);
+  --grimoire-shell-radius: calc(var(--radius) + 4px);
+  --grimoire-portability-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-panel)));
+  --grimoire-portability-preview-material: color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel));
+  --grimoire-portability-rail-material: color-mix(in srgb, var(--primary) 8%, var(--surface-card));
+  --grimoire-portability-warn-fg: var(--feedback-warning-text); --grimoire-portability-safe-fg: var(--feedback-success-text);
   --grimoire-editor-material: linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, transparent), transparent 18rem), var(--surface-editor);
   --grimoire-editor-page-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 74%, var(--surface-editor)), var(--surface-editor));
   --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 19rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 82%, var(--surface-panel)), var(--surface-app));
   --grimoire-status-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 90%, var(--surface-panel)), var(--surface-sidebar));
   --grimoire-agent-card-material: linear-gradient(145deg, color-mix(in srgb, var(--primary) 8%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)));
   --grimoire-signal-accent: color-mix(in srgb, var(--primary) 82%, var(--text-primary));
+  --grimoire-signal-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
+  --grimoire-signal-border: color-mix(in srgb, var(--primary) 34%, var(--border-default));
+  --grimoire-signal-text: color-mix(in srgb, var(--primary) 26%, var(--text-primary));
   --grimoire-private-local-accent: color-mix(in srgb, var(--accent-orange) 36%, var(--primary));
+  --grimoire-private-local-material: radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--grimoire-private-local-accent) 18%, transparent), transparent 10rem), linear-gradient(145deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
+  --grimoire-private-local-border: color-mix(in srgb, var(--grimoire-private-local-accent) 34%, var(--border-default)); --grimoire-private-local-glow: 0 20px 54px color-mix(in srgb, var(--grimoire-private-local-accent) 12%, transparent);
+  --grimoire-private-chip-bg: color-mix(in srgb, var(--grimoire-private-local-accent) 10%, transparent); --grimoire-private-chip-border: color-mix(in srgb, var(--grimoire-private-local-accent) 28%, var(--border-default)); --grimoire-private-chip-fg: color-mix(in srgb, var(--grimoire-private-local-accent) 62%, var(--text-primary));
   --ai-message-user-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 86%, var(--surface-panel)));
-  --ai-message-user-border: color-mix(in srgb, var(--primary) 22%, var(--border-default));
-  --ai-message-user-fg: var(--text-primary);
+  --ai-message-user-border: color-mix(in srgb, var(--primary) 22%, var(--border-default)); --ai-message-user-fg: var(--text-primary);
   --ai-reference-pill-bg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 12%, var(--surface-card));
   --ai-reference-pill-border: color-mix(in srgb, var(--reference-type-color, var(--primary)) 24%, var(--border-default));
   --ai-reference-pill-fg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 72%, var(--text-primary));
-  --status-bar-raw-accent-blue: var(--accent-blue);
-  --status-bar-raw-accent-green: var(--accent-green);
-  --status-bar-raw-accent-orange: var(--accent-orange);
-  --status-bar-raw-accent-purple: var(--accent-purple);
-  --status-bar-raw-accent-red: var(--accent-red);
-  --status-bar-foreground: var(--sidebar-foreground);
-  --status-bar-muted-foreground: color-mix(in srgb, var(--sidebar-foreground) 78%, transparent);
-  --status-bar-control-material: linear-gradient(180deg, color-mix(in srgb, var(--sidebar-foreground) 7%, transparent), color-mix(in srgb, var(--surface-sidebar) 96%, transparent));
-  --status-bar-control-border: color-mix(in srgb, var(--sidebar-border) 82%, transparent);
-  --status-bar-accent-fg: color-mix(in srgb, var(--sidebar-primary) 34%, var(--status-bar-foreground));
-  --status-bar-agent-fg: color-mix(in srgb, var(--status-bar-raw-accent-purple) 24%, var(--status-bar-foreground));
-  --status-bar-warning-fg: color-mix(in srgb, var(--status-bar-raw-accent-orange) 24%, var(--status-bar-foreground));
-  --status-bar-success-fg: color-mix(in srgb, var(--status-bar-raw-accent-green) 24%, var(--status-bar-foreground));
-  --status-bar-danger-fg: color-mix(in srgb, var(--status-bar-raw-accent-red) 42%, var(--sidebar-foreground));
-  --status-bar-badge-bg: color-mix(in srgb, var(--status-bar-warning-fg) 22%, transparent);
-  --status-bar-badge-fg: var(--sidebar-foreground);
-  --status-bar-popover-bg: color-mix(in srgb, var(--surface-sidebar) 82%, var(--surface-popover));
-  --status-bar-popover-fg: var(--sidebar-foreground);
-  --status-bar-hover: color-mix(in srgb, var(--sidebar-primary) 12%, transparent);
 }
 
 :is(
@@ -66,7 +60,71 @@
 ) .settings-panel-shell {
   background: var(--grimoire-dialog-material);
   border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-shell-radius);
+  box-shadow: var(--grimoire-dialog-shadow);
   color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-dialog-overlay {
+  background: var(--grimoire-dialog-overlay);
+  backdrop-filter: blur(var(--grimoire-overlay-blur, 10px));
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) :is(.grimoire-dialog-content, .grimoire-command-surface) {
+  background: var(--grimoire-dialog-material);
+  border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-shell-radius);
+  box-shadow: var(--grimoire-dialog-shadow);
+  color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-dialog-content {
+  padding: var(--grimoire-density-panel-padding, 16px);
+}
+
+:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy) {
+  background: var(--grimoire-portability-material);
+  border-color: var(--grimoire-hairline);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat) {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .grimoire-portability-lanes {
+  background: var(--grimoire-portability-rail-material);
+}
+
+:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) [data-tone="warn"] :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
+  color: var(--grimoire-portability-warn-fg);
+}
+
+:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) [data-tone="safe"] .grimoire-preview-stat__value {
+  color: var(--grimoire-portability-safe-fg);
 }
 
 :is(
@@ -86,8 +144,108 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
+) .settings-mobile-navigation {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 82%, transparent), transparent);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-mobile-navigation__rail {
+  background: var(--grimoire-toolbar-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-mobile-navigation button[aria-current="page"] {
+  background: var(--grimoire-card-selected-material);
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--grimoire-hairline));
+  color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
 ) .settings-main-surface {
   background: var(--grimoire-settings-main-material);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) :is(.settings-theme-preset-card, .settings-appearance-preview) {
+  background: var(--grimoire-card-material);
+  border-color: var(--grimoire-hairline);
+  color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-theme-preset-card[data-group="signature"] {
+  background: linear-gradient(135deg, var(--surface-editor), color-mix(in srgb, var(--primary) 14%, var(--surface-panel)));
+  border-color: color-mix(in srgb, var(--primary) 36%, var(--grimoire-hairline));
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-theme-preset-card[data-selected="true"] {
+  background: var(--surface-panel);
+  border-color: var(--primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-appearance-preview {
+  padding: 14px;
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-appearance-preview__sample {
+  color: var(--foreground);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-appearance-preview__body {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-top: 6px;
 }
 
 :is(
@@ -120,7 +278,7 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
-) :is(.breadcrumb-bar, .note-list-chrome-row, .note-list-search-row, .project-workspace-strip, .note-list-filter-footer) {
+) :is(.breadcrumb-bar, .note-list-top-chrome, .note-list-chrome-row, .note-list-search-row, .project-workspace-strip, .note-list-filter-rail) {
   background: var(--grimoire-toolbar-material);
   border-color: var(--grimoire-hairline);
 }
@@ -183,15 +341,18 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
-) .ai-panel {
+) :is(.ai-panel, .inspector-panel) {
   --background: var(--surface-panel);
   --foreground: var(--text-primary);
   --card: var(--surface-card);
-  --muted: var(--state-hover-subtle);
+  --muted: color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel));
   --muted-foreground: var(--text-secondary);
   --border: var(--grimoire-hairline);
   --input: var(--border-subtle);
   --grimoire-private-local-accent: color-mix(in srgb, var(--accent-orange) 36%, var(--primary));
+  --grimoire-signal-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
+  --grimoire-signal-border: color-mix(in srgb, var(--primary) 34%, var(--border-default));
+  --grimoire-signal-text: color-mix(in srgb, var(--primary) 26%, var(--text-primary));
 }
 
 :is(
@@ -214,102 +375,4 @@
   background: color-mix(in srgb, var(--surface-input) 88%, var(--surface-panel));
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .ai-panel :is([data-testid="context-capsule-card"], [data-testid="crystallize-loop-card"], [data-testid="red-team-plan-card"]) > div,
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .ai-panel :is(.grimoire-agent-council__member, .grimoire-agent-council__brief) {
-  background: var(--grimoire-agent-card-material) !important;
-  border-color: var(--grimoire-hairline) !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar {
-  --hover: var(--status-bar-hover);
-  --popover: var(--status-bar-popover-bg);
-  --popover-foreground: var(--status-bar-popover-fg);
-  --foreground: var(--status-bar-foreground);
-  --muted-foreground: var(--status-bar-muted-foreground);
-  background: var(--grimoire-status-material) !important;
-  border-top-color: var(--sidebar-border) !important;
-  color: var(--status-bar-muted-foreground, color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)) !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar :is(button, [role="button"]) {
-  color: var(--status-bar-muted-foreground) !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar :is(button:hover, button:focus-visible, button[aria-expanded="true"], [role="button"]:hover, [role="button"]:focus-visible) {
-  color: var(--status-bar-foreground) !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar :is([data-testid="spanda-intent-trigger"], [data-testid="status-mcp"], [data-testid="status-conflict-count"], [data-testid="status-claude-code"]) {
-  color: var(--status-bar-foreground) !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) {
-  background: var(--status-bar-control-material) !important;
-  border-color: var(--status-bar-control-border) !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) :is(button, [role="button"]) {
-  color: inherit !important;
-}
-
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .status-bar [data-testid="status-modified-count"] span span {
-  background: var(--status-bar-badge-bg) !important;
-  border: 1px solid color-mix(in srgb, var(--status-bar-warning-fg) 32%, transparent) !important;
-  color: var(--status-bar-badge-fg) !important;
 }

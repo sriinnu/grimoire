@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
-import { NoteList } from './components/NoteList'
+import { LazyNoteList as NoteList } from './components/LazyNoteList'
 import type { DeletedNoteEntry } from './components/note-list/noteListUtils'
 import { LazyEditor as Editor } from './components/LazyEditor'
 import { ResizeHandle } from './components/ResizeHandle'
 import { Toast } from './components/Toast'
-import { StatusBar } from './components/StatusBar'
-import { VaultDashboard } from './components/dashboard/VaultDashboard'
 import { GrimoireRefreshAnimation } from './components/GrimoireRefreshAnimation'
 import {
   LazyAiAgentsOnboardingPrompt as AiAgentsOnboardingPrompt,
@@ -19,18 +17,24 @@ import {
   LazyCreateTypeDialog as CreateTypeDialog,
   LazyCreateVaultDialog as CreateVaultDialog,
   LazyCreateViewDialog as CreateViewDialog,
+  LazyDashboardRoute as DashboardRoute,
+  LazyDeleteProgressNotice as DeleteProgressNotice,
   LazyFeedbackDialog as FeedbackDialog,
   LazyGraphModal as GraphModal,
   LazyMcpSetupDialog as McpSetupDialog,
+  LazyNoteRetargetingDialogs as NoteRetargetingDialogs,
   LazyPulseView as PulseView,
   LazyQuickOpenPalette as QuickOpenPalette,
+  LazyRenameDetectedBanner as RenameDetectedBanner,
   LazySearchPanel as SearchPanel,
   LazySettingsPanel as SettingsPanel,
+  LazyStatusBar as StatusBar,
   LazyTelemetryConsentDialog as TelemetryConsentDialog,
+  LazyUpdateBanner as UpdateBanner,
+  LazyVaultRebuildProgressNotice as VaultRebuildProgressNotice,
   LazyWelcomeScreen as WelcomeScreen,
   LazyWeatherSnapshotDialog as WeatherSnapshotDialog,
 } from './components/AppLazySurfaces'
-import { NoteRetargetingDialogs } from './components/note-retargeting/NoteRetargetingDialogs'
 import { NoteRetargetingProvider } from './components/note-retargeting/noteRetargetingContext'
 import { useTelemetry } from './hooks/useTelemetry'
 import { useMcpStatus } from './hooks/useMcpStatus'
@@ -45,7 +49,6 @@ import { useSettings } from './hooks/useSettings'
 import { useDocumentThemeMode } from './hooks/useDocumentThemeMode'
 import { useAppearanceSettings } from './hooks/useAppearanceSettings'
 import { useNoteActions } from './hooks/useNoteActions'
-import { useDashboardCapture } from './hooks/useDashboardCapture'
 import { planNewTypeCreation, slugify } from './hooks/useNoteCreation'
 import { useCommitFlow } from './hooks/useCommitFlow'
 import { useGitRemoteStatus } from './hooks/useGitRemoteStatus'
@@ -60,7 +63,6 @@ import { generateCommitMessage } from './utils/commitMessage'
 import { useDialogs } from './hooks/useDialogs'
 import { useVaultSwitcher } from './hooks/useVaultSwitcher'
 import { useGitHistory } from './hooks/useGitHistory'
-import { useVaultPulsePreview } from './hooks/useVaultPulsePreview'
 import { useUpdater, restartApp } from './hooks/useUpdater'
 import { useAutoSync } from './hooks/useAutoSync'
 import { useConflictResolver } from './hooks/useConflictResolver'
@@ -87,18 +89,16 @@ import { useNoteRetargetingUi } from './hooks/useNoteRetargetingUi'
 import type { CreateEmptyVaultRequest } from './utils/vaultCreation'
 import { useVaultBridge } from './hooks/useVaultBridge'
 import type { CommitDiffRequest } from './hooks/useDiffMode'
-import { DeleteProgressNotice } from './components/DeleteProgressNotice'
-import { VaultRebuildProgressNotice } from './components/VaultRebuildProgressNotice'
-import { UpdateBanner } from './components/UpdateBanner'
 import { isTauri, mockInvoke } from './mock-tauri'
 import type { SidebarSelection, InboxPeriod, VaultEntry, ViewDefinition } from './types'
 import type { NoteListItem } from './utils/ai-context'
+import type { CaptureKind, DashboardCaptureRequest } from './utils/dashboardCapture'
 import { initializeNoteProperties } from './utils/initializeNoteProperties'
 import { filterEntries, filterInboxEntries, type NoteListFilter } from './utils/noteListHelpers'
 import { openNoteInNewWindow } from './utils/openNoteWindow'
 import { refreshPulledVaultState } from './utils/pulledVaultRefresh'
 import { isNoteWindow, getNoteWindowParams, getNoteWindowPathCandidates, type NoteWindowParams } from './utils/windowMode'
-import { RenameDetectedBanner, type DetectedRename } from './components/RenameDetectedBanner'
+import type { DetectedRename } from './components/RenameDetectedBanner'
 import { openNoteListPropertiesPicker } from './components/note-list/noteListPropertiesEvents'
 import type { NoteListMultiSelectionCommands } from './components/note-list/multiSelectionCommands'
 import { focusNoteIconPropertyEditor } from './components/noteIconPropertyEvents'
@@ -109,7 +109,7 @@ import {
   resolveEffectiveLocale,
   serializeUiLanguagePreference,
   type UiLanguagePreference,
-} from './lib/i18n'
+} from './lib/i18nCore'
 import { normalizeReleaseChannel } from './lib/releaseChannel'
 import {
   buildVaultAiGuidanceRefreshKey,
@@ -117,7 +117,7 @@ import {
 import { extractDeletedContentFromDiff } from './components/note-list/noteListUtils'
 import { hasNoteIconValue } from './utils/noteIcon'
 import { filenameStemToTitle } from './utils/noteTitle'
-import { appendMarkdownBlock } from './utils/weatherSnapshot'
+import { appendMarkdownBlock } from './utils/markdownBlock'
 import {
   focusNoteListContainer,
   isEditableElement,
@@ -245,6 +245,7 @@ function createPulseDeletedNoteEntry(fullPath: string, relativePath: string): De
 function App() {
   const noteWindowParams = useMemo(() => isNoteWindow() ? getNoteWindowParams() : null, [])
   const [selection, setSelection] = useState<SidebarSelection>(DEFAULT_SELECTION)
+  const [pendingDashboardCaptureRequest, setPendingDashboardCaptureRequest] = useState<DashboardCaptureRequest | null>(null)
   const [noteListFilter, setNoteListFilter] = useState<NoteListFilter>('open')
   const selectionRef = useRef<SidebarSelection>(DEFAULT_SELECTION)
   const neighborhoodHistoryRef = useRef<SidebarSelection[]>([])
@@ -265,6 +266,16 @@ function App() {
     )
     handleSetSelection(nextSelection, { preserveNeighborhoodHistory: true })
   }, [handleSetSelection])
+  const openDashboardCapture = useCallback((kind: CaptureKind) => {
+    setPendingDashboardCaptureRequest((previous) => ({
+      kind,
+      nonce: (previous?.nonce ?? 0) + 1,
+    }))
+    handleSetSelection(DASHBOARD_SELECTION)
+  }, [handleSetSelection])
+  const clearPendingDashboardCapture = useCallback(() => {
+    setPendingDashboardCaptureRequest(null)
+  }, [])
   const layout = useLayoutPanels(noteWindowParams ? { initialInspectorCollapsed: true } : undefined)
   const { setInspectorCollapsed } = layout
   const visibleNotesRef = useRef<VaultEntry[]>([])
@@ -498,6 +509,7 @@ function App() {
     themeMode: settings.theme_mode,
     themePreset: settings.theme_preset,
     editorFont: settings.editor_font,
+    nativeShellMaterial: settings.native_shell_material,
     loaded: settingsLoaded,
   })
   const documentThemeMode = useDocumentThemeMode()
@@ -631,28 +643,12 @@ function App() {
   useEffect(() => {
     noteWindowActionsRef.current = { handleSelectNote, openTabWithContent }
   }, [handleSelectNote, openTabWithContent])
-  const createDashboardCapture = useDashboardCapture({
-    addEntry: vault.addEntry,
-    addPendingSave: vault.addPendingSave,
-    createTypeEntry: notes.createTypeEntrySilent,
-    entries: vault.entries,
-    loadModifiedFiles: vault.loadModifiedFiles,
-    openTabWithContent,
-    removeEntry: vault.removeEntry,
-    removePendingSave: vault.removePendingSave,
-    setToastMessage,
-    vaultPath: resolvedPath,
-  })
-  const handleDashboardCapture = useCallback(async (...args: Parameters<typeof createDashboardCapture>) => {
-    const result = await createDashboardCapture(...args)
-    if (result.status === 'created') {
-      const typeName = result.entry.isA
-      handleSetSelection(typeName && typeName !== 'Note'
-        ? { kind: 'sectionGroup', type: typeName }
-        : { kind: 'filter', filter: 'all' })
-    }
-    return result
-  }, [createDashboardCapture, handleSetSelection])
+  const handleDashboardCaptureCreated = useCallback((entry: VaultEntry) => {
+    const typeName = entry.isA
+    handleSetSelection(typeName && typeName !== 'Note'
+      ? { kind: 'sectionGroup', type: typeName }
+      : { kind: 'filter', filter: 'all' })
+  }, [handleSetSelection])
   const handleDashboardOpenNote = useCallback((entry: VaultEntry) => {
     const typeName = entry.isA
     handleSetSelection(typeName && typeName !== 'Note'
@@ -927,6 +923,48 @@ function App() {
     if (activeTab) openNoteInNewWindow(activeTab.entry.path, resolvedPath, activeTab.entry.title)
   }, [notes.tabs, notes.activeTabPath, resolvedPath])
 
+  const handleRevealPathInFinder = useCallback(async (path: string, successMessage: string) => {
+    if (!resolvedPath || !path) {
+      setToastMessage('Open a vault before revealing files in Finder')
+      return
+    }
+    if (!isTauri()) {
+      setToastMessage('Reveal in Finder is available in the Mac app')
+      return
+    }
+    try {
+      await invokeAppCommand('reveal_path_in_finder', { vaultPath: resolvedPath, path })
+      setToastMessage(successMessage)
+    } catch (err) {
+      setToastMessage(`Could not reveal in Finder: ${err}`)
+    }
+  }, [resolvedPath, setToastMessage])
+
+  const handleRevealNoteInFinder = useCallback((path: string) => {
+    void handleRevealPathInFinder(path, 'Revealed note in Finder')
+  }, [handleRevealPathInFinder])
+
+  const handlePreviewNoteWithQuickLook = useCallback(async (path: string) => {
+    if (!resolvedPath || !path) {
+      setToastMessage('Open a vault before previewing notes with Quick Look')
+      return
+    }
+    if (!isTauri()) {
+      setToastMessage('Quick Look preview is available in the Mac app')
+      return
+    }
+    try {
+      await invokeAppCommand('preview_path_with_quick_look', { vaultPath: resolvedPath, path })
+      setToastMessage('Opened note in Quick Look')
+    } catch (err) {
+      setToastMessage(`Could not open Quick Look: ${err}`)
+    }
+  }, [resolvedPath, setToastMessage])
+
+  const handleRevealVaultInFinder = useCallback(() => {
+    void handleRevealPathInFinder(resolvedPath, 'Opened vault in Finder')
+  }, [handleRevealPathInFinder, resolvedPath])
+
   const handleOpenEntryInNewWindow = useCallback((entry: { path: string; title: string }) => {
     openNoteInNewWindow(entry.path, resolvedPath, entry.title)
   }, [resolvedPath])
@@ -1111,11 +1149,6 @@ function App() {
 
   const shouldLoadGitHistory = isGitVault && !layout.inspectorCollapsed && !showAIChat
   const gitHistory = useGitHistory(notes.activeTabPath, vault.loadGitHistory, shouldLoadGitHistory)
-  const vaultPulsePreview = useVaultPulsePreview(
-    resolvedPath,
-    isGitVault && effectiveSelection.kind === 'dashboard',
-  )
-
   const handleCreateType = useCallback(async (name: string, icon?: string) => {
     const created = await notes.handleCreateType(name)
     if (created && icon) {
@@ -1381,6 +1414,7 @@ function App() {
       if (isEditorEscapeTarget(activeElement)) {
         event.preventDefault()
         activeElement.blur()
+        focusNoteListContainer(document)
         requestAnimationFrame(() => {
           focusNoteListContainer(document)
         })
@@ -1484,6 +1518,9 @@ function App() {
     void handleSelectNote(entry)
     setShowGraphModal(false)
   }, [handleSelectNote])
+  const handleCaptureThoughtCommand = useCallback(() => openDashboardCapture('note'), [openDashboardCapture])
+  const handleCaptureJournalCommand = useCallback(() => openDashboardCapture('journal'), [openDashboardCapture])
+  const handleCaptureDreamCommand = useCallback(() => openDashboardCapture('dream'), [openDashboardCapture])
 
   const commands = useAppCommands({
     activeTabPath: notes.activeTabPath, activeTabPathRef: notes.activeTabPathRef,
@@ -1497,6 +1534,9 @@ function App() {
     onQuickOpen: dialogs.openQuickOpen, onCommandPalette: dialogs.openCommandPalette,
     onSearch: dialogs.openSearch,
     onCreateNote: notes.handleCreateNoteImmediate,
+    onCaptureThought: handleCaptureThoughtCommand,
+    onCaptureJournal: handleCaptureJournalCommand,
+    onCaptureDream: handleCaptureDreamCommand,
     onCreateNoteOfType: notes.handleCreateNoteImmediate,
     onSave: appSave.handleSave,
     onOpenSettings: dialogs.openSettings,
@@ -1558,6 +1598,9 @@ function App() {
     noteListFilter,
     onSetNoteListFilter: setNoteListFilter,
     onOpenInNewWindow: handleOpenInNewWindow,
+    onRevealNoteInFinder: handleRevealNoteInFinder,
+    onPreviewNoteWithQuickLook: handlePreviewNoteWithQuickLook,
+    onRevealVaultInFinder: handleRevealVaultInFinder,
     onToggleFavorite: entryActions.handleToggleFavorite,
     onToggleOrganized: toggleOrganizedCommand,
     onInsertWeatherSnapshot: insertWeatherSnapshotCommand,
@@ -1687,16 +1730,25 @@ function App() {
           )}
           {dashboardSelected ? (
             <div className="app__dashboard">
-              <VaultDashboard
+              <DashboardRoute
                 activeVault={activeVaultOption ?? undefined}
+                addEntry={vault.addEntry}
+                addPendingSave={vault.addPendingSave}
                 conflictCount={isGitVault ? autoSync.conflictFiles.length : 0}
+                createTypeEntry={notes.createTypeEntrySilent}
                 entries={vault.entries}
                 isGitVault={isGitVault}
+                loadModifiedFiles={vault.loadModifiedFiles}
                 modifiedCount={isGitVault ? vault.modifiedFiles.length : 0}
-                onCapture={handleDashboardCapture}
+                onCaptureCreated={handleDashboardCaptureCreated}
                 onOpenCreateVault={openCreateVaultDialog}
                 onOpenNote={handleDashboardOpenNote}
-                pulseCommits={vaultPulsePreview.commits}
+                onPendingCaptureConsumed={clearPendingDashboardCapture}
+                openTabWithContent={openTabWithContent}
+                pendingCaptureRequest={pendingDashboardCaptureRequest}
+                removeEntry={vault.removeEntry}
+                removePendingSave={vault.removePendingSave}
+                setToastMessage={setToastMessage}
                 syncStatus={autoSync.syncStatus}
                 vaultPath={resolvedPath}
               />
@@ -1768,7 +1820,7 @@ function App() {
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />
-        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
+        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
@@ -1783,7 +1835,7 @@ function App() {
           onClose={dialogs.closeCommandPalette}
         />
         <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} entries={vault.entries} onSelectNote={notes.handleSelectNote} onClose={dialogs.closeSearch} />
-        <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
+        <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} aiAgentsStatus={aiAgentsStatus} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <AudioRecordingDialog open={showAudioRecordingDialog} vaultPath={resolvedPath} onClose={closeAudioRecordingDialog} onRecordingSaved={audioTranscription.transcribeRecordedAudio} />
         <CreateTypeDialog open={dialogs.showCreateTypeDialog} onClose={dialogs.closeCreateType} onCreate={handleCreateType} />

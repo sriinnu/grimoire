@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "media/voice-1.m4a",
+    "destination_path": "attachments/voice-1.m4a",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "asset",
+    "source_path": "photos/photo-1.jpg",
+    "destination_path": "attachments/photo-1.jpg",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "note",
+    "source_path": "Journal.json",
+    "destination_path": "2026-05-09-evening-voice-memo.md",
+    "detail": "journal metadata/frontmatter map"
+  },
+  {
+    "kind": "note",
+    "source_path": "Journal.json",
+    "destination_path": "2026-05-09-morning.md",
+    "detail": "journal metadata/frontmatter map"
+  }
+]

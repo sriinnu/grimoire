@@ -2,14 +2,17 @@ import { useEffect } from 'react'
 import {
   applyAppearanceToDocument,
   readStoredEditorFont,
+  readStoredNativeShellMaterial,
   readStoredThemePreset,
   resolveEditorFont,
+  resolveNativeShellMaterial,
   resolveThemePreset,
   type ResolvedAppearance,
   writeStoredEditorFont,
+  writeStoredNativeShellMaterial,
   writeStoredThemePreset,
 } from '../lib/appearance'
-import type { EditorFont, ThemePreset } from '../lib/appearance'
+import type { EditorFont, NativeShellMaterial, ThemePreset } from '../lib/appearance'
 import { loadFontAssetsForAppearance } from '../lib/fontConfig'
 import type { ThemeMode } from '../lib/themeMode'
 import {
@@ -24,11 +27,16 @@ interface AppearanceSettingsInput {
   themeMode: ThemeMode | null | undefined
   themePreset: ThemePreset | null | undefined
   editorFont: EditorFont | null | undefined
+  nativeShellMaterial?: NativeShellMaterial | null | undefined
   loaded: boolean
 }
 
-function buildResolvedAppearance(themePreset: ThemePreset, editorFont: EditorFont): ResolvedAppearance {
-  const appearance: ResolvedAppearance = { themePreset, editorFont }
+function buildResolvedAppearance(
+  themePreset: ThemePreset,
+  editorFont: EditorFont,
+  nativeShellMaterial: NativeShellMaterial,
+): ResolvedAppearance {
+  const appearance: ResolvedAppearance = { themePreset, editorFont, nativeShellMaterial }
   const localThemeDefinition = readStoredLocalThemeDefinition(window.localStorage)
   if (localThemeDefinition) appearance.themeDefinition = localThemeDefinition
   return appearance
@@ -39,6 +47,7 @@ export function useAppearanceSettings({
   themeMode,
   themePreset,
   editorFont,
+  nativeShellMaterial,
   loaded,
 }: AppearanceSettingsInput): void {
   useThemeMode(themeMode, loaded)
@@ -52,9 +61,16 @@ export function useAppearanceSettings({
     const resolvedEditorFont = resolveEditorFont(
       editorFont ?? readStoredEditorFont(window.localStorage),
     )
+    const resolvedNativeShellMaterial = resolveNativeShellMaterial(
+      nativeShellMaterial ?? readStoredNativeShellMaterial(window.localStorage),
+    )
 
     const applyResolvedAppearance = () => {
-      const appearance = buildResolvedAppearance(resolvedThemePreset, resolvedEditorFont)
+      const appearance = buildResolvedAppearance(
+        resolvedThemePreset,
+        resolvedEditorFont,
+        resolvedNativeShellMaterial,
+      )
       applyAppearanceToDocument(document, appearance)
       void loadFontAssetsForAppearance(document, appearance)
     }
@@ -62,6 +78,7 @@ export function useAppearanceSettings({
     applyResolvedAppearance()
     writeStoredThemePreset(window.localStorage, resolvedThemePreset)
     writeStoredEditorFont(window.localStorage, resolvedEditorFont)
+    writeStoredNativeShellMaterial(window.localStorage, resolvedNativeShellMaterial)
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key === LOCAL_THEME_PACK_STORAGE_KEY) applyResolvedAppearance()
@@ -92,5 +109,5 @@ export function useAppearanceSettings({
       window.removeEventListener('storage', handleStorage)
       window.removeEventListener(LOCAL_THEME_PACK_CHANGE_EVENT, handleLocalThemePackChange)
     }
-  }, [editorFont, loaded, themeMode, themePreset])
+  }, [editorFont, loaded, nativeShellMaterial, themeMode, themePreset])
 }

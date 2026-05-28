@@ -1,18 +1,25 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { allSelection, makeEntry, mockEntries, renderNoteList } from '../test-utils/noteListTestUtils'
+import {
+  allSelection,
+  findNoteTitleElement,
+  getNoteTitleElement,
+  makeEntry,
+  mockEntries,
+  renderNoteList,
+} from '../test-utils/noteListTestUtils'
 
 describe('NoteList click behavior', () => {
   it('opens the current tab on a regular click', () => {
     const { onReplaceActiveTab, onEnterNeighborhood } = renderNoteList()
-    fireEvent.click(screen.getByText('Build Grimoire App'))
+    fireEvent.click(getNoteTitleElement('Build Grimoire App'))
     expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[0])
     expect(onEnterNeighborhood).not.toHaveBeenCalled()
   })
 
   it('enters Neighborhood on Cmd+Click', async () => {
     const { onReplaceActiveTab, onEnterNeighborhood } = renderNoteList()
-    fireEvent.click(screen.getByText('Build Grimoire App'), { metaKey: true })
+    fireEvent.click(getNoteTitleElement('Build Grimoire App'), { metaKey: true })
     await waitFor(() => {
       expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[0])
       expect(onEnterNeighborhood).toHaveBeenCalledWith(mockEntries[0])
@@ -21,7 +28,7 @@ describe('NoteList click behavior', () => {
 
   it('enters Neighborhood on Ctrl+Click', async () => {
     const { onReplaceActiveTab, onEnterNeighborhood } = renderNoteList()
-    fireEvent.click(screen.getByText('Build Grimoire App'), { ctrlKey: true })
+    fireEvent.click(getNoteTitleElement('Build Grimoire App'), { ctrlKey: true })
     await waitFor(() => {
       expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[0])
       expect(onEnterNeighborhood).toHaveBeenCalledWith(mockEntries[0])
@@ -30,25 +37,23 @@ describe('NoteList click behavior', () => {
 
   it('supports Cmd+Click on the entity pinned card', async () => {
     const { onReplaceActiveTab, onEnterNeighborhood } = renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
-    const titles = screen.getAllByText('Build Grimoire App')
-    fireEvent.click(titles[titles.length - 1], { metaKey: true })
+    fireEvent.click(await findNoteTitleElement('Build Grimoire App'), { metaKey: true })
     await waitFor(() => {
       expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[0])
       expect(onEnterNeighborhood).toHaveBeenCalledWith(mockEntries[0])
     })
   })
 
-  it('opens the current tab from the entity pinned card on regular click', () => {
+  it('opens the current tab from the entity pinned card on regular click', async () => {
     const { onReplaceActiveTab, onEnterNeighborhood } = renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
-    const titles = screen.getAllByText('Build Grimoire App')
-    fireEvent.click(titles[titles.length - 1])
+    fireEvent.click(await findNoteTitleElement('Build Grimoire App'))
     expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[0])
     expect(onEnterNeighborhood).not.toHaveBeenCalled()
   })
 
-  it('opens child notes from entity view in the current tab', () => {
+  it('opens child notes from entity view in the current tab', async () => {
     const { onReplaceActiveTab, onEnterNeighborhood } = renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
-    fireEvent.click(screen.getByText('Facebook Ads Strategy'))
+    fireEvent.click(await screen.findByText('Facebook Ads Strategy'))
     expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[1])
     expect(onEnterNeighborhood).not.toHaveBeenCalled()
   })

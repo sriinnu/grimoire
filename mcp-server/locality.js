@@ -78,18 +78,16 @@ export async function isLocalOnlyMarkdownFile(vaultRoot, filePath, rawContent) {
 }
 
 /** Reads a file only after the Locality Firewall allows it. */
-export async function readVisibleMarkdownFile(vaultRoot, filePath, allowLocalOnly = false) {
+export async function readVisibleMarkdownFile(vaultRoot, filePath) {
   const raw = await fs.readFile(filePath, 'utf-8')
-  if (!allowLocalOnly && await isLocalOnlyMarkdownFile(vaultRoot, filePath, raw)) {
+  if (await isLocalOnlyMarkdownFile(vaultRoot, filePath, raw)) {
     throw new Error('Note withheld by Locality Firewall')
   }
   return raw
 }
 
 /** Filters Markdown files through the Locality Firewall. */
-export async function visibleMarkdownFiles(vaultRoot, files, allowLocalOnly = false) {
-  if (allowLocalOnly) return files
-
+export async function visibleMarkdownFiles(vaultRoot, files) {
   const visible = []
   for (const filePath of files) {
     if (!await isLocalOnlyMarkdownFile(vaultRoot, filePath)) visible.push(filePath)

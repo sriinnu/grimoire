@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { render } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { NoteList } from '../components/NoteList'
 import type { NoteListFilter } from '../utils/noteListHelpers'
@@ -162,4 +162,18 @@ export function renderNoteList(overrides: Partial<NoteListProps> = {}) {
     ...render(<NoteList {...built.props} />),
     ...built,
   }
+}
+
+export function getNoteTitleElement(title: string, index = 0): HTMLElement {
+  const matches = screen
+    .getAllByTestId('note-title')
+    .filter((element) => element.textContent?.includes(title))
+  const match = matches[index]
+  if (!match) throw new Error(`No note title found for "${title}" at index ${index}`)
+  return match as HTMLElement
+}
+
+/** Waits for lazy note-list surfaces to reveal a rendered note title. */
+export async function findNoteTitleElement(title: string, index = 0): Promise<HTMLElement> {
+  return waitFor(() => getNoteTitleElement(title, index))
 }

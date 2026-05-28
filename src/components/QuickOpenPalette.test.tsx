@@ -56,6 +56,7 @@ describe('QuickOpenPalette', () => {
   it('shows search input when open', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
     expect(screen.getByPlaceholderText('Search notes...')).toBeInTheDocument()
+    expect(screen.getByTestId('quick-open-palette').querySelector('.grimoire-command-surface')).toBeInTheDocument()
   })
 
   it('focuses the search input without an artificial timer delay', () => {

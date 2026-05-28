@@ -71,6 +71,7 @@ const entries: VaultEntry[] = [
   makeEntry({ path: '/vault/alpha.md', title: 'Alpha', filename: 'alpha.md', isA: 'Project' }),
   makeEntry({ path: '/vault/beta.md', title: 'Beta', filename: 'beta.md', isA: 'Person', aliases: ['BLT'] }),
   makeEntry({ path: '/vault/gamma.md', title: 'Gamma', filename: 'gamma.md' }),
+  makeEntry({ path: '/vault/Private/secret.md', title: 'Secret Plan', filename: 'secret.md', properties: { locality: 'local-only' } }),
 ]
 
 function Controlled({
@@ -246,6 +247,13 @@ describe('WikilinkChatInput', () => {
     expect(screen.getByTestId('wikilink-menu').textContent).toContain('Beta')
   })
 
+  it('does not suggest protected notes in AI wikilink menus', () => {
+    render(<Controlled />)
+    updateEditorText('[[secret')
+
+    expect(screen.queryByTestId('wikilink-menu')?.textContent ?? '').not.toContain('Secret Plan')
+  })
+
   it('renders selected wikilinks inline instead of in a separate pill strip', () => {
     render(<Controlled />)
     updateEditorText('edit my [[alp')
@@ -419,6 +427,16 @@ describe('WikilinkChatInput', () => {
     expect(onSend).toHaveBeenCalledWith('edit my [[alpha]] essay', [
       { title: 'Alpha', path: '/vault/alpha.md', type: 'Project' },
     ])
+  })
+
+  it('redacts protected wikilink text before sending', () => {
+    const onSend = vi.fn()
+    render(<Controlled onSend={onSend} />)
+
+    updateEditorText('summarize [[Secret Plan]]')
+    fireEvent.keyDown(screen.getByTestId('agent-input'), { key: 'Enter' })
+
+    expect(onSend).toHaveBeenCalledWith('summarize [local-only note withheld]', [])
   })
 
   it('does not send on Shift+Enter', () => {

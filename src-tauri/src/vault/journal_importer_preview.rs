@@ -1,13 +1,15 @@
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use tempfile::TempDir;
 
+use super::import_manifest::{manifest_asset, manifest_note, ImportAutopsyManifestRow};
 use super::importer::MarkdownFolderImportPreview;
-use super::journal_import_helpers::JournalEntry;
+use super::journal_import_helpers::{unique_note_name, JournalEntry};
 use super::journal_importer::{
     build_media_index, canonical_dir, canonical_existing, collect_entries, path_to_string,
     prepare_import_source, unique_import_root, validate_source_boundary, ImportState,
 };
+use super::journal_media_import::{AttachmentPlanner, MediaIndex};
 
 /// Previews a Day One, Journey, or Apple Journal import without writing to the vault.
 pub fn preview_journal_export(
@@ -28,6 +30,7 @@ pub fn preview_journal_export(
     let entries = collect_entries(&source, &import_source, source_kind, &mut state)?;
     state.notes = entries.len();
     state.assets = count_copyable_media(&entries, &media_index);
+    let manifest_rows = preview_journal_manifest_rows(&planned_import_root, &entries, &media_index);
 
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source),
@@ -37,33 +40,52 @@ pub fn preview_journal_export(
         skipped_files: state.skipped,
         failed_files: state.failed,
         writes_local_only_report: true,
+        manifest_rows,
     })
 }
 
-fn count_copyable_media(entries: &[JournalEntry], media_index: &HashMap<String, PathBuf>) -> usize {
+fn preview_journal_manifest_rows(
+    import_root: &Path,
+    entries: &[JournalEntry],
+    media_index: &MediaIndex,
+) -> Vec<ImportAutopsyManifestRow> {
+    let mut rows = Vec::new();
+    let mut used_names = HashMap::<String, usize>::new();
+    let mut attachment_planner = AttachmentPlanner::default();
+    for entry in entries {
+        rows.push(manifest_note(
+            Path::new(&entry.source_path),
+            &import_root.join(unique_note_name(entry, &mut used_names)),
+            "journal metadata/frontmatter map",
+        ));
+        for key in &entry.media_keys {
+            let Some(media_source) = media_index.resolve(key) else {
+                continue;
+            };
+            let Some(plan) = attachment_planner.plan(media_source) else {
+                continue;
+            };
+            if plan.is_new_copy {
+                rows.push(manifest_asset(&plan.source, &import_root.join(&plan.link)));
+            }
+        }
+    }
+    rows
+}
+
+fn count_copyable_media(entries: &[JournalEntry], media_index: &MediaIndex) -> usize {
     let mut copies = 0;
+    let mut attachment_planner = AttachmentPlanner::default();
     for entry in entries {
         for key in &entry.media_keys {
-            if media_source_exists(key, media_index) {
+            if media_index
+                .resolve(key)
+                .and_then(|source| attachment_planner.plan(source))
+                .is_some_and(|plan| plan.is_new_copy)
+            {
                 copies += 1;
             }
         }
     }
     copies
-}
-
-fn media_source_exists(key: &str, media_index: &HashMap<String, PathBuf>) -> bool {
-    let lookup = key.to_ascii_lowercase();
-    media_index
-        .get(&lookup)
-        .or_else(|| media_index.get(file_stem_key(&lookup).as_str()))
-        .and_then(|path| path.file_name())
-        .is_some()
-}
-
-fn file_stem_key(value: &str) -> String {
-    Path::new(value)
-        .file_stem()
-        .map(|stem| stem.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_else(|| value.to_string())
 }

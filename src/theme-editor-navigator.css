@@ -57,6 +57,25 @@
   font-weight: 650;
 }
 
+.editor-navigator-controls__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary, currentColor) 12%, transparent);
+  color: var(--text-primary);
+  font-family: var(--grimoire-mono-font-family, ui-monospace, monospace);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.editor-navigator-controls__count[data-empty="true"] {
+  opacity: 0.58;
+}
+
 .editor-navigator-controls--meta .editor-navigator-controls__button:hover {
   background: var(--state-hover);
   color: var(--text-primary);

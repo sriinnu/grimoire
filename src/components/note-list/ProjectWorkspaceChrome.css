@@ -1,0 +1,320 @@
+.project-workspace-strip {
+  border-bottom: 1px solid var(--note-list-chrome-border);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--primary) 4%, transparent),
+      transparent 64%
+    ),
+    color-mix(in srgb, var(--card) 94%, var(--background));
+  padding: var(--grimoire-density-toolbar-padding, 8px 10px);
+}
+
+.project-workspace-chrome {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.project-workspace-chrome__overview {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "scope actions"
+    "search search"
+    "filters filters"
+    "docs docs";
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--note-list-chrome-border);
+  border-radius: var(--note-list-chrome-radius);
+  background:
+    radial-gradient(
+      circle at 12% 0,
+      color-mix(in srgb, var(--primary) 10%, transparent),
+      transparent 36%
+    ),
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 5%, transparent), transparent 58%),
+    color-mix(in srgb, var(--background) 64%, var(--card));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 7%, transparent);
+  padding: 7px;
+}
+
+.project-workspace-chrome__scope {
+  grid-area: scope;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "label path"
+    "metrics metrics";
+  align-items: center;
+  gap: 4px 8px;
+  padding: 1px 2px 1px 5px;
+}
+
+.project-workspace-chrome__scope-label,
+.project-workspace-chrome__label {
+  color: var(--note-list-chrome-muted);
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.project-workspace-chrome__scope-label {
+  grid-area: label;
+}
+
+.project-workspace-chrome__scope-path {
+  grid-area: path;
+  display: inline-flex;
+  min-width: 0;
+  overflow: hidden;
+  align-items: center;
+  gap: 4px;
+  color: var(--foreground);
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-workspace-chrome__scope-part {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 7.4rem;
+  align-items: center;
+  color: var(--note-list-chrome-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-workspace-chrome__scope-separator {
+  color: color-mix(in srgb, var(--note-list-chrome-muted) 68%, transparent);
+}
+
+.project-workspace-chrome__scope-part[data-leaf="true"] {
+  color: var(--foreground);
+  font-weight: 760;
+}
+
+.project-workspace-chrome__metrics,
+.project-workspace-chrome__docs-scroll {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.project-workspace-chrome__metrics::-webkit-scrollbar,
+.project-workspace-chrome__docs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.project-workspace-chrome__metrics {
+  grid-area: metrics;
+  justify-content: flex-start;
+  padding: 1px 2px 0 0;
+}
+
+.project-workspace-chrome__actions,
+.project-workspace-chrome__search-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--note-list-chrome-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 64%, transparent);
+  padding: 2px;
+}
+
+.project-workspace-chrome__actions {
+  grid-area: actions;
+  align-self: start;
+}
+
+.project-workspace-chrome__metric {
+  display: inline-flex;
+  min-width: max-content;
+  height: 23px;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--note-list-chrome-border) 56%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 54%, transparent);
+  padding: 0 7px;
+  color: var(--note-list-chrome-muted);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 640;
+}
+
+.project-workspace-chrome__metric[data-state="primary"] {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--note-list-chrome-border));
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  color: var(--foreground);
+}
+
+.project-workspace-chrome__metric[data-state="active"] {
+  border-color: color-mix(in srgb, var(--accent-teal) 30%, var(--note-list-chrome-border));
+  background: color-mix(in srgb, var(--accent-teal) 10%, transparent);
+}
+
+.project-workspace-chrome__metric[data-state="warning"] {
+  border-color: color-mix(in srgb, var(--warning, #d97706) 34%, var(--note-list-chrome-border));
+  background: color-mix(in srgb, var(--warning, #d97706) 11%, transparent);
+  color: color-mix(in srgb, var(--foreground) 88%, var(--warning, #d97706));
+}
+
+.project-workspace-chrome__metric[data-state="busy"] {
+  border-style: dashed;
+  color: var(--foreground);
+}
+
+.project-workspace-chrome__action,
+.project-workspace-chrome__icon-button {
+  color: var(--note-list-chrome-muted);
+}
+
+.project-workspace-chrome__action {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  padding: 0;
+}
+
+.project-workspace-chrome__action[data-state="scanned"],
+.project-workspace-chrome__action[data-state="copied"],
+.project-workspace-chrome__action[data-state="saved"] {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--foreground);
+}
+
+.project-workspace-chrome__docs {
+  grid-area: docs;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--note-list-chrome-border) 70%, transparent);
+  background: transparent;
+  padding: 6px 2px 1px;
+}
+
+.project-workspace-chrome__docs-scroll {
+  mask-image: linear-gradient(90deg, black calc(100% - 1rem), transparent);
+}
+
+.project-workspace-chrome__doc {
+  height: 25px;
+  max-width: 8rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border-color: var(--note-list-chrome-border);
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+  padding: 0 8px;
+  color: var(--note-list-chrome-muted);
+  font-size: 11px;
+}
+
+.project-workspace-chrome__doc-count,
+.project-workspace-chrome__doc-more {
+  display: inline-flex;
+  height: 23px;
+  min-width: 23px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--note-list-chrome-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 50%, transparent);
+  color: var(--note-list-chrome-muted);
+  font-size: 10px;
+  font-weight: 720;
+}
+
+.project-workspace-chrome__doc-more {
+  flex: 0 0 auto;
+  padding-inline: 8px;
+}
+
+.project-workspace-chrome__search {
+  grid-area: search;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--note-list-chrome-border);
+  border-radius: var(--note-list-chrome-radius);
+  background: color-mix(in srgb, var(--background) 52%, transparent);
+  padding: 4px;
+}
+
+.project-workspace-chrome__filters {
+  grid-area: filters;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.project-workspace-chrome__search-input {
+  height: 32px;
+  border-radius: 7px;
+  border-color: var(--note-list-chrome-border);
+  background: color-mix(in srgb, var(--background) 72%, var(--card));
+  padding-left: 28px;
+  font-size: 12px;
+}
+
+@container (max-width: 320px) {
+  .project-workspace-chrome__search {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .project-workspace-chrome__docs {
+    grid-template-columns: auto auto;
+  }
+
+  .project-workspace-chrome__docs-scroll {
+    grid-column: 1 / -1;
+  }
+
+  .project-workspace-chrome__overview {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "scope"
+      "actions"
+      "search"
+      "filters"
+      "docs";
+    border-radius: var(--note-list-chrome-radius);
+  }
+
+  .project-workspace-chrome__scope {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .project-workspace-chrome__actions,
+  .project-workspace-chrome__search-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .project-workspace-chrome__metrics {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    width: 100%;
+  }
+}

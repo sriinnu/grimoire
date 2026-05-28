@@ -61,6 +61,7 @@ pub(super) fn read_entry_from_html(
         tags: Vec::new(),
         media_keys: html_media_keys(&raw),
         raw_source: source_kind.to_string(),
+        source_path: path.to_string_lossy().into_owned(),
     }))
 }
 

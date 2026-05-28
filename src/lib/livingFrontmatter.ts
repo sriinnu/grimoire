@@ -8,6 +8,7 @@ export type LivingFrontmatterHintKind =
   | 'relationship-hint'
 
 export type LivingFrontmatterHintSeverity = 'info' | 'warn'
+export type LivingFrontmatterSuggestedValue = string | number | boolean | string[]
 
 export interface LivingFrontmatterHint {
   id: string
@@ -16,6 +17,7 @@ export interface LivingFrontmatterHint {
   detail: string
   severity: LivingFrontmatterHintSeverity
   field?: string
+  suggestedValue?: LivingFrontmatterSuggestedValue
 }
 
 export interface LivingFrontmatterInput {
@@ -68,14 +70,14 @@ export function buildLivingFrontmatterHints({
   now = new Date(),
 }: LivingFrontmatterInput): LivingFrontmatterHint[] {
   return [
-    ...missingFieldHints(entry, frontmatter),
+    ...missingFieldHints(entry, frontmatter, now),
     ...staleStatusHints(entry, frontmatter, now),
     ...duplicateConceptHints(entry, entries),
     ...relationshipHints(entry, frontmatter),
   ]
 }
 
-function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter): LivingFrontmatterHint[] {
+function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter, now: Date): LivingFrontmatterHint[] {
   const typeName = entryType(entry, frontmatter)
   const hints: LivingFrontmatterHint[] = []
   if (!typeName) {
@@ -86,6 +88,7 @@ function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter): L
       detail: 'A type field would make this note easier to filter, template, and hand to agents.',
       severity: 'info',
       field: 'type',
+      suggestedValue: entry.isA?.trim() || 'Note',
     })
     return hints
   }
@@ -100,6 +103,7 @@ function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter): L
       detail: `${typeName} notes are stronger with ${humanizeField(requirement.field).toLowerCase()} in frontmatter.`,
       severity: requirement.field === 'status' ? 'warn' : 'info',
       field: requirement.field,
+      suggestedValue: suggestedMissingFieldValue(requirement.field, typeName, now),
     })
   }
   return hints
@@ -158,6 +162,7 @@ function relationshipHints(entry: VaultEntry, frontmatter: ParsedFrontmatter): L
     detail: 'Frequent wikilinks here could become belongs_to or related_to fields.',
     severity: 'info',
     field: 'related_to',
+    suggestedValue: entry.outgoingLinks.map(label => `[[${label}]]`),
   }]
 }
 
@@ -231,4 +236,19 @@ function normalizeFieldKey(key: string): string {
 
 function humanizeField(field: string): string {
   return field.replace(/_/g, ' ')
+}
+
+function suggestedMissingFieldValue(
+  field: string,
+  typeName: string,
+  now: Date,
+): LivingFrontmatterSuggestedValue | undefined {
+  const normalizedField = normalizeFieldKey(field)
+  const normalizedTypeName = normalizeType(typeName)
+  if (normalizedField === 'status') return normalizedTypeName === 'task' ? 'Todo' : 'Active'
+  if (normalizedField === 'confidence') return 'proposed'
+  if (normalizedField === 'last_seen') return now.toISOString().slice(0, 10)
+  if (normalizedField === 'locality') return 'local-only'
+  if (normalizedField === 'memory_version') return 1
+  return undefined
 }

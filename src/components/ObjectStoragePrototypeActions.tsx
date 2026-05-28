@@ -1,10 +1,36 @@
-import { Cloud, DownloadSimple, UploadSimple } from '@phosphor-icons/react'
-import type { ReactNode } from 'react'
+import { Cloud, CloudCheck, DownloadSimple, UploadSimple } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
 import type { createTranslator } from '../lib/i18n'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
-import type { ObjectStorageSyncOperationKind, ObjectStorageSyncReport } from '../utils/objectStorageSync'
-import { Badge } from './ui/badge'
-import { Button } from './ui/button'
+import {
+  type ObjectStorageSyncReport,
+  type S3LivePreflightArgs,
+  type S3LivePreflightReport,
+} from '../utils/objectStorageSync'
+import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
+import {
+  cleanAzurePreflightArgs,
+  cleanS3PreflightArgs,
+  EMPTY_AZURE_PREFLIGHT_DRAFT,
+  EMPTY_S3_PREFLIGHT_DRAFT,
+  type AzurePreflightDraft,
+  type S3PreflightDraft,
+} from './ObjectStorageLivePreflightDrafts'
+import {
+  AzureLivePreflightCard,
+  AzureLivePreflightControls,
+  S3LivePreflightCard,
+  S3LivePreflightControls,
+} from './ObjectStorageLivePreflightPanels'
+import {
+  ProviderPanel,
+  PrototypeButtons,
+  ProviderToggle,
+  StorageActionGroup,
+  type ObjectStoragePrototypeButton,
+  type ObjectStorageProvider,
+} from './ObjectStorageProviderPanel'
+import { ObjectStoragePreviewCard } from './ObjectStoragePreviewCard'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -14,29 +40,40 @@ interface ObjectStoragePrototypeActionsProps {
   busyAction: VaultPortabilityActionId | null
   s3MirrorPreviewReady?: boolean
   s3MirrorPullPreviewReady?: boolean
+  s3ProviderPushPreviewReady?: boolean
+  s3ProviderPullPreviewReady?: boolean
+  azureProviderPushPreviewReady?: boolean
+  azureProviderPullPreviewReady?: boolean
   azureMirrorPreviewReady?: boolean
   azureMirrorPullPreviewReady?: boolean
   s3MirrorPreviewReport?: ObjectStorageSyncReport
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewReport?: ObjectStorageSyncReport
+  azureProviderPullPreviewReport?: ObjectStorageSyncReport
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3LivePreflightReport?: S3LivePreflightReport
+  azureLivePreflightReport?: AzureLivePreflightReport
+  onRunS3LivePreflight?: (args: S3LivePreflightArgs) => void
+  onRunAzureLivePreflight?: (args: AzureLivePreflightArgs) => void
   onPreviewS3MirrorPush?: () => void
   onApplyS3MirrorPush?: () => void
   onPreviewS3MirrorPull?: () => void
   onApplyS3MirrorPull?: () => void
+  onPreviewS3ProviderPush?: (args: S3LivePreflightArgs) => void
+  onApplyS3ProviderPush?: (args: S3LivePreflightArgs) => void
+  onPreviewS3ProviderPull?: (args: S3LivePreflightArgs) => void
+  onApplyS3ProviderPull?: (args: S3LivePreflightArgs) => void
+  onPreviewAzureProviderPush?: (args: AzureLivePreflightArgs) => void
+  onApplyAzureProviderPush?: (args: AzureLivePreflightArgs) => void
+  onPreviewAzureProviderPull?: (args: AzureLivePreflightArgs) => void
+  onApplyAzureProviderPull?: (args: AzureLivePreflightArgs) => void
   onPreviewAzureMirrorPush?: () => void
   onApplyAzureMirrorPush?: () => void
   onPreviewAzureMirrorPull?: () => void
   onApplyAzureMirrorPull?: () => void
-}
-
-interface PrototypeButton {
-  label: string
-  busyLabel: string
-  actionId: VaultPortabilityActionId
-  icon: ReactNode
-  onClick?: () => void
-  enabled?: boolean
 }
 
 /** Renders the local-mirror object-storage prototype actions without claiming cloud sync readiness. */
@@ -46,22 +83,100 @@ export function ObjectStoragePrototypeActions({
   busyAction,
   s3MirrorPreviewReady = false,
   s3MirrorPullPreviewReady = false,
+  s3ProviderPushPreviewReady = false,
+  s3ProviderPullPreviewReady = false,
+  azureProviderPushPreviewReady = false,
+  azureProviderPullPreviewReady = false,
   azureMirrorPreviewReady = false,
   azureMirrorPullPreviewReady = false,
   s3MirrorPreviewReport,
   s3MirrorPullPreviewReport,
+  s3ProviderPushPreviewReport,
+  s3ProviderPullPreviewReport,
+  azureProviderPushPreviewReport,
+  azureProviderPullPreviewReport,
   azureMirrorPreviewReport,
   azureMirrorPullPreviewReport,
+  s3LivePreflightReport,
+  azureLivePreflightReport,
+  onRunS3LivePreflight,
+  onRunAzureLivePreflight,
   onPreviewS3MirrorPush,
   onApplyS3MirrorPush,
   onPreviewS3MirrorPull,
   onApplyS3MirrorPull,
+  onPreviewS3ProviderPush,
+  onApplyS3ProviderPush,
+  onPreviewS3ProviderPull,
+  onApplyS3ProviderPull,
+  onPreviewAzureProviderPush,
+  onApplyAzureProviderPush,
+  onPreviewAzureProviderPull,
+  onApplyAzureProviderPull,
   onPreviewAzureMirrorPush,
   onApplyAzureMirrorPush,
   onPreviewAzureMirrorPull,
   onApplyAzureMirrorPull,
 }: ObjectStoragePrototypeActionsProps) {
-  const buttons: PrototypeButton[] = [
+  const [s3PreflightDraft, setS3PreflightDraft] = useState<S3PreflightDraft>(EMPTY_S3_PREFLIGHT_DRAFT)
+  const [azurePreflightDraft, setAzurePreflightDraft] = useState<AzurePreflightDraft>(EMPTY_AZURE_PREFLIGHT_DRAFT)
+  const [expandedProvider, setExpandedProvider] = useState<ObjectStorageProvider | null>(null)
+  const s3PreflightArgs = useMemo(() => cleanS3PreflightArgs(s3PreflightDraft), [s3PreflightDraft])
+  const azurePreflightArgs = useMemo(() => cleanAzurePreflightArgs(azurePreflightDraft), [azurePreflightDraft])
+  const activeProvider = expandedProvider ?? inferActiveProvider({
+    busyAction,
+    s3LivePreflightReport,
+    azureLivePreflightReport,
+    s3MirrorPreviewReport,
+    s3MirrorPullPreviewReport,
+    s3ProviderPushPreviewReport,
+    s3ProviderPullPreviewReport,
+    azureProviderPushPreviewReport,
+    azureProviderPullPreviewReport,
+    azureMirrorPreviewReport,
+    azureMirrorPullPreviewReport,
+  })
+  const s3ProviderButtons: ObjectStoragePrototypeButton[] = [
+    {
+      label: t('settings.portability.s3LivePreflight'),
+      busyLabel: t('settings.portability.checkingStorage'),
+      actionId: 'storage-s3-live-preflight',
+      icon: <CloudCheck size={14} />,
+      onClick: onRunS3LivePreflight ? () => onRunS3LivePreflight(s3PreflightArgs) : undefined,
+      requiresVault: false,
+    },
+    {
+      label: t('settings.portability.previewS3ProviderPush'),
+      busyLabel: t('settings.portability.previewingStorage'),
+      actionId: 'storage-s3-provider-push-preview',
+      icon: <Cloud size={14} />,
+      onClick: onPreviewS3ProviderPush ? () => onPreviewS3ProviderPush(s3PreflightArgs) : undefined,
+    },
+    {
+      label: t('settings.portability.applyS3ProviderPush'),
+      busyLabel: t('settings.portability.applyingStorage'),
+      actionId: 'storage-s3-provider-push-apply',
+      icon: <UploadSimple size={14} />,
+      onClick: onApplyS3ProviderPush ? () => onApplyS3ProviderPush(s3PreflightArgs) : undefined,
+      enabled: s3ProviderPushPreviewReady,
+    },
+    {
+      label: t('settings.portability.previewS3ProviderPull'),
+      busyLabel: t('settings.portability.previewingStorage'),
+      actionId: 'storage-s3-provider-pull-preview',
+      icon: <Cloud size={14} />,
+      onClick: onPreviewS3ProviderPull ? () => onPreviewS3ProviderPull(s3PreflightArgs) : undefined,
+    },
+    {
+      label: t('settings.portability.applyS3ProviderPull'),
+      busyLabel: t('settings.portability.applyingStorage'),
+      actionId: 'storage-s3-provider-pull-apply',
+      icon: <DownloadSimple size={14} />,
+      onClick: onApplyS3ProviderPull ? () => onApplyS3ProviderPull(s3PreflightArgs) : undefined,
+      enabled: s3ProviderPullPreviewReady,
+    },
+  ]
+  const s3MirrorButtons: ObjectStoragePrototypeButton[] = [
     {
       label: t('settings.portability.previewS3Mirror'),
       busyLabel: t('settings.portability.previewingStorage'),
@@ -91,6 +206,46 @@ export function ObjectStoragePrototypeActions({
       icon: <DownloadSimple size={14} />,
       onClick: onApplyS3MirrorPull,
       enabled: s3MirrorPullPreviewReady,
+    },
+  ]
+  const azureButtons: ObjectStoragePrototypeButton[] = [
+    {
+      label: t('settings.portability.azureLivePreflight'),
+      busyLabel: t('settings.portability.checkingStorage'),
+      actionId: 'storage-azure-live-preflight',
+      icon: <CloudCheck size={14} />,
+      onClick: onRunAzureLivePreflight ? () => onRunAzureLivePreflight(azurePreflightArgs) : undefined,
+      requiresVault: false,
+    },
+    {
+      label: t('settings.portability.previewAzureProviderPush'),
+      busyLabel: t('settings.portability.previewingStorage'),
+      actionId: 'storage-azure-provider-push-preview',
+      icon: <Cloud size={14} />,
+      onClick: onPreviewAzureProviderPush ? () => onPreviewAzureProviderPush(azurePreflightArgs) : undefined,
+    },
+    {
+      label: t('settings.portability.applyAzureProviderPush'),
+      busyLabel: t('settings.portability.applyingStorage'),
+      actionId: 'storage-azure-provider-push-apply',
+      icon: <UploadSimple size={14} />,
+      onClick: onApplyAzureProviderPush ? () => onApplyAzureProviderPush(azurePreflightArgs) : undefined,
+      enabled: azureProviderPushPreviewReady,
+    },
+    {
+      label: t('settings.portability.previewAzureProviderPull'),
+      busyLabel: t('settings.portability.previewingStorage'),
+      actionId: 'storage-azure-provider-pull-preview',
+      icon: <Cloud size={14} />,
+      onClick: onPreviewAzureProviderPull ? () => onPreviewAzureProviderPull(azurePreflightArgs) : undefined,
+    },
+    {
+      label: t('settings.portability.applyAzureProviderPull'),
+      busyLabel: t('settings.portability.applyingStorage'),
+      actionId: 'storage-azure-provider-pull-apply',
+      icon: <DownloadSimple size={14} />,
+      onClick: onApplyAzureProviderPull ? () => onApplyAzureProviderPull(azurePreflightArgs) : undefined,
+      enabled: azureProviderPullPreviewReady,
     },
     {
       label: t('settings.portability.previewAzureMirror'),
@@ -125,7 +280,7 @@ export function ObjectStoragePrototypeActions({
   ]
 
   return (
-    <div className="rounded-md border border-dashed border-border bg-muted/20 p-3" data-testid="object-storage-prototype-actions">
+    <div className="grimoire-object-storage-prototype grimoire-portability-inline-panel rounded-md border border-dashed border-border bg-muted/20 p-3" data-testid="object-storage-prototype-actions">
       <div className="mb-2 flex items-start gap-2">
         <span className="mt-0.5 text-muted-foreground"><Cloud size={15} /></span>
         <span className="min-w-0">
@@ -137,99 +292,101 @@ export function ObjectStoragePrototypeActions({
           </span>
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
-        {buttons.map((button) => (
-          <Button
-            key={button.actionId}
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid={`settings-${button.actionId}`}
-            disabled={Boolean(busyAction) || !vaultReady || !button.onClick || button.enabled === false}
-            onClick={button.onClick}
+      <div className="mb-2 grid gap-2 sm:grid-cols-2" role="tablist" aria-label="Object storage providers">
+        <ProviderToggle
+          provider="s3"
+          active={activeProvider === 's3'}
+          label="Amazon S3"
+          detail="Read-only preflight, provider SDK, local mirror."
+          onSelect={setExpandedProvider}
+        />
+        <ProviderToggle
+          provider="azure"
+          active={activeProvider === 'azure'}
+          label="Azure Blob"
+          detail="CLI-auth provider sync and local mirror."
+          onSelect={setExpandedProvider}
+        />
+      </div>
+      {activeProvider === 's3' ? (
+        <ProviderPanel provider="s3">
+          <S3LivePreflightControls t={t} draft={s3PreflightDraft} onChange={setS3PreflightDraft} />
+          <StorageActionGroup
+            title={t('settings.portability.s3ProviderSync')}
+            description={t('settings.portability.s3ProviderSyncDescription')}
           >
-            {button.icon}
-            {busyAction === button.actionId ? button.busyLabel : button.label}
-          </Button>
-        ))}
-      </div>
-      <div className="mt-3 grid gap-2">
-        <ObjectStoragePreviewCard report={s3MirrorPreviewReport} />
-        <ObjectStoragePreviewCard report={s3MirrorPullPreviewReport} />
-        <ObjectStoragePreviewCard report={azureMirrorPreviewReport} />
-        <ObjectStoragePreviewCard report={azureMirrorPullPreviewReport} />
-      </div>
+            <PrototypeButtons buttons={s3ProviderButtons} busyAction={busyAction} vaultReady={vaultReady} />
+          </StorageActionGroup>
+          <StorageActionGroup
+            title={t('settings.portability.objectStorageMirror')}
+            description={t('settings.portability.objectStorageMirrorDescription')}
+          >
+            <PrototypeButtons buttons={s3MirrorButtons} busyAction={busyAction} vaultReady={vaultReady} />
+          </StorageActionGroup>
+          <S3LivePreflightCard report={s3LivePreflightReport} />
+          <ObjectStoragePreviewCard report={s3ProviderPushPreviewReport} target="provider" />
+          <ObjectStoragePreviewCard report={s3ProviderPullPreviewReport} target="provider" />
+          <ObjectStoragePreviewCard report={s3MirrorPreviewReport} target="mirror" />
+          <ObjectStoragePreviewCard report={s3MirrorPullPreviewReport} target="mirror" />
+        </ProviderPanel>
+      ) : null}
+      {activeProvider === 'azure' ? (
+        <ProviderPanel provider="azure">
+          <AzureLivePreflightControls t={t} draft={azurePreflightDraft} onChange={setAzurePreflightDraft} />
+          <StorageActionGroup
+            title={t('settings.portability.azureProviderSync')}
+            description={t('settings.portability.azureProviderSyncDescription')}
+          >
+            <PrototypeButtons buttons={azureButtons.slice(0, 5)} busyAction={busyAction} vaultReady={vaultReady} />
+          </StorageActionGroup>
+          <StorageActionGroup
+            title={t('settings.portability.objectStorageMirror')}
+            description={t('settings.portability.objectStorageMirrorDescription')}
+          >
+            <PrototypeButtons buttons={azureButtons.slice(5)} busyAction={busyAction} vaultReady={vaultReady} />
+          </StorageActionGroup>
+          <AzureLivePreflightCard report={azureLivePreflightReport} />
+          <ObjectStoragePreviewCard report={azureProviderPushPreviewReport} target="provider" />
+          <ObjectStoragePreviewCard report={azureProviderPullPreviewReport} target="provider" />
+          <ObjectStoragePreviewCard report={azureMirrorPreviewReport} target="mirror" />
+          <ObjectStoragePreviewCard report={azureMirrorPullPreviewReport} target="mirror" />
+        </ProviderPanel>
+      ) : null}
+      {activeProvider === null ? (
+        <div className="grimoire-object-storage-preview rounded-md border border-border bg-background/55 p-2 text-[11px] leading-snug text-muted-foreground" data-testid="object-storage-provider-empty">
+          Pick a provider to reveal local-only preflight fields and sync actions.
+        </div>
+      ) : null}
     </div>
   )
 }
 
-function ObjectStoragePreviewCard({ report }: { report?: ObjectStorageSyncReport }) {
-  if (!report) return null
-
-  return (
-    <div
-      className="grid gap-2 rounded-md border border-border bg-background/70 p-2"
-      data-testid={`object-storage-${report.provider_id}-${report.direction}-preview`}
-    >
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="secondary" className="rounded-md">Preview ready</Badge>
-        <span className="text-xs font-semibold text-foreground">
-          {providerLabel(report.provider_id)} {report.direction}: {compactPath(report.mirror_path)}
-        </span>
-      </div>
-      <div className="grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-5">
-        <PreviewStat label="Upload" value={report.files_to_upload} />
-        <PreviewStat label="Download" value={report.files_to_download} />
-        <PreviewStat label="Remote delete" value={report.files_to_delete} />
-        <PreviewStat label="Conflicts" value={report.conflicts} tone={report.conflicts > 0 ? 'warn' : 'default'} />
-        <PreviewStat label="Local-only" value={report.excluded_files} tone="safe" />
-      </div>
-      <OperationSummary report={report} kind="conflict" label="Conflicts" />
-      <OperationSummary report={report} kind="exclude" label="Local-only withheld" />
-      <div className="text-[11px] leading-snug text-muted-foreground">
-        Apply is locked to this exact {report.direction} preview; changed files require another dry run.
-      </div>
-    </div>
-  )
-}
-
-function PreviewStat({
-  label,
-  value,
-  tone = 'default',
-}: { label: string; value: number; tone?: 'default' | 'safe' | 'warn' }) {
-  const toneClass = tone === 'warn' ? 'text-amber-600' : tone === 'safe' ? 'text-emerald-600' : 'text-foreground'
-  return (
-    <span className="rounded border border-border bg-muted/30 px-2 py-1">
-      <span className="block text-muted-foreground">{label}</span>
-      <span className={`font-semibold ${toneClass}`}>{value}</span>
-    </span>
-  )
-}
-
-function OperationSummary({
-  report,
-  kind,
-  label,
-}: { report: ObjectStorageSyncReport; kind: ObjectStorageSyncOperationKind; label: string }) {
-  const operations = report.operations.filter(operation => operation.kind === kind)
-  if (operations.length === 0) return null
-
-  return (
-    <div className="text-[11px] leading-snug text-muted-foreground">
-      <span className="font-semibold text-foreground">{label}: </span>
-      {operations.slice(0, 3).map(operation => compactPath(operation.path)).join(', ')}
-      {operations.length > 3 ? ` +${operations.length - 3} more` : ''}
-    </div>
-  )
-}
-
-function compactPath(path: string): string {
-  const parts = path.split(/[\\/]/u).filter(Boolean)
-  if (path.startsWith('/') || /^[A-Za-z]:[\\/]/u.test(path)) return parts.at(-1) ?? 'selected folder'
-  return parts.join('/') || 'selected folder'
-}
-
-function providerLabel(providerId: ObjectStorageSyncReport['provider_id']): string {
-  return providerId === 's3' ? 'S3' : 'Azure Blob'
+function inferActiveProvider({
+  busyAction,
+  s3LivePreflightReport,
+  azureLivePreflightReport,
+  s3MirrorPreviewReport,
+  s3MirrorPullPreviewReport,
+  s3ProviderPushPreviewReport,
+  s3ProviderPullPreviewReport,
+  azureProviderPushPreviewReport,
+  azureProviderPullPreviewReport,
+  azureMirrorPreviewReport,
+  azureMirrorPullPreviewReport,
+}: {
+  busyAction: VaultPortabilityActionId | null
+  s3LivePreflightReport?: S3LivePreflightReport
+  azureLivePreflightReport?: AzureLivePreflightReport
+  s3MirrorPreviewReport?: ObjectStorageSyncReport
+  s3MirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewReport?: ObjectStorageSyncReport
+  azureProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureMirrorPreviewReport?: ObjectStorageSyncReport
+  azureMirrorPullPreviewReport?: ObjectStorageSyncReport
+}): ObjectStorageProvider | null {
+  if (busyAction?.startsWith('storage-s3') || s3LivePreflightReport || s3MirrorPreviewReport || s3MirrorPullPreviewReport || s3ProviderPushPreviewReport || s3ProviderPullPreviewReport) return 's3'
+  if (busyAction?.startsWith('storage-azure') || azureLivePreflightReport || azureProviderPushPreviewReport || azureProviderPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport) return 'azure'
+  return null
 }

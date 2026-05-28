@@ -1,32 +1,8 @@
 #!/usr/bin/env node
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-
-function readPlistValue(plistPath, key) {
-  const content = readFileSync(plistPath, 'utf8')
-  const match = new RegExp(`<key>${key}</key>\\s*<string>([^<]+)</string>`).exec(content)
-  return match?.[1] ?? null
-}
-
-function assertAppBundleVersion(appPath, expectedVersion) {
-  const resolvedAppPath = resolve(appPath)
-  const plistPath = join(resolvedAppPath, 'Contents/Info.plist')
-  if (!existsSync(plistPath)) {
-    throw new Error(`Missing app Info.plist: ${plistPath}`)
-  }
-
-  const shortVersion = readPlistValue(plistPath, 'CFBundleShortVersionString')
-  const bundleVersion = readPlistValue(plistPath, 'CFBundleVersion')
-  if (shortVersion !== expectedVersion) {
-    throw new Error(`Expected CFBundleShortVersionString ${expectedVersion}, found ${shortVersion ?? 'missing'}`)
-  }
-  if (bundleVersion && bundleVersion !== expectedVersion) {
-    throw new Error(`Expected CFBundleVersion ${expectedVersion}, found ${bundleVersion}`)
-  }
-
-  console.log(`ok app version ${resolvedAppPath}: ${expectedVersion}`)
-}
+import { assertAppBundleVersion, writeTestAppInfoPlist } from './app-bundle-version.mjs'
 
 function nextValue(args, optionName, index) {
   const value = args[index + 1]
@@ -53,28 +29,11 @@ function parseArgs(args) {
   return config
 }
 
-function writeTestPlist(appPath, version) {
-  const contents = join(appPath, 'Contents')
-  mkdirSync(contents, { recursive: true })
-  writeFileSync(join(contents, 'Info.plist'), [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<plist version="1.0">',
-    '<dict>',
-    '<key>CFBundleShortVersionString</key>',
-    `<string>${version}</string>`,
-    '<key>CFBundleVersion</key>',
-    `<string>${version}</string>`,
-    '</dict>',
-    '</plist>',
-    '',
-  ].join('\n'))
-}
-
 function runSelfTest() {
   const tempDir = mkdtempSync(join(tmpdir(), 'grimoire-app-version-'))
   try {
     const appPath = join(tempDir, 'Grimoire.app')
-    writeTestPlist(appPath, '7.8.9')
+    writeTestAppInfoPlist(appPath, '7.8.9')
     assertAppBundleVersion(appPath, '7.8.9')
 
     let failedAsExpected = false
@@ -84,6 +43,18 @@ function runSelfTest() {
       failedAsExpected = true
     }
     if (!failedAsExpected) throw new Error('Self-test did not reject a stale app version')
+
+    const missingBundleVersionAppPath = join(tempDir, 'MissingBundleVersion.app')
+    writeTestAppInfoPlist(missingBundleVersionAppPath, '7.8.9', { includeBundleVersion: false })
+    let missingBundleVersionFailedAsExpected = false
+    try {
+      assertAppBundleVersion(missingBundleVersionAppPath, '7.8.9')
+    } catch {
+      missingBundleVersionFailedAsExpected = true
+    }
+    if (!missingBundleVersionFailedAsExpected) {
+      throw new Error('Self-test did not reject a missing CFBundleVersion')
+    }
     console.log('self-test passed')
   } finally {
     rmSync(tempDir, { recursive: true, force: true })
@@ -96,6 +67,7 @@ try {
     runSelfTest()
   } else if (config.appPath && config.expectedVersion) {
     assertAppBundleVersion(config.appPath, config.expectedVersion)
+    console.log(`ok app version ${resolve(config.appPath)}: ${config.expectedVersion}`)
   } else {
     throw new Error('--app and --expected-version are required')
   }

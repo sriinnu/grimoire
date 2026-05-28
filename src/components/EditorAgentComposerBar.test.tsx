@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { EditorAgentComposerBar } from './EditorAgentComposerBar'
 
@@ -21,9 +21,13 @@ The first dream marker lives here.
 
 The second dream marker lives here.`
 
-function navigatorPanel() {
-  const panel = document.querySelector('.editor-navigator-popover')
-  expect(panel).toBeInTheDocument()
+async function navigatorPanel() {
+  let panel: Element | null = null
+  await waitFor(() => {
+    panel = document.querySelector('.editor-navigator-popover')
+    expect(panel).toBeInTheDocument()
+    expect(panel).not.toHaveAttribute('aria-label', 'Loading note navigator')
+  })
   return within(panel as HTMLElement)
 }
 
@@ -37,18 +41,18 @@ describe('EditorAgentComposerBar', () => {
     expect(container.querySelector('.editor-agent-composer__ai-tools')).not.toBeInTheDocument()
   })
 
-  it('shows outgoing Spelllinks from the composer tools', () => {
+  it('shows outgoing Spelllinks from the composer tools', async () => {
     render(<EditorAgentComposerBar content={linkedContent} onOpen={vi.fn()} />)
 
     fireEvent.click(screen.getByRole('button', { name: /spelllinks in this note/i }))
-    const navigator = navigatorPanel()
+    const navigator = await navigatorPanel()
 
     expect(navigator.getByText('2 Spelllinks')).toBeInTheDocument()
     expect(navigator.getByRole('button', { name: /Dream Ledger/i })).toBeInTheDocument()
     expect(navigator.getByRole('button', { name: /Morning Ritual/i })).toBeInTheDocument()
   })
 
-  it('scrolls to the selected search occurrence in the active note', () => {
+  it('scrolls to the selected search occurrence in the active note', async () => {
     const firstMatchScroll = vi.fn()
     const secondMatchScroll = vi.fn()
     render(
@@ -70,7 +74,7 @@ describe('EditorAgentComposerBar', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /search this note/i }))
-    const navigator = navigatorPanel()
+    const navigator = await navigatorPanel()
     fireEvent.change(navigator.getByRole('textbox', { name: /search this note/i }), {
       target: { value: 'dream' },
     })
@@ -81,18 +85,18 @@ describe('EditorAgentComposerBar', () => {
     expect(secondMatchScroll).toHaveBeenCalled()
   })
 
-  it('shows a navigable table of contents from headings', () => {
+  it('shows a navigable table of contents from headings', async () => {
     render(<EditorAgentComposerBar content={content} onOpen={vi.fn()} />)
 
     fireEvent.click(screen.getByRole('button', { name: /table of contents/i }))
-    const navigator = navigatorPanel()
+    const navigator = await navigatorPanel()
 
     expect(navigator.getByText('2 headings')).toBeInTheDocument()
     expect(navigator.getByRole('button', { name: /H1 First Heading/i })).toBeInTheDocument()
     expect(navigator.getByRole('button', { name: /H2 Dream Notes/i })).toBeInTheDocument()
   })
 
-  it('scrolls to the selected duplicate heading', () => {
+  it('scrolls to the selected duplicate heading', async () => {
     const firstHeadingScroll = vi.fn()
     const secondHeadingScroll = vi.fn()
     render(
@@ -122,7 +126,7 @@ describe('EditorAgentComposerBar', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /table of contents/i }))
-    fireEvent.click(navigatorPanel().getByRole('button', { name: /H2 Repeat/i }))
+    fireEvent.click((await navigatorPanel()).getByRole('button', { name: /H2 Repeat/i }))
 
     expect(firstHeadingScroll).not.toHaveBeenCalled()
     expect(secondHeadingScroll).toHaveBeenCalled()

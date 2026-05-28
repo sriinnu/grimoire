@@ -13,11 +13,8 @@ use super::journal_import_helpers::{
     extension, format_entry_markdown, read_entries_from_json, slugify_name, unique_note_name,
     JournalEntry,
 };
+use super::journal_media_import::{AttachmentPlanner, MediaIndex};
 
-const MEDIA_EXTENSIONS: &[&str] = &[
-    "aac", "avif", "gif", "heic", "heif", "jpeg", "jpg", "m4a", "mov", "mp3", "mp4", "pdf", "png",
-    "svg", "wav", "webm", "webp",
-];
 const JOURNAL_JSON_EXTENSIONS: &[&str] = &["json"];
 const SKIPPED_DIRS: &[&str] = &[".git", "__macosx", "node_modules"];
 
@@ -175,29 +172,9 @@ pub(super) fn unique_import_root(
 pub(super) fn build_media_index(
     root: &Path,
     state: &mut ImportState,
-) -> Result<HashMap<String, PathBuf>, String> {
-    let mut index = HashMap::new();
-    for entry in walk_files(root)? {
-        let Some(ext) = extension(&entry) else {
-            state.skipped += 1;
-            continue;
-        };
-        if !MEDIA_EXTENSIONS.contains(&ext.as_str()) {
-            continue;
-        }
-        if let Some(file_name) = entry
-            .file_name()
-            .map(|value| value.to_string_lossy().to_ascii_lowercase())
-        {
-            index.entry(file_name).or_insert_with(|| entry.clone());
-        }
-        if let Some(stem) = entry
-            .file_stem()
-            .map(|value| value.to_string_lossy().to_ascii_lowercase())
-        {
-            index.entry(stem).or_insert(entry);
-        }
-    }
+) -> Result<MediaIndex, String> {
+    let (index, skipped) = super::journal_media_import::build_media_index(root, walk_files(root)?);
+    state.skipped += skipped;
     Ok(index)
 }
 
@@ -276,13 +253,20 @@ pub(super) fn write_entries(
     entries: &[JournalEntry],
     import_root: &Path,
     source_kind: &str,
-    media_index: &HashMap<String, PathBuf>,
+    media_index: &MediaIndex,
     state: &mut ImportState,
 ) -> Result<(), String> {
     let mut used_names = HashMap::<String, usize>::new();
+    let mut attachment_planner = AttachmentPlanner::default();
     for entry in entries {
         let note_path = import_root.join(unique_note_name(entry, &mut used_names));
-        let links = copy_entry_media(entry, import_root, media_index, state);
+        let links = copy_entry_media(
+            entry,
+            import_root,
+            media_index,
+            &mut attachment_planner,
+            state,
+        );
         let content = format_entry_markdown(entry, source_kind, &links)?;
         match fs::write(&note_path, content) {
             Ok(()) => state.notes += 1,
@@ -300,32 +284,28 @@ pub(super) fn write_entries(
 pub(super) fn copy_entry_media(
     entry: &JournalEntry,
     import_root: &Path,
-    media_index: &HashMap<String, PathBuf>,
+    media_index: &MediaIndex,
+    attachment_planner: &mut AttachmentPlanner,
     state: &mut ImportState,
 ) -> Vec<String> {
     let mut links = Vec::new();
     for key in &entry.media_keys {
-        let lookup = key.to_ascii_lowercase();
-        let Some(source) = media_index
-            .get(&lookup)
-            .or_else(|| media_index.get(file_stem_key(&lookup).as_str()))
-        else {
+        let Some(source) = media_index.resolve(key) else {
             continue;
         };
-        let Some(file_name) = source
-            .file_name()
-            .map(|value| value.to_string_lossy().into_owned())
-        else {
+        let Some(plan) = attachment_planner.plan(source) else {
             continue;
         };
-        let destination = import_root.join("attachments").join(&file_name);
-        if let Err(error) = copy_file(source, &destination) {
-            state.failed += 1;
-            state.failures.push(error);
-            continue;
+        if plan.is_new_copy {
+            let destination = import_root.join(&plan.link);
+            if let Err(error) = copy_file(&plan.source, &destination) {
+                state.failed += 1;
+                state.failures.push(error);
+                continue;
+            }
+            state.assets += 1;
         }
-        state.assets += 1;
-        links.push(format!("attachments/{file_name}"));
+        links.push(plan.link);
     }
     links.sort();
     links.dedup();
@@ -371,13 +351,6 @@ pub(super) fn write_report(
     }
     fs::write(&report_path, report).map_err(|e| format!("Failed to write import report: {e}"))?;
     Ok(report_path)
-}
-
-fn file_stem_key(value: &str) -> String {
-    Path::new(value)
-        .file_stem()
-        .map(|stem| stem.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_else(|| value.to_string())
 }
 
 pub(super) fn path_to_string(path: &Path) -> String {

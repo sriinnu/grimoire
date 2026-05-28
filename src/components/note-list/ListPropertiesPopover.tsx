@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import {
+  consumePendingNoteListPropertiesPicker,
   OPEN_NOTE_LIST_PROPERTIES_EVENT,
   type NoteListPropertiesScope,
   type OpenListPropertiesEventDetail,
@@ -243,12 +244,23 @@ function useListPropertiesPopoverState({
   )
 
   useEffect(() => {
+    let pendingOpenFrame = 0
+    if (consumePendingNoteListPropertiesPicker(scope)) {
+      pendingOpenFrame = requestAnimationFrame(() => setOpen(true))
+    }
+
     const handler = (event: Event) => {
       const detail = (event as CustomEvent<OpenListPropertiesEventDetail>).detail
-      if (detail?.scope === scope) setOpen(true)
+      if (detail?.scope === scope) {
+        consumePendingNoteListPropertiesPicker(scope)
+        setOpen(true)
+      }
     }
     window.addEventListener(OPEN_NOTE_LIST_PROPERTIES_EVENT, handler)
-    return () => window.removeEventListener(OPEN_NOTE_LIST_PROPERTIES_EVENT, handler)
+    return () => {
+      if (pendingOpenFrame) cancelAnimationFrame(pendingOpenFrame)
+      window.removeEventListener(OPEN_NOTE_LIST_PROPERTIES_EVENT, handler)
+    }
   }, [scope])
 
   useEffect(() => {

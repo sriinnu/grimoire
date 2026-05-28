@@ -1,5 +1,5 @@
 import { Eye } from 'lucide-react'
-import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import type { SidebarSelection, VaultEntry } from '../types'
 import { buildGrimoireProjectIntelligence } from '../project-intelligence/grimoireAdapter'
@@ -38,6 +38,7 @@ const ProjectTaskListPanel = lazy(async () => ({ default: (await import('./Proje
 
 interface ProjectIntelligenceStripProps {
   entries: VaultEntry[]
+  filterNode?: ReactNode
   selection: SidebarSelection
   onSelectNote: (entry: VaultEntry) => void
 }
@@ -64,6 +65,7 @@ function ProjectPreview({
 
 function ProjectIntelligenceStripInner({
   entries,
+  filterNode,
   selection,
   onSelectNote,
 }: ProjectIntelligenceStripProps) {
@@ -75,6 +77,7 @@ function ProjectIntelligenceStripInner({
   const [includeSource, setIncludeSource] = useState(false)
   const [previewPath, setPreviewPath] = useState<string | null>(null)
   const [boardPreviewOpen, setBoardPreviewOpen] = useState(false)
+  const [projectResultsOpen, setProjectResultsOpen] = useState(false)
   const [graphOpen, setGraphOpen] = useState(false)
   const [tasksOpen, setTasksOpen] = useState(false)
   const [createdDoc, setCreatedDoc] = useState<string | null>(null)
@@ -101,6 +104,7 @@ function ProjectIntelligenceStripInner({
     setContentOverrides(new Map())
     setTaskUpdateError(null)
     setResolvingIssueKey(null)
+    setProjectResultsOpen(false)
   }, [selectionKey])
 
   useEffect(() => {
@@ -158,6 +162,7 @@ function ProjectIntelligenceStripInner({
         createdDoc={createdDoc}
         documents={hasDocuments ? intelligence.documents : []}
         graphOpen={graphOpen}
+        filterNode={filterNode}
         includeSource={includeSource}
         loading={projectContents.loading}
         markdownCount={intelligence.markdownCount}
@@ -171,7 +176,11 @@ function ProjectIntelligenceStripInner({
           setBoardPreviewOpen((open) => !open)
           setPreviewPath(null)
         }}
-        onQueryChange={setQuery}
+        onQueryChange={(value) => {
+          setQuery(value)
+          setProjectResultsOpen(Boolean(value.trim()))
+        }}
+        onRevealProjectDocs={() => setProjectResultsOpen(true)}
         onSaveBoard={() => {
           void persistContent(intelligence.boardPath ?? '', intelligence.boardMarkdown).then(() => {
             setSavedBoard(true)
@@ -183,6 +192,7 @@ function ProjectIntelligenceStripInner({
         onToggleGraph={() => setGraphOpen((open) => !open)}
         onToggleSource={() => {
           setIncludeSource((value) => !value)
+          setProjectResultsOpen(true)
           setScanEnabled(true)
         }}
         onToggleTasks={() => setTasksOpen((open) => !open)}
@@ -196,7 +206,7 @@ function ProjectIntelligenceStripInner({
         tasksOpen={tasksOpen}
         urgentCount={intelligence.analytics.urgentCount}
       />
-      {(query.trim() || includeSource) && (
+      {(projectResultsOpen || query.trim() || includeSource) && (
         <div className="mt-1.5 grid max-h-28 gap-1 overflow-y-auto">
           {visibleResults.map((result) => (
             <div key={result.path} className="flex min-w-0 items-center gap-1 rounded-md px-1 py-0.5 hover:bg-muted/60">

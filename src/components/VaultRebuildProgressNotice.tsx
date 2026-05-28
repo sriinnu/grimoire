@@ -32,18 +32,21 @@ export const VaultRebuildProgressNotice = memo(function VaultRebuildProgressNoti
         'border border-[var(--border)] bg-[var(--bg-dialog)] px-4 py-3 text-[13px] text-foreground',
         'shadow-[0_4px_16px_var(--shadow-dialog)] animate-in slide-in-from-bottom-2 fade-in duration-200',
       )}
+      data-motion-cancellable="true"
       data-testid="vault-rebuild-progress-notice"
       aria-live="polite"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <Loader2 size={14} className="shrink-0 animate-spin text-muted-foreground" />
+          <Loader2 size={14} className="shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
           <span className="truncate">{describeProgress(progress)}</span>
         </div>
         <Button
           type="button"
           variant="outline"
           size="sm"
+          data-motion-cancel-action="true"
+          className="relative z-10 pointer-events-auto"
           disabled={progress.phase === 'cancelling'}
           onClick={onCancel}
         >
@@ -52,7 +55,7 @@ export const VaultRebuildProgressNotice = memo(function VaultRebuildProgressNoti
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
         <div
-          className="h-full rounded-full bg-primary transition-[width]"
+          className="h-full rounded-full bg-primary transition-[width] motion-reduce:transition-none"
           style={{ width: `${percent}%` }}
         />
       </div>

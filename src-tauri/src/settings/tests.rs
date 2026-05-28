@@ -35,6 +35,7 @@ fn test_settings_json_roundtrip() {
         editor_font: Some("serif".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
+        native_shell_material: Some("unified".to_string()),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
         ai_agent_models: Some(BTreeMap::from([(
@@ -75,6 +76,7 @@ fn test_save_and_load_preserves_values() {
         editor_font: Some("serif".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
+        native_shell_material: Some("glass-preview".to_string()),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
         transcription_provider: Some("local_whisper".to_string()),
@@ -92,6 +94,10 @@ fn test_save_and_load_preserves_values() {
     assert_eq!(loaded.editor_font.as_deref(), Some("serif"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
     assert_eq!(loaded.menu_bar_icon_enabled, Some(true));
+    assert_eq!(
+        loaded.native_shell_material.as_deref(),
+        Some("glass-preview")
+    );
     assert_eq!(loaded.initial_h1_auto_rename_enabled, Some(false));
     assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
     assert_eq!(
@@ -136,11 +142,7 @@ fn test_save_preserves_ai_agent_providers() {
     });
 
     let providers = loaded.ai_agent_providers.unwrap();
-    assert_eq!(
-        providers.get("claude_code").map(String::as_str),
-        Some("anthropic")
-    );
-    assert_eq!(providers.get("codex").map(String::as_str), Some("openai"));
+    assert_eq!(providers.len(), 1);
     assert_eq!(
         providers.get("chitragupta").map(String::as_str),
         Some("deepseek")
@@ -155,6 +157,7 @@ fn test_save_trims_whitespace() {
         theme_mode: Some("  dark  ".to_string()),
         theme_preset: Some("  nocturne  ".to_string()),
         editor_font: Some("  literary  ".to_string()),
+        native_shell_material: Some("  UNIFIED  ".to_string()),
         ui_language: Some("  zh-cn  ".to_string()),
         default_ai_agent: Some("  codex  ".to_string()),
         ..Default::default()
@@ -164,6 +167,7 @@ fn test_save_trims_whitespace() {
     assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
     assert_eq!(loaded.theme_preset.as_deref(), Some("nocturne"));
     assert_eq!(loaded.editor_font.as_deref(), Some("literary"));
+    assert_eq!(loaded.native_shell_material.as_deref(), Some("unified"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
     assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
 }
@@ -236,8 +240,8 @@ fn test_invalid_ai_agent_providers_are_filtered() {
     let loaded = save_and_reload(Settings {
         ai_agent_providers: Some(BTreeMap::from([
             ("cursor".to_string(), "openai".to_string()),
-            ("chitragupta".to_string(), "bad provider".to_string()),
             ("claude_code".to_string(), "  anthropic  ".to_string()),
+            ("chitragupta".to_string(), "  deepseek  ".to_string()),
         ])),
         ..Default::default()
     });
@@ -245,9 +249,22 @@ fn test_invalid_ai_agent_providers_are_filtered() {
     let providers = loaded.ai_agent_providers.unwrap();
     assert_eq!(providers.len(), 1);
     assert_eq!(
-        providers.get("claude_code").map(String::as_str),
-        Some("anthropic")
+        providers.get("chitragupta").map(String::as_str),
+        Some("deepseek")
     );
+}
+
+#[test]
+fn test_chitragupta_provider_with_whitespace_is_filtered() {
+    let loaded = save_and_reload(Settings {
+        ai_agent_providers: Some(BTreeMap::from([(
+            "chitragupta".to_string(),
+            "bad provider".to_string(),
+        )])),
+        ..Default::default()
+    });
+
+    assert!(loaded.ai_agent_providers.is_none());
 }
 
 #[test]

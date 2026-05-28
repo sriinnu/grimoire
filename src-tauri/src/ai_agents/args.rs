@@ -7,6 +7,7 @@ pub(super) fn build_chitragupta_args(request: &AiAgentStreamRequest) -> Vec<Stri
         "grimoire".into(),
         "--thinking".into(),
         "off".into(),
+        "--stream-json".into(),
         "--project".into(),
         request.vault_path.clone(),
     ];
@@ -155,6 +156,7 @@ mod tests {
         assert!(args.contains(&"grimoire".to_string()));
         assert!(args.contains(&"--thinking".to_string()));
         assert!(args.contains(&"off".to_string()));
+        assert!(args.contains(&"--stream-json".to_string()));
         assert!(args.contains(&"--project".to_string()));
         assert!(args.contains(&"/tmp/vault".to_string()));
         assert!(args.contains(&"--model".to_string()));

@@ -1,13 +1,16 @@
 import { BulkActionBar } from '../BulkActionBar'
-import { NoteListHeader } from './NoteListHeader'
-import { NoteListBottomFilters } from './NoteListBottomFilters'
-import { EntityView, ListView } from './NoteListViews'
+import { NoteListTopChrome } from './NoteListTopChrome'
+import { ListView } from './NoteListViews'
 import type { useNoteListModel } from './useNoteListModel'
-import type { ReactNode } from 'react'
+import { lazy, Suspense, type ReactNode } from 'react'
+
+const EntityView = lazy(async () => ({
+  default: (await import('./EntityView')).EntityView,
+}))
 
 type NoteListLayoutProps = ReturnType<typeof useNoteListModel> & {
   handleBulkOrganize?: () => void
-  projectIntelligenceNode?: ReactNode
+  renderProjectIntelligence?: (filterNode: ReactNode) => ReactNode
 }
 
 function MultiSelectBar({
@@ -70,17 +73,19 @@ function NoteListContent({
   return (
     <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
       {entitySelection ? (
-        <EntityView
-          entity={entitySelection.entry}
-          groups={searchedGroups}
-          query={query}
-          collapsedGroups={collapsedGroups}
-          sortPrefs={sortPrefs}
-          onToggleGroup={toggleGroup}
-          onSortChange={handleSortChange}
-          renderItem={renderItem}
-          locale={locale}
-        />
+        <Suspense fallback={<div className="h-full overflow-y-auto" data-testid="entity-view-loading" />}>
+          <EntityView
+            entity={entitySelection.entry}
+            groups={searchedGroups}
+            query={query}
+            collapsedGroups={collapsedGroups}
+            sortPrefs={sortPrefs}
+            onToggleGroup={toggleGroup}
+            onSortChange={handleSortChange}
+            renderItem={renderItem}
+            locale={locale}
+          />
+        </Suspense>
       ) : (
         <ListView
           isArchivedView={isArchivedView}
@@ -119,14 +124,6 @@ function NoteListBody({
   modifiedFilesError,
   searched,
   locale,
-  showFilterPills,
-  showFileScopePills,
-  noteListFilter,
-  filterCounts,
-  fileScope,
-  fileScopeCounts,
-  onNoteListFilterChange,
-  onFileScopeChange,
 }: Pick<
   NoteListLayoutProps,
   | 'handleListKeyDown'
@@ -149,14 +146,6 @@ function NoteListBody({
   | 'modifiedFilesError'
   | 'searched'
   | 'locale'
-  | 'showFilterPills'
-  | 'showFileScopePills'
-  | 'noteListFilter'
-  | 'filterCounts'
-  | 'fileScope'
-  | 'fileScopeCounts'
-  | 'onNoteListFilterChange'
-  | 'onFileScopeChange'
 >) {
   return (
     <div
@@ -187,84 +176,7 @@ function NoteListBody({
         noteListVirtuosoRef={noteListVirtuosoRef}
         locale={locale}
       />
-      <NoteListBottomFilters
-        showFilterPills={showFilterPills}
-        showFileScopePills={showFileScopePills}
-        noteListFilter={noteListFilter}
-        filterCounts={filterCounts}
-        fileScope={fileScope}
-        fileScopeCounts={fileScopeCounts}
-        onNoteListFilterChange={onNoteListFilterChange}
-        onFileScopeChange={onFileScopeChange}
-      />
     </div>
-  )
-}
-
-function NoteListLayoutHeader({
-  title,
-  typeDocument,
-  isEntityView,
-  listSort,
-  listDirection,
-  customProperties,
-  locale,
-  sidebarCollapsed,
-  searchVisible,
-  search,
-  isSearching,
-  searchInputRef,
-  propertyPicker,
-  handleSortChange,
-  handleCreateNote,
-  onOpenType,
-  toggleSearch,
-  setSearch,
-  handleSearchKeyDown,
-}: Pick<
-  NoteListLayoutProps,
-  | 'title'
-  | 'typeDocument'
-  | 'isEntityView'
-  | 'listSort'
-  | 'listDirection'
-  | 'customProperties'
-  | 'locale'
-  | 'sidebarCollapsed'
-  | 'searchVisible'
-  | 'search'
-  | 'isSearching'
-  | 'searchInputRef'
-  | 'propertyPicker'
-  | 'handleSortChange'
-  | 'handleCreateNote'
-  | 'onOpenType'
-  | 'toggleSearch'
-  | 'setSearch'
-  | 'handleSearchKeyDown'
->) {
-  return (
-    <NoteListHeader
-      title={title}
-      typeDocument={typeDocument}
-      isEntityView={isEntityView}
-      listSort={listSort}
-      listDirection={listDirection}
-      customProperties={customProperties}
-      locale={locale}
-      sidebarCollapsed={sidebarCollapsed}
-      searchVisible={searchVisible}
-      search={search}
-      isSearching={isSearching}
-      searchInputRef={searchInputRef}
-      propertyPicker={propertyPicker}
-      onSortChange={handleSortChange}
-      onCreateNote={handleCreateNote}
-      onOpenType={onOpenType}
-      onToggleSearch={toggleSearch}
-      onSearchChange={setSearch}
-      onSearchKeyDown={handleSearchKeyDown}
-    />
   )
 }
 
@@ -308,7 +220,7 @@ export function NoteListLayout({
   noteListPanelRef,
   handleNoteListPanelBlurCapture,
   handleNoteListPanelFocusCapture,
-  projectIntelligenceNode,
+  renderProjectIntelligence,
   ...contentProps
 }: NoteListLayoutProps) {
   return (
@@ -319,8 +231,7 @@ export function NoteListLayout({
       onBlurCapture={handleNoteListPanelBlurCapture}
       onFocusCapture={handleNoteListPanelFocusCapture}
     >
-      <NoteListLayoutHeader {...contentProps} />
-      {projectIntelligenceNode}
+      <NoteListTopChrome {...contentProps} renderProjectIntelligence={renderProjectIntelligence} />
       <NoteListBody {...contentProps} />
       <NoteListFooter {...contentProps} />
     </div>

@@ -106,7 +106,7 @@ function renderAvailableContent(status: Extract<VisibleUpdateStatus, { state: 'a
 function renderDownloadingContent(status: Extract<VisibleUpdateStatus, { state: 'downloading' }>) {
   return (
     <>
-      <RefreshCw size={14} style={{ ...iconStyle, animation: 'spin 1s linear infinite' }} />
+      <RefreshCw size={14} className="update-download-spinner" style={iconStyle} />
       <span>Downloading Grimoire {status.displayVersion}...</span>
       <div style={progressTrackStyle}>
         <div

@@ -7,6 +7,7 @@ import type { ThemeMode } from '../lib/themeMode'
 import { SidebarAppearancePreview } from './SidebarAppearancePreview'
 import { ThemePackSettingsControls } from './ThemePackSettingsControls'
 import { buildPresetGroups, type PresetOption } from './appearanceSettingsOptions'
+import { SectionHeading } from './settings/SettingsControls'
 import { Button } from './ui/button'
 import {
   Select,
@@ -87,7 +88,7 @@ export function AppearanceSettingsSection({
         </div>
       </div>
 
-      <ThemePackSettingsControls themePreset={themePreset} />
+      <ThemePackSettingsControls t={t} themePreset={themePreset} />
 
       <SidebarAppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} />
 
@@ -115,32 +116,6 @@ export function AppearanceSettingsSection({
 
       <AppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} editorFont={editorFont} />
     </>
-  )
-}
-
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          color: 'var(--muted-foreground)',
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.55, maxWidth: 420 }}>
-        {description}
-      </div>
-    </div>
   )
 }
 
@@ -223,7 +198,6 @@ function ThemePresetCard({
   selected: boolean
   onSelect: (value: ThemePreset) => void
 }) {
-  const surface = getThemePresetCardSurface(option, selected)
   return (
     <Button
       type="button"
@@ -231,12 +205,13 @@ function ThemePresetCard({
       role="radio"
       aria-checked={selected}
       data-testid={`settings-theme-preset-${option.value}`}
+      data-group={option.group}
+      data-selected={selected ? 'true' : 'false'}
       className={
         selected
-          ? 'h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left shadow-xs'
-          : 'h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left hover:bg-muted'
+          ? 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left shadow-xs'
+          : 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left hover:bg-muted'
       }
-      style={surface}
       onClick={() => onSelect(option.value)}
     >
       <span className="flex min-w-0 w-full flex-col gap-2">
@@ -263,27 +238,6 @@ function ThemePresetCard({
   )
 }
 
-function getThemePresetCardSurface(option: PresetOption, selected: boolean) {
-  if (selected) {
-    return {
-      background: 'var(--background)',
-      borderColor: 'var(--primary)',
-    }
-  }
-
-  if (option.group === 'signature') {
-    return {
-      background: 'linear-gradient(135deg, var(--surface-editor), color-mix(in srgb, var(--accent-soft) 46%, var(--surface-panel)))',
-      borderColor: 'color-mix(in srgb, var(--primary) 36%, var(--border))',
-    }
-  }
-
-  return {
-    background: 'transparent',
-    borderColor: 'var(--border)',
-  }
-}
-
 function AppearancePreview({
   t,
   themeMode,
@@ -299,20 +253,16 @@ function AppearancePreview({
 
   return (
     <div
-      className="rounded-md border border-border"
+      className="settings-appearance-preview rounded-md border border-border"
       data-testid="settings-appearance-preview"
       data-theme-preview={themeMode}
       data-theme-preset-preview={themePreset}
-      style={{
-        background: 'var(--surface-editor)',
-        padding: 14,
-      }}
     >
-      <div style={{ fontFamily: fontRoles.editor, color: 'var(--foreground)' }}>
+      <div className="settings-appearance-preview__sample" style={{ fontFamily: fontRoles.editor }}>
         <div style={{ fontFamily: fontRoles.display, fontSize: 19, fontWeight: 650, lineHeight: 1.2 }}>
           {t('settings.appearance.previewTitle')}
         </div>
-        <div style={{ color: 'var(--muted-foreground)', fontSize: 12, lineHeight: 1.55, marginTop: 6 }}>
+        <div className="settings-appearance-preview__body">
           {t('settings.appearance.previewBody')}
         </div>
       </div>

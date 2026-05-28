@@ -6,3 +6,29 @@
   font-display: swap;
   font-synthesis: none;
 }
+
+@font-face {
+  font-family: 'Grimoire Berkeley Mono';
+  src:
+    local('TX-02 Berkeley Mono'),
+    local('TX-02 Berkeley Mono Regular'),
+    local('TX-02 Berkeley Mono Retina'),
+    local('Berkeley Mono'),
+    local('Berkeley Mono Regular'),
+    local('BerkeleyMono-Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Grimoire Berkeley Mono';
+  src:
+    local('TX-02 Berkeley Mono Oblique'),
+    local('TX-02 Berkeley Mono Italic'),
+    local('Berkeley Mono Oblique'),
+    local('BerkeleyMono-Oblique');
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}

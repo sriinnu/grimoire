@@ -4,6 +4,8 @@ use std::process::{Command, Output, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use super::path_env::command_for_binary;
+
 pub(super) fn find_codex_binary() -> Result<PathBuf, String> {
     if let Some(binary) = find_binary_on_path("codex") {
         return Ok(binary);
@@ -33,7 +35,7 @@ pub(super) fn find_chitragupta_binary() -> Result<PathBuf, String> {
 }
 
 pub(super) fn version_for_binary(binary: &Path) -> Option<String> {
-    let mut command = Command::new(binary);
+    let mut command = command_for_binary(binary);
     command.arg("--version");
 
     output_with_timeout(command, Duration::from_secs(2))

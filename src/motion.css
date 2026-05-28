@@ -24,6 +24,7 @@
   --motion-hover-shadow: 0 10px 24px color-mix(in srgb, var(--foreground) 10%, transparent);
   --motion-hover-border: color-mix(in srgb, var(--primary) 24%, var(--border));
   --motion-state-pulse-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent);
+  --motion-cancel-action-z-index: 2;
 }
 
 .grimoire-panel-reveal {
@@ -69,61 +70,21 @@
 }
 
 .grimoire-state-pulse {
+  box-shadow: var(--motion-state-pulse-shadow);
   animation: grimoire-state-pulse var(--motion-duration-state-pulse) var(--motion-ease-standard) 1 both;
+  transform-origin: center;
 }
 
-.grimoire-memory-trace {
-  animation: grimoire-memory-trace var(--motion-duration-state-pulse) var(--motion-ease-standard) 1 both;
-  animation-delay: var(--motion-stagger-delay);
-}
-
-.grimoire-crystallize-accept {
-  animation: grimoire-crystallize-accept var(--motion-duration-state-pulse) var(--motion-ease-expressive) 1 both;
-}
-
-.grimoire-crystallize-accept__consequence {
-  animation: grimoire-crystallize-consequence var(--motion-duration-control) var(--motion-ease-standard) 1 both;
-}
-
-.grimoire-import-autopsy {
+[data-motion-cancellable="true"] {
   position: relative;
-  overflow: hidden;
+  isolation: isolate;
+  pointer-events: auto;
 }
 
-.grimoire-import-autopsy__rail {
+[data-motion-cancellable="true"] [data-motion-cancel-action="true"] {
   position: relative;
-}
-
-.grimoire-import-autopsy__rail::before {
-  position: absolute;
-  top: 8px;
-  bottom: 8px;
-  left: 10px;
-  width: 1px;
-  content: "";
-  background: color-mix(in srgb, var(--primary) 34%, var(--border));
-  opacity: 0.62;
-  transform: scaleY(0);
-  transform-origin: top;
-  animation: grimoire-import-autopsy-rail var(--motion-duration-panel) var(--motion-ease-standard) both;
-}
-
-.grimoire-import-autopsy__step {
-  position: relative;
-  margin-left: 18px;
-}
-
-.grimoire-import-autopsy__step::before {
-  position: absolute;
-  top: 13px;
-  left: -14px;
-  width: 7px;
-  height: 7px;
-  content: "";
-  border: 1px solid color-mix(in srgb, var(--primary) 42%, var(--border));
-  border-radius: 999px;
-  background: var(--background);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 9%, transparent);
+  z-index: var(--motion-cancel-action-z-index);
+  pointer-events: auto;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -131,91 +92,6 @@
     border-color: var(--motion-hover-border);
     box-shadow: var(--motion-hover-shadow);
     transform: translateY(var(--motion-hover-lift-distance));
-  }
-}
-
-.grimoire-memory-signal {
-  position: relative;
-  display: grid;
-  min-height: 48px;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--primary) 18%, transparent) 0 18%, transparent 42%),
-    linear-gradient(135deg, color-mix(in srgb, var(--card) 88%, var(--primary)) 0%, var(--background) 100%);
-}
-
-.grimoire-memory-signal::before,
-.grimoire-memory-signal::after {
-  position: absolute;
-  inset: 9px 16px;
-  content: "";
-  border-top: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
-  opacity: 0.46;
-  transform: scaleX(0.64);
-  transform-origin: center;
-  animation: grimoire-memory-thread var(--motion-duration-cinematic) var(--motion-ease-cinematic) 1 both;
-}
-
-.grimoire-memory-signal::after {
-  inset: auto 18px 10px;
-  animation-delay: var(--motion-delay-memory-thread);
-}
-
-.grimoire-memory-signal__orb {
-  position: relative;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 35% 30%, color-mix(in srgb, white 80%, var(--primary)) 0 18%, transparent 22%),
-    radial-gradient(circle, var(--primary) 0 46%, color-mix(in srgb, var(--primary) 38%, transparent) 72%);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent),
-    0 0 24px color-mix(in srgb, var(--primary) 42%, transparent);
-  animation: grimoire-memory-breathe var(--motion-duration-cinematic) var(--motion-ease-cinematic) 1 both;
-}
-
-.grimoire-memory-signal__node {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary) 78%, var(--background));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 38%, transparent);
-}
-
-.grimoire-memory-signal__node:nth-child(2) {
-  transform: translate(-42px, -5px);
-}
-
-.grimoire-memory-signal__node:nth-child(3) {
-  transform: translate(42px, 6px);
-}
-
-@keyframes grimoire-memory-breathe {
-  0%, 100% {
-    transform: scale(0.94);
-    opacity: 0.78;
-  }
-
-  45% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-}
-
-@keyframes grimoire-memory-thread {
-  0%, 100% {
-    transform: scaleX(0.58);
-    opacity: 0.24;
-  }
-
-  48% {
-    transform: scaleX(1);
-    opacity: 0.58;
   }
 }
 
@@ -269,68 +145,18 @@
 
 @keyframes grimoire-state-pulse {
   0% {
-    box-shadow: var(--motion-state-pulse-shadow);
-  }
-
-  42% {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
-  }
-
-  100% {
-    box-shadow: var(--motion-state-pulse-shadow);
-  }
-}
-
-@keyframes grimoire-memory-trace {
-  0% {
-    opacity: 0.72;
-    transform: translateY(4px) scale(0.985);
-  }
-
-  46% {
-    opacity: 1;
-    transform: translateY(0) scale(1.01);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes grimoire-crystallize-accept {
-  0%, 100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    opacity: 0.92;
+    transform: scale(0.992);
   }
 
   42% {
     opacity: 1;
-    transform: translateY(-1px) scale(1.006);
-  }
-}
-
-@keyframes grimoire-crystallize-consequence {
-  from {
-    opacity: 0;
-    transform: translateY(var(--motion-distance-control-y));
+    transform: scale(1.006);
   }
 
-  to {
+  100% {
     opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes grimoire-import-autopsy-rail {
-  from {
-    opacity: 0;
-    transform: scaleY(0);
-  }
-
-  to {
-    opacity: 0.62;
-    transform: scaleY(1);
+    transform: scale(1);
   }
 }
 
@@ -362,12 +188,7 @@
   .grimoire-constellation-focus,
   .grimoire-control-entrance,
   .grimoire-page-settle,
-  .grimoire-state-pulse,
-  .grimoire-memory-trace,
-  .grimoire-crystallize-accept,
-  .grimoire-crystallize-accept__consequence,
-  .grimoire-import-autopsy__rail,
-  .grimoire-import-autopsy__step {
+  .grimoire-state-pulse {
     animation: none;
     opacity: 1;
     transform: none;
@@ -379,17 +200,5 @@
 
   .grimoire-soft-hover-lift:is(:hover, :focus-visible) {
     transform: none;
-  }
-
-  .grimoire-memory-signal::before,
-  .grimoire-memory-signal::after,
-  .grimoire-memory-signal__orb,
-  .grimoire-import-autopsy__rail::before {
-    animation: none;
-  }
-
-  .grimoire-import-autopsy__rail::before {
-    opacity: 0.62;
-    transform: scaleY(1);
   }
 }

@@ -20,6 +20,7 @@ const defaultSettings: Settings = {
   editor_font: null,
   ui_language: null,
   menu_bar_icon_enabled: null,
+  native_shell_material: null,
   default_ai_agent: null,
   transcription_provider: null,
   cloud_transcription_enabled: null,
@@ -41,6 +42,7 @@ const savedSettings: Settings = {
   editor_font: null,
   ui_language: null,
   menu_bar_icon_enabled: true,
+  native_shell_material: 'unified',
   default_ai_agent: null,
   transcription_provider: 'local_whisper',
   cloud_transcription_enabled: false,
@@ -104,6 +106,7 @@ function changedSettings(): Settings {
     editor_font: 'serif',
     ui_language: 'zh-Hans',
     menu_bar_icon_enabled: false,
+    native_shell_material: 'glass-preview',
     default_ai_agent: null,
     transcription_provider: 'local_voice_model',
     cloud_transcription_enabled: false,
@@ -135,6 +138,7 @@ describe('useSettings', () => {
     })
 
     expect(result.current.settings.auto_pull_interval_minutes).toBe(15)
+    expect(result.current.settings.native_shell_material).toBe('unified')
     expect(mockInvokeFn).toHaveBeenCalledWith('get_settings', {})
   })
 

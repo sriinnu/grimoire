@@ -1,9 +1,13 @@
 import type { VaultEntry } from '../types'
-import type { NoteReference } from './ai-context'
-import { buildAskContextPackage, type AskContextPackage } from '../lib/askContextPackage'
+import type { DashboardAskPlan } from './dashboardAskContext'
 import { slugifyNoteStem } from './noteSlug'
 
 export type CaptureKind = 'note' | 'journal' | 'dream' | 'task' | 'memory' | 'ask'
+
+export interface DashboardCaptureRequest {
+  kind: CaptureKind
+  nonce: number
+}
 
 export interface CaptureKindConfig {
   kind: CaptureKind
@@ -39,28 +43,12 @@ export interface CapturedNotePlan {
   typeName: string
 }
 
-export interface CapturedAskPlan {
-  contextPackage: AskContextPackage
-  kind: 'ask'
-  prompt: string
-  references: NoteReference[]
-}
-
-export interface DashboardAskContextPreview {
-  memoryReferences: AskContextPackage['memoryReferences']
-  protectedCount: number
-  protectedMemoryCount: number
-  references: NoteReference[]
-  sourceLabels: string[]
-  visibleCount: number
-}
-
 export interface CaptureErrorPlan {
   kind: 'error'
   message: string
 }
 
-export type DashboardCapturePlan = CapturedNotePlan | CapturedAskPlan | CaptureErrorPlan
+export type DashboardCapturePlan = CapturedNotePlan | DashboardAskPlan | CaptureErrorPlan
 
 const SLASH_COMMANDS = new Map(CAPTURE_KIND_CONFIGS.map((config) => [config.slash.slice(1), config.kind]))
 const LOCALITY_FRONTMATTER = ['locality: local', 'egress: blocked', 'created_from: dashboard-capture']
@@ -220,43 +208,20 @@ function buildContent(title: string, typeName: string, status: string | null, bo
   return `${frontmatter.join('\n')}\n# ${title}\n\n${body}`
 }
 
-/** Selects safe recent vault references for dashboard-originated agent asks. */
-export function buildDashboardAskReferences(entries: VaultEntry[], limit = 5): NoteReference[] {
-  return buildDashboardAskContextPreview(entries, limit).references
-}
-
-/** Describes exactly which dashboard context is safe to show before an ask leaves the UI. */
-export function buildDashboardAskContextPreview(entries: VaultEntry[], limit = 5): DashboardAskContextPreview {
-  const contextPackage = buildAskContextPackage({ entries, limit, prompt: '' })
-  return {
-    memoryReferences: contextPackage.memoryReferences,
-    protectedCount: contextPackage.withheld.protectedNotes,
-    protectedMemoryCount: contextPackage.withheld.protectedMemories,
-    references: contextPackage.references,
-    sourceLabels: contextPackage.sourceLabels,
-    visibleCount: contextPackage.visibleCount,
-  }
-}
-
 /** Resolve quick capture text into either a durable note plan or an AI prompt plan. */
-export function resolveDashboardCapture({
+export async function resolveDashboardCapture({
   entries,
   input,
   now = new Date(),
   selectedKind,
   vaultPath,
-}: ResolveDashboardCaptureParams): DashboardCapturePlan {
+}: ResolveDashboardCaptureParams): Promise<DashboardCapturePlan> {
   const { body, captureKind } = parseLeadingSlash(input, selectedKind)
   const normalizedBody = normalizeBody(body)
   if (!normalizedBody) return { kind: 'error', message: 'Write something to capture first' }
   if (captureKind === 'ask') {
-    const contextPackage = buildAskContextPackage({ entries, prompt: normalizedBody })
-    return {
-      contextPackage,
-      kind: 'ask',
-      prompt: normalizedBody,
-      references: contextPackage.references,
-    }
+    const { buildDashboardAskPlan } = await import('./dashboardAskContext')
+    return buildDashboardAskPlan(entries, normalizedBody)
   }
 
   const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === captureKind)

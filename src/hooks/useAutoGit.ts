@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 export type AutoGitTrigger = 'idle' | 'inactive'
 
@@ -28,8 +28,12 @@ interface CheckpointEligibility {
   hasUnsavedChanges: boolean
 }
 
+function isDocumentVisible(): boolean {
+  return document.visibilityState === 'visible'
+}
+
 function isDocumentActive(): boolean {
-  return document.visibilityState === 'visible' && document.hasFocus()
+  return isDocumentVisible() && document.hasFocus()
 }
 
 function resetTriggerState(target: TriggerState): void {
@@ -88,6 +92,7 @@ function shouldTriggerCheckpoint({
   return Date.now() - lastActivityAt >= thresholdMs
 }
 
+/** Runs AutoGit checkpoints only while a Git vault has saved pending work. */
 export function useAutoGit({
   enabled,
   idleThresholdSeconds,
@@ -100,14 +105,20 @@ export function useAutoGit({
   const lastActivityAtRef = useRef(0)
   const lastTriggeredRef = useRef<TriggerState>({ idle: null, inactive: null })
   const appActiveRef = useRef(true)
+  const checkpointInFlightRef = useRef(false)
+  const checkpointTimerRef = useRef<number | null>(null)
+  const scheduleCheckpointRef = useRef<(() => void) | null>(null)
 
-  const recordActivity = useCallback(() => {
-    lastActivityAtRef.current = Date.now()
-    resetTriggerState(lastTriggeredRef.current)
+  const clearScheduledCheckpoint = useCallback(() => {
+    if (checkpointTimerRef.current === null) return
+    window.clearTimeout(checkpointTimerRef.current)
+    checkpointTimerRef.current = null
   }, [])
 
-  const maybeTriggerCheckpoint = useEffectEvent((trigger: AutoGitTrigger) => {
-    const lastActivityAt = lastActivityAtRef.current
+  const runCheckpoint = useCallback(async (
+    trigger: AutoGitTrigger,
+    lastActivityAt: number,
+  ) => {
     const eligibility = {
       enabled,
       isGitVault,
@@ -123,31 +134,101 @@ export function useAutoGit({
       inactiveThresholdSeconds,
     })) return
 
-    void onCheckpoint(trigger).then((didRun) => {
+    try {
+      const didRun = await onCheckpoint(trigger)
       if (didRun) markTriggerAsHandled(lastTriggeredRef.current, trigger, lastActivityAt)
-    }).catch((err) => console.warn('[git] Auto-commit failed:', err))
-  })
+    } catch (err) {
+      console.warn('[git] Auto-commit failed:', err)
+    }
+  }, [
+    enabled,
+    hasPendingChanges,
+    hasUnsavedChanges,
+    idleThresholdSeconds,
+    inactiveThresholdSeconds,
+    isGitVault,
+    onCheckpoint,
+  ])
 
-  const updateAppActivity = useEffectEvent((active: boolean) => {
-    if (appActiveRef.current === active) return
-    appActiveRef.current = active
+  const scheduleCheckpoint = useCallback(() => {
+    clearScheduledCheckpoint()
+    if (!isCheckpointEligible({
+      enabled,
+      isGitVault,
+      hasPendingChanges,
+      hasUnsavedChanges,
+    }) || !isDocumentVisible()) return
 
-    if (active) {
-      lastTriggeredRef.current.inactive = null
-    } else {
-      lastTriggeredRef.current.idle = null
+    const trigger = isDocumentActive() ? 'idle' : 'inactive'
+    const lastActivityAt = lastActivityAtRef.current
+    if (lastTriggeredRef.current[trigger] === lastActivityAt) return
+
+    const delayMs = Math.max(
+      0,
+      thresholdMsForTrigger(trigger, idleThresholdSeconds, inactiveThresholdSeconds)
+        - (Date.now() - lastActivityAt),
+    )
+    checkpointTimerRef.current = window.setTimeout(() => {
+      checkpointTimerRef.current = null
+      if (checkpointInFlightRef.current || !isDocumentVisible()) {
+        scheduleCheckpointRef.current?.()
+        return
+      }
+      checkpointInFlightRef.current = true
+      void runCheckpoint(trigger, lastActivityAtRef.current).finally(() => {
+        checkpointInFlightRef.current = false
+        scheduleCheckpointRef.current?.()
+      })
+    }, delayMs)
+  }, [
+    clearScheduledCheckpoint,
+    enabled,
+    hasPendingChanges,
+    hasUnsavedChanges,
+    idleThresholdSeconds,
+    inactiveThresholdSeconds,
+    isGitVault,
+    runCheckpoint,
+  ])
+
+  useEffect(() => {
+    scheduleCheckpointRef.current = scheduleCheckpoint
+  }, [scheduleCheckpoint])
+
+  const recordActivity = useCallback(() => {
+    lastActivityAtRef.current = Date.now()
+    resetTriggerState(lastTriggeredRef.current)
+    scheduleCheckpoint()
+  }, [scheduleCheckpoint])
+
+  const updateDocumentActivity = useCallback(() => {
+    if (!isDocumentVisible()) {
+      clearScheduledCheckpoint()
+      appActiveRef.current = false
+      return
     }
 
-    maybeTriggerCheckpoint(active ? 'idle' : 'inactive')
-  })
+    const active = isDocumentActive()
+    if (appActiveRef.current !== active) {
+      appActiveRef.current = active
+
+      if (active) {
+        lastTriggeredRef.current.inactive = null
+      } else {
+        lastTriggeredRef.current.idle = null
+      }
+    }
+
+    scheduleCheckpoint()
+  }, [clearScheduledCheckpoint, scheduleCheckpoint])
 
   useEffect(() => {
     lastActivityAtRef.current = Date.now()
     appActiveRef.current = isDocumentActive()
 
-    const handleFocus = () => { updateAppActivity(true) }
-    const handleBlur = () => { updateAppActivity(false) }
-    const handleVisibilityChange = () => { updateAppActivity(isDocumentActive()) }
+    const handleFocus = () => { updateDocumentActivity() }
+    const handleBlur = () => { updateDocumentActivity() }
+    const handleVisibilityChange = () => { updateDocumentActivity() }
 
     window.addEventListener('focus', handleFocus)
     window.addEventListener('blur', handleBlur)
@@ -158,17 +239,12 @@ export function useAutoGit({
       window.removeEventListener('blur', handleBlur)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [])
+  }, [clearScheduledCheckpoint, updateDocumentActivity])
 
   useEffect(() => {
-    if (!enabled) return
-
-    const id = window.setInterval(() => {
-      maybeTriggerCheckpoint(appActiveRef.current ? 'idle' : 'inactive')
-    }, 1000)
-
-    return () => window.clearInterval(id)
-  }, [enabled])
+    scheduleCheckpoint()
+    return () => clearScheduledCheckpoint()
+  }, [clearScheduledCheckpoint, scheduleCheckpoint])
 
   return { recordActivity }
 }

@@ -17,6 +17,7 @@ describe('AiCrystallizeLoopCard', () => {
         onCrystallize={onCrystallize}
         proposalSummary={{
           hunkCount: 4,
+          ledgerFieldCount: 7,
           sourceCount: 2,
           targetFolder: 'memory/crystallized',
           taskCount: 0,
@@ -28,6 +29,7 @@ describe('AiCrystallizeLoopCard', () => {
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 linked')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review packet')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('4 hunks')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('7 ledger fields')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 sources')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('memory/crystallized')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review diff')
@@ -80,5 +82,33 @@ describe('AiCrystallizeLoopCard', () => {
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Ask first')
     expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Capture')
     expect(screen.getByTestId('crystallize-loop-action')).toHaveTextContent('Waiting')
+  })
+
+  it('uses polished singular labels in the review packet', () => {
+    render(
+      <AiCrystallizeLoopCard
+        activeContextProtected={false}
+        blockedReason={null}
+        canCrystallize
+        hasContext
+        hasLatestResponse
+        linkedCount={1}
+        onCrystallize={vi.fn()}
+        proposalSummary={{
+          hunkCount: 1,
+          ledgerFieldCount: 1,
+          sourceCount: 1,
+          targetFolder: 'memory/crystallized',
+          taskCount: 1,
+        }}
+      />,
+    )
+
+    const packet = screen.getByTestId('crystallize-review-packet')
+    expect(packet).toHaveTextContent('1 hunk')
+    expect(packet).toHaveTextContent('1 source')
+    expect(packet).toHaveTextContent('1 ledger field')
+    expect(packet).toHaveTextContent('1 task hunk')
+    expect(packet).not.toHaveTextContent('1 sources')
   })
 })

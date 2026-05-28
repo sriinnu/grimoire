@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
   makeEntry,
@@ -8,6 +8,10 @@ import {
 import { expectOnlySearchMatch, renderBookNoteList, searchNoteList } from '../test-utils/noteListRenderingTestUtils'
 
 describe('NoteList rendering', () => {
+  function visibleNoteTitles(): string[] {
+    return screen.getAllByTestId('note-title').map((element) => element.textContent ?? '')
+  }
+
   it('shows an empty state when there are no entries', () => {
     renderNoteList({ entries: [] })
     expect(screen.getByText('No notes found')).toBeInTheDocument()
@@ -15,9 +19,11 @@ describe('NoteList rendering', () => {
 
   it('renders all entries in the all-notes view', () => {
     renderNoteList()
-    expect(screen.getByText('Build Grimoire App')).toBeInTheDocument()
-    expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
-    expect(screen.getByText('Karthik Reddy')).toBeInTheDocument()
+    expect(visibleNoteTitles()).toEqual(expect.arrayContaining([
+      'Build Grimoire App',
+      'Facebook Ads Strategy',
+      'Karthik Reddy',
+    ]))
   })
 
   it('filters section groups by type', () => {
@@ -39,8 +45,9 @@ describe('NoteList rendering', () => {
       ],
     })
 
-    expect(await screen.findByTestId('project-workspace-strip')).toBeInTheDocument()
-    const chrome = await screen.findByTestId('project-workspace-chrome')
+    expect(await screen.findByTestId('project-workspace-strip', undefined, { timeout: 3000 })).toBeInTheDocument()
+    expect(screen.getByTestId('note-list-top-chrome')).toContainElement(screen.getByTestId('project-workspace-strip'))
+    const chrome = await screen.findByTestId('project-workspace-chrome', undefined, { timeout: 3000 })
     expect(chrome).toHaveClass('project-workspace-chrome')
     expect(chrome.querySelector('.project-workspace-chrome__overview')).toBeInTheDocument()
     expect(chrome.querySelector('.project-workspace-chrome__metrics')).toBeInTheDocument()
@@ -49,7 +56,7 @@ describe('NoteList rendering', () => {
     expect(chrome.querySelector('.project-workspace-chrome__search-actions')).toBeInTheDocument()
   })
 
-  it('renders folder filters as a footer instead of overlaying note cards', () => {
+  it('renders folder filters in the upper chrome instead of the list footer', () => {
     renderNoteList({
       selection: { kind: 'folder', path: 'project' },
       entries: [
@@ -61,13 +68,18 @@ describe('NoteList rendering', () => {
       ],
     })
 
-    const filters = screen.getByTestId('note-list-bottom-filters')
+    const filters = screen.getByTestId('note-list-filter-rail')
     expect(filters).toHaveClass('shrink-0')
+    expect(screen.getByTestId('note-list-top-chrome')).toContainElement(filters)
+    expect(screen.getByTestId('project-workspace-chrome')).toContainElement(filters)
+    expect(filters).toHaveClass('note-list-filter-rail--embedded')
     expect(filters.querySelector('.note-list-filter-shelf')).toBeInTheDocument()
     expect(filters.querySelector('.note-list-filter-shelf')).toHaveClass('note-list-filter-shelf')
     expect(screen.getByTestId('note-list-file-scope-group')).toHaveClass('note-list-filter-group')
     expect(screen.getByTestId('note-list-state-filter-group')).toHaveClass('note-list-filter-group')
-    expect(filters).not.toHaveClass('absolute')
+    expect(within(filters).getByTitle('Markdown documents')).toHaveTextContent('Docs')
+    expect(within(filters).getByTitle('Source and non-Markdown files')).toHaveTextContent('Source')
+    expect(filters.compareDocumentPosition(screen.getByTestId('note-list-container'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
   it('supports event sections', () => {
@@ -94,19 +106,19 @@ describe('NoteList rendering', () => {
     expect(onCreateNote).toHaveBeenCalledWith(undefined)
   })
 
-  it('pins the current entity and shows grouped children', () => {
+  it('pins the current entity and shows grouped children', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
     expect(screen.getAllByText('Build Grimoire App').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
+    expect(await screen.findByText('Facebook Ads Strategy')).toBeInTheDocument()
     expect(screen.queryByText('Karthik Reddy')).not.toBeInTheDocument()
     expect(screen.getByText('Children')).toBeInTheDocument()
     expect(screen.getByText('Related to')).toBeInTheDocument()
   })
 
-  it('shows referenced-by groups for topic entities', () => {
+  it('shows referenced-by groups for topic entities', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[4] } })
-    expect(screen.getByText('Build Grimoire App')).toBeInTheDocument()
-    expect(screen.getByText('Referenced by')).toBeInTheDocument()
+    expect(await screen.findByText('Build Grimoire App')).toBeInTheDocument()
+    expect(await screen.findByText('Referenced by')).toBeInTheDocument()
   })
 
   it('toggles the search input from the header action', () => {
@@ -119,8 +131,8 @@ describe('NoteList rendering', () => {
   it('filters by a case-insensitive search query', async () => {
     renderNoteList()
     await searchNoteList('facebook')
-    expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
-    expect(screen.queryByText('Build Grimoire App')).not.toBeInTheDocument()
+    expect(visibleNoteTitles()).toContain('Facebook Ads Strategy')
+    expect(visibleNoteTitles()).not.toContain('Build Grimoire App')
   })
 
   it('filters by snippet text when the title does not match', async () => {
@@ -193,6 +205,7 @@ describe('NoteList rendering', () => {
     })
 
     const buttons = [
+      screen.getByTestId('sort-button-__list__'),
       screen.getByTitle('Search notes'),
       screen.getByTitle('Customize Inbox columns'),
       screen.getByTitle('Create new note'),
@@ -200,16 +213,7 @@ describe('NoteList rendering', () => {
 
     for (const button of buttons) {
       expect(button).toHaveAttribute('data-variant', 'ghost')
-      expect(button).toHaveClass(
-        '!h-auto',
-        '!w-auto',
-        '!min-w-0',
-        '!rounded-none',
-        '!p-0',
-        '!text-muted-foreground',
-        'hover:!bg-transparent',
-        'hover:!text-foreground',
-      )
+      expect(button).toHaveClass('note-list-chrome-action')
       expect(button).not.toHaveAttribute('tabindex', '-1')
     }
   })

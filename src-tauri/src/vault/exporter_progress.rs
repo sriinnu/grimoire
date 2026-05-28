@@ -6,8 +6,8 @@ use walkdir::WalkDir;
 use zip::write::FileOptions;
 
 use super::exporter::{
-    add_file_to_zip, canonical_dir, resolve_target_path, should_enter, should_skip_file,
-    validate_target, VaultExportReport,
+    add_file_to_zip, canonical_dir, create_export_temp_path, persist_export_temp_path,
+    resolve_target_path, should_enter, should_skip_file, validate_target, VaultExportReport,
 };
 use super::locality_attachments::local_only_referenced_attachments;
 
@@ -51,15 +51,16 @@ where
     let (files, skipped_files) = collect_exportable_files(&vault_root)?;
     let total_files = files.len();
     on_progress(VaultExportProgressEvent::Started { total_files });
-    check_cancelled(cancelled, &target, on_progress)?;
+    check_cancelled(cancelled, None, on_progress)?;
 
-    let file = File::create(&target).map_err(|e| format!("Failed to create ZIP export: {e}"))?;
+    let temp_path = create_export_temp_path(&target)?;
+    let file = File::create(&temp_path).map_err(|e| format!("Failed to create ZIP export: {e}"))?;
     let mut zip = zip::ZipWriter::new(file);
     let options = FileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
     for (index, source_path) in files.iter().enumerate() {
-        check_cancelled(cancelled, &target, on_progress)?;
+        check_cancelled(cancelled, Some(temp_path.as_ref()), on_progress)?;
         add_file_to_zip(&vault_root, source_path, &mut zip, options)?;
         on_progress(VaultExportProgressEvent::Progress {
             processed_files: index + 1,
@@ -67,9 +68,10 @@ where
             current_path: relative_path(&vault_root, source_path)?,
         });
     }
-    check_cancelled(cancelled, &target, on_progress)?;
+    check_cancelled(cancelled, Some(temp_path.as_ref()), on_progress)?;
     zip.finish()
         .map_err(|e| format!("Failed to finish ZIP export: {e}"))?;
+    persist_export_temp_path(temp_path, &target)?;
     let report = VaultExportReport {
         export_path: target.to_string_lossy().into_owned(),
         files_exported: files.len(),
@@ -110,14 +112,20 @@ fn relative_path(vault_root: &Path, source_path: &Path) -> Result<String, String
         .map_err(|_| "Failed to resolve vault file during export".to_string())
 }
 
-fn check_cancelled<F>(cancelled: &AtomicBool, target: &Path, on_progress: &F) -> Result<(), String>
+fn check_cancelled<F>(
+    cancelled: &AtomicBool,
+    cleanup_path: Option<&Path>,
+    on_progress: &F,
+) -> Result<(), String>
 where
     F: Fn(VaultExportProgressEvent) + ?Sized,
 {
     if !cancelled.load(Ordering::SeqCst) {
         return Ok(());
     }
-    let _ = fs::remove_file(target);
+    if let Some(path) = cleanup_path {
+        let _ = fs::remove_file(path);
+    }
     on_progress(VaultExportProgressEvent::Cancelled);
     Err("Export cancelled".to_string())
 }

@@ -21,6 +21,10 @@ const PACKAGE_JSON = resolve(REPO_ROOT, 'package.json')
 const APP_BUNDLE_ID = 'com.sriinnu.grimoire'
 const APP_NAME = 'Grimoire.app'
 const APPLICATIONS_APP_PATH = '/Applications/Grimoire.app'
+const INSTALL_WAIT_MS = 8000
+const PROCESS_POLL_MS = 250
+const sleepBuffer = new SharedArrayBuffer(4)
+const sleepArray = new Int32Array(sleepBuffer)
 
 function hasArg(name) {
   return process.argv.includes(name)
@@ -48,9 +52,62 @@ function assertCanonicalDestination(appPath, applicationsDir = '/Applications') 
   }
 }
 
+function assertSingletonInstall(applicationsDir = '/Applications') {
+  const apps = readdirSync(applicationsDir)
+    .filter(name => name.startsWith('Grimoire') && name.endsWith('.app'))
+    .sort()
+  if (apps.length !== 1 || apps[0] !== APP_NAME) {
+    throw new Error(`Refusing non-singleton Grimoire install set: ${apps.join(', ') || 'none'}`)
+  }
+}
+
+function assertNoDuplicateGrimoireApps(applicationsDir = '/Applications') {
+  const duplicates = readdirSync(applicationsDir)
+    .filter(name => name.startsWith('Grimoire') && name.endsWith('.app') && name !== APP_NAME)
+    .sort()
+  if (duplicates.length > 0) {
+    throw new Error(`Refusing duplicate Grimoire app bundles before install: ${duplicates.join(', ')}`)
+  }
+}
+
 function quitRunningApp() {
   const script = `tell application id "${APP_BUNDLE_ID}" to quit`
   spawnSync('osascript', ['-e', script], { stdio: 'ignore' })
+}
+
+function sleepSync(ms) {
+  Atomics.wait(sleepArray, 0, 0, ms)
+}
+
+function runningInstalledAppProcesses(appPath = APPLICATIONS_APP_PATH) {
+  const marker = `${resolve(appPath)}/Contents/MacOS/`
+  const result = spawnSync('ps', ['-Ao', 'pid=,args='], { encoding: 'utf8' })
+  if (result.status !== 0) {
+    throw new Error('Could not inspect running Grimoire processes before install')
+  }
+
+  return result.stdout
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .filter(line => line.includes(marker))
+    .map(line => {
+      const [pid, ...args] = line.split(/\s+/)
+      return { command: args.join(' '), pid }
+    })
+}
+
+function waitForInstalledAppToExit(appPath = APPLICATIONS_APP_PATH, timeoutMs = INSTALL_WAIT_MS) {
+  const startedAt = Date.now()
+  while (Date.now() - startedAt < timeoutMs) {
+    const running = runningInstalledAppProcesses(appPath)
+    if (running.length === 0) return
+    sleepSync(PROCESS_POLL_MS)
+  }
+
+  const running = runningInstalledAppProcesses(appPath)
+  const pids = running.map(entry => entry.pid).join(', ')
+  throw new Error(`Grimoire is still running from ${appPath}${pids ? ` (pid ${pids})` : ''}`)
 }
 
 function verifyInstalledVersion(appPath, expectedVersion) {
@@ -74,11 +131,16 @@ function installBuiltApp({
   if (!existsSync(sourceAppPath)) {
     throw new Error(`Build the app first: ${sourceAppPath}`)
   }
+  assertNoDuplicateGrimoireApps(applicationsDir)
 
-  if (!skipSystemActions) quitRunningApp()
+  if (!skipSystemActions) {
+    quitRunningApp()
+    waitForInstalledAppToExit(applicationsAppPath)
+  }
 
   rmSync(applicationsAppPath, { recursive: true, force: true })
   cpSync(sourceAppPath, applicationsAppPath, { recursive: true, verbatimSymlinks: true })
+  assertSingletonInstall(applicationsDir)
 
   if (!skipSystemActions) {
     run('codesign', ['--force', '--deep', '--sign', '-', applicationsAppPath])
@@ -148,6 +210,33 @@ function runSelfTest() {
       rejectedBadPath = true
     }
     if (!rejectedBadPath) throw new Error('Self-test accepted a non-canonical app name')
+    writeTestApp(join(applicationsDir, 'Grimoire Copy.app'), '8.9.10', 'duplicate-build')
+    let rejectedDuplicate = false
+    try {
+      assertSingletonInstall(applicationsDir)
+    } catch {
+      rejectedDuplicate = true
+    }
+    if (!rejectedDuplicate) throw new Error('Self-test accepted duplicate Grimoire app bundles')
+    writeTestApp(sourceAppPath, '8.9.11', 'blocked-build')
+    let rejectedDuplicateBeforeMutation = false
+    try {
+      installBuiltApp({
+        applicationsDir,
+        applicationsAppPath,
+        expectedVersion: '8.9.11',
+        skipSystemActions: true,
+        sourceAppPath,
+      })
+    } catch {
+      rejectedDuplicateBeforeMutation = true
+    }
+    if (!rejectedDuplicateBeforeMutation) {
+      throw new Error('Self-test installed while duplicate Grimoire bundles existed')
+    }
+    if (existsSync(join(installedContents, 'blocked-build'))) {
+      throw new Error('Self-test mutated canonical app before rejecting duplicate bundles')
+    }
     console.log('self-test passed')
   } finally {
     rmSync(tempDir, { recursive: true, force: true })
