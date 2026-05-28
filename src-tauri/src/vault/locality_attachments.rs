@@ -65,6 +65,26 @@ pub(crate) fn local_only_referenced_attachments(
     Ok(attachments)
 }
 
+/// Returns attachment paths referenced by one local-only Markdown document body.
+pub(crate) fn local_only_referenced_attachments_from_content(
+    note_relative: &Path,
+    content: &str,
+) -> BTreeSet<String> {
+    let mut attachments = BTreeSet::new();
+    collect_markdown_attachment_refs(note_relative, content, &mut attachments);
+    for captures in canvas_fence_re().captures_iter(content) {
+        if let Some(body) = captures.get(1) {
+            if let Ok(metadata) = serde_yaml::from_str::<Value>(body.as_str()) {
+                collect_attachment_value_refs(note_relative, &metadata, &mut attachments);
+            }
+        }
+    }
+    if let Some(frontmatter) = parse_frontmatter(content) {
+        collect_frontmatter_attachment_refs(note_relative, &frontmatter, &mut attachments);
+    }
+    attachments
+}
+
 fn is_markdown_file(path: &Path) -> bool {
     path.extension()
         .map(|extension| extension.to_string_lossy().to_ascii_lowercase())

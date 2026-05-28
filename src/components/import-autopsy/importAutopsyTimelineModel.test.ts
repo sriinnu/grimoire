@@ -124,4 +124,23 @@ describe('importAutopsyTimelineModel', () => {
     expect(markdown).not.toContain('/Users/')
     expect(markdown).not.toContain('/Private/')
   })
+
+  it('names capsule previews and states SQLite is not the live vault', () => {
+    const capsulePreview: ImportAutopsyPreviewState = {
+      sourceId: 'sqlite-capsule-preview',
+      result: {
+        ...preview.result,
+        source_path: '/Users/sri/Exports/grimoire.sqlite',
+        planned_import_root: '/Users/sri/Vault/imports/grimoire-sqlite',
+        notes_to_copy: 2,
+        assets_to_copy: 1,
+        skipped_files: 1,
+      },
+    }
+
+    const steps = buildTimelineSteps(capsulePreview, '/Users/sri/Vault')
+    expect(steps[0].value).toBe('SQLite capsule selected: grimoire.sqlite')
+    expect(steps[3].value).toContain('SQLite is read as a local import artifact')
+    expect(steps[3].value).toContain('Markdown remains the live source of truth')
+  })
 })

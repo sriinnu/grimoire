@@ -80,7 +80,7 @@ Use this as the live review scratchpad while testing Grimoire.
 - [x] Add a new light-first `Prabhat Studio` theme preset as a full-surface candidate.
 - [x] Add German, Hindi, and Sanskrit UI language choices through Settings, command palette, and native settings normalization.
 - [x] Add Portability Capsule export lanes for pure JSON and local SQLite snapshots, with preview/apply manifests and Locality Firewall proof before export.
-- [ ] Add reversible Portability Capsule import preview/apply for JSON and SQLite snapshots before calling capsule round-trip complete.
+- [x] Add reversible Portability Capsule import preview/apply for JSON and SQLite snapshots before calling capsule round-trip complete.
 - [ ] Re-overhaul Settings panel polish so every section follows active theme materials, local-first copy, and Apple-native control rhythm.
 
 ## Parking Lot

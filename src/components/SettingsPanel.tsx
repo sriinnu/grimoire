@@ -289,6 +289,10 @@ function SettingsPanelInner({
           onImportDayOne={portabilityActions.handleImportDayOne}
           onPreviewJourney={portabilityActions.handlePreviewJourney}
           onImportJourney={portabilityActions.handleImportJourney}
+          onPreviewJsonCapsule={portabilityActions.handlePreviewJsonCapsule}
+          onImportJsonCapsule={portabilityActions.handleImportJsonCapsule}
+          onPreviewSqliteCapsule={portabilityActions.handlePreviewSqliteCapsule}
+          onImportSqliteCapsule={portabilityActions.handleImportSqliteCapsule}
           onExportMarkdownZip={portabilityActions.handleExportMarkdownZip}
           onExportStaticHtmlArchive={portabilityActions.handleExportStaticHtmlArchive}
           onPreviewJsonSnapshot={portabilityActions.handlePreviewJsonSnapshot}

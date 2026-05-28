@@ -1,7 +1,10 @@
 use super::portability_capsule::{
-    export_portability_capsule, preview_portability_capsule, PortabilityCapsuleFormat,
+    export_portability_capsule, preview_portability_capsule, sha256_hex, PortabilityCapsuleFormat,
 };
-use serde_json::Value;
+use super::portability_capsule_import::{
+    import_portability_capsule, preview_portability_capsule_import,
+};
+use serde_json::{json, Value};
 use std::fs;
 use tempfile::TempDir;
 
@@ -97,4 +100,180 @@ fn exports_sqlite_snapshot_with_file_and_proof_tables() {
     assert_eq!(files, 1);
     assert_eq!(withheld, 1);
     assert_eq!(proof, "true");
+}
+
+#[test]
+fn previews_and_imports_json_snapshot_without_recreating_withheld_files() {
+    let source = TempDir::new().unwrap();
+    let target = TempDir::new().unwrap();
+    let vault = TempDir::new().unwrap();
+    fs::write(source.path().join("public.md"), "# Public\n").unwrap();
+    fs::write(
+        source.path().join("private.md"),
+        "---\nlocal_only: true\n---\n# Private\n",
+    )
+    .unwrap();
+
+    let export = export_portability_capsule(
+        source.path(),
+        &target.path().join("vault-snapshot.json"),
+        PortabilityCapsuleFormat::Json,
+    )
+    .unwrap();
+    let capsule_path = std::path::Path::new(&export.export_path);
+    let preview = preview_portability_capsule_import(
+        vault.path(),
+        capsule_path,
+        PortabilityCapsuleFormat::Json,
+    )
+    .unwrap();
+
+    assert_eq!(preview.notes_to_copy, 1);
+    assert_eq!(preview.skipped_files, 1);
+    assert!(!vault.path().join("imports").exists());
+
+    let report =
+        import_portability_capsule(vault.path(), capsule_path, PortabilityCapsuleFormat::Json)
+            .unwrap();
+    let root = std::path::Path::new(&report.imported_root);
+    assert_eq!(
+        fs::read_to_string(root.join("public.md")).unwrap(),
+        "# Public\n"
+    );
+    assert!(!root.join("private.md").exists());
+    assert!(fs::read_to_string(report.report_path)
+        .unwrap()
+        .contains("local_only: true"));
+}
+
+#[test]
+fn imports_sqlite_snapshot_preserving_binary_assets() {
+    let source = TempDir::new().unwrap();
+    let target = TempDir::new().unwrap();
+    let vault = TempDir::new().unwrap();
+    fs::create_dir_all(source.path().join("attachments")).unwrap();
+    fs::write(
+        source.path().join("note.md"),
+        "# Note\n![asset](attachments/pixel.bin)\n",
+    )
+    .unwrap();
+    fs::write(source.path().join("attachments/pixel.bin"), [0, 1, 2, 255]).unwrap();
+
+    let export = export_portability_capsule(
+        source.path(),
+        &target.path().join("vault-snapshot.sqlite"),
+        PortabilityCapsuleFormat::Sqlite,
+    )
+    .unwrap();
+    let capsule_path = std::path::Path::new(&export.export_path);
+    let preview = preview_portability_capsule_import(
+        vault.path(),
+        capsule_path,
+        PortabilityCapsuleFormat::Sqlite,
+    )
+    .unwrap();
+
+    assert_eq!(preview.notes_to_copy, 1);
+    assert_eq!(preview.assets_to_copy, 1);
+
+    let report =
+        import_portability_capsule(vault.path(), capsule_path, PortabilityCapsuleFormat::Sqlite)
+            .unwrap();
+    let root = std::path::Path::new(&report.imported_root);
+    assert_eq!(
+        fs::read(root.join("attachments/pixel.bin")).unwrap(),
+        [0, 1, 2, 255]
+    );
+}
+
+#[test]
+fn inbound_capsule_firewall_withholds_local_only_notes_and_referenced_assets() {
+    let capsule_dir = TempDir::new().unwrap();
+    let vault = TempDir::new().unwrap();
+    let private = "---\nlocality: local\n---\n# Private\n![audio](attachments/audio.m4a)\n";
+    let audio = b"secret audio";
+    let capsule = json!({
+        "schema": "grimoire-portability-capsule/v1",
+        "format": "json-snapshot",
+        "vault_label": "untrusted",
+        "proof": {
+            "markdown_source_of_truth": true,
+            "absolute_source_paths_redacted": true,
+            "local_only_files_withheld": 0
+        },
+        "files": [
+            json_file("private.md", "markdown", private.as_bytes()),
+            json_file("attachments/audio.m4a", "asset", audio)
+        ],
+        "withheld": []
+    });
+    let capsule_path = capsule_dir.path().join("untrusted.json");
+    fs::write(&capsule_path, serde_json::to_vec_pretty(&capsule).unwrap()).unwrap();
+
+    let preview = preview_portability_capsule_import(
+        vault.path(),
+        &capsule_path,
+        PortabilityCapsuleFormat::Json,
+    )
+    .unwrap();
+
+    assert_eq!(preview.notes_to_copy, 0);
+    assert_eq!(preview.assets_to_copy, 0);
+    assert_eq!(preview.skipped_files, 2);
+    assert!(preview.manifest_rows.iter().any(|row| row.kind
+        == super::import_manifest::ImportAutopsyManifestKind::Withheld
+        && row.source_path.ends_with("attachments/audio.m4a")));
+}
+
+#[test]
+fn rejects_capsules_with_traversal_paths_or_sources_inside_vault() {
+    let capsule_dir = TempDir::new().unwrap();
+    let vault = TempDir::new().unwrap();
+    let capsule = json!({
+        "schema": "grimoire-portability-capsule/v1",
+        "format": "json-snapshot",
+        "vault_label": "untrusted",
+        "proof": {
+            "markdown_source_of_truth": true,
+            "absolute_source_paths_redacted": true,
+            "local_only_files_withheld": 0
+        },
+        "files": [json_file("../escape.md", "markdown", b"# Escape\n")],
+        "withheld": []
+    });
+    let capsule_path = capsule_dir.path().join("escape.json");
+    fs::write(&capsule_path, serde_json::to_vec_pretty(&capsule).unwrap()).unwrap();
+
+    let error = preview_portability_capsule_import(
+        vault.path(),
+        &capsule_path,
+        PortabilityCapsuleFormat::Json,
+    )
+    .unwrap_err();
+    assert!(error.contains("Unsafe capsule path"));
+
+    let inside_vault = vault.path().join("snapshot.json");
+    fs::write(
+        &inside_vault,
+        serde_json::to_vec_pretty(&json!({})).unwrap(),
+    )
+    .unwrap();
+    let error = preview_portability_capsule_import(
+        vault.path(),
+        &inside_vault,
+        PortabilityCapsuleFormat::Json,
+    )
+    .unwrap_err();
+    assert!(error.contains("outside the active vault"));
+}
+
+fn json_file(path: &str, kind: &str, bytes: &[u8]) -> Value {
+    json!({
+        "path": path,
+        "kind": kind,
+        "bytes": bytes.len(),
+        "sha256": sha256_hex(bytes),
+        "encoding": "utf-8",
+        "content": std::str::from_utf8(bytes).unwrap()
+    })
 }

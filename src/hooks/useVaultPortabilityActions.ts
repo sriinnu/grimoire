@@ -20,17 +20,27 @@ import {
   type JournalImportSource,
 } from '../utils/markdownFolderImport'
 import {
+  formatPortabilityCapsuleImportPreviewToast,
+  formatPortabilityCapsuleImportToast,
+  importPortabilityCapsuleIntoVault,
+  pickJsonCapsuleImportFile,
+  pickSqliteCapsuleImportFile,
+  previewPortabilityCapsuleImport,
+} from '../utils/portabilityCapsuleImport'
+import {
   runMarkdownZipExportAction,
   runPortabilityCapsuleExportAction,
   runPortabilityCapsulePreviewAction,
   runStaticHtmlExportAction,
 } from './vaultExportActionRunners'
 import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
+import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
 import {
   type ActivePortabilityOperation,
   appImportActionId,
   appImportLabel,
   beginPortabilityOperation,
+  capsuleImportActionId,
   clearPortabilityOperation,
   errorMessage,
   isCurrentPortabilityOperation,
@@ -267,6 +277,37 @@ export function useVaultPortabilityActions({
     }
   }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
 
+  const handleCapsuleImport = useCallback(async (format: PortabilityCapsuleFormat, mode: 'preview' | 'import') => {
+    if (!resolvedPath.trim()) {
+      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} capsules`)
+      return
+    }
+    const actionId = capsuleImportActionId(format, mode)
+    const label = format === 'json' ? 'JSON capsule' : 'SQLite capsule'
+    setActiveAction(actionId)
+    try {
+      const sourcePath = format === 'json' ? await pickJsonCapsuleImportFile() : await pickSqliteCapsuleImportFile()
+      if (!sourcePath) return
+
+      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label}...`)
+      if (mode === 'preview') {
+        const result = await previewPortabilityCapsuleImport(resolvedPath, sourcePath, format)
+        rememberImportPreview(actionId, result)
+        setToastMessage(formatPortabilityCapsuleImportPreviewToast(result, format))
+      } else {
+        setLastImportPreview(null)
+        const result = await importPortabilityCapsuleIntoVault(resolvedPath, sourcePath, format)
+        await reloadAfterImport()
+        setToastMessage(formatPortabilityCapsuleImportToast(result, format))
+      }
+    } catch (error) {
+      if (mode === 'preview') setLastImportPreview(null)
+      setToastMessage(`${mode === 'preview' ? 'Preview' : 'Import'} failed: ${errorMessage(error, 'Import failed')}`)
+    } finally {
+      setActiveAction(null)
+    }
+  }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage])
+
   const handleExportMarkdownZip = useCallback(async () => {
     await runMarkdownZipExportAction({
       resolvedPath,
@@ -330,6 +371,10 @@ export function useVaultPortabilityActions({
     handlePreviewAppleJournal: () => { void handleJournalExport('apple-journal', 'preview') }, handleImportAppleJournal: () => { void handleJournalExport('apple-journal', 'import') },
     handlePreviewDayOne: () => { void handleJournalExport('day-one', 'preview') }, handleImportDayOne: () => { void handleJournalExport('day-one', 'import') },
     handlePreviewJourney: () => { void handleJournalExport('journey', 'preview') }, handleImportJourney: () => { void handleJournalExport('journey', 'import') },
+    handlePreviewJsonCapsule: () => { void handleCapsuleImport('json', 'preview') },
+    handleImportJsonCapsule: () => { void handleCapsuleImport('json', 'import') },
+    handlePreviewSqliteCapsule: () => { void handleCapsuleImport('sqlite', 'preview') },
+    handleImportSqliteCapsule: () => { void handleCapsuleImport('sqlite', 'import') },
     handleExportMarkdownZip: () => { void handleExportMarkdownZip() },
     handleExportStaticHtmlArchive: () => { void handleExportStaticHtmlArchive() },
     handlePreviewJsonSnapshot: () => { void handlePreviewJsonSnapshot() },

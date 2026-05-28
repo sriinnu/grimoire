@@ -118,6 +118,10 @@ export interface SettingsBodyProps {
   onImportDayOne?: () => void
   onPreviewJourney?: () => void
   onImportJourney?: () => void
+  onPreviewJsonCapsule?: () => void
+  onImportJsonCapsule?: () => void
+  onPreviewSqliteCapsule?: () => void
+  onImportSqliteCapsule?: () => void
   onExportMarkdownZip?: () => void
   onExportStaticHtmlArchive?: () => void
   onPreviewJsonSnapshot?: () => void

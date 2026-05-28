@@ -1,10 +1,11 @@
-import { Cloud, DownloadSimple, FolderOpen, UploadSimple } from '@phosphor-icons/react'
+import { Archive, Cloud, DownloadSimple, FolderOpen, UploadSimple } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
 import { AppImportAutopsyActions } from './AppImportAutopsyActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
+import { PortabilityCapsuleImportActions } from './PortabilityCapsuleImportActions'
 import type { PortabilityActionDeckProps } from './PortabilityActionDeck.types'
 import { PortabilityExportActions } from './PortabilityExportActions'
 import { PortabilityImportButton } from './PortabilityActionButton'
@@ -12,7 +13,7 @@ import { PortabilityActionProgress } from './PortabilityActionProgress'
 import { Button } from './ui/button'
 
 type Translate = ReturnType<typeof createTranslator>
-type PortabilityActionLane = 'markdown' | 'apps' | 'journals' | 'export' | 'storage'
+type PortabilityActionLane = 'markdown' | 'apps' | 'journals' | 'capsules' | 'export' | 'storage'
 
 interface LaneConfig { id: PortabilityActionLane; label: string; description: string; icon: ReactNode }
 
@@ -61,6 +62,10 @@ export function PortabilityActionDeck({
   onImportDayOne,
   onPreviewJourney,
   onImportJourney,
+  onPreviewJsonCapsule,
+  onImportJsonCapsule,
+  onPreviewSqliteCapsule,
+  onImportSqliteCapsule,
   onExportMarkdownZip,
   onExportStaticHtmlArchive,
   onPreviewJsonSnapshot,
@@ -179,6 +184,19 @@ export function PortabilityActionDeck({
           onImportDayOne={onImportDayOne}
           onPreviewJourney={onPreviewJourney}
           onImportJourney={onImportJourney}
+        />
+      )
+    }
+    if (lane === 'capsules') {
+      return (
+        <PortabilityCapsuleImportActions
+          t={t}
+          vaultReady={vaultReady}
+          busyAction={busyAction}
+          onPreviewJsonCapsule={onPreviewJsonCapsule}
+          onImportJsonCapsule={onImportJsonCapsule}
+          onPreviewSqliteCapsule={onPreviewSqliteCapsule}
+          onImportSqliteCapsule={onImportSqliteCapsule}
         />
       )
     }
@@ -325,6 +343,12 @@ function buildLanes(t: Translate): LaneConfig[] {
       icon: <DownloadSimple size={14} />,
     },
     {
+      id: 'capsules',
+      label: t('settings.portability.actionLaneCapsules'),
+      description: t('settings.portability.actionLaneCapsulesDescription'),
+      icon: <Archive size={14} />,
+    },
+    {
       id: 'export',
       label: t('settings.portability.actionLaneExport'),
       description: t('settings.portability.actionLaneExportDescription'),
@@ -355,6 +379,7 @@ function laneForAction(action: VaultPortabilityActionId | null): PortabilityActi
     return 'journals'
   }
   if (action === 'day-one' || action === 'journey-preview' || action === 'journey') return 'journals'
+  if (action.includes('capsule')) return 'capsules'
   if (action === 'obsidian-preview' || action === 'obsidian' || action.startsWith('notion-')) return 'apps'
   if (action === 'spanda-preview' || action === 'spanda') return 'apps'
   return 'markdown'

@@ -9,6 +9,7 @@ import type {
   AppImportSource,
   JournalImportSource,
 } from '../utils/markdownFolderImport'
+import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 
@@ -42,6 +43,8 @@ export interface VaultPortabilityActions {
   handlePreviewAppleJournal: () => void; handleImportAppleJournal: () => void
   handlePreviewDayOne: () => void; handleImportDayOne: () => void
   handlePreviewJourney: () => void; handleImportJourney: () => void
+  handlePreviewJsonCapsule: () => void; handleImportJsonCapsule: () => void
+  handlePreviewSqliteCapsule: () => void; handleImportSqliteCapsule: () => void
   handleExportMarkdownZip: () => void
   handleExportStaticHtmlArchive: () => void
   handlePreviewJsonSnapshot: () => void
@@ -202,6 +205,15 @@ export function journalActionId(
   if (source === 'apple-journal') return 'apple-journal-preview'
   if (source === 'day-one') return 'day-one-preview'
   return 'journey-preview'
+}
+
+/** Resolves the import preview/apply action id for Grimoire capsules. */
+export function capsuleImportActionId(
+  format: PortabilityCapsuleFormat,
+  mode: 'preview' | 'import',
+): VaultPortabilityActionId {
+  if (format === 'json') return mode === 'preview' ? 'json-capsule-preview' : 'json-capsule'
+  return mode === 'preview' ? 'sqlite-capsule-preview' : 'sqlite-capsule'
 }
 
 /** Returns the short provider label used in storage sync feedback. */

@@ -1,6 +1,6 @@
 use crate::vault::{
     self, MarkdownFolderImportPreview, MarkdownFolderImportProgressEvent,
-    MarkdownFolderImportReport,
+    MarkdownFolderImportReport, PortabilityCapsuleFormat,
 };
 use std::path::PathBuf;
 use tauri::ipc::Channel;
@@ -102,6 +102,36 @@ pub fn import_markdown_zip(
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
         vault::import_markdown_zip(boundary.requested_root(), source_path.as_path())
+    })
+}
+
+/// Previews a Grimoire JSON or SQLite capsule import without writing to the active vault.
+#[tauri::command]
+pub fn preview_portability_capsule_import(
+    vault_path: PathBuf,
+    source_path: PathBuf,
+    format: PortabilityCapsuleFormat,
+) -> Result<MarkdownFolderImportPreview, String> {
+    let raw_vault_path = vault_path.to_string_lossy();
+    with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
+        vault::preview_portability_capsule_import(
+            boundary.requested_root(),
+            source_path.as_path(),
+            format,
+        )
+    })
+}
+
+/// Imports a reviewed Grimoire JSON or SQLite capsule into the active vault.
+#[tauri::command]
+pub fn import_portability_capsule(
+    vault_path: PathBuf,
+    source_path: PathBuf,
+    format: PortabilityCapsuleFormat,
+) -> Result<MarkdownFolderImportReport, String> {
+    let raw_vault_path = vault_path.to_string_lossy();
+    with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
+        vault::import_portability_capsule(boundary.requested_root(), source_path.as_path(), format)
     })
 }
 
