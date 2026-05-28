@@ -82,6 +82,7 @@ export function AiCrystallizeLoopCard({
             <div className="flex flex-wrap gap-1">
               <LoopBadge icon={<FileClock className="size-3" />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
               <LoopBadge icon={<Sparkles className="size-3" />} label={activeNoteLabel(proposalSummary)} />
+              <LoopBadge icon={<ShieldCheck className="size-3" />} label={writeContractLabel(proposalSummary)} />
               <LoopBadge icon={<ShieldCheck className="size-3" />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
               <LoopBadge
                 icon={<CheckCircle2 className="size-3" />}
@@ -138,6 +139,11 @@ function activeNoteLabel(summary: CrystallizeProposalSummary): string {
   if (summary.activeNoteHunkCount === 0) return 'memory note only'
   const target = summary.activeNoteTarget ? ` · ${summary.activeNoteTarget}` : ''
   return `${reviewCount(summary.activeNoteHunkCount, 'active-note hunk')}${target}`
+}
+
+function writeContractLabel(summary: CrystallizeProposalSummary): string {
+  const contract = summary.writeContract
+  return `${contract.format} / no Git / no remote / review-before-write`
 }
 
 function statusCopy({

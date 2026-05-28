@@ -206,6 +206,13 @@ export function summarizeCrystallizeProposal(proposal: CrystallizeProposal | nul
     sourceCount,
     targetFolder: proposal.relativePath.split('/').slice(0, -1).join('/'),
     taskCount: proposal.changes.filter(change => change.kind === 'task').length,
+    writeContract: {
+      format: 'Markdown',
+      requiresGit: false,
+      requiresRemoteSync: false,
+      reviewGate: 'before-write',
+      visibility: 'human-reviewed',
+    },
   }
 }
 

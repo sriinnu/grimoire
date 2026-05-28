@@ -42,6 +42,14 @@ export interface CrystallizeChange {
   after: string
 }
 
+export interface CrystallizeWriteContract {
+  format: 'Markdown'
+  requiresGit: false
+  requiresRemoteSync: false
+  reviewGate: 'before-write'
+  visibility: 'human-reviewed'
+}
+
 export interface CrystallizeProposalSummary {
   activeNoteHunkCount: number
   activeNoteTarget: string | null
@@ -52,4 +60,5 @@ export interface CrystallizeProposalSummary {
   sourceCount: number
   targetFolder: string
   taskCount: number
+  writeContract: CrystallizeWriteContract
 }
