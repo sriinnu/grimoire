@@ -5,6 +5,7 @@ import {
   REQUIRED_CHITRAGUPTA_CAPABILITIES,
   buildChitraguptaMemoryContext,
   evaluateChitraguptaContractStatus,
+  summarizeChitraguptaRuntimeReadiness,
 } from './chitraguptaIntegration'
 
 function entry(overrides: Partial<VaultEntry>): VaultEntry {
@@ -97,6 +98,39 @@ describe('chitraguptaIntegration', () => {
     expect(status.daemon).toBe('unknown')
     expect(status.warnings).toContain('Chitragupta status is unavailable.')
     expect(status.missingCapabilities).toEqual(REQUIRED_CHITRAGUPTA_CAPABILITIES)
+  })
+
+  it('sanitizes runtime warnings before they reach product UI', () => {
+    const status = evaluateChitraguptaContractStatus({
+      ok: false,
+      daemon: 'stopped',
+      capabilities: [],
+      warnings: [
+        'failed for /Users/srinivaspendela/private/vault.md token=secret-token srinivas@example.com',
+      ],
+    })
+
+    expect(status.warnings[0]).toContain('[local path withheld]')
+    expect(status.warnings[0]).toContain('token=[redacted]')
+    expect(status.warnings[0]).toContain('[email withheld]')
+    expect(status.warnings[0]).not.toContain('/Users/srinivaspendela')
+    expect(status.warnings[0]).not.toContain('secret-token')
+    expect(status.warnings[0]).not.toContain('srinivas@example.com')
+  })
+
+  it('separates installed CLI chat from unverified MCP memory readiness', () => {
+    const contractStatus = evaluateChitraguptaContractStatus(null)
+    const diagnostic = summarizeChitraguptaRuntimeReadiness({
+      availability: { status: 'installed', version: '0.1.0' },
+      contractStatus,
+      protectedNote: false,
+    })
+
+    expect(diagnostic.state).toBe('mcp_unverified')
+    expect(diagnostic.cliLabel).toBe('CLI installed')
+    expect(diagnostic.contractLabel).toBe('MCP contract unverified')
+    expect(diagnostic.capabilityLabel).toBe('0/8 MCP capabilities')
+    expect(diagnostic.warnings[0]).toContain('CLI chat can run separately')
   })
 
   it('builds source-backed active note context for memory recall', () => {

@@ -181,6 +181,7 @@ owner: Sriinnu
           },
         },
       ],
+      chitraguptaAvailability: { status: 'installed', version: '0.1.0' },
     })
 
     const panel = screen.getByTestId('memory-panel')
@@ -192,6 +193,8 @@ owner: Sriinnu
     expect(screen.getByText('Local ledger only')).toBeInTheDocument()
     expect(within(panel).getByText('Chitragupta')).toBeInTheDocument()
     expect(within(panel).getByText('Blocked')).toBeInTheDocument()
+    expect(within(panel).getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
+    expect(within(panel).getByTestId('memory-chitragupta-runtime')).toHaveTextContent('MCP contract unverified')
     expect(within(panel).getByText('Test Project Memory')).toBeInTheDocument()
     expect(within(panel).getByText('Remember the project launch constraints.')).toBeInTheDocument()
   })

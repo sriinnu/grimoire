@@ -141,6 +141,7 @@ export function EditorRightPanel({
         content={inspectorContent}
         entries={entries}
         gitHistory={gitHistory}
+        chitraguptaAvailability={aiAgentsStatus?.chitragupta ?? null}
         vaultPath={vaultPath}
         onNavigate={onNavigateWikilink}
         onViewCommitDiff={onViewCommitDiff}
