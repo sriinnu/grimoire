@@ -24,7 +24,27 @@ const proposal: CrystallizeProposal = {
   },
   activeNotePatch: null,
   reviewedAt: '2026-05-23T08:00:00.000Z',
-  markdown: 'type: Memory\n\nOriginal memory',
+  markdown: [
+    '---',
+    'title: "Crystallized Memory"',
+    'type: Memory',
+    'source: "AI Chat"',
+    'source_note: "AI chat"',
+    'confidence: proposed',
+    'memory_status: proposed',
+    'memory_review_state: reviewed',
+    'memory_source_count: 1',
+    'expires_at: 2026-08-21',
+    'contradicted_by: []',
+    'last_seen: 2026-05-23',
+    'memory_version: 1',
+    'reviewed_at: "2026-05-23T08:00:00.000Z"',
+    'locality: vault',
+    'crystallized: true',
+    '---',
+    '',
+    'Original memory',
+  ].join('\n'),
   changes: [
     {
       id: 'create-memory',
@@ -110,13 +130,13 @@ describe('CrystallizeReviewDialog', () => {
     expect(runway).toHaveTextContent('Editable diff')
     expect(runway).toHaveTextContent('Lands as')
     const preview = screen.getByTestId('crystallize-markdown-preview')
-    fireEvent.change(preview, { target: { value: 'type: Memory\n\nEdited memory' } })
+    fireEvent.change(preview, { target: { value: proposal.markdown.replace('Original memory', 'Edited memory') } })
     const apply = screen.getByTestId('crystallize-apply')
 
     fireEvent.click(apply)
 
     expect(onApply).toHaveBeenCalledWith({
-      memoryMarkdown: 'type: Memory\n\nEdited memory',
+      memoryMarkdown: proposal.markdown.replace('Original memory', 'Edited memory'),
       activeNoteFrontmatterMarkdown: null,
       activeNoteAppendMarkdown: null,
     })
@@ -127,6 +147,25 @@ describe('CrystallizeReviewDialog', () => {
 
     fireEvent.click(apply)
     expect(onApply).toHaveBeenCalledOnce()
+  })
+
+  it('blocks apply when edited Markdown removes the Memory Ledger contract', () => {
+    const onApply = vi.fn()
+    renderDialog({ onApply })
+
+    fireEvent.change(screen.getByTestId('crystallize-markdown-preview'), {
+      target: { value: '# Just prose now\n\nNo frontmatter contract.' },
+    })
+
+    expect(screen.getByTestId('crystallize-contract-warning')).toHaveTextContent(
+      'Restore the Memory Ledger contract before writing',
+    )
+    expect(screen.getByTestId('crystallize-contract-warning')).toHaveTextContent('type: Memory')
+    expect(screen.getByTestId('crystallize-contract-warning')).toHaveTextContent('locality: vault')
+    expect(screen.getByTestId('crystallize-apply')).toBeDisabled()
+
+    fireEvent.click(screen.getByTestId('crystallize-apply'))
+    expect(onApply).not.toHaveBeenCalled()
   })
 
   it('resets the accept consequence when an error arrives or the dialog reopens', () => {
@@ -223,7 +262,7 @@ describe('CrystallizeReviewDialog', () => {
     fireEvent.click(screen.getByTestId('crystallize-apply'))
 
     expect(onApply).toHaveBeenCalledWith({
-      memoryMarkdown: 'type: Memory\n\nOriginal memory',
+      memoryMarkdown: proposal.markdown,
       activeNoteFrontmatterMarkdown: 'last_crystallized_at: "2026-05-24T08:00:00.000Z"\ncrystallized_memories:\n  - "[[Edited Memory]]"',
       activeNoteAppendMarkdown: '## Crystallized Follow-up\n\nEdited append',
     })

@@ -245,6 +245,7 @@ Build order:
   - [x] Add a source-safe Crystallize review runway inside the dialog so sources, Locality Firewall state, editable diff, and local Markdown landing are visible before apply.
   - [x] Add an explicit ledger contract to Crystallize proposals: `memory_status`, `memory_review_state`, `memory_source_count`, a `## Ledger Contract` body section, review hunks, and packet counts before any local write.
   - [x] Add editable Memory Ledger expiry and contradiction slots to every reviewed Crystallize memory: generated Markdown now carries `expires_at` and `contradicted_by`, the body contract shows review-by/contradiction state, and the AI loop/review packet surfaces that before apply.
+  - [x] Block Crystallize apply when editable Memory Markdown drops the required Memory Ledger/frontmatter contract, so reviewer edits cannot silently turn durable memory into plain prose.
 - [ ] Agent Council: fan one request out to Codex, Claude, Chitragupta, Woosh, Tring CLI, local search, vault graph, and import/export context; synthesize with sources.
   - [x] Track Chitragupta, Woosh, and Tring CLI as private local agent lanes without publishing private internals.
   - [x] Surface capability, health, permissions, and first stance cards in the Agent Council UI.
@@ -527,6 +528,7 @@ Build order:
 - Added Crystallize write-consequence visibility to the AI loop packet: before opening the dialog, the card now says whether accept will create a memory note only or also apply active-note hunks, including the active note target.
 - Mirrored that Crystallize write-consequence visibility inside the review dialog packet so the reviewer sees the active-note target and hunk count before accepting the local write.
 - Added a typed Crystallize write contract to the AI loop packet so every proposal declares Markdown, no Git, no remote sync, and review-before-write before the durable local write path opens.
+- Added a Crystallize contract validator at the review dialog boundary so edited Memory Markdown must still include `type: Memory`, source fields, ledger state, review metadata, `locality: vault`, and `crystallized: true` before apply.
 - Added a dashboard `/ask` context preview so users can see which public notes will travel into the agent prompt and how many protected notes stay withheld before sending.
 - Tightened canvas editing state: newly inserted canvas blocks now save their first local JSON/preview explicitly, and undo/clear stay disabled until strokes exist.
 - Added image placement inside editable canvases: selected images are copied into vault attachments, stored in canvas JSON as portable relative paths, rendered in previews, movable with the hand tool, removable with the eraser, and protected by the existing local-only attachment closure.
