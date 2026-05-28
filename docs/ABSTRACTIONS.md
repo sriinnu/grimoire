@@ -196,8 +196,9 @@ Types can define:
 - default sort
 - visible properties
 - template hints
+- optional field guidance through `required_fields`, `required`, `fields`, or `_list_properties_display`
 
-Types do not enforce required fields. The product should help users organize without turning notes into brittle database rows.
+Types do not enforce required fields. They may ask for fields, and Living Frontmatter can turn that Markdown-owned guidance into Inspector hints on notes of the same type. The product should help users organize without turning notes into brittle database rows.
 
 ## Relationship
 

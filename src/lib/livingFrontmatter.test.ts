@@ -73,6 +73,66 @@ describe('buildLivingFrontmatterHints', () => {
     ]))
   })
 
+  it('uses Markdown Type required fields as local schema hints', () => {
+    const hints = buildLivingFrontmatterHints({
+      entry: entry({
+        isA: 'Research',
+        properties: { status: 'Active' },
+      }),
+      entries: [
+        entry({
+          path: '/vault/type/research.md',
+          filename: 'research.md',
+          title: 'Research',
+          isA: 'Type',
+          properties: { required_fields: ['status', 'source_note', 'confidence'] },
+        }),
+      ],
+      frontmatter: { type: 'Research', status: 'Active' },
+      now: new Date('2026-05-24T12:00:00.000Z'),
+    })
+
+    expect(hints).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        field: 'source_note',
+        kind: 'type-schema',
+        label: 'Add source note',
+        severity: 'warn',
+      }),
+      expect.objectContaining({
+        field: 'confidence',
+        kind: 'type-schema',
+        suggestedValue: 'proposed',
+      }),
+    ]))
+    expect(hints.find(hint => hint.field === 'status')).toBeUndefined()
+  })
+
+  it('uses Type list display fields as lightweight optional frontmatter hints', () => {
+    const hints = buildLivingFrontmatterHints({
+      entry: entry({ isA: 'Book' }),
+      entries: [
+        entry({
+          path: '/vault/type/book.md',
+          filename: 'book.md',
+          title: 'Book',
+          isA: 'Type',
+          listPropertiesDisplay: ['author', 'status'],
+        }),
+      ],
+      frontmatter: { type: 'Book', author: 'Ursula Le Guin' },
+    })
+
+    expect(hints).toContainEqual(expect.objectContaining({
+      field: 'status',
+      kind: 'type-schema',
+      label: 'Add status',
+      severity: 'info',
+      suggestedValue: 'Active',
+    }))
+    expect(hints.find(hint => hint.field === 'author')).toBeUndefined()
+  })
+
   it('flags active notes that have gone stale', () => {
     const hints = buildLivingFrontmatterHints({
       entry: entry({ modifiedAt: Date.UTC(2026, 0, 1) / 1000 }),

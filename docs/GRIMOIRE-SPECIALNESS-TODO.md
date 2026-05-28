@@ -86,7 +86,7 @@ A task is not done until:
   Target: proposed note edits, frontmatter edits, backlinks, tasks, and new memory notes appear as reviewable hunks.
 - [ ] Living Frontmatter without a hidden database.
   Problem: frontmatter can carry the mind-OS structure, but it should not become brittle schema enforcement or invisible metadata.
-  Progress: Inspector now shows hints for missing fields, stale active status, possible duplicates, and wikilinks that may deserve relationship fields. Safe schema suggestions can now be applied through the normal Markdown frontmatter update path with visible suggested values; no hidden database writes are introduced.
+  Progress: Inspector now shows hints for missing fields, stale active status, possible duplicates, and wikilinks that may deserve relationship fields. Safe schema suggestions can now be applied through the normal Markdown frontmatter update path with visible suggested values; no hidden database writes are introduced. Markdown Type notes can now ask for readable fields through `required_fields`/`required`/`fields` or `_list_properties_display`, and Living Frontmatter turns those into local per-note hints instead of a hard schema.
   Target: schema guidance, relationship hygiene, and memory metadata suggestions stay inspectable, editable, and Markdown-owned.
 - [ ] Dream Forge as private-only intelligence.
   Problem: dreams/journals are part of the soul, but they need their own protected surface.

@@ -22,6 +22,7 @@ const KIND_LABELS: Record<LivingFrontmatterHint['kind'], string> = {
   'missing-field': 'Schema',
   'relationship-hint': 'Graph',
   'stale-status': 'Stale',
+  'type-schema': 'Type',
 }
 
 /** Inspector lane for schema, status, duplicate, and relationship hints. */
