@@ -1,6 +1,7 @@
 import { Brain, Cloud, DownloadSimple, FolderOpen, GitBranch, UploadSimple } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
+import type { DesktopStorageHealthReport } from '../utils/desktopStorageHealth'
 import {
   getVaultStorageHealth,
   listVaultExportTargets,
@@ -24,11 +25,25 @@ interface PortabilityGroup {
 }
 
 /** Renders the compact portability capability cards above the action deck. */
-export function PortabilityGroups({ t, vaultPath }: { t: Translate; vaultPath: string }) {
+export function PortabilityGroups({
+  onDesktopStorageHealthReport,
+  t,
+  vaultPath,
+}: {
+  onDesktopStorageHealthReport?: (report: DesktopStorageHealthReport) => void
+  t: Translate
+  vaultPath: string
+}) {
   return (
     <>
       {buildPortabilityGroups(t, vaultPath).map((group) => (
-        <PortabilityGroupCard key={group.title} group={group} t={t} vaultPath={vaultPath} />
+        <PortabilityGroupCard
+          key={group.title}
+          group={group}
+          onDesktopStorageHealthReport={onDesktopStorageHealthReport}
+          t={t}
+          vaultPath={vaultPath}
+        />
       ))}
     </>
   )
@@ -69,7 +84,17 @@ function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGro
   ]
 }
 
-function PortabilityGroupCard({ group, t, vaultPath }: { group: PortabilityGroup; t: Translate; vaultPath: string }) {
+function PortabilityGroupCard({
+  group,
+  onDesktopStorageHealthReport,
+  t,
+  vaultPath,
+}: {
+  group: PortabilityGroup
+  onDesktopStorageHealthReport?: (report: DesktopStorageHealthReport) => void
+  t: Translate
+  vaultPath: string
+}) {
   return (
     <div className="grimoire-portability-card rounded-md border border-border p-3">
       <div className="mb-2 flex items-start gap-2">
@@ -91,7 +116,11 @@ function PortabilityGroupCard({ group, t, vaultPath }: { group: PortabilityGroup
       {group.storageHealth ? (
         <>
           <StorageHealthRows health={group.storageHealth} t={t} />
-          <DesktopStorageHealthPanel vaultPath={vaultPath} t={t} />
+          <DesktopStorageHealthPanel
+            onReport={onDesktopStorageHealthReport}
+            vaultPath={vaultPath}
+            t={t}
+          />
         </>
       ) : null}
     </div>

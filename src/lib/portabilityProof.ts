@@ -52,10 +52,31 @@ export interface PortabilityProviderRequirement {
 
 /** Redacted live-provider proof that is safe to render in Settings. */
 export interface PortabilityLiveProof {
-  id: 'azure-provider-proof' | 'azure-read-only' | 'provider-report-summary' | 's3-provider-proof' | 's3-read-only'
+  id:
+    | 'azure-provider-proof'
+    | 'azure-read-only'
+    | 'google-drive-desktop-folder'
+    | 'icloud-drive-folder'
+    | 'provider-report-summary'
+    | 's3-provider-proof'
+    | 's3-read-only'
   label: string
   status: string
   detail: string
+}
+
+export type DesktopStorageProofProviderId = 'google-drive-desktop' | 'icloud-drive'
+
+interface DesktopStorageHealthProof {
+  checked_at: string
+  configured: boolean
+  credentials_stored: boolean
+  local_path_checked: boolean
+  provider_id: DesktopStorageProofProviderId
+  provider_root_detected: boolean
+  readable: boolean
+  status: string
+  vault_directory_checked: boolean
 }
 
 interface S3LivePreflightProof {
@@ -83,6 +104,7 @@ interface AzureLivePreflightProof {
 /** Latest transient provider reports that can strengthen the proof ledger without storing provider details. */
 export interface PortabilityProofState {
   azureLivePreflightReport?: AzureLivePreflightProof | null
+  desktopStorageHealthReports?: Partial<Record<DesktopStorageProofProviderId, DesktopStorageHealthProof>> | null
   objectStorageLiveProofReport?: ObjectStorageLiveProofReportType | null
   s3LivePreflightReport?: S3LivePreflightProof | null
 }
@@ -139,6 +161,7 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       proofLevel: 'provider-managed-local-folder',
       detail: `${filesystemStorage.length} provider-managed local working copies`,
       evidence: 'Local folder, Git, iCloud Drive, and Google Drive Desktop are normal folders; Settings can run local read proof for iCloud/GDrive without storing cloud credentials.',
+      liveProofs: desktopStorageLiveProofs(proofState.desktopStorageHealthReports),
       remainingProof: 'Provider quota, offline recovery, auth expiry, and conflicted-file behavior need live provider testing.',
     },
     {
@@ -194,6 +217,36 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       ],
     },
   ]
+}
+
+function desktopStorageLiveProofs(
+  reports?: Partial<Record<DesktopStorageProofProviderId, DesktopStorageHealthProof>> | null,
+): readonly PortabilityLiveProof[] {
+  if (!reports) return []
+  return [
+    reports['icloud-drive'] ? desktopStorageLiveProof(reports['icloud-drive']) : null,
+    reports['google-drive-desktop'] ? desktopStorageLiveProof(reports['google-drive-desktop']) : null,
+  ].filter(isPortabilityLiveProof)
+}
+
+function desktopStorageLiveProof(report: DesktopStorageHealthProof): PortabilityLiveProof {
+  const label = report.provider_id === 'icloud-drive'
+    ? 'iCloud Drive folder proof'
+    : 'Google Drive Desktop folder proof'
+  return {
+    id: report.provider_id === 'icloud-drive' ? 'icloud-drive-folder' : 'google-drive-desktop-folder',
+    label,
+    status: proofStatusLabel(report.status),
+    detail: [
+      proofFlag(report.configured, 'configured', 'not configured'),
+      proofFlag(report.local_path_checked, 'local path checked', 'local path not checked'),
+      proofFlag(report.provider_root_detected, 'provider root detected', 'provider root not detected'),
+      proofFlag(report.vault_directory_checked, 'vault folder checked', 'vault folder not checked'),
+      proofFlag(report.readable, 'readable', 'not readable'),
+      proofFlag(!report.credentials_stored, 'credentials not stored', 'credentials stored'),
+      `checked ${proofTimestamp(report.checked_at)}`,
+    ].join('; '),
+  }
 }
 
 /** Converts proof levels into compact labels for Settings badges. */

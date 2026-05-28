@@ -1,7 +1,34 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../lib/i18n'
+import {
+  runDesktopStorageHealthCheck,
+  type DesktopStorageHealthReport,
+} from '../utils/desktopStorageHealth'
 import { PortabilitySettingsSection } from './PortabilitySettingsSection'
+
+vi.mock('../utils/desktopStorageHealth', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../utils/desktopStorageHealth')>()
+  return {
+    ...actual,
+    runDesktopStorageHealthCheck: vi.fn(),
+  }
+})
+
+const readyICloudDesktopProof: DesktopStorageHealthReport = {
+  checked_at: '2026-05-28T13:00:00Z',
+  configured: true,
+  credentials_stored: false,
+  local_path_checked: true,
+  message: 'iCloud Drive local folder is readable.',
+  provider_id: 'icloud-drive',
+  provider_root_detected: true,
+  proof_level: 'desktop-folder-read-check',
+  readable: true,
+  risk_notes: ['No cloud credentials are stored by Grimoire.'],
+  status: 'ready',
+  vault_directory_checked: true,
+}
 
 describe('PortabilitySettingsSection proof ledger', () => {
   it('passes latest S3 and Azure read-only preflights into the proof ledger', () => {
@@ -83,5 +110,30 @@ describe('PortabilitySettingsSection proof ledger', () => {
     )
     expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('provider-proven sync')
     expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('/Users/')
+  })
+
+  it('lifts desktop iCloud and Google Drive folder checks into the proof ledger', async () => {
+    vi.mocked(runDesktopStorageHealthCheck).mockResolvedValueOnce(readyICloudDesktopProof)
+
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        vaultPath="/Users/sri/Library/Mobile Documents/com~apple~CloudDocs/Grimoire"
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-check-icloud-drive'))
+
+    const proof = await screen.findByTestId('portability-proof-live-icloud-drive-folder')
+    await waitFor(() => expect(runDesktopStorageHealthCheck).toHaveBeenCalledWith(
+      '/Users/sri/Library/Mobile Documents/com~apple~CloudDocs/Grimoire',
+      'icloud-drive',
+    ))
+    expect(proof).toHaveTextContent('iCloud Drive folder proof: ready')
+    expect(proof).toHaveTextContent('credentials not stored')
+    expect(proof).toHaveTextContent('checked 2026-05-28T13:00:00Z')
+    expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('/Users/')
+    expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('token')
+    expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('secret')
   })
 })
