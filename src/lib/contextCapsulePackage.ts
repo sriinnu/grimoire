@@ -6,46 +6,72 @@ export function buildContextCapsulePackageFromPreview(
   preview: ContextCapsulePreview,
 ): ContextCapsulePackagePreview {
   const protectedContext = preview.state === 'protected'
+  const packageLines = contextCapsulePackageLines(preview, protectedContext)
+  const bodyMarkdown = packageLines.join('\n')
+  const reviewReceipt = packageReviewReceipt(bodyMarkdown)
   return {
     title: protectedContext ? 'Protected Context Capsule' : 'Context Capsule Package',
     preflight: packagePreflight(preview),
     protectedContext,
-    markdown: [
-      '# Context Capsule Package',
-      '',
-      `State: ${preview.state}`,
-      protectedContext
-        ? 'Privacy: Protected active context stayed local. No note title, path, excerpt, or body is included.'
-        : 'Privacy: Local-only notes are withheld. This package is review-only until explicit handoff.',
-      '',
-      '## Rules',
-      ...preview.rules.map((rule) => `- ${rule}`),
-      ...handoffIntentLines(preview),
-      '',
-      '## Egress Matrix',
-      ...egressLines(protectedContext),
-      '',
-      '## Included Notes',
-      ...includedNoteLines(preview),
-      '',
-      '## Project Map',
-      `- Relationship edges: ${preview.projectMap.relationshipEdges}`,
-      `- Note-list rows in scope: ${preview.counts.noteListItems}`,
-      '',
-      '## Graph Neighborhood',
-      `- Source-safe graph notes: ${preview.projectMap.graphNodes}`,
-      `- Source-safe graph edges: ${preview.projectMap.graphEdges}`,
-      `- Withheld graph context: ${preview.projectMap.graphOmitted}`,
-      '',
-      '## Exclusions',
-      ...exclusionLines(preview),
-      '',
-      '## Handoff Checklist',
-      '- [ ] Re-check Locality Firewall before agent handoff.',
-      '- [ ] Confirm the agent can only access the listed source labels.',
-      '- [ ] Keep this package local unless the user explicitly exports it.',
-    ].join('\n'),
+    reviewReceipt,
+    markdown: insertReviewReceipt(packageLines, reviewReceipt),
   }
+}
+
+function contextCapsulePackageLines(preview: ContextCapsulePreview, protectedContext: boolean): string[] {
+  return [
+    '# Context Capsule Package',
+    '',
+    `State: ${preview.state}`,
+    protectedContext
+      ? 'Privacy: Protected active context stayed local. No note title, path, excerpt, or body is included.'
+      : 'Privacy: Local-only notes are withheld. This package is review-only until explicit handoff.',
+    '',
+    '## Rules',
+    ...preview.rules.map((rule) => `- ${rule}`),
+    ...handoffIntentLines(preview),
+    '',
+    '## Egress Matrix',
+    ...egressLines(protectedContext),
+    '',
+    '## Included Notes',
+    ...includedNoteLines(preview),
+    '',
+    '## Project Map',
+    `- Relationship edges: ${preview.projectMap.relationshipEdges}`,
+    `- Note-list rows in scope: ${preview.counts.noteListItems}`,
+    '',
+    '## Graph Neighborhood',
+    `- Source-safe graph notes: ${preview.projectMap.graphNodes}`,
+    `- Source-safe graph edges: ${preview.projectMap.graphEdges}`,
+    `- Withheld graph context: ${preview.projectMap.graphOmitted}`,
+    '',
+    '## Exclusions',
+    ...exclusionLines(preview),
+    '',
+    '## Handoff Checklist',
+    '- [ ] Re-check Locality Firewall before agent handoff.',
+    '- [ ] Confirm the agent can only access the listed source labels.',
+    '- [ ] Keep this package local unless the user explicitly exports it.',
+  ]
+}
+
+function insertReviewReceipt(lines: string[], reviewReceipt: string): string {
+  return [
+    lines[0],
+    '',
+    `Review receipt: ${reviewReceipt}`,
+    ...lines.slice(1),
+  ].join('\n')
+}
+
+function packageReviewReceipt(markdown: string): string {
+  let hash = 0x811c9dc5
+  for (let index = 0; index < markdown.length; index += 1) {
+    hash ^= markdown.charCodeAt(index)
+    hash = Math.imul(hash, 0x01000193)
+  }
+  return `pkg-${(hash >>> 0).toString(16).padStart(8, '0')}`
 }
 
 function egressLines(protectedContext: boolean): string[] {

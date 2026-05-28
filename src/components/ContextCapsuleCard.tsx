@@ -12,6 +12,7 @@ interface ContextCapsuleCardProps {
   defaultAiModel?: string | null
   defaultAiProvider?: string | null
   preview: ContextCapsulePreview
+  reviewReceipt?: string
   onReviewPackage?: () => void
 }
 
@@ -21,6 +22,7 @@ export function ContextCapsuleCard({
   defaultAiModel,
   defaultAiProvider,
   preview,
+  reviewReceipt,
   onReviewPackage,
 }: ContextCapsuleCardProps) {
   const stateLabel = preview.state === 'protected'
@@ -42,9 +44,20 @@ export function ContextCapsuleCard({
             <PackageCheck className="size-3.5 shrink-0 text-muted-foreground" />
             <span>Context Capsule</span>
           </div>
-          <Badge variant={preview.state === 'protected' ? 'secondary' : 'outline'} className="h-5 rounded-md px-1.5 text-[10px]">
-            {stateLabel}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-1">
+            {reviewReceipt ? (
+              <Badge
+                variant="outline"
+                className="h-5 rounded-md px-1.5 font-mono text-[9px]"
+                data-testid="context-capsule-receipt"
+              >
+                {reviewReceipt}
+              </Badge>
+            ) : null}
+            <Badge variant={preview.state === 'protected' ? 'secondary' : 'outline'} className="h-5 rounded-md px-1.5 text-[10px]">
+              {stateLabel}
+            </Badge>
+          </div>
         </div>
         {onReviewPackage ? (
           <Button

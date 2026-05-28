@@ -38,10 +38,11 @@ function preview(overrides: Partial<ContextCapsulePreview> = {}): ContextCapsule
 
 describe('ContextCapsuleCard', () => {
   it('renders included note counts and safety rules', () => {
-    render(<ContextCapsuleCard preview={preview()} />)
+    render(<ContextCapsuleCard preview={preview()} reviewReceipt="pkg-1234abcd" />)
 
     const card = screen.getByTestId('context-capsule-card')
     expect(within(card).getByText('Context Capsule')).toBeInTheDocument()
+    expect(screen.getByTestId('context-capsule-receipt')).toHaveTextContent('pkg-1234abcd')
     expect(within(card).getByText('Preview')).toBeInTheDocument()
     expect(within(card).getByText('Grimoire')).toBeInTheDocument()
     expect(within(card).getByText('Local-only notes withheld')).toBeInTheDocument()

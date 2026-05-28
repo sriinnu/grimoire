@@ -143,6 +143,7 @@ export function AiPanelIntelligenceRail({
               defaultAiModel={defaultAiModel}
               defaultAiProvider={defaultAiProvider}
               preview={contextCapsule}
+              reviewReceipt={contextCapsulePackage.reviewReceipt}
               onReviewPackage={() => setContextCapsuleOpen(true)}
             />
           ) : null}

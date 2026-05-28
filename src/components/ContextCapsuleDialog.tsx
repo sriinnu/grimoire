@@ -95,6 +95,13 @@ export function ContextCapsuleDialog({
               <ShieldCheck className="size-3" />
               {packagePreview.protectedContext ? 'Protected local context' : 'Source-safe'}
             </Badge>
+            <Badge
+              variant="outline"
+              className="rounded-md font-mono text-[10px]"
+              data-testid="context-capsule-review-receipt"
+            >
+              {packagePreview.reviewReceipt}
+            </Badge>
           </div>
 
           {defaultAiAgent ? (

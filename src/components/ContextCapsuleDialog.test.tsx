@@ -7,6 +7,7 @@ const packagePreview: ContextCapsulePackagePreview = {
   title: 'Context Capsule Package',
   preflight: { heldLocalCount: 2, sourceCount: 1, trimmedCount: 0 },
   protectedContext: false,
+  reviewReceipt: 'pkg-1234abcd',
   markdown: [
     '# Context Capsule Package',
     '',
@@ -41,6 +42,7 @@ describe('ContextCapsuleDialog', () => {
 
     expect(screen.getByTestId('context-capsule-dialog')).toHaveTextContent('Review only')
     expect(screen.getByTestId('context-capsule-dialog')).toHaveTextContent('No handoff')
+    expect(screen.getByTestId('context-capsule-review-receipt')).toHaveTextContent('pkg-1234abcd')
     expect(screen.getByTestId('agent-route-disclosure')).toHaveTextContent('provider: google')
     expect(screen.getByTestId('agent-route-disclosure')).toHaveTextContent('model: gemini-2.5-pro')
     expect(screen.getByTestId('agent-route-disclosure')).toHaveTextContent('Source-safe packet')
