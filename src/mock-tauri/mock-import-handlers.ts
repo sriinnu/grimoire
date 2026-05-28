@@ -9,6 +9,10 @@ interface ImportKindArgs extends ImportPathArgs {
   sourceKind?: string
 }
 
+interface CapsuleImportArgs extends ImportPathArgs {
+  format?: 'json' | 'sqlite'
+}
+
 function sourceName(sourcePath: string, fallback: string): string {
   return sourcePath.split('/').filter(Boolean).pop() ?? fallback
 }
@@ -47,6 +51,11 @@ function mockImportPreview(vaultPath: string, sourcePath: string, source: string
   }
 }
 
+function mockCapsuleSource(args: CapsuleImportArgs): string {
+  if (args.sourcePath) return sourceName(args.sourcePath, 'grimoire-capsule')
+  return args.format === 'sqlite' ? 'grimoire-vault.sqlite' : 'grimoire-vault.json'
+}
+
 /** Browser fallback handlers for import and Import Autopsy commands. */
 export const mockImportHandlers = {
   import_markdown_folder: (args: ImportPathArgs) => {
@@ -69,6 +78,34 @@ export const mockImportHandlers = {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/grimoire-vault.zip'
     return mockImportResult(vault, sourceNameWithoutZip(source, 'markdown-zip'), 5, 3, 1)
+  },
+  preview_portability_capsule_import: (args: CapsuleImportArgs) => {
+    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    const source = mockCapsuleSource(args)
+    return {
+      ...mockImportPreview(vault, source, source.replace(/\.(json|sqlite|db)$/i, '')),
+      notes_to_copy: 8,
+      assets_to_copy: 4,
+      manifest_rows: [
+        {
+          kind: 'note',
+          source_path: `${source}/Notes/public.md`,
+          destination_path: `${vault}/imports/${source}/Notes/public.md`,
+          detail: 'Grimoire capsule restore; Markdown remains source of truth',
+        },
+        {
+          kind: 'withheld',
+          source_path: `${source}/Journal/private.md`,
+          destination_path: null,
+          detail: 'withheld at export: Protected by Locality Firewall',
+        },
+      ],
+    }
+  },
+  import_portability_capsule: (args: CapsuleImportArgs) => {
+    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    const source = mockCapsuleSource(args).replace(/\.(json|sqlite|db)$/i, '')
+    return mockImportResult(vault, source, 8, 4, 2)
   },
   import_journal_export: (args: ImportKindArgs) => {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH

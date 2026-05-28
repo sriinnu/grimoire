@@ -102,7 +102,7 @@ export function buildTimelineSteps(
     { label: 'Source', value: `${sourceLabel} selected: ${compactSourcePath(result.source_path)}` },
     { label: 'Destination', value: destination.value, tone: destination.tone },
     { label: 'File Plan', value: `${countSummary(result.notes_to_copy, 'note')} queued for Markdown copy.` },
-    { label: 'Metadata Map', value: metadataSummary(result) },
+    { label: 'Metadata Map', value: metadataSummary(preview) },
     { label: 'Attachments', value: attachmentSummary(result) },
     {
       label: 'Locality Firewall',
@@ -128,6 +128,8 @@ export function importPreviewLabel(sourceId: ImportAutopsyPreviewState['sourceId
   if (sourceId === 'apple-journal-preview') return 'Apple Journal'
   if (sourceId === 'day-one-preview') return 'Day One'
   if (sourceId === 'journey-preview') return 'Journey'
+  if (sourceId === 'json-capsule-preview') return 'JSON capsule'
+  if (sourceId === 'sqlite-capsule-preview') return 'SQLite capsule'
   return 'Markdown folder'
 }
 
@@ -185,7 +187,14 @@ function manifestKind(kind: ImportAutopsyManifestRow['kind']): string {
   return 'Note'
 }
 
-function metadataSummary(result: MarkdownFolderImportPreviewResult): string {
+function metadataSummary(preview: ImportAutopsyPreviewState): string {
+  const result = preview.result
+  if (preview.sourceId === 'json-capsule-preview') {
+    return 'JSON capsule schema restores as Markdown; withheld capsule rows cannot be recreated.'
+  }
+  if (preview.sourceId === 'sqlite-capsule-preview') {
+    return 'SQLite is read as a local import artifact; Markdown remains the live source of truth.'
+  }
   const report = result.writes_local_only_report ? 'local-only import report planned' : 'no report needed'
   return `Frontmatter and source metadata stay inspectable; ${report}.`
 }

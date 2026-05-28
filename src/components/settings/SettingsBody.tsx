@@ -47,6 +47,10 @@ export function SettingsBody(props: SettingsBodyProps) {
     onImportDayOne,
     onPreviewJourney,
     onImportJourney,
+    onPreviewJsonCapsule,
+    onImportJsonCapsule,
+    onPreviewSqliteCapsule,
+    onImportSqliteCapsule,
     onExportMarkdownZip,
     onExportStaticHtmlArchive,
     onPreviewJsonSnapshot,
@@ -155,6 +159,10 @@ export function SettingsBody(props: SettingsBodyProps) {
               onImportDayOne={onImportDayOne}
               onPreviewJourney={onPreviewJourney}
               onImportJourney={onImportJourney}
+              onPreviewJsonCapsule={onPreviewJsonCapsule}
+              onImportJsonCapsule={onImportJsonCapsule}
+              onPreviewSqliteCapsule={onPreviewSqliteCapsule}
+              onImportSqliteCapsule={onImportSqliteCapsule}
               onExportMarkdownZip={onExportMarkdownZip}
               onExportStaticHtmlArchive={onExportStaticHtmlArchive}
               onPreviewJsonSnapshot={onPreviewJsonSnapshot}

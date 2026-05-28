@@ -134,6 +134,8 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Obsidian')).toBeInTheDocument()
     expect(screen.getByText('Notion Markdown')).toBeInTheDocument()
     expect(screen.getByText('Spanda')).toBeInTheDocument()
+    expect(screen.getByText('JSON capsule')).toBeInTheDocument()
+    expect(screen.getByText('SQLite capsule')).toBeInTheDocument()
     expect(screen.getAllByText('Git remote')).toHaveLength(2)
     expect(screen.getByText('Pure JSON snapshot')).toBeInTheDocument()
     expect(screen.getByText('Local SQLite snapshot')).toBeInTheDocument()
@@ -163,6 +165,11 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Preview Day One')).toBeInTheDocument()
     expect(screen.getByText('Preview Journey')).toBeInTheDocument()
     expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-capsules'))
+    expect(screen.getByText('Preview JSON capsule')).toBeInTheDocument()
+    expect(screen.getByText('Import SQLite capsule')).toBeInTheDocument()
+    expect(screen.queryByText('Preview Journey')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     expect(screen.getByTestId('object-storage-prototype-actions')).toHaveClass('grimoire-object-storage-prototype')
@@ -247,6 +254,10 @@ describe('PortabilitySettingsSection', () => {
     const onImportDayOne = vi.fn()
     const onPreviewJourney = vi.fn()
     const onImportJourney = vi.fn()
+    const onPreviewJsonCapsule = vi.fn()
+    const onImportJsonCapsule = vi.fn()
+    const onPreviewSqliteCapsule = vi.fn()
+    const onImportSqliteCapsule = vi.fn()
     const onExportMarkdownZip = vi.fn()
     const onExportStaticHtmlArchive = vi.fn()
     const onPreviewJsonSnapshot = vi.fn()
@@ -294,6 +305,10 @@ describe('PortabilitySettingsSection', () => {
         onImportDayOne={onImportDayOne}
         onPreviewJourney={onPreviewJourney}
         onImportJourney={onImportJourney}
+        onPreviewJsonCapsule={onPreviewJsonCapsule}
+        onImportJsonCapsule={onImportJsonCapsule}
+        onPreviewSqliteCapsule={onPreviewSqliteCapsule}
+        onImportSqliteCapsule={onImportSqliteCapsule}
         onExportMarkdownZip={onExportMarkdownZip}
         onExportStaticHtmlArchive={onExportStaticHtmlArchive}
         onPreviewJsonSnapshot={onPreviewJsonSnapshot}
@@ -354,6 +369,12 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-preview-journey'))
     fireEvent.click(screen.getByTestId('settings-import-journey'))
 
+    fireEvent.click(screen.getByTestId('settings-portability-lane-capsules'))
+    fireEvent.click(screen.getByTestId('settings-preview-json-capsule'))
+    fireEvent.click(screen.getByTestId('settings-import-json-capsule'))
+    fireEvent.click(screen.getByTestId('settings-preview-sqlite-capsule'))
+    fireEvent.click(screen.getByTestId('settings-import-sqlite-capsule'))
+
     fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
     fireEvent.click(screen.getByTestId('settings-export-markdown-zip'))
     fireEvent.click(screen.getByTestId('settings-export-static-html'))
@@ -404,6 +425,10 @@ describe('PortabilitySettingsSection', () => {
     expect(onImportDayOne).toHaveBeenCalledTimes(1)
     expect(onPreviewJourney).toHaveBeenCalledTimes(1)
     expect(onImportJourney).toHaveBeenCalledTimes(1)
+    expect(onPreviewJsonCapsule).toHaveBeenCalledTimes(1)
+    expect(onImportJsonCapsule).toHaveBeenCalledTimes(1)
+    expect(onPreviewSqliteCapsule).toHaveBeenCalledTimes(1)
+    expect(onImportSqliteCapsule).toHaveBeenCalledTimes(1)
     expect(onExportMarkdownZip).toHaveBeenCalledTimes(1)
     expect(onExportStaticHtmlArchive).toHaveBeenCalledTimes(1)
     expect(onPreviewJsonSnapshot).toHaveBeenCalledTimes(1)

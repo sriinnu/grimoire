@@ -34,12 +34,16 @@ describe('vaultPortability', () => {
       'obsidian',
       'notion-markdown',
       'spanda',
+      'json-capsule',
+      'sqlite-capsule',
     ]))
     expect(listVaultImportSources()).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'obsidian', status: 'ready', preservesMarkdown: true }),
       expect.objectContaining({ id: 'notion-markdown', status: 'ready' }),
       expect.objectContaining({ id: 'spanda', status: 'ready' }),
       expect.objectContaining({ id: 'apple-journal', status: 'ready' }),
+      expect.objectContaining({ id: 'json-capsule', status: 'ready', preservesMarkdown: true }),
+      expect.objectContaining({ id: 'sqlite-capsule', status: 'ready', preservesMarkdown: true }),
     ]))
     expect(listVaultStorageProviders().map(provider => provider.id)).toEqual(expect.arrayContaining([
       'icloud-drive',

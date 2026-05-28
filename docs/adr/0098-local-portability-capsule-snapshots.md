@@ -14,15 +14,17 @@ Grimoire needs portable exits beyond Markdown ZIP and static HTML: a human-diffa
 
 ## Decision
 
-Add a reviewed Portability Capsule export path with two local formats:
+Add reviewed Portability Capsule export and import paths with two local formats:
 
 - JSON snapshot: pretty-printed, vault-relative paths only, UTF-8 text inline, binary assets base64 encoded, withheld rows included with reasons.
 - SQLite snapshot: local `.sqlite` file with `capsule_meta`, `capsule_files`, `withheld_files`, and `locality_proof` tables.
 - Both formats share one Locality Firewall inventory, with journals, dreams, private lanes, `.grimoire-local`, `.codex`, `.mcp.json`, `.env*`, mockups, and attachments referenced only by local-only notes withheld before writing.
 - SQLite is a read-optimized export artifact only. It is not the live vault, not a hidden database, and not a replacement for Markdown.
+- Import preview/apply restores JSON and SQLite capsules into `imports/<capsule-name>/`, writes a local-only import report, verifies byte counts and SHA-256 hashes, rejects capsule sources inside the active vault, and rejects unsafe relative paths before writes.
+- Incoming capsules are untrusted: withheld rows are never recreated, inbound local-only Markdown and its directly referenced attachments stay withheld, and SQLite is opened read-only as an import artifact.
 
 ## Consequences
 
 This adds `rusqlite` so the app can write real SQLite files without shelling out to a system `sqlite3` binary. The dependency is isolated to export generation.
 
-JSON and SQLite exports now have local regression proof. Reversible capsule import still needs its own preview/apply proof before these snapshots can be called a complete round-trip lane.
+JSON and SQLite capsule export/import now have local regression proof. This is a local round-trip lane only; it does not claim cloud sync/provider proof.

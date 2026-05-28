@@ -167,6 +167,24 @@ const IMPORT_SOURCES = [
     preservesMarkdown: false,
     description: 'Map practice sessions and rituals into local-only Sadhana Markdown notes.',
   },
+  {
+    id: 'json-capsule',
+    label: 'JSON capsule',
+    status: 'ready',
+    input: 'Grimoire JSON portability capsule',
+    output: 'vault-folder',
+    preservesMarkdown: true,
+    description: 'Restore a local JSON snapshot into imports while withheld rows remain withheld.',
+  },
+  {
+    id: 'sqlite-capsule',
+    label: 'SQLite capsule',
+    status: 'ready',
+    input: 'Grimoire SQLite portability capsule',
+    output: 'vault-folder',
+    preservesMarkdown: true,
+    description: 'Restore a local queryable capsule as Markdown files without making SQLite the live vault.',
+  },
 ] as const satisfies readonly VaultImportSource[]
 
 const EXPORT_TARGETS = [

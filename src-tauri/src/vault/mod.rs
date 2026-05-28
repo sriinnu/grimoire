@@ -70,6 +70,9 @@ mod object_storage_sync_report;
 mod object_storage_sync_tests;
 mod parsing;
 mod portability_capsule;
+mod portability_capsule_import;
+mod portability_capsule_import_filter;
+mod portability_capsule_import_readers;
 mod portability_capsule_io;
 #[cfg(test)]
 mod portability_capsule_tests;
@@ -138,6 +141,9 @@ pub use object_storage_sync_report::{
 pub use portability_capsule::{
     export_portability_capsule, preview_portability_capsule, PortabilityCapsuleFormat,
     PortabilityCapsulePreviewReport,
+};
+pub use portability_capsule_import::{
+    import_portability_capsule, preview_portability_capsule_import,
 };
 pub use rename::{
     auto_rename_untitled, detect_renames, move_note_to_folder, rename_note, rename_note_filename,
