@@ -23,7 +23,11 @@ export function buildCrystallizeSourceLabels({
     ?.map(label => normalizeSourceLabel(label, sourceName))
     .filter(label => isDurableSourceLabel(label, sourceName, sourceEntries)) ?? [])
   if (explicitLabels.length > 0) return explicitLabels
-  if (activeEntry?.title) return [wikilinkLabel(activeEntry.title)]
+  if (activeEntry?.title) {
+    return isEntryLocalOnly(activeEntry)
+      ? [localOnlySourceLabel(activeEntry)]
+      : [wikilinkLabel(activeEntry.title)]
+  }
   if (askContextPackage && askContextPackage.sourceLabels.length > 0) {
     return uniqueLabels(askContextPackage.sourceLabels.map(label => wikilinkLabel(label)))
   }
@@ -70,6 +74,11 @@ function normalizeSourceLabel(value: string, sourceName: string): string {
 
 function isEvidenceLabel(label: string): boolean {
   return label.includes(':') || /^\d+\s/.test(label) || /\b(withheld|held local|policy-only)\b/i.test(label)
+}
+
+function localOnlySourceLabel(entry: VaultEntry): string {
+  const typeName = entry.isA?.trim()
+  return typeName ? `${typeName} source withheld` : 'Local-only source withheld'
 }
 
 function isDurableSourceLabel(label: string, sourceName: string, entries?: VaultEntry[]): boolean {
