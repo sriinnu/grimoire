@@ -1,6 +1,7 @@
 import { Archive, Cloud, DownloadSimple, FolderOpen, UploadSimple } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
+import { hasReviewedImportPreview, importRequiresReview } from '../lib/importReviewGate'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
 import { AppImportAutopsyActions } from './AppImportAutopsyActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
@@ -22,6 +23,7 @@ export function PortabilityActionDeck({
   t,
   vaultReady,
   busyAction,
+  importPreview,
   progress,
   onCancelProgress,
   s3MirrorPreviewReady,
@@ -146,6 +148,11 @@ export function PortabilityActionDeck({
         {progress ? (
           <PortabilityActionProgress progress={progress} onCancel={onCancelProgress} t={t} />
         ) : null}
+        {activeLane !== 'storage' && activeLane !== 'export' ? (
+          <div className="text-[11px] leading-snug text-muted-foreground" data-testid="settings-portability-preview-gate">
+            Preview first to unlock the matching import. Writes reuse the reviewed no-write source.
+          </div>
+        ) : null}
         <div className={activeLane === 'storage' ? 'grid gap-2' : 'flex flex-wrap gap-2'}>
           {renderLaneActions(activeLane)}
         </div>
@@ -161,6 +168,7 @@ export function PortabilityActionDeck({
           t={t}
           vaultReady={vaultReady}
           busyAction={busyAction}
+          importPreview={importPreview}
           onPreviewObsidian={onPreviewObsidian}
           onImportObsidian={onImportObsidian}
           onPreviewNotion={onPreviewNotion}
@@ -178,6 +186,7 @@ export function PortabilityActionDeck({
           t={t}
           vaultReady={vaultReady}
           busyAction={busyAction}
+          importPreview={importPreview}
           onPreviewAppleJournal={onPreviewAppleJournal}
           onImportAppleJournal={onImportAppleJournal}
           onPreviewDayOne={onPreviewDayOne}
@@ -193,6 +202,7 @@ export function PortabilityActionDeck({
           t={t}
           vaultReady={vaultReady}
           busyAction={busyAction}
+          importPreview={importPreview}
           onPreviewJsonCapsule={onPreviewJsonCapsule}
           onImportJsonCapsule={onImportJsonCapsule}
           onPreviewSqliteCapsule={onPreviewSqliteCapsule}
@@ -263,7 +273,7 @@ export function PortabilityActionDeck({
           label={t('settings.portability.importMarkdownFolder')}
           testId="settings-import-markdown-folder"
           busy={busyAction === 'markdown-folder'}
-          disabled={buttonDisabled(busyAction, vaultReady, onImportMarkdownFolder)}
+          disabled={buttonDisabled(busyAction, vaultReady, onImportMarkdownFolder, 'markdown-folder', importPreview)}
           onClick={onImportMarkdownFolder}
           t={t}
         />
@@ -280,7 +290,7 @@ export function PortabilityActionDeck({
           label={t('settings.portability.importMarkdownZip')}
           testId="settings-import-markdown-zip"
           busy={busyAction === 'markdown-zip'}
-          disabled={buttonDisabled(busyAction, vaultReady, onImportMarkdownZip)}
+          disabled={buttonDisabled(busyAction, vaultReady, onImportMarkdownZip, 'markdown-zip', importPreview)}
           onClick={onImportMarkdownZip}
           t={t}
         />
@@ -297,7 +307,7 @@ export function PortabilityActionDeck({
           label={t('settings.portability.importBear')}
           testId="settings-import-bear"
           busy={busyAction === 'bear'}
-          disabled={buttonDisabled(busyAction, vaultReady, onImportBear)}
+          disabled={buttonDisabled(busyAction, vaultReady, onImportBear, 'bear', importPreview)}
           onClick={onImportBear}
           t={t}
         />
@@ -367,8 +377,11 @@ function buttonDisabled(
   busyAction: VaultPortabilityActionId | null,
   vaultReady: boolean,
   onClick?: () => void,
+  actionId?: VaultPortabilityActionId,
+  importPreview?: PortabilityActionDeckProps['importPreview'],
 ): boolean {
-  return Boolean(busyAction) || !vaultReady || !onClick
+  const importLocked = actionId ? importRequiresReview(actionId) && !hasReviewedImportPreview(actionId, importPreview) : false
+  return Boolean(busyAction) || !vaultReady || !onClick || importLocked
 }
 
 function laneForAction(action: VaultPortabilityActionId | null): PortabilityActionLane | null {

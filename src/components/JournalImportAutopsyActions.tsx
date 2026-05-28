@@ -1,5 +1,6 @@
 import type { createTranslator } from '../lib/i18n'
-import type { VaultPortabilityActionId } from '../lib/vaultPortability'
+import { hasReviewedImportPreview, importRequiresReview } from '../lib/importReviewGate'
+import type { ImportAutopsyPreviewState, VaultPortabilityActionId } from '../lib/vaultPortability'
 import { PortabilityImportButton } from './PortabilityActionButton'
 
 type Translate = ReturnType<typeof createTranslator>
@@ -8,6 +9,7 @@ interface JournalImportAutopsyActionsProps {
   t: Translate
   vaultReady: boolean
   busyAction: VaultPortabilityActionId | null
+  importPreview?: ImportAutopsyPreviewState | null
   onPreviewAppleJournal?: () => void
   onImportAppleJournal?: () => void
   onPreviewDayOne?: () => void
@@ -29,6 +31,7 @@ export function JournalImportAutopsyActions({
   t,
   vaultReady,
   busyAction,
+  importPreview,
   onPreviewAppleJournal,
   onImportAppleJournal,
   onPreviewDayOne,
@@ -53,9 +56,16 @@ export function JournalImportAutopsyActions({
       testId={action.testId}
       busy={busyAction === action.actionId}
       busyLabel={action.busyLabel}
-      disabled={Boolean(busyAction) || !vaultReady || !action.onClick}
+      disabled={Boolean(busyAction) || !vaultReady || !action.onClick || importLocked(action.actionId, importPreview)}
       onClick={action.onClick}
       t={t}
     />
   ))
+}
+
+function importLocked(
+  actionId: VaultPortabilityActionId,
+  preview: ImportAutopsyPreviewState | null | undefined,
+): boolean {
+  return importRequiresReview(actionId) && !hasReviewedImportPreview(actionId, preview)
 }

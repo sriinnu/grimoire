@@ -33,15 +33,15 @@ describe('useVaultPortabilityActions capsule imports', () => {
     vi.clearAllMocks()
     capsuleMocks.pickJsonCapsuleImportFile.mockResolvedValue('/exports/grimoire.json')
     capsuleMocks.pickSqliteCapsuleImportFile.mockResolvedValue('/exports/grimoire.sqlite')
-    capsuleMocks.previewPortabilityCapsuleImport.mockResolvedValue({
-      source_path: '/exports/grimoire.json',
+    capsuleMocks.previewPortabilityCapsuleImport.mockImplementation((_vaultPath: string, sourcePath: string) => Promise.resolve({
+      source_path: sourcePath,
       planned_import_root: '/vault/imports/grimoire',
       notes_to_copy: 2,
       assets_to_copy: 1,
       skipped_files: 1,
       failed_files: 0,
       writes_local_only_report: true,
-    })
+    }))
     capsuleMocks.importPortabilityCapsuleIntoVault.mockResolvedValue({
       imported_root: '/vault/imports/grimoire',
       report_path: '/vault/imports/grimoire/import-report.md',
@@ -65,6 +65,8 @@ describe('useVaultPortabilityActions capsule imports', () => {
 
   it('imports SQLite capsules locally and reloads vault surfaces', async () => {
     const { result, loadModifiedFiles, reloadFolders, reloadVault, setToastMessage } = renderActions()
+    act(() => result.current.handlePreviewSqliteCapsule())
+    await waitFor(() => expect(result.current.lastImportPreview?.sourceId).toBe('sqlite-capsule-preview'))
 
     act(() => result.current.handleImportSqliteCapsule())
 

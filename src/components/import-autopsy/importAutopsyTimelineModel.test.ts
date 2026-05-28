@@ -75,6 +75,7 @@ describe('importAutopsyTimelineModel', () => {
     const markdown = buildPortableManifestMarkdown('Day One', buckets, rows, steps)
 
     expect(markdown).toContain('# Import Autopsy Manifest')
+    expect(markdown).toContain('Review gate: inspect this manifest before importing or applying changes.')
     expect(markdown).toContain('Privacy: absolute local paths are redacted from this portable copy.')
     expect(markdown).toContain('Note: entry one.json -> ./imports/day-one/entry one.md')
     expect(markdown).toContain('Asset: moon photo.png -> ./imports/day-one/assets/moon photo.png')

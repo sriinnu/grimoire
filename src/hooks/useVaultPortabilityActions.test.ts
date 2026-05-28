@@ -162,7 +162,22 @@ describe('useVaultPortabilityActions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     markdownMocks.pickMarkdownImportFolder.mockResolvedValue('/source/research')
+    markdownMocks.pickMarkdownZipImportFile.mockResolvedValue('/source/portable.zip')
+    markdownMocks.pickAppImportSource.mockResolvedValue('/source/obsidian')
+    markdownMocks.pickJournalImportSource.mockResolvedValue('/source/day-one.zip')
     markdownMocks.previewMarkdownFolderImport.mockResolvedValue(previewResult)
+    markdownMocks.previewMarkdownZipImport.mockResolvedValue({
+      ...previewResult,
+      source_path: '/source/portable.zip',
+    })
+    markdownMocks.previewAppExportIntoVault.mockResolvedValue({
+      ...previewResult,
+      source_path: '/source/obsidian',
+    })
+    markdownMocks.previewJournalExportIntoVault.mockResolvedValue({
+      ...previewResult,
+      source_path: '/source/day-one.zip',
+    })
     markdownMocks.importMarkdownFolderIntoVault.mockResolvedValue(importResult)
     markdownMocks.importMarkdownFolderIntoVaultWithProgress.mockImplementation(async (
       _vaultPath: string,
@@ -340,6 +355,16 @@ describe('useVaultPortabilityActions', () => {
     await waitFor(() => expect(reloadVault).toHaveBeenCalledOnce())
   })
 
+  it('blocks import writes until the matching no-write preview has been reviewed', async () => {
+    const { result, setToastMessage } = renderActions()
+
+    act(() => result.current.handleImportMarkdownFolder())
+
+    await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('Preview Markdown folder before importing to the vault'))
+    expect(markdownMocks.pickMarkdownImportFolder).not.toHaveBeenCalled()
+    expect(markdownMocks.importMarkdownFolderIntoVaultWithProgress).not.toHaveBeenCalled()
+  })
+
   it('cancels an active Markdown folder import without reloading after a late result', async () => {
     let finishImport: ((result: MarkdownFolderImportResult) => void) | undefined
     const importDeferred = new Promise<MarkdownFolderImportResult>((resolve) => {
@@ -360,6 +385,8 @@ describe('useVaultPortabilityActions', () => {
       return importDeferred
     })
     const { result, reloadVault, setToastMessage } = renderActions()
+    act(() => result.current.handlePreviewMarkdownFolder())
+    await waitFor(() => expect(result.current.lastImportPreview).not.toBeNull())
 
     act(() => result.current.handleImportMarkdownFolder())
     await waitFor(() => expect(result.current.portabilityProgress?.processedFiles).toBe(1))
@@ -380,8 +407,9 @@ describe('useVaultPortabilityActions', () => {
   })
 
   it('imports Markdown ZIP through the progress path', async () => {
-    markdownMocks.pickMarkdownZipImportFile.mockResolvedValue('/source/portable.zip')
     const { result, reloadVault } = renderActions()
+    act(() => result.current.handlePreviewMarkdownZip())
+    await waitFor(() => expect(result.current.lastImportPreview?.sourceId).toBe('markdown-zip-preview'))
 
     act(() => result.current.handleImportMarkdownZip())
 
@@ -391,8 +419,9 @@ describe('useVaultPortabilityActions', () => {
   })
 
   it('imports app exports through the progress path', async () => {
-    markdownMocks.pickAppImportSource.mockResolvedValue('/source/obsidian')
     const { result, reloadVault } = renderActions()
+    act(() => result.current.handlePreviewObsidian())
+    await waitFor(() => expect(result.current.lastImportPreview?.sourceId).toBe('obsidian-preview'))
 
     act(() => result.current.handleImportObsidian())
 
@@ -402,8 +431,9 @@ describe('useVaultPortabilityActions', () => {
   })
 
   it('imports journal exports through the progress path', async () => {
-    markdownMocks.pickJournalImportSource.mockResolvedValue('/source/day-one.zip')
     const { result, reloadVault } = renderActions()
+    act(() => result.current.handlePreviewDayOne())
+    await waitFor(() => expect(result.current.lastImportPreview?.sourceId).toBe('day-one-preview'))
 
     act(() => result.current.handleImportDayOne())
 

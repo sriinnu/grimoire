@@ -1,4 +1,6 @@
 import { Archive } from '@phosphor-icons/react'
+import { hasReviewedImportPreview, importRequiresReview } from '../lib/importReviewGate'
+import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
 import { PortabilityActionButton } from './PortabilityActionButton'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
@@ -7,6 +9,7 @@ interface PortabilityCapsuleImportActionsProps {
   t: PortabilityActionDeckTranslate
   vaultReady: boolean
   busyAction: VaultPortabilityActionId | null
+  importPreview?: ImportAutopsyPreviewState | null
   onPreviewJsonCapsule?: () => void
   onImportJsonCapsule?: () => void
   onPreviewSqliteCapsule?: () => void
@@ -18,6 +21,7 @@ export function PortabilityCapsuleImportActions({
   t,
   vaultReady,
   busyAction,
+  importPreview,
   onPreviewJsonCapsule,
   onImportJsonCapsule,
   onPreviewSqliteCapsule,
@@ -39,6 +43,7 @@ export function PortabilityCapsuleImportActions({
         testId="settings-import-json-capsule"
         actionId="json-capsule"
         busyAction={busyAction}
+        importPreview={importPreview}
         vaultReady={vaultReady}
         onClick={onImportJsonCapsule}
         t={t}
@@ -57,6 +62,7 @@ export function PortabilityCapsuleImportActions({
         testId="settings-import-sqlite-capsule"
         actionId="sqlite-capsule"
         busyAction={busyAction}
+        importPreview={importPreview}
         vaultReady={vaultReady}
         onClick={onImportSqliteCapsule}
         t={t}
@@ -70,12 +76,13 @@ interface CapsuleButtonProps {
   testId: string
   actionId: VaultPortabilityActionId
   busyAction: VaultPortabilityActionId | null
+  importPreview?: ImportAutopsyPreviewState | null
   vaultReady: boolean
   onClick?: () => void
   t: PortabilityActionDeckTranslate
 }
 
-function CapsuleButton({ label, testId, actionId, busyAction, vaultReady, onClick, t }: CapsuleButtonProps) {
+function CapsuleButton({ label, testId, actionId, busyAction, importPreview, vaultReady, onClick, t }: CapsuleButtonProps) {
   return (
     <PortabilityActionButton
       icon={<Archive size={14} />}
@@ -83,9 +90,16 @@ function CapsuleButton({ label, testId, actionId, busyAction, vaultReady, onClic
       testId={testId}
       busy={busyAction === actionId}
       busyLabel={t('settings.portability.previewing')}
-      disabled={Boolean(busyAction) || !vaultReady || !onClick}
+      disabled={Boolean(busyAction) || !vaultReady || !onClick || importLocked(actionId, importPreview)}
       onClick={onClick}
       t={t}
     />
   )
+}
+
+function importLocked(
+  actionId: VaultPortabilityActionId,
+  preview: ImportAutopsyPreviewState | null | undefined,
+): boolean {
+  return importRequiresReview(actionId) && !hasReviewedImportPreview(actionId, preview)
 }

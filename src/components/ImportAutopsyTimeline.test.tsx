@@ -26,6 +26,7 @@ describe('ImportAutopsyTimeline', () => {
     render(<ImportAutopsyTimeline preview={preview} vaultPath="/Users/sri/Vault" />)
 
     const timeline = screen.getByTestId('import-autopsy-timeline')
+    expect(timeline).toHaveTextContent('Review gate')
     expect(timeline).toHaveTextContent('Import Autopsy')
     expect(timeline).toHaveTextContent('No writes yet')
     expect(timeline).toHaveAttribute('aria-label', 'Import Autopsy preview for Day One')
@@ -35,6 +36,9 @@ describe('ImportAutopsyTimeline', () => {
       'Day One import preview ready: 4 notes, 2 assets; 1 skipped file; 0 failed previews.',
     )
     expect(screen.getByTestId('import-autopsy-copy-status')).toHaveTextContent('Copies the redacted no-write manifest only.')
+    expect(screen.getByTestId('import-autopsy-review-gate')).toHaveTextContent(
+      'Review the exact rows below before importing. Full source paths and local reports stay on this Mac.',
+    )
     const manifest = screen.getByTestId('import-autopsy-manifest')
     expect(manifest).toHaveAccessibleName('Source-safe import manifest')
     expect(manifest).toHaveTextContent('Files')
@@ -179,6 +183,7 @@ describe('ImportAutopsyTimeline', () => {
     const copied = writeText.mock.calls[0][0] as string
     expect(copied).toContain('# Import Autopsy Manifest')
     expect(copied).toContain('Source: Day One')
+    expect(copied).toContain('Review gate: inspect this manifest before importing or applying changes.')
     expect(copied).toContain('Note: entry.json -> ./imports/day-one/2026-05-26.md')
     expect(copied).toContain('Withheld: .env -> withheld; local-only skip from .env')
     expect(copied).toContain('Original import reports with absolute source paths stay local-only.')

@@ -1,4 +1,4 @@
-import type { PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
+import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
 import type { createTranslator } from '../lib/i18n'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
@@ -9,6 +9,7 @@ export interface PortabilityActionDeckProps {
   t: PortabilityActionDeckTranslate
   vaultReady: boolean
   busyAction: VaultPortabilityActionId | null
+  importPreview?: ImportAutopsyPreviewState | null
   progress?: PortabilityProgressState | null
   onCancelProgress?: () => void
   s3MirrorPreviewReady?: boolean

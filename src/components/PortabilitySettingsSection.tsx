@@ -189,6 +189,7 @@ export function PortabilitySettingsSection({
         t={t}
         vaultReady={vaultReady}
         busyAction={busyAction}
+        importPreview={importPreview}
         progress={progress}
         onCancelProgress={onCancelProgress}
         s3MirrorPreviewReady={s3MirrorPreviewReady}
@@ -259,6 +260,12 @@ export function PortabilitySettingsSection({
         onApplyAzureMirrorPull={onApplyAzureMirrorPull}
       />
 
+      <ImportAutopsyTimeline
+        preview={importPreview}
+        vaultPath={vaultPath}
+        isRefreshing={isImportPreviewAction(busyAction)}
+      />
+
       <div className="grid gap-2" data-testid="settings-portability-section">
         <LocalityFirewallSettingsCard entries={entries} />
         <PortabilityProofLedger
@@ -268,12 +275,6 @@ export function PortabilitySettingsSection({
         />
         <PortabilityGroups t={t} vaultPath={vaultPath} />
       </div>
-
-      <ImportAutopsyTimeline
-        preview={importPreview}
-        vaultPath={vaultPath}
-        isRefreshing={isImportPreviewAction(busyAction)}
-      />
 
     </>
   )
