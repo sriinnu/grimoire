@@ -42,6 +42,110 @@ function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
 }
 
 describe('AiPanelIntelligenceRail', () => {
+  it('starts as a compact assistant brief before rendering dense diagnostics', () => {
+    const activeEntry = entry({ title: 'Alpha Active', path: '/vault/alpha.md', filename: 'alpha.md' })
+    render(
+      <AiPanelIntelligenceRail
+        activeEntry={activeEntry}
+        activeNoteContent="Alpha implementation scratch."
+        activePolicy={resolveEntryLocalityPolicy(activeEntry)}
+        canCrystallize={false}
+        crystallizeBlockedReason="Send an AI message first."
+        defaultAiAgent="codex"
+        defaultAiAgentReady
+        entries={[activeEntry]}
+        hasContext
+        hasLatestResponse={false}
+        linkedEntries={[]}
+        onCrystallize={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('Assistant brief')
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('1 source')
+    expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Context')
+    expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Council')
+    expect(screen.getByTestId('ai-brief-crystallize')).toHaveTextContent('Need answer')
+    expect(screen.queryByTestId('ai-intelligence-details')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('agent-council')).not.toBeInTheDocument()
+  })
+
+  it('lets a safe latest answer enter Crystallize from the compact brief', () => {
+    const activeEntry = entry({ title: 'Public Plan', path: '/vault/public-plan.md', filename: 'public-plan.md' })
+    const onCrystallize = vi.fn()
+    render(
+      <AiPanelIntelligenceRail
+        activeEntry={activeEntry}
+        activeNoteContent="Public implementation scratch."
+        activePolicy={resolveEntryLocalityPolicy(activeEntry)}
+        canCrystallize
+        crystallizeBlockedReason={null}
+        defaultAiAgent="codex"
+        defaultAiAgentReady
+        entries={[activeEntry]}
+        hasContext
+        hasLatestResponse
+        linkedEntries={[]}
+        onCrystallize={onCrystallize}
+      />,
+    )
+
+    expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Memory')
+    fireEvent.click(screen.getByTestId('ai-brief-crystallize'))
+    expect(onCrystallize).toHaveBeenCalledOnce()
+  })
+
+  it('lets a reviewed graph package drive the council rail even when another note is active', () => {
+    const activeEntry = entry({ title: 'Alpha Active', path: '/vault/alpha.md', filename: 'alpha.md' })
+    render(
+      <AiPanelIntelligenceRail
+        activeEntry={activeEntry}
+        activeNoteContent="Alpha implementation scratch."
+        activePolicy={resolveEntryLocalityPolicy(activeEntry)}
+        askContextPackage={{
+          graph: {
+            edges: [{ kind: 'body-link', label: 'Wikilink', sourceTitle: 'Beta', targetTitle: 'Delta' }],
+            protectedEdges: 0,
+            truncatedEdges: 0,
+            truncatedNodes: 0,
+            visibleEdges: 1,
+            visibleNodes: 2,
+          },
+          kind: 'graph-council',
+          memoryReferences: [],
+          prompt: 'Ask the Agent Council about [[Beta]].',
+          references: [
+            { path: '/vault/beta.md', title: 'Beta', type: 'Reference' },
+            { path: '/vault/delta.md', title: 'Delta', type: 'Reference' },
+          ],
+          sourceLabels: ['Beta', 'Delta'],
+          visibleCount: 2,
+          withheld: { protectedMemories: 0, protectedNotes: 0 },
+        }}
+        canCrystallize={false}
+        crystallizeBlockedReason="Send an AI message first."
+        defaultAiAgent="codex"
+        defaultAiAgentReady
+        entries={[activeEntry]}
+        hasContext
+        hasLatestResponse={false}
+        linkedEntries={[]}
+        onCrystallize={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('2 sources')
+    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
+    expect(screen.getByTestId('ai-intelligence-details')).toBeInTheDocument()
+    expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('2 graph notes')
+    expect(screen.getByTestId('context-capsule-included')).toHaveTextContent('Beta')
+    expect(screen.getByTestId('context-capsule-included')).not.toHaveTextContent('Alpha Active')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('Source-safe')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('graph Council package')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('Beta')
+    expect(screen.getByTestId('agent-council')).not.toHaveTextContent('Alpha Active')
+  })
+
   it('keeps protected context source-safe while opening previews', () => {
     const activeEntry = entry({ properties: { locality: 'local-only' } })
     render(
@@ -61,6 +165,11 @@ describe('AiPanelIntelligenceRail', () => {
       />,
     )
 
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('Local hold')
+    expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Firewall')
+    expect(screen.getByTestId('ai-brief-crystallize')).toHaveTextContent('Local gate')
+    expect(screen.queryByTestId('red-team-plan-card')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
     expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('Protected')
     expect(screen.getByTestId('red-team-plan-card')).toHaveTextContent('Local-only')
     expect(screen.getByTestId('red-team-plan-card')).not.toHaveTextContent('Secret Plan')

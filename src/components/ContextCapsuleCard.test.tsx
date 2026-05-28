@@ -47,6 +47,17 @@ describe('ContextCapsuleCard', () => {
     expect(within(card).getByText('Local-only notes withheld')).toBeInTheDocument()
     expect(within(card).getByText('3 graph notes')).toBeInTheDocument()
     expect(within(card).getByText('2 graph edges')).toBeInTheDocument()
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('Package route')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('Review first')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('1 source.')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('3 nodes / 2 edges.')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('Markdown preview.')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Agents')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Review packet')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Export/sync')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Preview first')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Git/cloud')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Vault setting')
   })
 
   it('opens the inspectable package preview when requested', () => {
@@ -58,9 +69,58 @@ describe('ContextCapsuleCard', () => {
     expect(onReviewPackage).toHaveBeenCalledOnce()
   })
 
+  it('shows the actual withheld item total instead of exclusion category count', () => {
+    render(
+      <ContextCapsuleCard
+        preview={preview({
+          exclusions: [
+            { label: 'Dashboard local-only notes', reason: '2 withheld' },
+            { label: 'Dashboard local-only memory records', reason: '1 withheld' },
+          ],
+          counts: {
+            linkedNotes: 1,
+            noteListItems: 2,
+            openTabs: 1,
+            selectedNotes: 1,
+            exclusions: 2,
+          },
+        })}
+      />,
+    )
+
+    expect(screen.getByTestId('context-capsule-stat-held')).toHaveTextContent('3')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('3 held local.')
+  })
+
+  it('shows typed Crystallize handoff intent before package review', () => {
+    render(<ContextCapsuleCard preview={preview({ handoffIntent: 'Daily Thread Crystallize' })} />)
+
+    const intent = screen.getByTestId('context-capsule-intent')
+    expect(intent).toHaveTextContent('Daily Thread Crystallize')
+    expect(intent).toHaveTextContent('review-before-write Markdown memory')
+  })
+
+  it('shows the selected agent route on the capsule before handoff', () => {
+    render(
+      <ContextCapsuleCard
+        defaultAiAgent="chitragupta"
+        defaultAiProvider="google"
+        defaultAiModel="gemini-2.5-pro"
+        preview={preview()}
+      />,
+    )
+
+    const route = within(screen.getByTestId('context-capsule-card')).getByTestId('agent-route-disclosure')
+    expect(route).toHaveTextContent('Chitra')
+    expect(route).toHaveTextContent('provider: google')
+    expect(route).toHaveTextContent('model: gemini-2.5-pro')
+    expect(route).toHaveTextContent('Source-safe packet')
+  })
+
   it('shows protected exclusions without rendering protected note names', () => {
     render(
       <ContextCapsuleCard
+        defaultAiAgent="chitragupta"
         preview={preview({
           state: 'protected',
           title: 'Protected capsule',
@@ -79,6 +139,17 @@ describe('ContextCapsuleCard', () => {
 
     const card = screen.getByTestId('context-capsule-card')
     expect(within(card).getByText('Protected')).toBeInTheDocument()
+    expect(screen.getByTestId('context-capsule-route')).toHaveAttribute('data-locality', 'protected-local')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('No handoff')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('Active note held.')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('1 held local.')
+    expect(screen.getByTestId('context-capsule-route')).toHaveTextContent('Handoff blocked.')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Blocked')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Withheld')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveTextContent('Not staged')
+    expect(screen.getByTestId('context-capsule-egress')).toHaveAttribute('data-testid', 'context-capsule-egress')
+    expect(screen.getByTestId('context-capsule-egress').querySelector('[data-egress-state="blocked"]')).not.toBeNull()
+    expect(within(card).getByTestId('agent-route-disclosure')).toHaveTextContent('No note payload')
     expect(within(card).getByText('Protected active note')).toBeInTheDocument()
     expect(within(card).queryByText('River Dream')).toBeNull()
   })
