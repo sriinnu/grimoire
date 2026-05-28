@@ -115,6 +115,51 @@ describe('portabilityProof', () => {
     expect(JSON.stringify(objectStorage?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\//)
   })
 
+  it('adds redacted desktop-folder proof when Settings checks iCloud or Google Drive', () => {
+    const desktopSync = listPortabilityProofRows({
+      desktopStorageHealthReports: {
+        'icloud-drive': {
+          checked_at: '2026-05-28T13:00:00Z',
+          configured: true,
+          credentials_stored: false,
+          local_path_checked: true,
+          provider_id: 'icloud-drive',
+          provider_root_detected: true,
+          readable: true,
+          status: 'ready',
+          vault_directory_checked: true,
+        },
+        'google-drive-desktop': {
+          checked_at: '/Users/sriinnu/Library/CloudStorage token=abc',
+          configured: false,
+          credentials_stored: false,
+          local_path_checked: true,
+          provider_id: 'google-drive-desktop',
+          provider_root_detected: false,
+          readable: false,
+          status: 'provider_root_missing',
+          vault_directory_checked: false,
+        },
+      },
+    }).find(row => row.id === 'desktop-sync')
+
+    expect(desktopSync?.liveProofs).toEqual([
+      {
+        id: 'icloud-drive-folder',
+        label: 'iCloud Drive folder proof',
+        status: 'ready',
+        detail: 'configured; local path checked; provider root detected; vault folder checked; readable; credentials not stored; checked 2026-05-28T13:00:00Z',
+      },
+      {
+        id: 'google-drive-desktop-folder',
+        label: 'Google Drive Desktop folder proof',
+        status: 'provider root missing',
+        detail: 'not configured; local path checked; provider root not detected; vault folder not checked; not readable; credentials not stored; checked redacted-time',
+      },
+    ])
+    expect(JSON.stringify(desktopSync?.liveProofs)).not.toMatch(/\/Users\/|token|secret|password/i)
+  })
+
   it('loads sanitized provider proof runner reports without provider targets', () => {
     const report = parseObjectStorageLiveProofReport(JSON.stringify({
       schema: 'grimoire-object-storage-live-proof-v1',

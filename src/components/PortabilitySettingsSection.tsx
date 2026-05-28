@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { VaultEntry } from '../types'
 import type { createTranslator } from '../lib/i18n'
 import {
@@ -7,6 +8,7 @@ import {
 } from '../lib/vaultPortability'
 import type { ObjectStorageLiveProofReport } from '../lib/portabilityProof'
 import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
+import type { DesktopStorageHealthReport, DesktopStorageProviderId } from '../utils/desktopStorageHealth'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
 import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
@@ -185,6 +187,16 @@ export function PortabilitySettingsSection({
   onPreviewAzureMirrorPull,
   onApplyAzureMirrorPull,
 }: PortabilitySettingsSectionProps) {
+  const [desktopStorageHealthReports, setDesktopStorageHealthReports] = useState<
+    Partial<Record<DesktopStorageProviderId, DesktopStorageHealthReport>>
+  >({})
+  const handleDesktopStorageHealthReport = (report: DesktopStorageHealthReport) => {
+    setDesktopStorageHealthReports((current) => ({
+      ...current,
+      [report.provider_id]: report,
+    }))
+  }
+
   return (
     <>
       <div className="flex flex-col gap-1.5">
@@ -286,10 +298,15 @@ export function PortabilitySettingsSection({
         <LocalityFirewallSettingsCard entries={entries} />
         <PortabilityProofLedger
           azureLivePreflightReport={azureLivePreflightReport}
+          desktopStorageHealthReports={desktopStorageHealthReports}
           objectStorageLiveProofReport={objectStorageLiveProofReport}
           s3LivePreflightReport={s3LivePreflightReport}
         />
-        <PortabilityGroups t={t} vaultPath={vaultPath} />
+        <PortabilityGroups
+          onDesktopStorageHealthReport={handleDesktopStorageHealthReport}
+          t={t}
+          vaultPath={vaultPath}
+        />
       </div>
 
     </>

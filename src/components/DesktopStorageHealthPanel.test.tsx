@@ -33,9 +33,11 @@ const readyReport: DesktopStorageHealthReport = {
 describe('DesktopStorageHealthPanel', () => {
   it('runs read-only desktop folder proof without exposing credentials or paths', async () => {
     vi.mocked(runDesktopStorageHealthCheck).mockResolvedValueOnce(readyReport)
+    const onReport = vi.fn()
 
     render(
       <DesktopStorageHealthPanel
+        onReport={onReport}
         vaultPath="/Users/sri/Library/Mobile Documents/com~apple~CloudDocs/Grimoire"
         t={createTranslator('en')}
       />,
@@ -47,6 +49,10 @@ describe('DesktopStorageHealthPanel', () => {
       '/Users/sri/Library/Mobile Documents/com~apple~CloudDocs/Grimoire',
       'icloud-drive',
     ))
+    expect(onReport).toHaveBeenCalledWith(expect.objectContaining({
+      credentials_stored: false,
+      provider_id: 'icloud-drive',
+    }))
     const report = screen.getByTestId('settings-desktop-storage-report-icloud-drive')
     expect(report).toHaveTextContent('ready')
     expect(report).toHaveTextContent('credentials not stored')

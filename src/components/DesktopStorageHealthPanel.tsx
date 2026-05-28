@@ -16,6 +16,7 @@ import { Button } from './ui/button'
 type Translate = ReturnType<typeof createTranslator>
 
 interface DesktopStorageHealthPanelProps {
+  onReport?: (report: DesktopStorageHealthReport) => void
   vaultPath: string
   t: Translate
 }
@@ -25,7 +26,7 @@ type DesktopStorageReportMap = Partial<Record<DesktopStorageProviderId, DesktopS
 const PROVIDERS: DesktopStorageProviderId[] = ['icloud-drive', 'google-drive-desktop']
 
 /** Renders read-only iCloud/GDrive Desktop local-folder proof without cloud credentials. */
-export function DesktopStorageHealthPanel({ vaultPath, t }: DesktopStorageHealthPanelProps) {
+export function DesktopStorageHealthPanel({ onReport, vaultPath, t }: DesktopStorageHealthPanelProps) {
   const [busyProvider, setBusyProvider] = useState<DesktopStorageProviderId | null>(null)
   const [reports, setReports] = useState<DesktopStorageReportMap>({})
   const [message, setMessage] = useState<string | null>(null)
@@ -44,6 +45,7 @@ export function DesktopStorageHealthPanel({ vaultPath, t }: DesktopStorageHealth
       const report = await runDesktopStorageHealthCheck(vaultPath, providerId)
       setReports((current) => ({ ...current, [providerId]: report }))
       setMessage(formatDesktopStorageHealthToast(report))
+      onReport?.(report)
     } catch (error) {
       const detail = error instanceof Error ? redactDesktopStorageHealthMessage(error.message) : null
       setMessage(detail ? `${t('settings.portability.desktopHealthFailed')}: ${detail}` : t('settings.portability.desktopHealthFailed'))
