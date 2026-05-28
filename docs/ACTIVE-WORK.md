@@ -603,6 +603,7 @@ Build order:
     - [x] Add local-only Grimoire `.codex/config.toml` MCP wiring and ignore `.codex/` so machine-specific paths stay off Git.
     - [x] Prove the shared HTTP MCP host can answer `/mcp` with 18 tools after starting the streamable HTTP host on Node 22 and restarting the daemon.
     - [x] Identify the remaining Chitragupta product-identity bug: `chitragupta_status` succeeds with explicit `consumer: "grimoire"` and `surface: "grimoire.mcp"`, but `projectPath` alone still falls through to generic `mcp`.
+    - [x] Add a secret-free Codex MCP launcher wrapper that reads the current Codex-local bridge token, pins Node 22 ahead of Node 25, starts the missing local daemon/HTTP host, and smoke-lists 18 tools through the stdio proxy.
     - [ ] Fix or restart the current Codex MCP transport after stale proxy cleanup; the killed proxy leaves the in-session tool reporting `Transport closed` until the host respawns it.
   - [x] Register the Grimoire vertical skill for fresh Chitragupta registries so `skills_health("grimoire")` resolves product health instead of "skill not found".
   - Keep a repo-visible active work file updated even when MCP memory is unavailable.
