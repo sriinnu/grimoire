@@ -260,7 +260,9 @@ describe('buildContextCapsulePackagePreview', () => {
     expect(pack.title).toBe('Context Capsule Package')
     expect(pack.protectedContext).toBe(false)
     expect(pack.preflight).toEqual({ heldLocalCount: 2, sourceCount: 2, trimmedCount: 0 })
+    expect(pack.reviewReceipt).toMatch(/^pkg-[0-9a-f]{8}$/)
     expect(pack.markdown).toContain('# Context Capsule Package')
+    expect(pack.markdown).toContain(`Review receipt: ${pack.reviewReceipt}`)
     expect(pack.markdown).toContain('## Egress Matrix')
     expect(pack.markdown).toContain('Agents: Review packet; Reviewed titles, types, and paths')
     expect(pack.markdown).toContain('Export/sync: Preview first; Preview-approved files')
@@ -273,6 +275,12 @@ describe('buildContextCapsulePackagePreview', () => {
     expect(pack.markdown).toContain('Re-check Locality Firewall before agent handoff')
     expect(pack.markdown).not.toContain('Daily')
     expect(pack.markdown).not.toContain('/vault/private')
+
+    const changedPack = buildContextCapsulePackagePreview({
+      ...preview,
+      projectMap: { ...preview.projectMap, graphNodes: 1 },
+    })
+    expect(changedPack.reviewReceipt).not.toBe(pack.reviewReceipt)
   })
 
   it('adds typed ask handoff intent to the review package', () => {
@@ -347,7 +355,9 @@ describe('buildContextCapsulePackagePreview', () => {
     expect(pack.title).toBe('Protected Context Capsule')
     expect(pack.protectedContext).toBe(true)
     expect(pack.preflight).toEqual({ heldLocalCount: 1, sourceCount: 0, trimmedCount: 0 })
+    expect(pack.reviewReceipt).toMatch(/^pkg-[0-9a-f]{8}$/)
     expect(pack.markdown).toContain('Protected active context stayed local')
+    expect(pack.markdown).toContain(`Review receipt: ${pack.reviewReceipt}`)
     expect(pack.markdown).toContain('Agents: Blocked; Policy counts only')
     expect(pack.markdown).toContain('Export/sync: Withheld; Nothing by default')
     expect(pack.markdown).toContain('Git/cloud: Not staged; Nothing by default')

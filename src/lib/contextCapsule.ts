@@ -69,6 +69,7 @@ export interface ContextCapsulePackagePreview {
     trimmedCount: number
   }
   protectedContext: boolean
+  reviewReceipt: string
 }
 
 const BASE_RULES = [
