@@ -1,31 +1,9 @@
+import type { VaultPortabilityActionId } from './vaultPortabilityActions'
+export type { VaultPortabilityActionId } from './vaultPortabilityActions'
+
 export type VaultPortabilityStatus = 'ready' | 'planned'
 export type VaultStorageKind = 'local-folder' | 'git' | 'cloud-folder' | 'object-storage'
 export type VaultStorageHealthState = 'active' | 'available' | 'not_selected' | 'planned'
-export type VaultPortabilityActionId =
-  | 'markdown-folder-preview'
-  | 'markdown-folder'
-  | 'markdown-zip-preview'
-  | 'markdown-zip'
-  | 'bear-preview'
-  | 'bear'
-  | 'obsidian-preview'
-  | 'obsidian'
-  | 'notion-markdown-preview'
-  | 'notion-markdown'
-  | 'notion-folder-preview'
-  | 'notion-folder'
-  | 'spanda-preview'
-  | 'spanda'
-  | 'apple-journal-preview'
-  | 'apple-journal'
-  | 'day-one-preview'
-  | 'day-one'
-  | 'journey-preview'
-  | 'journey'
-  | 'export-markdown-zip'
-  | 'export-static-html'
-  | 'storage-s3-preview' | 'storage-s3-apply' | 'storage-s3-pull-preview' | 'storage-s3-pull-apply'
-  | 'storage-azure-preview' | 'storage-azure-apply' | 'storage-azure-pull-preview' | 'storage-azure-pull-apply'
 
 export interface VaultImportSource {
   id: string
@@ -73,6 +51,8 @@ export interface MarkdownFolderImportResult {
   failed_files: number
 }
 
+export interface ImportAutopsyManifestRow { kind: 'note' | 'asset' | 'metadata' | 'withheld'; source_path: string; destination_path?: string | null; detail: string }
+
 export interface MarkdownFolderImportPreviewResult {
   source_path: string
   planned_import_root: string
@@ -81,6 +61,7 @@ export interface MarkdownFolderImportPreviewResult {
   skipped_files: number
   failed_files: number
   writes_local_only_report: boolean
+  manifest_rows?: ImportAutopsyManifestRow[]
 }
 
 export interface ImportAutopsyPreviewState {
