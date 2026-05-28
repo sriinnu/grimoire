@@ -70,8 +70,8 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       label: 'Object storage',
       supportStatus: 'fixture',
       proofLevel: 'live-read-only-plus-local-mirror',
-      detail: `${objectStorageLabels} local mirror sync plus S3/Azure preflights`,
-      evidence: 'S3 has a read-only HeadBucket/ListObjectsV2 preflight, Azure has a read-only CLI container/list preflight, and push/pull preview, exact-preview apply, conflicts, deletes, and local-only excludes remain wired against a local mirror.',
+      detail: `${objectStorageLabels} provider preview/apply evidence plus read-only preflights`,
+      evidence: 'S3 has a read-only HeadBucket/ListObjectsV2 preflight, Azure has a read-only CLI container/list preflight, Settings provider preview/apply lanes require exact preview signatures, conflict checks, and content-hash metadata; local mirrors remain adapter fixtures.',
       remainingProof: 'Live S3/Azure apply, retries, bucket/container permissions, and provider conflict states remain open.',
     },
   ]
@@ -89,6 +89,6 @@ export function portabilityProofLevelLabel(level: PortabilityProofLevel): string
     case 'local-mirror-fixture':
       return 'local mirror'
     case 'live-read-only-plus-local-mirror':
-      return 'preflight + mirror'
+      return 'preflight + preview'
   }
 }
