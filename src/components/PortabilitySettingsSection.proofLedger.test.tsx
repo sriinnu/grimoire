@@ -136,4 +136,54 @@ describe('PortabilitySettingsSection proof ledger', () => {
     expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('token')
     expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('secret')
   })
+
+  it('passes reviewed JSON and SQLite capsule previews into the proof ledger', () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        exportPreview={{
+          format: 'json',
+          result: {
+            assets_exportable: 1,
+            bytes_exportable: 3072,
+            files_exportable: 5,
+            format: 'json',
+            locality_proof: {
+              absolute_source_paths_redacted: true,
+              local_only_files_withheld: 2,
+              markdown_source_of_truth: true,
+            },
+            manifest_rows: [{ bytes: 100, kind: 'markdown', path: '/Users/sriinnu/local-only.md' }],
+            notes_exportable: 4,
+            skipped_files: 2,
+          },
+        }}
+        importPreview={{
+          sourceId: 'sqlite-capsule-preview',
+          result: {
+            assets_to_copy: 1,
+            failed_files: 0,
+            manifest_rows: [
+              { detail: '/Users/sriinnu/private.md', kind: 'withheld', source_path: '/Users/sriinnu/private.md' },
+            ],
+            notes_to_copy: 4,
+            planned_import_root: '/Users/sriinnu/Grimoire/imports/sqlite',
+            skipped_files: 2,
+            source_path: '/Users/sriinnu/capsule.sqlite',
+            writes_local_only_report: true,
+          },
+        }}
+      />,
+    )
+
+    expect(screen.getByTestId('portability-proof-live-json-capsule-export-preview')).toHaveTextContent(
+      'JSON capsule export preview: reviewed',
+    )
+    expect(screen.getByTestId('portability-proof-live-sqlite-capsule-import-preview')).toHaveTextContent(
+      'SQLite capsule import preview: reviewed',
+    )
+    expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('/Users/')
+    expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('private.md')
+    expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('local-only.md')
+  })
 })

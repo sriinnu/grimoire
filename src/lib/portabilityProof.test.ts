@@ -160,6 +160,57 @@ describe('portabilityProof', () => {
     expect(JSON.stringify(desktopSync?.liveProofs)).not.toMatch(/\/Users\/|token|secret|password/i)
   })
 
+  it('lifts reviewed capsule import and export previews without source paths', () => {
+    const rows = listPortabilityProofRows({
+      capsuleExportPreview: {
+        format: 'json',
+        result: {
+          assets_exportable: 1,
+          bytes_exportable: 2048,
+          files_exportable: 4,
+          format: 'json',
+          locality_proof: {
+            absolute_source_paths_redacted: true,
+            local_only_files_withheld: 2,
+            markdown_source_of_truth: true,
+          },
+          manifest_rows: [{ bytes: 128, kind: 'markdown', path: '/Users/sriinnu/private.md' }],
+          notes_exportable: 3,
+          skipped_files: 2,
+        },
+      },
+      capsuleImportPreview: {
+        sourceId: 'sqlite-capsule-preview',
+        result: {
+          assets_to_copy: 1,
+          failed_files: 0,
+          manifest_rows: [{ detail: '/Users/sriinnu/private.md', kind: 'withheld', source_path: '/Users/sriinnu/private.md' }],
+          notes_to_copy: 3,
+          planned_import_root: '/Users/sriinnu/Grimoire/imports',
+          skipped_files: 2,
+          source_path: '/Users/sriinnu/export.sqlite',
+          writes_local_only_report: true,
+        },
+      },
+    })
+    const imports = rows.find(row => row.id === 'imports')
+    const exports = rows.find(row => row.id === 'exports')
+
+    expect(exports?.liveProofs).toEqual([{
+      id: 'json-capsule-export-preview',
+      label: 'JSON capsule export preview',
+      status: 'reviewed',
+      detail: '4 files; 3 notes; 1 assets; 2 withheld; 2048 bytes; Markdown source of truth; absolute paths redacted',
+    }])
+    expect(imports?.liveProofs).toEqual([{
+      id: 'sqlite-capsule-import-preview',
+      label: 'SQLite capsule import preview',
+      status: 'reviewed',
+      detail: '3 notes; 1 assets; 2 withheld; 0 failed; local-only report planned',
+    }])
+    expect(JSON.stringify([imports?.liveProofs, exports?.liveProofs])).not.toMatch(/\/Users\/|private\.md|token|secret|password/i)
+  })
+
   it('loads sanitized provider proof runner reports without provider targets', () => {
     const report = parseObjectStorageLiveProofReport(JSON.stringify({
       schema: 'grimoire-object-storage-live-proof-v1',

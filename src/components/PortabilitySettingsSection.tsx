@@ -298,6 +298,8 @@ export function PortabilitySettingsSection({
         <LocalityFirewallSettingsCard entries={entries} />
         <PortabilityProofLedger
           azureLivePreflightReport={azureLivePreflightReport}
+          capsuleExportPreview={exportPreview}
+          capsuleImportPreview={importPreview}
           desktopStorageHealthReports={desktopStorageHealthReports}
           objectStorageLiveProofReport={objectStorageLiveProofReport}
           s3LivePreflightReport={s3LivePreflightReport}
