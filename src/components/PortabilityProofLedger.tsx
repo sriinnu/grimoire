@@ -1,4 +1,6 @@
 import { CloudCheck, Database, FileArrowDown, ShieldCheck, TerminalWindow } from '@phosphor-icons/react'
+import { ClipboardCheck, Copy } from 'lucide-react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   listPortabilityProofRows,
@@ -6,6 +8,7 @@ import {
   type PortabilityProofRow,
 } from '../lib/portabilityProof'
 import { Badge } from './ui/badge'
+import { Button } from './ui/button'
 
 const PROOF_ROW_ICONS: Record<PortabilityProofRow['id'], ReactNode> = {
   imports: <FileArrowDown size={15} />,
@@ -45,6 +48,22 @@ export function PortabilityProofLedger() {
 }
 
 function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+
+  async function copyCommand() {
+    if (!row.command || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      setCopyState('failed')
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(row.command)
+      setCopyState('copied')
+    } catch {
+      setCopyState('failed')
+    }
+  }
+
   return (
     <div
       className="grimoire-preview-stat grid gap-1 rounded-md border border-border px-2 py-1.5"
@@ -64,6 +83,24 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
         <span className="min-w-0 text-[11px] text-muted-foreground">{row.detail}</span>
       </div>
       <div className="text-[11px] leading-snug text-muted-foreground">{row.evidence}</div>
+      {row.command ? (
+        <div className="flex min-w-0 items-center gap-2">
+          <Button
+            aria-label={`Copy ${row.label.toLowerCase()} command`}
+            className="h-6 border-border px-2 text-[11px] text-foreground"
+            onClick={() => {
+              void copyCommand()
+            }}
+            size="xs"
+            type="button"
+            variant="outline"
+          >
+            {copyState === 'copied' ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
+            {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy command'}
+          </Button>
+          <span className="min-w-0 truncate font-mono text-[10px] text-muted-foreground">{row.command}</span>
+        </div>
+      ) : null}
       <div className="text-[11px] leading-snug text-muted-foreground">
         Still to prove: {row.remainingProof}
       </div>

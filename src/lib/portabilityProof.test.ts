@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { listPortabilityProofRows, portabilityProofLevelLabel } from './portabilityProof'
+import {
+  listPortabilityProofRows,
+  OBJECT_STORAGE_LIVE_PROOF_COMMAND,
+  portabilityProofLevelLabel,
+} from './portabilityProof'
 
 describe('portabilityProof', () => {
   it('separates support status from proof level', () => {
@@ -20,11 +24,12 @@ describe('portabilityProof', () => {
     expect(rowById['object-storage'].proofLevel).toBe('live-read-only-plus-local-mirror')
     expect(rowById['provider-proof-runner'].supportStatus).toBe('available')
     expect(rowById['provider-proof-runner'].proofLevel).toBe('live-provider-proof-runner')
+    expect(rowById['provider-proof-runner'].command).toBe(OBJECT_STORAGE_LIVE_PROOF_COMMAND)
   })
 
   it('keeps remaining provider gaps explicit without leaking local paths', () => {
     const combined = listPortabilityProofRows()
-      .flatMap(row => [row.detail, row.evidence, row.remainingProof])
+      .flatMap(row => [row.detail, row.evidence, row.remainingProof, row.command ?? ''])
       .join('\n')
 
     expect(combined).toContain('Apple Journal')
