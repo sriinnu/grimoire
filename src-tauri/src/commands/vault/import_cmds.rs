@@ -128,10 +128,16 @@ pub fn import_portability_capsule(
     vault_path: PathBuf,
     source_path: PathBuf,
     format: PortabilityCapsuleFormat,
+    preview_signature: String,
 ) -> Result<MarkdownFolderImportReport, String> {
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
-        vault::import_portability_capsule(boundary.requested_root(), source_path.as_path(), format)
+        vault::import_portability_capsule(
+            boundary.requested_root(),
+            source_path.as_path(),
+            format,
+            preview_signature.as_str(),
+        )
     })
 }
 

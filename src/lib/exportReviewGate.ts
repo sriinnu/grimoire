@@ -22,7 +22,7 @@ export function hasReviewedExportPreview(
   actionId: VaultPortabilityActionId,
   preview: PortabilityExportPreviewState | null | undefined,
 ): boolean {
-  return Boolean(preview && EXPORT_TO_PREVIEW[actionId] === preview.format)
+  return Boolean(preview && EXPORT_TO_PREVIEW[actionId] === preview.format && preview.result.preview_signature.trim())
 }
 
 /** Returns the reviewed capsule format or null when the export should stay locked. */

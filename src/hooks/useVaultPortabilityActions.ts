@@ -310,7 +310,7 @@ export function useVaultPortabilityActions({
         setToastMessage(formatPortabilityCapsuleImportPreviewToast(result, format))
       } else {
         setLastImportPreview(null)
-        const result = await importPortabilityCapsuleIntoVault(resolvedPath, sourcePath, format)
+        const result = await importPortabilityCapsuleIntoVault(resolvedPath, sourcePath, format, lastImportPreview?.result.preview_signature ?? '')
         await reloadAfterImport()
         setToastMessage(formatPortabilityCapsuleImportToast(result, format))
       }

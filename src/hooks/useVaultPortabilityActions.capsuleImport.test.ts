@@ -36,6 +36,7 @@ describe('useVaultPortabilityActions capsule imports', () => {
     capsuleMocks.previewPortabilityCapsuleImport.mockImplementation((_vaultPath: string, sourcePath: string) => Promise.resolve({
       source_path: sourcePath,
       planned_import_root: '/vault/imports/grimoire',
+      preview_signature: 'capsule-import-preview-v1:test',
       notes_to_copy: 2,
       assets_to_copy: 1,
       skipped_files: 1,
@@ -71,7 +72,7 @@ describe('useVaultPortabilityActions capsule imports', () => {
     act(() => result.current.handleImportSqliteCapsule())
 
     await waitFor(() => expect(capsuleMocks.importPortabilityCapsuleIntoVault)
-      .toHaveBeenCalledWith('/vault', '/exports/grimoire.sqlite', 'sqlite'))
+      .toHaveBeenCalledWith('/vault', '/exports/grimoire.sqlite', 'sqlite', 'capsule-import-preview-v1:test'))
     await waitFor(() => expect(reloadVault).toHaveBeenCalledOnce())
     expect(reloadFolders).toHaveBeenCalledOnce()
     expect(loadModifiedFiles).toHaveBeenCalledOnce()

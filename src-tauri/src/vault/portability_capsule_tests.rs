@@ -6,6 +6,7 @@ use super::portability_capsule_import::{
 };
 use serde_json::{json, Value};
 use std::fs;
+use std::path::Path;
 use tempfile::TempDir;
 
 #[test]
@@ -27,6 +28,7 @@ fn previews_capsule_with_locality_firewall_proof() {
     assert_eq!(preview.skipped_files, 2);
     assert!(preview.locality_proof.markdown_source_of_truth);
     assert!(preview.locality_proof.absolute_source_paths_redacted);
+    assert!(preview.preview_signature.starts_with("capsule-preview-v1:"));
     assert!(preview
         .manifest_rows
         .iter()
@@ -44,7 +46,7 @@ fn exports_json_snapshot_with_text_and_withheld_manifest() {
     )
     .unwrap();
 
-    let report = export_portability_capsule(
+    let report = export_after_preview(
         vault.path(),
         &target.path().join("vault-snapshot"),
         PortabilityCapsuleFormat::Json,
@@ -73,7 +75,7 @@ fn exports_sqlite_snapshot_with_file_and_proof_tables() {
     fs::create_dir_all(vault.path().join("Dreams")).unwrap();
     fs::write(vault.path().join("Dreams/hidden.md"), "# Hidden\n").unwrap();
 
-    let report = export_portability_capsule(
+    let report = export_after_preview(
         vault.path(),
         &target.path().join("vault-snapshot.sqlite"),
         PortabilityCapsuleFormat::Sqlite,
@@ -114,7 +116,7 @@ fn previews_and_imports_json_snapshot_without_recreating_withheld_files() {
     )
     .unwrap();
 
-    let export = export_portability_capsule(
+    let export = export_after_preview(
         source.path(),
         &target.path().join("vault-snapshot.json"),
         PortabilityCapsuleFormat::Json,
@@ -130,11 +132,20 @@ fn previews_and_imports_json_snapshot_without_recreating_withheld_files() {
 
     assert_eq!(preview.notes_to_copy, 1);
     assert_eq!(preview.skipped_files, 1);
+    assert!(preview
+        .preview_signature
+        .as_deref()
+        .unwrap()
+        .starts_with("capsule-import-preview-v1:"));
     assert!(!vault.path().join("imports").exists());
 
-    let report =
-        import_portability_capsule(vault.path(), capsule_path, PortabilityCapsuleFormat::Json)
-            .unwrap();
+    let report = import_portability_capsule(
+        vault.path(),
+        capsule_path,
+        PortabilityCapsuleFormat::Json,
+        preview.preview_signature.as_deref().unwrap(),
+    )
+    .unwrap();
     let root = std::path::Path::new(&report.imported_root);
     assert_eq!(
         fs::read_to_string(root.join("public.md")).unwrap(),
@@ -159,7 +170,7 @@ fn imports_sqlite_snapshot_preserving_binary_assets() {
     .unwrap();
     fs::write(source.path().join("attachments/pixel.bin"), [0, 1, 2, 255]).unwrap();
 
-    let export = export_portability_capsule(
+    let export = export_after_preview(
         source.path(),
         &target.path().join("vault-snapshot.sqlite"),
         PortabilityCapsuleFormat::Sqlite,
@@ -176,9 +187,13 @@ fn imports_sqlite_snapshot_preserving_binary_assets() {
     assert_eq!(preview.notes_to_copy, 1);
     assert_eq!(preview.assets_to_copy, 1);
 
-    let report =
-        import_portability_capsule(vault.path(), capsule_path, PortabilityCapsuleFormat::Sqlite)
-            .unwrap();
+    let report = import_portability_capsule(
+        vault.path(),
+        capsule_path,
+        PortabilityCapsuleFormat::Sqlite,
+        preview.preview_signature.as_deref().unwrap(),
+    )
+    .unwrap();
     let root = std::path::Path::new(&report.imported_root);
     assert_eq!(
         fs::read(root.join("attachments/pixel.bin")).unwrap(),
@@ -347,4 +362,13 @@ fn json_file(path: &str, kind: &str, bytes: &[u8]) -> Value {
         "encoding": "utf-8",
         "content": std::str::from_utf8(bytes).unwrap()
     })
+}
+
+fn export_after_preview(
+    vault_path: &Path,
+    target_path: &Path,
+    format: PortabilityCapsuleFormat,
+) -> Result<super::VaultExportReport, String> {
+    let preview = preview_portability_capsule(vault_path, format).unwrap();
+    export_portability_capsule(vault_path, target_path, format, &preview.preview_signature)
 }

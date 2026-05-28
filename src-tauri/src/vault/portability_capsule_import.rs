@@ -6,7 +6,9 @@ use super::importer::{
     canonical_dir, is_skipped_name, path_to_string, unique_import_root, write_import_report,
     ImportCounters,
 };
-use super::portability_capsule::{sha256_hex, PortabilityCapsuleFormat};
+use super::portability_capsule::{
+    sha256_hex, validate_preview_signature, PortabilityCapsuleFormat,
+};
 use super::portability_capsule_import_filter::filter_inbound_capsule;
 use super::portability_capsule_import_readers::read_capsule;
 use super::{MarkdownFolderImportPreview, MarkdownFolderImportReport};
@@ -43,6 +45,11 @@ pub fn preview_portability_capsule_import(
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source_file),
         planned_import_root: path_to_string(&import_root),
+        preview_signature: Some(preview_signature_for_capsule_import(
+            format,
+            &source_file,
+            &capsule,
+        )?),
         notes_to_copy: counters.notes_copied,
         assets_to_copy: counters.assets_copied,
         skipped_files: counters.skipped_files,
@@ -57,9 +64,15 @@ pub fn import_portability_capsule(
     vault_path: &Path,
     source_path: &Path,
     format: PortabilityCapsuleFormat,
+    preview_signature: &str,
 ) -> Result<MarkdownFolderImportReport, String> {
     let (_vault_root, source_file, capsule, import_root) =
         load_capsule_import_plan(vault_path, source_path, format)?;
+    validate_preview_signature(
+        "Capsule import",
+        preview_signature,
+        &preview_signature_for_capsule_import(format, &source_file, &capsule)?,
+    )?;
     fs::create_dir_all(&import_root).map_err(|e| format!("Failed to create import folder: {e}"))?;
 
     let mut counters = ImportCounters::new();
@@ -134,6 +147,37 @@ fn counters_for_capsule(capsule: &ImportedCapsule) -> ImportCounters {
         }
     }
     counters
+}
+
+fn preview_signature_for_capsule_import(
+    format: PortabilityCapsuleFormat,
+    source_file: &Path,
+    capsule: &ImportedCapsule,
+) -> Result<String, String> {
+    let source_bytes = fs::read(source_file)
+        .map_err(|e| format!("Failed to read capsule for preview signature: {e}"))?;
+    let mut payload = format!(
+        "capsule-import-preview-v1\0{}\0{}\0{}\0",
+        format.label(),
+        sha256_hex(&source_bytes),
+        capsule.withheld.len()
+    );
+    for file in &capsule.files {
+        payload.push_str(&format!(
+            "file\0{}\0{}\0{}\0{}\0",
+            file.kind,
+            file.path,
+            file.bytes.len(),
+            file.sha256
+        ));
+    }
+    for file in &capsule.withheld {
+        payload.push_str(&format!("withheld\0{}\0{}\0", file.path, file.reason));
+    }
+    Ok(format!(
+        "capsule-import-preview-v1:{}",
+        sha256_hex(payload.as_bytes())
+    ))
 }
 
 fn copy_capsule_file(

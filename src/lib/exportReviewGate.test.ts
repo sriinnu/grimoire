@@ -6,6 +6,7 @@ const preview: PortabilityExportPreviewState = {
   format: 'json',
   result: {
     format: 'json',
+    preview_signature: 'capsule-preview-v1:test',
     files_exportable: 2,
     notes_exportable: 1,
     assets_exportable: 1,
@@ -28,5 +29,15 @@ describe('exportReviewGate', () => {
     expect(hasReviewedExportPreview('export-sqlite', preview)).toBe(false)
     expect(reviewedExportFormat('export-json', preview)).toBe('json')
     expect(reviewedExportFormat('export-sqlite', preview)).toBeNull()
+  })
+
+  it('rejects capsule previews without a signature', () => {
+    const unsignedPreview: PortabilityExportPreviewState = {
+      ...preview,
+      result: { ...preview.result, preview_signature: '' },
+    }
+
+    expect(hasReviewedExportPreview('export-json', unsignedPreview)).toBe(false)
+    expect(reviewedExportFormat('export-json', unsignedPreview)).toBeNull()
   })
 })

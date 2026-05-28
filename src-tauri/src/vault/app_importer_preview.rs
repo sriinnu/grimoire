@@ -46,6 +46,7 @@ pub fn preview_app_export(
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source),
         planned_import_root: path_to_string(&planned_import_root),
+        preview_signature: None,
         notes_to_copy: state.notes,
         assets_to_copy: state.assets,
         skipped_files: state.skipped,

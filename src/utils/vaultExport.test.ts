@@ -22,6 +22,7 @@ describe('vaultExport', () => {
     })).toBe('Exported 3 files to static HTML; withheld 2 local-only files')
     expect(formatPortabilityCapsulePreviewToast({
       format: 'json',
+      preview_signature: 'capsule-preview-v1:test',
       files_exportable: 4,
       notes_exportable: 3,
       assets_exportable: 1,

@@ -11,6 +11,7 @@ describe('portabilityCapsuleImport', () => {
     expect(formatPortabilityCapsuleImportPreviewToast({
       source_path: '/exports/grimoire.json',
       planned_import_root: '/vault/imports/grimoire',
+      preview_signature: 'capsule-import-preview-v1:test',
       notes_to_copy: 2,
       assets_to_copy: 1,
       skipped_files: 1,
@@ -37,7 +38,7 @@ describe('portabilityCapsuleImport', () => {
         writes_local_only_report: true,
       })
 
-    await expect(importPortabilityCapsuleIntoVault('/vault', '/exports/grimoire.sqlite', 'sqlite'))
+    await expect(importPortabilityCapsuleIntoVault('/vault', '/exports/grimoire.sqlite', 'sqlite', 'capsule-import-preview-v1:test'))
       .resolves.toMatchObject({
         imported_root: '/vault/imports/grimoire',
         notes_copied: 8,

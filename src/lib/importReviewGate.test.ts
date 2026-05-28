@@ -15,6 +15,15 @@ const preview: ImportAutopsyPreviewState = {
   },
 }
 
+const capsulePreview: ImportAutopsyPreviewState = {
+  sourceId: 'json-capsule-preview',
+  result: {
+    ...preview.result,
+    source_path: '/local/grimoire.json',
+    preview_signature: 'capsule-import-preview-v1:test',
+  },
+}
+
 describe('importReviewGate', () => {
   it('requires matching no-write previews before import writes can use a source path', () => {
     expect(importRequiresReview('day-one')).toBe(true)
@@ -23,5 +32,14 @@ describe('importReviewGate', () => {
     expect(hasReviewedImportPreview('journey', preview)).toBe(false)
     expect(reviewedImportSourcePath('day-one', preview)).toBe('/local/day-one.zip')
     expect(reviewedImportSourcePath('journey', preview)).toBeNull()
+  })
+
+  it('requires capsule import previews to carry the exact preview signature', () => {
+    expect(hasReviewedImportPreview('json-capsule', capsulePreview)).toBe(true)
+    expect(reviewedImportSourcePath('json-capsule', capsulePreview)).toBe('/local/grimoire.json')
+    expect(hasReviewedImportPreview('json-capsule', {
+      ...capsulePreview,
+      result: { ...capsulePreview.result, preview_signature: '' },
+    })).toBe(false)
   })
 })

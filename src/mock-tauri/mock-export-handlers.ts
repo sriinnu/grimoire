@@ -6,6 +6,7 @@ interface ExportPathArgs {
 
 interface CapsuleArgs extends ExportPathArgs {
   format?: CapsuleFormat
+  previewSignature?: string
 }
 
 function defaultCapsulePath(format: CapsuleFormat | undefined): string {
@@ -26,6 +27,7 @@ export const mockExportHandlers = {
   }),
   preview_portability_capsule: (args: CapsuleArgs) => ({
     format: args.format ?? 'json',
+    preview_signature: `mock-${args.format ?? 'json'}-capsule-preview`,
     files_exportable: 12,
     notes_exportable: 8,
     assets_exportable: 4,
@@ -41,9 +43,12 @@ export const mockExportHandlers = {
       { kind: 'withheld', path: 'Journal/private.md', bytes: 0, reason: 'Protected by Locality Firewall' },
     ],
   }),
-  export_portability_capsule: (args: CapsuleArgs) => ({
-    export_path: args.targetPath ?? defaultCapsulePath(args.format),
-    files_exported: 12,
-    skipped_files: 2,
-  }),
+  export_portability_capsule: (args: CapsuleArgs) => {
+    if (!args.previewSignature?.trim()) throw new Error('Capsule export requires preview signature')
+    return {
+      export_path: args.targetPath ?? defaultCapsulePath(args.format),
+      files_exported: 12,
+      skipped_files: 2,
+    }
+  },
 }

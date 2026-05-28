@@ -148,6 +148,7 @@ describe('PortabilitySettingsSection proof ledger', () => {
             bytes_exportable: 3072,
             files_exportable: 5,
             format: 'json',
+            preview_signature: 'capsule-preview-v1:test',
             locality_proof: {
               absolute_source_paths_redacted: true,
               local_only_files_withheld: 2,
@@ -168,6 +169,7 @@ describe('PortabilitySettingsSection proof ledger', () => {
             ],
             notes_to_copy: 4,
             planned_import_root: '/Users/sriinnu/Grimoire/imports/sqlite',
+            preview_signature: 'capsule-import-preview-v1:test',
             skipped_files: 2,
             source_path: '/Users/sriinnu/capsule.sqlite',
             writes_local_only_report: true,

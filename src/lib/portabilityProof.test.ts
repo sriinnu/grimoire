@@ -176,6 +176,7 @@ describe('portabilityProof', () => {
           bytes_exportable: 2048,
           files_exportable: 4,
           format: 'json',
+          preview_signature: 'capsule-preview-v1:test',
           locality_proof: {
             absolute_source_paths_redacted: true,
             local_only_files_withheld: 2,
@@ -194,6 +195,7 @@ describe('portabilityProof', () => {
           manifest_rows: [{ detail: '/Users/sriinnu/private.md', kind: 'withheld', source_path: '/Users/sriinnu/private.md' }],
           notes_to_copy: 3,
           planned_import_root: '/Users/sriinnu/Grimoire/imports',
+          preview_signature: 'capsule-import-preview-v1:test',
           skipped_files: 2,
           source_path: '/Users/sriinnu/export.sqlite',
           writes_local_only_report: true,

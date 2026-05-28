@@ -133,7 +133,8 @@ export async function runPortabilityCapsuleExportAction(
 
   options.setActiveAction(definition.exportActionId)
   try {
-    if (!reviewedExportFormat(definition.exportActionId, options.lastExportPreview ?? null)) {
+    const reviewedPreview = options.lastExportPreview ?? null
+    if (!reviewedExportFormat(definition.exportActionId, reviewedPreview)) {
       options.setToastMessage(`Preview ${definition.exportLabel} before exporting`)
       return
     }
@@ -141,7 +142,12 @@ export async function runPortabilityCapsuleExportAction(
     if (!targetPath) return
     options.setLastExportPreview(null)
     options.setToastMessage(`Exporting ${definition.exportLabel}...`)
-    const result = await exportPortabilityCapsule(options.resolvedPath, targetPath, format)
+    const result = await exportPortabilityCapsule(
+      options.resolvedPath,
+      targetPath,
+      format,
+      reviewedPreview?.result.preview_signature ?? '',
+    )
     options.setToastMessage(formatPortabilityCapsuleExportToast(result, format))
   } catch (error) {
     options.setToastMessage(`Export failed: ${errorMessage(error, 'Export failed')}`)
