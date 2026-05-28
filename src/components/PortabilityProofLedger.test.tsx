@@ -7,6 +7,43 @@ import {
 import { PortabilityProofLedger } from './PortabilityProofLedger'
 
 describe('PortabilityProofLedger', () => {
+  it('shows last live preflight evidence without provider targets', () => {
+    render(
+      <PortabilityProofLedger
+        azureLivePreflightReport={{
+          account_configured: true,
+          checked_at: '2026-05-28T12:00:00Z',
+          configured: true,
+          container_checked: true,
+          container_configured: true,
+          list_prefix_checked: true,
+          prefix_configured: true,
+          status: 'reachable',
+        }}
+        s3LivePreflightReport={{
+          bucket_configured: true,
+          checked_at: '2026-05-28T11:00:00Z',
+          configured: true,
+          head_bucket_checked: true,
+          list_prefix_checked: true,
+          prefix_configured: false,
+          region_configured: true,
+          status: 'reachable',
+        }}
+      />,
+    )
+
+    const objectStorage = within(screen.getByTestId('portability-proof-object-storage'))
+    expect(objectStorage.getByLabelText('Object storage live proof')).toBeInTheDocument()
+    expect(screen.getByTestId('portability-proof-live-s3-read-only')).toHaveTextContent('S3 read-only preflight: reachable')
+    expect(screen.getByTestId('portability-proof-live-s3-read-only')).toHaveTextContent('HeadBucket checked')
+    expect(screen.getByTestId('portability-proof-live-azure-read-only')).toHaveTextContent('Azure read-only preflight: reachable')
+    expect(screen.getByTestId('portability-proof-live-azure-read-only')).toHaveTextContent('container checked')
+    expect(screen.getByTestId('portability-proof-object-storage')).not.toHaveTextContent('s3://')
+    expect(screen.getByTestId('portability-proof-object-storage')).not.toHaveTextContent('azblob://')
+    expect(screen.getByTestId('portability-proof-object-storage')).not.toHaveTextContent('/Users/')
+  })
+
   it('shows the redacted provider proof runner without claiming provider-proven sync', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {

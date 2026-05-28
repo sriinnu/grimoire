@@ -184,7 +184,10 @@ export function PortabilitySettingsSection({
 
       <div className="grid gap-2" data-testid="settings-portability-section">
         <LocalityFirewallSettingsCard entries={entries} />
-        <PortabilityProofLedger />
+        <PortabilityProofLedger
+          azureLivePreflightReport={azureLivePreflightReport}
+          s3LivePreflightReport={s3LivePreflightReport}
+        />
         <PortabilityGroups t={t} vaultPath={vaultPath} />
       </div>
 

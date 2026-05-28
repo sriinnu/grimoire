@@ -37,6 +37,42 @@ export interface PortabilityProviderRequirement {
   proofNeed: string
 }
 
+/** Redacted live-provider proof that is safe to render in Settings. */
+export interface PortabilityLiveProof {
+  id: 'azure-read-only' | 's3-read-only'
+  label: string
+  status: string
+  detail: string
+}
+
+interface S3LivePreflightProof {
+  bucket_configured: boolean
+  checked_at: string
+  configured: boolean
+  head_bucket_checked: boolean
+  list_prefix_checked: boolean
+  prefix_configured: boolean
+  region_configured: boolean
+  status: string
+}
+
+interface AzureLivePreflightProof {
+  account_configured: boolean
+  checked_at: string
+  configured: boolean
+  container_checked: boolean
+  container_configured: boolean
+  list_prefix_checked: boolean
+  prefix_configured: boolean
+  status: string
+}
+
+/** Latest transient provider reports that can strengthen the proof ledger without storing provider details. */
+export interface PortabilityProofState {
+  azureLivePreflightReport?: AzureLivePreflightProof | null
+  s3LivePreflightReport?: S3LivePreflightProof | null
+}
+
 export interface PortabilityProofRow {
   id: 'imports' | 'exports' | 'desktop-sync' | 'object-storage' | 'provider-proof-runner'
   label: string
@@ -44,13 +80,14 @@ export interface PortabilityProofRow {
   proofLevel: PortabilityProofLevel
   detail: string
   evidence: string
+  liveProofs?: readonly PortabilityLiveProof[]
   remainingProof: string
   commands?: readonly PortabilityProofCommand[]
   providerRequirements?: readonly PortabilityProviderRequirement[]
 }
 
 /** Builds the user-facing proof matrix for import, export, and sync support. */
-export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
+export function listPortabilityProofRows(proofState: PortabilityProofState = {}): readonly PortabilityProofRow[] {
   const importSources = listVaultImportSources()
   const exportTargets = listVaultExportTargets()
   const storageProviders = listVaultStorageProviders()
@@ -97,6 +134,7 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       proofLevel: 'live-read-only-plus-local-mirror',
       detail: `${objectStorageLabels} provider preview/apply contracts plus read-only preflights`,
       evidence: 'S3 has a read-only HeadBucket/ListObjectsV2 preflight, Azure has a read-only CLI container/list preflight, Settings provider preview/apply lanes require exact preview signatures, conflict checks, and content-hash metadata; local mirrors remain adapter fixtures.',
+      liveProofs: objectStorageLiveProofs(proofState),
       remainingProof: 'Run the live provider proof runner and then the Settings lanes against real failure states before calling provider sync proven.',
     },
     {
@@ -159,4 +197,65 @@ export function portabilityProofLevelLabel(level: PortabilityProofLevel): string
     case 'live-provider-proof-runner':
       return 'live proof runner'
   }
+}
+
+function objectStorageLiveProofs({
+  azureLivePreflightReport,
+  s3LivePreflightReport,
+}: PortabilityProofState): readonly PortabilityLiveProof[] {
+  return [
+    s3LivePreflightReport ? s3LiveProof(s3LivePreflightReport) : null,
+    azureLivePreflightReport ? azureLiveProof(azureLivePreflightReport) : null,
+  ].filter(isPortabilityLiveProof)
+}
+
+function s3LiveProof(report: S3LivePreflightProof): PortabilityLiveProof {
+  return {
+    id: 's3-read-only',
+    label: 'S3 read-only preflight',
+    status: proofStatusLabel(report.status),
+    detail: [
+      proofFlag(report.configured, 'config set', 'config missing'),
+      proofFlag(report.bucket_configured, 'bucket set', 'bucket missing'),
+      proofFlag(report.region_configured, 'region set', 'region default'),
+      proofFlag(report.prefix_configured, 'prefix set', 'prefix optional'),
+      proofFlag(report.head_bucket_checked, 'HeadBucket checked', 'HeadBucket not checked'),
+      proofFlag(report.list_prefix_checked, 'prefix list checked', 'prefix list not checked'),
+      `checked ${proofTimestamp(report.checked_at)}`,
+    ].join('; '),
+  }
+}
+
+function azureLiveProof(report: AzureLivePreflightProof): PortabilityLiveProof {
+  return {
+    id: 'azure-read-only',
+    label: 'Azure read-only preflight',
+    status: proofStatusLabel(report.status),
+    detail: [
+      proofFlag(report.configured, 'config set', 'config missing'),
+      proofFlag(report.account_configured, 'account set', 'account missing'),
+      proofFlag(report.container_configured, 'container set', 'container missing'),
+      proofFlag(report.prefix_configured, 'prefix set', 'prefix optional'),
+      proofFlag(report.container_checked, 'container checked', 'container not checked'),
+      proofFlag(report.list_prefix_checked, 'prefix list checked', 'prefix list not checked'),
+      `checked ${proofTimestamp(report.checked_at)}`,
+    ].join('; '),
+  }
+}
+
+function proofFlag(enabled: boolean, enabledLabel: string, disabledLabel: string): string {
+  return enabled ? enabledLabel : disabledLabel
+}
+
+function proofStatusLabel(status: string): string {
+  return status.replace(/[^a-z0-9_-]/gi, '').replaceAll('_', ' ')
+}
+
+function proofTimestamp(value: string): string {
+  const trimmed = value.trim()
+  return /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(trimmed) ? trimmed : 'redacted-time'
+}
+
+function isPortabilityLiveProof(proof: PortabilityLiveProof | null): proof is PortabilityLiveProof {
+  return proof !== null
 }
