@@ -297,14 +297,14 @@ export function ObjectStoragePrototypeActions({
           provider="s3"
           active={activeProvider === 's3'}
           label="Amazon S3"
-          detail="Read-only preflight, provider SDK, local mirror."
+          detail="Read-only preflight, proof preview/apply, local mirror."
           onSelect={setExpandedProvider}
         />
         <ProviderToggle
           provider="azure"
           active={activeProvider === 'azure'}
           label="Azure Blob"
-          detail="CLI-auth provider sync and local mirror."
+          detail="CLI-auth proof preview/apply and local mirror."
           onSelect={setExpandedProvider}
         />
       </div>

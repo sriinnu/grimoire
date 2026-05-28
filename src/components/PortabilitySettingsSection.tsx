@@ -185,16 +185,6 @@ export function PortabilitySettingsSection({
         </div>
       </div>
 
-      <div className="grid gap-2" data-testid="settings-portability-section">
-        <LocalityFirewallSettingsCard entries={entries} />
-        <PortabilityProofLedger
-          azureLivePreflightReport={azureLivePreflightReport}
-          objectStorageLiveProofReport={objectStorageLiveProofReport}
-          s3LivePreflightReport={s3LivePreflightReport}
-        />
-        <PortabilityGroups t={t} vaultPath={vaultPath} />
-      </div>
-
       <PortabilityActionDeck
         t={t}
         vaultReady={vaultReady}
@@ -268,6 +258,16 @@ export function PortabilitySettingsSection({
         onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}
         onApplyAzureMirrorPull={onApplyAzureMirrorPull}
       />
+
+      <div className="grid gap-2" data-testid="settings-portability-section">
+        <LocalityFirewallSettingsCard entries={entries} />
+        <PortabilityProofLedger
+          azureLivePreflightReport={azureLivePreflightReport}
+          objectStorageLiveProofReport={objectStorageLiveProofReport}
+          s3LivePreflightReport={s3LivePreflightReport}
+        />
+        <PortabilityGroups t={t} vaultPath={vaultPath} />
+      </div>
 
       <ImportAutopsyTimeline
         preview={importPreview}
