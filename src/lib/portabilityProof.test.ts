@@ -29,6 +29,10 @@ describe('portabilityProof', () => {
       OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND,
       OBJECT_STORAGE_LIVE_PROOF_COMMAND,
     ])
+    expect(rowById['provider-proof-runner'].providerRequirements?.map(requirement => requirement.id)).toEqual([
+      's3',
+      'azure',
+    ])
   })
 
   it('keeps remaining provider gaps explicit without leaking local paths', () => {
@@ -38,6 +42,12 @@ describe('portabilityProof', () => {
         row.evidence,
         row.remainingProof,
         ...(row.commands ?? []).flatMap(command => [command.command, command.detail]),
+        ...(row.providerRequirements ?? []).flatMap(requirement => [
+          requirement.gate,
+          ...requirement.required,
+          ...requirement.optional,
+          requirement.proofNeed,
+        ]),
       ])
       .join('\n')
 
@@ -51,12 +61,16 @@ describe('portabilityProof', () => {
     expect(combined).toContain('pnpm test:object-storage-live -- --dry-run --report .tmp/object-storage-live-proof.json')
     expect(combined).toContain('pass/fail/missing-config status')
     expect(combined).toContain('No provider writes')
+    expect(combined).toContain('GRIMOIRE_S3_LIVE_WRITE_PROOF')
+    expect(combined).toContain('GRIMOIRE_AZURE_STORAGE_ACCOUNT')
+    expect(combined).toContain('permission, auth, conflict')
     expect(combined).toContain('exact preview signatures')
     expect(combined).toContain('local read proof for iCloud/GDrive')
     expect(combined).toContain('Run the live provider proof runner')
     expect(combined).toContain('Provider quota, offline recovery')
     expect(combined).not.toContain('capsule re-import')
     expect(combined).not.toMatch(/\/Users\//)
+    expect(combined).not.toMatch(/secret|token|password/i)
   })
 
   it('uses compact user-facing proof labels', () => {

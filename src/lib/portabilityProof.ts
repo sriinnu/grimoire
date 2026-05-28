@@ -28,6 +28,15 @@ export interface PortabilityProofCommand {
   detail: string
 }
 
+export interface PortabilityProviderRequirement {
+  id: 's3' | 'azure'
+  label: string
+  gate: string
+  required: readonly string[]
+  optional: readonly string[]
+  proofNeed: string
+}
+
 export interface PortabilityProofRow {
   id: 'imports' | 'exports' | 'desktop-sync' | 'object-storage' | 'provider-proof-runner'
   label: string
@@ -37,6 +46,7 @@ export interface PortabilityProofRow {
   evidence: string
   remainingProof: string
   commands?: readonly PortabilityProofCommand[]
+  providerRequirements?: readonly PortabilityProviderRequirement[]
 }
 
 /** Builds the user-facing proof matrix for import, export, and sync support. */
@@ -109,6 +119,24 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
           label: 'Copy live proof',
           command: OBJECT_STORAGE_LIVE_PROOF_COMMAND,
           detail: 'Runs opt-in provider preview/apply/pull and writes a redacted report.',
+        },
+      ],
+      providerRequirements: [
+        {
+          id: 's3',
+          label: 'S3',
+          gate: 'GRIMOIRE_S3_LIVE_WRITE_PROOF',
+          required: ['GRIMOIRE_S3_BUCKET'],
+          optional: ['GRIMOIRE_S3_REGION', 'GRIMOIRE_S3_PREFIX'],
+          proofNeed: 'permission, auth, conflict, retry, and cleanup states',
+        },
+        {
+          id: 'azure',
+          label: 'Azure Blob',
+          gate: 'GRIMOIRE_AZURE_LIVE_WRITE_PROOF',
+          required: ['GRIMOIRE_AZURE_STORAGE_ACCOUNT', 'GRIMOIRE_AZURE_CONTAINER'],
+          optional: ['GRIMOIRE_AZURE_PREFIX'],
+          proofNeed: 'CLI login, permission, conflict, retry, and cleanup states',
         },
       ],
     },

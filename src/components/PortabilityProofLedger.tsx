@@ -120,9 +120,39 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
           })}
         </div>
       ) : null}
+      {row.providerRequirements?.length ? (
+        <div
+          aria-label={`${row.label} setup checklist`}
+          className="grid gap-1 text-[10px] leading-snug text-muted-foreground"
+        >
+          {row.providerRequirements.map((requirement) => (
+            <div className="grid gap-0.5" key={requirement.id}>
+              <span className="font-semibold text-foreground">{requirement.label} setup</span>
+              <span>
+                gate <code className="font-mono text-foreground">{requirement.gate}</code>; required{' '}
+                <EnvNameList names={requirement.required} />; optional <EnvNameList names={requirement.optional} />
+              </span>
+              <span>Still needs {requirement.proofNeed}.</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
       <div className="text-[11px] leading-snug text-muted-foreground">
         Still to prove: {row.remainingProof}
       </div>
     </div>
+  )
+}
+
+function EnvNameList({ names }: { names: readonly string[] }) {
+  return (
+    <>
+      {names.map((name, index) => (
+        <span key={name}>
+          {index > 0 ? ', ' : null}
+          <code className="font-mono text-foreground">{name}</code>
+        </span>
+      ))}
+    </>
   )
 }
