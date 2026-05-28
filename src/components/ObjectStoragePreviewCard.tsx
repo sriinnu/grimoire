@@ -86,7 +86,7 @@ function operationSummaryLabel(operation: ObjectStorageSyncReport['operations'][
 }
 
 function compactPath(path: string): string {
-  if (path.startsWith('s3://') || path.startsWith('azblob://')) return path
+  if (path.startsWith('s3://') || path.startsWith('azblob://')) return 'redacted provider target'
   const parts = path.split(/[\\/]/u).filter(Boolean)
   if (path.startsWith('/') || /^[A-Za-z]:[\\/]/u.test(path)) return parts.at(-1) ?? 'selected folder'
   return parts.join('/') || 'selected folder'
