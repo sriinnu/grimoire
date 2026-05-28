@@ -303,8 +303,12 @@ function SettingsPanelInner({
           s3MirrorPullPreviewReport={portabilityActions.s3MirrorPullPreviewReport}
           s3ProviderPushPreviewReport={portabilityActions.s3ProviderPushPreviewReport}
           s3ProviderPullPreviewReport={portabilityActions.s3ProviderPullPreviewReport}
+          s3ProviderPushPreviewArgs={portabilityActions.s3ProviderPushPreviewArgs}
+          s3ProviderPullPreviewArgs={portabilityActions.s3ProviderPullPreviewArgs}
           azureProviderPushPreviewReport={portabilityActions.azureProviderPushPreviewReport}
           azureProviderPullPreviewReport={portabilityActions.azureProviderPullPreviewReport}
+          azureProviderPushPreviewArgs={portabilityActions.azureProviderPushPreviewArgs}
+          azureProviderPullPreviewArgs={portabilityActions.azureProviderPullPreviewArgs}
           azureMirrorPreviewReport={portabilityActions.azureMirrorPreviewReport}
           azureMirrorPullPreviewReport={portabilityActions.azureMirrorPullPreviewReport}
           s3LivePreflightReport={portabilityActions.s3LivePreflightReport}

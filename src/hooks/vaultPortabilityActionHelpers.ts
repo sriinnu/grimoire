@@ -65,8 +65,12 @@ export interface VaultPortabilityActions {
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
   s3ProviderPushPreviewReport?: ObjectStorageSyncReport
   s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewArgs?: S3LivePreflightArgs
+  s3ProviderPullPreviewArgs?: S3LivePreflightArgs
   azureProviderPushPreviewReport?: ObjectStorageSyncReport
   azureProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewArgs?: AzureLivePreflightArgs
+  azureProviderPullPreviewArgs?: AzureLivePreflightArgs
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
   s3LivePreflightReport?: S3LivePreflightReport

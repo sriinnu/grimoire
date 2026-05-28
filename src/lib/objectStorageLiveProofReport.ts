@@ -35,8 +35,8 @@ export function parseObjectStorageLiveProofReport(input: string | unknown): Obje
 
   return {
     schema: 'grimoire-object-storage-live-proof-v1',
-    finished_at: stringOrNull(raw.finished_at),
-    generated_at: stringValue(raw.generated_at),
+    finished_at: timestampOrNull(raw.finished_at),
+    generated_at: timestampValue(raw.generated_at),
     provider_filter: providerFilter,
     providers,
     summary: {
@@ -122,8 +122,12 @@ function stringValue(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
-function stringOrNull(value: unknown): string | null {
-  return typeof value === 'string' ? value : null
+function timestampValue(value: unknown): string {
+  return proofTimestamp(stringValue(value))
+}
+
+function timestampOrNull(value: unknown): string | null {
+  return typeof value === 'string' ? proofTimestamp(value) : null
 }
 
 function envStateRecord(value: unknown): Record<string, 'missing' | 'set'> {

@@ -469,6 +469,7 @@ Build order:
 - Added the first Agent Council strip in the AI panel with Claude Code, Codex, local search, vault graph, import/export context, Chitragupta, Woosh, and Tring CLI cards showing health, permissions, source-safe stances, and Chitragupta as a private MCP-contract memory lane.
 - Deepened Crystallize review hunks with typed file/frontmatter/backlink/body/task diffs, source-link Markdown, `memory_version`, and `reviewed_at` metadata.
 - Added source-safe graph-neighborhood context to Agent Council, Context Capsules, prompt snapshots, and the Graph modal insight panel with protected titles/paths withheld from agent handoff.
+- Hardened pasted object-storage live proof reports so sanitized in-memory evidence also redacts malformed/leaky timestamps before Settings renders or stores the report state.
 - Added selectable graph nodes, source-safe graph package HUD, selected-node detail actions, and a Locality Firewall-guarded "Ask Council" path from graph nodes into the AI prompt queue.
 - Added graph-side Council lanes for local search, vault graph, Chitragupta, Codex, and Claude so node exploration shows what can run locally, privately, or as source-safe handoff before the user asks.
 - Added selected-node Council handoff previews so graph nodes show the exact source-label count and held-local graph item count before Ask Council can run, and the source-safe package now re-roots on the selected node in Vault scope.

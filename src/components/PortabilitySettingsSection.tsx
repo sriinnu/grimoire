@@ -70,8 +70,12 @@ interface PortabilitySettingsSectionProps {
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
   s3ProviderPushPreviewReport?: ObjectStorageSyncReport
   s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewArgs?: S3LivePreflightArgs
+  s3ProviderPullPreviewArgs?: S3LivePreflightArgs
   azureProviderPushPreviewReport?: ObjectStorageSyncReport
   azureProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewArgs?: AzureLivePreflightArgs
+  azureProviderPullPreviewArgs?: AzureLivePreflightArgs
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
   s3LivePreflightReport?: S3LivePreflightReport
@@ -151,8 +155,12 @@ export function PortabilitySettingsSection({
   s3MirrorPullPreviewReport,
   s3ProviderPushPreviewReport,
   s3ProviderPullPreviewReport,
+  s3ProviderPushPreviewArgs,
+  s3ProviderPullPreviewArgs,
   azureProviderPushPreviewReport,
   azureProviderPullPreviewReport,
+  azureProviderPushPreviewArgs,
+  azureProviderPullPreviewArgs,
   azureMirrorPreviewReport,
   azureMirrorPullPreviewReport,
   s3LivePreflightReport,
@@ -208,8 +216,12 @@ export function PortabilitySettingsSection({
         s3MirrorPullPreviewReport={s3MirrorPullPreviewReport}
         s3ProviderPushPreviewReport={s3ProviderPushPreviewReport}
         s3ProviderPullPreviewReport={s3ProviderPullPreviewReport}
+        s3ProviderPushPreviewArgs={s3ProviderPushPreviewArgs}
+        s3ProviderPullPreviewArgs={s3ProviderPullPreviewArgs}
         azureProviderPushPreviewReport={azureProviderPushPreviewReport}
         azureProviderPullPreviewReport={azureProviderPullPreviewReport}
+        azureProviderPushPreviewArgs={azureProviderPushPreviewArgs}
+        azureProviderPullPreviewArgs={azureProviderPullPreviewArgs}
         azureMirrorPreviewReport={azureMirrorPreviewReport}
         azureMirrorPullPreviewReport={azureMirrorPullPreviewReport}
         s3LivePreflightReport={s3LivePreflightReport}
