@@ -295,7 +295,7 @@ function CrystallizePacketSummary({
     {
       label: 'Hunks',
       value: countReviewItem(summary.hunkCount, 'hunk'),
-      detail: hasActiveNotePatch ? 'Memory plus active note review.' : 'Memory note review.',
+      detail: activeNoteReviewDetail(summary, hasActiveNotePatch),
     },
     {
       label: 'Sources',
@@ -364,6 +364,12 @@ function CrystallizeChangeList({ changes }: { changes: CrystallizeChange[] }) {
 
 function countReviewItem(count: number, singular: string): string {
   return `${count} ${count === 1 ? singular : `${singular}s`}`
+}
+
+function activeNoteReviewDetail(summary: CrystallizeProposalSummary, hasActiveNotePatch: boolean): string {
+  if (!hasActiveNotePatch) return 'Memory note review.'
+  const target = summary.activeNoteTarget ?? 'active note'
+  return `${countReviewItem(summary.activeNoteHunkCount, 'active-note hunk')} will update ${target}.`
 }
 
 function CrystallizeChangeColumn({ label, value }: { label: string; value: string }) {

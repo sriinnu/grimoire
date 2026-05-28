@@ -525,6 +525,7 @@ Build order:
 - Added the first Crystallize Workbench active-note edit path: when the editor content is available, the review dialog now shows a separate editable active-note append hunk and applies it locally along with the new Memory note.
 - Added Crystallize active-note frontmatter hunks: accepted memories now propose editable `last_crystallized_at` and `crystallized_memories` metadata, preserve existing inline/block memory lists, and apply reviewer-added frontmatter keys before the append.
 - Added Crystallize write-consequence visibility to the AI loop packet: before opening the dialog, the card now says whether accept will create a memory note only or also apply active-note hunks, including the active note target.
+- Mirrored that Crystallize write-consequence visibility inside the review dialog packet so the reviewer sees the active-note target and hunk count before accepting the local write.
 - Added a dashboard `/ask` context preview so users can see which public notes will travel into the agent prompt and how many protected notes stay withheld before sending.
 - Tightened canvas editing state: newly inserted canvas blocks now save their first local JSON/preview explicitly, and undo/clear stay disabled until strokes exist.
 - Added image placement inside editable canvases: selected images are copied into vault attachments, stored in canvas JSON as portable relative paths, rendered in previews, movable with the hand tool, removable with the eraser, and protected by the existing local-only attachment closure.

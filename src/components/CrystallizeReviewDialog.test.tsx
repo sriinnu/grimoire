@@ -212,7 +212,7 @@ describe('CrystallizeReviewDialog', () => {
     expect(screen.getAllByTestId('crystallize-change-kind-frontmatter')).toHaveLength(2)
     expect(screen.getByTestId('crystallize-change-kind-note')).toBeInTheDocument()
     expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('6 hunks')
-    expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('Memory plus active note review.')
+    expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('2 active-note hunks will update project.md.')
     const frontmatterPreview = screen.getByTestId('crystallize-active-note-frontmatter-preview')
     fireEvent.change(frontmatterPreview, {
       target: { value: 'last_crystallized_at: "2026-05-24T08:00:00.000Z"\ncrystallized_memories:\n  - "[[Edited Memory]]"' },
