@@ -308,8 +308,10 @@ function focusSyntheticEditorEscapeTarget() {
 
 async function pressEscape() {
   await act(async () => {
-    fireEvent.keyDown(window, { key: 'Escape' })
+    const target = document.activeElement instanceof HTMLElement ? document.activeElement : window
+    fireEvent.keyDown(target, { key: 'Escape', bubbles: true })
     await Promise.resolve()
+    await new Promise(requestAnimationFrame)
   })
 }
 
