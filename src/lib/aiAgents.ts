@@ -20,9 +20,29 @@ export interface AiAgentDefinition {
   installUrl: string
 }
 
+export interface AiAgentRuntimeRoute {
+  agent: AiAgentId
+  provider: string | null
+  model: string | null
+  source: 'configured' | 'cli-default' | 'stream'
+}
+
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
 export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Open the native Grimoire app for live AI.'
-export const AI_AGENT_CLI_DEFAULT_ROUTE = 'CLI default'
+export const AI_AGENT_CLI_DEFAULT_ROUTE = 'resolved by stream'
+export const CHITRAGUPTA_CLI_MCP_BOUNDARY =
+  'Chitragupta chat uses the local CLI route. MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks.'
+export const CHITRAGUPTA_MCP_REQUIRED_SURFACES = [
+  'memory search',
+  'recall',
+  'wiki',
+  'graph',
+  'ingest',
+  'diagnostics',
+  'write suggestions',
+] as const
+export const CHITRAGUPTA_MCP_READINESS_COPY =
+  'Live memory lanes stay local-ledger only until Chitragupta MCP reports recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions ready.'
 
 export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
   {
@@ -118,6 +138,42 @@ export function describeAiAgentRoute(
   }
 
   return parts.length > 0 ? parts.join(' · ') : null
+}
+
+export function createRuntimeRouteDisclosure({
+  agent,
+  provider,
+  model,
+}: {
+  agent: AiAgentId
+  provider?: string | null
+  model?: string | null
+}): AiAgentRuntimeRoute {
+  const trimmedProvider = supportsAiAgentProviderRoute(agent) ? provider?.trim() : null
+  const trimmedModel = model?.trim()
+  return {
+    agent,
+    provider: trimmedProvider || (agent === 'chitragupta' ? AI_AGENT_CLI_DEFAULT_ROUTE : null),
+    model: trimmedModel || (agent === 'chitragupta' ? AI_AGENT_CLI_DEFAULT_ROUTE : null),
+    source: trimmedProvider || trimmedModel ? 'configured' : 'cli-default',
+  }
+}
+
+export function createStreamRuntimeRouteDisclosure({
+  agent,
+  provider,
+  model,
+}: {
+  agent: AiAgentId
+  provider?: string | null
+  model?: string | null
+}): AiAgentRuntimeRoute {
+  return {
+    agent,
+    provider: provider?.trim() || null,
+    model: model?.trim() || null,
+    source: 'stream',
+  }
 }
 
 export function getAiAgentDefinition(agent: AiAgentId): AiAgentDefinition {

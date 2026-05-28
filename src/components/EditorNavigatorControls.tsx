@@ -1,9 +1,23 @@
-import { useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link2, ListTree, Search } from 'lucide-react'
 import { Button } from './ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from './ui/popover'
-import { EditorNavigatorPopover, type EditorNavigatorMode } from './EditorNavigatorPopover'
 import { cn } from '../lib/utils'
+
+type EditorNavigatorMode = 'search' | 'toc' | 'links'
+
+interface EditorNavigatorSummary {
+  headingCount: number
+  linkCount: number
+}
+
+const EditorNavigatorPopoverSurface = lazy(async () => ({
+  default: (await import('./EditorNavigatorPopover')).EditorNavigatorPopover,
+}))
+
+function EditorNavigatorFallback() {
+  return <div className="editor-navigator-popover" aria-label="Loading note navigator" />
+}
 
 function isFindShortcut(event: KeyboardEvent): boolean {
   const hasPrimaryModifier = event.metaKey || event.ctrlKey
@@ -23,6 +37,57 @@ function shouldOpenNoteNavigator(event: KeyboardEvent): boolean {
   return !target?.closest('[role="dialog"], .note-list-panel')
 }
 
+function fenceDelimiter(line: string): string | null {
+  const trimmed = line.trimStart()
+  if (trimmed.startsWith('```')) return '```'
+  if (trimmed.startsWith('~~~')) return '~~~'
+  return null
+}
+
+function countVisibleWikilinks(line: string): number {
+  const withoutInlineCode = line.replace(/`+[^`]*`+/gu, '')
+  return withoutInlineCode.match(/\[\[[^\]\n]+?\]\]/gu)?.length ?? 0
+}
+
+function summarizeNavigatorContent(content: string): EditorNavigatorSummary {
+  let headingCount = 0
+  let linkCount = 0
+  let fence: string | null = null
+  let inFrontmatter = false
+
+  content.split(/\r?\n/).forEach((line, index) => {
+    const trimmed = line.trim()
+    if (index === 0 && trimmed === '---') {
+      inFrontmatter = true
+      return
+    }
+    if (inFrontmatter) {
+      if (trimmed === '---') inFrontmatter = false
+      return
+    }
+
+    const marker = fenceDelimiter(line)
+    if (marker && fence === null) {
+      fence = marker
+      return
+    }
+    if (marker && fence === marker) {
+      fence = null
+      return
+    }
+    if (fence !== null) return
+
+    if (/^#{1,6}\s+\S/u.test(line.trimStart())) headingCount += 1
+    linkCount += countVisibleWikilinks(line)
+  })
+
+  return { headingCount, linkCount }
+}
+
+function countLabel(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
 interface EditorNavigatorControlsProps {
   content: string
   enableFindShortcut?: boolean
@@ -37,6 +102,7 @@ export function EditorNavigatorControls({
 }: EditorNavigatorControlsProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<EditorNavigatorMode>('search')
+  const summary = useMemo(() => summarizeNavigatorContent(content), [content])
 
   const openNavigator = useCallback((nextMode: EditorNavigatorMode) => {
     setMode(nextMode)
@@ -78,11 +144,16 @@ export function EditorNavigatorControls({
             size={variant === 'meta' ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
             title="Table of contents"
-            aria-label="Table of contents"
+            aria-label={`Table of contents, ${countLabel(summary.headingCount, 'heading')}`}
             onClick={() => openNavigator('toc')}
           >
             <ListTree className="size-4" />
             {variant === 'meta' ? <span>TOC</span> : null}
+            {variant === 'meta' ? (
+              <span className="editor-navigator-controls__count" data-empty={summary.headingCount === 0 ? 'true' : 'false'}>
+                {summary.headingCount}
+              </span>
+            ) : null}
           </Button>
           <Button
             type="button"
@@ -90,16 +161,23 @@ export function EditorNavigatorControls({
             size={variant === 'meta' ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
             title="Spelllinks in this note"
-            aria-label="Spelllinks in this note"
+            aria-label={`Spelllinks in this note, ${countLabel(summary.linkCount, 'link')}`}
             onClick={() => openNavigator('links')}
           >
             <Link2 className="size-4" />
             {variant === 'meta' ? <span>Links</span> : null}
+            {variant === 'meta' ? (
+              <span className="editor-navigator-controls__count" data-empty={summary.linkCount === 0 ? 'true' : 'false'}>
+                {summary.linkCount}
+              </span>
+            ) : null}
           </Button>
         </div>
       </PopoverAnchor>
       <PopoverContent className="editor-navigator-popover-shell grimoire-panel-reveal" align="center" side="top" sideOffset={10}>
-        <EditorNavigatorPopover content={content} mode={mode} onModeChange={setMode} />
+        <Suspense fallback={<EditorNavigatorFallback />}>
+          <EditorNavigatorPopoverSurface content={content} mode={mode} onModeChange={setMode} />
+        </Suspense>
       </PopoverContent>
     </Popover>
   )

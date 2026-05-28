@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils'
 import { StatusBarHint, type StatusBarHintCopy } from './StatusBarHint'
 import { SEP_STYLE } from './styles'
 
+type StatusBarActionTone = 'accent' | 'agent' | 'danger' | 'success' | 'warning'
+
 function handleStatusBarActionKeyDown(
   event: ReactKeyboardEvent<HTMLButtonElement>,
   onClick?: () => void,
@@ -22,6 +24,7 @@ export function StatusBarAction({
   ariaLabel,
   className,
   style,
+  tone,
   disabled = false,
   compact = false,
 }: {
@@ -32,6 +35,7 @@ export function StatusBarAction({
   ariaLabel?: string
   className?: string
   style?: CSSProperties
+  tone?: StatusBarActionTone
   disabled?: boolean
   compact?: boolean
 }) {
@@ -52,6 +56,7 @@ export function StatusBarAction({
         onKeyDown={(event) => handleStatusBarActionKeyDown(event, disabled ? undefined : onClick)}
         aria-label={ariaLabel ?? copy.label}
         aria-disabled={disabled || undefined}
+        data-status-action-tone={tone}
         data-testid={testId}
       >
         {children}

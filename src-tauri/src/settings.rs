@@ -22,6 +22,7 @@ const EDITOR_FONTS: &[&str] = &[
     "compact",
     "handwritten",
 ];
+const NATIVE_SHELL_MATERIALS: &[&str] = &["standard", "unified", "glass-preview"];
 const TRANSCRIPTION_PROVIDERS: &[&str] = &["local_whisper", "whisper_api", "local_voice_model"];
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -41,6 +42,7 @@ pub struct Settings {
     pub editor_font: Option<String>,
     pub ui_language: Option<String>,
     pub menu_bar_icon_enabled: Option<bool>,
+    pub native_shell_material: Option<String>,
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
     pub ai_agent_models: Option<BTreeMap<String, String>>,
@@ -110,7 +112,22 @@ pub fn normalize_ai_agent_models(
 pub fn normalize_ai_agent_providers(
     value: Option<BTreeMap<String, String>>,
 ) -> Option<BTreeMap<String, String>> {
-    normalize_ai_agent_string_map(value)
+    let mut normalized_values = BTreeMap::new();
+    for (agent, raw_value) in value? {
+        let Some(agent) = normalize_default_ai_agent(Some(&agent)) else {
+            continue;
+        };
+        if agent != "chitragupta" {
+            continue;
+        }
+        let Some(value) = normalize_optional_string(Some(raw_value)) else {
+            continue;
+        };
+        if !value.chars().any(char::is_whitespace) {
+            normalized_values.insert("chitragupta".to_string(), value);
+        }
+    }
+    (!normalized_values.is_empty()).then_some(normalized_values)
 }
 
 pub fn normalize_theme_mode(value: Option<&str>) -> Option<String> {
@@ -128,6 +145,13 @@ pub fn normalize_theme_preset(value: Option<&str>) -> Option<String> {
 pub fn normalize_editor_font(value: Option<&str>) -> Option<String> {
     let font = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
     EDITOR_FONTS.contains(&font.as_str()).then_some(font)
+}
+
+pub fn normalize_native_shell_material(value: Option<&str>) -> Option<String> {
+    let material = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    NATIVE_SHELL_MATERIALS
+        .contains(&material.as_str())
+        .then_some(material)
 }
 
 pub fn normalize_transcription_provider(value: Option<&str>) -> Option<String> {
@@ -186,6 +210,9 @@ fn normalize_settings(settings: Settings) -> Settings {
         editor_font: normalize_editor_font(settings.editor_font.as_deref()),
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         menu_bar_icon_enabled: settings.menu_bar_icon_enabled,
+        native_shell_material: normalize_native_shell_material(
+            settings.native_shell_material.as_deref(),
+        ),
         initial_h1_auto_rename_enabled: settings.initial_h1_auto_rename_enabled,
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
         ai_agent_models: normalize_ai_agent_models(settings.ai_agent_models),

@@ -78,6 +78,7 @@ describe('streamAiAgent', () => {
     invokeMock.mockImplementation(async () => {
       eventHandler?.({ payload: { kind: 'Init', session_id: 'session-1' } })
       eventHandler?.({ payload: { kind: 'ThinkingDelta', text: 'thinking...' } })
+      eventHandler?.({ payload: { kind: 'RouteResolved', provider: 'ollama', model: 'qwen3:8b' } })
       eventHandler?.({ payload: { kind: 'TextDelta', text: 'answer' } })
       eventHandler?.({ payload: { kind: 'ToolStart', tool_name: 'Write', tool_id: 'tool-1', input: '{"path":"/vault/note.md"}' } })
       eventHandler?.({ payload: { kind: 'ToolDone', tool_id: 'tool-1', output: 'saved' } })
@@ -88,6 +89,7 @@ describe('streamAiAgent', () => {
     const callbacks = {
       onText: vi.fn(),
       onThinking: vi.fn(),
+      onRouteResolved: vi.fn(),
       onToolStart: vi.fn(),
       onToolDone: vi.fn(),
       onError: vi.fn(),
@@ -118,6 +120,7 @@ describe('streamAiAgent', () => {
       },
     })
     expect(callbacks.onThinking).toHaveBeenCalledWith('thinking...')
+    expect(callbacks.onRouteResolved).toHaveBeenCalledWith({ provider: 'ollama', model: 'qwen3:8b' })
     expect(callbacks.onText).toHaveBeenCalledWith('answer')
     expect(callbacks.onToolStart).toHaveBeenCalledWith('Write', 'tool-1', '{"path":"/vault/note.md"}')
     expect(callbacks.onToolDone).toHaveBeenCalledWith('tool-1', 'saved')

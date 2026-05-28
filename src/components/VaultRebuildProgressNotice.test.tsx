@@ -20,7 +20,16 @@ describe('VaultRebuildProgressNotice', () => {
     )
 
     expect(screen.getByText('Scanning 2/4 - notes/today.md')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    const notice = screen.getByTestId('vault-rebuild-progress-notice')
+    const cancel = screen.getByRole('button', { name: 'Cancel' })
+    expect(notice).toHaveClass('animate-in')
+    expect(notice).toHaveAttribute('data-motion-cancellable', 'true')
+    expect(cancel).toHaveAttribute('data-motion-cancel-action', 'true')
+    expect(cancel).toHaveClass('pointer-events-auto')
+    expect(cancel).toHaveClass('z-10')
+    expect(cancel).not.toBeDisabled()
+
+    fireEvent.click(cancel)
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 

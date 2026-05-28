@@ -17,6 +17,15 @@ export interface AiActivityCallbacks {
 const WS_UI_URL = 'ws://localhost:9711'
 const HIGHLIGHT_DURATION_MS = 800
 const RECONNECT_DELAY_MS = 3000
+const MAX_RECONNECT_DELAY_MS = 30_000
+
+function isUiBridgeVisible(): boolean {
+  return typeof document === 'undefined' || document.visibilityState !== 'hidden'
+}
+
+function nextReconnectDelay(delayMs: number): number {
+  return Math.min(delayMs * 2, MAX_RECONNECT_DELAY_MS)
+}
 
 /**
  * Listens on the UI WebSocket bridge (port 9711) for UI action events
@@ -66,28 +75,68 @@ export function useAiActivity(callbacks?: AiActivityCallbacks): AiActivity {
     let ws: WebSocket | null = null
     let mounted = true
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+    let reconnectDelayMs = RECONNECT_DELAY_MS
+
+    function clearReconnectTimer() {
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      reconnectTimer = null
+    }
+
+    function closeSocket() {
+      if (!ws) return
+      ws.onclose = null
+      ws.onmessage = null
+      ws.onerror = null
+      ws.close()
+      ws = null
+    }
+
+    function scheduleReconnect() {
+      clearReconnectTimer()
+      if (!mounted || !isUiBridgeVisible()) return
+      reconnectTimer = setTimeout(connect, reconnectDelayMs)
+      reconnectDelayMs = nextReconnectDelay(reconnectDelayMs)
+    }
 
     function connect() {
-      if (!mounted) return
+      if (!mounted || !isUiBridgeVisible() || typeof WebSocket === 'undefined') return
+      if (ws) return
       try {
+        clearReconnectTimer()
         ws = new WebSocket(WS_UI_URL)
+        ws.onopen = () => { reconnectDelayMs = RECONNECT_DELAY_MS }
         ws.onmessage = handleMessage
         ws.onclose = () => {
-          if (mounted) reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS)
+          ws = null
+          scheduleReconnect()
         }
         ws.onerror = () => { /* Silent — bridge may not be running */ }
       } catch {
-        if (mounted) reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS)
+        scheduleReconnect()
       }
     }
 
+    const handleVisibilityChange = () => {
+      if (!isUiBridgeVisible()) {
+        clearReconnectTimer()
+        closeSocket()
+        return
+      }
+      reconnectDelayMs = RECONNECT_DELAY_MS
+      connect()
+    }
+
     connect()
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
 
     return () => {
       mounted = false
-      ws?.close()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleVisibilityChange)
+      closeSocket()
       if (timerRef.current) clearTimeout(timerRef.current)
-      if (reconnectTimer) clearTimeout(reconnectTimer)
+      clearReconnectTimer()
     }
   }, [handleMessage])
 

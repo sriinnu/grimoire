@@ -47,16 +47,15 @@ async function resolveVaultNotePath(vaultPath, notePath) {
  * Read a note with parsed frontmatter and content.
  * @param {string} vaultPath
  * @param {string} notePath
- * @param {{allowLocalOnly?: boolean}} [options]
  * @returns {Promise<{path: string, frontmatter: Record<string, unknown>, content: string}>}
  */
-export async function getNote(vaultPath, notePath, options = {}) {
+export async function getNote(vaultPath, notePath) {
   const {
     vaultRoot,
     noteRealPath,
     relativePath,
   } = await resolveVaultNotePath(vaultPath, notePath)
-  const raw = await readVisibleMarkdownFile(vaultRoot, noteRealPath, options.allowLocalOnly)
+  const raw = await readVisibleMarkdownFile(vaultRoot, noteRealPath)
   const parsed = matter(raw)
   return {
     path: relativePath,
@@ -70,12 +69,11 @@ export async function getNote(vaultPath, notePath, options = {}) {
  * @param {string} vaultPath
  * @param {string} query
  * @param {number} [limit=10]
- * @param {{allowLocalOnly?: boolean}} [options]
  * @returns {Promise<Array<{path: string, title: string, snippet: string}>>}
  */
-export async function searchNotes(vaultPath, query, limit = 10, options = {}) {
+export async function searchNotes(vaultPath, query, limit = 10) {
   const vaultRoot = await fs.realpath(vaultPath)
-  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(vaultRoot), options.allowLocalOnly)
+  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(vaultRoot))
   const q = query.toLowerCase()
   const results = []
 
@@ -100,12 +98,11 @@ export async function searchNotes(vaultPath, query, limit = 10, options = {}) {
 /**
  * Get vault context: unique types, note count, top-level folders, and 20 most recent notes.
  * @param {string} vaultPath
- * @param {{allowLocalOnly?: boolean}} [options]
  * @returns {Promise<{types: string[], noteCount: number, folders: string[], recentNotes: Array<{path: string, title: string, type: string|null}>, vaultPath: string}>}
  */
-export async function vaultContext(vaultPath, options = {}) {
+export async function vaultContext(vaultPath) {
   const vaultRoot = await fs.realpath(vaultPath)
-  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(vaultRoot), options.allowLocalOnly)
+  const files = await visibleMarkdownFiles(vaultRoot, await findMarkdownFiles(vaultRoot))
   const typesSet = new Set()
   const foldersSet = new Set()
   const notesWithMtime = []

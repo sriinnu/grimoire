@@ -8,6 +8,9 @@ const APP_SETTINGS: &str = "app-settings";
 const APP_CHECK_FOR_UPDATES: &str = "app-check-for-updates";
 
 const FILE_NEW_NOTE: &str = "file-new-note";
+const FILE_CAPTURE_THOUGHT: &str = "file-capture-thought";
+const FILE_CAPTURE_JOURNAL: &str = "file-capture-journal";
+const FILE_CAPTURE_DREAM: &str = "file-capture-dream";
 const FILE_NEW_TYPE: &str = "file-new-type";
 const FILE_QUICK_OPEN: &str = "file-quick-open";
 const FILE_QUICK_OPEN_ALIAS: &str = "file-quick-open-alias";
@@ -58,6 +61,9 @@ const CUSTOM_IDS: &[&str] = &[
     APP_SETTINGS,
     APP_CHECK_FOR_UPDATES,
     FILE_NEW_NOTE,
+    FILE_CAPTURE_THOUGHT,
+    FILE_CAPTURE_JOURNAL,
+    FILE_CAPTURE_DREAM,
     FILE_NEW_TYPE,
     FILE_QUICK_OPEN,
     FILE_QUICK_OPEN_ALIAS,
@@ -168,6 +174,15 @@ fn build_file_menu(app: &App) -> MenuResult {
         .id(FILE_NEW_NOTE)
         .accelerator("CmdOrCtrl+N")
         .build(app)?;
+    let capture_thought = MenuItemBuilder::new("Capture Thought")
+        .id(FILE_CAPTURE_THOUGHT)
+        .build(app)?;
+    let capture_journal = MenuItemBuilder::new("Journal Entry")
+        .id(FILE_CAPTURE_JOURNAL)
+        .build(app)?;
+    let capture_dream = MenuItemBuilder::new("Dream Entry")
+        .id(FILE_CAPTURE_DREAM)
+        .build(app)?;
     let new_type = MenuItemBuilder::new("New Type")
         .id(FILE_NEW_TYPE)
         .build(app)?;
@@ -185,6 +200,9 @@ fn build_file_menu(app: &App) -> MenuResult {
         .build(app)?;
     Ok(SubmenuBuilder::new(app, "File")
         .item(&new_note)
+        .item(&capture_thought)
+        .item(&capture_journal)
+        .item(&capture_dream)
         .item(&new_type)
         .item(&quick_open)
         .item(&quick_open_alias)
@@ -516,6 +534,9 @@ mod tests {
             APP_SETTINGS,
             APP_CHECK_FOR_UPDATES,
             FILE_NEW_NOTE,
+            FILE_CAPTURE_THOUGHT,
+            FILE_CAPTURE_JOURNAL,
+            FILE_CAPTURE_DREAM,
             FILE_NEW_TYPE,
             FILE_QUICK_OPEN,
             FILE_SAVE,

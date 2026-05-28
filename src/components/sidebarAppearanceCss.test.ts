@@ -34,4 +34,16 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('.sidebar-artwork--compact')
     expect(css).toContain('position: relative')
   })
+
+  it('gives top navigation icons theme-aware color chips without recoloring labels', () => {
+    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+
+    expect(css).toContain('.sidebar-top-nav__tone')
+    expect(css).toContain('[data-sidebar-nav-tone="aura"]')
+    expect(css).toContain('[data-sidebar-nav-tone="amber"]')
+    expect(css).toContain('[data-sidebar-nav-tone="blue"]')
+    expect(css).toContain('[data-sidebar-nav-tone="violet"]')
+    expect(css).toContain('.sidebar-top-nav__tone > div > svg')
+    expect(css).toContain('drop-shadow')
+  })
 })

@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, type ComponentProps, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
+import { isDocumentVisible, scheduleVisibleWork } from '../hooks/visibleDocument'
 import type { CloneVaultModal } from './CloneVaultModal'
 import type { CommandPalette } from './CommandPalette'
 import type { CommitDialog } from './CommitDialog'
@@ -7,16 +8,23 @@ import type { ConflictResolverModal } from './ConflictResolverModal'
 import type { CreateTypeDialog } from './CreateTypeDialog'
 import type { CreateVaultDialog } from './CreateVaultDialog'
 import type { CreateViewDialog } from './CreateViewDialog'
+import type { DashboardRoute } from './dashboard/DashboardRoute'
+import type { DeleteProgressNotice } from './DeleteProgressNotice'
 import type { FeedbackDialog } from './FeedbackDialog'
 import type { GraphModal } from './GraphModal'
 import type { McpSetupDialog } from './McpSetupDialog'
+import type { NoteRetargetingDialogs } from './note-retargeting/NoteRetargetingDialogs'
 import type { PulseView } from './PulseView'
 import type { QuickOpenPalette } from './QuickOpenPalette'
+import type { RenameDetectedBanner } from './RenameDetectedBanner'
 import type { SearchPanel } from './SearchPanel'
 import type { SettingsPanel } from './SettingsPanel'
+import type { StatusBar } from './StatusBar'
 import type { AiAgentsOnboardingPrompt } from './AiAgentsOnboardingPrompt'
 import type { AudioRecordingDialog } from './AudioRecordingDialog'
 import type { TelemetryConsentDialog } from './TelemetryConsentDialog'
+import type { UpdateBanner } from './UpdateBanner'
+import type { VaultRebuildProgressNotice } from './VaultRebuildProgressNotice'
 import type { WelcomeScreen } from './WelcomeScreen'
 import type { WeatherSnapshotDialog } from './WeatherSnapshotDialog'
 
@@ -28,16 +36,23 @@ const ConflictResolverModalSurface = lazy(async () => ({ default: (await import(
 const CreateTypeDialogSurface = lazy(async () => ({ default: (await import('./CreateTypeDialog')).CreateTypeDialog }))
 const CreateVaultDialogSurface = lazy(async () => ({ default: (await import('./CreateVaultDialog')).CreateVaultDialog }))
 const CreateViewDialogSurface = lazy(async () => ({ default: (await import('./CreateViewDialog')).CreateViewDialog }))
+const DashboardRouteSurface = lazy(async () => ({ default: (await import('./dashboard/DashboardRoute')).DashboardRoute }))
+const DeleteProgressNoticeSurface = lazy(async () => ({ default: (await import('./DeleteProgressNotice')).DeleteProgressNotice }))
 const FeedbackDialogSurface = lazy(async () => ({ default: (await import('./FeedbackDialog')).FeedbackDialog }))
 const GraphModalSurface = lazy(async () => ({ default: (await import('./GraphModal')).GraphModal }))
 const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
+const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
 const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
 const QuickOpenPaletteSurface = lazy(async () => ({ default: (await import('./QuickOpenPalette')).QuickOpenPalette }))
+const RenameDetectedBannerSurface = lazy(async () => ({ default: (await import('./RenameDetectedBanner')).RenameDetectedBanner }))
 const SearchPanelSurface = lazy(async () => ({ default: (await import('./SearchPanel')).SearchPanel }))
 const SettingsPanelSurface = lazy(async () => ({ default: (await import('./SettingsPanel')).SettingsPanel }))
+const StatusBarSurface = lazy(async () => ({ default: (await import('./StatusBar')).StatusBar }))
 const AiAgentsOnboardingPromptSurface = lazy(async () => ({ default: (await import('./AiAgentsOnboardingPrompt')).AiAgentsOnboardingPrompt }))
 const AudioRecordingDialogSurface = lazy(async () => ({ default: (await import('./AudioRecordingDialog')).AudioRecordingDialog }))
 const TelemetryConsentDialogSurface = lazy(async () => ({ default: (await import('./TelemetryConsentDialog')).TelemetryConsentDialog }))
+const UpdateBannerSurface = lazy(async () => ({ default: (await import('./UpdateBanner')).UpdateBanner }))
+const VaultRebuildProgressNoticeSurface = lazy(async () => ({ default: (await import('./VaultRebuildProgressNotice')).VaultRebuildProgressNotice }))
 const WeatherSnapshotDialogSurface = lazy(async () => ({ default: (await import('./WeatherSnapshotDialog')).WeatherSnapshotDialog }))
 
 type WelcomeScreenSurfaceModule = { default: typeof WelcomeScreen }
@@ -58,6 +73,39 @@ function VisibleSurface({ open, children }: { open: boolean; children: ReactNode
 
 function ColdRouteSurface({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading...</div>}>{children}</Suspense>
+}
+
+type StatusBarProps = ComponentProps<typeof StatusBar>
+
+function StatusBarFallback({ isGitVault = true, remoteStatus }: Pick<StatusBarProps, 'isGitVault' | 'remoteStatus'>) {
+  const showNoRemote = remoteStatus?.hasRemote === false
+  const fallbackLabel = isGitVault ? 'No remote' : 'Local only'
+
+  return (
+    <footer
+      className="status-bar"
+      data-testid="status-bar"
+      data-status-tone="neutral"
+      aria-label="Grimoire status loading"
+      style={{
+        minHeight: 30,
+        height: 30,
+        flexShrink: 0,
+        background: 'linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 96%, var(--background)), var(--sidebar))',
+        borderTop: '1px solid color-mix(in srgb, var(--sidebar-border) 72%, transparent)',
+        color: 'var(--status-bar-muted-foreground, color-mix(in srgb, var(--sidebar-foreground) 76%, transparent))',
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 8px',
+      }}
+    >
+      {!isGitVault || showNoRemote ? (
+        <span data-testid={isGitVault ? 'status-no-remote' : 'status-local-only'} style={{ fontSize: 11, fontWeight: 600 }}>
+          {fallbackLabel}
+        </span>
+      ) : null}
+    </footer>
+  )
 }
 
 /** Defers command-palette parsing until the palette is opened. */
@@ -168,12 +216,78 @@ export function LazyConfirmDeleteDialog(props: ComponentProps<typeof ConfirmDele
   )
 }
 
+/** Defers note retargeting dialogs until a type/folder retarget action starts. */
+export function LazyNoteRetargetingDialogs(props: ComponentProps<typeof NoteRetargetingDialogs>) {
+  return (
+    <VisibleSurface open={props.dialogState !== null}>
+      <NoteRetargetingDialogsSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers updater banner actions until a release banner is actually visible. */
+export function LazyUpdateBanner(props: ComponentProps<typeof UpdateBanner>) {
+  const visible = props.status.state !== 'idle' && props.status.state !== 'error'
+  return (
+    <VisibleSurface open={visible}>
+      <UpdateBannerSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers rename-repair banner UI until external renames are detected. */
+export function LazyRenameDetectedBanner(props: ComponentProps<typeof RenameDetectedBanner>) {
+  return (
+    <VisibleSurface open={props.renames.length > 0}>
+      <RenameDetectedBannerSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers delete-progress toast UI until a delete batch is active. */
+export function LazyDeleteProgressNotice(props: ComponentProps<typeof DeleteProgressNotice>) {
+  return (
+    <VisibleSurface open={props.count > 0}>
+      <DeleteProgressNoticeSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers rebuild-progress UI until a vault rebuild is active. */
+export function LazyVaultRebuildProgressNotice(props: ComponentProps<typeof VaultRebuildProgressNotice>) {
+  return (
+    <VisibleSurface open={props.progress !== null}>
+      <VaultRebuildProgressNoticeSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
 /** Defers settings UI until the settings panel is opened. */
 export function LazySettingsPanel(props: ComponentProps<typeof SettingsPanel>) {
   return (
     <VisibleSurface open={props.open}>
       <SettingsPanelSurface {...props} />
     </VisibleSurface>
+  )
+}
+
+/** Defers status-bar menus and badges out of the first startup bundle while preserving footer height. */
+export function LazyStatusBar(props: ComponentProps<typeof StatusBar>) {
+  const [ready, setReady] = useState(() => isDocumentVisible())
+
+  useEffect(() => {
+    if (ready) return
+    return scheduleVisibleWork(() => setReady(true))
+  }, [ready])
+
+  if (!ready) {
+    return <StatusBarFallback isGitVault={props.isGitVault} remoteStatus={props.remoteStatus} />
+  }
+
+  return (
+    <Suspense fallback={<StatusBarFallback isGitVault={props.isGitVault} remoteStatus={props.remoteStatus} />}>
+      <StatusBarSurface {...props} />
+    </Suspense>
   )
 }
 
@@ -195,6 +309,15 @@ export function LazyWelcomeScreen(props: ComponentProps<typeof WelcomeScreen>) {
   return (
     <ColdRouteSurface>
       <WelcomeScreenSurface {...props} />
+    </ColdRouteSurface>
+  )
+}
+
+/** Defers the assistant dashboard, daily-flow summaries, and capture planner until Dashboard is selected. */
+export function LazyDashboardRoute(props: ComponentProps<typeof DashboardRoute>) {
+  return (
+    <ColdRouteSurface>
+      <DashboardRouteSurface {...props} />
     </ColdRouteSurface>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useCallback, useRef, useState } from 'react'
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -14,10 +14,6 @@ import { WikilinkSuggestionMenu, type WikilinkSuggestionItem } from './WikilinkS
 import type { VaultEntry } from '../types'
 import { _wikilinkEntriesRef } from './editorSchema'
 import { useBlockNoteSideMenuHoverGuard } from './blockNoteSideMenuHoverGuard'
-import {
-  GrimoireFormattingToolbar,
-  GrimoireFormattingToolbarController,
-} from './grimoireEditorFormatting'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
 import { useEditorLinkActivation } from './useEditorLinkActivation'
 import { findNearestTextCursorBlock } from './blockNoteCursorTarget'
@@ -36,6 +32,10 @@ import {
   applyDetectedCodeBlockLanguage,
   type CodeLanguageDetectionEditor,
 } from './codeBlockLanguageDetection'
+
+const GrimoireFormattingToolbarSurface = lazy(async () => ({
+  default: (await import('./GrimoireFormattingToolbarSurface')).GrimoireFormattingToolbarSurface,
+}))
 
 const TEST_TABLE_MARKDOWN = `| Head 1 | Head 2 | Head 3 |
 | --- | --- | --- |
@@ -338,14 +338,15 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
         sideMenu={false}
       >
         <SideMenuController sideMenu={GrimoireSideMenu} />
-        <GrimoireFormattingToolbarController
-          formattingToolbar={GrimoireFormattingToolbar}
-          floatingUIOptions={{
-            elementProps: {
-              onMouseDownCapture: handleToolbarMouseDownCapture,
-            },
-          }}
-        />
+        <Suspense fallback={null}>
+          <GrimoireFormattingToolbarSurface
+            floatingUIOptions={{
+              elementProps: {
+                onMouseDownCapture: handleToolbarMouseDownCapture,
+              },
+            }}
+          />
+        </Suspense>
         <LinkToolbarController
           linkToolbar={GrimoireLinkToolbar}
           floatingUIOptions={{

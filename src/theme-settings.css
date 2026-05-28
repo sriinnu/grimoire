@@ -1,0 +1,184 @@
+:where(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) {
+  --grimoire-settings-rail-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 94%, var(--surface-card)), color-mix(in srgb, var(--surface-panel) 88%, var(--surface-app)));
+  --grimoire-settings-mobile-rail-material: linear-gradient(135deg, color-mix(in srgb, var(--surface-panel) 88%, var(--surface-card)), color-mix(in srgb, var(--surface-panel) 92%, var(--surface-app)));
+  --grimoire-settings-control-material: color-mix(in srgb, var(--surface-card) 74%, var(--surface-panel));
+  --grimoire-settings-active-material: linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, var(--surface-card)), color-mix(in srgb, var(--surface-panel) 88%, var(--surface-card)));
+  --grimoire-settings-hover-material: color-mix(in srgb, var(--primary) 8%, var(--surface-card));
+  --grimoire-settings-section-divider: color-mix(in srgb, var(--grimoire-hairline) 82%, transparent);
+  --grimoire-settings-control-shadow: 0 1px 0 color-mix(in srgb, var(--surface-popover) 28%, transparent);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-navigation-rail {
+  background: var(--grimoire-settings-rail-material);
+  border-right-color: var(--grimoire-hairline);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-main-surface {
+  background: var(--grimoire-settings-main-material);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-vault-summary {
+  border-color: var(--grimoire-settings-section-divider);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-section-divider {
+  background: var(--grimoire-settings-section-divider);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-vault-state-pill {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-settings-control-material);
+  color: var(--text-secondary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-navigation-item {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-navigation-item:is(:hover, :focus-visible) {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-settings-hover-material);
+  color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-navigation-item[aria-current="page"] {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--grimoire-hairline));
+  background: var(--grimoire-settings-active-material);
+  color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-mobile-navigation {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 92%, transparent), transparent);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-mobile-navigation__rail {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-settings-mobile-rail-material);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) :is(.settings-section [data-slot="input"], .settings-section [data-slot="select-trigger"]) {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-settings-control-material);
+  box-shadow: var(--grimoire-settings-control-shadow);
+  color: var(--text-primary);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) :is(.settings-section [data-slot="input"], .settings-section [data-slot="select-trigger"]):focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--grimoire-hairline));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(
+    [data-theme-preset="constellation"],
+    [data-theme-preset="daylight-atelier"],
+    [data-theme-preset="living-archive"],
+    [data-theme-preset="nocturne"],
+    [data-theme-preset="retro-terminal"]
+  ) .settings-navigation-item {
+    transition:
+      transform 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  :is(
+    [data-theme-preset="constellation"],
+    [data-theme-preset="daylight-atelier"],
+    [data-theme-preset="living-archive"],
+    [data-theme-preset="nocturne"],
+    [data-theme-preset="retro-terminal"]
+  ) .settings-navigation-rail .settings-navigation-item:is(:hover, :focus-visible) {
+    transform: translateX(1px);
+  }
+
+  :is(
+    [data-theme-preset="constellation"],
+    [data-theme-preset="daylight-atelier"],
+    [data-theme-preset="living-archive"],
+    [data-theme-preset="nocturne"],
+    [data-theme-preset="retro-terminal"]
+  ) .settings-mobile-navigation .settings-navigation-item:is(:hover, :focus-visible) {
+    transform: translateY(-1px);
+  }
+}

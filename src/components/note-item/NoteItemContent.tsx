@@ -1,12 +1,11 @@
 import type { ComponentType, MouseEvent as ReactMouseEvent, SVGAttributes } from 'react'
-import { FolderTree } from 'lucide-react'
 import type { NoteStatus, VaultEntry } from '../../types'
 import { cn } from '@/lib/utils'
 import { getDisplayDate, relativeDate } from '../../utils/noteListHelpers'
-import { getTypeColor } from '../../utils/typeColors'
 import { NoteTitleIcon } from '../NoteTitleIcon'
 import { TypeIconMark } from '../TypeIconMark'
 import { ChangeNoteContent } from './ChangeNoteContent'
+import { NoteOwnershipChips } from './NoteOwnershipChips'
 import { PropertyChips } from './PropertyChips'
 import { getNoteProjectContexts, isProjectContextPropertyName, type NoteProjectContext } from './noteContext'
 import { getFileKindIcon, getTypeIcon } from './typeIcon'
@@ -95,79 +94,6 @@ function NoteSnippet({ snippet }: { snippet?: string | null }) {
   )
 }
 
-function splitLocationLabel(locationLabel: string): { parent: string | null; leaf: string } {
-  const parts = locationLabel.split(' / ').map((part) => part.trim()).filter(Boolean)
-  const leaf = parts.pop() ?? locationLabel
-  return { parent: parts.length > 0 ? parts.join(' / ') : null, leaf }
-}
-
-function NoteLocationChip({ locationLabel }: { locationLabel: string }) {
-  const location = splitLocationLabel(locationLabel)
-
-  return (
-    <div
-      className="note-context-chip note-location-chip inline-flex min-w-0 max-w-full items-center gap-1 self-start rounded border border-border bg-muted/55 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
-      data-testid="note-location-chip"
-      title={locationLabel}
-    >
-      <FolderTree className="size-3 shrink-0" aria-hidden="true" />
-      {location.parent ? <span className="min-w-0 truncate text-muted-foreground">{location.parent} / </span> : null}
-      <span className="min-w-0 truncate font-semibold text-foreground/85">{location.leaf}</span>
-    </div>
-  )
-}
-
-function NoteProjectChips({
-  projects,
-  typeEntryMap,
-  onClickNote,
-}: {
-  projects: NoteProjectContext[]
-  typeEntryMap: NoteItemContentProps['typeEntryMap']
-  onClickNote: NoteItemContentProps['onClickNote']
-}) {
-  if (projects.length === 0) return null
-
-  const projectType = typeEntryMap.Project ?? typeEntryMap.project
-  const ProjectIcon = getTypeIcon('Project', projectType?.icon)
-  const color = getTypeColor('Project', projectType?.color)
-
-  return (
-    <>
-      {projects.map((project) => (
-        <span
-          key={project.key}
-          className={cn(
-            'note-context-chip note-project-chip inline-flex min-w-0 max-w-full items-center gap-1 self-start rounded border px-1.5 py-0.5 text-[10px] font-semibold',
-            project.entry && 'cursor-pointer',
-          )}
-          data-testid="note-project-chip"
-          onClick={(event) => {
-            event.preventDefault()
-            event.stopPropagation()
-            if (event.metaKey && project.entry) onClickNote(project.entry, event)
-          }}
-          style={{
-            backgroundColor: 'var(--muted)',
-            borderColor: `color-mix(in srgb, ${color} 42%, var(--border))`,
-            color: 'var(--foreground)',
-          }}
-          title={project.entry ? `${project.entry.path} - Cmd-click to open project` : project.label}
-        >
-          <TypeIconMark
-            className="shrink-0"
-            color={color}
-            fallbackIcon={ProjectIcon}
-            iconValue={projectType?.icon ?? null}
-            size={11}
-          />
-          <span className="truncate">{`Project · ${project.label}`}</span>
-        </span>
-      ))}
-    </>
-  )
-}
-
 function NoteContextChips({
   locationLabel,
   projects,
@@ -180,10 +106,12 @@ function NoteContextChips({
   const showProjectChips = !displayProps.some(isProjectContextPropertyName)
 
   return (
-    <div className="flex max-w-full flex-wrap gap-1.5">
-      <NoteLocationChip locationLabel={locationLabel} />
-      {showProjectChips ? <NoteProjectChips projects={projects} typeEntryMap={typeEntryMap} onClickNote={onClickNote} /> : null}
-    </div>
+    <NoteOwnershipChips
+      locationLabel={locationLabel}
+      projects={showProjectChips ? projects : []}
+      typeEntryMap={typeEntryMap}
+      onClickNote={onClickNote}
+    />
   )
 }
 

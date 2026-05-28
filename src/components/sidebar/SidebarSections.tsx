@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import {
   type SectionGroup, isSelectionActive, SectionContent, VisibilityPopover,
 } from '../SidebarParts'
-import { TypeCustomizePopover } from '../TypeCustomizePopover'
 import { useDragRegion } from '../../hooks/useDragRegion'
 import { NoteDropTarget } from '../note-retargeting/NoteDropTarget'
 import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingContext'
@@ -24,6 +23,8 @@ export { FavoritesSection } from './FavoritesSection'
 
 const LazySortableTypesSection = lazy(() => import('./SortableTypesSection')
   .then((module) => ({ default: module.SortableTypesSection })))
+const LazyTypeCustomizePopover = lazy(() => import('../TypeCustomizePopover')
+  .then((module) => ({ default: module.TypeCustomizePopover })))
 
 export interface SidebarSectionProps {
   entries: VaultEntry[]
@@ -337,15 +338,17 @@ export function CustomizeOverlay({
 
   return (
     <div ref={innerRef} className="fixed z-50" style={{ left: 20, top: 100 }}>
-      <TypeCustomizePopover
-        currentIcon={typeEntryMap[target]?.icon ?? null}
-        currentColor={typeEntryMap[target]?.color ?? null}
-        currentTemplate={typeEntryMap[target]?.template ?? null}
-        onChangeIcon={(icon) => onCustomize('icon', icon)}
-        onChangeColor={(color) => onCustomize('color', color)}
-        onChangeTemplate={onChangeTemplate}
-        onClose={onClose}
-      />
+      <Suspense fallback={null}>
+        <LazyTypeCustomizePopover
+          currentIcon={typeEntryMap[target]?.icon ?? null}
+          currentColor={typeEntryMap[target]?.color ?? null}
+          currentTemplate={typeEntryMap[target]?.template ?? null}
+          onChangeIcon={(icon) => onCustomize('icon', icon)}
+          onChangeColor={(color) => onCustomize('color', color)}
+          onChangeTemplate={onChangeTemplate}
+          onClose={onClose}
+        />
+      </Suspense>
     </div>
   )
 }

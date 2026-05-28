@@ -56,3 +56,22 @@
   align-items: center;
   gap: 6px;
 }
+
+.vault-dashboard__ask-preview-intent {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: color-mix(in srgb, var(--accent-gold) 14%, var(--card));
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.vault-dashboard__ask-preview-intent strong {
+  display: block;
+  color: var(--accent-gold);
+  font-size: 11px;
+  text-transform: uppercase;
+}

@@ -7,7 +7,8 @@ import type { NoteReference } from '../utils/ai-context'
 import type { CommandAction, CommandGroup } from '../hooks/useCommandRegistry'
 import { groupSortKey } from '../hooks/useCommandRegistry'
 import { rememberFeedbackDialogOpener } from '../lib/feedbackDialogOpener'
-import { createTranslator, type AppLocale } from '../lib/i18n'
+import type { AppLocale } from '../lib/i18nCore'
+import { createCommandTranslator } from '../lib/i18nCommands'
 import { CommandPaletteAiMode } from './CommandPaletteAiMode'
 import { CommandPaletteFooter, CommandPaletteInput, CommandPaletteResults, type CommandPaletteFooterText } from './CommandPaletteParts'
 
@@ -140,7 +141,7 @@ function OpenCommandPalette({
   const aiMode = aiValue.startsWith(' ')
   const resolvedAiAgentReady = aiAgentReady ?? claudeCodeReady
   const { groups, flatList } = usePaletteResults(commands, query)
-  const t = createTranslator(locale)
+  const t = createCommandTranslator(locale)
   const footerText: CommandPaletteFooterText = {
     aiMode: t('command.aiMode', { agent: '{agent}' }),
     navigate: t('command.footerNavigate'),
@@ -247,12 +248,12 @@ function OpenCommandPalette({
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex justify-center bg-[var(--shadow-dialog)] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
       onClick={onClose}
     >
       <div
         className={cn(
-          'grimoire-command-stage flex w-[520px] max-h-[440px] max-w-[90vw] flex-col self-start overflow-hidden rounded-xl border border-[var(--border-dialog)] bg-popover shadow-[0_8px_32px_var(--shadow-dialog)]',
+          'grimoire-command-stage grimoire-command-surface flex w-[520px] max-h-[440px] max-w-[90vw] flex-col self-start overflow-hidden border',
           aiMode && 'min-h-[220px]',
         )}
         data-testid="command-palette-surface"

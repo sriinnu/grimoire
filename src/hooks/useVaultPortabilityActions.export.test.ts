@@ -44,6 +44,8 @@ const objectStorageMocks = vi.hoisted(() => ({
   previewObjectStoragePullWithProgress: vi.fn(),
   previewObjectStoragePush: vi.fn(),
   previewObjectStoragePushWithProgress: vi.fn(),
+  runS3LivePreflight: vi.fn(),
+  formatS3LivePreflightToast: vi.fn(),
 }))
 
 vi.mock('../utils/markdownFolderImport', () => markdownMocks)

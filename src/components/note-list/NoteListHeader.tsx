@@ -1,15 +1,20 @@
+import { lazy, Suspense } from 'react'
 import { MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { Loader2 } from 'lucide-react'
 import type { VaultEntry } from '../../types'
-import type { SortOption, SortDirection } from '../../utils/noteListHelpers'
-import { translate, type AppLocale } from '../../lib/i18n'
+import type { SortOption, SortDirection } from '../../utils/noteListSorting'
+import type { AppLocale } from '../../lib/i18nCore'
+import { translateNoteList } from '../../lib/i18nNoteList'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDragRegion } from '../../hooks/useDragRegion'
 import { SortDropdown } from '../SortDropdown'
-import { ListPropertiesPopover, type ListPropertiesPopoverProps } from './ListPropertiesPopover'
+import type { ListPropertiesPopoverProps } from './ListPropertiesPopover'
 
-const NOTE_LIST_ACTION_BUTTON_CLASSNAME = '!h-auto !w-auto !min-w-0 !rounded-none !p-0 !text-muted-foreground hover:!bg-transparent hover:!text-foreground focus-visible:!bg-transparent data-[state=open]:!bg-transparent data-[state=open]:!text-foreground [&_svg]:!size-4'
+const NOTE_LIST_ACTION_BUTTON_CLASSNAME = 'note-list-chrome-action'
+const ListPropertiesPopoverSurface = lazy(async () => ({
+  default: (await import('./ListPropertiesPopover')).ListPropertiesPopover,
+}))
 
 export function NoteListHeader({ title, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, locale = 'en', onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown }: {
   title: string
@@ -44,13 +49,26 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
         >
           {title}
         </h3>
-        <div className="ml-3 flex shrink-0 items-center justify-end gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          {!isEntityView && <SortDropdown groupLabel="__list__" current={listSort} direction={listDirection} customProperties={customProperties} onChange={onSortChange} />}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={translate(locale, 'noteList.searchAction')} aria-label={translate(locale, 'noteList.searchAction')}>
+        <div className="note-list-chrome-actions ml-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+          {!isEntityView && (
+            <SortDropdown
+              groupLabel="__list__"
+              current={listSort}
+              direction={listDirection}
+              customProperties={customProperties}
+              triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME}
+              onChange={onSortChange}
+            />
+          )}
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={translateNoteList(locale, 'noteList.searchAction')} aria-label={translateNoteList(locale, 'noteList.searchAction')}>
             <MagnifyingGlass size={16} />
           </Button>
-          {propertyPicker && <ListPropertiesPopover {...propertyPicker} triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME} />}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={translate(locale, 'noteList.createNote')} aria-label={translate(locale, 'noteList.createNote')}>
+          {propertyPicker && (
+            <Suspense fallback={null}>
+              <ListPropertiesPopoverSurface {...propertyPicker} triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME} />
+            </Suspense>
+          )}
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={translateNoteList(locale, 'noteList.createNote')} aria-label={translateNoteList(locale, 'noteList.createNote')}>
             <Plus size={16} />
           </Button>
         </div>
@@ -60,7 +78,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
           <div className="relative flex-1" aria-live="polite">
             <Input
               ref={searchInputRef}
-              placeholder={translate(locale, 'noteList.searchPlaceholder')}
+              placeholder={translateNoteList(locale, 'noteList.searchPlaceholder')}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={onSearchKeyDown}

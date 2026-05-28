@@ -3,21 +3,27 @@ import { describe, expect, it } from 'vitest'
 
 describe('system theme CSS', () => {
   const css = [
-    'system-themes.css',
-    'theme-system-tokens.css',
-    'theme-semantic-tokens.css',
-    'theme-constellation.css',
-    'theme-flagship-shared.css',
-    'theme-editor-navigator.css',
-    'theme-coherence.css',
-    'theme-accessibility.css',
+    'system-themes.css', 'theme-system-tokens.css', 'theme-semantic-tokens.css', 'theme-constellation.css',
+    'theme-flagship-shared.css', 'theme-editor-navigator.css', 'theme-coherence.css', 'theme-status-bar.css',
+    'theme-surface-coherence.css', 'theme-agent-council.css', 'theme-ai-brief.css', 'theme-accessibility.css',
   ].map((file) => readFileSync(`${process.cwd()}/src/${file}`, 'utf8')).join('\n')
+  const appCss = readFileSync(`${process.cwd()}/src/App.css`, 'utf8')
+  const aiMarkdownCss = readFileSync(`${process.cwd()}/src/ai-markdown.css`, 'utf8')
+  const baseCss = readFileSync(`${process.cwd()}/src/theme-base.css`, 'utf8')
   const flagshipSharedCss = readFileSync(`${process.cwd()}/src/theme-flagship-shared.css`, 'utf8')
   const coherenceCss = readFileSync(`${process.cwd()}/src/theme-coherence.css`, 'utf8')
+  const statusBarCss = readFileSync(`${process.cwd()}/src/theme-status-bar.css`, 'utf8')
   const constellationCss = readFileSync(`${process.cwd()}/src/theme-constellation.css`, 'utf8')
   const editorCss = readFileSync(`${process.cwd()}/src/components/Editor.css`, 'utf8')
+  const editorHeadingCss = readFileSync(`${process.cwd()}/src/components/EditorHeadingProfiles.css`, 'utf8')
   const editorMetaCss = readFileSync(`${process.cwd()}/src/components/EditorMeta.css`, 'utf8')
   const editorThemeCss = readFileSync(`${process.cwd()}/src/components/EditorTheme.css`, 'utf8')
+  const graphAnimationsCss = readFileSync(`${process.cwd()}/src/graph-animations.css`, 'utf8')
+  const agentCouncilThemeCss = readFileSync(`${process.cwd()}/src/theme-agent-council.css`, 'utf8')
+  const canvasAttachmentCss = readFileSync(`${process.cwd()}/src/components/canvas/CanvasAttachment.css`, 'utf8')
+  const mainTsx = readFileSync(`${process.cwd()}/src/main.tsx`, 'utf8')
+  const noteListChromeCss = ['NoteListChrome.css', 'ProjectWorkspaceChrome.css', 'NoteListFilterRail.css']
+    .map((file) => readFileSync(`${process.cwd()}/src/components/note-list/${file}`, 'utf8')).join('\n')
   const polishCss = readFileSync(`${process.cwd()}/src/theme-polish.css`, 'utf8')
   const nonConstellationFlagshipSelector = ':where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
   const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
@@ -36,9 +42,7 @@ describe('system theme CSS', () => {
     return declaration!.slice(name.length + 1).replace(';', '').trim()
   }
 
-  function classOrAttributeCount(selector: string): number {
-    return (selector.match(/(?:\.|\[)/gu) ?? []).length
-  }
+  const classOrAttributeCount = (selector: string): number => (selector.match(/(?:\.|\[)/gu) ?? []).length
 
   function relativeLuminance(hex: string): number {
     const value = Number.parseInt(hex.slice(1), 16)
@@ -101,12 +105,59 @@ describe('system theme CSS', () => {
     expect(css).toContain('.editor-navigator-popover')
     expect(css).toContain('.sidebar-artwork')
     expect(css).toContain('.status-bar')
+    expect(css).toContain('.grimoire-ai-brief')
+    expect(css).toContain('.grimoire-ai-brief__runway-step')
     expect(css).toContain('.settings-navigation-rail')
+    expect(css).toContain('.settings-mobile-navigation')
     expect(css).toContain('.settings-main-surface')
+    expect(css).toContain('.grimoire-dialog-overlay')
+    expect(css).toContain('.grimoire-dialog-content')
+    expect(css).toContain('.grimoire-command-surface')
+    expect(css).toContain('.grimoire-portability-action-deck')
+    expect(css).toContain('.grimoire-import-autopsy')
+    expect(editorThemeCss).toContain('.html-preview-frame')
     expect(css).toContain('[data-testid="theme-pack-settings"]')
     expect(css).toContain('[data-testid="locality-firewall-card"]')
     expect(css).toContain('@keyframes grimoire-mark-arrive')
     expect(css).toContain('body.macos-overlay-chrome .app-sidebar-rail')
+    expect(editorHeadingCss).toContain('[data-theme-heading="graph"]')
+    expect(editorMetaCss).toContain('[data-theme-metadata-strip="quiet"]')
+    expect(editorMetaCss).toContain('[data-theme-metadata-strip="terminal"]')
+  })
+
+  it('routes density variables into dashboard and note-list rhythm', () => {
+    expect(baseCss).toContain('--grimoire-density-panel-padding: 16px')
+    expect(appCss).toContain('padding: var(--grimoire-density-page-padding, 28px)')
+    expect(appCss).toContain('gap: var(--grimoire-density-card-gap, 14px)')
+    expect(flagshipSharedCss).toContain('margin: var(--grimoire-density-note-card-margin, 8px 10px 0)')
+    expect(noteListChromeCss).toContain('padding: var(--grimoire-density-toolbar-padding, 8px 10px)')
+    expect(noteListChromeCss).toContain('padding: var(--grimoire-density-note-footer-padding, 7px 10px)')
+  })
+
+  it('routes code blocks through theme-pack code treatment variables', () => {
+    expect(baseCss).toContain('--grimoire-code-block-bg')
+    expect(editorThemeCss).toContain('var(--grimoire-code-block-bg, var(--surface-input))')
+    expect(editorThemeCss).toContain('var(--grimoire-code-block-border, var(--border-default))')
+    expect(aiMarkdownCss).toContain('var(--grimoire-code-block-bg, var(--muted))')
+    expect(aiMarkdownCss).toContain('var(--grimoire-code-block-shadow, none)')
+  })
+
+  it('routes graph and canvas surfaces through theme-pack visual variables', () => {
+    expect(baseCss).toContain('--grimoire-graph-bg')
+    expect(baseCss).toContain('--grimoire-canvas-stage-bg')
+    expect(baseCss).toContain('--grimoire-html-preview-bg')
+    expect(baseCss).toContain('--grimoire-html-preview-border')
+    expect(getRuleBody(graphAnimationsCss, '.graph-canvas-shell')).toContain('var(--grimoire-graph-bg')
+    expect(getRuleBody(graphAnimationsCss, '.graph-canvas-hud span,\n.graph-canvas-agent-rail span')).toContain('var(--grimoire-graph-hud-bg')
+    expect(graphAnimationsCss).toContain('.graph-canvas-package-card')
+    expect(graphAnimationsCss).toContain('.graph-canvas-agent-rail')
+    expect(graphAnimationsCss).toContain('var(--grimoire-graph-edge-relationship')
+    expect(graphAnimationsCss).toContain('var(--grimoire-graph-edge-local')
+    expect(getRuleBody(canvasAttachmentCss, '.canvas-attachment__toolbar')).toContain('var(--grimoire-canvas-toolbar-bg')
+    expect(getRuleBody(canvasAttachmentCss, '.canvas-attachment__stage')).toContain('var(--grimoire-canvas-stage-bg')
+    expect(getRuleBody(canvasAttachmentCss, '.canvas-attachment__surface')).toContain('var(--grimoire-canvas-paper-bg')
+    expect(getRuleBody(editorThemeCss, '.html-preview-frame')).toContain('var(--grimoire-html-preview-bg')
+    expect(graphAnimationsCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
   })
 
   it('keeps editor metadata styled even outside flagship presets', () => {
@@ -123,6 +174,16 @@ describe('system theme CSS', () => {
     expect(strongBody).toContain('display: block')
     expect(strongBody).toContain('min-width: 0')
     expect(editorMetaCss).toContain('.editor-content-layout--left .editor-meta-strip')
+  })
+
+  it('routes JSON heading and metadata profiles into structural editor CSS', () => {
+    expect(editorHeadingCss).toContain('[data-theme-heading="manuscript"]')
+    expect(editorHeadingCss).toContain('[data-theme-heading="terminal"]')
+    expect(editorHeadingCss).toContain('var(--grimoire-display-font-family')
+    expect(editorHeadingCss).toContain('var(--grimoire-mono-font-family')
+    expect(editorHeadingCss).toContain('border-bottom-style: dashed')
+    expect(editorMetaCss).toContain('[data-theme-metadata-strip="quiet"] .editor-meta-pill')
+    expect(editorMetaCss).toContain('[data-theme-metadata-strip="terminal"] .editor-meta-pill')
   })
 
   it('keeps BlockNote floating side controls compact and below the editor top edge', () => {
@@ -148,7 +209,7 @@ describe('system theme CSS', () => {
     expect(polishCss).toContain('[data-theme-preset="living-archive"] .breadcrumb-bar')
     expect(polishCss).toContain('[data-theme-preset="living-archive"] .editor-content-wrapper')
     expect(polishCss).toContain('[data-theme-preset="living-archive"] :is(.inspector-panel, .ai-panel)')
-    expect(polishCss).toContain('[data-theme-preset="living-archive"] .settings-main-surface')
+    expect(polishCss).toContain('--grimoire-settings-main-material')
     expect(polishCss).toContain('[data-theme-preset="living-archive"] .ai-panel [data-testid="agent-input"]')
     expect(getRuleBody(css, ':where(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n)')).toContain('--background: var(--surface-editor)')
     expect(lightBody).toContain('--grimoire-document-page: #eee4ce')
@@ -211,10 +272,33 @@ describe('system theme CSS', () => {
     expect(flagshipSharedCss).toContain('@keyframes grimoire-agent-ready')
   })
 
-  it('routes flagship status-bar copy through footer contrast tokens', () => {
-    const body = getRuleBody(flagshipSharedCss, `${nonConstellationFlagshipSelector} .status-bar`)
+  it('keeps graph package motion finite and reduced-motion safe', () => {
+    expect(graphAnimationsCss).not.toMatch(/grimoire-graph-node-package-orbit[\s\S]*?\binfinite\b/u)
+    expect(graphAnimationsCss).not.toMatch(/grimoire-graph-package-tether[\s\S]*?\binfinite\b/u)
+    expect(graphAnimationsCss).toContain('animation: grimoire-graph-package-settle 900ms var(--motion-ease-cinematic) 1 both')
+    expect(graphAnimationsCss).toContain('animation: grimoire-graph-package-tether 720ms var(--motion-ease-cinematic) 1 both')
+    expect(graphAnimationsCss).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(graphAnimationsCss).toContain('.grimoire-graph-package-tether')
+  })
 
-    expect(getDeclaration(body, 'color')).toBe('var(--status-bar-muted-foreground, color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)) !important')
+  it('keeps status bar and settings shell material ownership in shared theme layers', () => {
+    for (const source of [flagshipSharedCss, constellationCss, polishCss]) {
+      expect(source).not.toContain('.status-bar')
+      expect(source).not.toContain('.settings-panel-shell')
+      expect(source).not.toContain('.settings-navigation-rail')
+      expect(source).not.toContain('.settings-main-surface')
+      expect(source).not.toContain('[data-testid="theme-pack-settings"]')
+      expect(source).not.toContain('[data-testid="locality-firewall-card"]')
+    }
+
+    const statusBarBody = getRuleBody(statusBarCss, '.status-bar')
+
+    expect(statusBarCss).toContain('[data-theme="dark"]')
+    expect(statusBarCss).toContain('--status-bar-material: var(--grimoire-status-material')
+    expect(getDeclaration(statusBarBody, 'background')).toBe('var(--status-bar-material) !important')
+    expect(getDeclaration(statusBarBody, 'border-top')).toBe('1px solid var(--status-bar-hairline) !important')
+    expect(statusBarBody).toContain('var(--status-bar-tone-line)')
+    expect(statusBarBody).toContain('var(--status-bar-background)')
   })
 
   it('keeps constellation surfaces token-driven instead of hard-coded panel islands', () => {
@@ -222,9 +306,9 @@ describe('system theme CSS', () => {
     expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] .note-list-panel')).toContain('var(--surface-panel)')
     expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] :is(.editor, .editor-scroll-area)')).toContain('var(--surface-editor)')
     expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] :is(.inspector-panel, .ai-panel)')).toContain('var(--surface-panel)')
-    expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] .status-bar')).toContain('var(--surface-sidebar)')
     expect(getRuleBody(flagshipSharedCss, `${strongNonConstellationFlagshipSelector} .editor-content-wrapper`)).toContain('var(--surface-card)')
-    expect(flagshipSharedCss).toContain(':is(.project-workspace-chrome, .note-list-filter-shelf)')
+    expect(flagshipSharedCss).toContain(':is(.project-workspace-chrome__overview, .project-workspace-chrome__docs, .note-list-filter-group)')
+    expect(flagshipSharedCss).not.toContain(':is(.project-workspace-chrome, .note-list-filter-shelf)')
     expect(flagshipSharedCss).toContain('box-shadow: none')
     expect(constellationCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
   })
@@ -236,27 +320,57 @@ describe('system theme CSS', () => {
     expect(coherenceCss).toContain('--grimoire-dialog-material')
     expect(coherenceCss).toContain('--grimoire-settings-main-material')
     expect(coherenceCss).toContain('--grimoire-agent-card-material')
+    expect(agentCouncilThemeCss).toContain('.grimoire-agent-council__map')
+    expect(agentCouncilThemeCss).toContain('.grimoire-agent-council__map-step')
     expect(coherenceCss).toContain('--grimoire-private-local-accent')
     expect(coherenceCss).toContain('--ai-message-user-bg')
     expect(coherenceCss).toContain('--ai-reference-pill-bg')
-    expect(coherenceCss).toContain('--status-bar-control-material')
-    expect(coherenceCss).toContain('--status-bar-foreground')
-    expect(coherenceCss).toContain('--status-bar-muted-foreground')
-    expect(coherenceCss).toContain('--status-bar-raw-accent-orange')
-    expect(coherenceCss).toContain('--status-bar-warning-fg')
-    expect(coherenceCss).toContain('.status-bar :is(button, [role="button"])')
-    expect(coherenceCss).toContain('color: var(--status-bar-muted-foreground) !important')
-    expect(coherenceCss).toContain('button[aria-expanded="true"]')
-    expect(coherenceCss).toContain('[data-testid="status-utility-group"]')
-    expect(coherenceCss).toContain(':is(button, [role="button"]) {\n  color: inherit !important')
+    expect(statusBarCss).toContain('--status-bar-control-material')
+    expect(statusBarCss).toContain('--status-bar-background')
+    expect(statusBarCss).toContain('--status-bar-foreground')
+    expect(statusBarCss).toContain('--status-bar-muted-foreground')
+    expect(statusBarCss).toContain('--status-bar-tone-line')
+    expect(statusBarCss).toContain('--status-bar-raw-accent-orange')
+    expect(statusBarCss).toContain('--status-bar-warning-fg')
+    expect(statusBarCss).toContain('--status-bar-popover-muted-foreground')
+    expect(coherenceCss).toContain('--grimoire-dialog-overlay')
+    expect(coherenceCss).toContain('--grimoire-dialog-shadow')
+    expect(coherenceCss).toContain('--grimoire-shell-radius')
+    expect(coherenceCss).toContain('--grimoire-portability-material')
+    expect(coherenceCss).toContain('--grimoire-portability-preview-material')
+    expect(coherenceCss).toContain('--grimoire-portability-warn-fg')
+    expect(coherenceCss).toContain('--grimoire-portability-safe-fg')
+    expect(coherenceCss).toContain('.grimoire-dialog-overlay')
+    expect(coherenceCss).toContain('.grimoire-command-surface')
+    expect(coherenceCss).toContain('.grimoire-object-storage-preview')
+    expect(statusBarCss).toContain('[data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) :is(button, [role="button"])')
+    expect(statusBarCss).toContain('.status-bar :is([role="menu"], [data-testid="git-status-popup"])')
+    expect(statusBarCss).toContain('.status-bar[data-status-tone="healthy"]')
+    expect(statusBarCss).toContain('.status-bar[data-status-tone="attention"]')
+    expect(statusBarCss).toContain('.status-bar[data-status-tone="danger"]')
+    expect(statusBarCss).toContain('color: var(--status-bar-muted-foreground) !important')
+    expect(statusBarCss).toContain('button[aria-expanded="true"]')
+    expect(statusBarCss).toContain('[data-testid="status-utility-group"]')
+    expect(statusBarCss).toContain(':is(button:not([data-status-action-tone]), [role="button"]:not([data-status-action-tone])) {\n  color: inherit !important')
     expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.note-list-panel, .inspector-panel, .ai-panel)')).toContain('var(--grimoire-panel-material)')
     expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .settings-panel-shell')).toContain('var(--grimoire-dialog-material)')
+    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .grimoire-dialog-overlay')).toContain('var(--grimoire-dialog-overlay)')
+    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.grimoire-dialog-content, .grimoire-command-surface)')).toContain('var(--grimoire-dialog-material)')
+    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .grimoire-dialog-content')).toContain('var(--grimoire-density-panel-padding')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy)')).toContain('var(--grimoire-portability-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat)')).toContain('var(--grimoire-portability-preview-material)')
     expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .settings-main-surface')).toContain('var(--grimoire-settings-main-material)')
     expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat)')).toContain('var(--grimoire-card-material)')
     expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.project-workspace-chrome, .note-list-filter-shelf)')).toContain('background: transparent')
     expect(coherenceCss).toContain('[data-reference-pill="true"]')
-    expect(coherenceCss).toContain('[data-testid="status-modified-count"] span span')
+    expect(statusBarCss).toContain('[data-testid="status-modified-count"] span span')
     expect(coherenceCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
+    expect(agentCouncilThemeCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
+  })
+
+  it('loads system theme layers before screenshot polish so final preset tuning wins', () => {
+    expect(mainTsx.indexOf("import './system-themes.css'")).toBeGreaterThanOrEqual(0)
+    expect(mainTsx.indexOf("import './theme-polish.css'")).toBeGreaterThan(mainTsx.indexOf("import './system-themes.css'"))
   })
 
   it('declares Nocturne sidebar contrast tokens explicitly in both modes', () => {

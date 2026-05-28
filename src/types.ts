@@ -1,8 +1,8 @@
 import type { AiAgentId } from './lib/aiAgents'
-import type { EditorFont, ThemePreset } from './lib/appearance'
+import type { EditorFont, NativeShellMaterial, ThemePreset } from './lib/appearance'
 import type { TranscriptionProviderId } from './lib/transcriptionProviders'
 import type { ThemeMode } from './lib/themeMode'
-import type { AppLocale } from './lib/i18n'
+import type { AppLocale } from './lib/i18nCore'
 
 export interface VaultEntry {
   path: string
@@ -98,6 +98,7 @@ export interface Settings {
   editor_font?: EditorFont | null
   ui_language?: AppLocale | null
   menu_bar_icon_enabled?: boolean | null
+  native_shell_material?: NativeShellMaterial | null
   initial_h1_auto_rename_enabled?: boolean | null
   default_ai_agent?: AiAgentId | null
   /** Optional per-agent model override passed to local CLI agents. */

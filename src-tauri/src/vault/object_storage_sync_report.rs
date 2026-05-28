@@ -22,6 +22,8 @@ pub struct ObjectStorageSyncOperation {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct ObjectStorageSyncReport {
     pub provider_id: String,
+    pub adapter_phase: String,
+    pub prototype_mode: String,
     pub direction: String,
     pub mirror_path: String,
     pub preview_signature: String,
@@ -129,12 +131,21 @@ fn format_sync_report(report: &ObjectStorageSyncReport, conflict_artifacts: &[St
             .collect::<Vec<_>>()
             .join("\n")
     };
+    let exclusions = format_operation_section(
+        report,
+        ObjectStorageSyncOperationKind::Exclude,
+        "No local-only files were withheld.",
+    );
 
     format!(
-        "---\ntype: Sync Report\nlocality: local\nprovider: {}\ndirection: {}\n---\n# Object Storage Sync Report\n\n- Provider: {}\n- Direction: {}\n- Mirror: `{}`\n- Uploads: {}\n- Downloads: {}\n- Deletes: {}\n- Conflicts: {}\n- Excluded local-only files: {}\n\n## Conflict Artifacts\n\n{}\n",
+        "---\ntype: Sync Report\nlocality: local\nprovider: {}\nadapter_phase: {}\nprototype_mode: {}\ndirection: {}\n---\n# Object Storage Sync Report\n\n- Provider: {}\n- Adapter phase: {}\n- Prototype mode: {}\n- Direction: {}\n- Mirror: `{}`\n- Uploads: {}\n- Downloads: {}\n- Deletes: {}\n- Conflicts: {}\n- Excluded local-only files: {}\n\n## Local-only Exclusions\n\n{}\n\n## Conflict Artifacts\n\n{}\n",
         report.provider_id,
+        report.adapter_phase,
+        report.prototype_mode,
         report.direction,
         report.provider_id,
+        report.adapter_phase,
+        report.prototype_mode,
         report.direction,
         report.mirror_path,
         report.files_to_upload,
@@ -142,6 +153,25 @@ fn format_sync_report(report: &ObjectStorageSyncReport, conflict_artifacts: &[St
         report.files_to_delete,
         report.conflicts,
         report.excluded_files,
+        exclusions,
         artifacts,
     )
+}
+
+fn format_operation_section(
+    report: &ObjectStorageSyncReport,
+    kind: ObjectStorageSyncOperationKind,
+    empty: &str,
+) -> String {
+    let lines: Vec<String> = report
+        .operations
+        .iter()
+        .filter(|operation| operation.kind == kind)
+        .map(|operation| format!("- `{}`: {}", operation.path, operation.reason))
+        .collect();
+    if lines.is_empty() {
+        empty.to_string()
+    } else {
+        lines.join("\n")
+    }
 }

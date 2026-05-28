@@ -1,18 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   DEFAULT_EDITOR_FONT,
+  DEFAULT_NATIVE_SHELL_MATERIAL,
   DEFAULT_THEME_PRESET,
   EDITOR_FONT_STORAGE_KEY,
+  NATIVE_SHELL_MATERIAL_STORAGE_KEY,
   THEME_PRESET_STORAGE_KEY,
   applyAppearanceToDocument,
   applyStoredAppearance,
   normalizeEditorFont,
+  normalizeNativeShellMaterial,
   normalizeThemePreset,
   readStoredEditorFont,
+  readStoredNativeShellMaterial,
   readStoredThemePreset,
   resolveEditorFont,
+  resolveNativeShellMaterial,
   resolveThemePreset,
   writeStoredEditorFont,
+  writeStoredNativeShellMaterial,
   writeStoredThemePreset,
 } from './appearance'
 import { writeStoredLocalThemeDefinition } from '../themes/localThemePacks'
@@ -56,6 +62,12 @@ describe('appearance', () => {
     expect(normalizeEditorFont('handwritten')).toBe('handwritten')
     expect(normalizeEditorFont('papyrus')).toBeNull()
     expect(resolveEditorFont('papyrus')).toBe(DEFAULT_EDITOR_FONT)
+
+    expect(normalizeNativeShellMaterial('standard')).toBe('standard')
+    expect(normalizeNativeShellMaterial('unified')).toBe('unified')
+    expect(normalizeNativeShellMaterial('glass-preview')).toBe('glass-preview')
+    expect(normalizeNativeShellMaterial('transparent-private-api')).toBeNull()
+    expect(resolveNativeShellMaterial('transparent-private-api')).toBe(DEFAULT_NATIVE_SHELL_MATERIAL)
   })
 
   it('reads and writes mirrored startup appearance', () => {
@@ -63,11 +75,14 @@ describe('appearance', () => {
 
     writeStoredThemePreset(storage, 'retro-terminal')
     writeStoredEditorFont(storage, 'mono')
+    writeStoredNativeShellMaterial(storage, 'glass-preview')
 
     expect(readStoredThemePreset(storage)).toBe('retro-terminal')
     expect(readStoredEditorFont(storage)).toBe('mono')
+    expect(readStoredNativeShellMaterial(storage)).toBe('glass-preview')
     expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'retro-terminal')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_FONT_STORAGE_KEY, 'mono')
+    expect(storage.setItem).toHaveBeenCalledWith(NATIVE_SHELL_MATERIAL_STORAGE_KEY, 'glass-preview')
   })
 
   it('applies appearance attributes to the root document', () => {
@@ -75,30 +90,47 @@ describe('appearance', () => {
     applyAppearanceToDocument(document, {
       themePreset: 'constellation',
       editorFont: 'serif',
+      nativeShellMaterial: 'unified',
     })
 
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'constellation')
     expect(document.documentElement).toHaveAttribute('data-theme-definition-id', 'constellation')
     expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'dark')
+    expect(document.documentElement).toHaveAttribute('data-theme-code-block', 'notebook')
+    expect(document.documentElement).toHaveAttribute('data-theme-canvas', 'blueprint')
+    expect(document.documentElement).toHaveAttribute('data-theme-density', 'comfortable')
+    expect(document.documentElement).toHaveAttribute('data-theme-graph', 'constellation')
+    expect(document.documentElement).toHaveAttribute('data-theme-heading', 'graph')
+    expect(document.documentElement).toHaveAttribute('data-theme-metadata-fields', 'type status owner modified locality')
+    expect(document.documentElement).toHaveAttribute('data-theme-metadata-strip', 'badges')
+    expect(document.documentElement).toHaveAttribute('data-theme-motion', 'expressive')
     expect(document.documentElement).toHaveAttribute('data-sidebar-artwork', 'grimoire-sigil')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
+    expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
     expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#07111a')
     expect(document.documentElement.style.getPropertyValue('--background')).toBe('#07111a')
+    expect(document.documentElement.style.getPropertyValue('--grimoire-code-block-radius')).toBe('8px')
+    expect(document.documentElement.style.getPropertyValue('--grimoire-graph-bg')).toContain('radial-gradient')
+    expect(document.documentElement.style.getPropertyValue('--grimoire-canvas-stage-bg')).toContain('var(--primary)')
     expect(document.documentElement.style.getPropertyValue('--sidebar-artwork-opacity')).toBe('0.24')
+    expect(document.documentElement.style.getPropertyValue('--motion-duration-panel')).toBe('340ms')
   })
 
   it('bootstraps stored appearance choices', () => {
     const storage = makeStorage({
       [THEME_PRESET_STORAGE_KEY]: 'nocturne',
       [EDITOR_FONT_STORAGE_KEY]: 'readable',
+      [NATIVE_SHELL_MATERIAL_STORAGE_KEY]: 'unified',
     })
 
     expect(applyStoredAppearance(document, storage)).toEqual({
       themePreset: 'nocturne',
       editorFont: 'readable',
+      nativeShellMaterial: 'unified',
     })
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
+    expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
   })
 
   it('bootstraps a local-only theme pack override over the saved preset', () => {

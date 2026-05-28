@@ -80,10 +80,14 @@ export function AiCrystallizeLoopCard({
           >
             <div className="font-medium text-foreground">Review packet</div>
             <div className="flex flex-wrap gap-1">
-              <LoopBadge icon={<FileClock className="size-3" />} label={`${proposalSummary.hunkCount} hunks`} />
-              <LoopBadge icon={<ShieldCheck className="size-3" />} label={`${proposalSummary.sourceCount} sources`} />
+              <LoopBadge icon={<FileClock className="size-3" />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
+              <LoopBadge icon={<ShieldCheck className="size-3" />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
+              <LoopBadge
+                icon={<CheckCircle2 className="size-3" />}
+                label={reviewCount(proposalSummary.ledgerFieldCount, 'ledger field')}
+              />
               {proposalSummary.taskCount > 0 ? (
-                <LoopBadge icon={<CheckCircle2 className="size-3" />} label={`${proposalSummary.taskCount} task hunk`} />
+                <LoopBadge icon={<CheckCircle2 className="size-3" />} label={reviewCount(proposalSummary.taskCount, 'task hunk')} />
               ) : null}
               <LoopBadge icon={<Sparkles className="size-3" />} label={proposalSummary.targetFolder} />
             </div>
@@ -118,6 +122,10 @@ function LoopBadge({ icon, label }: { icon: ReactNode; label: string }) {
       {label}
     </Badge>
   )
+}
+
+function reviewCount(count: number, singular: string): string {
+  return `${count} ${count === 1 ? singular : `${singular}s`}`
 }
 
 function statusCopy({

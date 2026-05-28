@@ -44,8 +44,10 @@
 
 .ai-markdown pre {
   margin: 0.5em 0;
-  border-radius: 6px;
-  background: var(--muted);
+  border: 1px solid var(--grimoire-code-block-border, var(--border));
+  border-radius: var(--grimoire-code-block-radius, 6px);
+  background: var(--grimoire-code-block-bg, var(--muted));
+  box-shadow: var(--grimoire-code-block-shadow, none);
   overflow-x: auto;
   max-height: 400px;
 }
@@ -152,4 +154,12 @@
 @keyframes typing-bounce {
   0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typing-dot {
+    animation: none;
+    opacity: 0.72;
+    transform: none;
+  }
 }

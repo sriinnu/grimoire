@@ -63,6 +63,9 @@ function createMenuEventActionHandlers(
   Omit<Parameters<typeof useMenuEvents>[0], 'onArchiveNote'>,
   | 'onSetViewMode'
   | 'onCreateNote'
+  | 'onCaptureThought'
+  | 'onCaptureJournal'
+  | 'onCaptureDream'
   | 'onCreateType'
   | 'onQuickOpen'
   | 'onSave'
@@ -86,6 +89,9 @@ function createMenuEventActionHandlers(
   return {
     onSetViewMode: config.onSetViewMode,
     onCreateNote: config.onCreateNote,
+    onCaptureThought: config.onCaptureThought,
+    onCaptureJournal: config.onCaptureJournal,
+    onCaptureDream: config.onCaptureDream,
     onCreateType: config.onCreateType,
     onQuickOpen: config.onQuickOpen,
     onSave: config.onSave,
@@ -201,6 +207,9 @@ function createCommandRegistryCoreConfig(
     modifiedCount: config.isGitVault === false ? 0 : config.modifiedCount,
     onQuickOpen: config.onQuickOpen,
     onCreateNote: config.onCreateNote,
+    onCaptureThought: config.onCaptureThought,
+    onCaptureJournal: config.onCaptureJournal,
+    onCaptureDream: config.onCaptureDream,
     onCreateNoteOfType: config.onCreateNoteOfType,
     onSave: config.onSave,
     onOpenSettings: config.onOpenSettings,
@@ -281,6 +290,8 @@ function createCommandRegistryNoteConfig(
     onSetNoteListFilter: config.onSetNoteListFilter,
     onToggleFavorite: config.onToggleFavorite,
     onToggleOrganized: config.onToggleOrganized,
+    onRevealNoteInFinder: config.onRevealNoteInFinder,
+    onPreviewNoteWithQuickLook: config.onPreviewNoteWithQuickLook,
     onInsertWeatherSnapshot: config.onInsertWeatherSnapshot,
     onTranscribeAudio: config.onTranscribeAudio,
     onRecordAudio: config.onRecordAudio,

@@ -11,6 +11,7 @@ import {
   CommitButton,
   ConflictBadge,
   ChangesBadge,
+  LocalOnlyBadge,
   McpBadge,
   NoRemoteBadge,
   OfflineBadge,
@@ -56,6 +57,8 @@ interface StatusBarPrimarySectionProps {
   aiAgentsStatus?: AiAgentsStatus
   vaultAiGuidanceStatus?: VaultAiGuidanceStatus
   defaultAiAgent?: AiAgentId
+  defaultAiProvider?: string | null
+  defaultAiModel?: string | null
   onSetDefaultAiAgent?: (agent: AiAgentId) => void
   onRestoreVaultAiGuidance?: () => void
   claudeCodeStatus?: ClaudeCodeStatus
@@ -68,6 +71,8 @@ function StatusBarAiBadge({
   aiAgentsStatus,
   vaultAiGuidanceStatus,
   defaultAiAgent,
+  defaultAiProvider,
+  defaultAiModel,
   onSetDefaultAiAgent,
   onRestoreVaultAiGuidance,
   claudeCodeStatus,
@@ -78,6 +83,8 @@ function StatusBarAiBadge({
   | 'aiAgentsStatus'
   | 'vaultAiGuidanceStatus'
   | 'defaultAiAgent'
+  | 'defaultAiProvider'
+  | 'defaultAiModel'
   | 'onSetDefaultAiAgent'
   | 'onRestoreVaultAiGuidance'
   | 'claudeCodeStatus'
@@ -90,6 +97,8 @@ function StatusBarAiBadge({
         statuses={aiAgentsStatus}
         guidanceStatus={vaultAiGuidanceStatus}
         defaultAgent={defaultAiAgent}
+        defaultAgentProvider={defaultAiProvider}
+        defaultAgentModel={defaultAiModel}
         onSetDefaultAgent={onSetDefaultAiAgent}
         onRestoreGuidance={onRestoreVaultAiGuidance}
         compact={compact}
@@ -139,12 +148,7 @@ function StatusBarWorkflowBadges({
     return (
       <>
         <OfflineBadge isOffline={isOffline} showSeparator={false} compact={compact} />
-        <NoRemoteBadge
-          remoteStatus={{ branch: 'main', ahead: 0, behind: 0, hasRemote: false }}
-          onAddRemote={onAddRemote}
-          showSeparator={false}
-          compact={compact}
-        />
+        <LocalOnlyBadge showSeparator={false} compact={compact} />
         <PulseBadge disabled showSeparator={false} compact={compact} />
       </>
     )
@@ -177,6 +181,8 @@ function StatusBarAgentBadges({
   aiAgentsStatus,
   vaultAiGuidanceStatus,
   defaultAiAgent,
+  defaultAiProvider,
+  defaultAiModel,
   onSetDefaultAiAgent,
   onRestoreVaultAiGuidance,
   claudeCodeStatus,
@@ -189,6 +195,8 @@ function StatusBarAgentBadges({
   | 'aiAgentsStatus'
   | 'vaultAiGuidanceStatus'
   | 'defaultAiAgent'
+  | 'defaultAiProvider'
+  | 'defaultAiModel'
   | 'onSetDefaultAiAgent'
   | 'onRestoreVaultAiGuidance'
   | 'claudeCodeStatus'
@@ -202,6 +210,8 @@ function StatusBarAgentBadges({
         aiAgentsStatus={aiAgentsStatus}
         vaultAiGuidanceStatus={vaultAiGuidanceStatus}
         defaultAiAgent={defaultAiAgent}
+        defaultAiProvider={defaultAiProvider}
+        defaultAiModel={defaultAiModel}
         onSetDefaultAiAgent={onSetDefaultAiAgent}
         onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
         claudeCodeStatus={claudeCodeStatus}
@@ -244,6 +254,8 @@ export function StatusBarPrimarySection({
   aiAgentsStatus,
   vaultAiGuidanceStatus,
   defaultAiAgent,
+  defaultAiProvider,
+  defaultAiModel,
   onSetDefaultAiAgent,
   onRestoreVaultAiGuidance,
   claudeCodeStatus,
@@ -343,6 +355,8 @@ export function StatusBarPrimarySection({
             aiAgentsStatus={aiAgentsStatus}
             vaultAiGuidanceStatus={vaultAiGuidanceStatus}
             defaultAiAgent={defaultAiAgent}
+            defaultAiProvider={defaultAiProvider}
+            defaultAiModel={defaultAiModel}
             onSetDefaultAiAgent={onSetDefaultAiAgent}
             onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
             claudeCodeStatus={claudeCodeStatus}

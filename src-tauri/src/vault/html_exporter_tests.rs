@@ -54,6 +54,27 @@ fn exports_public_markdown_as_static_html() {
 }
 
 #[test]
+fn counts_pruned_local_only_files_as_skipped_in_static_html_export() {
+    let vault = TempDir::new().unwrap();
+    let target = TempDir::new().unwrap();
+    fs::write(vault.path().join("public.md"), "# Public\n").unwrap();
+    fs::create_dir_all(vault.path().join(".grimoire-local/cache")).unwrap();
+    fs::create_dir_all(vault.path().join("mockups")).unwrap();
+    fs::write(vault.path().join(".mcp.json"), "{}").unwrap();
+    fs::write(vault.path().join(".env.local"), "secret").unwrap();
+    fs::write(vault.path().join(".grimoire-local/cache/state.json"), "{}").unwrap();
+    fs::write(vault.path().join("mockups/private.png"), "mock").unwrap();
+
+    let result = export_static_html_archive(vault.path(), &target.path().join("site")).unwrap();
+    let root = PathBuf::from(&result.export_path);
+
+    assert_eq!(result.files_exported, 1);
+    assert_eq!(result.skipped_files, 4);
+    assert!(root.join("public.html").exists());
+    assert!(!root.join("mockups/private.png").exists());
+}
+
+#[test]
 fn rejects_html_export_inside_vault() {
     let vault = TempDir::new().unwrap();
 

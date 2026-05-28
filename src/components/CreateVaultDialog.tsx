@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import {
   buildVaultTargetPath,
+  buildVaultCreationPlan,
   DEFAULT_VAULT_NAME,
   getVaultStorageChoice,
   getVaultTemplateKind,
@@ -65,6 +66,12 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
   const nativeFolderPickerAvailable = isTauri()
 
   const selectedChoice = useMemo(() => getVaultStorageChoice(storageChoice), [storageChoice])
+  const creationPlan = useMemo(() => buildVaultCreationPlan({
+    choiceId: storageChoice,
+    initializeGit,
+    targetPath,
+    templateKind,
+  }), [initializeGit, storageChoice, targetPath, templateKind])
   const canSubmit = submitState === 'idle' && targetPath.trim().length > 0 && vaultName.trim().length > 0
 
   const resetState = useCallback(() => {
@@ -292,6 +299,30 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
                 Initialize Git history
               </div>
               <div className="text-xs text-muted-foreground">Off by default. Local-only vaults work without Git.</div>
+            </div>
+          </div>
+
+          <div className="grid gap-2 rounded-md border border-border bg-muted/20 px-3 py-2" data-testid="create-vault-plan">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <ShieldCheck className="size-4 text-muted-foreground" />
+              Creation plan
+            </div>
+            <div className="grid gap-1 text-xs text-muted-foreground">
+              <div>
+                <span className="font-medium text-foreground">Template:</span> {creationPlan.templateLabel}
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Storage:</span> {creationPlan.storageDetail}
+              </div>
+              <div>
+                <span className="font-medium text-foreground">History:</span> {creationPlan.syncDetail}
+              </div>
+              <div>
+                <span className="font-medium text-foreground">Privacy:</span> {creationPlan.privacyDetail}
+              </div>
+              <div className="truncate">
+                <span className="font-medium text-foreground">Path:</span> {creationPlan.targetPath}
+              </div>
             </div>
           </div>
 

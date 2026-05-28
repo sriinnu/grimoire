@@ -1,18 +1,29 @@
 .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview] .sidebar-artwork {
   --art-accent: var(--accent-blue);
+  --art-aura: color-mix(in srgb, var(--accent-teal) 46%, var(--art-accent));
+  --art-core: color-mix(in srgb, var(--art-accent) 22%, transparent);
   --art-fill: color-mix(in srgb, var(--art-accent) 18%, var(--sidebar) 82%);
+  --art-gate: color-mix(in srgb, var(--art-accent) 36%, var(--sidebar-foreground));
   --art-glow: color-mix(in srgb, var(--art-accent) 14%, transparent);
   --art-ink: color-mix(in srgb, var(--sidebar-foreground) 66%, var(--art-accent));
+  --art-memory: color-mix(in srgb, var(--accent-purple) 68%, var(--art-accent));
+  --art-node: color-mix(in srgb, var(--art-accent) 28%, var(--sidebar) 72%);
+  --art-node-warm: color-mix(in srgb, var(--accent-yellow) 74%, var(--art-accent));
   --art-page: color-mix(in srgb, var(--sidebar-foreground) 18%, var(--sidebar) 82%);
   --art-panel: color-mix(in srgb, var(--surface-editor) 14%, transparent);
+  --art-presence: clamp(0.34, calc(var(--sidebar-artwork-opacity, 0.28) * 1.8), 0.54);
+  --art-route: color-mix(in srgb, var(--art-accent) 72%, var(--sidebar-foreground));
+  --art-shield: color-mix(in srgb, var(--art-accent) 20%, var(--sidebar) 80%);
+  --art-spark: color-mix(in srgb, var(--accent-yellow) 82%, var(--sidebar-foreground));
   --art-line: color-mix(in srgb, var(--sidebar-foreground) 22%, transparent);
 }
 
 .app-sidebar-panel > .sidebar-artwork {
   background:
-    linear-gradient(180deg, transparent 0%, var(--art-panel) 50%, color-mix(in srgb, var(--sidebar) 94%, transparent) 100%),
-    radial-gradient(ellipse at 53% 72%, color-mix(in srgb, var(--art-accent) 13%, transparent), transparent 66%);
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--art-spark) 13%, transparent), transparent 24%),
+    radial-gradient(ellipse at 54% 66%, color-mix(in srgb, var(--art-aura) 18%, transparent), transparent 58%),
+    linear-gradient(180deg, transparent 0%, var(--art-panel) 52%, color-mix(in srgb, var(--sidebar) 94%, transparent) 100%);
   border: 0;
   isolation: isolate;
   mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
@@ -29,10 +40,12 @@
 
 .app-sidebar-panel > .sidebar-artwork::before {
   background:
+    radial-gradient(circle at 18% 36%, var(--art-spark) 0 2px, transparent 3px),
     radial-gradient(circle at 24% 58%, var(--art-line) 0 2px, transparent 3px),
-    radial-gradient(circle at 74% 45%, var(--art-line) 0 2px, transparent 3px);
+    radial-gradient(circle at 74% 45%, var(--art-line) 0 2px, transparent 3px),
+    radial-gradient(circle at 82% 30%, var(--art-aura) 0 2px, transparent 3px);
   inset: 22px 24px 18px;
-  opacity: 0.1;
+  opacity: 0.24;
 }
 
 .app-sidebar-panel > .sidebar-artwork::after {
@@ -49,23 +62,30 @@
 .app-sidebar-panel .sidebar-artwork__glyph,
 [data-sidebar-preset-preview] .sidebar-artwork__glyph {
   color: var(--art-ink);
+  filter:
+    drop-shadow(0 16px 24px color-mix(in srgb, var(--art-accent) 14%, transparent))
+    drop-shadow(0 0 18px color-mix(in srgb, var(--art-spark) 12%, transparent));
   mix-blend-mode: multiply;
-  opacity: var(--sidebar-artwork-opacity, 0.28);
+  opacity: var(--art-presence);
   position: absolute;
   transform: translateY(4px) scale(1.03);
+  transform-origin: center bottom;
   z-index: 2;
 }
 
 [data-theme="dark"] .app-sidebar-panel .sidebar-artwork__glyph,
 [data-theme-preview="dark"] .sidebar-artwork__glyph {
   mix-blend-mode: screen;
-  opacity: var(--sidebar-artwork-opacity, 0.28);
+  opacity: var(--art-presence);
 }
 
-.sidebar-artwork__circuit,
-.sidebar-artwork__line,
+.sidebar-artwork__constellation,
+.sidebar-artwork__aurora,
+.sidebar-artwork__gate,
+.sidebar-artwork__keeper,
 .sidebar-artwork__memory-line,
 .sidebar-artwork__orbit,
+.sidebar-artwork__route,
 .sidebar-artwork__root,
 .sidebar-artwork__thin,
 .sidebar-artwork__spark,
@@ -76,11 +96,13 @@
   stroke-linejoin: round;
 }
 
-.sidebar-artwork__circuit,
-.sidebar-artwork__line {
+.sidebar-artwork__gate,
+.sidebar-artwork__route {
   stroke-width: 5.5;
 }
 
+.sidebar-artwork__constellation,
+.sidebar-artwork__aurora,
 .sidebar-artwork__memory-line,
 .sidebar-artwork__orbit,
 .sidebar-artwork__thin,
@@ -88,9 +110,17 @@
   stroke-width: 3.2;
 }
 
+.sidebar-artwork__keeper {
+  fill: color-mix(in srgb, var(--art-shield) 64%, transparent);
+  opacity: 0.82;
+  stroke-width: 3.8;
+}
+
 .sidebar-artwork__wash,
 .sidebar-artwork__node,
+.sidebar-artwork__core-glow,
 .sidebar-artwork__halo,
+.sidebar-artwork__local-dot,
 .sidebar-artwork__page,
 .sidebar-artwork__root {
   fill: var(--art-fill);
@@ -105,12 +135,18 @@
 }
 
 .sidebar-artwork__node {
-  fill: color-mix(in srgb, var(--art-accent) 24%, var(--sidebar) 76%);
+  fill: var(--art-node);
   stroke-width: 4;
 }
 
 .sidebar-artwork__node--small {
-  fill: color-mix(in srgb, var(--sidebar-foreground) 12%, var(--art-accent) 88%);
+  fill: var(--art-node-warm);
+}
+
+.sidebar-artwork__node--quiet {
+  fill: color-mix(in srgb, var(--art-accent) 16%, transparent);
+  opacity: 0.72;
+  stroke-width: 3;
 }
 
 .sidebar-artwork__halo {
@@ -119,13 +155,56 @@
   stroke-width: 3;
 }
 
+.sidebar-artwork__aurora {
+  color: var(--art-aura);
+  opacity: 0.72;
+  stroke-width: 8;
+}
+
+.sidebar-artwork__core-glow {
+  fill: var(--art-core);
+  opacity: 0.72;
+  stroke: none;
+}
+
+.sidebar-artwork__local-dot {
+  fill: var(--art-spark);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--art-spark) 34%, transparent));
+  stroke: var(--art-aura);
+  stroke-width: 2.4;
+}
+
 .sidebar-artwork__page {
   fill: var(--art-page);
   stroke-width: 4;
 }
 
+.sidebar-artwork__page--right {
+  fill: color-mix(in srgb, var(--art-page) 76%, var(--art-accent) 24%);
+}
+
+.sidebar-artwork__gate {
+  color: var(--art-gate);
+  opacity: 0.36;
+}
+
 .sidebar-artwork__orbit {
-  opacity: 0.34;
+  opacity: 0.42;
+}
+
+.sidebar-artwork__constellation {
+  opacity: 0.4;
+}
+
+.sidebar-artwork__route {
+  color: var(--art-route);
+  opacity: 0.84;
+}
+
+.sidebar-artwork__spark {
+  color: var(--art-spark);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--art-spark) 24%, transparent));
+  opacity: 0.82;
 }
 
 .sidebar-artwork__spine {
@@ -134,11 +213,12 @@
 }
 
 .sidebar-artwork__memory-line {
-  opacity: 0.7;
+  color: var(--art-memory);
+  opacity: 0.84;
 }
 
 .sidebar-artwork__root {
-  fill: color-mix(in srgb, var(--art-accent) 16%, var(--sidebar) 84%);
+  fill: var(--art-shield);
   opacity: 0.82;
   stroke-width: 3.4;
 }
@@ -146,27 +226,71 @@
 [data-theme-preset="nocturne"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="nocturne"] .sidebar-artwork {
   --art-accent: #8fd6b8;
+  --art-aura: color-mix(in srgb, #65d6ff 42%, #8fd6b8);
+  --art-glow: color-mix(in srgb, #8fd6b8 20%, transparent);
+  --art-page: color-mix(in srgb, var(--surface-sidebar) 74%, #8fd6b8 26%);
+  --art-presence: 0.54;
 }
 
 [data-theme-preset="retro-terminal"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork {
   --art-accent: #9bff7a;
+  --art-aura: color-mix(in srgb, #62f2b6 45%, #9bff7a);
+  --art-fill: transparent;
+  --art-glow: transparent;
+  --art-page: transparent;
+  --art-presence: 0.34;
+  --art-shield: color-mix(in srgb, #9bff7a 11%, transparent);
 }
 
 [data-theme-preset="daylight-atelier"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="daylight-atelier"] .sidebar-artwork {
   --art-accent: #ff9a7a;
+  --art-aura: color-mix(in srgb, #8ddbe4 42%, #ff9a7a);
+  --art-glow: color-mix(in srgb, #ff9a7a 18%, transparent);
+  --art-page: color-mix(in srgb, #f7efe1 76%, #ff9a7a 24%);
+  --art-presence: 0.42;
 }
 
 [data-theme-preset="living-archive"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="living-archive"] .sidebar-artwork {
   --art-accent: #c8a454;
+  --art-aura: color-mix(in srgb, #8cbfc0 42%, #c8a454);
+  --art-fill: color-mix(in srgb, #c8a454 18%, var(--surface-sidebar) 82%);
+  --art-page: color-mix(in srgb, #f2ddb2 22%, var(--surface-sidebar) 78%);
+  --art-presence: 0.48;
+  --art-shield: color-mix(in srgb, #c8a454 19%, var(--surface-sidebar) 81%);
 }
 
 [data-theme-preset="retro-terminal"] .sidebar-artwork__glyph,
 [data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__glyph {
   filter: none;
-  opacity: var(--sidebar-artwork-opacity, 0.18);
+  opacity: var(--art-presence);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-sidebar-panel .sidebar-artwork__glyph--vault-atlas {
+    animation: sidebar-atlas-arrive 520ms var(--motion-ease-expressive, ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar-panel .sidebar-artwork__glyph--vault-atlas {
+    animation: none;
+    transform: translateY(4px) scale(1.03);
+  }
+}
+
+@keyframes sidebar-atlas-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  to {
+    opacity: var(--art-presence);
+    transform: translateY(4px) scale(1.03);
+  }
 }
 
 @media (max-height: 760px) {

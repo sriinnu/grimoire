@@ -1,5 +1,8 @@
 .grimoire-refresh {
   --refresh-accent: var(--grimoire-brand-gold, #c69a48);
+  --refresh-cycle: 2.85s;
+  --refresh-loop-count: 3;
+  --refresh-orbit-loop-count: 2;
   --refresh-spring: cubic-bezier(0.18, 0.92, 0.26, 1.18);
   --refresh-soft-spring: cubic-bezier(0.2, 0.84, 0.28, 1);
 
@@ -9,6 +12,8 @@
   min-height: 320px;
   place-items: center;
   gap: 18px;
+  contain: layout paint style;
+  isolation: isolate;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--refresh-accent) 22%, transparent), transparent 24rem),
@@ -39,14 +44,14 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  animation: grimoire-stage-settle 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-stage-settle var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__book {
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  animation: grimoire-book-hop 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-book-hop var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__aura {
@@ -57,7 +62,7 @@
     radial-gradient(circle, color-mix(in srgb, #fff 22%, transparent), transparent 70%);
   filter: blur(14px);
   opacity: 0.76;
-  animation: grimoire-aura 2.85s var(--refresh-soft-spring) infinite;
+  animation: grimoire-aura var(--refresh-cycle) var(--refresh-soft-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__floor {
@@ -70,7 +75,7 @@
   filter: blur(12px);
   opacity: 0.34;
   transform: rotateX(66deg);
-  animation: grimoire-floor 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-floor var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__page {
@@ -89,12 +94,12 @@
 
 .grimoire-refresh__page--left {
   transform: rotateY(29deg) rotateZ(-7deg) translateX(-8px);
-  animation: grimoire-page-left 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-page-left var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__page--right {
   transform: rotateY(-29deg) rotateZ(7deg) translateX(8px);
-  animation: grimoire-page-right 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-page-right var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__icon {
@@ -108,7 +113,7 @@
     0 22px 50px color-mix(in srgb, #000 27%, transparent),
     0 0 0 1px color-mix(in srgb, var(--refresh-accent) 44%, transparent),
     0 0 34px color-mix(in srgb, var(--refresh-accent) 24%, transparent);
-  animation: grimoire-icon-float 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-icon-float var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__glint {
@@ -121,7 +126,7 @@
   filter: blur(0.4px);
   opacity: 0;
   transform: rotate(-18deg);
-  animation: grimoire-glint 2.85s ease-in-out infinite;
+  animation: grimoire-glint var(--refresh-cycle) ease-in-out var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__orbit {
@@ -132,13 +137,13 @@
 }
 
 .grimoire-refresh__orbit--one {
-  animation: grimoire-orbit 3.45s linear infinite;
+  animation: grimoire-orbit 3.45s linear var(--refresh-orbit-loop-count) both;
 }
 
 .grimoire-refresh__orbit--two {
   inset: 40px 36px;
   border-color: color-mix(in srgb, #fff 34%, transparent);
-  animation: grimoire-orbit 4.8s linear infinite reverse;
+  animation: grimoire-orbit 4.8s linear var(--refresh-orbit-loop-count) reverse both;
 }
 
 .grimoire-refresh__spark {
@@ -147,7 +152,7 @@
   border-radius: 999px;
   background: var(--refresh-accent);
   box-shadow: 0 0 18px var(--refresh-accent);
-  animation: grimoire-spark 2.85s var(--refresh-spring) infinite;
+  animation: grimoire-spark var(--refresh-cycle) var(--refresh-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__spark--one {
@@ -178,7 +183,7 @@
   font-size: 32px;
   font-weight: 700;
   line-height: 1;
-  animation: grimoire-copy-rise 2.85s var(--refresh-soft-spring) infinite;
+  animation: grimoire-copy-rise var(--refresh-cycle) var(--refresh-soft-spring) var(--refresh-loop-count) both;
 }
 
 .grimoire-refresh__detail {

@@ -8,8 +8,8 @@ use super::app_importer::{
     unique_import_root, write_report, AppImportKind, AppImportState,
 };
 use super::app_importer_io::{
-    canonical_dir, canonical_existing, is_attachment, is_markdown, prepare_import_source,
-    validate_source_boundary, walk_files,
+    canonical_dir, canonical_existing, count_policy_skipped_files, is_attachment, is_markdown,
+    prepare_import_source, validate_source_boundary, walk_files,
 };
 use super::importer::MarkdownFolderImportReport;
 use super::importer_progress::MarkdownFolderImportProgressEvent;
@@ -33,7 +33,8 @@ where
 
     let temp_dir =
         TempDir::new().map_err(|e| format!("Failed to prepare import workspace: {e}"))?;
-    let import_source = prepare_import_source(&source, temp_dir.path())?;
+    let prepared_source = prepare_import_source(&source, temp_dir.path())?;
+    let import_source = prepared_source.path;
     let import_root = unique_import_root(&vault_root, kind, &source)?;
     let total_files = progress_total(&source, &import_source).unwrap_or(1).max(1);
     on_progress(MarkdownFolderImportProgressEvent::Started { total_files });
@@ -41,6 +42,7 @@ where
 
     fs::create_dir_all(&import_root).map_err(|e| format!("Failed to create import folder: {e}"))?;
     let mut state = AppImportState::new();
+    state.skipped += prepared_source.skipped_zip_entries;
     match kind {
         AppImportKind::Spanda => {
             import_spanda_export(&source, &import_source, &import_root, &mut state)?;
@@ -50,15 +52,18 @@ where
                 current_path: "spanda export".to_string(),
             });
         }
-        AppImportKind::Notion | AppImportKind::Obsidian => import_markdown_like_with_progress(
-            kind,
-            &import_source,
-            &import_root,
-            total_files,
-            &mut state,
-            cancelled,
-            on_progress,
-        )?,
+        AppImportKind::Notion | AppImportKind::Obsidian => {
+            state.skipped += count_policy_skipped_files(&import_source)?;
+            import_markdown_like_with_progress(
+                kind,
+                &import_source,
+                &import_root,
+                total_files,
+                &mut state,
+                cancelled,
+                on_progress,
+            )?
+        }
     }
     check_cancelled(cancelled, &import_root, on_progress)?;
     let report_path = write_report(&source, &import_root, kind, &state)?;

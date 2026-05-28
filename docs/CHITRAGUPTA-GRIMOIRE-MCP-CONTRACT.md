@@ -1,8 +1,12 @@
 # Chitragupta Grimoire MCP Contract
 
-Last updated: 2026-05-04
+Last updated: 2026-05-25
 
 This is the stable MCP contract Grimoire needs from Chitragupta. Grimoire owns the Markdown vault and UI. Chitragupta owns memory, recall, wiki projection, graph intelligence, diagnostics, and model routing.
+
+## Current Boundary
+
+Grimoire currently has app-side Chitragupta route truth through the local CLI: it launches `chitragupta ask --stream-json`, parses route/status/error events, and shows provider/model disclosure when the CLI emits it. That is not the same as this MCP contract being ready. Recall, wiki, graph-neighborhood, ingest, diagnostics, and source-backed write suggestions remain contract requirements until Chitragupta exposes the stable tools below in a ready state.
 
 ## Required Tools
 
@@ -33,7 +37,8 @@ Required capabilities:
 ### `chitragupta_recall`
 
 ```ts
-chitragupta_recall(query: string, options?: {
+chitragupta_recall(args: {
+  query: string
   projectPath?: string
   vaultPath?: string
   activeNotePath?: string
@@ -65,13 +70,13 @@ type ChitraguptaRecallResult = {
 ### `chitragupta_wiki_list` And `chitragupta_wiki_read`
 
 ```ts
-chitragupta_wiki_list(options?: {
+chitragupta_wiki_list(args?: {
   projectPath?: string
   vaultPath?: string
   limit?: number
 }): ChitraguptaWikiPage[]
 
-chitragupta_wiki_read(id: string): {
+chitragupta_wiki_read(args: { id: string }): {
   page: ChitraguptaWikiPage
   markdown: string
   sources: ChitraguptaSourceRef[]
@@ -193,13 +198,11 @@ Active-note recall:
 ```ts
 await call("chitragupta_recall", {
   query: "What matters for this note?",
-  options: {
-    projectPath: "/Users/srinivaspendela/Sriinnu/Personal/grimoire",
-    vaultPath: "/path/to/vault",
-    activeNotePath: "notes/example.md",
-    limit: 8,
-    includeSources: true
-  }
+  projectPath: "/Users/srinivaspendela/Sriinnu/Personal/grimoire",
+  vaultPath: "/path/to/vault",
+  activeNotePath: "notes/example.md",
+  limit: 8,
+  includeSources: true
 })
 ```
 

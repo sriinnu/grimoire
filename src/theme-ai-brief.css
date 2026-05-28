@@ -1,0 +1,59 @@
+:where(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) {
+  --grimoire-ai-brief-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-signal-accent) 8%, transparent), transparent 58%),
+    color-mix(in srgb, var(--surface-card) 88%, var(--surface-panel));
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__inner {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-ai-brief-material);
+  box-shadow: var(--grimoire-surface-shadow);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__runway-step {
+  border-color: color-mix(in srgb, var(--grimoire-hairline) 82%, transparent);
+  background: color-mix(in srgb, var(--surface-input) 64%, transparent);
+  color: var(--muted-foreground);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__runway-step[data-state="active"] {
+  border-color: color-mix(in srgb, var(--grimoire-signal-accent) 38%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--grimoire-signal-accent) 13%, transparent);
+  color: var(--foreground);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief[data-locality="protected-local"] .grimoire-ai-brief__inner {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-private-local-accent) 10%, transparent), transparent 62%),
+    color-mix(in srgb, var(--surface-card) 86%, var(--surface-panel));
+}

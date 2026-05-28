@@ -1,0 +1,362 @@
+.vault-dashboard__dream-forge {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: var(--grimoire-private-local-border, var(--border));
+  background: var(--grimoire-private-local-material, var(--grimoire-card-material, color-mix(in srgb, var(--card) 88%, var(--background))));
+  box-shadow: var(--grimoire-private-local-glow, var(--grimoire-card-shadow, none));
+}
+
+.vault-dashboard__dream-forge::before,
+.vault-dashboard__dream-forge::after {
+  position: absolute;
+  inset: auto;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+}
+
+.vault-dashboard__dream-forge::before {
+  top: 70px;
+  right: 26px;
+  width: 180px;
+  height: 180px;
+  border: 1px solid color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 28%, transparent);
+  border-radius: 999px;
+  opacity: 0.56;
+}
+
+.vault-dashboard__dream-forge::after {
+  right: 58px;
+  bottom: 84px;
+  width: 78px;
+  height: 78px;
+  border-radius: 999px;
+  background:
+    linear-gradient(30deg, transparent 48%, color-mix(in srgb, var(--primary) 28%, transparent) 49% 51%, transparent 52%),
+    linear-gradient(128deg, transparent 48%, color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 28%, transparent) 49% 51%, transparent 52%);
+  opacity: 0.72;
+}
+
+.vault-dashboard__dream-contract {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 2px 0 12px;
+  border: 1px solid var(--grimoire-private-local-border, color-mix(in srgb, var(--primary) 28%, var(--border)));
+  border-radius: var(--grimoire-shell-radius, 8px);
+  padding: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 11%, transparent), transparent 58%),
+    color-mix(in srgb, var(--surface-card, var(--card)) 82%, transparent);
+}
+
+.vault-dashboard__dream-contract::before {
+  position: absolute;
+  inset: 8px 12px auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 36%, transparent), transparent);
+  content: "";
+}
+
+.vault-dashboard__dream-contract-orb,
+.vault-dashboard__dream-contract-metric {
+  position: relative;
+  z-index: 1;
+  border: 1px solid var(--grimoire-private-chip-border, var(--border));
+  background: var(--grimoire-private-chip-bg, color-mix(in srgb, var(--primary) 9%, transparent));
+  color: var(--grimoire-private-chip-fg, var(--foreground));
+}
+
+.vault-dashboard__dream-contract-orb {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.vault-dashboard__dream-contract-metric {
+  display: grid;
+  min-width: 0;
+  min-height: 58px;
+  align-content: center;
+  gap: 2px;
+  border-radius: 10px;
+  padding: 7px 8px;
+}
+
+.vault-dashboard__dream-contract-metric span,
+.vault-dashboard__dream-contract-metric small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__dream-contract-metric span {
+  color: color-mix(in srgb, var(--grimoire-private-chip-fg, var(--foreground)) 74%, transparent);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.vault-dashboard__dream-contract-metric strong {
+  color: var(--foreground);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.vault-dashboard__dream-contract-metric small {
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.vault-dashboard__dream-field {
+  position: relative;
+  display: grid;
+  min-height: 142px;
+  margin: 4px 0 12px;
+  overflow: hidden;
+  border: 1px solid var(--grimoire-private-local-border, color-mix(in srgb, var(--primary) 28%, var(--border)));
+  border-radius: var(--grimoire-shell-radius, 8px);
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 18%, transparent), transparent 44px),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-card, var(--card)) 72%, transparent), color-mix(in srgb, var(--surface-panel, var(--background)) 82%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.vault-dashboard__dream-field::before,
+.vault-dashboard__dream-field::after {
+  position: absolute;
+  inset: 28px 36px;
+  pointer-events: none;
+  content: "";
+}
+
+.vault-dashboard__dream-field::before {
+  border: 1px dashed color-mix(in srgb, var(--primary) 22%, transparent);
+  border-radius: 999px;
+}
+
+.vault-dashboard__dream-field::after {
+  background:
+    linear-gradient(24deg, transparent 48%, color-mix(in srgb, var(--primary) 22%, transparent) 49% 50%, transparent 51%),
+    linear-gradient(154deg, transparent 48%, color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 24%, transparent) 49% 50%, transparent 51%);
+  opacity: 0.68;
+}
+
+.vault-dashboard__dream-field-core,
+.vault-dashboard__dream-field-signal {
+  position: absolute;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 36%, var(--border));
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 86%, transparent);
+  color: color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 72%, var(--foreground));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 10%, transparent);
+}
+
+.vault-dashboard__dream-field-core {
+  top: 50%;
+  left: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+
+.vault-dashboard__dream-field-signal {
+  max-width: min(150px, 34vw);
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 2px 10px;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 680;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__dream-field-signal--1 {
+  top: 17px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vault-dashboard__dream-field-signal--2 {
+  right: 16px;
+  bottom: 24px;
+}
+
+.vault-dashboard__dream-field-signal--3 {
+  bottom: 20px;
+  left: 18px;
+}
+
+.vault-dashboard__dream-field-signal--4 {
+  top: 42px;
+  left: 22px;
+}
+
+.vault-dashboard__dream-gate,
+.vault-dashboard__dream-rhythm,
+.vault-dashboard__dream-timeline {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 12px;
+}
+
+.vault-dashboard__dream-gate {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 11px;
+}
+
+.vault-dashboard__dream-rhythm {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vault-dashboard__dream-timeline {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.vault-dashboard__dream-rhythm-point,
+.vault-dashboard__dream-timeline-point {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 82px;
+  align-content: end;
+  gap: 3px;
+  overflow: hidden;
+  border: 1px solid var(--grimoire-private-chip-border, var(--border));
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--grimoire-private-chip-bg, color-mix(in srgb, var(--primary) 8%, transparent));
+  color: var(--grimoire-private-chip-fg, var(--foreground));
+}
+
+.vault-dashboard__dream-rhythm-point::before,
+.vault-dashboard__dream-timeline-point::before {
+  position: absolute;
+  inset: auto 7px 7px;
+  height: var(--dream-rhythm-level, var(--dream-timeline-level, 0%));
+  max-height: calc(100% - 14px);
+  pointer-events: none;
+  border-radius: 6px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 34%, transparent),
+    color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 14%, transparent)
+  );
+  opacity: 0.58;
+  content: "";
+}
+
+.vault-dashboard__dream-timeline-point::after {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--grimoire-private-local-accent, var(--primary)) 60%, transparent);
+  opacity: 0.5;
+  content: "";
+}
+
+.vault-dashboard__dream-rhythm-point > *,
+.vault-dashboard__dream-timeline-point > * {
+  position: relative;
+  z-index: 1;
+}
+
+.vault-dashboard__dream-rhythm-point span,
+.vault-dashboard__dream-rhythm-point small,
+.vault-dashboard__dream-timeline-point span,
+.vault-dashboard__dream-timeline-point small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__dream-rhythm-point span,
+.vault-dashboard__dream-timeline-point span {
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.vault-dashboard__dream-rhythm-point strong,
+.vault-dashboard__dream-timeline-point strong {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.vault-dashboard__dream-rhythm-point small,
+.vault-dashboard__dream-timeline-point small {
+  color: color-mix(in srgb, var(--grimoire-private-chip-fg, var(--foreground)) 74%, transparent);
+  font: 650 10px/1.2 var(--font-sans, inherit);
+}
+
+.vault-dashboard__privacy-chip,
+.vault-dashboard__dream-gate span {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid var(--grimoire-private-chip-border, var(--border));
+  border-radius: 7px;
+  background: var(--grimoire-private-chip-bg, color-mix(in srgb, var(--primary) 9%, transparent));
+  color: var(--grimoire-private-chip-fg, var(--foreground));
+  font-size: 11px;
+  font-weight: 690;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vault-dashboard__dream-contract-metric,
+  .vault-dashboard__dream-field-signal {
+    animation: grimoire-dream-signal-arrive var(--motion-duration-panel, 260ms) var(--motion-ease-cinematic, ease-out) 1 both;
+  }
+
+  .vault-dashboard__dream-contract-metric:nth-child(3),
+  .vault-dashboard__dream-field-signal--2 {
+    animation-delay: 45ms;
+  }
+
+  .vault-dashboard__dream-contract-metric:nth-child(4),
+  .vault-dashboard__dream-field-signal--3 {
+    animation-delay: 90ms;
+  }
+}
+
+@media (max-width: 560px) {
+  .vault-dashboard__dream-contract,
+  .vault-dashboard__dream-gate,
+  .vault-dashboard__dream-rhythm,
+  .vault-dashboard__dream-timeline {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes grimoire-dream-signal-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y, 4px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

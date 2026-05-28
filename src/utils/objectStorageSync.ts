@@ -10,6 +10,15 @@ export type ObjectStorageSyncOperationKind =
   | 'conflict'
   | 'exclude'
 export type ObjectStorageSyncDirection = 'push' | 'pull'
+export type S3LivePreflightStatus =
+  | 'missing_config'
+  | 'missing_credentials'
+  | 'auth_denied'
+  | 'bucket_missing'
+  | 'network'
+  | 'throttled'
+  | 'reachable'
+  | 'failed'
 
 export interface ObjectStorageSyncOperation {
   kind: ObjectStorageSyncOperationKind
@@ -19,6 +28,8 @@ export interface ObjectStorageSyncOperation {
 
 export interface ObjectStorageSyncReport {
   provider_id: ObjectStorageProviderId
+  adapter_phase: 'local-mirror-prototype' | 'provider-sdk-adapter'
+  prototype_mode: 'local-mirror-fixture' | 's3-live-provider' | 'azure-live-provider'
   direction: ObjectStorageSyncDirection
   mirror_path: string
   preview_signature: string
@@ -31,6 +42,26 @@ export interface ObjectStorageSyncReport {
   operations: ObjectStorageSyncOperation[]
   sync_report_path: string | null
   conflict_artifacts: string[]
+}
+
+export interface S3LivePreflightReport {
+  provider_id: 's3'
+  proof_level: 'live-read-only-preflight'
+  configured: boolean
+  status: S3LivePreflightStatus
+  bucket_configured: boolean
+  region_configured: boolean
+  prefix_configured: boolean
+  head_bucket_checked: boolean
+  list_prefix_checked: boolean
+  message: string
+  checked_at: string
+}
+
+export interface S3LivePreflightArgs {
+  bucket?: string
+  region?: string
+  prefix?: string
 }
 
 export type ObjectStorageSyncProgressEvent =
@@ -114,6 +145,18 @@ export function applyObjectStoragePull(
   return applyObjectStorageSync(vaultPath, mirrorPath, providerId, 'pull', previewSignature)
 }
 
+/** Runs a read-only S3 provider proof using local AWS config and no vault file writes. */
+export function runS3LivePreflight(args: S3LivePreflightArgs = {}): Promise<S3LivePreflightReport> {
+  const payload = {
+    bucket: preflightValue(args.bucket),
+    region: preflightValue(args.region),
+    prefix: preflightValue(args.prefix),
+  }
+  return isTauri()
+    ? invoke<S3LivePreflightReport>('storage_s3_live_preflight', payload)
+    : mockInvoke<S3LivePreflightReport>('storage_s3_live_preflight', payload)
+}
+
 /** Applies a cancellable push from the local vault into the mirror target. */
 export function applyObjectStoragePushWithProgress(
   vaultPath: string,
@@ -154,13 +197,39 @@ export function applyObjectStoragePullWithProgress(
 
 /** Summarizes a dry-run object-storage sync preview without hiding exclusions. */
 export function formatObjectStoragePreviewToast(report: ObjectStorageSyncReport): string {
-  return `${providerLabel(report.provider_id)} preview: ${syncCountSummary(report)}${previewPlanSummary(report)}`
+  return `${providerLabel(report.provider_id)} local-mirror fixture preview (not live cloud sync): ${syncCountSummary(report)}${previewPlanSummary(report)}`
 }
 
 /** Summarizes an applied object-storage sync and points to the local report when present. */
 export function formatObjectStorageApplyToast(report: ObjectStorageSyncReport): string {
   const reportPart = report.sync_report_path ? '; local report written' : ''
-  return `${providerLabel(report.provider_id)} sync applied: ${syncCountSummary(report)}${reportPart}`
+  return `${providerLabel(report.provider_id)} local-mirror fixture applied (not live cloud sync): ${syncCountSummary(report)}${reportPart}`
+}
+
+/** Summarizes a redacted S3 preflight without exposing provider internals. */
+export function formatS3LivePreflightToast(report: S3LivePreflightReport): string {
+  return `S3 live read-only preflight: ${s3LivePreflightStatusLabel(report.status)}`
+}
+
+export function s3LivePreflightStatusLabel(status: S3LivePreflightStatus): string {
+  switch (status) {
+    case 'missing_config':
+      return 'not configured'
+    case 'missing_credentials':
+      return 'credentials missing'
+    case 'auth_denied':
+      return 'access denied'
+    case 'bucket_missing':
+      return 'bucket missing'
+    case 'network':
+      return 'network failed'
+    case 'throttled':
+      return 'throttled'
+    case 'reachable':
+      return 'reachable'
+    case 'failed':
+      return 'failed'
+  }
 }
 
 function invokeStorageCommand(
@@ -271,4 +340,9 @@ function countPart(count: number, label: string): string {
 
 function providerLabel(providerId: ObjectStorageProviderId): string {
   return providerId === 's3' ? 'S3' : 'Azure Blob'
+}
+
+function preflightValue(value: string | undefined): string | null {
+  const trimmed = value?.trim()
+  return trimmed ? trimmed : null
 }

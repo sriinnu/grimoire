@@ -3,6 +3,7 @@ import {
   exportMarkdownZipWithProgress,
   exportStaticHtmlArchiveWithProgress,
   formatMarkdownZipExportToast,
+  formatStaticHtmlExportToast,
 } from './vaultExport'
 
 describe('vaultExport', () => {
@@ -11,7 +12,12 @@ describe('vaultExport', () => {
       export_path: '/tmp/grimoire.zip',
       files_exported: 2,
       skipped_files: 1,
-    })).toBe('Exported 2 files to Markdown ZIP')
+    })).toBe('Exported 2 files to Markdown ZIP; withheld 1 local-only file')
+    expect(formatStaticHtmlExportToast({
+      export_path: '/tmp/grimoire-site',
+      files_exported: 3,
+      skipped_files: 2,
+    })).toBe('Exported 3 files to static HTML; withheld 2 local-only files')
   })
 
   it('reports browser-fallback Markdown ZIP export progress', async () => {

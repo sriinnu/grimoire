@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { STATUS_BAR_FOREGROUND } from './styles'
 
 interface StatusBarGroupProps {
   children: ReactNode
@@ -10,10 +11,10 @@ interface StatusBarGroupProps {
 function getStatusBarGroupStyle(compact: boolean, grow: boolean): CSSProperties {
   return {
     alignItems: 'center',
-    background: 'color-mix(in srgb, var(--background) 8%, transparent)',
-    border: '1px solid color-mix(in srgb, var(--border) 46%, transparent)',
+    background: 'var(--status-bar-control-material, color-mix(in srgb, var(--background) 8%, transparent))',
+    border: '1px solid var(--status-bar-control-border, color-mix(in srgb, var(--border) 46%, transparent))',
     borderRadius: 7,
-    boxShadow: 'inset 0 1px 0 color-mix(in srgb, var(--foreground) 5%, transparent)',
+    boxShadow: `var(--status-bar-group-shadow, inset 0 1px 0 color-mix(in srgb, ${STATUS_BAR_FOREGROUND} 5%, transparent))`,
     display: 'flex',
     flex: grow ? '1 1 auto' : '0 0 auto',
     gap: compact ? 4 : 6,

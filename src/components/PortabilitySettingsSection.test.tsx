@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../lib/i18n'
 import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
 import { makeEntry } from '../test-utils/noteListTestUtils'
-import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import type { AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
+import type { ObjectStorageSyncReport, S3LivePreflightReport } from '../utils/objectStorageSync'
 import { PortabilitySettingsSection } from './PortabilitySettingsSection'
 
 const importPreview: ImportAutopsyPreviewState = {
@@ -21,6 +22,8 @@ const importPreview: ImportAutopsyPreviewState = {
 
 const storagePreview: ObjectStorageSyncReport = {
   provider_id: 's3',
+  adapter_phase: 'local-mirror-prototype',
+  prototype_mode: 'local-mirror-fixture',
   direction: 'push',
   mirror_path: '/Users/sri/Private/Mirrors/s3-bucket',
   preview_signature: 'sync-v1-test',
@@ -36,6 +39,57 @@ const storagePreview: ObjectStorageSyncReport = {
   ],
   sync_report_path: null,
   conflict_artifacts: [],
+}
+
+const s3ProviderPreview: ObjectStorageSyncReport = {
+  ...storagePreview,
+  adapter_phase: 'provider-sdk-adapter',
+  prototype_mode: 's3-live-provider',
+  mirror_path: 's3://sriinnu-vault/notes/',
+  preview_signature: 's3-provider-preview',
+  operations: [
+    { kind: 'exclude', path: 'Journal/private.md', reason: 'Protected by local-only policy' },
+  ],
+}
+
+const azureProviderPreview: ObjectStorageSyncReport = {
+  ...storagePreview,
+  provider_id: 'azure-blob',
+  adapter_phase: 'provider-sdk-adapter',
+  prototype_mode: 'azure-live-provider',
+  mirror_path: 'azblob://acct/vault/notes',
+  preview_signature: 'azure-provider-preview',
+  operations: [
+    { kind: 'exclude', path: 'Journal/private.md', reason: 'Protected by local-only policy' },
+  ],
+}
+
+const s3Preflight: S3LivePreflightReport = {
+  provider_id: 's3',
+  proof_level: 'live-read-only-preflight',
+  configured: true,
+  status: 'reachable',
+  bucket_configured: true,
+  region_configured: true,
+  prefix_configured: false,
+  head_bucket_checked: true,
+  list_prefix_checked: true,
+  message: 'S3 bucket and prefix are reachable through read-only HeadBucket/ListObjectsV2 checks.',
+  checked_at: '2026-05-25T00:00:00Z',
+}
+
+const azurePreflight: AzureLivePreflightReport = {
+  provider_id: 'azure-blob',
+  proof_level: 'live-read-only-preflight',
+  configured: true,
+  status: 'reachable',
+  account_configured: true,
+  container_configured: true,
+  prefix_configured: true,
+  container_checked: true,
+  list_prefix_checked: true,
+  message: 'Azure container and prefix are reachable through read-only CLI container/list checks.',
+  checked_at: '2026-05-25T00:00:00Z',
 }
 
 describe('PortabilitySettingsSection', () => {
@@ -59,20 +113,37 @@ describe('PortabilitySettingsSection', () => {
     expect(firewall.getByText('Allowed by default')).toBeInTheDocument()
     expect(firewall.getByText('Memory 1')).toBeInTheDocument()
     expect(firewall.getByText(/no silent cloud or remote egress/)).toBeInTheDocument()
+    const proofLedger = within(screen.getByTestId('portability-proof-ledger'))
+    expect(proofLedger.getByText('Proof Ledger')).toBeInTheDocument()
+    expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-support-status', 'ready')
+    expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-proof-level', 'fixture-regression')
+    expect(screen.getByTestId('portability-proof-imports')).toHaveTextContent(/no-write preview adapters/)
+    expect(screen.getByTestId('portability-proof-imports')).toHaveTextContent('Apple Journal')
+    expect(screen.getByTestId('portability-proof-desktop-sync')).toHaveTextContent('Google Drive Desktop')
+    expect(screen.getByTestId('portability-proof-desktop-sync')).toHaveTextContent('Provider quota, offline recovery')
+    expect(screen.getByTestId('portability-proof-object-storage')).toHaveAttribute('data-support-status', 'fixture')
+    expect(screen.getByTestId('portability-proof-object-storage')).toHaveAttribute('data-proof-level', 'live-read-only-plus-local-mirror')
+    expect(screen.getByTestId('portability-proof-object-storage')).toHaveTextContent('S3 has a read-only HeadBucket/ListObjectsV2 preflight')
+    expect(screen.getByTestId('portability-proof-object-storage')).not.toHaveTextContent('/Users/')
     expect(screen.getByTestId('settings-portability-section')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-portability-section').querySelector('.grimoire-portability-card')).toBeInTheDocument()
     expect(screen.getByTestId('settings-storage-health')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-desktop-storage-health')).toHaveClass('grimoire-portability-inline-panel')
+    expect(screen.getByTestId('settings-desktop-storage-health')).not.toHaveClass('grimoire-portability-card')
     expect(screen.getByText('Bear')).toBeInTheDocument()
     expect(screen.getByText('Obsidian')).toBeInTheDocument()
     expect(screen.getByText('Notion Markdown')).toBeInTheDocument()
     expect(screen.getByText('Spanda')).toBeInTheDocument()
     expect(screen.getAllByText('Git remote')).toHaveLength(2)
-    expect(screen.getByText('iCloud Drive')).toBeInTheDocument()
+    expect(screen.getAllByText('iCloud Drive').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Amazon S3')).toBeInTheDocument()
     expect(screen.getByText('Azure Blob Storage')).toBeInTheDocument()
     expect(screen.getByText('Apple Journal')).toBeInTheDocument()
     expect(screen.getByText('Journal capture')).toBeInTheDocument()
     expect(screen.getByText('Memory graph')).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-action-deck')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-portability-action-deck')).toHaveClass('grimoire-portability-action-deck')
+    expect(screen.getByRole('tablist')).toHaveClass('grimoire-portability-lanes')
     expect(screen.getByText('Move vault data')).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-lane-markdown')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('Preview Bear')).toBeInTheDocument()
@@ -92,11 +163,25 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
-    expect(screen.getByTestId('object-storage-prototype-actions')).toBeInTheDocument()
-    expect(screen.getByText('Preview S3 push')).toBeInTheDocument()
-    expect(screen.getByText('Preview S3 pull')).toBeInTheDocument()
-    expect(screen.getByText('Apply Azure push')).toBeInTheDocument()
-    expect(screen.getByText('Apply Azure pull')).toBeInTheDocument()
+    expect(screen.getByTestId('object-storage-prototype-actions')).toHaveClass('grimoire-object-storage-prototype')
+    expect(screen.getByTestId('object-storage-prototype-actions')).toHaveClass('grimoire-portability-inline-panel')
+    expect(screen.getByTestId('object-storage-provider-empty')).toHaveTextContent('Pick a provider')
+    expect(screen.queryByText('Preview S3 local-mirror push')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    expect(screen.getByText('S3 provider SDK sync')).toBeInTheDocument()
+    expect(screen.getByText('Preview S3 provider push')).toBeInTheDocument()
+    expect(screen.getByText('Preview S3 provider pull')).toBeInTheDocument()
+    expect(screen.getByText('Preview S3 local-mirror push')).toBeInTheDocument()
+    expect(screen.getByText('Preview S3 local-mirror pull')).toBeInTheDocument()
+    expect(screen.queryByText('Apply Azure local-mirror push')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    expect(screen.getByText('Azure provider sync')).toBeInTheDocument()
+    expect(screen.getByText('Preview Azure provider push')).toBeInTheDocument()
+    expect(screen.getByText('Preview Azure provider pull')).toBeInTheDocument()
+    expect(screen.getByText('Apply Azure local-mirror push')).toBeInTheDocument()
+    expect(screen.getByText('Apply Azure local-mirror pull')).toBeInTheDocument()
     expect(screen.getAllByText(/Adapter planned around a local working copy/)).toHaveLength(2)
     expect(screen.getByText(/Current vault is inside iCloud Drive/)).toBeInTheDocument()
     expect(screen.getByText(/Grimoire only edits the local files/)).toBeInTheDocument()
@@ -161,10 +246,20 @@ describe('PortabilitySettingsSection', () => {
     const onImportJourney = vi.fn()
     const onExportMarkdownZip = vi.fn()
     const onExportStaticHtmlArchive = vi.fn()
+    const onRunS3LivePreflight = vi.fn()
+    const onRunAzureLivePreflight = vi.fn()
     const onPreviewS3MirrorPush = vi.fn()
     const onApplyS3MirrorPush = vi.fn()
     const onPreviewS3MirrorPull = vi.fn()
     const onApplyS3MirrorPull = vi.fn()
+    const onPreviewS3ProviderPush = vi.fn()
+    const onApplyS3ProviderPush = vi.fn()
+    const onPreviewS3ProviderPull = vi.fn()
+    const onApplyS3ProviderPull = vi.fn()
+    const onPreviewAzureProviderPush = vi.fn()
+    const onApplyAzureProviderPush = vi.fn()
+    const onPreviewAzureProviderPull = vi.fn()
+    const onApplyAzureProviderPull = vi.fn()
     const onPreviewAzureMirrorPush = vi.fn()
     const onApplyAzureMirrorPush = vi.fn()
     const onPreviewAzureMirrorPull = vi.fn()
@@ -194,14 +289,28 @@ describe('PortabilitySettingsSection', () => {
         onImportJourney={onImportJourney}
         onExportMarkdownZip={onExportMarkdownZip}
         onExportStaticHtmlArchive={onExportStaticHtmlArchive}
+        onRunS3LivePreflight={onRunS3LivePreflight}
+        onRunAzureLivePreflight={onRunAzureLivePreflight}
         s3MirrorPreviewReady
         s3MirrorPullPreviewReady
+        s3ProviderPushPreviewReady
+        s3ProviderPullPreviewReady
+        azureProviderPushPreviewReady
+        azureProviderPullPreviewReady
         azureMirrorPreviewReady
         azureMirrorPullPreviewReady
         onPreviewS3MirrorPush={onPreviewS3MirrorPush}
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onPreviewS3MirrorPull={onPreviewS3MirrorPull}
         onApplyS3MirrorPull={onApplyS3MirrorPull}
+        onPreviewS3ProviderPush={onPreviewS3ProviderPush}
+        onApplyS3ProviderPush={onApplyS3ProviderPush}
+        onPreviewS3ProviderPull={onPreviewS3ProviderPull}
+        onApplyS3ProviderPull={onApplyS3ProviderPull}
+        onPreviewAzureProviderPush={onPreviewAzureProviderPush}
+        onApplyAzureProviderPush={onApplyAzureProviderPush}
+        onPreviewAzureProviderPull={onPreviewAzureProviderPull}
+        onApplyAzureProviderPull={onApplyAzureProviderPull}
         onPreviewAzureMirrorPush={onPreviewAzureMirrorPush}
         onApplyAzureMirrorPush={onApplyAzureMirrorPush}
         onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}
@@ -239,10 +348,22 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-export-static-html'))
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-live-preflight'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-push-preview'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-push-apply'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-pull-preview'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-pull-apply'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-preview'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-apply'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-pull-preview'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-pull-apply'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-live-preflight'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-push-preview'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-push-apply'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-pull-preview'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-pull-apply'))
     fireEvent.click(screen.getByTestId('settings-storage-azure-preview'))
     fireEvent.click(screen.getByTestId('settings-storage-azure-apply'))
     fireEvent.click(screen.getByTestId('settings-storage-azure-pull-preview'))
@@ -270,6 +391,16 @@ describe('PortabilitySettingsSection', () => {
     expect(onImportJourney).toHaveBeenCalledTimes(1)
     expect(onExportMarkdownZip).toHaveBeenCalledTimes(1)
     expect(onExportStaticHtmlArchive).toHaveBeenCalledTimes(1)
+    expect(onRunS3LivePreflight).toHaveBeenCalledTimes(1)
+    expect(onRunAzureLivePreflight).toHaveBeenCalledTimes(1)
+    expect(onPreviewS3ProviderPush).toHaveBeenCalledTimes(1)
+    expect(onApplyS3ProviderPush).toHaveBeenCalledTimes(1)
+    expect(onPreviewS3ProviderPull).toHaveBeenCalledTimes(1)
+    expect(onApplyS3ProviderPull).toHaveBeenCalledTimes(1)
+    expect(onPreviewAzureProviderPush).toHaveBeenCalledTimes(1)
+    expect(onApplyAzureProviderPush).toHaveBeenCalledTimes(1)
+    expect(onPreviewAzureProviderPull).toHaveBeenCalledTimes(1)
+    expect(onApplyAzureProviderPull).toHaveBeenCalledTimes(1)
     expect(onPreviewS3MirrorPush).toHaveBeenCalledTimes(1)
     expect(onApplyS3MirrorPush).toHaveBeenCalledTimes(1)
     expect(onPreviewS3MirrorPull).toHaveBeenCalledTimes(1)
@@ -283,32 +414,69 @@ describe('PortabilitySettingsSection', () => {
   it('requires object-storage preview before apply buttons unlock', () => {
     const onApplyS3MirrorPush = vi.fn()
     const onApplyS3MirrorPull = vi.fn()
+    const onApplyS3ProviderPush = vi.fn()
+    const onApplyS3ProviderPull = vi.fn()
+    const onApplyAzureProviderPush = vi.fn()
+    const onApplyAzureProviderPull = vi.fn()
     const { rerender } = render(
       <PortabilitySettingsSection
         t={createTranslator('en')}
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onApplyS3MirrorPull={onApplyS3MirrorPull}
+        onApplyS3ProviderPush={onApplyS3ProviderPush}
+        onApplyS3ProviderPull={onApplyS3ProviderPull}
+        onApplyAzureProviderPush={onApplyAzureProviderPush}
+        onApplyAzureProviderPull={onApplyAzureProviderPull}
       />,
     )
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    expect(screen.getByTestId('settings-storage-s3-provider-push-apply')).toBeDisabled()
+    expect(screen.getByTestId('settings-storage-s3-provider-pull-apply')).toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-apply')).toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-pull-apply')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-push-apply'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-pull-apply'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-apply'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-pull-apply'))
+    expect(onApplyS3ProviderPush).not.toHaveBeenCalled()
+    expect(onApplyS3ProviderPull).not.toHaveBeenCalled()
     expect(onApplyS3MirrorPush).not.toHaveBeenCalled()
     expect(onApplyS3MirrorPull).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    expect(screen.getByTestId('settings-storage-azure-provider-push-apply')).toBeDisabled()
+    expect(screen.getByTestId('settings-storage-azure-provider-pull-apply')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-push-apply'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-pull-apply'))
+    expect(onApplyAzureProviderPush).not.toHaveBeenCalled()
+    expect(onApplyAzureProviderPull).not.toHaveBeenCalled()
 
     rerender(
       <PortabilitySettingsSection
         t={createTranslator('en')}
         s3MirrorPreviewReady
         s3MirrorPullPreviewReady
+        s3ProviderPushPreviewReady
+        s3ProviderPullPreviewReady
+        azureProviderPushPreviewReady
+        azureProviderPullPreviewReady
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onApplyS3MirrorPull={onApplyS3MirrorPull}
+        onApplyS3ProviderPush={onApplyS3ProviderPush}
+        onApplyS3ProviderPull={onApplyS3ProviderPull}
+        onApplyAzureProviderPush={onApplyAzureProviderPush}
+        onApplyAzureProviderPull={onApplyAzureProviderPull}
       />,
     )
 
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    expect(screen.getByTestId('settings-storage-azure-provider-push-apply')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-storage-azure-provider-pull-apply')).not.toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    expect(screen.getByTestId('settings-storage-s3-provider-push-apply')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-storage-s3-provider-pull-apply')).not.toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-apply')).not.toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-pull-apply')).not.toBeDisabled()
   })
@@ -322,15 +490,213 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    const preview = screen.getByTestId('object-storage-s3-push-preview')
+    const preview = screen.getByTestId('object-storage-s3-mirror-push-preview')
+    expect(preview).toHaveClass('grimoire-object-storage-preview')
     expect(preview).toHaveTextContent('Preview ready')
+    expect(preview).toHaveTextContent('Local mirror fixture')
     expect(preview).toHaveTextContent('S3 push: s3-bucket')
     expect(preview).toHaveTextContent('Upload')
     expect(preview).toHaveTextContent('2')
-    expect(preview).toHaveTextContent('Conflicts: Notes/changed.md')
-    expect(preview).toHaveTextContent('Local-only withheld: Journal/private.md')
+    expect(preview).toHaveTextContent('Conflicts: Notes/changed.md (Local and mirror differ)')
+    expect(preview).toHaveTextContent('Local-only withheld: Journal/private.md (Protected by local-only policy)')
     expect(preview).toHaveTextContent('Apply is locked to this exact push preview')
+    expect(preview).toHaveTextContent('not live cloud sync yet')
     expect(preview).not.toHaveTextContent('/Users/sri/Private')
+    expect(within(preview).getByText('Conflicts').closest('.grimoire-preview-stat')).toHaveAttribute('data-tone', 'warn')
+    expect(within(preview).getByText('Local-only').closest('.grimoire-preview-stat')).toHaveAttribute('data-tone', 'safe')
+  })
+
+  it('shows S3 provider SDK previews separately from local-mirror fixture reports', () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        s3ProviderPushPreviewReady
+        s3ProviderPushPreviewReport={s3ProviderPreview}
+      />,
+    )
+
+    const preview = screen.getByTestId('object-storage-s3-provider-push-preview')
+    expect(preview).toHaveTextContent('Preview ready')
+    expect(preview).toHaveTextContent('S3 provider SDK')
+    expect(preview).toHaveTextContent('S3 push: s3://sriinnu-vault/notes/')
+    expect(preview).toHaveTextContent('Apply is locked to this exact push provider preview')
+    expect(preview).not.toHaveTextContent('Local mirror fixture')
+    expect(preview).not.toHaveTextContent('not live cloud sync yet')
+    expect(preview).not.toHaveTextContent('/Users/')
+  })
+
+  it('shows Azure provider previews separately from local-mirror fixture reports', () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        azureProviderPushPreviewReady
+        azureProviderPushPreviewReport={azureProviderPreview}
+      />,
+    )
+
+    const preview = screen.getByTestId('object-storage-azure-blob-provider-push-preview')
+    expect(preview).toHaveTextContent('Preview ready')
+    expect(preview).toHaveTextContent('Azure provider sync')
+    expect(preview).toHaveTextContent('Azure Blob push: azblob://acct/vault/notes')
+    expect(preview).toHaveTextContent('Apply is locked to this exact push provider preview')
+    expect(preview).not.toHaveTextContent('Local mirror fixture')
+    expect(preview).not.toHaveTextContent('/Users/')
+  })
+
+  it('shows S3 live preflight status without leaking credentials or local paths', () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        s3LivePreflightReport={s3Preflight}
+      />,
+    )
+
+    const preflight = screen.getByTestId('object-storage-s3-live-preflight')
+    expect(preflight).toHaveAttribute('data-status', 'reachable')
+    expect(preflight).toHaveTextContent('S3 live preflight')
+    expect(preflight).toHaveTextContent('reachable')
+    expect(preflight).toHaveTextContent('Read-only')
+    expect(preflight).toHaveTextContent('HeadBucket')
+    expect(preflight).toHaveTextContent('checked')
+    expect(preflight).toHaveTextContent('No object keys, credentials, or local file paths are returned.')
+    expect(preflight).not.toHaveTextContent('/Users/')
+    expect(preflight).not.toHaveTextContent('AKIA')
+  })
+
+  it('shows Azure live preflight status without leaking credentials or local paths', () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        azureLivePreflightReport={azurePreflight}
+      />,
+    )
+
+    const preflight = screen.getByTestId('object-storage-azure-live-preflight')
+    expect(preflight).toHaveAttribute('data-status', 'reachable')
+    expect(preflight).toHaveTextContent('Azure live preflight')
+    expect(preflight).toHaveTextContent('reachable')
+    expect(preflight).toHaveTextContent('Read-only')
+    expect(preflight).toHaveTextContent('Container check')
+    expect(preflight).toHaveTextContent('checked')
+    expect(preflight).toHaveTextContent('No object keys, credentials, or local file paths are returned.')
+    expect(preflight).not.toHaveTextContent('/Users/')
+    expect(preflight).not.toHaveTextContent('DefaultEndpointsProtocol')
+  })
+
+  it('passes S3 preflight fields as a transient draft', () => {
+    const onRunS3LivePreflight = vi.fn()
+
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        onRunS3LivePreflight={onRunS3LivePreflight}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    fireEvent.change(screen.getByTestId('settings-s3-preflight-bucket'), { target: { value: ' sriinnu-vault ' } })
+    fireEvent.change(screen.getByTestId('settings-s3-preflight-region'), { target: { value: ' us-east-1 ' } })
+    fireEvent.change(screen.getByTestId('settings-s3-preflight-prefix'), { target: { value: ' journals/dreams/ ' } })
+    fireEvent.click(screen.getByTestId('settings-storage-s3-live-preflight'))
+
+    expect(onRunS3LivePreflight).toHaveBeenCalledWith({
+      bucket: 'sriinnu-vault',
+      region: 'us-east-1',
+      prefix: 'journals/dreams/',
+    })
+    expect(screen.getByTestId('s3-live-preflight-controls')).toHaveTextContent('Credentials come from local AWS config')
+  })
+
+  it('passes the same transient S3 target draft to provider SDK actions', () => {
+    const onPreviewS3ProviderPush = vi.fn()
+    const onApplyS3ProviderPull = vi.fn()
+
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        s3ProviderPullPreviewReady
+        onPreviewS3ProviderPush={onPreviewS3ProviderPush}
+        onApplyS3ProviderPull={onApplyS3ProviderPull}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    fireEvent.change(screen.getByTestId('settings-s3-preflight-bucket'), { target: { value: ' sriinnu-vault ' } })
+    fireEvent.change(screen.getByTestId('settings-s3-preflight-region'), { target: { value: ' us-east-1 ' } })
+    fireEvent.change(screen.getByTestId('settings-s3-preflight-prefix'), { target: { value: ' journals/dreams/ ' } })
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-push-preview'))
+    fireEvent.click(screen.getByTestId('settings-storage-s3-provider-pull-apply'))
+
+    expect(onPreviewS3ProviderPush).toHaveBeenCalledWith({
+      bucket: 'sriinnu-vault',
+      region: 'us-east-1',
+      prefix: 'journals/dreams/',
+    })
+    expect(onApplyS3ProviderPull).toHaveBeenCalledWith({
+      bucket: 'sriinnu-vault',
+      region: 'us-east-1',
+      prefix: 'journals/dreams/',
+    })
+  })
+
+  it('passes Azure preflight fields as a transient draft', () => {
+    const onRunAzureLivePreflight = vi.fn()
+
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        onRunAzureLivePreflight={onRunAzureLivePreflight}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    fireEvent.change(screen.getByTestId('settings-azure-preflight-account'), { target: { value: ' sriinnuacct ' } })
+    fireEvent.change(screen.getByTestId('settings-azure-preflight-container'), { target: { value: ' grimoire ' } })
+    fireEvent.change(screen.getByTestId('settings-azure-preflight-prefix'), { target: { value: ' notes/ ' } })
+    fireEvent.click(screen.getByTestId('settings-storage-azure-live-preflight'))
+
+    expect(onRunAzureLivePreflight).toHaveBeenCalledWith({
+      account: 'sriinnuacct',
+      container: 'grimoire',
+      prefix: 'notes/',
+    })
+    expect(screen.getByTestId('azure-live-preflight-controls')).toHaveTextContent('Azure login stays local')
+  })
+
+  it('passes the same transient Azure target draft to provider actions', () => {
+    const onPreviewAzureProviderPush = vi.fn()
+    const onApplyAzureProviderPull = vi.fn()
+
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        azureProviderPullPreviewReady
+        onPreviewAzureProviderPush={onPreviewAzureProviderPush}
+        onApplyAzureProviderPull={onApplyAzureProviderPull}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    fireEvent.change(screen.getByTestId('settings-azure-preflight-account'), { target: { value: ' sriinnuacct ' } })
+    fireEvent.change(screen.getByTestId('settings-azure-preflight-container'), { target: { value: ' grimoire ' } })
+    fireEvent.change(screen.getByTestId('settings-azure-preflight-prefix'), { target: { value: ' notes/ ' } })
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-push-preview'))
+    fireEvent.click(screen.getByTestId('settings-storage-azure-provider-pull-apply'))
+
+    expect(onPreviewAzureProviderPush).toHaveBeenCalledWith({
+      account: 'sriinnuacct',
+      container: 'grimoire',
+      prefix: 'notes/',
+    })
+    expect(onApplyAzureProviderPull).toHaveBeenCalledWith({
+      account: 'sriinnuacct',
+      container: 'grimoire',
+      prefix: 'notes/',
+    })
   })
 
   it('only shows the active action busy label while locking all buttons', () => {
@@ -355,6 +721,9 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByTestId('settings-export-static-html')).toBeDisabled()
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    expect(screen.getByTestId('settings-storage-s3-provider-push-preview')).toBeDisabled()
+    expect(screen.getByTestId('settings-storage-s3-provider-pull-preview')).toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-preview')).toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-pull-preview')).toBeDisabled()
   })

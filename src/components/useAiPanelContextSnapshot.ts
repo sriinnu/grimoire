@@ -6,7 +6,7 @@ import {
   type NoteListItem,
 } from '../utils/ai-context'
 import { buildAgentGraphContext } from '../utils/agentGraphContext'
-import { extractInlineWikilinkReferences } from './inlineWikilinkText'
+import { extractProviderPromptReferences } from '../lib/providerPromptPrivacy'
 
 interface UseAiPanelContextSnapshotArgs {
   activeEntry?: VaultEntry | null
@@ -33,7 +33,7 @@ export function useAiPanelContextSnapshot({
   }, [activeEntry, entries])
 
   const draftReferences = useMemo(
-    () => extractInlineWikilinkReferences(input, entries ?? []),
+    () => extractProviderPromptReferences(input, entries ?? []),
     [entries, input],
   )
   const graphContext = useMemo(() => {

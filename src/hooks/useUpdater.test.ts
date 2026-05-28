@@ -37,6 +37,8 @@ vi.mock('../lib/tauriRuntime', () => ({
 
 import { isTauri } from '../mock-tauri'
 
+let visibilityState: DocumentVisibilityState = 'visible'
+
 interface AppUpdateMetadata {
   currentVersion: string
   version: string
@@ -117,9 +119,11 @@ async function advanceAutoCheck() {
 
 describe('useUpdater', () => {
   beforeEach(() => {
+    visibilityState = 'visible'
     vi.useFakeTimers()
     vi.clearAllMocks()
     clearRestartRequiredAfterUpdate()
+    vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
     vi.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
@@ -150,6 +154,25 @@ describe('useUpdater', () => {
     installInvokeHandlers({ checkResult: null })
 
     renderUpdater('stable')
+    await advanceAutoCheck()
+
+    expect(mockInvoke).toHaveBeenCalledWith('check_for_app_update', {
+      releaseChannel: 'stable',
+    })
+  })
+
+  it('waits until the app is visible before running the startup update check', async () => {
+    visibilityState = 'hidden'
+    vi.mocked(isTauri).mockReturnValue(true)
+    installInvokeHandlers({ checkResult: null })
+
+    renderUpdater('stable')
+    await advanceAutoCheck()
+
+    expect(mockInvoke).not.toHaveBeenCalled()
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
     await advanceAutoCheck()
 
     expect(mockInvoke).toHaveBeenCalledWith('check_for_app_update', {

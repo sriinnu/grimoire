@@ -6,9 +6,10 @@ import {
 } from '../../lib/aiAgents'
 import {
   resolveEditorFont,
+  resolveNativeShellMaterial,
   resolveThemePreset,
 } from '../../lib/appearance'
-import { SYSTEM_UI_LANGUAGE, serializeUiLanguagePreference } from '../../lib/i18n'
+import { SYSTEM_UI_LANGUAGE, serializeUiLanguagePreference } from '../../lib/i18nCore'
 import { normalizeReleaseChannel, serializeReleaseChannel } from '../../lib/releaseChannel'
 import { trackEvent } from '../../lib/telemetry'
 import {
@@ -53,6 +54,7 @@ export function createSettingsDraft(
     editorFont: resolveEditorFont(settings.editor_font),
     uiLanguage: settings.ui_language ?? SYSTEM_UI_LANGUAGE,
     menuBarIconEnabled: settings.menu_bar_icon_enabled ?? false,
+    nativeShellMaterial: resolveNativeShellMaterial(settings.native_shell_material),
     initialH1AutoRename: settings.initial_h1_auto_rename_enabled ?? true,
     crashReporting: settings.crash_reporting_enabled ?? false,
     analytics: settings.analytics_enabled ?? false,
@@ -103,6 +105,7 @@ export function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft)
     editor_font: draft.editorFont,
     ui_language: serializeUiLanguagePreference(draft.uiLanguage),
     menu_bar_icon_enabled: draft.menuBarIconEnabled,
+    native_shell_material: draft.nativeShellMaterial,
     initial_h1_auto_rename_enabled: draft.initialH1AutoRename,
     default_ai_agent: draft.defaultAiAgent,
     ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use tempfile::TempDir;
 
@@ -12,6 +12,7 @@ use super::journal_importer::{
     path_to_string, prepare_import_source, unique_import_root, validate_source_boundary,
     write_report, ImportState,
 };
+use super::journal_media_import::{AttachmentPlanner, MediaIndex};
 
 /// Imports journal exports while reporting progress and honoring cancellation.
 pub fn import_journal_export_with_progress<F>(
@@ -68,7 +69,7 @@ fn write_entries_with_progress<F>(
     entries: &[JournalEntry],
     import_root: &Path,
     source_kind: &str,
-    media_index: &HashMap<String, PathBuf>,
+    media_index: &MediaIndex,
     state: &mut ImportState,
     cancelled: &AtomicBool,
     on_progress: &F,
@@ -77,6 +78,7 @@ where
     F: Fn(MarkdownFolderImportProgressEvent),
 {
     let mut used_names = HashMap::<String, usize>::new();
+    let mut attachment_planner = AttachmentPlanner::default();
     let total_files = entries.len().max(1);
     for (index, entry) in entries.iter().enumerate() {
         check_cancelled(cancelled, import_root, on_progress)?;
@@ -85,6 +87,7 @@ where
             import_root,
             source_kind,
             media_index,
+            &mut attachment_planner,
             state,
             &mut used_names,
         )?;
@@ -101,13 +104,14 @@ fn write_one_entry(
     entry: &JournalEntry,
     import_root: &Path,
     source_kind: &str,
-    media_index: &HashMap<String, PathBuf>,
+    media_index: &MediaIndex,
+    attachment_planner: &mut AttachmentPlanner,
     state: &mut ImportState,
     used_names: &mut HashMap<String, usize>,
 ) -> Result<String, String> {
     let note_name = unique_note_name(entry, used_names);
     let note_path = import_root.join(&note_name);
-    let links = copy_entry_media(entry, import_root, media_index, state);
+    let links = copy_entry_media(entry, import_root, media_index, attachment_planner, state);
     let content = format_entry_markdown(entry, source_kind, &links)?;
     match fs::write(&note_path, content) {
         Ok(()) => state.notes += 1,

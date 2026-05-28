@@ -55,6 +55,10 @@ function commit(overrides: Partial<PulseCommit> = {}): PulseCommit {
   }
 }
 
+function todayIso(now = new Date()): string {
+  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-')
+}
+
 describe('VaultDashboard', () => {
   it('shows the local-first assistant board and submits captures', async () => {
     const onCapture = vi.fn().mockResolvedValue({ status: 'ask', prompt: 'summarize today' })
@@ -77,6 +81,9 @@ describe('VaultDashboard', () => {
     expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
     expect(screen.getByText('Personal Sync')).toBeInTheDocument()
     expect(screen.getByText('Cloud Blocked')).toBeInTheDocument()
+    const fallback = screen.getByTestId('dashboard-insights-fallback')
+    expect(fallback).toHaveAttribute('data-locality', 'local-only')
+    expect(fallback).toHaveTextContent('Egress blocked')
 
     fireEvent.click(screen.getByTestId('dashboard-capture-kind-ask'))
     fireEvent.change(screen.getByTestId('dashboard-capture-input'), { target: { value: '/ask summarize today' } })
@@ -108,7 +115,7 @@ describe('VaultDashboard', () => {
     expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ title: 'A recent note' }))
   })
 
-  it('shows Dream Forge as a local-only private pattern surface', () => {
+  it('shows Dream Forge as a local-only private pattern surface', async () => {
     const dream = {
       ...entry('River Door', 'Dream'),
       properties: { symbols: ['river', 'door'], emotional_weather: 'awe' },
@@ -129,20 +136,27 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByTestId('dream-forge-panel')
-    expect(panel).toHaveTextContent('Dream Forge')
-    expect(panel).toHaveTextContent('Local only')
-    expect(panel).toHaveTextContent('2 protected')
-    expect(panel).toHaveTextContent('Latest dream: River Door')
-    expect(panel).toHaveTextContent('river')
-    expect(panel).toHaveTextContent('awe')
-    expect(panel).toHaveTextContent('Guide')
+    const panel = await screen.findByTestId('dream-forge-panel')
+    for (const [name, value] of [['data-locality', 'local-only'], ['data-private-surface', 'dream-forge']]) expect(panel).toHaveAttribute(name, value)
+    const contract = within(panel).getByTestId('dream-forge-privacy-contract')
+    expect(contract).toHaveAccessibleName('Dream Forge private lens contract')
+    for (const text of ['Records', '2', '1 dream / 1 journal', 'Held local', 'Signals']) expect(contract).toHaveTextContent(text)
+    expect(contract).not.toHaveTextContent(/River Door|\/vault\//)
+    for (const text of ['Dream Forge', 'Local only', '2 protected', 'Egress blocked', '4 signal labels held']) expect(panel).toHaveTextContent(text)
+    expect(within(panel).getByTestId('dream-forge-private-map')).toBeInTheDocument()
+    expect(within(panel).getByTestId('dream-forge-privacy-gate')).toHaveTextContent('Bodies held')
+    const rhythm = within(panel).getByTestId('dream-forge-rhythm')
+    expect(rhythm).toHaveTextContent('Last night')
+    expect(rhythm).toHaveTextContent('1 dream / 1 journal / 2 held')
+    for (const text of ['Latest dream captured', 'river', 'awe', 'Guide']) expect(panel).toHaveTextContent(text)
+    expect(panel).not.toHaveTextContent('Latest dream: River Door')
+    expect(rhythm).not.toHaveTextContent('River Door')
 
     fireEvent.click(screen.getByTestId('dream-forge-capture'))
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
   })
 
-  it('shows Time Loom as metadata-only timeline without protected labels', () => {
+  it('shows Time Loom as metadata-only timeline without protected labels', async () => {
     const now = Math.floor(Date.now() / 1000)
     const yesterday = now - 24 * 60 * 60
     const protectedDream = {
@@ -189,7 +203,13 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByTestId('time-loom-panel')
+    const panel = await screen.findByTestId('time-loom-panel')
+    const dailyThread = await screen.findByTestId('daily-thread-rail')
+    expect(dailyThread).toHaveTextContent('Review private captures')
+    expect(dailyThread).toHaveTextContent('3 held local')
+    expect(dailyThread).toHaveTextContent('Held local')
+    expect(dailyThread).not.toHaveTextContent('Secret River Dream')
+    expect(dailyThread).not.toHaveTextContent('private voice memo')
     expect(panel).toHaveTextContent('Time Loom')
     expect(panel).toHaveTextContent('Local timeline')
     expect(panel).toHaveTextContent('3 private')
@@ -211,7 +231,7 @@ describe('VaultDashboard', () => {
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
   })
 
-  it('shows vault commits in Time Loom without leaking git history details', () => {
+  it('shows vault commits in Time Loom without leaking git history details', async () => {
     render(
       <VaultDashboard
         conflictCount={0}
@@ -227,8 +247,9 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByTestId('time-loom-panel')
+    const panel = await screen.findByTestId('time-loom-panel')
     expect(panel).toHaveTextContent('1 commit')
+    expect(panel).toHaveTextContent('1 private')
     expect(panel).toHaveTextContent('Commit 1')
     expect(panel).not.toHaveTextContent('Journal sync with private details')
     expect(panel).not.toHaveTextContent('private-commit-hash')
@@ -236,13 +257,8 @@ describe('VaultDashboard', () => {
     expect(panel).not.toHaveTextContent('journal/private-checkin.md')
   })
 
-  it('shows scheduled calendar entries in Time Loom without leaking event details', () => {
-    const now = new Date()
-    const today = [
-      now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, '0'),
-      String(now.getDate()).padStart(2, '0'),
-    ].join('-')
+  it('shows scheduled calendar entries in Time Loom without leaking event details', async () => {
+    const today = todayIso()
     const yesterday = Math.floor(Date.now() / 1000) - 24 * 60 * 60
 
     render(
@@ -270,7 +286,7 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByTestId('time-loom-panel')
+    const panel = await screen.findByTestId('time-loom-panel')
     expect(panel).toHaveTextContent('1 scheduled')
     expect(panel).toHaveTextContent('Calendar 1')
     expect(panel).not.toHaveTextContent('Private Appointment')
@@ -327,12 +343,7 @@ describe('VaultDashboard', () => {
   })
 
   it('captures a local defer-sync reason from Attention Mode', () => {
-    const now = new Date()
-    const today = [
-      now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, '0'),
-      String(now.getDate()).padStart(2, '0'),
-    ].join('-')
+    const today = todayIso()
 
     render(
       <VaultDashboard
@@ -354,7 +365,7 @@ describe('VaultDashboard', () => {
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/memory ')
   })
 
-  it('previews dashboard ask context without protected note labels', () => {
+  it('previews dashboard ask context without protected note labels', async () => {
     render(
       <VaultDashboard
         conflictCount={0}
@@ -376,7 +387,7 @@ describe('VaultDashboard', () => {
     expect(screen.queryByTestId('dashboard-ask-context-preview')).not.toBeInTheDocument()
     fireEvent.click(screen.getByTestId('dashboard-capture-kind-ask'))
 
-    const preview = screen.getByTestId('dashboard-ask-context-preview')
+    const preview = await screen.findByTestId('dashboard-ask-context-preview')
     expect(preview).toHaveTextContent('Agent Context')
     expect(preview).toHaveTextContent('1 public note')
     expect(preview).toHaveTextContent('Public Project')

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
+import { scheduleVisibleWork } from './visibleDocument'
 import {
   createCheckingVaultAiGuidanceStatus,
   normalizeVaultAiGuidanceStatus,
@@ -49,19 +50,24 @@ export function useVaultAiGuidanceStatus(
 
     if (!vaultPath) return
 
-    tauriCall<RawVaultAiGuidanceStatus>('get_vault_ai_guidance_status', { vaultPath })
-      .then((result) => {
-        if (!cancelled) {
-          setStatus(normalizeVaultAiGuidanceStatus(result))
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus(createCheckingVaultAiGuidanceStatus())
-        }
-      })
+    const cancelVisibleWork = scheduleVisibleWork(() => {
+      tauriCall<RawVaultAiGuidanceStatus>('get_vault_ai_guidance_status', { vaultPath })
+        .then((result) => {
+          if (!cancelled) {
+            setStatus(normalizeVaultAiGuidanceStatus(result))
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setStatus(createCheckingVaultAiGuidanceStatus())
+          }
+        })
+    })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      cancelVisibleWork()
+    }
   }, [vaultPath, refreshKey])
 
   return {

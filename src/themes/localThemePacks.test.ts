@@ -75,4 +75,14 @@ describe('local theme packs', () => {
     clearStoredLocalThemeDefinition(storage)
     expect(readStoredLocalThemeDefinition(storage)).toBeNull()
   })
+
+  it('reports dev hot-reload fetch failures as invalid instead of throwing', async () => {
+    const storage = makeStorage()
+    const fetchThemePack = vi.fn().mockRejectedValue(new Error('offline'))
+
+    const result = await refreshDevelopmentThemePack(storage, fetchThemePack)
+
+    expect(result).toEqual({ status: 'invalid', errors: ['offline'] })
+    expect(storage.setItem).not.toHaveBeenCalled()
+  })
 })

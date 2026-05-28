@@ -28,7 +28,7 @@
 :root[data-theme-preset="nocturne"] body.macos-overlay-chrome .app-sidebar-rail,
 :root[data-theme-preset="retro-terminal"] body.macos-overlay-chrome .app-sidebar-rail,
 :root[data-theme-preset="constellation"] body.macos-overlay-chrome .app-sidebar-rail {
-  padding-top: 82px;
+  padding-top: var(--macos-overlay-rail-safe-top, 88px);
 }
 
 :where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .sidebar-brand-mark,
@@ -51,7 +51,7 @@
 }
 
 :where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .note-list-panel [data-note-path] {
-  margin: 8px 10px 0;
+  margin: var(--grimoire-density-note-card-margin, 8px 10px 0);
   border: 1px solid color-mix(in srgb, var(--border-default) 78%, transparent);
   border-radius: var(--grimoire-shell-radius);
   background: color-mix(in srgb, var(--surface-card) 94%, transparent);
@@ -72,15 +72,15 @@
   white-space: nowrap;
 }
 
-:where([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.project-workspace-chrome, .note-list-filter-shelf) {
+:where([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.project-workspace-chrome__overview, .project-workspace-chrome__docs, .note-list-filter-group) {
   border-color: color-mix(in srgb, var(--border-default) 74%, transparent);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 82%, var(--surface-panel)), var(--surface-panel));
   box-shadow: none;
 }
 
-:where([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .note-list-filter-footer {
-  border-top-color: var(--grimoire-muted-line);
+:where([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .note-list-filter-rail {
+  border-bottom-color: var(--grimoire-muted-line);
   background: color-mix(in srgb, var(--surface-panel) 94%, transparent);
 }
 
@@ -183,7 +183,7 @@
 }
 
 :where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .constellation-insights {
-  padding: 14px;
+  padding: calc(var(--grimoire-density-panel-padding, 16px) - 2px);
 }
 
 :where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .constellation-insights__header,
@@ -252,44 +252,6 @@
   background: color-mix(in srgb, var(--surface-card) 86%, transparent);
 }
 
-:where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .status-bar {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 88%, transparent), var(--surface-sidebar)) !important;
-  border-top-color: var(--sidebar-border) !important;
-  color: var(--status-bar-muted-foreground, color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)) !important;
-}
-
-:where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .settings-panel-shell {
-  border-color: color-mix(in srgb, var(--border-default) 82%, transparent);
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--primary) 7%, transparent), transparent 34%),
-    var(--surface-panel);
-  color: var(--text-primary);
-  box-shadow: var(--grimoire-panel-shadow);
-}
-
-:where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .settings-navigation-rail {
-  border-right-color: var(--grimoire-muted-line);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 14%, var(--surface-panel)), var(--surface-panel)),
-    var(--surface-panel);
-}
-
-:where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .settings-main-surface {
-  background:
-    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 19rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 82%, var(--surface-panel)), var(--surface-app));
-}
-
-:where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .settings-section {
-  border-bottom: 1px solid color-mix(in srgb, var(--border-default) 52%, transparent);
-}
-
-:where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
-  border-color: color-mix(in srgb, var(--border-default) 78%, transparent);
-  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
-  box-shadow: 0 8px 20px color-mix(in srgb, #000 8%, transparent);
-}
-
 :where([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .app-sidebar-panel .sidebar-artwork,
 :where([data-sidebar-preset-preview="constellation"], [data-sidebar-preset-preview="daylight-atelier"], [data-sidebar-preset-preview="living-archive"], [data-sidebar-preset-preview="nocturne"], [data-sidebar-preset-preview="retro-terminal"]) .sidebar-artwork {
   --art-accent: var(--sidebar-primary);
@@ -332,7 +294,9 @@
   }
 
   :where([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .ai-panel[data-ai-active="true"] {
+    box-shadow: inset 2px 0 0 var(--primary), -8px 0 18px color-mix(in srgb, var(--primary) 10%, transparent);
     animation: grimoire-agent-ready var(--motion-duration-state-pulse) var(--motion-ease-cinematic) 1 both;
+    transform-origin: left center;
   }
 }
 
@@ -344,7 +308,7 @@
 }
 
 @keyframes grimoire-agent-ready {
-  0% { box-shadow: inset 2px 0 0 var(--primary), 0 0 0 color-mix(in srgb, var(--primary) 0%, transparent); }
-  46% { box-shadow: inset 2px 0 0 var(--primary), -16px 0 34px color-mix(in srgb, var(--primary) 18%, transparent); }
-  100% { box-shadow: inset 2px 0 0 var(--primary), -8px 0 18px color-mix(in srgb, var(--primary) 10%, transparent); }
+  0% { transform: translateX(4px) scaleX(0.998); opacity: 0.88; }
+  46% { transform: translateX(0) scaleX(1); opacity: 1; }
+  100% { transform: translateX(0) scaleX(1); opacity: 1; }
 }

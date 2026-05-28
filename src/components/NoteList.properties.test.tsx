@@ -15,25 +15,25 @@ import {
 } from '../test-utils/noteListRenderingTestUtils'
 
 describe('NoteList list properties', () => {
-  it('shows the inbox customize-columns action and falls back to type-defined chips', () => {
+  it('shows the inbox customize-columns action and falls back to type-defined chips', async () => {
     renderBookNoteList({
       entryOverrides: { properties: { Priority: 'High', Owner: 'Sriinu' } },
       selection: { kind: 'filter', filter: 'inbox' },
       inboxNoteListProperties: null,
     })
 
-    expect(screen.getByTitle('Customize Inbox columns')).toBeInTheDocument()
+    expect(await screen.findByTitle('Customize Inbox columns')).toBeInTheDocument()
     expect(screen.getByText('High')).toBeInTheDocument()
     expect(screen.queryByText('Sriinu')).not.toBeInTheDocument()
   })
 
-  it('shows the all-notes customize-columns action and falls back to type-defined chips', () => {
+  it('shows the all-notes customize-columns action and falls back to type-defined chips', async () => {
     renderBookNoteList({
       entryOverrides: { properties: { Priority: 'High', Owner: 'Sriinu' } },
       allNotesNoteListProperties: null,
     })
 
-    expect(screen.getByTitle('Customize All Notes columns')).toBeInTheDocument()
+    expect(await screen.findByTitle('Customize All Notes columns')).toBeInTheDocument()
     expect(screen.getByText('High')).toBeInTheDocument()
     expect(screen.queryByText('Sriinu')).not.toBeInTheDocument()
   })
@@ -63,7 +63,7 @@ describe('NoteList list properties', () => {
       openNoteListPropertiesPicker('all')
     })
 
-    expect(screen.getByTestId('list-properties-popover')).toBeInTheDocument()
+    expect(await screen.findByTestId('list-properties-popover')).toBeInTheDocument()
     expect(screen.getByTestId('list-properties-popover')).toHaveClass('overflow-hidden')
     expect(screen.getByTestId('list-properties-scroll-area')).toBeInTheDocument()
     expect(screen.getByTestId('list-properties-scroll-area')).toHaveClass('overflow-y-auto')
@@ -84,7 +84,7 @@ describe('NoteList list properties', () => {
     await waitFor(() => expect(screen.queryByTestId('list-properties-popover')).not.toBeInTheDocument())
   })
 
-  it('opens the inbox column picker from the global event and saves new columns', () => {
+  it('opens the inbox column picker from the global event and saves new columns', async () => {
     const onUpdateInboxNoteListProperties = vi.fn()
 
     renderNoteList({
@@ -98,7 +98,7 @@ describe('NoteList list properties', () => {
       openNoteListPropertiesPicker('inbox')
     })
 
-    expect(screen.getByTestId('list-properties-popover')).toBeInTheDocument()
+    expect(await screen.findByTestId('list-properties-popover')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Search note-list properties' })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Priority' })).toBeChecked()
 
@@ -106,7 +106,7 @@ describe('NoteList list properties', () => {
     expect(onUpdateInboxNoteListProperties).toHaveBeenCalledWith(['Priority', 'Owner'])
   })
 
-  it('opens the view column picker from the global event and applies the saved columns', () => {
+  it('opens the view column picker from the global event and applies the saved columns', async () => {
     renderManagedViewNoteList({
       entries: makeBookTypeEntries(['Priority'], { properties: { Priority: 'High', Owner: 'Sriinu' } }),
     })
@@ -118,13 +118,13 @@ describe('NoteList list properties', () => {
       openNoteListPropertiesPicker('view')
     })
 
-    expect(screen.getByTestId('list-properties-popover')).toBeInTheDocument()
+    expect(await screen.findByTestId('list-properties-popover')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('checkbox', { name: 'Owner' }))
 
     expect(screen.getByText('Sriinu')).toBeInTheDocument()
   })
 
-  it('shows an empty-state picker for views with no matching properties', () => {
+  it('shows an empty-state picker for views with no matching properties', async () => {
     renderManagedViewNoteList({
       entries: makeBookTypeEntries(),
       view: makeViewDefinition({
@@ -140,11 +140,11 @@ describe('NoteList list properties', () => {
       openNoteListPropertiesPicker('view')
     })
 
-    expect(screen.getByTestId('list-properties-popover')).toBeInTheDocument()
+    expect(await screen.findByTestId('list-properties-popover')).toBeInTheDocument()
     expect(screen.getByText('No properties match this search.')).toBeInTheDocument()
   })
 
-  it('shows status in the type column picker when at least one note has it set', () => {
+  it('shows status in the type column picker when at least one note has it set', async () => {
     renderNoteList({
       entries: makeBookTypeEntries([], { status: 'Active' }),
       selection: { kind: 'sectionGroup', type: 'Book' },
@@ -155,12 +155,12 @@ describe('NoteList list properties', () => {
       openNoteListPropertiesPicker('type')
     })
 
-    expect(screen.getByTestId('list-properties-popover')).toBeInTheDocument()
+    expect(await screen.findByTestId('list-properties-popover')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: 'Search note-list properties' })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'status' })).toBeInTheDocument()
   })
 
-  it('keeps blank statuses out of the type column picker', () => {
+  it('keeps blank statuses out of the type column picker', async () => {
     renderNoteList({
       entries: makeBookTypeEntries([], { status: '', properties: { Owner: 'Sriinu' } }),
       selection: { kind: 'sectionGroup', type: 'Book' },
@@ -171,7 +171,7 @@ describe('NoteList list properties', () => {
       openNoteListPropertiesPicker('type')
     })
 
-    expect(screen.getByTestId('list-properties-popover')).toBeInTheDocument()
+    expect(await screen.findByTestId('list-properties-popover')).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Owner' })).toBeInTheDocument()
     expect(screen.queryByRole('checkbox', { name: 'status' })).not.toBeInTheDocument()
   })

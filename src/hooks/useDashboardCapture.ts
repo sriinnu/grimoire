@@ -69,7 +69,7 @@ export function useDashboardCapture({
   vaultPath,
 }: DashboardCaptureConfig) {
   return useCallback(async (input: string, selectedKind: CaptureKind): Promise<DashboardCaptureResult> => {
-    const plan = resolveDashboardCapture({ entries, input, selectedKind, vaultPath })
+    const plan = await resolveDashboardCapture({ entries, input, selectedKind, vaultPath })
     if (plan.kind === 'error') {
       setToastMessage(plan.message)
       return { status: 'blocked' }

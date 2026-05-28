@@ -9,7 +9,8 @@ import type {
   AppImportSource,
   JournalImportSource,
 } from '../utils/markdownFolderImport'
-import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
+import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 
 export type PortabilityOperationProgressEvent =
   | { event: 'Started'; data: { totalFiles: number } }
@@ -45,14 +46,34 @@ export interface VaultPortabilityActions {
   handleExportStaticHtmlArchive: () => void
   s3MirrorPreviewReady: boolean
   s3MirrorPullPreviewReady: boolean
+  s3ProviderPushPreviewReady: boolean
+  s3ProviderPullPreviewReady: boolean
+  azureProviderPushPreviewReady: boolean
+  azureProviderPullPreviewReady: boolean
   azureMirrorPreviewReady: boolean
   azureMirrorPullPreviewReady: boolean
   s3MirrorPreviewReport?: ObjectStorageSyncReport
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewReport?: ObjectStorageSyncReport
+  azureProviderPullPreviewReport?: ObjectStorageSyncReport
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3LivePreflightReport?: S3LivePreflightReport
+  azureLivePreflightReport?: AzureLivePreflightReport
+  handleS3LivePreflight: (args?: S3LivePreflightArgs) => void
+  handleAzureLivePreflight: (args?: AzureLivePreflightArgs) => void
   handlePreviewS3MirrorPush: () => void; handleApplyS3MirrorPush: () => void
   handlePreviewS3MirrorPull: () => void; handleApplyS3MirrorPull: () => void
+  handlePreviewS3ProviderPush: (args?: S3LivePreflightArgs) => void
+  handleApplyS3ProviderPush: (args?: S3LivePreflightArgs) => void
+  handlePreviewS3ProviderPull: (args?: S3LivePreflightArgs) => void
+  handleApplyS3ProviderPull: (args?: S3LivePreflightArgs) => void
+  handlePreviewAzureProviderPush: (args?: AzureLivePreflightArgs) => void
+  handleApplyAzureProviderPush: (args?: AzureLivePreflightArgs) => void
+  handlePreviewAzureProviderPull: (args?: AzureLivePreflightArgs) => void
+  handleApplyAzureProviderPull: (args?: AzureLivePreflightArgs) => void
   handlePreviewAzureMirrorPush: () => void; handleApplyAzureMirrorPush: () => void
   handlePreviewAzureMirrorPull: () => void; handleApplyAzureMirrorPull: () => void
 }

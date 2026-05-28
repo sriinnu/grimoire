@@ -1,14 +1,13 @@
-import { isValidElement, memo, useMemo, useCallback, type MouseEvent, type ReactNode } from 'react'
-import Markdown, { defaultUrlTransform, type Components, type Options } from 'react-markdown'
+import { lazy, memo, Suspense, useMemo, useCallback, type MouseEvent } from 'react'
+import Markdown, { defaultUrlTransform, type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import rehypeHighlight from 'rehype-highlight'
 import { preprocessWikilinks, WIKILINK_SCHEME } from '../utils/chatWikilinks'
-import { detectCodeLanguage } from '../utils/codeLanguageDetection'
 import { resolveImageUrls } from '../utils/vaultImages'
-import { MermaidDiagram } from './MermaidDiagram'
 
 const REMARK_PLUGINS = [remarkGfm]
-const REHYPE_PLUGINS: Options['rehypePlugins'] = [[rehypeHighlight, { detect: true, ignoreMissing: true }]]
+const MarkdownContentRich = lazy(async () => ({
+  default: (await import('./MarkdownContentRich')).MarkdownContentRich,
+}))
 
 function wikilinkUrlTransform(url: string): string {
   if (url.startsWith(WIKILINK_SCHEME)) return url
@@ -21,29 +20,8 @@ interface MarkdownContentProps {
   onWikilinkClick?: (target: string) => void
 }
 
-function isMermaidDiagramElement(children: ReactNode): boolean {
-  return isValidElement(children) && children.type === MermaidDiagram
-}
-
-function getCodeFenceLanguage(className?: string): string | null {
-  const languageClass = className?.split(/\s+/u).find((token) => token.startsWith('language-'))
-  return languageClass?.slice('language-'.length).toLowerCase() ?? null
-}
-
-function resolveMermaidChart(className: string | undefined, code: string): string | null {
-  const language = getCodeFenceLanguage(className)
-  if (language === 'mermaid') return code
-
-  if (language === 'classdiagram' || language === 'classdiagrams') {
-    return /^\s*classDiagram(?:-v2)?\b/u.test(code) ? code : `classDiagram\n${code}`
-  }
-
-  if (language === 'classdiagram-v2' || language === 'classdiagramv2') {
-    return /^\s*classDiagram-v2\b/u.test(code) ? code : `classDiagram-v2\n${code}`
-  }
-
-  if (code.includes('\n') && detectCodeLanguage(code) === 'mermaid') return code
-  return null
+function hasRichMarkdownBlock(content: string): boolean {
+  return /(?:^|\n) {0,3}(?:```|~~~)/u.test(content)
 }
 
 export const MarkdownContent = memo(function MarkdownContent({ content, vaultPath, onWikilinkClick }: MarkdownContentProps) {
@@ -51,7 +29,20 @@ export const MarkdownContent = memo(function MarkdownContent({ content, vaultPat
     const linkedContent = onWikilinkClick ? preprocessWikilinks(content) : content
     return vaultPath ? resolveImageUrls(linkedContent, vaultPath) : linkedContent
   }, [content, onWikilinkClick, vaultPath])
+  const needsRichRenderer = hasRichMarkdownBlock(processedContent)
 
+  if (needsRichRenderer) {
+    return (
+      <Suspense fallback={<MarkdownContentPlain content={processedContent} onWikilinkClick={onWikilinkClick} />}>
+        <MarkdownContentRich content={processedContent} onWikilinkClick={onWikilinkClick} />
+      </Suspense>
+    )
+  }
+
+  return <MarkdownContentPlain content={processedContent} onWikilinkClick={onWikilinkClick} />
+})
+
+function MarkdownContentPlain({ content, onWikilinkClick }: Pick<MarkdownContentProps, 'content' | 'onWikilinkClick'>) {
   const handleClick = useCallback((e: MouseEvent) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-wikilink-target]')
     if (el) {
@@ -60,45 +51,32 @@ export const MarkdownContent = memo(function MarkdownContent({ content, vaultPat
     }
   }, [onWikilinkClick])
 
-  const components = useMemo<Components>(() => {
-    return {
-      pre: ({ children }) => {
-        if (isMermaidDiagramElement(children)) return <>{children}</>
-        return <pre>{children}</pre>
-      },
-      code: ({ className, children }) => {
-        const code = String(children).replace(/\n$/u, '')
-        const mermaidChart = resolveMermaidChart(className, code)
-        if (mermaidChart) return <MermaidDiagram chart={mermaidChart} />
-        return <code className={className}>{children}</code>
-      },
-      a: ({ href, children }) => {
-        if (href?.startsWith(WIKILINK_SCHEME)) {
-          const target = decodeURIComponent(href.slice(WIKILINK_SCHEME.length))
-          return (
-            <span className="chat-wikilink" data-wikilink-target={target} role="link" tabIndex={0}>
-              {children}
-            </span>
-          )
-        }
-        return <a href={href}>{children}</a>
-      },
-      img: ({ alt, src, title }) => (
-        <img alt={alt ?? ''} draggable={false} loading="lazy" src={src} title={title} />
-      ),
-    }
-  }, [])
+  const components = useMemo<Components>(() => ({
+    a: ({ href, children }) => {
+      if (href?.startsWith(WIKILINK_SCHEME)) {
+        const target = decodeURIComponent(href.slice(WIKILINK_SCHEME.length))
+        return (
+          <span className="chat-wikilink" data-wikilink-target={target} role="link" tabIndex={0}>
+            {children}
+          </span>
+        )
+      }
+      return <a href={href}>{children}</a>
+    },
+    img: ({ alt, src, title }) => (
+      <img alt={alt ?? ''} draggable={false} loading="lazy" src={src} title={title} />
+    ),
+  }), [])
 
   return (
     <div className="ai-markdown" onClick={onWikilinkClick ? handleClick : undefined} role="presentation">
       <Markdown
         remarkPlugins={REMARK_PLUGINS}
-        rehypePlugins={REHYPE_PLUGINS}
         components={components}
         urlTransform={onWikilinkClick ? wikilinkUrlTransform : undefined}
       >
-        {processedContent}
+        {content}
       </Markdown>
     </div>
   )
-})
+}

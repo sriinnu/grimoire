@@ -20,6 +20,8 @@ fn push_preview_reports_upload_delete_conflict_and_exclusions() {
     let report = preview_object_storage_sync(vault.path(), mirror.path(), "s3", "push").unwrap();
 
     assert!(!report.applied);
+    assert_eq!(report.adapter_phase, "local-mirror-prototype");
+    assert_eq!(report.prototype_mode, "local-mirror-fixture");
     assert_eq!(report.files_to_upload, 1);
     assert_eq!(report.files_to_delete, 1);
     assert_eq!(report.conflicts, 1);
@@ -31,6 +33,34 @@ fn push_preview_reports_upload_delete_conflict_and_exclusions() {
     assert_eq!(
         operation_paths(&report, ObjectStorageSyncOperationKind::DeleteRemote),
         vec!["stale.md"]
+    );
+}
+
+#[test]
+fn push_preview_reports_pruned_local_only_files_as_exclusions() {
+    let vault = TempDir::new().unwrap();
+    let mirror = TempDir::new().unwrap();
+    fs::write(vault.path().join("public.md"), "# Public\n").unwrap();
+    fs::create_dir_all(vault.path().join(".grimoire-local/cache")).unwrap();
+    fs::create_dir_all(vault.path().join("mockups")).unwrap();
+    fs::write(vault.path().join(".mcp.json"), "{}").unwrap();
+    fs::write(vault.path().join(".env.local"), "secret").unwrap();
+    fs::write(vault.path().join(".grimoire-local/cache/state.json"), "{}").unwrap();
+    fs::write(vault.path().join("mockups/private.png"), "mock").unwrap();
+
+    let report = preview_object_storage_sync(vault.path(), mirror.path(), "s3", "push").unwrap();
+
+    assert_eq!(report.files_to_upload, 1);
+    let mut excluded = operation_paths(&report, ObjectStorageSyncOperationKind::Exclude);
+    excluded.sort();
+    assert_eq!(
+        excluded,
+        vec![
+            ".env.local",
+            ".grimoire-local/cache/state.json",
+            ".mcp.json",
+            "mockups/private.png",
+        ]
     );
 }
 
@@ -65,6 +95,16 @@ fn apply_push_copies_public_files_and_leaves_local_only_lanes_local() {
         .path()
         .join(".grimoire/sync-reports/azure-blob-push-report.md")
         .exists());
+    let sync_report = fs::read_to_string(
+        vault
+            .path()
+            .join(".grimoire/sync-reports/azure-blob-push-report.md"),
+    )
+    .unwrap();
+    assert!(sync_report.contains("Adapter phase: local-mirror-prototype"));
+    assert!(sync_report.contains("Prototype mode: local-mirror-fixture"));
+    assert!(sync_report.contains("## Local-only Exclusions"));
+    assert!(sync_report.contains("`journal.md`: Protected by local-only policy"));
 }
 
 #[test]
@@ -148,31 +188,34 @@ fn push_preview_excludes_attachments_referenced_by_local_only_notes() {
 }
 
 #[test]
-fn apply_writes_local_markdown_conflict_artifacts_without_overwriting_remote() {
+fn apply_blocks_conflicts_without_overwriting_remote() {
     let vault = TempDir::new().unwrap();
     let mirror = TempDir::new().unwrap();
     fs::write(vault.path().join("note.md"), "# Local\n").unwrap();
     fs::write(mirror.path().join("note.md"), "# Remote\n").unwrap();
 
     let preview = preview_object_storage_sync(vault.path(), mirror.path(), "s3", "push").unwrap();
-    let report = apply_object_storage_sync(
+    let error = apply_object_storage_sync(
         vault.path(),
         mirror.path(),
         "s3",
         "push",
         &preview.preview_signature,
     )
-    .unwrap();
+    .unwrap_err();
 
-    assert_eq!(report.conflicts, 1);
+    assert_eq!(
+        error,
+        "Resolve object-storage conflicts before applying sync"
+    );
     assert_eq!(
         fs::read_to_string(mirror.path().join("note.md")).unwrap(),
         "# Remote\n"
     );
-    let artifact_path = report.conflict_artifacts.first().expect("artifact path");
-    let artifact = fs::read_to_string(artifact_path).unwrap();
-    assert!(artifact.contains("type: Sync Conflict"));
-    assert!(artifact.contains("locality: local"));
+    assert!(!vault
+        .path()
+        .join(".grimoire/sync-reports/s3-push-report.md")
+        .exists());
 }
 
 #[test]
@@ -224,6 +267,20 @@ fn preview_signature_changes_when_sync_inputs_change() {
     let second = preview_object_storage_sync(vault.path(), mirror.path(), "s3", "push").unwrap();
 
     assert_ne!(first.preview_signature, second.preview_signature);
+}
+
+#[test]
+fn protected_file_content_does_not_change_preview_signature() {
+    let vault = TempDir::new().unwrap();
+    let mirror = TempDir::new().unwrap();
+    fs::write(vault.path().join("public.md"), "# Public\n").unwrap();
+    fs::write(vault.path().join(".env.local"), "secret-one").unwrap();
+
+    let first = preview_object_storage_sync(vault.path(), mirror.path(), "s3", "push").unwrap();
+    fs::write(vault.path().join(".env.local"), "secret-two").unwrap();
+    let second = preview_object_storage_sync(vault.path(), mirror.path(), "s3", "push").unwrap();
+
+    assert_eq!(first.preview_signature, second.preview_signature);
 }
 
 fn operation_paths(

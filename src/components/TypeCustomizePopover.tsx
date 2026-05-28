@@ -22,11 +22,12 @@ const COMMON_EMOJI_OPTIONS = [
   { emoji: '📝', label: 'memo' },
 ] as const
 type CommonEmojiOption = (typeof COMMON_EMOJI_OPTIONS)[number]
+const MAX_ICON_PICKER_RESULTS = 72
 
 function filterIcons(icons: IconEntry[], query: string): IconEntry[] {
-  if (!query) return icons
+  if (!query) return icons.slice(0, MAX_ICON_PICKER_RESULTS)
   const lower = query.toLowerCase()
-  return icons.filter((o) => o.name.includes(lower))
+  return icons.filter((o) => o.name.includes(lower)).slice(0, MAX_ICON_PICKER_RESULTS)
 }
 
 function filterCommonEmoji(query: string): readonly CommonEmojiOption[] {
@@ -113,9 +114,20 @@ export function TypeCustomizePopover({
   const [search, setSearch] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [templateText, setTemplateText] = useState(currentTemplate ?? '')
-  const { iconOptions, iconsLoaded } = useIconOptions()
+  const {
+    ensureFullCatalog,
+    fullCatalogLoaded,
+    iconOptions,
+    iconsLoaded,
+    isFullCatalogLoading,
+  } = useIconOptions()
 
   const filteredIcons = useMemo(() => filterIcons(iconOptions, search), [iconOptions, search])
+  const searchNeedsFullCatalog = search.trim().length > 0 && !fullCatalogLoaded
+
+  useEffect(() => {
+    if (search.trim().length > 0) ensureFullCatalog()
+  }, [ensureFullCatalog, search])
 
   const handleColorClick = (key: string) => {
     setSelectedColor(key)
@@ -164,7 +176,24 @@ export function TypeCustomizePopover({
       </div>
 
       {/* Icon section */}
-      <div className="font-mono-overline mb-2 text-muted-foreground">Icon</div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="font-mono-overline text-muted-foreground">Icon</div>
+        {!fullCatalogLoaded ? (
+          <Button
+            className="h-6 px-2 text-[10px]"
+            data-testid="load-full-icon-catalog"
+            disabled={isFullCatalogLoading}
+            onClick={ensureFullCatalog}
+            size="xs"
+            type="button"
+            variant="outline"
+          >
+            {isFullCatalogLoading ? 'Loading' : 'Full catalog'}
+          </Button>
+        ) : (
+          <span className="text-[10px] text-muted-foreground">Full catalog</span>
+        )}
+      </div>
       <div className="relative mb-3">
         <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={handleIconClick} />
         <Button
@@ -206,9 +235,9 @@ export function TypeCustomizePopover({
 
       {/* Icon grid */}
       <div className="flex flex-wrap gap-1 overflow-y-auto" style={{ maxHeight: 160 }}>
-        {!iconsLoaded ? (
+        {!iconsLoaded || searchNeedsFullCatalog ? (
           <div className="w-full py-6 text-center text-[12px] text-muted-foreground">
-            Loading icons...
+            {searchNeedsFullCatalog ? 'Loading full icon catalog...' : 'Loading icons...'}
           </div>
         ) : filteredIcons.length === 0 ? (
           <div className="w-full py-6 text-center text-[12px] text-muted-foreground">

@@ -1,6 +1,10 @@
+import { lazy, Suspense } from 'react'
 import type { VaultEntry } from '../../types'
 import type { RetargetOption } from './RetargetNoteDialog'
-import { RetargetNoteDialog } from './RetargetNoteDialog'
+
+const RetargetNoteDialogSurface = lazy(async () => ({
+  default: (await import('./RetargetNoteDialog')).RetargetNoteDialog,
+}))
 
 interface NoteRetargetingDialogsProps {
   dialogState: { kind: 'type' | 'folder'; notePath: string } | null
@@ -33,30 +37,37 @@ export function NoteRetargetingDialogs({
   onSelectType,
   onSelectFolder,
 }: NoteRetargetingDialogsProps) {
+  const typeDialogOpen = dialogState?.kind === 'type'
+  const folderDialogOpen = dialogState?.kind === 'folder'
+
   return (
-    <>
-      <RetargetNoteDialog
-        open={dialogState?.kind === 'type'}
-        title="Change Note Type"
-        description={typeDialogDescription(dialogEntry)}
-        searchPlaceholder="Search types"
-        emptyMessage="No other note types available."
-        options={typeOptions}
-        onClose={onClose}
-        onSelect={onSelectType}
-        testIdPrefix="retarget-note-type"
-      />
-      <RetargetNoteDialog
-        open={dialogState?.kind === 'folder'}
-        title="Move Note to Folder"
-        description={folderDialogDescription(dialogEntry)}
-        searchPlaceholder="Search folders"
-        emptyMessage="No other folders available."
-        options={folderOptions}
-        onClose={onClose}
-        onSelect={onSelectFolder}
-        testIdPrefix="retarget-note-folder"
-      />
-    </>
+    <Suspense fallback={null}>
+      {typeDialogOpen ? (
+        <RetargetNoteDialogSurface
+          open={typeDialogOpen}
+          title="Change Note Type"
+          description={typeDialogDescription(dialogEntry)}
+          searchPlaceholder="Search types"
+          emptyMessage="No other note types available."
+          options={typeOptions}
+          onClose={onClose}
+          onSelect={onSelectType}
+          testIdPrefix="retarget-note-type"
+        />
+      ) : null}
+      {folderDialogOpen ? (
+        <RetargetNoteDialogSurface
+          open={folderDialogOpen}
+          title="Move Note to Folder"
+          description={folderDialogDescription(dialogEntry)}
+          searchPlaceholder="Search folders"
+          emptyMessage="No other folders available."
+          options={folderOptions}
+          onClose={onClose}
+          onSelect={onSelectFolder}
+          testIdPrefix="retarget-note-folder"
+        />
+      ) : null}
+    </Suspense>
   )
 }

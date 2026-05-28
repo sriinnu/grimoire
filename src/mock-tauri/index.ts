@@ -21,7 +21,7 @@ type MockWindow = Window & {
 
 let mockHandlersModule: MockHandlersModule | null = null
 let mockHandlersImport: Promise<MockHandlersModule> | null = null
-const importBrowserMockFixtures = import.meta.env.PROD
+const importBrowserMockFixtures = import.meta.env?.PROD
   ? null
   : () => Promise.all([
       import('./mock-handlers'),

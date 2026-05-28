@@ -15,8 +15,14 @@
   --grimoire-document-scroll-start: var(--surface-editor);
   --grimoire-document-sheen: color-mix(in srgb, var(--surface-card) 30%, transparent);
   --grimoire-panel-gradient: linear-gradient(180deg, var(--surface-panel), var(--surface-panel));
+  --grimoire-panel-material: var(--grimoire-panel-gradient), var(--surface-panel);
   --grimoire-card-mix: transparent;
   --grimoire-card-shadow: rgba(77, 57, 22, 0.07);
+  --grimoire-hairline: color-mix(in srgb, var(--border-default) 80%, var(--grimoire-brand-gold));
+  --grimoire-card-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--grimoire-card-mix)), color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)));
+  --grimoire-dialog-material: radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--grimoire-brand-gold) 13%, transparent), transparent 18rem), var(--grimoire-panel-gradient), var(--surface-panel);
+  --grimoire-dialog-shadow: 0 18px 52px color-mix(in srgb, var(--text-primary) 16%, transparent);
+  --grimoire-settings-main-material: radial-gradient(circle at 12% 0%, var(--grimoire-document-glow), transparent 21rem), linear-gradient(180deg, var(--grimoire-document-scroll-start), var(--grimoire-document-canvas));
 }
 
 [data-theme-preset="living-archive"][data-theme="light"] {
@@ -210,39 +216,6 @@
     var(--grimoire-panel-gradient),
     var(--surface-panel);
   border-left-color: var(--border-default);
-}
-
-[data-theme-preset="living-archive"] .settings-panel-shell {
-  border-color: color-mix(in srgb, var(--border-default) 86%, var(--grimoire-brand-gold));
-  background:
-    radial-gradient(circle at 8% 0%, rgba(198, 154, 72, 0.13), transparent 18rem),
-    var(--grimoire-panel-gradient),
-    var(--surface-panel);
-  color: var(--text-primary);
-  box-shadow: 0 18px 52px color-mix(in srgb, #2f240f 18%, transparent);
-}
-
-[data-theme-preset="living-archive"] .settings-navigation-rail {
-  border-right-color: color-mix(in srgb, var(--border-default) 80%, var(--grimoire-brand-gold));
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 72%, var(--surface-editor)), var(--surface-panel)),
-    var(--surface-panel);
-}
-
-[data-theme-preset="living-archive"] .settings-main-surface {
-  background:
-    radial-gradient(circle at 12% 0%, var(--grimoire-document-glow), transparent 21rem),
-    linear-gradient(180deg, var(--grimoire-document-scroll-start), var(--grimoire-document-canvas));
-}
-
-[data-theme-preset="living-archive"] .settings-section {
-  border-bottom: 1px solid color-mix(in srgb, var(--border-default) 58%, transparent);
-}
-
-[data-theme-preset="living-archive"] :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
-  border-color: color-mix(in srgb, var(--border-default) 78%, var(--grimoire-brand-gold));
-  background: color-mix(in srgb, var(--surface-card) 91%, var(--grimoire-card-mix));
-  box-shadow: 0 8px 18px var(--grimoire-card-shadow);
 }
 
 [data-theme-preset="living-archive"] :is(.inspector-header, .ai-panel > .border-b, .ai-panel > .border-t) {

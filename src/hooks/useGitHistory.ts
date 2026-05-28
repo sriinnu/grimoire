@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { GitCommit } from '../types'
+import { scheduleVisibleWork } from './visibleDocument'
 
 const GIT_HISTORY_LOAD_DELAY_MS = 200
 
@@ -21,7 +22,7 @@ export function useGitHistory(
 
     let cancelled = false
 
-    const timeoutId = window.setTimeout(() => {
+    const cancelVisibleWork = scheduleVisibleWork(() => {
       void loadGitHistory(activeTabPath).then((history) => {
         if (cancelled) return
         setLoadedHistory({
@@ -29,11 +30,11 @@ export function useGitHistory(
           commits: history,
         })
       })
-    }, GIT_HISTORY_LOAD_DELAY_MS)
+    }, { delayMs: GIT_HISTORY_LOAD_DELAY_MS })
 
     return () => {
       cancelled = true
-      window.clearTimeout(timeoutId)
+      cancelVisibleWork()
     }
   }, [activeTabPath, enabled, loadGitHistory])
 

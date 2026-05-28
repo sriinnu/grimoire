@@ -5,9 +5,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use walkdir::WalkDir;
 
 use super::importer::{
-    canonical_dir, classify_import_file, copy_import_file, path_to_string,
-    preview_importable_files, should_enter, unique_import_root, validate_source_boundary,
-    write_import_report, ImportCounters, ImportFileKind,
+    canonical_dir, classify_import_file, copy_import_file, count_files_in_pruned_dirs,
+    path_to_string, preview_importable_files, should_enter, unique_import_root,
+    validate_source_boundary, write_import_report, ImportCounters, ImportFileKind,
 };
 use super::MarkdownFolderImportReport;
 
@@ -85,6 +85,7 @@ where
     F: Fn(MarkdownFolderImportProgressEvent),
 {
     let mut counters = ImportCounters::new();
+    counters.skipped_files += count_files_in_pruned_dirs(source_root)?;
     let mut processed_files = 0usize;
     for entry in WalkDir::new(source_root)
         .follow_links(false)
@@ -180,6 +181,35 @@ mod tests {
         ));
         assert_eq!(report.notes_copied, 1);
         assert_eq!(report.assets_copied, 1);
+    }
+
+    #[test]
+    fn progress_report_counts_pruned_local_only_files() {
+        let vault = TempDir::new().unwrap();
+        let source = TempDir::new().unwrap();
+        fs::write(source.path().join("note.md"), "# Note\n").unwrap();
+        fs::create_dir_all(source.path().join(".grimoire-local/cache")).unwrap();
+        fs::write(source.path().join(".grimoire-local/cache/state.json"), "{}").unwrap();
+        fs::create_dir_all(source.path().join("mockups")).unwrap();
+        fs::write(source.path().join("mockups/private.png"), "image").unwrap();
+        fs::write(source.path().join(".env"), "TOKEN=secret").unwrap();
+
+        let report = import_markdown_folder_with_progress(
+            vault.path(),
+            source.path(),
+            &AtomicBool::new(false),
+            &|_| {},
+        )
+        .unwrap();
+        let imported_root = Path::new(&report.imported_root);
+
+        assert_eq!(report.notes_copied, 1);
+        assert_eq!(report.skipped_files, 3);
+        assert!(!imported_root
+            .join(".grimoire-local/cache/state.json")
+            .exists());
+        assert!(!imported_root.join("mockups/private.png").exists());
+        assert!(!imported_root.join(".env").exists());
     }
 
     #[test]

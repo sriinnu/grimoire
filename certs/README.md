@@ -1,6 +1,6 @@
 # Local Development Certificates
 
-This directory is for machine-local HTTPS certificates used by `pnpm dev:https`.
+This directory is for machine-local HTTPS certificates used by `pnpm dev:https`. HTTPS mode fails fast when these files are missing instead of silently falling back to HTTP.
 
 Expected local files:
 

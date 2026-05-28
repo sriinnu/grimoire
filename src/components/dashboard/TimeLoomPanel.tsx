@@ -1,17 +1,24 @@
-import { CalendarClock, CalendarDays, Clock3, GitCommitHorizontal, Lock, Mic, Sparkles } from 'lucide-react'
+import { CalendarClock, CalendarDays, Clock3, GitCommitHorizontal, ListTodo, Lock, Mic, Smartphone, Sparkles } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TimeLoomBucket, TimeLoomSummary } from '../../lib/timeLoom'
 
 interface TimeLoomPanelProps {
+  crystallizedTodayCount?: number
   summary: TimeLoomSummary
   onCaptureJournal: () => void
 }
 
 /** Metadata-only temporal graph preview for the dashboard. */
-export function TimeLoomPanel({ summary, onCaptureJournal }: TimeLoomPanelProps) {
+export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJournal }: TimeLoomPanelProps) {
   return (
-    <div className="vault-dashboard__panel" data-testid="time-loom-panel">
+    <div
+      className="vault-dashboard__panel vault-dashboard__time-loom"
+      data-locality="metadata-only"
+      data-private-surface="time-loom"
+      data-testid="time-loom-panel"
+    >
       <div className="vault-dashboard__panel-head">
         <div>
           <div className="vault-dashboard__panel-label">Time Loom</div>
@@ -19,7 +26,7 @@ export function TimeLoomPanel({ summary, onCaptureJournal }: TimeLoomPanelProps)
         </div>
         <Clock3 size={18} />
       </div>
-      <div className="vault-dashboard__dream-forge-badges">
+      <div className="vault-dashboard__insight-badges">
         <Badge variant="outline" className="rounded-md">
           <CalendarDays className="size-3" />
           Local timeline
@@ -34,6 +41,12 @@ export function TimeLoomPanel({ summary, onCaptureJournal }: TimeLoomPanelProps)
             {summary.voiceEvents} voice
           </Badge>
         ) : null}
+        {summary.mobileEvents > 0 ? (
+          <Badge variant="outline" className="rounded-md">
+            <Smartphone className="size-3" />
+            {summary.mobileEvents} mobile
+          </Badge>
+        ) : null}
         {summary.commitEvents > 0 ? (
           <Badge variant="outline" className="rounded-md">
             <GitCommitHorizontal className="size-3" />
@@ -46,10 +59,39 @@ export function TimeLoomPanel({ summary, onCaptureJournal }: TimeLoomPanelProps)
             {summary.calendarEvents} scheduled
           </Badge>
         ) : null}
+        {summary.taskEvents > 0 ? (
+          <Badge variant="outline" className="rounded-md">
+            <ListTodo className="size-3" />
+            {summary.taskEvents} {summary.taskEvents === 1 ? 'task due' : 'tasks due'}
+          </Badge>
+        ) : null}
+        {crystallizedTodayCount > 0 ? (
+          <Badge variant="outline" className="rounded-md">
+            <Sparkles className="size-3" />
+            Crystallized today
+          </Badge>
+        ) : null}
       </div>
       <p className="vault-dashboard__panel-copy">
-        Dates, types, scheduled events, voice captures, commits, and status only. Private lanes are counted here without exposing titles.
+        Dates, types, scheduled events, due tasks, mobile captures, voice captures, commits, reviewed memory, and status only. Private lanes are counted here without exposing titles.
       </p>
+      {summary.patterns.length > 0 ? (
+        <div className="vault-dashboard__time-patterns" data-testid="time-loom-patterns" aria-label="Metadata-only Time Loom pattern lens">
+          {summary.patterns.map((pattern) => (
+            <div key={pattern.label} className="vault-dashboard__time-pattern" data-tone={pattern.tone}>
+              <span>{pattern.label}</span>
+              <strong>{pattern.detail}</strong>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <div className="vault-dashboard__time-map" data-testid="time-loom-map" aria-label="Metadata-only temporal map">
+        {summary.buckets.length > 0 ? summary.buckets.slice(0, 4).map((bucket, index) => (
+          <TimeLoomNode key={bucket.dateKey} bucket={bucket} index={index} />
+        )) : (
+          <div className="vault-dashboard__time-map-empty">Quiet</div>
+        )}
+      </div>
       <div className="vault-dashboard__loop-list">
         {summary.buckets.length > 0 ? summary.buckets.map((bucket) => (
           <TimeLoomRow key={bucket.dateKey} bucket={bucket} />
@@ -68,6 +110,25 @@ export function TimeLoomPanel({ summary, onCaptureJournal }: TimeLoomPanelProps)
         <Sparkles className="size-4" />
         Journal
       </Button>
+    </div>
+  )
+}
+
+function TimeLoomNode({ bucket, index }: { bucket: TimeLoomBucket; index: number }) {
+  const typeText = bucket.typeCounts.slice(0, 2).map((type) => `${type.label} ${type.count}`).join(' / ') || 'Timeline'
+  const style = { '--motion-stagger-delay': `${index * 38}ms` } as CSSProperties
+
+  return (
+    <div
+      className={`vault-dashboard__time-node${bucket.protectedCount > 0 ? ' vault-dashboard__time-node--private' : ''}`}
+      style={style}
+      data-testid="time-loom-node"
+      aria-label={`${bucket.label}: ${bucket.total} timeline events`}
+    >
+      <span>{bucket.label}</span>
+      <strong>{bucket.total}</strong>
+      <small>{typeText}</small>
+      {bucket.protectedCount > 0 ? <em>{bucket.protectedCount} private</em> : null}
     </div>
   )
 }

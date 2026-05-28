@@ -104,6 +104,43 @@ describe('aiAgentStreamCallbacks', () => {
     ])
   })
 
+  it('stores structured route disclosures from the agent stream', () => {
+    const messages = createMessageStore([
+      {
+        id: 'msg-1',
+        userMessage: 'Which model?',
+        actions: [],
+        isStreaming: true,
+        route: {
+          agent: 'chitragupta',
+          provider: 'resolved by stream',
+          model: 'resolved by stream',
+          source: 'cli-default',
+        },
+      },
+    ])
+
+    const callbacks = createStreamCallbacks({
+      messageId: 'msg-1',
+      vaultPath: '/vault',
+      setMessages: messages.setMessages,
+      setStatus: createStatusStore().setStatus,
+      abortRef: { current: { aborted: false } },
+      responseAccRef: { current: '' },
+      toolInputMapRef: { current: new Map() },
+      fileCallbacksRef: { current: undefined },
+    })
+
+    callbacks.onRouteResolved?.({ provider: 'ollama', model: 'qwen3:8b' })
+
+    expect(messages.getMessages()[0].route).toEqual({
+      agent: 'chitragupta',
+      provider: 'ollama',
+      model: 'qwen3:8b',
+      source: 'stream',
+    })
+  })
+
   it('marks pending actions as failed when the stream errors', () => {
     const messages = createMessageStore([
       {

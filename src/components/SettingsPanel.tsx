@@ -9,7 +9,7 @@ import {
   resolveEffectiveLocale,
   type AppLocale,
 } from '../lib/i18n'
-import { resolveEditorFont, resolveThemePreset } from '../lib/appearance'
+import { resolveEditorFont, resolveNativeShellMaterial, resolveThemePreset } from '../lib/appearance'
 import {
   DEFAULT_TRANSCRIPTION_PROVIDER,
   isCloudTranscriptionProvider,
@@ -142,12 +142,14 @@ function SettingsPanelInner({
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
     editorFont: resolveEditorFont(settings.editor_font),
-  }), [settings.editor_font, settings.theme_mode, settings.theme_preset])
+    nativeShellMaterial: resolveNativeShellMaterial(settings.native_shell_material),
+  }), [settings.editor_font, settings.native_shell_material, settings.theme_mode, settings.theme_preset])
   const { commitAppearancePreview } = useSettingsAppearancePreview({
     draft: {
       themeMode: draft.themeMode,
       themePreset: draft.themePreset,
       editorFont: draft.editorFont,
+      nativeShellMaterial: draft.nativeShellMaterial,
     },
     saved: savedAppearance,
   })
@@ -225,8 +227,7 @@ function SettingsPanelInner({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: 'var(--shadow-overlay)' }}
+      className="grimoire-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
       onKeyDown={handleKeyDown}
       data-testid="settings-panel"
@@ -292,16 +293,36 @@ function SettingsPanelInner({
           onExportStaticHtmlArchive={portabilityActions.handleExportStaticHtmlArchive}
           s3MirrorPreviewReady={portabilityActions.s3MirrorPreviewReady}
           s3MirrorPullPreviewReady={portabilityActions.s3MirrorPullPreviewReady}
+          s3ProviderPushPreviewReady={portabilityActions.s3ProviderPushPreviewReady}
+          s3ProviderPullPreviewReady={portabilityActions.s3ProviderPullPreviewReady}
+          azureProviderPushPreviewReady={portabilityActions.azureProviderPushPreviewReady}
+          azureProviderPullPreviewReady={portabilityActions.azureProviderPullPreviewReady}
           azureMirrorPreviewReady={portabilityActions.azureMirrorPreviewReady}
           azureMirrorPullPreviewReady={portabilityActions.azureMirrorPullPreviewReady}
           s3MirrorPreviewReport={portabilityActions.s3MirrorPreviewReport}
           s3MirrorPullPreviewReport={portabilityActions.s3MirrorPullPreviewReport}
+          s3ProviderPushPreviewReport={portabilityActions.s3ProviderPushPreviewReport}
+          s3ProviderPullPreviewReport={portabilityActions.s3ProviderPullPreviewReport}
+          azureProviderPushPreviewReport={portabilityActions.azureProviderPushPreviewReport}
+          azureProviderPullPreviewReport={portabilityActions.azureProviderPullPreviewReport}
           azureMirrorPreviewReport={portabilityActions.azureMirrorPreviewReport}
           azureMirrorPullPreviewReport={portabilityActions.azureMirrorPullPreviewReport}
+          s3LivePreflightReport={portabilityActions.s3LivePreflightReport}
+          azureLivePreflightReport={portabilityActions.azureLivePreflightReport}
+          onRunS3LivePreflight={portabilityActions.handleS3LivePreflight}
+          onRunAzureLivePreflight={portabilityActions.handleAzureLivePreflight}
           onPreviewS3MirrorPush={portabilityActions.handlePreviewS3MirrorPush}
           onApplyS3MirrorPush={portabilityActions.handleApplyS3MirrorPush}
           onPreviewS3MirrorPull={portabilityActions.handlePreviewS3MirrorPull}
           onApplyS3MirrorPull={portabilityActions.handleApplyS3MirrorPull}
+          onPreviewS3ProviderPush={portabilityActions.handlePreviewS3ProviderPush}
+          onApplyS3ProviderPush={portabilityActions.handleApplyS3ProviderPush}
+          onPreviewS3ProviderPull={portabilityActions.handlePreviewS3ProviderPull}
+          onApplyS3ProviderPull={portabilityActions.handleApplyS3ProviderPull}
+          onPreviewAzureProviderPush={portabilityActions.handlePreviewAzureProviderPush}
+          onApplyAzureProviderPush={portabilityActions.handleApplyAzureProviderPush}
+          onPreviewAzureProviderPull={portabilityActions.handlePreviewAzureProviderPull}
+          onApplyAzureProviderPull={portabilityActions.handleApplyAzureProviderPull}
           onPreviewAzureMirrorPush={portabilityActions.handlePreviewAzureMirrorPush}
           onApplyAzureMirrorPush={portabilityActions.handleApplyAzureMirrorPush}
           onPreviewAzureMirrorPull={portabilityActions.handlePreviewAzureMirrorPull}
@@ -318,6 +339,8 @@ function SettingsPanelInner({
           setUiLanguage={(value) => updateDraft('uiLanguage', value)}
           menuBarIconEnabled={draft.menuBarIconEnabled}
           setMenuBarIconEnabled={(value) => updateDraft('menuBarIconEnabled', value)}
+          nativeShellMaterial={draft.nativeShellMaterial}
+          setNativeShellMaterial={(value) => updateDraft('nativeShellMaterial', value)}
           initialH1AutoRename={draft.initialH1AutoRename}
           setInitialH1AutoRename={(value) => updateDraft('initialH1AutoRename', value)}
           explicitOrganization={draft.explicitOrganization}

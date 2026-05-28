@@ -4,12 +4,7 @@ import {
   getTranscriptionProviderDefinition,
   resolveConfiguredTranscriptionProvider,
   type TranscriptionProviderId,
-} from '../lib/transcriptionProviders'
-import {
-  createTranscriptionNotes,
-  transcribeAudioIntoNotes,
-  transcribeAudioPathIntoNotes,
-} from '../utils/audioTranscription'
+} from '../lib/transcriptionProviderConfig'
 
 interface UseAudioTranscriptionParams {
   vaultPath: string
@@ -37,6 +32,10 @@ function errorMessage(error: unknown): string {
     : error instanceof Error
       ? error.message
       : 'Failed to transcribe audio'
+}
+
+async function loadAudioTranscriptionFlow() {
+  return import('../utils/audioTranscription')
 }
 
 /** Provides local-first flows for creating Markdown transcript notes from audio. */
@@ -68,6 +67,7 @@ export function useAudioTranscription({
 
     setToastMessage('Choose an audio file to transcribe')
     try {
+      const { createTranscriptionNotes, transcribeAudioIntoNotes } = await loadAudioTranscriptionFlow()
       const bundle = await transcribeAudioIntoNotes({
         vaultPath,
         entries,
@@ -99,6 +99,7 @@ export function useAudioTranscription({
 
     try {
       setToastMessage(`Transcribing recorded audio with ${providerLabel}...`)
+      const { createTranscriptionNotes, transcribeAudioPathIntoNotes } = await loadAudioTranscriptionFlow()
       const bundle = await transcribeAudioPathIntoNotes(audioPath, {
         vaultPath,
         entries,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
+import { scheduleVisibleWork } from './visibleDocument'
 
 export type ClaudeCodeStatus = 'checking' | 'installed' | 'missing'
 
@@ -24,17 +25,22 @@ export function useClaudeCodeStatus(): { status: ClaudeCodeStatus; version: stri
   useEffect(() => {
     let cancelled = false
 
-    tauriCall<ClaudeCliResult>('check_claude_cli')
-      .then((result) => {
-        if (cancelled) return
-        setStatus(result.installed ? 'installed' : 'missing')
-        setVersion(result.version ?? null)
-      })
-      .catch(() => {
-        if (!cancelled) setStatus('missing')
-      })
+    const cancelVisibleWork = scheduleVisibleWork(() => {
+      tauriCall<ClaudeCliResult>('check_claude_cli')
+        .then((result) => {
+          if (cancelled) return
+          setStatus(result.installed ? 'installed' : 'missing')
+          setVersion(result.version ?? null)
+        })
+        .catch(() => {
+          if (!cancelled) setStatus('missing')
+        })
+    })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      cancelVisibleWork()
+    }
   }, [])
 
   return { status, version }

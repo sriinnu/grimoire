@@ -31,12 +31,13 @@ fn exports_markdown_zip_with_progress() {
 }
 
 #[test]
-fn cancelled_markdown_zip_export_removes_target_file() {
+fn cancelled_markdown_zip_export_keeps_previous_target_file() {
     let vault = TempDir::new().unwrap();
     let target_dir = TempDir::new().unwrap();
     fs::write(vault.path().join("one.md"), "# One\n").unwrap();
     fs::write(vault.path().join("two.md"), "# Two\n").unwrap();
     let target = target_dir.path().join("vault.zip");
+    fs::write(&target, "previous export").unwrap();
     let cancelled = AtomicBool::new(false);
     let events = Mutex::new(Vec::new());
 
@@ -55,7 +56,7 @@ fn cancelled_markdown_zip_export_removes_target_file() {
     .unwrap_err();
 
     assert_eq!(error, "Export cancelled");
-    assert!(!target.exists());
+    assert_eq!(fs::read_to_string(&target).unwrap(), "previous export");
     assert!(events
         .lock()
         .unwrap()

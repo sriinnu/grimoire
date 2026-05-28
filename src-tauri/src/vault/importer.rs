@@ -4,6 +4,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
+use super::import_manifest::{preview_markdown_manifest_rows, ImportAutopsyManifestRow};
+
 pub(crate) const MARKDOWN_EXTENSIONS: &[&str] = &["md", "markdown", "mdown", "mkd"];
 pub(crate) const ATTACHMENT_EXTENSIONS: &[&str] = &[
     "avif", "canvas", "csv", "gif", "heic", "heif", "jpeg", "jpg", "json", "m4a", "mdx", "mov",
@@ -43,6 +45,7 @@ pub struct MarkdownFolderImportPreview {
     pub skipped_files: usize,
     pub failed_files: usize,
     pub writes_local_only_report: bool,
+    pub manifest_rows: Vec<ImportAutopsyManifestRow>,
 }
 
 #[derive(Debug)]
@@ -70,6 +73,7 @@ impl ImportCounters {
 pub(crate) enum ImportFileKind {
     Markdown,
     Attachment,
+    Metadata,
     Skip,
 }
 
@@ -110,6 +114,7 @@ pub fn preview_markdown_folder_import(
 
     let import_root = unique_import_root(&vault_root, &source_root)?;
     let counters = preview_importable_files(&source_root)?;
+    let manifest_rows = preview_markdown_manifest_rows(&source_root, &import_root)?;
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source_root),
         planned_import_root: path_to_string(&import_root),
@@ -118,6 +123,7 @@ pub fn preview_markdown_folder_import(
         skipped_files: counters.skipped_files,
         failed_files: counters.failed_files,
         writes_local_only_report: true,
+        manifest_rows,
     })
 }
 
@@ -180,6 +186,7 @@ pub(crate) fn copy_importable_files(
     import_root: &Path,
     counters: &mut ImportCounters,
 ) -> Result<(), String> {
+    counters.skipped_files += count_files_in_pruned_dirs(source_root)?;
     for entry in WalkDir::new(source_root)
         .follow_links(false)
         .into_iter()
@@ -209,6 +216,7 @@ pub(crate) fn copy_importable_files(
 
 pub(crate) fn preview_importable_files(source_root: &Path) -> Result<ImportCounters, String> {
     let mut counters = ImportCounters::new();
+    counters.skipped_files += count_files_in_pruned_dirs(source_root)?;
     for entry in WalkDir::new(source_root)
         .follow_links(false)
         .into_iter()
@@ -220,7 +228,7 @@ pub(crate) fn preview_importable_files(source_root: &Path) -> Result<ImportCount
         }
         match classify_import_file(entry.path()) {
             ImportFileKind::Markdown => counters.notes_copied += 1,
-            ImportFileKind::Attachment => counters.assets_copied += 1,
+            ImportFileKind::Attachment | ImportFileKind::Metadata => counters.assets_copied += 1,
             ImportFileKind::Skip => counters.skipped_files += 1,
         }
     }
@@ -246,6 +254,9 @@ pub(crate) fn classify_import_file(path: &Path) -> ImportFileKind {
     if is_skipped_name(&file_name) || file_name.starts_with(".env") {
         return ImportFileKind::Skip;
     }
+    if is_textbundle_metadata_file(path) {
+        return ImportFileKind::Metadata;
+    }
     let extension = path
         .extension()
         .map(|value| value.to_string_lossy().to_ascii_lowercase())
@@ -261,6 +272,55 @@ pub(crate) fn classify_import_file(path: &Path) -> ImportFileKind {
 
 pub(crate) fn is_skipped_name(name: &str) -> bool {
     name.starts_with('.') || SKIPPED_DIRS.contains(&name) || SKIPPED_FILES.contains(&name)
+}
+
+pub(crate) fn is_textbundle_metadata_file(path: &Path) -> bool {
+    let file_name = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    file_name == "info.json"
+        && path.parent().is_some_and(|parent| {
+            parent
+                .extension()
+                .map(|value| value.to_string_lossy().eq_ignore_ascii_case("textbundle"))
+                .unwrap_or(false)
+        })
+}
+
+pub(crate) fn is_textbundle_markdown_file(path: &Path) -> bool {
+    let file_name = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    MARKDOWN_EXTENSIONS
+        .iter()
+        .any(|extension| file_name == format!("text.{extension}"))
+        && path.parent().is_some_and(|parent| {
+            parent
+                .extension()
+                .map(|value| value.to_string_lossy().eq_ignore_ascii_case("textbundle"))
+                .unwrap_or(false)
+        })
+}
+
+pub(crate) fn count_files_in_pruned_dirs(source_root: &Path) -> Result<usize, String> {
+    let mut skipped = 0;
+    for entry in WalkDir::new(source_root).follow_links(false) {
+        let entry = entry.map_err(|e| format!("Failed to read source folder: {e}"))?;
+        if entry.file_type().is_file() && has_skipped_parent(source_root, entry.path()) {
+            skipped += 1;
+        }
+    }
+    Ok(skipped)
+}
+
+fn has_skipped_parent(source_root: &Path, path: &Path) -> bool {
+    let relative = path.strip_prefix(source_root).unwrap_or(path);
+    relative.components().rev().skip(1).any(|component| {
+        let name = component.as_os_str().to_string_lossy().to_ascii_lowercase();
+        is_skipped_name(&name)
+    })
 }
 
 pub(crate) fn copy_import_file(
@@ -333,64 +393,4 @@ fn format_report(source_root: &Path, import_root: &Path, counters: &ImportCounte
 
 pub(crate) fn path_to_string(path: &Path) -> String {
     path.to_string_lossy().into_owned()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::TempDir;
-
-    #[test]
-    fn imports_markdown_and_assets_into_imports_folder() {
-        let vault = TempDir::new().unwrap();
-        let source = TempDir::new().unwrap();
-        fs::write(source.path().join("note.md"), "# Note\n").unwrap();
-        fs::create_dir_all(source.path().join("assets")).unwrap();
-        fs::write(source.path().join("assets/image.svg"), "<svg/>").unwrap();
-        fs::write(source.path().join("script.ts"), "console.log('skip')").unwrap();
-
-        let result = import_markdown_folder(vault.path(), source.path()).unwrap();
-
-        assert_eq!(result.notes_copied, 1);
-        assert_eq!(result.assets_copied, 1);
-        assert_eq!(result.skipped_files, 1);
-        assert!(Path::new(&result.imported_root).join("note.md").exists());
-        assert!(Path::new(&result.imported_root)
-            .join("assets/image.svg")
-            .exists());
-        assert!(Path::new(&result.report_path).exists());
-    }
-
-    #[test]
-    fn previews_markdown_import_without_writing_to_vault() {
-        let vault = TempDir::new().unwrap();
-        let source = TempDir::new().unwrap();
-        fs::write(source.path().join("note.md"), "# Note\n").unwrap();
-        fs::create_dir_all(source.path().join("assets")).unwrap();
-        fs::write(source.path().join("assets/image.png"), "image").unwrap();
-        fs::create_dir_all(source.path().join(".codex")).unwrap();
-        fs::write(source.path().join(".mcp.json"), "{}").unwrap();
-        fs::write(source.path().join(".codex/config.toml"), "local").unwrap();
-        fs::write(source.path().join("tmp.bin"), "skip").unwrap();
-
-        let result = preview_markdown_folder_import(vault.path(), source.path()).unwrap();
-
-        assert_eq!(result.notes_to_copy, 1);
-        assert_eq!(result.assets_to_copy, 1);
-        assert_eq!(result.skipped_files, 2);
-        assert!(result.writes_local_only_report);
-        assert!(result.planned_import_root.contains("/imports/"));
-        assert!(!Path::new(&result.planned_import_root).exists());
-    }
-
-    #[test]
-    fn rejects_sources_that_contain_the_active_vault() {
-        let source = TempDir::new().unwrap();
-        let vault = source.path().join("vault");
-        fs::create_dir_all(&vault).unwrap();
-
-        let error = import_markdown_folder(&vault, source.path()).unwrap_err();
-
-        assert!(error.contains("must not contain each other"));
-    }
 }

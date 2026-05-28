@@ -80,10 +80,10 @@ function renderRightPanel(
 }
 
 describe('EditorRightPanel AI chat lifecycle', () => {
-  it('keeps AI chat history when the panel is closed and reopened', () => {
+  it('keeps AI chat history when the panel is closed and reopened', async () => {
     const { rerender } = render(renderRightPanel(true))
 
-    fireEvent.change(screen.getByTestId('agent-input'), { target: { value: 'remember this' } })
+    fireEvent.change(await screen.findByTestId('agent-input'), { target: { value: 'remember this' } })
     fireEvent.click(screen.getByTestId('agent-send'))
     expect(screen.getByText('remember this')).toBeInTheDocument()
 
@@ -91,17 +91,17 @@ describe('EditorRightPanel AI chat lifecycle', () => {
     expect(screen.queryByTestId('ai-panel')).toBeNull()
 
     rerender(renderRightPanel(true))
-    expect(screen.getByText('remember this')).toBeInTheDocument()
+    expect(await screen.findByText('remember this')).toBeInTheDocument()
     expect(screen.getByText('Still here.')).toBeInTheDocument()
   })
 
-  it('keeps Chitragupta provider and model route visible in the production AI panel', () => {
+  it('keeps Chitragupta provider and model route visible in the production AI panel', async () => {
     render(renderRightPanel(true, {
       defaultAiAgent: 'chitragupta',
       defaultAiModel: 'gemini-2.5-pro',
       defaultAiProvider: 'google',
     }))
 
-    expect(screen.getByText('Chitragupta · provider: google · model: gemini-2.5-pro')).toBeInTheDocument()
+    expect(await screen.findByText('Chitragupta · provider: google · model: gemini-2.5-pro')).toBeInTheDocument()
   })
 })

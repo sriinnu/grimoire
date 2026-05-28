@@ -20,6 +20,7 @@ const emptySettings: Settings = {
   editor_font: null,
   ui_language: null,
   menu_bar_icon_enabled: null,
+  native_shell_material: null,
 }
 
 function installPointerCapturePolyfill() {
@@ -84,6 +85,36 @@ describe('SettingsPanel appearance and agent settings', () => {
     expect(screen.getByTestId('settings-nav-settings-sync')).not.toHaveAttribute('aria-current')
   })
 
+  it('updates the active settings rail item while the main surface scrolls', () => {
+    render(<SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />)
+
+    const mainSurface = screen.getByTestId('settings-main-surface')
+    Object.defineProperty(mainSurface, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({ top: 0, bottom: 640, left: 0, right: 860, width: 860, height: 640, x: 0, y: 0, toJSON: () => ({}) }),
+    })
+
+    for (const [id, top] of [
+      ['settings-sync', -460],
+      ['settings-portability', -320],
+      ['settings-appearance', -140],
+      ['settings-workflow', 18],
+      ['settings-agents', 220],
+    ] as const) {
+      const section = document.getElementById(id)
+      expect(section).not.toBeNull()
+      Object.defineProperty(section, 'getBoundingClientRect', {
+        configurable: true,
+        value: () => ({ top, bottom: top + 120, left: 0, right: 640, width: 640, height: 120, x: 0, y: top, toJSON: () => ({}) }),
+      })
+    }
+
+    fireEvent.scroll(mainSurface)
+
+    expect(screen.getByTestId('settings-nav-settings-workflow')).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByTestId('settings-nav-settings-appearance')).not.toHaveAttribute('aria-current')
+  })
+
   it('updates the draft language when stored settings finish loading', () => {
     const { rerender } = render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
@@ -133,6 +164,21 @@ describe('SettingsPanel appearance and agent settings', () => {
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       menu_bar_icon_enabled: true,
+    }))
+  })
+
+  it('labels and saves the native shell material preference', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByRole('combobox', { name: 'Window material' })).toBeInTheDocument()
+    fireEvent.pointerDown(screen.getByTestId('settings-native-shell-material'), { button: 0, pointerType: 'mouse' })
+    fireEvent.click(screen.getByRole('option', { name: 'Glass preview' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      native_shell_material: 'glass-preview',
     }))
   })
 
@@ -389,7 +435,7 @@ describe('SettingsPanel appearance and agent settings', () => {
     })
 
     expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
-      'passes --provider openai'
+      'Provider override: --provider openai'
     )
 
     fireEvent.click(screen.getByTestId('settings-save'))
@@ -410,10 +456,30 @@ describe('SettingsPanel appearance and agent settings', () => {
     )
 
     expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
-      'does not pass --provider and lets the local Chitragupta CLI choose'
+      'Provider resolves from the Chitragupta stream'
     )
     expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
-      'does not pass --model'
+      'Model resolves from the Chitragupta stream'
     )
+  })
+
+  it('shows Chitragupta MCP readiness as a separate memory contract', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    const contract = screen.getByTestId('settings-ai-agent-chitragupta-contract')
+    expect(contract).toHaveTextContent('MCP memory contract')
+    expect(contract).toHaveTextContent('Live memory lanes stay local-ledger only')
+    expect(contract).toHaveTextContent('recall')
+    expect(contract).toHaveTextContent('wiki')
+    expect(contract).toHaveTextContent('graph')
+    expect(contract).toHaveTextContent('diagnostics')
+    expect(contract).not.toHaveTextContent(/google|gemini|anthropic|openai|\/Users/i)
   })
 })

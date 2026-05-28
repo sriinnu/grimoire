@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  buildRelationshipGroups,
   countAllByFilter,
   countAllNotesByFilter,
   countByFilter,
@@ -8,6 +7,7 @@ import {
   countFolderFileScopes,
   filterEntries,
 } from './noteListHelpers'
+import { buildRelationshipGroups } from './noteRelationships'
 import { allSelection, makeEntry, mockEntries } from '../test-utils/noteListTestUtils'
 
 describe('filterEntries', () => {

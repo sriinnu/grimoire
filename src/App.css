@@ -68,7 +68,13 @@
 }
 
 .tab-status-pulse {
-  animation: tab-status-pulse 1.2s ease-in-out infinite;
+  opacity: 0.78;
+  animation: tab-status-pulse 1.2s ease-in-out 3;
+}
+
+.update-download-spinner {
+  animation: spin 1s linear infinite;
+  transform-origin: center;
 }
 
 /* AI highlight animation — applied by useAiActivity when MCP calls ui_highlight */
@@ -82,20 +88,29 @@
   animation: ai-highlight-glow 0.8s ease-out;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .tab-status-pulse,
+  .update-download-spinner {
+    animation: none;
+  }
+
+  .tab-status-pulse {
+    opacity: 1;
+  }
+}
+
 .app__dashboard {
   flex: 1;
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, var(--accent-blue) 8%), var(--background) 42%),
-    var(--background);
+  background: var(--grimoire-dashboard-material, linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, var(--primary) 8%), var(--background) 42%));
 }
 
 .vault-dashboard {
   box-sizing: border-box;
   min-height: 100%;
-  padding: 28px;
+  padding: var(--grimoire-density-page-padding, 28px);
   color: var(--foreground);
 }
 
@@ -184,7 +199,7 @@
 .vault-dashboard__grid {
   display: grid;
   grid-template-columns: minmax(320px, 1.35fr) minmax(260px, 0.8fr);
-  gap: 14px;
+  gap: var(--grimoire-density-card-gap, 14px);
   max-width: 1180px;
   margin: 0 auto;
 }
@@ -198,7 +213,7 @@
 }
 
 .vault-dashboard__panel {
-  padding: 16px;
+  padding: var(--grimoire-density-panel-padding, 16px);
 }
 
 .vault-dashboard__panel--capture,
@@ -224,7 +239,7 @@
 
 .vault-dashboard__capture-form {
   display: grid;
-  gap: 12px;
+  gap: var(--grimoire-density-row-gap, 8px);
 }
 
 .vault-dashboard__textarea {
@@ -249,7 +264,7 @@
 .vault-dashboard__prompts,
 .vault-dashboard__recent-list {
   display: grid;
-  gap: 8px;
+  gap: var(--grimoire-density-row-gap, 8px);
 }
 
 .vault-dashboard__loop-row {
@@ -282,7 +297,7 @@
 
 .vault-dashboard__stat {
   min-height: 108px;
-  padding: 14px;
+  padding: calc(var(--grimoire-density-panel-padding, 16px) - 2px);
 }
 
 .vault-dashboard__stat-value {
@@ -309,7 +324,7 @@
   grid-column: 1 / -1;
 }
 
-.vault-dashboard__dream-forge-badges {
+.vault-dashboard__insight-badges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;

@@ -439,7 +439,9 @@ describe('buildContextSnapshot', () => {
 
     expect(json.graphNeighborhood.nodes).toHaveLength(2)
     expect(json.graphNeighborhood.edges).toHaveLength(1)
-    expect(json.graphNeighborhood.omitted.protectedNodes).toBe(1)
+    expect(json.graphNeighborhood.omitted.localOnly).toBe('held-by-policy')
+    expect(json.graphNeighborhood.omitted).not.toHaveProperty('protectedNodes')
+    expect(json.graphNeighborhood.omitted).not.toHaveProperty('protectedEdges')
     expect(result).toContain('source-safe graph context')
   })
 

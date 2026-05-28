@@ -20,6 +20,9 @@ function makeHandlers(): AppCommandHandlers {
   return {
     onSetViewMode: vi.fn(),
     onCreateNote: vi.fn(),
+    onCaptureThought: vi.fn(),
+    onCaptureJournal: vi.fn(),
+    onCaptureDream: vi.fn(),
     onCreateType: vi.fn(),
     onQuickOpen: vi.fn(),
     onSave: vi.fn(),
@@ -196,6 +199,16 @@ describe('appCommandDispatcher', () => {
     const handlers = makeHandlers()
     expect(dispatchAppCommand(APP_COMMAND_IDS.fileNewNote, handlers)).toBe(true)
     expect(handlers.onCreateNote).toHaveBeenCalled()
+  })
+
+  it('dispatches menu-bar capture lanes through the shared command path', () => {
+    const handlers = makeHandlers()
+    expect(dispatchAppCommand(APP_COMMAND_IDS.fileCaptureThought, handlers)).toBe(true)
+    expect(dispatchAppCommand(APP_COMMAND_IDS.fileCaptureJournal, handlers)).toBe(true)
+    expect(dispatchAppCommand(APP_COMMAND_IDS.fileCaptureDream, handlers)).toBe(true)
+    expect(handlers.onCaptureThought).toHaveBeenCalled()
+    expect(handlers.onCaptureJournal).toHaveBeenCalled()
+    expect(handlers.onCaptureDream).toHaveBeenCalled()
   })
 
   it('dispatches inspector toggle through the shared command path', () => {

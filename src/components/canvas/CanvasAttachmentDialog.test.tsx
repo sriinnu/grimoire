@@ -24,12 +24,16 @@ vi.mock('@/components/ui/action-tooltip', () => ({
 }))
 
 vi.mock('./CanvasDrawingSurface', () => ({
-  CanvasDrawingSurface: ({ setDocument }: {
+  CanvasDrawingSurface: ({ document, setDocument }: {
+    document: ReturnType<typeof createCanvasDocument>
     setDocument: (updater: ReturnType<typeof createStrokeUpdater>) => void
   }) => (
-    <button type="button" onClick={() => setDocument(createStrokeUpdater())}>
-      Draw stroke
-    </button>
+    <>
+      <div data-testid="canvas-background">{document.background}</div>
+      <button type="button" onClick={() => setDocument(createStrokeUpdater())}>
+        Draw stroke
+      </button>
+    </>
   ),
 }))
 
@@ -59,6 +63,7 @@ const attachment: CanvasAttachment = {
 
 describe('CanvasAttachmentDialog', () => {
   beforeEach(async () => {
+    document.documentElement.removeAttribute('style')
     const { pickFile } = await import('../../utils/vault-dialog')
     vi.mocked(pickFile).mockReset()
     vi.mocked(importCanvasImageToVault).mockReset()
@@ -67,6 +72,7 @@ describe('CanvasAttachmentDialog', () => {
   })
 
   it('enables first save when the canvas source has not been written yet', async () => {
+    document.documentElement.style.setProperty('--surface-card', '#101820')
     vi.mocked(loadCanvasDocumentState).mockResolvedValueOnce({
       document: createCanvasDocument('whiteboard'),
       sourceFound: false,
@@ -81,7 +87,9 @@ describe('CanvasAttachmentDialog', () => {
       />,
     )
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Unsaved local canvas')
+    const status = await screen.findByRole('status')
+    await waitFor(() => expect(status).toHaveTextContent('Unsaved local canvas'))
+    expect(screen.getByTestId('canvas-background')).toHaveTextContent('#101820')
     const save = screen.getByRole('button', { name: /save/i })
     expect(save).toBeEnabled()
 
@@ -161,5 +169,38 @@ describe('CanvasAttachmentDialog', () => {
         images: [expect.objectContaining({ src: 'attachments/photo.png' })],
       }),
     )
+  })
+
+  it('copies a local markdown extraction of canvas strokes', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    })
+    const documentWithStroke = createStrokeUpdater()(createCanvasDocument('whiteboard'))
+    vi.mocked(loadCanvasDocumentState).mockResolvedValueOnce({
+      document: documentWithStroke,
+      sourceFound: true,
+    })
+
+    render(
+      <CanvasAttachmentDialog
+        attachment={attachment}
+        onOpenChange={vi.fn()}
+        open
+        vaultPath="/vault"
+      />,
+    )
+
+    const copyMarkdown = await screen.findByRole('button', { name: 'Copy Markdown' })
+    await waitFor(() => expect(copyMarkdown).toBeEnabled())
+    await act(async () => {
+      fireEvent.click(copyMarkdown)
+    })
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
+    expect(writeText.mock.calls[0]?.[0]).toContain('## Canvas Extraction - Whiteboard')
+    expect(writeText.mock.calls[0]?.[0]).toContain('Pen stroke')
+    expect(screen.getByRole('status')).toHaveTextContent('Markdown extraction copied locally')
   })
 })

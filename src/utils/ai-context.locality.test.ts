@@ -98,7 +98,10 @@ describe('ai-context locality policy', () => {
     expect(JSON.stringify(json)).not.toContain('Secret')
     expect(JSON.stringify(json)).toContain('Public')
     expect(json.vault).toEqual({ types: ['Note'], totalNotes: 2 })
-    expect(json.localOnlyOmitted).toEqual({ noteList: 1, referencedNotes: 1 })
+    expect(json.localOnlyOmitted).toEqual({
+      noteList: 'held-by-policy',
+      referencedNotes: 'held-by-policy',
+    })
     expect(json.openTabs).toEqual([{ path: publicNote.path, title: 'Public', type: 'Note', frontmatter: { type: 'Note' } }])
   })
 
@@ -132,8 +135,7 @@ describe('ai-context locality policy', () => {
     expect(json.graphNeighborhood).toEqual({
       state: 'protected-active',
       omitted: {
-        protectedEdges: 2,
-        protectedNodes: 1,
+        localOnly: 'held-by-policy',
         truncatedEdges: 0,
         truncatedNodes: 0,
       },

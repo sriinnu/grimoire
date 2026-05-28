@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { normalizeStoredAiAgent } from '../lib/aiAgents'
-import { normalizeEditorFont, normalizeThemePreset } from '../lib/appearance'
-import { serializeUiLanguagePreference } from '../lib/i18n'
+import { normalizeEditorFont, normalizeNativeShellMaterial, normalizeThemePreset } from '../lib/appearance'
+import { serializeUiLanguagePreference } from '../lib/i18nCore'
 import { normalizeReleaseChannel, serializeReleaseChannel } from '../lib/releaseChannel'
-import { resolveConfiguredTranscriptionProvider } from '../lib/transcriptionProviders'
+import { resolveConfiguredTranscriptionProvider } from '../lib/transcriptionProviderConfig'
 import { normalizeThemeMode } from '../lib/themeMode'
 import type { Settings } from '../types'
 
@@ -43,6 +43,7 @@ const EMPTY_SETTINGS: Settings = {
   editor_font: null,
   ui_language: null,
   menu_bar_icon_enabled: null,
+  native_shell_material: null,
   default_ai_agent: null,
   transcription_provider: null,
   cloud_transcription_enabled: null,
@@ -57,6 +58,7 @@ function normalizeSettings(settings: Settings): Settings {
     theme_mode: normalizeThemeMode(settings.theme_mode),
     theme_preset: normalizeThemePreset(settings.theme_preset),
     editor_font: normalizeEditorFont(settings.editor_font),
+    native_shell_material: normalizeNativeShellMaterial(settings.native_shell_material),
     ui_language: serializeUiLanguagePreference(settings.ui_language),
     default_ai_agent: normalizeStoredAiAgent(settings.default_ai_agent),
     cloud_transcription_enabled: settings.cloud_transcription_enabled === true,

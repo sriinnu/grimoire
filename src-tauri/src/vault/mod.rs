@@ -1,4 +1,6 @@
 mod app_importer;
+#[cfg(test)]
+mod app_importer_golden_tests;
 mod app_importer_io;
 mod app_importer_preview;
 mod app_importer_progress;
@@ -25,8 +27,11 @@ mod html_exporter_progress_tests;
 #[cfg(test)]
 mod html_exporter_tests;
 mod image;
+mod import_manifest;
 mod importer;
 mod importer_progress;
+#[cfg(test)]
+mod importer_tests;
 mod journal_html_import_helpers;
 mod journal_import_helpers;
 mod journal_importer;
@@ -36,9 +41,25 @@ mod journal_importer_progress;
 mod journal_importer_progress_tests;
 #[cfg(test)]
 mod journal_importer_tests;
+mod journal_media_import;
+#[cfg(test)]
+mod journal_media_import_tests;
 pub(crate) mod locality;
 pub(crate) mod locality_attachments;
 mod migration;
+mod object_storage_azure_cli;
+mod object_storage_azure_io;
+mod object_storage_azure_live;
+mod object_storage_azure_plan;
+mod object_storage_azure_sync;
+mod object_storage_azure_target;
+mod object_storage_live;
+#[cfg(test)]
+mod object_storage_live_roundtrip_tests;
+mod object_storage_s3_io;
+mod object_storage_s3_plan;
+mod object_storage_s3_sync;
+mod object_storage_s3_target;
 mod object_storage_signature;
 mod object_storage_sync;
 mod object_storage_sync_progress;
@@ -59,6 +80,8 @@ mod title_sync;
 mod trash;
 mod views;
 mod zip_importer;
+#[cfg(test)]
+mod zip_importer_golden_tests;
 #[cfg(test)]
 mod zip_importer_progress_tests;
 
@@ -90,6 +113,16 @@ pub use journal_importer::import_journal_export;
 pub use journal_importer_preview::preview_journal_export;
 pub use journal_importer_progress::import_journal_export_with_progress;
 pub use migration::migrate_is_a_to_type;
+pub use object_storage_azure_live::{
+    azure_live_preflight, AzureLivePreflightInput, AzureLivePreflightReport,
+};
+pub use object_storage_azure_sync::{
+    apply_azure_provider_sync, preview_azure_provider_sync, AzureProviderSyncInput,
+};
+pub use object_storage_live::{s3_live_preflight, S3LivePreflightInput, S3LivePreflightReport};
+pub use object_storage_s3_sync::{
+    apply_s3_provider_sync, preview_s3_provider_sync, S3ProviderSyncInput,
+};
 pub use object_storage_sync::{apply_object_storage_sync, preview_object_storage_sync};
 pub use object_storage_sync_progress::{
     apply_object_storage_sync_with_progress, preview_object_storage_sync_with_progress,

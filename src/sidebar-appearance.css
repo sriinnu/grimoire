@@ -12,6 +12,60 @@
   z-index: 2;
 }
 
+.sidebar-top-nav__tone {
+  --sidebar-nav-tone: var(--sidebar-primary);
+  --sidebar-nav-tone-soft: color-mix(in srgb, var(--sidebar-nav-tone) 14%, transparent);
+  --sidebar-nav-tone-line: color-mix(in srgb, var(--sidebar-nav-tone) 30%, transparent);
+}
+
+.sidebar-top-nav__tone[data-sidebar-nav-tone="aura"] {
+  --sidebar-nav-tone: var(--sidebar-primary);
+}
+
+.sidebar-top-nav__tone[data-sidebar-nav-tone="amber"] {
+  --sidebar-nav-tone: var(--feedback-warning-text);
+}
+
+.sidebar-top-nav__tone[data-sidebar-nav-tone="blue"] {
+  --sidebar-nav-tone: var(--primary);
+}
+
+.sidebar-top-nav__tone[data-sidebar-nav-tone="violet"] {
+  --sidebar-nav-tone: var(--accent-purple);
+}
+
+.sidebar-top-nav__tone > div {
+  position: relative;
+}
+
+.sidebar-top-nav__tone > div > svg {
+  width: 21px;
+  height: 21px;
+  border: 1px solid var(--sidebar-nav-tone-line);
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 35% 22%, color-mix(in srgb, #fff 22%, transparent), transparent 58%),
+    var(--sidebar-nav-tone-soft);
+  color: color-mix(in srgb, var(--sidebar-nav-tone) 84%, var(--sidebar-foreground));
+  padding: 3px;
+  filter: drop-shadow(0 4px 10px color-mix(in srgb, var(--sidebar-nav-tone) 18%, transparent));
+}
+
+.sidebar-top-nav__tone[data-active="true"] > div {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--sidebar-nav-tone) 18%, transparent), transparent 72%),
+    color-mix(in srgb, var(--sidebar-nav-tone) 10%, transparent);
+  color: var(--sidebar-foreground);
+}
+
+.sidebar-top-nav__tone[data-active="true"] > div > svg {
+  border-color: color-mix(in srgb, var(--sidebar-nav-tone) 58%, var(--sidebar-border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--sidebar-nav-tone) 42%, var(--sidebar) 58%), color-mix(in srgb, var(--sidebar-nav-tone) 18%, transparent)),
+    var(--sidebar-nav-tone-soft);
+  color: var(--sidebar-primary-foreground);
+}
+
 .sidebar-artwork {
   display: none;
   flex: 0 0 auto;

@@ -4,7 +4,7 @@ import { makeEntry, mockEntries, renderNoteList } from '../test-utils/noteListTe
 import { searchNoteList } from '../test-utils/noteListRenderingTestUtils'
 
 describe('NoteList neighborhood rendering', () => {
-  it('shows backlinks from outgoing links in entity view', () => {
+  it('shows backlinks from outgoing links in entity view', async () => {
     const entriesWithBacklink = mockEntries.map((entry) =>
       entry.path === mockEntries[2].path ? { ...entry, outgoingLinks: ['Build Grimoire App'] } : entry,
     )
@@ -14,7 +14,7 @@ describe('NoteList neighborhood rendering', () => {
       selection: { kind: 'entity', entry: mockEntries[0] },
     })
 
-    expect(screen.getByText('Backlinks')).toBeInTheDocument()
+    expect(await screen.findByText('Backlinks')).toBeInTheDocument()
     expect(screen.getByText('Karthik Reddy')).toBeInTheDocument()
   })
 
@@ -57,7 +57,7 @@ describe('NoteList neighborhood rendering', () => {
       selection: { kind: 'entity', entry: parent },
     })
 
-    expect(screen.getByRole('button', { name: /Children\s*1/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /Children\s*1/i })).toBeInTheDocument()
 
     await searchNoteList('missing-neighborhood-match')
 
@@ -68,7 +68,7 @@ describe('NoteList neighborhood rendering', () => {
     expect(screen.queryByText('Child Note')).not.toBeInTheDocument()
   })
 
-  it('shows the same note in multiple neighborhood groups when relationships overlap', () => {
+  it('shows the same note in multiple neighborhood groups when relationships overlap', async () => {
     const parent = makeEntry({
       path: '/vault/parent.md',
       filename: 'parent.md',
@@ -89,12 +89,12 @@ describe('NoteList neighborhood rendering', () => {
       selection: { kind: 'entity', entry: parent },
     })
 
-    expect(screen.getByText('Related to')).toBeInTheDocument()
+    expect(await screen.findByText('Related to')).toBeInTheDocument()
     expect(screen.getByText('Referenced by')).toBeInTheDocument()
     expect(screen.getAllByText('Shared Note')).toHaveLength(2)
   })
 
-  it('shows all real inverse relationship groups for custom relationship keys', () => {
+  it('shows all real inverse relationship groups for custom relationship keys', async () => {
     const parent = makeEntry({
       path: '/vault/parent.md',
       filename: 'parent.md',
@@ -128,7 +128,7 @@ describe('NoteList neighborhood rendering', () => {
       selection: { kind: 'entity', entry: parent },
     })
 
-    expect(screen.getByText('← Topics')).toBeInTheDocument()
+    expect(await screen.findByText('← Topics')).toBeInTheDocument()
     expect(screen.getByText('← Mentors')).toBeInTheDocument()
     expect(screen.getByText('← Hosts')).toBeInTheDocument()
     expect(screen.getByText('Topic Note')).toBeInTheDocument()
@@ -136,9 +136,9 @@ describe('NoteList neighborhood rendering', () => {
     expect(screen.getByText('Host Event')).toBeInTheDocument()
   })
 
-  it('collapses and expands entity groups', () => {
+  it('collapses and expands entity groups', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
-    expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
+    expect(await screen.findByText('Facebook Ads Strategy')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Children'))
     expect(screen.queryByText('Facebook Ads Strategy')).not.toBeInTheDocument()
@@ -147,8 +147,8 @@ describe('NoteList neighborhood rendering', () => {
     expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
   })
 
-  it('shows the pinned neighborhood note using the standard row content', () => {
+  it('shows the pinned neighborhood note using the standard row content', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
-    expect(screen.getByText('Build a personal knowledge management app.')).toBeInTheDocument()
+    expect(await screen.findByText('Build a personal knowledge management app.')).toBeInTheDocument()
   })
 })

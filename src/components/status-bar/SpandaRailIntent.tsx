@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState, type CSSProperties, type FocusEvent as ReactFocusEvent, type ReactNode } from 'react'
 import { Activity, AlertTriangle, FolderOpen, GitBranch, GitCommitHorizontal, HardDrive, PenLine, RefreshCw, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { STATUS_BAR_FOREGROUND } from './styles'
 import {
   getAiAgentDefinition,
   hasAnyInstalledAiAgent,
@@ -234,8 +235,8 @@ function triggerStyle(kind: SpandaIntentKind): CSSProperties {
   return {
     background: tone.bg,
     border: `1px solid ${tone.ring}`,
-    boxShadow: `0 0 0 1px ${tone.bg}, inset 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent)`,
-    color: 'var(--foreground)',
+    boxShadow: `0 0 0 1px ${tone.bg}, inset 0 1px 0 color-mix(in srgb, ${STATUS_BAR_FOREGROUND} 8%, transparent)`,
+    color: STATUS_BAR_FOREGROUND,
     transition: 'transform 160ms cubic-bezier(.2,.9,.2,1), background 160ms ease, border-color 160ms ease',
   }
 }

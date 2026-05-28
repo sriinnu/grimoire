@@ -1,5 +1,5 @@
-import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 import { makeEntry } from '../../test-utils/noteListTestUtils'
 import { LivingFrontmatterPanel } from './LivingFrontmatterPanel'
 
@@ -58,5 +58,31 @@ describe('LivingFrontmatterPanel', () => {
     )
 
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('applies safe suggestions through the Markdown frontmatter callback', () => {
+    const onApplySuggestion = vi.fn()
+    const entry = makeEntry({
+      path: '/vault/project/grimoire.md',
+      filename: 'grimoire.md',
+      title: 'Grimoire',
+      isA: 'Project',
+      outgoingLinks: ['Agent Council'],
+    })
+
+    render(
+      <LivingFrontmatterPanel
+        entry={entry}
+        entries={[entry]}
+        frontmatter={{ type: 'Project', owner: 'Sriinnu' }}
+        onApplySuggestion={onApplySuggestion}
+      />,
+    )
+
+    const panel = screen.getByTestId('living-frontmatter-panel')
+    expect(within(panel).getByText('Markdown-owned')).toBeInTheDocument()
+    expect(within(panel).getByText('Suggested: Active')).toBeInTheDocument()
+    fireEvent.click(within(panel).getAllByRole('button', { name: 'Apply' })[0])
+    expect(onApplySuggestion).toHaveBeenCalledWith('status', 'Active')
   })
 })

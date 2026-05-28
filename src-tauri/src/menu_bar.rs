@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, AppHandle, Manager,
+    App, AppHandle, LogicalSize, Manager,
 };
 
 const TRAY_ID: &str = "grimoire-menu-bar";
@@ -10,8 +10,13 @@ const TRAY_QUIT: &str = "tray-quit";
 
 const APP_SETTINGS: &str = "app-settings";
 const FILE_NEW_NOTE: &str = "file-new-note";
+const FILE_CAPTURE_THOUGHT: &str = "file-capture-thought";
+const FILE_CAPTURE_JOURNAL: &str = "file-capture-journal";
+const FILE_CAPTURE_DREAM: &str = "file-capture-dream";
 const FILE_QUICK_OPEN: &str = "file-quick-open";
 const VAULT_RELOAD: &str = "vault-reload";
+const VIEW_COMMAND_PALETTE: &str = "view-command-palette";
+const VIEW_TOGGLE_AI_CHAT: &str = "view-toggle-ai-chat";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum TrayMenuAction {
@@ -39,7 +44,12 @@ fn tray_menu_action(id: &str) -> Option<TrayMenuAction> {
     match id {
         TRAY_OPEN_GRIMOIRE => Some(TrayMenuAction::ShowWindow),
         FILE_NEW_NOTE => Some(TrayMenuAction::EmitMenuCommand(FILE_NEW_NOTE)),
+        FILE_CAPTURE_THOUGHT => Some(TrayMenuAction::EmitMenuCommand(FILE_CAPTURE_THOUGHT)),
+        FILE_CAPTURE_JOURNAL => Some(TrayMenuAction::EmitMenuCommand(FILE_CAPTURE_JOURNAL)),
+        FILE_CAPTURE_DREAM => Some(TrayMenuAction::EmitMenuCommand(FILE_CAPTURE_DREAM)),
         FILE_QUICK_OPEN => Some(TrayMenuAction::EmitMenuCommand(FILE_QUICK_OPEN)),
+        VIEW_TOGGLE_AI_CHAT => Some(TrayMenuAction::EmitMenuCommand(VIEW_TOGGLE_AI_CHAT)),
+        VIEW_COMMAND_PALETTE => Some(TrayMenuAction::EmitMenuCommand(VIEW_COMMAND_PALETTE)),
         APP_SETTINGS => Some(TrayMenuAction::EmitMenuCommand(APP_SETTINGS)),
         VAULT_RELOAD => Some(TrayMenuAction::EmitMenuCommand(VAULT_RELOAD)),
         TRAY_QUIT => Some(TrayMenuAction::Quit),
@@ -47,8 +57,15 @@ fn tray_menu_action(id: &str) -> Option<TrayMenuAction> {
     }
 }
 
-fn show_main_window(app_handle: &AppHandle) {
+pub(crate) fn show_main_window(app_handle: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
+
     if let Some(window) = app_handle.get_webview_window("main") {
+        if !window.is_visible().unwrap_or(false) {
+            let _ = window.set_size(LogicalSize::new(1400.0, 900.0));
+            let _ = window.center();
+        }
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
@@ -78,8 +95,28 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
         .id(FILE_NEW_NOTE)
         .build(app_handle)
         .map_err(|error| error.to_string())?;
+    let capture_thought = MenuItemBuilder::new("Capture Thought")
+        .id(FILE_CAPTURE_THOUGHT)
+        .build(app_handle)
+        .map_err(|error| error.to_string())?;
+    let capture_journal = MenuItemBuilder::new("Journal Entry")
+        .id(FILE_CAPTURE_JOURNAL)
+        .build(app_handle)
+        .map_err(|error| error.to_string())?;
+    let capture_dream = MenuItemBuilder::new("Dream Entry")
+        .id(FILE_CAPTURE_DREAM)
+        .build(app_handle)
+        .map_err(|error| error.to_string())?;
     let quick_open = MenuItemBuilder::new("Quick Open")
         .id(FILE_QUICK_OPEN)
+        .build(app_handle)
+        .map_err(|error| error.to_string())?;
+    let ask_grimoire = MenuItemBuilder::new("Ask Grimoire")
+        .id(VIEW_TOGGLE_AI_CHAT)
+        .build(app_handle)
+        .map_err(|error| error.to_string())?;
+    let command_palette = MenuItemBuilder::new("Command Palette")
+        .id(VIEW_COMMAND_PALETTE)
         .build(app_handle)
         .map_err(|error| error.to_string())?;
     let settings = MenuItemBuilder::new("Settings...")
@@ -99,7 +136,12 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
         .item(&open)
         .separator()
         .item(&new_note)
+        .item(&capture_thought)
+        .item(&capture_journal)
+        .item(&capture_dream)
         .item(&quick_open)
+        .item(&ask_grimoire)
+        .item(&command_palette)
         .separator()
         .item(&settings)
         .item(&reload)
@@ -148,8 +190,10 @@ pub fn apply_menu_bar_icon_setting(app_handle: &AppHandle, enabled: bool) -> Res
 /// Restore the native menu bar icon on startup when Settings has it enabled.
 pub fn setup_menu_bar_icon(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     let settings = crate::settings::get_settings().map_err(io_error)?;
-    apply_menu_bar_icon_setting(app.handle(), settings.menu_bar_icon_enabled == Some(true))
+    let app_handle = app.handle();
+    apply_menu_bar_icon_setting(app_handle, settings.menu_bar_icon_enabled == Some(true))
         .map_err(io_error)?;
+    show_main_window(app_handle);
     Ok(())
 }
 
@@ -168,8 +212,28 @@ mod tests {
             Some(TrayMenuAction::EmitMenuCommand(FILE_NEW_NOTE))
         );
         assert_eq!(
+            tray_menu_action(FILE_CAPTURE_THOUGHT),
+            Some(TrayMenuAction::EmitMenuCommand(FILE_CAPTURE_THOUGHT))
+        );
+        assert_eq!(
+            tray_menu_action(FILE_CAPTURE_JOURNAL),
+            Some(TrayMenuAction::EmitMenuCommand(FILE_CAPTURE_JOURNAL))
+        );
+        assert_eq!(
+            tray_menu_action(FILE_CAPTURE_DREAM),
+            Some(TrayMenuAction::EmitMenuCommand(FILE_CAPTURE_DREAM))
+        );
+        assert_eq!(
             tray_menu_action(FILE_QUICK_OPEN),
             Some(TrayMenuAction::EmitMenuCommand(FILE_QUICK_OPEN))
+        );
+        assert_eq!(
+            tray_menu_action(VIEW_TOGGLE_AI_CHAT),
+            Some(TrayMenuAction::EmitMenuCommand(VIEW_TOGGLE_AI_CHAT))
+        );
+        assert_eq!(
+            tray_menu_action(VIEW_COMMAND_PALETTE),
+            Some(TrayMenuAction::EmitMenuCommand(VIEW_COMMAND_PALETTE))
         );
         assert_eq!(
             tray_menu_action(APP_SETTINGS),

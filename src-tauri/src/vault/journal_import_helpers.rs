@@ -14,6 +14,7 @@ pub(super) struct JournalEntry {
     pub tags: Vec<String>,
     pub media_keys: Vec<String>,
     pub raw_source: String,
+    pub source_path: String,
 }
 
 pub(super) fn read_entries_from_json(
@@ -33,9 +34,10 @@ pub(super) fn read_entries_from_json(
         Value::Array(items) => items.clone(),
         _ => Vec::new(),
     };
+    let source_path = path.to_string_lossy().into_owned();
     Ok(values
         .iter()
-        .filter_map(|entry| parse_journal_entry(entry, source_kind))
+        .filter_map(|entry| parse_journal_entry(entry, source_kind, &source_path))
         .collect())
 }
 
@@ -99,7 +101,11 @@ pub(super) fn unique_note_name(
     }
 }
 
-fn parse_journal_entry(value: &Value, source_kind: &str) -> Option<JournalEntry> {
+fn parse_journal_entry(
+    value: &Value,
+    source_kind: &str,
+    source_path: &str,
+) -> Option<JournalEntry> {
     let object = value.as_object()?;
     let text = first_string(
         object,
@@ -146,6 +152,7 @@ fn parse_journal_entry(value: &Value, source_kind: &str) -> Option<JournalEntry>
         tags: collect_tags(object),
         media_keys: collect_media_keys(object),
         raw_source: source_kind.to_string(),
+        source_path: source_path.to_string(),
     })
 }
 

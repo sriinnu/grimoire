@@ -1,6 +1,7 @@
 import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
-import type { EditorFont, ThemePreset } from '../../lib/appearance'
-import type { createTranslator, AppLocale, UiLanguagePreference } from '../../lib/i18n'
+import type { EditorFont, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
+import type { createTranslator } from '../../lib/i18n'
+import type { AppLocale, UiLanguagePreference } from '../../lib/i18nCore'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
 import type { TranscriptionProviderId } from '../../lib/transcriptionProviders'
 import type { ThemeMode } from '../../lib/themeMode'
@@ -10,7 +11,8 @@ import type {
   VaultPortabilityActionId,
 } from '../../lib/vaultPortability'
 import type { VaultEntry } from '../../types'
-import type { ObjectStorageSyncReport } from '../../utils/objectStorageSync'
+import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../../utils/objectStorageLivePreflight'
+import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../../utils/objectStorageSync'
 
 export type SettingsTranslate = ReturnType<typeof createTranslator>
 
@@ -29,6 +31,7 @@ export interface SettingsDraft {
   editorFont: EditorFont
   uiLanguage: UiLanguagePreference
   menuBarIconEnabled: boolean
+  nativeShellMaterial: NativeShellMaterial
   initialH1AutoRename: boolean
   crashReporting: boolean
   analytics: boolean
@@ -72,6 +75,8 @@ export interface SettingsBodyProps {
   setUiLanguage: (value: UiLanguagePreference) => void
   menuBarIconEnabled: boolean
   setMenuBarIconEnabled: (value: boolean) => void
+  nativeShellMaterial: NativeShellMaterial
+  setNativeShellMaterial: (value: NativeShellMaterial) => void
   locale: AppLocale
   systemLocale: AppLocale
   initialH1AutoRename: boolean
@@ -117,16 +122,36 @@ export interface SettingsBodyProps {
   onExportStaticHtmlArchive?: () => void
   s3MirrorPreviewReady?: boolean
   s3MirrorPullPreviewReady?: boolean
+  s3ProviderPushPreviewReady?: boolean
+  s3ProviderPullPreviewReady?: boolean
+  azureProviderPushPreviewReady?: boolean
+  azureProviderPullPreviewReady?: boolean
   azureMirrorPreviewReady?: boolean
   azureMirrorPullPreviewReady?: boolean
   s3MirrorPreviewReport?: ObjectStorageSyncReport
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewReport?: ObjectStorageSyncReport
+  azureProviderPullPreviewReport?: ObjectStorageSyncReport
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
+  s3LivePreflightReport?: S3LivePreflightReport
+  azureLivePreflightReport?: AzureLivePreflightReport
+  onRunS3LivePreflight?: (args: S3LivePreflightArgs) => void
+  onRunAzureLivePreflight?: (args: AzureLivePreflightArgs) => void
   onPreviewS3MirrorPush?: () => void
   onApplyS3MirrorPush?: () => void
   onPreviewS3MirrorPull?: () => void
   onApplyS3MirrorPull?: () => void
+  onPreviewS3ProviderPush?: (args: S3LivePreflightArgs) => void
+  onApplyS3ProviderPush?: (args: S3LivePreflightArgs) => void
+  onPreviewS3ProviderPull?: (args: S3LivePreflightArgs) => void
+  onApplyS3ProviderPull?: (args: S3LivePreflightArgs) => void
+  onPreviewAzureProviderPush?: (args: AzureLivePreflightArgs) => void
+  onApplyAzureProviderPush?: (args: AzureLivePreflightArgs) => void
+  onPreviewAzureProviderPull?: (args: AzureLivePreflightArgs) => void
+  onApplyAzureProviderPull?: (args: AzureLivePreflightArgs) => void
   onPreviewAzureMirrorPush?: () => void
   onApplyAzureMirrorPush?: () => void
   onPreviewAzureMirrorPull?: () => void

@@ -11,7 +11,7 @@ export interface DreamForgeSignal {
 export interface DreamForgePrivacyModel {
   locality: 'local-only'
   bodyAccess: 'forbidden'
-  titlePolicy: 'local-dashboard-only'
+  titlePolicy: 'never'
   pathPolicy: 'never'
   signalPolicy: 'local-dashboard-only'
   agentPolicy: 'counts-and-redaction-only'
@@ -25,10 +25,31 @@ export interface DreamForgeSummary {
   dreamCount: number
   journalCount: number
   protectedCount: number
-  latestDreamTitle: string | null
+  latestDreamAt: number | null
+  rhythm: DreamForgeRhythmPoint[]
+  timeline: DreamForgeTimelinePoint[]
   recurringPeople: DreamForgeSignal[]
   symbols: DreamForgeSignal[]
   emotionalWeather: DreamForgeSignal[]
+}
+
+/** Metadata-only private rhythm bucket for Dream Forge. */
+export interface DreamForgeRhythmPoint {
+  label: 'Last night' | 'This week' | 'Earlier'
+  dreamCount: number
+  journalCount: number
+  protectedCount: number
+  tone: 'active' | 'deep' | 'recent'
+}
+
+/** Count-only private timeline bucket for dream/journal trend review. */
+export interface DreamForgeTimelinePoint {
+  label: 'Last night' | 'This week' | 'This month' | 'Deep archive'
+  dreamCount: number
+  journalCount: number
+  protectedCount: number
+  signalCount: number
+  state: 'spark' | 'thread' | 'archive' | 'quiet'
 }
 
 /** Non-local-safe Dream Forge privacy report: no titles, paths, bodies, or signal labels. */
@@ -45,11 +66,12 @@ export interface DreamForgePrivacyReport {
 const SYMBOL_KEYS = ['symbol', 'symbols', 'dream_symbol', 'dream_symbols']
 const EMOTION_KEYS = ['emotion', 'emotions', 'emotional_weather', 'mood', 'feeling', 'feelings']
 const PEOPLE_KEYS = ['person', 'people', 'persons', 'character', 'characters', 'recurring_people']
+const DAY_SECONDS = 24 * 60 * 60
 
 export const DREAM_FORGE_PRIVACY_MODEL: DreamForgePrivacyModel = {
   locality: 'local-only',
   bodyAccess: 'forbidden',
-  titlePolicy: 'local-dashboard-only',
+  titlePolicy: 'never',
   pathPolicy: 'never',
   signalPolicy: 'local-dashboard-only',
   agentPolicy: 'counts-and-redaction-only',
@@ -58,7 +80,10 @@ export const DREAM_FORGE_PRIVACY_MODEL: DreamForgePrivacyModel = {
 }
 
 /** Builds local-only dream/journal pattern metadata without reading note bodies. */
-export function buildDreamForgeSummary(entries: VaultEntry[]): DreamForgeSummary {
+export function buildDreamForgeSummary(
+  entries: VaultEntry[],
+  nowSeconds = Math.floor(Date.now() / 1000),
+): DreamForgeSummary {
   const dreams = entries.filter((entry) => typeIs(entry, 'Dream') && !entry.archived)
   const journals = entries.filter((entry) => typeIs(entry, 'Journal') && !entry.archived)
   const protectedEntries = [...dreams, ...journals].filter((entry) => resolveEntryLocalityPolicy(entry).localOnly)
@@ -67,7 +92,9 @@ export function buildDreamForgeSummary(entries: VaultEntry[]): DreamForgeSummary
     dreamCount: dreams.length,
     journalCount: journals.length,
     protectedCount: protectedEntries.length,
-    latestDreamTitle: latestTitle(dreams),
+    latestDreamAt: latestTimestamp(dreams),
+    rhythm: dreamRhythm([...dreams, ...journals], nowSeconds),
+    timeline: dreamTimeline([...dreams, ...journals], nowSeconds),
     recurringPeople: topSignals(dreams, PEOPLE_KEYS),
     symbols: topSignals(dreams, SYMBOL_KEYS),
     emotionalWeather: topSignals([...dreams, ...journals], EMOTION_KEYS),
@@ -92,13 +119,79 @@ export function buildDreamForgePrivacyReport(entries: VaultEntry[]): DreamForgeP
   }
 }
 
+function dreamRhythm(entries: VaultEntry[], nowSeconds: number): DreamForgeRhythmPoint[] {
+  const points = [
+    { label: 'Last night', dreamCount: 0, journalCount: 0, protectedCount: 0, tone: 'active' },
+    { label: 'This week', dreamCount: 0, journalCount: 0, protectedCount: 0, tone: 'recent' },
+    { label: 'Earlier', dreamCount: 0, journalCount: 0, protectedCount: 0, tone: 'deep' },
+  ] satisfies DreamForgeRhythmPoint[]
+
+  for (const entry of entries) {
+    const point = points[rhythmIndex(entry, nowSeconds)]
+    if (typeIs(entry, 'Dream')) point.dreamCount += 1
+    if (typeIs(entry, 'Journal')) point.journalCount += 1
+    if (resolveEntryLocalityPolicy(entry).localOnly) point.protectedCount += 1
+  }
+
+  return points
+}
+
+function rhythmIndex(entry: VaultEntry, nowSeconds: number): 0 | 1 | 2 {
+  const age = Math.max(0, nowSeconds - timestamp(entry))
+  if (age <= DAY_SECONDS) return 0
+  if (age <= 7 * DAY_SECONDS) return 1
+  return 2
+}
+
+function dreamTimeline(entries: VaultEntry[], nowSeconds: number): DreamForgeTimelinePoint[] {
+  const points = [
+    { label: 'Last night', dreamCount: 0, journalCount: 0, protectedCount: 0, signalCount: 0, state: 'quiet' },
+    { label: 'This week', dreamCount: 0, journalCount: 0, protectedCount: 0, signalCount: 0, state: 'quiet' },
+    { label: 'This month', dreamCount: 0, journalCount: 0, protectedCount: 0, signalCount: 0, state: 'quiet' },
+    { label: 'Deep archive', dreamCount: 0, journalCount: 0, protectedCount: 0, signalCount: 0, state: 'quiet' },
+  ] satisfies DreamForgeTimelinePoint[]
+
+  for (const entry of entries) {
+    const point = points[timelineIndex(entry, nowSeconds)]
+    if (typeIs(entry, 'Dream')) point.dreamCount += 1
+    if (typeIs(entry, 'Journal')) point.journalCount += 1
+    if (resolveEntryLocalityPolicy(entry).localOnly) point.protectedCount += 1
+    point.signalCount += signalCount(entry)
+  }
+
+  return points.map((point) => ({ ...point, state: timelineState(point) }))
+}
+
+function timelineIndex(entry: VaultEntry, nowSeconds: number): 0 | 1 | 2 | 3 {
+  const age = Math.max(0, nowSeconds - timestamp(entry))
+  if (age <= DAY_SECONDS) return 0
+  if (age <= 7 * DAY_SECONDS) return 1
+  if (age <= 30 * DAY_SECONDS) return 2
+  return 3
+}
+
+function timelineState(point: DreamForgeTimelinePoint): DreamForgeTimelinePoint['state'] {
+  const total = point.dreamCount + point.journalCount
+  if (total === 0) return 'quiet'
+  if (point.label === 'Deep archive') return 'archive'
+  if (point.signalCount > 0) return 'thread'
+  return 'spark'
+}
+
+function signalCount(entry: VaultEntry): number {
+  return [...SYMBOL_KEYS, ...EMOTION_KEYS, ...PEOPLE_KEYS]
+    .reduce((total, key) => total + valuesForKey(entry, key).length, 0)
+}
+
 function typeIs(entry: VaultEntry, typeName: string): boolean {
   return entry.isA?.trim().toLowerCase() === typeName.toLowerCase()
 }
 
-function latestTitle(entries: VaultEntry[]): string | null {
-  return [...entries]
-    .sort((a, b) => timestamp(b) - timestamp(a))[0]?.title ?? null
+function latestTimestamp(entries: VaultEntry[]): number | null {
+  return entries.reduce<number | null>((latest, entry) => {
+    const value = timestamp(entry)
+    return value > (latest ?? 0) ? value : latest
+  }, null)
 }
 
 function timestamp(entry: VaultEntry): number {

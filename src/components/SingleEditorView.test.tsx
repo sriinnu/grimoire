@@ -455,7 +455,7 @@ describe('SingleEditorView', () => {
     expect(editor.insertInlineContent).not.toHaveBeenCalled()
   })
 
-  it('wires the toolbar mouse guard and suggestion item click handlers', () => {
+  it('wires the toolbar mouse guard and suggestion item click handlers', async () => {
     const editor = createEditor()
     render(
       <SingleEditorView
@@ -477,6 +477,7 @@ describe('SingleEditorView', () => {
         }),
       }),
     }))
+    await screen.findByTestId('grimoire-formatting-toolbar-controller')
 
     const onMouseDownCapture = (
       (state.capturedToolbarProps?.floatingUIOptions as { elementProps: { onMouseDownCapture: (event: { target: HTMLElement; preventDefault: () => void }) => void } })

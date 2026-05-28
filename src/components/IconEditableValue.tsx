@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useIconOptions } from '../hooks/useIconOptions'
@@ -59,8 +59,12 @@ function IconEditableInput({
   const [editValue, setEditValue] = useState(value)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const listboxId = useId()
-  const { iconOptions, iconsLoaded } = useIconOptions()
+  const { ensureFullCatalog, fullCatalogLoaded, iconOptions } = useIconOptions()
   const filteredIcons = useMemo(() => filterIconOptions(iconOptions, editValue), [editValue, iconOptions])
+
+  useEffect(() => {
+    ensureFullCatalog()
+  }, [ensureFullCatalog])
 
   const commitTypedValue = () => onSave(editValue)
   const selectIcon = (iconName: string) => {
@@ -126,7 +130,7 @@ function IconEditableInput({
         className="max-h-44 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-sm"
         data-testid="icon-picker-results"
       >
-        {!iconsLoaded ? (
+        {!fullCatalogLoaded ? (
           <div className="px-2 py-6 text-center text-[12px] text-muted-foreground" data-testid="icon-picker-loading">
             Loading icons...
           </div>

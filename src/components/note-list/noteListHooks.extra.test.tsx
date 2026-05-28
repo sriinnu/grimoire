@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ModifiedFile, VaultEntry, ViewFile } from '../../types'
-import { saveSortPreferences } from '../../utils/noteListHelpers'
+import { saveSortPreferences } from '../../utils/noteListSorting'
 import {
   useChangeStatusResolver,
   useListPropertyPicker,
@@ -34,6 +34,7 @@ const {
 } = vi.hoisted(() => ({
   multiSelectState: {
     clear: vi.fn(),
+    pruneToVisible: vi.fn(),
     selectAll: vi.fn(),
     selectRange: vi.fn(),
     setAnchor: vi.fn(),
@@ -129,6 +130,7 @@ describe('noteListHooks extra', () => {
     vi.clearAllMocks()
     localStorageMock.clear()
     multiSelectState.isMultiSelecting = false
+    multiSelectState.pruneToVisible.mockClear()
     noteListKeyboardState.highlightedPath = null
     noteListKeyboardState.lastOptions = null
     routeNoteClickMock.mockImplementation((

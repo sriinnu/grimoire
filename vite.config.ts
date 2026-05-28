@@ -25,8 +25,9 @@ const localThemePackPath = path.resolve(__dirname, '.grimoire-local/theme-pack.j
 function localDevHttpsConfig(): ServerOptions['https'] | undefined {
   if (process.env.GRIMOIRE_DEV_HTTPS !== '1') return undefined
   if (!fs.existsSync(devHttpsCertPath) || !fs.existsSync(devHttpsKeyPath)) {
-    console.warn('[grimoire] GRIMOIRE_DEV_HTTPS=1 but local cert files are missing; using HTTP.')
-    return undefined
+    throw new Error(
+      '[grimoire] GRIMOIRE_DEV_HTTPS=1 requires certs/localhost+2.pem and certs/localhost+2-key.pem. See certs/README.md.',
+    )
   }
 
   return {

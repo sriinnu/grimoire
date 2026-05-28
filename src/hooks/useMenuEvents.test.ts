@@ -22,6 +22,9 @@ function makeHandlers(): MenuEventHandlers {
   return {
     onSetViewMode: vi.fn(),
     onCreateNote: vi.fn(),
+    onCaptureThought: vi.fn(),
+    onCaptureJournal: vi.fn(),
+    onCaptureDream: vi.fn(),
     onCreateType: vi.fn(),
     onQuickOpen: vi.fn(),
     onSave: vi.fn(),
@@ -133,6 +136,16 @@ describe('dispatchMenuEvent', () => {
     const h = makeHandlers()
     dispatchMenuEvent('file-new-note', h)
     expect(h.onCreateNote).toHaveBeenCalled()
+  })
+
+  it('menu-bar capture lanes seed dashboard capture', () => {
+    const h = makeHandlers()
+    dispatchMenuEvent('file-capture-thought', h)
+    dispatchMenuEvent('file-capture-journal', h)
+    dispatchMenuEvent('file-capture-dream', h)
+    expect(h.onCaptureThought).toHaveBeenCalled()
+    expect(h.onCaptureJournal).toHaveBeenCalled()
+    expect(h.onCaptureDream).toHaveBeenCalled()
   })
 
   it('file-daily-note is ignored once the command is removed', () => {

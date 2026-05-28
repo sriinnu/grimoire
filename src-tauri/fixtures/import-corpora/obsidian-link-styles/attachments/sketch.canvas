@@ -1,0 +1,31 @@
+{
+  "nodes": [
+    {
+      "id": "daily",
+      "type": "file",
+      "file": "Daily.md",
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 180
+    },
+    {
+      "id": "project",
+      "type": "file",
+      "file": "Projects/Grimoire.md",
+      "x": 400,
+      "y": 0,
+      "width": 320,
+      "height": 180
+    }
+  ],
+  "edges": [
+    {
+      "id": "daily-project",
+      "fromNode": "daily",
+      "fromSide": "right",
+      "toNode": "project",
+      "toSide": "left"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "Project tasks.csv",
+    "destination_path": "Project tasks.csv",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "note",
+    "source_path": "Project abcdefabcdefabcdefabcdefabcdefab.md",
+    "destination_path": "Project.md",
+    "detail": "metadata/frontmatter map"
+  },
+  {
+    "kind": "note",
+    "source_path": "Research 11111111111111111111111111111111.md",
+    "destination_path": "Research.md",
+    "detail": "metadata/frontmatter map"
+  },
+  {
+    "kind": "withheld",
+    "source_path": ".env",
+    "destination_path": null,
+    "detail": "local-only folder skip"
+  }
+]

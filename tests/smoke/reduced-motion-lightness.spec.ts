@@ -15,6 +15,15 @@ type ScrollProbeState = {
   target: string
 }
 
+type ProofLedgerRowState = {
+  display: string
+  opacity: string
+  proofLevel: string | null
+  supportStatus: string | null
+  text: string
+  visibility: string
+}
+
 async function openAllNotes(page: Page): Promise<void> {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.getByTestId('sidebar-top-nav')).toBeVisible({ timeout: 10_000 })
@@ -132,6 +141,23 @@ async function readScrollProbe(page: Page): Promise<ScrollProbeState> {
   })
 }
 
+async function readProofLedgerRows(page: Page): Promise<ProofLedgerRowState[]> {
+  return page.locator('[data-testid^="portability-proof-"]:not([data-testid="portability-proof-ledger"])').evaluateAll((rows) => {
+    return rows.map((row) => {
+      const element = row as HTMLElement
+      const style = getComputedStyle(element)
+      return {
+        display: style.display,
+        opacity: style.opacity,
+        proofLevel: element.dataset.proofLevel ?? null,
+        supportStatus: element.dataset.supportStatus ?? null,
+        text: element.textContent?.trim() ?? '',
+        visibility: style.visibility,
+      }
+    })
+  })
+}
+
 test.describe('Reduced motion lightness surfaces', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 980 })
@@ -147,6 +173,17 @@ test.describe('Reduced motion lightness surfaces', () => {
     await openSettings(page)
     expectNoRuntimeMotion(await readMotionState(page, '.settings-panel-shell'))
     await page.getByTestId('settings-nav-settings-portability').click()
+    await expect(page.getByTestId('portability-proof-ledger')).toBeVisible()
+    const proofRows = await readProofLedgerRows(page)
+    expect(proofRows).toHaveLength(4)
+    for (const row of proofRows) {
+      expect(row.display).not.toBe('none')
+      expect(row.visibility).not.toBe('hidden')
+      expect(Number.parseFloat(row.opacity)).toBeGreaterThan(0)
+      expect(row.proofLevel).toBeTruthy()
+      expect(row.supportStatus).toBeTruthy()
+      expect(row.text).toContain('Still to prove:')
+    }
     await captureSurface(page, testInfo, 'reduced-motion-settings-portability')
     await page.keyboard.press('Escape')
     await expect(page.getByTestId('settings-panel')).not.toBeVisible({ timeout: 5_000 })

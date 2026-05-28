@@ -34,6 +34,8 @@ interface StorageSyncActionOptions {
   setActiveAction: Dispatch<SetStateAction<VaultPortabilityActionId | null>>
   setPortabilityProgress: Dispatch<SetStateAction<PortabilityProgressState | null>>
   setToastMessage: (message: string) => void
+  reloadVault: () => Promise<unknown>
+  reloadFolders: () => Promise<unknown>
   loadModifiedFiles: () => Promise<unknown>
   updateProgress: (
     operation: ActivePortabilityOperation,
@@ -80,7 +82,7 @@ export async function runObjectStorageSyncAction(
     options.setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Applying'} ${objectStorageLabel(providerId)} mirror sync...`)
     const result = await runStorageCommand(providerId, direction, mode, mirrorPath, previewReport, activeOperation, label, options)
     if (!isCurrentPortabilityOperation(options.activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return
-    if (mode === 'apply') await options.loadModifiedFiles()
+    if (mode === 'apply') await reloadAfterMirrorApply(direction, options)
     options.setObjectStoragePreviewReports((previous) => nextPreviewReports(previous, reportKey, mode, result))
     options.setToastMessage(mode === 'preview'
       ? formatObjectStoragePreviewToast(result)
@@ -93,6 +95,17 @@ export async function runObjectStorageSyncAction(
     clearPortabilityOperation(operation, options.activeOperationRef, options.setPortabilityProgress)
     options.setActiveAction(null)
   }
+}
+
+async function reloadAfterMirrorApply(
+  direction: ObjectStorageSyncDirection,
+  options: Pick<StorageSyncActionOptions, 'reloadVault' | 'reloadFolders' | 'loadModifiedFiles'>,
+): Promise<void> {
+  if (direction === 'pull') {
+    await options.reloadVault()
+    await options.reloadFolders()
+  }
+  await options.loadModifiedFiles()
 }
 
 function runStorageCommand(

@@ -1,20 +1,34 @@
-import { lazy, memo, Suspense, useCallback, useEffect } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, type ReactNode } from 'react'
 import { NoteListLayout } from './note-list/NoteListLayout'
 import { useNoteListModel, type NoteListProps } from './note-list/useNoteListModel'
 import type { NoteListMultiSelectionCommands } from './note-list/multiSelectionCommands'
 import { useMultiSelectKeyboard } from './note-list/useMultiSelectKeyboard'
 import './note-list/NoteListChrome.css'
+import './note-list/ProjectWorkspaceChrome.css'
+import './note-list/NoteListFilterRail.css'
 
 const ProjectIntelligenceStrip = lazy(() =>
   import('./ProjectIntelligenceStrip').then((module) => ({ default: module.ProjectIntelligenceStrip })),
 )
 
-type NoteListInnerProps = NoteListProps & {
+export type NoteListSurfaceProps = NoteListProps & {
   onBulkOrganize?: (paths: string[]) => void
   multiSelectionCommandRef?: React.MutableRefObject<NoteListMultiSelectionCommands | null>
 }
 
-function NoteListInner({ onBulkOrganize, multiSelectionCommandRef, ...props }: NoteListInnerProps) {
+function ProjectFilterFallback({ filterNode }: { filterNode: ReactNode }) {
+  return (
+    <div className="project-workspace-strip grimoire-panel-reveal" data-testid="project-workspace-strip">
+      <div className="project-workspace-chrome">
+        <div className="project-workspace-chrome__filters" data-testid="project-workspace-filters">
+          {filterNode}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NoteListInner({ onBulkOrganize, multiSelectionCommandRef, ...props }: NoteListSurfaceProps) {
   const model = useNoteListModel(props)
 
   const handleBulkOrganize = useCallback(() => {
@@ -56,15 +70,16 @@ function NoteListInner({ onBulkOrganize, multiSelectionCommandRef, ...props }: N
     <NoteListLayout
       {...model}
       handleBulkOrganize={onBulkOrganize ? handleBulkOrganize : undefined}
-      projectIntelligenceNode={props.selection.kind === 'folder' ? (
-        <Suspense fallback={null}>
+      renderProjectIntelligence={props.selection.kind === 'folder' ? (filterNode) => (
+        <Suspense fallback={<ProjectFilterFallback filterNode={filterNode} />}>
           <ProjectIntelligenceStrip
             entries={props.entries}
+            filterNode={filterNode}
             selection={props.selection}
             onSelectNote={props.onSelectNote}
           />
         </Suspense>
-      ) : null}
+      ) : undefined}
     />
   )
 }
