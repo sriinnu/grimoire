@@ -42,6 +42,13 @@ export function formatDesktopStorageHealthToast(report: DesktopStorageHealthRepo
   return `${desktopStorageProviderLabel(report.provider_id)} local-folder check: ${desktopStorageHealthStatusLabel(report.status)}`
 }
 
+/** Removes absolute local paths and token-shaped fragments before UI display. */
+export function redactDesktopStorageHealthMessage(message: string): string {
+  return message
+    .replace(/\/(?:Users|Volumes|private\/var|var\/folders)\/[^\s,;:)]+/g, '[local path]')
+    .replace(/\b(?:token|secret|password|key)=[^\s,;:)]+/gi, '[redacted]')
+}
+
 export function desktopStorageProviderLabel(providerId: DesktopStorageProviderId): string {
   return providerId === 'icloud-drive' ? 'iCloud Drive' : 'Google Drive Desktop'
 }

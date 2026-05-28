@@ -59,6 +59,8 @@ export const EN_PORTABILITY_TRANSLATIONS = {
   'settings.portability.desktopHealthNotRun': 'Run a local-folder check to prove this provider path on this Mac.',
   'settings.portability.localPathChecked': 'local path checked',
   'settings.portability.providerRootDetected': 'provider root detected',
+  'settings.portability.vaultFolderChecked': 'vault folder checked',
+  'settings.portability.vaultReadable': 'vault readable',
   'settings.portability.credentialsNotStored': 'credentials not stored',
   'settings.portability.previewS3Mirror': 'Preview S3 local-mirror push',
   'settings.portability.applyS3Mirror': 'Apply S3 local-mirror push',

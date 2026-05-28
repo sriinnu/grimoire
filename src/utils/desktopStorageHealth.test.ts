@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   desktopStorageHealthStatusLabel,
   formatDesktopStorageHealthToast,
+  redactDesktopStorageHealthMessage,
   runDesktopStorageHealthCheck,
   type DesktopStorageHealthReport,
 } from './desktopStorageHealth'
@@ -51,5 +52,11 @@ describe('desktopStorageHealth', () => {
     expect(formatDesktopStorageHealthToast(readyReport)).toBe('iCloud Drive local-folder check: ready')
     expect(desktopStorageHealthStatusLabel('provider_root_missing')).toBe('provider folder missing')
     expect(desktopStorageHealthStatusLabel('inaccessible')).toBe('not readable')
+  })
+
+  it('redacts absolute local paths and token-looking fragments from health messages', () => {
+    expect(
+      redactDesktopStorageHealthMessage('EACCES /Users/sri/Private/Grimoire token=abc'),
+    ).toBe('EACCES [local path] [redacted]')
   })
 })
