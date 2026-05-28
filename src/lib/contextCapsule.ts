@@ -3,6 +3,7 @@ import type { AskContextPackage } from './askContextPackage'
 import { isLocalOnlyTypeName, resolveEntryLocalityPolicy } from './localityPolicy'
 import type { NoteListItem } from '../utils/ai-context'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
+import { buildContextCapsulePackageFromPreview } from './contextCapsulePackage'
 
 /** Lifecycle state for an inspectable context capsule preview. */
 export type ContextCapsuleState = 'empty' | 'protected' | 'ready'
@@ -28,6 +29,7 @@ export interface ContextCapsuleExclusion {
 export interface ContextCapsulePreview {
   state: ContextCapsuleState
   title: string
+  handoffIntent?: string
   includedNotes: ContextCapsuleNote[]
   exclusions: ContextCapsuleExclusion[]
   rules: string[]
@@ -61,6 +63,11 @@ export interface ContextCapsuleInput {
 export interface ContextCapsulePackagePreview {
   title: string
   markdown: string
+  preflight: {
+    heldLocalCount: number
+    sourceCount: number
+    trimmedCount: number
+  }
   protectedContext: boolean
 }
 
@@ -69,6 +76,17 @@ const BASE_RULES = [
   'Local-only notes withheld',
   'Preview before handoff',
 ]
+
+const UNSAFE_MEMORY_REFERENCE_SEGMENTS = new Set([
+  'dream',
+  'dreams',
+  'health',
+  'journal',
+  'journals',
+  'local-only',
+  'private',
+  'therapy',
+])
 
 /** Builds an inspectable, local-first agent context package preview. */
 export function buildContextCapsulePreview({
@@ -136,14 +154,18 @@ export function buildAskContextCapsulePreview(contextPackage: AskContextPackage)
   const graph = contextPackage.graph
   const graphProtectedEdges = graph?.protectedEdges ?? 0
   const graphTrimmed = (graph?.truncatedNodes ?? 0) + (graph?.truncatedEdges ?? 0)
+  const safeReferences = contextPackage.references.filter(isSafePackageReference)
+  const safeMemoryReferences = contextPackage.memoryReferences.filter(isSafeMemoryReference)
+  const withheldInjectedNotes = contextPackage.references.length - safeReferences.length
+  const withheldInjectedMemories = contextPackage.memoryReferences.length - safeMemoryReferences.length
   const includedNotes = uniqueNotes([
-    ...contextPackage.references.map((reference) => ({
+    ...safeReferences.map((reference) => ({
       kind: 'ask-reference' as const,
       path: reference.path,
       title: reference.title,
       type: reference.type ?? 'Note',
     })),
-    ...contextPackage.memoryReferences.map((memory) => ({
+    ...safeMemoryReferences.map((memory) => ({
       kind: 'memory' as const,
       path: memory.path,
       title: memory.title,
@@ -151,8 +173,14 @@ export function buildAskContextCapsulePreview(contextPackage: AskContextPackage)
     })),
   ])
   const exclusions = [
-    ...countExclusion(contextPackage.withheld.protectedNotes, packageExclusionLabel(contextPackage, 'notes')),
-    ...countExclusion(contextPackage.withheld.protectedMemories, packageExclusionLabel(contextPackage, 'memories')),
+    ...countExclusion(
+      contextPackage.withheld.protectedNotes + withheldInjectedNotes,
+      packageExclusionLabel(contextPackage, 'notes'),
+    ),
+    ...countExclusion(
+      contextPackage.withheld.protectedMemories + withheldInjectedMemories,
+      packageExclusionLabel(contextPackage, 'memories'),
+    ),
     ...countExclusion(graphProtectedEdges, 'Graph local-only links'),
     ...countExclusion(graphTrimmed, 'Graph trimmed items'),
   ]
@@ -161,6 +189,7 @@ export function buildAskContextCapsulePreview(contextPackage: AskContextPackage)
   return {
     state: 'ready',
     title: graphPackage ? 'Graph Council capsule' : 'Dashboard ask capsule',
+    handoffIntent: contextPackage.intent?.label,
     includedNotes,
     exclusions,
     rules: [...BASE_RULES, graphPackage ? 'Graph Council package' : 'Dashboard ask package'],
@@ -180,6 +209,18 @@ export function buildAskContextCapsulePreview(contextPackage: AskContextPackage)
   }
 }
 
+function isSafePackageReference(reference: AskContextPackage['references'][number]): boolean {
+  return !resolveEntryLocalityPolicy({
+    isA: reference.type,
+    path: reference.path,
+    properties: {},
+  }).localOnly
+}
+
+function isSafeMemoryReference(reference: AskContextPackage['memoryReferences'][number]): boolean {
+  return !pathHasUnsafeMemorySegment(reference.path)
+}
+
 function packageExclusionLabel(contextPackage: AskContextPackage, kind: 'memories' | 'notes'): string {
   if (contextPackage.kind === 'graph-council') {
     return kind === 'notes' ? 'Graph local-only notes' : 'Graph local-only memory records'
@@ -187,44 +228,16 @@ function packageExclusionLabel(contextPackage: AskContextPackage, kind: 'memorie
   return kind === 'notes' ? 'Dashboard local-only notes' : 'Dashboard local-only memory records'
 }
 
+function pathHasUnsafeMemorySegment(path: string): boolean {
+  return path
+    .split(/[\\/]/)
+    .map((segment) => segment.trim().toLowerCase())
+    .some((segment) => UNSAFE_MEMORY_REFERENCE_SEGMENTS.has(segment))
+}
+
 /** Builds a review-only Markdown package from a source-safe capsule preview. */
 export function buildContextCapsulePackagePreview(preview: ContextCapsulePreview): ContextCapsulePackagePreview {
-  const protectedContext = preview.state === 'protected'
-  return {
-    title: protectedContext ? 'Protected Context Capsule' : 'Context Capsule Package',
-    protectedContext,
-    markdown: [
-      '# Context Capsule Package',
-      '',
-      `State: ${preview.state}`,
-      protectedContext
-        ? 'Privacy: Protected active context stayed local. No note title, path, excerpt, or body is included.'
-        : 'Privacy: Local-only notes are withheld. This package is review-only until explicit handoff.',
-      '',
-      '## Rules',
-      ...preview.rules.map((rule) => `- ${rule}`),
-      '',
-      '## Included Notes',
-      ...includedNoteLines(preview),
-      '',
-      '## Project Map',
-      `- Relationship edges: ${preview.projectMap.relationshipEdges}`,
-      `- Note-list rows in scope: ${preview.counts.noteListItems}`,
-      '',
-      '## Graph Neighborhood',
-      `- Source-safe graph notes: ${preview.projectMap.graphNodes}`,
-      `- Source-safe graph edges: ${preview.projectMap.graphEdges}`,
-      `- Withheld graph context: ${preview.projectMap.graphOmitted}`,
-      '',
-      '## Exclusions',
-      ...exclusionLines(preview),
-      '',
-      '## Handoff Checklist',
-      '- [ ] Re-check Locality Firewall before agent handoff.',
-      '- [ ] Confirm the agent can only access the listed source labels.',
-      '- [ ] Keep this package local unless the user explicitly exports it.',
-    ].join('\n'),
-  }
+  return buildContextCapsulePackageFromPreview(preview)
 }
 
 function emptyCapsule(): ContextCapsulePreview {
@@ -346,16 +359,4 @@ function relationshipEdgeCount(entry: VaultEntry): number {
 
 function isCapsuleNote(note: ContextCapsuleNote | null): note is ContextCapsuleNote {
   return note !== null
-}
-
-function includedNoteLines(preview: ContextCapsulePreview): string[] {
-  if (preview.includedNotes.length === 0) return ['- None']
-  return preview.includedNotes.map((note, index) => (
-    `- Source ${index + 1}: ${note.kind} / ${note.type} / ${note.title}`
-  ))
-}
-
-function exclusionLines(preview: ContextCapsulePreview): string[] {
-  if (preview.exclusions.length === 0) return ['- None']
-  return preview.exclusions.map((item) => `- ${item.label}: ${item.reason}`)
 }
