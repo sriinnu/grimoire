@@ -12,6 +12,7 @@ const preview: ImportAutopsyPreviewState = {
     skipped_files: 0,
     failed_files: 0,
     writes_local_only_report: true,
+    preview_signature: 'import-preview-v1:test',
   },
 }
 
@@ -34,7 +35,11 @@ describe('importReviewGate', () => {
     expect(reviewedImportSourcePath('journey', preview)).toBeNull()
   })
 
-  it('requires capsule import previews to carry the exact preview signature', () => {
+  it('requires every import preview to carry the exact preview signature', () => {
+    expect(hasReviewedImportPreview('day-one', {
+      ...preview,
+      result: { ...preview.result, preview_signature: '' },
+    })).toBe(false)
     expect(hasReviewedImportPreview('json-capsule', capsulePreview)).toBe(true)
     expect(reviewedImportSourcePath('json-capsule', capsulePreview)).toBe('/local/grimoire.json')
     expect(hasReviewedImportPreview('json-capsule', {

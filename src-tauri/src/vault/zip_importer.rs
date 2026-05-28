@@ -1,4 +1,5 @@
 use super::import_manifest::{manifest_withheld, ImportAutopsyManifestRow};
+use super::import_preview_signature::import_preview_signature;
 use super::importer::{
     import_markdown_folder, preview_markdown_folder_import, MarkdownFolderImportPreview,
     MarkdownFolderImportReport,
@@ -90,6 +91,7 @@ pub fn preview_markdown_zip_import(
     let extraction = extract_zip_archive(&zip_file, &source_root)?;
     let mut preview = preview_markdown_folder_import(&vault_root, &source_root)?;
     preview.source_path = zip_file.to_string_lossy().into_owned();
+    preview.preview_signature = Some(import_preview_signature("markdown-zip", &zip_file)?);
     preview.skipped_files += extraction.skipped_count();
     preview.manifest_rows.extend(unsafe_zip_manifest_rows(
         &zip_file,

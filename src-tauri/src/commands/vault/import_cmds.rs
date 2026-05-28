@@ -16,10 +16,15 @@ use super::portability_progress::{
 pub fn import_markdown_folder(
     vault_path: PathBuf,
     source_path: PathBuf,
+    preview_signature: String,
 ) -> Result<MarkdownFolderImportReport, String> {
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
-        vault::import_markdown_folder(boundary.requested_root(), source_path.as_path())
+        vault::import_reviewed_markdown_folder(
+            boundary.requested_root(),
+            source_path.as_path(),
+            preview_signature.as_str(),
+        )
     })
 }
 
@@ -28,6 +33,7 @@ pub fn import_markdown_folder(
 pub async fn import_markdown_folder_with_progress(
     vault_path: PathBuf,
     source_path: PathBuf,
+    preview_signature: String,
     operation_id: String,
     on_event: Channel<MarkdownFolderImportProgressEvent>,
 ) -> Result<(), String> {
@@ -40,9 +46,10 @@ pub async fn import_markdown_folder_with_progress(
     let raw_vault_path = vault_path.to_string_lossy().into_owned();
     let task_result = tauri::async_runtime::spawn_blocking(move || {
         with_boundary(Some(raw_vault_path.as_str()), |boundary| {
-            vault::import_markdown_folder_with_progress(
+            vault::import_reviewed_markdown_folder_with_progress(
                 boundary.requested_root(),
                 source_path.as_path(),
+                preview_signature.as_str(),
                 cancellation.as_ref(),
                 &move |event| {
                     let _ = on_event.send(event);
@@ -98,10 +105,15 @@ pub fn preview_markdown_zip_import(
 pub fn import_markdown_zip(
     vault_path: PathBuf,
     source_path: PathBuf,
+    preview_signature: String,
 ) -> Result<MarkdownFolderImportReport, String> {
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
-        vault::import_markdown_zip(boundary.requested_root(), source_path.as_path())
+        vault::import_reviewed_markdown_zip(
+            boundary.requested_root(),
+            source_path.as_path(),
+            preview_signature.as_str(),
+        )
     })
 }
 
@@ -146,6 +158,7 @@ pub fn import_portability_capsule(
 pub async fn import_markdown_zip_with_progress(
     vault_path: PathBuf,
     source_path: PathBuf,
+    preview_signature: String,
     operation_id: String,
     on_event: Channel<MarkdownFolderImportProgressEvent>,
 ) -> Result<(), String> {
@@ -158,9 +171,10 @@ pub async fn import_markdown_zip_with_progress(
     let raw_vault_path = vault_path.to_string_lossy().into_owned();
     let task_result = tauri::async_runtime::spawn_blocking(move || {
         with_boundary(Some(raw_vault_path.as_str()), |boundary| {
-            vault::import_markdown_zip_with_progress(
+            vault::import_reviewed_markdown_zip_with_progress(
                 boundary.requested_root(),
                 source_path.as_path(),
+                preview_signature.as_str(),
                 cancellation.as_ref(),
                 &move |event| {
                     let _ = on_event.send(event);
@@ -181,13 +195,15 @@ pub fn import_journal_export(
     vault_path: PathBuf,
     source_path: PathBuf,
     source_kind: String,
+    preview_signature: String,
 ) -> Result<MarkdownFolderImportReport, String> {
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
-        vault::import_journal_export(
+        vault::import_reviewed_journal_export(
             boundary.requested_root(),
             source_path.as_path(),
             source_kind.as_str(),
+            preview_signature.as_str(),
         )
     })
 }
@@ -198,6 +214,7 @@ pub async fn import_journal_export_with_progress(
     vault_path: PathBuf,
     source_path: PathBuf,
     source_kind: String,
+    preview_signature: String,
     operation_id: String,
     on_event: Channel<MarkdownFolderImportProgressEvent>,
 ) -> Result<(), String> {
@@ -210,10 +227,11 @@ pub async fn import_journal_export_with_progress(
     let raw_vault_path = vault_path.to_string_lossy().into_owned();
     let task_result = tauri::async_runtime::spawn_blocking(move || {
         with_boundary(Some(raw_vault_path.as_str()), |boundary| {
-            vault::import_journal_export_with_progress(
+            vault::import_reviewed_journal_export_with_progress(
                 boundary.requested_root(),
                 source_path.as_path(),
                 source_kind.as_str(),
+                preview_signature.as_str(),
                 cancellation.as_ref(),
                 &move |event| {
                     let _ = on_event.send(event);
@@ -251,13 +269,15 @@ pub fn import_app_export(
     vault_path: PathBuf,
     source_path: PathBuf,
     source_kind: String,
+    preview_signature: String,
 ) -> Result<MarkdownFolderImportReport, String> {
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
-        vault::import_app_export(
+        vault::import_reviewed_app_export(
             boundary.requested_root(),
             source_path.as_path(),
             source_kind.as_str(),
+            preview_signature.as_str(),
         )
     })
 }
@@ -268,6 +288,7 @@ pub async fn import_app_export_with_progress(
     vault_path: PathBuf,
     source_path: PathBuf,
     source_kind: String,
+    preview_signature: String,
     operation_id: String,
     on_event: Channel<MarkdownFolderImportProgressEvent>,
 ) -> Result<(), String> {
@@ -280,10 +301,11 @@ pub async fn import_app_export_with_progress(
     let raw_vault_path = vault_path.to_string_lossy().into_owned();
     let task_result = tauri::async_runtime::spawn_blocking(move || {
         with_boundary(Some(raw_vault_path.as_str()), |boundary| {
-            vault::import_app_export_with_progress(
+            vault::import_reviewed_app_export_with_progress(
                 boundary.requested_root(),
                 source_path.as_path(),
                 source_kind.as_str(),
+                preview_signature.as_str(),
                 cancellation.as_ref(),
                 &move |event| {
                     let _ = on_event.send(event);

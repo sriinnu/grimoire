@@ -18,6 +18,7 @@ const preview: ImportAutopsyPreviewState = {
     skipped_files: 1,
     failed_files: 0,
     writes_local_only_report: true,
+    preview_signature: 'import-preview-v1:test',
     manifest_rows: [
       {
         kind: 'note',

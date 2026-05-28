@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
 use super::import_manifest::{preview_markdown_manifest_rows, ImportAutopsyManifestRow};
+use super::import_preview_signature::import_preview_signature;
 
 pub(crate) const MARKDOWN_EXTENSIONS: &[&str] = &["md", "markdown", "mdown", "mkd"];
 pub(crate) const ATTACHMENT_EXTENSIONS: &[&str] = &[
@@ -120,7 +121,7 @@ pub fn preview_markdown_folder_import(
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source_root),
         planned_import_root: path_to_string(&import_root),
-        preview_signature: None,
+        preview_signature: Some(import_preview_signature("markdown-folder", &source_root)?),
         notes_to_copy: counters.notes_copied,
         assets_to_copy: counters.assets_copied,
         skipped_files: counters.skipped_files,

@@ -44,6 +44,7 @@ describe('markdownFolderImport', () => {
       skipped_files: 1,
       failed_files: 0,
       writes_local_only_report: true,
+      preview_signature: 'import-preview-v1:test',
     })).toBe('Preview: 3 notes, 2 assets, 1 skipped; local-only report will be written')
   })
 
@@ -72,6 +73,7 @@ describe('markdownFolderImport', () => {
     await expect(importMarkdownZipIntoVaultWithProgress(
       '/vault',
       '/exports/archive.zip',
+      'import-preview-v1:test',
       'markdown-zip-test',
       (event) => events.push(event.event),
     )).resolves.toMatchObject({
@@ -83,7 +85,7 @@ describe('markdownFolderImport', () => {
   })
 
   it('calls the app import command in browser/mock mode', async () => {
-    await expect(importAppExportIntoVault('/vault', '/exports/spanda.json', 'spanda'))
+    await expect(importAppExportIntoVault('/vault', '/exports/spanda.json', 'spanda', 'import-preview-v1:test'))
       .resolves.toMatchObject({
         imported_root: '/vault/imports/spanda-export',
         notes_copied: 6,
@@ -97,6 +99,7 @@ describe('markdownFolderImport', () => {
       '/vault',
       '/exports/obsidian',
       'obsidian',
+      'import-preview-v1:test',
       'obsidian-test',
       (event) => events.push(event.event),
     )).resolves.toMatchObject({
@@ -130,6 +133,7 @@ describe('markdownFolderImport', () => {
       '/vault',
       '/exports/day-one.zip',
       'day-one',
+      'import-preview-v1:test',
       'day-one-test',
       (event) => events.push(event.event),
     )).resolves.toMatchObject({
@@ -141,7 +145,7 @@ describe('markdownFolderImport', () => {
   })
 
   it('maps Notion folder imports to the Notion backend adapter', async () => {
-    await expect(importAppExportIntoVault('/vault', '/exports/notion', 'notion-folder'))
+    await expect(importAppExportIntoVault('/vault', '/exports/notion', 'notion-folder', 'import-preview-v1:test'))
       .resolves.toMatchObject({
         imported_root: '/vault/imports/notion-markdown-export',
       })

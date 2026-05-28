@@ -51,6 +51,7 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Surface reviewed JSON/SQLite capsule import/export previews in the Settings Proof Ledger with counts, withheld totals, and redaction/locality proof only.
   - [x] Make the Settings portability proof surface human-facing by default: collapsed rows now show Portability Status, opt-in/manual-live-proof copy, and redacted report state while developer commands/env gates stay behind disclosure.
   - [x] Require exact JSON/SQLite capsule preview signatures for export/import writes so stale reviewed previews cannot write changed vault/capsule content.
+  - [x] Require exact Import Autopsy preview signatures for Markdown folder, Markdown ZIP, journal, and app import writes before any vault folder is created.
 - 5 Mature canvas: shapes, text boxes, lasso, image attachments, stroke extraction, and smoother launch/save behavior.
 - 6 Sweep themes/fonts: contrast, manuscript font parity, sidebar artwork, live previews, curated preset hierarchy, and dark-theme readability.
   - [x] Retire weak shipped presets: keep Constellation, Daylight Atelier, Living Archive, Nocturne, and Retro Terminal as the current built-in ecosystem.
@@ -523,6 +524,7 @@ Build order:
 - Added visible S3/Azure local-mirror preview reports in Settings so upload/delete/conflict/local-only counts and example paths are inspectable before apply.
 - Added S3/Azure local-mirror pull preview/apply actions through the same progress, locality, and exact-preview lock as push, so the object-storage prototype is bidirectional before real SDK credentials land.
 - Hardened the S3/Azure object-storage report contract so every preview/apply payload and local Markdown report carries `adapter_phase: local-mirror-prototype` and `prototype_mode: local-mirror-fixture`; Settings now shows "Local mirror fixture" and says it is not live cloud sync yet.
+- Hardened general Import Autopsy writes so Markdown folder, Markdown ZIP, Apple Journal, Day One, Journey, Obsidian, Notion, and Spanda imports require the exact reviewed source signature before touching disk.
 - Tightened Crystallize's local-first contract: the review dialog now says local Markdown, no Git required, and review-before-write, with a regression proving accepted memory saves under the vault's `memory/crystallized/` path.
 - Added a restrained Agent Council motion primitive so sourced stance cards and the synthesis row stage in without ambient or layout-heavy animation.
 - Added the first Living Frontmatter Inspector lane: schema, stale-status, duplicate-concept, and relationship suggestions are derived from Markdown/frontmatter only and do not write hidden state.

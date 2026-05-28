@@ -40,7 +40,7 @@ Implemented baseline:
 - Markdown folder import copies notes and common attachments into `imports/<source-folder>/`.
 - The importer skips code/project junk, hidden local config, local cert/mockup folders, and vault/source containment loops, then writes `import-report.md` beside the imported files.
 - Markdown/Bear folder import autopsies count files inside pruned local-only folders such as `.codex`, `.grimoire-local`, `mockups`, and `certs` as skipped while keeping them out of the imported vault copy.
-- Markdown folder, Bear, Markdown ZIP, Apple Journal, Day One, Journey, Obsidian, Notion ZIP/folder, and Spanda imports can be previewed before writing. The preview reports planned note copies, asset copies, skipped files, destination folder, and the local-only import report. Settings keeps the latest no-write preview in memory as a compact Import Autopsy timeline; raw machine paths are shortened and the state is cleared on vault changes/imports. Cancellable progress imports preserve the same skipped local-only totals as their preview/import paths.
+- Markdown folder, Bear, Markdown ZIP, Apple Journal, Day One, Journey, Obsidian, Notion ZIP/folder, and Spanda imports can be previewed before writing. The preview reports planned note copies, asset copies, skipped files, destination folder, the local-only import report, and an opaque source signature. Settings keeps the latest no-write preview in memory as a compact Import Autopsy timeline; raw machine paths are shortened and the state is cleared on vault changes/imports. Import writes and cancellable progress imports require that exact reviewed signature before any vault folder is created, so changed source exports force a fresh preview.
 - Markdown ZIP import extracts a portable archive safely, counts skipped path traversal entries, withholds unsupported binaries, preserves large Markdown notes, and feeds the same Markdown/attachment importer.
 - Bear import uses the same Markdown/TextBundle folder path so the original Markdown stays intact.
 - Day One and Journey import accept JSON or ZIP exports, convert entries into dated `Journal` Markdown notes, copy referenced media into `attachments/`, and write an import report.
@@ -89,7 +89,7 @@ Ready:
 - Pure JSON snapshot export/import
 - Local SQLite snapshot export/import
 
-JSON/SQLite capsule import now requires a matching Locality Firewall proof before preview or apply: Markdown must remain the source of truth, absolute source paths must be redacted, and the proof's withheld count must match the withheld manifest rows. Capsule export/import writes also require the exact preview signature from the reviewed dry run, so changed vault or capsule content forces a fresh preview. Inbound filtering follows private `grimoire-canvas` source JSON to withhold nested placed images before restore.
+JSON/SQLite capsule import now requires a matching Locality Firewall proof before preview or apply: Markdown must remain the source of truth, absolute source paths must be redacted, and the proof's withheld count must match the withheld manifest rows. Capsule export/import writes also require the exact preview signature from the reviewed dry run, so changed vault or capsule content forces a fresh preview. General Import Autopsy writes now use the same exact-preview rule for Markdown folder, Markdown ZIP, journal, and app imports before touching disk. Inbound filtering follows private `grimoire-canvas` source JSON to withhold nested placed images before restore.
 
 Planned:
 
