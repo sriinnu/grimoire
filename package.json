@@ -2,7 +2,7 @@
   "name": "grimoire",
   "private": true,
   "license": "AGPL-3.0-or-later",
-  "version": "0.1.268",
+  "version": "0.1.269",
   "packageManager": "pnpm@10.33.0",
   "type": "module",
   "scripts": {

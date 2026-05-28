@@ -278,7 +278,10 @@ function getHeaderForNoteList(noteListContainer: HTMLElement) {
 
 async function enterNeighborhood(noteListContainer: HTMLElement, title: string) {
   const note = await within(noteListContainer).findByText(title, {}, { timeout: 10000 })
-  fireEvent.click(note, { metaKey: true })
+  await act(async () => {
+    fireEvent.click(note, { metaKey: true })
+    await Promise.resolve()
+  })
 }
 
 async function openNoteFromList(noteListContainer: HTMLElement, title: string, expectedPath: string) {
@@ -308,8 +311,7 @@ function focusSyntheticEditorEscapeTarget() {
 
 async function pressEscape() {
   await act(async () => {
-    const target = document.activeElement instanceof HTMLElement ? document.activeElement : window
-    fireEvent.keyDown(target, { key: 'Escape', bubbles: true })
+    fireEvent.keyDown(window, { key: 'Escape' })
     await Promise.resolve()
     await new Promise(requestAnimationFrame)
   })
