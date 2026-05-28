@@ -1,7 +1,7 @@
 /** Ordered Settings sections used by scroll tracking and both navigation rails. */
 export const SETTINGS_SECTION_IDS = [
-  'settings-sync',
   'settings-portability',
+  'settings-sync',
   'settings-appearance',
   'settings-workflow',
   'settings-agents',

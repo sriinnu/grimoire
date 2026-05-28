@@ -27,8 +27,8 @@ interface SettingsNavigationProps extends Pick<SettingsBodyProps, 't' | 'vaultPa
 
 function createSettingsNav(t: SettingsBodyProps['t']): SettingsNavItem[] {
   return [
-    { id: 'settings-sync', label: t('settings.sync.title'), icon: GitBranch },
     { id: 'settings-portability', label: t('settings.portability.title'), icon: Cloud },
+    { id: 'settings-sync', label: t('settings.sync.title'), icon: GitBranch },
     { id: 'settings-appearance', label: t('settings.appearance.title'), icon: PaintBrush },
     { id: 'settings-workflow', label: t('settings.workflow.title'), icon: GearSix },
     { id: 'settings-agents', label: t('settings.aiAgents.title'), icon: Robot },
@@ -67,7 +67,7 @@ export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, 
           </div>
           <div className="settings-vault-state-pill mt-3 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]">
             <ShieldCheck size={12} />
-            {isGitVault ? t('settings.git.status.on') : t('settings.git.status.off')}
+            {isGitVault ? t('settings.vault.state.localGit') : t('settings.vault.state.localFiles')}
           </div>
         </div>
 

@@ -44,6 +44,8 @@ const EN_TRANSLATIONS = {
   'settings.close': 'Close settings',
   'settings.vault.title': 'Current vault',
   'settings.vault.noVault': 'No vault selected',
+  'settings.vault.state.localFiles': 'Local files',
+  'settings.vault.state.localGit': 'Local files + Git',
   'settings.sync.title': 'Sync & Updates',
   'settings.sync.description': 'Configure background pulling and which update feed Grimoire follows. Stable only receives manually promoted releases, while Alpha follows every push to main.',
   'settings.pullInterval': 'Pull interval (minutes)',
