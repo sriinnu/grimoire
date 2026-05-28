@@ -135,7 +135,10 @@ export default defineConfig(({ command }) => ({
   test: {
     globals: true,
     environment: 'jsdom',
-    pool: 'threads',
+    // Node 26 can crash during V8 concurrent marking when the full jsdom suite
+    // runs in worker threads. Forks isolate each worker process and keep the
+    // pre-push lane deterministic.
+    pool: 'forks',
     setupFiles: ['./src/test/setup.ts'],
     include: [
       'src/**/*.{test,spec}.{ts,tsx}',
