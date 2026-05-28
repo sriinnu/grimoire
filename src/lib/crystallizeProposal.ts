@@ -189,6 +189,7 @@ export async function persistCrystallizedNote(proposal: CrystallizeProposal): Pr
 /** Summarizes the review packet without exposing source note body text. */
 export function summarizeCrystallizeProposal(proposal: CrystallizeProposal | null): CrystallizeProposalSummary | null {
   if (!proposal) return null
+  const activeNoteHunks = proposal.changes.filter(change => change.target === proposal.activeNotePatch?.relativePath)
   const sourceCount = proposal.changes
     .find(change => change.id === 'link-sources')
     ?.after
@@ -196,6 +197,8 @@ export function summarizeCrystallizeProposal(proposal: CrystallizeProposal | nul
     .filter(line => line.trim().startsWith('- '))
     .length ?? 0
   return {
+    activeNoteHunkCount: activeNoteHunks.length,
+    activeNoteTarget: proposal.activeNotePatch?.relativePath ?? null,
     contradictionCount: proposal.ledgerContract.contradictedBy.length,
     expiresAt: proposal.ledgerContract.expiresAt,
     hunkCount: proposal.changes.length,

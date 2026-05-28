@@ -341,6 +341,8 @@ describe('crystallizeProposal', () => {
     })
 
     expect(summarizeCrystallizeProposal(proposal)).toEqual({
+      activeNoteHunkCount: 0,
+      activeNoteTarget: null,
       contradictionCount: 0,
       expiresAt: '2026-08-14',
       hunkCount: 6,

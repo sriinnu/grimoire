@@ -16,6 +16,8 @@ describe('AiCrystallizeLoopCard', () => {
         linkedCount={2}
         onCrystallize={onCrystallize}
         proposalSummary={{
+          activeNoteHunkCount: 2,
+          activeNoteTarget: 'notes/source.md',
           contradictionCount: 0,
           expiresAt: '2026-08-14',
           hunkCount: 4,
@@ -31,6 +33,7 @@ describe('AiCrystallizeLoopCard', () => {
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 linked')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review packet')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('4 hunks')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 active-note hunks · notes/source.md')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('9 ledger fields')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('review by 2026-08-14')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('0 contradictions')
@@ -99,6 +102,8 @@ describe('AiCrystallizeLoopCard', () => {
         linkedCount={1}
         onCrystallize={vi.fn()}
         proposalSummary={{
+          activeNoteHunkCount: 0,
+          activeNoteTarget: null,
           contradictionCount: 1,
           expiresAt: '2026-08-14',
           hunkCount: 1,
@@ -112,6 +117,7 @@ describe('AiCrystallizeLoopCard', () => {
 
     const packet = screen.getByTestId('crystallize-review-packet')
     expect(packet).toHaveTextContent('1 hunk')
+    expect(packet).toHaveTextContent('memory note only')
     expect(packet).toHaveTextContent('1 source')
     expect(packet).toHaveTextContent('1 ledger field')
     expect(packet).toHaveTextContent('review by 2026-08-14')

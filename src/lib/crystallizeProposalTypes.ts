@@ -43,6 +43,8 @@ export interface CrystallizeChange {
 }
 
 export interface CrystallizeProposalSummary {
+  activeNoteHunkCount: number
+  activeNoteTarget: string | null
   contradictionCount: number
   expiresAt: string
   hunkCount: number
