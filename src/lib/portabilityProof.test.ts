@@ -37,10 +37,12 @@ describe('portabilityProof', () => {
   })
 
   it('keeps remaining provider gaps explicit without leaking local paths', () => {
-    const combined = listPortabilityProofRows()
+    const rows = listPortabilityProofRows()
+    const publicCopy = rows
+      .flatMap(row => [row.detail, row.evidence])
+      .join('\n')
+    const developerProof = rows
       .flatMap(row => [
-        row.detail,
-        row.evidence,
         row.remainingProof,
         ...(row.commands ?? []).flatMap(command => [command.command, command.detail]),
         ...(row.providerRequirements ?? []).flatMap(requirement => [
@@ -51,6 +53,7 @@ describe('portabilityProof', () => {
         ]),
       ])
       .join('\n')
+    const combined = `${publicCopy}\n${developerProof}`
 
     expect(combined).toContain('Apple Journal')
     expect(combined).toContain('fresh real-world exports')
@@ -60,7 +63,7 @@ describe('portabilityProof', () => {
     expect(combined).toContain('provider preview/apply contracts')
     expect(combined).toContain('pnpm test:object-storage-live -- --report .tmp/object-storage-live-proof.json')
     expect(combined).toContain('pnpm test:object-storage-live -- --dry-run --report .tmp/object-storage-live-proof.json')
-    expect(combined).toContain('pass/fail/missing-config status')
+    expect(combined).toContain('pass, fail, or missing-config status')
     expect(combined).toContain('No provider writes')
     expect(combined).toContain('GRIMOIRE_S3_LIVE_WRITE_PROOF')
     expect(combined).toContain('GRIMOIRE_AZURE_STORAGE_ACCOUNT')
@@ -69,6 +72,10 @@ describe('portabilityProof', () => {
     expect(combined).toContain('local read proof for iCloud/GDrive')
     expect(combined).toContain('Run the live provider proof runner')
     expect(combined).toContain('Provider quota, offline recovery')
+    expect(publicCopy).toContain('Load a redacted live proof report')
+    expect(publicCopy).not.toContain('pnpm test:object-storage-live')
+    expect(publicCopy).not.toContain('GRIMOIRE_S3_LIVE_WRITE_PROOF')
+    expect(publicCopy).not.toContain('GRIMOIRE_AZURE_STORAGE_ACCOUNT')
     expect(combined).not.toContain('capsule re-import')
     expect(combined).not.toMatch(/\/Users\//)
     expect(combined).not.toMatch(/secret|token|password/i)
