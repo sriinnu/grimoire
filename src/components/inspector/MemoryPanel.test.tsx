@@ -56,6 +56,24 @@ describe('MemoryPanel', () => {
     expect(evidence).toHaveTextContent('0 flags')
   })
 
+  it('shows Chitragupta CLI availability separately from the MCP memory contract', () => {
+    render(
+      <MemoryPanel
+        entry={activeEntry}
+        entries={[activeEntry]}
+        semantics={semantics}
+        chitraguptaAvailability={{ status: 'installed', version: '0.1.0' }}
+      />,
+    )
+
+    const runtime = screen.getByTestId('memory-chitragupta-runtime')
+    expect(runtime).toHaveAttribute('data-state', 'mcp_unverified')
+    expect(runtime).toHaveTextContent('CLI installed')
+    expect(runtime).toHaveTextContent('MCP contract unverified')
+    expect(runtime).toHaveTextContent('0/8 MCP capabilities')
+    expect(screen.getByTestId('memory-chitragupta-warnings')).toHaveTextContent('CLI chat can run separately')
+  })
+
   it('opens memory records and saves editable ledger metadata with a version stamp', async () => {
     const memoryPath = '/vault/memory/test-project-memory.md'
     const onNavigate = vi.fn()
@@ -221,5 +239,33 @@ describe('MemoryPanel', () => {
     expect(screen.queryByTestId('memory-ledger-evidence-strip')).not.toBeInTheDocument()
     expect(screen.queryByTestId('memory-ledger-audit-strip')).not.toBeInTheDocument()
     expect(screen.getAllByText('Withheld').length).toBeGreaterThan(0)
+  })
+
+  it('does not render Chitragupta runtime warnings for local-only notes', () => {
+    render(
+      <MemoryPanel
+        entry={makeEntry({
+          ...activeEntry,
+          isA: 'Dream',
+          properties: { local_only: true },
+        })}
+        entries={[activeEntry]}
+        semantics={semantics}
+        chitraguptaAvailability={{ status: 'installed', version: '0.1.0' }}
+        chitraguptaStatus={{
+          ok: false,
+          daemon: 'stopped',
+          capabilities: [],
+          warnings: ['failed for /Users/srinivaspendela/private/dream.md token=secret-token'],
+        }}
+      />,
+    )
+
+    const runtime = screen.getByTestId('memory-chitragupta-runtime')
+    expect(runtime).toHaveAttribute('data-state', 'protected')
+    expect(runtime).toHaveTextContent('Protected local')
+    expect(screen.queryByTestId('memory-chitragupta-warnings')).not.toBeInTheDocument()
+    expect(runtime).not.toHaveTextContent('/Users/srinivaspendela')
+    expect(runtime).not.toHaveTextContent('secret-token')
   })
 })

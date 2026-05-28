@@ -1,5 +1,6 @@
 import { useDeferredValue, useMemo } from 'react'
 import type { VaultEntry, GitCommit } from '../types'
+import type { AiAgentAvailability } from '../lib/aiAgents'
 import { cn } from '@/lib/utils'
 import { Separator } from './ui/separator'
 import { parseFrontmatter, detectFrontmatterState } from '../utils/frontmatter'
@@ -34,6 +35,7 @@ interface InspectorProps {
   content: string | null
   entries: VaultEntry[]
   gitHistory: GitCommit[]
+  chitraguptaAvailability?: AiAgentAvailability | null
   vaultPath?: string
   onNavigate: (target: string) => void
   onViewCommitDiff?: (commitHash: string) => void
@@ -182,6 +184,7 @@ function InspectorBody({
   entries,
   content,
   gitHistory,
+  chitraguptaAvailability,
   vaultPath,
   onNavigate,
   onViewCommitDiff,
@@ -245,6 +248,7 @@ function InspectorBody({
         entry={entry}
         entries={entries}
         semantics={semantics}
+        chitraguptaAvailability={chitraguptaAvailability}
         onNavigate={onNavigate}
         onUpdateRecordProperty={onUpdateFrontmatter}
         onDeleteRecordProperty={onDeleteProperty}

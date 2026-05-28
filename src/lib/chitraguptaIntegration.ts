@@ -1,5 +1,6 @@
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../types'
+import type { AiAgentAvailability } from './aiAgents'
 import { resolveEntryLocalityPolicy, type EntryLocalityPolicy } from './localityPolicy'
 
 export type ChitraguptaCapability =
@@ -65,6 +66,22 @@ export interface ChitraguptaContractStatus {
   warnings: string[]
 }
 
+export type ChitraguptaRuntimeReadinessState =
+  | 'protected'
+  | 'checking'
+  | 'cli_missing'
+  | 'mcp_unverified'
+  | 'mcp_blocked'
+  | 'ready'
+
+export interface ChitraguptaRuntimeDiagnostic {
+  state: ChitraguptaRuntimeReadinessState
+  cliLabel: string
+  contractLabel: string
+  capabilityLabel: string
+  warnings: string[]
+}
+
 /** Evaluates the public Chitragupta MCP contract without exposing private runtime details. */
 export function evaluateChitraguptaContractStatus(
   payload: ChitraguptaStatusPayload | null | undefined,
@@ -75,9 +92,9 @@ export function evaluateChitraguptaContractStatus(
   )
   const daemon = normalizeDaemonState(payload?.daemon)
   const warnings = [
-    ...(payload?.warnings ?? []).filter(warning => warning.trim().length > 0),
+    ...(payload?.warnings ?? []).map(sanitizeChitraguptaWarning),
     ...contractWarnings(payload, daemon, missingCapabilities),
-  ]
+  ].filter(warning => warning.trim().length > 0)
 
   return {
     state: payload?.ok === true && daemon === 'running' && missingCapabilities.length === 0
@@ -90,6 +107,75 @@ export function evaluateChitraguptaContractStatus(
     })),
     missingCapabilities,
     warnings: [...new Set(warnings)],
+  }
+}
+
+/** Summarizes the app-visible Chitragupta runtime truth for memory UI. */
+export function summarizeChitraguptaRuntimeReadiness({
+  availability,
+  contractStatus,
+  protectedNote,
+}: {
+  availability?: AiAgentAvailability | null
+  contractStatus: ChitraguptaContractStatus
+  protectedNote: boolean
+}): ChitraguptaRuntimeDiagnostic {
+  const availableCapabilities = contractStatus.capabilities.filter(capability => capability.available).length
+  const capabilityLabel = `${availableCapabilities}/${contractStatus.capabilities.length} MCP capabilities`
+
+  if (protectedNote) {
+    return {
+      state: 'protected',
+      cliLabel: 'Context withheld',
+      contractLabel: 'Protected local',
+      capabilityLabel,
+      warnings: [],
+    }
+  }
+
+  if (!availability || availability.status === 'checking') {
+    return {
+      state: 'checking',
+      cliLabel: 'CLI checking',
+      contractLabel: 'MCP contract pending',
+      capabilityLabel,
+      warnings: contractStatus.warnings.slice(0, 2),
+    }
+  }
+
+  if (availability.status === 'missing') {
+    return {
+      state: 'cli_missing',
+      cliLabel: 'CLI missing',
+      contractLabel: 'MCP contract blocked',
+      capabilityLabel,
+      warnings: [
+        'Install Chitragupta CLI before live memory recall.',
+        ...contractStatus.warnings,
+      ].slice(0, 2),
+    }
+  }
+
+  if (contractStatus.state === 'ready') {
+    return {
+      state: 'ready',
+      cliLabel: 'CLI installed',
+      contractLabel: 'MCP contract ready',
+      capabilityLabel,
+      warnings: [],
+    }
+  }
+
+  const statusUnavailable = contractStatus.warnings.includes('Chitragupta status is unavailable.')
+  return {
+    state: statusUnavailable ? 'mcp_unverified' : 'mcp_blocked',
+    cliLabel: 'CLI installed',
+    contractLabel: statusUnavailable ? 'MCP contract unverified' : 'MCP contract blocked',
+    capabilityLabel,
+    warnings: [
+      'CLI chat can run separately; memory recall stays local-ledger until MCP diagnostics pass.',
+      ...contractStatus.warnings,
+    ].slice(0, 2),
   }
 }
 
@@ -148,6 +234,15 @@ function contractWarnings(
 function normalizeDaemonState(value: ChitraguptaStatusPayload['daemon']): ChitraguptaContractStatus['daemon'] {
   if (value === 'running' || value === 'stopped' || value === 'degraded') return value
   return 'unknown'
+}
+
+function sanitizeChitraguptaWarning(value: string): string {
+  return value
+    .trim()
+    .replace(/\/Users\/[^\s,;:)]+/g, '[local path withheld]')
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email withheld]')
+    .replace(/\b(token|secret|password|api[_-]?key|key)=([^\s,;]+)/gi, '$1=[redacted]')
+    .slice(0, 180)
 }
 
 function relatedNoteTitles(entry: VaultEntry, entries: VaultEntry[]): string[] {

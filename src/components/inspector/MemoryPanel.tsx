@@ -1,12 +1,14 @@
 import type { ReactNode } from 'react'
-import { Brain, CircleAlert, Network, ShieldCheck, Sparkles, Workflow } from 'lucide-react'
+import { Brain, CircleAlert, Network, ShieldCheck, Sparkles, Terminal, Workflow } from 'lucide-react'
 import { useMemo } from 'react'
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../../types'
+import type { AiAgentAvailability } from '../../lib/aiAgents'
 import { Badge } from '../ui/badge'
 import {
   buildChitraguptaMemoryContext,
   evaluateChitraguptaContractStatus,
+  summarizeChitraguptaRuntimeReadiness,
   type ChitraguptaStatusPayload,
 } from '../../lib/chitraguptaIntegration'
 import { resolveEntryLocalityPolicy } from '../../lib/localityPolicy'
@@ -24,6 +26,7 @@ interface MemoryPanelProps {
   entries: VaultEntry[]
   semantics: MarkdownDocumentSemantics
   chitraguptaStatus?: ChitraguptaStatusPayload | null
+  chitraguptaAvailability?: AiAgentAvailability | null
   onNavigate?: (target: string) => void
   onUpdateRecordProperty?: MemoryRecordPropertyUpdate
   onDeleteRecordProperty?: (path: string, key: string) => Promise<void> | void
@@ -85,12 +88,55 @@ function LedgerEvidenceStrip({ summary }: { summary: MemoryLedgerEvidenceSummary
   )
 }
 
+function RuntimeDiagnosticStrip({
+  diagnostic,
+}: {
+  diagnostic: ReturnType<typeof summarizeChitraguptaRuntimeReadiness>
+}) {
+  return (
+    <div
+      className="grimoire-memory-runtime mb-2 rounded-md border px-2 py-2"
+      data-state={diagnostic.state}
+      data-testid="memory-chitragupta-runtime"
+    >
+      <div className="mb-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+        <Terminal className="size-3" />
+        Chitragupta runtime
+      </div>
+      <div className="grid gap-1">
+        <RuntimeDiagnosticRow label="CLI" value={diagnostic.cliLabel} />
+        <RuntimeDiagnosticRow label="Memory" value={diagnostic.contractLabel} />
+        <RuntimeDiagnosticRow label="MCP" value={diagnostic.capabilityLabel} />
+      </div>
+      {diagnostic.warnings.length > 0 ? (
+        <div className="mt-1.5 grid gap-1" data-testid="memory-chitragupta-warnings">
+          {diagnostic.warnings.map(warning => (
+            <div key={warning} className="grimoire-memory-runtime__warning rounded px-1.5 py-1 text-[10px]">
+              {warning}
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function RuntimeDiagnosticRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grimoire-memory-runtime__row flex min-w-0 items-center justify-between gap-2 text-[11px]">
+      <span className="grimoire-memory-runtime__label">{label}</span>
+      <span className="grimoire-memory-runtime__value truncate text-right">{value}</span>
+    </div>
+  )
+}
+
 /** Chitragupta-ready memory lane for the active note. */
 export function MemoryPanel({
   entry,
   entries,
   semantics,
   chitraguptaStatus = null,
+  chitraguptaAvailability = null,
   onNavigate,
   onUpdateRecordProperty,
   onDeleteRecordProperty,
@@ -104,6 +150,14 @@ export function MemoryPanel({
     [chitraguptaStatus],
   )
   const displayPolicy = useMemo(() => resolveEntryLocalityPolicy(entry), [entry])
+  const runtimeDiagnostic = useMemo(
+    () => summarizeChitraguptaRuntimeReadiness({
+      availability: chitraguptaAvailability,
+      contractStatus,
+      protectedNote: displayPolicy.localOnly,
+    }),
+    [chitraguptaAvailability, contractStatus, displayPolicy.localOnly],
+  )
   const ledgerRecords = useMemo(() => (
     displayPolicy.localOnly ? [] : findMemoryLedgerRecordsForEntry(entry, entries)
   ), [displayPolicy.localOnly, entries, entry])
@@ -193,6 +247,8 @@ export function MemoryPanel({
           value={ledgerState}
         />
       </div>
+
+      <RuntimeDiagnosticStrip diagnostic={runtimeDiagnostic} />
 
       {!displayPolicy.localOnly ? <LedgerEvidenceStrip summary={ledgerEvidence} /> : null}
       {!displayPolicy.localOnly ? <MemoryLedgerAuditStrip items={ledgerAuditItems} onNavigate={onNavigate} /> : null}

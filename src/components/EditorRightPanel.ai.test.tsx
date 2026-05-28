@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
-import type { AiAgentId } from '../lib/aiAgents'
+import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { VaultEntry } from '../types'
 import { EditorRightPanel } from './EditorRightPanel'
 
@@ -49,6 +49,12 @@ const entry: VaultEntry = {
   status: null,
   title: 'Note',
   wordCount: 2,
+}
+
+const installedAiAgentsStatus: AiAgentsStatus = {
+  chitragupta: { status: 'installed', version: '0.1.0' },
+  claude_code: { status: 'missing', version: null },
+  codex: { status: 'missing', version: null },
 }
 
 function renderRightPanel(
@@ -103,5 +109,26 @@ describe('EditorRightPanel AI chat lifecycle', () => {
     }))
 
     expect(await screen.findByText('Chitragupta · provider: google · model: gemini-2.5-pro')).toBeInTheDocument()
+  })
+
+  it('passes Chitragupta CLI availability into the inspector memory lane', () => {
+    render(
+      <EditorRightPanel
+        aiAgentsStatus={installedAiAgentsStatus}
+        entries={[entry]}
+        gitHistory={[]}
+        inspectorCollapsed={false}
+        inspectorContent="hello"
+        inspectorEntry={entry}
+        inspectorWidth={320}
+        onNavigateWikilink={vi.fn()}
+        onToggleInspector={vi.fn()}
+        onViewCommitDiff={vi.fn()}
+        showAIChat={false}
+        vaultPath="/tmp/vault"
+      />,
+    )
+
+    expect(screen.getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
   })
 })

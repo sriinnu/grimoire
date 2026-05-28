@@ -82,7 +82,7 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
-) .inspector-panel :is(.grimoire-memory-stat, .grimoire-memory-orchestration-row, .grimoire-memory-locality-note, .grimoire-memory-footer) {
+) .inspector-panel :is(.grimoire-memory-stat, .grimoire-memory-orchestration-row, .grimoire-memory-locality-note, .grimoire-memory-runtime, .grimoire-memory-footer) {
   border-color: var(--grimoire-memory-ledger-border);
   background: var(--grimoire-memory-ledger-inner-material);
   color: var(--text-secondary);
@@ -95,7 +95,18 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
-) .inspector-panel :is(.grimoire-memory-stat__value, .grimoire-memory-orchestration-row__label) {
+) .inspector-panel .grimoire-memory-runtime {
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--surface-raised) 45%, transparent);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .inspector-panel :is(.grimoire-memory-stat__value, .grimoire-memory-orchestration-row__label, .grimoire-memory-runtime__value) {
   color: var(--text-primary);
 }
 
@@ -106,8 +117,20 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
-) .inspector-panel :is(.grimoire-memory-stat__label, .grimoire-memory-orchestration-row__icon, .grimoire-memory-orchestration-row__value) {
+) .inspector-panel :is(.grimoire-memory-stat__label, .grimoire-memory-orchestration-row__icon, .grimoire-memory-orchestration-row__value, .grimoire-memory-runtime__label) {
   color: var(--text-muted);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .inspector-panel .grimoire-memory-runtime__warning {
+  background: color-mix(in srgb, var(--feedback-warning-text) 12%, var(--surface-card));
+  color: var(--feedback-warning-text);
 }
 
 :is(
