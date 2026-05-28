@@ -12,6 +12,7 @@ export interface MemoryLedgerRecord {
   locality: string
   version: string | number | null
   reviewedAt: string | null
+  reviewLog: string[]
   handoff: MemoryLedgerHandoff | null
 }
 
@@ -38,6 +39,7 @@ export interface MemoryLedgerDisplayState {
   contradictionLabels: string[]
   handoffLabel: string | null
   handoffTone: MemoryLedgerTone
+  reviewLogLabel: string | null
 }
 
 export interface MemoryLedgerEvidenceSummary {
@@ -60,6 +62,7 @@ export interface MemoryLedgerAuditItem {
 const MEMORY_TYPE_NAMES = new Set(['memory', 'memories'])
 const SOURCE_KEYS = ['source', 'sources', 'source_note', 'source_notes', 'sourceNote', 'sourceNotes']
 const CONTRADICTION_KEYS = ['contradicts', 'contradicted_by', 'contradictedBy']
+const REVIEW_LOG_KEYS = ['memory_review_log', 'review_log', 'memoryReviewLog', 'reviewLog']
 const DAY_MS = 86_400_000
 const STALE_MEMORY_DAYS = 45
 
@@ -82,6 +85,7 @@ export function buildMemoryLedgerRecord(entry: VaultEntry): MemoryLedgerRecord {
     locality: stringProperty(entry, 'locality') ?? 'vault',
     version: stringProperty(entry, 'memory_version') ?? stringProperty(entry, 'version'),
     reviewedAt: stringProperty(entry, 'reviewed_at') ?? stringProperty(entry, 'reviewedAt'),
+    reviewLog: propertyList(entry, REVIEW_LOG_KEYS),
     handoff: handoffProperty(entry),
   }
 }
@@ -113,7 +117,30 @@ export function buildMemoryLedgerDisplayState(record: MemoryLedgerRecord, now = 
     contradictionLabels: record.contradicts.map(memoryReferenceLabel),
     handoffLabel: handoffLabel(record.handoff),
     handoffTone: handoffTone(record.handoff),
+    reviewLogLabel: latestReviewLogLabel(record.reviewLog),
   }
+}
+
+/** Creates a Markdown-owned Memory Ledger review event for frontmatter history. */
+export function buildMemoryReviewLogEntry({
+  at,
+  confidence,
+  contradicts,
+  expiresAt,
+  version,
+}: {
+  at: string
+  confidence: string
+  contradicts: string[]
+  expiresAt: string
+  version: number
+}): string {
+  return [
+    `${at} v${version}`,
+    confidence ? `confidence=${confidence}` : 'confidence=cleared',
+    expiresAt ? `expires=${expiresAt}` : 'expires=cleared',
+    contradicts.length > 0 ? `contradicts=${contradicts.join('|')}` : 'contradicts=none',
+  ].join('; ')
 }
 
 /** Summarizes ledger provenance without reading private note bodies or paths. */
@@ -255,6 +282,11 @@ function handoffTone(value: MemoryLedgerHandoff | null): MemoryLedgerTone {
   if (!value) return 'neutral'
   if (value.mode === 'policy-only' || value.localHold || value.privateGatedLaneCount > 0 || value.unavailableLaneCount > 0) return 'warning'
   return 'proposed'
+}
+
+function latestReviewLogLabel(value: string[]): string | null {
+  const latest = value.at(-1)?.trim()
+  return latest || null
 }
 
 function confidenceLabel(value: string | number | null): string | null {

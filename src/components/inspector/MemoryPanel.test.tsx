@@ -35,6 +35,7 @@ describe('MemoryPanel', () => {
               source_note: '[[Test Project]]',
               confidence: 'high',
               reviewed_at: '2026-05-22T10:00:00.000Z',
+              memory_review_log: ['2026-05-22T10:00:00.000Z v1; confidence=high'],
             },
           }),
         ]}
@@ -48,6 +49,7 @@ describe('MemoryPanel', () => {
     expect(panel).toHaveAttribute('data-private-surface', 'memory-ledger')
     expect(record).toHaveClass('grimoire-memory-trace')
     expect(record).toHaveTextContent('Test Project Memory')
+    expect(screen.getByTestId('memory-ledger-review-log')).toHaveTextContent('Latest review: 2026-05-22T10:00:00.000Z v1')
 
     const evidence = screen.getByTestId('memory-ledger-evidence-strip')
     expect(evidence).toHaveTextContent('1 record')
@@ -98,6 +100,7 @@ describe('MemoryPanel', () => {
               contradicts: ['[[Old Plan]]'],
               memory_version: 2,
               reviewed_at: '2026-05-22T10:00:00.000Z',
+              memory_review_log: ['2026-05-22T10:00:00.000Z v2; confidence=high'],
             },
           }),
         ]}
@@ -123,6 +126,15 @@ describe('MemoryPanel', () => {
     expect(onDeleteRecordProperty).toHaveBeenCalledWith(memoryPath, 'expires_at')
     expect(onUpdateRecordProperty).toHaveBeenCalledWith(memoryPath, 'contradicts', ['[[Old Plan]]', '[[New Conflict]]'])
     expect(onUpdateRecordProperty).toHaveBeenCalledWith(memoryPath, 'memory_version', 3)
+    const reviewLogCall = onUpdateRecordProperty.mock.calls.find(([, key]) => key === 'memory_review_log')
+    expect(reviewLogCall?.[0]).toBe(memoryPath)
+    const reviewLog = reviewLogCall?.[2] as string[]
+    expect(reviewLog).toEqual(expect.arrayContaining(['2026-05-22T10:00:00.000Z v2; confidence=high']))
+    const latestReview = reviewLog.at(-1) ?? ''
+    expect(latestReview).toContain('v3')
+    expect(latestReview).toContain('confidence=verified')
+    expect(latestReview).toContain('expires=cleared')
+    expect(latestReview).toContain('contradicts=[[Old Plan]]|[[New Conflict]]')
   })
 
   it('shows source, expiry, and contradiction state as navigable ledger chips', () => {

@@ -2,7 +2,7 @@ import type { CSSProperties, FormEvent, ReactNode } from 'react'
 import { useState } from 'react'
 import { CircleAlert, ExternalLink, Pencil, Save, Sparkles, X } from 'lucide-react'
 import type { MemoryLedgerDisplayState, MemoryLedgerRecord, MemoryLedgerTone } from '../../lib/memoryLedger'
-import { buildMemoryLedgerDisplayState, memoryReferenceLabel } from '../../lib/memoryLedger'
+import { buildMemoryLedgerDisplayState, buildMemoryReviewLogEntry, memoryReferenceLabel } from '../../lib/memoryLedger'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -75,7 +75,13 @@ export function MemoryLedgerRecordRow({
         {display.contradictionLabel ? <LedgerBadge tone={display.contradictionTone}>{display.contradictionLabel}</LedgerBadge> : null}
         {record.version ? <LedgerBadge tone="neutral">v{record.version}</LedgerBadge> : null}
         {record.reviewedAt ? <LedgerBadge tone="neutral">Reviewed {record.reviewedAt}</LedgerBadge> : null}
+        {record.reviewLog.length > 0 ? <LedgerBadge tone="neutral">Log {record.reviewLog.length}</LedgerBadge> : null}
       </div>
+      {display.reviewLogLabel ? (
+        <div className="memory-ledger-review-log mt-1 truncate text-[10px] text-muted-foreground" data-testid="memory-ledger-review-log">
+          Latest review: {display.reviewLogLabel}
+        </div>
+      ) : null}
       <ReferenceChips
         label="Sources"
         values={record.sources}
@@ -175,11 +181,18 @@ function MemoryRecordEditForm({
     setSaving(true)
     setError(null)
     try {
+      const reviewedAt = new Date().toISOString()
+      const nextContradicts = splitLedgerList(contradicts)
       await updateOrDelete(onUpdateRecordProperty, onDeleteRecordProperty, record.path, 'confidence', confidence.trim())
       await updateOrDelete(onUpdateRecordProperty, onDeleteRecordProperty, record.path, 'expires_at', expiresAt.trim())
-      await updateOrDelete(onUpdateRecordProperty, onDeleteRecordProperty, record.path, 'contradicts', splitLedgerList(contradicts))
+      await updateOrDelete(onUpdateRecordProperty, onDeleteRecordProperty, record.path, 'contradicts', nextContradicts)
       await onUpdateRecordProperty(record.path, 'memory_version', nextVersion)
-      await onUpdateRecordProperty(record.path, 'reviewed_at', new Date().toISOString())
+      await onUpdateRecordProperty(record.path, 'reviewed_at', reviewedAt)
+      await onUpdateRecordProperty(
+        record.path,
+        'memory_review_log',
+        nextReviewLog(record, reviewedAt, nextVersion, confidence.trim(), expiresAt.trim(), nextContradicts),
+      )
       onSaved()
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Could not update memory metadata')
@@ -227,6 +240,18 @@ function splitLedgerList(value: string): string[] {
 function nextMemoryVersion(value: string | number | null): number {
   const parsed = Number(value)
   return Number.isFinite(parsed) && parsed >= 0 ? parsed + 1 : 1
+}
+
+function nextReviewLog(
+  record: MemoryLedgerRecord,
+  reviewedAt: string,
+  nextVersion: number,
+  confidence: string,
+  expiresAt: string,
+  contradicts: string[],
+): string[] {
+  const entry = buildMemoryReviewLogEntry({ at: reviewedAt, confidence, contradicts, expiresAt, version: nextVersion })
+  return [...record.reviewLog, entry].slice(-12)
 }
 
 function memoryRecordTone(display: MemoryLedgerDisplayState): MemoryLedgerTone {
