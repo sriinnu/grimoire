@@ -69,6 +69,10 @@ mod object_storage_sync_report;
 #[cfg(test)]
 mod object_storage_sync_tests;
 mod parsing;
+mod portability_capsule;
+mod portability_capsule_io;
+#[cfg(test)]
+mod portability_capsule_tests;
 mod rename;
 mod rename_transaction;
 mod scanner;
@@ -130,6 +134,10 @@ pub use object_storage_sync_progress::{
 };
 pub use object_storage_sync_report::{
     ObjectStorageSyncOperation, ObjectStorageSyncOperationKind, ObjectStorageSyncReport,
+};
+pub use portability_capsule::{
+    export_portability_capsule, preview_portability_capsule, PortabilityCapsuleFormat,
+    PortabilityCapsulePreviewReport,
 };
 pub use rename::{
     auto_rename_untitled, detect_renames, move_note_to_folder, rename_note, rename_note_filename,

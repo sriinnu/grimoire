@@ -291,6 +291,10 @@ function SettingsPanelInner({
           onImportJourney={portabilityActions.handleImportJourney}
           onExportMarkdownZip={portabilityActions.handleExportMarkdownZip}
           onExportStaticHtmlArchive={portabilityActions.handleExportStaticHtmlArchive}
+          onPreviewJsonSnapshot={portabilityActions.handlePreviewJsonSnapshot}
+          onExportJsonSnapshot={portabilityActions.handleExportJsonSnapshot}
+          onPreviewSqliteSnapshot={portabilityActions.handlePreviewSqliteSnapshot}
+          onExportSqliteSnapshot={portabilityActions.handleExportSqliteSnapshot}
           s3MirrorPreviewReady={portabilityActions.s3MirrorPreviewReady}
           s3MirrorPullPreviewReady={portabilityActions.s3MirrorPullPreviewReady}
           s3ProviderPushPreviewReady={portabilityActions.s3ProviderPushPreviewReady}

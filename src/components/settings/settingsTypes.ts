@@ -120,6 +120,10 @@ export interface SettingsBodyProps {
   onImportJourney?: () => void
   onExportMarkdownZip?: () => void
   onExportStaticHtmlArchive?: () => void
+  onPreviewJsonSnapshot?: () => void
+  onExportJsonSnapshot?: () => void
+  onPreviewSqliteSnapshot?: () => void
+  onExportSqliteSnapshot?: () => void
   s3MirrorPreviewReady?: boolean
   s3MirrorPullPreviewReady?: boolean
   s3ProviderPushPreviewReady?: boolean

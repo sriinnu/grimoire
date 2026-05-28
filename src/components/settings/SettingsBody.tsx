@@ -49,6 +49,10 @@ export function SettingsBody(props: SettingsBodyProps) {
     onImportJourney,
     onExportMarkdownZip,
     onExportStaticHtmlArchive,
+    onPreviewJsonSnapshot,
+    onExportJsonSnapshot,
+    onPreviewSqliteSnapshot,
+    onExportSqliteSnapshot,
     s3MirrorPreviewReady,
     s3MirrorPullPreviewReady,
     s3ProviderPushPreviewReady,
@@ -153,6 +157,10 @@ export function SettingsBody(props: SettingsBodyProps) {
               onImportJourney={onImportJourney}
               onExportMarkdownZip={onExportMarkdownZip}
               onExportStaticHtmlArchive={onExportStaticHtmlArchive}
+              onPreviewJsonSnapshot={onPreviewJsonSnapshot}
+              onExportJsonSnapshot={onExportJsonSnapshot}
+              onPreviewSqliteSnapshot={onPreviewSqliteSnapshot}
+              onExportSqliteSnapshot={onExportSqliteSnapshot}
               s3MirrorPreviewReady={s3MirrorPreviewReady}
               s3MirrorPullPreviewReady={s3MirrorPullPreviewReady}
               s3ProviderPushPreviewReady={s3ProviderPushPreviewReady}

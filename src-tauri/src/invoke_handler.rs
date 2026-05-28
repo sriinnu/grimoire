@@ -59,6 +59,8 @@ macro_rules! app_invoke_handler {
             commands::import_app_export_with_progress,
             commands::export_markdown_zip,
             commands::export_markdown_zip_with_progress,
+            commands::preview_portability_capsule,
+            commands::export_portability_capsule,
             commands::export_static_html_archive,
             commands::export_static_html_archive_with_progress,
             commands::storage_health_check,

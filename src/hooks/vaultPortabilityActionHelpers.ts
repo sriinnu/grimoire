@@ -44,6 +44,10 @@ export interface VaultPortabilityActions {
   handlePreviewJourney: () => void; handleImportJourney: () => void
   handleExportMarkdownZip: () => void
   handleExportStaticHtmlArchive: () => void
+  handlePreviewJsonSnapshot: () => void
+  handleExportJsonSnapshot: () => void
+  handlePreviewSqliteSnapshot: () => void
+  handleExportSqliteSnapshot: () => void
   s3MirrorPreviewReady: boolean
   s3MirrorPullPreviewReady: boolean
   s3ProviderPushPreviewReady: boolean

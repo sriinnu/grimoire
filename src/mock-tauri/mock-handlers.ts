@@ -33,6 +33,7 @@ import {
   mockS3ProviderSyncReport,
 } from './mock-object-storage-handlers'
 import { mockImportHandlers } from './mock-import-handlers'
+import { mockExportHandlers } from './mock-export-handlers'
 
 function syncWindowContent(): void {
   if (typeof window !== 'undefined') {
@@ -218,16 +219,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     }
   },
   ...mockImportHandlers,
-  export_markdown_zip: (args: { targetPath?: string }) => ({
-    export_path: args.targetPath ?? '/Users/mock/Desktop/grimoire-vault.zip',
-    files_exported: 12,
-    skipped_files: 0,
-  }),
-  export_static_html_archive: (args: { targetPath?: string }) => ({
-    export_path: args.targetPath ?? '/Users/mock/Desktop/grimoire-html-archive',
-    files_exported: 10,
-    skipped_files: 2,
-  }),
+  ...mockExportHandlers,
   storage_s3_live_preflight: (args: { bucket?: string | null; region?: string | null; prefix?: string | null }) =>
     mockS3LivePreflightReport(args),
   storage_s3_provider_push_preview: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null }) =>

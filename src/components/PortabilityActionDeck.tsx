@@ -6,7 +6,8 @@ import { AppImportAutopsyActions } from './AppImportAutopsyActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
 import type { PortabilityActionDeckProps } from './PortabilityActionDeck.types'
-import { PortabilityActionButton, PortabilityImportButton } from './PortabilityActionButton'
+import { PortabilityExportActions } from './PortabilityExportActions'
+import { PortabilityImportButton } from './PortabilityActionButton'
 import { PortabilityActionProgress } from './PortabilityActionProgress'
 import { Button } from './ui/button'
 
@@ -62,6 +63,10 @@ export function PortabilityActionDeck({
   onImportJourney,
   onExportMarkdownZip,
   onExportStaticHtmlArchive,
+  onPreviewJsonSnapshot,
+  onExportJsonSnapshot,
+  onPreviewSqliteSnapshot,
+  onExportSqliteSnapshot,
   onRunS3LivePreflight,
   onRunAzureLivePreflight,
   onPreviewS3MirrorPush,
@@ -284,28 +289,17 @@ export function PortabilityActionDeck({
 
   function renderExportActions(): ReactNode {
     return (
-      <>
-        <PortabilityActionButton
-          icon={<UploadSimple size={14} />}
-          label={t('settings.portability.exportMarkdownZip')}
-          testId="settings-export-markdown-zip"
-          busy={busyAction === 'export-markdown-zip'}
-          busyLabel={t('settings.portability.exporting')}
-          disabled={buttonDisabled(busyAction, vaultReady, onExportMarkdownZip)}
-          onClick={onExportMarkdownZip}
-          t={t}
-        />
-        <PortabilityActionButton
-          icon={<UploadSimple size={14} />}
-          label={t('settings.portability.exportStaticHtml')}
-          testId="settings-export-static-html"
-          busy={busyAction === 'export-static-html'}
-          busyLabel={t('settings.portability.exporting')}
-          disabled={buttonDisabled(busyAction, vaultReady, onExportStaticHtmlArchive)}
-          onClick={onExportStaticHtmlArchive}
-          t={t}
-        />
-      </>
+      <PortabilityExportActions
+        t={t}
+        vaultReady={vaultReady}
+        busyAction={busyAction}
+        onExportMarkdownZip={onExportMarkdownZip}
+        onExportStaticHtmlArchive={onExportStaticHtmlArchive}
+        onPreviewJsonSnapshot={onPreviewJsonSnapshot}
+        onExportJsonSnapshot={onExportJsonSnapshot}
+        onPreviewSqliteSnapshot={onPreviewSqliteSnapshot}
+        onExportSqliteSnapshot={onExportSqliteSnapshot}
+      />
     )
   }
 }

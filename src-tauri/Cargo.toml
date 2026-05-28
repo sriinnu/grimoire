@@ -1,6 +1,6 @@
 [package]
 name = "grimoire"
-version = "0.1.260"
+version = "0.1.261"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
 license = "AGPL-3.0-or-later"
@@ -29,6 +29,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 futures-util = "0.3"
 base64 = "0.22"
 regex = "1"
+rusqlite = "0.32"
 sha2 = "0.10"
 dirs = "5"
 aws-config = "1"

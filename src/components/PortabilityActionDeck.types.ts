@@ -51,6 +51,10 @@ export interface PortabilityActionDeckProps {
   onImportJourney?: () => void
   onExportMarkdownZip?: () => void
   onExportStaticHtmlArchive?: () => void
+  onPreviewJsonSnapshot?: () => void
+  onExportJsonSnapshot?: () => void
+  onPreviewSqliteSnapshot?: () => void
+  onExportSqliteSnapshot?: () => void
   onRunS3LivePreflight?: (args: S3LivePreflightArgs) => void
   onRunAzureLivePreflight?: (args: AzureLivePreflightArgs) => void
   onPreviewS3MirrorPush?: () => void

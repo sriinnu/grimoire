@@ -98,7 +98,7 @@ export function buildPortabilityEvidence(): AgentCouncilEvidence[] {
       sourceKind: 'tool',
     },
     {
-      detail: 'Markdown ZIP and static HTML exits count local-only withheld files before portable artifacts are written.',
+      detail: 'Markdown ZIP, static HTML, JSON, and SQLite exits count local-only withheld files before portable artifacts are written.',
       label: 'Export Manifest',
       sourceKind: 'tool',
     },
