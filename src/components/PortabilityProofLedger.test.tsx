@@ -127,4 +127,54 @@ describe('PortabilityProofLedger', () => {
     expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('secret-bucket')
     expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('provider-proven sync')
   })
+
+  it('shows reviewed capsule preview proof without leaking local capsule paths', () => {
+    render(
+      <PortabilityProofLedger
+        capsuleExportPreview={{
+          format: 'sqlite',
+          result: {
+            assets_exportable: 2,
+            bytes_exportable: 4096,
+            files_exportable: 6,
+            format: 'sqlite',
+            locality_proof: {
+              absolute_source_paths_redacted: true,
+              local_only_files_withheld: 3,
+              markdown_source_of_truth: true,
+            },
+            manifest_rows: [{ bytes: 100, kind: 'markdown', path: '/Users/sriinnu/journal.md' }],
+            notes_exportable: 4,
+            skipped_files: 3,
+          },
+        }}
+        capsuleImportPreview={{
+          sourceId: 'json-capsule-preview',
+          result: {
+            assets_to_copy: 2,
+            failed_files: 0,
+            manifest_rows: [
+              { detail: 'withheld /Users/sriinnu/Dreams.md', kind: 'withheld', source_path: '/Users/sriinnu/Dreams.md' },
+            ],
+            notes_to_copy: 4,
+            planned_import_root: '/Users/sriinnu/Grimoire/imports/json',
+            skipped_files: 3,
+            source_path: '/Users/sriinnu/capsule.json',
+            writes_local_only_report: true,
+          },
+        }}
+      />,
+    )
+
+    expect(screen.getByTestId('portability-proof-live-sqlite-capsule-export-preview')).toHaveTextContent(
+      'SQLite capsule export preview: reviewed',
+    )
+    expect(screen.getByTestId('portability-proof-live-json-capsule-import-preview')).toHaveTextContent(
+      'JSON capsule import preview: reviewed',
+    )
+    expect(screen.getByTestId('portability-proof-imports')).not.toHaveTextContent('/Users/')
+    expect(screen.getByTestId('portability-proof-exports')).not.toHaveTextContent('/Users/')
+    expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('Dreams.md')
+    expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('journal.md')
+  })
 })
