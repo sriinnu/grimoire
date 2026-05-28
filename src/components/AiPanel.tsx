@@ -13,18 +13,24 @@ import {
   type AiAgentsStatus,
 } from '../lib/aiAgents'
 import type { AskContextPackage } from '../lib/askContextPackage'
+import type { AgentCouncilSynthesisPacket } from '../lib/agentCouncilSynthesis'
 import { type NoteListItem } from '../utils/ai-context'
 import type { VaultEntry } from '../types'
 import { useAiPanelController, type AiPanelController } from './useAiPanelController'
 import { useAiPanelPromptQueue } from './useAiPanelPromptQueue'
 import { useAiPanelFocus } from './useAiPanelFocus'
-import { CrystallizeReviewDialog } from './CrystallizeReviewDialog'
+import { CrystallizeReviewDialog, type CrystallizeApplyDraft } from './CrystallizeReviewDialog'
 import {
+  appendCrystallizePatchToContent,
   buildCrystallizeProposal,
   latestCrystallizableMessage,
   persistCrystallizedNote,
   summarizeCrystallizeProposal,
 } from '../lib/crystallizeProposal'
+import {
+  councilCrystallizeHandoffMetadata,
+  councilCrystallizeMarkdown,
+} from '../lib/crystallizeCouncilHandoff'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { AiPanelIntelligenceRail } from './AiPanelIntelligenceRail'
 
@@ -42,6 +48,7 @@ interface AiPanelProps {
   onFileCreated?: (relativePath: string) => void
   onFileModified?: (relativePath: string) => void
   onVaultChanged?: () => void
+  onReplaceContent?: (path: string, content: string) => Promise<void> | void
   vaultPath: string
   activeEntry?: VaultEntry | null
   /** Direct content of the active note from the editor tab. */
@@ -70,8 +77,14 @@ interface AiPanelViewProps {
   noteList?: NoteListItem[]
   noteListFilter?: { type: string | null; query: string }
   onFileCreated?: (relativePath: string) => void
+  onFileModified?: (relativePath: string) => void
   onVaultChanged?: () => void
+  onReplaceContent?: (path: string, content: string) => Promise<void> | void
 }
+
+type CrystallizeSource =
+  | { kind: 'latest-response' }
+  | { kind: 'agent-council'; packet: AgentCouncilSynthesisPacket }
 
 export function AiPanelView({
   controller,
@@ -91,7 +104,9 @@ export function AiPanelView({
   noteList,
   noteListFilter,
   onFileCreated,
+  onFileModified,
   onVaultChanged,
+  onReplaceContent,
 }: AiPanelViewProps) {
   const defaultAiAgent = providedDefaultAiAgent ?? DEFAULT_AI_AGENT
   const defaultAiAgentReady = providedDefaultAiAgentReady ?? true
@@ -101,6 +116,7 @@ export function AiPanelView({
   const [crystallizeOpen, setCrystallizeOpen] = useState(false)
   const [crystallizeApplying, setCrystallizeApplying] = useState(false)
   const [crystallizeError, setCrystallizeError] = useState<string | null>(null)
+  const [crystallizeSource, setCrystallizeSource] = useState<CrystallizeSource>({ kind: 'latest-response' })
   const [askContextPackage, setAskContextPackage] = useState<AskContextPackage | null>(null)
   const agentLabel = getAiAgentDefinition(defaultAiAgent).label
   const agentRouteLabel = describeAiAgentRoute(defaultAiAgent, defaultAiProvider, defaultAiModel)
@@ -133,30 +149,73 @@ export function AiPanelView({
   const latestCrystallizable = useMemo(() => latestCrystallizableMessage(agent.messages), [agent.messages])
   const latestResponse = latestCrystallizable?.response ?? null
   const activePolicy = useMemo(() => activeEntry ? resolveEntryLocalityPolicy(activeEntry) : null, [activeEntry])
-  const crystallizeBlockedReason = activePolicy?.localOnly
-    ? 'Local-only context is protected. Crystallize from a public note or start a fresh chat.'
-    : latestResponse ? null : 'Send an AI message first.'
+  const councilPacket = crystallizeSource.kind === 'agent-council' ? crystallizeSource.packet : null
+  const crystallizeResponse = councilPacket ? councilCrystallizeMarkdown(councilPacket) : latestResponse
+  const crystallizeBlockedReason = councilPacket?.protectedContext
+    ? 'Protected Council packet is policy-only. Review safe guidance, but do not write it as shared memory from this context.'
+    : activePolicy?.localOnly && !councilPacket
+      ? 'Local-only context is protected. Crystallize from a public note or start a fresh chat.'
+      : crystallizeResponse ? null : 'Send an AI message first.'
   const crystallizeProposal = useMemo(() => {
-    if (!latestResponse || !vaultPath || crystallizeBlockedReason) return null
+    if (!crystallizeResponse || !vaultPath || crystallizeBlockedReason) return null
+    const safeActiveEntry = activePolicy?.localOnly && councilPacket ? null : activeEntry
     return buildCrystallizeProposal({
-      activeEntry,
-      askContextPackage: latestCrystallizable?.contextPackage ?? null,
-      response: latestResponse,
+      activeEntry: safeActiveEntry,
+      activeNoteContent: councilPacket ? null : onReplaceContent ? activeNoteContent : null,
+      askContextPackage: councilPacket ? askContextPackage : latestCrystallizable?.contextPackage ?? null,
+      handoffMetadata: councilPacket ? councilCrystallizeHandoffMetadata(councilPacket) : null,
+      response: crystallizeResponse,
+      sourceEntries: councilPacket ? entries : undefined,
+      sourceLabels: councilPacket ? ['Agent Council', ...councilPacket.sourceLabels] : undefined,
+      sourceName: councilPacket ? 'Agent Council' : 'AI Chat',
+      titleSubject: councilPacket ? 'Agent Council' : undefined,
       vaultPath,
     })
-  }, [activeEntry, crystallizeBlockedReason, latestCrystallizable?.contextPackage, latestResponse, vaultPath])
+  }, [
+    activeEntry,
+    activeNoteContent,
+    activePolicy?.localOnly,
+    askContextPackage,
+    crystallizeBlockedReason,
+    crystallizeResponse,
+    councilPacket,
+    entries,
+    latestCrystallizable?.contextPackage,
+    onReplaceContent,
+    vaultPath,
+  ])
   const crystallizeProposalSummary = useMemo(
     () => summarizeCrystallizeProposal(crystallizeProposal),
     [crystallizeProposal],
   )
   const canCrystallize = !!crystallizeProposal && !crystallizeBlockedReason
 
-  async function handleApplyCrystallize(markdown: string): Promise<void> {
+  function handleOpenLatestCrystallize(): void {
+    setCrystallizeSource({ kind: 'latest-response' })
+    setCrystallizeOpen(true)
+  }
+
+  function handleCrystallizeCouncil(packet: AgentCouncilSynthesisPacket): void {
+    setCrystallizeSource({ kind: 'agent-council', packet })
+    setCrystallizeOpen(true)
+  }
+
+  async function handleApplyCrystallize(draft: CrystallizeApplyDraft): Promise<void> {
     if (!crystallizeProposal || crystallizeBlockedReason) return
     setCrystallizeApplying(true)
     setCrystallizeError(null)
     try {
-      await persistCrystallizedNote({ ...crystallizeProposal, markdown })
+      await persistCrystallizedNote({ ...crystallizeProposal, markdown: draft.memoryMarkdown })
+      if (
+        crystallizeProposal.activeNotePatch
+        && activeNoteContent != null
+        && draft.activeNoteAppendMarkdown
+        && onReplaceContent
+      ) {
+        const nextContent = appendCrystallizePatchToContent(activeNoteContent, draft.activeNoteAppendMarkdown)
+        await onReplaceContent(crystallizeProposal.activeNotePatch.targetPath, nextContent)
+        onFileModified?.(crystallizeProposal.activeNotePatch.relativePath)
+      }
       onFileCreated?.(crystallizeProposal.relativePath)
       onVaultChanged?.()
       onOpenNote?.(crystallizeProposal.relativePath.replace(/\.md$/i, ''))
@@ -170,6 +229,7 @@ export function AiPanelView({
 
   function handlePanelNewChat(): void {
     setAskContextPackage(null)
+    setCrystallizeSource({ kind: 'latest-response' })
     handleNewChat()
   }
 
@@ -198,7 +258,7 @@ export function AiPanelView({
           crystallizeBlockedReason={crystallizeBlockedReason}
           legacyCopy={useLegacyAiExperience}
           onClose={onClose}
-          onCrystallize={() => setCrystallizeOpen(true)}
+          onCrystallize={handleOpenLatestCrystallize}
           onNewChat={handlePanelNewChat}
         />
         {activeEntry && (
@@ -213,13 +273,16 @@ export function AiPanelView({
           crystallizeBlockedReason={crystallizeBlockedReason}
           defaultAiAgent={defaultAiAgent}
           defaultAiAgentReady={defaultAiAgentReady}
+          defaultAiModel={defaultAiModel}
+          defaultAiProvider={defaultAiProvider}
           entries={entries ?? []}
           hasContext={hasContext}
           hasLatestResponse={!!latestResponse}
           linkedEntries={linkedEntries}
           noteList={noteList}
           noteListFilter={noteListFilter}
-          onCrystallize={() => setCrystallizeOpen(true)}
+          onCrystallize={handleOpenLatestCrystallize}
+          onCrystallizeCouncil={handleCrystallizeCouncil}
           onOpenNote={onOpenNote}
           openTabs={openTabs}
           proposalSummary={crystallizeProposalSummary}
@@ -255,7 +318,7 @@ export function AiPanelView({
         blockedReason={crystallizeBlockedReason}
         applying={crystallizeApplying}
         error={crystallizeError}
-        onApply={(markdown) => { void handleApplyCrystallize(markdown) }}
+        onApply={(draft) => { void handleApplyCrystallize(draft) }}
         onClose={() => setCrystallizeOpen(false)}
       />
     </>
@@ -274,6 +337,7 @@ export function AiPanel({
   onFileCreated,
   onFileModified,
   onVaultChanged,
+  onReplaceContent,
   vaultPath,
   activeEntry,
   activeNoteContent,
@@ -319,7 +383,9 @@ export function AiPanel({
       noteList={noteList}
       noteListFilter={noteListFilter}
       onFileCreated={onFileCreated}
+      onFileModified={onFileModified}
       onVaultChanged={onVaultChanged}
+      onReplaceContent={onReplaceContent}
     />
   )
 }

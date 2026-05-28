@@ -1,23 +1,42 @@
 import { FileSearch, FileStack, Network, PackageCheck, ShieldCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { ContextCapsulePreview } from '../lib/contextCapsule'
+import type { AiAgentId } from '../lib/aiAgents'
+import { localityEgressLanes } from '../lib/localityPolicy'
+import { AgentRouteDisclosure } from './AgentRouteDisclosure'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 
 interface ContextCapsuleCardProps {
+  defaultAiAgent?: AiAgentId
+  defaultAiModel?: string | null
+  defaultAiProvider?: string | null
   preview: ContextCapsulePreview
   onReviewPackage?: () => void
 }
 
 /** Shows the local context package that would be handed to an agent. */
-export function ContextCapsuleCard({ preview, onReviewPackage }: ContextCapsuleCardProps) {
+export function ContextCapsuleCard({
+  defaultAiAgent,
+  defaultAiModel,
+  defaultAiProvider,
+  preview,
+  onReviewPackage,
+}: ContextCapsuleCardProps) {
   const stateLabel = preview.state === 'protected'
     ? 'Protected'
     : preview.state === 'empty' ? 'Empty' : 'Preview'
+  const trimmedCount = exclusionCount(preview.exclusions, 'trimmed')
+  const heldLocalCount = preview.state === 'protected'
+    ? 1
+    : Math.max(0, exclusionCount(preview.exclusions) - trimmedCount)
+  const safeSourceCount = preview.includedNotes.length
+  const route = capsuleRoute({ heldLocalCount, preview, safeSourceCount, trimmedCount })
+  const egressLanes = localityEgressLanes(preview.state === 'protected')
 
   return (
     <section className="border-b border-border px-3 py-2" data-testid="context-capsule-card">
-      <div className="rounded-md border border-border bg-muted/25 p-2">
+      <div className="grimoire-context-capsule rounded-md border border-border bg-muted/25 p-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
             <PackageCheck className="size-3.5 shrink-0 text-muted-foreground" />
@@ -41,11 +60,71 @@ export function ContextCapsuleCard({ preview, onReviewPackage }: ContextCapsuleC
           </Button>
         ) : null}
 
+        {defaultAiAgent ? (
+          <AgentRouteDisclosure
+            agent={defaultAiAgent}
+            className="mt-2"
+            contextProtected={preview.state === 'protected'}
+            model={defaultAiModel}
+            provider={defaultAiProvider}
+          />
+        ) : null}
+
+        {preview.handoffIntent ? (
+          <div
+            className="mt-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] px-2 py-1.5 text-[10px] leading-snug text-[var(--grimoire-signal-text)]"
+            data-testid="context-capsule-intent"
+          >
+            <span className="font-semibold">{preview.handoffIntent}</span>
+            <span className="ml-1 text-muted-foreground">review-before-write Markdown memory</span>
+          </div>
+        ) : null}
+
+        <div
+          className="grimoire-context-capsule__route mt-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] p-2"
+          data-locality={preview.state === 'protected' ? 'protected-local' : 'source-safe'}
+          data-testid="context-capsule-route"
+        >
+          <div className="flex items-center justify-between gap-2 text-[10px] font-medium text-[var(--grimoire-signal-text)]">
+            <span>Package route</span>
+            <span>{preview.state === 'protected' ? 'No handoff' : 'Review first'}</span>
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {route.map((step) => (
+              <div
+                key={step.id}
+                className="grimoire-context-capsule__step rounded-md border border-border bg-background/55 px-1.5 py-1.5"
+                data-status={step.status}
+              >
+                <div className="flex items-center gap-1 text-[9px] font-medium text-foreground">
+                  <span className={`size-1.5 rounded-full ${routeDotClass(step.status)}`} />
+                  <span className="truncate">{step.label}</span>
+                </div>
+                <div className="mt-0.5 line-clamp-2 text-[8px] leading-snug text-muted-foreground">
+                  {step.detail}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-2 grid gap-1" data-testid="context-capsule-egress">
+            {egressLanes.map((lane) => (
+              <div
+                key={lane.id}
+                className="grimoire-context-capsule__step flex min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background/55 px-1.5 py-1"
+                data-egress-state={lane.stateKey}
+              >
+                <span className="truncate text-[9px] font-medium text-foreground">{lane.label}</span>
+                <span className="shrink-0 text-[8px] text-muted-foreground">{lane.state}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="mt-2 grid grid-cols-2 gap-1.5">
           <CapsuleStat label="Notes" value={preview.counts.selectedNotes} />
           <CapsuleStat label="Linked" value={preview.counts.linkedNotes} />
           <CapsuleStat label="List" value={preview.counts.noteListItems} />
-          <CapsuleStat label="Held" value={preview.counts.exclusions} />
+          <CapsuleStat label="Held" value={heldLocalCount} />
         </div>
 
         <div className="mt-2 flex flex-wrap gap-1">
@@ -83,9 +162,75 @@ export function ContextCapsuleCard({ preview, onReviewPackage }: ContextCapsuleC
   )
 }
 
+interface CapsuleRouteStep {
+  detail: string
+  id: string
+  label: string
+  status: 'ready' | 'limited' | 'blocked' | 'review'
+}
+
+function capsuleRoute({
+  heldLocalCount,
+  preview,
+  safeSourceCount,
+  trimmedCount,
+}: {
+  heldLocalCount: number
+  preview: ContextCapsulePreview
+  safeSourceCount: number
+  trimmedCount: number
+}): CapsuleRouteStep[] {
+  return [
+    {
+      id: 'gather',
+      label: 'Gather',
+      status: preview.state === 'empty' ? 'limited' : preview.state === 'protected' ? 'blocked' : 'ready',
+      detail: preview.state === 'protected' ? 'Active note held.' : countLabel(safeSourceCount, 'source'),
+    },
+    {
+      id: 'firewall',
+      label: 'Firewall',
+      status: heldLocalCount > 0 ? 'review' : 'ready',
+      detail: heldLocalCount > 0 ? `${heldLocalCount} held local.` : 'No holds.',
+    },
+    {
+      id: 'map',
+      label: 'Map',
+      status: trimmedCount > 0 ? 'limited' : 'ready',
+      detail: `${preview.projectMap.graphNodes} nodes / ${preview.projectMap.graphEdges} edges.`,
+    },
+    {
+      id: 'review',
+      label: 'Review',
+      status: preview.state === 'protected' ? 'blocked' : 'review',
+      detail: preview.state === 'protected' ? 'Handoff blocked.' : 'Markdown preview.',
+    },
+  ]
+}
+
+function exclusionCount(exclusions: ContextCapsulePreview['exclusions'], labelMatch?: string): number {
+  return exclusions
+    .filter((item) => !labelMatch || item.label.toLowerCase().includes(labelMatch))
+    .reduce((total, item) => total + (Number.parseInt(item.reason, 10) || 1), 0)
+}
+
+function routeDotClass(status: CapsuleRouteStep['status']): string {
+  if (status === 'ready') return 'bg-[var(--grimoire-signal-accent)]'
+  if (status === 'blocked') return 'bg-[var(--status-bar-danger-fg,var(--destructive))]'
+  if (status === 'review') return 'bg-[var(--grimoire-private-local-accent)]'
+  return 'bg-[var(--status-bar-warning-fg,var(--primary))]'
+}
+
+function countLabel(count: number, singular: string): string {
+  return `${count} ${singular}${count === 1 ? '' : 's'}.`
+}
+
 function CapsuleStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md bg-background/60 px-2 py-1">
+    <div
+      className="grimoire-context-capsule__stat rounded-md bg-background/60 px-2 py-1"
+      data-testid={`context-capsule-stat-${label.toLowerCase()}`}
+    >
       <div className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
       <div className="text-[12px] font-medium text-foreground">{value}</div>
     </div>

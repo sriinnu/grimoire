@@ -6,35 +6,20 @@ import {
 } from './aiAgents'
 import type { AskContextPackage } from './askContextPackage'
 import { getPrivateAgentLane, listPrivateAgentLanes, type PrivateAgentLane } from './privateAgentLanes'
+import { buildAgentCouncilClaims } from './agentCouncilContributions'
+import { buildContextSources, buildGraphSources, memoryConflictLabels } from './agentCouncilContext'
+import {
+  buildCouncilContextEvidence,
+  buildLocalSearchEvidence,
+  buildVaultGraphEvidence,
+  evidenceFromSources,
+  toolEvidence,
+} from './agentCouncilEvidence'
+import { buildRedTeamCouncilContribution, buildRedTeamCouncilSources } from './agentCouncilRedTeam'
+import type { AgentCouncilEvidence, AgentCouncilHealth, AgentCouncilMember, AgentCouncilSource } from './agentCouncilTypes'
+import type { RedTeamPlanReview } from './redTeamPlan'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
-
-export interface AgentCouncilMember {
-  id: string
-  label: string
-  role: string
-  health: AgentCouncilHealth
-  permission: string
-  stance: string
-  contribution: string
-  sources: AgentCouncilSource[]
-  active: boolean
-}
-
-export type AgentCouncilHealth = 'ready' | 'checking' | 'missing' | 'private-local'
-export type AgentCouncilSourceKind =
-  | 'active-note'
-  | 'ask-context'
-  | 'graph-node'
-  | 'linked-context'
-  | 'memory-ledger'
-  | 'tool'
-  | 'withheld'
-
-export interface AgentCouncilSource {
-  kind: AgentCouncilSourceKind
-  label: string
-  targetPath?: string
-}
+export type { AgentCouncilEvidence, AgentCouncilHealth, AgentCouncilMember, AgentCouncilSource, AgentCouncilSourceKind } from './agentCouncilTypes'
 
 interface AgentCouncilParams {
   statuses: AiAgentsStatus
@@ -45,6 +30,7 @@ interface AgentCouncilParams {
   askContextPackage?: AskContextPackage | null
   graphContext?: AgentGraphContext | null
   linkedContextCount?: number
+  redTeamReview?: RedTeamPlanReview | null
 }
 
 export interface AgentCouncilBrief {
@@ -63,6 +49,7 @@ export function buildAgentCouncilMembers({
   askContextPackage,
   graphContext,
   linkedContextCount = 0,
+  redTeamReview,
 }: AgentCouncilParams): AgentCouncilMember[] {
   const permission = activeContextProtected
     ? 'Active local-only note withheld'
@@ -75,6 +62,13 @@ export function buildAgentCouncilMembers({
     linkedContextCount,
   )
   const graphSources = buildGraphSources(graphContext, activeContextProtected)
+  const contextEvidence = buildCouncilContextEvidence({
+    activeContextProtected,
+    activeSourceLabel,
+    activeSourcePath,
+    askContextPackage,
+    linkedContextCount,
+  })
   const cliMembers = AI_AGENT_DEFINITIONS
     .filter((definition) => definition.id !== 'chitragupta')
     .map((definition) => ({
@@ -85,10 +79,11 @@ export function buildAgentCouncilMembers({
       permission,
       stance: stanceForAgent(statuses[definition.id].status, definition.id === activeAgent),
       contribution: contributionForAgent(definition.id, activeContextProtected, linkedContextCount, askContextPackage),
+      evidence: contextEvidence,
       sources: contextSources,
       active: definition.id === activeAgent,
     }))
-  return [
+  return attachClaims([
     ...cliMembers,
     localMember(
       'local_search',
@@ -97,6 +92,13 @@ export function buildAgentCouncilMembers({
       permission,
       'Can ground answers in vault Markdown search results.',
       [...contextSources, { kind: 'tool', label: 'Markdown index' }],
+      buildLocalSearchEvidence({
+        activeContextProtected,
+        activeSourceLabel,
+        activeSourcePath,
+        askContextPackage,
+        linkedContextCount,
+      }),
     ),
     localMember(
       'vault_graph',
@@ -105,6 +107,19 @@ export function buildAgentCouncilMembers({
       permission,
       graphContribution(graphContext, activeContextProtected),
       [...contextSources, ...graphSources, { kind: 'tool', label: 'Wikilink graph' }],
+      buildVaultGraphEvidence({ activeContextProtected, askContextPackage, graphContext }),
+    ),
+    localMember(
+      'red_team',
+      'Red Team',
+      'Critiques product, code, UX, privacy, evidence, and execution risk.',
+      permission,
+      buildRedTeamCouncilContribution(redTeamReview, activeContextProtected),
+      buildRedTeamCouncilSources(redTeamReview, activeContextProtected, contextSources),
+      evidenceFromSources(
+        buildRedTeamCouncilSources(redTeamReview, activeContextProtected, contextSources),
+        { detail: 'Product, code, UX, privacy, evidence, and execution critique.', label: 'Red-Team My Plan', sourceKind: 'red-team' },
+      ),
     ),
     localMember(
       'portability_context',
@@ -113,6 +128,7 @@ export function buildAgentCouncilMembers({
       permission,
       'Can flag import, export, sync, and local-only constraints.',
       [{ kind: 'tool', label: 'Portability registry' }, { kind: 'tool', label: 'Locality Firewall' }],
+      toolEvidence('Portability registry', 'Import/export/sync constraints stay visible before handoff.'),
     ),
     chitraguptaPrivateMember(
       getPrivateAgentLane('chitragupta'),
@@ -122,7 +138,16 @@ export function buildAgentCouncilMembers({
       contextSources,
     ),
     ...privateLaneMembers(activeContextProtected),
-  ]
+  ])
+}
+
+type AgentCouncilMemberDraft = Omit<AgentCouncilMember, 'claims'>
+
+function attachClaims(members: AgentCouncilMemberDraft[]): AgentCouncilMember[] {
+  return members.map((member) => ({
+    ...member,
+    claims: buildAgentCouncilClaims(member),
+  }))
 }
 
 /** Builds the small synthesis row below the Council cards. */
@@ -134,11 +159,13 @@ export function buildAgentCouncilBrief(
   const missing = members.filter((member) => member.health === 'missing').map((member) => member.label)
   const checking = members.filter((member) => member.health === 'checking').map((member) => member.label)
   const privateLocal = members.some((member) => member.health === 'private-local')
+  const memoryConflicts = !activeContextProtected && askContextPackage ? memoryConflictLabels(askContextPackage) : []
   const sourceLabels = uniqueSourceLabels(members)
   const disagreements = [
     activeContextProtected ? 'Privacy gate keeps protected note content out of the pass.' : null,
     missing.length > 0 ? `Unavailable lanes: ${missing.join(', ')}.` : null,
     checking.length > 0 ? `Pending lanes: ${checking.join(', ')}.` : null,
+    memoryConflicts.length > 0 ? `Memory conflicts: ${memoryConflicts.join(', ')}.` : null,
     privateLocal ? 'Private lanes require explicit output approval.' : null,
   ].filter((item): item is string => Boolean(item))
 
@@ -182,7 +209,13 @@ function contributionForAgent(
 ): string {
   if (protectedContext) return 'Can respond without protected note body, title, or path.'
   if (askContextPackage) {
-    return `Can synthesize ${askContextPackage.references.length} ask sources and ${askContextPackage.memoryReferences.length} memory records.`
+    const askSources = countLabel(askContextPackage.references.length, 'ask source')
+    const memoryRecords = countLabel(askContextPackage.memoryReferences.length, 'memory record')
+    const conflictCount = memoryConflictLabels(askContextPackage).length
+    if (conflictCount > 0) {
+      return `Can synthesize ${askSources}, ${memoryRecords}, and ${countLabel(conflictCount, 'memory conflict')}.`
+    }
+    return `Can synthesize ${askSources} and ${memoryRecords}.`
   }
   if (agent === 'codex') return 'Can critique plans and execution risks from allowed context.'
   return linkedCount > 0
@@ -196,7 +229,7 @@ function chitraguptaPrivateMember(
   active: boolean,
   activeContextProtected: boolean,
   contextSources: AgentCouncilSource[],
-): AgentCouncilMember {
+): AgentCouncilMemberDraft {
   const health = status === 'missing'
     ? 'missing'
     : status === 'checking' ? 'checking' : 'private-local'
@@ -212,6 +245,9 @@ function chitraguptaPrivateMember(
     contribution: activeContextProtected
       ? 'Can report capability health while the protected note stays local.'
       : 'Live recall, wiki, graph, and diagnostics require the Chitragupta MCP contract.',
+    evidence: activeContextProtected
+      ? toolEvidence('Locality Firewall', 'Protected active note stays out of the private memory lane.')
+      : toolEvidence('Chitragupta MCP contract', 'Local memory action is contract-gated and approval-gated.'),
     sources: [
       ...contextSources,
       { kind: 'tool', label: 'Chitragupta MCP contract' },
@@ -248,7 +284,8 @@ function localMember(
   permission: string,
   contribution: string,
   sources: AgentCouncilSource[],
-): AgentCouncilMember {
+  evidence: AgentCouncilEvidence[],
+): AgentCouncilMemberDraft {
   return {
     id,
     label,
@@ -257,12 +294,13 @@ function localMember(
     permission,
     stance: 'Ready to contribute source-backed context.',
     contribution,
+    evidence,
     sources,
     active: false,
   }
 }
 
-function privateLaneMembers(activeContextProtected: boolean): AgentCouncilMember[] {
+function privateLaneMembers(activeContextProtected: boolean): AgentCouncilMemberDraft[] {
   const permission = activeContextProtected
     ? 'Private lane; protected note still withheld'
     : 'Private lane; explicit output approval'
@@ -276,71 +314,18 @@ function privateLaneMembers(activeContextProtected: boolean): AgentCouncilMember
       permission,
       stance: 'Visible as capability only; no private internals exposed.',
       contribution: 'Can contribute only after explicit user approval of its output.',
+      evidence: toolEvidence('Private local capability', 'Capability is visible; output requires explicit user approval.'),
       sources: [{ kind: 'tool', label: 'Private local capability' }],
       active: false,
     }))
 }
 
-function buildContextSources(
-  protectedContext: boolean,
-  activeSourceLabel: string | null | undefined,
-  activeSourcePath: string | null | undefined,
-  askContextPackage: AskContextPackage | null | undefined,
-  linkedCount: number,
-): AgentCouncilSource[] {
-  if (protectedContext) return [{ kind: 'withheld', label: 'Protected active note' }]
-  const sources: AgentCouncilSource[] = []
-  if (askContextPackage) {
-    sources.push(...askContextSources(askContextPackage))
-  }
-  if (activeSourceLabel) {
-    sources.push({ kind: 'active-note', label: activeSourceLabel, targetPath: activeSourcePath ?? undefined })
-  }
-  if (linkedCount > 0) sources.push({ kind: 'linked-context', label: `${linkedCount} linked notes` })
-  return sources.length > 0 ? sources : [{ kind: 'tool', label: 'No active note' }]
-}
-
-function askContextSources(contextPackage: AskContextPackage): AgentCouncilSource[] {
-  const references = contextPackage.references.slice(0, 3).map((reference) => ({
-    kind: 'ask-context' as const,
-    label: reference.title,
-    targetPath: reference.path,
-  }))
-  const memories = contextPackage.memoryReferences.slice(0, 2).map((memory) => ({
-    kind: 'memory-ledger' as const,
-    label: memory.title,
-    targetPath: memory.path,
-  }))
-  const withheld = contextPackage.withheld.protectedNotes
-    + contextPackage.withheld.protectedMemories
-    + (contextPackage.graph?.protectedEdges ?? 0)
-  const withheldLabel = contextPackage.kind === 'graph-council' ? 'graph items withheld' : 'dashboard items withheld'
-  return [
-    ...references,
-    ...memories,
-    ...(withheld > 0 ? [{ kind: 'withheld' as const, label: `${withheld} ${withheldLabel}` }] : []),
-  ]
-}
-
-function buildGraphSources(
-  graphContext: AgentGraphContext | null | undefined,
-  protectedContext: boolean,
-): AgentCouncilSource[] {
-  if (protectedContext || graphContext?.state === 'protected-active') {
-    return [{ kind: 'withheld', label: 'Protected graph neighborhood' }]
-  }
-  if (!graphContext || graphContext.state !== 'ready') return []
-
-  return graphContext.nodes
-    .filter((node) => !node.active)
-    .slice(0, 2)
-    .map((node) => ({
-      kind: 'graph-node',
-      label: node.title,
-      targetPath: node.path,
-    }))
+function countLabel(count: number, singular: string): string {
+  return `${count} ${singular}${count === 1 ? '' : 's'}`
 }
 
 function uniqueSourceLabels(members: AgentCouncilMember[]): string[] {
-  return [...new Set(members.flatMap((member) => member.sources.map((source) => source.label)))]
+  return [...new Set(members.flatMap((member) => member.sources)
+    .filter((source) => source.kind !== 'withheld')
+    .map((source) => source.label))]
 }

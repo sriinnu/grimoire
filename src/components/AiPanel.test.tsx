@@ -62,6 +62,10 @@ const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
   ...overrides,
 })
 
+const openIntelligenceDetails = () => {
+  fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
+}
+
 describe('AiPanel', () => {
   beforeEach(() => {
     mockMessages = []
@@ -130,12 +134,15 @@ describe('AiPanel', () => {
     expect(screen.getByTestId('crystallize-review-dialog')).toBeInTheDocument()
     expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Create Memory note')
     expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Write ledger frontmatter')
+    expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Write ledger contract')
     expect(screen.getByTestId('crystallize-change-list')).toHaveTextContent('Write source backlinks')
     expect(screen.getByTestId('crystallize-change-kind-frontmatter')).toBeInTheDocument()
     expect(screen.getByTestId('crystallize-change-kind-backlink')).toBeInTheDocument()
-    expect(screen.getByTestId('crystallize-change-kind-body')).toBeInTheDocument()
+    expect(screen.getAllByTestId('crystallize-change-kind-body')).toHaveLength(2)
     const preview = screen.getByTestId('crystallize-markdown-preview') as HTMLTextAreaElement
     expect(preview.value).toContain('type: Memory')
+    expect(preview.value).toContain('memory_status: proposed')
+    expect(preview.value).toContain('## Ledger Contract')
     expect(preview.value).toContain('memory_version: 1')
     expect(preview.value).toContain('## Source Links')
     expect(preview.value).toContain('Memory should stay source-backed')
@@ -231,6 +238,7 @@ describe('AiPanel', () => {
     )
 
     expect(screen.getByTestId('ai-crystallize')).toBeDisabled()
+    openIntelligenceDetails()
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Protected context stays local')
     expect(screen.getByTestId('crystallize-loop-card')).not.toHaveTextContent('Review packet')
     expect(screen.queryByText('Hidden Dream')).toBeNull()
@@ -254,6 +262,7 @@ describe('AiPanel', () => {
       />,
     )
 
+    openIntelligenceDetails()
     const council = screen.getByTestId('agent-council')
     expect(council).toHaveTextContent('Agent Council')
     expect(council).toHaveTextContent('Protected context')
@@ -263,6 +272,58 @@ describe('AiPanel', () => {
     expect(council).toHaveTextContent('Woosh')
     expect(council).toHaveTextContent('Tring CLI')
     expect(council).toHaveTextContent('Active local-only note withheld')
+  })
+
+  it('turns a source-safe Agent Council synthesis into a reviewed Memory proposal', async () => {
+    const entry = makeEntry({ title: 'Public Plan' })
+    const onFileCreated = vi.fn()
+    const onVaultChanged = vi.fn()
+
+    render(
+      <AiPanel
+        onClose={vi.fn()}
+        vaultPath="/tmp/vault"
+        activeEntry={entry}
+        entries={[entry]}
+        aiAgentsStatus={{
+          claude_code: createAiAgentAvailability('installed', '1.0.0'),
+          codex: createAiAgentAvailability('installed', '0.2.0'),
+          chitragupta: createAiAgentAvailability('installed', '0.9.0'),
+        }}
+        onFileCreated={onFileCreated}
+        onVaultChanged={onVaultChanged}
+      />,
+    )
+
+    openIntelligenceDetails()
+    fireEvent.click(screen.getByTestId('agent-council-review-synthesis'))
+    fireEvent.click(screen.getByTestId('agent-council-crystallize-synthesis'))
+
+    const preview = screen.getByTestId('crystallize-markdown-preview') as HTMLTextAreaElement
+    expect(preview.value).toContain('source: "Agent Council"')
+    expect(preview.value).toContain('source_note: "Agent Council"')
+    expect(preview.value).toContain('source_notes:')
+    expect(preview.value).toContain('handoff: agent_council')
+    expect(preview.value).toContain('handoff_mode: "review-gated"')
+    expect(preview.value).toContain('handoff_ready_lanes:')
+    expect(preview.value).toContain('handoff_local_hold: false')
+    expect(preview.value).not.toContain('handoff_held_local')
+    expect(preview.value).toContain('handoff_source_count:')
+    expect(preview.value).toContain('- "[[Public Plan]]"')
+    expect(preview.value).toContain('# Agent Council synthesis')
+    expect(preview.value).toContain('## Handoff Gate')
+    expect(preview.value).toContain('- Held local: no')
+    expect(preview.value).not.toContain('source: AI Chat')
+
+    fireEvent.click(screen.getByTestId('crystallize-apply'))
+
+    await waitFor(() => expect(onVaultChanged).toHaveBeenCalledOnce())
+    expect(onFileCreated).toHaveBeenCalledWith(expect.stringMatching(/^memory\/crystallized\//))
+    expect(Object.values(window.__mockContent ?? {}).some((content) => (
+      content.includes('# Agent Council synthesis') &&
+      content.includes('source: "Agent Council"') &&
+      content.includes('handoff: agent_council')
+    ))).toBe(true)
   })
 
   it('shows linked count in context bar when entry has outgoing links', () => {
@@ -366,7 +427,7 @@ describe('AiPanel', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('clicking a wikilink in AI response calls onOpenNote with the target', () => {
+  it('clicking a wikilink in AI response calls onOpenNote with the target', async () => {
     mockMessages = [{
       userMessage: 'Tell me about notes',
       actions: [],
@@ -377,6 +438,7 @@ describe('AiPanel', () => {
     const { container } = render(
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" onOpenNote={onOpenNote} />,
     )
+    await waitFor(() => expect(container.querySelector('.chat-wikilink')).toBeTruthy())
     const wikilink = container.querySelector('.chat-wikilink')
     expect(wikilink).toBeTruthy()
     expect(wikilink!.textContent).toBe('Build Grimoire App')
@@ -384,7 +446,7 @@ describe('AiPanel', () => {
     expect(onOpenNote).toHaveBeenCalledWith('Build Grimoire App')
   })
 
-  it('renders wikilinks with special characters and clicking works', () => {
+  it('renders wikilinks with special characters and clicking works', async () => {
     mockMessages = [{
       userMessage: 'Tell me about meetings',
       actions: [],
@@ -395,6 +457,7 @@ describe('AiPanel', () => {
     const { container } = render(
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" onOpenNote={onOpenNote} />,
     )
+    await waitFor(() => expect(container.querySelectorAll('.chat-wikilink')).toHaveLength(2))
     const wikilinks = container.querySelectorAll('.chat-wikilink')
     expect(wikilinks).toHaveLength(2)
     fireEvent.click(wikilinks[0])
@@ -427,6 +490,7 @@ describe('AiPanel', () => {
       sourceLabels: ['Grimoire', 'Grimoire Memory'],
       memoryReferences: [{
         confidence: 'medium',
+        contradictionLabels: ['Old Plan'],
         lastSeen: '2026-05-24',
         path: '/vault/memory/grimoire.md',
         sourceLabels: ['[[Grimoire]]'],
@@ -443,10 +507,12 @@ describe('AiPanel', () => {
     })
 
     expect(mockSendMessage).toHaveBeenCalledWith('what needs attention?', askPackage.references, askPackage)
+    openIntelligenceDetails()
     expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('Context Capsule')
     expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('2')
     expect(screen.getByTestId('agent-council')).toHaveTextContent('Grimoire')
     expect(screen.getByTestId('agent-council')).toHaveTextContent('Grimoire Memory')
+    expect(screen.getByTestId('agent-council')).toHaveTextContent('Conflicts: Old Plan')
     expect(screen.getByTestId('agent-council')).toHaveTextContent('dashboard ask package')
   })
 

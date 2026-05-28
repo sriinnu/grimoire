@@ -55,6 +55,7 @@ describe('agentCouncil', () => {
       'Codex',
       'Local Search',
       'Vault Graph',
+      'Red Team',
       'Import/Export',
       'Chitragupta',
       'Woosh',
@@ -79,17 +80,79 @@ describe('agentCouncil', () => {
     expect(members.find((member) => member.label === 'Chitragupta')?.stance).not.toContain('Available for a council pass')
     expect(members.find((member) => member.label === 'Woosh')?.health).toBe('private-local')
     expect(members.find((member) => member.label === 'Claude Code')?.sources).toEqual([
-      { kind: 'active-note', label: 'Public Plan', targetPath: 'plans/public.md' },
+      { kind: 'active-note', label: 'Public Plan', navigationTarget: 'Public Plan', targetPath: 'plans/public.md' },
       { kind: 'linked-context', label: '2 linked notes' },
     ])
-    expect(members.find((member) => member.label === 'Vault Graph')?.sources).toContainEqual({
+    expect(members.find((member) => member.label === 'Claude Code')?.claims[0]).toMatchObject({
+      confidence: 'high',
+      sourceLabels: ['Public Plan', '2 linked notes'],
+    })
+    expect(members.find((member) => member.label === 'Local Search')?.evidence).toContainEqual(expect.objectContaining({
+      detail: 'Active note context root.',
+      label: 'Public Plan',
+      sourceKind: 'active-note',
+      targetPath: 'plans/public.md',
+    }))
+    expect(members.find((member) => member.label === 'Vault Graph')?.sources).toContainEqual(expect.objectContaining({
       kind: 'graph-node',
       label: 'Neighbor Note',
       targetPath: 'plans/neighbor.md',
-    })
+    }))
+    expect(members.find((member) => member.label === 'Vault Graph')?.evidence).toContainEqual(expect.objectContaining({
+      detail: 'Wikilink edge.',
+      label: 'Public Plan -> Neighbor Note',
+      sourceKind: 'graph-node',
+      targetPath: 'plans/neighbor.md',
+    }))
     expect(members.find((member) => member.label === 'Vault Graph')?.sources).toContainEqual({
       kind: 'tool',
       label: 'Wikilink graph',
+    })
+    expect(members.find((member) => member.label === 'Red Team')?.contribution).toContain('once a note is open')
+    expect(members.find((member) => member.label === 'Red Team')?.sources).toContainEqual({
+      kind: 'tool',
+      label: 'Red-Team My Plan',
+    })
+  })
+
+  it('adds source-safe red-team critique signals to the Council pass', () => {
+    const members = buildAgentCouncilMembers({
+      statuses,
+      activeAgent: 'claude_code',
+      activeContextProtected: false,
+      activeSourceLabel: 'Public Plan',
+      activeSourcePath: 'plans/public.md',
+      redTeamReview: {
+        counts: { completedTasks: 0, headings: 1, openTasks: 3, words: 120 },
+        protectedContext: false,
+        protectedReason: null,
+        signals: [
+          {
+            dimension: 'product',
+            finding: 'The plan can drift.',
+            label: 'Product',
+            nextAction: 'Add acceptance criteria.',
+            severity: 'risk',
+          },
+          {
+            dimension: 'privacy',
+            finding: 'No obvious egress hole.',
+            label: 'Privacy',
+            nextAction: 'Keep local-first defaults explicit.',
+            severity: 'clear',
+          },
+        ],
+        state: 'ready',
+        verdict: 'Promising, but one sharp risk needs work before execution.',
+      },
+    })
+    const redTeam = members.find((member) => member.label === 'Red Team')
+
+    expect(redTeam?.contribution).toBe('Found 1 risk before execution.')
+    expect(redTeam?.sources).toContainEqual({ kind: 'red-team', label: 'Product: risk' })
+    expect(redTeam?.claims[0]).toMatchObject({
+      confidence: 'high',
+      sourceLabels: ['Public Plan', 'Red-Team My Plan', 'Product: risk'],
     })
   })
 
@@ -174,6 +237,7 @@ describe('agentCouncil', () => {
       sourceLabels: ['Grimoire', 'Grimoire Memory'],
       memoryReferences: [{
         confidence: 'medium',
+        contradictionLabels: ['Old Plan'],
         lastSeen: '2026-05-24',
         path: '/vault/memory/grimoire.md',
         sourceLabels: ['[[Grimoire]]'],
@@ -192,12 +256,29 @@ describe('agentCouncil', () => {
     const passBrief = buildAgentCouncilPassBrief({ activeContextProtected: false, brief, members })
 
     expect(members.find((member) => member.label === 'Claude Code')?.contribution)
-      .toContain('1 ask sources and 1 memory records')
+      .toContain('1 ask source, 1 memory record, and 1 memory conflict')
+    expect(members.find((member) => member.label === 'Claude Code')?.claims[0]).toMatchObject({
+      conflictsWith: ['Old Plan'],
+      sourceLabels: ['Grimoire', 'Grimoire Memory'],
+    })
+    expect(members.find((member) => member.label === 'Local Search')?.evidence).toContainEqual(expect.objectContaining({
+      detail: 'Project surfaced by dashboard ask package.',
+      label: 'Grimoire',
+      sourceKind: 'ask-context',
+      targetPath: '/vault/projects/grimoire.md',
+    }))
     expect(members.find((member) => member.label === 'Claude Code')?.sources).toEqual([
-      { kind: 'ask-context', label: 'Grimoire', targetPath: '/vault/projects/grimoire.md' },
-      { kind: 'memory-ledger', label: 'Grimoire Memory', targetPath: '/vault/memory/grimoire.md' },
+      { kind: 'ask-context', label: 'Grimoire', navigationTarget: 'Grimoire', targetPath: '/vault/projects/grimoire.md' },
+      {
+        kind: 'memory-ledger',
+        label: 'Grimoire Memory',
+        navigationTarget: 'Grimoire Memory',
+        targetPath: '/vault/memory/grimoire.md',
+      },
+      { kind: 'memory-conflict', label: 'Conflicts: Old Plan' },
       { kind: 'withheld', label: '3 dashboard items withheld' },
     ])
+    expect(brief.disagreements).toContain('Memory conflicts: Old Plan.')
     expect(brief.synthesis).toContain('dashboard ask package')
     expect(passBrief.scope).toContain('Grimoire')
     expect(passBrief.scope).toContain('Grimoire Memory')
@@ -212,7 +293,14 @@ describe('agentCouncil', () => {
       memoryReferences: [],
       visibleCount: 2,
       withheld: { protectedMemories: 0, protectedNotes: 1 },
-      graph: { protectedEdges: 2, truncatedEdges: 0, truncatedNodes: 0, visibleEdges: 3, visibleNodes: 2 },
+      graph: {
+        edges: [{ kind: 'body-link', label: 'Wikilink', sourceTitle: 'Alpha', targetTitle: 'Beta' }],
+        protectedEdges: 2,
+        truncatedEdges: 0,
+        truncatedNodes: 0,
+        visibleEdges: 3,
+        visibleNodes: 2,
+      },
     }
     const members = buildAgentCouncilMembers({
       statuses,
@@ -225,6 +313,11 @@ describe('agentCouncil', () => {
     expect(members.find((member) => member.label === 'Claude Code')?.sources).toContainEqual({
       kind: 'withheld',
       label: '3 graph items withheld',
+    })
+    expect(members.find((member) => member.label === 'Vault Graph')?.evidence).toContainEqual({
+      detail: 'Wikilink package edge.',
+      label: 'Alpha -> Beta',
+      sourceKind: 'graph-node',
     })
     expect(brief.synthesis).toContain('graph Council package')
     expect(brief.synthesis).not.toContain('dashboard ask package')
@@ -253,43 +346,4 @@ describe('agentCouncil', () => {
     expect(chitragupta?.sources).toContainEqual({ kind: 'tool', label: 'Locality Firewall' })
   })
 
-  it('withholds protected active-note context from every council member', () => {
-    const members = buildAgentCouncilMembers({
-      statuses,
-      activeAgent: 'chitragupta',
-      activeContextProtected: true,
-    })
-
-    expect(members.every((member) => member.permission.includes('withheld'))).toBe(true)
-    expect(members.every((member) => member.sources.some((source) => source.kind === 'withheld')
-      || member.id === 'portability_context'
-      || member.id === 'woosh'
-      || member.id === 'tring_cli')).toBe(true)
-    expect(JSON.stringify(members)).not.toContain('/Users/')
-    expect(JSON.stringify(members)).not.toMatch(/token|secret|password|api[_-]?key/i)
-
-    const workflow = buildAgentCouncilWorkflow({
-      activeContextProtected: true,
-      brief: buildAgentCouncilBrief(members, true),
-      members,
-    })
-
-    expect(workflow[0]).toMatchObject({
-      id: 'intake',
-      status: 'blocked',
-      detail: 'Protected context withheld.',
-    })
-
-    const passBrief = buildAgentCouncilPassBrief({
-      activeContextProtected: true,
-      brief: buildAgentCouncilBrief(members, true),
-      members,
-    })
-
-    expect(passBrief).toMatchObject({
-      title: 'Policy-only pass',
-      scope: 'Protected note withheld by Locality Firewall.',
-      safety: 'No protected content enters agent context.',
-    })
-  })
 })

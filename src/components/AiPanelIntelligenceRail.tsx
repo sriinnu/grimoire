@@ -6,6 +6,7 @@ import {
   type AiAgentsStatus,
 } from '../lib/aiAgents'
 import type { AskContextPackage } from '../lib/askContextPackage'
+import type { AgentCouncilSynthesisPacket } from '../lib/agentCouncilSynthesis'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
 import type { EntryLocalityPolicy } from '../lib/localityPolicy'
 import {
@@ -16,10 +17,11 @@ import {
 import { buildRedTeamPlanReview } from '../lib/redTeamPlan'
 import { buildRedTeamPatchPlan } from '../lib/redTeamPatchPlan'
 import type { VaultEntry } from '../types'
-import { buildAgentGraphContext } from '../utils/agentGraphContext'
+import { buildAgentGraphContext, type AgentGraphContext } from '../utils/agentGraphContext'
 import type { NoteListItem } from '../utils/ai-context'
 import { AgentCouncilStrip } from './AgentCouncilStrip'
 import { AiCrystallizeLoopCard } from './AiCrystallizeLoopCard'
+import { AiPanelIntelligenceSummary } from './AiPanelIntelligenceSummary'
 import { ContextCapsuleCard } from './ContextCapsuleCard'
 import { ContextCapsuleDialog } from './ContextCapsuleDialog'
 import { RedTeamPlanCard } from './RedTeamPlanCard'
@@ -34,6 +36,8 @@ interface AiPanelIntelligenceRailProps {
   crystallizeBlockedReason: string | null
   defaultAiAgent: AiAgentId
   defaultAiAgentReady: boolean
+  defaultAiModel?: string | null
+  defaultAiProvider?: string | null
   entries: VaultEntry[]
   hasContext: boolean
   hasLatestResponse: boolean
@@ -41,6 +45,7 @@ interface AiPanelIntelligenceRailProps {
   noteList?: NoteListItem[]
   noteListFilter?: { type: string | null; query: string }
   onCrystallize: () => void
+  onCrystallizeCouncil?: (packet: AgentCouncilSynthesisPacket) => void
   onOpenNote?: (path: string) => void
   openTabs?: VaultEntry[]
   proposalSummary: CrystallizeProposalSummary | null
@@ -57,6 +62,8 @@ export function AiPanelIntelligenceRail({
   crystallizeBlockedReason,
   defaultAiAgent,
   defaultAiAgentReady,
+  defaultAiModel,
+  defaultAiProvider,
   entries,
   hasContext,
   hasLatestResponse,
@@ -64,14 +71,17 @@ export function AiPanelIntelligenceRail({
   noteList,
   noteListFilter,
   onCrystallize,
+  onCrystallizeCouncil,
   onOpenNote,
   openTabs,
   proposalSummary,
   askContextPackage,
 }: AiPanelIntelligenceRailProps) {
   const [contextCapsuleOpen, setContextCapsuleOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [redTeamPlanOpen, setRedTeamPlanOpen] = useState(false)
   const activeContextProtected = activePolicy?.localOnly === true
+  const councilContextProtected = activeContextProtected && !askContextPackage
   const aiAgentsStatus = useMemo(() => {
     const statuses = providedAiAgentsStatus ?? createMissingAiAgentsStatus()
     return {
@@ -79,12 +89,12 @@ export function AiPanelIntelligenceRail({
       [defaultAiAgent]: createAiAgentAvailability(defaultAiAgentReady ? 'installed' : 'missing'),
     }
   }, [defaultAiAgent, defaultAiAgentReady, providedAiAgentsStatus])
-  const graphContext = useMemo(() => buildAgentGraphContext({
-    activeEntry,
-    entries,
-  }), [activeEntry, entries])
+  const graphContext = useMemo(() => (
+    graphCouncilContextFromPackage(askContextPackage)
+      ?? buildAgentGraphContext({ activeEntry, entries })
+  ), [activeEntry, askContextPackage, entries])
   const contextCapsule = useMemo(() => (
-    askContextPackage && !activeEntry
+    askContextPackage
       ? buildAskContextCapsulePreview(askContextPackage)
       : buildContextCapsulePreview({
           activeEntry,
@@ -105,47 +115,117 @@ export function AiPanelIntelligenceRail({
     activeNoteContent,
   }), [activeEntry, activeNoteContent])
   const redTeamPatchPlan = useMemo(() => buildRedTeamPatchPlan(redTeamReview), [redTeamReview])
+  const heldCount = activeContextProtected ? 1 : contextCapsule.counts.exclusions
+  const sourceCount = activeContextProtected ? 0 : contextCapsule.includedNotes.length
+  const graphNodeCount = activeContextProtected ? 0 : contextCapsule.projectMap.graphNodes
+  const routeReady = aiAgentsStatus[defaultAiAgent]?.status === 'installed'
 
   return (
     <>
-      {activeEntry || askContextPackage ? (
-        <ContextCapsuleCard
-          preview={contextCapsule}
-          onReviewPackage={() => setContextCapsuleOpen(true)}
-        />
-      ) : null}
-      <AgentCouncilStrip
-        statuses={aiAgentsStatus}
-        activeAgent={defaultAiAgent}
+      <AiPanelIntelligenceSummary
         activeContextProtected={activeContextProtected}
-        activeSourceLabel={activePolicy?.localOnly ? null : activeEntry?.title}
-        activeSourcePath={activePolicy?.localOnly ? null : activeEntry?.path}
-        askContextPackage={activeContextProtected ? null : askContextPackage}
-        graphContext={graphContext}
-        linkedContextCount={activeContextProtected ? 0 : linkedEntries.length}
-        onOpenSource={onOpenNote}
-      />
-      <AiCrystallizeLoopCard
-        activeContextProtected={activeContextProtected}
-        blockedReason={crystallizeBlockedReason}
         canCrystallize={canCrystallize}
+        expanded={detailsOpen}
+        graphNodeCount={graphNodeCount}
         hasContext={hasContext}
         hasLatestResponse={hasLatestResponse}
-        linkedCount={activeContextProtected ? 0 : linkedEntries.length}
+        heldCount={heldCount}
+        routeReady={routeReady}
+        sourceCount={sourceCount}
         onCrystallize={onCrystallize}
-        proposalSummary={activeContextProtected ? null : proposalSummary}
+        onToggle={() => setDetailsOpen((open) => !open)}
       />
-      <RedTeamPlanCard review={redTeamReview} onReviewPlan={() => setRedTeamPlanOpen(true)} />
+      {detailsOpen ? (
+        <div data-testid="ai-intelligence-details">
+          {activeEntry || askContextPackage ? (
+            <ContextCapsuleCard
+              defaultAiAgent={defaultAiAgent}
+              defaultAiModel={defaultAiModel}
+              defaultAiProvider={defaultAiProvider}
+              preview={contextCapsule}
+              onReviewPackage={() => setContextCapsuleOpen(true)}
+            />
+          ) : null}
+          <AgentCouncilStrip
+            statuses={aiAgentsStatus}
+            activeAgent={defaultAiAgent}
+            activeContextProtected={councilContextProtected}
+            activeSourceLabel={councilContextProtected || askContextPackage ? null : activeEntry?.title}
+            activeSourcePath={councilContextProtected || askContextPackage ? null : activeEntry?.path}
+            askContextPackage={councilContextProtected ? null : askContextPackage}
+            defaultAiModel={defaultAiModel}
+            defaultAiProvider={defaultAiProvider}
+            graphContext={graphContext}
+            linkedContextCount={councilContextProtected || askContextPackage ? 0 : linkedEntries.length}
+            onCrystallizeSynthesis={onCrystallizeCouncil}
+            onOpenSource={onOpenNote}
+            redTeamReview={redTeamReview}
+          />
+          <AiCrystallizeLoopCard
+            activeContextProtected={activeContextProtected}
+            blockedReason={crystallizeBlockedReason}
+            canCrystallize={canCrystallize}
+            hasContext={hasContext}
+            hasLatestResponse={hasLatestResponse}
+            linkedCount={activeContextProtected ? 0 : linkedEntries.length}
+            onCrystallize={onCrystallize}
+            proposalSummary={activeContextProtected ? null : proposalSummary}
+          />
+          <RedTeamPlanCard review={redTeamReview} onReviewPlan={() => setRedTeamPlanOpen(true)} />
+        </div>
+      ) : null}
       <RedTeamPlanDialog
         open={redTeamPlanOpen}
         plan={redTeamPatchPlan}
         onClose={() => setRedTeamPlanOpen(false)}
       />
       <ContextCapsuleDialog
+        defaultAiAgent={defaultAiAgent}
+        defaultAiModel={defaultAiModel}
+        defaultAiProvider={defaultAiProvider}
         open={contextCapsuleOpen}
         packagePreview={contextCapsulePackage}
         onClose={() => setContextCapsuleOpen(false)}
       />
     </>
   )
+}
+
+function graphCouncilContextFromPackage(contextPackage?: AskContextPackage | null): AgentGraphContext | null {
+  if (contextPackage?.kind !== 'graph-council') return null
+
+  const pathByTitle = new Map(contextPackage.references.map((reference) => [reference.title, reference.path]))
+  const graph = contextPackage.graph
+  return {
+    edges: (graph?.edges ?? []).map((edge) => ({
+      kind: graphPackageEdgeKind(edge.kind),
+      label: edge.label,
+      sourcePath: pathByTitle.get(edge.sourceTitle) ?? edge.sourceTitle,
+      sourceTitle: edge.sourceTitle,
+      targetPath: pathByTitle.get(edge.targetTitle) ?? edge.targetTitle,
+      targetTitle: edge.targetTitle,
+    })),
+    omitted: {
+      protectedEdges: graph?.protectedEdges ?? 0,
+      protectedNodes: contextPackage.withheld.protectedNotes,
+      truncatedEdges: graph?.truncatedEdges ?? 0,
+      truncatedNodes: graph?.truncatedNodes ?? 0,
+    },
+    nodes: contextPackage.references.map((reference, index) => ({
+      active: index === 0,
+      degree: 0,
+      path: reference.path,
+      title: reference.title,
+      type: reference.type ?? 'Note',
+    })),
+    state: contextPackage.visibleCount > 0 ? 'ready' : 'empty',
+    totals: {
+      visibleEdges: graph?.visibleEdges ?? 0,
+      visibleNodes: graph?.visibleNodes ?? contextPackage.visibleCount,
+    },
+  }
+}
+
+function graphPackageEdgeKind(kind: string): AgentGraphContext['edges'][number]['kind'] {
+  return kind === 'relationship' ? 'relationship' : 'body-link'
 }

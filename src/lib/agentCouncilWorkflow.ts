@@ -108,7 +108,7 @@ function sourceScope(members: AgentCouncilMember[], sourceLabels: string[]): str
 }
 
 function prioritizedSourceLabels(members: AgentCouncilMember[]): string[] {
-  const priorities = ['active-note', 'ask-context', 'memory-ledger', 'graph-node', 'linked-context'] as const
+  const priorities = ['active-note', 'ask-context', 'memory-ledger', 'memory-conflict', 'graph-node', 'linked-context'] as const
   return [...new Set(
     priorities.flatMap((kind) => members
       .flatMap((member) => member.sources)
