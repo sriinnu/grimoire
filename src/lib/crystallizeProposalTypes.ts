@@ -1,4 +1,5 @@
 import type { CrystallizeHandoffMetadata } from './crystallizeHandoff'
+import type { CrystallizeLoopReceipt } from './crystallizeLoopReceipt'
 
 export interface CrystallizeProposal {
   title: string
@@ -9,6 +10,7 @@ export interface CrystallizeProposal {
   sourceLabels: string[]
   handoffMetadata: CrystallizeHandoffMetadata | null
   ledgerContract: CrystallizeLedgerContract
+  loopReceipt: CrystallizeLoopReceipt
   activeNotePatch: CrystallizeActiveNotePatch | null
   changes: CrystallizeChange[]
   markdown: string
@@ -57,6 +59,8 @@ export interface CrystallizeProposalSummary {
   expiresAt: string
   hunkCount: number
   ledgerFieldCount: number
+  loopReceipt: string
+  loopStepCount: number
   sourceCount: number
   targetFolder: string
   taskCount: number

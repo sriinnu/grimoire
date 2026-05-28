@@ -97,6 +97,11 @@ export function CrystallizePacketSummary({
       value: countReviewItem(summary.sourceCount, 'source'),
     },
     {
+      detail: `${summary.loopStepCount} local steps; no Git or remote.`,
+      label: 'Receipt',
+      value: summary.loopReceipt,
+    },
+    {
       detail: `Review by ${summary.expiresAt}; ${countReviewItem(summary.contradictionCount, 'contradiction')}.`,
       label: 'Ledger',
       value: countReviewItem(summary.ledgerFieldCount, 'field'),
@@ -115,7 +120,7 @@ export function CrystallizePacketSummary({
 
   return (
     <div
-      className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5"
+      className="grid gap-2 sm:grid-cols-2 lg:grid-cols-6"
       data-testid="crystallize-review-packet"
       aria-label="Crystallize review packet"
     >

@@ -30,6 +30,7 @@ export function buildReviewChanges(
   sourceLinks: string[],
   frontmatter: string[],
   ledgerContractLines: string[],
+  loopReceiptLines: string[],
   response: string,
   activeNotePatch: CrystallizeActiveNotePatch | null,
 ): CrystallizeChange[] {
@@ -66,6 +67,14 @@ export function buildReviewChanges(
       target: relativePath,
       before: '(no ledger contract)',
       after: ledgerContractLines.join('\n'),
+    },
+    {
+      id: 'write-crystallize-loop',
+      kind: 'body',
+      label: 'Write loop receipt',
+      target: relativePath,
+      before: '(no loop receipt)',
+      after: loopReceiptLines.join('\n'),
     },
     {
       id: 'write-memory-body',

@@ -30,6 +30,8 @@ describe('AiCrystallizeLoopCard', () => {
           expiresAt: '2026-08-14',
           hunkCount: 4,
           ledgerFieldCount: 9,
+          loopReceipt: 'crys-1234abcd',
+          loopStepCount: 5,
           sourceCount: 2,
           targetFolder: 'memory/crystallized',
           taskCount: 0,
@@ -45,6 +47,7 @@ describe('AiCrystallizeLoopCard', () => {
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 active-note hunks · notes/source.md')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('9 ledger fields')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Markdown / no Git / no remote / review-before-write')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('crys-1234abcd')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('review by 2026-08-14')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('0 contradictions')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 sources')
@@ -118,6 +121,8 @@ describe('AiCrystallizeLoopCard', () => {
           expiresAt: '2026-08-14',
           hunkCount: 1,
           ledgerFieldCount: 1,
+          loopReceipt: 'crys-5678abcd',
+          loopStepCount: 5,
           sourceCount: 1,
           targetFolder: 'memory/crystallized',
           taskCount: 1,

@@ -16,6 +16,7 @@ This file is the working stack for the current Grimoire push. New user requests 
 8. Add vault portability: import from other Markdown apps, export clean archives, and support storage providers beyond Git.
 9. Add transcription/voice import: Whisper or local-provider transcription, audio attachments, timestamped Markdown, and cleaned-note output.
 10. Make Grimoire unmistakably special: agent-of-agents, private journal/diary/dream catcher, Markdown memory, and visible human-owned context. Track this in [Grimoire Specialness Todo](GRIMOIRE-SPECIALNESS-TODO.md).
+    - [x] Close the Crystallize signature loop with a source-safe receipt that lands in frontmatter, body Markdown, review hunks, and the AI/review packet UI without requiring Git or remote sync.
 11. Make Grimoire feel lighter and alive: native shell polish, runtime-light startup, full-surface theme packs, and original cinematic motion. Track this in [Lightness And Motion Plan](LIGHTNESS-AND-MOTION-PLAN.md).
 12. Carry iPhone and iPad as first-class product targets: local-first Markdown/vault semantics, Files/iCloud-aware storage, protected journal/dream lanes, and mobile-native capture/review flows.
 	- [x] Add the first mobile capture Markdown draft contract so iPhone/iPad quick-capture, share, voice, camera, and Pencil inputs become review-pending local Markdown instead of hidden app state.
@@ -62,6 +63,7 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Harden Codex/Chitragupta subprocess streaming with closed stdin, concurrent stderr draining, and idle timeouts so agent failures return visible Error/Done events instead of hanging the UI.
   - [x] Carry the active provider/model route into Agent Council and graph runway handoff surfaces so Chitragupta/Google/Gemini-style route truth is visible before source-safe packets move.
   - [x] Pass Chitragupta CLI availability into the Inspector Memory lane and render CLI chat health separately from MCP recall/wiki/graph readiness, with sanitized diagnostics and local-only warning suppression.
+  - [x] Add durable Crystallize loop receipts so accepted AI memory writes prove capture, local context, agent answer, human review, and Markdown memory through source-safe frontmatter/body/diff/UI evidence.
 - 8 Start the lightness/motion pass from [Lightness And Motion Plan](LIGHTNESS-AND-MOTION-PLAN.md): native overlap fixes, document search/TOC, performance budgets, and theme-pack schema.
   - [x] Extend local theme-pack JSON beyond colors/fonts into density and motion profiles that propagate to dashboard, note-list chrome, and shared motion timing.
   - [x] Extend local theme-pack JSON into editor code-block treatment that propagates to BlockNote code blocks and AI Markdown previews.
@@ -736,9 +738,10 @@ Build order:
   - [x] Make the left sidebar appearance selectable and previewable through Settings theme presets.
   - [x] Fix bottom-bar foreground contrast so darker status bars never inherit black text.
   - [x] Make bottom-bar layout responsive for mobile/iPad-width windows while preserving compact icon-first controls at medium widths.
-  - [x] Stamp macOS app builds with incremental semver build versions shown as `x.x.1+` in the bottom bar.
-  - [x] Harden the local macOS test-build ritual: `pnpm macos:test-build` bumps the app version, builds, replaces the singleton `/Applications/Grimoire.app`, ad-hoc signs it, and verifies the installed bundle version.
-		  - [ ] Verify `/Applications/Grimoire.app` native window visibility interactively; `0.1.259` is installed as the ad-hoc-signed singleton build, but Codex screenshot probes are blocked until Screen Recording permission is granted.
+	  - [x] Stamp macOS app builds with incremental semver build versions shown as `x.x.1+` in the bottom bar.
+	  - [x] Harden the local macOS test-build ritual: `pnpm macos:test-build` bumps the app version, builds, replaces the singleton `/Applications/Grimoire.app`, ad-hoc signs it, and verifies the installed bundle version.
+	  - [x] Install singleton `/Applications/Grimoire.app` `0.1.292` after adding Crystallize loop receipts; app shell is 223.33 KiB gzip.
+			  - [ ] Verify `/Applications/Grimoire.app` native window visibility interactively; `0.1.292` is installed as the ad-hoc-signed singleton build, but Codex screenshot probes are blocked until Screen Recording permission is granted.
   - [x] Move the status bar implementation behind a lazy startup boundary while preserving a stable local-only footer fallback.
   - [x] Reserve graph canvas HUD and legend rails so package/agent state no longer floats over nodes.
   - [x] Align graph agent lane vocabulary with the app's real AI routes: Local Search, Vault Graph, Chitragupta, Codex, and Claude Code (`claude_code`).

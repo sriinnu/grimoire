@@ -86,6 +86,7 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('type: Memory')
     expect(proposal.markdown).toContain('source_note: "[[Test Project]]"')
     expect(proposal.sourceLabels).toEqual(['[[Test Project]]'])
+    expect(proposal.loopReceipt.id).toMatch(/^crys-[0-9a-f]{8}$/)
     expect(proposal.ledgerContract).toEqual({
       contradictedBy: [],
       confidence: 'proposed',
@@ -103,6 +104,8 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('contradicted_by: []')
     expect(proposal.markdown).toContain('memory_version: 1')
     expect(proposal.markdown).toContain('reviewed_at: "2026-05-16T12:00:00.000Z"')
+    expect(proposal.markdown).toContain('crystallize_loop: "Capture -> Local context -> Agent answer -> Human review -> Markdown memory"')
+    expect(proposal.markdown).toContain(`crystallize_receipt: "${proposal.loopReceipt.id}"`)
     expect(proposal.markdown).toContain('## Source Links')
     expect(proposal.markdown).toContain('- [[Test Project]]')
     expect(proposal.markdown).toContain('- [[Related Note]]')
@@ -110,12 +113,16 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('- Review state: reviewed')
     expect(proposal.markdown).toContain('- Expires on: 2026-08-14')
     expect(proposal.markdown).toContain('- Contradicted by: none')
+    expect(proposal.markdown).toContain('## Crystallize Loop')
+    expect(proposal.markdown).toContain(`- Receipt: \`${proposal.loopReceipt.id}\``)
+    expect(proposal.markdown).toContain('- Git: not required')
     expect(proposal.markdown).toContain('Keep the Memory Ledger source-backed.')
     expect(proposal.changes).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'create-memory-note', kind: 'file', target: proposal.relativePath }),
       expect.objectContaining({ id: 'write-frontmatter', kind: 'frontmatter', after: expect.stringContaining('memory_version: 1') }),
       expect.objectContaining({ id: 'link-sources', kind: 'backlink', after: expect.stringContaining('- [[Related Note]]') }),
       expect.objectContaining({ id: 'write-ledger-contract', kind: 'body', after: expect.stringContaining('Review state: reviewed') }),
+      expect.objectContaining({ id: 'write-crystallize-loop', kind: 'body', after: expect.stringContaining(proposal.loopReceipt.id) }),
       expect.objectContaining({ id: 'write-memory-body', kind: 'body', after: expect.stringContaining('Keep the Memory Ledger') }),
     ]))
   })
@@ -349,8 +356,10 @@ describe('crystallizeProposal', () => {
       activeNoteTarget: null,
       contradictionCount: 0,
       expiresAt: '2026-08-14',
-      hunkCount: 6,
+      hunkCount: 7,
       ledgerFieldCount: 9,
+      loopReceipt: proposal.loopReceipt.id,
+      loopStepCount: 5,
       sourceCount: 2,
       targetFolder: 'memory/crystallized',
       taskCount: 1,
@@ -383,6 +392,7 @@ describe('crystallizeProposal', () => {
     expect(saved).toContain('locality: vault')
     expect(saved).toContain('expires_at: 2026-08-14')
     expect(saved).toContain('contradicted_by: []')
+    expect(saved).toContain(`crystallize_receipt: "${proposal.loopReceipt.id}"`)
     expect(saved).toContain('Human-reviewed memory remains plain Markdown.')
   })
 })

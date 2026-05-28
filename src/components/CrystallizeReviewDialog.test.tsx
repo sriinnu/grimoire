@@ -22,6 +22,11 @@ const proposal: CrystallizeProposal = {
     status: 'proposed',
     version: 1,
   },
+  loopReceipt: {
+    id: 'crys-1234abcd',
+    pathLabel: 'Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
+    steps: ['Capture', 'Local context', 'Agent answer', 'Human review', 'Markdown memory'],
+  },
   activeNotePatch: null,
   reviewedAt: '2026-05-23T08:00:00.000Z',
   markdown: [
@@ -41,6 +46,8 @@ const proposal: CrystallizeProposal = {
     'reviewed_at: "2026-05-23T08:00:00.000Z"',
     'locality: vault',
     'crystallized: true',
+    'crystallize_loop: "Capture -> Local context -> Agent answer -> Human review -> Markdown memory"',
+    'crystallize_receipt: "crys-1234abcd"',
     '---',
     '',
     'Original memory',
@@ -88,6 +95,14 @@ const proposal: CrystallizeProposal = {
       before: '(none)',
       after: '- Status: proposed\n- Confidence: proposed\n- Review state: reviewed',
     },
+    {
+      id: 'write-crystallize-loop',
+      kind: 'body',
+      label: 'Write loop receipt',
+      target: 'memory/crystallized/memory.md',
+      before: '(none)',
+      after: '- Receipt: `crys-1234abcd`\n- Path: Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
+    },
   ],
 }
 
@@ -113,8 +128,10 @@ describe('CrystallizeReviewDialog', () => {
     expect(screen.getByText('Review before write')).toBeInTheDocument()
     const packet = screen.getByTestId('crystallize-review-packet')
     expect(packet).toHaveAccessibleName('Crystallize review packet')
-    expect(packet).toHaveTextContent('4 hunks')
+    expect(packet).toHaveTextContent('5 hunks')
     expect(packet).toHaveTextContent('1 source')
+    expect(packet).toHaveTextContent('crys-1234abcd')
+    expect(packet).toHaveTextContent('5 local steps; no Git or remote.')
     expect(packet).toHaveTextContent('9 fields')
     expect(packet).toHaveTextContent('Review by 2026-08-21')
     expect(packet).toHaveTextContent('0 contradictions')
@@ -250,7 +267,7 @@ describe('CrystallizeReviewDialog', () => {
     expect(screen.getByText('Active note hunks')).toBeInTheDocument()
     expect(screen.getAllByTestId('crystallize-change-kind-frontmatter')).toHaveLength(2)
     expect(screen.getByTestId('crystallize-change-kind-note')).toBeInTheDocument()
-    expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('6 hunks')
+    expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('7 hunks')
     expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('2 active-note hunks will update project.md.')
     const frontmatterPreview = screen.getByTestId('crystallize-active-note-frontmatter-preview')
     fireEvent.change(frontmatterPreview, {
