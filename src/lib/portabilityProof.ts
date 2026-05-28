@@ -18,6 +18,15 @@ export type PortabilitySupportStatus = VaultPortabilityStatus | 'fixture' | 'ava
 /** Command users can run to capture a redacted S3/Azure live provider proof report. */
 export const OBJECT_STORAGE_LIVE_PROOF_COMMAND =
   'pnpm test:object-storage-live -- --report .tmp/object-storage-live-proof.json'
+export const OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND =
+  'pnpm test:object-storage-live -- --dry-run --report .tmp/object-storage-live-proof.json'
+
+export interface PortabilityProofCommand {
+  id: 'dry-run' | 'live-proof'
+  label: string
+  command: string
+  detail: string
+}
 
 export interface PortabilityProofRow {
   id: 'imports' | 'exports' | 'desktop-sync' | 'object-storage' | 'provider-proof-runner'
@@ -27,7 +36,7 @@ export interface PortabilityProofRow {
   detail: string
   evidence: string
   remainingProof: string
-  command?: string
+  commands?: readonly PortabilityProofCommand[]
 }
 
 /** Builds the user-facing proof matrix for import, export, and sync support. */
@@ -86,9 +95,22 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       supportStatus: 'available',
       proofLevel: 'live-provider-proof-runner',
       detail: 'Opt-in S3/Azure provider preview/apply/pull proof with redacted evidence',
-      evidence: `Run \`${OBJECT_STORAGE_LIVE_PROOF_COMMAND}\`; the report stores only gate/config set-missing state plus pass/fail/missing-config status.`,
+      evidence: `Dry-run first with \`${OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND}\`, then run \`${OBJECT_STORAGE_LIVE_PROOF_COMMAND}\`; reports store only gate/config set-missing state plus pass/fail/missing-config status.`,
       remainingProof: 'Needs real S3/Azure credentials, generated proof prefixes, permission failures, auth failures, conflict states, and retry/error paths captured before Settings can say provider-proven.',
-      command: OBJECT_STORAGE_LIVE_PROOF_COMMAND,
+      commands: [
+        {
+          id: 'dry-run',
+          label: 'Copy dry run',
+          command: OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND,
+          detail: 'No provider writes; shows enabled gates and set/missing env state.',
+        },
+        {
+          id: 'live-proof',
+          label: 'Copy live proof',
+          command: OBJECT_STORAGE_LIVE_PROOF_COMMAND,
+          detail: 'Runs opt-in provider preview/apply/pull and writes a redacted report.',
+        },
+      ],
     },
   ]
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   listPortabilityProofRows,
   OBJECT_STORAGE_LIVE_PROOF_COMMAND,
+  OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND,
   portabilityProofLevelLabel,
 } from './portabilityProof'
 
@@ -24,12 +25,20 @@ describe('portabilityProof', () => {
     expect(rowById['object-storage'].proofLevel).toBe('live-read-only-plus-local-mirror')
     expect(rowById['provider-proof-runner'].supportStatus).toBe('available')
     expect(rowById['provider-proof-runner'].proofLevel).toBe('live-provider-proof-runner')
-    expect(rowById['provider-proof-runner'].command).toBe(OBJECT_STORAGE_LIVE_PROOF_COMMAND)
+    expect(rowById['provider-proof-runner'].commands?.map(command => command.command)).toEqual([
+      OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND,
+      OBJECT_STORAGE_LIVE_PROOF_COMMAND,
+    ])
   })
 
   it('keeps remaining provider gaps explicit without leaking local paths', () => {
     const combined = listPortabilityProofRows()
-      .flatMap(row => [row.detail, row.evidence, row.remainingProof, row.command ?? ''])
+      .flatMap(row => [
+        row.detail,
+        row.evidence,
+        row.remainingProof,
+        ...(row.commands ?? []).flatMap(command => [command.command, command.detail]),
+      ])
       .join('\n')
 
     expect(combined).toContain('Apple Journal')
@@ -39,7 +48,9 @@ describe('portabilityProof', () => {
     expect(combined).toContain('Azure has a read-only CLI container/list preflight')
     expect(combined).toContain('provider preview/apply contracts')
     expect(combined).toContain('pnpm test:object-storage-live -- --report .tmp/object-storage-live-proof.json')
+    expect(combined).toContain('pnpm test:object-storage-live -- --dry-run --report .tmp/object-storage-live-proof.json')
     expect(combined).toContain('pass/fail/missing-config status')
+    expect(combined).toContain('No provider writes')
     expect(combined).toContain('exact preview signatures')
     expect(combined).toContain('local read proof for iCloud/GDrive')
     expect(combined).toContain('Run the live provider proof runner')

@@ -817,6 +817,7 @@ Build order:
     - [x] Add optional redacted JSON proof reports for provider pass/fail/missing-config evidence, so real S3/Azure runs leave auditable state without storing bucket/account/container values.
     - [x] Surface the live provider proof runner in the Settings Proof Ledger with the exact redacted report command and remaining real-provider evidence needs.
     - [x] Make the Settings Proof Ledger command copyable without storing provider values or local paths.
+    - [x] Add a copyable no-write dry-run proof command before the live proof command so Settings guides setup without provider writes.
     - [ ] Run the live round-trip tests against real S3/Azure provider fixtures and record the provider failure states before calling sync provider-proven.
   - [x] Add a redaction-safe Import Autopsy UI contract for exact source -> destination, metadata transform, attachment move, and withheld-reason manifest rows.
   - [x] Populate exact Import Autopsy manifest rows from Markdown/Bear folder, Obsidian/Notion-style app, and journal importer preview backends.
