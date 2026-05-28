@@ -310,6 +310,10 @@ describe('crystallizeProposal', () => {
         after: expect.stringContaining('Make Crystallize write reviewed diffs'),
       }),
     ]))
+    expect(summarizeCrystallizeProposal(proposal)).toEqual(expect.objectContaining({
+      activeNoteHunkCount: 2,
+      activeNoteTarget: 'projects/grimoire.md',
+    }))
   })
 
   it('appends a reviewed active note hunk with stable spacing', () => {
