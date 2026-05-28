@@ -71,7 +71,7 @@ function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGro
 
 function PortabilityGroupCard({ group, t, vaultPath }: { group: PortabilityGroup; t: Translate; vaultPath: string }) {
   return (
-    <div className="grimoire-portability-card rounded-md border border-border bg-muted/35 p-3">
+    <div className="grimoire-portability-card rounded-md border border-border p-3">
       <div className="mb-2 flex items-start gap-2">
         <span className="mt-0.5 text-muted-foreground">{group.icon}</span>
         <span className="min-w-0">
@@ -103,7 +103,7 @@ function StorageHealthRows({ health, t }: { health: readonly VaultStorageHealth[
     <div className="mt-2 grid gap-1" data-testid="settings-storage-health">
       {health.map((item) => (
         <div key={item.providerId} className="flex min-w-0 items-start gap-1.5 text-[11px] leading-snug">
-          <span className={`mt-1 size-1.5 shrink-0 rounded-full ${healthDotClass(item.state)}`} />
+          <span className="grimoire-storage-health-dot mt-1 size-1.5 shrink-0 rounded-full" data-state={item.state} />
           <span className="min-w-0 flex-1 text-muted-foreground">
             <span className="font-medium text-foreground">{storageHealthLabel(item.state, t)}</span>
             <span> · {item.message}</span>
@@ -130,11 +130,4 @@ function storageHealthLabel(state: VaultStorageHealthState, t: Translate): strin
   if (state === 'available') return t('settings.portability.available')
   if (state === 'planned') return t('settings.portability.planned')
   return t('settings.portability.notSelected')
-}
-
-function healthDotClass(state: VaultStorageHealthState): string {
-  if (state === 'active') return 'bg-[var(--accent-green)]'
-  if (state === 'available') return 'bg-[var(--accent-blue)]'
-  if (state === 'planned') return 'bg-muted-foreground/45'
-  return 'bg-[var(--accent-orange)]'
 }

@@ -28,7 +28,7 @@ export function PortabilityActionProgress({
 
   return (
     <div
-      className="grid gap-2 rounded-md border border-border bg-background/70 p-3 pointer-events-auto"
+      className="grimoire-portability-inline-panel grid gap-2 rounded-md border border-border p-3 pointer-events-auto"
       data-motion-cancellable="true"
       data-testid="settings-portability-progress"
       aria-live="polite"
@@ -56,9 +56,9 @@ export function PortabilityActionProgress({
           {t('settings.portability.cancel')}
         </Button>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+      <div className="grimoire-portability-progress-track h-1.5 overflow-hidden rounded-full" aria-hidden="true">
         <div
-          className="h-full rounded-full bg-primary transition-[width] motion-reduce:transition-none"
+          className="grimoire-portability-progress-bar h-full rounded-full transition-[width] motion-reduce:transition-none"
           style={{ width: `${percent}%` }}
         />
       </div>

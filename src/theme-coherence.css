@@ -79,6 +79,30 @@
   background: var(--grimoire-portability-rail-material);
 }
 
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="active"] {
+  background: var(--accent-green);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="available"] {
+  background: var(--accent-blue);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="planned"] {
+  background: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="not_selected"] {
+  background: var(--accent-orange);
+}
+
+:is([data-theme-preset]) .grimoire-portability-progress-track {
+  background: color-mix(in srgb, var(--surface-panel) 70%, var(--surface-card));
+}
+
+:is([data-theme-preset]) .grimoire-portability-progress-bar {
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--accent-blue) 42%, var(--primary)));
+}
+
 :is([data-theme-preset]) :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
   color: var(--text-primary);
 }

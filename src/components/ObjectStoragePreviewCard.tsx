@@ -23,7 +23,7 @@ export function ObjectStoragePreviewCard({
 
   return (
     <div
-      className="grimoire-object-storage-preview grid gap-2 rounded-md border border-border bg-background/70 p-2"
+      className="grimoire-object-storage-preview grid gap-2 rounded-md border border-border p-2"
       data-testid={testId}
     >
       <div className="flex flex-wrap items-center gap-1.5">
@@ -57,7 +57,7 @@ function PreviewStat({
   tone = 'default',
 }: { label: string; value: number; tone?: 'default' | 'safe' | 'warn' }) {
   return (
-    <span className="grimoire-preview-stat rounded border border-border bg-muted/30 px-2 py-1" data-tone={tone}>
+    <span className="grimoire-preview-stat rounded border border-border px-2 py-1" data-tone={tone}>
       <span className="block text-muted-foreground">{label}</span>
       <span className="grimoire-preview-stat__value font-semibold">{value}</span>
     </span>

@@ -112,7 +112,7 @@ export function PortabilityActionDeck({
 
   return (
     <section
-      className="grimoire-portability-action-deck grid gap-3 rounded-md border border-border bg-background/55 p-3"
+      className="grimoire-portability-action-deck grid gap-3 rounded-md border border-border p-3"
       data-testid="settings-portability-action-deck"
     >
       <div className="flex flex-col gap-1">
@@ -122,7 +122,7 @@ export function PortabilityActionDeck({
         </div>
       </div>
 
-      <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border bg-muted/30 p-1" role="tablist">
+      <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border p-1" role="tablist">
         {lanes.map((lane) => (
           <Button
             key={lane.id}

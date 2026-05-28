@@ -21,7 +21,7 @@ export function PortabilityProofLedger() {
   return (
     <section
       aria-label="Portability proof ledger"
-      className="grimoire-portability-card grid gap-2 rounded-md border border-border bg-muted/35 p-3"
+      className="grimoire-portability-card grid gap-2 rounded-md border border-border p-3"
       data-testid="portability-proof-ledger"
     >
       <div className="flex items-start gap-2">
@@ -46,7 +46,7 @@ export function PortabilityProofLedger() {
 function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
   return (
     <div
-      className="grimoire-preview-stat grid gap-1 rounded-md border border-border bg-background/55 px-2 py-1.5"
+      className="grimoire-preview-stat grid gap-1 rounded-md border border-border px-2 py-1.5"
       data-proof-level={row.proofLevel}
       data-support-status={row.supportStatus}
       data-testid={`portability-proof-${row.id}`}

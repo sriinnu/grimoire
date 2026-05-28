@@ -90,7 +90,7 @@ export function StorageActionGroup({
   children,
 }: { title: string; description: string; children: ReactNode }) {
   return (
-    <div className="grid gap-2 rounded-md border border-border bg-background/45 p-2">
+    <div className="grimoire-object-storage-preview grid gap-2 rounded-md border border-border p-2">
       <div>
         <div className="text-xs font-semibold text-foreground">{title}</div>
         <div className="text-[11px] leading-snug text-muted-foreground">{description}</div>

@@ -257,6 +257,18 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
+) .settings-theme-mode-button {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--grimoire-hairline));
+  background: var(--grimoire-settings-control-material);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
 ) .settings-local-card {
   background: var(--grimoire-settings-local-card-material);
 }

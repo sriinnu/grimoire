@@ -108,7 +108,7 @@ function LivePreflightControls({
   fields: PreflightFieldProps[]
 }) {
   return (
-    <div className="grid gap-2 rounded-md border border-border bg-background/55 p-2" data-testid={testId}>
+    <div className="grimoire-object-storage-preview grid gap-2 rounded-md border border-border p-2" data-testid={testId}>
       <div className="grid gap-2 sm:grid-cols-3">
         {fields.map((fieldProps) => <PreflightField key={fieldProps.testId} {...fieldProps} />)}
       </div>
@@ -135,7 +135,7 @@ function PreflightField({ label, value, testId, onChange }: PreflightFieldProps)
       <Input
         value={value}
         data-testid={testId}
-        className="h-8 bg-background/80 text-xs"
+        className="h-8 text-xs"
         onChange={(event) => onChange(event.target.value)}
       />
     </label>
@@ -159,7 +159,7 @@ function LivePreflightCard({
 }) {
   return (
     <div
-      className="grimoire-object-storage-preview grid gap-2 rounded-md border border-border bg-background/70 p-2"
+      className="grimoire-object-storage-preview grid gap-2 rounded-md border border-border p-2"
       data-status={status}
       data-testid={testId}
     >
@@ -182,7 +182,7 @@ function LivePreflightCard({
 
 function PreflightStat({ label, value }: { label: string; value: string }) {
   return (
-    <span className="grimoire-preview-stat rounded border border-border bg-muted/30 px-2 py-1">
+    <span className="grimoire-preview-stat rounded border border-border px-2 py-1">
       <span className="block text-muted-foreground">{label}</span>
       <span className="grimoire-preview-stat__value font-semibold">{value}</span>
     </span>
