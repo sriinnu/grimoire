@@ -12,14 +12,14 @@ const PROVIDERS = {
     label: 'S3',
     optional: ['GRIMOIRE_S3_REGION', 'GRIMOIRE_S3_PREFIX'],
     required: ['GRIMOIRE_S3_BUCKET'],
-    test: 'vault::object_storage_live_roundtrip_tests::s3_live_apply_and_pull_round_trip_is_explicitly_gated',
+    test: 'vault::object_storage_live_provider_sync_tests::s3_live_provider_sync_preview_apply_and_pull_is_explicitly_gated',
   },
   azure: {
     gate: 'GRIMOIRE_AZURE_LIVE_WRITE_PROOF',
     label: 'Azure Blob',
     optional: ['GRIMOIRE_AZURE_PREFIX'],
     required: ['GRIMOIRE_AZURE_STORAGE_ACCOUNT', 'GRIMOIRE_AZURE_CONTAINER'],
-    test: 'vault::object_storage_live_roundtrip_tests::azure_live_apply_and_pull_round_trip_is_explicitly_gated',
+    test: 'vault::object_storage_live_provider_sync_tests::azure_live_provider_sync_preview_apply_and_pull_is_explicitly_gated',
   },
 }
 
@@ -149,7 +149,7 @@ function run(options, env = process.env) {
   }
 
   for (const plan of enabledPlans) {
-    console.log(`[object-storage-live] running ${plan.provider.label} live write/read/delete proof`)
+    console.log(`[object-storage-live] running ${plan.provider.label} live provider preview/apply/pull proof`)
     runCargoTest(plan.provider.test)
   }
   return 0

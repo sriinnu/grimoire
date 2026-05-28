@@ -67,6 +67,7 @@ Use this as the live review scratchpad while testing Grimoire.
 - [x] Keep attachments referenced by local-only Markdown out of Git staging and static HTML export.
 - [x] Keep `grimoire-canvas` editable source JSON and preview PNG inside the local-only attachment closure.
 - [x] Wire real S3/Azure provider preview/apply adapters behind the same preview/apply contract.
+- [x] Point the opt-in live proof runner at the app provider preview/apply/pull contract, including local-only journal withholding.
 - [ ] Run S3/Azure provider Settings lanes against real provider fixtures and failure states before claiming provider-proven sync.
 - [x] Keep local AI agent model/provider selection visible and testable.
 - [x] Split native AI launcher modules so permission/model routing stays below the code-size guardrail.
