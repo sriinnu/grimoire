@@ -1,4 +1,4 @@
-import { CloudCheck, Database, FileArrowDown, ShieldCheck } from '@phosphor-icons/react'
+import { CloudCheck, Database, FileArrowDown, ShieldCheck, TerminalWindow } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import {
   listPortabilityProofRows,
@@ -12,6 +12,7 @@ const PROOF_ROW_ICONS: Record<PortabilityProofRow['id'], ReactNode> = {
   exports: <ShieldCheck size={15} />,
   'desktop-sync': <CloudCheck size={15} />,
   'object-storage': <Database size={15} />,
+  'provider-proof-runner': <TerminalWindow size={15} />,
 }
 
 /** Shows the real proof state for portability lanes without overclaiming cloud sync. */
