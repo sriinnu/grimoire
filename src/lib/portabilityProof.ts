@@ -190,7 +190,7 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       supportStatus: 'available',
       proofLevel: 'live-provider-proof-runner',
       detail: 'Opt-in S3/Azure provider preview/apply/pull proof with redacted evidence',
-      evidence: `Dry-run first with \`${OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND}\`, then run \`${OBJECT_STORAGE_LIVE_PROOF_COMMAND}\`; reports store only gate/config set-missing state plus pass/fail/missing-config status.`,
+      evidence: 'Load a redacted live proof report here when real S3/Azure provider checks have run; Settings stores only pass, fail, or missing-config status.',
       remainingProof: 'Needs real S3/Azure credentials, generated proof prefixes, permission failures, auth failures, conflict states, and retry/error paths captured before Settings can say provider-proven.',
       liveProofs: objectStorageReportProofs(proofState.objectStorageLiveProofReport),
       commands: [

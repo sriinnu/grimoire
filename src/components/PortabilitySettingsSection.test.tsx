@@ -134,7 +134,7 @@ describe('PortabilitySettingsSection', () => {
     expect(firewall.getByText(/no silent cloud or remote egress/)).toBeInTheDocument()
     const actionDeck = screen.getByTestId('settings-portability-action-deck')
     const proofLedger = within(screen.getByTestId('portability-proof-ledger'))
-    expect(proofLedger.getByText('Proof Ledger')).toBeInTheDocument()
+    expect(proofLedger.getByText('Portability Status')).toBeInTheDocument()
     expect(actionDeck.compareDocumentPosition(screen.getByTestId('portability-proof-ledger'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-support-status', 'ready')
     expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-proof-level', 'fixture-regression')

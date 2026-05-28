@@ -55,9 +55,9 @@ export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <span className="mt-0.5 text-muted-foreground"><ShieldCheck size={15} /></span>
         <span className="min-w-0">
-          <span className="block text-xs font-semibold text-foreground">Proof Ledger</span>
+          <span className="block text-xs font-semibold text-foreground">Portability Status</span>
           <span className="block text-[11px] leading-snug text-muted-foreground">
-            Support status, proof level, and remaining live-provider checks stay separate.
+            Import, export, and sync claims stay visible without hiding local-only boundaries.
           </span>
         </span>
         <ProofReportDialog
@@ -153,6 +153,7 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
   const [failedCommand, setFailedCommand] = useState<string | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const hasDeveloperProof = Boolean(row.commands?.length || row.providerRequirements?.length)
 
   async function copyCommand(proofCommand: PortabilityProofCommand) {
     setCopiedCommand(null)
@@ -181,10 +182,10 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
         <span className="text-muted-foreground">{PROOF_ROW_ICONS[row.id]}</span>
         <span className="min-w-0 text-xs font-semibold text-foreground">{row.label}</span>
         <Badge variant={row.supportStatus === 'ready' ? 'secondary' : 'outline'} className="rounded-md text-[10px]">
-          {row.supportStatus}
+          {supportStatusLabel(row.supportStatus)}
         </Badge>
         <Badge variant="outline" className="rounded-md text-[10px]">
-          {portabilityProofLevelLabel(row.proofLevel)}
+          {proofLevelDisplayLabel(row.proofLevel)}
         </Badge>
         <span className="min-w-0 text-[11px] text-muted-foreground">{row.detail}</span>
       </div>
@@ -212,7 +213,9 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
         type="button"
         variant="ghost"
       >
-        {detailsOpen ? 'Hide proof details' : 'Show proof details'}
+        {detailsOpen
+          ? hasDeveloperProof ? 'Hide developer proof' : 'Hide proof details'
+          : hasDeveloperProof ? 'Developer proof details' : 'Show proof details'}
       </Button>
       {detailsOpen ? (
         <div
@@ -276,6 +279,18 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
       ) : null}
     </div>
   )
+}
+
+function supportStatusLabel(status: PortabilityProofRow['supportStatus']): string {
+  if (status === 'ready') return 'ready'
+  if (status === 'fixture') return 'preview-backed'
+  if (status === 'available') return 'opt-in'
+  return status
+}
+
+function proofLevelDisplayLabel(level: PortabilityProofRow['proofLevel']): string {
+  if (level === 'live-provider-proof-runner') return 'manual live proof'
+  return portabilityProofLevelLabel(level)
 }
 
 function EnvNameList({ names }: { names: readonly string[] }) {
