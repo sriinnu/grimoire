@@ -7,6 +7,7 @@ import {
   portabilityProofLevelLabel,
   type PortabilityProofCommand,
   type PortabilityProofRow,
+  type PortabilityProofState,
 } from '../lib/portabilityProof'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
@@ -20,8 +21,8 @@ const PROOF_ROW_ICONS: Record<PortabilityProofRow['id'], ReactNode> = {
 }
 
 /** Shows the real proof state for portability lanes without overclaiming cloud sync. */
-export function PortabilityProofLedger() {
-  const rows = listPortabilityProofRows()
+export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
+  const rows = listPortabilityProofRows(proofState)
 
   return (
     <section
@@ -87,6 +88,20 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
         <span className="min-w-0 text-[11px] text-muted-foreground">{row.detail}</span>
       </div>
       <div className="text-[11px] leading-snug text-muted-foreground">{row.evidence}</div>
+      {row.liveProofs?.length ? (
+        <div className="grid gap-1" aria-label={`${row.label} live proof`}>
+          {row.liveProofs.map((proof) => (
+            <div
+              className="grimoire-preview-stat rounded-md border border-border/70 px-2 py-1 text-[10px] leading-snug text-muted-foreground"
+              data-testid={`portability-proof-live-${proof.id}`}
+              key={proof.id}
+            >
+              <span className="font-semibold text-foreground">{proof.label}: {proof.status}</span>
+              <span className="block">{proof.detail}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
       {row.commands?.length ? (
         <div className="grid gap-1">
           {row.commands.map((proofCommand) => {

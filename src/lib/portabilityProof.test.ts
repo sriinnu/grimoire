@@ -73,6 +73,47 @@ describe('portabilityProof', () => {
     expect(combined).not.toMatch(/secret|token|password/i)
   })
 
+  it('adds redacted live preflight evidence when Settings has provider reports', () => {
+    const objectStorage = listPortabilityProofRows({
+      azureLivePreflightReport: {
+        account_configured: true,
+        checked_at: '2026-05-28T12:00:00Z',
+        configured: true,
+        container_checked: true,
+        container_configured: true,
+        list_prefix_checked: true,
+        prefix_configured: false,
+        status: 'missing_credentials',
+      },
+      s3LivePreflightReport: {
+        bucket_configured: true,
+        checked_at: '2026-05-28T11:00:00Z',
+        configured: true,
+        head_bucket_checked: true,
+        list_prefix_checked: true,
+        prefix_configured: false,
+        region_configured: true,
+        status: 'reachable',
+      },
+    }).find(row => row.id === 'object-storage')
+
+    expect(objectStorage?.liveProofs).toEqual([
+      {
+        id: 's3-read-only',
+        label: 'S3 read-only preflight',
+        status: 'reachable',
+        detail: 'config set; bucket set; region set; prefix optional; HeadBucket checked; prefix list checked; checked 2026-05-28T11:00:00Z',
+      },
+      {
+        id: 'azure-read-only',
+        label: 'Azure read-only preflight',
+        status: 'missing credentials',
+        detail: 'config set; account set; container set; prefix optional; container checked; prefix list checked; checked 2026-05-28T12:00:00Z',
+      },
+    ])
+    expect(JSON.stringify(objectStorage?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\//)
+  })
+
   it('uses compact user-facing proof labels', () => {
     expect(portabilityProofLevelLabel('fixture-regression')).toBe('fixture/regression')
     expect(portabilityProofLevelLabel('local-regression')).toBe('local regression')
