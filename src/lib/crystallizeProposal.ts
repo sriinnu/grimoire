@@ -26,6 +26,7 @@ import {
   buildReviewChanges,
   countLedgerFrontmatterFields,
 } from './crystallizeProposalReview'
+import { isEntryLocalOnly } from './localityPolicy'
 
 export type {
   CrystallizeActiveNotePatch,
@@ -97,7 +98,7 @@ export function buildCrystallizeProposal({
   })
   const sourceLabel = sourceLabels[0] ?? 'AI chat'
   const ledgerContract = buildLedgerContract(sourceLabels.length, reviewDateAfter(now, DEFAULT_MEMORY_REVIEW_DAYS))
-  const subject = titleSubject ?? activeEntry?.title ?? sourceName
+  const subject = titleSubject ?? activeNoteTitleSubject(activeEntry, sourceLabel, sourceName)
   const title = `Crystallized - ${subject} - ${date}`
   const slug = `${slugifyNoteStem(title)}-${now.getTime()}`
   const relativePath = `${CRYSTALLIZED_FOLDER}/${slug}.md`
@@ -220,6 +221,16 @@ function reviewDateAfter(now: Date, days: number): string {
   const next = new Date(now.getTime())
   next.setUTCDate(next.getUTCDate() + days)
   return next.toISOString().slice(0, 10)
+}
+
+function activeNoteTitleSubject(
+  activeEntry: VaultEntry | null | undefined,
+  sourceLabel: string,
+  sourceName: string,
+): string {
+  if (!activeEntry) return sourceName
+  if (isEntryLocalOnly(activeEntry)) return sourceLabel
+  return activeEntry.title || sourceName
 }
 
 function buildActiveNotePatch({
