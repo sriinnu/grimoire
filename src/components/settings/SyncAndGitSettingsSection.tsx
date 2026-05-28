@@ -68,11 +68,11 @@ export function SyncAndGitSettingsSection({
       />
 
       <div
-        className="flex items-start justify-between gap-4 rounded-md border border-border bg-muted/35 p-4"
+        className="settings-local-card flex items-start justify-between gap-4 rounded-md border p-4"
         data-testid="settings-git-capability"
       >
         <div className="flex gap-3">
-          <div className="mt-0.5 rounded-md border border-border bg-background p-2 text-muted-foreground">
+          <div className="settings-local-card__icon mt-0.5 rounded-md border p-2">
             {isGitVault ? <GitBranch size={17} /> : <ShieldCheck size={17} />}
           </div>
           <div className="space-y-1">

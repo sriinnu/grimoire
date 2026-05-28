@@ -179,4 +179,46 @@ describe('useVaultPortabilityActions Azure provider lane', () => {
     })
     expect(providerMocks.applyAzureProviderSync).not.toHaveBeenCalled()
   })
+
+  it('keeps malformed provider previews from becoming apply-ready', async () => {
+    const { result, setToastMessage } = renderActions()
+    providerMocks.previewAzureProviderPush.mockResolvedValueOnce({
+      ...azureProviderPushPreview,
+      preview_signature: '',
+    })
+
+    act(() => result.current.handlePreviewAzureProviderPush({ account: 'acct', container: 'vault' }))
+    await waitFor(() => expect(result.current.azureProviderPushPreviewReport?.preview_signature).toBe(''))
+    expect(result.current.azureProviderPushPreviewReady).toBe(false)
+
+    act(() => result.current.handleApplyAzureProviderPush({ account: 'acct', container: 'vault' }))
+
+    await waitFor(() => {
+      expect(setToastMessage).toHaveBeenLastCalledWith(
+        'Run Azure provider push preview again before applying sync.',
+      )
+    })
+    expect(providerMocks.applyAzureProviderSync).not.toHaveBeenCalled()
+  })
+
+  it('blocks already-applied provider previews from replaying apply', async () => {
+    const { result, setToastMessage } = renderActions()
+    providerMocks.previewAzureProviderPull.mockResolvedValueOnce({
+      ...azureProviderPullPreview,
+      applied: true,
+    })
+
+    act(() => result.current.handlePreviewAzureProviderPull({ account: 'acct', container: 'vault' }))
+    await waitFor(() => expect(result.current.azureProviderPullPreviewReport?.applied).toBe(true))
+    expect(result.current.azureProviderPullPreviewReady).toBe(false)
+
+    act(() => result.current.handleApplyAzureProviderPull({ account: 'acct', container: 'vault' }))
+
+    await waitFor(() => {
+      expect(setToastMessage).toHaveBeenLastCalledWith(
+        'Run Azure provider pull preview again before applying sync.',
+      )
+    })
+    expect(providerMocks.applyAzureProviderSync).not.toHaveBeenCalled()
+  })
 })

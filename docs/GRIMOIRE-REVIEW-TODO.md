@@ -82,6 +82,9 @@ Use this as the live review scratchpad while testing Grimoire.
 - [x] Add Portability Capsule export lanes for pure JSON and local SQLite snapshots, with preview/apply manifests and Locality Firewall proof before export.
 - [x] Add reversible Portability Capsule import preview/apply for JSON and SQLite snapshots before calling capsule round-trip complete.
 - [ ] Re-overhaul Settings panel polish so every section follows active theme materials, local-first copy, and Apple-native control rhythm.
+  - [x] Move Settings onto shadcn/Radix Dialog chrome and fix the save/close shortcut hint.
+  - [x] Replace generic Settings material islands in Git, AI route, theme-pack, and Locality Firewall cards with theme-owned classes.
+  - [x] Keep browser S3/Azure provider mocks honest: blank targets fail, malformed/applied previews do not unlock apply.
 
 ## Parking Lot
 

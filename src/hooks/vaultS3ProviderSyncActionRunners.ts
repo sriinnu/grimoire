@@ -55,6 +55,10 @@ export async function runS3ProviderSyncAction(
     options.setToastMessage(`Resolve S3 provider ${direction} conflicts before applying sync.`)
     return
   }
+  if (mode === 'apply' && previewState && !previewReportCanApply(previewState.report)) {
+    options.setToastMessage(`Run S3 provider ${direction} preview again before applying sync.`)
+    return
+  }
   if (mode === 'apply' && previewState && !sameS3Args(cleanArgs, previewState.args)) {
     options.setToastMessage(`S3 provider target changed; run ${direction} preview again before applying sync.`)
     return
@@ -156,6 +160,10 @@ function sameS3Args(left: S3LivePreflightArgs, right: S3LivePreflightArgs): bool
   return left.bucket === right.bucket
     && left.region === right.region
     && left.prefix === right.prefix
+}
+
+function previewReportCanApply(report: ObjectStorageSyncReport): boolean {
+  return !report.applied && report.preview_signature.trim().length > 0
 }
 
 function formatS3ProviderPreviewToast(report: ObjectStorageSyncReport): string {

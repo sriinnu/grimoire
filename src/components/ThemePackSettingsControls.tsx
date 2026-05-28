@@ -181,7 +181,7 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
   }, [activeDefinition, fields, t, typographyDraft])
 
   return (
-    <div className="space-y-2 rounded-md border border-border bg-muted/35 p-3" data-testid="theme-pack-settings">
+    <div className="settings-material-card space-y-2 rounded-md border p-3" data-testid="theme-pack-settings">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
@@ -224,12 +224,12 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
       </div>
 
       {activeContractDetails.length > 0 ? (
-        <div className="rounded-sm border border-border/70 bg-background/45 px-2 py-1.5 text-[11px] text-muted-foreground" data-testid="theme-pack-contract-summary">
+        <div className="settings-material-inner rounded-sm border px-2 py-1.5 text-[11px] text-muted-foreground" data-testid="theme-pack-contract-summary">
           {t('settings.themePack.contractPrefix')} <span className="font-medium text-foreground">{activeContractDetails.join(' / ')}</span>
         </div>
       ) : null}
 
-      <div className="space-y-2 rounded-sm border border-border/70 bg-background/45 p-2" data-testid="theme-pack-typography-roles">
+      <div className="settings-material-inner space-y-2 rounded-sm border p-2" data-testid="theme-pack-typography-roles">
         <div className="text-[11px] font-semibold text-foreground">{t('settings.themePack.typographyTitle')}</div>
         <div className="grid gap-2">
           {fields.map((field) => (
@@ -246,7 +246,7 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
                 onChange={(event) => handleTypographyChange(field.role, event.target.value)}
               />
               <div
-                className="truncate rounded-sm border border-border/60 bg-muted/30 px-2 py-1 text-xs text-foreground"
+                className="settings-material-chip truncate rounded-sm border px-2 py-1 text-xs text-foreground"
                 style={{ fontFamily: typographyDraft[field.role] || undefined }}
               >
                 {field.sample}

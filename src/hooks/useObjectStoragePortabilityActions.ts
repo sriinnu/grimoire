@@ -211,5 +211,5 @@ export function useObjectStoragePortabilityActions({
 }
 
 function previewCanApply(report?: ObjectStorageSyncReport): boolean {
-  return Boolean(report && report.conflicts === 0)
+  return Boolean(report && !report.applied && report.conflicts === 0 && report.preview_signature.trim())
 }

@@ -272,8 +272,8 @@ const STORAGE_PROVIDERS = [
     status: 'planned',
     localFirst: true,
     requiresLocalWorkingCopy: true,
-    description: 'Mirror a local working vault to an S3 bucket through a sync adapter.',
-    userAction: 'Configure bucket, region, and local credentials when the adapter lands.',
+    description: 'Preview/apply S3 provider sync from a local working vault using local AWS credentials; provider failure-state proof is still pending.',
+    userAction: 'Enter a bucket, optional region/prefix, run preview, then apply only the reviewed target.',
   },
   {
     id: 'azure-blob',
@@ -282,8 +282,8 @@ const STORAGE_PROVIDERS = [
     status: 'planned',
     localFirst: true,
     requiresLocalWorkingCopy: true,
-    description: 'Mirror a local working vault to Azure Blob Storage through a sync adapter.',
-    userAction: 'Configure account, container, and local credentials when the adapter lands.',
+    description: 'Preview/apply Azure Blob provider sync from a local working vault using local Azure CLI login; provider failure-state proof is still pending.',
+    userAction: 'Enter account, container, optional prefix, run preview, then apply only the reviewed target.',
   },
 ] as const satisfies readonly VaultStorageProvider[]
 

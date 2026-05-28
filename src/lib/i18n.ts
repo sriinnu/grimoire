@@ -40,6 +40,7 @@ const EN_TRANSLATIONS = {
   'command.checkUpdates': 'Check for Updates',
 
   'settings.title': 'Settings',
+  'settings.description': 'Configure local vault, portability, appearance, agents, language, native shell, and privacy preferences.',
   'settings.close': 'Close settings',
   'settings.vault.title': 'Current vault',
   'settings.vault.noVault': 'No vault selected',
@@ -156,7 +157,7 @@ const EN_TRANSLATIONS = {
   'settings.privacy.crashReportingDescription': 'Send anonymous error reports',
   'settings.privacy.analytics': 'Usage analytics',
   'settings.privacy.analyticsDescription': 'Share anonymous usage patterns',
-  'settings.footerShortcut': '⌘, to open settings',
+  'settings.footerShortcut': '⌘↵ to save · Esc to close',
   'settings.cancel': 'Cancel',
   'settings.save': 'Save',
 

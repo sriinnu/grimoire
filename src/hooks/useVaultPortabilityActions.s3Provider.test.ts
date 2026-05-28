@@ -190,4 +190,46 @@ describe('useVaultPortabilityActions S3 provider SDK lane', () => {
     })
     expect(s3ProviderMocks.applyS3ProviderSync).not.toHaveBeenCalled()
   })
+
+  it('keeps malformed provider previews from becoming apply-ready', async () => {
+    const { result, setToastMessage } = renderActions()
+    s3ProviderMocks.previewS3ProviderPush.mockResolvedValueOnce({
+      ...s3ProviderPushPreview,
+      preview_signature: '',
+    })
+
+    act(() => result.current.handlePreviewS3ProviderPush({ bucket: 'sriinnu-vault' }))
+    await waitFor(() => expect(result.current.s3ProviderPushPreviewReport?.preview_signature).toBe(''))
+    expect(result.current.s3ProviderPushPreviewReady).toBe(false)
+
+    act(() => result.current.handleApplyS3ProviderPush({ bucket: 'sriinnu-vault' }))
+
+    await waitFor(() => {
+      expect(setToastMessage).toHaveBeenLastCalledWith(
+        'Run S3 provider push preview again before applying sync.',
+      )
+    })
+    expect(s3ProviderMocks.applyS3ProviderSync).not.toHaveBeenCalled()
+  })
+
+  it('blocks already-applied provider previews from replaying apply', async () => {
+    const { result, setToastMessage } = renderActions()
+    s3ProviderMocks.previewS3ProviderPull.mockResolvedValueOnce({
+      ...s3ProviderPullPreview,
+      applied: true,
+    })
+
+    act(() => result.current.handlePreviewS3ProviderPull({ bucket: 'sriinnu-vault' }))
+    await waitFor(() => expect(result.current.s3ProviderPullPreviewReport?.applied).toBe(true))
+    expect(result.current.s3ProviderPullPreviewReady).toBe(false)
+
+    act(() => result.current.handleApplyS3ProviderPull({ bucket: 'sriinnu-vault' }))
+
+    await waitFor(() => {
+      expect(setToastMessage).toHaveBeenLastCalledWith(
+        'Run S3 provider pull preview again before applying sync.',
+      )
+    })
+    expect(s3ProviderMocks.applyS3ProviderSync).not.toHaveBeenCalled()
+  })
 })

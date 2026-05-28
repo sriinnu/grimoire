@@ -227,19 +227,22 @@ describe('SettingsPanel workflow settings', () => {
     }))
   })
 
-  it('calls onClose when clicking backdrop', () => {
+  it('renders the Radix backdrop for outside dismissal', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
-    fireEvent.click(screen.getByTestId('settings-panel'))
-    expect(onClose).toHaveBeenCalled()
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).not.toBeNull()
+    fireEvent.pointerDown(document.body, { button: 0 })
+    fireEvent.pointerUp(document.body, { button: 0 })
+    fireEvent.click(document.body)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('shows keyboard shortcut hint in footer', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
-    expect(screen.getByText(/to open settings/)).toBeInTheDocument()
+    expect(screen.getByText(/to save/)).toBeInTheDocument()
   })
 
   describe('Privacy & Telemetry section', () => {

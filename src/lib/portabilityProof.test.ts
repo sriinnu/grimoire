@@ -20,13 +20,16 @@ describe('portabilityProof', () => {
       .join('\n')
 
     expect(combined).toContain('Apple Journal')
+    expect(combined).toContain('fresh real-world exports')
+    expect(combined).toContain('JSON/SQLite capsules have local import regressions')
     expect(combined).toContain('S3 has a read-only HeadBucket/ListObjectsV2 preflight')
     expect(combined).toContain('Azure has a read-only CLI container/list preflight')
-    expect(combined).toContain('provider preview/apply evidence')
+    expect(combined).toContain('provider preview/apply contracts')
     expect(combined).toContain('exact preview signatures')
     expect(combined).toContain('local read proof for iCloud/GDrive')
     expect(combined).toContain('Live S3/Azure apply')
     expect(combined).toContain('Provider quota, offline recovery')
+    expect(combined).not.toContain('capsule re-import')
     expect(combined).not.toMatch(/\/Users\//)
   })
 

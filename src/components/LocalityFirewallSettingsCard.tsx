@@ -13,7 +13,7 @@ export function LocalityFirewallSettingsCard({ entries }: LocalityFirewallSettin
   const hasEntries = summary.total > 0
 
   return (
-    <div className="rounded-md border border-border bg-muted/35 p-3" data-testid="locality-firewall-card">
+    <div className="settings-material-card rounded-md border p-3" data-testid="locality-firewall-card">
       <div className="mb-2 flex items-start gap-2">
         <span className="mt-0.5 text-muted-foreground"><ShieldCheck size={15} /></span>
         <span className="min-w-0">
@@ -70,7 +70,7 @@ export function LocalityFirewallSettingsCard({ entries }: LocalityFirewallSettin
 
 function FirewallStat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-md bg-background/55 px-2 py-1.5">
+    <div className="settings-material-inner rounded-md border px-2 py-1.5">
       <div className="text-[10px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
       <div className="text-sm font-semibold text-foreground">{value}</div>
     </div>
@@ -79,7 +79,7 @@ function FirewallStat({ label, value }: { label: string; value: number | string 
 
 function FirewallRule({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-background/45 px-2 py-1.5 text-[11px] leading-snug">
+    <div className="settings-material-inner rounded-md border px-2 py-1.5 text-[11px] leading-snug">
       <span className="font-medium text-foreground">{label}</span>
       <span className="text-muted-foreground"> · {value}</span>
     </div>
