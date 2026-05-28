@@ -5,6 +5,7 @@ import {
   type PortabilityProgressState,
   type VaultPortabilityActionId,
 } from '../lib/vaultPortability'
+import type { ObjectStorageLiveProofReport } from '../lib/portabilityProof'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
 import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
@@ -73,6 +74,7 @@ interface PortabilitySettingsSectionProps {
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
   s3LivePreflightReport?: S3LivePreflightReport
   azureLivePreflightReport?: AzureLivePreflightReport
+  objectStorageLiveProofReport?: ObjectStorageLiveProofReport | null
   onRunS3LivePreflight?: (args: S3LivePreflightArgs) => void
   onRunAzureLivePreflight?: (args: AzureLivePreflightArgs) => void
   onPreviewS3MirrorPush?: () => void
@@ -152,6 +154,7 @@ export function PortabilitySettingsSection({
   azureMirrorPullPreviewReport,
   s3LivePreflightReport,
   azureLivePreflightReport,
+  objectStorageLiveProofReport,
   onRunS3LivePreflight,
   onRunAzureLivePreflight,
   onPreviewS3MirrorPush,
@@ -186,6 +189,7 @@ export function PortabilitySettingsSection({
         <LocalityFirewallSettingsCard entries={entries} />
         <PortabilityProofLedger
           azureLivePreflightReport={azureLivePreflightReport}
+          objectStorageLiveProofReport={objectStorageLiveProofReport}
           s3LivePreflightReport={s3LivePreflightReport}
         />
         <PortabilityGroups t={t} vaultPath={vaultPath} />

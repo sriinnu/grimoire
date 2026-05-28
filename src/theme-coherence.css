@@ -75,6 +75,11 @@
   border-color: var(--grimoire-hairline);
 }
 
+:is([data-theme-preset]) :is(.settings-desktop-storage-row, .settings-proof-chip) {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
 :is([data-theme-preset]) .grimoire-portability-lanes {
   background: var(--grimoire-portability-rail-material);
 }

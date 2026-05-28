@@ -14,6 +14,7 @@ describe('theme settings CSS', () => {
   const themePackSettings = readFileSync(`${process.cwd()}/src/components/ThemePackSettingsControls.tsx`, 'utf8')
   const localityFirewallSettings = readFileSync(`${process.cwd()}/src/components/LocalityFirewallSettingsCard.tsx`, 'utf8')
   const nativeSettings = readFileSync(`${process.cwd()}/src/components/NativeSettingsSection.tsx`, 'utf8')
+  const desktopStorageHealthPanel = readFileSync(`${process.cwd()}/src/components/DesktopStorageHealthPanel.tsx`, 'utf8')
   const portabilityActionDeck = readFileSync(`${process.cwd()}/src/components/PortabilityActionDeck.tsx`, 'utf8')
   const portabilityGroups = readFileSync(`${process.cwd()}/src/components/PortabilityGroups.tsx`, 'utf8')
   const portabilityProofLedger = readFileSync(`${process.cwd()}/src/components/PortabilityProofLedger.tsx`, 'utf8')
@@ -78,6 +79,7 @@ describe('theme settings CSS', () => {
       themePackSettings,
       localityFirewallSettings,
       nativeSettings,
+      desktopStorageHealthPanel,
       portabilityActionDeck,
       portabilityGroups,
       portabilityProofLedger,
@@ -103,6 +105,8 @@ describe('theme settings CSS', () => {
       '.grimoire-object-storage-preview',
       '.grimoire-preview-stat',
       '.grimoire-storage-health-dot[data-state="active"]',
+      '.settings-desktop-storage-row',
+      '.settings-proof-chip',
       '.grimoire-portability-progress-track',
       '.grimoire-portability-progress-bar',
     ]) {

@@ -4,6 +4,19 @@ import {
   listVaultStorageProviders,
   type VaultPortabilityStatus,
 } from './vaultPortability'
+import {
+  objectStorageReportProofs,
+  type ObjectStorageLiveProofReport as ObjectStorageLiveProofReportType,
+} from './objectStorageLiveProofReport'
+
+export {
+  parseObjectStorageLiveProofReport,
+} from './objectStorageLiveProofReport'
+export type {
+  ObjectStorageLiveProofProviderId,
+  ObjectStorageLiveProofProviderReport,
+  ObjectStorageLiveProofReport,
+} from './objectStorageLiveProofReport'
 
 export type PortabilityProofLevel =
   | 'fixture-regression'
@@ -39,7 +52,7 @@ export interface PortabilityProviderRequirement {
 
 /** Redacted live-provider proof that is safe to render in Settings. */
 export interface PortabilityLiveProof {
-  id: 'azure-read-only' | 's3-read-only'
+  id: 'azure-provider-proof' | 'azure-read-only' | 'provider-report-summary' | 's3-provider-proof' | 's3-read-only'
   label: string
   status: string
   detail: string
@@ -70,6 +83,7 @@ interface AzureLivePreflightProof {
 /** Latest transient provider reports that can strengthen the proof ledger without storing provider details. */
 export interface PortabilityProofState {
   azureLivePreflightReport?: AzureLivePreflightProof | null
+  objectStorageLiveProofReport?: ObjectStorageLiveProofReportType | null
   s3LivePreflightReport?: S3LivePreflightProof | null
 }
 
@@ -145,6 +159,7 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       detail: 'Opt-in S3/Azure provider preview/apply/pull proof with redacted evidence',
       evidence: `Dry-run first with \`${OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND}\`, then run \`${OBJECT_STORAGE_LIVE_PROOF_COMMAND}\`; reports store only gate/config set-missing state plus pass/fail/missing-config status.`,
       remainingProof: 'Needs real S3/Azure credentials, generated proof prefixes, permission failures, auth failures, conflict states, and retry/error paths captured before Settings can say provider-proven.',
+      liveProofs: objectStorageReportProofs(proofState.objectStorageLiveProofReport),
       commands: [
         {
           id: 'dry-run',
