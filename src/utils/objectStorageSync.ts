@@ -329,9 +329,19 @@ function operationPaths(
 }
 
 function compactPathList(paths: string[]): string {
-  const shown = paths.slice(0, 3)
+  const shown = paths.slice(0, 3).map(compactOperationPath)
   const remainder = paths.length - shown.length
   return remainder > 0 ? `${shown.join(', ')} +${remainder} more` : shown.join(', ')
+}
+
+function compactOperationPath(path: string): string {
+  if (/^(s3|azblob):\/\//i.test(path)) return 'redacted provider target'
+  if (path.startsWith('/Users/') || /^[A-Za-z]:[\\/]/.test(path)) return lastPathPart(path) ?? 'local file'
+  return path
+}
+
+function lastPathPart(path: string): string | undefined {
+  return path.split(/[\\/]/).filter(Boolean).at(-1)
 }
 
 function countPart(count: number, label: string): string {

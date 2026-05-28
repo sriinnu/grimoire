@@ -192,6 +192,30 @@ describe('portabilityProof', () => {
     expect(JSON.stringify(report)).not.toContain('PASSWORD')
   })
 
+  it('sanitizes proof report timestamps before storing pasted report state', () => {
+    const report = parseObjectStorageLiveProofReport(JSON.stringify({
+      schema: 'grimoire-object-storage-live-proof-v1',
+      generated_at: '/Users/sriinnu/.aws s3://secret-bucket',
+      finished_at: 'azblob://secret-account/container',
+      provider_filter: 's3',
+      summary: { status: 'passed', message: 'done' },
+      providers: [
+        {
+          id: 's3',
+          enabled: true,
+          gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
+          required: { GRIMOIRE_S3_BUCKET: 'set' },
+          optional: {},
+          status: 'passed',
+        },
+      ],
+    }))
+
+    expect(report?.generated_at).toBe('redacted-time')
+    expect(report?.finished_at).toBe('redacted-time')
+    expect(JSON.stringify(report)).not.toMatch(/\/Users\/|s3:\/\/|azblob:\/\//)
+  })
+
   it('uses compact user-facing proof labels', () => {
     expect(portabilityProofLevelLabel('fixture-regression')).toBe('fixture/regression')
     expect(portabilityProofLevelLabel('local-regression')).toBe('local regression')

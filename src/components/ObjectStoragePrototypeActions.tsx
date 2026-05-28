@@ -31,6 +31,7 @@ import {
   type ObjectStorageProvider,
 } from './ObjectStorageProviderPanel'
 import { ObjectStoragePreviewCard } from './ObjectStoragePreviewCard'
+import { inferActiveObjectStorageProvider } from './objectStorageProviderState'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -50,8 +51,12 @@ interface ObjectStoragePrototypeActionsProps {
   s3MirrorPullPreviewReport?: ObjectStorageSyncReport
   s3ProviderPushPreviewReport?: ObjectStorageSyncReport
   s3ProviderPullPreviewReport?: ObjectStorageSyncReport
+  s3ProviderPushPreviewArgs?: S3LivePreflightArgs
+  s3ProviderPullPreviewArgs?: S3LivePreflightArgs
   azureProviderPushPreviewReport?: ObjectStorageSyncReport
   azureProviderPullPreviewReport?: ObjectStorageSyncReport
+  azureProviderPushPreviewArgs?: AzureLivePreflightArgs
+  azureProviderPullPreviewArgs?: AzureLivePreflightArgs
   azureMirrorPreviewReport?: ObjectStorageSyncReport
   azureMirrorPullPreviewReport?: ObjectStorageSyncReport
   s3LivePreflightReport?: S3LivePreflightReport
@@ -93,8 +98,12 @@ export function ObjectStoragePrototypeActions({
   s3MirrorPullPreviewReport,
   s3ProviderPushPreviewReport,
   s3ProviderPullPreviewReport,
+  s3ProviderPushPreviewArgs,
+  s3ProviderPullPreviewArgs,
   azureProviderPushPreviewReport,
   azureProviderPullPreviewReport,
+  azureProviderPushPreviewArgs,
+  azureProviderPullPreviewArgs,
   azureMirrorPreviewReport,
   azureMirrorPullPreviewReport,
   s3LivePreflightReport,
@@ -123,7 +132,7 @@ export function ObjectStoragePrototypeActions({
   const [expandedProvider, setExpandedProvider] = useState<ObjectStorageProvider | null>(null)
   const s3PreflightArgs = useMemo(() => cleanS3PreflightArgs(s3PreflightDraft), [s3PreflightDraft])
   const azurePreflightArgs = useMemo(() => cleanAzurePreflightArgs(azurePreflightDraft), [azurePreflightDraft])
-  const activeProvider = expandedProvider ?? inferActiveProvider({
+  const activeProvider = expandedProvider ?? inferActiveObjectStorageProvider({
     busyAction,
     s3LivePreflightReport,
     azureLivePreflightReport,
@@ -136,6 +145,10 @@ export function ObjectStoragePrototypeActions({
     azureMirrorPreviewReport,
     azureMirrorPullPreviewReport,
   })
+  const s3ProviderPushCanApply = s3ProviderPushPreviewReady && sameS3ProviderArgs(s3PreflightArgs, s3ProviderPushPreviewArgs)
+  const s3ProviderPullCanApply = s3ProviderPullPreviewReady && sameS3ProviderArgs(s3PreflightArgs, s3ProviderPullPreviewArgs)
+  const azureProviderPushCanApply = azureProviderPushPreviewReady && sameAzureProviderArgs(azurePreflightArgs, azureProviderPushPreviewArgs)
+  const azureProviderPullCanApply = azureProviderPullPreviewReady && sameAzureProviderArgs(azurePreflightArgs, azureProviderPullPreviewArgs)
   const s3ProviderButtons: ObjectStoragePrototypeButton[] = [
     {
       label: t('settings.portability.s3LivePreflight'),
@@ -158,7 +171,7 @@ export function ObjectStoragePrototypeActions({
       actionId: 'storage-s3-provider-push-apply',
       icon: <UploadSimple size={14} />,
       onClick: onApplyS3ProviderPush ? () => onApplyS3ProviderPush(s3PreflightArgs) : undefined,
-      enabled: s3ProviderPushPreviewReady,
+      enabled: s3ProviderPushCanApply,
     },
     {
       label: t('settings.portability.previewS3ProviderPull'),
@@ -173,7 +186,7 @@ export function ObjectStoragePrototypeActions({
       actionId: 'storage-s3-provider-pull-apply',
       icon: <DownloadSimple size={14} />,
       onClick: onApplyS3ProviderPull ? () => onApplyS3ProviderPull(s3PreflightArgs) : undefined,
-      enabled: s3ProviderPullPreviewReady,
+      enabled: s3ProviderPullCanApply,
     },
   ]
   const s3MirrorButtons: ObjectStoragePrototypeButton[] = [
@@ -230,7 +243,7 @@ export function ObjectStoragePrototypeActions({
       actionId: 'storage-azure-provider-push-apply',
       icon: <UploadSimple size={14} />,
       onClick: onApplyAzureProviderPush ? () => onApplyAzureProviderPush(azurePreflightArgs) : undefined,
-      enabled: azureProviderPushPreviewReady,
+      enabled: azureProviderPushCanApply,
     },
     {
       label: t('settings.portability.previewAzureProviderPull'),
@@ -245,7 +258,7 @@ export function ObjectStoragePrototypeActions({
       actionId: 'storage-azure-provider-pull-apply',
       icon: <DownloadSimple size={14} />,
       onClick: onApplyAzureProviderPull ? () => onApplyAzureProviderPull(azurePreflightArgs) : undefined,
-      enabled: azureProviderPullPreviewReady,
+      enabled: azureProviderPullCanApply,
     },
     {
       label: t('settings.portability.previewAzureMirror'),
@@ -361,32 +374,16 @@ export function ObjectStoragePrototypeActions({
   )
 }
 
-function inferActiveProvider({
-  busyAction,
-  s3LivePreflightReport,
-  azureLivePreflightReport,
-  s3MirrorPreviewReport,
-  s3MirrorPullPreviewReport,
-  s3ProviderPushPreviewReport,
-  s3ProviderPullPreviewReport,
-  azureProviderPushPreviewReport,
-  azureProviderPullPreviewReport,
-  azureMirrorPreviewReport,
-  azureMirrorPullPreviewReport,
-}: {
-  busyAction: VaultPortabilityActionId | null
-  s3LivePreflightReport?: S3LivePreflightReport
-  azureLivePreflightReport?: AzureLivePreflightReport
-  s3MirrorPreviewReport?: ObjectStorageSyncReport
-  s3MirrorPullPreviewReport?: ObjectStorageSyncReport
-  s3ProviderPushPreviewReport?: ObjectStorageSyncReport
-  s3ProviderPullPreviewReport?: ObjectStorageSyncReport
-  azureProviderPushPreviewReport?: ObjectStorageSyncReport
-  azureProviderPullPreviewReport?: ObjectStorageSyncReport
-  azureMirrorPreviewReport?: ObjectStorageSyncReport
-  azureMirrorPullPreviewReport?: ObjectStorageSyncReport
-}): ObjectStorageProvider | null {
-  if (busyAction?.startsWith('storage-s3') || s3LivePreflightReport || s3MirrorPreviewReport || s3MirrorPullPreviewReport || s3ProviderPushPreviewReport || s3ProviderPullPreviewReport) return 's3'
-  if (busyAction?.startsWith('storage-azure') || azureLivePreflightReport || azureProviderPushPreviewReport || azureProviderPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport) return 'azure'
-  return null
+function sameS3ProviderArgs(current: S3LivePreflightArgs, preview?: S3LivePreflightArgs): boolean {
+  if (!preview) return true
+  return current.bucket === preview.bucket
+    && current.region === preview.region
+    && current.prefix === preview.prefix
+}
+
+function sameAzureProviderArgs(current: AzureLivePreflightArgs, preview?: AzureLivePreflightArgs): boolean {
+  if (!preview) return true
+  return current.account === preview.account
+    && current.container === preview.container
+    && current.prefix === preview.prefix
 }

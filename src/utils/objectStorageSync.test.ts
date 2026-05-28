@@ -50,6 +50,24 @@ describe('objectStorageSync', () => {
       .toBe('S3 local-mirror fixture preview (not live cloud sync): 2 uploads, 0 downloads, 1 remote delete, 1 conflict, 3 local-only exclusions; conflicts: notes/changed.md; local-only: Journal/private.md')
   })
 
+  it('redacts provider-style paths before showing preview plan toast details', () => {
+    const toast = formatObjectStoragePreviewToast({
+      ...baseReport,
+      operations: [
+        { kind: 'conflict', path: 's3://sriinnu-vault/private-prefix/changed.md', reason: 'Provider object differs' },
+        { kind: 'exclude', path: 'azblob://secret-account/vault/private.md', reason: 'Provider object withheld' },
+      ],
+    })
+
+    expect(toast).toContain('conflicts: redacted provider target')
+    expect(toast).toContain('local-only: redacted provider target')
+    expect(toast).not.toContain('s3://')
+    expect(toast).not.toContain('azblob://')
+    expect(toast).not.toContain('sriinnu-vault')
+    expect(toast).not.toContain('secret-account')
+    expect(toast).not.toContain('private-prefix')
+  })
+
   it('formats applied syncs with the local report cue', () => {
     expect(formatObjectStorageApplyToast({
       ...baseReport,

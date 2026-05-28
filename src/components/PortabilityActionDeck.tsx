@@ -39,8 +39,12 @@ export function PortabilityActionDeck({
   s3MirrorPullPreviewReport,
   s3ProviderPushPreviewReport,
   s3ProviderPullPreviewReport,
+  s3ProviderPushPreviewArgs,
+  s3ProviderPullPreviewArgs,
   azureProviderPushPreviewReport,
   azureProviderPullPreviewReport,
+  azureProviderPushPreviewArgs,
+  azureProviderPullPreviewArgs,
   azureMirrorPreviewReport,
   azureMirrorPullPreviewReport,
   s3LivePreflightReport,
@@ -227,8 +231,12 @@ export function PortabilityActionDeck({
         s3MirrorPullPreviewReport={s3MirrorPullPreviewReport}
         s3ProviderPushPreviewReport={s3ProviderPushPreviewReport}
         s3ProviderPullPreviewReport={s3ProviderPullPreviewReport}
+        s3ProviderPushPreviewArgs={s3ProviderPushPreviewArgs}
+        s3ProviderPullPreviewArgs={s3ProviderPullPreviewArgs}
         azureProviderPushPreviewReport={azureProviderPushPreviewReport}
         azureProviderPullPreviewReport={azureProviderPullPreviewReport}
+        azureProviderPushPreviewArgs={azureProviderPushPreviewArgs}
+        azureProviderPullPreviewArgs={azureProviderPullPreviewArgs}
         azureMirrorPreviewReport={azureMirrorPreviewReport}
         azureMirrorPullPreviewReport={azureMirrorPullPreviewReport}
         s3LivePreflightReport={s3LivePreflightReport}
