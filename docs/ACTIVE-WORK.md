@@ -322,6 +322,7 @@ Build order:
 - [ ] Living Frontmatter: schema suggestions, missing fields, duplicate concepts, stale status, and relationship hints without turning Markdown into a hidden database.
   - [x] Add the first read-only Inspector hints for missing type fields, stale active status, possible duplicate concepts, and wikilink promotion.
   - [x] Make safe Living Frontmatter hints actionable through the normal Markdown frontmatter update path, with visible suggested values and no hidden database writes.
+  - [x] Let Markdown Type notes guide Living Frontmatter: `required_fields`/`required`/`fields` and `_list_properties_display` now produce local, reviewable missing-field hints on notes of that type without enforcing a database schema.
 - [ ] Attention Mode: detect drift from too many open notes, unresolved tasks, or repeated context switching; suggest one next action quietly.
   - [x] Add a dashboard Attention Mode card that picks one local next action from conflicts, memory queue, open-loop drift, journal/dream freshness, and local changes.
   - [x] Make Attention Mode actionable: memory-review suggestions open the Memory note, daily prompts seed the right local capture, and noisy local changes seed a local defer-sync Memory note.

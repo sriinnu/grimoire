@@ -85,4 +85,38 @@ describe('LivingFrontmatterPanel', () => {
     fireEvent.click(within(panel).getAllByRole('button', { name: 'Apply' })[0])
     expect(onApplySuggestion).toHaveBeenCalledWith('status', 'Active')
   })
+
+  it('shows Type-owned schema hints from Markdown Type definitions', () => {
+    const onApplySuggestion = vi.fn()
+    const entry = makeEntry({
+      path: '/vault/books/left-hand.md',
+      filename: 'left-hand.md',
+      title: 'Left Hand',
+      isA: 'Book',
+    })
+
+    render(
+      <LivingFrontmatterPanel
+        entry={entry}
+        entries={[
+          entry,
+          makeEntry({
+            path: '/vault/type/book.md',
+            filename: 'book.md',
+            title: 'Book',
+            isA: 'Type',
+            listPropertiesDisplay: ['status'],
+          }),
+        ]}
+        frontmatter={{ type: 'Book' }}
+        onApplySuggestion={onApplySuggestion}
+      />,
+    )
+
+    const panel = screen.getByTestId('living-frontmatter-panel')
+    expect(within(panel).getByText('Type')).toBeInTheDocument()
+    expect(within(panel).getByText('Book type asks for status in readable Markdown frontmatter.')).toBeInTheDocument()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Apply' }))
+    expect(onApplySuggestion).toHaveBeenCalledWith('status', 'Active')
+  })
 })

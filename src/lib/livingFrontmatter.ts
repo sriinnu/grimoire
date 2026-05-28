@@ -6,6 +6,7 @@ export type LivingFrontmatterHintKind =
   | 'stale-status'
   | 'duplicate-concept'
   | 'relationship-hint'
+  | 'type-schema'
 
 export type LivingFrontmatterHintSeverity = 'info' | 'warn'
 export type LivingFrontmatterSuggestedValue = string | number | boolean | string[]
@@ -69,12 +70,36 @@ export function buildLivingFrontmatterHints({
   frontmatter,
   now = new Date(),
 }: LivingFrontmatterInput): LivingFrontmatterHint[] {
-  return [
+  return dedupeHints([
+    ...typeSchemaHints(entry, entries, frontmatter, now),
     ...missingFieldHints(entry, frontmatter, now),
     ...staleStatusHints(entry, frontmatter, now),
     ...duplicateConceptHints(entry, entries),
     ...relationshipHints(entry, frontmatter),
-  ]
+  ])
+}
+
+function typeSchemaHints(
+  entry: VaultEntry,
+  entries: VaultEntry[],
+  frontmatter: ParsedFrontmatter,
+  now: Date,
+): LivingFrontmatterHint[] {
+  const typeName = entryType(entry, frontmatter)
+  const typeEntry = findTypeEntry(entries, typeName)
+  if (!typeName || !typeEntry) return []
+
+  return typeSchemaFields(typeEntry)
+    .filter(schemaField => !hasField(entry, frontmatter, { field: schemaField.field }))
+    .map(({ field, required }) => ({
+      id: `type-schema-${normalizeFieldKey(field)}`,
+      kind: 'type-schema',
+      label: `Add ${humanizeField(field)}`,
+      detail: `${typeName} type asks for ${humanizeField(field).toLowerCase()} in readable Markdown frontmatter.`,
+      severity: required ? 'warn' : 'info',
+      field,
+      suggestedValue: suggestedMissingFieldValue(field, typeName, now),
+    }))
 }
 
 function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter, now: Date): LivingFrontmatterHint[] {
@@ -194,6 +219,47 @@ function entryType(entry: VaultEntry, frontmatter: ParsedFrontmatter): string | 
   return String(value ?? entry.isA ?? '').trim() || null
 }
 
+function findTypeEntry(entries: VaultEntry[], typeName: string | null): VaultEntry | null {
+  if (!typeName) return null
+  const normalized = normalizeType(typeName)
+  return entries.find(candidate =>
+    candidate.isA === 'Type' && normalizeType(candidate.title) === normalized
+  ) ?? null
+}
+
+function typeSchemaFields(typeEntry: VaultEntry): { field: string; required: boolean }[] {
+  const required = [
+    ...propertyList(typeEntry.properties.required_fields),
+    ...propertyList(typeEntry.properties.required),
+    ...propertyList(typeEntry.properties.fields),
+  ]
+  const displayed = typeEntry.listPropertiesDisplay
+  const fields = new Map<string, { field: string; required: boolean }>()
+
+  for (const field of required) addSchemaField(fields, field, true)
+  for (const field of displayed) addSchemaField(fields, field, false)
+
+  return [...fields.values()]
+}
+
+function addSchemaField(
+  fields: Map<string, { field: string; required: boolean }>,
+  field: string,
+  required: boolean,
+): void {
+  const clean = field.trim()
+  if (!clean) return
+  const key = normalizeFieldKey(clean)
+  const existing = fields.get(key)
+  fields.set(key, { field: existing?.field ?? clean, required: required || !!existing?.required })
+}
+
+function propertyList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.flatMap(propertyList)
+  if (typeof value === 'string') return value.split(',').map(part => part.trim()).filter(Boolean)
+  return []
+}
+
 function conceptNames(entry: VaultEntry): Set<string> {
   return new Set([
     entry.title,
@@ -236,6 +302,16 @@ function normalizeFieldKey(key: string): string {
 
 function humanizeField(field: string): string {
   return field.replace(/_/g, ' ')
+}
+
+function dedupeHints(hints: LivingFrontmatterHint[]): LivingFrontmatterHint[] {
+  const seen = new Set<string>()
+  return hints.filter((hint) => {
+    const key = hint.field ? `field:${normalizeFieldKey(hint.field)}` : `id:${hint.id}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
 
 function suggestedMissingFieldValue(
