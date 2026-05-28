@@ -154,6 +154,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByRole('tablist')).toHaveClass('grimoire-portability-lanes')
     expect(screen.getByText('Move vault data')).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-lane-markdown')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByTestId('settings-portability-preview-gate')).toHaveTextContent('Preview first to unlock')
     expect(screen.getByText('Preview Bear')).toBeInTheDocument()
     expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
     expect(screen.queryByTestId('object-storage-prototype-actions')).not.toBeInTheDocument()
@@ -217,6 +218,12 @@ describe('PortabilitySettingsSection', () => {
     )
 
     const timeline = screen.getByTestId('import-autopsy-timeline')
+    const actionDeck = screen.getByTestId('settings-portability-action-deck')
+    const proofLedger = screen.getByTestId('portability-proof-ledger')
+    expect(actionDeck.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(timeline.compareDocumentPosition(proofLedger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(timeline).toHaveTextContent('Review gate')
+    expect(timeline).toHaveTextContent('Review the exact rows below before importing.')
     expect(timeline).toHaveTextContent('Markdown folder selected: Research')
     expect(timeline).toHaveTextContent('Will land in ./imports/markdown')
     expect(timeline).toHaveTextContent('3 notes')
@@ -410,29 +417,29 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-storage-azure-pull-apply'))
 
     expect(onPreviewMarkdownFolder).toHaveBeenCalledTimes(1)
-    expect(onImportMarkdownFolder).toHaveBeenCalledTimes(1)
+    expect(onImportMarkdownFolder).not.toHaveBeenCalled()
     expect(onPreviewMarkdownZip).toHaveBeenCalledTimes(1)
-    expect(onImportMarkdownZip).toHaveBeenCalledTimes(1)
+    expect(onImportMarkdownZip).not.toHaveBeenCalled()
     expect(onPreviewBear).toHaveBeenCalledTimes(1)
-    expect(onImportBear).toHaveBeenCalledTimes(1)
+    expect(onImportBear).not.toHaveBeenCalled()
     expect(onPreviewObsidian).toHaveBeenCalledTimes(1)
-    expect(onImportObsidian).toHaveBeenCalledTimes(1)
+    expect(onImportObsidian).not.toHaveBeenCalled()
     expect(onPreviewNotion).toHaveBeenCalledTimes(1)
-    expect(onImportNotion).toHaveBeenCalledTimes(1)
+    expect(onImportNotion).not.toHaveBeenCalled()
     expect(onPreviewNotionFolder).toHaveBeenCalledTimes(1)
-    expect(onImportNotionFolder).toHaveBeenCalledTimes(1)
+    expect(onImportNotionFolder).not.toHaveBeenCalled()
     expect(onPreviewSpanda).toHaveBeenCalledTimes(1)
-    expect(onImportSpanda).toHaveBeenCalledTimes(1)
+    expect(onImportSpanda).not.toHaveBeenCalled()
     expect(onPreviewAppleJournal).toHaveBeenCalledTimes(1)
-    expect(onImportAppleJournal).toHaveBeenCalledTimes(1)
+    expect(onImportAppleJournal).not.toHaveBeenCalled()
     expect(onPreviewDayOne).toHaveBeenCalledTimes(1)
-    expect(onImportDayOne).toHaveBeenCalledTimes(1)
+    expect(onImportDayOne).not.toHaveBeenCalled()
     expect(onPreviewJourney).toHaveBeenCalledTimes(1)
-    expect(onImportJourney).toHaveBeenCalledTimes(1)
+    expect(onImportJourney).not.toHaveBeenCalled()
     expect(onPreviewJsonCapsule).toHaveBeenCalledTimes(1)
-    expect(onImportJsonCapsule).toHaveBeenCalledTimes(1)
+    expect(onImportJsonCapsule).not.toHaveBeenCalled()
     expect(onPreviewSqliteCapsule).toHaveBeenCalledTimes(1)
-    expect(onImportSqliteCapsule).toHaveBeenCalledTimes(1)
+    expect(onImportSqliteCapsule).not.toHaveBeenCalled()
     expect(onExportMarkdownZip).toHaveBeenCalledTimes(1)
     expect(onExportStaticHtmlArchive).toHaveBeenCalledTimes(1)
     expect(onPreviewJsonSnapshot).toHaveBeenCalledTimes(1)
@@ -457,6 +464,43 @@ describe('PortabilitySettingsSection', () => {
     expect(onApplyAzureMirrorPush).toHaveBeenCalledTimes(1)
     expect(onPreviewAzureMirrorPull).toHaveBeenCalledTimes(1)
     expect(onApplyAzureMirrorPull).toHaveBeenCalledTimes(1)
+  })
+
+  it('unlocks only the matching import after a no-write preview is reviewed', () => {
+    const onImportMarkdownFolder = vi.fn()
+    const onImportBear = vi.fn()
+    const onImportDayOne = vi.fn()
+    const { rerender } = render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        importPreview={importPreview}
+        onImportMarkdownFolder={onImportMarkdownFolder}
+        onImportBear={onImportBear}
+        onImportDayOne={onImportDayOne}
+      />,
+    )
+
+    expect(screen.getByTestId('settings-import-markdown-folder')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-import-bear')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-import-markdown-folder'))
+    fireEvent.click(screen.getByTestId('settings-import-bear'))
+    expect(onImportMarkdownFolder).toHaveBeenCalledTimes(1)
+    expect(onImportBear).not.toHaveBeenCalled()
+
+    rerender(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        importPreview={{ ...importPreview, sourceId: 'day-one-preview' }}
+        onImportMarkdownFolder={onImportMarkdownFolder}
+        onImportDayOne={onImportDayOne}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-journals'))
+    expect(screen.getByTestId('settings-import-day-one')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-import-journey')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-import-day-one'))
+    expect(onImportDayOne).toHaveBeenCalledTimes(1)
   })
 
   it('requires object-storage preview before apply buttons unlock', () => {

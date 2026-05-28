@@ -27,6 +27,7 @@ import {
   pickSqliteCapsuleImportFile,
   previewPortabilityCapsuleImport,
 } from '../utils/portabilityCapsuleImport'
+import { reviewedImportSourcePath } from '../lib/importReviewGate'
 import {
   runMarkdownZipExportAction,
   runPortabilityCapsuleExportAction,
@@ -136,7 +137,6 @@ export function useVaultPortabilityActions({
       setActiveAction(null)
     }
   }, [rememberImportPreview, resolvedPath, setToastMessage])
-
   const handleImportFolder = useCallback(async (source: MarkdownFolderSource) => {
     if (!resolvedPath.trim()) {
       setToastMessage('Open a vault before importing Markdown')
@@ -146,12 +146,11 @@ export function useVaultPortabilityActions({
     setActiveAction(source)
     let operation: ActivePortabilityOperation | null = null
     try {
-      const sourcePath = source === 'bear'
-        ? await pickBearImportFolder()
-        : source === 'markdown-zip'
-          ? await pickMarkdownZipImportFile()
-          : await pickMarkdownImportFolder()
-      if (!sourcePath) return
+      const sourcePath = reviewedImportSourcePath(source, lastImportPreview)
+      if (!sourcePath) {
+        setToastMessage(`Preview ${label} before importing to the vault`)
+        return
+      }
       const activeOperation = beginPortabilityOperation(source, label, activeOperationRef, setPortabilityProgress)
       operation = activeOperation
       setLastImportPreview(null)
@@ -173,8 +172,7 @@ export function useVaultPortabilityActions({
       clearPortabilityOperation(operation, activeOperationRef, setPortabilityProgress)
       setActiveAction(null)
     }
-  }, [reloadAfterImport, resolvedPath, setToastMessage, updateImportProgress])
-
+  }, [lastImportPreview, reloadAfterImport, resolvedPath, setToastMessage, updateImportProgress])
   const handlePreviewMarkdownZip = useCallback(async () => {
     if (!resolvedPath.trim()) {
       setToastMessage('Open a vault before previewing an import')
@@ -196,7 +194,6 @@ export function useVaultPortabilityActions({
       setActiveAction(null)
     }
   }, [rememberImportPreview, resolvedPath, setToastMessage])
-
   const handleJournalExport = useCallback(async (source: JournalImportSource, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
       setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} journals`)
@@ -207,8 +204,13 @@ export function useVaultPortabilityActions({
     setActiveAction(actionId)
     let operation: ActivePortabilityOperation | null = null
     try {
-      const sourcePath = await pickJournalImportSource(source)
-      if (!sourcePath) return
+      const sourcePath = mode === 'preview'
+        ? await pickJournalImportSource(source)
+        : reviewedImportSourcePath(actionId, lastImportPreview)
+      if (!sourcePath) {
+        if (mode === 'import') setToastMessage(`Preview ${label} before importing to the vault`)
+        return
+      }
       setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label} export...`)
       if (mode === 'preview') {
         const result = await previewJournalExportIntoVault(resolvedPath, sourcePath, source)
@@ -235,8 +237,7 @@ export function useVaultPortabilityActions({
       clearPortabilityOperation(operation, activeOperationRef, setPortabilityProgress)
       setActiveAction(null)
     }
-  }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
-
+  }, [lastImportPreview, reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
   const handleAppExport = useCallback(async (source: AppImportSource, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
       setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} app exports`)
@@ -246,8 +247,13 @@ export function useVaultPortabilityActions({
     setActiveAction(appImportActionId(source, mode))
     let operation: ActivePortabilityOperation | null = null
     try {
-      const sourcePath = await pickAppImportSource(source)
-      if (!sourcePath) return
+      const sourcePath = mode === 'preview'
+        ? await pickAppImportSource(source)
+        : reviewedImportSourcePath(appImportActionId(source, 'import'), lastImportPreview)
+      if (!sourcePath) {
+        if (mode === 'import') setToastMessage(`Preview ${label} before importing to the vault`)
+        return
+      }
 
       setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label}...`)
       if (mode === 'preview') {
@@ -275,8 +281,7 @@ export function useVaultPortabilityActions({
       clearPortabilityOperation(operation, activeOperationRef, setPortabilityProgress)
       setActiveAction(null)
     }
-  }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
-
+  }, [lastImportPreview, reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
   const handleCapsuleImport = useCallback(async (format: PortabilityCapsuleFormat, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
       setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} capsules`)
@@ -286,8 +291,13 @@ export function useVaultPortabilityActions({
     const label = format === 'json' ? 'JSON capsule' : 'SQLite capsule'
     setActiveAction(actionId)
     try {
-      const sourcePath = format === 'json' ? await pickJsonCapsuleImportFile() : await pickSqliteCapsuleImportFile()
-      if (!sourcePath) return
+      const sourcePath = mode === 'preview'
+        ? format === 'json' ? await pickJsonCapsuleImportFile() : await pickSqliteCapsuleImportFile()
+        : reviewedImportSourcePath(actionId, lastImportPreview)
+      if (!sourcePath) {
+        if (mode === 'import') setToastMessage(`Preview ${label} before importing to the vault`)
+        return
+      }
 
       setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label}...`)
       if (mode === 'preview') {
@@ -306,8 +316,7 @@ export function useVaultPortabilityActions({
     } finally {
       setActiveAction(null)
     }
-  }, [reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage])
-
+  }, [lastImportPreview, reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage])
   const handleExportMarkdownZip = useCallback(async () => {
     await runMarkdownZipExportAction({
       resolvedPath,
@@ -318,7 +327,6 @@ export function useVaultPortabilityActions({
       updateProgress: updateImportProgress,
     })
   }, [resolvedPath, setToastMessage, updateImportProgress])
-
   const handleExportStaticHtmlArchive = useCallback(async () => {
     await runStaticHtmlExportAction({
       resolvedPath,

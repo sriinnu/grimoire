@@ -50,6 +50,7 @@ export function buildPortableManifestMarkdown(
     '',
     `Source: ${sourceLabel}`,
     'Mode: no writes yet',
+    'Review gate: inspect this manifest before importing or applying changes.',
     'Privacy: absolute local paths are redacted from this portable copy.',
     '',
     '## Summary',

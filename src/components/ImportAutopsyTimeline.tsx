@@ -69,6 +69,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
       aria-label={`Import Autopsy preview for ${sourceLabel}`}
     >
       <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="default" className="rounded-md">Review gate</Badge>
         <Badge variant="secondary" className="rounded-md">Import Autopsy</Badge>
         <Badge variant="outline" className="rounded-md">No writes yet</Badge>
         {isRefreshing ? <Badge variant="outline" className="rounded-md">Refreshing...</Badge> : null}
@@ -91,6 +92,9 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
         data-testid="import-autopsy-copy-status"
       >
         {copyStatus(copyState)}
+      </p>
+      <p className="text-[11px] leading-snug text-muted-foreground" data-testid="import-autopsy-review-gate">
+        Review the exact rows below before importing. Full source paths and local reports stay on this Mac.
       </p>
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {livePreviewSummary(sourceLabel, preview.result, isRefreshing)}
