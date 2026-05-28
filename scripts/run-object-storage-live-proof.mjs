@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process'
-import { dirname, resolve } from 'node:path'
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
@@ -28,6 +30,7 @@ function parseArgs(argv) {
     dryRun: false,
     provider: 'all',
     requireEnabled: false,
+    reportPath: null,
     selfTest: false,
   }
 
@@ -55,6 +58,13 @@ function parseArgs(argv) {
       index += 1
       continue
     }
+    if (arg === '--report') {
+      const reportPath = argv[index + 1]
+      if (!reportPath?.trim()) throw new Error('--report requires a path')
+      options.reportPath = reportPath
+      index += 1
+      continue
+    }
     throw new Error(`Unknown option: ${arg}`)
   }
 
@@ -73,8 +83,12 @@ function missingRequired(env, provider) {
   return provider.required.filter((key) => !env[key]?.trim())
 }
 
+function envStateMap(env, keys) {
+  return Object.fromEntries(keys.map((key) => [key, env[key]?.trim() ? 'set' : 'missing']))
+}
+
 function envState(env, keys) {
-  return keys.map((key) => `${key}=${env[key]?.trim() ? 'set' : 'missing'}`).join(', ')
+  return Object.entries(envStateMap(env, keys)).map(([key, state]) => `${key}=${state}`).join(', ')
 }
 
 function testCommand(testName) {
@@ -115,13 +129,13 @@ function planProvider(env, id) {
   }
 }
 
-function printPlan(plans) {
+function printPlan(plans, env = process.env) {
   for (const plan of plans) {
     const { provider } = plan
     console.log(`[object-storage-live] ${provider.label}`)
     console.log(`  gate: ${provider.gate}=${plan.enabled ? '1' : 'missing'}`)
-    console.log(`  required: ${envState(process.env, provider.required)}`)
-    if (provider.optional.length > 0) console.log(`  optional: ${envState(process.env, provider.optional)}`)
+    console.log(`  required: ${envState(env, provider.required)}`)
+    if (provider.optional.length > 0) console.log(`  optional: ${envState(env, provider.optional)}`)
     console.log(`  test: ${provider.test}`)
   }
 }
@@ -129,37 +143,109 @@ function printPlan(plans) {
 function run(options, env = process.env) {
   const plans = selectedProviders(options.provider).map((id) => planProvider(env, id))
   const enabledPlans = plans.filter((plan) => plan.enabled)
+  const report = buildReport(options, plans, env)
+  const finish = (status, message) => {
+    report.summary.status = status
+    report.summary.message = message
+    report.finished_at = new Date().toISOString()
+    writeReport(options.reportPath, report)
+  }
 
   if (options.dryRun) {
-    printPlan(plans)
+    printPlan(plans, env)
+    for (const result of report.providers) result.status = result.enabled ? 'ready' : 'gate_missing'
+    finish('dry_run', 'No provider proof was run.')
     return 0
   }
 
   if (enabledPlans.length === 0) {
     const message = 'No live object-storage proof gates are enabled.'
-    if (options.requireEnabled) throw new Error(message)
+    for (const result of report.providers) result.status = 'gate_missing'
+    if (options.requireEnabled) {
+      finish('failed', message)
+      throw new Error(message)
+    }
     console.log(`[object-storage-live] skipped: ${message}`)
+    finish('skipped', message)
     return 0
   }
 
+  let failed = null
   for (const plan of enabledPlans) {
+    const providerResult = report.providers.find((result) => result.id === plan.id)
     if (plan.missing.length > 0) {
-      throw new Error(`${plan.provider.label} live proof is gated on ${plan.provider.gate}=1 but missing: ${plan.missing.join(', ')}`)
+      providerResult.status = 'missing_config'
+      providerResult.message = `Missing required env: ${plan.missing.join(', ')}`
+      failed = `${plan.provider.label} live proof is gated on ${plan.provider.gate}=1 but missing: ${plan.missing.join(', ')}`
+    } else {
+      providerResult.status = 'ready'
     }
+  }
+  if (failed) {
+    finish('failed', failed)
+    throw new Error(failed)
   }
 
   for (const plan of enabledPlans) {
+    const providerResult = report.providers.find((result) => result.id === plan.id)
     console.log(`[object-storage-live] running ${plan.provider.label} live provider preview/apply/pull proof`)
-    runCargoTest(plan.provider.test)
+    providerResult.status = 'running'
+    try {
+      runCargoTest(plan.provider.test)
+      providerResult.status = 'passed'
+      providerResult.message = 'Provider preview/apply/pull proof passed.'
+    } catch (error) {
+      providerResult.status = 'failed'
+      providerResult.message = error instanceof Error ? error.message : String(error)
+      failed = `${plan.provider.label} live provider proof failed`
+      break
+    }
   }
+  finish(failed ? 'failed' : 'passed', failed ?? 'All enabled live provider proofs passed.')
+  if (failed) throw new Error(failed)
   return 0
+}
+
+function buildReport(options, plans, env) {
+  return {
+    schema: 'grimoire-object-storage-live-proof-v1',
+    generated_at: new Date().toISOString(),
+    finished_at: null,
+    provider_filter: options.provider,
+    summary: {
+      status: 'planned',
+      message: 'Provider live proof has not run yet.',
+    },
+    providers: plans.map((plan) => ({
+      id: plan.id,
+      label: plan.provider.label,
+      enabled: plan.enabled,
+      gate: {
+        name: plan.provider.gate,
+        state: plan.enabled ? 'set' : 'missing',
+      },
+      required: envStateMap(env, plan.provider.required),
+      optional: envStateMap(env, plan.provider.optional),
+      test: plan.provider.test,
+      status: 'planned',
+      message: null,
+    })),
+  }
+}
+
+function writeReport(reportPath, report) {
+  if (!reportPath) return
+  const target = resolve(REPO_ROOT, reportPath)
+  mkdirSync(dirname(target), { recursive: true })
+  writeFileSync(target, `${JSON.stringify(report, null, 2)}\n`)
+  console.log(`[object-storage-live] wrote redacted proof report: ${target}`)
 }
 
 function runSelfTest() {
   const env = {
-    GRIMOIRE_AZURE_CONTAINER: 'vault',
+    GRIMOIRE_AZURE_CONTAINER: 'secret-container-for-report-test',
     GRIMOIRE_AZURE_LIVE_WRITE_PROOF: '1',
-    GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'acct',
+    GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'secret-account-for-report-test',
     GRIMOIRE_S3_LIVE_WRITE_PROOF: '1',
   }
   const plans = selectedProviders('all').map((id) => planProvider(env, id))
@@ -172,6 +258,20 @@ function runSelfTest() {
   const command = testCommand(PROVIDERS.s3.test).join(' ')
   if (!command.includes('--ignored --exact --nocapture')) {
     throw new Error('self-test expected ignored exact cargo invocation')
+  }
+  const temp = mkdtempSync(join(tmpdir(), 'grimoire-object-storage-proof-'))
+  const dryRunReport = join(temp, 'dry-run.json')
+  run({ dryRun: true, provider: 'all', requireEnabled: false, reportPath: dryRunReport, selfTest: false }, env)
+  const dryRunJson = readFileSync(dryRunReport, 'utf8')
+  if (
+    dryRunJson.includes('secret-account-for-report-test')
+    || dryRunJson.includes('secret-container-for-report-test')
+  ) {
+    throw new Error('self-test expected proof report to redact configured env values')
+  }
+  const parsed = JSON.parse(dryRunJson)
+  if (parsed.summary.status !== 'dry_run' || parsed.providers[1].required.GRIMOIRE_AZURE_CONTAINER !== 'set') {
+    throw new Error('self-test expected dry-run proof report with set/missing state')
   }
   console.log('self-test passed')
 }
