@@ -244,6 +244,7 @@ Build order:
   - [x] Carry source-safe Council labels into reviewed Memory provenance (`source_notes` and Source Links) while protected Council packets expose no source labels.
   - [x] Add a source-safe Crystallize review runway inside the dialog so sources, Locality Firewall state, editable diff, and local Markdown landing are visible before apply.
   - [x] Add an explicit ledger contract to Crystallize proposals: `memory_status`, `memory_review_state`, `memory_source_count`, a `## Ledger Contract` body section, review hunks, and packet counts before any local write.
+  - [x] Add editable Memory Ledger expiry and contradiction slots to every reviewed Crystallize memory: generated Markdown now carries `expires_at` and `contradicted_by`, the body contract shows review-by/contradiction state, and the AI loop/review packet surfaces that before apply.
 - [ ] Agent Council: fan one request out to Codex, Claude, Chitragupta, Woosh, Tring CLI, local search, vault graph, and import/export context; synthesize with sources.
   - [x] Track Chitragupta, Woosh, and Tring CLI as private local agent lanes without publishing private internals.
   - [x] Surface capability, health, permissions, and first stance cards in the Agent Council UI.
@@ -684,6 +685,7 @@ Build order:
 		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.241` after removing the old standalone Assistant Brief/Daily Flow components so Today Runway is the only daily assistant loop owner; shell remains 221.88 KiB gzip.
 		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.242` after moving the remaining Daily Flow styles into the Today Runway CSS owner; shell is 221.87 KiB gzip.
 		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.258` after the Chitragupta MCP contract truth card and current green gate pass; shell is 222.04 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.259` after Crystallize expiry/contradiction ledger slots; shell is 222.09 KiB gzip.
   - [x] Extend theme presets into local JSON theme packs with validation, import/export, and dev hot reload.
   - [x] Apply motion primitives to command palette, Settings, inspector, graph focus, and note navigation.
   - [x] Split Settings portability actions into intent lanes so Markdown, app, journal, export, and storage controls appear only when chosen.
@@ -711,7 +713,7 @@ Build order:
   - [x] Make bottom-bar layout responsive for mobile/iPad-width windows while preserving compact icon-first controls at medium widths.
   - [x] Stamp macOS app builds with incremental semver build versions shown as `x.x.1+` in the bottom bar.
   - [x] Harden the local macOS test-build ritual: `pnpm macos:test-build` bumps the app version, builds, replaces the singleton `/Applications/Grimoire.app`, ad-hoc signs it, and verifies the installed bundle version.
-		  - [ ] Verify `/Applications/Grimoire.app` native window visibility interactively; `0.1.258` is installed as the ad-hoc-signed singleton build, but Codex screenshot probes are blocked until Screen Recording permission is granted.
+		  - [ ] Verify `/Applications/Grimoire.app` native window visibility interactively; `0.1.259` is installed as the ad-hoc-signed singleton build, but Codex screenshot probes are blocked until Screen Recording permission is granted.
   - [x] Move the status bar implementation behind a lazy startup boundary while preserving a stable local-only footer fallback.
   - [x] Reserve graph canvas HUD and legend rails so package/agent state no longer floats over nodes.
   - [x] Align graph agent lane vocabulary with the app's real AI routes: Local Search, Vault Graph, Chitragupta, Codex, and Claude Code (`claude_code`).

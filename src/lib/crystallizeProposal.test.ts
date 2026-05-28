@@ -87,7 +87,9 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('source_note: "[[Test Project]]"')
     expect(proposal.sourceLabels).toEqual(['[[Test Project]]'])
     expect(proposal.ledgerContract).toEqual({
+      contradictedBy: [],
       confidence: 'proposed',
+      expiresAt: '2026-08-14',
       locality: 'vault',
       reviewState: 'reviewed',
       sourceCount: 1,
@@ -97,6 +99,8 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('memory_status: proposed')
     expect(proposal.markdown).toContain('memory_review_state: reviewed')
     expect(proposal.markdown).toContain('memory_source_count: 1')
+    expect(proposal.markdown).toContain('expires_at: 2026-08-14')
+    expect(proposal.markdown).toContain('contradicted_by: []')
     expect(proposal.markdown).toContain('memory_version: 1')
     expect(proposal.markdown).toContain('reviewed_at: "2026-05-16T12:00:00.000Z"')
     expect(proposal.markdown).toContain('## Source Links')
@@ -104,6 +108,8 @@ describe('crystallizeProposal', () => {
     expect(proposal.markdown).toContain('- [[Related Note]]')
     expect(proposal.markdown).toContain('## Ledger Contract')
     expect(proposal.markdown).toContain('- Review state: reviewed')
+    expect(proposal.markdown).toContain('- Expires on: 2026-08-14')
+    expect(proposal.markdown).toContain('- Contradicted by: none')
     expect(proposal.markdown).toContain('Keep the Memory Ledger source-backed.')
     expect(proposal.changes).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 'create-memory-note', kind: 'file', target: proposal.relativePath }),
@@ -230,6 +236,8 @@ describe('crystallizeProposal', () => {
 
     expect(mockEntry.properties.handoff).toBeUndefined()
     expect(mockEntry.properties.source).toBe('Agent Council')
+    expect(mockEntry.properties.expires_at).toBe('2026-08-14')
+    expect(mockEntry.properties.contradicted_by).toEqual([])
     expect(mockEntry.properties.reviewed_at).toBe('2026-05-16T12:00:00.000Z')
   })
 
@@ -324,8 +332,10 @@ describe('crystallizeProposal', () => {
     })
 
     expect(summarizeCrystallizeProposal(proposal)).toEqual({
+      contradictionCount: 0,
+      expiresAt: '2026-08-14',
       hunkCount: 6,
-      ledgerFieldCount: 7,
+      ledgerFieldCount: 9,
       sourceCount: 2,
       targetFolder: 'memory/crystallized',
       taskCount: 1,
@@ -349,6 +359,8 @@ describe('crystallizeProposal', () => {
     expect(proposal.targetPath).not.toContain('/.git/')
     expect(saved).toContain('type: Memory')
     expect(saved).toContain('locality: vault')
+    expect(saved).toContain('expires_at: 2026-08-14')
+    expect(saved).toContain('contradicted_by: []')
     expect(saved).toContain('Human-reviewed memory remains plain Markdown.')
   })
 })

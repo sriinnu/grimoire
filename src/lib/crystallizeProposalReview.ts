@@ -88,9 +88,11 @@ export function buildReviewChanges(
   return changes
 }
 
-export function buildLedgerContract(sourceCount: number): CrystallizeLedgerContract {
+export function buildLedgerContract(sourceCount: number, expiresAt: string): CrystallizeLedgerContract {
   return {
+    contradictedBy: [],
     confidence: 'proposed',
+    expiresAt,
     locality: 'vault',
     reviewState: 'reviewed',
     sourceCount,
@@ -105,6 +107,8 @@ export function buildLedgerContractLines(contract: CrystallizeLedgerContract): s
     `- Confidence: ${contract.confidence}`,
     `- Review state: ${contract.reviewState}`,
     `- Source count: ${contract.sourceCount}`,
+    `- Expires on: ${contract.expiresAt}`,
+    `- Contradicted by: ${contract.contradictedBy.length > 0 ? contract.contradictedBy.join(', ') : 'none'}`,
     `- Locality: ${contract.locality}`,
     `- Version: ${contract.version}`,
   ]
@@ -114,7 +118,7 @@ export function countLedgerFrontmatterFields(proposal: CrystallizeProposal): num
   const frontmatter = proposal.changes.find(change => change.id === 'write-frontmatter')?.after ?? ''
   return frontmatter
     .split('\n')
-    .filter(line => /^(confidence|memory_status|memory_review_state|memory_source_count|memory_version|reviewed_at|locality):/.test(line))
+    .filter(line => /^(confidence|memory_status|memory_review_state|memory_source_count|expires_at|contradicted_by|memory_version|reviewed_at|locality):/.test(line))
     .length
 }
 

@@ -51,6 +51,7 @@ interface CrystallizeProposalParams {
 }
 
 const CRYSTALLIZED_FOLDER = 'memory/crystallized'
+const DEFAULT_MEMORY_REVIEW_DAYS = 90
 
 /** Returns the newest assistant response that can become durable Markdown. */
 export function latestCrystallizableResponse(messages: Array<{ response?: string }>): string | null {
@@ -95,7 +96,7 @@ export function buildCrystallizeProposal({
     sourceName,
   })
   const sourceLabel = sourceLabels[0] ?? 'AI chat'
-  const ledgerContract = buildLedgerContract(sourceLabels.length)
+  const ledgerContract = buildLedgerContract(sourceLabels.length, reviewDateAfter(now, DEFAULT_MEMORY_REVIEW_DAYS))
   const subject = titleSubject ?? activeEntry?.title ?? sourceName
   const title = `Crystallized - ${subject} - ${date}`
   const slug = `${slugifyNoteStem(title)}-${now.getTime()}`
@@ -121,6 +122,8 @@ export function buildCrystallizeProposal({
     `memory_status: ${ledgerContract.status}`,
     `memory_review_state: ${ledgerContract.reviewState}`,
     `memory_source_count: ${ledgerContract.sourceCount}`,
+    `expires_at: ${ledgerContract.expiresAt}`,
+    'contradicted_by: []',
     `last_seen: ${date}`,
     `memory_version: ${ledgerContract.version}`,
     `reviewed_at: ${yamlString(reviewedAt)}`,
@@ -193,12 +196,20 @@ export function summarizeCrystallizeProposal(proposal: CrystallizeProposal | nul
     .filter(line => line.trim().startsWith('- '))
     .length ?? 0
   return {
+    contradictionCount: proposal.ledgerContract.contradictedBy.length,
+    expiresAt: proposal.ledgerContract.expiresAt,
     hunkCount: proposal.changes.length,
     ledgerFieldCount: countLedgerFrontmatterFields(proposal),
     sourceCount,
     targetFolder: proposal.relativePath.split('/').slice(0, -1).join('/'),
     taskCount: proposal.changes.filter(change => change.kind === 'task').length,
   }
+}
+
+function reviewDateAfter(now: Date, days: number): string {
+  const next = new Date(now.getTime())
+  next.setUTCDate(next.getUTCDate() + days)
+  return next.toISOString().slice(0, 10)
 }
 
 function buildActiveNotePatch({

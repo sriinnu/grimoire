@@ -21,7 +21,9 @@ function isInlineArrayLiteral(value: string): boolean {
 }
 
 function parseInlineArray(value: string): FrontmatterValue {
-  const items = value.slice(1, -1).split(',').map(s => unquote(s.trim()))
+  const body = value.slice(1, -1).trim()
+  if (!body) return []
+  const items = body.split(',').map(s => unquote(s.trim()))
   return collapseList(items)
 }
 

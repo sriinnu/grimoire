@@ -16,8 +16,10 @@ describe('AiCrystallizeLoopCard', () => {
         linkedCount={2}
         onCrystallize={onCrystallize}
         proposalSummary={{
+          contradictionCount: 0,
+          expiresAt: '2026-08-14',
           hunkCount: 4,
-          ledgerFieldCount: 7,
+          ledgerFieldCount: 9,
           sourceCount: 2,
           targetFolder: 'memory/crystallized',
           taskCount: 0,
@@ -29,7 +31,9 @@ describe('AiCrystallizeLoopCard', () => {
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 linked')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review packet')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('4 hunks')
-    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('7 ledger fields')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('9 ledger fields')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('review by 2026-08-14')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('0 contradictions')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 sources')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('memory/crystallized')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review diff')
@@ -95,6 +99,8 @@ describe('AiCrystallizeLoopCard', () => {
         linkedCount={1}
         onCrystallize={vi.fn()}
         proposalSummary={{
+          contradictionCount: 1,
+          expiresAt: '2026-08-14',
           hunkCount: 1,
           ledgerFieldCount: 1,
           sourceCount: 1,
@@ -108,6 +114,8 @@ describe('AiCrystallizeLoopCard', () => {
     expect(packet).toHaveTextContent('1 hunk')
     expect(packet).toHaveTextContent('1 source')
     expect(packet).toHaveTextContent('1 ledger field')
+    expect(packet).toHaveTextContent('review by 2026-08-14')
+    expect(packet).toHaveTextContent('1 contradiction')
     expect(packet).toHaveTextContent('1 task hunk')
     expect(packet).not.toHaveTextContent('1 sources')
   })

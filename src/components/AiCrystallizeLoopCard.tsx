@@ -86,6 +86,11 @@ export function AiCrystallizeLoopCard({
                 icon={<CheckCircle2 className="size-3" />}
                 label={reviewCount(proposalSummary.ledgerFieldCount, 'ledger field')}
               />
+              <LoopBadge icon={<FileClock className="size-3" />} label={`review by ${proposalSummary.expiresAt}`} />
+              <LoopBadge
+                icon={<ShieldCheck className="size-3" />}
+                label={reviewCount(proposalSummary.contradictionCount, 'contradiction')}
+              />
               {proposalSummary.taskCount > 0 ? (
                 <LoopBadge icon={<CheckCircle2 className="size-3" />} label={reviewCount(proposalSummary.taskCount, 'task hunk')} />
               ) : null}

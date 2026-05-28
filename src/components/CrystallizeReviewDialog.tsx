@@ -217,7 +217,7 @@ function CrystallizeRunway({
       value: blocked ? 'Blocked' : 'Local',
     },
     {
-      detail: 'Frontmatter plus body contract.',
+      detail: 'Expiry and contradiction slots.',
       icon: Sparkles,
       label: 'Ledger',
       state: 'ready',
@@ -288,7 +288,7 @@ function CrystallizePacketSummary({
     {
       label: 'Ledger',
       value: countReviewItem(summary.ledgerFieldCount, 'field'),
-      detail: 'Contract is readable in frontmatter and body.',
+      detail: `Review by ${summary.expiresAt}; ${countReviewItem(summary.contradictionCount, 'contradiction')}.`,
     },
     {
       label: 'Target',

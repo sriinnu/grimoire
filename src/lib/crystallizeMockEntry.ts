@@ -1,10 +1,12 @@
 import type { VaultEntry } from '../types'
 import { handoffProperties, type CrystallizeHandoffMetadata } from './crystallizeHandoff'
+import type { CrystallizeLedgerContract } from './crystallizeProposalTypes'
 
 type MockProperty = VaultEntry['properties'][string]
 
 interface CrystallizeMockProposal {
   handoffMetadata: CrystallizeHandoffMetadata | null
+  ledgerContract: CrystallizeLedgerContract
   markdown: string
   relativePath: string
   reviewedAt: string
@@ -65,6 +67,8 @@ function fallbackProperties(proposal: CrystallizeMockProposal): VaultEntry['prop
     memory_status: 'proposed',
     memory_review_state: 'reviewed',
     memory_source_count: proposal.sourceLabels.length,
+    expires_at: proposal.ledgerContract.expiresAt,
+    contradicted_by: proposal.ledgerContract.contradictedBy,
     memory_version: 1,
     reviewed_at: proposal.reviewedAt,
     locality: 'vault',
@@ -103,6 +107,7 @@ function parseScalar(value: string): MockProperty {
   if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) return Number(trimmed)
   try {
     const parsed = JSON.parse(trimmed)
+    if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) return parsed
     return typeof parsed === 'string' || typeof parsed === 'number' || typeof parsed === 'boolean' ? parsed : trimmed
   } catch {
     return trimmed
