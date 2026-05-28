@@ -5,6 +5,7 @@ interface AgentPreflightGateProps {
   gatedLaneCount?: number
   heldLocalCount?: number
   label: string
+  proofBoundaryLaneCount?: number
   protectedContext?: boolean
   readyLaneCount?: number
   sourceCount?: number
@@ -17,6 +18,7 @@ export function AgentPreflightGate({
   gatedLaneCount,
   heldLocalCount = 0,
   label,
+  proofBoundaryLaneCount,
   protectedContext = false,
   readyLaneCount,
   sourceCount = 0,
@@ -49,8 +51,9 @@ export function AgentPreflightGate({
         <PreflightMetric label="Trimmed" value={trimmedCount} />
       </div>
       {readyLaneCount != null && gatedLaneCount != null && unavailableLaneCount != null ? (
-        <div className="grid gap-2 text-xs sm:grid-cols-3" data-testid="agent-preflight-lanes">
+        <div className="grid gap-2 text-xs sm:grid-cols-4" data-testid="agent-preflight-lanes">
           <PreflightMetric label="Ready lanes" value={readyLaneCount} />
+          {proofBoundaryLaneCount != null ? <PreflightMetric label="Proof boundary" value={proofBoundaryLaneCount} /> : null}
           <PreflightMetric label="Private gated" value={gatedLaneCount} />
           <PreflightMetric label="Unavailable" value={unavailableLaneCount} />
         </div>

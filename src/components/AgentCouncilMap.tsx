@@ -167,6 +167,7 @@ function ReadinessRail({
 }) {
   const summaryText = [
     summary.ready > 0 ? `${summary.ready} source-safe` : null,
+    summary.proof > 0 ? `${summary.proof} proof-boundary` : null,
     summary.private > 0 ? `${summary.private} private` : null,
     summary.blocked > 0 ? `${summary.blocked} blocked` : null,
     summary.unavailable > 0 ? `${summary.unavailable} unavailable` : null,
@@ -326,6 +327,7 @@ function frictionDotClass(status: CouncilFrictionMoment['status']): string {
 
 function readinessDotClass(state: AgentCouncilReadinessLane['state']): string {
   if (state === 'ready') return 'bg-[var(--grimoire-signal-accent)]'
+  if (state === 'proof') return 'bg-[var(--status-bar-warning-fg,var(--primary))]'
   if (state === 'private') return 'bg-[var(--grimoire-private-local-accent)]'
   if (state === 'blocked') return 'bg-[var(--status-bar-danger-fg,var(--destructive))]'
   if (state === 'waiting') return 'bg-[var(--status-bar-warning-fg,var(--primary))]'

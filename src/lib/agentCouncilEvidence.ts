@@ -89,6 +89,32 @@ export function buildVaultGraphEvidence({
   return evidence.length > 0 ? evidence.slice(0, 5) : toolEvidence('Wikilink graph', 'Ready; no safe graph neighbors are visible yet.')
 }
 
+/** Builds source-safe evidence for importer, exporter, and sync proof boundaries. */
+export function buildPortabilityEvidence(): AgentCouncilEvidence[] {
+  return [
+    {
+      detail: 'No-write manifests show source basenames, vault-relative destinations, metadata transforms, attachments, and withheld reasons.',
+      label: 'Import Autopsy',
+      sourceKind: 'tool',
+    },
+    {
+      detail: 'Markdown ZIP and static HTML exits count local-only withheld files before portable artifacts are written.',
+      label: 'Export Manifest',
+      sourceKind: 'tool',
+    },
+    {
+      detail: 'iCloud and Google Drive stay local-folder proofs; S3/Azure need explicit preview/apply lanes and live proof before ready claims.',
+      label: 'Storage Proof Ledger',
+      sourceKind: 'tool',
+    },
+    {
+      detail: 'Dreams, journals, private lanes, mockups, credentials, and local-only files stay withheld from import/export/sync handoff.',
+      label: 'Locality Firewall',
+      sourceKind: 'tool',
+    },
+  ]
+}
+
 export function evidenceFromSources(sources: AgentCouncilSource[], fallback: AgentCouncilEvidence): AgentCouncilEvidence[] {
   const evidence = sources
     .filter((source) => source.kind !== 'memory-conflict')

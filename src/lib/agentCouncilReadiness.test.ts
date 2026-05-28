@@ -32,6 +32,7 @@ describe('agent council readiness', () => {
       member('chitragupta', 'Chitragupta', 'missing'),
       member('woosh', 'Woosh', 'private-local'),
       member('local_search', 'Local Search', 'ready'),
+      member('portability_context', 'Import/Export', 'ready'),
     ], false)
 
     expect(lanes).toEqual([
@@ -39,10 +40,17 @@ describe('agent council readiness', () => {
       expect.objectContaining({ label: 'Chitragupta', state: 'unavailable', status: 'Unavailable' }),
       expect.objectContaining({ label: 'Woosh', state: 'private', status: 'Private' }),
       expect.objectContaining({ detail: 'Runs against local metadata and source labels.', label: 'Local Search', status: 'Local' }),
+      expect.objectContaining({
+        detail: 'Shows preview/apply evidence; live provider proof is still pending.',
+        label: 'Import/Export',
+        state: 'proof',
+        status: 'Proof boundary',
+      }),
     ])
     expect(summarizeAgentCouncilReadiness(lanes)).toEqual({
       blocked: 0,
       private: 1,
+      proof: 1,
       ready: 2,
       unavailable: 1,
       waiting: 0,

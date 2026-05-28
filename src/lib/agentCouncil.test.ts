@@ -113,6 +113,21 @@ describe('agentCouncil', () => {
       kind: 'tool',
       label: 'Red-Team My Plan',
     })
+    const portability = members.find((member) => member.id === 'portability_context')
+    expect(portability?.contribution).toContain('Import Autopsy manifests')
+    expect(portability?.sources.map((source) => source.label)).toEqual([
+      'Import Autopsy',
+      'Export Manifest',
+      'Storage Proof Ledger',
+      'Locality Firewall',
+    ])
+    expect(portability?.evidence.map((item) => item.label)).toEqual([
+      'Import Autopsy',
+      'Export Manifest',
+      'Storage Proof Ledger',
+      'Locality Firewall',
+    ])
+    expect(portability?.evidence.map((item) => item.detail).join(' ')).not.toMatch(/works 100%|provider-proven/i)
   })
 
   it('adds source-safe red-team critique signals to the Council pass', () => {
