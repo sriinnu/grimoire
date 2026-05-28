@@ -60,6 +60,6 @@ describe('i18n', () => {
     expect(objectStorageCopy).toContain('Object storage proof boundary')
     expect(objectStorageCopy).toContain('preview/apply evidence')
     expect(objectStorageCopy).toContain('live failure-state proof is still required')
-    expect(objectStorageCopy).not.toMatch(/Object storage sync proof|provider SDK sync|Preview and apply live/)
+    expect(objectStorageCopy).not.toMatch(/Object storage sync proof|provider SDK|Azure provider sync|Preview and apply live|provider-proven sync/)
   })
 })

@@ -44,7 +44,7 @@ export function ObjectStoragePreviewCard({
       <OperationSummary report={report} kind="exclude" label="Local-only withheld" />
       <div className="text-[11px] leading-snug text-muted-foreground">
         {providerTarget
-          ? `Apply is locked to this exact ${report.direction} provider preview; changed target fields require another dry run. Local-only files stay withheld.`
+          ? `Apply is locked to this exact ${report.direction} provider proof preview; changed target fields require another dry run. Local-only files stay withheld; this is not provider-proven sync yet.`
           : `Apply is locked to this exact ${report.direction} preview; changed files require another dry run. This is not live cloud sync yet.`}
       </div>
     </div>
@@ -97,5 +97,5 @@ function providerLabel(providerId: ObjectStorageSyncReport['provider_id']): stri
 }
 
 function providerTargetLabel(providerId: ObjectStorageSyncReport['provider_id']): string {
-  return providerId === 's3' ? 'S3 provider SDK' : 'Azure provider sync'
+  return providerId === 's3' ? 'S3 provider proof preview' : 'Azure provider proof preview'
 }

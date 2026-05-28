@@ -144,6 +144,7 @@ function ProofReportDialog({
 function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
   const [failedCommand, setFailedCommand] = useState<string | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   async function copyCommand(proofCommand: PortabilityProofCommand) {
     setCopiedCommand(null)
@@ -194,59 +195,77 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
           ))}
         </div>
       ) : null}
-      {row.commands?.length ? (
-        <div className="grid gap-1">
-          {row.commands.map((proofCommand) => {
-            const copyState = copiedCommand === proofCommand.id
-              ? 'copied'
-              : failedCommand === proofCommand.id ? 'failed' : 'idle'
-
-            return (
-              <div className="flex min-w-0 items-center gap-2" key={proofCommand.id}>
-                <Button
-                  aria-label={`${proofCommand.label} command`}
-                  className="h-6 border-border px-2 text-[11px] text-foreground"
-                  onClick={() => {
-                    void copyCommand(proofCommand)
-                  }}
-                  size="xs"
-                  type="button"
-                  variant="outline"
-                >
-                  {copyState === 'copied' ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
-                  {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : proofCommand.label}
-                </Button>
-                <span className="min-w-0 truncate font-mono text-[10px] text-muted-foreground">
-                  {proofCommand.command}
-                </span>
-                <span className="hidden min-w-[11rem] text-[10px] text-muted-foreground sm:inline">
-                  {proofCommand.detail}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      ) : null}
-      {row.providerRequirements?.length ? (
+      <Button
+        aria-expanded={detailsOpen}
+        className="h-6 w-fit px-2 text-[11px]"
+        data-testid={`portability-proof-details-toggle-${row.id}`}
+        onClick={() => setDetailsOpen((open) => !open)}
+        size="xs"
+        type="button"
+        variant="ghost"
+      >
+        {detailsOpen ? 'Hide proof details' : 'Show proof details'}
+      </Button>
+      {detailsOpen ? (
         <div
-          aria-label={`${row.label} setup checklist`}
-          className="grid gap-1 text-[10px] leading-snug text-muted-foreground"
+          className="grid gap-1.5 border-t border-border/70 pt-1.5"
+          data-testid={`portability-proof-details-${row.id}`}
         >
-          {row.providerRequirements.map((requirement) => (
-            <div className="grid gap-0.5" key={requirement.id}>
-              <span className="font-semibold text-foreground">{requirement.label} setup</span>
-              <span>
-                gate <code className="font-mono text-foreground">{requirement.gate}</code>; required{' '}
-                <EnvNameList names={requirement.required} />; optional <EnvNameList names={requirement.optional} />
-              </span>
-              <span>Still needs {requirement.proofNeed}.</span>
+          {row.commands?.length ? (
+            <div className="grid gap-1">
+              {row.commands.map((proofCommand) => {
+                const copyState = copiedCommand === proofCommand.id
+                  ? 'copied'
+                  : failedCommand === proofCommand.id ? 'failed' : 'idle'
+
+                return (
+                  <div className="flex min-w-0 items-center gap-2" key={proofCommand.id}>
+                    <Button
+                      aria-label={`${proofCommand.label} command`}
+                      className="h-6 border-border px-2 text-[11px] text-foreground"
+                      onClick={() => {
+                        void copyCommand(proofCommand)
+                      }}
+                      size="xs"
+                      type="button"
+                      variant="outline"
+                    >
+                      {copyState === 'copied' ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
+                      {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : proofCommand.label}
+                    </Button>
+                    <span className="min-w-0 truncate font-mono text-[10px] text-muted-foreground">
+                      {proofCommand.command}
+                    </span>
+                    <span className="hidden min-w-[11rem] text-[10px] text-muted-foreground sm:inline">
+                      {proofCommand.detail}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
-          ))}
+          ) : null}
+          {row.providerRequirements?.length ? (
+            <div
+              aria-label={`${row.label} setup checklist`}
+              className="grid gap-1 text-[10px] leading-snug text-muted-foreground"
+            >
+              {row.providerRequirements.map((requirement) => (
+                <div className="grid gap-0.5" key={requirement.id}>
+                  <span className="font-semibold text-foreground">{requirement.label} setup</span>
+                  <span>
+                    gate <code className="font-mono text-foreground">{requirement.gate}</code>; required{' '}
+                    <EnvNameList names={requirement.required} />; optional <EnvNameList names={requirement.optional} />
+                  </span>
+                  <span>Still needs {requirement.proofNeed}.</span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+          <div className="text-[11px] leading-snug text-muted-foreground">
+            Still to prove: {row.remainingProof}
+          </div>
         </div>
       ) : null}
-      <div className="text-[11px] leading-snug text-muted-foreground">
-        Still to prove: {row.remainingProof}
-      </div>
     </div>
   )
 }

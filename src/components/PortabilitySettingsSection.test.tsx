@@ -113,13 +113,17 @@ describe('PortabilitySettingsSection', () => {
     expect(firewall.getByText('Allowed by default')).toBeInTheDocument()
     expect(firewall.getByText('Memory 1')).toBeInTheDocument()
     expect(firewall.getByText(/no silent cloud or remote egress/)).toBeInTheDocument()
+    const actionDeck = screen.getByTestId('settings-portability-action-deck')
     const proofLedger = within(screen.getByTestId('portability-proof-ledger'))
     expect(proofLedger.getByText('Proof Ledger')).toBeInTheDocument()
+    expect(actionDeck.compareDocumentPosition(screen.getByTestId('portability-proof-ledger'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-support-status', 'ready')
     expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-proof-level', 'fixture-regression')
     expect(screen.getByTestId('portability-proof-imports')).toHaveTextContent(/no-write preview adapters/)
     expect(screen.getByTestId('portability-proof-imports')).toHaveTextContent('Apple Journal')
     expect(screen.getByTestId('portability-proof-desktop-sync')).toHaveTextContent('Google Drive Desktop')
+    expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('Provider quota, offline recovery')
+    fireEvent.click(screen.getByTestId('portability-proof-details-toggle-desktop-sync'))
     expect(screen.getByTestId('portability-proof-desktop-sync')).toHaveTextContent('Provider quota, offline recovery')
     expect(screen.getByTestId('portability-proof-object-storage')).toHaveAttribute('data-support-status', 'fixture')
     expect(screen.getByTestId('portability-proof-object-storage')).toHaveAttribute('data-proof-level', 'live-read-only-plus-local-mirror')
@@ -145,8 +149,8 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Apple Journal')).toBeInTheDocument()
     expect(screen.getByText('Journal capture')).toBeInTheDocument()
     expect(screen.getByText('Memory graph')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-portability-action-deck')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-portability-action-deck')).toHaveClass('grimoire-portability-action-deck')
+    expect(actionDeck).toBeInTheDocument()
+    expect(actionDeck).toHaveClass('grimoire-portability-action-deck')
     expect(screen.getByRole('tablist')).toHaveClass('grimoire-portability-lanes')
     expect(screen.getByText('Move vault data')).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-lane-markdown')).toHaveAttribute('aria-selected', 'true')
@@ -178,8 +182,8 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.queryByText('Preview S3 local-mirror push')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
-    expect(screen.getByText('S3 provider preview/apply')).toBeInTheDocument()
-    expect(screen.getByText(/live failure-state proof is still required before provider-proven sync/)).toBeInTheDocument()
+    expect(screen.getByText('S3 provider proof preview/apply')).toBeInTheDocument()
+    expect(screen.getByText(/live failure-state proof is still required before this becomes provider-proven/)).toBeInTheDocument()
     expect(screen.getByText('Preview S3 provider push')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 provider pull')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 local-mirror push')).toBeInTheDocument()
@@ -187,7 +191,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.queryByText('Apply Azure local-mirror push')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
-    expect(screen.getByText('Azure provider preview/apply')).toBeInTheDocument()
+    expect(screen.getByText('Azure provider proof preview/apply')).toBeInTheDocument()
     expect(screen.getByText('Preview Azure provider push')).toBeInTheDocument()
     expect(screen.getByText('Preview Azure provider pull')).toBeInTheDocument()
     expect(screen.getByText('Apply Azure local-mirror push')).toBeInTheDocument()
@@ -550,7 +554,7 @@ describe('PortabilitySettingsSection', () => {
     expect(within(preview).getByText('Local-only').closest('.grimoire-preview-stat')).toHaveAttribute('data-tone', 'safe')
   })
 
-  it('shows S3 provider SDK previews separately from local-mirror fixture reports', () => {
+  it('shows S3 provider proof previews separately from local-mirror fixture reports', () => {
     render(
       <PortabilitySettingsSection
         t={createTranslator('en')}
@@ -561,10 +565,12 @@ describe('PortabilitySettingsSection', () => {
 
     const preview = screen.getByTestId('object-storage-s3-provider-push-preview')
     expect(preview).toHaveTextContent('Preview ready')
-    expect(preview).toHaveTextContent('S3 provider SDK')
+    expect(preview).toHaveTextContent('S3 provider proof preview')
     expect(preview).toHaveTextContent('S3 push: s3://sriinnu-vault/notes/')
-    expect(preview).toHaveTextContent('Apply is locked to this exact push provider preview')
+    expect(preview).toHaveTextContent('Apply is locked to this exact push provider proof preview')
+    expect(preview).toHaveTextContent('not provider-proven sync yet')
     expect(preview).not.toHaveTextContent('Local mirror fixture')
+    expect(preview).not.toHaveTextContent('S3 provider SDK')
     expect(preview).not.toHaveTextContent('not live cloud sync yet')
     expect(preview).not.toHaveTextContent('/Users/')
   })
@@ -580,10 +586,12 @@ describe('PortabilitySettingsSection', () => {
 
     const preview = screen.getByTestId('object-storage-azure-blob-provider-push-preview')
     expect(preview).toHaveTextContent('Preview ready')
-    expect(preview).toHaveTextContent('Azure provider sync')
+    expect(preview).toHaveTextContent('Azure provider proof preview')
     expect(preview).toHaveTextContent('Azure Blob push: azblob://acct/vault/notes')
-    expect(preview).toHaveTextContent('Apply is locked to this exact push provider preview')
+    expect(preview).toHaveTextContent('Apply is locked to this exact push provider proof preview')
+    expect(preview).toHaveTextContent('not provider-proven sync yet')
     expect(preview).not.toHaveTextContent('Local mirror fixture')
+    expect(preview).not.toHaveTextContent('Azure provider sync')
     expect(preview).not.toHaveTextContent('/Users/')
   })
 
@@ -652,7 +660,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByTestId('s3-live-preflight-controls')).toHaveTextContent('Credentials come from local AWS config')
   })
 
-  it('passes the same transient S3 target draft to provider SDK actions', () => {
+  it('passes the same transient S3 target draft to provider actions', () => {
     const onPreviewS3ProviderPush = vi.fn()
     const onApplyS3ProviderPull = vi.fn()
 
