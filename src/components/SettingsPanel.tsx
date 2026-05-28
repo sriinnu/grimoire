@@ -1,5 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
-import { X } from '@phosphor-icons/react'
+import { useState, useRef, useCallback, useEffect, useMemo, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import {
   createMissingAiAgentsStatus,
   type AiAgentsStatus,
@@ -17,8 +16,9 @@ import {
 } from '../lib/transcriptionProviders'
 import type { Settings, VaultEntry } from '../types'
 import { useVaultPortabilityActions } from '../hooks/useVaultPortabilityActions'
-import { Button } from './ui/button'
+import { Dialog, DialogContent } from './ui/dialog'
 import { SettingsBody } from './settings/SettingsBody'
+import { SettingsFooter, SettingsHeader } from './settings/SettingsPanelChrome'
 import {
   buildSettingsFromDraft,
   createSettingsDraft,
@@ -202,13 +202,6 @@ function SettingsPanelInner({
     onClose()
   }, [commitAppearancePreview, draft, onClose, onSave, onSaveExplicitOrganization, settings])
 
-  const handleBackdropClick = useCallback(
-    (event: ReactMouseEvent<HTMLDivElement>) => {
-      if (event.target === event.currentTarget) onClose()
-    },
-    [onClose],
-  )
-
   const handleKeyDown = useCallback(
     (event: ReactKeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -226,15 +219,13 @@ function SettingsPanelInner({
   )
 
   return (
-    <div
-      className="grimoire-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={handleBackdropClick}
-      onKeyDown={handleKeyDown}
-      data-testid="settings-panel"
-    >
-      <div
+    <Dialog open={true} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
+      <DialogContent
         ref={panelRef}
-        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-[0_18px_55px_var(--shadow-dialog)]"
+        showCloseButton={false}
+        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] max-w-none flex-col gap-0 overflow-hidden rounded-lg border p-0 sm:max-w-none"
+        onKeyDown={handleKeyDown}
+        data-testid="settings-panel"
       >
         <SettingsHeader onClose={onClose} t={t} />
         <SettingsBody
@@ -363,40 +354,7 @@ function SettingsPanelInner({
           setCloudTranscriptionEnabled={updateCloudTranscriptionEnabled}
         />
         <SettingsFooter onClose={onClose} onSave={handleSave} t={t} />
-      </div>
-    </div>
-  )
-}
-
-function SettingsHeader({ onClose, t }: { onClose: () => void; t: ReturnType<typeof createTranslator> }) {
-  return (
-    <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-6">
-      <span className="text-base font-semibold text-foreground">{t('settings.title')}</span>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        onClick={onClose}
-        title={t('settings.close')}
-        aria-label={t('settings.close')}
-      >
-        <X size={16} />
-      </Button>
-    </div>
-  )
-}
-
-function SettingsFooter({ onClose, onSave, t }: { onClose: () => void; onSave: () => void; t: ReturnType<typeof createTranslator> }) {
-  return (
-    <div className="flex h-14 shrink-0 items-center justify-between border-t border-border px-6">
-      <span className="text-[11px] text-muted-foreground">{t('settings.footerShortcut')}</span>
-      <div className="flex gap-2">
-        <Button variant="outline" onClick={onClose}>
-          {t('settings.cancel')}
-        </Button>
-        <Button onClick={onSave} data-testid="settings-save">
-          {t('settings.save')}
-        </Button>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

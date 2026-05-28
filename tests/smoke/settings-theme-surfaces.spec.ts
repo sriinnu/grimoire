@@ -103,7 +103,7 @@ test.describe('Settings theme surface screenshots', () => {
     const panel = await openSettings(page)
     const states: SettingsSurfaceState[] = []
 
-    for (const preset of ['nocturne', 'living-archive', 'daylight-atelier']) {
+    for (const preset of ['nocturne', 'living-archive', 'daylight-atelier', 'prabhat-studio', 'retro-terminal']) {
       await selectThemePreset(page, preset)
       const appearanceState = await captureSettingsSurfaceState(page, 'theme-pack-settings')
       expect(appearanceState.panelBackground).not.toBe('none')

@@ -98,7 +98,7 @@ export function mockS3ProviderSyncReport(args: MockS3ProviderSyncArgs = {}, appl
   }
   const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
   const direction = args.direction ?? 'push'
-  const bucket = args.bucket?.trim() || 'mock-grimoire-vault'
+  const bucket = requiredMockTarget(args.bucket, 'Set an S3 bucket before previewing provider sync.')
   const prefix = args.prefix?.trim().replace(/^\/+|\/+$/g, '') ?? ''
   const target = prefix ? `s3://${bucket}/${prefix}` : `s3://${bucket}`
   const transferKind = direction === 'push' ? 'upload' : 'download'
@@ -131,8 +131,8 @@ export function mockAzureProviderSyncReport(args: MockAzureProviderSyncArgs = {}
   }
   const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
   const direction = args.direction ?? 'push'
-  const account = args.account?.trim() || 'mockgrimoireacct'
-  const container = args.container?.trim() || 'vault'
+  const account = requiredMockTarget(args.account, 'Set an Azure storage account before previewing provider sync.')
+  const container = requiredMockTarget(args.container, 'Set an Azure container before previewing provider sync.')
   const prefix = args.prefix?.trim().replace(/^\/+|\/+$/g, '') ?? ''
   const target = prefix ? `azblob://${account}/${container}/${prefix}` : `azblob://${account}/${container}`
   const transferKind = direction === 'push' ? 'upload' : 'download'
@@ -156,6 +156,12 @@ export function mockAzureProviderSyncReport(args: MockAzureProviderSyncArgs = {}
     sync_report_path: applied ? `${vault}/.grimoire/sync-reports/azure-provider-${direction}.md` : null,
     conflict_artifacts: [],
   }
+}
+
+function requiredMockTarget(value: string | null | undefined, message: string): string {
+  const clean = value?.trim()
+  if (!clean) throw new Error(message)
+  return clean
 }
 
 /** Builds a redacted browser-mode Azure preflight report without cloud calls. */

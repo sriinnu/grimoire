@@ -45,7 +45,7 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       proofLevel: 'fixture-regression',
       detail: `${readyImports.length} no-write preview adapters`,
       evidence: readyImports.map(source => source.label).join(', '),
-      remainingProof: 'Live export corpus still needed for Bear TextBundle/Markdown, Day One JSON/ZIP, Apple Journal ZIP/HTML/JSON, Obsidian vaults, Notion ZIP/folders, Journey, and mixed Markdown ZIPs.',
+      remainingProof: 'Manual runs with fresh real-world exports are still needed before claiming every app import works across current Bear, Day One, Apple Journal, Obsidian, Notion, Journey, and Markdown ZIP variants.',
     },
     {
       id: 'exports',
@@ -53,8 +53,8 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       supportStatus: 'ready',
       proofLevel: 'local-regression',
       detail: `${readyExports.length} portable exits`,
-      evidence: 'Vault folder, Git remote, Markdown ZIP, static HTML, JSON snapshot, and SQLite snapshot; local-only lanes withheld.',
-      remainingProof: 'Manual round-trip checks with external readers, capsule re-import, and large attachment-heavy vaults still open.',
+      evidence: 'Vault folder, Git remote, Markdown ZIP, static HTML, JSON snapshot, and SQLite snapshot; local-only lanes withheld; JSON/SQLite capsules have local import regressions.',
+      remainingProof: 'Manual round-trip checks with external readers and large attachment-heavy vaults still open.',
     },
     {
       id: 'desktop-sync',
@@ -70,7 +70,7 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       label: 'Object storage',
       supportStatus: 'fixture',
       proofLevel: 'live-read-only-plus-local-mirror',
-      detail: `${objectStorageLabels} provider preview/apply evidence plus read-only preflights`,
+      detail: `${objectStorageLabels} provider preview/apply contracts plus read-only preflights`,
       evidence: 'S3 has a read-only HeadBucket/ListObjectsV2 preflight, Azure has a read-only CLI container/list preflight, Settings provider preview/apply lanes require exact preview signatures, conflict checks, and content-hash metadata; local mirrors remain adapter fixtures.',
       remainingProof: 'Live S3/Azure apply, retries, bucket/container permissions, and provider conflict states remain open.',
     },

@@ -703,13 +703,15 @@ Build order:
   - [x] Add `Prabhat Studio` as an additional light-first preset across JSON metadata, root CSS tokens, Settings previews, sidebar artwork, shared shell surfaces, contrast guards, and reduced-motion/high-contrast theme participation.
   - [x] Promote German, Hindi, and Sanskrit to supported UI languages in frontend locale resolution, command-palette language switching, Settings language options, and native settings sanitization.
   - [ ] Re-overhaul Settings panel polish section-by-section: keep every panel theme-owned, intent-gated, Apple-native, local-first in wording, and free of browser/default form edges.
+    - [x] Move Settings onto the shared shadcn/Radix Dialog shell, split header/footer chrome below the code-size guardrail, and correct the open-panel shortcut hint to save/close behavior.
+    - [x] Route Settings control rows, local Git cards, AI route notes, theme-pack controls, and Locality Firewall cards through theme-owned material classes instead of ad-hoc `bg-muted`/`bg-background` islands.
   - [x] Apply motion primitives to command palette, Settings, inspector, graph focus, and note navigation.
   - [x] Split Settings portability actions into intent lanes so Markdown, app, journal, export, and storage controls appear only when chosen.
   - [x] Tighten the Settings rail and main surface so sections have an active native control state instead of a flat scroll pile.
   - [x] Add theme-specific Settings shell, rail, main-surface, and local/private card material hooks so Settings follows the active preset.
   - [x] Add a compact iPad/mobile Settings section rail so collapsed Settings still has visible themed navigation and no horizontal overflow.
   - [x] Split Settings navigation into focused subcomponents so the main Settings body is 234 LOC and the compact rail keeps the active section visible while scrolling.
-  - [x] Add Playwright screenshot coverage for Settings theme switching across Nocturne, Living Archive, Manuscript, and the portability Locality Firewall panel.
+  - [x] Add Playwright screenshot coverage for Settings theme switching across Nocturne, Living Archive, Daylight Atelier, Prabhat Studio, Retro Terminal, and the portability Locality Firewall panel.
   - [x] Add Playwright reduced-motion coverage for Settings, workspace arrival, in-note search, TOC jump, and static navigator target cues.
   - [x] Remove infinite decorative workspace motion by replacing active AI-panel breathing with a finite ready cue.
   - [x] Add forced-colors/high-contrast overrides and Playwright coverage for workspace, Settings, status bar, and navigator surfaces.
@@ -815,9 +817,11 @@ Build order:
     - [x] Add the first S3 provider-SDK preview/apply command and TypeScript helper using local AWS credentials, provider target labels, local-only exclusions, and exact preview signatures.
     - [x] Wire the S3 provider-SDK surface into Settings behind explicit user intent, separate from the local-mirror fixture.
     - [x] Harden the S3 provider lane so apply blocks conflicts, rejects changed Settings targets, avoids hidden env fallback for explicit drafts, requires preview signatures in mocks, and detects same-size remote divergence through Grimoire SHA-256 metadata.
+    - [x] Harden browser provider mocks so blank S3 targets cannot invent mock buckets, and malformed/applied previews do not unlock apply-ready state.
     - [ ] Run the S3 provider-SDK Settings lane against real provider fixtures and failure states.
     - [x] Add the Azure provider preview/apply surface behind the same exact-preview contract using local Azure CLI auth, transient target drafts, local-only exclusions, and Settings wiring.
     - [x] Harden the Azure provider lane so apply blocks conflicts, rejects changed Settings targets, avoids hidden env fallback for explicit drafts, requires preview signatures in mocks, and detects same-size remote divergence through Grimoire SHA-256 metadata.
+    - [x] Harden browser provider mocks so blank Azure account/container targets cannot invent mock storage, and malformed/applied previews do not unlock apply-ready state.
     - [ ] Run the Azure provider Settings lane against real provider fixtures and failure states.
 - [x] Add transcription and voice-note workflow.
   - [x] Define provider contract for Whisper/local transcription backends.

@@ -75,7 +75,7 @@ export function LabeledSelect({
   autoFocus?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="settings-field-control flex flex-col gap-1.5">
       <label className="text-xs font-medium text-foreground">{label}</label>
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger
@@ -114,7 +114,7 @@ export function LabeledNumberInput({
   disabled?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="settings-field-control flex flex-col gap-1.5">
       <label className="text-xs font-medium text-foreground" htmlFor={testId}>{label}</label>
       <Input
         id={testId}
@@ -149,8 +149,8 @@ export function SettingsSwitchRow({
 }) {
   return (
     <label
-      className="flex items-start justify-between gap-3"
-      style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1 }}
+      className="settings-control-row flex items-start justify-between gap-3 rounded-md border px-3 py-2.5"
+      data-disabled={disabled ? 'true' : undefined}
       data-testid={testId}
     >
       <div className="space-y-1">
@@ -177,7 +177,7 @@ export function TelemetryToggle({
   testId: string
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3" data-testid={testId}>
+    <label className="settings-control-row flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5" data-testid={testId}>
       <Checkbox checked={checked} onCheckedChange={(value) => onChange(isChecked(value))} />
       <div>
         <div className="text-[13px] font-medium text-foreground">{label}</div>

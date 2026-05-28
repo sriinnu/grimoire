@@ -52,6 +52,10 @@ export async function runAzureProviderSyncAction(
     options.setToastMessage(`Resolve Azure provider ${direction} conflicts before applying sync.`)
     return
   }
+  if (mode === 'apply' && previewState && !previewReportCanApply(previewState.report)) {
+    options.setToastMessage(`Run Azure provider ${direction} preview again before applying sync.`)
+    return
+  }
   if (mode === 'apply' && previewState && !sameAzureArgs(cleanArgs, previewState.args)) {
     options.setToastMessage(`Azure provider target changed; run ${direction} preview again before applying sync.`)
     return
@@ -153,6 +157,10 @@ function sameAzureArgs(left: AzureLivePreflightArgs, right: AzureLivePreflightAr
   return left.account === right.account
     && left.container === right.container
     && left.prefix === right.prefix
+}
+
+function previewReportCanApply(report: ObjectStorageSyncReport): boolean {
+  return !report.applied && report.preview_signature.trim().length > 0
 }
 
 function formatAzureProviderPreviewToast(report: ObjectStorageSyncReport): string {
