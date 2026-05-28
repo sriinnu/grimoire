@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "./theme-base.css";
 @import "./graph-animations.css";
+@import "./graph-agent-readiness.css";
 @import "./ai-markdown.css";
 
 @theme inline {
@@ -69,7 +70,7 @@
   }
 
   body.macos-overlay-chrome {
-    --macos-overlay-rail-safe-top: 82px;
+    --macos-overlay-rail-safe-top: 88px;
     --sidebar-title-bar-height: 92px;
     --sidebar-title-bar-padding-top: 32px;
   }

@@ -31,23 +31,44 @@ import { buildGraphCouncilPrompt } from '../utils/graphCouncilPrompt'
 import { queueAiPrompt, requestOpenAiChat } from '../utils/aiPromptBridge'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { buildGraphAskContextPackage } from '../lib/askContextPackage'
+import { buildProviderPromptDraft, mergeNoteReferences } from '../lib/providerPromptPrivacy'
+import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
+import { GraphCouncilReviewDialog, type GraphCouncilReviewDraft } from './GraphCouncilReviewDialog'
 
 interface GraphModalProps {
   open: boolean
   entries: VaultEntry[]
   activePath: string | null
+  defaultAiAgent?: AiAgentId
+  defaultAiModel?: string | null
+  defaultAiProvider?: string | null
+  aiAgentsStatus?: AiAgentsStatus
   onOpenNote: (entry: VaultEntry) => void
   onClose: () => void
 }
 
 /** Shows the vault as an interactive note relationship graph. */
-export function GraphModal({ open, entries, activePath, onOpenNote, onClose }: GraphModalProps) {
+export function GraphModal({
+  open,
+  entries,
+  activePath,
+  defaultAiAgent,
+  defaultAiModel,
+  defaultAiProvider,
+  aiAgentsStatus,
+  onOpenNote,
+  onClose,
+}: GraphModalProps) {
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
       {open ? (
         <GraphModalContent
           entries={entries}
           activePath={activePath}
+          defaultAiAgent={defaultAiAgent}
+          defaultAiModel={defaultAiModel}
+          defaultAiProvider={defaultAiProvider}
+          aiAgentsStatus={aiAgentsStatus}
           onOpenNote={onOpenNote}
           onClose={onClose}
         />
@@ -59,6 +80,10 @@ export function GraphModal({ open, entries, activePath, onOpenNote, onClose }: G
 function GraphModalContent({
   entries,
   activePath,
+  defaultAiAgent,
+  defaultAiModel,
+  defaultAiProvider,
+  aiAgentsStatus,
   onOpenNote,
   onClose,
 }: Omit<GraphModalProps, 'open'>) {
@@ -66,6 +91,7 @@ function GraphModalContent({
   const [scope, setScope] = useState<GraphScope>('neighborhood')
   const [edgeFilter, setEdgeFilter] = useState<GraphEdgeFilter>('all')
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set())
+  const [councilDraft, setCouncilDraft] = useState<GraphCouncilReviewDraft | null>(null)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const graph = useMemo(() => buildNoteGraph(entries, activePath), [activePath, entries])
   const effectiveScope = activePath ? scope : 'vault'
@@ -89,7 +115,7 @@ function GraphModalContent({
     ?? null
   const selectedEntry = selectedNode ? entryByPath.get(selectedNode.path) ?? null : null
   const activeEntry = activePath ? entryByPath.get(activePath) ?? null : null
-  const packageRootEntry = selectedEntry ?? activeEntry
+  const packageRootEntry = layout.nodes.length > 0 ? (selectedEntry ?? activeEntry) : null
   const agentGraphContext = useMemo(
     () => buildAgentGraphContext({ activeEntry: packageRootEntry, entries, graph: renderGraph }),
     [entries, packageRootEntry, renderGraph],
@@ -110,85 +136,118 @@ function GraphModalContent({
     if (entry) onOpenNote(entry)
   }
 
-  const askCouncilAboutSelection = () => {
+  const prepareCouncilAboutSelection = () => {
     if (!selectedNode) return
     const prompt = buildGraphCouncilPrompt({
       agentGraphContext,
+      aiAgentsStatus,
       selectedEntry,
       selectedNode,
     })
-    queueAiPrompt(prompt.text, prompt.references, buildGraphAskContextPackage({
-      agentGraphContext,
-      prompt: prompt.text,
-      selectedReference: prompt.references[0] ?? null,
-    }))
+    setCouncilDraft({
+      contextPackage: buildGraphAskContextPackage({
+        agentGraphContext,
+        prompt: prompt.text,
+        selectedReference: prompt.references[0] ?? null,
+      }),
+      prompt,
+    })
+  }
+
+  const sendCouncilDraft = (draft: GraphCouncilReviewDraft) => {
+    const promptDraft = buildProviderPromptDraft(draft.prompt.text, entries)
+    const references = mergeNoteReferences(draft.prompt.references, promptDraft.references)
+    queueAiPrompt(promptDraft.text, references, {
+      ...draft.contextPackage,
+      prompt: promptDraft.text,
+      references: mergeNoteReferences(draft.contextPackage.references, promptDraft.references),
+    })
     requestOpenAiChat()
+    setCouncilDraft(null)
+    onClose()
   }
 
   return (
-    <DialogContent className="grimoire-panel-reveal max-w-[min(1160px,calc(100vw-2rem))] gap-4">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          <Graph size={18} />
-          Knowledge graph
-        </DialogTitle>
-        <DialogDescription className="sr-only">Vault relationships and Spelllinks.</DialogDescription>
-      </DialogHeader>
+    <>
+      <DialogContent
+        className="grimoire-panel-reveal max-h-[calc(100dvh-2rem)] max-w-[min(1160px,calc(100vw-2rem))] grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+        data-testid="graph-dialog-content"
+      >
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Graph size={18} />
+            Knowledge graph
+          </DialogTitle>
+          <DialogDescription className="sr-only">Vault relationships and Spelllinks.</DialogDescription>
+        </DialogHeader>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_300px]">
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
-            <MagnifyingGlass size={15} className="text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter by title or type"
-              className="h-7 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-              data-testid="graph-filter"
+        <div className="grid min-h-0 gap-3 overflow-hidden lg:grid-cols-[1fr_300px]">
+          <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-3 overflow-hidden">
+            <label className="grimoire-graph-filter-shell flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+              <MagnifyingGlass size={15} className="text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Filter by title or type"
+                className="h-7 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+                data-testid="graph-filter"
+              />
+            </label>
+            <GraphCanvas
+              agentGraphContext={agentGraphContext}
+              aiAgentsStatus={aiAgentsStatus}
+              layout={layout}
+              localOnlyNodeIds={localOnlyNodeIds}
+              nodeById={nodeById}
+              selectedNodeId={selectedNode?.id ?? null}
+              onOpenNode={openNode}
+              onSelectNode={(node) => setSelectedNodeId(node.id)}
             />
-          </label>
-          <GraphCanvas
-            agentGraphContext={agentGraphContext}
-            layout={layout}
-            localOnlyNodeIds={localOnlyNodeIds}
-            nodeById={nodeById}
-            selectedNodeId={selectedNode?.id ?? null}
-            onOpenNode={openNode}
-            onSelectNode={(node) => setSelectedNodeId(node.id)}
-          />
+          </div>
+
+          <div className="min-h-0 space-y-3 overflow-y-auto pr-1" data-testid="graph-right-rail">
+            <GraphControlPanel
+              activePath={activePath}
+              scope={effectiveScope}
+              onScopeChange={setScope}
+              edgeFilter={edgeFilter}
+              onEdgeFilterChange={setEdgeFilter}
+              shownNodes={displayGraph.nodes.length}
+              totalMatches={visibleGraph.nodes.length}
+              shownEdges={renderGraph.edges.length}
+              stats={stats}
+              typeStats={typeStats}
+              hiddenTypes={hiddenTypes}
+              onToggleType={toggleType}
+            />
+            <GraphInsightPanel
+              activeEntry={activeEntry}
+              agentGraphContext={agentGraphContext}
+              aiAgentsStatus={aiAgentsStatus}
+              defaultAiAgent={defaultAiAgent}
+              defaultAiModel={defaultAiModel}
+              defaultAiProvider={defaultAiProvider}
+              entries={entries}
+              nodes={layout.nodes}
+              selectedEntry={selectedEntry}
+              selectedNode={selectedNode}
+              onAskCouncil={prepareCouncilAboutSelection}
+              onOpenNode={openNode}
+            />
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <GraphControlPanel
-            activePath={activePath}
-            scope={effectiveScope}
-            onScopeChange={setScope}
-            edgeFilter={edgeFilter}
-            onEdgeFilterChange={setEdgeFilter}
-            shownNodes={displayGraph.nodes.length}
-            totalMatches={visibleGraph.nodes.length}
-            shownEdges={renderGraph.edges.length}
-            stats={stats}
-            typeStats={typeStats}
-            hiddenTypes={hiddenTypes}
-            onToggleType={toggleType}
-          />
-          <GraphInsightPanel
-            activeEntry={activeEntry}
-            agentGraphContext={agentGraphContext}
-            entries={entries}
-            nodes={layout.nodes}
-            selectedEntry={selectedEntry}
-            selectedNode={selectedNode}
-            onAskCouncil={askCouncilAboutSelection}
-            onOpenNode={openNode}
-          />
-        </div>
-      </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
 
-      <DialogFooter>
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </DialogFooter>
-    </DialogContent>
+      <GraphCouncilReviewDialog
+        draft={councilDraft}
+        open={Boolean(councilDraft)}
+        onCancel={() => setCouncilDraft(null)}
+        onConfirm={sendCouncilDraft}
+      />
+    </>
   )
 }
