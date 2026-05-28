@@ -55,6 +55,8 @@ mod object_storage_azure_sync;
 mod object_storage_azure_target;
 mod object_storage_live;
 #[cfg(test)]
+mod object_storage_live_provider_sync_tests;
+#[cfg(test)]
 mod object_storage_live_roundtrip_tests;
 mod object_storage_s3_io;
 mod object_storage_s3_plan;
