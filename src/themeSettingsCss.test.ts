@@ -4,13 +4,23 @@ import { describe, expect, it } from 'vitest'
 describe('theme settings CSS', () => {
   const systemThemesCss = readFileSync(`${process.cwd()}/src/system-themes.css`, 'utf8')
   const settingsCss = readFileSync(`${process.cwd()}/src/theme-settings.css`, 'utf8')
+  const coherenceCss = readFileSync(`${process.cwd()}/src/theme-coherence.css`, 'utf8')
   const settingsBody = readFileSync(`${process.cwd()}/src/components/settings/SettingsBody.tsx`, 'utf8')
   const settingsNavigation = readFileSync(`${process.cwd()}/src/components/settings/SettingsNavigation.tsx`, 'utf8')
   const settingsControls = readFileSync(`${process.cwd()}/src/components/settings/SettingsControls.tsx`, 'utf8')
   const settingsChrome = readFileSync(`${process.cwd()}/src/components/settings/SettingsPanelChrome.tsx`, 'utf8')
   const aiAgentSettings = readFileSync(`${process.cwd()}/src/components/settings/AiAgentSettingsSection.tsx`, 'utf8')
+  const appearanceSettings = readFileSync(`${process.cwd()}/src/components/AppearanceSettingsSection.tsx`, 'utf8')
   const themePackSettings = readFileSync(`${process.cwd()}/src/components/ThemePackSettingsControls.tsx`, 'utf8')
   const localityFirewallSettings = readFileSync(`${process.cwd()}/src/components/LocalityFirewallSettingsCard.tsx`, 'utf8')
+  const portabilityActionDeck = readFileSync(`${process.cwd()}/src/components/PortabilityActionDeck.tsx`, 'utf8')
+  const portabilityGroups = readFileSync(`${process.cwd()}/src/components/PortabilityGroups.tsx`, 'utf8')
+  const portabilityProofLedger = readFileSync(`${process.cwd()}/src/components/PortabilityProofLedger.tsx`, 'utf8')
+  const objectStoragePreviewCard = readFileSync(`${process.cwd()}/src/components/ObjectStoragePreviewCard.tsx`, 'utf8')
+  const objectStoragePreflightPanels = readFileSync(`${process.cwd()}/src/components/ObjectStorageLivePreflightPanels.tsx`, 'utf8')
+  const objectStorageProviderPanel = readFileSync(`${process.cwd()}/src/components/ObjectStorageProviderPanel.tsx`, 'utf8')
+  const objectStoragePrototypeActions = readFileSync(`${process.cwd()}/src/components/ObjectStoragePrototypeActions.tsx`, 'utf8')
+  const portabilityActionProgress = readFileSync(`${process.cwd()}/src/components/PortabilityActionProgress.tsx`, 'utf8')
 
   it('loads after shared surface coherence and before agent-specific layers', () => {
     const surfaceIndex = systemThemesCss.indexOf("@import './theme-surface-coherence.css';")
@@ -44,6 +54,7 @@ describe('theme settings CSS', () => {
     expect(settingsCss).toContain('.settings-material-card')
     expect(settingsCss).toContain('.settings-material-inner')
     expect(settingsCss).toContain('.settings-material-chip')
+    expect(settingsCss).toContain('.settings-theme-mode-button')
     expect(settingsCss).toContain('.settings-navigation-rail')
     expect(settingsCss).toContain('.settings-main-surface')
     expect(settingsCss).toContain('.settings-section-divider')
@@ -60,8 +71,37 @@ describe('theme settings CSS', () => {
     expect(settingsChrome).toContain('settings-panel-header')
     expect(settingsChrome).toContain('settings-panel-footer')
     expect(settingsNavigation).toContain('settings-navigation-item')
-    for (const source of [aiAgentSettings, themePackSettings, localityFirewallSettings]) {
+    for (const source of [
+      aiAgentSettings,
+      appearanceSettings,
+      themePackSettings,
+      localityFirewallSettings,
+      portabilityActionDeck,
+      portabilityGroups,
+      portabilityProofLedger,
+      objectStoragePreviewCard,
+      objectStoragePreflightPanels,
+      objectStorageProviderPanel,
+      objectStoragePrototypeActions,
+      portabilityActionProgress,
+    ]) {
       expect(source).not.toMatch(/bg-(muted|background)|hover:bg-|bg-\[/)
+    }
+  })
+
+  it('keeps portability proof surfaces on semantic theme hooks', () => {
+    for (const hook of [
+      '.grimoire-portability-card',
+      '.grimoire-portability-action-deck',
+      '.grimoire-portability-lanes',
+      '.grimoire-portability-inline-panel',
+      '.grimoire-object-storage-preview',
+      '.grimoire-preview-stat',
+      '.grimoire-storage-health-dot[data-state="active"]',
+      '.grimoire-portability-progress-track',
+      '.grimoire-portability-progress-bar',
+    ]) {
+      expect(coherenceCss).toContain(hook)
     }
   })
 

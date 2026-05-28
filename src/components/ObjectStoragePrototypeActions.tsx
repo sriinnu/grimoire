@@ -280,7 +280,7 @@ export function ObjectStoragePrototypeActions({
   ]
 
   return (
-    <div className="grimoire-object-storage-prototype grimoire-portability-inline-panel rounded-md border border-dashed border-border bg-muted/20 p-3" data-testid="object-storage-prototype-actions">
+    <div className="grimoire-object-storage-prototype grimoire-portability-inline-panel rounded-md border border-dashed border-border p-3" data-testid="object-storage-prototype-actions">
       <div className="mb-2 flex items-start gap-2">
         <span className="mt-0.5 text-muted-foreground"><Cloud size={15} /></span>
         <span className="min-w-0">
@@ -353,7 +353,7 @@ export function ObjectStoragePrototypeActions({
         </ProviderPanel>
       ) : null}
       {activeProvider === null ? (
-        <div className="grimoire-object-storage-preview rounded-md border border-border bg-background/55 p-2 text-[11px] leading-snug text-muted-foreground" data-testid="object-storage-provider-empty">
+        <div className="grimoire-object-storage-preview rounded-md border border-border p-2 text-[11px] leading-snug text-muted-foreground" data-testid="object-storage-provider-empty">
           Pick a provider to reveal local-only preflight fields and sync actions.
         </div>
       ) : null}

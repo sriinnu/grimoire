@@ -139,7 +139,7 @@ function ThemeModeControl({
 }) {
   return (
     <div
-      className="inline-flex w-full rounded-md border border-border bg-muted p-1"
+      className="settings-material-inner inline-flex w-full rounded-md border p-1"
       role="radiogroup"
       aria-label={t('settings.theme.label')}
       data-testid="settings-theme-mode"
@@ -178,7 +178,7 @@ function ThemeModeButton({
       data-testid={`settings-theme-${value}`}
       className={
         selected
-          ? 'h-7 flex-1 border border-border bg-background text-foreground shadow-xs hover:bg-background'
+          ? 'settings-theme-mode-button h-7 flex-1 border text-foreground shadow-xs'
           : 'h-7 flex-1 text-muted-foreground hover:text-foreground'
       }
       onClick={() => onSelect(value)}
@@ -210,7 +210,7 @@ function ThemePresetCard({
       className={
         selected
           ? 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left shadow-xs'
-          : 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left hover:bg-muted'
+          : 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left'
       }
       onClick={() => onSelect(option.value)}
     >
