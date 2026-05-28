@@ -289,11 +289,20 @@ describe('crystallizeProposal', () => {
     expect(proposal.activeNotePatch).toEqual(expect.objectContaining({
       targetPath: '/vault/projects/grimoire.md',
       relativePath: 'projects/grimoire.md',
+      frontmatterMarkdown: expect.stringContaining('crystallized_memories:'),
       appendMarkdown: expect.stringContaining('## Crystallized Follow-up'),
     }))
+    expect(proposal.activeNotePatch?.frontmatterMarkdown).toContain('last_crystallized_at: "2026-05-16T12:00:00.000Z"')
+    expect(proposal.activeNotePatch?.frontmatterMarkdown).toContain('  - "[[Crystallized - Grimoire - 2026-05-16]]"')
     expect(proposal.activeNotePatch?.appendMarkdown).toContain('[[Crystallized - Grimoire - 2026-05-16]]')
     expect(proposal.activeNotePatch?.appendMarkdown).toContain('- Source: [[Grimoire]]')
     expect(proposal.changes).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'update-active-note-frontmatter',
+        kind: 'frontmatter',
+        target: 'projects/grimoire.md',
+        after: expect.stringContaining('crystallized_memories:'),
+      }),
       expect.objectContaining({
         id: 'append-active-note',
         kind: 'note',

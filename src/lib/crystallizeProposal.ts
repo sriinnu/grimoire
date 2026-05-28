@@ -34,7 +34,7 @@ export type {
   CrystallizeProposal,
   CrystallizeProposalSummary,
 } from './crystallizeProposalTypes'
-export { appendCrystallizePatchToContent } from './crystallizeProposalReview'
+export { appendCrystallizePatchToContent, applyCrystallizePatchToContent } from './crystallizeProposalReview'
 
 interface CrystallizeProposalParams {
   askContextPackage?: AskContextPackage | null
@@ -232,10 +232,16 @@ function buildActiveNotePatch({
   if (!activeEntry || activeNoteContent == null) return null
 
   const reviewedDate = reviewedAt.slice(0, 10)
+  const memoryLink = wikilinkLabel(memoryTitle)
+  const frontmatterMarkdown = [
+    `last_crystallized_at: ${yamlString(reviewedAt)}`,
+    'crystallized_memories:',
+    `  - ${yamlString(memoryLink)}`,
+  ].join('\n')
   const appendMarkdown = [
     '## Crystallized Follow-up',
     '',
-    `- Memory: ${wikilinkLabel(memoryTitle)}`,
+    `- Memory: ${memoryLink}`,
     `- Source: ${sourceLabel}`,
     `- Reviewed: ${reviewedDate}`,
     '',
@@ -245,6 +251,7 @@ function buildActiveNotePatch({
   return {
     targetPath: activeEntry.path,
     relativePath: relativeToVaultPath(activeEntry.path, vaultPath),
+    frontmatterMarkdown,
     appendMarkdown,
   }
 }

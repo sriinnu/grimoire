@@ -523,6 +523,7 @@ Build order:
 - Added safe dashboard ask references so `/ask` from the dashboard carries recent non-private Markdown context into the agent prompt while dreams, journals, memory, private paths, and local-only frontmatter stay withheld.
 - Added a Crystallize loop trail in the AI panel so capture/context, Council/firewall, agent answer, and Markdown review state are visible before any memory write.
 - Added the first Crystallize Workbench active-note edit path: when the editor content is available, the review dialog now shows a separate editable active-note append hunk and applies it locally along with the new Memory note.
+- Added Crystallize active-note frontmatter hunks: accepted memories now propose editable `last_crystallized_at` and `crystallized_memories` metadata, preserve existing inline/block memory lists, and apply reviewer-added frontmatter keys before the append.
 - Added a dashboard `/ask` context preview so users can see which public notes will travel into the agent prompt and how many protected notes stay withheld before sending.
 - Tightened canvas editing state: newly inserted canvas blocks now save their first local JSON/preview explicitly, and undo/clear stay disabled until strokes exist.
 - Added image placement inside editable canvases: selected images are copied into vault attachments, stored in canvas JSON as portable relative paths, rendered in previews, movable with the hand tool, removable with the eraser, and protected by the existing local-only attachment closure.
