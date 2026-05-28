@@ -15,11 +15,6 @@ const IMPORT_TO_PREVIEW: Partial<Record<VaultPortabilityActionId, ImportAutopsyP
   spanda: 'spanda-preview',
 }
 
-const CAPSULE_PREVIEWS = new Set<ImportAutopsyPreviewState['sourceId']>([
-  'json-capsule-preview',
-  'sqlite-capsule-preview',
-])
-
 /** Returns true when the import writes to the vault and must follow a matching no-write preview. */
 export function importRequiresReview(actionId: VaultPortabilityActionId): boolean {
   return actionId in IMPORT_TO_PREVIEW
@@ -33,7 +28,7 @@ export function hasReviewedImportPreview(
   return Boolean(
     preview &&
       IMPORT_TO_PREVIEW[actionId] === preview.sourceId &&
-      (!CAPSULE_PREVIEWS.has(preview.sourceId) || preview.result.preview_signature?.trim()),
+      preview.result.preview_signature?.trim(),
   )
 }
 

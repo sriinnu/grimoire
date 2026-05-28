@@ -3,6 +3,7 @@ use std::path::Path;
 use tempfile::TempDir;
 
 use super::import_manifest::{manifest_asset, manifest_note, ImportAutopsyManifestRow};
+use super::import_preview_signature::import_preview_signature;
 use super::importer::MarkdownFolderImportPreview;
 use super::journal_import_helpers::{unique_note_name, JournalEntry};
 use super::journal_importer::{
@@ -35,7 +36,10 @@ pub fn preview_journal_export(
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source),
         planned_import_root: path_to_string(&planned_import_root),
-        preview_signature: None,
+        preview_signature: Some(import_preview_signature(
+            &format!("journal:{source_kind}"),
+            &source,
+        )?),
         notes_to_copy: state.notes,
         assets_to_copy: state.assets,
         skipped_files: state.skipped,

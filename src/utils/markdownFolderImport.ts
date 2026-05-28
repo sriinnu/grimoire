@@ -4,6 +4,12 @@ import type {
   MarkdownFolderImportPreviewResult,
   MarkdownFolderImportResult,
 } from '../lib/vaultPortability'
+import {
+  runMockAppImportWithProgress,
+  runMockJournalImportWithProgress,
+  runMockMarkdownFolderImportWithProgress,
+  runMockMarkdownZipImportWithProgress,
+} from './markdownImportProgressMocks'
 import { pickFile, pickFolder } from './vault-dialog'
 
 export type JournalImportSource = 'day-one' | 'journey' | 'apple-journal'
@@ -55,8 +61,9 @@ export function pickAppImportSource(source: AppImportSource): Promise<string | n
 export function importMarkdownFolderIntoVault(
   vaultPath: string,
   sourcePath: string,
+  previewSignature: string,
 ): Promise<MarkdownFolderImportResult> {
-  const args = { vaultPath, sourcePath }
+  const args = { vaultPath, sourcePath, previewSignature }
   return isTauri()
     ? invoke<MarkdownFolderImportResult>('import_markdown_folder', args)
     : mockInvoke<MarkdownFolderImportResult>('import_markdown_folder', args)
@@ -66,11 +73,12 @@ export function importMarkdownFolderIntoVault(
 export async function importMarkdownFolderIntoVaultWithProgress(
   vaultPath: string,
   sourcePath: string,
+  previewSignature: string,
   operationId: string,
   onEvent: (event: MarkdownFolderImportProgressEvent) => void,
 ): Promise<MarkdownFolderImportResult> {
   if (!isTauri()) {
-    return runMockMarkdownFolderImportWithProgress(vaultPath, sourcePath, onEvent)
+    return runMockMarkdownFolderImportWithProgress(vaultPath, sourcePath, previewSignature, onEvent)
   }
 
   const channel = await createTauriChannel<MarkdownFolderImportProgressEvent>()
@@ -83,6 +91,7 @@ export async function importMarkdownFolderIntoVaultWithProgress(
   await invoke<void>('import_markdown_folder_with_progress', {
     vaultPath,
     sourcePath,
+    previewSignature,
     operationId,
     onEvent: channel,
   })
@@ -133,8 +142,9 @@ export function previewMarkdownZipImport(
 export function importMarkdownZipIntoVault(
   vaultPath: string,
   sourcePath: string,
+  previewSignature: string,
 ): Promise<MarkdownFolderImportResult> {
-  const args = { vaultPath, sourcePath }
+  const args = { vaultPath, sourcePath, previewSignature }
   return isTauri()
     ? invoke<MarkdownFolderImportResult>('import_markdown_zip', args)
     : mockInvoke<MarkdownFolderImportResult>('import_markdown_zip', args)
@@ -144,11 +154,12 @@ export function importMarkdownZipIntoVault(
 export async function importMarkdownZipIntoVaultWithProgress(
   vaultPath: string,
   sourcePath: string,
+  previewSignature: string,
   operationId: string,
   onEvent: (event: MarkdownFolderImportProgressEvent) => void,
 ): Promise<MarkdownFolderImportResult> {
   if (!isTauri()) {
-    return runMockMarkdownZipImportWithProgress(vaultPath, sourcePath, onEvent)
+    return runMockMarkdownZipImportWithProgress(vaultPath, sourcePath, previewSignature, onEvent)
   }
 
   const channel = await createTauriChannel<MarkdownFolderImportProgressEvent>()
@@ -161,6 +172,7 @@ export async function importMarkdownZipIntoVaultWithProgress(
   await invoke<void>('import_markdown_zip_with_progress', {
     vaultPath,
     sourcePath,
+    previewSignature,
     operationId,
     onEvent: channel,
   })
@@ -174,8 +186,9 @@ export function importJournalExportIntoVault(
   vaultPath: string,
   sourcePath: string,
   sourceKind: JournalImportSource,
+  previewSignature: string,
 ): Promise<MarkdownFolderImportResult> {
-  const args = { vaultPath, sourcePath, sourceKind }
+  const args = { vaultPath, sourcePath, sourceKind, previewSignature }
   return isTauri()
     ? invoke<MarkdownFolderImportResult>('import_journal_export', args)
     : mockInvoke<MarkdownFolderImportResult>('import_journal_export', args)
@@ -186,11 +199,12 @@ export async function importJournalExportIntoVaultWithProgress(
   vaultPath: string,
   sourcePath: string,
   sourceKind: JournalImportSource,
+  previewSignature: string,
   operationId: string,
   onEvent: (event: MarkdownFolderImportProgressEvent) => void,
 ): Promise<MarkdownFolderImportResult> {
   if (!isTauri()) {
-    return runMockJournalImportWithProgress(vaultPath, sourcePath, sourceKind, onEvent)
+    return runMockJournalImportWithProgress(vaultPath, sourcePath, sourceKind, previewSignature, onEvent)
   }
 
   const channel = await createTauriChannel<MarkdownFolderImportProgressEvent>()
@@ -204,6 +218,7 @@ export async function importJournalExportIntoVaultWithProgress(
     vaultPath,
     sourcePath,
     sourceKind,
+    previewSignature,
     operationId,
     onEvent: channel,
   })
@@ -229,8 +244,9 @@ export function importAppExportIntoVault(
   vaultPath: string,
   sourcePath: string,
   sourceKind: AppImportSource,
+  previewSignature: string,
 ): Promise<MarkdownFolderImportResult> {
-  const args = { vaultPath, sourcePath, sourceKind: commandSourceKind(sourceKind) }
+  const args = { vaultPath, sourcePath, sourceKind: commandSourceKind(sourceKind), previewSignature }
   return isTauri()
     ? invoke<MarkdownFolderImportResult>('import_app_export', args)
     : mockInvoke<MarkdownFolderImportResult>('import_app_export', args)
@@ -241,11 +257,12 @@ export async function importAppExportIntoVaultWithProgress(
   vaultPath: string,
   sourcePath: string,
   sourceKind: AppImportSource,
+  previewSignature: string,
   operationId: string,
   onEvent: (event: MarkdownFolderImportProgressEvent) => void,
 ): Promise<MarkdownFolderImportResult> {
   if (!isTauri()) {
-    return runMockAppImportWithProgress(vaultPath, sourcePath, sourceKind, onEvent)
+    return runMockAppImportWithProgress(vaultPath, sourcePath, sourceKind, commandSourceKind(sourceKind), previewSignature, onEvent)
   }
 
   const channel = await createTauriChannel<MarkdownFolderImportProgressEvent>()
@@ -259,6 +276,7 @@ export async function importAppExportIntoVaultWithProgress(
     vaultPath,
     sourcePath,
     sourceKind: commandSourceKind(sourceKind),
+    previewSignature,
     operationId,
     onEvent: channel,
   })
@@ -287,90 +305,6 @@ function journalImportLabel(source: JournalImportSource): string {
   if (source === 'day-one') return 'Day One JSON/ZIP export'
   if (source === 'apple-journal') return 'Apple Journal ZIP/HTML/JSON export'
   return 'Journey ZIP/JSON export'
-}
-
-async function runMockMarkdownFolderImportWithProgress(
-  vaultPath: string,
-  sourcePath: string,
-  onEvent: (event: MarkdownFolderImportProgressEvent) => void,
-): Promise<MarkdownFolderImportResult> {
-  onEvent({ event: 'Started', data: { totalFiles: 1 } })
-  const result = await mockInvoke<MarkdownFolderImportResult>('import_markdown_folder', {
-    vaultPath,
-    sourcePath,
-  })
-  const processedFiles = result.notes_copied + result.assets_copied
-  const totalFiles = Math.max(1, processedFiles)
-  onEvent({
-    event: 'Progress',
-    data: { processedFiles, totalFiles, currentPath: 'import-report.md' },
-  })
-  onEvent({ event: 'Finished', data: { result } })
-  return result
-}
-
-async function runMockMarkdownZipImportWithProgress(
-  vaultPath: string,
-  sourcePath: string,
-  onEvent: (event: MarkdownFolderImportProgressEvent) => void,
-): Promise<MarkdownFolderImportResult> {
-  onEvent({ event: 'Started', data: { totalFiles: 1 } })
-  const result = await mockInvoke<MarkdownFolderImportResult>('import_markdown_zip', {
-    vaultPath,
-    sourcePath,
-  })
-  const processedFiles = result.notes_copied + result.assets_copied
-  const totalFiles = Math.max(1, processedFiles)
-  onEvent({
-    event: 'Progress',
-    data: { processedFiles, totalFiles, currentPath: 'import-report.md' },
-  })
-  onEvent({ event: 'Finished', data: { result } })
-  return result
-}
-
-async function runMockAppImportWithProgress(
-  vaultPath: string,
-  sourcePath: string,
-  sourceKind: AppImportSource,
-  onEvent: (event: MarkdownFolderImportProgressEvent) => void,
-): Promise<MarkdownFolderImportResult> {
-  onEvent({ event: 'Started', data: { totalFiles: 1 } })
-  const result = await mockInvoke<MarkdownFolderImportResult>('import_app_export', {
-    vaultPath,
-    sourcePath,
-    sourceKind: commandSourceKind(sourceKind),
-  })
-  const processedFiles = result.notes_copied + result.assets_copied
-  const totalFiles = Math.max(1, processedFiles)
-  onEvent({
-    event: 'Progress',
-    data: { processedFiles, totalFiles, currentPath: `${sourceKind} import` },
-  })
-  onEvent({ event: 'Finished', data: { result } })
-  return result
-}
-
-async function runMockJournalImportWithProgress(
-  vaultPath: string,
-  sourcePath: string,
-  sourceKind: JournalImportSource,
-  onEvent: (event: MarkdownFolderImportProgressEvent) => void,
-): Promise<MarkdownFolderImportResult> {
-  onEvent({ event: 'Started', data: { totalFiles: 1 } })
-  const result = await mockInvoke<MarkdownFolderImportResult>('import_journal_export', {
-    vaultPath,
-    sourcePath,
-    sourceKind,
-  })
-  const processedFiles = result.notes_copied + result.assets_copied
-  const totalFiles = Math.max(1, processedFiles)
-  onEvent({
-    event: 'Progress',
-    data: { processedFiles, totalFiles, currentPath: `${sourceKind} import` },
-  })
-  onEvent({ event: 'Finished', data: { result } })
-  return result
 }
 
 /** Builds concise user feedback for a completed Markdown folder import. */

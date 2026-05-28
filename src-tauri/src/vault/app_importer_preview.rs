@@ -12,6 +12,7 @@ use super::app_importer_io::{
 use super::import_manifest::{
     manifest_asset, manifest_note, manifest_withheld, ImportAutopsyManifestRow,
 };
+use super::import_preview_signature::import_preview_signature;
 use super::importer::MarkdownFolderImportPreview;
 use super::spanda_importer::import_spanda_export;
 
@@ -46,7 +47,10 @@ pub fn preview_app_export(
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source),
         planned_import_root: path_to_string(&planned_import_root),
-        preview_signature: None,
+        preview_signature: Some(import_preview_signature(
+            &format!("app:{source_kind}"),
+            &source,
+        )?),
         notes_to_copy: state.notes,
         assets_to_copy: state.assets,
         skipped_files: state.skipped,

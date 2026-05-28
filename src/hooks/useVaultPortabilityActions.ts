@@ -162,7 +162,7 @@ export function useVaultPortabilityActions({
       const importWithProgress = source === 'markdown-zip'
         ? importMarkdownZipIntoVaultWithProgress
         : importMarkdownFolderIntoVaultWithProgress
-      const result = await importWithProgress(resolvedPath, sourcePath, activeOperation.operationId, (event) => {
+      const result = await importWithProgress(resolvedPath, sourcePath, lastImportPreview?.result.preview_signature ?? '', activeOperation.operationId, (event) => {
         updateImportProgress(activeOperation, label, event)
       })
       if (!isCurrentPortabilityOperation(activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return
@@ -225,7 +225,7 @@ export function useVaultPortabilityActions({
         operation = activeOperation
         setLastImportPreview(null)
         const result = await importJournalExportIntoVaultWithProgress(
-          resolvedPath, sourcePath, source, activeOperation.operationId,
+          resolvedPath, sourcePath, source, lastImportPreview?.result.preview_signature ?? '', activeOperation.operationId,
           (event) => updateImportProgress(activeOperation, label, event),
         )
         if (!isCurrentPortabilityOperation(activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return
@@ -269,7 +269,7 @@ export function useVaultPortabilityActions({
         operation = activeOperation
         setLastImportPreview(null)
         const result = await importAppExportIntoVaultWithProgress(
-          resolvedPath, sourcePath, source, activeOperation.operationId,
+          resolvedPath, sourcePath, source, lastImportPreview?.result.preview_signature ?? '', activeOperation.operationId,
           (event) => updateImportProgress(activeOperation, label, event),
         )
         if (!isCurrentPortabilityOperation(activeOperationRef.current, activeOperation.operationId) || activeOperation.cancelled) return

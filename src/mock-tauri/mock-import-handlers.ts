@@ -3,6 +3,7 @@ const DEFAULT_MOCK_VAULT_PATH = '/Users/mock/demo-vault-v2'
 interface ImportPathArgs {
   vaultPath?: string
   sourcePath?: string
+  previewSignature?: string
 }
 
 interface ImportKindArgs extends ImportPathArgs {
@@ -39,11 +40,20 @@ function mockImportResult(
   }
 }
 
-function mockImportPreview(vaultPath: string, sourcePath: string, source: string) {
+function mockPreviewSignature(scope: string, sourcePath: string): string {
+  return `mock-${scope}-${sourceName(sourcePath, 'source')}-preview`
+}
+
+function requirePreviewSignature(args: ImportPathArgs, label: string): void {
+  if (!args.previewSignature?.trim()) throw new Error(`${label} requires preview signature`)
+}
+
+function mockImportPreview(vaultPath: string, sourcePath: string, source: string, scope: string) {
   const isZip = sourcePath.toLowerCase().endsWith('.zip')
   return {
     source_path: sourcePath,
     planned_import_root: `${vaultPath}/imports/${source}`,
+    preview_signature: mockPreviewSignature(scope, sourcePath),
     notes_to_copy: isZip ? 5 : 3,
     assets_to_copy: isZip ? 3 : 2,
     skipped_files: 1,
@@ -60,6 +70,7 @@ function mockCapsuleSource(args: CapsuleImportArgs): string {
 /** Browser fallback handlers for import and Import Autopsy commands. */
 export const mockImportHandlers = {
   import_markdown_folder: (args: ImportPathArgs) => {
+    requirePreviewSignature(args, 'Markdown import')
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/Bear'
     return mockImportResult(vault, sourceName(source, 'markdown-import'), 3, 2, 1)
@@ -68,14 +79,15 @@ export const mockImportHandlers = {
   preview_markdown_folder_import: (args: ImportPathArgs) => {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/Bear'
-    return mockImportPreview(vault, source, sourceName(source, 'markdown-import'))
+    return mockImportPreview(vault, source, sourceName(source, 'markdown-import'), 'markdown-folder')
   },
   preview_markdown_zip_import: (args: ImportPathArgs) => {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/grimoire-vault.zip'
-    return mockImportPreview(vault, source, sourceNameWithoutZip(source, 'markdown-zip'))
+    return mockImportPreview(vault, source, sourceNameWithoutZip(source, 'markdown-zip'), 'markdown-zip')
   },
   import_markdown_zip: (args: ImportPathArgs) => {
+    requirePreviewSignature(args, 'Markdown ZIP import')
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/grimoire-vault.zip'
     return mockImportResult(vault, sourceNameWithoutZip(source, 'markdown-zip'), 5, 3, 1)
@@ -84,7 +96,7 @@ export const mockImportHandlers = {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = mockCapsuleSource(args)
     return {
-      ...mockImportPreview(vault, source, source.replace(/\.(json|sqlite|db)$/i, '')),
+      ...mockImportPreview(vault, source, source.replace(/\.(json|sqlite|db)$/i, ''), `capsule-${args.format ?? 'json'}`),
       preview_signature: `mock-${args.format ?? 'json'}-capsule-import-preview`,
       notes_to_copy: 8,
       assets_to_copy: 4,
@@ -111,6 +123,7 @@ export const mockImportHandlers = {
     return mockImportResult(vault, source, 8, 4, 2)
   },
   import_journal_export: (args: ImportKindArgs) => {
+    requirePreviewSignature(args, 'Journal import')
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const kind = args.sourceKind ?? 'day-one'
     return mockImportResult(vault, `${kind}-export`, 8, 4, 0)
@@ -119,9 +132,10 @@ export const mockImportHandlers = {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/Journal'
     const kind = args.sourceKind ?? 'day-one'
-    return mockImportPreview(vault, source, `${kind}-export`)
+    return mockImportPreview(vault, source, `${kind}-export`, `journal-${kind}`)
   },
   import_app_export: (args: ImportKindArgs) => {
+    requirePreviewSignature(args, 'App import')
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const kind = args.sourceKind ?? 'obsidian'
     return mockImportResult(
@@ -136,6 +150,6 @@ export const mockImportHandlers = {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = args.sourcePath ?? '/Users/mock/Exports/App'
     const kind = args.sourceKind ?? 'obsidian'
-    return mockImportPreview(vault, source, `${kind}-export`)
+    return mockImportPreview(vault, source, `${kind}-export`, `app-${kind}`)
   },
 }
