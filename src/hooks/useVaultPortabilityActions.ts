@@ -34,6 +34,7 @@ import {
   runPortabilityCapsulePreviewAction,
   runStaticHtmlExportAction,
 } from './vaultExportActionRunners'
+import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
 import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
 import {
@@ -41,6 +42,7 @@ import {
   appImportActionId,
   appImportLabel,
   beginPortabilityOperation,
+  cancelToastForAction,
   capsuleImportActionId,
   clearPortabilityOperation,
   errorMessage,
@@ -66,11 +68,13 @@ export function useVaultPortabilityActions({
   const [activeAction, setActiveAction] = useState<VaultPortabilityActionId | null>(null)
   const [portabilityProgress, setPortabilityProgress] = useState<PortabilityProgressState | null>(null)
   const [lastImportPreview, setLastImportPreview] = useState<ImportAutopsyPreviewState | null>(null)
+  const [lastExportPreview, setLastExportPreview] = useState<PortabilityExportPreviewState | null>(null)
   const activeOperationRef = useRef<ActivePortabilityOperation | null>(null)
   const markdownImportBusy = activeAction !== null
 
   useEffect(() => {
     setLastImportPreview(null)
+    setLastExportPreview(null)
     setPortabilityProgress(null)
     activeOperationRef.current = null
   }, [resolvedPath])
@@ -322,6 +326,7 @@ export function useVaultPortabilityActions({
       resolvedPath,
       activeOperationRef,
       setActiveAction,
+      setLastExportPreview,
       setPortabilityProgress,
       setToastMessage,
       updateProgress: updateImportProgress,
@@ -332,6 +337,7 @@ export function useVaultPortabilityActions({
       resolvedPath,
       activeOperationRef,
       setActiveAction,
+      setLastExportPreview,
       setPortabilityProgress,
       setToastMessage,
       updateProgress: updateImportProgress,
@@ -341,24 +347,22 @@ export function useVaultPortabilityActions({
   const exportRunnerOptions = useCallback(() => ({
     resolvedPath,
     activeOperationRef,
+    lastExportPreview,
     setActiveAction,
+    setLastExportPreview,
     setPortabilityProgress,
     setToastMessage,
     updateProgress: updateImportProgress,
-  }), [resolvedPath, setToastMessage, updateImportProgress])
-
+  }), [lastExportPreview, resolvedPath, setToastMessage, updateImportProgress])
   const handlePreviewJsonSnapshot = useCallback(async () => {
     await runPortabilityCapsulePreviewAction(exportRunnerOptions(), 'json')
   }, [exportRunnerOptions])
-
   const handleExportJsonSnapshot = useCallback(async () => {
     await runPortabilityCapsuleExportAction(exportRunnerOptions(), 'json')
   }, [exportRunnerOptions])
-
   const handlePreviewSqliteSnapshot = useCallback(async () => {
     await runPortabilityCapsulePreviewAction(exportRunnerOptions(), 'sqlite')
   }, [exportRunnerOptions])
-
   const handleExportSqliteSnapshot = useCallback(async () => {
     await runPortabilityCapsuleExportAction(exportRunnerOptions(), 'sqlite')
   }, [exportRunnerOptions])
@@ -368,6 +372,7 @@ export function useVaultPortabilityActions({
     portabilityBusyAction: activeAction,
     portabilityProgress,
     lastImportPreview,
+    lastExportPreview,
     handleCancelPortabilityAction,
     handlePreviewMarkdownFolder: () => { void handlePreviewFolder('markdown-folder') }, handleImportMarkdownFolder: () => { void handleImportFolder('markdown-folder') },
     handlePreviewMarkdownZip: () => { void handlePreviewMarkdownZip() }, handleImportMarkdownZip: () => { void handleImportFolder('markdown-zip') },
@@ -391,10 +396,4 @@ export function useVaultPortabilityActions({
     handleExportSqliteSnapshot: () => { void handleExportSqliteSnapshot() },
     ...objectStorageActions,
   }
-}
-
-function cancelToastForAction(actionId: VaultPortabilityActionId): string {
-  if (actionId.startsWith('export')) return 'Export cancelled'
-  if (actionId.startsWith('storage')) return 'Storage sync cancelled'
-  return 'Import cancelled'
 }

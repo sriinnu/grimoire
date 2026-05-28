@@ -2,6 +2,7 @@ import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
 import type { EditorFont, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
 import type { createTranslator } from '../../lib/i18n'
 import type { AppLocale, UiLanguagePreference } from '../../lib/i18nCore'
+import type { PortabilityExportPreviewState } from '../../lib/exportReviewGate'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
 import type { TranscriptionProviderId } from '../../lib/transcriptionProviders'
 import type { ThemeMode } from '../../lib/themeMode'
@@ -97,6 +98,7 @@ export interface SettingsBodyProps {
   portabilityBusyAction?: VaultPortabilityActionId | null
   portabilityProgress?: PortabilityProgressState | null
   importPreview?: ImportAutopsyPreviewState | null
+  exportPreview?: PortabilityExportPreviewState | null
   onCancelPortabilityAction?: () => void
   onPreviewMarkdownFolder?: () => void
   onImportMarkdownFolder?: () => void

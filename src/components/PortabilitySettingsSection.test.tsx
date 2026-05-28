@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import { createTranslator } from '../lib/i18n'
 import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
 import { makeEntry } from '../test-utils/noteListTestUtils'
@@ -17,6 +18,24 @@ const importPreview: ImportAutopsyPreviewState = {
     skipped_files: 0,
     failed_files: 0,
     writes_local_only_report: true,
+  },
+}
+
+const exportPreview: PortabilityExportPreviewState = {
+  format: 'json',
+  result: {
+    format: 'json',
+    files_exportable: 4,
+    notes_exportable: 3,
+    assets_exportable: 1,
+    skipped_files: 2,
+    bytes_exportable: 2048,
+    locality_proof: {
+      absolute_source_paths_redacted: true,
+      local_only_files_withheld: 2,
+      markdown_source_of_truth: true,
+    },
+    manifest_rows: [],
   },
 }
 
@@ -443,9 +462,9 @@ describe('PortabilitySettingsSection', () => {
     expect(onExportMarkdownZip).toHaveBeenCalledTimes(1)
     expect(onExportStaticHtmlArchive).toHaveBeenCalledTimes(1)
     expect(onPreviewJsonSnapshot).toHaveBeenCalledTimes(1)
-    expect(onExportJsonSnapshot).toHaveBeenCalledTimes(1)
+    expect(onExportJsonSnapshot).not.toHaveBeenCalled()
     expect(onPreviewSqliteSnapshot).toHaveBeenCalledTimes(1)
-    expect(onExportSqliteSnapshot).toHaveBeenCalledTimes(1)
+    expect(onExportSqliteSnapshot).not.toHaveBeenCalled()
     expect(onRunS3LivePreflight).toHaveBeenCalledTimes(1)
     expect(onRunAzureLivePreflight).toHaveBeenCalledTimes(1)
     expect(onPreviewS3ProviderPush).toHaveBeenCalledTimes(1)
@@ -464,6 +483,49 @@ describe('PortabilitySettingsSection', () => {
     expect(onApplyAzureMirrorPush).toHaveBeenCalledTimes(1)
     expect(onPreviewAzureMirrorPull).toHaveBeenCalledTimes(1)
     expect(onApplyAzureMirrorPull).toHaveBeenCalledTimes(1)
+  })
+
+  it('unlocks only the matching capsule export after a reviewed preview', () => {
+    const onExportJsonSnapshot = vi.fn()
+    const onExportSqliteSnapshot = vi.fn()
+    const { rerender } = render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        exportPreview={exportPreview}
+        onExportJsonSnapshot={onExportJsonSnapshot}
+        onExportSqliteSnapshot={onExportSqliteSnapshot}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
+    const summary = screen.getByTestId('settings-export-preview-summary')
+    expect(summary).toHaveTextContent('Reviewed preview')
+    expect(summary).toHaveTextContent('JSON snapshot')
+    expect(summary).toHaveTextContent('4 files')
+    expect(summary).toHaveTextContent('local-only withheld')
+    expect(summary).toHaveTextContent('Markdown source of truth: yes')
+    expect(summary).not.toHaveTextContent('/Users/')
+    expect(screen.getByTestId('settings-export-json-snapshot')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-export-sqlite-snapshot')).toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-export-json-snapshot'))
+    fireEvent.click(screen.getByTestId('settings-export-sqlite-snapshot'))
+    expect(onExportJsonSnapshot).toHaveBeenCalledTimes(1)
+    expect(onExportSqliteSnapshot).not.toHaveBeenCalled()
+
+    rerender(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        exportPreview={{ ...exportPreview, format: 'sqlite', result: { ...exportPreview.result, format: 'sqlite' } }}
+        onExportJsonSnapshot={onExportJsonSnapshot}
+        onExportSqliteSnapshot={onExportSqliteSnapshot}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
+    expect(screen.getByTestId('settings-export-json-snapshot')).toBeDisabled()
+    expect(screen.getByTestId('settings-export-sqlite-snapshot')).not.toBeDisabled()
+    fireEvent.click(screen.getByTestId('settings-export-sqlite-snapshot'))
+    expect(onExportSqliteSnapshot).toHaveBeenCalledTimes(1)
   })
 
   it('unlocks only the matching import after a no-write preview is reviewed', () => {

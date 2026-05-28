@@ -156,19 +156,36 @@ describe('useVaultPortabilityActions exports', () => {
 
     act(() => result.current.handlePreviewJsonSnapshot())
     await waitFor(() => expect(vaultExportMocks.previewPortabilityCapsule).toHaveBeenCalledWith('/vault', 'json'))
+    await waitFor(() => expect(result.current.lastExportPreview?.format).toBe('json'))
     await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('capsule preview toast'))
 
     act(() => result.current.handlePreviewSqliteSnapshot())
     await waitFor(() => expect(vaultExportMocks.previewPortabilityCapsule).toHaveBeenCalledWith('/vault', 'sqlite'))
+    await waitFor(() => expect(result.current.lastExportPreview?.format).toBe('sqlite'))
+  })
+
+  it('blocks JSON and SQLite capsule exports until the matching preview exists', async () => {
+    const { result, setToastMessage } = renderActions()
+
+    act(() => result.current.handleExportJsonSnapshot())
+
+    await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('Preview JSON snapshot before exporting'))
+    expect(vaultExportMocks.pickJsonSnapshotExportTarget).not.toHaveBeenCalled()
+    expect(vaultExportMocks.exportPortabilityCapsule).not.toHaveBeenCalled()
   })
 
   it('exports JSON and SQLite capsules through reviewed local targets', async () => {
     const { result, setToastMessage } = renderActions()
 
+    act(() => result.current.handlePreviewJsonSnapshot())
+    await waitFor(() => expect(result.current.lastExportPreview?.format).toBe('json'))
     act(() => result.current.handleExportJsonSnapshot())
     await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.json', 'json'))
     await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('capsule export toast'))
+    expect(result.current.lastExportPreview).toBeNull()
 
+    act(() => result.current.handlePreviewSqliteSnapshot())
+    await waitFor(() => expect(result.current.lastExportPreview?.format).toBe('sqlite'))
     act(() => result.current.handleExportSqliteSnapshot())
     await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.sqlite', 'sqlite'))
   })

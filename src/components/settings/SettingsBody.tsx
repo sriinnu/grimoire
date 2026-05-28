@@ -26,6 +26,7 @@ export function SettingsBody(props: SettingsBodyProps) {
     portabilityBusyAction,
     portabilityProgress,
     importPreview,
+    exportPreview,
     onCancelPortabilityAction,
     onPreviewMarkdownFolder,
     onImportMarkdownFolder,
@@ -134,6 +135,7 @@ export function SettingsBody(props: SettingsBodyProps) {
               busyAction={portabilityBusyAction}
               progress={portabilityProgress}
               importPreview={importPreview}
+              exportPreview={exportPreview}
               onCancelProgress={onCancelPortabilityAction}
               onPreviewMarkdownFolder={onPreviewMarkdownFolder}
               onImportMarkdownFolder={onImportMarkdownFolder}

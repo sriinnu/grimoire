@@ -4,6 +4,7 @@ import type {
   PortabilityProgressState,
   VaultPortabilityActionId,
 } from '../lib/vaultPortability'
+import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { ObjectStorageProviderId } from '../lib/objectStorageAdapterDesign'
 import type {
   AppImportSource,
@@ -32,6 +33,7 @@ export interface VaultPortabilityActions {
   portabilityBusyAction: VaultPortabilityActionId | null
   portabilityProgress: PortabilityProgressState | null
   lastImportPreview: ImportAutopsyPreviewState | null
+  lastExportPreview: PortabilityExportPreviewState | null
   handleCancelPortabilityAction: () => void
   handlePreviewMarkdownFolder: () => void; handleImportMarkdownFolder: () => void
   handlePreviewMarkdownZip: () => void; handleImportMarkdownZip: () => void
@@ -234,6 +236,13 @@ export function journalImportLabel(source: JournalImportSource): string {
   if (source === 'day-one') return 'Day One'
   if (source === 'apple-journal') return 'Apple Journal'
   return 'Journey'
+}
+
+/** Returns the cancellation toast for the active portability lane. */
+export function cancelToastForAction(actionId: VaultPortabilityActionId): string {
+  if (actionId.startsWith('export')) return 'Export cancelled'
+  if (actionId.startsWith('storage')) return 'Storage sync cancelled'
+  return 'Import cancelled'
 }
 
 /** Converts an unknown error into copy-safe toast text. */

@@ -5,6 +5,7 @@ import type {
   VaultPortabilityActionId,
 } from '../lib/vaultPortability'
 import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
+import { reviewedExportFormat, type PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import {
   exportPortabilityCapsule,
   exportMarkdownZipWithProgress,
@@ -31,7 +32,9 @@ import {
 interface VaultExportActionRunnerOptions {
   resolvedPath: string
   activeOperationRef: MutableRefObject<ActivePortabilityOperation | null>
+  lastExportPreview?: PortabilityExportPreviewState | null
   setActiveAction: Dispatch<SetStateAction<VaultPortabilityActionId | null>>
+  setLastExportPreview: Dispatch<SetStateAction<PortabilityExportPreviewState | null>>
   setPortabilityProgress: Dispatch<SetStateAction<PortabilityProgressState | null>>
   setToastMessage: (message: string) => void
   updateProgress: (
@@ -107,8 +110,10 @@ export async function runPortabilityCapsulePreviewAction(
   try {
     options.setToastMessage(`Previewing ${definition.previewLabel}...`)
     const result = await previewPortabilityCapsule(options.resolvedPath, format)
+    options.setLastExportPreview({ format, result })
     options.setToastMessage(formatPortabilityCapsulePreviewToast(result))
   } catch (error) {
+    options.setLastExportPreview(null)
     options.setToastMessage(`Preview failed: ${errorMessage(error, 'Preview failed')}`)
   } finally {
     options.setActiveAction(null)
@@ -128,8 +133,13 @@ export async function runPortabilityCapsuleExportAction(
 
   options.setActiveAction(definition.exportActionId)
   try {
+    if (!reviewedExportFormat(definition.exportActionId, options.lastExportPreview ?? null)) {
+      options.setToastMessage(`Preview ${definition.exportLabel} before exporting`)
+      return
+    }
     const targetPath = await definition.pickTarget()
     if (!targetPath) return
+    options.setLastExportPreview(null)
     options.setToastMessage(`Exporting ${definition.exportLabel}...`)
     const result = await exportPortabilityCapsule(options.resolvedPath, targetPath, format)
     options.setToastMessage(formatPortabilityCapsuleExportToast(result, format))

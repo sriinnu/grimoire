@@ -24,6 +24,7 @@ export function PortabilityActionDeck({
   vaultReady,
   busyAction,
   importPreview,
+  exportPreview,
   progress,
   onCancelProgress,
   s3MirrorPreviewReady,
@@ -123,7 +124,6 @@ export function PortabilityActionDeck({
           {t('settings.portability.actionDeckDescription')}
         </div>
       </div>
-
       <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border p-1" role="tablist">
         {lanes.map((lane) => (
           <Button
@@ -142,7 +142,6 @@ export function PortabilityActionDeck({
           </Button>
         ))}
       </div>
-
       <div className="grid gap-2" role="tabpanel" aria-label={activeConfig.label}>
         <div className="text-[11px] leading-snug text-muted-foreground">{activeConfig.description}</div>
         {progress ? (
@@ -327,6 +326,7 @@ export function PortabilityActionDeck({
         onExportJsonSnapshot={onExportJsonSnapshot}
         onPreviewSqliteSnapshot={onPreviewSqliteSnapshot}
         onExportSqliteSnapshot={onExportSqliteSnapshot}
+        exportPreview={exportPreview}
       />
     )
   }
