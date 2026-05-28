@@ -705,6 +705,7 @@ Build order:
   - [ ] Re-overhaul Settings panel polish section-by-section: keep every panel theme-owned, intent-gated, Apple-native, local-first in wording, and free of browser/default form edges.
     - [x] Move Settings onto the shared shadcn/Radix Dialog shell, split header/footer chrome below the code-size guardrail, and correct the open-panel shortcut hint to save/close behavior.
     - [x] Route Settings control rows, local Git cards, AI route notes, theme-pack controls, and Locality Firewall cards through theme-owned material classes instead of ad-hoc `bg-muted`/`bg-background` islands.
+    - [x] Fold Native macOS settings into the shared Settings heading/material system so menu-bar and window-material controls no longer carry inline/browser-default styling.
   - [x] Apply motion primitives to command palette, Settings, inspector, graph focus, and note navigation.
   - [x] Split Settings portability actions into intent lanes so Markdown, app, journal, export, and storage controls appear only when chosen.
   - [x] Tighten the Settings rail and main surface so sections have an active native control state instead of a flat scroll pile.

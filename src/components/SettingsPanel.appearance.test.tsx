@@ -173,6 +173,7 @@ describe('SettingsPanel appearance and agent settings', () => {
     )
 
     expect(screen.getByRole('combobox', { name: 'Window material' })).toBeInTheDocument()
+    expect(screen.getByTestId('settings-native-locality-note')).toHaveClass('settings-material-inner')
     fireEvent.pointerDown(screen.getByTestId('settings-native-shell-material'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Glass preview' }))
     fireEvent.click(screen.getByTestId('settings-save'))

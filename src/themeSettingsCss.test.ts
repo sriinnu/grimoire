@@ -13,6 +13,7 @@ describe('theme settings CSS', () => {
   const appearanceSettings = readFileSync(`${process.cwd()}/src/components/AppearanceSettingsSection.tsx`, 'utf8')
   const themePackSettings = readFileSync(`${process.cwd()}/src/components/ThemePackSettingsControls.tsx`, 'utf8')
   const localityFirewallSettings = readFileSync(`${process.cwd()}/src/components/LocalityFirewallSettingsCard.tsx`, 'utf8')
+  const nativeSettings = readFileSync(`${process.cwd()}/src/components/NativeSettingsSection.tsx`, 'utf8')
   const portabilityActionDeck = readFileSync(`${process.cwd()}/src/components/PortabilityActionDeck.tsx`, 'utf8')
   const portabilityGroups = readFileSync(`${process.cwd()}/src/components/PortabilityGroups.tsx`, 'utf8')
   const portabilityProofLedger = readFileSync(`${process.cwd()}/src/components/PortabilityProofLedger.tsx`, 'utf8')
@@ -76,6 +77,7 @@ describe('theme settings CSS', () => {
       appearanceSettings,
       themePackSettings,
       localityFirewallSettings,
+      nativeSettings,
       portabilityActionDeck,
       portabilityGroups,
       portabilityProofLedger,
@@ -87,6 +89,9 @@ describe('theme settings CSS', () => {
     ]) {
       expect(source).not.toMatch(/bg-(muted|background)|hover:bg-|bg-\[/)
     }
+    expect(nativeSettings).not.toContain('style={{')
+    expect(nativeSettings).toContain('SectionHeading')
+    expect(nativeSettings).toContain('settings-material-inner')
   })
 
   it('keeps portability proof surfaces on semantic theme hooks', () => {

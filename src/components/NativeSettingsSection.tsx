@@ -1,6 +1,6 @@
 import type { createTranslator } from '../lib/i18n'
 import type { NativeShellMaterial } from '../lib/appearance'
-import { LabeledSelect, SettingsSwitchRow } from './settings/SettingsControls'
+import { LabeledSelect, SectionHeading, SettingsSwitchRow } from './settings/SettingsControls'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -47,35 +47,12 @@ export function NativeSettingsSection({
         testId="settings-native-shell-material"
       />
 
-      <p className="text-[11px] leading-relaxed text-muted-foreground">
-        {t('settings.native.shellMaterialDescription')}
-      </p>
-    </>
-  )
-}
-
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          color: 'var(--muted-foreground)',
-        }}
+        className="settings-material-inner rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
+        data-testid="settings-native-locality-note"
       >
-        {title}
+        {t('settings.native.shellMaterialDescription')}
       </div>
-      <div style={{ fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.55, maxWidth: 420 }}>
-        {description}
-      </div>
-    </div>
+    </>
   )
 }
