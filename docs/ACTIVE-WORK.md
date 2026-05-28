@@ -809,6 +809,7 @@ Build order:
     - [x] Add a mixed Markdown ZIP stress regression for large Markdown content, unsupported binaries, and unsafe traversal.
   - [ ] Add live-gated S3/Azure apply/pull tests before upgrading object storage from local-mirror fixture to provider-proven sync.
     - [x] Add opt-in S3 and Azure live round-trip tests that write, list, pull, compare bytes, and delete a generated proof object/blob without printing credentials or local paths.
+    - [x] Add `pnpm test:object-storage-live` as the one-command live proof runner; it refuses proof when no explicit S3/Azure live gate is enabled and redacts configured values to set/missing state.
     - [ ] Run the live round-trip tests against real S3/Azure provider fixtures and record the provider failure states before calling sync provider-proven.
   - [x] Add a redaction-safe Import Autopsy UI contract for exact source -> destination, metadata transform, attachment move, and withheld-reason manifest rows.
   - [x] Populate exact Import Autopsy manifest rows from Markdown/Bear folder, Obsidian/Notion-style app, and journal importer preview backends.
