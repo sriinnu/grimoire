@@ -132,12 +132,12 @@ describe('PortabilityProofLedger', () => {
     render(
       <PortabilityProofLedger
         capsuleExportPreview={{
-          format: 'sqlite',
+          format: 'json',
           result: {
             assets_exportable: 2,
             bytes_exportable: 4096,
             files_exportable: 6,
-            format: 'sqlite',
+            format: 'json',
             locality_proof: {
               absolute_source_paths_redacted: true,
               local_only_files_withheld: 3,
@@ -166,15 +166,27 @@ describe('PortabilityProofLedger', () => {
       />,
     )
 
-    expect(screen.getByTestId('portability-proof-live-sqlite-capsule-export-preview')).toHaveTextContent(
-      'SQLite capsule export preview: reviewed',
+    expect(screen.getByTestId('portability-proof-live-json-capsule-export-preview')).toHaveTextContent(
+      'JSON capsule export preview: reviewed',
     )
     expect(screen.getByTestId('portability-proof-live-json-capsule-import-preview')).toHaveTextContent(
       'JSON capsule import preview: reviewed',
     )
+    expect(screen.getByTestId('portability-capsule-loop-proof')).toHaveAttribute('data-loop-status', 'reviewed')
+    expect(screen.getByTestId('portability-capsule-loop-proof')).toHaveTextContent('preview-paired')
+    expect(screen.getByTestId('portability-capsule-loop-step-locality-proof')).toHaveAttribute('data-step-status', 'done')
     expect(screen.getByTestId('portability-proof-imports')).not.toHaveTextContent('/Users/')
     expect(screen.getByTestId('portability-proof-exports')).not.toHaveTextContent('/Users/')
     expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('Dreams.md')
     expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('journal.md')
+  })
+
+  it('shows missing capsule loop proof before matching previews exist', () => {
+    render(<PortabilityProofLedger />)
+
+    expect(screen.getByTestId('portability-capsule-loop-proof')).toHaveAttribute('data-loop-status', 'missing')
+    expect(screen.getByTestId('portability-capsule-loop-proof')).toHaveTextContent('not paired')
+    expect(screen.getByTestId('portability-capsule-loop-step-export-preview')).toHaveAttribute('data-step-status', 'missing')
+    expect(screen.getByTestId('portability-capsule-loop-step-import-preview')).toHaveAttribute('data-step-status', 'missing')
   })
 })

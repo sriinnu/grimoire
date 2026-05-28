@@ -11,8 +11,10 @@ import {
   type PortabilityProofRow,
   type PortabilityProofState,
 } from '../lib/portabilityProof'
+import { buildPortabilityCapsuleLoopProof } from '../lib/portabilityCapsuleLoopProof'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
+import { PortabilityCapsuleLoopProof } from './PortabilityCapsuleLoopProof'
 import {
   Dialog,
   DialogContent,
@@ -39,6 +41,10 @@ export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
     objectStorageLiveProofReport: pastedProofReport ?? proofState.objectStorageLiveProofReport,
   }
   const rows = listPortabilityProofRows(effectiveProofState)
+  const capsuleLoopProof = buildPortabilityCapsuleLoopProof({
+    exportPreview: effectiveProofState.capsuleExportPreview,
+    importPreview: effectiveProofState.capsuleImportPreview,
+  })
 
   return (
     <section
@@ -60,6 +66,8 @@ export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
           onLoad={setPastedProofReport}
         />
       </div>
+
+      <PortabilityCapsuleLoopProof proof={capsuleLoopProof} />
 
       <div className="grid gap-1.5">
         {rows.map((row) => (
