@@ -54,10 +54,10 @@ export function LocalityFirewallSettingsCard({ entries }: LocalityFirewallSettin
       {summary.examples.length > 0 ? (
         <div className="mt-2 grid gap-1">
           {summary.examples.map((example) => (
-            <div key={`${example.title}:${example.reason}`} className="flex gap-1.5 text-[11px] text-muted-foreground">
+            <div key={`${example.label}:${example.reason}`} className="flex gap-1.5 text-[11px] text-muted-foreground">
               <LockKey className="mt-0.5 size-3 shrink-0" />
               <span className="min-w-0">
-                <span className="font-medium text-foreground">{example.title}</span>
+                <span className="font-medium text-foreground">{example.label}</span>
                 <span> · {example.reason}</span>
               </span>
             </div>

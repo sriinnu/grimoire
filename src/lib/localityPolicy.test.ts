@@ -114,9 +114,9 @@ describe('localityPolicy', () => {
       path: 1,
     })
     expect(summary.examples).toEqual([
-      { title: 'Dream', reason: 'Dream notes are protected by default' },
-      { title: 'Pinned Private', reason: 'Marked egress in frontmatter' },
-      { title: 'Private Folder', reason: 'Path is under private' },
+      { label: 'Dream note', reason: 'Dream notes are protected by default', source: 'type' },
+      { label: 'Frontmatter-protected note', reason: 'Marked egress in frontmatter', source: 'frontmatter' },
+      { label: 'Private folder note', reason: 'Path is under private', source: 'path' },
     ])
     expect(summary.protectedTypes).toEqual([
       { type: 'Note', count: 2 },
