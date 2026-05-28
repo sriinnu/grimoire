@@ -1,20 +1,37 @@
 import type { VaultEntry } from '../types'
 import type { NoteReference } from '../utils/ai-context'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
-import { sortByModified } from '../utils/noteListHelpers'
-import { buildMemoryLedgerRecord, isMemoryLedgerEntry, type MemoryLedgerRecord } from './memoryLedger'
+import { sortByModified } from '../utils/noteListSorting'
+import { buildSourceLabelMap, buildSourceLabels } from '../utils/sourceLabels'
+import { buildMemoryLedgerRecord, isMemoryLedgerEntry, memoryReferenceLabel, type MemoryLedgerRecord } from './memoryLedger'
 import { resolveEntryLocalityPolicy } from './localityPolicy'
 
 export interface AskContextMemoryReference {
   confidence: string | number | null
+  contradictionLabels: string[]
   lastSeen: string | null
   path: string
   sourceLabels: string[]
   title: string
 }
 
+export interface AskContextIntent {
+  kind: 'crystallize-memory'
+  label: string
+  origin: 'daily-thread'
+  reviewMode: 'review-before-write'
+  sourcePolicy: 'public-references-only'
+  target: 'markdown-memory'
+}
+
 export interface AskContextPackage {
   graph?: {
+    edges?: Array<{
+      kind: string
+      label: string
+      sourceTitle: string
+      targetTitle: string
+    }>
     protectedEdges: number
     truncatedEdges: number
     truncatedNodes: number
@@ -26,6 +43,7 @@ export interface AskContextPackage {
   references: NoteReference[]
   sourceLabels: string[]
   memoryReferences: AskContextMemoryReference[]
+  intent?: AskContextIntent | null
   visibleCount: number
   withheld: {
     protectedMemories: number
@@ -68,10 +86,10 @@ export function buildAskContextPackage({
     .slice(0, limit)
     .map(toNoteReference)
   const memoryResult = findAskMemoryReferences(entries, references)
-  const sourceLabels = uniqueLabels([
+  const sourceLabels = buildSourceLabels([
     ...references.map((reference) => reference.title),
     ...memoryResult.references.map((memory) => memory.title),
-  ])
+  ].map((title) => ({ path: title, title })))
 
   return {
     kind: 'dashboard-ask',
@@ -105,9 +123,16 @@ export function buildGraphAskContextPackage({
       type: node.type,
     })),
   ])
+  const labelsByPath = buildSourceLabelMap(references)
 
   return {
     graph: {
+      edges: agentGraphContext.edges.map((edge) => ({
+        kind: edge.kind,
+        label: edge.label,
+        sourceTitle: labelsByPath.get(edge.sourcePath) ?? edge.sourceTitle,
+        targetTitle: labelsByPath.get(edge.targetPath) ?? edge.targetTitle,
+      })),
       protectedEdges: agentGraphContext.omitted.protectedEdges,
       truncatedEdges: agentGraphContext.omitted.truncatedEdges,
       truncatedNodes: agentGraphContext.omitted.truncatedNodes,
@@ -117,7 +142,7 @@ export function buildGraphAskContextPackage({
     kind: 'graph-council',
     prompt,
     references,
-    sourceLabels: uniqueLabels(references.map((reference) => reference.title)),
+    sourceLabels: buildSourceLabels(references),
     memoryReferences: [],
     visibleCount: agentGraphContext.nodes.length,
     withheld: {
@@ -140,6 +165,7 @@ function findAskMemoryReferences(
   references: NoteReference[],
 ): { protectedCount: number; references: AskContextMemoryReference[] } {
   const referenceTargets = referenceTargetSet(references)
+  const protectedTargets = protectedReferenceTargetSet(entries)
   const records: AskContextMemoryReference[] = []
   let protectedCount = 0
 
@@ -151,8 +177,11 @@ function findAskMemoryReferences(
       protectedCount += 1
       continue
     }
+    const contradictionLabels = safeContradictionLabels(record, protectedTargets)
+    protectedCount += record.contradicts.length - contradictionLabels.length
     records.push({
       confidence: record.confidence,
+      contradictionLabels,
       lastSeen: record.lastSeen,
       path: record.path,
       sourceLabels: record.sources,
@@ -175,6 +204,27 @@ function referenceTargetSet(references: NoteReference[]): Set<string> {
   ]).map(normalizeReference).filter(Boolean))
 }
 
+function protectedReferenceTargetSet(entries: VaultEntry[]): Set<string> {
+  return new Set(entries
+    .filter((entry) => resolveEntryLocalityPolicy(entry).localOnly)
+    .flatMap((entry) => [
+      entry.title,
+      entry.filename,
+      entry.filename.replace(/\.md$/i, ''),
+      entry.path,
+      entry.path.replace(/\.md$/i, ''),
+      entry.path.split('/').pop()?.replace(/\.md$/i, '') ?? '',
+    ])
+    .map(normalizeReference)
+    .filter(Boolean))
+}
+
+function safeContradictionLabels(record: MemoryLedgerRecord, protectedTargets: Set<string>): string[] {
+  return record.contradicts
+    .filter((target) => !protectedTargets.has(normalizeReference(target)))
+    .map(memoryReferenceLabel)
+}
+
 function recordMatchesTargets(record: MemoryLedgerRecord, referenceTargets: Set<string>): boolean {
   return [...record.sources, ...record.contradicts]
     .map(normalizeReference)
@@ -189,10 +239,6 @@ function normalizeReference(value: string): string {
     .replace(/\.md$/i, '')
     .trim()
     .toLowerCase()
-}
-
-function uniqueLabels(labels: string[]): string[] {
-  return [...new Set(labels.filter((label) => label.trim().length > 0))]
 }
 
 function uniqueReferences(references: NoteReference[]): NoteReference[] {

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { isLocalOnlyTypeName, resolveEntryLocalityPolicy, summarizeVaultLocality } from './localityPolicy'
+import {
+  entryLocalityEgressLanes,
+  isLocalOnlyTypeName,
+  resolveEntryLocalityPolicy,
+  summarizeVaultLocality,
+} from './localityPolicy'
 
 function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
@@ -74,6 +79,22 @@ describe('localityPolicy', () => {
 
     expect(policy.localOnly).toBe(false)
     expect(policy.badgeLabel).toBe('Vault context')
+  })
+
+  it('returns the shared egress matrix for protected and vault-context notes', () => {
+    const protectedPolicy = resolveEntryLocalityPolicy(entry({ isA: 'Journal' }))
+    const publicPolicy = resolveEntryLocalityPolicy(entry())
+
+    expect(entryLocalityEgressLanes(protectedPolicy).map((lane) => [lane.label, lane.state])).toEqual([
+      ['Agents', 'Blocked'],
+      ['Export/sync', 'Withheld'],
+      ['Git/cloud', 'Not staged'],
+    ])
+    expect(entryLocalityEgressLanes(publicPolicy).map((lane) => [lane.label, lane.allowedMaterial])).toEqual([
+      ['Agents', 'Reviewed titles, types, and paths'],
+      ['Export/sync', 'Preview-approved files'],
+      ['Git/cloud', 'Vault setting only'],
+    ])
   })
 
   it('summarizes protected and vault-context lanes for the whole vault', () => {

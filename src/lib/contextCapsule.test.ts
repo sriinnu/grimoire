@@ -174,16 +174,26 @@ describe('buildContextCapsulePreview', () => {
       sourceLabels: ['Grimoire', 'Grimoire Memory'],
       memoryReferences: [{
         confidence: 'medium',
+        contradictionLabels: [],
         lastSeen: '2026-05-24',
         path: '/vault/memory/grimoire.md',
         sourceLabels: ['[[Grimoire]]'],
         title: 'Grimoire Memory',
       }],
+      intent: {
+        kind: 'crystallize-memory',
+        label: 'Daily Thread Crystallize',
+        origin: 'daily-thread',
+        reviewMode: 'review-before-write',
+        sourcePolicy: 'public-references-only',
+        target: 'markdown-memory',
+      },
       visibleCount: 6,
       withheld: { protectedMemories: 1, protectedNotes: 2 },
     })
 
     expect(preview.title).toBe('Dashboard ask capsule')
+    expect(preview.handoffIntent).toBe('Daily Thread Crystallize')
     expect(preview.includedNotes.map((note) => [note.kind, note.title])).toEqual([
       ['ask-reference', 'Grimoire'],
       ['memory', 'Grimoire Memory'],
@@ -249,7 +259,12 @@ describe('buildContextCapsulePackagePreview', () => {
 
     expect(pack.title).toBe('Context Capsule Package')
     expect(pack.protectedContext).toBe(false)
+    expect(pack.preflight).toEqual({ heldLocalCount: 2, sourceCount: 2, trimmedCount: 0 })
     expect(pack.markdown).toContain('# Context Capsule Package')
+    expect(pack.markdown).toContain('## Egress Matrix')
+    expect(pack.markdown).toContain('Agents: Review packet; Reviewed titles, types, and paths')
+    expect(pack.markdown).toContain('Export/sync: Preview first; Preview-approved files')
+    expect(pack.markdown).toContain('Git/cloud: Vault setting; Vault setting only')
     expect(pack.markdown).toContain('Source 1: active / Project / Grimoire')
     expect(pack.markdown).toContain('Source 2: linked / Note / Research')
     expect(pack.markdown).toContain('## Graph Neighborhood')
@@ -258,6 +273,62 @@ describe('buildContextCapsulePackagePreview', () => {
     expect(pack.markdown).toContain('Re-check Locality Firewall before agent handoff')
     expect(pack.markdown).not.toContain('Daily')
     expect(pack.markdown).not.toContain('/vault/private')
+  })
+
+  it('adds typed ask handoff intent to the review package', () => {
+    const preview = buildAskContextCapsulePreview({
+      kind: 'dashboard-ask',
+      prompt: 'prepare memory',
+      references: [{ path: '/vault/project.md', title: 'Project', type: 'Project' }],
+      sourceLabels: ['Project'],
+      memoryReferences: [],
+      intent: {
+        kind: 'crystallize-memory',
+        label: 'Daily Thread Crystallize',
+        origin: 'daily-thread',
+        reviewMode: 'review-before-write',
+        sourcePolicy: 'public-references-only',
+        target: 'markdown-memory',
+      },
+      visibleCount: 1,
+      withheld: { protectedMemories: 0, protectedNotes: 0 },
+    })
+
+    const pack = buildContextCapsulePackagePreview(preview)
+
+    expect(pack.markdown).toContain('## Handoff Intent')
+    expect(pack.markdown).toContain('Daily Thread Crystallize: review-before-write Markdown memory.')
+  })
+
+  it('defensively withholds malformed protected ask package references', () => {
+    const preview = buildAskContextCapsulePreview({
+      kind: 'dashboard-ask',
+      prompt: 'prepare memory',
+      references: [
+        { path: '/vault/projects/public.md', title: 'Public Project', type: 'Project' },
+        { path: '/vault/dreams/river.md', title: 'River Dream', type: 'Dream' },
+      ],
+      sourceLabels: ['Public Project', 'River Dream'],
+      memoryReferences: [{
+        confidence: 'high',
+        contradictionLabels: [],
+        lastSeen: '2026-05-27',
+        path: '/vault/private/memory.md',
+        sourceLabels: ['[[River Dream]]'],
+        title: 'Private Memory',
+      }],
+      visibleCount: 2,
+      withheld: { protectedMemories: 0, protectedNotes: 0 },
+    })
+
+    expect(preview.includedNotes.map((note) => note.title)).toEqual(['Public Project'])
+    expect(preview.exclusions).toEqual([
+      { label: 'Dashboard local-only notes', reason: '1 withheld' },
+      { label: 'Dashboard local-only memory records', reason: '1 withheld' },
+    ])
+    expect(JSON.stringify(preview)).not.toContain('River Dream')
+    expect(JSON.stringify(preview)).not.toContain('Private Memory')
+    expect(JSON.stringify(preview)).not.toContain('/vault/private')
   })
 
   it('keeps protected active capsule packages free of protected labels', () => {
@@ -275,7 +346,11 @@ describe('buildContextCapsulePackagePreview', () => {
 
     expect(pack.title).toBe('Protected Context Capsule')
     expect(pack.protectedContext).toBe(true)
+    expect(pack.preflight).toEqual({ heldLocalCount: 1, sourceCount: 0, trimmedCount: 0 })
     expect(pack.markdown).toContain('Protected active context stayed local')
+    expect(pack.markdown).toContain('Agents: Blocked; Policy counts only')
+    expect(pack.markdown).toContain('Export/sync: Withheld; Nothing by default')
+    expect(pack.markdown).toContain('Git/cloud: Not staged; Nothing by default')
     expect(pack.markdown).toContain('- None')
     expect(pack.markdown).not.toContain('River Dream')
     expect(pack.markdown).not.toContain('/vault/dreams/river.md')

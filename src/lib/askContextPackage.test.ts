@@ -106,7 +106,14 @@ describe('askContextPackage', () => {
       prompt: 'ask the council',
       selectedReference: { path: '/vault/beta.md', title: 'Beta', type: 'Reference' },
       agentGraphContext: {
-        edges: [],
+        edges: [{
+          kind: 'body-link',
+          label: 'Wikilink',
+          sourcePath: '/vault/beta.md',
+          sourceTitle: 'Beta',
+          targetPath: '/vault/delta.md',
+          targetTitle: 'Delta',
+        }],
         nodes: [
           { active: true, degree: 2, path: '/vault/beta.md', title: 'Beta', type: 'Reference' },
           { active: false, degree: 1, path: '/vault/delta.md', title: 'Delta', type: 'Reference' },
@@ -124,8 +131,49 @@ describe('askContextPackage', () => {
         { path: '/vault/delta.md', title: 'Delta', type: 'Reference' },
       ],
       withheld: { protectedMemories: 0, protectedNotes: 1 },
-      graph: { protectedEdges: 1, visibleEdges: 0, visibleNodes: 2 },
+      graph: {
+        edges: [{ kind: 'body-link', label: 'Wikilink', sourceTitle: 'Beta', targetTitle: 'Delta' }],
+        protectedEdges: 1,
+        visibleEdges: 1,
+        visibleNodes: 2,
+      },
     })
     expect(JSON.stringify(contextPackage)).not.toContain('Secret')
+  })
+
+  it('keeps duplicate graph source labels distinct by path', () => {
+    const contextPackage = buildGraphAskContextPackage({
+      prompt: 'ask the council',
+      selectedReference: { path: '/vault/projects/index.md', title: 'Index', type: 'Note' },
+      agentGraphContext: {
+        edges: [{
+          kind: 'body-link',
+          label: 'Wikilink',
+          sourcePath: '/vault/projects/index.md',
+          sourceTitle: 'Index',
+          targetPath: '/vault/archive/index.md',
+          targetTitle: 'Index',
+        }],
+        nodes: [
+          { active: true, degree: 1, path: '/vault/projects/index.md', title: 'Index', type: 'Note' },
+          { active: false, degree: 1, path: '/vault/archive/index.md', title: 'Index', type: 'Note' },
+        ],
+        omitted: { protectedEdges: 0, protectedNodes: 0, truncatedEdges: 0, truncatedNodes: 0 },
+        state: 'ready',
+        totals: { visibleEdges: 1, visibleNodes: 2 },
+      },
+    })
+
+    expect(contextPackage.sourceLabels).toEqual([
+      'Index - projects/index.md',
+      'Index - archive/index.md',
+    ])
+    expect(contextPackage.graph?.edges).toEqual([{
+      kind: 'body-link',
+      label: 'Wikilink',
+      sourceTitle: 'Index - projects/index.md',
+      targetTitle: 'Index - archive/index.md',
+    }])
+    expect(contextPackage.references).toHaveLength(2)
   })
 })

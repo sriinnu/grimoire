@@ -1,5 +1,6 @@
 import type { VaultEntry } from '../types'
 
+type LocalityPolicySubject = Pick<VaultEntry, 'isA' | 'path' | 'properties'>
 export type LocalityPolicySource = 'frontmatter' | 'type' | 'path' | 'none'
 
 export interface EntryLocalityPolicy {
@@ -7,6 +8,17 @@ export interface EntryLocalityPolicy {
   source: LocalityPolicySource
   reason: string
   badgeLabel: string
+}
+
+export type LocalityEgressLaneId = 'agents' | 'export-sync' | 'git-cloud'
+
+export interface LocalityEgressLane {
+  allowedMaterial: string
+  detail: string
+  id: LocalityEgressLaneId
+  label: string
+  state: string
+  stateKey: string
 }
 
 export interface VaultLocalitySummary {
@@ -97,7 +109,7 @@ function hasTruthyLocalityValue(value: VaultEntry['properties'][string]): boolea
   return false
 }
 
-function frontmatterLocalOnlyReason(entry: VaultEntry): string | null {
+function frontmatterLocalOnlyReason(entry: LocalityPolicySubject): string | null {
   for (const [key, value] of Object.entries(entry.properties ?? {})) {
     if (LOCAL_ONLY_FIELD_KEYS.has(normalizeKey(key)) && hasTruthyLocalityValue(value)) {
       return `Marked ${key} in frontmatter`
@@ -106,14 +118,14 @@ function frontmatterLocalOnlyReason(entry: VaultEntry): string | null {
   return null
 }
 
-function typeLocalOnlyReason(entry: VaultEntry): string | null {
+function typeLocalOnlyReason(entry: LocalityPolicySubject): string | null {
   if (isLocalOnlyTypeName(entry.isA)) {
     return `${entry.isA} notes are protected by default`
   }
   return null
 }
 
-function pathLocalOnlyReason(entry: VaultEntry): string | null {
+function pathLocalOnlyReason(entry: LocalityPolicySubject): string | null {
   const segments = entry.path
     .split(/[\\/]/)
     .map((segment) => segment.trim().toLowerCase())
@@ -123,7 +135,7 @@ function pathLocalOnlyReason(entry: VaultEntry): string | null {
 }
 
 /** Resolves whether an entry must be withheld from export, sync, or AI context by default. */
-export function resolveEntryLocalityPolicy(entry: VaultEntry): EntryLocalityPolicy {
+export function resolveEntryLocalityPolicy(entry: LocalityPolicySubject): EntryLocalityPolicy {
   const frontmatterReason = frontmatterLocalOnlyReason(entry)
   if (frontmatterReason) {
     return {
@@ -163,8 +175,18 @@ export function resolveEntryLocalityPolicy(entry: VaultEntry): EntryLocalityPoli
 }
 
 /** True when an entry should not be placed in remote, export, or AI context by default. */
-export function isEntryLocalOnly(entry: VaultEntry): boolean {
+export function isEntryLocalOnly(entry: LocalityPolicySubject): boolean {
   return resolveEntryLocalityPolicy(entry).localOnly
+}
+
+/** Shared egress matrix for Inspector, agent package review, export, sync, and Git surfaces. */
+export function localityEgressLanes(localOnly: boolean): LocalityEgressLane[] {
+  return localOnly ? protectedEgressLanes() : vaultContextEgressLanes()
+}
+
+/** Returns the egress matrix for a resolved note policy. */
+export function entryLocalityEgressLanes(policy: Pick<EntryLocalityPolicy, 'localOnly'>): LocalityEgressLane[] {
+  return localityEgressLanes(policy.localOnly)
 }
 
 /** Summarizes the vault-level Locality Firewall policy for Settings and reviews. */
@@ -210,4 +232,62 @@ export function summarizeVaultLocality(entries: VaultEntry[], exampleLimit = 3):
 export function isLocalOnlyTypeName(typeName: string | null | undefined): boolean {
   const normalizedTypeName = typeName?.trim().toLowerCase()
   return !!normalizedTypeName && LOCAL_ONLY_TYPE_NAMES.has(normalizedTypeName)
+}
+
+function protectedEgressLanes(): LocalityEgressLane[] {
+  return [
+    {
+      allowedMaterial: 'Policy counts only',
+      detail: 'context packets get counts only',
+      id: 'agents',
+      label: 'Agents',
+      state: 'Blocked',
+      stateKey: 'blocked',
+    },
+    {
+      allowedMaterial: 'Nothing by default',
+      detail: 'note and protected-only attachments stay local',
+      id: 'export-sync',
+      label: 'Export/sync',
+      state: 'Withheld',
+      stateKey: 'withheld',
+    },
+    {
+      allowedMaterial: 'Nothing by default',
+      detail: 'no default remote egress',
+      id: 'git-cloud',
+      label: 'Git/cloud',
+      state: 'Not staged',
+      stateKey: 'not-staged',
+    },
+  ]
+}
+
+function vaultContextEgressLanes(): LocalityEgressLane[] {
+  return [
+    {
+      allowedMaterial: 'Reviewed titles, types, and paths',
+      detail: 'reviewed source labels, types, and vault paths only',
+      id: 'agents',
+      label: 'Agents',
+      state: 'Review packet',
+      stateKey: 'review',
+    },
+    {
+      allowedMaterial: 'Preview-approved files',
+      detail: 'included only through action previews',
+      id: 'export-sync',
+      label: 'Export/sync',
+      state: 'Preview first',
+      stateKey: 'preview',
+    },
+    {
+      allowedMaterial: 'Vault setting only',
+      detail: 'Git remains optional',
+      id: 'git-cloud',
+      label: 'Git/cloud',
+      state: 'Vault setting',
+      stateKey: 'vault-setting',
+    },
+  ]
 }
