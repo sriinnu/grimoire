@@ -53,4 +53,39 @@ describe('DesktopStorageHealthPanel', () => {
     expect(report).not.toHaveTextContent('/Users/')
     expect(report).not.toHaveTextContent('token')
   })
+
+  it('clears stale desktop proof when the vault path changes', async () => {
+    vi.mocked(runDesktopStorageHealthCheck).mockResolvedValueOnce(readyReport)
+    const { rerender } = render(
+      <DesktopStorageHealthPanel
+        vaultPath="/Users/sri/Library/Mobile Documents/com~apple~CloudDocs/Grimoire"
+        t={createTranslator('en')}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-check-icloud-drive'))
+    await waitFor(() => expect(screen.getByTestId('settings-desktop-storage-report-icloud-drive')).toHaveTextContent('ready'))
+
+    rerender(<DesktopStorageHealthPanel vaultPath="/Users/sri/Local/Grimoire" t={createTranslator('en')} />)
+
+    const report = screen.getByTestId('settings-desktop-storage-report-icloud-drive')
+    expect(report).toHaveTextContent('Run a local-folder check')
+    expect(report).not.toHaveTextContent('ready')
+    expect(screen.queryByTestId('settings-desktop-storage-message')).not.toBeInTheDocument()
+  })
+
+  it('redacts local paths from desktop proof failures', async () => {
+    vi.mocked(runDesktopStorageHealthCheck).mockRejectedValueOnce(
+      new Error('EACCES while reading /Users/sri/Private/Grimoire token=abc'),
+    )
+
+    render(<DesktopStorageHealthPanel vaultPath="/Users/sri/Private/Grimoire" t={createTranslator('en')} />)
+    fireEvent.click(screen.getByTestId('settings-check-google-drive-desktop'))
+
+    const message = await screen.findByTestId('settings-desktop-storage-message')
+    expect(message).toHaveTextContent('Desktop folder check failed')
+    expect(message).toHaveTextContent('[local path]')
+    expect(message).not.toHaveTextContent('/Users/')
+    expect(message).not.toHaveTextContent('token=abc')
+  })
 })

@@ -1,10 +1,11 @@
 import { CloudCheck, CloudWarning } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { createTranslator } from '../lib/i18n'
 import {
   desktopStorageHealthStatusLabel,
   desktopStorageProviderLabel,
   formatDesktopStorageHealthToast,
+  redactDesktopStorageHealthMessage,
   runDesktopStorageHealthCheck,
   type DesktopStorageHealthReport,
   type DesktopStorageProviderId,
@@ -30,6 +31,11 @@ export function DesktopStorageHealthPanel({ vaultPath, t }: DesktopStorageHealth
   const [message, setMessage] = useState<string | null>(null)
   const vaultReady = vaultPath.trim().length > 0
 
+  useEffect(() => {
+    setReports({})
+    setMessage(null)
+  }, [vaultPath])
+
   const runCheck = async (providerId: DesktopStorageProviderId) => {
     if (!vaultReady || busyProvider) return
     setBusyProvider(providerId)
@@ -39,7 +45,8 @@ export function DesktopStorageHealthPanel({ vaultPath, t }: DesktopStorageHealth
       setReports((current) => ({ ...current, [providerId]: report }))
       setMessage(formatDesktopStorageHealthToast(report))
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : t('settings.portability.desktopHealthFailed'))
+      const detail = error instanceof Error ? redactDesktopStorageHealthMessage(error.message) : null
+      setMessage(detail ? `${t('settings.portability.desktopHealthFailed')}: ${detail}` : t('settings.portability.desktopHealthFailed'))
     } finally {
       setBusyProvider(null)
     }
@@ -79,7 +86,11 @@ export function DesktopStorageHealthPanel({ vaultPath, t }: DesktopStorageHealth
         ))}
       </div>
 
-      {message ? <div className="text-[11px] leading-snug text-muted-foreground">{message}</div> : null}
+      {message ? (
+        <div className="text-[11px] leading-snug text-muted-foreground" data-testid="settings-desktop-storage-message">
+          {message}
+        </div>
+      ) : null}
 
       <div className="grid gap-1.5">
         {PROVIDERS.map((providerId) => (
@@ -127,7 +138,16 @@ function DesktopStorageHealthReportRow({
         <div className="mt-1 flex flex-wrap gap-1">
           <ProofChip label={t('settings.portability.localPathChecked')} active={report.local_path_checked} />
           <ProofChip label={t('settings.portability.providerRootDetected')} active={report.provider_root_detected} />
+          <ProofChip label={t('settings.portability.vaultFolderChecked')} active={report.vault_directory_checked} />
+          <ProofChip label={t('settings.portability.vaultReadable')} active={report.readable} />
           <ProofChip label={t('settings.portability.credentialsNotStored')} active={!report.credentials_stored} />
+        </div>
+      ) : null}
+      {report?.risk_notes.length ? (
+        <div className="mt-1 grid gap-0.5 text-[10px] leading-snug text-muted-foreground">
+          {report.risk_notes.slice(0, 2).map((note) => (
+            <span key={note}>{note}</span>
+          ))}
         </div>
       ) : null}
     </div>
