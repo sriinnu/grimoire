@@ -8,7 +8,7 @@ const s3ProviderPushPreview: ObjectStorageSyncReport = {
   adapter_phase: 'provider-sdk-adapter',
   prototype_mode: 's3-live-provider',
   direction: 'push',
-  mirror_path: 's3://sriinnu-vault/notes/',
+  mirror_path: 'redacted provider target',
   preview_signature: 'provider-push-signature',
   applied: false,
   files_to_upload: 2,

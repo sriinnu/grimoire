@@ -37,6 +37,8 @@ interface MockDesktopStorageHealthArgs {
   providerId?: 'icloud-drive' | 'google-drive-desktop'
 }
 
+const REDACTED_PROVIDER_TARGET = 'redacted provider target'
+
 /** Builds a deterministic object-storage sync report for browser-mode tests. */
 export function mockObjectStorageReport(args: MockObjectStorageArgs, applied: boolean) {
   const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
@@ -98,16 +100,14 @@ export function mockS3ProviderSyncReport(args: MockS3ProviderSyncArgs = {}, appl
   }
   const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
   const direction = args.direction ?? 'push'
-  const bucket = requiredMockTarget(args.bucket, 'Set an S3 bucket before previewing provider sync.')
-  const prefix = args.prefix?.trim().replace(/^\/+|\/+$/g, '') ?? ''
-  const target = prefix ? `s3://${bucket}/${prefix}` : `s3://${bucket}`
+  requiredMockTarget(args.bucket, 'Set an S3 bucket before previewing provider sync.')
   const transferKind = direction === 'push' ? 'upload' : 'download'
   return {
     provider_id: 's3',
     adapter_phase: 'provider-sdk-adapter',
     prototype_mode: 's3-live-provider',
     direction,
-    mirror_path: target,
+    mirror_path: REDACTED_PROVIDER_TARGET,
     preview_signature: args.previewSignature ?? 'mock-s3-provider-preview-signature',
     applied,
     files_to_upload: direction === 'push' ? 1 : 0,
@@ -131,17 +131,15 @@ export function mockAzureProviderSyncReport(args: MockAzureProviderSyncArgs = {}
   }
   const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
   const direction = args.direction ?? 'push'
-  const account = requiredMockTarget(args.account, 'Set an Azure storage account before previewing provider sync.')
-  const container = requiredMockTarget(args.container, 'Set an Azure container before previewing provider sync.')
-  const prefix = args.prefix?.trim().replace(/^\/+|\/+$/g, '') ?? ''
-  const target = prefix ? `azblob://${account}/${container}/${prefix}` : `azblob://${account}/${container}`
+  requiredMockTarget(args.account, 'Set an Azure storage account before previewing provider sync.')
+  requiredMockTarget(args.container, 'Set an Azure container before previewing provider sync.')
   const transferKind = direction === 'push' ? 'upload' : 'download'
   return {
     provider_id: 'azure-blob',
     adapter_phase: 'provider-sdk-adapter',
     prototype_mode: 'azure-live-provider',
     direction,
-    mirror_path: target,
+    mirror_path: REDACTED_PROVIDER_TARGET,
     preview_signature: args.previewSignature ?? 'mock-azure-provider-preview-signature',
     applied,
     files_to_upload: direction === 'push' ? 1 : 0,

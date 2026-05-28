@@ -7,7 +7,7 @@ use super::object_storage_signature::{build_preview_signature_for_target, file_c
 use super::object_storage_sync::{has_skipped_component, is_skipped_name, SyncDirection};
 use super::object_storage_sync_report::{
     count_kind, operation, ObjectStorageSyncOperation, ObjectStorageSyncOperationKind,
-    ObjectStorageSyncReport,
+    ObjectStorageSyncReport, REDACTED_PROVIDER_TARGET,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -56,7 +56,7 @@ pub(super) fn build_s3_report(
         adapter_phase: "provider-sdk-adapter".to_string(),
         prototype_mode: "s3-live-provider".to_string(),
         direction,
-        mirror_path: target_label,
+        mirror_path: REDACTED_PROVIDER_TARGET.to_string(),
         preview_signature,
         applied,
         files_to_upload: count_kind(&operations, ObjectStorageSyncOperationKind::Upload),
@@ -202,7 +202,7 @@ mod tests {
     }
 
     #[test]
-    fn builds_provider_report_without_local_mirror_phase() {
+    fn redacts_provider_report_target_without_weakening_signature_gate() {
         let target = ResolvedS3ProviderTarget {
             bucket: "bucket".to_string(),
             region: None,
@@ -223,8 +223,26 @@ mod tests {
 
         assert_eq!(report.adapter_phase, "provider-sdk-adapter");
         assert_eq!(report.prototype_mode, "s3-live-provider");
-        assert_eq!(report.mirror_path, "s3://bucket/vault");
+        assert_eq!(report.mirror_path, REDACTED_PROVIDER_TARGET);
+        assert!(!report.mirror_path.contains("bucket"));
+        assert!(!report.mirror_path.contains("vault"));
         assert_eq!(report.files_to_upload, 1);
+
+        let other_target = ResolvedS3ProviderTarget {
+            bucket: "other-bucket".to_string(),
+            region: None,
+            prefix: "vault".to_string(),
+        };
+        let other_report = build_s3_report(
+            &other_target,
+            &SyncDirection::Push,
+            false,
+            report.operations.clone(),
+            Vec::new(),
+            None,
+        );
+        assert_eq!(other_report.mirror_path, REDACTED_PROVIDER_TARGET);
+        assert_ne!(report.preview_signature, other_report.preview_signature);
     }
 
     #[test]

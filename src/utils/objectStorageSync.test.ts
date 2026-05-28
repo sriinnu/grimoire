@@ -107,7 +107,7 @@ describe('objectStorageSync', () => {
       adapter_phase: 'provider-sdk-adapter',
       prototype_mode: 's3-live-provider',
       direction: 'push',
-      mirror_path: 's3://sriinnu-vault/grimoire/demo',
+      mirror_path: 'redacted provider target',
       files_to_upload: 1,
       excluded_files: 1,
     })
@@ -143,7 +143,7 @@ describe('objectStorageSync', () => {
       adapter_phase: 'provider-sdk-adapter',
       prototype_mode: 'azure-live-provider',
       direction: 'push',
-      mirror_path: 'azblob://acct/vault/grimoire/demo',
+      mirror_path: 'redacted provider target',
       files_to_upload: 1,
       excluded_files: 1,
     })

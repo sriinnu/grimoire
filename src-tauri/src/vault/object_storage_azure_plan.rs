@@ -7,7 +7,7 @@ use super::object_storage_signature::{build_preview_signature_for_target, file_c
 use super::object_storage_sync::SyncDirection;
 use super::object_storage_sync_report::{
     count_kind, operation, ObjectStorageSyncOperation, ObjectStorageSyncOperationKind,
-    ObjectStorageSyncReport,
+    ObjectStorageSyncReport, REDACTED_PROVIDER_TARGET,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -56,7 +56,7 @@ pub(super) fn build_azure_report(
         adapter_phase: "provider-sdk-adapter".to_string(),
         prototype_mode: "azure-live-provider".to_string(),
         direction,
-        mirror_path: target_label,
+        mirror_path: REDACTED_PROVIDER_TARGET.to_string(),
         preview_signature,
         applied,
         files_to_upload: count_kind(&operations, ObjectStorageSyncOperationKind::Upload),
@@ -180,7 +180,7 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn builds_provider_report_without_local_mirror_phase() {
+    fn redacts_provider_report_target_without_weakening_signature_gate() {
         let target = ResolvedAzureProviderTarget {
             account: "acct".to_string(),
             container: "vaults".to_string(),
@@ -201,8 +201,27 @@ mod tests {
 
         assert_eq!(report.adapter_phase, "provider-sdk-adapter");
         assert_eq!(report.prototype_mode, "azure-live-provider");
-        assert_eq!(report.mirror_path, "azblob://acct/vaults/notes");
+        assert_eq!(report.mirror_path, REDACTED_PROVIDER_TARGET);
+        assert!(!report.mirror_path.contains("acct"));
+        assert!(!report.mirror_path.contains("vaults"));
+        assert!(!report.mirror_path.contains("notes"));
         assert_eq!(report.files_to_upload, 1);
+
+        let other_target = ResolvedAzureProviderTarget {
+            account: "other-acct".to_string(),
+            container: "vaults".to_string(),
+            prefix: "notes".to_string(),
+        };
+        let other_report = build_azure_report(
+            &other_target,
+            &SyncDirection::Push,
+            false,
+            report.operations.clone(),
+            Vec::new(),
+            None,
+        );
+        assert_eq!(other_report.mirror_path, REDACTED_PROVIDER_TARGET);
+        assert_ne!(report.preview_signature, other_report.preview_signature);
     }
 
     #[test]

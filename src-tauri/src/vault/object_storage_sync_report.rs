@@ -2,6 +2,8 @@ use serde::Serialize;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+pub(crate) const REDACTED_PROVIDER_TARGET: &str = "redacted provider target";
+
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ObjectStorageSyncOperationKind {

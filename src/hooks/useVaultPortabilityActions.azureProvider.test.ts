@@ -8,7 +8,7 @@ const azureProviderPushPreview: ObjectStorageSyncReport = {
   adapter_phase: 'provider-sdk-adapter',
   prototype_mode: 'azure-live-provider',
   direction: 'push',
-  mirror_path: 'azblob://acct/vault/notes',
+  mirror_path: 'redacted provider target',
   preview_signature: 'azure-provider-push-signature',
   applied: false,
   files_to_upload: 1,
