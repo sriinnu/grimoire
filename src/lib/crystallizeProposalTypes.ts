@@ -16,7 +16,9 @@ export interface CrystallizeProposal {
 }
 
 export interface CrystallizeLedgerContract {
+  contradictedBy: string[]
   confidence: 'proposed'
+  expiresAt: string
   locality: 'vault'
   reviewState: 'reviewed'
   sourceCount: number
@@ -40,6 +42,8 @@ export interface CrystallizeChange {
 }
 
 export interface CrystallizeProposalSummary {
+  contradictionCount: number
+  expiresAt: string
   hunkCount: number
   ledgerFieldCount: number
   sourceCount: number

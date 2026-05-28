@@ -13,7 +13,9 @@ const proposal: CrystallizeProposal = {
   sourceLabels: ['AI chat'],
   handoffMetadata: null,
   ledgerContract: {
+    contradictedBy: [],
     confidence: 'proposed',
+    expiresAt: '2026-08-21',
     locality: 'vault',
     reviewState: 'reviewed',
     sourceCount: 1,
@@ -43,6 +45,8 @@ const proposal: CrystallizeProposal = {
         'memory_status: proposed',
         'memory_review_state: reviewed',
         'memory_source_count: 1',
+        'expires_at: 2026-08-21',
+        'contradicted_by: []',
         'memory_version: 1',
         'reviewed_at: "2026-05-23T08:00:00.000Z"',
         'locality: vault',
@@ -91,7 +95,9 @@ describe('CrystallizeReviewDialog', () => {
     expect(packet).toHaveAccessibleName('Crystallize review packet')
     expect(packet).toHaveTextContent('4 hunks')
     expect(packet).toHaveTextContent('1 source')
-    expect(packet).toHaveTextContent('7 fields')
+    expect(packet).toHaveTextContent('9 fields')
+    expect(packet).toHaveTextContent('Review by 2026-08-21')
+    expect(packet).toHaveTextContent('0 contradictions')
     expect(packet).toHaveTextContent('memory/crystallized')
     const runway = screen.getByTestId('crystallize-runway')
     expect(runway).toHaveAccessibleName('Crystallize source-safe runway')
@@ -100,7 +106,7 @@ describe('CrystallizeReviewDialog', () => {
     expect(runway).toHaveTextContent('Firewall')
     expect(runway).toHaveTextContent('No Git or cloud needed.')
     expect(runway).toHaveTextContent('Ledger')
-    expect(runway).toHaveTextContent('Frontmatter plus body contract.')
+    expect(runway).toHaveTextContent('Expiry and contradiction slots.')
     expect(runway).toHaveTextContent('Editable diff')
     expect(runway).toHaveTextContent('Lands as')
     const preview = screen.getByTestId('crystallize-markdown-preview')

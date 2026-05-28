@@ -62,7 +62,7 @@ Observed on 2026-05-22.
 - [x] Note rows render a visible vault-relative folder/project chip instead of hiding context in a theme-specific pseudo-element.
 - [x] The Notes column now has a single top-chrome wrapper for header/search, project intelligence, and file/state filters, with project/filter CSS split into focused files below the LOC guardrail.
 - [x] AI message route chips are backed by structured Grimoire-owned route state instead of only parsing collapsed reasoning text.
-- [x] Production builds report app-shell gzip size against the 380/320/250 KiB budget ladder; latest installed shell is 222.04 KiB gzip in `/Applications/Grimoire.app` 0.1.258.
+- [x] Production builds report app-shell gzip size against the 380/320/250 KiB budget ladder; latest installed shell is 222.09 KiB gzip in `/Applications/Grimoire.app` 0.1.259.
 - [x] Local theme-pack JSON can be loaded/exported from Settings, applied as an app-local override, hot-reloaded from `.grimoire-local/theme-pack.json` in dev, and manually reloaded from Settings when tuning a pack.
 - [x] Local theme-pack JSON can carry typography roles for UI, editor body/list text, monospace/code, display headings, and labels.
 - [x] Built-in theme-pack JSON now carries the same typography role contract, and runtime font resolution applies those roles before user editor-font overrides or local theme-pack overrides.
@@ -141,7 +141,7 @@ Observed on 2026-05-22.
 Acceptance:
 
 - [ ] Native screenshot shows no traffic-light/logo/floating-control overlap.
-  - [ ] The latest ad-hoc-signed singleton `/Applications/Grimoire.app` build installs and verifies at `0.1.227`, but the Codex runner still needs a user-visible native window check before marking this done.
+  - [ ] The latest ad-hoc-signed singleton `/Applications/Grimoire.app` build installs and verifies at `0.1.259`, but the Codex runner still needs a user-visible native window check before marking this done.
   - [x] Automated Playwright coverage verifies the collapsed rail safe zone and native shell material targets in the browser harness.
   - [ ] Native screenshot capture is blocked until Screen Recording permission is granted to the running terminal/Codex host.
 - [x] Light and dark themes pass visible contrast checks on sidebar, center pane, editor, inspector, and bottom bar.
@@ -391,9 +391,9 @@ Motion should serve the parts that make Grimoire special:
   - [x] Reduced-motion screenshot/regression covers Settings, workspace arrival, in-note search, TOC jump, and navigator target highlight.
   - [x] Forced-colors screenshot/regression covers workspace, Settings, status bar, focus outline, and editor navigator surfaces.
 - [x] Focused Playwright latency spec for command palette, quick open, note switch, document search, and TOC scroll
-- [ ] native Tauri screenshot from `/Applications/Grimoire.app` (blocked in this runner until Screen Recording permission is granted; app bundle/version/local-only checks pass for 0.1.258)
+- [ ] native Tauri screenshot from `/Applications/Grimoire.app` (blocked in this runner until Screen Recording permission is granted; app bundle/version/local-only checks pass for 0.1.259)
 - [x] reduced-motion runtime check
-  - [x] bundle chunk report attached to the session notes: app shell `222.04 KiB` gzip, DashboardInsightPanels cold chunk `7.02 KiB` gzip, `NoteList` cold chunk `43.38 KiB` gzip, SettingsPanel cold chunk `45.41 KiB` gzip, rich editor `441.59 KiB` gzip, raw editor `179.01 KiB` gzip, graph modal lazy chunk `14.77 KiB` gzip, AI right-panel lazy chunk `34.91 KiB` gzip
+  - [x] bundle chunk report attached to the session notes: app shell `222.09 KiB` gzip, DashboardInsightPanels cold chunk `7.01 KiB` gzip, `NoteList` cold chunk `43.40 KiB` gzip, SettingsPanel cold chunk `45.62 KiB` gzip, rich editor `441.61 KiB` gzip, raw editor `179.01 KiB` gzip, graph modal lazy chunk `14.78 KiB` gzip, AI right-panel lazy chunk `35.16 KiB` gzip
 
 ## Sources
 
