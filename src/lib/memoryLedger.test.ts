@@ -4,6 +4,7 @@ import {
   buildMemoryLedgerDisplayState,
   buildMemoryLedgerRecord,
   buildMemoryLedgerAuditQueue,
+  buildMemoryReviewLogEntry,
   findMemoryLedgerRecordsForEntry,
   isMemoryLedgerEntry,
   memoryReferenceLabel,
@@ -67,6 +68,9 @@ describe('memoryLedger', () => {
         locality: 'local',
         memory_version: 2,
         reviewed_at: '2026-05-23T12:00:00.000Z',
+        memory_review_log: [
+          '2026-05-23T12:00:00.000Z v2; confidence=0.8; expires=2026-06-16; contradicts=[[Old Note]]',
+        ],
         handoff: 'agent_council',
         handoff_mode: 'review-gated',
         handoff_ready_lanes: 3,
@@ -88,6 +92,9 @@ describe('memoryLedger', () => {
       locality: 'local',
       version: '2',
       reviewedAt: '2026-05-23T12:00:00.000Z',
+      reviewLog: [
+        '2026-05-23T12:00:00.000Z v2; confidence=0.8; expires=2026-06-16; contradicts=[[Old Note]]',
+      ],
       handoff: {
         kind: 'agent_council',
         localHold: false,
@@ -130,6 +137,7 @@ describe('memoryLedger', () => {
         confidence: 0.92,
         expires_at: '2026-05-30',
         contradicts: ['[[Old Plan]]'],
+        memory_review_log: ['2026-05-24T12:00:00.000Z v4; confidence=0.92'],
       },
     }))
 
@@ -142,7 +150,20 @@ describe('memoryLedger', () => {
       contradictionTone: 'warning',
       sourceLabels: ['Source Note', 'Research/Trail'],
       contradictionLabels: ['Old Plan'],
+      reviewLogLabel: '2026-05-24T12:00:00.000Z v4; confidence=0.92',
     })
+  })
+
+  it('formats Markdown-owned review log events', () => {
+    expect(buildMemoryReviewLogEntry({
+      at: '2026-05-24T12:00:00.000Z',
+      confidence: '',
+      contradicts: ['[[Old Plan]]', '[[New Conflict]]'],
+      expiresAt: '',
+      version: 3,
+    })).toBe(
+      '2026-05-24T12:00:00.000Z v3; confidence=cleared; expires=cleared; contradicts=[[Old Plan]]|[[New Conflict]]',
+    )
   })
 
   it('surfaces reviewed Council handoff state without reading memory bodies', () => {

@@ -222,6 +222,7 @@ Build order:
   - [x] Add a metadata-only Inspector evidence strip for record/source/contradiction/review-flag counts, withheld entirely for local-only notes.
   - [x] Move Memory Ledger row/badge state colors into theme-owned neutral/proposed/verified/warning/danger materials.
   - [x] Add a metadata-only Memory Ledger audit queue for expired, expiring, contradicted, stale, and unreviewed memories, with one-click review navigation through the normal note path.
+  - [x] Add Markdown-owned `memory_review_log` events when ledger metadata is edited, and show the latest review on Inspector rows.
 - [ ] Locality Firewall: visible per-note, per-vault, per-export "what can leave" policy; dreams, journals, and private lanes stay local forever.
   - [x] Enforce local-only filtering in MCP vault/project read surfaces.
   - [x] Remove the MCP local-only escape hatch; agent tools cannot opt into protected note reads.
