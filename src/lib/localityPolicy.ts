@@ -33,8 +33,9 @@ export interface VaultLocalitySummary {
 }
 
 export interface VaultLocalityExample {
-  title: string
+  label: string
   reason: string
+  source: Exclude<LocalityPolicySource, 'none'>
 }
 
 export interface VaultLocalityTypeCount {
@@ -126,11 +127,7 @@ function typeLocalOnlyReason(entry: LocalityPolicySubject): string | null {
 }
 
 function pathLocalOnlyReason(entry: LocalityPolicySubject): string | null {
-  const segments = entry.path
-    .split(/[\\/]/)
-    .map((segment) => segment.trim().toLowerCase())
-    .filter(Boolean)
-  const segment = segments.find((candidate) => LOCAL_ONLY_PATH_SEGMENTS.has(candidate))
+  const segment = localOnlyPathSegment(entry)
   return segment ? `Path is under ${segment}` : null
 }
 
@@ -214,8 +211,12 @@ export function summarizeVaultLocality(entries: VaultEntry[], exampleLimit = 3):
     if (policy.source === 'frontmatter') summary.frontmatter += 1
     if (policy.source === 'type') summary.type += 1
     if (policy.source === 'path') summary.path += 1
-    if (summary.examples.length < exampleLimit) {
-      summary.examples.push({ title: entry.title || entry.filename, reason: policy.reason })
+    if (summary.examples.length < exampleLimit && isProtectedLocalitySource(policy.source)) {
+      summary.examples.push({
+        label: localityExampleLabel(entry, policy.source),
+        reason: policy.reason,
+        source: policy.source,
+      })
     }
     const typeName = entry.isA?.trim() || 'Untyped'
     typeCounts.set(typeName, (typeCounts.get(typeName) ?? 0) + 1)
@@ -232,6 +233,33 @@ export function summarizeVaultLocality(entries: VaultEntry[], exampleLimit = 3):
 export function isLocalOnlyTypeName(typeName: string | null | undefined): boolean {
   const normalizedTypeName = typeName?.trim().toLowerCase()
   return !!normalizedTypeName && LOCAL_ONLY_TYPE_NAMES.has(normalizedTypeName)
+}
+
+function isProtectedLocalitySource(source: LocalityPolicySource): source is Exclude<LocalityPolicySource, 'none'> {
+  return source !== 'none'
+}
+
+function localityExampleLabel(entry: LocalityPolicySubject, source: Exclude<LocalityPolicySource, 'none'>): string {
+  if (source === 'type') return `${formatPublicLabel(entry.isA, 'Protected')} note`
+  if (source === 'path') return `${formatPublicLabel(localOnlyPathSegment(entry), 'Protected path')} folder note`
+  return 'Frontmatter-protected note'
+}
+
+function formatPublicLabel(value: string | null | undefined, fallback: string): string {
+  const label = value?.trim()
+  if (!label) return fallback
+  return label
+    .split(/[\s_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function localOnlyPathSegment(entry: LocalityPolicySubject): string | null {
+  return entry.path
+    .split(/[\\/]/)
+    .map((segment) => segment.trim().toLowerCase())
+    .find((candidate) => LOCAL_ONLY_PATH_SEGMENTS.has(candidate)) ?? null
 }
 
 function protectedEgressLanes(): LocalityEgressLane[] {

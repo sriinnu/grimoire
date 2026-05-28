@@ -284,7 +284,7 @@ Grimoire favors local agents:
 - Generated project board rows keep stable `grimoire-task` comments with priority/source metadata so app scans and MCP tools share one task contract.
 - Agent choice plus per-agent provider/model overrides are app settings; the AI panel shows the effective route and the prompt repeats it so provider/model identity questions do not drift. Vault guidance files live with the vault.
 - Import, export, storage, and second-brain readiness are surfaced from the shared portability registry so settings, docs, and agents describe the same capability map.
-- Settings includes a vault-level Locality Firewall inspector backed by the same locality resolver used by AI context and export/sync filters. It counts protected versus vault-context notes, groups protection by frontmatter/type/path, and shows representative withheld notes before an egress action starts.
+- Settings includes a vault-level Locality Firewall inspector backed by the same locality resolver used by AI context and export/sync filters. It counts protected versus vault-context notes, groups protection by frontmatter/type/path, and shows privacy-safe withheld categories before an egress action starts; protected note titles and paths stay out of the Settings summary.
 
 The design goal is not "AI writes notes for you." The goal is that an agent can understand the same durable knowledge structure the user already uses.
 
