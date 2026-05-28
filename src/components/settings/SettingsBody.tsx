@@ -95,7 +95,7 @@ export function SettingsBody(props: SettingsBodyProps) {
     onApplyAzureMirrorPull,
   } = props
   const entries = props.entries
-  const [activeSectionId, setActiveSectionId] = useState('settings-sync')
+  const [activeSectionId, setActiveSectionId] = useState('settings-portability')
   const mainSurfaceRef = useRef<HTMLDivElement>(null)
   const handleMainSurfaceScroll = useCallback(() => {
     const nextSectionId = resolveActiveSettingsSection(mainSurfaceRef.current)
@@ -124,11 +124,7 @@ export function SettingsBody(props: SettingsBodyProps) {
           onSectionChange={setActiveSectionId}
         />
         <div className="settings-content-stack mx-auto flex max-w-[860px] flex-col pb-5">
-          <SettingsSection id="settings-sync" showDivider={false}>
-            <SyncAndGitSettingsSection {...props} />
-          </SettingsSection>
-
-          <SettingsSection id="settings-portability">
+          <SettingsSection id="settings-portability" showDivider={false}>
             <PortabilitySettingsSection
               t={t}
               vaultPath={vaultPath}
@@ -206,6 +202,10 @@ export function SettingsBody(props: SettingsBodyProps) {
               onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}
               onApplyAzureMirrorPull={onApplyAzureMirrorPull}
             />
+          </SettingsSection>
+
+          <SettingsSection id="settings-sync">
+            <SyncAndGitSettingsSection {...props} />
           </SettingsSection>
 
           <SettingsSection id="settings-appearance">

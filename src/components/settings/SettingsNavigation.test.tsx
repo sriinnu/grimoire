@@ -1,11 +1,15 @@
 import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { SettingsMobileNavigation } from './SettingsNavigation'
+import { SettingsMobileNavigation, SettingsNavigation } from './SettingsNavigation'
 import { resolveActiveSettingsSection } from './SettingsNavigationModel'
 import type { SettingsBodyProps } from './settingsTypes'
 
 const labels: Record<string, string> = {
   'settings.title': 'Settings',
+  'settings.vault.title': 'Current vault',
+  'settings.vault.noVault': 'No vault selected',
+  'settings.vault.state.localFiles': 'Local files',
+  'settings.vault.state.localGit': 'Local files + Git',
   'settings.sync.title': 'Sync & Updates',
   'settings.portability.title': 'Portability',
   'settings.appearance.title': 'Appearance',
@@ -31,12 +35,12 @@ describe('SettingsNavigation', () => {
     const { rerender } = render(
       <SettingsMobileNavigation
         t={t}
-        activeSectionId="settings-sync"
+        activeSectionId="settings-portability"
         onSectionChange={vi.fn()}
       />,
     )
 
-    expect(screen.getByTestId('settings-mobile-nav-settings-sync')).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByTestId('settings-mobile-nav-settings-portability')).toHaveAttribute('aria-current', 'page')
     scrollIntoView.mockClear()
 
     rerender(
@@ -60,8 +64,8 @@ describe('SettingsNavigation', () => {
     })
 
     for (const [id, top] of [
-      ['settings-sync', -200],
-      ['settings-portability', 80],
+      ['settings-portability', -200],
+      ['settings-sync', 80],
       ['settings-appearance', 118],
       ['settings-workflow', 190],
     ] as const) {
@@ -75,5 +79,34 @@ describe('SettingsNavigation', () => {
     }
 
     expect(resolveActiveSettingsSection(container)).toBe('settings-appearance')
+  })
+
+  it('frames the vault rail as local files first, with Git as an optional layer', () => {
+    const { rerender } = render(
+      <SettingsNavigation
+        t={t}
+        vaultPath="/Users/sriinnu/Grimoire"
+        isGitVault={false}
+        activeSectionId="settings-portability"
+        onSectionChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('settings-nav-settings-portability')).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByText('Local files')).toBeInTheDocument()
+    expect(screen.queryByText('Local only')).not.toBeInTheDocument()
+
+    rerender(
+      <SettingsNavigation
+        t={t}
+        vaultPath="/Users/sriinnu/Grimoire"
+        isGitVault={true}
+        activeSectionId="settings-portability"
+        onSectionChange={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Local files + Git')).toBeInTheDocument()
+    expect(screen.queryByText('Git on')).not.toBeInTheDocument()
   })
 })

@@ -79,10 +79,10 @@ describe('SettingsPanel appearance and agent settings', () => {
     render(<SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />)
     expect(screen.getByTestId('settings-navigation-rail')).toBeInTheDocument()
     expect(screen.getByTestId('settings-main-surface')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-nav-settings-sync')).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByTestId('settings-nav-settings-portability')).toHaveAttribute('aria-current', 'page')
     fireEvent.click(screen.getByTestId('settings-nav-settings-appearance'))
     expect(screen.getByTestId('settings-nav-settings-appearance')).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByTestId('settings-nav-settings-sync')).not.toHaveAttribute('aria-current')
+    expect(screen.getByTestId('settings-nav-settings-portability')).not.toHaveAttribute('aria-current')
   })
 
   it('updates the active settings rail item while the main surface scrolls', () => {
@@ -95,8 +95,8 @@ describe('SettingsPanel appearance and agent settings', () => {
     })
 
     for (const [id, top] of [
-      ['settings-sync', -460],
-      ['settings-portability', -320],
+      ['settings-portability', -460],
+      ['settings-sync', -320],
       ['settings-appearance', -140],
       ['settings-workflow', 18],
       ['settings-agents', 220],
