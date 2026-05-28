@@ -83,6 +83,7 @@ export function AiCrystallizeLoopCard({
               <LoopBadge icon={<FileClock className="size-3" />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
               <LoopBadge icon={<Sparkles className="size-3" />} label={activeNoteLabel(proposalSummary)} />
               <LoopBadge icon={<ShieldCheck className="size-3" />} label={writeContractLabel(proposalSummary)} />
+              <LoopBadge icon={<Sparkles className="size-3" />} label={proposalSummary.loopReceipt} />
               <LoopBadge icon={<ShieldCheck className="size-3" />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
               <LoopBadge
                 icon={<CheckCircle2 className="size-3" />}

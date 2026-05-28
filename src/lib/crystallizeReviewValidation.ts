@@ -20,6 +20,8 @@ const REQUIRED_FRONTMATTER = [
   'reviewed_at',
   'locality',
   'crystallized',
+  'crystallize_loop',
+  'crystallize_receipt',
 ] as const
 
 /** Validates the durable Markdown contract before a Crystallize write is accepted. */
@@ -30,6 +32,12 @@ export function validateCrystallizeMemoryMarkdown(markdown: string): Crystallize
   if (String(frontmatter.type ?? '').trim() !== 'Memory') missingFields.push('type: Memory')
   if (String(frontmatter.locality ?? '').trim() !== 'vault') missingFields.push('locality: vault')
   if (frontmatter.crystallized !== true) missingFields.push('crystallized: true')
+  if (!isCrystallizeLoopValue(frontmatter.crystallize_loop)) {
+    missingFields.push('crystallize_loop: Capture -> ... -> Markdown memory')
+  }
+  if (!/^crys-[0-9a-f]{8}$/.test(String(frontmatter.crystallize_receipt ?? '').trim())) {
+    missingFields.push('crystallize_receipt: crys-*')
+  }
 
   return {
     missingFields: [...new Set(missingFields)],
@@ -40,4 +48,9 @@ export function validateCrystallizeMemoryMarkdown(markdown: string): Crystallize
 function hasFrontmatterValue(value: unknown): boolean {
   if (Array.isArray(value)) return true
   return value !== undefined && value !== null && String(value).trim() !== ''
+}
+
+function isCrystallizeLoopValue(value: unknown): boolean {
+  const text = String(value ?? '')
+  return text.includes('Capture') && text.includes('Markdown memory')
 }

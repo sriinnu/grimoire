@@ -8,6 +8,10 @@ import {
   handoffFrontmatter,
   type CrystallizeHandoffMetadata,
 } from './crystallizeHandoff'
+import {
+  buildCrystallizeLoopReceipt,
+  buildCrystallizeLoopReceiptLines,
+} from './crystallizeLoopReceipt'
 import { buildCrystallizeMockEntry } from './crystallizeMockEntry'
 import {
   buildCrystallizeSourceLabels,
@@ -89,6 +93,7 @@ export function buildCrystallizeProposal({
 }: CrystallizeProposalParams): CrystallizeProposal {
   const date = now.toISOString().slice(0, 10)
   const reviewedAt = now.toISOString()
+  const trimmedResponse = response.trim()
   const sourceLabels = buildCrystallizeSourceLabels({
     activeEntry,
     askContextPackage,
@@ -107,10 +112,18 @@ export function buildCrystallizeProposal({
     activeEntry,
     activeNoteContent,
     memoryTitle: title,
-    response: response.trim(),
+    response: trimmedResponse,
     reviewedAt,
     sourceLabel,
     vaultPath,
+  })
+  const loopReceipt = buildCrystallizeLoopReceipt({
+    activeNoteTarget: activeNotePatch?.relativePath ?? null,
+    response: trimmedResponse,
+    reviewedAt,
+    sourceLabels,
+    sourceName,
+    targetPath: relativePath,
   })
   const frontmatter = [
     `title: ${yamlString(title)}`,
@@ -130,9 +143,12 @@ export function buildCrystallizeProposal({
     `reviewed_at: ${yamlString(reviewedAt)}`,
     `locality: ${ledgerContract.locality}`,
     'crystallized: true',
+    `crystallize_loop: ${yamlString(loopReceipt.pathLabel)}`,
+    `crystallize_receipt: ${yamlString(loopReceipt.id)}`,
   ]
-  const sourceLinks = buildSourceLinkLines(sourceLabels, response)
+  const sourceLinks = buildSourceLinkLines(sourceLabels, trimmedResponse)
   const ledgerContractLines = buildLedgerContractLines(ledgerContract)
+  const loopReceiptLines = buildCrystallizeLoopReceiptLines(loopReceipt)
   const markdown = [
     '---',
     ...frontmatter,
@@ -148,9 +164,13 @@ export function buildCrystallizeProposal({
     '',
     ...ledgerContractLines,
     '',
+    '## Crystallize Loop',
+    '',
+    ...loopReceiptLines,
+    '',
     '## Proposed Memory',
     '',
-    response.trim(),
+    trimmedResponse,
     '',
   ].join('\n')
 
@@ -163,13 +183,15 @@ export function buildCrystallizeProposal({
     sourceLabels,
     handoffMetadata,
     ledgerContract,
+    loopReceipt,
     activeNotePatch,
     changes: buildReviewChanges(
       relativePath,
       sourceLinks,
       frontmatter,
       ledgerContractLines,
-      response.trim(),
+      loopReceiptLines,
+      trimmedResponse,
       activeNotePatch,
     ),
     markdown,
@@ -204,6 +226,8 @@ export function summarizeCrystallizeProposal(proposal: CrystallizeProposal | nul
     expiresAt: proposal.ledgerContract.expiresAt,
     hunkCount: proposal.changes.length,
     ledgerFieldCount: countLedgerFrontmatterFields(proposal),
+    loopReceipt: proposal.loopReceipt.id,
+    loopStepCount: proposal.loopReceipt.steps.length,
     sourceCount,
     targetFolder: proposal.relativePath.split('/').slice(0, -1).join('/'),
     taskCount: proposal.changes.filter(change => change.kind === 'task').length,
