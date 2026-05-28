@@ -354,6 +354,13 @@ describe('crystallizeProposal', () => {
       sourceCount: 2,
       targetFolder: 'memory/crystallized',
       taskCount: 1,
+      writeContract: {
+        format: 'Markdown',
+        requiresGit: false,
+        requiresRemoteSync: false,
+        reviewGate: 'before-write',
+        visibility: 'human-reviewed',
+      },
     })
     expect(summarizeCrystallizeProposal(null)).toBeNull()
   })

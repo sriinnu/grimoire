@@ -2,6 +2,14 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { AiCrystallizeLoopCard } from './AiCrystallizeLoopCard'
 
+const writeContract = {
+  format: 'Markdown',
+  requiresGit: false,
+  requiresRemoteSync: false,
+  reviewGate: 'before-write',
+  visibility: 'human-reviewed',
+} as const
+
 describe('AiCrystallizeLoopCard', () => {
   it('offers review when a public AI response can become Markdown memory', () => {
     const onCrystallize = vi.fn()
@@ -25,6 +33,7 @@ describe('AiCrystallizeLoopCard', () => {
           sourceCount: 2,
           targetFolder: 'memory/crystallized',
           taskCount: 0,
+          writeContract,
         }}
       />,
     )
@@ -35,6 +44,7 @@ describe('AiCrystallizeLoopCard', () => {
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('4 hunks')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 active-note hunks · notes/source.md')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('9 ledger fields')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Markdown / no Git / no remote / review-before-write')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('review by 2026-08-14')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('0 contradictions')
     expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 sources')
@@ -111,6 +121,7 @@ describe('AiCrystallizeLoopCard', () => {
           sourceCount: 1,
           targetFolder: 'memory/crystallized',
           taskCount: 1,
+          writeContract,
         }}
       />,
     )
@@ -118,6 +129,7 @@ describe('AiCrystallizeLoopCard', () => {
     const packet = screen.getByTestId('crystallize-review-packet')
     expect(packet).toHaveTextContent('1 hunk')
     expect(packet).toHaveTextContent('memory note only')
+    expect(packet).toHaveTextContent('Markdown / no Git / no remote / review-before-write')
     expect(packet).toHaveTextContent('1 source')
     expect(packet).toHaveTextContent('1 ledger field')
     expect(packet).toHaveTextContent('review by 2026-08-14')
