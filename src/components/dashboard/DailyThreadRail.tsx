@@ -1,4 +1,4 @@
-import { ArrowRight, CalendarClock, GitCommitHorizontal, Lock, Mic, MoonStar, NotebookPen, Smartphone } from 'lucide-react'
+import { ArrowRight, BrainCircuit, CalendarClock, GitCommitHorizontal, Lock, Mic, MoonStar, NotebookPen, Smartphone } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TimeLoomGuidance, TimeLoomSourceLane } from '../../lib/timeLoomGuidance'
@@ -15,6 +15,7 @@ const laneIcons = {
   commit: GitCommitHorizontal,
   dream: MoonStar,
   journal: NotebookPen,
+  memory: BrainCircuit,
   mobile: Smartphone,
   private: Lock,
   voice: Mic,

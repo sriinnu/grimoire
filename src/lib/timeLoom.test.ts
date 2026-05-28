@@ -54,6 +54,7 @@ describe('buildTimeLoomSummary', () => {
     expect(summary.protectedEvents).toBe(2)
     expect(summary.voiceEvents).toBe(0)
     expect(summary.mobileEvents).toBe(0)
+    expect(summary.memoryReviewEvents).toBe(0)
     expect(summary.taskEvents).toBe(0)
     expect(summary.activeSpanLabel).toBe('4 events across 2 active days')
     expect(summary.buckets.map((bucket) => bucket.label)).toEqual(['Today', 'Yesterday'])
@@ -172,6 +173,52 @@ describe('buildTimeLoomSummary', () => {
     expect(payload).not.toContain('therapy voice memo')
     expect(payload).not.toContain('therapy.webm')
     expect(payload).not.toContain('local_whisper')
+  })
+
+  it('counts Memory Ledger review pressure without leaking memory labels or references', () => {
+    const now = new Date(2026, 4, 23, 12)
+    const summary = buildTimeLoomSummary([
+      entry({
+        title: 'Sensitive Council Memory',
+        isA: 'Memory',
+        path: '/vault/memory/crystallized/sensitive-council-memory.md',
+        properties: {
+          locality: 'local',
+          contradicted_by: ['[[Private/Oil Signal]]'],
+          expires_at: '2026-05-28',
+          reviewed_at: '2026-05-10',
+        },
+      }),
+      entry({
+        title: 'Stable Memory',
+        isA: 'Memory',
+        path: '/vault/memory/crystallized/stable-memory.md',
+        properties: {
+          crystallized: true,
+          expires_at: '2026-09-01',
+          reviewed_at: '2026-05-23',
+        },
+      }),
+    ], now)
+    const payload = JSON.stringify(summary)
+
+    expect(summary.memoryReviewEvents).toBe(1)
+    expect(summary.protectedEvents).toBe(2)
+    expect(summary.buckets[0].typeCounts).toEqual([
+      { label: 'Memory review', count: 1 },
+      { label: 'Memory', count: 1 },
+    ])
+    expect(summary.patterns).toContainEqual({
+      label: 'Private review',
+      detail: '2 private / 1 memory review',
+      tone: 'private',
+    })
+    expect(payload).not.toContain('Sensitive Council Memory')
+    expect(payload).not.toContain('Stable Memory')
+    expect(payload).not.toContain('sensitive-council-memory')
+    expect(payload).not.toContain('stable-memory')
+    expect(payload).not.toContain('Private/Oil Signal')
+    expect(payload).not.toContain('local')
   })
 
 })

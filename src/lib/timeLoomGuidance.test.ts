@@ -50,6 +50,7 @@ const summary: TimeLoomSummary = {
   ],
   calendarEvents: 0,
   commitEvents: 0,
+  memoryReviewEvents: 0,
   mobileEvents: 2,
   patterns: [],
   protectedEvents: 3,
@@ -136,5 +137,23 @@ describe('buildTimeLoomGuidance', () => {
     expect(guidance.promptSeed).toBe(DAILY_THREAD_CRYSTALLIZE_PROMPT)
     expect(guidance.promptSeed).toContain('source-safe')
     expect(guidance.promptSeed).toContain('reviewable before any write')
+  })
+
+  it('adds Memory Ledger review pressure as a private count-only lane', () => {
+    const guidance = buildTimeLoomGuidance(
+      { ...summary, memoryReviewEvents: 2, protectedEvents: 0, mobileEvents: 0, voiceEvents: 0 },
+      1,
+      { ...emptyDreamSummary, dreamCount: 1, journalCount: 1 },
+    )
+
+    expect(guidance.sourceLanes).toContainEqual({
+      id: 'memory',
+      label: 'Memory',
+      count: 2,
+      detail: 'review queue',
+      state: 'private',
+    })
+    expect(JSON.stringify(guidance)).not.toContain('/vault')
+    expect(JSON.stringify(guidance)).not.toContain('contradicted_by')
   })
 })

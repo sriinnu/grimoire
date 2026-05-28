@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarDays, Clock3, GitCommitHorizontal, ListTodo, Lock, Mic, Smartphone, Sparkles } from 'lucide-react'
+import { BrainCircuit, CalendarClock, CalendarDays, Clock3, GitCommitHorizontal, ListTodo, Lock, Mic, Smartphone, Sparkles } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -47,6 +47,12 @@ export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJo
             {summary.mobileEvents} mobile
           </Badge>
         ) : null}
+        {summary.memoryReviewEvents > 0 ? (
+          <Badge variant="outline" className="rounded-md">
+            <BrainCircuit className="size-3" />
+            {summary.memoryReviewEvents} memory review
+          </Badge>
+        ) : null}
         {summary.commitEvents > 0 ? (
           <Badge variant="outline" className="rounded-md">
             <GitCommitHorizontal className="size-3" />
@@ -73,7 +79,7 @@ export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJo
         ) : null}
       </div>
       <p className="vault-dashboard__panel-copy">
-        Dates, types, scheduled events, due tasks, mobile captures, voice captures, commits, reviewed memory, and status only. Private lanes are counted here without exposing titles.
+        Dates, types, scheduled events, due tasks, mobile captures, voice captures, memory review flags, commits, reviewed memory, and status only. Private lanes are counted here without exposing titles.
       </p>
       {summary.patterns.length > 0 ? (
         <div className="vault-dashboard__time-patterns" data-testid="time-loom-patterns" aria-label="Metadata-only Time Loom pattern lens">
