@@ -259,6 +259,7 @@ function SettingsPanelInner({
           portabilityBusyAction={portabilityActions.portabilityBusyAction}
           portabilityProgress={portabilityActions.portabilityProgress}
           importPreview={portabilityActions.lastImportPreview}
+          exportPreview={portabilityActions.lastExportPreview}
           onCancelPortabilityAction={portabilityActions.handleCancelPortabilityAction}
           onPreviewMarkdownFolder={portabilityActions.handlePreviewMarkdownFolder}
           onImportMarkdownFolder={portabilityActions.handleImportMarkdownFolder}

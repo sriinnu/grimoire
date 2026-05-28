@@ -1,7 +1,10 @@
 import { UploadSimple } from '@phosphor-icons/react'
+import { hasReviewedExportPreview, exportRequiresReview, type PortabilityExportPreviewState } from '../lib/exportReviewGate'
+import { portabilityCapsuleFormatLabel } from '../lib/portabilityCapsule'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
 import { PortabilityActionButton } from './PortabilityActionButton'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
+import { Badge } from './ui/badge'
 
 interface PortabilityExportActionsProps {
   t: PortabilityActionDeckTranslate
@@ -13,6 +16,7 @@ interface PortabilityExportActionsProps {
   onExportJsonSnapshot?: () => void
   onPreviewSqliteSnapshot?: () => void
   onExportSqliteSnapshot?: () => void
+  exportPreview?: PortabilityExportPreviewState | null
 }
 
 /** Renders reviewed export actions for portable vault snapshots. */
@@ -26,6 +30,7 @@ export function PortabilityExportActions({
   onExportJsonSnapshot,
   onPreviewSqliteSnapshot,
   onExportSqliteSnapshot,
+  exportPreview,
 }: PortabilityExportActionsProps) {
   return (
     <>
@@ -61,6 +66,7 @@ export function PortabilityExportActions({
         testId="settings-export-json-snapshot"
         actionId="export-json"
         busyAction={busyAction}
+        exportPreview={exportPreview}
         vaultReady={vaultReady}
         onClick={onExportJsonSnapshot}
         t={t}
@@ -79,10 +85,12 @@ export function PortabilityExportActions({
         testId="settings-export-sqlite-snapshot"
         actionId="export-sqlite"
         busyAction={busyAction}
+        exportPreview={exportPreview}
         vaultReady={vaultReady}
         onClick={onExportSqliteSnapshot}
         t={t}
       />
+      <ExportPreviewSummary exportPreview={exportPreview} />
     </>
   )
 }
@@ -92,12 +100,13 @@ interface ExportButtonProps {
   testId: string
   actionId: VaultPortabilityActionId
   busyAction: VaultPortabilityActionId | null
+  exportPreview?: PortabilityExportPreviewState | null
   vaultReady: boolean
   onClick?: () => void
   t: PortabilityActionDeckTranslate
 }
 
-function ExportButton({ label, testId, actionId, busyAction, vaultReady, onClick, t }: ExportButtonProps) {
+function ExportButton({ label, testId, actionId, busyAction, exportPreview, vaultReady, onClick, t }: ExportButtonProps) {
   return (
     <PortabilityActionButton
       icon={<UploadSimple size={14} />}
@@ -105,9 +114,38 @@ function ExportButton({ label, testId, actionId, busyAction, vaultReady, onClick
       testId={testId}
       busy={busyAction === actionId}
       busyLabel={t('settings.portability.exporting')}
-      disabled={Boolean(busyAction) || !vaultReady || !onClick}
+      disabled={Boolean(busyAction) || !vaultReady || !onClick || exportLocked(actionId, exportPreview)}
       onClick={onClick}
       t={t}
     />
+  )
+}
+
+function exportLocked(
+  actionId: VaultPortabilityActionId,
+  preview: PortabilityExportPreviewState | null | undefined,
+): boolean {
+  return exportRequiresReview(actionId) && !hasReviewedExportPreview(actionId, preview)
+}
+
+function ExportPreviewSummary({ exportPreview }: { exportPreview?: PortabilityExportPreviewState | null }) {
+  if (!exportPreview) return null
+  const { result } = exportPreview
+  return (
+    <div
+      className="grimoire-portability-inline-panel grid w-full gap-1.5 rounded-md border border-border bg-background/65 px-2.5 py-2 text-[11px]"
+      data-testid="settings-export-preview-summary"
+    >
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Badge variant="secondary" className="rounded-md">Reviewed preview</Badge>
+        <span className="font-medium text-foreground">{portabilityCapsuleFormatLabel(exportPreview.format)}</span>
+      </div>
+      <div className="text-muted-foreground">
+        {result.files_exportable} files, {result.notes_exportable} notes, {result.assets_exportable} assets exportable; {result.skipped_files} local-only withheld.
+      </div>
+      <div className="text-muted-foreground">
+        Markdown source of truth: {result.locality_proof.markdown_source_of_truth ? 'yes' : 'needs review'}. Absolute paths redacted: {result.locality_proof.absolute_source_paths_redacted ? 'yes' : 'needs review'}.
+      </div>
+    </div>
   )
 }

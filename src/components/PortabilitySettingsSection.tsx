@@ -6,6 +6,7 @@ import {
   type VaultPortabilityActionId,
 } from '../lib/vaultPortability'
 import type { ObjectStorageLiveProofReport } from '../lib/portabilityProof'
+import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
 import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
@@ -25,6 +26,7 @@ interface PortabilitySettingsSectionProps {
   busyAction?: VaultPortabilityActionId | null
   progress?: PortabilityProgressState | null
   importPreview?: ImportAutopsyPreviewState | null
+  exportPreview?: PortabilityExportPreviewState | null
   onCancelProgress?: () => void
   onPreviewMarkdownFolder?: () => void
   onImportMarkdownFolder?: () => void
@@ -105,6 +107,7 @@ export function PortabilitySettingsSection({
   busyAction = importBusy ? 'markdown-folder' : null,
   progress = null,
   importPreview = null,
+  exportPreview = null,
   onCancelProgress,
   onPreviewMarkdownFolder,
   onImportMarkdownFolder,
@@ -190,6 +193,7 @@ export function PortabilitySettingsSection({
         vaultReady={vaultReady}
         busyAction={busyAction}
         importPreview={importPreview}
+        exportPreview={exportPreview}
         progress={progress}
         onCancelProgress={onCancelProgress}
         s3MirrorPreviewReady={s3MirrorPreviewReady}
