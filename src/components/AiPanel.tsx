@@ -21,7 +21,7 @@ import { useAiPanelPromptQueue } from './useAiPanelPromptQueue'
 import { useAiPanelFocus } from './useAiPanelFocus'
 import { CrystallizeReviewDialog, type CrystallizeApplyDraft } from './CrystallizeReviewDialog'
 import {
-  appendCrystallizePatchToContent,
+  applyCrystallizePatchToContent,
   buildCrystallizeProposal,
   latestCrystallizableMessage,
   persistCrystallizedNote,
@@ -209,10 +209,14 @@ export function AiPanelView({
       if (
         crystallizeProposal.activeNotePatch
         && activeNoteContent != null
-        && draft.activeNoteAppendMarkdown
+        && (draft.activeNoteAppendMarkdown || draft.activeNoteFrontmatterMarkdown)
         && onReplaceContent
       ) {
-        const nextContent = appendCrystallizePatchToContent(activeNoteContent, draft.activeNoteAppendMarkdown)
+        const nextContent = applyCrystallizePatchToContent(
+          activeNoteContent,
+          draft.activeNoteFrontmatterMarkdown,
+          draft.activeNoteAppendMarkdown,
+        )
         await onReplaceContent(crystallizeProposal.activeNotePatch.targetPath, nextContent)
         onFileModified?.(crystallizeProposal.activeNotePatch.relativePath)
       }

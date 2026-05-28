@@ -29,6 +29,7 @@ export interface CrystallizeLedgerContract {
 export interface CrystallizeActiveNotePatch {
   targetPath: string
   relativePath: string
+  frontmatterMarkdown: string
   appendMarkdown: string
 }
 

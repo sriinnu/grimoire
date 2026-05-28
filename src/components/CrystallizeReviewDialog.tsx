@@ -21,6 +21,7 @@ import {
 
 export interface CrystallizeApplyDraft {
   memoryMarkdown: string
+  activeNoteFrontmatterMarkdown?: string | null
   activeNoteAppendMarkdown?: string | null
 }
 
@@ -78,6 +79,7 @@ function CrystallizeReviewBody({
   onClose,
 }: Omit<CrystallizeReviewDialogProps, 'open'>) {
   const draftMarkdownRef = useRef<HTMLTextAreaElement>(null)
+  const activeFrontmatterRef = useRef<HTMLTextAreaElement>(null)
   const activeAppendRef = useRef<HTMLTextAreaElement>(null)
   const [acceptState, setAcceptState] = useState({ proposalKey: '', pending: false })
   const proposalKey = proposal?.targetPath ?? ''
@@ -91,6 +93,7 @@ function CrystallizeReviewBody({
     setAcceptState({ proposalKey, pending: true })
     onApply({
       memoryMarkdown: draftMarkdownRef.current?.value ?? '',
+      activeNoteFrontmatterMarkdown: activeFrontmatterRef.current?.value ?? null,
       activeNoteAppendMarkdown: activeAppendRef.current?.value ?? null,
     })
   }
@@ -112,7 +115,7 @@ function CrystallizeReviewBody({
           <Badge variant="secondary" className="rounded-md">Local Markdown</Badge>
           <Badge variant="outline" className="rounded-md">No Git required</Badge>
           <Badge variant="outline" className="rounded-md">Review before write</Badge>
-          {activeNoteTarget ? <Badge variant="outline" className="rounded-md">Active note hunk</Badge> : null}
+          {activeNoteTarget ? <Badge variant="outline" className="rounded-md">Active note hunks</Badge> : null}
           {proposal ? <Badge variant="outline" className="rounded-md">{proposal.relativePath}</Badge> : null}
         </div>
 
@@ -159,17 +162,31 @@ function CrystallizeReviewBody({
         </div>
 
         {proposal?.activeNotePatch ? (
-          <div className="grid gap-1">
-            <div className="text-xs font-medium text-muted-foreground">
-              Active note append · {proposal.activeNotePatch.relativePath}
+          <div className="grid gap-2">
+            <div className="grid gap-1">
+              <div className="text-xs font-medium text-muted-foreground">
+                Active note frontmatter · {proposal.activeNotePatch.relativePath}
+              </div>
+              <Textarea
+                key={`${proposal.activeNotePatch.targetPath}:active-note-frontmatter`}
+                ref={activeFrontmatterRef}
+                defaultValue={proposal.activeNotePatch.frontmatterMarkdown}
+                className="min-h-[96px] resize-none font-mono text-xs"
+                data-testid="crystallize-active-note-frontmatter-preview"
+              />
             </div>
-            <Textarea
-              key={`${proposal.activeNotePatch.targetPath}:active-note-append`}
-              ref={activeAppendRef}
-              defaultValue={proposal.activeNotePatch.appendMarkdown}
-              className="min-h-[160px] resize-none font-mono text-xs"
-              data-testid="crystallize-active-note-append-preview"
-            />
+            <div className="grid gap-1">
+              <div className="text-xs font-medium text-muted-foreground">
+                Active note append · {proposal.activeNotePatch.relativePath}
+              </div>
+              <Textarea
+                key={`${proposal.activeNotePatch.targetPath}:active-note-append`}
+                ref={activeAppendRef}
+                defaultValue={proposal.activeNotePatch.appendMarkdown}
+                className="min-h-[160px] resize-none font-mono text-xs"
+                data-testid="crystallize-active-note-append-preview"
+              />
+            </div>
           </div>
         ) : null}
 

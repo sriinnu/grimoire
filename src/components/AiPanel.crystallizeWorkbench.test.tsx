@@ -89,6 +89,10 @@ describe('AiPanel Crystallize workbench', () => {
 
     fireEvent.click(screen.getByTestId('ai-crystallize'))
     expect(screen.getByTestId('crystallize-change-kind-note')).toBeInTheDocument()
+    const frontmatterPreview = screen.getByTestId('crystallize-active-note-frontmatter-preview') as HTMLTextAreaElement
+    fireEvent.change(frontmatterPreview, {
+      target: { value: `${frontmatterPreview.value}\ncrystallize_review: "tonight"` },
+    })
     const appendPreview = screen.getByTestId('crystallize-active-note-append-preview') as HTMLTextAreaElement
     fireEvent.change(appendPreview, {
       target: { value: `${appendPreview.value}\n\n- [ ] Review this in tomorrow's vault pass.` },
@@ -102,6 +106,9 @@ describe('AiPanel Crystallize workbench', () => {
       expect.stringContaining('# Grimoire Plan\n\nExisting plan.\n\n## Crystallized Follow-up'),
     )
     expect(onReplaceContent.mock.calls[0]?.[1]).toContain("tomorrow's vault pass")
+    expect(onReplaceContent.mock.calls[0]?.[1]).toContain('last_crystallized_at:')
+    expect(onReplaceContent.mock.calls[0]?.[1]).toContain('crystallized_memories:')
+    expect(onReplaceContent.mock.calls[0]?.[1]).toContain('crystallize_review: "tonight"')
     expect(onFileModified).toHaveBeenCalledWith('projects/grimoire.md')
     expect(onVaultChanged).toHaveBeenCalledOnce()
   })

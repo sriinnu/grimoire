@@ -117,6 +117,7 @@ describe('CrystallizeReviewDialog', () => {
 
     expect(onApply).toHaveBeenCalledWith({
       memoryMarkdown: 'type: Memory\n\nEdited memory',
+      activeNoteFrontmatterMarkdown: null,
       activeNoteAppendMarkdown: null,
     })
     expect(screen.getByTestId('crystallize-accept-status')).toHaveTextContent(
@@ -182,10 +183,19 @@ describe('CrystallizeReviewDialog', () => {
         activeNotePatch: {
           targetPath: '/tmp/vault/project.md',
           relativePath: 'project.md',
+          frontmatterMarkdown: 'last_crystallized_at: "2026-05-23T08:00:00.000Z"\ncrystallized_memories:\n  - "[[Crystallized Memory]]"',
           appendMarkdown: '## Crystallized Follow-up\n\nOriginal append',
         },
         changes: [
           ...proposal.changes,
+          {
+            id: 'update-active-note-frontmatter',
+            kind: 'frontmatter',
+            label: 'Update active note metadata',
+            target: 'project.md',
+            before: '(no Crystallize metadata)',
+            after: 'last_crystallized_at: "2026-05-23T08:00:00.000Z"\ncrystallized_memories:\n  - "[[Crystallized Memory]]"',
+          },
           {
             id: 'append-active-note',
             kind: 'note',
@@ -198,10 +208,15 @@ describe('CrystallizeReviewDialog', () => {
       },
     })
 
-    expect(screen.getByText('Active note hunk')).toBeInTheDocument()
+    expect(screen.getByText('Active note hunks')).toBeInTheDocument()
+    expect(screen.getAllByTestId('crystallize-change-kind-frontmatter')).toHaveLength(2)
     expect(screen.getByTestId('crystallize-change-kind-note')).toBeInTheDocument()
-    expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('5 hunks')
+    expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('6 hunks')
     expect(screen.getByTestId('crystallize-review-packet')).toHaveTextContent('Memory plus active note review.')
+    const frontmatterPreview = screen.getByTestId('crystallize-active-note-frontmatter-preview')
+    fireEvent.change(frontmatterPreview, {
+      target: { value: 'last_crystallized_at: "2026-05-24T08:00:00.000Z"\ncrystallized_memories:\n  - "[[Edited Memory]]"' },
+    })
     const appendPreview = screen.getByTestId('crystallize-active-note-append-preview')
     fireEvent.change(appendPreview, { target: { value: '## Crystallized Follow-up\n\nEdited append' } })
 
@@ -209,6 +224,7 @@ describe('CrystallizeReviewDialog', () => {
 
     expect(onApply).toHaveBeenCalledWith({
       memoryMarkdown: 'type: Memory\n\nOriginal memory',
+      activeNoteFrontmatterMarkdown: 'last_crystallized_at: "2026-05-24T08:00:00.000Z"\ncrystallized_memories:\n  - "[[Edited Memory]]"',
       activeNoteAppendMarkdown: '## Crystallized Follow-up\n\nEdited append',
     })
     expect(screen.getByTestId('crystallize-accept-status')).toHaveTextContent(
