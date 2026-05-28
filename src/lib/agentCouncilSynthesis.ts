@@ -16,6 +16,7 @@ export interface AgentCouncilPreflight {
   gatedLaneCount: number
   heldLocalCount: number
   mode: 'policy-only' | 'review-gated'
+  proofBoundaryLaneCount: number
   readyLaneCount: number
   reviewRequired: boolean
   sourceCount: number
@@ -126,11 +127,13 @@ function buildPreflight({
 }): AgentCouncilPreflight {
   const unavailableLaneCount = members.filter((member) => member.health === 'missing' || member.health === 'checking').length
   const gatedLaneCount = members.filter((member) => member.health === 'private-local').length
-  const readyLaneCount = members.filter((member) => member.health === 'ready').length
+  const proofBoundaryLaneCount = members.filter((member) => member.id === 'portability_context').length
+  const readyLaneCount = members.filter((member) => member.health === 'ready' && member.id !== 'portability_context').length
   return {
     gatedLaneCount,
     heldLocalCount: countHeldLocalSources(members, activeContextProtected),
     mode: activeContextProtected ? 'policy-only' : 'review-gated',
+    proofBoundaryLaneCount,
     readyLaneCount,
     reviewRequired: true,
     sourceCount,
@@ -176,12 +179,14 @@ function buildAgentCouncilOneAnswer({
 
   const unavailableCount = members.filter((member) => member.health === 'missing' || member.health === 'checking').length
   const privateCount = members.filter((member) => member.health === 'private-local').length
-  const readyCount = members.filter((member) => member.health === 'ready').length
+  const proofBoundaryCount = members.filter((member) => member.id === 'portability_context').length
+  const readyCount = members.filter((member) => member.health === 'ready' && member.id !== 'portability_context').length
   const confidence = conflictCount > 0 || unavailableCount > 0 ? 'medium' : 'high'
   const constraints = [
     conflictCount > 0 ? `${conflictCount} friction signal${conflictCount === 1 ? '' : 's'}` : null,
     unavailableCount > 0 ? `${unavailableCount} unavailable lane${unavailableCount === 1 ? '' : 's'}` : null,
     privateCount > 0 ? `${privateCount} private lane${privateCount === 1 ? '' : 's'} approval-gated` : null,
+    proofBoundaryCount > 0 ? `${proofBoundaryCount} proof-boundary lane${proofBoundaryCount === 1 ? '' : 's'}` : null,
   ].filter((item): item is string => Boolean(item))
   const constraintCopy = constraints.length > 0 ? ` while respecting ${constraints.join(', ')}` : ''
 
@@ -208,9 +213,10 @@ function laneSection(members: AgentCouncilMember[]): string[] {
   return members.map((member) => {
     const sources = unique(member.sources.map(safeLaneSourceLabel)).slice(0, 4).join(', ')
     const sourceCopy = sources ? ` Sources: ${sources}.` : ''
+    const evidenceLimit = member.id === 'portability_context' ? 4 : 3
     const evidence = member.evidence
+      .slice(0, evidenceLimit)
       .map((item) => `${item.label} - ${item.detail}`)
-      .slice(0, 3)
       .join('; ')
     const evidenceCopy = evidence ? ` Evidence: ${evidence}.` : ''
     const claim = member.claims[0]
@@ -241,6 +247,7 @@ function handoffGateSection(preflight: AgentCouncilPreflight): string[] {
   return [
     `- Mode: ${preflight.mode}`,
     `- Ready lanes: ${preflight.readyLaneCount}`,
+    `- Proof-boundary lanes: ${preflight.proofBoundaryLaneCount}`,
     `- Approval-gated private lanes: ${preflight.gatedLaneCount}`,
     `- Unavailable lanes: ${preflight.unavailableLaneCount}`,
     `- Held local: ${heldLocal}`,

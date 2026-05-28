@@ -185,7 +185,9 @@ function visibleSources(sources: AgentCouncilSource[]): AgentCouncilSource[] {
 }
 
 function visibleEvidence(member: ReturnType<typeof buildAgentCouncilMembers>[number]) {
-  return member.id === 'local_search' || member.id === 'vault_graph' ? member.evidence : []
+  return member.id === 'local_search' || member.id === 'vault_graph' || member.id === 'portability_context'
+    ? member.evidence
+    : []
 }
 
 function priorityRank(kind: AgentCouncilSource['kind'], priority: AgentCouncilSource['kind'][]): number {

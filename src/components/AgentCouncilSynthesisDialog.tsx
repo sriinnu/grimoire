@@ -62,6 +62,7 @@ export function AgentCouncilSynthesisDialog({
             gatedLaneCount={packet.preflight.gatedLaneCount}
             heldLocalCount={packet.preflight.heldLocalCount}
             label="Locality Firewall preflight"
+            proofBoundaryLaneCount={packet.preflight.proofBoundaryLaneCount}
             protectedContext={packet.protectedContext}
             readyLaneCount={packet.preflight.readyLaneCount}
             sourceCount={packet.preflight.sourceCount}

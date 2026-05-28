@@ -11,6 +11,7 @@ import { buildContextSources, buildGraphSources, memoryConflictLabels } from './
 import {
   buildCouncilContextEvidence,
   buildLocalSearchEvidence,
+  buildPortabilityEvidence,
   buildVaultGraphEvidence,
   evidenceFromSources,
   toolEvidence,
@@ -126,9 +127,14 @@ export function buildAgentCouncilMembers({
       'Import/Export',
       'Explains importer, export, and sync constraints.',
       permission,
-      'Can flag import, export, sync, and local-only constraints.',
-      [{ kind: 'tool', label: 'Portability registry' }, { kind: 'tool', label: 'Locality Firewall' }],
-      toolEvidence('Portability registry', 'Import/export/sync constraints stay visible before handoff.'),
+      'Can audit Import Autopsy manifests, export exits, storage proof level, and local-only holds before handoff.',
+      [
+        { kind: 'tool', label: 'Import Autopsy' },
+        { kind: 'tool', label: 'Export Manifest' },
+        { kind: 'tool', label: 'Storage Proof Ledger' },
+        { kind: 'tool', label: 'Locality Firewall' },
+      ],
+      buildPortabilityEvidence(),
     ),
     chitraguptaPrivateMember(
       getPrivateAgentLane('chitragupta'),

@@ -17,7 +17,7 @@ export function AgentCouncilEvidenceList({
   memberLabel,
   onOpenSource,
 }: AgentCouncilEvidenceListProps) {
-  const visibleEvidence = evidence.slice(0, 2)
+  const visibleEvidence = evidence.slice(0, memberId === 'portability_context' ? 4 : 2)
   if (visibleEvidence.length === 0) return null
 
   return (

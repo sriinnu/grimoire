@@ -57,6 +57,25 @@ const privateMember: AgentCouncilMember = {
   sources: [{ kind: 'tool', label: 'Private memory lane' }],
 }
 
+const portabilityMember: AgentCouncilMember = {
+  ...publicMember,
+  id: 'portability_context',
+  label: 'Import/Export',
+  contribution: 'Can audit Import Autopsy manifests, export exits, storage proof level, and local-only holds before handoff.',
+  evidence: [
+    { detail: 'No-write manifests show source basenames.', label: 'Import Autopsy', sourceKind: 'tool' },
+    { detail: 'Portable exits count local-only withheld files.', label: 'Export Manifest', sourceKind: 'tool' },
+    { detail: 'S3/Azure need explicit preview/apply lanes and live proof before ready claims.', label: 'Storage Proof Ledger', sourceKind: 'tool' },
+    { detail: 'Local-only files stay withheld from handoff.', label: 'Locality Firewall', sourceKind: 'tool' },
+  ],
+  sources: [
+    { kind: 'tool', label: 'Import Autopsy' },
+    { kind: 'tool', label: 'Export Manifest' },
+    { kind: 'tool', label: 'Storage Proof Ledger' },
+    { kind: 'tool', label: 'Locality Firewall' },
+  ],
+}
+
 describe('agentCouncilSynthesis', () => {
   it('builds a source-safe Markdown synthesis packet with sources, friction, and workflow', () => {
     const packet = buildAgentCouncilSynthesisPacket({
@@ -95,6 +114,7 @@ describe('agentCouncilSynthesis', () => {
       gatedLaneCount: 0,
       heldLocalCount: 0,
       mode: 'review-gated',
+      proofBoundaryLaneCount: 0,
       readyLaneCount: 1,
       reviewRequired: true,
       sourceCount: 2,
@@ -131,6 +151,7 @@ describe('agentCouncilSynthesis', () => {
 
     expect(packet.preflight).toMatchObject({
       gatedLaneCount: 1,
+      proofBoundaryLaneCount: 0,
       readyLaneCount: 1,
       unavailableLaneCount: 0,
     })
@@ -187,6 +208,7 @@ describe('agentCouncilSynthesis', () => {
       gatedLaneCount: 0,
       heldLocalCount: 1,
       mode: 'policy-only',
+      proofBoundaryLaneCount: 0,
       readyLaneCount: 1,
       reviewRequired: true,
       sourceCount: 0,
@@ -222,5 +244,27 @@ describe('agentCouncilSynthesis', () => {
     expect(packet.markdown).toContain('Protected context withheld')
     expect(packet.markdown).not.toContain('3 dashboard items withheld')
     expect(packet.markdown).not.toContain('2 graph items withheld')
+  })
+
+  it('keeps portability evidence as proof-boundary context, not ready provider proof', () => {
+    const packet = buildAgentCouncilSynthesisPacket({
+      activeContextProtected: false,
+      brief,
+      members: [publicMember, portabilityMember],
+      passBrief,
+      workflow,
+    })
+
+    expect(packet.preflight).toMatchObject({
+      proofBoundaryLaneCount: 1,
+      readyLaneCount: 1,
+    })
+    expect(packet.oneAnswer.answer).toContain('1 proof-boundary lane')
+    expect(packet.markdown).toContain('Import Autopsy - No-write manifests show source basenames.')
+    expect(packet.markdown).toContain('Export Manifest - Portable exits count local-only withheld files.')
+    expect(packet.markdown).toContain('Storage Proof Ledger - S3/Azure need explicit preview/apply lanes')
+    expect(packet.markdown).toContain('Locality Firewall - Local-only files stay withheld from handoff.')
+    expect(packet.markdown).toContain('- Proof-boundary lanes: 1')
+    expect(packet.markdown).not.toMatch(/works 100%|provider-proven/i)
   })
 })
