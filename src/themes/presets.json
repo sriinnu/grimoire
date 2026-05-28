@@ -38,6 +38,25 @@
   },
   {
     "schemaVersion": 1,
+    "id": "prabhat-studio",
+    "family": "research",
+    "label": "Prabhat Studio",
+    "description": "A bright dawn workspace: pearl panels, calm ink, saffron and lotus signal.",
+    "swatches": ["#FBFFFD", "#EAF3F0", "#C25E4A"],
+    "modes": {
+      "light": { "tokens": { "accent.hover": "#1f5f72", "accent.primary": "#286f84", "accent.soft": "rgba(40, 111, 132, 0.12)", "border.default": "#c9dad5", "border.strong": "#92b0a8", "border.subtle": "#e0ebe7", "sidebar.accent": "rgba(183, 85, 66, 0.13)", "sidebar.accentForeground": "#21323a", "sidebar.border": "#d3e2de", "sidebar.foreground": "#243238", "sidebar.primary": "#b75542", "sidebar.primaryForeground": "#ffffff", "state.hover": "#e7f1ee", "state.hoverSubtle": "#f1f7f5", "state.selected": "#dbecea", "surface.app": "#f4faf7", "surface.card": "#ffffff", "surface.editor": "#fbfffd", "surface.input": "#ffffff", "surface.panel": "#f8fcfa", "surface.popover": "#ffffff", "surface.sidebar": "#eaf3f0", "syntax.heading": "#2b6d5e", "syntax.link": "#286f84", "text.heading": "#172529", "text.primary": "#243238", "text.secondary": "#62747a" } },
+      "dark": { "tokens": { "accent.hover": "#aaf2eb", "accent.primary": "#88d8d2", "accent.soft": "rgba(136, 216, 210, 0.14)", "border.default": "#2d4243", "border.strong": "#4e7370", "border.subtle": "#203234", "sidebar.accent": "rgba(242, 160, 111, 0.13)", "sidebar.accentForeground": "#fff0e8", "sidebar.border": "rgba(136, 216, 210, 0.16)", "sidebar.foreground": "#eaf4f1", "sidebar.primary": "#f2a06f", "sidebar.primaryForeground": "#141918", "state.hover": "#1a2d2f", "state.hoverSubtle": "#132527", "state.selected": "#254c4e", "surface.app": "#101718", "surface.card": "#18272a", "surface.editor": "#111a1d", "surface.input": "#142326", "surface.panel": "#142022", "surface.popover": "#1b2c2f", "surface.sidebar": "#0d1517", "syntax.heading": "#aaf2eb", "syntax.link": "#88d8d2", "text.heading": "#f5fbf8", "text.primary": "#e7f3f0", "text.secondary": "#abc3c0" } }
+    },
+    "editor": { "maxWidth": 820, "lineHeight": 1.6, "headingStyle": "system", "codeBlockStyle": "notebook" },
+    "typography": { "ui": "'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif", "editor": "'Avenir Next', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'New York', 'Iowan Old Style', Georgia, serif", "label": "'Avenir Next Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, sans-serif" },
+    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.18 },
+    "metadataStrip": { "style": "badges", "visibleFields": ["type", "status", "modified", "locality"] },
+    "density": { "scale": "comfortable" },
+    "motion": { "profile": "standard" },
+    "visuals": { "graphStyle": "ledger", "canvasStyle": "paper" }
+  },
+  {
+    "schemaVersion": 1,
     "id": "living-archive",
     "family": "archive",
     "label": "Living Archive",

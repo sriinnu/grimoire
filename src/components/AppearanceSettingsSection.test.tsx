@@ -29,6 +29,7 @@ describe('AppearanceSettingsSection', () => {
     expect(within(signature).getByTestId('settings-theme-preset-nocturne')).toHaveAttribute('aria-checked', 'true')
     expect(within(signature).getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
     expect(within(studio).getByTestId('settings-theme-preset-daylight-atelier')).toBeInTheDocument()
+    expect(within(studio).getByTestId('settings-theme-preset-prabhat-studio')).toBeInTheDocument()
     expect(within(lab).getByTestId('settings-theme-preset-retro-terminal')).toBeInTheDocument()
 
     fireEvent.click(within(lab).getByTestId('settings-theme-preset-retro-terminal'))

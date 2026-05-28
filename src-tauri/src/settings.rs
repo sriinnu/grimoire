@@ -9,6 +9,7 @@ const LAPUTA_LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 const THEME_PRESETS: &[&str] = &[
     "constellation",
     "daylight-atelier",
+    "prabhat-studio",
     "living-archive",
     "nocturne",
     "retro-terminal",
@@ -178,6 +179,18 @@ fn is_simplified_chinese_language(code: &str) -> bool {
     matches!(code, "zh" | "zh-cn" | "zh-hans" | "zh-sg")
 }
 
+fn is_german_language(code: &str) -> bool {
+    matches!(code, "de" | "de-at" | "de-ch" | "de-de") || code.starts_with("de-")
+}
+
+fn is_hindi_language(code: &str) -> bool {
+    matches!(code, "hi" | "hi-in") || code.starts_with("hi-")
+}
+
+fn is_sanskrit_language(code: &str) -> bool {
+    matches!(code, "sa" | "sa-deva" | "sa-devanagari" | "sa-in") || code.starts_with("sa-")
+}
+
 pub fn normalize_ui_language(value: Option<&str>) -> Option<String> {
     let language = canonical_language_code(value?)?;
     if is_english_language(&language) {
@@ -185,6 +198,15 @@ pub fn normalize_ui_language(value: Option<&str>) -> Option<String> {
     }
     if is_simplified_chinese_language(&language) {
         return Some("zh-Hans".to_string());
+    }
+    if is_german_language(&language) {
+        return Some("de".to_string());
+    }
+    if is_hindi_language(&language) {
+        return Some("hi".to_string());
+    }
+    if is_sanskrit_language(&language) {
+        return Some("sa".to_string());
     }
     None
 }

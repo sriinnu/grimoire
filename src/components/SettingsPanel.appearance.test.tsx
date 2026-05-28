@@ -218,6 +218,9 @@ describe('SettingsPanel appearance and agent settings', () => {
     fireEvent.keyDown(trigger, { key: 'ArrowDown', code: 'ArrowDown' })
 
     expect(screen.getByRole('option', { name: 'Simplified Chinese' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'German' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Hindi' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Sanskrit' })).toBeInTheDocument()
   })
 
   it('saves the selected UI language and updates visible settings text', () => {
@@ -232,6 +235,21 @@ describe('SettingsPanel appearance and agent settings', () => {
     expect(screen.getByText('设置')).toBeInTheDocument()
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       ui_language: 'zh-Hans',
+    }))
+  })
+
+  it('saves Hindi as a first-class UI language', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.pointerDown(screen.getByTestId('settings-ui-language'), { button: 0, pointerType: 'mouse' })
+    fireEvent.click(screen.getByRole('option', { name: 'Hindi' }))
+    fireEvent.click(screen.getByTestId('settings-save'))
+
+    expect(screen.getByText('सेटिंग्स')).toBeInTheDocument()
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+      ui_language: 'hi',
     }))
   })
 
@@ -294,6 +312,7 @@ describe('SettingsPanel appearance and agent settings', () => {
 
     expect(screen.getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-daylight-atelier')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-prabhat-studio')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-living-archive')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-nocturne')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-retro-terminal')).toBeInTheDocument()
@@ -342,144 +361,4 @@ describe('SettingsPanel appearance and agent settings', () => {
     }))
   })
 
-  it('defaults the release channel trigger to stable', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    expect(screen.getByTestId('settings-release-channel')).toHaveAttribute('data-value', 'stable')
-    expect(screen.queryByText(/Beta\/Stable/i)).not.toBeInTheDocument()
-  })
-
-  it('treats a legacy beta release channel as stable', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, release_channel: 'beta' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByTestId('settings-release-channel')).toHaveAttribute('data-value', 'stable')
-    expect(screen.queryByText('Beta')).not.toBeInTheDocument()
-  })
-
-  it('preserves alpha when alpha is already selected', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, release_channel: 'alpha' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      release_channel: 'alpha',
-    }))
-  })
-
-  it('anchors the default agent dropdown with the popper strategy', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.pointerDown(screen.getByTestId('settings-default-ai-agent'), { button: 0, pointerType: 'mouse' })
-
-    expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
-  })
-
-  it('keeps keyboard opening enabled for the default agent dropdown', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    const trigger = screen.getByTestId('settings-default-ai-agent')
-    trigger.focus()
-    fireEvent.keyDown(trigger, { key: 'ArrowDown', code: 'ArrowDown' })
-
-    expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Codex/i })).toBeInTheDocument()
-  })
-
-  it('saves a model override for the selected default agent', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.change(screen.getByTestId('settings-default-ai-model'), {
-      target: { value: 'sonnet' },
-    })
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      ai_agent_models: { claude_code: 'sonnet' },
-    }))
-  })
-
-  it('saves a provider override for the selected default agent', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    fireEvent.change(screen.getByTestId('settings-default-ai-provider'), {
-      target: { value: 'openai' },
-    })
-
-    expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
-      'Provider override: --provider openai'
-    )
-
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      ai_agent_providers: { chitragupta: 'openai' },
-    }))
-  })
-
-  it('explains that Chitragupta uses the local CLI route when no provider override is set', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
-      'Provider resolves from the Chitragupta stream'
-    )
-    expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
-      'Model resolves from the Chitragupta stream'
-    )
-  })
-
-  it('shows Chitragupta MCP readiness as a separate memory contract', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    const contract = screen.getByTestId('settings-ai-agent-chitragupta-contract')
-    expect(contract).toHaveTextContent('MCP memory contract')
-    expect(contract).toHaveTextContent('Live memory lanes stay local-ledger only')
-    expect(contract).toHaveTextContent('recall')
-    expect(contract).toHaveTextContent('wiki')
-    expect(contract).toHaveTextContent('graph')
-    expect(contract).toHaveTextContent('diagnostics')
-    expect(contract).not.toHaveTextContent(/google|gemini|anthropic|openai|\/Users/i)
-  })
 })

@@ -1,6 +1,7 @@
 export const SUPPORTED_THEME_PRESETS = [
   'constellation',
   'daylight-atelier',
+  'prabhat-studio',
   'living-archive',
   'nocturne',
   'retro-terminal',

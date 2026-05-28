@@ -35,6 +35,10 @@ const PRESET_TRANSLATION_KEYS: Partial<Record<ThemePreset, [TranslationKey, Tran
     'settings.themePreset.daylightAtelier',
     'settings.themePreset.daylightAtelierDescription',
   ],
+  'prabhat-studio': [
+    'settings.themePreset.prabhatStudio',
+    'settings.themePreset.prabhatStudioDescription',
+  ],
   'living-archive': [
     'settings.themePreset.livingArchive',
     'settings.themePreset.livingArchiveDescription',
@@ -62,7 +66,7 @@ const PRESET_GROUPS: readonly {
   {
     id: 'studio',
     labelKey: 'settings.themePreset.group.studio',
-    presetIds: ['daylight-atelier'],
+    presetIds: ['daylight-atelier', 'prabhat-studio'],
   },
   {
     id: 'lab',

@@ -1,10 +1,4 @@
-:where(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) {
+:where([data-theme-preset]) {
   --grimoire-hairline: color-mix(in srgb, var(--border-default) 76%, transparent);
   --grimoire-panel-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 18%, var(--surface-panel)), var(--surface-panel));
   --grimoire-toolbar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 30%, var(--surface-panel)), var(--surface-panel));
@@ -39,25 +33,13 @@
   --ai-reference-pill-fg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 72%, var(--text-primary));
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.note-list-panel, .inspector-panel, .ai-panel) {
+:is([data-theme-preset]) :is(.note-list-panel, .inspector-panel, .ai-panel) {
   background: var(--grimoire-panel-material);
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-panel-shell {
+:is([data-theme-preset]) .settings-panel-shell {
   background: var(--grimoire-dialog-material);
   border-color: var(--grimoire-hairline);
   border-radius: var(--grimoire-shell-radius);
@@ -65,24 +47,12 @@
   color: var(--text-primary);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .grimoire-dialog-overlay {
+:is([data-theme-preset]) .grimoire-dialog-overlay {
   background: var(--grimoire-dialog-overlay);
   backdrop-filter: blur(var(--grimoire-overlay-blur, 10px));
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.grimoire-dialog-content, .grimoire-command-surface) {
+:is([data-theme-preset]) :is(.grimoire-dialog-content, .grimoire-command-surface) {
   background: var(--grimoire-dialog-material);
   border-color: var(--grimoire-hairline);
   border-radius: var(--grimoire-shell-radius);
@@ -90,258 +60,132 @@
   color: var(--text-primary);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .grimoire-dialog-content {
+:is([data-theme-preset]) .grimoire-dialog-content {
   padding: var(--grimoire-density-panel-padding, 16px);
 }
 
-:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy) {
+:is([data-theme-preset]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy) {
   background: var(--grimoire-portability-material);
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);
 }
 
-:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat) {
+:is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat) {
   background: var(--grimoire-portability-preview-material);
   border-color: var(--grimoire-hairline);
 }
 
-:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) .grimoire-portability-lanes {
+:is([data-theme-preset]) .grimoire-portability-lanes {
   background: var(--grimoire-portability-rail-material);
 }
 
-:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
+:is([data-theme-preset]) :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
   color: var(--text-primary);
 }
 
-:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) [data-tone="warn"] :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
+:is([data-theme-preset]) [data-tone="warn"] :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
   color: var(--grimoire-portability-warn-fg);
 }
 
-:is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) [data-tone="safe"] .grimoire-preview-stat__value {
+:is([data-theme-preset]) [data-tone="safe"] .grimoire-preview-stat__value {
   color: var(--grimoire-portability-safe-fg);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-navigation-rail {
+:is([data-theme-preset]) .settings-navigation-rail {
   background: var(--grimoire-panel-material);
   border-right-color: var(--grimoire-hairline);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-mobile-navigation {
+:is([data-theme-preset]) .settings-mobile-navigation {
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 82%, transparent), transparent);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-mobile-navigation__rail {
+:is([data-theme-preset]) .settings-mobile-navigation__rail {
   background: var(--grimoire-toolbar-material);
   border-color: var(--grimoire-hairline);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-mobile-navigation button[aria-current="page"] {
+:is([data-theme-preset]) .settings-mobile-navigation button[aria-current="page"] {
   background: var(--grimoire-card-selected-material);
   border-color: color-mix(in srgb, var(--primary) 34%, var(--grimoire-hairline));
   color: var(--text-primary);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-main-surface {
+:is([data-theme-preset]) .settings-main-surface {
   background: var(--grimoire-settings-main-material);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.settings-theme-preset-card, .settings-appearance-preview) {
+:is([data-theme-preset]) :is(.settings-theme-preset-card, .settings-appearance-preview) {
   background: var(--grimoire-card-material);
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-theme-preset-card[data-group="signature"] {
+:is([data-theme-preset]) .settings-theme-preset-card[data-group="signature"] {
   background: linear-gradient(135deg, var(--surface-editor), color-mix(in srgb, var(--primary) 14%, var(--surface-panel)));
   border-color: color-mix(in srgb, var(--primary) 36%, var(--grimoire-hairline));
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-theme-preset-card[data-selected="true"] {
+:is([data-theme-preset]) .settings-theme-preset-card[data-selected="true"] {
   background: var(--surface-panel);
   border-color: var(--primary);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-appearance-preview {
+:is([data-theme-preset]) .settings-appearance-preview {
   padding: 14px;
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-appearance-preview__sample {
+:is([data-theme-preset]) .settings-appearance-preview__sample {
   color: var(--foreground);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .settings-appearance-preview__body {
+:is([data-theme-preset]) .settings-appearance-preview__body {
   color: var(--muted-foreground);
   font-size: 12px;
   line-height: 1.55;
   margin-top: 6px;
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .ai-panel [data-ai-message-bubble="user"] {
+:is([data-theme-preset]) .ai-panel [data-ai-message-bubble="user"] {
   background: var(--ai-message-user-bg);
   border-color: var(--ai-message-user-border);
   color: var(--ai-message-user-fg);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .ai-panel [data-reference-pill="true"] {
+:is([data-theme-preset]) .ai-panel [data-reference-pill="true"] {
   background: var(--ai-reference-pill-bg) !important;
   border-color: var(--ai-reference-pill-border) !important;
   color: var(--ai-reference-pill-fg) !important;
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.breadcrumb-bar, .note-list-top-chrome, .note-list-chrome-row, .note-list-search-row, .project-workspace-strip, .note-list-filter-rail) {
+:is([data-theme-preset]) :is(.breadcrumb-bar, .note-list-top-chrome, .note-list-chrome-row, .note-list-search-row, .project-workspace-strip, .note-list-filter-rail) {
   background: var(--grimoire-toolbar-material);
   border-color: var(--grimoire-hairline);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.project-workspace-chrome, .note-list-filter-shelf) {
+:is([data-theme-preset]) :is(.project-workspace-chrome, .note-list-filter-shelf) {
   background: transparent;
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.editor, .editor-scroll-area) {
+:is([data-theme-preset]) :is(.editor, .editor-scroll-area) {
   background: var(--grimoire-editor-material);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat) {
+:is([data-theme-preset]) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat) {
   background: var(--grimoire-card-material);
   border-color: var(--grimoire-hairline);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
+:is([data-theme-preset]) :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
   background: var(--grimoire-card-material);
   border-color: var(--grimoire-hairline);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .note-list-panel [data-note-path][data-selected="true"] {
+:is([data-theme-preset]) .note-list-panel [data-note-path][data-selected="true"] {
   background: var(--grimoire-card-selected-material);
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) :is(.ai-panel, .inspector-panel) {
+:is([data-theme-preset]) :is(.ai-panel, .inspector-panel) {
   --background: var(--surface-panel);
   --foreground: var(--text-primary);
   --card: var(--surface-card);
@@ -355,23 +199,11 @@
   --grimoire-signal-text: color-mix(in srgb, var(--primary) 26%, var(--text-primary));
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .ai-panel :is(.border-b, .border-t, [data-testid="context-bar"]) {
+:is([data-theme-preset]) .ai-panel :is(.border-b, .border-t, [data-testid="context-bar"]) {
   border-color: var(--grimoire-hairline) !important;
 }
 
-:is(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
-) .ai-panel [data-testid="agent-input"] {
+:is([data-theme-preset]) .ai-panel [data-testid="agent-input"] {
   background: color-mix(in srgb, var(--surface-input) 88%, var(--surface-panel));
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);

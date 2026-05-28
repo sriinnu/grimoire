@@ -45,6 +45,9 @@ const ZH_HANS_NOTE_LIST_TRANSLATIONS: Partial<Record<NoteListTranslationKey, str
 const NOTE_LIST_TRANSLATIONS: Record<AppLocale, Partial<Record<NoteListTranslationKey, string>>> = {
   en: EN_NOTE_LIST_TRANSLATIONS,
   'zh-Hans': ZH_HANS_NOTE_LIST_TRANSLATIONS,
+  de: {},
+  hi: {},
+  sa: {},
 }
 
 /** Translate hot note-list chrome without loading Settings/portability translations. */

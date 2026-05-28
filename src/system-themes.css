@@ -36,6 +36,22 @@
   --primary: #8ddbe4;
 }
 
+[data-theme-preset-preview="prabhat-studio"] {
+  --surface-editor: #fbfffd;
+  --foreground: #243238;
+  --muted-foreground: #62747a;
+  --border: #c9dad5;
+  --primary: #286f84;
+}
+
+[data-theme-preset-preview="prabhat-studio"][data-theme-preview="dark"] {
+  --surface-editor: #111a1d;
+  --foreground: #e7f3f0;
+  --muted-foreground: #abc3c0;
+  --border: #2d4243;
+  --primary: #88d8d2;
+}
+
 [data-theme-preset-preview="living-archive"] {
   --surface-editor: #fff7e8;
   --foreground: #2d3428;

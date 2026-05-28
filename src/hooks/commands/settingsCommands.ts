@@ -2,6 +2,7 @@ import { APP_COMMAND_IDS, getAppCommandShortcutDisplay } from '../appCommandCata
 import type { CommandAction } from './types'
 import { rememberFeedbackDialogOpener } from '../../lib/feedbackDialogOpener'
 import {
+  APP_LOCALES,
   SYSTEM_UI_LANGUAGE,
   localeDisplayName,
   type AppLocale,
@@ -34,6 +35,19 @@ function commandKeywords(raw: string): string[] {
   return raw.split(/\s+/).filter(Boolean)
 }
 
+function commandIdForLocale(locale: AppLocale): string {
+  return `switch-language-${locale.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+}
+
+function languageKeywords(locale: AppLocale): string[] {
+  const common = ['language', 'locale']
+  if (locale === 'en') return [...common, 'english', 'en']
+  if (locale === 'zh-Hans') return [...common, 'chinese', 'simplified', 'zh', '中文']
+  if (locale === 'de') return [...common, 'german', 'deutsch', 'de']
+  if (locale === 'hi') return [...common, 'hindi', 'hi', 'हिन्दी', 'हिंदी']
+  return [...common, 'sanskrit', 'sa', 'संस्कृत', 'संस्कृतम्']
+}
+
 function buildPrimarySettingsCommands({
   locale = 'en',
   onOpenSettings,
@@ -45,7 +59,7 @@ function buildPrimarySettingsCommands({
     {
       id: 'open-settings',
       label: t('command.openSettings'),
-      group: 'Settings',
+      group: 'Settings' as const,
       shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.appSettings),
       keywords: commandKeywords(t('command.openSettings.keywords')),
       enabled: true,
@@ -54,7 +68,7 @@ function buildPrimarySettingsCommands({
     {
       id: 'open-h1-auto-rename-setting',
       label: t('command.openH1Setting'),
-      group: 'Settings',
+      group: 'Settings' as const,
       keywords: ['h1', 'title', 'filename', 'rename', 'auto', 'untitled', 'sync', 'preference'],
       enabled: true,
       execute: onOpenSettings,
@@ -101,22 +115,16 @@ function buildLanguageCommands({
       enabled: canSwitchLanguage && selectedUiLanguage !== SYSTEM_UI_LANGUAGE,
       execute: () => onSetUiLanguage?.(SYSTEM_UI_LANGUAGE),
     },
-    {
-      id: 'switch-language-en',
-      label: t('command.switchToEnglish'),
-      group: 'Settings',
-      keywords: ['language', 'locale', 'english', 'en'],
-      enabled: canSwitchLanguage && selectedUiLanguage !== 'en',
-      execute: () => onSetUiLanguage?.('en'),
-    },
-    {
-      id: 'switch-language-zh-hans',
-      label: t('command.switchToChinese'),
-      group: 'Settings',
-      keywords: ['language', 'locale', 'chinese', 'simplified', 'zh', '中文'],
-      enabled: canSwitchLanguage && selectedUiLanguage !== 'zh-Hans',
-      execute: () => onSetUiLanguage?.('zh-Hans'),
-    },
+    ...APP_LOCALES.map((targetLocale) => ({
+      id: commandIdForLocale(targetLocale),
+      label: t('command.switchLanguageTo', {
+        language: localeDisplayName(targetLocale, locale),
+      }),
+      group: 'Settings' as const,
+      keywords: languageKeywords(targetLocale),
+      enabled: canSwitchLanguage && selectedUiLanguage !== targetLocale,
+      execute: () => onSetUiLanguage?.(targetLocale),
+    })),
   ]
 }
 

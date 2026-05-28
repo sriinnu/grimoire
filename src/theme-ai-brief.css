@@ -1,6 +1,7 @@
 :where(
   [data-theme-preset="constellation"],
   [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
@@ -13,6 +14,7 @@
 :is(
   [data-theme-preset="constellation"],
   [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
@@ -25,6 +27,7 @@
 :is(
   [data-theme-preset="constellation"],
   [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
@@ -37,6 +40,7 @@
 :is(
   [data-theme-preset="constellation"],
   [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
@@ -49,6 +53,7 @@
 :is(
   [data-theme-preset="constellation"],
   [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]

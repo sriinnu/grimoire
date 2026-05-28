@@ -1,5 +1,7 @@
 use super::*;
 
+mod appearance;
+
 fn assert_empty_settings(settings: &Settings) {
     assert_eq!(settings, &Settings::default());
 }
@@ -268,34 +270,6 @@ fn test_chitragupta_provider_with_whitespace_is_filtered() {
 }
 
 #[test]
-fn test_invalid_theme_mode_is_filtered() {
-    let loaded = save_and_reload(Settings {
-        theme_mode: Some("system".to_string()),
-        ..Default::default()
-    });
-    assert!(loaded.theme_mode.is_none());
-}
-
-#[test]
-fn test_handwritten_editor_font_is_supported() {
-    assert_eq!(
-        normalize_editor_font(Some("handwritten")).as_deref(),
-        Some("handwritten")
-    );
-}
-
-#[test]
-fn test_invalid_appearance_settings_are_filtered() {
-    let loaded = save_and_reload(Settings {
-        theme_preset: Some("neon".to_string()),
-        editor_font: Some("papyrus".to_string()),
-        ..Default::default()
-    });
-    assert!(loaded.theme_preset.is_none());
-    assert!(loaded.editor_font.is_none());
-}
-
-#[test]
 fn test_invalid_transcription_provider_is_filtered() {
     let loaded = save_and_reload(Settings {
         transcription_provider: Some("cloudy".to_string()),
@@ -304,24 +278,6 @@ fn test_invalid_transcription_provider_is_filtered() {
     });
     assert!(loaded.transcription_provider.is_none());
     assert_eq!(loaded.cloud_transcription_enabled, Some(true));
-}
-
-#[test]
-fn test_invalid_ui_language_is_filtered() {
-    let loaded = save_and_reload(Settings {
-        ui_language: Some("fr-FR".to_string()),
-        ..Default::default()
-    });
-    assert!(loaded.ui_language.is_none());
-}
-
-#[test]
-fn test_ui_language_aliases_are_canonicalized() {
-    assert_eq!(normalize_ui_language(Some("en-US")).as_deref(), Some("en"));
-    assert_eq!(
-        normalize_ui_language(Some("zh_CN")).as_deref(),
-        Some("zh-Hans")
-    );
 }
 
 #[test]
