@@ -21,6 +21,8 @@ import {
 } from '../utils/markdownFolderImport'
 import {
   runMarkdownZipExportAction,
+  runPortabilityCapsuleExportAction,
+  runPortabilityCapsulePreviewAction,
   runStaticHtmlExportAction,
 } from './vaultExportActionRunners'
 import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
@@ -287,6 +289,31 @@ export function useVaultPortabilityActions({
     })
   }, [resolvedPath, setToastMessage, updateImportProgress])
 
+  const exportRunnerOptions = useCallback(() => ({
+    resolvedPath,
+    activeOperationRef,
+    setActiveAction,
+    setPortabilityProgress,
+    setToastMessage,
+    updateProgress: updateImportProgress,
+  }), [resolvedPath, setToastMessage, updateImportProgress])
+
+  const handlePreviewJsonSnapshot = useCallback(async () => {
+    await runPortabilityCapsulePreviewAction(exportRunnerOptions(), 'json')
+  }, [exportRunnerOptions])
+
+  const handleExportJsonSnapshot = useCallback(async () => {
+    await runPortabilityCapsuleExportAction(exportRunnerOptions(), 'json')
+  }, [exportRunnerOptions])
+
+  const handlePreviewSqliteSnapshot = useCallback(async () => {
+    await runPortabilityCapsulePreviewAction(exportRunnerOptions(), 'sqlite')
+  }, [exportRunnerOptions])
+
+  const handleExportSqliteSnapshot = useCallback(async () => {
+    await runPortabilityCapsuleExportAction(exportRunnerOptions(), 'sqlite')
+  }, [exportRunnerOptions])
+
   return {
     markdownImportBusy,
     portabilityBusyAction: activeAction,
@@ -305,6 +332,10 @@ export function useVaultPortabilityActions({
     handlePreviewJourney: () => { void handleJournalExport('journey', 'preview') }, handleImportJourney: () => { void handleJournalExport('journey', 'import') },
     handleExportMarkdownZip: () => { void handleExportMarkdownZip() },
     handleExportStaticHtmlArchive: () => { void handleExportStaticHtmlArchive() },
+    handlePreviewJsonSnapshot: () => { void handlePreviewJsonSnapshot() },
+    handleExportJsonSnapshot: () => { void handleExportJsonSnapshot() },
+    handlePreviewSqliteSnapshot: () => { void handlePreviewSqliteSnapshot() },
+    handleExportSqliteSnapshot: () => { void handleExportSqliteSnapshot() },
     ...objectStorageActions,
   }
 }

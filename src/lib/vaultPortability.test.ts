@@ -20,6 +20,8 @@ describe('vaultPortability', () => {
       expect.objectContaining({ id: 'git-remote', status: 'ready', portable: true }),
       expect.objectContaining({ id: 'markdown-zip', status: 'ready', portable: true }),
       expect.objectContaining({ id: 'static-html', status: 'ready', portable: true }),
+      expect.objectContaining({ id: 'json-snapshot', status: 'ready', portable: true }),
+      expect.objectContaining({ id: 'sqlite-snapshot', status: 'ready', portable: true }),
     ]))
   })
 

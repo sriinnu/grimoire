@@ -202,6 +202,8 @@ const EXPORT_TARGETS = [
     portable: true,
     description: 'Generate a browsable read-only archive while excluding local-only lanes.',
   },
+  { id: 'json-snapshot', label: 'Pure JSON snapshot', status: 'ready', output: 'Human-diffable capsule with Markdown text, asset payloads, manifest, and locality proof', portable: true, description: 'Export an agent-friendly local snapshot while Markdown remains the source of truth.' },
+  { id: 'sqlite-snapshot', label: 'Local SQLite snapshot', status: 'ready', output: 'Read-optimized SQLite capsule with file, withheld, and locality proof tables', portable: true, description: 'Export a local queryable snapshot for tools without turning SQLite into the live vault.' },
 ] as const satisfies readonly VaultExportTarget[]
 
 const STORAGE_PROVIDERS = [

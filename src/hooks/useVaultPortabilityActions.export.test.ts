@@ -26,12 +26,18 @@ const markdownMocks = vi.hoisted(() => ({
 const vaultExportMocks = vi.hoisted(() => ({
   exportMarkdownZip: vi.fn(),
   exportStaticHtmlArchive: vi.fn(),
+  exportPortabilityCapsule: vi.fn(),
+  previewPortabilityCapsule: vi.fn(),
   exportMarkdownZipWithProgress: vi.fn(),
   exportStaticHtmlArchiveWithProgress: vi.fn(),
   formatMarkdownZipExportToast: vi.fn(() => 'zip toast'),
   formatStaticHtmlExportToast: vi.fn(() => 'html toast'),
+  formatPortabilityCapsulePreviewToast: vi.fn(() => 'capsule preview toast'),
+  formatPortabilityCapsuleExportToast: vi.fn(() => 'capsule export toast'),
   pickMarkdownZipExportTarget: vi.fn(),
   pickStaticHtmlArchiveTarget: vi.fn(),
+  pickJsonSnapshotExportTarget: vi.fn(),
+  pickSqliteSnapshotExportTarget: vi.fn(),
 }))
 
 const objectStorageMocks = vi.hoisted(() => ({
@@ -92,6 +98,27 @@ describe('useVaultPortabilityActions exports', () => {
     markdownMocks.cancelPortabilityOperation.mockResolvedValue(true)
     vaultExportMocks.pickMarkdownZipExportTarget.mockResolvedValue('/tmp/grimoire.zip')
     vaultExportMocks.pickStaticHtmlArchiveTarget.mockResolvedValue('/tmp/grimoire-site')
+    vaultExportMocks.pickJsonSnapshotExportTarget.mockResolvedValue('/tmp/grimoire.json')
+    vaultExportMocks.pickSqliteSnapshotExportTarget.mockResolvedValue('/tmp/grimoire.sqlite')
+    vaultExportMocks.previewPortabilityCapsule.mockResolvedValue({
+      format: 'json',
+      files_exportable: 4,
+      notes_exportable: 3,
+      assets_exportable: 1,
+      skipped_files: 2,
+      bytes_exportable: 1024,
+      locality_proof: {
+        markdown_source_of_truth: true,
+        absolute_source_paths_redacted: true,
+        local_only_files_withheld: 2,
+      },
+      manifest_rows: [],
+    })
+    vaultExportMocks.exportPortabilityCapsule.mockResolvedValue({
+      export_path: '/tmp/grimoire.json',
+      files_exported: 4,
+      skipped_files: 2,
+    })
     vaultExportMocks.exportMarkdownZipWithProgress.mockImplementation(completeExport({
       export_path: '/tmp/grimoire.zip',
       files_exported: 2,
@@ -122,6 +149,28 @@ describe('useVaultPortabilityActions exports', () => {
     await waitFor(() => expect(vaultExportMocks.exportStaticHtmlArchiveWithProgress).toHaveBeenCalled())
     expect(vaultExportMocks.exportStaticHtmlArchive).not.toHaveBeenCalled()
     await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('html toast'))
+  })
+
+  it('previews JSON and SQLite capsules before writing snapshots', async () => {
+    const { result, setToastMessage } = renderActions()
+
+    act(() => result.current.handlePreviewJsonSnapshot())
+    await waitFor(() => expect(vaultExportMocks.previewPortabilityCapsule).toHaveBeenCalledWith('/vault', 'json'))
+    await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('capsule preview toast'))
+
+    act(() => result.current.handlePreviewSqliteSnapshot())
+    await waitFor(() => expect(vaultExportMocks.previewPortabilityCapsule).toHaveBeenCalledWith('/vault', 'sqlite'))
+  })
+
+  it('exports JSON and SQLite capsules through reviewed local targets', async () => {
+    const { result, setToastMessage } = renderActions()
+
+    act(() => result.current.handleExportJsonSnapshot())
+    await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.json', 'json'))
+    await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('capsule export toast'))
+
+    act(() => result.current.handleExportSqliteSnapshot())
+    await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.sqlite', 'sqlite'))
   })
 
   it('cancels an active static HTML export without showing a late success toast', async () => {

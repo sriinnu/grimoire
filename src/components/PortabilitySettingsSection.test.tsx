@@ -135,6 +135,8 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Notion Markdown')).toBeInTheDocument()
     expect(screen.getByText('Spanda')).toBeInTheDocument()
     expect(screen.getAllByText('Git remote')).toHaveLength(2)
+    expect(screen.getByText('Pure JSON snapshot')).toBeInTheDocument()
+    expect(screen.getByText('Local SQLite snapshot')).toBeInTheDocument()
     expect(screen.getAllByText('iCloud Drive').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Amazon S3')).toBeInTheDocument()
     expect(screen.getByText('Azure Blob Storage')).toBeInTheDocument()
@@ -247,6 +249,10 @@ describe('PortabilitySettingsSection', () => {
     const onImportJourney = vi.fn()
     const onExportMarkdownZip = vi.fn()
     const onExportStaticHtmlArchive = vi.fn()
+    const onPreviewJsonSnapshot = vi.fn()
+    const onExportJsonSnapshot = vi.fn()
+    const onPreviewSqliteSnapshot = vi.fn()
+    const onExportSqliteSnapshot = vi.fn()
     const onRunS3LivePreflight = vi.fn()
     const onRunAzureLivePreflight = vi.fn()
     const onPreviewS3MirrorPush = vi.fn()
@@ -290,6 +296,10 @@ describe('PortabilitySettingsSection', () => {
         onImportJourney={onImportJourney}
         onExportMarkdownZip={onExportMarkdownZip}
         onExportStaticHtmlArchive={onExportStaticHtmlArchive}
+        onPreviewJsonSnapshot={onPreviewJsonSnapshot}
+        onExportJsonSnapshot={onExportJsonSnapshot}
+        onPreviewSqliteSnapshot={onPreviewSqliteSnapshot}
+        onExportSqliteSnapshot={onExportSqliteSnapshot}
         onRunS3LivePreflight={onRunS3LivePreflight}
         onRunAzureLivePreflight={onRunAzureLivePreflight}
         s3MirrorPreviewReady
@@ -347,6 +357,10 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
     fireEvent.click(screen.getByTestId('settings-export-markdown-zip'))
     fireEvent.click(screen.getByTestId('settings-export-static-html'))
+    fireEvent.click(screen.getByTestId('settings-preview-json-snapshot'))
+    fireEvent.click(screen.getByTestId('settings-export-json-snapshot'))
+    fireEvent.click(screen.getByTestId('settings-preview-sqlite-snapshot'))
+    fireEvent.click(screen.getByTestId('settings-export-sqlite-snapshot'))
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
@@ -392,6 +406,10 @@ describe('PortabilitySettingsSection', () => {
     expect(onImportJourney).toHaveBeenCalledTimes(1)
     expect(onExportMarkdownZip).toHaveBeenCalledTimes(1)
     expect(onExportStaticHtmlArchive).toHaveBeenCalledTimes(1)
+    expect(onPreviewJsonSnapshot).toHaveBeenCalledTimes(1)
+    expect(onExportJsonSnapshot).toHaveBeenCalledTimes(1)
+    expect(onPreviewSqliteSnapshot).toHaveBeenCalledTimes(1)
+    expect(onExportSqliteSnapshot).toHaveBeenCalledTimes(1)
     expect(onRunS3LivePreflight).toHaveBeenCalledTimes(1)
     expect(onRunAzureLivePreflight).toHaveBeenCalledTimes(1)
     expect(onPreviewS3ProviderPush).toHaveBeenCalledTimes(1)
@@ -709,6 +727,10 @@ describe('PortabilitySettingsSection', () => {
         onImportMarkdownFolder={vi.fn()}
         onExportMarkdownZip={vi.fn()}
         onExportStaticHtmlArchive={vi.fn()}
+        onPreviewJsonSnapshot={vi.fn()}
+        onExportJsonSnapshot={vi.fn()}
+        onPreviewSqliteSnapshot={vi.fn()}
+        onExportSqliteSnapshot={vi.fn()}
       />,
     )
 
@@ -720,6 +742,10 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
     expect(screen.getByTestId('settings-export-markdown-zip')).toBeDisabled()
     expect(screen.getByTestId('settings-export-static-html')).toBeDisabled()
+    expect(screen.getByTestId('settings-preview-json-snapshot')).toBeDisabled()
+    expect(screen.getByTestId('settings-export-json-snapshot')).toBeDisabled()
+    expect(screen.getByTestId('settings-preview-sqlite-snapshot')).toBeDisabled()
+    expect(screen.getByTestId('settings-export-sqlite-snapshot')).toBeDisabled()
 
     fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))

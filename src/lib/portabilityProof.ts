@@ -53,8 +53,8 @@ export function listPortabilityProofRows(): readonly PortabilityProofRow[] {
       supportStatus: 'ready',
       proofLevel: 'local-regression',
       detail: `${readyExports.length} portable exits`,
-      evidence: 'Vault folder, Git remote, Markdown ZIP, static HTML; local-only lanes withheld.',
-      remainingProof: 'Manual round-trip checks with external readers and large attachment-heavy vaults still open.',
+      evidence: 'Vault folder, Git remote, Markdown ZIP, static HTML, JSON snapshot, and SQLite snapshot; local-only lanes withheld.',
+      remainingProof: 'Manual round-trip checks with external readers, capsule re-import, and large attachment-heavy vaults still open.',
     },
     {
       id: 'desktop-sync',

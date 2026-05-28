@@ -1,4 +1,7 @@
-use crate::vault::{self, VaultExportProgressEvent, VaultExportReport};
+use crate::vault::{
+    self, PortabilityCapsuleFormat, PortabilityCapsulePreviewReport, VaultExportProgressEvent,
+    VaultExportReport,
+};
 use std::path::PathBuf;
 use tauri::ipc::Channel;
 
@@ -16,6 +19,31 @@ pub fn export_markdown_zip(
     let raw_vault_path = vault_path.to_string_lossy();
     with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
         vault::export_markdown_zip(boundary.requested_root(), target_path.as_path())
+    })
+}
+
+/// Previews a JSON or SQLite portability capsule without writing files.
+#[tauri::command]
+pub fn preview_portability_capsule(
+    vault_path: PathBuf,
+    format: PortabilityCapsuleFormat,
+) -> Result<PortabilityCapsulePreviewReport, String> {
+    let raw_vault_path = vault_path.to_string_lossy();
+    with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
+        vault::preview_portability_capsule(boundary.requested_root(), format)
+    })
+}
+
+/// Exports a local JSON or SQLite portability capsule.
+#[tauri::command]
+pub fn export_portability_capsule(
+    vault_path: PathBuf,
+    target_path: PathBuf,
+    format: PortabilityCapsuleFormat,
+) -> Result<VaultExportReport, String> {
+    let raw_vault_path = vault_path.to_string_lossy();
+    with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
+        vault::export_portability_capsule(boundary.requested_root(), target_path.as_path(), format)
     })
 }
 

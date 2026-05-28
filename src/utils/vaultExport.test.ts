@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   exportMarkdownZipWithProgress,
   exportStaticHtmlArchiveWithProgress,
+  formatPortabilityCapsuleExportToast,
+  formatPortabilityCapsulePreviewToast,
   formatMarkdownZipExportToast,
   formatStaticHtmlExportToast,
 } from './vaultExport'
@@ -18,6 +20,25 @@ describe('vaultExport', () => {
       files_exported: 3,
       skipped_files: 2,
     })).toBe('Exported 3 files to static HTML; withheld 2 local-only files')
+    expect(formatPortabilityCapsulePreviewToast({
+      format: 'json',
+      files_exportable: 4,
+      notes_exportable: 3,
+      assets_exportable: 1,
+      skipped_files: 2,
+      bytes_exportable: 1024,
+      locality_proof: {
+        markdown_source_of_truth: true,
+        absolute_source_paths_redacted: true,
+        local_only_files_withheld: 2,
+      },
+      manifest_rows: [],
+    })).toBe('Previewed JSON snapshot: 4 files exportable; will withhold 2 local-only files')
+    expect(formatPortabilityCapsuleExportToast({
+      export_path: '/tmp/grimoire.sqlite',
+      files_exported: 1,
+      skipped_files: 0,
+    }, 'sqlite')).toBe('Exported 1 file to SQLite snapshot')
   })
 
   it('reports browser-fallback Markdown ZIP export progress', async () => {

@@ -1,6 +1,11 @@
 import { createTauriChannel, invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { MarkdownZipExportResult } from '../lib/vaultPortability'
+import {
+  portabilityCapsuleFormatLabel,
+  type PortabilityCapsuleFormat,
+  type PortabilityCapsulePreviewResult,
+} from '../lib/portabilityCapsule'
 import { pickFolder, pickSaveFile } from './vault-dialog'
 
 export type VaultExportProgressEvent =
@@ -16,6 +21,20 @@ export function pickMarkdownZipExportTarget(): Promise<string | null> {
   ])
 }
 
+/** Opens a save dialog for a human-diffable JSON portability capsule. */
+export function pickJsonSnapshotExportTarget(): Promise<string | null> {
+  return pickSaveFile('Export JSON snapshot', 'grimoire-vault.json', [
+    { name: 'JSON snapshot', extensions: ['json'] },
+  ])
+}
+
+/** Opens a save dialog for a local SQLite portability capsule. */
+export function pickSqliteSnapshotExportTarget(): Promise<string | null> {
+  return pickSaveFile('Export SQLite snapshot', 'grimoire-vault.sqlite', [
+    { name: 'SQLite snapshot', extensions: ['sqlite', 'db'] },
+  ])
+}
+
 /** Exports the current vault to a portable Markdown ZIP archive. */
 export function exportMarkdownZip(
   vaultPath: string,
@@ -25,6 +44,29 @@ export function exportMarkdownZip(
   return isTauri()
     ? invoke<MarkdownZipExportResult>('export_markdown_zip', args)
     : mockInvoke<MarkdownZipExportResult>('export_markdown_zip', args)
+}
+
+/** Previews a JSON or SQLite portability capsule before it writes. */
+export function previewPortabilityCapsule(
+  vaultPath: string,
+  format: PortabilityCapsuleFormat,
+): Promise<PortabilityCapsulePreviewResult> {
+  const args = { vaultPath, format }
+  return isTauri()
+    ? invoke<PortabilityCapsulePreviewResult>('preview_portability_capsule', args)
+    : mockInvoke<PortabilityCapsulePreviewResult>('preview_portability_capsule', args)
+}
+
+/** Exports a JSON or SQLite portability capsule from the current vault. */
+export function exportPortabilityCapsule(
+  vaultPath: string,
+  targetPath: string,
+  format: PortabilityCapsuleFormat,
+): Promise<MarkdownZipExportResult> {
+  const args = { vaultPath, targetPath, format }
+  return isTauri()
+    ? invoke<MarkdownZipExportResult>('export_portability_capsule', args)
+    : mockInvoke<MarkdownZipExportResult>('export_portability_capsule', args)
 }
 
 /** Exports the vault to Markdown ZIP while reporting cancellable progress. */
@@ -111,10 +153,35 @@ export function formatStaticHtmlExportToast(result: MarkdownZipExportResult): st
   return `Exported ${result.files_exported} ${fileLabel} to static HTML${withheldSuffix(result)}`
 }
 
+/** Builds concise user feedback for a reviewed capsule preview. */
+export function formatPortabilityCapsulePreviewToast(
+  result: PortabilityCapsulePreviewResult,
+): string {
+  const label = portabilityCapsuleFormatLabel(result.format)
+  const fileLabel = result.files_exportable === 1 ? 'file' : 'files'
+  return `Previewed ${label}: ${result.files_exportable} ${fileLabel} exportable${withheldPreviewSuffix(result)}`
+}
+
+/** Builds concise user feedback for a completed capsule export. */
+export function formatPortabilityCapsuleExportToast(
+  result: MarkdownZipExportResult,
+  format: PortabilityCapsuleFormat,
+): string {
+  const label = portabilityCapsuleFormatLabel(format)
+  const fileLabel = result.files_exported === 1 ? 'file' : 'files'
+  return `Exported ${result.files_exported} ${fileLabel} to ${label}${withheldSuffix(result)}`
+}
+
 function withheldSuffix(result: MarkdownZipExportResult): string {
   if (result.skipped_files <= 0) return ''
   const fileLabel = result.skipped_files === 1 ? 'file' : 'files'
   return `; withheld ${result.skipped_files} local-only ${fileLabel}`
+}
+
+function withheldPreviewSuffix(result: PortabilityCapsulePreviewResult): string {
+  if (result.skipped_files <= 0) return ''
+  const fileLabel = result.skipped_files === 1 ? 'file' : 'files'
+  return `; will withhold ${result.skipped_files} local-only ${fileLabel}`
 }
 
 async function runMockMarkdownZipExportWithProgress(

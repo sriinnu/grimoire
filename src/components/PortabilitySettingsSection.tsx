@@ -57,6 +57,10 @@ interface PortabilitySettingsSectionProps {
   onImportJourney?: () => void
   onExportMarkdownZip?: () => void
   onExportStaticHtmlArchive?: () => void
+  onPreviewJsonSnapshot?: () => void
+  onExportJsonSnapshot?: () => void
+  onPreviewSqliteSnapshot?: () => void
+  onExportSqliteSnapshot?: () => void
   s3MirrorPreviewReady?: boolean
   s3MirrorPullPreviewReady?: boolean
   s3ProviderPushPreviewReady?: boolean
@@ -136,6 +140,10 @@ export function PortabilitySettingsSection({
   onImportJourney,
   onExportMarkdownZip,
   onExportStaticHtmlArchive,
+  onPreviewJsonSnapshot,
+  onExportJsonSnapshot,
+  onPreviewSqliteSnapshot,
+  onExportSqliteSnapshot,
   s3MirrorPreviewReady,
   s3MirrorPullPreviewReady,
   s3ProviderPushPreviewReady,
@@ -242,6 +250,10 @@ export function PortabilitySettingsSection({
         onImportJourney={onImportJourney}
         onExportMarkdownZip={onExportMarkdownZip}
         onExportStaticHtmlArchive={onExportStaticHtmlArchive}
+        onPreviewJsonSnapshot={onPreviewJsonSnapshot}
+        onExportJsonSnapshot={onExportJsonSnapshot}
+        onPreviewSqliteSnapshot={onPreviewSqliteSnapshot}
+        onExportSqliteSnapshot={onExportSqliteSnapshot}
         onPreviewS3MirrorPush={onPreviewS3MirrorPush}
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onPreviewS3MirrorPull={onPreviewS3MirrorPull}
@@ -271,7 +283,7 @@ export function PortabilitySettingsSection({
 }
 
 function isImportPreviewAction(action: VaultPortabilityActionId | null): boolean {
-  return Boolean(action?.endsWith('-preview') && !action.startsWith('storage-'))
+  return Boolean(action?.endsWith('-preview') && !action.startsWith('storage-') && !action.startsWith('export-'))
 }
 
 function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGroup[] {
