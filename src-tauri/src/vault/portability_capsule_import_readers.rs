@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::fs;
 use std::path::Path;
 
-use super::portability_capsule::PortabilityCapsuleFormat;
+use super::portability_capsule::{PortabilityCapsuleFormat, PortabilityCapsuleProof};
 use super::portability_capsule_import::{
     ImportedCapsule, ImportedCapsuleFile, ImportedCapsuleWithheld,
 };
@@ -15,6 +15,7 @@ const CAPSULE_SCHEMA: &str = "grimoire-portability-capsule/v1";
 struct JsonCapsuleImport {
     schema: String,
     format: String,
+    proof: PortabilityCapsuleProof,
     files: Vec<JsonCapsuleFileImport>,
     #[serde(default)]
     withheld: Vec<JsonCapsuleWithheldImport>,
@@ -55,6 +56,7 @@ fn read_json_capsule(path: &Path) -> Result<ImportedCapsule, String> {
         &capsule.format,
         PortabilityCapsuleFormat::Json,
     )?;
+    validate_capsule_proof(&capsule.proof, capsule.withheld.len())?;
     Ok(ImportedCapsule {
         files: capsule
             .files
@@ -97,10 +99,10 @@ fn read_sqlite_capsule(path: &Path) -> Result<ImportedCapsule, String> {
     let schema = sqlite_meta_value(&connection, "schema")?;
     let format = sqlite_meta_value(&connection, "format")?;
     validate_capsule_header(&schema, &format, PortabilityCapsuleFormat::Sqlite)?;
-    Ok(ImportedCapsule {
-        files: read_sqlite_files(&connection)?,
-        withheld: read_sqlite_withheld(&connection)?,
-    })
+    let files = read_sqlite_files(&connection)?;
+    let withheld = read_sqlite_withheld(&connection)?;
+    validate_sqlite_proof(&connection, withheld.len())?;
+    Ok(ImportedCapsule { files, withheld })
 }
 
 fn sqlite_meta_value(connection: &Connection, key: &str) -> Result<String, String> {
@@ -156,6 +158,44 @@ fn read_sqlite_withheld(connection: &Connection) -> Result<Vec<ImportedCapsuleWi
         .map_err(|e| format!("Failed to read SQLite withheld row: {e}"))
 }
 
+fn validate_sqlite_proof(connection: &Connection, withheld_count: usize) -> Result<(), String> {
+    let proof = PortabilityCapsuleProof {
+        markdown_source_of_truth: sqlite_proof_bool(connection, "markdown_source_of_truth")?,
+        absolute_source_paths_redacted: sqlite_proof_bool(
+            connection,
+            "absolute_source_paths_redacted",
+        )?,
+        local_only_files_withheld: sqlite_proof_usize(connection, "local_only_files_withheld")?,
+    };
+    validate_capsule_proof(&proof, withheld_count)
+}
+
+fn sqlite_proof_bool(connection: &Connection, key: &str) -> Result<bool, String> {
+    match sqlite_proof_value(connection, key)?.as_str() {
+        "true" => Ok(true),
+        "false" => Ok(false),
+        _ => Err(format!(
+            "SQLite capsule locality proof `{key}` is not boolean"
+        )),
+    }
+}
+
+fn sqlite_proof_usize(connection: &Connection, key: &str) -> Result<usize, String> {
+    sqlite_proof_value(connection, key)?
+        .parse::<usize>()
+        .map_err(|_| format!("SQLite capsule locality proof `{key}` is not a count"))
+}
+
+fn sqlite_proof_value(connection: &Connection, key: &str) -> Result<String, String> {
+    connection
+        .query_row(
+            "SELECT value FROM locality_proof WHERE key = ?1",
+            [key],
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("SQLite capsule is missing locality proof `{key}`: {e}"))
+}
+
 fn validate_capsule_header(
     schema: &str,
     format: &str,
@@ -166,6 +206,24 @@ fn validate_capsule_header(
     }
     if format != expected.label() {
         return Err(format!("Capsule is not a {} file", expected.label()));
+    }
+    Ok(())
+}
+
+fn validate_capsule_proof(
+    proof: &PortabilityCapsuleProof,
+    withheld_count: usize,
+) -> Result<(), String> {
+    if !proof.markdown_source_of_truth {
+        return Err(
+            "Capsule locality proof does not preserve Markdown source of truth".to_string(),
+        );
+    }
+    if !proof.absolute_source_paths_redacted {
+        return Err("Capsule locality proof does not redact absolute source paths".to_string());
+    }
+    if proof.local_only_files_withheld != withheld_count {
+        return Err("Capsule locality proof does not match withheld manifest rows".to_string());
     }
     Ok(())
 }

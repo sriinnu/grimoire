@@ -226,6 +226,70 @@ fn inbound_capsule_firewall_withholds_local_only_notes_and_referenced_assets() {
 }
 
 #[test]
+fn rejects_json_capsule_with_invalid_locality_proof() {
+    let capsule_dir = TempDir::new().unwrap();
+    let vault = TempDir::new().unwrap();
+    let capsule = json!({
+        "schema": "grimoire-portability-capsule/v1",
+        "format": "json-snapshot",
+        "vault_label": "untrusted",
+        "proof": {
+            "markdown_source_of_truth": false,
+            "absolute_source_paths_redacted": true,
+            "local_only_files_withheld": 0
+        },
+        "files": [json_file("public.md", "markdown", b"# Public\n")],
+        "withheld": []
+    });
+    let capsule_path = capsule_dir.path().join("bad-proof.json");
+    fs::write(&capsule_path, serde_json::to_vec_pretty(&capsule).unwrap()).unwrap();
+
+    let error = preview_portability_capsule_import(
+        vault.path(),
+        &capsule_path,
+        PortabilityCapsuleFormat::Json,
+    )
+    .unwrap_err();
+
+    assert!(error.contains("Capsule locality proof"));
+}
+
+#[test]
+fn rejects_sqlite_capsule_when_proof_does_not_match_withheld_rows() {
+    let capsule_dir = TempDir::new().unwrap();
+    let vault = TempDir::new().unwrap();
+    let capsule_path = capsule_dir.path().join("bad-proof.sqlite");
+    let connection = rusqlite::Connection::open(&capsule_path).unwrap();
+    connection
+        .execute_batch(
+            "CREATE TABLE capsule_meta(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+             CREATE TABLE capsule_files(path TEXT PRIMARY KEY, kind TEXT NOT NULL, bytes INTEGER NOT NULL, sha256 TEXT NOT NULL, content_text TEXT, content_blob BLOB NOT NULL);
+             CREATE TABLE withheld_files(path TEXT PRIMARY KEY, reason TEXT NOT NULL);
+             CREATE TABLE locality_proof(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+             INSERT INTO capsule_meta(key, value) VALUES
+               ('schema', 'grimoire-portability-capsule/v1'),
+               ('format', 'sqlite-snapshot'),
+               ('vault_label', 'untrusted');
+             INSERT INTO withheld_files(path, reason) VALUES
+               ('private.md', 'Protected by Locality Firewall');
+             INSERT INTO locality_proof(key, value) VALUES
+               ('markdown_source_of_truth', 'true'),
+               ('absolute_source_paths_redacted', 'true'),
+               ('local_only_files_withheld', '0');",
+        )
+        .unwrap();
+
+    let error = preview_portability_capsule_import(
+        vault.path(),
+        &capsule_path,
+        PortabilityCapsuleFormat::Sqlite,
+    )
+    .unwrap_err();
+
+    assert!(error.contains("withheld manifest rows"));
+}
+
+#[test]
 fn rejects_capsules_with_traversal_paths_or_sources_inside_vault() {
     let capsule_dir = TempDir::new().unwrap();
     let vault = TempDir::new().unwrap();

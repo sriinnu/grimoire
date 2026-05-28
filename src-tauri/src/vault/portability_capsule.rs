@@ -29,7 +29,7 @@ pub struct PortabilityCapsulePreviewReport {
     pub manifest_rows: Vec<PortabilityCapsuleManifestRow>,
 }
 
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct PortabilityCapsuleProof {
     pub markdown_source_of_truth: bool,
     pub absolute_source_paths_redacted: bool,
