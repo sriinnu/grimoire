@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { createAiAgentAvailability } from '../lib/aiAgents'
 import type { VaultEntry } from '../types'
 import { buildAgentGraphContext } from './agentGraphContext'
 import { buildGraphCouncilPrompt } from './graphCouncilPrompt'
@@ -67,8 +68,10 @@ describe('graphCouncilPrompt', () => {
       selectedNode: node({ path: beta.path, title: 'Beta', type: 'Reference', degree: 1 }),
     })
 
-    expect(prompt.text).toContain('[[Beta]]')
+    expect(prompt.text).toContain('graph node Beta')
     expect(prompt.text).toContain('2 visible notes')
+    expect(prompt.text).toContain('Graph edge manifest:')
+    expect(prompt.text).toContain('- Alpha -> Beta')
     expect(prompt.references).toEqual([
       { path: beta.path, title: 'Beta', type: 'Reference' },
       { path: active.path, title: 'Alpha', type: 'Note' },
@@ -100,7 +103,7 @@ describe('graphCouncilPrompt', () => {
     expect(prompt.text).not.toContain('/vault/dream.md')
   })
 
-  it('summarizes held and trimmed graph context without exposing local-only nodes', () => {
+  it('summarizes held and trimmed graph context without exposing local-only counts or nodes', () => {
     const active = entry({ filename: 'alpha.md', title: 'Alpha', outgoingLinks: ['Beta', 'Hidden Dream'] })
     const beta = entry({ filename: 'beta.md', title: 'Beta' })
     const hidden = entry({ filename: 'dream.md', title: 'Hidden Dream', isA: 'Dream' })
@@ -117,8 +120,67 @@ describe('graphCouncilPrompt', () => {
       selectedNode: node({ path: active.path, title: 'Alpha', active: true }),
     })
 
-    expect(prompt.text).toContain('held local')
+    expect(prompt.text).toContain('local-only graph context held by policy')
     expect(prompt.text).toContain('trimmed')
     expect(prompt.text).not.toContain('Hidden Dream')
+    expect(prompt.text).not.toContain('1 held local')
+  })
+
+  it('disambiguates duplicate graph titles without ambiguous wikilinks', () => {
+    const first = entry({ filename: 'index.md', path: '/vault/projects/index.md', title: 'Index', outgoingLinks: ['Index'] })
+    const second = entry({ filename: 'index.md', path: '/vault/archive/index.md', title: 'Index' })
+    const context = buildAgentGraphContext({ activeEntry: first, entries: [first, second] })
+
+    const prompt = buildGraphCouncilPrompt({
+      agentGraphContext: {
+        ...context,
+        edges: [{
+          kind: 'body-link',
+          label: 'Wikilink',
+          sourcePath: first.path,
+          sourceTitle: 'Index',
+          targetPath: second.path,
+          targetTitle: 'Index',
+        }],
+        nodes: [
+          { active: true, degree: 1, path: first.path, title: 'Index', type: 'Note' },
+          { active: false, degree: 1, path: second.path, title: 'Index', type: 'Note' },
+        ],
+      },
+      selectedEntry: second,
+      selectedNode: node({ path: second.path, title: 'Index' }),
+    })
+
+    expect(prompt.text).toContain('graph node Index - archive/index.md')
+    expect(prompt.text).toContain('Index - projects/index.md -> Index - archive/index.md')
+    expect(prompt.text).not.toContain('[[Index]]')
+    expect(prompt.references).toEqual([
+      { path: second.path, title: 'Index', type: 'Note' },
+      { path: first.path, title: 'Index', type: 'Note' },
+    ])
+  })
+
+  it('names unavailable agent lanes instead of requesting fake stances', () => {
+    const active = entry({ filename: 'alpha.md', title: 'Alpha', outgoingLinks: ['Beta'] })
+    const beta = entry({ filename: 'beta.md', title: 'Beta' })
+    const context = buildAgentGraphContext({ activeEntry: active, entries: [active, beta] })
+
+    const prompt = buildGraphCouncilPrompt({
+      agentGraphContext: context,
+      aiAgentsStatus: {
+        chitragupta: createAiAgentAvailability('missing'),
+        codex: createAiAgentAvailability('installed'),
+        claude_code: createAiAgentAvailability('checking'),
+      },
+      selectedEntry: beta,
+      selectedNode: node({ path: beta.path, title: 'Beta' }),
+    })
+
+    expect(prompt.text).toContain('Council lane availability:')
+    expect(prompt.text).toContain('- Chitragupta memory: unavailable; do not request its stance.')
+    expect(prompt.text).toContain('- Codex: source-safe eligible.')
+    expect(prompt.text).toContain('- Claude Code: checking; do not request its stance yet.')
+    expect(prompt.text).toContain('Compare only available lanes')
+    expect(prompt.text).not.toContain('Compare local search, vault graph, Chitragupta memory, Codex, and Claude stances.')
   })
 })

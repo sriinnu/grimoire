@@ -1,6 +1,15 @@
-import type { CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
+import type { AiAgentsStatus } from '../lib/aiAgents'
+import {
+  GRAPH_AGENT_LANES,
+  agentLaneAvailability,
+  graphAgentLaneCopy,
+  graphAgentStateLabel,
+  resolveGraphAgentLaneState,
+  type GraphAgentLane,
+  type GraphAgentLaneState,
+} from '../lib/graphAgentLanes'
 import type { NoteGraph } from '../utils/noteGraph'
 import {
   GRAPH_CENTER_X,
@@ -11,9 +20,13 @@ import {
   type GraphLayout,
   type PositionedGraphNode,
 } from '../utils/graphDisplay'
+import { GraphAgentOrbit } from './GraphAgentOrbit'
+import { GraphCanvasPackageTethers } from './GraphCanvasPackageTethers'
+import { GraphNode } from './GraphNode'
 
 interface GraphCanvasProps {
   agentGraphContext: AgentGraphContext
+  aiAgentsStatus?: AiAgentsStatus
   layout: GraphLayout
   localOnlyNodeIds: ReadonlySet<string>
   nodeById: Map<string, PositionedGraphNode>
@@ -25,6 +38,7 @@ interface GraphCanvasProps {
 /** Interactive SVG canvas for note graph nodes and source-safe agent package state. */
 export function GraphCanvas({
   agentGraphContext,
+  aiAgentsStatus,
   layout,
   localOnlyNodeIds,
   nodeById,
@@ -33,10 +47,21 @@ export function GraphCanvas({
   onSelectNode,
 }: GraphCanvasProps) {
   const held = agentGraphContext.omitted.protectedNodes + agentGraphContext.omitted.protectedEdges
-  const sourceSafeNodeIds = new Set(agentGraphContext.nodes.map((node) => node.path))
+  const sourceSafeNodePaths = new Set(agentGraphContext.nodes.map((node) => node.path))
   const sourceSafeEdgeIds = new Set(agentGraphContext.edges.map(agentEdgeKey))
   const selectedNode = selectedNodeId ? nodeById.get(selectedNodeId) ?? null : null
   const selectedLocalOnly = selectedNode ? localOnlyNodeIds.has(selectedNode.id) : false
+  const policyProtected = agentGraphContext.state === 'protected-active' || selectedLocalOnly
+  const agentStates = GRAPH_CANVAS_AGENTS.map((agent) => {
+    const state = resolveGraphAgentLaneState(agent, agentGraphContext.state, selectedLocalOnly, aiAgentsStatus)
+    return {
+      agent,
+      availability: agentLaneAvailability(agent, aiAgentsStatus),
+      label: graphAgentLaneCopy(agent, state, aiAgentsStatus, policyProtected),
+      state,
+    }
+  })
+  const readiness = graphAgentReadiness(agentStates)
 
   return (
     <div
@@ -44,15 +69,29 @@ export function GraphCanvas({
       data-testid="graph-canvas"
     >
       <div className="graph-canvas-hud" data-testid="graph-canvas-agent-hud">
-        <span data-state={agentGraphContext.state}>{graphPackageLabel(agentGraphContext.state)}</span>
-        <span>{agentGraphContext.nodes.length} nodes</span>
-        <span>{agentGraphContext.edges.length} links</span>
-        {held > 0 ? <span>{held} held local</span> : null}
-        {selectedNode ? (
-          <span data-testid="graph-canvas-selected-summary">
-            {selectedLocalOnly ? 'Selected protected' : `Selected ${truncateGraphLabel(selectedNode.title)}`}
-          </span>
-        ) : null}
+        <div className="graph-canvas-package-card" data-state={agentGraphContext.state}>
+          <span data-state={agentGraphContext.state}>{graphPackageLabel(agentGraphContext.state)}</span>
+          <span>{agentGraphContext.nodes.length} nodes</span>
+          <span>{agentGraphContext.edges.length} links</span>
+          {held > 0 ? <span>{held} held from agents</span> : null}
+          {selectedNode ? (
+            <span data-testid="graph-canvas-selected-summary">
+              {selectedLocalOnly ? 'Selected protected' : `Selected ${truncateGraphLabel(selectedNode.title)}`}
+            </span>
+          ) : null}
+          <span data-testid="graph-canvas-agent-summary">{readiness.label}</span>
+        </div>
+        <div className="graph-canvas-agent-rail" data-testid="graph-canvas-agent-rail" aria-label="Graph agent eligibility">
+          {agentStates.map(({ agent, availability, label, state }) => (
+            <AgentReadinessChip
+              key={agent.id}
+              agent={agent}
+              availability={availability}
+              label={label}
+              state={state}
+            />
+          ))}
+        </div>
       </div>
       <svg
         viewBox={`0 0 ${GRAPH_VIEWBOX_WIDTH} ${GRAPH_VIEWBOX_HEIGHT}`}
@@ -63,11 +102,21 @@ export function GraphCanvas({
       >
         <defs>
           <pattern id="graph-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--border-subtle)" strokeOpacity="0.5" />
+            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.5" />
           </pattern>
         </defs>
-        <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="var(--surface-editor)" />
+        <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="transparent" />
         <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="url(#graph-grid)" />
+        <GraphCanvasPackageTethers
+          localOnlyNodeIds={localOnlyNodeIds}
+          nodeById={nodeById}
+          selectedNode={selectedNode}
+          sourceSafeNodeIds={sourceSafeNodePaths}
+        />
+        <GraphAgentOrbit
+          agentStates={agentStates}
+          selectedNode={selectedNode}
+        />
         {layout.edges.map((edge) => {
           const source = nodeById.get(edge.source)
           const target = nodeById.get(edge.target)
@@ -90,7 +139,7 @@ export function GraphCanvas({
             localOnly={localOnlyNodeIds.has(node.id)}
             node={node}
             selected={node.id === selectedNodeId}
-            sourceSafe={sourceSafeNodeIds.has(node.id)}
+            sourceSafe={sourceSafeNodePaths.has(node.path)}
             onOpenNode={onOpenNode}
             onSelectNode={onSelectNode}
           />
@@ -102,12 +151,59 @@ export function GraphCanvas({
         ) : null}
       </svg>
       <div className="graph-canvas-legend" data-testid="graph-canvas-legend">
-        <LegendItem tone="safe" label="Council-ready" />
+        <LegendItem tone="safe" label="Source-safe node" />
+        <LegendItem tone="package" label="Agent package" />
         <LegendItem tone="selected" label="Selected path" />
-        <LegendItem tone="local" label="Local-only held" />
+        <LegendItem tone="local" label="Local-only visible" />
+        <LegendItem tone="health" label="Route health" />
       </div>
     </div>
   )
+}
+
+const GRAPH_CANVAS_AGENTS = [
+  ...GRAPH_AGENT_LANES,
+] as const
+
+function AgentReadinessChip({
+  agent,
+  availability,
+  label,
+  state,
+}: {
+  agent: GraphAgentLane
+  availability: ReturnType<typeof agentLaneAvailability>
+  label: string
+  state: GraphAgentLaneState
+}) {
+  return (
+    <span
+      aria-label={`${agent.name}: ${label}. ${agent.role}.`}
+      data-agent={agent.id}
+      data-state={state}
+      title={`${agent.name}: ${agent.role}; ${graphAgentStateLabel(state, availability)}`}
+    >
+      <i aria-hidden="true" className="graph-canvas-agent-rail__mark" />
+      <strong>{agent.shortName}</strong>
+      <em>{label}</em>
+    </span>
+  )
+}
+
+function graphAgentReadiness(agentStates: readonly { state: GraphAgentLaneState }[]): { label: string } {
+  const counts = { blocked: 0, guarded: 0, ready: 0, waiting: 0 } satisfies Record<GraphAgentLaneState, number>
+  for (const { state } of agentStates) {
+    counts[state] += 1
+  }
+
+  return {
+    label: [
+      `${counts.ready} source-safe`,
+      counts.guarded > 0 ? `${counts.guarded} local/private` : null,
+      counts.blocked > 0 ? `${counts.blocked} blocked` : null,
+      counts.waiting > 0 ? `${counts.waiting} waiting` : null,
+    ].filter(Boolean).join(' · '),
+  }
 }
 
 function agentEdgeKey(edge: AgentGraphContext['edges'][number]): string {
@@ -153,7 +249,11 @@ function GraphEdge({
       y1={source.y}
       x2={target.x}
       y2={target.y}
-      stroke={relationship ? 'var(--primary)' : 'var(--muted-foreground)'}
+      stroke={localOnly
+        ? 'var(--grimoire-graph-edge-local, var(--destructive))'
+        : relationship
+          ? 'var(--grimoire-graph-edge-relationship, var(--primary))'
+          : 'var(--grimoire-graph-edge-wikilink, var(--muted-foreground))'}
       strokeDasharray={edgeDashArray({ localOnly, relationship, sourceSafe })}
       strokeLinecap="round"
       strokeOpacity={edgeOpacity({ localOnly, selected, sourceSafe })}
@@ -190,144 +290,7 @@ function edgeOpacity({
   return sourceSafe ? 0.48 : 0.26
 }
 
-function GraphNode({
-  localOnly,
-  node,
-  onOpenNode,
-  onSelectNode,
-  selected,
-  sourceSafe,
-}: {
-  localOnly: boolean
-  node: PositionedGraphNode
-  onOpenNode: (path: string) => void
-  onSelectNode: (node: PositionedGraphNode) => void
-  selected: boolean
-  sourceSafe: boolean
-}) {
-  const radius = node.active ? 23 : Math.min(19, 10 + node.degree * 1.7)
-  const dimmed = !node.neighborhood && !node.active
-  const style = { '--node-color': node.color, '--node-fill': node.lightColor } as CSSProperties
-  const label = truncateGraphLabel(node.title)
-  const labelWidth = Math.min(176, Math.max(64, label.length * 8.2 + 24))
-  const typeWidth = Math.min(124, Math.max(56, node.type.length * 7 + 20))
-
-  return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={`Select ${node.title}${localOnly ? ' local-only' : ''}`}
-      aria-pressed={selected}
-      onClick={() => onSelectNode(node)}
-      onDoubleClick={() => onOpenNode(node.path)}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault()
-          onSelectNode(node)
-        }
-      }}
-      data-testid="graph-node"
-      className={cn(
-        'grimoire-graph-node cursor-pointer',
-        node.active && 'grimoire-graph-node--active',
-        localOnly && 'grimoire-graph-node--local',
-        selected && 'grimoire-graph-node--selected',
-        sourceSafe && 'grimoire-graph-node--source-safe',
-        dimmed && 'opacity-70',
-      )}
-      style={style}
-    >
-      {sourceSafe && !localOnly ? (
-        <circle className="grimoire-graph-node-package-orbit" cx={node.x} cy={node.y} r={radius + 10} />
-      ) : null}
-      {node.active || selected ? <circle className="grimoire-graph-node-halo" cx={node.x} cy={node.y} r={selected ? 42 : 36} /> : null}
-      <circle
-        className="grimoire-graph-node-core"
-        cx={node.x}
-        cy={node.y}
-        r={radius}
-        fill={node.active ? 'var(--node-color)' : 'var(--node-fill)'}
-        stroke="var(--node-color)"
-        strokeWidth={node.active || selected ? 3 : 1.7}
-      />
-      <circle
-        cx={node.x - radius * 0.35}
-        cy={node.y - radius * 0.38}
-        r={Math.max(2.6, radius * 0.18)}
-        fill="color-mix(in srgb, var(--node-color) 18%, var(--surface-editor))"
-      />
-      {localOnly ? (
-        <g className="grimoire-graph-node-local-badge" aria-hidden="true">
-          <circle cx={node.x - radius + 2} cy={node.y - radius + 2} r="10" />
-          <text
-            x={node.x - radius + 2}
-            y={node.y - radius + 6}
-            textAnchor="middle"
-            fontSize="10"
-            fontWeight="760"
-            pointerEvents="none"
-          >
-            L
-          </text>
-        </g>
-      ) : null}
-      <rect
-        className="grimoire-graph-node-title-backdrop"
-        x={node.x - labelWidth / 2}
-        y={node.y + 25}
-        width={labelWidth}
-        height="25"
-        rx="12.5"
-      />
-      <text
-        x={node.x}
-        y={node.y + 38}
-        textAnchor="middle"
-        fill="var(--foreground)"
-        fontSize="16"
-        fontWeight={node.active || selected ? 720 : 600}
-        pointerEvents="none"
-      >
-        {label}
-      </text>
-      <rect
-        className="grimoire-graph-node-type-pill"
-        x={node.x - typeWidth / 2}
-        y={node.y + 45}
-        width={typeWidth}
-        height="20"
-        rx="10"
-      />
-      <text
-        x={node.x}
-        y={node.y + 59}
-        textAnchor="middle"
-        fill="var(--muted-foreground)"
-        fontSize="12"
-        pointerEvents="none"
-      >
-        {node.type}
-      </text>
-      {node.degree > 0 ? (
-        <g className="grimoire-graph-node-degree-badge" aria-hidden="true">
-          <circle cx={node.x + radius - 2} cy={node.y - radius + 2} r="10" />
-          <text
-            x={node.x + radius - 2}
-            y={node.y - radius + 6}
-            textAnchor="middle"
-            fontSize="10"
-            fontWeight="720"
-            pointerEvents="none"
-          >
-            {Math.min(node.degree, 99)}
-          </text>
-        </g>
-      ) : null}
-    </g>
-  )
-}
-
-function LegendItem({ label, tone }: { label: string; tone: 'local' | 'safe' | 'selected' }) {
+function LegendItem({ label, tone }: { label: string; tone: 'health' | 'local' | 'package' | 'safe' | 'selected' }) {
   return (
     <span className="graph-canvas-legend__item" data-tone={tone}>
       <span className="graph-canvas-legend__mark" />
