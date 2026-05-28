@@ -89,7 +89,7 @@ Ready:
 - Pure JSON snapshot export/import
 - Local SQLite snapshot export/import
 
-JSON/SQLite capsule import now requires a matching Locality Firewall proof before preview or apply: Markdown must remain the source of truth, absolute source paths must be redacted, and the proof's withheld count must match the withheld manifest rows. Inbound filtering also follows private `grimoire-canvas` source JSON to withhold nested placed images before restore.
+JSON/SQLite capsule import now requires a matching Locality Firewall proof before preview or apply: Markdown must remain the source of truth, absolute source paths must be redacted, and the proof's withheld count must match the withheld manifest rows. Capsule export/import writes also require the exact preview signature from the reviewed dry run, so changed vault or capsule content forces a fresh preview. Inbound filtering follows private `grimoire-canvas` source JSON to withhold nested placed images before restore.
 
 Planned:
 

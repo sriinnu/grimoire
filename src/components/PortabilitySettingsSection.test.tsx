@@ -25,6 +25,7 @@ const exportPreview: PortabilityExportPreviewState = {
   format: 'json',
   result: {
     format: 'json',
+    preview_signature: 'capsule-preview-v1:test',
     files_exportable: 4,
     notes_exportable: 3,
     assets_exportable: 1,

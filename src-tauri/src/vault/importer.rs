@@ -40,6 +40,8 @@ pub struct MarkdownFolderImportReport {
 pub struct MarkdownFolderImportPreview {
     pub source_path: String,
     pub planned_import_root: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preview_signature: Option<String>,
     pub notes_to_copy: usize,
     pub assets_to_copy: usize,
     pub skipped_files: usize,
@@ -118,6 +120,7 @@ pub fn preview_markdown_folder_import(
     Ok(MarkdownFolderImportPreview {
         source_path: path_to_string(&source_root),
         planned_import_root: path_to_string(&import_root),
+        preview_signature: None,
         notes_to_copy: counters.notes_copied,
         assets_to_copy: counters.assets_copied,
         skipped_files: counters.skipped_files,

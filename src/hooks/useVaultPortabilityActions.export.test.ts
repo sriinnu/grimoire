@@ -102,6 +102,7 @@ describe('useVaultPortabilityActions exports', () => {
     vaultExportMocks.pickSqliteSnapshotExportTarget.mockResolvedValue('/tmp/grimoire.sqlite')
     vaultExportMocks.previewPortabilityCapsule.mockResolvedValue({
       format: 'json',
+      preview_signature: 'capsule-preview-v1:test',
       files_exportable: 4,
       notes_exportable: 3,
       assets_exportable: 1,
@@ -180,14 +181,14 @@ describe('useVaultPortabilityActions exports', () => {
     act(() => result.current.handlePreviewJsonSnapshot())
     await waitFor(() => expect(result.current.lastExportPreview?.format).toBe('json'))
     act(() => result.current.handleExportJsonSnapshot())
-    await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.json', 'json'))
+    await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.json', 'json', 'capsule-preview-v1:test'))
     await waitFor(() => expect(setToastMessage).toHaveBeenLastCalledWith('capsule export toast'))
     expect(result.current.lastExportPreview).toBeNull()
 
     act(() => result.current.handlePreviewSqliteSnapshot())
     await waitFor(() => expect(result.current.lastExportPreview?.format).toBe('sqlite'))
     act(() => result.current.handleExportSqliteSnapshot())
-    await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.sqlite', 'sqlite'))
+    await waitFor(() => expect(vaultExportMocks.exportPortabilityCapsule).toHaveBeenCalledWith('/vault', '/tmp/grimoire.sqlite', 'sqlite', 'capsule-preview-v1:test'))
   })
 
   it('cancels an active static HTML export without showing a late success toast', async () => {

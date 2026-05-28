@@ -11,6 +11,7 @@ interface ImportKindArgs extends ImportPathArgs {
 
 interface CapsuleImportArgs extends ImportPathArgs {
   format?: 'json' | 'sqlite'
+  previewSignature?: string
 }
 
 function sourceName(sourcePath: string, fallback: string): string {
@@ -84,6 +85,7 @@ export const mockImportHandlers = {
     const source = mockCapsuleSource(args)
     return {
       ...mockImportPreview(vault, source, source.replace(/\.(json|sqlite|db)$/i, '')),
+      preview_signature: `mock-${args.format ?? 'json'}-capsule-import-preview`,
       notes_to_copy: 8,
       assets_to_copy: 4,
       manifest_rows: [
@@ -103,6 +105,7 @@ export const mockImportHandlers = {
     }
   },
   import_portability_capsule: (args: CapsuleImportArgs) => {
+    if (!args.previewSignature?.trim()) throw new Error('Capsule import requires preview signature')
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const source = mockCapsuleSource(args).replace(/\.(json|sqlite|db)$/i, '')
     return mockImportResult(vault, source, 8, 4, 2)

@@ -39,8 +39,9 @@ export function importPortabilityCapsuleIntoVault(
   vaultPath: string,
   sourcePath: string,
   format: PortabilityCapsuleFormat,
+  previewSignature: string,
 ): Promise<MarkdownFolderImportResult> {
-  const args = { vaultPath, sourcePath, format }
+  const args = { vaultPath, sourcePath, format, previewSignature }
   return isTauri()
     ? invoke<MarkdownFolderImportResult>('import_portability_capsule', args)
     : mockInvoke<MarkdownFolderImportResult>('import_portability_capsule', args)

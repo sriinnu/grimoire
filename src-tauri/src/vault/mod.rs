@@ -77,6 +77,8 @@ mod portability_capsule_import_filter;
 mod portability_capsule_import_readers;
 mod portability_capsule_io;
 #[cfg(test)]
+mod portability_capsule_signature_tests;
+#[cfg(test)]
 mod portability_capsule_tests;
 mod rename;
 mod rename_transaction;

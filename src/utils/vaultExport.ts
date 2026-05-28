@@ -62,8 +62,9 @@ export function exportPortabilityCapsule(
   vaultPath: string,
   targetPath: string,
   format: PortabilityCapsuleFormat,
+  previewSignature: string,
 ): Promise<MarkdownZipExportResult> {
-  const args = { vaultPath, targetPath, format }
+  const args = { vaultPath, targetPath, format, previewSignature }
   return isTauri()
     ? invoke<MarkdownZipExportResult>('export_portability_capsule', args)
     : mockInvoke<MarkdownZipExportResult>('export_portability_capsule', args)

@@ -50,6 +50,7 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Add reversible Portability Capsule import preview/apply for JSON and SQLite snapshots.
   - [x] Surface reviewed JSON/SQLite capsule import/export previews in the Settings Proof Ledger with counts, withheld totals, and redaction/locality proof only.
   - [x] Make the Settings portability proof surface human-facing by default: collapsed rows now show Portability Status, opt-in/manual-live-proof copy, and redacted report state while developer commands/env gates stay behind disclosure.
+  - [x] Require exact JSON/SQLite capsule preview signatures for export/import writes so stale reviewed previews cannot write changed vault/capsule content.
 - 5 Mature canvas: shapes, text boxes, lasso, image attachments, stroke extraction, and smoother launch/save behavior.
 - 6 Sweep themes/fonts: contrast, manuscript font parity, sidebar artwork, live previews, curated preset hierarchy, and dark-theme readability.
   - [x] Retire weak shipped presets: keep Constellation, Daylight Atelier, Living Archive, Nocturne, and Retro Terminal as the current built-in ecosystem.

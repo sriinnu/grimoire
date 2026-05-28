@@ -16,6 +16,7 @@ export interface PortabilityCapsuleManifestRow {
 
 export interface PortabilityCapsulePreviewResult {
   format: PortabilityCapsuleFormat
+  preview_signature: string
   files_exportable: number
   notes_exportable: number
   assets_exportable: number

@@ -56,6 +56,7 @@ export interface ImportAutopsyManifestRow { kind: 'note' | 'asset' | 'metadata' 
 export interface MarkdownFolderImportPreviewResult {
   source_path: string
   planned_import_root: string
+  preview_signature?: string | null
   notes_to_copy: number
   assets_to_copy: number
   skipped_files: number

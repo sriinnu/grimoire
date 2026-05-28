@@ -20,6 +20,7 @@ pub enum PortabilityCapsuleFormat {
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct PortabilityCapsulePreviewReport {
     pub format: PortabilityCapsuleFormat,
+    pub preview_signature: String,
     pub files_exportable: usize,
     pub notes_exportable: usize,
     pub assets_exportable: usize,
@@ -81,6 +82,7 @@ pub fn export_portability_capsule(
     vault_path: &Path,
     target_path: &Path,
     format: PortabilityCapsuleFormat,
+    preview_signature: &str,
 ) -> Result<super::VaultExportReport, String> {
     let vault_root = canonical_dir(vault_path, "Vault")?;
     let target = target_with_extension(target_path, format.extension());
@@ -90,6 +92,11 @@ pub fn export_portability_capsule(
     }
 
     let inventory = inventory_for_vault(&vault_root)?;
+    validate_preview_signature(
+        "Capsule export",
+        preview_signature,
+        &preview_signature_for_inventory(format, &inventory),
+    )?;
     let temp_path = create_capsule_temp_path(&target, format.extension())?;
     write_capsule(&vault_root, &inventory, &temp_path, format)?;
     persist_capsule_temp_path(temp_path, &target)?;
@@ -176,6 +183,7 @@ fn preview_from_inventory(
         .collect();
     PortabilityCapsulePreviewReport {
         format,
+        preview_signature: preview_signature_for_inventory(format, inventory),
         files_exportable: inventory.files.len(),
         notes_exportable,
         assets_exportable: inventory.files.len().saturating_sub(notes_exportable),
@@ -184,6 +192,48 @@ fn preview_from_inventory(
         locality_proof: proof_for_inventory(inventory),
         manifest_rows,
     }
+}
+
+pub(super) fn validate_preview_signature(
+    operation: &str,
+    reviewed_signature: &str,
+    current_signature: &str,
+) -> Result<(), String> {
+    let reviewed_signature = reviewed_signature.trim();
+    if reviewed_signature.is_empty() {
+        return Err(format!("{operation} requires a reviewed preview signature"));
+    }
+    if reviewed_signature != current_signature {
+        return Err(format!(
+            "{operation} preview is stale; run preview again before continuing"
+        ));
+    }
+    Ok(())
+}
+
+fn preview_signature_for_inventory(
+    format: PortabilityCapsuleFormat,
+    inventory: &CapsuleInventory,
+) -> String {
+    let mut payload = format!(
+        "capsule-preview-v1\0{}\0{}\0{}\0",
+        format.label(),
+        inventory.bytes_exportable,
+        inventory.withheld.len()
+    );
+    for file in &inventory.files {
+        payload.push_str(&format!(
+            "file\0{}\0{}\0{}\0{}\0",
+            file.kind,
+            file.path,
+            file.bytes.len(),
+            file.sha256
+        ));
+    }
+    for file in &inventory.withheld {
+        payload.push_str(&format!("withheld\0{}\0{}\0", file.path, file.reason));
+    }
+    format!("capsule-preview-v1:{}", sha256_hex(payload.as_bytes()))
 }
 
 fn exportable_row(file: &CapsuleFile) -> PortabilityCapsuleManifestRow {
