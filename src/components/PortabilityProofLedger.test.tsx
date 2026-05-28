@@ -78,4 +78,48 @@ describe('PortabilityProofLedger', () => {
     expect(row.queryByText(/\/Users\//i)).not.toBeInTheDocument()
     expect(row.queryByText(/secret/i)).not.toBeInTheDocument()
   })
+
+  it('loads a pasted redacted provider proof report into the runner row', () => {
+    render(<PortabilityProofLedger />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Paste redacted proof report' }))
+    fireEvent.change(screen.getByLabelText('Redacted proof report JSON'), {
+      target: {
+        value: JSON.stringify({
+          schema: 'grimoire-object-storage-live-proof-v1',
+          generated_at: '2026-05-28T12:30:00Z',
+          finished_at: '2026-05-28T12:35:00Z',
+          provider_filter: 'all',
+          summary: { status: 'failed', message: 'raw /Users/sriinnu/.aws s3://secret-bucket' },
+          providers: [
+            {
+              id: 's3',
+              enabled: true,
+              gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
+              required: { GRIMOIRE_S3_BUCKET: 'set' },
+              optional: { GRIMOIRE_S3_REGION: 'set', GRIMOIRE_S3_PREFIX: 'missing' },
+              status: 'passed',
+            },
+            {
+              id: 'azure',
+              enabled: true,
+              gate: { name: 'GRIMOIRE_AZURE_LIVE_WRITE_PROOF', state: 'set' },
+              required: { GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'set', GRIMOIRE_AZURE_CONTAINER: 'missing' },
+              optional: { GRIMOIRE_AZURE_PREFIX: 'missing' },
+              status: 'missing_config',
+            },
+          ],
+        }),
+      },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Load report' }))
+
+    expect(screen.getByTestId('portability-proof-live-provider-report-summary')).toHaveTextContent('Latest proof report: failed')
+    expect(screen.getByTestId('portability-proof-live-s3-provider-proof')).toHaveTextContent('S3 provider proof: passed')
+    expect(screen.getByTestId('portability-proof-live-azure-provider-proof')).toHaveTextContent('Azure provider proof: missing config')
+    expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('s3://')
+    expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('/Users/')
+    expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('secret-bucket')
+    expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('provider-proven sync')
+  })
 })

@@ -47,7 +47,7 @@ export function DesktopStorageHealthPanel({ vaultPath, t }: DesktopStorageHealth
 
   return (
     <div
-      className="grimoire-portability-inline-panel mt-2 grid gap-2 rounded-md border border-border bg-background/50 p-2.5"
+      className="settings-desktop-storage-panel grimoire-portability-inline-panel mt-2 grid gap-2 rounded-md border border-border p-2.5"
       data-testid="settings-desktop-storage-health"
     >
       <div className="flex items-start gap-2">
@@ -108,7 +108,7 @@ function DesktopStorageHealthReportRow({
   const Icon = report?.configured ? CloudCheck : CloudWarning
   return (
     <div
-      className="rounded-md border border-border/70 bg-muted/25 px-2 py-1.5 text-[11px]"
+      className="settings-desktop-storage-row rounded-md border border-border/70 px-2 py-1.5 text-[11px]"
       data-testid={`settings-desktop-storage-report-${providerId}`}
     >
       <div className="flex min-w-0 items-center gap-1.5">
@@ -136,7 +136,7 @@ function DesktopStorageHealthReportRow({
 
 function ProofChip({ label, active }: { label: string; active: boolean }) {
   return (
-    <span className="rounded-sm border border-border/70 bg-background/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+    <span className="settings-proof-chip rounded-sm border border-border/70 px-1.5 py-0.5 text-[10px] text-muted-foreground">
       {active ? label : `No ${label.toLowerCase()}`}
     </span>
   )

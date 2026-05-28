@@ -42,4 +42,46 @@ describe('PortabilitySettingsSection proof ledger', () => {
       'Azure read-only preflight: missing credentials',
     )
   })
+
+  it('passes sanitized live provider proof reports into the proof ledger', () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        objectStorageLiveProofReport={{
+          schema: 'grimoire-object-storage-live-proof-v1',
+          generated_at: '2026-05-28T12:30:00Z',
+          finished_at: '2026-05-28T12:35:00Z',
+          provider_filter: 'all',
+          summary: { status: 'failed', message: 'Redacted provider proof report loaded.' },
+          providers: [
+            {
+              id: 's3',
+              enabled: true,
+              gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
+              required: { GRIMOIRE_S3_BUCKET: 'set' },
+              optional: { GRIMOIRE_S3_REGION: 'set', GRIMOIRE_S3_PREFIX: 'missing' },
+              status: 'passed',
+            },
+            {
+              id: 'azure',
+              enabled: true,
+              gate: { name: 'GRIMOIRE_AZURE_LIVE_WRITE_PROOF', state: 'set' },
+              required: { GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'set', GRIMOIRE_AZURE_CONTAINER: 'missing' },
+              optional: { GRIMOIRE_AZURE_PREFIX: 'missing' },
+              status: 'missing_config',
+            },
+          ],
+        }}
+      />,
+    )
+
+    expect(screen.getByTestId('portability-proof-live-provider-report-summary')).toHaveTextContent(
+      'Latest proof report: failed',
+    )
+    expect(screen.getByTestId('portability-proof-live-s3-provider-proof')).toHaveTextContent(
+      'S3 provider proof: passed',
+    )
+    expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('provider-proven sync')
+    expect(screen.getByTestId('portability-proof-provider-proof-runner')).not.toHaveTextContent('/Users/')
+  })
 })

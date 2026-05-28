@@ -3,6 +3,7 @@ import {
   listPortabilityProofRows,
   OBJECT_STORAGE_LIVE_PROOF_COMMAND,
   OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND,
+  parseObjectStorageLiveProofReport,
   portabilityProofLevelLabel,
 } from './portabilityProof'
 
@@ -112,6 +113,83 @@ describe('portabilityProof', () => {
       },
     ])
     expect(JSON.stringify(objectStorage?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\//)
+  })
+
+  it('loads sanitized provider proof runner reports without provider targets', () => {
+    const report = parseObjectStorageLiveProofReport(JSON.stringify({
+      schema: 'grimoire-object-storage-live-proof-v1',
+      generated_at: '2026-05-28T12:30:00Z',
+      finished_at: '2026-05-28T12:35:00Z',
+      provider_filter: 'all',
+      summary: { status: 'passed', message: 'wrote /Users/sriinnu/.aws and s3://secret-bucket' },
+      providers: [
+        {
+          id: 's3',
+          label: 's3://secret-bucket/private-prefix',
+          enabled: true,
+          gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
+          required: { GRIMOIRE_S3_BUCKET: 'set', AWS_SECRET_ACCESS_KEY: 'set' },
+          optional: { GRIMOIRE_S3_REGION: 'set', GRIMOIRE_S3_PREFIX: 'set', TOKEN: 'set' },
+          status: 'passed',
+          message: 'provider returned token=abc',
+        },
+        {
+          id: 'azure',
+          label: 'azblob://secret-account/private-container',
+          enabled: true,
+          gate: { name: 'GRIMOIRE_AZURE_LIVE_WRITE_PROOF', state: 'set' },
+          required: {
+            GRIMOIRE_AZURE_CONTAINER: 'missing',
+            GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'set',
+            PASSWORD: 'set',
+          },
+          optional: { GRIMOIRE_AZURE_PREFIX: 'missing' },
+          status: 'missing_config',
+          message: '/Users/sriinnu/Library/Azure leaked here',
+        },
+      ],
+    }))
+
+    expect(report?.summary.message).toBe('Redacted provider proof report loaded.')
+    expect(report?.providers[0]).toMatchObject({
+      id: 's3',
+      gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
+      required: { GRIMOIRE_S3_BUCKET: 'set' },
+      optional: { GRIMOIRE_S3_REGION: 'set', GRIMOIRE_S3_PREFIX: 'set' },
+      status: 'passed',
+    })
+    expect(report?.providers[1]?.required).toEqual({
+      GRIMOIRE_AZURE_CONTAINER: 'missing',
+      GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'set',
+    })
+
+    const runner = listPortabilityProofRows({ objectStorageLiveProofReport: report })
+      .find(row => row.id === 'provider-proof-runner')
+    expect(runner?.liveProofs).toEqual([
+      {
+        id: 'provider-report-summary',
+        label: 'Latest proof report',
+        status: 'passed',
+        detail: 'scope all; 1 passed, 1 missing config; generated 2026-05-28T12:30:00Z; finished 2026-05-28T12:35:00Z',
+      },
+      {
+        id: 's3-provider-proof',
+        label: 'S3 provider proof',
+        status: 'passed',
+        detail: 'gate set; 1/1 required set; 2/2 optional set; preview/apply/pull proof passed',
+      },
+      {
+        id: 'azure-provider-proof',
+        label: 'Azure provider proof',
+        status: 'missing config',
+        detail: 'gate set; 1/2 required set; 0/1 optional set; missing config recorded',
+      },
+    ])
+    expect(JSON.stringify(runner?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\//)
+    expect(JSON.stringify(report)).not.toContain('secret-bucket')
+    expect(JSON.stringify(report)).not.toContain('AWS_SECRET_ACCESS_KEY')
+    expect(JSON.stringify(report)).not.toContain('TOKEN')
+    expect(JSON.stringify(report)).not.toContain('PASSWORD')
   })
 
   it('uses compact user-facing proof labels', () => {

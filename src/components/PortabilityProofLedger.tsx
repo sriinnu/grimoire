@@ -4,13 +4,24 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   listPortabilityProofRows,
+  parseObjectStorageLiveProofReport,
   portabilityProofLevelLabel,
+  type ObjectStorageLiveProofReport,
   type PortabilityProofCommand,
   type PortabilityProofRow,
   type PortabilityProofState,
 } from '../lib/portabilityProof'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog'
+import { Textarea } from './ui/textarea'
 
 const PROOF_ROW_ICONS: Record<PortabilityProofRow['id'], ReactNode> = {
   imports: <FileArrowDown size={15} />,
@@ -22,7 +33,12 @@ const PROOF_ROW_ICONS: Record<PortabilityProofRow['id'], ReactNode> = {
 
 /** Shows the real proof state for portability lanes without overclaiming cloud sync. */
 export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
-  const rows = listPortabilityProofRows(proofState)
+  const [pastedProofReport, setPastedProofReport] = useState<ObjectStorageLiveProofReport | null>(null)
+  const effectiveProofState = {
+    ...proofState,
+    objectStorageLiveProofReport: pastedProofReport ?? proofState.objectStorageLiveProofReport,
+  }
+  const rows = listPortabilityProofRows(effectiveProofState)
 
   return (
     <section
@@ -30,7 +46,7 @@ export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
       className="grimoire-portability-card grid gap-2 rounded-md border border-border p-3"
       data-testid="portability-proof-ledger"
     >
-      <div className="flex items-start gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <span className="mt-0.5 text-muted-foreground"><ShieldCheck size={15} /></span>
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-foreground">Proof Ledger</span>
@@ -38,6 +54,11 @@ export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
             Support status, proof level, and remaining live-provider checks stay separate.
           </span>
         </span>
+        <ProofReportDialog
+          hasPastedReport={Boolean(pastedProofReport)}
+          onClear={() => setPastedProofReport(null)}
+          onLoad={setPastedProofReport}
+        />
       </div>
 
       <div className="grid gap-1.5">
@@ -46,6 +67,77 @@ export function PortabilityProofLedger(proofState: PortabilityProofState = {}) {
         ))}
       </div>
     </section>
+  )
+}
+
+function ProofReportDialog({
+  hasPastedReport,
+  onClear,
+  onLoad,
+}: {
+  hasPastedReport: boolean
+  onClear: () => void
+  onLoad: (report: ObjectStorageLiveProofReport) => void
+}) {
+  const [draft, setDraft] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
+
+  function loadReport() {
+    const report = parseObjectStorageLiveProofReport(draft)
+    if (!report) {
+      setError('Paste a redacted grimoire-object-storage-live-proof-v1 JSON report.')
+      return
+    }
+    onLoad(report)
+    setDraft('')
+    setError(null)
+    setOpen(false)
+  }
+
+  function clearReport() {
+    onClear()
+    setError(null)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        aria-label="Paste redacted proof report"
+        className="h-7 shrink-0 px-2 text-[11px]"
+        onClick={() => setOpen(true)}
+        size="xs"
+        type="button"
+        variant="outline"
+      >
+        <ClipboardCheck className="size-3" />
+        Proof report
+      </Button>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Load Proof Report</DialogTitle>
+          <DialogDescription>
+            Paste the redacted JSON from the live proof runner. Grimoire keeps only provider status, gate state, and set/missing config evidence.
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          aria-label="Redacted proof report JSON"
+          className="min-h-36 font-mono text-xs"
+          onChange={(event) => setDraft(event.currentTarget.value)}
+          placeholder='{"schema":"grimoire-object-storage-live-proof-v1",...}'
+          value={draft}
+        />
+        {error ? <div className="text-xs text-destructive">{error}</div> : null}
+        <DialogFooter>
+          <Button disabled={!hasPastedReport} onClick={clearReport} type="button" variant="outline">
+            Clear pasted proof
+          </Button>
+          <Button onClick={loadReport} type="button">
+            Load report
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
