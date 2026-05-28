@@ -85,6 +85,15 @@ pub(crate) fn local_only_referenced_attachments_from_content(
     attachments
 }
 
+/// Returns vault-relative attachment paths referenced inside a canvas JSON source file.
+pub(crate) fn canvas_attachment_refs_from_json_content(content: &str) -> BTreeSet<String> {
+    let mut attachments = BTreeSet::new();
+    if let Ok(json) = serde_json::from_str::<JsonValue>(content) {
+        collect_canvas_json_refs(&json, &mut attachments);
+    }
+    attachments
+}
+
 fn is_markdown_file(path: &Path) -> bool {
     path.extension()
         .map(|extension| extension.to_string_lossy().to_ascii_lowercase())

@@ -190,8 +190,9 @@ fn imports_sqlite_snapshot_preserving_binary_assets() {
 fn inbound_capsule_firewall_withholds_local_only_notes_and_referenced_assets() {
     let capsule_dir = TempDir::new().unwrap();
     let vault = TempDir::new().unwrap();
-    let private = "---\nlocality: local\n---\n# Private\n![audio](attachments/audio.m4a)\n";
+    let private = "---\nlocality: local\n---\n# Private\n![audio](attachments/audio.m4a)\n```grimoire-canvas\nsource: attachments/sketch.json\npreview: attachments/sketch.png\n```\n";
     let audio = b"secret audio";
+    let canvas = br#"{"version":1,"images":[{"src":"attachments/placed.png"}],"strokes":[]}"#;
     let capsule = json!({
         "schema": "grimoire-portability-capsule/v1",
         "format": "json-snapshot",
@@ -203,7 +204,10 @@ fn inbound_capsule_firewall_withholds_local_only_notes_and_referenced_assets() {
         },
         "files": [
             json_file("private.md", "markdown", private.as_bytes()),
-            json_file("attachments/audio.m4a", "asset", audio)
+            json_file("attachments/audio.m4a", "asset", audio),
+            json_file("attachments/sketch.json", "text", canvas),
+            json_file("attachments/sketch.png", "asset", b"preview"),
+            json_file("attachments/placed.png", "asset", b"placed")
         ],
         "withheld": []
     });
@@ -219,10 +223,13 @@ fn inbound_capsule_firewall_withholds_local_only_notes_and_referenced_assets() {
 
     assert_eq!(preview.notes_to_copy, 0);
     assert_eq!(preview.assets_to_copy, 0);
-    assert_eq!(preview.skipped_files, 2);
+    assert_eq!(preview.skipped_files, 5);
     assert!(preview.manifest_rows.iter().any(|row| row.kind
         == super::import_manifest::ImportAutopsyManifestKind::Withheld
         && row.source_path.ends_with("attachments/audio.m4a")));
+    assert!(preview.manifest_rows.iter().any(|row| row.kind
+        == super::import_manifest::ImportAutopsyManifestKind::Withheld
+        && row.source_path.ends_with("attachments/placed.png")));
 }
 
 #[test]
