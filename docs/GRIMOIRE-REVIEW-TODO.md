@@ -77,6 +77,10 @@ Use this as the live review scratchpad while testing Grimoire.
 - [x] Fix editor top-left floating controls: breadcrumb/titlebar owns the top row; the floating insert/control pill needs a stable inset below it.
 - [x] Show project ownership in the center note list with a compact folder breadcrumb chip, e.g. `astral / docs / architecture`, plus an optional subtle project color stripe.
 - [x] Add first knowledge icon pack entries: Vedas, Shaastras, Puranas, Rishi, Star, Brain, and Second Brain.
+- [x] Add a new light-first `Prabhat Studio` theme preset as a full-surface candidate.
+- [x] Add German, Hindi, and Sanskrit UI language choices through Settings, command palette, and native settings normalization.
+- [ ] Add Portability Capsule lanes for pure JSON and local SQLite snapshots, with preview/apply manifests and Locality Firewall proof before import/export.
+- [ ] Re-overhaul Settings panel polish so every section follows active theme materials, local-first copy, and Apple-native control rhythm.
 
 ## Parking Lot
 

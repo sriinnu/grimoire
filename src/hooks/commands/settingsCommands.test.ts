@@ -39,6 +39,8 @@ describe('buildSettingsCommands', () => {
       'constellation',
       'daylight',
       'atelier',
+      'prabhat',
+      'studio',
       'living',
       'archive',
       'nocturne',
@@ -88,6 +90,34 @@ describe('buildSettingsCommands', () => {
 
     chinese?.execute()
     expect(onSetUiLanguage).toHaveBeenCalledWith('zh-Hans')
+  })
+
+  it('adds German Hindi and Sanskrit language switch commands', () => {
+    const onSetUiLanguage = vi.fn()
+
+    const commands = buildSettingsCommands({
+      onOpenSettings: vi.fn(),
+      selectedUiLanguage: 'en',
+      onSetUiLanguage,
+    })
+
+    expect(commands.find((item) => item.id === 'switch-language-de')).toMatchObject({
+      label: 'Switch Language to German',
+      keywords: expect.arrayContaining(['german', 'deutsch']),
+      enabled: true,
+    })
+    expect(commands.find((item) => item.id === 'switch-language-hi')).toMatchObject({
+      label: 'Switch Language to Hindi',
+      keywords: expect.arrayContaining(['hindi', 'हिन्दी']),
+    })
+    const sanskrit = commands.find((item) => item.id === 'switch-language-sa')
+    expect(sanskrit).toMatchObject({
+      label: 'Switch Language to Sanskrit',
+      keywords: expect.arrayContaining(['sanskrit', 'संस्कृत']),
+    })
+
+    sanskrit?.execute()
+    expect(onSetUiLanguage).toHaveBeenCalledWith('sa')
   })
 
   it('localizes language commands', () => {

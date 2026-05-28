@@ -86,6 +86,8 @@ Ready:
 - Git remote
 - iCloud Drive folder
 - Google Drive Desktop folder
+- Pure JSON snapshot export/import
+- Local SQLite snapshot export/import
 
 Planned:
 
@@ -147,6 +149,7 @@ Portability feeds the LLM second brain:
 - The app derives graph edges, backlinks, search indexes, and agent context from those files.
 - Agents write durable summaries, decisions, and work briefs back into Markdown instead of trapping them in chat.
 - Object storage and cloud folders sync the vault; they do not become the source of truth.
+- JSON and SQLite are local portability snapshots, not hidden app state. JSON must stay human-diffable and agent-friendly; SQLite may accelerate local audit/search/export checks, but Markdown remains the source of truth and every import/apply path must pass preview, Locality Firewall, and reversible manifest proof.
 
 ## Non-Negotiables
 

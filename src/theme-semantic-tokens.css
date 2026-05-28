@@ -1,6 +1,7 @@
 :where(
   [data-theme-preset="constellation"],
   [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
@@ -28,6 +29,14 @@
 [data-theme-preset="daylight-atelier"][data-theme="dark"] {
   --accent-red: #ff8a86;
   --accent-yellow: #f0c66f;
+}
+
+[data-theme-preset="prabhat-studio"][data-theme="light"] {
+  --accent-red: #ad4f4b;
+}
+
+[data-theme-preset="prabhat-studio"][data-theme="dark"] {
+  --accent-red: #ff8f86;
 }
 
 [data-theme-preset="living-archive"][data-theme="light"] {

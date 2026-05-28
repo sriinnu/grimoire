@@ -252,6 +252,15 @@
   --art-presence: 0.42;
 }
 
+[data-theme-preset="prabhat-studio"] .app-sidebar-panel > .sidebar-artwork,
+[data-sidebar-preset-preview="prabhat-studio"] .sidebar-artwork {
+  --art-accent: #b75542;
+  --art-aura: color-mix(in srgb, #88d8d2 48%, #f2a06f);
+  --art-glow: color-mix(in srgb, #b75542 14%, transparent);
+  --art-page: color-mix(in srgb, #fbfffd 72%, #88d8d2 28%);
+  --art-presence: 0.42;
+}
+
 [data-theme-preset="living-archive"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="living-archive"] .sidebar-artwork {
   --art-accent: #c8a454;

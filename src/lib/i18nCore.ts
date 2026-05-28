@@ -1,21 +1,51 @@
 export const DEFAULT_APP_LOCALE = 'en'
 export const SYSTEM_UI_LANGUAGE = 'system'
 
-export const APP_LOCALES = ['en', 'zh-Hans'] as const
+export const APP_LOCALES = ['en', 'zh-Hans', 'de', 'hi', 'sa'] as const
 export type AppLocale = typeof APP_LOCALES[number]
 export type UiLanguagePreference = typeof SYSTEM_UI_LANGUAGE | AppLocale
 export type TranslationValues = Record<string, string | number>
 
 const SIMPLIFIED_CHINESE_LANGUAGE_CODES = new Set(['zh', 'zh-cn', 'zh-hans', 'zh-sg'])
+const GERMAN_LANGUAGE_CODES = new Set(['de', 'de-at', 'de-ch', 'de-de'])
+const HINDI_LANGUAGE_CODES = new Set(['hi', 'hi-in'])
+const SANSKRIT_LANGUAGE_CODES = new Set(['sa', 'sa-deva', 'sa-devanagari', 'sa-in'])
 
 const LOCALE_DISPLAY_NAMES: Record<AppLocale, Record<AppLocale, string>> = {
   en: {
     en: 'English',
     'zh-Hans': 'Simplified Chinese',
+    de: 'German',
+    hi: 'Hindi',
+    sa: 'Sanskrit',
   },
   'zh-Hans': {
     en: '英文',
     'zh-Hans': '简体中文',
+    de: '德语',
+    hi: '印地语',
+    sa: '梵语',
+  },
+  de: {
+    en: 'Englisch',
+    'zh-Hans': 'Vereinfachtes Chinesisch',
+    de: 'Deutsch',
+    hi: 'Hindi',
+    sa: 'Sanskrit',
+  },
+  hi: {
+    en: 'अंग्रेज़ी',
+    'zh-Hans': 'सरलीकृत चीनी',
+    de: 'जर्मन',
+    hi: 'हिन्दी',
+    sa: 'संस्कृत',
+  },
+  sa: {
+    en: 'आङ्ग्लभाषा',
+    'zh-Hans': 'सरलचीनी',
+    de: 'जर्मन',
+    hi: 'हिन्दी',
+    sa: 'संस्कृतम्',
   },
 }
 
@@ -31,6 +61,9 @@ function normalizeLocaleCode(value: string): AppLocale | null {
   const normalized = value.trim().replace('_', '-').toLowerCase()
   if (normalized === 'en' || normalized.startsWith('en-')) return 'en'
   if (SIMPLIFIED_CHINESE_LANGUAGE_CODES.has(normalized)) return 'zh-Hans'
+  if (GERMAN_LANGUAGE_CODES.has(normalized) || normalized.startsWith('de-')) return 'de'
+  if (HINDI_LANGUAGE_CODES.has(normalized) || normalized.startsWith('hi-')) return 'hi'
+  if (SANSKRIT_LANGUAGE_CODES.has(normalized) || normalized.startsWith('sa-')) return 'sa'
   return null
 }
 

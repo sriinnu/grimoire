@@ -36,7 +36,7 @@ describe('theme surface coherence CSS', () => {
   })
 
   it('declares shared material, spacing, radius, shadow, graph, rail, and mobile tokens', () => {
-    const body = getRuleBody(':where(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n)')
+    const body = getRuleBody(':where([data-theme-preset])')
 
     for (const token of [
       '--grimoire-surface-padding',

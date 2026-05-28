@@ -25,8 +25,8 @@ describe('system theme CSS', () => {
   const noteListChromeCss = ['NoteListChrome.css', 'ProjectWorkspaceChrome.css', 'NoteListFilterRail.css']
     .map((file) => readFileSync(`${process.cwd()}/src/components/note-list/${file}`, 'utf8')).join('\n')
   const polishCss = readFileSync(`${process.cwd()}/src/theme-polish.css`, 'utf8')
-  const nonConstellationFlagshipSelector = ':where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
-  const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
+  const nonConstellationFlagshipSelector = ':where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="prabhat-studio"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
+  const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="prabhat-studio"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
 
   function getRuleBody(source: string, selector: string): string {
     const ruleStart = source.indexOf(`${selector} {`)
@@ -61,9 +61,11 @@ describe('system theme CSS', () => {
   it('defines the flagship presets across root and preview surfaces', () => {
     expect(css).toContain('[data-theme-preset="constellation"]')
     expect(css).toContain('[data-theme-preset="daylight-atelier"][data-theme="light"]')
+    expect(css).toContain('[data-theme-preset="prabhat-studio"][data-theme="light"]')
     expect(css).toContain('[data-theme-preset="living-archive"][data-theme="light"]')
     expect(css).toContain('[data-theme-preset="retro-terminal"]')
     expect(css).toContain('[data-theme-preset-preview="constellation"]')
+    expect(css).toContain('[data-theme-preset-preview="prabhat-studio"]')
     expect(css).toContain('[data-theme-preset-preview="retro-terminal"]')
     expect(css).not.toContain('[data-theme-preset="research-cockpit"]')
     expect(css).not.toContain('[data-theme-preset="manuscript"]')
@@ -211,7 +213,7 @@ describe('system theme CSS', () => {
     expect(polishCss).toContain('[data-theme-preset="living-archive"] :is(.inspector-panel, .ai-panel)')
     expect(polishCss).toContain('--grimoire-settings-main-material')
     expect(polishCss).toContain('[data-theme-preset="living-archive"] .ai-panel [data-testid="agent-input"]')
-    expect(getRuleBody(css, ':where(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n)')).toContain('--background: var(--surface-editor)')
+    expect(getRuleBody(css, ':where(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="prabhat-studio"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n)')).toContain('--background: var(--surface-editor)')
     expect(lightBody).toContain('--grimoire-document-page: #eee4ce')
     expect(darkBody).toContain('--grimoire-document-page: #162125')
     expect(darkBody).toContain('--background: var(--surface-app)')
@@ -248,6 +250,7 @@ describe('system theme CSS', () => {
     for (const selector of [
       '[data-theme-preset="living-archive"][data-theme="light"]',
       '[data-theme-preset="daylight-atelier"][data-theme="light"]',
+      '[data-theme-preset="prabhat-studio"][data-theme="light"]',
       '[data-theme-preset="nocturne"][data-theme="light"]',
     ]) {
       const body = getRuleBody(css, selector)
@@ -352,16 +355,16 @@ describe('system theme CSS', () => {
     expect(statusBarCss).toContain('button[aria-expanded="true"]')
     expect(statusBarCss).toContain('[data-testid="status-utility-group"]')
     expect(statusBarCss).toContain(':is(button:not([data-status-action-tone]), [role="button"]:not([data-status-action-tone])) {\n  color: inherit !important')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.note-list-panel, .inspector-panel, .ai-panel)')).toContain('var(--grimoire-panel-material)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .settings-panel-shell')).toContain('var(--grimoire-dialog-material)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .grimoire-dialog-overlay')).toContain('var(--grimoire-dialog-overlay)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.grimoire-dialog-content, .grimoire-command-surface)')).toContain('var(--grimoire-dialog-material)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .grimoire-dialog-content')).toContain('var(--grimoire-density-panel-padding')
-    expect(getRuleBody(coherenceCss, ':is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy)')).toContain('var(--grimoire-portability-material)')
-    expect(getRuleBody(coherenceCss, ':is([data-theme-preset="constellation"], [data-theme-preset="daylight-atelier"], [data-theme-preset="living-archive"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat)')).toContain('var(--grimoire-portability-preview-material)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) .settings-main-surface')).toContain('var(--grimoire-settings-main-material)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat)')).toContain('var(--grimoire-card-material)')
-    expect(getRuleBody(coherenceCss, ':is(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-atelier"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="retro-terminal"]\n) :is(.project-workspace-chrome, .note-list-filter-shelf)')).toContain('background: transparent')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.note-list-panel, .inspector-panel, .ai-panel)')).toContain('var(--grimoire-panel-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) .settings-panel-shell')).toContain('var(--grimoire-dialog-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) .grimoire-dialog-overlay')).toContain('var(--grimoire-dialog-overlay)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-dialog-content, .grimoire-command-surface)')).toContain('var(--grimoire-dialog-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) .grimoire-dialog-content')).toContain('var(--grimoire-density-panel-padding')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy)')).toContain('var(--grimoire-portability-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat)')).toContain('var(--grimoire-portability-preview-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) .settings-main-surface')).toContain('var(--grimoire-settings-main-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat)')).toContain('var(--grimoire-card-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.project-workspace-chrome, .note-list-filter-shelf)')).toContain('background: transparent')
     expect(coherenceCss).toContain('[data-reference-pill="true"]')
     expect(statusBarCss).toContain('[data-testid="status-modified-count"] span span')
     expect(coherenceCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)

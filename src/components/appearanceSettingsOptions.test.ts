@@ -31,6 +31,10 @@ describe('buildPresetOptions', () => {
       'nocturne',
       'constellation',
     ])
+    expect(groups[1].options.map((option) => option.value)).toEqual([
+      'daylight-atelier',
+      'prabhat-studio',
+    ])
     expect(groups[2].options.map((option) => option.value)).toEqual([
       'retro-terminal',
     ])
