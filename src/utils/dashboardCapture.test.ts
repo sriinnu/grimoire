@@ -189,6 +189,52 @@ describe('resolveDashboardCapture', () => {
     expect(JSON.stringify(plan.contextPackage)).not.toContain('/vault/private')
   })
 
+  it('keeps protected provider and device sentinels out of Daily Thread ask preview and plan', async () => {
+    const protectedEntry = entry('/vault/private/sentinel-journal.md', 'SENTINEL private title', {
+      isA: 'Journal',
+      modifiedAt: 50,
+      snippet: 'SENTINEL private snippet',
+      properties: {
+        locality: 'local',
+        mobile_source: 'SENTINEL iPhone source',
+        source_audio: '/vault/private/audio/SENTINEL-recording.webm',
+        transcription_provider: 'SENTINEL-provider',
+      },
+    })
+    const protectedMemory = entry('/vault/memory/sentinel-memory.md', 'SENTINEL memory title', {
+      isA: 'Memory',
+      properties: {
+        source_note: '[[Public Project]]',
+        contradicted_by: ['[[SENTINEL private title]]'],
+      },
+    })
+    const entries = [
+      entry('/vault/projects/public.md', 'Public Project', { isA: 'Project', modifiedAt: 60 }),
+      protectedEntry,
+      protectedMemory,
+    ]
+
+    const preview = buildDashboardAskContextPreview(entries, 5, DAILY_THREAD_CRYSTALLIZE_PROMPT)
+    const plan = await resolveDashboardCapture({
+      entries,
+      input: DAILY_THREAD_CRYSTALLIZE_PROMPT,
+      selectedKind: 'ask',
+      vaultPath: '/vault',
+    })
+    const payload = JSON.stringify({ plan, preview })
+
+    expect(preview.references).toEqual([{ title: 'Public Project', path: '/vault/projects/public.md', type: 'Project' }])
+    expect(preview.protectedCount).toBe(1)
+    expect(preview.protectedMemoryCount).toBe(1)
+    expect(plan.kind).toBe('ask')
+    expect(payload).toContain('Public Project')
+    expect(payload).not.toContain('SENTINEL')
+    expect(payload).not.toContain('source_audio')
+    expect(payload).not.toContain('transcription_provider')
+    expect(payload).not.toContain('mobile_source')
+    expect(payload).not.toContain('/vault/private')
+  })
+
   it('redacts local wikilinks before dashboard asks reach provider handoff', async () => {
     const plan = await resolveDashboardCapture({
       entries: [

@@ -11,6 +11,7 @@ interface BuildTimeLoomPatternsInput {
   activeDays: number
   calendarEvents: number
   commitEvents: number
+  memoryReviewEvents: number
   mobileEvents: number
   protectedEvents: number
   statusTotals: Map<TimeLoomStatusLabel, number>
@@ -19,13 +20,14 @@ interface BuildTimeLoomPatternsInput {
   voiceEvents: number
 }
 
-const TYPE_ORDER = ['Mobile', 'Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Private', 'Task', 'Meeting', 'Note']
+const TYPE_ORDER = ['Mobile', 'Memory review', 'Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Private', 'Task', 'Meeting', 'Memory', 'Note']
 
 /** Builds a compact pattern lens without using titles, paths, excerpts, or raw status text. */
 export function buildTimeLoomPatterns({
   activeDays,
   calendarEvents,
   commitEvents,
+  memoryReviewEvents,
   mobileEvents,
   protectedEvents,
   statusTotals,
@@ -48,6 +50,7 @@ export function buildTimeLoomPatterns({
 
   const reviewSignals = [
     protectedEvents > 0 ? `${protectedEvents} private` : null,
+    memoryReviewEvents > 0 ? `${memoryReviewEvents} memory review` : null,
     mobileEvents > 0 ? `${mobileEvents} mobile` : null,
     voiceEvents > 0 ? `${voiceEvents} voice` : null,
   ].filter(isPatternDetail)

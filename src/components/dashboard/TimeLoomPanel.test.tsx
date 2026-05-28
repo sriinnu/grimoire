@@ -39,6 +39,7 @@ const summary: TimeLoomSummary = {
   ],
   calendarEvents: 1,
   commitEvents: 1,
+  memoryReviewEvents: 1,
   mobileEvents: 2,
   patterns: [
     { label: 'Primary thread', detail: 'Mobile 2 / Calendar 1 / Commit 1', tone: 'steady' },
@@ -71,8 +72,10 @@ describe('TimeLoomPanel', () => {
     expect(nodes[1]).toHaveTextContent('Commit 1 / Calendar 1')
     expect(panel).toHaveTextContent('Open 1')
     expect(panel).toHaveTextContent('2 mobile')
+    expect(panel).toHaveTextContent('1 memory review')
     expect(panel).toHaveTextContent('1 task due')
     expect(panel).toHaveTextContent('mobile captures')
+    expect(panel).toHaveTextContent('memory review flags')
     expect(panel).toHaveTextContent('due tasks')
     expect(panel).toHaveTextContent('Crystallized today')
     expect(panel).toHaveTextContent('reviewed memory')

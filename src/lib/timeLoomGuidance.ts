@@ -6,7 +6,7 @@ export type TimeLoomSourceLaneState = 'active' | 'private' | 'quiet'
 export interface TimeLoomSourceLane {
   count: number
   detail: string
-  id: 'calendar' | 'commit' | 'dream' | 'journal' | 'mobile' | 'private' | 'voice'
+  id: 'calendar' | 'commit' | 'dream' | 'journal' | 'memory' | 'mobile' | 'private' | 'voice'
   label: string
   state: TimeLoomSourceLaneState
 }
@@ -35,6 +35,7 @@ export function buildTimeLoomGuidance(
   const sourceLanes: TimeLoomSourceLane[] = [
     sourceLane('dream', 'Dreams', dreamCount, 'private symbols', 'private'),
     sourceLane('journal', 'Journal', journalCount, 'local reflection', journalCount > 0 ? 'private' : 'quiet'),
+    sourceLane('memory', 'Memory', summary.memoryReviewEvents, 'review queue', 'private'),
     sourceLane('mobile', 'Mobile', summary.mobileEvents, 'capture inbox'),
     sourceLane('voice', 'Voice', summary.voiceEvents, 'local transcripts'),
     sourceLane('calendar', 'Calendar', summary.calendarEvents, 'scheduled frontmatter'),

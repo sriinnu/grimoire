@@ -293,6 +293,7 @@ Build order:
   - [x] Render the dashboard Time Loom as a compact metadata-only temporal map before the fallback bucket list.
   - [x] Add a metadata-only Pattern Lens for primary thread, open-loop pressure, private-review pressure, and external rhythm without titles, paths, excerpts, audio filenames, provider names, device/source metadata, or raw status text.
   - [x] Fold Task/Todo due frontmatter into a metadata-only `Task` lane; due dates place events on the timeline while task text, project labels, paths, and raw due-key names do not render.
+  - [x] Fold Memory Ledger audit pressure into metadata-only `Memory` and `Memory review` lanes; memory titles, paths, contradiction labels, source links, provider/device markers, and local-only fields stay withheld from Time Loom, Daily Thread, and dashboard `/ask` packages.
   - [x] Add a Daily Thread rail that fuses Time Loom source counts with Dream Forge rhythm into one local next action without exposing private titles, paths, snippets, audio filenames, device metadata, commit text, or provider claims.
   - [x] Route the Daily Thread `Crystallize the day` action into the dashboard `/ask` path with a source-safe Crystallize-ready prompt and ask-context preview, instead of opening a journal prompt.
 - [ ] Context Capsules: inspectable agent context packages with selected notes, rules, project map, and exclusions, plus local-only safety.
@@ -526,6 +527,7 @@ Build order:
 - Extended editable canvases with ordered vector shapes, text boxes, lasso selection/move, async render cancellation, and nested canvas-image locality scans so placed images referenced only from local-only canvas JSON stay out of Git, ZIP, static HTML, and object-storage sync.
 - Deepened Memory Ledger rows in the Inspector: source links and contradiction links are navigable chips, numeric/string confidence gets visible tone, expired/expiring memories are called out quietly, and the row logic was split out of `MemoryPanel.tsx` to keep the surface below the LOC guardrail.
 - Routed Memory Ledger row and badge state colors through `theme-memory-ledger.css` so confidence, contradiction, expiry, and Council handoff states follow the active theme instead of isolated utility colors.
+- Added a Time Loom Memory review lane so expired/expiring/contradicted/stale/unreviewed ledger pressure becomes count-only dashboard and Daily Thread metadata, with a Daily Thread ask-plan sentinel proving protected title/path/snippet/provider/device fields stay withheld.
 - Split Dream Forge visual material into `DreamForgePanel.css` and added a private-lens contract for records, held-local count, and frontmatter-only signals without exposing dream titles, paths, or bodies.
 - Added the Dream Forge private timeline rail so local dream/journal trend bands show only record, held-local, and signal counts.
 - Added the first Finder Ghost Quick Look command: active notes can be previewed from the command palette through a vault-bound native path guard.

@@ -11,6 +11,7 @@ const guidance: TimeLoomGuidance = {
   sourceLanes: [
     { id: 'dream', label: 'Dreams', count: 0, detail: 'quiet', state: 'quiet' },
     { id: 'journal', label: 'Journal', count: 2, detail: 'local reflection', state: 'private' },
+    { id: 'memory', label: 'Memory', count: 1, detail: 'review queue', state: 'private' },
     { id: 'mobile', label: 'Mobile', count: 1, detail: 'capture inbox', state: 'active' },
     { id: 'voice', label: 'Voice', count: 0, detail: 'quiet', state: 'quiet' },
     { id: 'calendar', label: 'Calendar', count: 0, detail: 'quiet', state: 'quiet' },
@@ -39,6 +40,8 @@ describe('DailyThreadRail', () => {
     expect(rail).toHaveTextContent('Open the dream lane')
     expect(rail).toHaveTextContent('The dream lane is empty')
     expect(within(rail).getByLabelText('Daily Thread source-safe lanes')).toHaveTextContent('Held local')
+    expect(within(rail).getByLabelText('Daily Thread source-safe lanes')).toHaveTextContent('Memory')
+    expect(within(rail).getByText('Memory').closest('[data-state]')).toHaveAttribute('data-state', 'private')
     expect(within(rail).getByText('Held local').closest('[data-state]')).toHaveAttribute('data-state', 'private')
     expect(rail).not.toHaveTextContent('/vault')
     expect(rail).not.toHaveTextContent('Secret')

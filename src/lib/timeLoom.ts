@@ -2,6 +2,7 @@ import type { PulseCommit, VaultEntry } from '../types'
 import { isMobileCaptureEntry, mobileCapturedTimestamp } from './mobileCaptureMetadata'
 import { resolveEntryLocalityPolicy } from './localityPolicy'
 import { buildTimeLoomPatterns, type TimeLoomPattern } from './timeLoomPatterns'
+import { timeLoomMemoryTypeLabel } from './timeLoomMemory'
 
 /** Count of one note type inside a temporal bucket. */
 export interface TimeLoomTypeCount {
@@ -32,6 +33,7 @@ export interface TimeLoomSummary {
   protectedEvents: number
   voiceEvents: number
   mobileEvents: number
+  memoryReviewEvents: number
   commitEvents: number
   calendarEvents: number
   taskEvents: number
@@ -72,8 +74,8 @@ const TASK_DUE_PROPERTY_KEYS = [
 ]
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 const STATUS_ORDER: TimeLoomStatusCount['label'][] = ['Open', 'Done', 'Unmarked']
-const SAFE_PROTECTED_TYPE_LABELS = new Set(['Calendar', 'Voice', 'Mobile', 'Commit', 'Dream', 'Journal'])
-const TYPE_ORDER = ['Mobile', 'Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Private', 'Task', 'Meeting', 'Note']
+const SAFE_PROTECTED_TYPE_LABELS = new Set(['Calendar', 'Voice', 'Mobile', 'Commit', 'Dream', 'Journal', 'Memory', 'Memory review'])
+const TYPE_ORDER = ['Mobile', 'Memory review', 'Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Private', 'Task', 'Meeting', 'Memory', 'Note']
 
 /** Builds a local temporal graph preview without reading note bodies or returning titles. */
 export function buildTimeLoomSummary(
@@ -86,6 +88,7 @@ export function buildTimeLoomSummary(
   let protectedEvents = 0
   let voiceEvents = 0
   let mobileEvents = 0
+  let memoryReviewEvents = 0
   let commitEvents = 0
   let calendarEvents = 0
   let taskEvents = 0
@@ -104,7 +107,8 @@ export function buildTimeLoomSummary(
     const bucket = getOrCreateBucket(buckets, date, now)
     const localOnly = resolveEntryLocalityPolicy(entry).localOnly
     const mobileCapture = isMobileCaptureEntry(entry)
-    const rawTypeLabel = taskTimestamp ? 'Task' : scheduledTimestamp ? 'Calendar' : eventTypeLabel(entry)
+    const memoryTypeLabel = timeLoomMemoryTypeLabel(entry, now)
+    const rawTypeLabel = memoryTypeLabel ?? (taskTimestamp ? 'Task' : scheduledTimestamp ? 'Calendar' : eventTypeLabel(entry))
     const typeLabel = displayTypeLabel(rawTypeLabel, localOnly)
     const status = statusLabel(entry)
 
@@ -118,6 +122,7 @@ export function buildTimeLoomSummary(
     if (localOnly) protectedEvents += 1
     if (typeLabel === 'Voice') voiceEvents += 1
     if (mobileCapture) mobileEvents += 1
+    if (memoryTypeLabel === 'Memory review') memoryReviewEvents += 1
     if (typeLabel === 'Calendar') calendarEvents += 1
     if (taskTimestamp) taskEvents += 1
     buckets.set(bucket.dateKey, bucket)
@@ -161,6 +166,7 @@ export function buildTimeLoomSummary(
     protectedEvents,
     voiceEvents,
     mobileEvents,
+    memoryReviewEvents,
     commitEvents,
     calendarEvents,
     taskEvents,
@@ -168,6 +174,7 @@ export function buildTimeLoomSummary(
       activeDays: sortedBuckets.length,
       calendarEvents,
       commitEvents,
+      memoryReviewEvents,
       mobileEvents,
       protectedEvents,
       statusTotals,
