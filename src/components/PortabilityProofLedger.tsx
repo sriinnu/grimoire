@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import {
   listPortabilityProofRows,
   portabilityProofLevelLabel,
+  type PortabilityProofCommand,
   type PortabilityProofRow,
 } from '../lib/portabilityProof'
 import { Badge } from './ui/badge'
@@ -48,19 +49,22 @@ export function PortabilityProofLedger() {
 }
 
 function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
-  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [copiedCommand, setCopiedCommand] = useState<string | null>(null)
+  const [failedCommand, setFailedCommand] = useState<string | null>(null)
 
-  async function copyCommand() {
-    if (!row.command || typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
-      setCopyState('failed')
+  async function copyCommand(proofCommand: PortabilityProofCommand) {
+    setCopiedCommand(null)
+    setFailedCommand(null)
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      setFailedCommand(proofCommand.id)
       return
     }
 
     try {
-      await navigator.clipboard.writeText(row.command)
-      setCopyState('copied')
+      await navigator.clipboard.writeText(proofCommand.command)
+      setCopiedCommand(proofCommand.id)
     } catch {
-      setCopyState('failed')
+      setFailedCommand(proofCommand.id)
     }
   }
 
@@ -83,22 +87,37 @@ function ProofLedgerRow({ row }: { row: PortabilityProofRow }) {
         <span className="min-w-0 text-[11px] text-muted-foreground">{row.detail}</span>
       </div>
       <div className="text-[11px] leading-snug text-muted-foreground">{row.evidence}</div>
-      {row.command ? (
-        <div className="flex min-w-0 items-center gap-2">
-          <Button
-            aria-label={`Copy ${row.label.toLowerCase()} command`}
-            className="h-6 border-border px-2 text-[11px] text-foreground"
-            onClick={() => {
-              void copyCommand()
-            }}
-            size="xs"
-            type="button"
-            variant="outline"
-          >
-            {copyState === 'copied' ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
-            {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : 'Copy command'}
-          </Button>
-          <span className="min-w-0 truncate font-mono text-[10px] text-muted-foreground">{row.command}</span>
+      {row.commands?.length ? (
+        <div className="grid gap-1">
+          {row.commands.map((proofCommand) => {
+            const copyState = copiedCommand === proofCommand.id
+              ? 'copied'
+              : failedCommand === proofCommand.id ? 'failed' : 'idle'
+
+            return (
+              <div className="flex min-w-0 items-center gap-2" key={proofCommand.id}>
+                <Button
+                  aria-label={`${proofCommand.label} command`}
+                  className="h-6 border-border px-2 text-[11px] text-foreground"
+                  onClick={() => {
+                    void copyCommand(proofCommand)
+                  }}
+                  size="xs"
+                  type="button"
+                  variant="outline"
+                >
+                  {copyState === 'copied' ? <ClipboardCheck className="size-3" /> : <Copy className="size-3" />}
+                  {copyState === 'copied' ? 'Copied' : copyState === 'failed' ? 'Copy failed' : proofCommand.label}
+                </Button>
+                <span className="min-w-0 truncate font-mono text-[10px] text-muted-foreground">
+                  {proofCommand.command}
+                </span>
+                <span className="hidden min-w-[11rem] text-[10px] text-muted-foreground sm:inline">
+                  {proofCommand.detail}
+                </span>
+              </div>
+            )
+          })}
         </div>
       ) : null}
       <div className="text-[11px] leading-snug text-muted-foreground">
