@@ -311,7 +311,7 @@ Build order:
   - [x] Extend preview/autopsy to Obsidian, Notion ZIP/folder, and Spanda before writing anything into the vault.
   - [x] Extend preview/autopsy to Apple Journal, Day One, and Journey before writing anything into the vault.
   - [x] Extend preview/autopsy to object-storage conflict cases.
-	  - [x] Add a Settings Proof Ledger that separates ready import/export/desktop-sync lanes from S3/Azure local-mirror fixtures.
+	  - [x] Add a Settings Proof Ledger that separates ready import/export/desktop-sync lanes from object-storage proof-boundary evidence: read-only preflight, provider preview/apply contracts, and local-mirror fixtures.
 	  - [x] Rename object-storage actions/toasts to local-mirror fixtures and write local-only exclusion paths/reasons into the local sync report.
 	  - [x] Add S3 live read-only preflight proof without storing cloud credentials or object keys in Grimoire.
 	  - [x] Add explicit S3/Azure live write/read/delete round-trip proof harnesses that stay ignored unless `GRIMOIRE_S3_LIVE_WRITE_PROOF=1` or `GRIMOIRE_AZURE_LIVE_WRITE_PROOF=1`.
@@ -769,7 +769,7 @@ Build order:
   - [x] Wire Settings buttons for S3/Azure local-mirror push preview/apply.
   - [x] Wire Settings buttons for S3/Azure local-mirror pull preview/apply.
   - [x] Require an explicit local-mirror preview before S3/Azure apply.
-  - [x] Stamp object-storage preview/apply reports as local-mirror fixtures so S3/Azure cannot be mistaken for live provider SDK sync yet.
+  - [x] Stamp object-storage preview/apply reports as proof-boundary fixtures so S3/Azure cannot be mistaken for provider-proven sync yet.
   - [x] Wire read-only S3 live preflight through local AWS config and redacted Settings proof status.
   - [x] Exclude attachments referenced by local-only Markdown from ZIP export and object-storage mirror sync.
   - [x] Count `.grimoire-local`, `.mcp.json`, `.env*`, and `mockups` portable-export inputs as skipped instead of silently pruning them from ZIP/static HTML reports.

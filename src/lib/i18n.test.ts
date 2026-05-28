@@ -34,4 +34,20 @@ describe('i18n', () => {
     expect(localeDisplayName('zh-Hans', 'zh-Hans')).toBe('简体中文')
     expect(localeDisplayName('en', 'zh-Hans')).toBe('英文')
   })
+
+  it('keeps object-storage wording on proof boundaries instead of ready sync', () => {
+    const objectStorageCopy = [
+      translate('en', 'settings.portability.objectStoragePrototype'),
+      translate('en', 'settings.portability.objectStoragePrototypeDescription'),
+      translate('en', 'settings.portability.s3ProviderSync'),
+      translate('en', 'settings.portability.s3ProviderSyncDescription'),
+      translate('en', 'settings.portability.azureProviderSync'),
+      translate('en', 'settings.portability.azureProviderSyncDescription'),
+    ].join('\n')
+
+    expect(objectStorageCopy).toContain('Object storage proof boundary')
+    expect(objectStorageCopy).toContain('preview/apply evidence')
+    expect(objectStorageCopy).toContain('live failure-state proof is still required')
+    expect(objectStorageCopy).not.toMatch(/Object storage sync proof|provider SDK sync|Preview and apply live/)
+  })
 })

@@ -169,7 +169,8 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.queryByText('Preview S3 local-mirror push')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
-    expect(screen.getByText('S3 provider SDK sync')).toBeInTheDocument()
+    expect(screen.getByText('S3 provider preview/apply')).toBeInTheDocument()
+    expect(screen.getByText(/live failure-state proof is still required before provider-proven sync/)).toBeInTheDocument()
     expect(screen.getByText('Preview S3 provider push')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 provider pull')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 local-mirror push')).toBeInTheDocument()
@@ -177,7 +178,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.queryByText('Apply Azure local-mirror push')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
-    expect(screen.getByText('Azure provider sync')).toBeInTheDocument()
+    expect(screen.getByText('Azure provider preview/apply')).toBeInTheDocument()
     expect(screen.getByText('Preview Azure provider push')).toBeInTheDocument()
     expect(screen.getByText('Preview Azure provider pull')).toBeInTheDocument()
     expect(screen.getByText('Apply Azure local-mirror push')).toBeInTheDocument()
