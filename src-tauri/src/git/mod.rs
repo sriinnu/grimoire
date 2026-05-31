@@ -1,4 +1,5 @@
 mod clone;
+mod command_timeout;
 mod commit;
 mod conflict;
 mod connect;

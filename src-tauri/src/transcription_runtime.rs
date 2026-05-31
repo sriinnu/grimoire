@@ -1,4 +1,5 @@
 use crate::transcription::{TranscriptSegment, TranscriptionResult};
+use crate::transcription_runtime_discovery::{find_executable, whisper_install_hint};
 use serde_json::Value;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -27,34 +28,6 @@ pub struct TranscriptionReadiness {
 struct WhisperCppRuntime {
     cli_path: PathBuf,
     model_path: PathBuf,
-}
-
-fn known_executable_paths(name: &str) -> Vec<PathBuf> {
-    let mut paths = vec![
-        PathBuf::from(format!("/opt/homebrew/bin/{name}")),
-        PathBuf::from(format!("/usr/local/bin/{name}")),
-        PathBuf::from(format!("/usr/bin/{name}")),
-    ];
-    if let Some(home) = dirs::home_dir() {
-        paths.push(home.join(".local").join("bin").join(name));
-    }
-    paths
-}
-
-fn find_executable(name: &str) -> Option<PathBuf> {
-    known_executable_paths(name)
-        .into_iter()
-        .find(|path| path.is_file())
-        .or_else(|| {
-            crate::hidden_command("which")
-                .arg(name)
-                .output()
-                .ok()
-                .filter(|output| output.status.success())
-                .and_then(|output| String::from_utf8(output.stdout).ok())
-                .map(|path| PathBuf::from(path.trim()))
-                .filter(|path| path.is_file())
-        })
 }
 
 fn model_base_dir() -> Option<PathBuf> {
@@ -173,7 +146,7 @@ pub fn local_transcription_readiness(
             model_path: None,
             recommended_model_path: recommended_model,
             download_url: Some(MODEL_DOWNLOAD_URL.to_string()),
-            install_hint: "Install whisper.cpp, for example: brew install whisper-cpp.".to_string(),
+            install_hint: whisper_install_hint(),
         },
     }
 }

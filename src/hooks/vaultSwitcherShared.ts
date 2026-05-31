@@ -17,7 +17,7 @@ export const DEFAULT_VAULTS: VaultOption[] = [
 
 /** Returns the display label Grimoire uses when a folder has no saved vault name. */
 export function labelFromPath(path: string): string {
-  return path.split('/').pop() || 'Local Vault'
+  return path.split(/[\\/]/u).pop() || 'Local Vault'
 }
 
 /** Invokes Tauri in-app and mock Tauri in browser tests. */

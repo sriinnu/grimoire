@@ -39,7 +39,7 @@ function createSettingsNav(t: SettingsBodyProps['t']): SettingsNavItem[] {
 }
 
 function vaultName(vaultPath: string): string {
-  return vaultPath.split('/').filter(Boolean).pop() ?? 'Local Vault'
+  return vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Local Vault'
 }
 
 function scrollToSettingsSection(sectionId: string, onSectionChange: (sectionId: string) => void) {
