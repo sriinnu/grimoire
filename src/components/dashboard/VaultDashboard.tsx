@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Brain,
   CalendarDays,
@@ -7,11 +7,9 @@ import {
   NotebookTabs,
   ShieldCheck,
   Sparkles,
-  WandSparkles,
   type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
 import type { VaultOption } from '../status-bar/types'
 import type { DashboardCaptureResult } from '../../hooks/useDashboardCapture'
@@ -22,16 +20,21 @@ import {
   type CaptureKind,
   type DashboardCaptureRequest,
 } from '../../utils/dashboardCapture'
+import type { DashboardCaptureTemplateId, DreamTemplateId, JournalTemplateId } from '../../utils/noteTemplates'
 import { buildDashboardSummary } from '../../utils/dashboardModel'
 import { cn } from '../../lib/utils'
 import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
 import { DashboardInsightPanelsFallback } from './DashboardInsightPanelsFallback'
 import { DashboardTodayRunway } from './DashboardTodayRunway'
+import {
+  captureKindForSlashInput,
+  flowKindForCaptureKind,
+  type DashboardFlowKind,
+} from './DashboardTodayRunwayModel'
+import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
+import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
+import './VaultDashboardLayout.css'
 import './VaultDashboard.css'
-
-const DashboardAskContextPreview = lazy(async () => ({
-  default: (await import('./DashboardAskContextPreview')).DashboardAskContextPreview,
-}))
 
 const DashboardInsightPanels = lazy(async () => ({
   default: (await import('./DashboardInsightPanels')).DashboardInsightPanels,
@@ -43,7 +46,12 @@ interface VaultDashboardProps {
   entries: VaultEntry[]
   isGitVault: boolean
   modifiedCount: number
-  onCapture: (input: string, kind: CaptureKind) => Promise<DashboardCaptureResult>
+  onCapture: (
+    input: string,
+    kind: CaptureKind,
+    captureDate?: Date,
+    templateId?: DashboardCaptureTemplateId | null,
+  ) => Promise<DashboardCaptureResult>
   onOpenCreateVault: () => void
   onOpenNote: (entry: VaultEntry) => void
   onPendingCaptureConsumed?: () => void
@@ -98,30 +106,6 @@ function StatTile({ label, value, detail }: { label: string; value: number | str
   )
 }
 
-function CapturePill({
-  kind,
-  selected,
-  onSelect,
-}: {
-  kind: CaptureKind
-  selected: boolean
-  onSelect: (kind: CaptureKind) => void
-}) {
-  const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === kind)!
-  return (
-    <Button
-      type="button"
-      variant={selected ? 'default' : 'outline'}
-      size="sm"
-      className="vault-dashboard__capture-pill"
-      onClick={() => onSelect(kind)}
-      data-testid={`dashboard-capture-kind-${kind}`}
-    >
-      {config.label}
-    </Button>
-  )
-}
-
 function PromptButton({
   children,
   onClick,
@@ -153,6 +137,13 @@ export function VaultDashboard({
   vaultPath,
 }: VaultDashboardProps) {
   const [selectedKind, setSelectedKind] = useState<CaptureKind>('note')
+  const [selectedFlowKind, setSelectedFlowKind] = useState<DashboardFlowKind | null>(null)
+  const [selectedTemplates, setSelectedTemplates] = useState<{
+    dream: DreamTemplateId
+    journal: JournalTemplateId
+  }>({ dream: 'capture', journal: 'daily' })
+  const [captureDateOffset, setCaptureDateOffset] = useState<CaptureDateOffset>(0)
+  const [captureDateOverride, setCaptureDateOverride] = useState<Date | null>(null)
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [askContextPreview, setAskContextPreview] = useState<DashboardAskContextPreviewModel | null>(null)
@@ -172,6 +163,11 @@ export function VaultDashboard({
   const activeVaultLabel = activeVault?.label ?? vaultPath.split('/').filter(Boolean).pop() ?? 'Vault'
   const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
   const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)
+  const selectedTemplateId: DashboardCaptureTemplateId | null = selectedKind === 'journal'
+    ? selectedTemplates.journal
+    : selectedKind === 'dream'
+      ? selectedTemplates.dream
+      : null
 
   useEffect(() => {
     if (!showAskContextPreview) {
@@ -192,30 +188,71 @@ export function VaultDashboard({
     const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === kind)
     if (!config) return
     setSelectedKind(kind)
+    setSelectedFlowKind(flowKindForCaptureKind(kind))
     setInput((value) => value.trim() ? value : `${config.slash} `)
     requestAnimationFrame(() => inputRef.current?.focus())
     onPendingCaptureConsumed?.()
   }, [onPendingCaptureConsumed, pendingCaptureRequest])
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function handleSubmit() {
     if (busy) return
     setBusy(true)
     try {
-      const result = await onCapture(input, selectedKind)
+      const result = await onCapture(
+        input,
+        selectedKind,
+        captureDateOverride ?? captureDateForOffset(captureDateOffset),
+        selectedTemplateId,
+      )
       if (result.status === 'created' || result.status === 'ask') {
         setInput('')
+        setCaptureDateOffset(0)
+        setCaptureDateOverride(null)
       }
     } finally {
       setBusy(false)
     }
   }
 
-  function seedPrompt(kind: CaptureKind, promptSeed?: string) {
+  function seedPrompt(kind: CaptureKind, promptSeed?: string, captureDate?: Date) {
     const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === kind)!
     setSelectedKind(kind)
+    setSelectedFlowKind(flowKindForCaptureKind(kind))
+    setCaptureDateOverride(captureDate ?? null)
     setInput((value) => value.trim() ? value : promptSeed ?? `${config.slash} `)
     requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  function updateCaptureInput(value: string) {
+    const slashKind = captureKindForSlashInput(value)
+    if (slashKind) {
+      setSelectedKind(slashKind)
+      setSelectedFlowKind(flowKindForCaptureKind(slashKind))
+    }
+    setInput(value)
+  }
+
+  function selectCaptureKind(kind: CaptureKind) {
+    setSelectedKind(kind)
+    setSelectedFlowKind(flowKindForCaptureKind(kind))
+  }
+
+  function seedDatedPrompt(kind: CaptureKind, date?: unknown) {
+    seedPrompt(kind, undefined, date instanceof Date ? date : undefined)
+  }
+
+  function selectCaptureDateOffset(offset: CaptureDateOffset) {
+    setCaptureDateOffset(offset)
+    setCaptureDateOverride(null)
+  }
+
+  function selectTemplate(templateId: DashboardCaptureTemplateId) {
+    if (selectedKind === 'journal') {
+      setSelectedTemplates((current) => ({ ...current, journal: templateId as JournalTemplateId }))
+    }
+    if (selectedKind === 'dream') {
+      setSelectedTemplates((current) => ({ ...current, dream: templateId as DreamTemplateId }))
+    }
   }
 
   function handleAttentionAction() {
@@ -223,7 +260,10 @@ export function VaultDashboard({
       seedPrompt(attentionCaptureKind, attentionSuggestion.promptSeed)
       return
     }
-    if (attentionOpenEntry) onOpenNote(attentionOpenEntry)
+    if (attentionOpenEntry) {
+      setSelectedFlowKind('task')
+      onOpenNote(attentionOpenEntry)
+    }
   }
 
   return (
@@ -255,49 +295,39 @@ export function VaultDashboard({
           brief={summary.dailyBrief}
           canUseAttentionAction={canUseAttentionAction}
           onAttentionAction={handleAttentionAction}
+          onSelectFlowKind={setSelectedFlowKind}
           onSeedPrompt={seedPrompt}
+          selectedFlowKind={selectedFlowKind}
           summary={summary}
         />
 
-        <div className="vault-dashboard__panel vault-dashboard__panel--capture">
-          <div className="vault-dashboard__panel-head">
-            <div>
-              <div className="vault-dashboard__panel-label">Quick Capture</div>
-              <h2>Catch it before it evaporates.</h2>
-            </div>
-            <WandSparkles size={18} />
-          </div>
-          <form className="vault-dashboard__capture-form" onSubmit={handleSubmit}>
-            <Textarea
-              ref={inputRef}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder={CAPTURE_KIND_CONFIGS.find((item) => item.kind === selectedKind)?.prompt}
-              className="vault-dashboard__textarea"
-              data-testid="dashboard-capture-input"
-            />
-            {showAskContextPreview && askContextPreview ? (
-              <Suspense fallback={null}>
-                <DashboardAskContextPreview preview={askContextPreview} />
-              </Suspense>
-            ) : null}
-            <div className="vault-dashboard__capture-actions">
-              <div className="vault-dashboard__capture-kinds">
-                {CAPTURE_KIND_CONFIGS.map((config) => (
-                  <CapturePill
-                    key={config.kind}
-                    kind={config.kind}
-                    selected={selectedKind === config.kind}
-                    onSelect={setSelectedKind}
-                  />
-                ))}
-              </div>
-              <Button type="submit" disabled={busy} data-testid="dashboard-capture-submit">
-                {busy ? 'Capturing...' : 'Capture'}
-              </Button>
-            </div>
-          </form>
-        </div>
+        <DashboardQuickCapturePanel
+          askContextPreview={askContextPreview}
+          busy={busy}
+          captureDateOffset={captureDateOffset}
+          captureDateOverride={captureDateOverride}
+          input={input}
+          inputRef={inputRef}
+          selectedKind={selectedKind}
+          selectedTemplateId={selectedTemplateId}
+          showAskContextPreview={showAskContextPreview}
+          onInputChange={updateCaptureInput}
+          onSelectDateOffset={selectCaptureDateOffset}
+          onSelectKind={selectCaptureKind}
+          onSelectTemplate={selectTemplate}
+          onSubmit={handleSubmit}
+        />
+
+        <Suspense fallback={<DashboardInsightPanelsFallback />}>
+          <DashboardInsightPanels
+            crystallizedTodayCount={summary.crystallizedTodayCount}
+            entries={entries}
+            onCaptureDream={(date) => seedDatedPrompt('dream', date)}
+            onCaptureJournal={(date) => seedDatedPrompt('journal', date)}
+            onStartAsk={(promptSeed) => seedPrompt('ask', promptSeed)}
+            pulseCommits={pulseCommits}
+          />
+        </Suspense>
 
         <div className="vault-dashboard__panel">
           <div className="vault-dashboard__panel-head">
@@ -344,17 +374,6 @@ export function VaultDashboard({
           <StatTile label="Dreams" value={summary.dreamCount} detail="local lane" />
           <StatTile label="Memory" value={summary.memoryQueueCount} detail="review queue" />
         </div>
-
-        <Suspense fallback={<DashboardInsightPanelsFallback />}>
-          <DashboardInsightPanels
-            crystallizedTodayCount={summary.crystallizedTodayCount}
-            entries={entries}
-            onCaptureDream={() => seedPrompt('dream')}
-            onCaptureJournal={() => seedPrompt('journal')}
-            onStartAsk={(promptSeed) => seedPrompt('ask', promptSeed)}
-            pulseCommits={pulseCommits}
-          />
-        </Suspense>
 
         <DashboardRecentNotesPanel
           entries={summary.recentEntries}

@@ -11,10 +11,30 @@ fn test_invalid_theme_mode_is_filtered() {
 }
 
 #[test]
-fn test_handwritten_editor_font_is_supported() {
+fn test_legacy_editor_fonts_are_normalized_to_curated_choices() {
     assert_eq!(
         normalize_editor_font(Some("handwritten")).as_deref(),
-        Some("handwritten")
+        Some("literary")
+    );
+    assert_eq!(
+        normalize_editor_font(Some("serif")).as_deref(),
+        Some("literary")
+    );
+    assert_eq!(
+        normalize_editor_font(Some("compact")).as_deref(),
+        Some("system")
+    );
+}
+
+#[test]
+fn test_editor_line_height_is_supported() {
+    assert_eq!(
+        normalize_editor_line_height(Some(" comfortable ")).as_deref(),
+        Some("comfortable")
+    );
+    assert_eq!(
+        normalize_editor_line_height(Some("spacious")).as_deref(),
+        Some("spacious")
     );
 }
 
@@ -23,10 +43,12 @@ fn test_invalid_appearance_settings_are_filtered() {
     let loaded = save_and_reload(Settings {
         theme_preset: Some("neon".to_string()),
         editor_font: Some("papyrus".to_string()),
+        editor_line_height: Some("loose".to_string()),
         ..Default::default()
     });
     assert!(loaded.theme_preset.is_none());
     assert!(loaded.editor_font.is_none());
+    assert!(loaded.editor_line_height.is_none());
 }
 
 #[test]

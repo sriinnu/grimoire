@@ -62,6 +62,11 @@ describe('DreamForgePanel', () => {
 
     const timeline = screen.getByTestId('dream-forge-timeline')
     expect(timeline).toHaveAccessibleName('Private dream timeline')
+    const manifest = screen.getByTestId('dream-forge-private-manifest')
+    expect(manifest).toHaveAccessibleName('Dream Forge local-only manifest')
+    for (const text of ['Local', 'Frontmatter', 'Blocked', 'Explicit', '4 records', '4 signals', '4 held']) {
+      expect(manifest).toHaveTextContent(text)
+    }
     for (const text of ['Last night', 'This week', 'This month', 'Deep archive', 'signals', 'held']) {
       expect(timeline).toHaveTextContent(text)
     }
@@ -70,5 +75,8 @@ describe('DreamForgePanel', () => {
     expect(payload).not.toContain('Night River Secret')
     expect(payload).not.toContain('/vault/private')
     expect(payload).not.toContain('private body')
+    expect(manifest.textContent ?? '').not.toContain('Night River Secret')
+    expect(manifest.textContent ?? '').not.toContain('/vault/private')
+    expect(manifest.textContent ?? '').not.toContain('private body')
   })
 })

@@ -6,29 +6,38 @@ import {
   resolveFontAssetIds,
   resolveFontRoles,
 } from './fontConfig'
+import { THEME_PRESET_CATALOG } from '../themes/themeRegistry'
 
 describe('fontConfig', () => {
-  it('keeps the bundled Caveat asset available for themes that use handwritten display', () => {
+  it('keeps the bundled Caveat asset available without loading it for curated defaults', () => {
     const roles = resolveFontRoles({
       themePreset: 'living-archive',
       editorFont: 'system',
     })
 
-    expect(roles.display).toContain("'Grimoire Caveat'")
+    expect(roles.display).toContain("'Literata'")
     expect(resolveFontAssetIds({
       themePreset: 'retro-terminal',
       editorFont: 'system',
+    })).toEqual([])
+    expect(resolveFontAssetIds({
+      themePreset: 'living-archive',
+      editorFont: 'literary',
+      themeDefinition: {
+        ...THEME_PRESET_CATALOG[0],
+        typography: { display: "'Grimoire Caveat', cursive" },
+      },
     })).toEqual(['caveat'])
   })
 
   it('keeps editor font preference separate from display font', () => {
     const roles = resolveFontRoles({
       themePreset: 'living-archive',
-      editorFont: 'serif',
+      editorFont: 'readable',
     })
 
-    expect(roles.display).toContain("'Grimoire Caveat'")
-    expect(roles.editor).toContain('Iowan Old Style')
+    expect(roles.display).toContain("'Literata'")
+    expect(roles.editor).toContain('Atkinson Hyperlegible')
   })
 
   it('uses built-in theme-pack typography roles before user editor overrides', () => {
@@ -42,7 +51,7 @@ describe('fontConfig', () => {
     })
 
     expect(daylightRoles.display).toContain('New York')
-    expect(daylightRoles.label).toContain('Avenir Next')
+    expect(daylightRoles.label).toContain('SF Pro')
     expect(retroRoles.ui).toContain('SF Pro')
     expect(retroRoles.editor).toContain('Berkeley Mono')
     expect(retroRoles.editor).toMatch(/^'Grimoire Berkeley Mono'/)
@@ -53,13 +62,19 @@ describe('fontConfig', () => {
     expect(retroRoles.mono).toContain('SF Mono')
   })
 
-  it('can use Caveat as the editor font when handwritten is selected', () => {
+  it('curates editor choices to book, editorial, manuscript, sans, and mono stacks', () => {
     const roles = resolveFontRoles({
       themePreset: 'living-archive',
-      editorFont: 'handwritten',
+      editorFont: 'literary',
     })
 
-    expect(roles.editor).toContain("'Grimoire Caveat'")
+    expect(roles.editor).toContain("'Literata'")
+    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'system' }).editor).toContain('SF Pro')
+    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'readable' }).editor).toContain('Atkinson Hyperlegible')
+    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'humanist' }).editor).toContain('Avenir Next')
+    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'editorial' }).editor).toContain('New York')
+    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'manuscript' }).editor).toContain('Palatino')
+    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'mono' }).editor).toContain('Berkeley Mono')
   })
 
   it('applies resolved font roles as root CSS variables', () => {
@@ -68,7 +83,7 @@ describe('fontConfig', () => {
       editorFont: 'mono',
     })
 
-    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Grimoire Caveat'")
+    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Literata'")
     expect(document.documentElement.style.getPropertyValue('--grimoire-editor-font-family')).toContain('TX-02 Berkeley Mono')
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toContain('TX-02 Berkeley Mono')
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toMatch(/^'Grimoire Berkeley Mono'/)

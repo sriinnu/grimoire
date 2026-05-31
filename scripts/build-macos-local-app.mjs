@@ -3,6 +3,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { stampMacOsLaunchServicesMetadata } from './app-bundle-launchservices.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -23,6 +24,13 @@ function run(command, args) {
   }
 }
 
+function runAllowFailure(command, args) {
+  spawnSync(command, args, {
+    cwd: REPO_ROOT,
+    stdio: 'ignore',
+  })
+}
+
 function packageVersion() {
   return JSON.parse(readFileSync(PACKAGE_JSON, 'utf8')).version
 }
@@ -37,6 +45,14 @@ function restoreVersionFiles(snapshot) {
   for (const file of snapshot) {
     writeFileSync(file.path, file.contents)
   }
+}
+
+function removeLegacyLaunchServicesKeys(appPath) {
+  runAllowFailure('/usr/libexec/PlistBuddy', [
+    '-c',
+    'Delete :LSRequiresCarbon',
+    resolve(appPath, 'Contents/Info.plist'),
+  ])
 }
 
 function main() {
@@ -63,6 +79,8 @@ function main() {
       throw new Error(`Expected app bundle was not created: ${APP_PATH}`)
     }
 
+    removeLegacyLaunchServicesKeys(APP_PATH)
+    stampMacOsLaunchServicesMetadata(APP_PATH)
     run('codesign', ['--force', '--deep', '--sign', '-', APP_PATH])
     run('node', ['scripts/verify-release-artifacts.mjs', '--app', APP_PATH, '--require-codesign'])
     run('node', [

@@ -343,4 +343,42 @@ mod tests {
         assert_eq!(classify_azure_message("connection timeout"), "network");
         assert_eq!(classify_azure_message("TooManyRequests 429"), "throttled");
     }
+
+    #[tokio::test]
+    async fn settings_style_preflight_ignores_hidden_azure_env_fallback() {
+        let old_account = std::env::var("GRIMOIRE_AZURE_STORAGE_ACCOUNT").ok();
+        let old_container = std::env::var("GRIMOIRE_AZURE_CONTAINER").ok();
+        let old_prefix = std::env::var("GRIMOIRE_AZURE_PREFIX").ok();
+        std::env::set_var("GRIMOIRE_AZURE_STORAGE_ACCOUNT", "hidden-account");
+        std::env::set_var("GRIMOIRE_AZURE_CONTAINER", "hidden-container");
+        std::env::set_var("GRIMOIRE_AZURE_PREFIX", "hidden-prefix");
+
+        let result = azure_live_preflight(AzureLivePreflightInput {
+            account: None,
+            container: None,
+            prefix: None,
+            allow_env_fallback: Some(false),
+        })
+        .await
+        .unwrap();
+
+        restore_env("GRIMOIRE_AZURE_STORAGE_ACCOUNT", old_account);
+        restore_env("GRIMOIRE_AZURE_CONTAINER", old_container);
+        restore_env("GRIMOIRE_AZURE_PREFIX", old_prefix);
+        assert_eq!(result.status, "missing_config");
+        assert!(!result.configured);
+        assert!(!result.account_configured);
+        assert!(!result.container_configured);
+        assert!(!result.prefix_configured);
+        assert!(!result.container_checked);
+        assert!(!result.list_prefix_checked);
+    }
+
+    fn restore_env(key: &str, old: Option<String>) {
+        if let Some(value) = old {
+            std::env::set_var(key, value);
+        } else {
+            std::env::remove_var(key);
+        }
+    }
 }

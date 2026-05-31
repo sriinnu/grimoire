@@ -6,7 +6,7 @@ import {
 } from './objectStorageAdapterDesign'
 
 describe('objectStorageAdapterDesign', () => {
-  it('keeps S3 and Azure as planned local-working-copy adapters', () => {
+  it('keeps S3 and Azure as non-provider-proven local-working-copy adapters', () => {
     expect(listObjectStorageAdapterDesigns()).toEqual([
       expect.objectContaining({
         providerId: 's3',

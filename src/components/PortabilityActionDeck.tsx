@@ -1,22 +1,21 @@
-import { Archive, Cloud, DownloadSimple, FolderOpen, UploadSimple } from '@phosphor-icons/react'
+import { ShieldCheck } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import type { createTranslator } from '../lib/i18n'
-import { hasReviewedImportPreview, importRequiresReview } from '../lib/importReviewGate'
-import type { VaultPortabilityActionId } from '../lib/vaultPortability'
 import { AppImportAutopsyActions } from './AppImportAutopsyActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
 import { PortabilityCapsuleImportActions } from './PortabilityCapsuleImportActions'
 import type { PortabilityActionDeckProps } from './PortabilityActionDeck.types'
+import {
+  buildPortabilityActionLanes,
+  isPortabilityActionDisabled,
+  laneForPortabilityAction,
+  laneForPortabilityReviewState,
+  type PortabilityActionLane,
+} from './PortabilityActionDeckModel'
 import { PortabilityExportActions } from './PortabilityExportActions'
 import { PortabilityImportButton } from './PortabilityActionButton'
 import { PortabilityActionProgress } from './PortabilityActionProgress'
 import { Button } from './ui/button'
-
-type Translate = ReturnType<typeof createTranslator>
-type PortabilityActionLane = 'markdown' | 'apps' | 'journals' | 'capsules' | 'export' | 'storage'
-
-interface LaneConfig { id: PortabilityActionLane; label: string; description: string; icon: ReactNode }
 
 /** Shows import/export/storage actions one lane at a time so Settings stays inspectable. */
 export function PortabilityActionDeck({
@@ -98,23 +97,31 @@ export function PortabilityActionDeck({
   onPreviewAzureMirrorPull,
   onApplyAzureMirrorPull,
 }: PortabilityActionDeckProps) {
-  const previewLane = s3LivePreflightReport || azureLivePreflightReport || s3MirrorPreviewReport || s3MirrorPullPreviewReport || s3ProviderPushPreviewReport || s3ProviderPullPreviewReport || azureProviderPushPreviewReport || azureProviderPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport
-    ? 'storage'
-    : 'markdown'
+  const hasStorageReview = Boolean(
+    s3LivePreflightReport
+    || azureLivePreflightReport
+    || s3MirrorPreviewReport
+    || s3MirrorPullPreviewReport
+    || s3ProviderPushPreviewReport
+    || s3ProviderPullPreviewReport
+    || azureProviderPushPreviewReport
+    || azureProviderPullPreviewReport
+    || azureMirrorPreviewReport
+    || azureMirrorPullPreviewReport,
+  )
+  const previewLane = laneForPortabilityReviewState({ exportPreview, hasStorageReview, importPreview })
   const [activeLane, setActiveLane] = useState<PortabilityActionLane>(previewLane)
 
   useEffect(() => {
-    const busyLane = laneForAction(busyAction)
+    const busyLane = laneForPortabilityAction(busyAction)
     if (busyLane) setActiveLane(busyLane)
   }, [busyAction])
 
   useEffect(() => {
-    if (s3LivePreflightReport || azureLivePreflightReport || s3MirrorPreviewReport || s3MirrorPullPreviewReport || s3ProviderPushPreviewReport || s3ProviderPullPreviewReport || azureProviderPushPreviewReport || azureProviderPullPreviewReport || azureMirrorPreviewReport || azureMirrorPullPreviewReport) {
-      setActiveLane('storage')
-    }
-  }, [azureLivePreflightReport, azureMirrorPreviewReport, azureMirrorPullPreviewReport, azureProviderPullPreviewReport, azureProviderPushPreviewReport, s3LivePreflightReport, s3MirrorPreviewReport, s3MirrorPullPreviewReport, s3ProviderPullPreviewReport, s3ProviderPushPreviewReport])
+    if (!busyAction) setActiveLane(previewLane)
+  }, [busyAction, previewLane])
 
-  const lanes = useMemo(() => buildLanes(t), [t])
+  const lanes = useMemo(() => buildPortabilityActionLanes(t), [t])
   const activeConfig = lanes.find((lane) => lane.id === activeLane) ?? lanes[0]
 
   return (
@@ -152,8 +159,12 @@ export function PortabilityActionDeck({
           <PortabilityActionProgress progress={progress} onCancel={onCancelProgress} t={t} />
         ) : null}
         {activeLane !== 'storage' && activeLane !== 'export' ? (
-          <div className="text-[11px] leading-snug text-muted-foreground" data-testid="settings-portability-preview-gate">
-            Preview first to unlock the matching import. Writes reuse the reviewed no-write source.
+          <div
+            className="grimoire-portability-review-gate flex items-start gap-2 rounded-md border border-border px-2.5 py-2 text-[11px] leading-snug text-muted-foreground"
+            data-testid="settings-portability-preview-gate"
+          >
+            <ShieldCheck className="mt-0.5 shrink-0" size={14} />
+            <span>{t('settings.portability.reviewGate')}</span>
           </div>
         ) : null}
         <div className={activeLane === 'storage' ? 'grid gap-2' : 'flex flex-wrap gap-2'}>
@@ -272,7 +283,7 @@ export function PortabilityActionDeck({
           testId="settings-preview-markdown-folder"
           busy={busyAction === 'markdown-folder-preview'}
           busyLabel={previewing}
-          disabled={buttonDisabled(busyAction, vaultReady, onPreviewMarkdownFolder)}
+          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewMarkdownFolder)}
           onClick={onPreviewMarkdownFolder}
           t={t}
         />
@@ -280,7 +291,7 @@ export function PortabilityActionDeck({
           label={t('settings.portability.importMarkdownFolder')}
           testId="settings-import-markdown-folder"
           busy={busyAction === 'markdown-folder'}
-          disabled={buttonDisabled(busyAction, vaultReady, onImportMarkdownFolder, 'markdown-folder', importPreview)}
+          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportMarkdownFolder, 'markdown-folder', importPreview)}
           onClick={onImportMarkdownFolder}
           t={t}
         />
@@ -289,7 +300,7 @@ export function PortabilityActionDeck({
           testId="settings-preview-markdown-zip"
           busy={busyAction === 'markdown-zip-preview'}
           busyLabel={previewing}
-          disabled={buttonDisabled(busyAction, vaultReady, onPreviewMarkdownZip)}
+          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewMarkdownZip)}
           onClick={onPreviewMarkdownZip}
           t={t}
         />
@@ -297,7 +308,7 @@ export function PortabilityActionDeck({
           label={t('settings.portability.importMarkdownZip')}
           testId="settings-import-markdown-zip"
           busy={busyAction === 'markdown-zip'}
-          disabled={buttonDisabled(busyAction, vaultReady, onImportMarkdownZip, 'markdown-zip', importPreview)}
+          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportMarkdownZip, 'markdown-zip', importPreview)}
           onClick={onImportMarkdownZip}
           t={t}
         />
@@ -306,7 +317,7 @@ export function PortabilityActionDeck({
           testId="settings-preview-bear"
           busy={busyAction === 'bear-preview'}
           busyLabel={previewing}
-          disabled={buttonDisabled(busyAction, vaultReady, onPreviewBear)}
+          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewBear)}
           onClick={onPreviewBear}
           t={t}
         />
@@ -314,7 +325,7 @@ export function PortabilityActionDeck({
           label={t('settings.portability.importBear')}
           testId="settings-import-bear"
           busy={busyAction === 'bear'}
-          disabled={buttonDisabled(busyAction, vaultReady, onImportBear, 'bear', importPreview)}
+          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportBear, 'bear', importPreview)}
           onClick={onImportBear}
           t={t}
         />
@@ -338,70 +349,4 @@ export function PortabilityActionDeck({
       />
     )
   }
-}
-
-function buildLanes(t: Translate): LaneConfig[] {
-  return [
-    {
-      id: 'markdown',
-      label: t('settings.portability.actionLaneMarkdown'),
-      description: t('settings.portability.actionLaneMarkdownDescription'),
-      icon: <FolderOpen size={14} />,
-    },
-    {
-      id: 'apps',
-      label: t('settings.portability.actionLaneApps'),
-      description: t('settings.portability.actionLaneAppsDescription'),
-      icon: <DownloadSimple size={14} />,
-    },
-    {
-      id: 'journals',
-      label: t('settings.portability.actionLaneJournals'),
-      description: t('settings.portability.actionLaneJournalsDescription'),
-      icon: <DownloadSimple size={14} />,
-    },
-    {
-      id: 'capsules',
-      label: t('settings.portability.actionLaneCapsules'),
-      description: t('settings.portability.actionLaneCapsulesDescription'),
-      icon: <Archive size={14} />,
-    },
-    {
-      id: 'export',
-      label: t('settings.portability.actionLaneExport'),
-      description: t('settings.portability.actionLaneExportDescription'),
-      icon: <UploadSimple size={14} />,
-    },
-    {
-      id: 'storage',
-      label: t('settings.portability.actionLaneStorage'),
-      description: t('settings.portability.actionLaneStorageDescription'),
-      icon: <Cloud size={14} />,
-    },
-  ]
-}
-
-function buttonDisabled(
-  busyAction: VaultPortabilityActionId | null,
-  vaultReady: boolean,
-  onClick?: () => void,
-  actionId?: VaultPortabilityActionId,
-  importPreview?: PortabilityActionDeckProps['importPreview'],
-): boolean {
-  const importLocked = actionId ? importRequiresReview(actionId) && !hasReviewedImportPreview(actionId, importPreview) : false
-  return Boolean(busyAction) || !vaultReady || !onClick || importLocked
-}
-
-function laneForAction(action: VaultPortabilityActionId | null): PortabilityActionLane | null {
-  if (!action) return null
-  if (action.startsWith('storage-')) return 'storage'
-  if (action.startsWith('export-')) return 'export'
-  if (action === 'apple-journal-preview' || action === 'apple-journal' || action === 'day-one-preview') {
-    return 'journals'
-  }
-  if (action === 'day-one' || action === 'journey-preview' || action === 'journey') return 'journals'
-  if (action.includes('capsule')) return 'capsules'
-  if (action === 'obsidian-preview' || action === 'obsidian' || action.startsWith('notion-')) return 'apps'
-  if (action === 'spanda-preview' || action === 'spanda') return 'apps'
-  return 'markdown'
 }

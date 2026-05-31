@@ -183,12 +183,12 @@ Startup:
 await call("chitragupta_status", {})
 
 await call("vertical.skill.services", {
-  projectPath: "/Users/srinivaspendela/Sriinnu/Personal/grimoire"
+  projectPath: "/path/to/grimoire"
 })
 
 await call("bridge.bootstrap", {
   verticalId: "grimoire",
-  projectPath: "/Users/srinivaspendela/Sriinnu/Personal/grimoire",
+  projectPath: "/path/to/grimoire",
   surface: "desktop"
 })
 ```
@@ -198,7 +198,7 @@ Active-note recall:
 ```ts
 await call("chitragupta_recall", {
   query: "What matters for this note?",
-  projectPath: "/Users/srinivaspendela/Sriinnu/Personal/grimoire",
+  projectPath: "/path/to/grimoire",
   vaultPath: "/path/to/vault",
   activeNotePath: "notes/example.md",
   limit: 8,

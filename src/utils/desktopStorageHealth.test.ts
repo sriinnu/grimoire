@@ -49,7 +49,7 @@ describe('desktopStorageHealth', () => {
   })
 
   it('formats redacted provider health toasts and status labels', () => {
-    expect(formatDesktopStorageHealthToast(readyReport)).toBe('iCloud Drive local-folder check: ready')
+    expect(formatDesktopStorageHealthToast(readyReport)).toBe('iCloud Drive local-folder check: folder readable')
     expect(desktopStorageHealthStatusLabel('provider_root_missing')).toBe('provider folder missing')
     expect(desktopStorageHealthStatusLabel('inaccessible')).toBe('not readable')
   })

@@ -17,15 +17,22 @@ export interface FontAssetDefinition {
 const FONT_ROLE_NAMES: readonly FontRole[] = ['ui', 'editor', 'mono', 'display', 'label']
 
 const SYSTEM_UI_FONT =
-  "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif"
 const SYSTEM_EDITOR_FONT =
-  "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif"
+  "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif"
 const SYSTEM_MONO_FONT =
   "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace"
-const SYSTEM_LABEL_FONT =
-  "'Avenir Next Condensed', 'Arial Narrow', -apple-system, BlinkMacSystemFont, sans-serif"
-const CAVEAT_DISPLAY_FONT =
-  "'Grimoire Caveat', 'Caveat', 'Bradley Hand', 'Marker Felt', 'Segoe Print', cursive"
+const BOOK_SERIF_FONT =
+  "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif"
+const EDITORIAL_SERIF_FONT =
+  "'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif"
+const MANUSCRIPT_SERIF_FONT =
+  "Palatino, 'Palatino Linotype', 'Book Antiqua', 'Hoefler Text', Georgia, ui-serif, serif"
+const READABLE_SANS_FONT =
+  "'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', 'Avenir Next', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const HUMANIST_SANS_FONT =
+  "'Avenir Next', Avenir, 'Gill Sans', 'Trebuchet MS', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
+const SYSTEM_LABEL_FONT = SYSTEM_UI_FONT
 
 export const FONT_ASSETS: Record<FontAssetId, FontAssetDefinition> = {
   caveat: {
@@ -43,25 +50,25 @@ export const FONT_ASSETS: Record<FontAssetId, FontAssetDefinition> = {
 
 const BASE_FONT_ROLES: FontRoleConfig = {
   ui: SYSTEM_UI_FONT,
-  editor: SYSTEM_EDITOR_FONT,
+  editor: BOOK_SERIF_FONT,
   mono: SYSTEM_MONO_FONT,
-  display: CAVEAT_DISPLAY_FONT,
+  display: BOOK_SERIF_FONT,
   label: SYSTEM_LABEL_FONT,
 }
 
 const EDITOR_FONT_ROLES: Record<EditorFont, Pick<FontRoleConfig, 'editor'>> = {
   system: { editor: SYSTEM_EDITOR_FONT },
-  serif: { editor: "ui-serif, 'New York', 'Iowan Old Style', Georgia, serif" },
+  readable: { editor: READABLE_SANS_FONT },
+  humanist: { editor: HUMANIST_SANS_FONT },
+  literary: { editor: BOOK_SERIF_FONT },
+  editorial: { editor: EDITORIAL_SERIF_FONT },
+  manuscript: { editor: MANUSCRIPT_SERIF_FONT },
   mono: { editor: SYSTEM_MONO_FONT },
-  readable: { editor: "'Atkinson Hyperlegible', 'Avenir Next', system-ui, sans-serif" },
-  literary: { editor: "ui-serif, 'New York', 'Hoefler Text', 'Iowan Old Style', Georgia, serif" },
-  compact: { editor: "'Avenir Next Condensed', 'Arial Narrow', system-ui, sans-serif" },
-  handwritten: { editor: CAVEAT_DISPLAY_FONT },
 }
 
 const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = {
   'living-archive': {
-    display: CAVEAT_DISPLAY_FONT,
+    display: BOOK_SERIF_FONT,
     label: SYSTEM_LABEL_FONT,
   },
 }
@@ -81,8 +88,8 @@ export function resolveFontRoles(appearance: ResolvedAppearance): FontRoleConfig
 
 /** Returns local font asset IDs needed by the selected appearance. */
 export function resolveFontAssetIds(appearance: ResolvedAppearance): FontAssetId[] {
-  void appearance
-  return ['caveat']
+  const roles = resolveFontRoles(appearance)
+  return Object.values(roles).some((role) => role.includes('Grimoire Caveat')) ? ['caveat'] : []
 }
 
 /** Applies resolved font roles as CSS variables on the root document element. */

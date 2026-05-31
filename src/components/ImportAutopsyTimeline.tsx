@@ -64,7 +64,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
 
   return (
     <section
-      className="grimoire-import-autopsy grimoire-panel-reveal grid gap-2 rounded-md border border-border bg-muted/25 p-3"
+      className="grimoire-import-autopsy grimoire-panel-reveal grid gap-2 rounded-md border border-border p-3"
       data-testid="import-autopsy-timeline"
       aria-label={`Import Autopsy preview for ${sourceLabel}`}
     >
@@ -107,7 +107,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
         {manifest.map((bucket) => (
           <div
             key={bucket.label}
-            className="rounded border border-border bg-background/60 px-2.5 py-2"
+            className="grimoire-import-autopsy__bucket rounded border border-border px-2.5 py-2"
             data-tone={bucket.tone ?? 'default'}
           >
             <div className="text-[11px] font-semibold uppercase text-muted-foreground">{bucket.label}</div>
@@ -118,7 +118,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
       </div>
       {exactManifest.length > 0 ? (
         <div
-          className="grid gap-1.5 rounded-md border border-border bg-background/60 p-2"
+          className="grimoire-import-autopsy__manifest grid gap-1.5 rounded-md border border-border p-2"
           data-testid="import-autopsy-exact-manifest"
           aria-label="Exact redacted import manifest"
         >
@@ -129,7 +129,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
           {exactManifest.map((row) => (
             <div
               key={`${row.kind}:${row.source}:${row.destination}:${row.detail}`}
-              className="grid gap-1 rounded border border-border bg-background/70 px-2 py-1.5 text-[11px] sm:grid-cols-[6rem_minmax(0,1fr)]"
+              className="grimoire-import-autopsy__manifest-row grid gap-1 rounded border border-border px-2 py-1.5 text-[11px] sm:grid-cols-[6rem_minmax(0,1fr)]"
               data-tone={row.tone ?? 'default'}
             >
               <span className="font-semibold uppercase text-muted-foreground">{row.kind}</span>
@@ -147,7 +147,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
         {steps.map((step, index) => (
           <li
             key={step.label}
-            className="grimoire-import-autopsy__step grimoire-control-entrance grid gap-0.5 rounded border border-border bg-background/70 px-2.5 py-2"
+            className="grimoire-import-autopsy__step grimoire-control-entrance grid gap-0.5 rounded border border-border px-2.5 py-2"
             data-tone={step.tone ?? 'default'}
             style={{ '--motion-stagger-delay': `${index * 35}ms` } as CSSProperties}
           >

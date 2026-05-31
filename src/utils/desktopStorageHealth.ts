@@ -56,7 +56,7 @@ export function desktopStorageProviderLabel(providerId: DesktopStorageProviderId
 export function desktopStorageHealthStatusLabel(status: DesktopStorageHealthStatus): string {
   switch (status) {
     case 'ready':
-      return 'ready'
+      return 'folder readable'
     case 'not_selected':
       return 'not selected'
     case 'provider_root_missing':

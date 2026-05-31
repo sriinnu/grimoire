@@ -9,6 +9,11 @@ export type LivingFrontmatterHintKind =
   | 'type-schema'
 
 export type LivingFrontmatterHintSeverity = 'info' | 'warn'
+export type LivingFrontmatterHintSource =
+  | 'body-wikilinks'
+  | 'built-in-rule'
+  | 'type-note'
+  | 'vault-neighborhood'
 export type LivingFrontmatterSuggestedValue = string | number | boolean | string[]
 
 export interface LivingFrontmatterHint {
@@ -17,8 +22,19 @@ export interface LivingFrontmatterHint {
   label: string
   detail: string
   severity: LivingFrontmatterHintSeverity
+  source: LivingFrontmatterHintSource
   field?: string
   suggestedValue?: LivingFrontmatterSuggestedValue
+}
+
+/** Owner-visible review summary for Living Frontmatter suggestions. */
+export interface LivingFrontmatterReviewPlan {
+  applicableCount: number
+  fieldCount: number
+  readOnlyCount: number
+  sourceLabels: string[]
+  storagePolicy: 'markdown-on-disk'
+  writePolicy: 'frontmatter-only'
 }
 
 export interface LivingFrontmatterInput {
@@ -35,6 +51,12 @@ interface RequiredField {
 
 const ACTIVE_STATUSES = new Set(['active', 'open', 'in_progress', 'in progress', 'started', 'todo', 'doing'])
 const STALE_ACTIVE_DAYS = 30
+const SOURCE_LABELS: Record<LivingFrontmatterHintSource, string> = {
+  'body-wikilinks': 'Wikilinks',
+  'built-in-rule': 'Built-in rules',
+  'type-note': 'Type notes',
+  'vault-neighborhood': 'Vault neighbors',
+}
 
 const TYPE_REQUIRED_FIELDS: Record<string, RequiredField[]> = {
   dream: [
@@ -79,6 +101,22 @@ export function buildLivingFrontmatterHints({
   ])
 }
 
+/** Builds a count-only review plan for the Inspector UI before frontmatter is changed. */
+export function buildLivingFrontmatterReviewPlan(hints: LivingFrontmatterHint[]): LivingFrontmatterReviewPlan {
+  const writableHints = hints.filter(hasSuggestedWrite)
+  const fieldKeys = new Set(writableHints.map((hint) => normalizeFieldKey(hint.field)))
+  const sourceLabels = [...new Set(hints.map((hint) => SOURCE_LABELS[hint.source]))]
+
+  return {
+    applicableCount: writableHints.length,
+    fieldCount: fieldKeys.size,
+    readOnlyCount: hints.length - writableHints.length,
+    sourceLabels,
+    storagePolicy: 'markdown-on-disk',
+    writePolicy: 'frontmatter-only',
+  }
+}
+
 function typeSchemaHints(
   entry: VaultEntry,
   entries: VaultEntry[],
@@ -97,6 +135,7 @@ function typeSchemaHints(
       label: `Add ${humanizeField(field)}`,
       detail: `${typeName} type asks for ${humanizeField(field).toLowerCase()} in readable Markdown frontmatter.`,
       severity: required ? 'warn' : 'info',
+      source: 'type-note',
       field,
       suggestedValue: suggestedMissingFieldValue(field, typeName, now),
     }))
@@ -112,6 +151,7 @@ function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter, no
       label: 'Add type',
       detail: 'A type field would make this note easier to filter, template, and hand to agents.',
       severity: 'info',
+      source: 'built-in-rule',
       field: 'type',
       suggestedValue: entry.isA?.trim() || 'Note',
     })
@@ -127,6 +167,7 @@ function missingFieldHints(entry: VaultEntry, frontmatter: ParsedFrontmatter, no
       label: `Add ${humanizeField(requirement.field)}`,
       detail: `${typeName} notes are stronger with ${humanizeField(requirement.field).toLowerCase()} in frontmatter.`,
       severity: requirement.field === 'status' ? 'warn' : 'info',
+      source: 'built-in-rule',
       field: requirement.field,
       suggestedValue: suggestedMissingFieldValue(requirement.field, typeName, now),
     })
@@ -151,6 +192,7 @@ function staleStatusHints(
     label: 'Review active status',
     detail: `Still marked ${status}, but untouched for ${ageDays} days.`,
     severity: 'warn',
+    source: 'built-in-rule',
     field: 'status',
   }]
 }
@@ -171,6 +213,7 @@ function duplicateConceptHints(entry: VaultEntry, entries: VaultEntry[]): Living
     label: 'Possible duplicate',
     detail: `Looks close to ${matches.join(', ')}.`,
     severity: 'warn',
+    source: 'vault-neighborhood',
   }]
 }
 
@@ -186,6 +229,7 @@ function relationshipHints(entry: VaultEntry, frontmatter: ParsedFrontmatter): L
     label: 'Promote links',
     detail: 'Frequent wikilinks here could become belongs_to or related_to fields.',
     severity: 'info',
+    source: 'body-wikilinks',
     field: 'related_to',
     suggestedValue: entry.outgoingLinks.map(label => `[[${label}]]`),
   }]
@@ -312,6 +356,12 @@ function dedupeHints(hints: LivingFrontmatterHint[]): LivingFrontmatterHint[] {
     seen.add(key)
     return true
   })
+}
+
+function hasSuggestedWrite(
+  hint: LivingFrontmatterHint,
+): hint is LivingFrontmatterHint & { field: string; suggestedValue: LivingFrontmatterSuggestedValue } {
+  return !!hint.field && hint.suggestedValue !== undefined
 }
 
 function suggestedMissingFieldValue(

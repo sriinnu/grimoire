@@ -10,6 +10,8 @@ export const APP_STORAGE_KEYS = {
   sortPreferences: 'grimoire-sort-preferences',
   sidebarCollapsed: 'grimoire:sidebar-collapsed',
   sidebarColumnCollapsed: 'grimoire:sidebar-column-collapsed',
+  objectStorageLiveProofReport: 'grimoire:object-storage-live-proof-report',
+  objectStorageLiveProofReportHistory: 'grimoire:object-storage-live-proof-report-history',
   welcomeDismissed: 'grimoire_welcome_dismissed',
 } as const
 

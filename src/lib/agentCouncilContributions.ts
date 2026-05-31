@@ -41,6 +41,7 @@ function claimSourceLabels(member: AgentCouncilClaimInput): string[] {
 }
 
 function claimConfidence(member: AgentCouncilClaimInput): AgentCouncilClaimConfidence {
+  if (member.health === 'blocked') return 'blocked'
   if (member.health === 'missing') return 'blocked'
   if (member.health === 'checking') return 'low'
   if (member.sources.some((source) => source.kind === 'withheld')) return 'medium'

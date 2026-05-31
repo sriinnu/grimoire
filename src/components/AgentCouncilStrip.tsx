@@ -372,6 +372,7 @@ function sourceBadgeClass(kind: AgentCouncilSource['kind']): string {
 
 function healthDotClass(health: string): string {
   if (health === 'ready') return 'bg-[var(--grimoire-signal-accent)]'
+  if (health === 'blocked') return 'bg-[var(--status-bar-danger-fg,var(--destructive))]'
   if (health === 'checking') return 'bg-[var(--primary)]'
   if (health === 'private-local') return 'bg-[var(--grimoire-private-local-accent)]'
   return 'bg-muted-foreground/45'

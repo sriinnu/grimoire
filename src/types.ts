@@ -1,5 +1,5 @@
 import type { AiAgentId } from './lib/aiAgents'
-import type { EditorFont, NativeShellMaterial, ThemePreset } from './lib/appearance'
+import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from './lib/appearance'
 import type { TranscriptionProviderId } from './lib/transcriptionProviders'
 import type { ThemeMode } from './lib/themeMode'
 import type { AppLocale } from './lib/i18nCore'
@@ -96,6 +96,7 @@ export interface Settings {
   theme_mode?: ThemeMode | null
   theme_preset?: ThemePreset | null
   editor_font?: EditorFont | null
+  editor_line_height?: EditorLineHeight | null
   ui_language?: AppLocale | null
   menu_bar_icon_enabled?: boolean | null
   native_shell_material?: NativeShellMaterial | null

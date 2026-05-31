@@ -32,9 +32,11 @@
 }
 
 .note-list-filter-rail--embedded .note-list-filter-group {
-  border-color: transparent;
-  background: transparent;
-  padding: 0;
+  border-color: color-mix(in srgb, var(--note-list-chrome-border) 58%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 3%, transparent), transparent 72%),
+    color-mix(in srgb, var(--background) 42%, transparent);
+  padding: 4px 5px 4px 8px;
 }
 
 .note-list-filter-shelf::-webkit-scrollbar {

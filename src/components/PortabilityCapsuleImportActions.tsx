@@ -89,7 +89,7 @@ function CapsuleButton({ label, testId, actionId, busyAction, importPreview, vau
       label={label}
       testId={testId}
       busy={busyAction === actionId}
-      busyLabel={t('settings.portability.previewing')}
+      busyLabel={t(actionId.endsWith('-preview') ? 'settings.portability.previewing' : 'settings.portability.importing')}
       disabled={Boolean(busyAction) || !vaultReady || !onClick || importLocked(actionId, importPreview)}
       onClick={onClick}
       t={t}

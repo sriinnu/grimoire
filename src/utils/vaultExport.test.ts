@@ -6,6 +6,7 @@ import {
   formatPortabilityCapsulePreviewToast,
   formatMarkdownZipExportToast,
   formatStaticHtmlExportToast,
+  runPortabilityCapsuleLoopProof,
 } from './vaultExport'
 
 describe('vaultExport', () => {
@@ -72,5 +73,16 @@ describe('vaultExport', () => {
     })
 
     expect(events).toEqual(['Started', 'Progress', 'Finished'])
+  })
+
+  it('runs browser-fallback capsule loop proof without storing artifact paths', async () => {
+    await expect(runPortabilityCapsuleLoopProof('/vault', 'json')).resolves.toMatchObject({
+      proof_level: 'local-artifact-loop',
+      format: 'json',
+      status: 'passed',
+      export_signature_captured: true,
+      import_signature_captured: true,
+      artifact_path_stored: false,
+    })
   })
 })

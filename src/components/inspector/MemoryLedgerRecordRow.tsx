@@ -71,6 +71,8 @@ export function MemoryLedgerRecordRow({
       <div className="mt-1 flex flex-wrap gap-1">
         {record.lastSeen ? <LedgerBadge tone="neutral">Seen {record.lastSeen}</LedgerBadge> : null}
         {display.handoffLabel ? <LedgerBadge tone={display.handoffTone}>{display.handoffLabel}</LedgerBadge> : null}
+        {display.receiptLabel ? <LedgerBadge tone={display.receiptTone}>{display.receiptLabel}</LedgerBadge> : null}
+        {display.loopLabel ? <LedgerBadge tone="verified">{display.loopLabel}</LedgerBadge> : null}
         {display.expiryLabel ? <LedgerBadge tone={display.expiryTone}>{display.expiryLabel}</LedgerBadge> : null}
         {display.contradictionLabel ? <LedgerBadge tone={display.contradictionTone}>{display.contradictionLabel}</LedgerBadge> : null}
         {record.version ? <LedgerBadge tone="neutral">v{record.version}</LedgerBadge> : null}

@@ -27,6 +27,26 @@ describe('GraphAgentRunway', () => {
     render(
       <GraphAgentRunway
         agentGraphContext={readyContext}
+        aiAgentsStatus={{
+          chitragupta: createAiAgentAvailability('installed'),
+          codex: createAiAgentAvailability('installed'),
+          claude_code: createAiAgentAvailability('installed'),
+        }}
+        chitraguptaStatus={{
+          ok: true,
+          daemon: 'running',
+          transport: 'open',
+          capabilities: [
+            'memory.append',
+            'memory.search',
+            'recall.unified',
+            'wiki.list',
+            'wiki.read',
+            'graph.neighborhood',
+            'diagnostics.memory',
+            'ingest.markdown',
+          ],
+        }}
         defaultAiAgent="chitragupta"
         defaultAiModel="gemini-2.5-pro"
         defaultAiProvider="google"
@@ -92,6 +112,35 @@ describe('GraphAgentRunway', () => {
     expect(screen.getByTestId('agent-route-disclosure')).toHaveTextContent('CLI missing')
     expect(runway).toHaveTextContent('Codex / Claude Code')
     expect(runway).toHaveTextContent('Source-safe')
+  })
+
+  it('blocks Chitragupta graph memory when MCP transport is closed', () => {
+    render(
+      <GraphAgentRunway
+        agentGraphContext={readyContext}
+        aiAgentsStatus={{
+          chitragupta: createAiAgentAvailability('installed'),
+          codex: createAiAgentAvailability('installed'),
+          claude_code: createAiAgentAvailability('installed'),
+        }}
+        chitraguptaStatus={{
+          ok: false,
+          daemon: 'running',
+          transport: 'closed',
+          capabilities: ['memory.search'],
+          warnings: ['Transport closed at /Users/sriinnu/private.sock'],
+        }}
+        defaultAiAgent="chitragupta"
+        selectedLocalOnly={false}
+      />,
+    )
+
+    const runway = screen.getByTestId('graph-agent-runway')
+    const summary = screen.getByTestId('graph-agent-runway-summary')
+    expect(runway).toHaveAttribute('data-state', 'blocked')
+    expect(summary).toHaveTextContent('MCP transport closed')
+    expect(runway).toHaveTextContent('MCP transport closed before Chitragupta memory tools answered.')
+    expect(runway).not.toHaveTextContent('/Users/')
   })
 
   it('keeps Locality Firewall as the primary runway state while route status is checking', () => {

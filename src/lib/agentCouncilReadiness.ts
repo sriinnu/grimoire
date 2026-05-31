@@ -63,6 +63,10 @@ function readinessForMember(
     return { detail: 'Local setup or contract is not ready.', state: 'unavailable', status: 'Unavailable' }
   }
 
+  if (member.health === 'blocked') {
+    return { detail: 'Runtime contract is blocked; no live handoff.', state: 'blocked', status: 'Blocked' }
+  }
+
   if (member.health === 'private-local') {
     return { detail: 'Private lane; output needs approval.', state: 'private', status: 'Private' }
   }

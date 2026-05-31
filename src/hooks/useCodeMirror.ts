@@ -38,7 +38,7 @@ function buildBaseTheme() {
     },
     '.cm-scroller': {
       fontFamily: FONT_FAMILY,
-      lineHeight: '1.6',
+      lineHeight: 'var(--editor-line-height, 1.44)',
       padding: '16px 0',
       overflow: 'auto',
     },

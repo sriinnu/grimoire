@@ -1,6 +1,6 @@
 # Grimoire Active Work
 
-Last updated: 2026-05-28
+Last updated: 2026-05-29
 
 This file is the working stack for the current Grimoire push. New user requests that are backlog/context should be appended here instead of replacing the current task.
 
@@ -26,6 +26,8 @@ This file is the working stack for the current Grimoire push. New user requests 
 	- [x] Add explicit mobile review-gate metadata and Markdown checklists so iPhone/iPad captures are blocked from agent/export/sync context until the user reviews them.
 	- [x] Route pending mobile review through a privacy-safe queue item and use `captured_at` for unscheduled mobile Time Loom chronology instead of desktop import time.
 	- [x] Add a V1 mobile capture schema, stable capture IDs, and local attachment manifests so voice, camera, transcript, and Pencil assets are reviewable without leaking device paths or checksums into Markdown.
+	- [x] Stamp every mobile capture draft with the shared local `date` frontmatter and date formatter so iPhone/iPad, desktop, CLI, import/export, Time Loom, and agents do not fork into separate date dialects.
+	- [x] Align desktop Journal/Dream creation with mobile review contracts by adding explicit agent/export/sync context gates and making the Locality Firewall recognize those gates as local protection markers.
 	- [x] Interpret mobile review outcomes so accepted/merged/moved/discarded captures graduate out of the dashboard queue, while blocked captures stay visible as privacy-safe review actions.
 	- [x] Add an Inspector Mobile Review action gate for pending/blocked iPhone and iPad captures. Accept, Merge, Move, Block, and Discard write Markdown frontmatter only; they do not export, sync, or send agent context, and the Locality Firewall still decides egress.
 13. Enforce theme coherence across the whole app: colors, spacing, gradients, density, typography, radius, shadows, and motion must propagate to every major surface, not just the sidebar/editor.
@@ -52,10 +54,24 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Make the Settings portability proof surface human-facing by default: collapsed rows now show Portability Status, opt-in/manual-live-proof copy, and redacted report state while developer commands/env gates stay behind disclosure.
   - [x] Require exact JSON/SQLite capsule preview signatures for export/import writes so stale reviewed previews cannot write changed vault/capsule content.
   - [x] Require exact Import Autopsy preview signatures for Markdown folder, Markdown ZIP, journal, and app import writes before any vault folder is created.
+  - [x] Harden Settings provider apply and Import Autopsy freshness: S3/Azure apply stays locked until captured preview args match the visible draft, provider target redaction is case-insensitive, private import-source path shape changes stale the preview without hashing private contents, and JS local-only policy now treats numeric `1` markers the same as Rust/MCP.
+		  - [x] Make Settings portability actions explain the current lane correctly: import/export/storage progress copy is action-aware including start/cancel states, preview vs write busy states are distinct, reviewed import/export previews auto-open the correct lane, export and Import Autopsy summaries use theme-owned material, desktop iCloud/GDrive reads as folder proof only, S3/Azure reads as proof preview, provider-preview evidence appears in the Proof Ledger without provider targets, redacted live proof reports persist across Settings reopen, provider proof failures retain redacted kind/stage evidence, and second-brain plus Proof Ledger row/chrome/capsule-loop labels are localized.
+		  - [x] Put a localized local-first contract strip at the top of Portability Settings so Markdown source-of-truth, private/local-only defaults, desktop folder proof, and S3/Azure proof gates are visible before any move/export/sync action.
+		  - [x] Add a Settings failure-state coverage matrix for S3/Azure provider proof reports: pass, setup/config, auth/login, permission, conflict, network/retry, and cleanup states stay visible as recorded/needed without bucket/container/prefix/path/secret exposure.
+		  - [x] Label desktop iCloud/GDrive proof status as `folder readable` instead of `ready`, so Settings does not overclaim provider sync readiness from a local-folder readability check.
 - 5 Mature canvas: shapes, text boxes, lasso, image attachments, stroke extraction, and smoother launch/save behavior.
+  - [x] Keep no-op canvas actions, including missed eraser passes, from flipping the local canvas into an unsaved state.
+  - [x] Clear canvas now removes stale layer-order metadata from the local JSON source instead of saving ghost layer ids.
+  - [x] Keep zero-distance and stale canvas move operations from rewriting `updatedAt` or dirtying the local source.
 - 6 Sweep themes/fonts: contrast, manuscript font parity, sidebar artwork, live previews, curated preset hierarchy, and dark-theme readability.
   - [x] Retire weak shipped presets: keep Constellation, Daylight Atelier, Living Archive, Nocturne, and Retro Terminal as the current built-in ecosystem.
-  - [x] Repair the sidebar artwork contract and replace the loose vault-map sketch with a theme-aware vault-atlas glyph that stays visible in live sidebars and Settings previews.
+	  - [x] Repair the sidebar artwork contract and replace the loose vault-map sketch with a theme-aware vault-atlas glyph that stays visible in live sidebars and Settings previews.
+	  - [x] Add a seventh left-sidebar glyph polish pass: generic folders are quieter, semantic folder medallions carry stronger theme color, and nav/rail/section glyphs use inset etched material instead of cheap outline polish.
+	  - [x] Add a heavier ambient sidebar sigil redraw with a vault shell, atlas ridge, compass, and source-route bloom while splitting the atlas CSS into its own sub-400-line layer.
+	  - [x] Replace raw default folder icons with authored Grimoire folder glyphs and add Sanskrit/Hindi/transliteration aliases for Vedas, Shaastras, Puranas, Rishi, Brain, Star/Astral, Journal, and Private folders.
+	  - [x] Make selected folder rows inherit the resolved semantic glyph tone/motif so Veda, private, storage, and generic folder selections share one material system.
+	  - [x] Move sidebar art palette variables to the whole sidebar/preview panel, simplify compact sigils, and let generic children inherit strong parent lanes without turning ordinary note folders into loud badges.
+	  - [x] Add an eighth sidebar glyph refinement pass: semantic folders now get authored cel-highlight medallions, selected rows get a tone rail, and the ambient sigil gets a stronger crest/crown silhouette while staying CSS/SVG-only.
 - 7 Build the second-brain layer: Chitragupta recall/wiki/graph tools, diagnostics, source-backed answers, and durable Markdown write-backs.
   - [x] Stop forcing Chitragupta to Anthropic when no provider override is set; Grimoire now uses the CLI default route and tells the agent not to guess provider/model details.
   - [x] Make Chitragupta route truth visible in Settings: no override means no `--provider` or `--model` is passed; explicit overrides are shown before save.
@@ -96,6 +112,8 @@ This file is the working stack for the current Grimoire push. New user requests 
   - [x] Fold Assistant Brief, Daily Flow, and the duplicate Attention Mode card into one Today Runway so the dashboard gives one calm next action, one ritual progress rail, and one local metadata reason surface.
   - [x] Remove the old standalone Assistant Brief and Daily Flow components after the Today Runway merge so the dashboard has one source of truth for the daily assistant loop.
   - [x] Move the remaining Daily Flow rail styles into `DashboardTodayRunway.css`, leaving the daily assistant loop with one component owner and one CSS owner.
+  - [x] Add permanent Notes, Journal, and Dreams sidebar lanes backed by existing Markdown type filters, plus Today/Yesterday/Day-before-yesterday dashboard capture chips that write local `date` frontmatter.
+  - [x] Retarget lane creation/search affordances so Journal and Dreams show dedicated search placeholders, create labels, and `Cmd+N`/command-palette creation into the selected local Markdown type instead of generic notes.
   - [x] Show the selected AI agent route in the bottom-bar agent menu so private lanes expose provider/model truth as configured, CLI-default, or stream-resolved state without leaking prompts, credentials, or hidden Chitragupta internals.
 	  - [x] Reuse that route disclosure inside Agent Council and graph runway surfaces, paired with source-safe/no-note-payload privacy state and theme-owned materials.
   - [x] Move Settings rail, mobile rail, active section buttons, and form controls onto a dedicated theme material layer so Settings no longer depends on ad-hoc background utility islands.
@@ -193,7 +211,7 @@ This file is the working stack for the current Grimoire push. New user requests 
 		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.227` after adding typed Daily Thread Crystallize handoff intent to dashboard asks; shell is 221.81 KiB gzip.
 		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.228` after surfacing typed Daily Thread Crystallize intent in Context Capsule card/package review; shell is 221.80 KiB gzip.
 		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.229` after graph-agent eligibility/count/theme truth polish; shell is 221.82 KiB gzip.
-				  - [ ] Native screenshot verification is still blocked by macOS Screen Recording permission for the Codex/terminal host; do not mark native overlap acceptance complete from browser proof alone.
+				  - [ ] Native screenshot verification captured `/tmp/grimoire-native-0.1.362.png`: the app owns the menu bar and AX reports one visible window, but the native window content is blank/transparent over the wallpaper. Do not mark native overlap acceptance complete until the Tauri window paints visible content.
 
 ## Proof Boundaries
 
@@ -203,13 +221,16 @@ This file is the working stack for the current Grimoire push. New user requests 
 - Chitragupta: Grimoire's current app proof is CLI `--stream-json` route/status/error parsing plus structured app-owned provider/model disclosure. Graph/Council surfaces now show the selected CLI route's missing/checking/installed state beside source-safe package eligibility, and the Inspector Memory lane now separates CLI installed/checking/missing from MCP recall/wiki/graph capability readiness with sanitized warnings. MCP recall/wiki/graph/diagnostics remains degraded or future-facing, not ready product truth.
 - Daily Thread / Time Loom: the dashboard now turns metadata-only Time Loom counts plus Dream Forge rhythm into one local next action. Review/private/dream actions stay local. Calm "Crystallize the day" actions now seed a source-safe `/ask` prompt for a reviewable Markdown memory proposal. This is count/date/type/frontmatter guidance, not live Calendar/Todoist/provider proof and not automatic agent writing.
 - Theme coherence: browser/token regressions cover the main workspace, Settings, iPad-width Settings compact navigation, long-note search/TOC, collapsed sidebar, reduced motion, forced colors, shell material variants, graph-agent state colors, Memory Ledger/Locality Firewall Inspector states, and status/settings token ownership. Native screenshots remain unproven in this runner.
-- Import/export/sync: importers and exporters have fixture-backed and regression-backed previews, local-only exclusions, and reports. Settings now separates support status from proof level for importers, exports, desktop-folder sync, S3/Azure read-only preflights, S3/Azure local-mirror fixtures, and explicit S3/Azure provider sync lanes. S3/Azure provider apply blocks conflicts, refuses changed Settings targets after preview, avoids hidden env fallback on Settings-entered drafts, uses Grimoire SHA-256 metadata for content comparison, and redacts local paths from storage errors. iCloud/GDrive Desktop have a native local-folder read proof that never touches cloud credentials. Portability Capsule export now emits pure JSON and local SQLite snapshots from one redacted Locality Firewall inventory; JSON stays human-diffable and agent-friendly, while SQLite stays a local read-optimized snapshot, never the hidden vault source of truth. Capsule import preview/apply now restores JSON/SQLite capsules into local `imports/` lanes after checksum/path/firewall validation, rejects imported capsules whose Locality Firewall proof is missing/false/inconsistent, and re-runs the inbound local-only closure through private `grimoire-canvas` source JSON so nested placed images stay withheld. Reviewed JSON/SQLite capsule previews now appear in the Settings Proof Ledger as redacted count/locality evidence, never source paths. Real-world Bear, Day One, Apple Journal, Obsidian, Notion, iCloud, Google Drive, S3, Azure, JSON, and SQLite corpora/provider failure states still need live manual testing before "works 100%" is true.
+- Import/export/sync: importers and exporters have fixture-backed and regression-backed previews, local-only exclusions, and reports. Settings now separates support status from proof level for importers, exports, desktop-folder sync, S3/Azure read-only preflights, S3/Azure local-mirror fixtures, and explicit S3/Azure provider sync lanes. S3/Azure provider apply blocks conflicts, refuses changed Settings targets after preview, requires captured preview args in the UI before apply unlocks, avoids hidden env fallback on Settings-entered drafts, uses Grimoire SHA-256 metadata for content comparison, and redacts local paths/provider targets from storage errors and preview cards case-insensitively. iCloud/GDrive Desktop have native local-folder read proof only, never provider-sync proof, and the proof ledger says that without storing cloud credentials. S3/Azure storage providers now show proof-preview status/health because provider preview/apply controls exist, while still saying provider sync is not proven. Reviewed provider preview reports now appear in the Settings Proof Ledger as redacted direction/conflict/withheld/signature evidence, and pasted live proof-runner reports persist locally only after sanitization to status/gate/set-missing fields. Portability Capsule export now emits pure JSON and local SQLite snapshots from one redacted Locality Firewall inventory; JSON stays human-diffable and agent-friendly, while SQLite stays a local read-optimized snapshot, never the hidden vault source of truth. Capsule import preview/apply now restores JSON/SQLite capsules into local `imports/` lanes after checksum/path/firewall validation, rejects imported capsules whose Locality Firewall proof is missing/false/inconsistent, and re-runs the inbound local-only closure through private `grimoire-canvas` source JSON so nested placed images stay withheld. Reviewed JSON/SQLite capsule previews now appear in the Settings Proof Ledger as redacted count/locality evidence, never source paths. General Import Autopsy signatures include private/local-only path shape while withholding private bytes. Real-world Bear, Day One, Apple Journal, Obsidian, Notion, iCloud, Google Drive, S3, Azure, JSON, and SQLite corpora/provider failure states still need live manual testing before "works 100%" is true.
+- Generated capsule loop proof: Settings can run a native JSON/SQLite artifact loop that exports a temp local capsule, previews that exact artifact for import, compares counts/signatures/locality proof, and reports redacted pass/fail evidence without storing the artifact path.
+- Provider failure-state proof detail: the Proof Ledger now shows a redacted S3/Azure failure-state coverage matrix with 14 required cells: happy path, setup/config, auth/login, permission, conflict, network/retry, and cleanup for each provider. Loading a sanitized live proof report marks only the covered states as recorded; provider sync remains unproven until the matrix is covered with real provider evidence.
+- Proof Ledger i18n detail: Proof Ledger title, static row labels/details/evidence/remaining-proof copy, redacted-report dialog, details toggles, command copy state, setup labels, proof-level badges, support chips, and the always-visible local capsule loop card are localized for German, Hindi, Sanskrit, and Simplified Chinese. Runtime live-proof report/preflight details remain sanitized source evidence from their proof modules.
 - Import Autopsy detail: Markdown/Bear folder imports count files inside pruned local-only folders such as `.codex`, `.grimoire-local`, `mockups`, and `certs` as skipped. Progress imports now preserve the same skipped totals as preview/import reports. Obsidian/Notion-family app imports also count hidden/runtime files such as `.obsidian`, `.vscode`, `.env`, and unsafe ZIP traversal entries as skipped in preview/import/progress reports while withholding them from copied vault files.
 - Export proof detail: Markdown ZIP and static HTML exports count files withheld from `.grimoire-local`, `.codex`, `.mcp.json`, `.env*`, and `mockups` as skipped while keeping them out of portable artifacts. Markdown ZIP export now writes through a same-folder temporary file and only replaces the target after the archive finishes, so cancelled progress exports preserve any previous ZIP.
 - Capsule export proof detail: JSON and SQLite snapshots use the same Locality Firewall closure, store only vault-relative paths inside the artifact, include withheld reasons and locality proof, and keep Markdown on disk as the source of truth.
 - Capsule import proof detail: JSON and SQLite capsule readers now require the proof contract on import; Markdown-source-of-truth and absolute-path-redaction flags must be true, and the withheld count must match the manifest before preview or apply can continue. Inbound Locality Firewall filtering also expands private Markdown canvas source JSON references so placed images referenced inside that JSON cannot be restored as public assets.
-- iCloud and Google Drive support means local provider-managed folders plus read-only local-folder health checks. S3 support includes a read-only live preflight through local AWS configuration plus a Settings-visible provider preview/apply lane behind explicit user intent, exact preview signatures, conflict blocking, stale-target rejection, and content-hash checks. Azure support now includes a read-only live preflight plus provider preview/apply through the local Azure CLI login with the same safety contract. Settings can pass transient provider scope without saving it to the vault or app settings, and blank Settings drafts no longer silently fall back to hidden provider environment variables. Neither provider is provider-proven until live failure states are run through the Settings lanes.
-- Local capsule loop proof detail: Settings now reports JSON/SQLite capsule export/import as preview-paired only when the reviewed export preview and matching no-write import preview agree on format and locality proof, have zero failed imports, and plan a local-only report. Mismatched JSON/SQLite previews, failed imports, or broken redaction stay in review state.
+- iCloud and Google Drive support means local provider-managed folders plus read-only local-folder health checks. S3 support includes a read-only live preflight through local AWS configuration plus a Settings-visible provider preview/apply lane behind explicit user intent, exact preview signatures, conflict blocking, stale-target rejection, and content-hash checks. Azure support now includes a read-only live preflight plus provider preview/apply through the local Azure CLI login with the same safety contract. Settings can pass transient provider scope without saving it to the vault or app settings, and blank Settings drafts no longer silently fall back to hidden provider environment variables. Redacted provider proof reports now preserve failure kind and stage such as auth, permission, network, conflict, cleanup, gate, preview, apply, pull, and config without stderr, paths, buckets, containers, object keys, or credentials. Neither provider is provider-proven until live failure states are run through the Settings lanes.
+- Local capsule loop proof detail: Settings reports JSON/SQLite capsule export/import as preview-paired only when the reviewed export preview and matching no-write import preview agree on format and locality proof, have zero failed imports, and plan a local-only report. Settings also has a generated artifact loop proof for JSON and SQLite: native code exports a temp local capsule, previews that exact artifact, compares counts/signatures/locality proof, withholds source paths from the report, and never stores the generated artifact path. The proof UI now exposes the redacted generated-artifact checklist for export signature, import signature, count match, locality proof, and path-not-stored state without rendering the artifact path. Mismatched JSON/SQLite previews, failed imports, or broken redaction stay in review state.
 
 ## Agentic Mind OS Roadmap
 
@@ -295,7 +316,7 @@ Build order:
   - [x] Add a friction-to-answer Council rail so unavailable/private/memory-conflict signals stage visibly before the one-answer card, while protected/policy-only passes never expose hidden labels.
   - [x] Add inspectable Council evidence rows: Local Search shows active/ask/memory/linked inputs, Vault Graph shows source-safe neighbor nodes and edge manifests, and protected contexts show Locality Firewall evidence only.
   - [x] Surface Import/Export Council evidence rows for Import Autopsy, export manifests, storage proof level, and Locality Firewall holds without claiming live-provider proof.
-- [ ] Time Loom: daily notes, journals, meetings, dreams, tasks, commits, voice notes, and calendar become a temporal graph.
+- [x] Time Loom: daily notes, journals, meetings, dreams, tasks, commits, voice notes, and calendar become a temporal graph.
   - [x] Add the first dashboard Time Loom: recent Markdown activity grouped by local day, type, coarse status, and Locality Firewall private counts without protected title/path/body leaks.
   - [x] Fold raw transcript and cleaned transcript notes into a metadata-only `Voice` lane with private counts and no audio filename/transcript leakage.
   - [x] Fold vault Git pulse commits into a metadata-only `Commit` lane with counts only; commit messages, hashes, files, and paths do not render in Time Loom.
@@ -311,7 +332,9 @@ Build order:
   - [x] Fold Memory Ledger audit pressure into metadata-only `Memory` and `Memory review` lanes; memory titles, paths, contradiction labels, source links, provider/device markers, and local-only fields stay withheld from Time Loom, Daily Thread, and dashboard `/ask` packages.
   - [x] Add a Daily Thread rail that fuses Time Loom source counts with Dream Forge rhythm into one local next action without exposing private titles, paths, snippets, audio filenames, device metadata, commit text, or provider claims.
   - [x] Route the Daily Thread `Crystallize the day` action into the dashboard `/ask` path with a source-safe Crystallize-ready prompt and ask-context preview, instead of opening a journal prompt.
-- [ ] Context Capsules: inspectable agent context packages with selected notes, rules, project map, and exclusions, plus local-only safety.
+  - [x] Add a count-only Time Loom graph model and dashboard graph view: day nodes, lane nodes, held-local nodes, and safe links connect timeline activity without titles, paths, snippets, providers, device metadata, or raw local-only fields.
+  - [x] Verified focused Time Loom graph coverage on 2026-05-30: `pnpm exec vitest run src/lib/timeLoom.test.ts src/lib/timeLoomGuidance.test.ts src/components/dashboard/TimeLoomPanel.test.tsx src/components/dashboard/VaultDashboardTimeLoom.test.tsx src/dashboardThemeCss.test.ts` passed 22 tests.
+- [x] Context Capsules: inspectable agent context packages with selected notes, rules, project map, and exclusions, plus local-only safety.
   - [x] Add the first AI-panel capsule preview showing included notes, rules, graph edge count, and withheld local-only context before any agent handoff.
   - [x] Add a read-only Markdown package review dialog for the capsule before any agent handoff, export, sync, or file write.
   - [x] Add graph Council capsule previews so selected graph asks show source labels, graph counts, rules, and local-only exclusions before handoff.
@@ -319,6 +342,7 @@ Build order:
   - [x] Add a compact capsule route map for gather, Locality Firewall, project graph, and Markdown review state before any handoff.
   - [x] Add active agent route disclosure to Context Capsule card and review dialog so provider/model truth and source-safe/no-payload state are visible at the package boundary.
   - [x] Surface typed Daily Thread Crystallize handoff intent in the Context Capsule card and read-only Markdown package review so review-before-write memory work is visible before any agent packet moves.
+  - [x] Add a capsule manifest section to the Markdown package and dialog so review mode, source-safe count, held-local count, trimmed graph count, and next gate are explicit before any agent packet moves.
 - [ ] Import Autopsy: preview exactly what imports create, map, move, and withhold before Bear, Day One, Apple Journal, Obsidian, or Notion data enters the vault.
   - [x] Add the first Markdown folder/Bear preview before writing anything into the vault.
   - [x] Extend preview/autopsy to Markdown ZIP before writing anything into the vault.
@@ -334,10 +358,11 @@ Build order:
 	  - [x] Include withheld local-only file counts in Markdown ZIP and static HTML export completion toasts.
 	  - [x] Make Markdown/app import progress reports preserve skipped local-only/unsafe ZIP counts from their preview/import paths.
 	  - [x] Make Markdown ZIP export atomic at the final path so cancelled progress exports keep the previous archive.
-- [ ] Living Frontmatter: schema suggestions, missing fields, duplicate concepts, stale status, and relationship hints without turning Markdown into a hidden database.
+- [x] Living Frontmatter: schema suggestions, missing fields, duplicate concepts, stale status, and relationship hints without turning Markdown into a hidden database.
   - [x] Add the first read-only Inspector hints for missing type fields, stale active status, possible duplicate concepts, and wikilink promotion.
   - [x] Make safe Living Frontmatter hints actionable through the normal Markdown frontmatter update path, with visible suggested values and no hidden database writes.
   - [x] Let Markdown Type notes guide Living Frontmatter: `required_fields`/`required`/`fields` and `_list_properties_display` now produce local, reviewable missing-field hints on notes of that type without enforcing a database schema.
+  - [x] Add a Living Frontmatter review manifest that names source classes, Markdown YAML target, writeable field count, and read-only findings before any frontmatter change.
 - [ ] Attention Mode: detect drift from too many open notes, unresolved tasks, or repeated context switching; suggest one next action quietly.
   - [x] Add a dashboard Attention Mode card that picks one local next action from conflicts, memory queue, open-loop drift, journal/dream freshness, and local changes.
   - [x] Make Attention Mode actionable: memory-review suggestions open the Memory note, daily prompts seed the right local capture, and noisy local changes seed a local defer-sync Memory note.
@@ -346,12 +371,13 @@ Build order:
   - [x] Route calm recent-thread states into a source-safe Crystallize ask prompt so Attention Mode can enter reviewable Markdown memory without naming private notes.
   - [x] Route pending mobile captures into the same quiet review path before generic open-loop cleanup, using metadata-only dashboard counts.
   - [x] Stop re-suggesting Crystallize after reviewed memory landed today; the quiet next action becomes a light capture instead of a loop nag.
-- [ ] Dream Forge: private-only dream/journal analysis for symbols, recurring people, emotional weather, and timelines; no cloud or sync by default.
+- [x] Dream Forge: private-only dream/journal analysis for symbols, recurring people, emotional weather, and timelines; no cloud or sync by default.
   - [x] Add a dashboard Dream Forge card and explicit privacy model: local dashboard signals only, no body reads, no paths, no cloud, and redacted non-local reports.
   - [x] Wire the redacted Dream Forge egress report into the dashboard surface so non-local handoff status shows counts/redaction facts, not dream titles, paths, bodies, or signal labels.
   - [x] Replace the local latest-dream title with a private-safe recency cue so Dream Forge does not surface dream titles in the dashboard shell.
   - [x] Add a metadata-only private rhythm rail for recent/weekly/older dream-journal activity, with counts only and no title/path/body leakage.
   - [x] Add a metadata-only private timeline rail for last-night, weekly, monthly, and archive dream-journal bands, with signal counts only and no title/path/body/signal-label leakage.
+  - [x] Add a count-only local manifest for Lens, Read, Egress, and Export so Dream Forge makes "local unless explicitly exported" visible without leaking titles, paths, bodies, or signal labels.
 - [ ] Finder Ghost: native macOS Quick Look/index layer, global capture, menu-bar note, CLI create/open/rebuild, and Finder-visible Markdown workflows.
   - [x] Add richer menu-bar quick actions for Ask Grimoire and Command Palette through the shared native command bridge.
   - [x] Handle macOS reopen for the singleton app so launching Grimoire again restores the main window when the process is alive but no window is visible.
@@ -419,6 +445,7 @@ Build order:
 - Added Spanda-inspired Sadhana slash commands in the shared markdown package and Swift package: practice sessions, panchanga snapshots, japa logs, pranayama logs, and practice prescriptions.
 - Moved the canvas editor dialog behind a lazy chunk so handwritten/sketch tooling does not load on startup.
 - Moved live canvas Markdown snapshotting out of `SingleEditorView` and off the normal typing serialization path.
+- Added live shape previews for rectangle, ellipse, and line canvas drags so vector tools show the committed shape before release without writing until pointer-up.
 - Split the rich editor and secondary app surfaces behind lazy chunks; empty editor state now renders without loading BlockNote.
 - Added code-block language auto-detection for common fenced-code content without overriding manual language choices.
 - Added image and SVG file previews so vault attachments can be opened directly in the center pane.
@@ -532,7 +559,7 @@ Build order:
 - Reworked graph source-safe node motion into a finite Council-ready settle cue with explicit node badges, replacing the old infinite orbit loop.
 - Added Time Loom voice capture awareness: transcript and cleaned transcript Markdown count as a private-safe `Voice` temporal lane without exposing titles, paths, audio filenames, providers, or transcript text.
 - Added the first Context Capsule preview in the AI panel so active, linked, tab, and note-list context can be inspected with local-only exclusions before agent handoff.
-- Added a Context Capsule package review dialog so included source labels, rules, project-map counts, exclusions, and handoff checklist are inspectable as local Markdown before any handoff.
+- Added a Context Capsule package review dialog so included source labels, rules, project-map counts, exclusions, capsule manifest, and handoff checklist are inspectable as local Markdown before any handoff.
 - Added the first Time Loom dashboard card so recent Markdown activity is grouped by local day, type, coarse status, and private counts without reading bodies or leaking protected labels.
 - Added the first Red-Team My Plan AI-panel card so active notes/plans get local product, code, execution, UX, privacy, and evidence critique before agent handoff or durable writes.
 - Added a Red-Team Markdown patch-plan preview dialog so critique becomes inspectable checklist Markdown without writing files or leaking protected note labels, paths, or content.
@@ -559,6 +586,9 @@ Build order:
 - Added conservative native shell material controls in Settings so macOS titlebar/sidebar surfaces can switch between standard, unified, and glass-preview treatments without private transparency APIs.
 - Hardened the local-only audit so untracked commit-candidate files are checked for protected paths and strong local markers, not only already-tracked files.
 - Hardened release artifact verification so app bundles must match the expected package version in both `CFBundleShortVersionString` and `CFBundleVersion`; local macOS builds are ad-hoc signed for `/Applications` testing, not notarized distribution artifacts.
+- Made the compact AI brief expose Crystallize as a visible Memory packet with hunks, source count, landing folder, receipt, and a five-step Context/Council/Answer/Review/Memory runway before the dense Council details are expanded.
+- Threaded Crystallize loop receipts into Memory Ledger rows so accepted Markdown memories show the same receipt/loop closure in the Inspector, with path-shaped receipt values redacted to a generic recorded state.
+- Made the compact AI brief expose the reviewed Context Capsule `pkg-*` receipt before dense details expand, so the context package and Crystallize memory receipt are visible as one inspectable loop.
 
 ## Next Tasks
 
@@ -696,6 +726,7 @@ Build order:
     - [x] Add focused CSS/component regression coverage for the rail and side-menu guardrails.
     - [x] Add Playwright screenshot coverage for the main workspace, macOS-safe collapsed sidebar, long-note search/TOC, and themed editor navigator.
     - [ ] Verify the overlap fix in a native screenshot.
+      - [ ] Current native capture `/tmp/grimoire-native-0.1.362.png` proves Grimoire launches and owns a visible AX window, but the content is blank/transparent, so overlap/theme parity remains unverified.
   - [x] Add long-document find/search and make TOC/outline easy to reach.
   - [x] Add project/folder breadcrumb chips to note rows so search results show where they belong.
   - [x] Verify command palette, quick open, long-vault search/jank, note switch, in-note search, and TOC scroll with a focused Playwright latency spec.
@@ -721,12 +752,19 @@ Build order:
     - [x] Move Settings onto the shared shadcn/Radix Dialog shell, split header/footer chrome below the code-size guardrail, and correct the open-panel shortcut hint to save/close behavior.
     - [x] Route Settings control rows, local Git cards, AI route notes, theme-pack controls, and Locality Firewall cards through theme-owned material classes instead of ad-hoc `bg-muted`/`bg-background` islands.
     - [x] Fold Native macOS settings into the shared Settings heading/material system so menu-bar and window-material controls no longer carry inline/browser-default styling.
+    - [x] Localize Object Storage preview/preflight/provider proof copy and Chitragupta MCP contract copy for supported non-English Settings locales so German, Hindi, Sanskrit, and Simplified Chinese do not fall through to English on that surface.
+    - [x] Align portability lane review state with user intent: import previews, export previews, and storage reports now reopen their own lane instead of leaving users in the wrong proof surface.
+    - [x] Tighten Settings portability truth labels: app imports and JSON/SQLite capsules read as preview-backed, iCloud/GDrive reads as folder proof only, and S3/Azure apply actions say reviewed proof push/pull instead of implying provider-proven sync.
+    - [x] Add a local-first Privacy runway so private capture, cloud transcription, and anonymous diagnostics show their egress state before the toggles.
+    - [x] Add a daily assistant Workflow runway so Settings shows brief, Inbox triage, flow-through, and title hygiene state before the switches.
+    - [x] Add a local-first Sync & Updates runway so Markdown source, Git capability, AutoGit, and release feed are separate visible lanes before any toggle can imply that vaults require Git.
   - [x] Apply motion primitives to command palette, Settings, inspector, graph focus, and note navigation.
   - [x] Split Settings portability actions into intent lanes so Markdown, app, journal, export, and storage controls appear only when chosen.
   - [x] Tighten the Settings rail and main surface so sections have an active native control state instead of a flat scroll pile.
   - [x] Add theme-specific Settings shell, rail, main-surface, and local/private card material hooks so Settings follows the active preset.
   - [x] Add a compact iPad/mobile Settings section rail so collapsed Settings still has visible themed navigation and no horizontal overflow.
   - [x] Split Settings navigation into focused subcomponents so the main Settings body is 234 LOC and the compact rail keeps the active section visible while scrolling.
+  - [x] Add a theme-owned Privacy runway that makes private capture, cloud transcription, and diagnostics egress visible before any cloud/telemetry controls.
   - [x] Add Playwright screenshot coverage for Settings theme switching across Nocturne, Living Archive, Daylight Atelier, Prabhat Studio, Retro Terminal, and the portability Locality Firewall panel.
   - [x] Add Playwright reduced-motion coverage for Settings, workspace arrival, in-note search, TOC jump, and static navigator target cues.
   - [x] Remove infinite decorative workspace motion by replacing active AI-panel breathing with a finite ready cue.
@@ -747,8 +785,56 @@ Build order:
   - [x] Make bottom-bar layout responsive for mobile/iPad-width windows while preserving compact icon-first controls at medium widths.
 	  - [x] Stamp macOS app builds with incremental semver build versions shown as `x.x.1+` in the bottom bar.
 	  - [x] Harden the local macOS test-build ritual: `pnpm macos:test-build` bumps the app version, builds, replaces the singleton `/Applications/Grimoire.app`, ad-hoc signs it, and verifies the installed bundle version.
-	  - [x] Install singleton `/Applications/Grimoire.app` `0.1.292` after adding Crystallize loop receipts; app shell is 223.33 KiB gzip.
-			  - [ ] Verify `/Applications/Grimoire.app` native window visibility interactively; `0.1.292` is installed as the ad-hoc-signed singleton build, but Codex screenshot probes are blocked until Screen Recording permission is granted.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.292` after adding Crystallize loop receipts; app shell is 223.33 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.300` after the Settings portability lane polish, localized second-brain labels, and reviewed preview routing pass; app shell is 223.34 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.302` after tightening portability proof boundaries, action-aware progress copy, and themed Import Autopsy materials; app shell is 223.33 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.303` after persistent sanitized proof reports and provider-preview proof ledger evidence; app shell is 223.38 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.304` after Proof Ledger i18n chrome split and supported-locale regression coverage; app shell is 223.38 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.305` after localizing static Proof Ledger rows, proof-level badges, command copy, and supported-locale regression coverage; app shell is 223.36 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.306` after redacted provider failure kind/stage proof and local capsule loop i18n; app shell is 223.38 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.307` after generated JSON/SQLite capsule artifact loop proof and portability truth-label cleanup; app shell is 223.37 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.308` after provider failure-state coverage matrix polish; app shell is 223.37 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.309` after Chitragupta MCP transport-failure truth and sidebar glyph polish; app shell is 223.63 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.310` after theme-aware scripture/rishi/second-brain sidebar glyph polish and graph/Council Chitragupta MCP contract truth; app shell is 223.84 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.311` after dynamic sidebar type glyph medallions; app shell is 223.88 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.312` after center-pane control-deck polish and the living-grimoire sidebar sigil refinement; app shell is 223.89 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.313` after Portability Settings local-first contract polish and Grimoire-native left-sidebar nav glyphs; app shell is 223.49 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.314` after redacted provider proof-history accumulation and left-sidebar glyph placement polish; app shell is 223.52 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.315` after visible redacted provider proof-history strip and semantic sidebar glyph inference; app shell is 223.57 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.316` after richer left-sidebar glyph channels, active rail polish, and full-suite flake hardening; app shell is 223.83 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.317` after adding colored Veda/Shaastra/Purana/Rishi/second-brain tokens to the left-sidebar sigil; app shell is 224.21 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.318` after live rectangle/ellipse/line canvas previews; app shell is 224.19 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.319` after making the compact AI brief expose the Crystallize Memory packet; app shell is 224.19 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.320` after surfacing Crystallize loop receipts in Memory Ledger rows; app shell is 224.18 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.321` after adding semantic Grimoire medallions to left-sidebar folder rows; app shell is 224.60 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.322` after surfacing Context Capsule `pkg-*` receipts in the compact AI brief; app shell is 224.59 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.323` after adding docs/dev/data/journal domain folder glyphs; app shell is 225.46 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.325` after adding the local-first Settings sync runway; app shell is 225.46 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.326` after adding the local-first Privacy egress runway; app shell is 225.45 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.327` after the second left-sidebar glyph polish pass; app shell is 225.81 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.328` after adding the daily assistant Workflow Settings runway; app shell is 225.83 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.329` after giving left-sidebar nav, rail, and section glyphs shared halo/route/bead signal layers; app shell is 225.89 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.330` after adding the Context Capsule manifest review boundary; app shell is 225.88 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.331` after the fourth left-sidebar glyph polish pass and Dream Forge local-only manifest; app shell is 226.09 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.332` after the fifth left-sidebar glyph polish pass and Living Frontmatter review manifest; app shell is 226.53 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.333` after adding the count-only Time Loom graph layer; app shell is 226.52 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.334` after the sixth left-sidebar glyph polish pass; app shell is 227.24 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.335` after adding the local JSON/SQLite capsule artifact proof checklist; app shell is 227.25 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.336` after keeping no-op canvas actions from falsely dirtying local canvas sources; app shell is 227.24 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.337` after clearing stale canvas layer-order metadata from saved local JSON; app shell is 227.26 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.338` after keeping zero-distance/stale canvas moves from dirtying local JSON; app shell is 227.25 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.339` after the seventh left-sidebar glyph polish pass; app shell is 227.25 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.340` after the heavier ambient sidebar sigil redraw; app shell is 227.52 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.341` after authored default folder glyphs and folder-readable desktop proof labels; app shell is 227.35 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.342` after semantic-tone selected folder row chrome; app shell is 227.40 KiB gzip.
+		  - [x] Install singleton `/Applications/Grimoire.app` `0.1.343` after sidebar glyph palette inheritance, compact sigil simplification, and quieter semantic folder matching; app shell is 227.71 KiB gzip.
+			  - [x] Install singleton `/Applications/Grimoire.app` `0.1.344` after Settings object-storage/MCP localization and the eighth sidebar glyph refinement pass; app shell is 227.71 KiB gzip.
+			  - [x] Install singleton `/Applications/Grimoire.app` `0.1.346` after lane-scoped Journal/Dream creation/search, dated dashboard capture, full green frontend tests, and app-bundle version verification; app shell is 229.31 KiB gzip.
+			  - [x] Install singleton `/Applications/Grimoire.app` `0.1.347` after Journal/Dream lane creates gained local date/locality/egress Markdown frontmatter; app shell is 229.51 KiB gzip.
+			  - [x] Install singleton `/Applications/Grimoire.app` `0.1.348` after named Journal/Dream creates gained the same local life-lane Markdown schema; app shell is 229.53 KiB gzip.
+			  - [x] Install singleton `/Applications/Grimoire.app` `0.1.349` after future iPhone/iPad mobile capture drafts gained the shared local date Markdown contract; app shell is 229.53 KiB gzip.
+			  - [x] Install singleton `/Applications/Grimoire.app` `0.1.362` after package launchability hardening; app shell is 229.68 KiB gzip, release verifier/codesign/version checks pass, and escalated `open` exposes one visible AX window at `56,38` sized `1400x881`.
+			  - [ ] Fix `/Applications/Grimoire.app` native window rendering: screenshot capture now works, but `/tmp/grimoire-native-0.1.362.png` shows Grimoire active with a blank/transparent app window instead of visible content.
   - [x] Move the status bar implementation behind a lazy startup boundary while preserving a stable local-only footer fallback.
   - [x] Reserve graph canvas HUD and legend rails so package/agent state no longer floats over nodes.
   - [x] Align graph agent lane vocabulary with the app's real AI routes: Local Search, Vault Graph, Chitragupta, Codex, and Claude Code (`claude_code`).
@@ -776,6 +862,7 @@ Build order:
   - [x] Split import/export/storage actions into a Settings action deck so provider controls expand only on intent.
   - [x] Harden JSON/SQLite capsule imports so missing, false, or mismatched Locality Firewall proof blocks preview/apply before files can be restored.
   - [x] Extend inbound capsule Locality Firewall filtering through private `grimoire-canvas` source JSON so nested placed images stay local.
+  - [x] Add generated JSON/SQLite capsule artifact loop proof in Settings: export a temp capsule, preview the exact artifact, compare redacted counts/signatures/locality proof, and store no artifact path.
 
 - [x] Local-first Settings and Git capability pass.
   - [x] Split SettingsPanel into focused sub-400-line modules.
@@ -811,8 +898,26 @@ Build order:
   - [x] Keep `grimoire-canvas` source JSON/preview attachments in the local-only closure.
   - [x] Split the oversized app command catalog into definition/type/facade modules so future native menu work has a sub-400 LOC foundation.
   - [x] Harden Chitragupta route disclosure parsing so provider/model chips survive colon, equals, reversed-order, provider-only, and multiline stream output.
+  - [x] Treat Chitragupta MCP `Transport closed` as a first-class fail-closed memory runtime state.
+  - [x] Thread optional Chitragupta MCP contract status into the inspector memory lane without leaking local paths.
   - [x] Defer and cache AI-agent status discovery so CLI version checks do not run as immediate startup work.
   - [x] Move dashboard ask-context packaging behind `/ask` intent so startup and normal local capture do not import the agent context builder.
+  - [x] Make left-sidebar artwork and collapsed rail glyphs more theme-tonal while keeping the glyph layer cheap SVG/CSS.
+  - [x] Recompose left-sidebar glyphs into a theme-aware Grimoire sigil with scripture leaves, purana scroll lines, rishi/inner-memory mark, and second-brain graph cues.
+  - [x] Frame dynamic sidebar type icons in theme-tonal medallions so custom Vedas/Shaastras/Puranas/Rishi/Brain glyphs feel native in the left rail instead of loose monochrome marks.
+	  - [x] Refine the ambient left-sidebar sigil into a clearer living-grimoire mark with a stronger book silhouette, warmer scripture currents, and a memory-network core without adding runtime weight.
+	  - [x] Replace generic Dashboard/Inbox/All Notes/Archive rail icons with Grimoire-native themed glyphs and route them through the same medallion treatment in full and collapsed sidebars.
+	  - [x] Tighten the left-sidebar glyph composition again so the ambient sigil is centered, brighter, and verified in both full and collapsed sidebar layouts without overlapping the logo rail.
+	  - [x] Add theme-tonal knowledge tokens for Vedas, Shaastras, Puranas, Rishi, and second-brain into the ambient left-sidebar sigil.
+	  - [x] Replace generic folder-row glyphs with semantic Grimoire medallions for Vedas, Shaastras, Puranas, Rishi, brain/second-brain, and astral/star folders.
+	  - [x] Extend folder-row glyphs to common project domains: docs/guides, frontend/backend/source, data/fixtures, and journal/dream lanes now get Grimoire-native theme-tonal medallions instead of the plain folder fallback.
+	  - [x] Add a second sidebar glyph polish pass: folder medallions now carry secondary route/bead channels, domain SVGs have bright/memory inks, and the ambient sigil has living route traces without runtime image weight.
+	  - [x] Add a third sidebar glyph polish pass: primary nav, collapsed rail, and dynamic section icons now share explicit halo/route/bead signal layers so the left column reads as one authored glyph system.
+	  - [x] Add a fourth sidebar glyph polish pass: primary nav/rail glyphs now carry paired route beads, section glyphs get a matching thread, folder medallions get a small constellation layer, and semantic matching covers agent, Chitragupta, import/export, sync, provider, and richer astral folders.
+	  - [x] Add a fifth sidebar glyph polish pass: agent/Council, storage/sync/provider, and astral folders now get distinct authored SVG anatomy instead of borrowing generic brain/data/star marks.
+	  - [x] Add a sixth sidebar glyph polish pass: vault, private/local-only, research/evidence, and template folders now get distinct SVG anatomy plus motif-specific route/thread/constellation behavior.
+	  - [x] Carry Chitragupta MCP transport/unverified truth into graph lanes, graph runway, and Agent Council so installed CLI no longer implies live memory readiness.
+  - [x] Tighten center-pane project cockpit lanes so search, filters, and docs share one polished control deck instead of transparent scattered chip islands.
   - [x] Add sanitized real-export corpora and golden manifests for Bear/TextBundle, Day One, Apple Journal, Journey, Obsidian, Notion, and mixed Markdown ZIP before upgrading importer confidence.
     - [x] Add the first sanitized Bear/TextBundle corpus with a golden Import Autopsy manifest for Markdown, attachment, metadata, and withheld local-only rows.
     - [x] Add sanitized Day One JSON and Apple Journal HTML corpora with golden manifests for source file -> Markdown note and media attachment rows.
@@ -834,6 +939,8 @@ Build order:
     - [x] Make the Settings Proof Ledger command copyable without storing provider values or local paths.
     - [x] Add a copyable no-write dry-run proof command before the live proof command so Settings guides setup without provider writes.
     - [x] Show the S3/Azure proof gate and required env names in Settings without provider values, secrets, or local paths.
+    - [x] Accumulate separate redacted provider proof reports into a local proof history so S3/Azure happy-path and failure-state evidence can be recorded across multiple real runs without storing bucket/container/prefix/path/secret output.
+    - [x] Surface accumulated redacted proof history visibly in Settings so provider evidence is no longer hidden behind localStorage state.
     - [ ] Run the live round-trip tests against real S3/Azure provider fixtures and record the provider failure states before calling sync provider-proven.
   - [x] Add a redaction-safe Import Autopsy UI contract for exact source -> destination, metadata transform, attachment move, and withheld-reason manifest rows.
   - [x] Populate exact Import Autopsy manifest rows from Markdown/Bear folder, Obsidian/Notion-style app, and journal importer preview backends.
@@ -844,10 +951,12 @@ Build order:
     - [x] Wire the S3 provider-SDK surface into Settings behind explicit user intent, separate from the local-mirror fixture.
     - [x] Harden the S3 provider lane so apply blocks conflicts, rejects changed Settings targets, avoids hidden env fallback for explicit drafts, requires preview signatures in mocks, and detects same-size remote divergence through Grimoire SHA-256 metadata.
     - [x] Harden browser provider mocks so blank S3 targets cannot invent mock buckets, and malformed/applied previews do not unlock apply-ready state.
+    - [x] Surface S3 failure-state coverage in Settings so redacted live reports mark pass/config/auth/permission/conflict/network/cleanup evidence separately.
     - [ ] Run the S3 provider-SDK Settings lane against real provider fixtures and failure states.
     - [x] Add the Azure provider preview/apply surface behind the same exact-preview contract using local Azure CLI auth, transient target drafts, local-only exclusions, and Settings wiring.
     - [x] Harden the Azure provider lane so apply blocks conflicts, rejects changed Settings targets, avoids hidden env fallback for explicit drafts, requires preview signatures in mocks, and detects same-size remote divergence through Grimoire SHA-256 metadata.
     - [x] Harden browser provider mocks so blank Azure account/container targets cannot invent mock storage, and malformed/applied previews do not unlock apply-ready state.
+    - [x] Surface Azure failure-state coverage in Settings so redacted live reports mark pass/config/auth/permission/conflict/network/cleanup evidence separately.
     - [ ] Run the Azure provider Settings lane against real provider fixtures and failure states.
 - [x] Add transcription and voice-note workflow.
   - [x] Define provider contract for Whisper/local transcription backends.

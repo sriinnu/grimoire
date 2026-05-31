@@ -140,6 +140,28 @@ describe('Inspector', () => {
     expect(screen.getByText('Words')).toBeInTheDocument()
   })
 
+  it('opens matched linked concepts from the insight map', () => {
+    const onNavigate = vi.fn()
+    renderSelectedInspector({
+      entries: [
+        mockEntry,
+        {
+          ...referrerEntry,
+          path: '/vault/topic/software-development.md',
+          filename: 'software-development.md',
+          title: 'Software Development',
+          isA: 'Topic',
+        },
+      ],
+      onNavigate,
+    })
+
+    const conceptMap = screen.getByLabelText('Linked concept map')
+    fireEvent.click(within(conceptMap).getByRole('button', { name: 'Open linked concept Software Development' }))
+
+    expect(onNavigate).toHaveBeenCalledWith('Software Development')
+  })
+
   it('applies Living Frontmatter suggestions through frontmatter updates', () => {
     const onUpdateFrontmatter = vi.fn()
     renderSelectedInspector({
@@ -263,16 +285,17 @@ owner: Sriinnu
 
   it('shows relationships with clickable links', () => {
     render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
-    expect(screen.getByText('Belongs to')).toBeInTheDocument()
-    expect(screen.getByText('Grow Newsletter')).toBeInTheDocument()
-    expect(screen.getByText('Related to')).toBeInTheDocument()
-    expect(screen.getByText('Software Development')).toBeInTheDocument()
+    const relationshipsPanel = screen.getByTestId('relationships-panel-grid')
+    expect(within(relationshipsPanel).getByText('Belongs to')).toBeInTheDocument()
+    expect(within(relationshipsPanel).getByText('Grow Newsletter')).toBeInTheDocument()
+    expect(within(relationshipsPanel).getByText('Related to')).toBeInTheDocument()
+    expect(within(relationshipsPanel).getByText('Software Development')).toBeInTheDocument()
   })
 
   it('navigates when a relationship link is clicked', () => {
     const onNavigate = vi.fn()
     render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} onNavigate={onNavigate} />)
-    fireEvent.click(screen.getByText('Grow Newsletter'))
+    fireEvent.click(within(screen.getByTestId('relationships-panel-grid')).getByText('Grow Newsletter'))
     expect(onNavigate).toHaveBeenCalledWith('responsibility/grow-newsletter')
   })
 

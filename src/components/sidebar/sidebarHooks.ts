@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback, type RefObject } from 'react
 import type { VaultEntry } from '../../types'
 import { APP_STORAGE_KEYS, LEGACY_APP_STORAGE_KEYS, getAppStorageItem } from '../../constants/appStorage'
 import { buildTypeEntryMap } from '../../utils/typeColors'
-import { countAllNotesByFilter } from '../../utils/noteListHelpers'
+import { countAllNotesByFilter, countByFilter } from '../../utils/noteListHelpers'
 import { buildDynamicSections, sortSections } from '../../utils/sidebarSections'
 
 export type SidebarGroupKey = 'favorites' | 'views' | 'sections' | 'folders'
@@ -62,6 +62,14 @@ export function useEntryCounts(entries: VaultEntry[]) {
     const counts = countAllNotesByFilter(entries)
     return { activeCount: counts.open, archivedCount: counts.archived }
   }, [entries])
+}
+
+export function usePrimaryLaneCounts(entries: VaultEntry[]) {
+  return useMemo(() => ({
+    dreamCount: countByFilter(entries, 'Dream').open,
+    journalCount: countByFilter(entries, 'Journal').open,
+    noteCount: countByFilter(entries, 'Note').open,
+  }), [entries])
 }
 
 export function computeReorder(sectionIds: string[], activeId: string, overId: string): string[] | null {

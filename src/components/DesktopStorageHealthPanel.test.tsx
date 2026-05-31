@@ -54,7 +54,7 @@ describe('DesktopStorageHealthPanel', () => {
       provider_id: 'icloud-drive',
     }))
     const report = screen.getByTestId('settings-desktop-storage-report-icloud-drive')
-    expect(report).toHaveTextContent('ready')
+    expect(report).toHaveTextContent('folder readable')
     expect(report).toHaveTextContent('credentials not stored')
     expect(report).not.toHaveTextContent('/Users/')
     expect(report).not.toHaveTextContent('token')
@@ -70,13 +70,13 @@ describe('DesktopStorageHealthPanel', () => {
     )
 
     fireEvent.click(screen.getByTestId('settings-check-icloud-drive'))
-    await waitFor(() => expect(screen.getByTestId('settings-desktop-storage-report-icloud-drive')).toHaveTextContent('ready'))
+    await waitFor(() => expect(screen.getByTestId('settings-desktop-storage-report-icloud-drive')).toHaveTextContent('folder readable'))
 
     rerender(<DesktopStorageHealthPanel vaultPath="/Users/sri/Local/Grimoire" t={createTranslator('en')} />)
 
     const report = screen.getByTestId('settings-desktop-storage-report-icloud-drive')
     expect(report).toHaveTextContent('Run a local-folder check')
-    expect(report).not.toHaveTextContent('ready')
+    expect(report).not.toHaveTextContent('folder readable')
     expect(screen.queryByTestId('settings-desktop-storage-message')).not.toBeInTheDocument()
   })
 

@@ -63,6 +63,38 @@ describe('SettingsPanel workflow settings', () => {
     expect(screen.getByRole('switch', { name: 'Auto-rename untitled notes from first H1' })).toHaveAttribute('aria-checked', 'true')
   })
 
+  it('shows a daily assistant workflow runway before workflow toggles', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    const runway = screen.getByTestId('settings-workflow-runway')
+    expect(within(runway).getByText('Daily brief')).toBeInTheDocument()
+    expect(within(runway).getByText(/journal nudges/i)).toBeInTheDocument()
+    expect(within(runway).getByText('Inbox triage')).toBeInTheDocument()
+    expect(within(runway).getByText('Inbox on')).toBeInTheDocument()
+    expect(within(runway).getByText('Flow-through')).toBeInTheDocument()
+    expect(within(runway).getByText('Manual')).toBeInTheDocument()
+    expect(within(runway).getByText('Title hygiene')).toBeInTheDocument()
+    expect(within(runway).getByText('H1 sync')).toBeInTheDocument()
+  })
+
+  it('updates the workflow runway as workflow settings change', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Organize notes explicitly' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Auto-advance to next Inbox item' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Auto-rename untitled notes from first H1' }))
+
+    const runway = screen.getByTestId('settings-workflow-runway')
+    expect(within(runway).getByText('Simple flow')).toBeInTheDocument()
+    expect(within(runway).getByText('Auto')).toBeInTheDocument()
+    expect(within(runway).getAllByText('Manual')).not.toHaveLength(0)
+    expect(within(runway).getByText('Filenames wait until you rename them yourself.')).toBeInTheDocument()
+  })
+
   it('defaults AutoGit to off with recommended thresholds', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
@@ -104,6 +136,8 @@ describe('SettingsPanel workflow settings', () => {
     expect(screen.getByRole('switch', { name: 'Enable AutoGit' })).toBeDisabled()
     expect(screen.getByTestId('settings-autogit-idle-threshold')).toBeDisabled()
     expect(screen.getByTestId('settings-autogit-inactive-threshold')).toBeDisabled()
+    expect(screen.getByTestId('settings-pull-interval')).toBeDisabled()
+    expect(screen.getByTestId('settings-pull-interval')).not.toHaveAttribute('data-settings-autofocus')
   })
 
   it('shows an explicit local-only Git capability when Git metadata is paused', () => {
@@ -126,6 +160,27 @@ describe('SettingsPanel workflow settings', () => {
     fireEvent.click(within(screen.getByTestId('settings-git-enabled')).getByRole('switch', { name: 'Git' }))
 
     expect(onSetGitEnabled).toHaveBeenCalledWith(true)
+  })
+
+  it('shows a local-first sync runway before Git and AutoGit controls', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={emptySettings}
+        isGitVault={false}
+        hasGitMetadata={false}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    const runway = screen.getByTestId('settings-sync-runway')
+    expect(within(runway).getByText('Markdown source')).toBeInTheDocument()
+    expect(within(runway).getByText('Files stay readable on disk first.')).toBeInTheDocument()
+    expect(within(runway).getByText('Git lane')).toBeInTheDocument()
+    expect(within(runway).getByText('No repository metadata required.')).toBeInTheDocument()
+    expect(within(runway).getByText('Gated')).toBeInTheDocument()
+    expect(within(runway).getByText('Controls app updates only.')).toBeInTheDocument()
   })
 
   it('can turn Git off for the current vault from Settings', () => {
@@ -253,6 +308,35 @@ describe('SettingsPanel workflow settings', () => {
       expect(screen.getByTestId('settings-cloud-transcription')).toBeInTheDocument()
       expect(screen.getByTestId('settings-crash-reporting')).toBeInTheDocument()
       expect(screen.getByTestId('settings-analytics')).toBeInTheDocument()
+    })
+
+    it('shows a local-first privacy runway before cloud and telemetry controls', () => {
+      render(
+        <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+      )
+
+      const runway = screen.getByTestId('settings-privacy-runway')
+      expect(within(runway).getByText('Private by default')).toBeInTheDocument()
+      expect(within(runway).getByText('Private capture')).toBeInTheDocument()
+      expect(within(runway).getByText('Cloud blocked')).toBeInTheDocument()
+      expect(within(runway).getByText('Local only')).toBeInTheDocument()
+      expect(within(runway).getByText(/never include vault content/i)).toBeInTheDocument()
+    })
+
+    it('updates the privacy runway when cloud or diagnostics are enabled', () => {
+      const privacyEnabled: Settings = {
+        ...emptySettings,
+        analytics_enabled: true,
+        cloud_transcription_enabled: true,
+        crash_reporting_enabled: false,
+      }
+      render(
+        <SettingsPanel open={true} settings={privacyEnabled} onSave={onSave} onClose={onClose} />
+      )
+
+      const runway = screen.getByTestId('settings-privacy-runway')
+      expect(within(runway).getByText('Cloud allowed')).toBeInTheDocument()
+      expect(within(runway).getByText('Anonymous opt-in')).toBeInTheDocument()
     })
 
     it('keeps cloud transcription off until explicitly enabled', () => {

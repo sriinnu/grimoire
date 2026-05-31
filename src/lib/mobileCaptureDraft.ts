@@ -1,4 +1,5 @@
 import { slugifyNoteStem } from '../utils/noteSlug'
+import { formatLocalDateKey } from '../utils/localDate'
 
 export type MobileCaptureKind = 'dream' | 'journal' | 'memory' | 'note' | 'task'
 export type MobileDeviceClass = 'ipad' | 'iphone'
@@ -72,7 +73,7 @@ export function buildMobileCaptureDraft({
   source,
 }: MobileCaptureDraftInput): MobileCaptureDraft {
   const cleanBody = normalizeBody(body)
-  const date = formatLocalDate(capturedAt)
+  const date = formatLocalDateKey(capturedAt)
   const captureIdValue = captureId(capturedAt, draftId)
   const attachments = normalizeAttachments(rawAttachments)
   const typeName = typeForKind(kind)
@@ -84,6 +85,7 @@ export function buildMobileCaptureDraft({
     body: bodyForKind(kind, cleanBody, attachments),
     capturedAt,
     captureId: captureIdValue,
+    date,
     deviceClass,
     source,
     status,
@@ -109,6 +111,7 @@ function buildContent({
   body,
   capturedAt,
   captureId,
+  date,
   deviceClass,
   source,
   status,
@@ -119,6 +122,7 @@ function buildContent({
   body: string
   capturedAt: Date
   captureId: string
+  date: string
   deviceClass: MobileDeviceClass
   source: MobileCaptureSource
   status: string | null
@@ -129,6 +133,7 @@ function buildContent({
     '---',
     `title: ${yamlString(title)}`,
     `type: ${typeName}`,
+    `date: ${date}`,
     ...(status ? [`status: ${status}`] : []),
     `mobile_capture_schema: ${MOBILE_CAPTURE_SCHEMA}`,
     `mobile_capture_id: ${yamlString(captureId)}`,
@@ -212,12 +217,6 @@ function folderForKind(kind: MobileCaptureKind): string {
   if (kind === 'memory') return 'memory/mobile-inbox'
   if (kind === 'task') return 'tasks/mobile'
   return 'notes/mobile'
-}
-
-function formatLocalDate(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
 }
 
 function normalizeDraftId(value: string | undefined): string | null {

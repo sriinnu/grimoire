@@ -48,8 +48,30 @@ const summary: TimeLoomSummary = {
       ],
     },
   ],
+  calendarDays: [
+    {
+      dateKey: '2026-05-27',
+      label: 'Today',
+      total: 5,
+      protectedCount: 3,
+      statusCounts: [
+        { label: 'Open', count: 1 },
+        { label: 'Unmarked', count: 4 },
+      ],
+      typeCounts: [
+        { label: 'Mobile', count: 2 },
+        { label: 'Voice', count: 1 },
+        { label: 'Dream', count: 1 },
+      ],
+    },
+  ],
   calendarEvents: 0,
   commitEvents: 0,
+  graph: {
+    links: [],
+    nodes: [],
+    privacyNote: 'count-only temporal graph; private labels withheld',
+  },
   memoryReviewEvents: 0,
   mobileEvents: 2,
   patterns: [],

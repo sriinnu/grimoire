@@ -4,6 +4,24 @@ import { createTranslator } from '../lib/i18n'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
 
 describe('ObjectStoragePrototypeActions', () => {
+  it('keeps provider apply locked when preview args are missing', () => {
+    render(
+      <ObjectStoragePrototypeActions
+        t={createTranslator('en')}
+        vaultReady
+        busyAction={null}
+        s3ProviderPushPreviewReady
+        azureProviderPullPreviewReady
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
+    expect(screen.getByTestId('settings-storage-s3-provider-push-apply')).toBeDisabled()
+
+    fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
+    expect(screen.getByTestId('settings-storage-azure-provider-pull-apply')).toBeDisabled()
+  })
+
   it('keeps S3 provider apply locked when the draft target drifts from the preview', () => {
     const onApplyS3ProviderPush = vi.fn()
     render(

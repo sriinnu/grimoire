@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { AlertTriangle, Check, FolderOpen, GitBranch, Plus, Rocket, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -191,6 +192,14 @@ function VaultMenuAction({ icon, label, testId, accent = false, onClick }: Vault
   )
 }
 
+function runAfterVaultMenuCloses(action: () => void, closeMenu: () => void) {
+  flushSync(closeMenu)
+
+  window.setTimeout(() => {
+    action()
+  }, 0)
+}
+
 export function VaultMenu({
   vaults,
   vaultPath,
@@ -261,12 +270,15 @@ export function VaultMenu({
               isActive={vault.path === vaultPath}
               canRemove={canRemove}
               onSelect={() => {
-                onSwitchVault(vault.path)
-                setOpen(false)
+                if (vault.path === vaultPath) {
+                  setOpen(false)
+                  return
+                }
+
+                runAfterVaultMenuCloses(() => onSwitchVault(vault.path), () => setOpen(false))
               }}
               onRemove={onRemoveVault ? () => {
-                onRemoveVault(vault.path)
-                setOpen(false)
+                runAfterVaultMenuCloses(() => onRemoveVault(vault.path), () => setOpen(false))
               } : undefined}
             />
           ))}
@@ -279,8 +291,7 @@ export function VaultMenu({
               testId={action.testId}
               accent={action.accent}
               onClick={() => {
-                action.onClick()
-                setOpen(false)
+                runAfterVaultMenuCloses(action.onClick, () => setOpen(false))
               }}
             />
           ))}

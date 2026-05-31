@@ -4,6 +4,14 @@ import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import type { VaultEntry } from '../types'
 import { AiPanelIntelligenceRail } from './AiPanelIntelligenceRail'
 
+const writeContract = {
+  format: 'Markdown',
+  requiresGit: false,
+  requiresRemoteSync: false,
+  reviewGate: 'before-write',
+  visibility: 'human-reviewed',
+} as const
+
 function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
     path: '/vault/private/secret-plan.md',
@@ -63,6 +71,11 @@ describe('AiPanelIntelligenceRail', () => {
 
     expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('Assistant brief')
     expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('1 source')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveTextContent('Context packet')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveTextContent('pkg-')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveTextContent('1 source')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveTextContent('0 items')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveTextContent('Review first')
     expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Context')
     expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Council')
     expect(screen.getByTestId('ai-brief-crystallize')).toHaveTextContent('Need answer')
@@ -87,9 +100,30 @@ describe('AiPanelIntelligenceRail', () => {
         hasLatestResponse
         linkedEntries={[]}
         onCrystallize={onCrystallize}
+        proposalSummary={{
+          activeNoteHunkCount: 1,
+          activeNoteTarget: 'public-plan.md',
+          contradictionCount: 0,
+          expiresAt: '2026-08-14',
+          hunkCount: 4,
+          ledgerFieldCount: 9,
+          loopReceipt: 'crys-brief1234',
+          loopStepCount: 5,
+          sourceCount: 2,
+          targetFolder: 'memory/crystallized',
+          taskCount: 0,
+          writeContract,
+        }}
       />,
     )
 
+    const packet = screen.getByTestId('ai-brief-crystallize-packet')
+    expect(packet).toHaveTextContent('Memory packet')
+    expect(packet).toHaveTextContent('4 hunks')
+    expect(packet).toHaveTextContent('2 sources')
+    expect(packet).toHaveTextContent('memory/crystallized')
+    expect(packet).toHaveTextContent('crys-brief1234')
+    expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Review')
     expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Memory')
     fireEvent.click(screen.getByTestId('ai-brief-crystallize'))
     expect(onCrystallize).toHaveBeenCalledOnce()
@@ -166,6 +200,8 @@ describe('AiPanelIntelligenceRail', () => {
     )
 
     expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('Local hold')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveAttribute('data-locality', 'protected-local')
+    expect(screen.getByTestId('ai-brief-context-packet')).toHaveTextContent('No handoff')
     expect(screen.getByTestId('ai-crystallize-runway')).toHaveTextContent('Firewall')
     expect(screen.getByTestId('ai-brief-crystallize')).toHaveTextContent('Local gate')
     expect(screen.queryByTestId('red-team-plan-card')).not.toBeInTheDocument()

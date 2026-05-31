@@ -183,6 +183,7 @@ describe('mockHandlers coverage', () => {
       theme_mode: null,
       theme_preset: null,
       editor_font: null,
+      editor_line_height: null,
       ui_language: 'zh-Hans',
       menu_bar_icon_enabled: false,
       default_ai_agent: 'codex',

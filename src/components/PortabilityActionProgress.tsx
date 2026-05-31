@@ -10,7 +10,7 @@ interface PortabilityActionProgressProps {
   t: Translate
 }
 
-/** Compact cancellable progress surface for long-running import work. */
+/** Compact cancellable progress surface for long-running portability work. */
 export function PortabilityActionProgress({
   progress,
   onCancel,
@@ -20,11 +20,11 @@ export function PortabilityActionProgress({
     ? Math.min(100, Math.round((progress.processedFiles / progress.totalFiles) * 100))
     : 0
   const progressText = progress.totalFiles
-    ? t('settings.portability.progressCount', {
+    ? t(progressCountKey(progress.actionId), {
         processed: progress.processedFiles,
         total: progress.totalFiles,
       })
-    : t('settings.portability.progressStarting')
+    : t(progressStartingKey(progress.actionId))
 
   return (
     <div
@@ -38,7 +38,7 @@ export function PortabilityActionProgress({
           <div className="text-xs font-semibold text-foreground">{progress.label}</div>
           <div className="truncate text-[11px] text-muted-foreground">
             {progress.phase === 'cancelling'
-              ? t('settings.portability.progressCancelling')
+              ? t(progressCancellingKey(progress.actionId))
               : progressText}
             {progress.currentPath ? ` - ${progress.currentPath}` : ''}
           </div>
@@ -64,4 +64,22 @@ export function PortabilityActionProgress({
       </div>
     </div>
   )
+}
+
+function progressCountKey(actionId: PortabilityProgressState['actionId']) {
+  if (actionId.startsWith('export-')) return 'settings.portability.progressExportCount'
+  if (actionId.startsWith('storage-')) return 'settings.portability.progressStorageCount'
+  return 'settings.portability.progressImportCount'
+}
+
+function progressStartingKey(actionId: PortabilityProgressState['actionId']) {
+  if (actionId.startsWith('export-')) return 'settings.portability.progressExportStarting'
+  if (actionId.startsWith('storage-')) return 'settings.portability.progressStorageStarting'
+  return 'settings.portability.progressImportStarting'
+}
+
+function progressCancellingKey(actionId: PortabilityProgressState['actionId']) {
+  if (actionId.startsWith('export-')) return 'settings.portability.progressExportCancelling'
+  if (actionId.startsWith('storage-')) return 'settings.portability.progressStorageCancelling'
+  return 'settings.portability.progressImportCancelling'
 }

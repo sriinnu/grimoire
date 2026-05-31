@@ -1,7 +1,45 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../../lib/i18n'
 import { AiAgentSettingsSection } from './AiAgentSettingsSection'
+
+const aiProviderKeyMocks = vi.hoisted(() => ({
+  saveProviderApiKey: vi.fn(async () => []),
+  clearProviderApiKey: vi.fn(async () => []),
+}))
+
+vi.mock('../../hooks/useAiProviderKeys', () => ({
+  useAiProviderKeys: () => ({
+    statuses: [
+      {
+        provider_id: 'anthropic',
+        label: 'Anthropic',
+        env_var: 'ANTHROPIC_API_KEY',
+        configured: true,
+        source: 'keychain',
+      },
+      {
+        provider_id: 'openai',
+        label: 'OpenAI',
+        env_var: 'OPENAI_API_KEY',
+        configured: true,
+        source: 'environment',
+      },
+      {
+        provider_id: 'deepseek',
+        label: 'DeepSeek',
+        env_var: 'DEEPSEEK_API_KEY',
+        configured: false,
+        source: 'missing',
+      },
+    ],
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    saveProviderApiKey: aiProviderKeyMocks.saveProviderApiKey,
+    clearProviderApiKey: aiProviderKeyMocks.clearProviderApiKey,
+  }),
+}))
 
 const installedStatuses = {
   claude_code: { status: 'installed' as const, version: '1.0.20' },
@@ -45,6 +83,9 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-agent-chitragupta-boundary')).toHaveTextContent(
       'MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks.',
     )
+    expect(screen.getByTestId('settings-ai-agent-chitragupta-transport')).toHaveTextContent(
+      'If the MCP transport closes',
+    )
   })
 
   it('keeps route disclosure scoped to Chitragupta', () => {
@@ -55,5 +96,38 @@ describe('AiAgentSettingsSection', () => {
 
     expect(screen.queryByTestId('settings-ai-agent-route-note')).not.toBeInTheDocument()
     expect(screen.getByTestId('settings-default-ai-model')).toHaveAttribute('placeholder', 'CLI default')
+  })
+
+  it('localizes Chitragupta MCP contract copy for Sanskrit settings', () => {
+    renderSection({ t: createTranslator('sa') })
+
+    const contract = screen.getByTestId('settings-ai-agent-chitragupta-contract')
+    expect(contract).toHaveTextContent('MCP-स्मृति-संविद्')
+    expect(contract).toHaveTextContent('स्मृत्यन्वेषणम्')
+    expect(screen.getByTestId('settings-ai-agent-chitragupta-boundary')).toHaveTextContent('स्थानीयं CLI-मार्गं')
+    expect(screen.getByTestId('settings-ai-agent-chitragupta-transport')).toHaveTextContent('MCP-transport पिहिते')
+    expect(contract).not.toHaveTextContent('MCP memory contract')
+    expect(screen.getByTestId('settings-ai-agent-chitragupta-transport')).not.toHaveTextContent('If the MCP transport closes')
+  })
+
+  it('shows provider API-key status without rendering secret values', async () => {
+    renderSection()
+
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Provider API keys')
+    expect(screen.getByTestId('settings-ai-provider-key-anthropic')).toHaveTextContent('ANTHROPIC_API_KEY')
+    expect(screen.getByTestId('settings-ai-provider-key-source-anthropic')).toHaveTextContent('Keychain')
+    expect(screen.getByTestId('settings-ai-provider-key-source-openai')).toHaveTextContent('Environment')
+    expect(screen.getByTestId('settings-ai-provider-key-source-deepseek')).toHaveTextContent('Missing')
+    expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByTestId('settings-ai-provider-key-input-deepseek'), {
+      target: { value: 'unit-test-provider-token' },
+    })
+    fireEvent.click(screen.getByTestId('settings-ai-provider-key-save-deepseek'))
+
+    await waitFor(() => {
+      expect(aiProviderKeyMocks.saveProviderApiKey).toHaveBeenCalledWith('deepseek', 'unit-test-provider-token')
+    })
+    expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
   })
 })

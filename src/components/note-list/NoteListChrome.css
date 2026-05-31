@@ -19,6 +19,53 @@
   z-index: 1;
 }
 
+.note-content-stack {
+  --note-title-icon-size: 18px;
+  --note-title-icon-gap: 8px;
+  --note-title-icon-indent: calc(var(--note-title-icon-size) + var(--note-title-icon-gap));
+}
+
+.note-title-row {
+  min-width: 0;
+}
+
+.note-title-row--with-icon {
+  grid-template-columns: var(--note-title-icon-size) minmax(0, 1fr);
+  column-gap: var(--note-title-icon-gap);
+  align-items: center;
+}
+
+.note-title-icon-cell {
+  align-self: center;
+  width: var(--note-title-icon-size);
+  height: var(--note-title-icon-size);
+  color: currentColor;
+  line-height: 1;
+}
+
+.note-title-icon-cell > * {
+  flex-shrink: 0;
+}
+
+.note-title-leading-type-icon {
+  color: var(--note-type-color, currentColor);
+}
+
+.note-title-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: inherit;
+}
+
+.note-content-stack[data-title-icon="true"] > :not(.note-title-row) {
+  box-sizing: border-box;
+  margin-left: var(--note-title-icon-indent);
+  max-width: calc(100% - var(--note-title-icon-indent));
+  min-width: 0;
+}
+
 .note-list-panel [data-note-path][data-selected="true"] {
   background:
     linear-gradient(

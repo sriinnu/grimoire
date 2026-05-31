@@ -30,6 +30,7 @@ describe('buildMobileCaptureDraft', () => {
     expect(draft.content).toContain('title: "Journal 2026-05-25"')
     expect(draft.content).toContain('# Journal 2026-05-25')
     expect(draft.content).toContain('type: Journal')
+    expect(draft.content).toContain('date: 2026-05-25')
     expect(draft.content).toContain(`mobile_capture_schema: ${MOBILE_CAPTURE_SCHEMA}`)
     expect(draft.content).toContain('mobile_capture_id: "journal-a"')
     expect(draft.content).toContain('mobile_review: pending')
@@ -57,6 +58,7 @@ describe('buildMobileCaptureDraft', () => {
 
     expect(draft.relativePath).toBe('dreams/mobile/2026-05-25-dream-dream-a.md')
     expect(draft.content).toContain('type: Dream')
+    expect(draft.content).toContain('date: 2026-05-25')
     expect(draft.content).toContain('mobile_device: ipad')
     expect(draft.content).toContain('mobile_source: voice')
     expect(draft.content).toContain('## Emotional Weather')
@@ -74,6 +76,7 @@ describe('buildMobileCaptureDraft', () => {
     })
 
     expect(draft.typeName).toBe('Task')
+    expect(draft.content).toContain('date: 2026-05-25')
     expect(draft.content).toContain('status: Open')
     expect(draft.content).toContain('- [ ] Call accountant')
     expect(draft.content).toContain('## Mobile Review')
@@ -91,6 +94,7 @@ describe('buildMobileCaptureDraft', () => {
     })
 
     expect(draft.relativePath).toBe('memory/mobile-inbox/2026-05-25-memory-memory-a.md')
+    expect(draft.content).toContain('date: 2026-05-25')
     expect(draft.content).toContain('status: Review')
     expect(draft.content).toContain('## Source\n\nMobile capture')
     expect(draft.content).toContain('- [ ] Crystallize or merge this memory.')
@@ -109,6 +113,7 @@ describe('buildMobileCaptureDraft', () => {
     expect(draft.relativePath).toBe('notes/mobile/2026-05-25-note-note-a.md')
     expect(draft.title).toBe('Note 2026-05-25')
     expect(draft.content).toContain('type: Note')
+    expect(draft.content).toContain('date: 2026-05-25')
   })
 
   it('does not put private capture text into title, path, frontmatter title, or H1 before review', () => {

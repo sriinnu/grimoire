@@ -170,10 +170,8 @@ describe('startup import budget', () => {
 
   it('keeps dashboard ask-context packaging out of the normal startup graph', () => {
     expect(staticImportGraph('src/main.tsx')).not.toEqual(expect.arrayContaining(DASHBOARD_ASK_CONTEXT_COLD_FILES))
-    expect(runtimeDynamicImports('src/components/dashboard/VaultDashboard.tsx')).toEqual(expect.arrayContaining([
-      '../../utils/dashboardAskContext',
-      './DashboardAskContextPreview',
-    ]))
+    expect(runtimeDynamicImports('src/components/dashboard/VaultDashboard.tsx')).toContain('../../utils/dashboardAskContext')
+    expect(runtimeDynamicImports('src/components/dashboard/DashboardQuickCapturePanel.tsx')).toContain('./DashboardAskContextPreview')
     expect(runtimeDynamicImports('src/utils/dashboardCapture.ts')).toContain('./dashboardAskContext')
   })
 
@@ -381,7 +379,7 @@ describe('startup import budget', () => {
 
     expect(startupFiles).not.toEqual(expect.arrayContaining(FULL_I18N_COLD_FILES))
     expect(runtimeStaticImports('src/App.tsx')).not.toContain('./lib/i18n')
-    expect(runtimeStaticImports('src/components/note-list/NoteListHeader.tsx')).toContain('../../lib/i18nNoteList')
+    expect(runtimeStaticImports('src/components/note-list/noteListUtils.ts')).toContain('../../lib/i18nNoteList')
     expect(runtimeStaticImports('src/hooks/commands/settingsCommands.ts')).toContain('../../lib/i18nCommands')
   })
 })

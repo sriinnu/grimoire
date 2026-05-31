@@ -134,8 +134,17 @@ describe('PortabilitySettingsSection', () => {
     expect(firewall.getByText('Allowed by default')).toBeInTheDocument()
     expect(firewall.getByText('Memory 1')).toBeInTheDocument()
     expect(firewall.getByText(/no silent cloud or remote egress/)).toBeInTheDocument()
+    const localContract = screen.getByTestId('portability-local-contract')
     const actionDeck = screen.getByTestId('settings-portability-action-deck')
     const proofLedger = within(screen.getByTestId('portability-proof-ledger'))
+    expect(localContract.compareDocumentPosition(actionDeck)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    expect(localContract).toHaveTextContent('Local contract before anything moves')
+    expect(localContract).toHaveTextContent('Markdown on disk remains the source of truth')
+    expect(localContract).toHaveTextContent('Dreams, journals, private notes, and blocked files stay local by default')
+    expect(localContract).toHaveTextContent('iCloud Drive and Google Drive Desktop are folder checks here')
+    expect(localContract).toHaveTextContent('S3 and Azure stay proof-gated')
+    expect(localContract.querySelector('[data-contract-item="private"]')).toBeInTheDocument()
+    expect(localContract.querySelector('[data-contract-item="provider"]')).toBeInTheDocument()
     expect(proofLedger.getByText('Portability Status')).toBeInTheDocument()
     expect(actionDeck.compareDocumentPosition(screen.getByTestId('portability-proof-ledger'))).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
     expect(screen.getByTestId('portability-proof-imports')).toHaveAttribute('data-support-status', 'ready')
@@ -156,6 +165,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByTestId('settings-desktop-storage-health')).toHaveClass('grimoire-portability-inline-panel')
     expect(screen.getByTestId('settings-desktop-storage-health')).not.toHaveClass('grimoire-portability-card')
     expect(screen.getByText('Bear')).toBeInTheDocument()
+    expect(screen.getAllByText('preview-backed').length).toBeGreaterThanOrEqual(7)
     expect(screen.getByText('Obsidian')).toBeInTheDocument()
     expect(screen.getByText('Notion Markdown')).toBeInTheDocument()
     expect(screen.getByText('Spanda')).toBeInTheDocument()
@@ -208,6 +218,8 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText(/live failure-state proof is still required before this becomes provider-proven/)).toBeInTheDocument()
     expect(screen.getByText('Preview S3 provider push')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 provider pull')).toBeInTheDocument()
+    expect(screen.getByText('Apply reviewed S3 proof push')).toBeInTheDocument()
+    expect(screen.getByText('Apply reviewed S3 proof pull')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 local-mirror push')).toBeInTheDocument()
     expect(screen.getByText('Preview S3 local-mirror pull')).toBeInTheDocument()
     expect(screen.queryByText('Apply Azure local-mirror push')).not.toBeInTheDocument()
@@ -216,10 +228,15 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Azure provider proof preview/apply')).toBeInTheDocument()
     expect(screen.getByText('Preview Azure provider push')).toBeInTheDocument()
     expect(screen.getByText('Preview Azure provider pull')).toBeInTheDocument()
+    expect(screen.getByText('Apply reviewed Azure proof push')).toBeInTheDocument()
+    expect(screen.getByText('Apply reviewed Azure proof pull')).toBeInTheDocument()
     expect(screen.getByText('Apply Azure local-mirror push')).toBeInTheDocument()
     expect(screen.getByText('Apply Azure local-mirror pull')).toBeInTheDocument()
-    expect(screen.getAllByText(/Adapter planned around a local working copy/)).toHaveLength(2)
+    expect(screen.getAllByText(/Proof preview available; provider sync not proven/)).toHaveLength(2)
+    expect(screen.getAllByText('proof preview').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText(/Current vault is inside iCloud Drive/)).toBeInTheDocument()
+    expect(screen.getByText(/Local folder detected; provider sync not proven/)).toBeInTheDocument()
+    expect(screen.getAllByText('folder proof only').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText(/Grimoire only edits the local files/)).toBeInTheDocument()
   })
 
@@ -353,8 +370,12 @@ describe('PortabilitySettingsSection', () => {
         s3MirrorPullPreviewReady
         s3ProviderPushPreviewReady
         s3ProviderPullPreviewReady
+        s3ProviderPushPreviewArgs={{}}
+        s3ProviderPullPreviewArgs={{}}
         azureProviderPushPreviewReady
         azureProviderPullPreviewReady
+        azureProviderPushPreviewArgs={{}}
+        azureProviderPullPreviewArgs={{}}
         azureMirrorPreviewReady
         azureMirrorPullPreviewReady
         onPreviewS3MirrorPush={onPreviewS3MirrorPush}
@@ -616,8 +637,12 @@ describe('PortabilitySettingsSection', () => {
         s3MirrorPullPreviewReady
         s3ProviderPushPreviewReady
         s3ProviderPullPreviewReady
+        s3ProviderPushPreviewArgs={{}}
+        s3ProviderPullPreviewArgs={{}}
         azureProviderPushPreviewReady
         azureProviderPullPreviewReady
+        azureProviderPushPreviewArgs={{}}
+        azureProviderPullPreviewArgs={{}}
         onApplyS3MirrorPush={onApplyS3MirrorPush}
         onApplyS3MirrorPull={onApplyS3MirrorPull}
         onApplyS3ProviderPush={onApplyS3ProviderPush}
@@ -780,6 +805,7 @@ describe('PortabilitySettingsSection', () => {
       <PortabilitySettingsSection
         t={createTranslator('en')}
         s3ProviderPullPreviewReady
+        s3ProviderPullPreviewArgs={{ bucket: 'sriinnu-vault', region: 'us-east-1', prefix: 'journals/dreams/' }}
         onPreviewS3ProviderPush={onPreviewS3ProviderPush}
         onApplyS3ProviderPull={onApplyS3ProviderPull}
       />,
@@ -838,6 +864,7 @@ describe('PortabilitySettingsSection', () => {
       <PortabilitySettingsSection
         t={createTranslator('en')}
         azureProviderPullPreviewReady
+        azureProviderPullPreviewArgs={{ account: 'sriinnuacct', container: 'grimoire', prefix: 'notes/' }}
         onPreviewAzureProviderPush={onPreviewAzureProviderPush}
         onApplyAzureProviderPull={onApplyAzureProviderPull}
       />,

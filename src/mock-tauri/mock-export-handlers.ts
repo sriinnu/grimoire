@@ -51,4 +51,23 @@ export const mockExportHandlers = {
       skipped_files: 2,
     }
   },
+  run_portability_capsule_loop_proof: (args: CapsuleArgs) => ({
+    proof_level: 'local-artifact-loop',
+    format: args.format ?? 'json',
+    status: 'passed',
+    checked_at: new Date(0).toISOString(),
+    export_signature_captured: true,
+    import_signature_captured: true,
+    files_exported: 12,
+    notes_exported: 8,
+    notes_previewed_for_import: 8,
+    assets_exported: 4,
+    assets_previewed_for_import: 4,
+    local_only_files_withheld: 2,
+    local_only_rows_previewed: 2,
+    markdown_source_of_truth: true,
+    absolute_source_paths_redacted: true,
+    local_only_report_planned: true,
+    artifact_path_stored: false,
+  }),
 }

@@ -1,6 +1,7 @@
 import { useDeferredValue, useMemo } from 'react'
 import type { VaultEntry, GitCommit } from '../types'
 import type { AiAgentAvailability } from '../lib/aiAgents'
+import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
 import { cn } from '@/lib/utils'
 import { Separator } from './ui/separator'
 import { parseFrontmatter, detectFrontmatterState } from '../utils/frontmatter'
@@ -36,6 +37,7 @@ interface InspectorProps {
   entries: VaultEntry[]
   gitHistory: GitCommit[]
   chitraguptaAvailability?: AiAgentAvailability | null
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
   vaultPath?: string
   onNavigate: (target: string) => void
   onViewCommitDiff?: (commitHash: string) => void
@@ -185,6 +187,7 @@ function InspectorBody({
   content,
   gitHistory,
   chitraguptaAvailability,
+  chitraguptaStatus,
   vaultPath,
   onNavigate,
   onViewCommitDiff,
@@ -224,7 +227,12 @@ function InspectorBody({
 
   return (
     <>
-      <ConstellationInsightsPanel entry={entry} content={content} />
+      <ConstellationInsightsPanel
+        entry={entry}
+        entries={entries}
+        content={content}
+        onNavigate={onNavigate}
+      />
       <OutlinePanel
         semantics={semantics}
         path={entry.path}
@@ -249,6 +257,7 @@ function InspectorBody({
         entries={entries}
         semantics={semantics}
         chitraguptaAvailability={chitraguptaAvailability}
+        chitraguptaStatus={chitraguptaStatus}
         onNavigate={onNavigate}
         onUpdateRecordProperty={onUpdateFrontmatter}
         onDeleteRecordProperty={onDeleteProperty}

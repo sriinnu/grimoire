@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { redactedReport } from './object-storage-proof-report.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -241,93 +242,6 @@ function writeReport(reportPath, report) {
   console.log(`[object-storage-live] wrote redacted proof report: ${target}`)
 }
 
-function redactedReport(report) {
-  const summaryStatus = reportStatus(report?.summary?.status)
-  return {
-    schema: 'grimoire-object-storage-live-proof-v1',
-    generated_at: safeTimestamp(report?.generated_at),
-    finished_at: report?.finished_at ? safeTimestamp(report.finished_at) : null,
-    provider_filter: providerFilter(report?.provider_filter),
-    summary: {
-      status: summaryStatus,
-      message: summaryMessage(summaryStatus),
-    },
-    providers: Array.isArray(report?.providers)
-      ? report.providers.map(redactedProviderReport).filter(Boolean)
-      : [],
-  }
-}
-
-function redactedProviderReport(provider) {
-  if (!provider || !['s3', 'azure'].includes(provider.id)) return null
-  const status = providerStatus(provider.status)
-  return {
-    id: provider.id,
-    label: PROVIDERS[provider.id].label,
-    enabled: provider.enabled === true,
-    gate: {
-      name: envName(provider.gate?.name),
-      state: envProofState(provider.gate?.state),
-    },
-    required: envStateSnapshot(provider.required),
-    optional: envStateSnapshot(provider.optional),
-    status,
-    message: providerMessage(status),
-  }
-}
-
-function envStateSnapshot(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
-  return Object.fromEntries(
-    Object.entries(value)
-      .filter(([key]) => /^GRIMOIRE_[A-Z0-9_]+$/.test(key))
-      .map(([key, state]) => [key, envProofState(state)]),
-  )
-}
-
-function envName(value) {
-  return typeof value === 'string' && /^GRIMOIRE_[A-Z0-9_]+$/.test(value) ? value : 'GRIMOIRE_PROVIDER_GATE'
-}
-
-function envProofState(value) {
-  return value === 'set' ? 'set' : 'missing'
-}
-
-function providerFilter(value) {
-  return value === 's3' || value === 'azure' ? value : 'all'
-}
-
-function providerStatus(value) {
-  const statuses = ['failed', 'gate_missing', 'missing_config', 'passed', 'planned', 'ready', 'running']
-  return statuses.includes(value) ? value : 'planned'
-}
-
-function reportStatus(value) {
-  return ['dry_run', 'failed', 'passed', 'planned', 'skipped'].includes(value) ? value : 'planned'
-}
-
-function safeTimestamp(value) {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(value) ? value : new Date(0).toISOString()
-}
-
-function summaryMessage(status) {
-  if (status === 'dry_run') return 'No provider proof was run.'
-  if (status === 'passed') return 'All enabled provider proofs passed.'
-  if (status === 'skipped') return 'No live provider proof gates were enabled.'
-  if (status === 'failed') return 'One or more provider proof checks failed.'
-  return 'Provider live proof has not run yet.'
-}
-
-function providerMessage(status) {
-  if (status === 'passed') return 'Provider preview/apply/pull proof passed.'
-  if (status === 'missing_config') return 'Required provider config is missing.'
-  if (status === 'gate_missing') return 'Explicit provider proof gate is missing.'
-  if (status === 'failed') return 'Provider proof failed; raw provider output was withheld.'
-  if (status === 'ready') return 'Provider proof is ready to run.'
-  if (status === 'running') return 'Provider proof was running when the report was written.'
-  return 'Provider proof has not run yet.'
-}
-
 function runSelfTest() {
   const env = {
     GRIMOIRE_AZURE_CONTAINER: 'secret-container-for-report-test',
@@ -364,7 +278,7 @@ function runSelfTest() {
   failureReport.summary.status = 'failed'
   failureReport.summary.message = 'failed at /Users/sriinnu/.aws with token=abc and s3://secret-bucket'
   failureReport.providers[0].status = 'failed'
-  failureReport.providers[0].message = 'cargo stderr leaked AWS_SECRET_ACCESS_KEY and /Users/sriinnu/.aws'
+  failureReport.providers[0].message = 'preview auth failed with AWS_SECRET_ACCESS_KEY and /Users/sriinnu/.aws'
   failureReport.providers[1].status = 'missing_config'
   failureReport.providers[1].message = 'Azure account secret-account-for-report-test was rejected'
   const failureReportPath = join(temp, 'failure.json')
@@ -378,6 +292,15 @@ function runSelfTest() {
     || failureJson.includes('secret-account-for-report-test')
   ) {
     throw new Error('self-test expected written failure report to redact raw provider messages')
+  }
+  const parsedFailure = JSON.parse(failureJson)
+  if (
+    parsedFailure.providers[0].failure_kind !== 'auth'
+    || parsedFailure.providers[0].failure_stage !== 'preview'
+    || parsedFailure.providers[1].failure_kind !== 'config'
+    || parsedFailure.providers[1].failure_stage !== 'config'
+  ) {
+    throw new Error('self-test expected sanitized failure kind and stage evidence')
   }
   console.log('self-test passed')
 }

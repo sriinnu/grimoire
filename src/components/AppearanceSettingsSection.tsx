@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Check, Moon, Palette, Sun, TextAa } from '@phosphor-icons/react'
-import type { EditorFont, ThemePreset } from '../lib/appearance'
+import type { EditorFont, EditorLineHeight, ThemePreset } from '../lib/appearance'
 import { resolveFontRoles } from '../lib/fontConfig'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
@@ -19,6 +19,16 @@ import {
 
 type Translate = ReturnType<typeof createTranslator>
 
+const CURATED_EDITOR_FONT_OPTIONS: Array<{ value: EditorFont; labelKey: Parameters<Translate>[0] }> = [
+  { value: 'literary', labelKey: 'settings.editorFont.literary' },
+  { value: 'editorial', labelKey: 'settings.editorFont.editorial' },
+  { value: 'manuscript', labelKey: 'settings.editorFont.manuscript' },
+  { value: 'system', labelKey: 'settings.editorFont.system' },
+  { value: 'readable', labelKey: 'settings.editorFont.readable' },
+  { value: 'humanist', labelKey: 'settings.editorFont.humanist' },
+  { value: 'mono', labelKey: 'settings.editorFont.mono' },
+]
+
 interface AppearanceSettingsSectionProps {
   t: Translate
   themeMode: ThemeMode
@@ -27,6 +37,8 @@ interface AppearanceSettingsSectionProps {
   setThemePreset: (value: ThemePreset) => void
   editorFont: EditorFont
   setEditorFont: (value: EditorFont) => void
+  editorLineHeight: EditorLineHeight
+  setEditorLineHeight: (value: EditorLineHeight) => void
 }
 
 /** Renders Grimoire's visual appearance controls and a compact live reading sample. */
@@ -38,6 +50,8 @@ export function AppearanceSettingsSection({
   setThemePreset,
   editorFont,
   setEditorFont,
+  editorLineHeight,
+  setEditorLineHeight,
 }: AppearanceSettingsSectionProps) {
   const presetGroups = buildPresetGroups(t)
 
@@ -103,18 +117,41 @@ export function AppearanceSettingsSection({
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper" data-anchor-strategy="popper">
-            <SelectItem value="system">{t('settings.editorFont.system')}</SelectItem>
-            <SelectItem value="serif">{t('settings.editorFont.serif')}</SelectItem>
-            <SelectItem value="mono">{t('settings.editorFont.mono')}</SelectItem>
-            <SelectItem value="readable">{t('settings.editorFont.readable')}</SelectItem>
-            <SelectItem value="literary">{t('settings.editorFont.literary')}</SelectItem>
-            <SelectItem value="compact">{t('settings.editorFont.compact')}</SelectItem>
-            <SelectItem value="handwritten">{t('settings.editorFont.handwritten')}</SelectItem>
+            {CURATED_EDITOR_FONT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      <AppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} editorFont={editorFont} />
+      <div className="space-y-2">
+        <ControlLabel icon={<TextAa size={14} />} label={t('settings.editorLineHeight.label')} />
+        <Select value={editorLineHeight} onValueChange={(value) => setEditorLineHeight(value as EditorLineHeight)}>
+          <SelectTrigger
+            aria-label={t('settings.editorLineHeight.label')}
+            className="w-full bg-transparent"
+            data-testid="settings-editor-line-height"
+            data-value={editorLineHeight}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" data-anchor-strategy="popper">
+            <SelectItem value="compact">{t('settings.editorLineHeight.compact')}</SelectItem>
+            <SelectItem value="comfortable">{t('settings.editorLineHeight.comfortable')}</SelectItem>
+            <SelectItem value="spacious">{t('settings.editorLineHeight.spacious')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <AppearancePreview
+        t={t}
+        themeMode={themeMode}
+        themePreset={themePreset}
+        editorFont={editorFont}
+        editorLineHeight={editorLineHeight}
+      />
     </>
   )
 }
@@ -243,13 +280,18 @@ function AppearancePreview({
   themeMode,
   themePreset,
   editorFont,
+  editorLineHeight,
 }: {
   t: Translate
   themeMode: ThemeMode
   themePreset: ThemePreset
   editorFont: EditorFont
+  editorLineHeight: EditorLineHeight
 }) {
   const fontRoles = resolveFontRoles({ themePreset, editorFont })
+  const previewLineHeight = editorLineHeight === 'compact'
+    ? 1.34
+    : editorLineHeight === 'spacious' ? 1.58 : 1.44
 
   return (
     <div
@@ -262,7 +304,7 @@ function AppearancePreview({
         <div style={{ fontFamily: fontRoles.display, fontSize: 19, fontWeight: 650, lineHeight: 1.2 }}>
           {t('settings.appearance.previewTitle')}
         </div>
-        <div className="settings-appearance-preview__body">
+        <div className="settings-appearance-preview__body" style={{ lineHeight: previewLineHeight }}>
           {t('settings.appearance.previewBody')}
         </div>
       </div>

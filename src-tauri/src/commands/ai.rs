@@ -1,5 +1,6 @@
 #[cfg(desktop)]
 use crate::ai_agents::{AiAgentStreamRequest, AiAgentsStatus};
+use crate::ai_provider_keys::AiProviderKeyStatus;
 use crate::claude_cli::{AgentStreamRequest, ChatStreamRequest, ClaudeCliStatus};
 use crate::vault::VaultAiGuidanceStatus;
 
@@ -59,6 +60,24 @@ pub fn check_claude_cli() -> ClaudeCliStatus {
 #[tauri::command]
 pub fn get_ai_agents_status() -> AiAgentsStatus {
     crate::ai_agents::get_ai_agents_status()
+}
+
+#[tauri::command]
+pub fn get_ai_provider_key_statuses() -> Vec<AiProviderKeyStatus> {
+    crate::ai_provider_keys::get_ai_provider_key_statuses()
+}
+
+#[tauri::command]
+pub fn save_ai_provider_api_key(
+    provider_id: String,
+    api_key: String,
+) -> Result<Vec<AiProviderKeyStatus>, String> {
+    crate::ai_provider_keys::save_ai_provider_api_key(&provider_id, &api_key)
+}
+
+#[tauri::command]
+pub fn clear_ai_provider_api_key(provider_id: String) -> Result<Vec<AiProviderKeyStatus>, String> {
+    crate::ai_provider_keys::clear_ai_provider_api_key(&provider_id)
 }
 
 #[tauri::command]

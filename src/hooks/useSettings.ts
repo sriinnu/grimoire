@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { normalizeStoredAiAgent } from '../lib/aiAgents'
-import { normalizeEditorFont, normalizeNativeShellMaterial, normalizeThemePreset } from '../lib/appearance'
+import { normalizeEditorFont, normalizeEditorLineHeight, normalizeNativeShellMaterial, normalizeThemePreset } from '../lib/appearance'
 import { serializeUiLanguagePreference } from '../lib/i18nCore'
 import { normalizeReleaseChannel, serializeReleaseChannel } from '../lib/releaseChannel'
 import { resolveConfiguredTranscriptionProvider } from '../lib/transcriptionProviderConfig'
@@ -41,6 +41,7 @@ const EMPTY_SETTINGS: Settings = {
   theme_mode: null,
   theme_preset: null,
   editor_font: null,
+  editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: null,
   native_shell_material: null,
@@ -58,6 +59,7 @@ function normalizeSettings(settings: Settings): Settings {
     theme_mode: normalizeThemeMode(settings.theme_mode),
     theme_preset: normalizeThemePreset(settings.theme_preset),
     editor_font: normalizeEditorFont(settings.editor_font),
+    editor_line_height: normalizeEditorLineHeight(settings.editor_line_height),
     native_shell_material: normalizeNativeShellMaterial(settings.native_shell_material),
     ui_language: serializeUiLanguagePreference(settings.ui_language),
     default_ai_agent: normalizeStoredAiAgent(settings.default_ai_agent),

@@ -6,12 +6,14 @@ import { NoteListHeader } from './NoteListHeader'
 type NoteListTopChromeModelProps = Pick<
   ReturnType<typeof useNoteListModel>,
   | 'title'
+  | 'createNoteLabel'
+  | 'searchActionLabel'
+  | 'searchPlaceholder'
   | 'typeDocument'
   | 'isEntityView'
   | 'listSort'
   | 'listDirection'
   | 'customProperties'
-  | 'locale'
   | 'sidebarCollapsed'
   | 'searchVisible'
   | 'search'
@@ -41,12 +43,14 @@ type NoteListTopChromeProps = NoteListTopChromeModelProps & {
 /** Owns the stacked controls above the virtualized note list. */
 export function NoteListTopChrome({
   title,
+  createNoteLabel,
+  searchActionLabel,
+  searchPlaceholder,
   typeDocument,
   isEntityView,
   listSort,
   listDirection,
   customProperties,
-  locale,
   sidebarCollapsed,
   searchVisible,
   search,
@@ -87,12 +91,14 @@ export function NoteListTopChrome({
     <div className="note-list-top-chrome" data-testid="note-list-top-chrome">
       <NoteListHeader
         title={title}
+        createNoteLabel={createNoteLabel}
+        searchActionLabel={searchActionLabel}
+        searchPlaceholder={searchPlaceholder}
         typeDocument={typeDocument}
         isEntityView={isEntityView}
         listSort={listSort}
         listDirection={listDirection}
         customProperties={customProperties}
-        locale={locale}
         sidebarCollapsed={sidebarCollapsed}
         searchVisible={searchVisible}
         search={search}

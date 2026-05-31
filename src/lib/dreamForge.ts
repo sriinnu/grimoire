@@ -19,9 +19,21 @@ export interface DreamForgePrivacyModel {
   badges: readonly ['Local only', 'Metadata only', 'No cloud']
 }
 
+/** Count-only manifest that makes Dream Forge's local boundary visible in the UI. */
+export interface DreamForgePrivateManifest {
+  lens: 'local-only'
+  source: 'frontmatter-only'
+  egress: 'blocked-by-default'
+  export: 'explicit-user-action'
+  recordCount: number
+  heldLocalCount: number
+  signalCount: number
+}
+
 /** Local-only dream and journal pattern summary built without note body access. */
 export interface DreamForgeSummary {
   privacy: DreamForgePrivacyModel
+  manifest: DreamForgePrivateManifest
   dreamCount: number
   journalCount: number
   protectedCount: number
@@ -87,17 +99,30 @@ export function buildDreamForgeSummary(
   const dreams = entries.filter((entry) => typeIs(entry, 'Dream') && !entry.archived)
   const journals = entries.filter((entry) => typeIs(entry, 'Journal') && !entry.archived)
   const protectedEntries = [...dreams, ...journals].filter((entry) => resolveEntryLocalityPolicy(entry).localOnly)
+  const recurringPeople = topSignals(dreams, PEOPLE_KEYS)
+  const symbols = topSignals(dreams, SYMBOL_KEYS)
+  const emotionalWeather = topSignals([...dreams, ...journals], EMOTION_KEYS)
+  const signalCount = recurringPeople.length + symbols.length + emotionalWeather.length
   return {
     privacy: DREAM_FORGE_PRIVACY_MODEL,
+    manifest: {
+      lens: 'local-only',
+      source: 'frontmatter-only',
+      egress: 'blocked-by-default',
+      export: 'explicit-user-action',
+      recordCount: dreams.length + journals.length,
+      heldLocalCount: protectedEntries.length,
+      signalCount,
+    },
     dreamCount: dreams.length,
     journalCount: journals.length,
     protectedCount: protectedEntries.length,
     latestDreamAt: latestTimestamp(dreams),
     rhythm: dreamRhythm([...dreams, ...journals], nowSeconds),
     timeline: dreamTimeline([...dreams, ...journals], nowSeconds),
-    recurringPeople: topSignals(dreams, PEOPLE_KEYS),
-    symbols: topSignals(dreams, SYMBOL_KEYS),
-    emotionalWeather: topSignals([...dreams, ...journals], EMOTION_KEYS),
+    recurringPeople,
+    symbols,
+    emotionalWeather,
   }
 }
 

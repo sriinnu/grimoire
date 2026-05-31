@@ -5,7 +5,7 @@
 
 import type { VaultEntry } from '../types'
 import type { SectionGroup } from '../components/SidebarParts'
-import { resolveIcon } from './iconRegistry'
+import { findIcon, resolveIcon } from './iconRegistry'
 import { pluralizeType } from '../hooks/useCommandRegistry'
 import { isLegacyJournalingType } from './legacyTypes'
 import { canonicalizeTypeName } from './vaultTypes'
@@ -27,6 +27,12 @@ const BUILT_IN_SECTION_GROUPS: SectionGroup[] = [
 
 /** Metadata lookup for well-known types (icon/label only — NOT used to determine which sections to show) */
 const BUILT_IN_TYPE_MAP = new Map(BUILT_IN_SECTION_GROUPS.map((sg) => [sg.type, sg]))
+const SEMANTIC_SECTION_LABELS: Record<string, string> = {
+  puranas: 'Puranas',
+  shaastras: 'Shaastras',
+  shastras: 'Shaastras',
+  vedas: 'Vedas',
+}
 
 const isMarkdown = (e: VaultEntry) => e.fileKind === 'markdown' || !e.fileKind
 const isActive = (e: VaultEntry) => !e.archived
@@ -81,7 +87,12 @@ export function collectActiveTypes(entries: VaultEntry[]): Set<string> {
 }
 
 function resolveLabel(type: string, typeEntry: VaultEntry | undefined, builtIn: SectionGroup | undefined): string {
-  return typeEntry?.sidebarLabel || builtIn?.label || pluralizeType(type)
+  return typeEntry?.sidebarLabel || builtIn?.label || SEMANTIC_SECTION_LABELS[type.toLowerCase()] || pluralizeType(type)
+}
+
+function resolveSectionIconValue(type: string, typeEntry: VaultEntry | undefined): string | null {
+  if (typeEntry?.icon) return typeEntry.icon
+  return findIcon(type) ? type : null
 }
 
 /** Build a single SectionGroup for a type, using built-in metadata or Type entry for icon/label */
@@ -90,8 +101,8 @@ export function buildSectionGroup(type: string, typeEntryMap: Record<string, Vau
   const typeEntry = typeEntryMap[type]
   const customColor = typeEntry?.color ?? null
   const label = resolveLabel(type, typeEntry, builtIn)
-  const icon = resolveIcon(typeEntry?.icon ?? null)
-  const iconValue = typeEntry?.icon ?? null
+  const iconValue = resolveSectionIconValue(type, typeEntry)
+  const icon = resolveIcon(iconValue)
   if (builtIn) {
     return { ...builtIn, label, Icon: typeEntry?.icon ? icon : builtIn.Icon, customColor, iconValue }
   }

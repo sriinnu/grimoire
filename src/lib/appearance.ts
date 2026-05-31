@@ -14,20 +14,28 @@ import { SUPPORTED_THEME_PRESETS } from '../themes/themePresetIds'
 import type { ThemePreset } from '../themes/themePresetIds'
 
 export const DEFAULT_THEME_PRESET = 'constellation'
-export const DEFAULT_EDITOR_FONT = 'system'
+export const DEFAULT_EDITOR_FONT = 'literary'
+export const DEFAULT_EDITOR_LINE_HEIGHT = 'comfortable'
 export const DEFAULT_NATIVE_SHELL_MATERIAL = 'standard'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'
+export const EDITOR_LINE_HEIGHT_STORAGE_KEY = 'grimoire:editor-line-height'
 export const NATIVE_SHELL_MATERIAL_STORAGE_KEY = 'grimoire:native-shell-material'
 
 export const SUPPORTED_EDITOR_FONTS = [
   'system',
-  'serif',
-  'mono',
   'readable',
+  'humanist',
   'literary',
+  'editorial',
+  'manuscript',
+  'mono',
+] as const
+
+export const SUPPORTED_EDITOR_LINE_HEIGHTS = [
   'compact',
-  'handwritten',
+  'comfortable',
+  'spacious',
 ] as const
 
 export const SUPPORTED_NATIVE_SHELL_MATERIALS = [
@@ -36,12 +44,26 @@ export const SUPPORTED_NATIVE_SHELL_MATERIALS = [
   'glass-preview',
 ] as const
 
+const EDITOR_LINE_HEIGHT_VALUES: Record<EditorLineHeight, number> = {
+  compact: 1.34,
+  comfortable: 1.44,
+  spacious: 1.58,
+}
+
 const THEME_PRESETS = new Set<string>(SUPPORTED_THEME_PRESETS)
 const EDITOR_FONTS = new Set<string>(SUPPORTED_EDITOR_FONTS)
+const EDITOR_LINE_HEIGHTS = new Set<string>(SUPPORTED_EDITOR_LINE_HEIGHTS)
 const NATIVE_SHELL_MATERIALS = new Set<string>(SUPPORTED_NATIVE_SHELL_MATERIALS)
 
 export type EditorFont = typeof SUPPORTED_EDITOR_FONTS[number]
+export type EditorLineHeight = typeof SUPPORTED_EDITOR_LINE_HEIGHTS[number]
 export type NativeShellMaterial = typeof SUPPORTED_NATIVE_SHELL_MATERIALS[number]
+
+const LEGACY_EDITOR_FONT_ALIASES: Record<string, EditorFont> = {
+  compact: 'system',
+  handwritten: 'literary',
+  serif: 'literary',
+}
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>
 type AppearanceDocument = Pick<Document, 'documentElement'>
@@ -49,6 +71,7 @@ type AppearanceDocument = Pick<Document, 'documentElement'>
 export interface ResolvedAppearance {
   themePreset: ThemePreset
   editorFont: EditorFont
+  editorLineHeight?: EditorLineHeight
   themeDefinition?: ThemeDefinition
   nativeShellMaterial?: NativeShellMaterial
 }
@@ -71,7 +94,14 @@ export function normalizeThemePreset(value: unknown): ThemePreset | null {
 
 /** Returns a supported editor font or null for untrusted persisted values. */
 export function normalizeEditorFont(value: unknown): EditorFont | null {
-  return isSupportedValue<EditorFont>(EDITOR_FONTS, value) ? value : null
+  if (isSupportedValue<EditorFont>(EDITOR_FONTS, value)) return value
+  if (typeof value !== 'string') return null
+  return LEGACY_EDITOR_FONT_ALIASES[value.trim().toLowerCase()] ?? null
+}
+
+/** Returns a supported editor line-height preset or null for untrusted persisted values. */
+export function normalizeEditorLineHeight(value: unknown): EditorLineHeight | null {
+  return isSupportedValue<EditorLineHeight>(EDITOR_LINE_HEIGHTS, value) ? value : null
 }
 
 /** Returns a supported native shell material flag or null for untrusted values. */
@@ -87,6 +117,11 @@ export function resolveThemePreset(value: unknown): ThemePreset {
 /** Resolves any editor font input to the product default when it is missing or invalid. */
 export function resolveEditorFont(value: unknown): EditorFont {
   return normalizeEditorFont(value) ?? DEFAULT_EDITOR_FONT
+}
+
+/** Resolves editor line-height to the product default when it is missing or invalid. */
+export function resolveEditorLineHeight(value: unknown): EditorLineHeight {
+  return normalizeEditorLineHeight(value) ?? DEFAULT_EDITOR_LINE_HEIGHT
 }
 
 /** Resolves any shell material input to the conservative native default. */
@@ -124,6 +159,11 @@ export function readStoredEditorFont(storage: AppearanceStorage): EditorFont | n
   return safeRead(storage, EDITOR_FONT_STORAGE_KEY, normalizeEditorFont)
 }
 
+/** Reads the mirrored editor line-height used before native settings finish loading. */
+export function readStoredEditorLineHeight(storage: AppearanceStorage): EditorLineHeight | null {
+  return safeRead(storage, EDITOR_LINE_HEIGHT_STORAGE_KEY, normalizeEditorLineHeight)
+}
+
 /** Reads the mirrored native shell material used before native settings finish loading. */
 export function readStoredNativeShellMaterial(storage: AppearanceStorage): NativeShellMaterial | null {
   return safeRead(storage, NATIVE_SHELL_MATERIAL_STORAGE_KEY, normalizeNativeShellMaterial)
@@ -139,9 +179,19 @@ export function writeStoredEditorFont(storage: AppearanceStorage, font: EditorFo
   safeWrite(storage, EDITOR_FONT_STORAGE_KEY, font)
 }
 
+/** Mirrors the resolved editor line-height for flash-free startup. */
+export function writeStoredEditorLineHeight(storage: AppearanceStorage, lineHeight: EditorLineHeight): void {
+  safeWrite(storage, EDITOR_LINE_HEIGHT_STORAGE_KEY, lineHeight)
+}
+
 /** Mirrors the resolved native shell material for flash-free startup. */
 export function writeStoredNativeShellMaterial(storage: AppearanceStorage, material: NativeShellMaterial): void {
   safeWrite(storage, NATIVE_SHELL_MATERIAL_STORAGE_KEY, material)
+}
+
+function applyEditorLineHeightToRoot(root: HTMLElement, lineHeight: EditorLineHeight | undefined): void {
+  root.setAttribute('data-editor-line-height', resolveEditorLineHeight(lineHeight))
+  root.style.setProperty('--editor-line-height', String(EDITOR_LINE_HEIGHT_VALUES[resolveEditorLineHeight(lineHeight)]))
 }
 
 /** Applies appearance choices as root attributes consumed by CSS tokens. */
@@ -158,6 +208,7 @@ export function applyAppearanceToDocument(
     appearance.themeDefinition ?? resolveThemePresetDefinition(appearance.themePreset),
     readDocumentThemeMode(root),
   )
+  applyEditorLineHeightToRoot(root, appearance.editorLineHeight)
   applyFontRolesToDocument(documentObject, appearance)
 }
 
@@ -169,6 +220,7 @@ export function applyStoredAppearance(
   const appearance: ResolvedAppearance = {
     themePreset: readStoredThemePreset(storage) ?? DEFAULT_THEME_PRESET,
     editorFont: readStoredEditorFont(storage) ?? DEFAULT_EDITOR_FONT,
+    editorLineHeight: readStoredEditorLineHeight(storage) ?? DEFAULT_EDITOR_LINE_HEIGHT,
   }
   const nativeShellMaterial = readStoredNativeShellMaterial(storage)
   if (nativeShellMaterial) appearance.nativeShellMaterial = nativeShellMaterial

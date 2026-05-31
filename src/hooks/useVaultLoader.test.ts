@@ -161,6 +161,33 @@ describe('useVaultLoader', () => {
     expect(result.current.entries[0].title).toBe('Hello')
   })
 
+  it('exposes loading state until the active vault data settles', async () => {
+    const load = createDeferred<VaultEntry[]>()
+    backendInvokeFn.mockImplementation(((cmd: string) => {
+      if (isVaultLoadCommand(cmd)) return load.promise
+      if (cmd === 'get_modified_files') return Promise.resolve([])
+      if (cmd === 'list_vault_folders') return Promise.resolve([])
+      if (cmd === 'list_views') return Promise.resolve([])
+      return Promise.resolve(null)
+    }) as typeof defaultMockInvoke)
+
+    const { result } = renderHook(() => useVaultLoader('/vault'))
+
+    expect(result.current.isLoading).toBe(true)
+    expect(result.current.loadingPath).toBe('/vault')
+
+    await act(async () => {
+      load.resolve(mockEntries)
+      await load.promise
+    })
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+      expect(result.current.loadingPath).toBeNull()
+      expect(result.current.loadError).toBeNull()
+    })
+  })
+
   it('loads modified files on mount', async () => {
     const { result } = renderHook(() => useVaultLoader('/vault'))
 

@@ -6,6 +6,7 @@ import {
   type PortabilityCapsuleFormat,
   type PortabilityCapsulePreviewResult,
 } from '../lib/portabilityCapsule'
+import type { PortabilityCapsuleLoopLiveProof } from '../lib/portabilityCapsuleLoopLiveProof'
 import { pickFolder, pickSaveFile } from './vault-dialog'
 
 export type VaultExportProgressEvent =
@@ -68,6 +69,17 @@ export function exportPortabilityCapsule(
   return isTauri()
     ? invoke<MarkdownZipExportResult>('export_portability_capsule', args)
     : mockInvoke<MarkdownZipExportResult>('export_portability_capsule', args)
+}
+
+/** Proves a generated local capsule can be no-write-previewed for import. */
+export function runPortabilityCapsuleLoopProof(
+  vaultPath: string,
+  format: PortabilityCapsuleFormat,
+): Promise<PortabilityCapsuleLoopLiveProof> {
+  const args = { vaultPath, format }
+  return isTauri()
+    ? invoke<PortabilityCapsuleLoopLiveProof>('run_portability_capsule_loop_proof', args)
+    : mockInvoke<PortabilityCapsuleLoopLiveProof>('run_portability_capsule_loop_proof', args)
 }
 
 /** Exports the vault to Markdown ZIP while reporting cancellable progress. */

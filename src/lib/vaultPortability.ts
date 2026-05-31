@@ -1,9 +1,9 @@
 import type { VaultPortabilityActionId } from './vaultPortabilityActions'
 export type { VaultPortabilityActionId } from './vaultPortabilityActions'
 
-export type VaultPortabilityStatus = 'ready' | 'planned'
+export type VaultPortabilityStatus = 'ready' | 'planned' | 'proof-preview' | 'preview-backed' | 'folder-proof'
 export type VaultStorageKind = 'local-folder' | 'git' | 'cloud-folder' | 'object-storage'
-export type VaultStorageHealthState = 'active' | 'available' | 'not_selected' | 'planned'
+export type VaultStorageHealthState = 'active' | 'available' | 'not_selected' | 'planned' | 'proof-preview'
 
 export interface VaultImportSource {
   id: string
@@ -108,7 +108,7 @@ const IMPORT_SOURCES = [
   {
     id: 'bear',
     label: 'Bear',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Bear Markdown folder or TextBundle package folder',
     output: 'vault-folder',
     preservesMarkdown: true,
@@ -117,7 +117,7 @@ const IMPORT_SOURCES = [
   {
     id: 'day-one',
     label: 'Day One',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Day One JSON or JSON ZIP export',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -126,7 +126,7 @@ const IMPORT_SOURCES = [
   {
     id: 'journey',
     label: 'Journey',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Journey ZIP or JSON backup export',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -135,7 +135,7 @@ const IMPORT_SOURCES = [
   {
     id: 'apple-journal',
     label: 'Apple Journal',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'AppleJournalEntries ZIP, HTML, or JSON export',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -144,7 +144,7 @@ const IMPORT_SOURCES = [
   {
     id: 'obsidian',
     label: 'Obsidian',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Obsidian vault folder',
     output: 'vault-folder',
     preservesMarkdown: true,
@@ -153,7 +153,7 @@ const IMPORT_SOURCES = [
   {
     id: 'notion-markdown',
     label: 'Notion Markdown',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Notion Markdown + CSV export',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -162,7 +162,7 @@ const IMPORT_SOURCES = [
   {
     id: 'spanda',
     label: 'Spanda',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Spanda practice sessions, panchanga context, and practice library exports',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -171,7 +171,7 @@ const IMPORT_SOURCES = [
   {
     id: 'json-capsule',
     label: 'JSON capsule',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Grimoire JSON portability capsule',
     output: 'vault-folder',
     preservesMarkdown: true,
@@ -180,7 +180,7 @@ const IMPORT_SOURCES = [
   {
     id: 'sqlite-capsule',
     label: 'SQLite capsule',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Grimoire SQLite portability capsule',
     output: 'vault-folder',
     preservesMarkdown: true,
@@ -250,7 +250,7 @@ const STORAGE_PROVIDERS = [
     id: 'icloud-drive',
     label: 'iCloud Drive',
     kind: 'cloud-folder',
-    status: 'ready',
+    status: 'folder-proof',
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Use an iCloud Drive folder as the local working vault.',
@@ -260,7 +260,7 @@ const STORAGE_PROVIDERS = [
     id: 'google-drive-desktop',
     label: 'Google Drive Desktop',
     kind: 'cloud-folder',
-    status: 'ready',
+    status: 'folder-proof',
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Use a Google Drive Desktop folder as the local working vault.',
@@ -270,7 +270,7 @@ const STORAGE_PROVIDERS = [
     id: 's3',
     label: 'Amazon S3',
     kind: 'object-storage',
-    status: 'planned',
+    status: 'proof-preview',
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Preview/apply S3 provider sync from a local working vault using local AWS credentials; provider failure-state proof is still pending.',
@@ -280,7 +280,7 @@ const STORAGE_PROVIDERS = [
     id: 'azure-blob',
     label: 'Azure Blob Storage',
     kind: 'object-storage',
-    status: 'planned',
+    status: 'proof-preview',
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Preview/apply Azure Blob provider sync from a local working vault using local Azure CLI login; provider failure-state proof is still pending.',
@@ -336,6 +336,9 @@ function healthForProvider(
   if (provider.status === 'planned') {
     return { state: 'planned', message: 'Adapter planned around a local working copy.' }
   }
+  if (provider.status === 'proof-preview') {
+    return { state: 'proof-preview', message: 'Proof preview available; provider sync not proven.' }
+  }
   if (provider.id === 'local-folder') {
     return normalizedPath
       ? { state: 'active', message: 'Current vault is a normal local folder.' }
@@ -370,9 +373,9 @@ function cloudFolderHealth(
   fallbackMessage: string,
 ): Pick<VaultStorageHealth, 'state' | 'message' | 'privacyNote'> {
   return normalizedPath && matcher(normalizedPath)
-    ? {
+      ? {
         state: 'active',
-        message: activeMessage,
+        message: `${activeMessage} Local folder detected; provider sync not proven by Grimoire.`,
         privacyNote: 'Cloud sync is handled by the folder provider; Grimoire only edits the local files and never stores cloud credentials in the vault.',
       }
     : { state: 'not_selected', message: fallbackMessage }

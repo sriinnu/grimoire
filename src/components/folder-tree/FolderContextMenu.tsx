@@ -26,7 +26,7 @@ export function FolderContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 rounded-md border bg-popover p-1 shadow-md"
+      className="grimoire-context-menu-surface fixed z-50 rounded-md border bg-popover p-1 shadow-md"
       style={{ left: menu.x, top: menu.y, minWidth: 180 }}
       data-testid="folder-context-menu"
     >

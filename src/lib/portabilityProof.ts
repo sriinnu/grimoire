@@ -6,14 +6,17 @@ import {
   type VaultPortabilityStatus,
 } from './vaultPortability'
 import type { PortabilityExportPreviewState } from './exportReviewGate'
+import { capsuleExportLiveProofs, capsuleImportLiveProofs } from './capsulePortabilityProofs'
 import {
   objectStorageReportProofs,
   type ObjectStorageLiveProofReport as ObjectStorageLiveProofReportType,
 } from './objectStorageLiveProofReport'
+import {
+  objectStorageProviderPreviewProofs,
+  type ObjectStorageProviderPreviewProofReports,
+} from './objectStorageProviderPreviewProof'
 
-export {
-  parseObjectStorageLiveProofReport,
-} from './objectStorageLiveProofReport'
+export { parseObjectStorageLiveProofReport } from './objectStorageLiveProofReport'
 export type {
   ObjectStorageLiveProofProviderId,
   ObjectStorageLiveProofProviderReport,
@@ -28,7 +31,7 @@ export type PortabilityProofLevel =
   | 'live-read-only-plus-local-mirror'
   | 'live-provider-proof-runner'
 
-export type PortabilitySupportStatus = VaultPortabilityStatus | 'fixture' | 'available'
+export type PortabilitySupportStatus = VaultPortabilityStatus | 'fixture' | 'available' | 'folder-proof'
 
 /** Command users can run to capture a redacted S3/Azure live provider proof report. */
 export const OBJECT_STORAGE_LIVE_PROOF_COMMAND =
@@ -56,6 +59,8 @@ export interface PortabilityProviderRequirement {
 export interface PortabilityLiveProof {
   id:
     | 'azure-provider-proof'
+    | 'azure-provider-pull-preview'
+    | 'azure-provider-push-preview'
     | 'azure-read-only'
     | 'google-drive-desktop-folder'
     | 'icloud-drive-folder'
@@ -63,6 +68,8 @@ export interface PortabilityLiveProof {
     | 'json-capsule-import-preview'
     | 'provider-report-summary'
     | 's3-provider-proof'
+    | 's3-provider-pull-preview'
+    | 's3-provider-push-preview'
     | 's3-read-only'
     | 'sqlite-capsule-export-preview'
     | 'sqlite-capsule-import-preview'
@@ -114,6 +121,7 @@ export interface PortabilityProofState {
   capsuleImportPreview?: ImportAutopsyPreviewState | null
   desktopStorageHealthReports?: Partial<Record<DesktopStorageProofProviderId, DesktopStorageHealthProof>> | null
   objectStorageLiveProofReport?: ObjectStorageLiveProofReportType | null
+  objectStorageProviderPreviewReports?: ObjectStorageProviderPreviewProofReports | null
   s3LivePreflightReport?: S3LivePreflightProof | null
 }
 
@@ -122,6 +130,12 @@ export interface PortabilityProofRow {
   label: string
   supportStatus: PortabilitySupportStatus
   proofLevel: PortabilityProofLevel
+  metrics?: {
+    filesystemStorageCount?: number
+    objectStorageLabels?: string
+    readyExportsCount?: number
+    readyImportsCount?: number
+  }
   detail: string
   evidence: string
   liveProofs?: readonly PortabilityLiveProof[]
@@ -135,9 +149,9 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
   const importSources = listVaultImportSources()
   const exportTargets = listVaultExportTargets()
   const storageProviders = listVaultStorageProviders()
-  const readyImports = importSources.filter(source => source.status === 'ready')
+  const readyImports = importSources.filter(source => source.status === 'ready' || source.status === 'preview-backed')
   const readyExports = exportTargets.filter(target => target.status === 'ready')
-  const filesystemStorage = storageProviders.filter(provider => provider.status === 'ready')
+  const filesystemStorage = storageProviders.filter(provider => provider.status === 'ready' || provider.status === 'folder-proof')
   const objectStorageLabels = storageProviders
     .filter(provider => provider.kind === 'object-storage')
     .map(provider => provider.label)
@@ -149,6 +163,7 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       label: 'Importers',
       supportStatus: 'ready',
       proofLevel: 'fixture-regression',
+      metrics: { readyImportsCount: readyImports.length },
       detail: `${readyImports.length} no-write preview adapters`,
       evidence: readyImports.map(source => source.label).join(', '),
       liveProofs: capsuleImportLiveProofs(proofState.capsuleImportPreview),
@@ -159,6 +174,7 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       label: 'Exports',
       supportStatus: 'ready',
       proofLevel: 'local-regression',
+      metrics: { readyExportsCount: readyExports.length },
       detail: `${readyExports.length} portable exits`,
       evidence: 'Vault folder, Git remote, Markdown ZIP, static HTML, JSON snapshot, and SQLite snapshot; local-only lanes withheld; JSON/SQLite capsules have local import regressions.',
       liveProofs: capsuleExportLiveProofs(proofState.capsuleExportPreview),
@@ -167,10 +183,11 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
     {
       id: 'desktop-sync',
       label: 'Desktop sync',
-      supportStatus: 'ready',
+      supportStatus: 'folder-proof',
       proofLevel: 'provider-managed-local-folder',
-      detail: `${filesystemStorage.length} provider-managed local working copies`,
-      evidence: 'Local folder, Git, iCloud Drive, and Google Drive Desktop are normal folders; Settings can run local read proof for iCloud/GDrive without storing cloud credentials.',
+      metrics: { filesystemStorageCount: filesystemStorage.length },
+      detail: `${filesystemStorage.length} folder proof paths; provider sync not proven`,
+      evidence: 'Local folder, Git, iCloud Drive, and Google Drive Desktop are normal folders. Settings proves local folder readability only; iCloud/GDrive provider sync behavior is not proven by Grimoire.',
       liveProofs: desktopStorageLiveProofs(proofState.desktopStorageHealthReports),
       remainingProof: 'Provider quota, offline recovery, auth expiry, and conflicted-file behavior need live provider testing.',
     },
@@ -179,6 +196,7 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
       label: 'Object storage',
       supportStatus: 'fixture',
       proofLevel: 'live-read-only-plus-local-mirror',
+      metrics: { objectStorageLabels },
       detail: `${objectStorageLabels} provider preview/apply contracts plus read-only preflights`,
       evidence: 'S3 has a read-only HeadBucket/ListObjectsV2 preflight, Azure has a read-only CLI container/list preflight, Settings provider preview/apply lanes require exact preview signatures, conflict checks, and content-hash metadata; local mirrors remain adapter fixtures.',
       liveProofs: objectStorageLiveProofs(proofState),
@@ -229,63 +247,6 @@ export function listPortabilityProofRows(proofState: PortabilityProofState = {})
   ]
 }
 
-function capsuleImportLiveProofs(
-  preview?: ImportAutopsyPreviewState | null,
-): readonly PortabilityLiveProof[] {
-  const format = capsuleImportFormat(preview?.sourceId)
-  if (!preview || !format) return []
-  const id: PortabilityLiveProof['id'] = format === 'json'
-    ? 'json-capsule-import-preview'
-    : 'sqlite-capsule-import-preview'
-  const label = format === 'json' ? 'JSON capsule import preview' : 'SQLite capsule import preview'
-  const result = preview.result
-  return [{
-    id,
-    label,
-    status: result.failed_files > 0 ? 'needs review' : 'reviewed',
-    detail: [
-      `${result.notes_to_copy} notes`,
-      `${result.assets_to_copy} assets`,
-      `${result.skipped_files} withheld`,
-      `${result.failed_files} failed`,
-      proofFlag(result.writes_local_only_report, 'local-only report planned', 'local-only report missing'),
-    ].join('; '),
-  }]
-}
-
-function capsuleExportLiveProofs(
-  preview?: PortabilityExportPreviewState | null,
-): readonly PortabilityLiveProof[] {
-  if (!preview) return []
-  const id: PortabilityLiveProof['id'] = preview.format === 'json'
-    ? 'json-capsule-export-preview'
-    : 'sqlite-capsule-export-preview'
-  const label = preview.format === 'json' ? 'JSON capsule export preview' : 'SQLite capsule export preview'
-  const { result } = preview
-  const proof = result.locality_proof
-  const redacted = proof.markdown_source_of_truth && proof.absolute_source_paths_redacted
-  return [{
-    id,
-    label,
-    status: redacted ? 'reviewed' : 'needs review',
-    detail: [
-      `${result.files_exportable} files`,
-      `${result.notes_exportable} notes`,
-      `${result.assets_exportable} assets`,
-      `${proof.local_only_files_withheld} withheld`,
-      `${result.bytes_exportable} bytes`,
-      proofFlag(proof.markdown_source_of_truth, 'Markdown source of truth', 'Markdown source unclear'),
-      proofFlag(proof.absolute_source_paths_redacted, 'absolute paths redacted', 'absolute paths need review'),
-    ].join('; '),
-  }]
-}
-
-function capsuleImportFormat(sourceId?: ImportAutopsyPreviewState['sourceId']): 'json' | 'sqlite' | null {
-  if (sourceId === 'json-capsule-preview') return 'json'
-  if (sourceId === 'sqlite-capsule-preview') return 'sqlite'
-  return null
-}
-
 function desktopStorageLiveProofs(
   reports?: Partial<Record<DesktopStorageProofProviderId, DesktopStorageHealthProof>> | null,
 ): readonly PortabilityLiveProof[] {
@@ -303,7 +264,7 @@ function desktopStorageLiveProof(report: DesktopStorageHealthProof): Portability
   return {
     id: report.provider_id === 'icloud-drive' ? 'icloud-drive-folder' : 'google-drive-desktop-folder',
     label,
-    status: proofStatusLabel(report.status),
+    status: desktopStorageProofStatusLabel(report.status),
     detail: [
       proofFlag(report.configured, 'configured', 'not configured'),
       proofFlag(report.local_path_checked, 'local path checked', 'local path not checked'),
@@ -314,6 +275,10 @@ function desktopStorageLiveProof(report: DesktopStorageHealthProof): Portability
       `checked ${proofTimestamp(report.checked_at)}`,
     ].join('; '),
   }
+}
+
+function desktopStorageProofStatusLabel(status: string): string {
+  return status === 'ready' ? 'folder readable' : proofStatusLabel(status)
 }
 
 /** Converts proof levels into compact labels for Settings badges. */
@@ -336,11 +301,13 @@ export function portabilityProofLevelLabel(level: PortabilityProofLevel): string
 
 function objectStorageLiveProofs({
   azureLivePreflightReport,
+  objectStorageProviderPreviewReports,
   s3LivePreflightReport,
 }: PortabilityProofState): readonly PortabilityLiveProof[] {
   return [
     s3LivePreflightReport ? s3LiveProof(s3LivePreflightReport) : null,
     azureLivePreflightReport ? azureLiveProof(azureLivePreflightReport) : null,
+    ...objectStorageProviderPreviewProofs(objectStorageProviderPreviewReports),
   ].filter(isPortabilityLiveProof)
 }
 

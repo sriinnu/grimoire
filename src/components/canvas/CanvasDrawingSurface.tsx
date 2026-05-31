@@ -22,6 +22,11 @@ import {
   type CanvasRect,
   type CanvasSelection,
 } from './canvasDrawing'
+import {
+  drawCanvasShapeDraft,
+  isCanvasShapeTool,
+  type CanvasShapeDraft,
+} from './canvasShapePreview'
 
 export type CanvasTool = 'pen' | 'highlighter' | 'eraser' | 'hand' | 'rectangle' | 'ellipse' | 'line' | 'text' | 'lasso'
 
@@ -116,6 +121,7 @@ export function CanvasDrawingSurface({
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const [activeStroke, setActiveStroke] = useState<CanvasStroke | null>(null)
+  const [draftShape, setDraftShape] = useState<CanvasShapeDraft | null>(null)
   const [lassoRect, setLassoRect] = useState<CanvasRect | null>(null)
   const [selection, setSelection] = useState<CanvasSelection>(EMPTY_CANVAS_SELECTION)
   const pointerIdRef = useRef<number | null>(null)
@@ -140,9 +146,10 @@ export function CanvasDrawingSurface({
         if (bounds) drawRectOverlay(ctx, bounds, selectionColor)
       }
       if (lassoRect) drawRectOverlay(ctx, lassoRect, lassoColor)
+      if (draftShape) drawCanvasShapeDraft(ctx, draftShape, color, size)
     })
     return () => { cancelled = true }
-  }, [activeStroke, document, lassoRect, selection, vaultPath])
+  }, [activeStroke, color, document, draftShape, lassoRect, selection, size, vaultPath])
 
   const beginHandDrag = useCallback((event: React.PointerEvent<HTMLCanvasElement>) => {
     const scroller = scrollerRef.current
@@ -217,8 +224,10 @@ export function CanvasDrawingSurface({
       return
     }
 
-    if (tool === 'rectangle' || tool === 'ellipse' || tool === 'line') {
+    if (isCanvasShapeTool(tool)) {
+      setSelection(EMPTY_CANVAS_SELECTION)
       lassoStartRef.current = point
+      setDraftShape({ kind: tool, start: point, end: point })
       return
     }
 
@@ -253,7 +262,9 @@ export function CanvasDrawingSurface({
     }
 
     const point = pointerPoint(event, canvas)
-    if (tool === 'rectangle' || tool === 'ellipse' || tool === 'line') {
+    if (isCanvasShapeTool(tool)) {
+      const start = lassoStartRef.current
+      if (start) setDraftShape({ kind: tool, start, end: point })
       return
     }
 
@@ -281,9 +292,10 @@ export function CanvasDrawingSurface({
     const canvas = canvasRef.current
     const point = canvas ? pointerPoint(event, canvas) : null
 
-    if (point && lassoStartRef.current && (tool === 'rectangle' || tool === 'ellipse' || tool === 'line')) {
+    if (point && lassoStartRef.current && isCanvasShapeTool(tool)) {
       const start = lassoStartRef.current
       lassoStartRef.current = null
+      setDraftShape(null)
       setDocument((current) => appendCanvasShape(current, tool, start, point, color, size))
       return
     }
@@ -297,6 +309,7 @@ export function CanvasDrawingSurface({
     }
 
     lassoStartRef.current = null
+    setDraftShape(null)
     setActiveStroke((stroke) => {
       if (stroke) setDocument((current) => appendStroke(current, stroke))
       return null
@@ -311,6 +324,7 @@ export function CanvasDrawingSurface({
         ref={canvasRef}
         aria-label="Canvas drawing surface"
         className="canvas-attachment__surface"
+        data-canvas-draft-shape={draftShape?.kind ?? 'none'}
         height={document.height}
         onPointerCancel={finishPointer}
         onPointerDown={handlePointerDown}

@@ -241,7 +241,6 @@ function useRenameResultApplier(
   const { setTabs, activeTabPathRef, handleSwitchTab, updateTabContent } = tabDeps
 
   const tabsRef = useRef(tabDeps.tabs)
-  // eslint-disable-next-line react-hooks/refs
   tabsRef.current = tabDeps.tabs
 
   const applyRenameResult = useCallback(async (

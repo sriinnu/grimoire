@@ -1,8 +1,11 @@
 #[cfg(desktop)]
 use std::{
     path::{Path, PathBuf},
-    process::{Command, Stdio},
+    process::Command,
 };
+
+#[cfg(all(desktop, target_os = "macos"))]
+use std::process::Stdio;
 
 #[cfg(desktop)]
 #[derive(Debug, Eq, PartialEq)]

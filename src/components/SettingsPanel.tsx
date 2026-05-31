@@ -8,7 +8,7 @@ import {
   resolveEffectiveLocale,
   type AppLocale,
 } from '../lib/i18n'
-import { resolveEditorFont, resolveNativeShellMaterial, resolveThemePreset } from '../lib/appearance'
+import { resolveEditorFont, resolveEditorLineHeight, resolveNativeShellMaterial, resolveThemePreset } from '../lib/appearance'
 import {
   DEFAULT_TRANSCRIPTION_PROVIDER,
   isCloudTranscriptionProvider,
@@ -142,13 +142,15 @@ function SettingsPanelInner({
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
     editorFont: resolveEditorFont(settings.editor_font),
+    editorLineHeight: resolveEditorLineHeight(settings.editor_line_height),
     nativeShellMaterial: resolveNativeShellMaterial(settings.native_shell_material),
-  }), [settings.editor_font, settings.native_shell_material, settings.theme_mode, settings.theme_preset])
+  }), [settings.editor_font, settings.editor_line_height, settings.native_shell_material, settings.theme_mode, settings.theme_preset])
   const { commitAppearancePreview } = useSettingsAppearancePreview({
     draft: {
       themeMode: draft.themeMode,
       themePreset: draft.themePreset,
       editorFont: draft.editorFont,
+      editorLineHeight: draft.editorLineHeight,
       nativeShellMaterial: draft.nativeShellMaterial,
     },
     saved: savedAppearance,
@@ -339,6 +341,8 @@ function SettingsPanelInner({
           setThemePreset={(value) => updateDraft('themePreset', value)}
           editorFont={draft.editorFont}
           setEditorFont={(value) => updateDraft('editorFont', value)}
+          editorLineHeight={draft.editorLineHeight}
+          setEditorLineHeight={(value) => updateDraft('editorLineHeight', value)}
           uiLanguage={draft.uiLanguage}
           setUiLanguage={(value) => updateDraft('uiLanguage', value)}
           menuBarIconEnabled={draft.menuBarIconEnabled}

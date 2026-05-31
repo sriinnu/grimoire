@@ -59,7 +59,7 @@ export function useNoteSearch(entries: VaultEntry[], query: string, maxResults =
   }, [searchableEntries, query, maxResults, typeEntryMap])
 
   useEffect(() => {
-    setSelectedIndex(0) // eslint-disable-line react-hooks/set-state-in-effect -- reset on query change
+    setSelectedIndex(0)
   }, [query])
 
   const selectedEntry = results[selectedIndex]?.entry ?? null

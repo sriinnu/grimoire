@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type ComponentType,
   type KeyboardEvent,
   type MouseEvent,
@@ -183,13 +184,23 @@ function SectionHeader({ label, type, Icon, iconValue, sectionColor, sectionLigh
       onContextMenu={getSectionContextMenuHandler(isRenaming, onContextMenu)}
     >
       <div className="flex min-w-0 flex-1 items-center" style={{ gap: 4 }}>
-        <TypeIconMark
-          className="shrink-0"
-          color={sectionColor}
-          fallbackIcon={(props) => <Icon {...props} weight={getSectionHeaderIconWeight(isActive)} />}
-          iconValue={iconValue}
-          size={16}
-        />
+        <span
+          className="sidebar-section-glyph"
+          data-active={isActive ? 'true' : 'false'}
+          style={{ '--sidebar-section-tone': sectionColor } as CSSProperties}
+        >
+          <span className="sidebar-section-glyph__aura" />
+          <span className="sidebar-section-glyph__route" />
+          <span className="sidebar-section-glyph__thread" />
+          <span className="sidebar-section-glyph__bead" />
+          <TypeIconMark
+            className="sidebar-section-glyph__icon"
+            color="currentColor"
+            fallbackIcon={(props) => <Icon {...props} weight={getSectionHeaderIconWeight(isActive)} />}
+            iconValue={iconValue}
+            size={15}
+          />
+        </span>
         <SectionHeaderLabel
           type={type}
           label={label}

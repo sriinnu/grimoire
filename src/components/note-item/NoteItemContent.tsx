@@ -2,6 +2,7 @@ import type { ComponentType, MouseEvent as ReactMouseEvent, SVGAttributes } from
 import type { NoteStatus, VaultEntry } from '../../types'
 import { cn } from '@/lib/utils'
 import { getDisplayDate, relativeDate } from '../../utils/noteListHelpers'
+import { resolveNoteIcon } from '../../utils/noteIcon'
 import { NoteTitleIcon } from '../NoteTitleIcon'
 import { TypeIconMark } from '../TypeIconMark'
 import { ChangeNoteContent } from './ChangeNoteContent'
@@ -63,18 +64,22 @@ function NoteTypeIndicator({
   TypeIcon,
   iconValue,
   typeColor,
+  className,
+  size = 14,
 }: {
   TypeIcon: ComponentType<SVGAttributes<SVGSVGElement>>
   iconValue?: string | null
   typeColor: string
+  className?: string
+  size?: number
 }) {
   return (
     <TypeIconMark
-      className="absolute right-3 top-2.5"
+      className={cn('note-type-indicator', className)}
       color={typeColor}
       fallbackIcon={TypeIcon}
       iconValue={iconValue}
-      size={14}
+      size={size}
       testId="type-icon"
     />
   )
@@ -92,6 +97,10 @@ function NoteSnippet({ snippet }: { snippet?: string | null }) {
       {snippet}
     </div>
   )
+}
+
+function hasVisibleNoteTitleIcon(icon: VaultEntry['icon']): boolean {
+  return resolveNoteIcon(icon).kind !== 'none'
 }
 
 function NoteContextChips({
@@ -194,16 +203,47 @@ function NoteTitleRow({
   isBinary,
   isSelected,
   noteStatus,
-}: Pick<NoteItemContentProps, 'entry' | 'isBinary' | 'isSelected' | 'noteStatus'>) {
-  return (
-    <div
-      className={cn('truncate pr-5 text-[13px]', isBinary ? 'text-muted-foreground' : 'text-foreground', isSelected && !isBinary ? 'font-semibold' : 'font-medium')}
-      data-testid="note-title"
-    >
+  TypeIcon,
+  typeIconValue,
+  typeColor,
+}: Pick<NoteItemContentProps, 'entry' | 'isBinary' | 'isSelected' | 'noteStatus' | 'typeColor'> & {
+  TypeIcon: ComponentType<SVGAttributes<SVGSVGElement>>
+  typeIconValue?: string | null
+}) {
+  const hasTitleIcon = hasVisibleNoteTitleIcon(entry.icon)
+  const titleText = (
+    <span className="note-title-text min-w-0 truncate" data-testid="note-title-text">
       {noteStatus !== 'clean' && !isBinary && <StatusDot noteStatus={noteStatus} />}
-      <NoteTitleIcon icon={entry.icon} size={15} className="mr-1" testId="note-title-icon" />
       {entry.title}
       {!isBinary && <StateBadge archived={entry.archived} />}
+    </span>
+  )
+
+  return (
+    <div
+      className={cn(
+        'note-title-row truncate text-[13px] leading-[1.35]',
+        'note-title-row--with-icon grid',
+        isBinary ? 'text-muted-foreground' : 'text-foreground',
+        isSelected && !isBinary ? 'font-semibold' : 'font-medium',
+      )}
+      data-title-icon="true"
+      data-testid="note-title"
+    >
+      <span className="note-title-icon-cell flex items-center justify-center" data-testid="note-title-icon-cell">
+        {hasTitleIcon ? (
+          <NoteTitleIcon icon={entry.icon} size={15} testId="note-title-icon" />
+        ) : (
+          <NoteTypeIndicator
+            TypeIcon={TypeIcon}
+            className="note-title-leading-type-icon"
+            iconValue={typeIconValue}
+            size={15}
+            typeColor={typeColor}
+          />
+        )}
+      </span>
+      {titleText}
     </div>
   )
 }
@@ -231,12 +271,26 @@ function InteractiveNoteDetails({
   allEntries,
   typeEntryMap,
   onClickNote,
-}: Omit<NoteItemContentProps, 'isBinary' | 'changeStatus' | 'typeColor'>) {
+  TypeIcon,
+  typeIconValue,
+  typeColor,
+}: Omit<NoteItemContentProps, 'isBinary' | 'changeStatus'> & {
+  TypeIcon: ComponentType<SVGAttributes<SVGSVGElement>>
+  typeIconValue?: string | null
+}) {
   const projects = getNoteProjectContexts(entry, allEntries)
 
   return (
     <>
-      <NoteTitleRow entry={entry} isBinary={false} isSelected={isSelected} noteStatus={noteStatus} />
+      <NoteTitleRow
+        TypeIcon={TypeIcon}
+        entry={entry}
+        isBinary={false}
+        isSelected={isSelected}
+        noteStatus={noteStatus}
+        typeColor={typeColor}
+        typeIconValue={typeIconValue}
+      />
       <NoteContextChips
         locationLabel={locationLabel}
         projects={projects}
@@ -280,25 +334,33 @@ function StandardNoteContent({
   const typeIconValue = entry.fileKind && entry.fileKind !== 'markdown' ? null : te?.icon ?? null
 
   return (
-    <>
-      <NoteTypeIndicator TypeIcon={TypeIcon} iconValue={typeIconValue} typeColor={typeColor} />
-      <div className="space-y-2" data-testid="note-content-stack">
-        {isBinary ? (
-          <NoteTitleRow entry={entry} isBinary={true} isSelected={isSelected} noteStatus={noteStatus} />
-        ) : (
-          <InteractiveNoteDetails
-            entry={entry}
-            locationLabel={locationLabel}
-            noteStatus={noteStatus}
-            isSelected={isSelected}
-            displayProps={displayProps}
-            allEntries={allEntries}
-            typeEntryMap={typeEntryMap}
-            onClickNote={onClickNote}
-          />
-        )}
-      </div>
-    </>
+    <div className="note-content-stack space-y-2" data-title-icon="true" data-testid="note-content-stack">
+      {isBinary ? (
+        <NoteTitleRow
+          TypeIcon={TypeIcon}
+          entry={entry}
+          isBinary={true}
+          isSelected={isSelected}
+          noteStatus={noteStatus}
+          typeColor={typeColor}
+          typeIconValue={typeIconValue}
+        />
+      ) : (
+        <InteractiveNoteDetails
+          TypeIcon={TypeIcon}
+          entry={entry}
+          locationLabel={locationLabel}
+          noteStatus={noteStatus}
+          isSelected={isSelected}
+          typeColor={typeColor}
+          typeIconValue={typeIconValue}
+          displayProps={displayProps}
+          allEntries={allEntries}
+          typeEntryMap={typeEntryMap}
+          onClickNote={onClickNote}
+        />
+      )}
+    </div>
   )
 }
 

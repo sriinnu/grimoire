@@ -26,7 +26,7 @@ async fn desktop_git_commands_route_to_git_backend() {
     assert!(is_git_repo(vault.clone()));
 
     fs::write(dir.path().join("note.md"), "# Updated\n").unwrap();
-    let modified = get_modified_files(vault.clone()).unwrap();
+    let modified = get_modified_files(vault.clone()).await.unwrap();
     assert!(modified.iter().any(|file| file.relative_path == "note.md"));
 
     let diff = get_file_diff(vault.clone(), note.clone()).unwrap();

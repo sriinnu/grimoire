@@ -1,15 +1,24 @@
 import { ChevronDown, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react'
+import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
+import type { ContextCapsuleState } from '../lib/contextCapsule'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
+
+interface ContextPackageSummary {
+  receipt: string
+  state: ContextCapsuleState
+}
 
 interface AiPanelIntelligenceSummaryProps {
   activeContextProtected: boolean
   canCrystallize: boolean
+  contextPackageSummary?: ContextPackageSummary | null
   expanded: boolean
   graphNodeCount: number
   hasContext: boolean
   hasLatestResponse: boolean
   heldCount: number
+  proposalSummary?: CrystallizeProposalSummary | null
   routeReady: boolean
   sourceCount: number
   onCrystallize: () => void
@@ -20,11 +29,13 @@ interface AiPanelIntelligenceSummaryProps {
 export function AiPanelIntelligenceSummary({
   activeContextProtected,
   canCrystallize,
+  contextPackageSummary,
   expanded,
   graphNodeCount,
   hasContext,
   hasLatestResponse,
   heldCount,
+  proposalSummary,
   routeReady,
   sourceCount,
   onCrystallize,
@@ -64,7 +75,7 @@ export function AiPanelIntelligenceSummary({
             Details
           </Button>
         </div>
-        <div className="mt-2 grid grid-cols-4 gap-1" data-testid="ai-crystallize-runway">
+        <div className="mt-2 grid grid-cols-5 gap-1" data-testid="ai-crystallize-runway">
           {runway.map((step) => (
             <span
               key={step.label}
@@ -75,6 +86,43 @@ export function AiPanelIntelligenceSummary({
             </span>
           ))}
         </div>
+        {contextPackageSummary ? (
+          <div
+            className="grimoire-ai-brief__context-strip mt-2 rounded-md border px-2 py-1.5"
+            data-locality={contextPackageSummary.state === 'protected' ? 'protected-local' : 'source-safe'}
+            data-testid="ai-brief-context-packet"
+          >
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <span className="text-[10px] font-semibold text-foreground">Context packet</span>
+              <span className="min-w-0 truncate font-mono text-[9px] text-muted-foreground">
+                {contextPackageSummary.receipt}
+              </span>
+            </div>
+            <div className="mt-1 grid grid-cols-3 gap-1">
+              <BriefPacketMetric label="Sources" value={countLabel(sourceCount, 'source')} />
+              <BriefPacketMetric label="Held" value={countLabel(heldCount, 'item')} />
+              <BriefPacketMetric label="Route" value={contextRouteLabel(contextPackageSummary.state)} />
+            </div>
+          </div>
+        ) : null}
+        {canCrystallize && proposalSummary ? (
+          <div
+            className="grimoire-ai-brief__memory-strip mt-2 rounded-md border px-2 py-1.5"
+            data-testid="ai-brief-crystallize-packet"
+          >
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <span className="text-[10px] font-semibold text-foreground">Memory packet</span>
+              <span className="min-w-0 truncate font-mono text-[9px] text-muted-foreground">
+                {proposalSummary.loopReceipt}
+              </span>
+            </div>
+            <div className="mt-1 grid grid-cols-3 gap-1">
+              <BriefPacketMetric label="Review" value={countLabel(proposalSummary.hunkCount, 'hunk')} />
+              <BriefPacketMetric label="Sources" value={countLabel(proposalSummary.sourceCount, 'source')} />
+              <BriefPacketMetric label="Lands" value={proposalSummary.targetFolder || 'vault root'} />
+            </div>
+          </div>
+        ) : null}
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <BriefBadge label={localityLabel} />
           <BriefBadge label={countLabel(sourceCount, 'source')} />
@@ -108,6 +156,15 @@ function BriefBadge({ label }: { label: string }) {
   )
 }
 
+function BriefPacketMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <span className="min-w-0 rounded border px-1.5 py-1" data-metric={label.toLowerCase()}>
+      <span className="block text-[8px] uppercase text-muted-foreground">{label}</span>
+      <span className="block truncate text-[9px] font-medium text-foreground">{value}</span>
+    </span>
+  )
+}
+
 function buildCrystallizeRunway({
   activeContextProtected,
   canCrystallize,
@@ -121,12 +178,19 @@ function buildCrystallizeRunway({
     { label: hasContext ? 'Context' : 'Capture', active: hasContext },
     { label: activeContextProtected ? 'Firewall' : 'Council', active: hasContext && !activeContextProtected },
     { label: 'Answer', active: hasLatestResponse },
+    { label: 'Review', active: canCrystallize },
     { label: 'Memory', active: canCrystallize },
   ]
 }
 
 function countLabel(count: number, singular: string): string {
   return `${count} ${count === 1 ? singular : `${singular}s`}`
+}
+
+function contextRouteLabel(state: ContextCapsuleState): string {
+  if (state === 'protected') return 'No handoff'
+  if (state === 'empty') return 'No packet'
+  return 'Review first'
 }
 
 function summaryCopy({

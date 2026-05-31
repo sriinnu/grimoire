@@ -66,6 +66,7 @@ export function LabeledSelect({
   options,
   testId,
   autoFocus = false,
+  disabled = false,
 }: {
   label: string
   value: string
@@ -73,11 +74,12 @@ export function LabeledSelect({
   options: Array<{ value: string; label: string; disabled?: boolean }>
   testId: string
   autoFocus?: boolean
+  disabled?: boolean
 }) {
   return (
     <div className="settings-field-control flex flex-col gap-1.5">
       <label className="text-xs font-medium text-foreground">{label}</label>
-      <Select value={value} onValueChange={onValueChange}>
+      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           className="w-full bg-transparent"
           aria-label={label}

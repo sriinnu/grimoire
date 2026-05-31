@@ -1,5 +1,7 @@
 .vault-dashboard__dream-forge {
   position: relative;
+  container-name: dream-forge;
+  container-type: inline-size;
   isolation: isolate;
   overflow: hidden;
   border-color: var(--grimoire-private-local-border, var(--border));
@@ -115,6 +117,25 @@
   font-size: 10px;
   font-weight: 650;
   line-height: 1.15;
+}
+
+.vault-dashboard__dream-manifest {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: -4px 0 12px;
+}
+
+.vault-dashboard__dream-contract-metric[data-compact="true"] {
+  min-height: 52px;
+  padding: 6px 7px;
+}
+
+.vault-dashboard__dream-contract-metric[data-compact="true"] strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .vault-dashboard__dream-field {
@@ -340,8 +361,19 @@
   }
 }
 
-@media (max-width: 560px) {
+@container dream-forge (max-width: 560px) {
   .vault-dashboard__dream-contract,
+  .vault-dashboard__dream-manifest,
+  .vault-dashboard__dream-gate,
+  .vault-dashboard__dream-rhythm,
+  .vault-dashboard__dream-timeline {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 142px), 1fr));
+  }
+}
+
+@container dream-forge (max-width: 300px) {
+  .vault-dashboard__dream-contract,
+  .vault-dashboard__dream-manifest,
   .vault-dashboard__dream-gate,
   .vault-dashboard__dream-rhythm,
   .vault-dashboard__dream-timeline {

@@ -75,6 +75,13 @@
   transform-origin: center;
 }
 
+.grimoire-context-menu-surface {
+  animation: grimoire-context-menu-arrive var(--motion-duration-fast) var(--motion-ease-standard) both;
+  contain: layout paint style;
+  transform-origin: var(--radix-context-menu-content-transform-origin, top left);
+  will-change: opacity, transform;
+}
+
 [data-motion-cancellable="true"] {
   position: relative;
   isolation: isolate;
@@ -160,6 +167,18 @@
   }
 }
 
+@keyframes grimoire-context-menu-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --motion-duration-fast: 0ms;
@@ -188,7 +207,8 @@
   .grimoire-constellation-focus,
   .grimoire-control-entrance,
   .grimoire-page-settle,
-  .grimoire-state-pulse {
+  .grimoire-state-pulse,
+  .grimoire-context-menu-surface {
     animation: none;
     opacity: 1;
     transform: none;

@@ -197,13 +197,13 @@ export function applyObjectStoragePullWithProgress(
 
 /** Summarizes a dry-run object-storage sync preview without hiding exclusions. */
 export function formatObjectStoragePreviewToast(report: ObjectStorageSyncReport): string {
-  return `${providerLabel(report.provider_id)} local-mirror fixture preview (not live cloud sync): ${syncCountSummary(report)}${previewPlanSummary(report)}`
+  return `${syncReportLabel(report, 'preview')}: ${syncCountSummary(report)}${previewPlanSummary(report)}`
 }
 
 /** Summarizes an applied object-storage sync and points to the local report when present. */
 export function formatObjectStorageApplyToast(report: ObjectStorageSyncReport): string {
   const reportPart = report.sync_report_path ? '; local report written' : ''
-  return `${providerLabel(report.provider_id)} local-mirror fixture applied (not live cloud sync): ${syncCountSummary(report)}${reportPart}`
+  return `${syncReportLabel(report, 'applied')}: ${syncCountSummary(report)}${reportPart}`
 }
 
 /** Summarizes a redacted S3 preflight without exposing provider internals. */
@@ -307,6 +307,16 @@ function syncCountSummary(report: ObjectStorageSyncReport): string {
     countPart(report.conflicts, 'conflict'),
     countPart(report.excluded_files, 'local-only exclusion'),
   ].join(', ')
+}
+
+function syncReportLabel(report: ObjectStorageSyncReport, mode: 'applied' | 'preview'): string {
+  const provider = providerLabel(report.provider_id)
+  if (report.adapter_phase === 'provider-sdk-adapter') {
+    const verb = mode === 'applied' ? 'proof applied' : 'proof preview'
+    return `${provider} provider ${verb} (not provider-proven sync yet)`
+  }
+  const verb = mode === 'applied' ? 'applied' : 'preview'
+  return `${provider} local-mirror fixture ${verb} (not live cloud sync)`
 }
 
 function previewPlanSummary(report: ObjectStorageSyncReport): string {

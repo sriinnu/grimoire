@@ -695,4 +695,428 @@ rating: 5
 
 Essential reading for anyone building distributed systems. Covers replication, partitioning, transactions, and stream processing.
 `,
+  '/Users/srinivas/Grimoire/grimoire-learning-project.md': `---
+title: Grimoire Feature Showcase
+type: Project
+status: Active
+belongs_to:
+  - "[[25q2]]"
+related_to:
+  - "[[grimoire-feature-tour]]"
+  - "[[grimoire-start-here]]"
+  - "[[grimoire-markdown-learning]]"
+  - "[[grimoire-properties-and-types]]"
+  - "[[grimoire-search-and-commands]]"
+  - "[[grimoire-console-and-agents]]"
+  - "[[grimoire-agent-council]]"
+  - "[[grimoire-local-agent-map]]"
+---
+
+# Grimoire Feature Showcase
+
+This is the shippable project inside the demo vault. It shows Markdown notes, journals, dreams, links, properties, search, canvases, attachments, audio capture, console notes, local agents, privacy boundaries, themes, and portability.
+
+## Start here
+- [[Grimoire Feature Tour]]
+- [[Start Here - Learn Grimoire]]
+- [[Markdown Learning]]
+- [[Properties and Types]]
+- [[Search and Commands]]
+- [[Journal Demo - 2026-05-31]]
+- [[Dream Demo - 2026-05-31]]
+- [[Links and Backlinks]]
+- [[Console and Agents]]
+- [[Agent Council]]
+- [[Local Agent Map]]
+- [[Canvas and Attachments]]
+- [[Crystallize Example]]
+- [[Audio Transcription]]
+- [[Privacy and Memory]]
+- [[Portability and Sync]]
+- [[Settings and Themes]]
+`,
+  '/Users/srinivas/Grimoire/grimoire-feature-tour.md': `---
+title: Grimoire Feature Tour
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-start-here]]"
+  - "[[grimoire-markdown-learning]]"
+  - "[[grimoire-properties-and-types]]"
+---
+
+# Grimoire Feature Tour
+
+This is the launch-day checklist for the demo vault. Each row points to an editable note that shows the feature in ordinary Markdown.
+
+| Surface | Demo note |
+| --- | --- |
+| Dashboard and Daily Flow | [[Start Here - Learn Grimoire]] |
+| Markdown editor | [[Markdown Learning]] |
+| Properties and types | [[Properties and Types]] |
+| Search and commands | [[Search and Commands]] |
+| Wikilinks and backlinks | [[Links and Backlinks]] |
+| Journal lane | [[Journal Demo - 2026-05-31]] |
+| Dream lane | [[Dream Demo - 2026-05-31]] |
+| Canvas and attachments | [[Canvas and Attachments]] |
+| Audio transcription | [[Audio Transcription]] |
+| Console notes | [[Console and Agents]] |
+| Agent Council | [[Agent Council]] |
+| Local agents | [[Local Agent Map]] |
+| Privacy and memory | [[Privacy and Memory]] |
+| Portability and sync | [[Portability and Sync]] |
+| Settings and themes | [[Settings and Themes]] |
+`,
+  '/Users/srinivas/Grimoire/grimoire-start-here.md': `---
+title: Start Here - Learn Grimoire
+type: Note
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-feature-tour]]"
+---
+
+# Start Here - Learn Grimoire
+
+Welcome to the demo vault. This project is the shippable, editable tour of Grimoire.
+
+1. Open [[Grimoire Feature Tour]] and scan the full product checklist.
+2. Open [[Markdown Learning]] and edit one heading.
+3. Open [[Properties and Types]] and inspect the frontmatter.
+4. Compare [[Journal Demo - 2026-05-31]] with [[Dream Demo - 2026-05-31]].
+5. Open [[Console and Agents]] to see how local agent lanes fit beside project notes.
+`,
+  '/Users/srinivas/Grimoire/grimoire-markdown-learning.md': `---
+title: Markdown Learning
+type: Note
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-links-and-backlinks]]"
+---
+
+# Markdown Learning
+
+Markdown is the plain-text language Grimoire stores on disk.
+
+## Basics
+- Use #, ##, and ### for headings.
+- Use **bold** and *italic* for emphasis.
+- Use - [ ] for tasks.
+- Use [[Links and Backlinks]] for vault links.
+- Use Mermaid, tables, and code fences when the thought needs structure.
+
+## Frontmatter
+\`\`\`yaml
+---
+type: Project
+status: Active
+belongs_to: "[[grimoire-learning-project]]"
+---
+\`\`\`
+`,
+  '/Users/srinivas/Grimoire/grimoire-properties-and-types.md': `---
+title: Properties and Types
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-feature-tour]]"
+owner: "[[person-srinivas-pendela]]"
+priority: High
+color: green
+---
+
+# Properties and Types
+
+Grimoire keeps structure in frontmatter so the vault stays portable.
+
+- type controls the lane and icon family.
+- belongs_to makes this part of [[Grimoire Feature Showcase]].
+- status, owner, priority, and color appear in cards and panels.
+
+Type notes in the demo include [[Journal]], [[Dream]], [[Console]], and [[Agent]].
+`,
+  '/Users/srinivas/Grimoire/grimoire-search-and-commands.md': `---
+title: Search and Commands
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-feature-tour]]"
+---
+
+# Search and Commands
+
+Use this note to test Quick Open, command palette, note search, and document find.
+
+- Search for feature tour and open [[Grimoire Feature Tour]].
+- Quick Open to [[Canvas and Attachments]].
+- Use document find to search for command palette.
+`,
+  '/Users/srinivas/Grimoire/grimoire-journal-demo-2026-05-31.md': `---
+title: Journal Demo - 2026-05-31
+type: Journal
+date: 2026-05-31
+belongs_to:
+  - "[[grimoire-learning-project]]"
+locality: local-first
+egress-blocked: true
+---
+
+# Journal Demo - 2026-05-31
+
+This is a sample launch-day journal entry. It shows how dated daily writing can stay inside the same Markdown vault as projects and notes.
+
+Related tour: [[Grimoire Feature Tour]].
+Related dream: [[Dream Demo - 2026-05-31]].
+`,
+  '/Users/srinivas/Grimoire/grimoire-dream-demo-2026-05-31.md': `---
+title: Dream Demo - 2026-05-31
+type: Dream
+date: 2026-05-31
+belongs_to:
+  - "[[grimoire-learning-project]]"
+symbols: [library, door, river]
+---
+
+# Dream Demo - 2026-05-31
+
+A sample dream entry with symbols, interpretation, and a link back to [[Journal Demo - 2026-05-31]] and [[Grimoire Feature Tour]].
+`,
+  '/Users/srinivas/Grimoire/grimoire-links-and-backlinks.md': `---
+title: Links and Backlinks
+type: Note
+belongs_to:
+  - "[[grimoire-learning-project]]"
+---
+
+# Links and Backlinks
+
+Links are how a vault becomes more than a pile of files.
+
+Use wikilinks for notes: [[Grimoire Learning Project]].
+
+Use belongs_to for project membership and related_to for looser context.
+`,
+  '/Users/srinivas/Grimoire/grimoire-console-and-agents.md': `---
+title: Console and Agents
+type: Console
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-local-agent-map]]"
+  - "[[grimoire-agent-council]]"
+---
+
+# Console and Agents
+
+Console notes keep command-line work close to the thinking it supports.
+
+\`\`\`bash
+pnpm test
+pnpm build
+cargo test --manifest-path src-tauri/Cargo.toml
+\`\`\`
+
+See [[Local Agent Map]] for local assistant lanes and [[Agent Council]] for the review-gated Council surface.
+`,
+  '/Users/srinivas/Grimoire/grimoire-agent-council.md': `---
+title: Agent Council
+type: Agent
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-feature-tour]]"
+  - "[[grimoire-local-agent-map]]"
+  - "[[grimoire-privacy-and-memory]]"
+  - "[[grimoire-crystallize-example]]"
+locality: local-first
+egress-blocked: true
+---
+
+# Agent Council
+
+Agent Council shows which agent lanes can participate, which context is source-safe, and what stays local before any durable Memory note is written.
+
+## What works now
+
+| Surface | What to check |
+| --- | --- |
+| AI panel council strip | Codex, Claude Code, Chitragupta, local search, vault graph, import/export context, Woosh, and Tring CLI lanes. |
+| Source-safe evidence | Safe note labels, linked context, graph context, and withheld-local counts. |
+| Council map | Ready, private, proof-boundary, blocked, waiting, and unavailable lane states. |
+| Review-gated synthesis | A Markdown review before Council output becomes Memory. |
+
+## Boundary
+
+The Council surface, privacy gates, review packet, graph handoff, and Memory write path are real. Fully live multi-agent debate is still a roadmap item.
+
+See [[Privacy and Memory]], [[Local Agent Map]], and [[Crystallize Example]].
+`,
+  '/Users/srinivas/Grimoire/grimoire-local-agent-map.md': `---
+title: Local Agent Map
+type: Agent
+belongs_to:
+  - "[[grimoire-learning-project]]"
+locality: local-first
+egress-blocked: true
+related_to:
+  - "[[grimoire-agent-council]]"
+---
+
+# Local Agent Map
+
+Example lanes:
+
+| Agent lane | Good for | Boundary |
+| --- | --- | --- |
+| Claude Code | Editing and explanations | Needs explicit write permission |
+| Codex | Repo work and tests | Keep task scope visible |
+| Chitragupta | Local routing and memory | Intent is not approval |
+| Agent Council | Source-safe lane review and synthesis handoff | Does not prove every external agent ran |
+`,
+  '/Users/srinivas/Grimoire/grimoire-canvas-and-attachments.md': `---
+title: Canvas and Attachments
+type: Note
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-qa-reference]]"
+---
+
+# Canvas and Attachments
+
+Use a canvas when the thought is spatial. Use attachments when the image belongs beside the Markdown explanation.
+
+See [[Grimoire QA Reference]] for an existing embedded image example.
+`,
+  '/Users/srinivas/Grimoire/grimoire-crystallize-example.md': `---
+title: Crystallize Example
+type: Note
+status: Draft
+belongs_to:
+  - "[[grimoire-learning-project]]"
+---
+
+# Crystallize Example
+
+Crystallizing means turning loose capture into a durable note.
+
+Raw material can come from [[Journal Demo - 2026-05-31]], [[Dream Demo - 2026-05-31]], or a project note.
+
+The crystallized output is [[Grimoire Feature Tour]].
+`,
+  '/Users/srinivas/Grimoire/grimoire-audio-transcription.md': `---
+title: Audio Transcription
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+locality: local-first
+egress-blocked: true
+---
+
+# Audio Transcription
+
+Import or record audio, run local transcription first, save the raw transcript, then save a cleaned summary linked back to the project.
+
+Cloud speech providers need explicit opt-in.
+`,
+  '/Users/srinivas/Grimoire/grimoire-privacy-and-memory.md': `---
+title: Privacy and Memory
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+locality: local-first
+egress-blocked: true
+---
+
+# Privacy and Memory
+
+The Locality Firewall keeps private journals, dreams, and memories withheld unless the user explicitly allows them.
+
+Compare this with [[Local Agent Map]] and [[Journal Demo - 2026-05-31]].
+`,
+  '/Users/srinivas/Grimoire/grimoire-portability-and-sync.md': `---
+title: Portability and Sync
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+locality: local-first
+---
+
+# Portability and Sync
+
+Grimoire should not trap the user: local Markdown, Git, import, export, portable bundles, capsules, and object-storage readiness all stay visible.
+`,
+  '/Users/srinivas/Grimoire/grimoire-settings-and-themes.md': `---
+title: Settings and Themes
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+---
+
+# Settings and Themes
+
+Try theme presets, typography, provider API key settings, privacy, workflow, sync, and appearance settings.
+
+No theme should make the vault unreadable, and no provider key should be written into Markdown.
+`,
+  '/Users/srinivas/Grimoire/journal.md': `---
+title: Journal
+type: Type
+icon: notebook
+color: teal
+sidebar label: Journal
+---
+
+# Journal
+
+Journal entries capture dated, private daily reflections.
+`,
+  '/Users/srinivas/Grimoire/dream.md': `---
+title: Dream
+type: Type
+icon: moon
+color: purple
+sidebar label: Dreams
+---
+
+# Dream
+
+Dream entries capture dated recall, symbols, and interpretations.
+`,
+  '/Users/srinivas/Grimoire/agent.md': `---
+title: Agent
+type: Type
+icon: bot
+color: cyan
+sidebar label: Agents
+---
+
+# Agent
+
+Agents describe local assistants, CLI lanes, and repeatable AI workflows.
+`,
+  '/Users/srinivas/Grimoire/console.md': `---
+title: Console
+type: Type
+icon: terminal
+color: slate
+sidebar label: Consoles
+---
+
+# Console
+
+Console notes collect command snippets and repeatable checks.
+`,
 }

@@ -1,5 +1,5 @@
 import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
-import type { EditorFont, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
+import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
 import type { createTranslator } from '../../lib/i18n'
 import type { AppLocale, UiLanguagePreference } from '../../lib/i18nCore'
 import type { PortabilityExportPreviewState } from '../../lib/exportReviewGate'
@@ -30,6 +30,7 @@ export interface SettingsDraft {
   themeMode: ThemeMode
   themePreset: ThemePreset
   editorFont: EditorFont
+  editorLineHeight: EditorLineHeight
   uiLanguage: UiLanguagePreference
   menuBarIconEnabled: boolean
   nativeShellMaterial: NativeShellMaterial
@@ -72,6 +73,8 @@ export interface SettingsBodyProps {
   setThemePreset: (value: ThemePreset) => void
   editorFont: EditorFont
   setEditorFont: (value: EditorFont) => void
+  editorLineHeight: EditorLineHeight
+  setEditorLineHeight: (value: EditorLineHeight) => void
   uiLanguage: UiLanguagePreference
   setUiLanguage: (value: UiLanguagePreference) => void
   menuBarIconEnabled: boolean

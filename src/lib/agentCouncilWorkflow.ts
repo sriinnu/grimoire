@@ -29,7 +29,7 @@ export function buildAgentCouncilWorkflow({
   members,
 }: WorkflowParams): AgentCouncilWorkflowStep[] {
   const readyCount = members.filter((member) => member.health === 'ready' || member.health === 'private-local').length
-  const unavailableCount = members.filter((member) => member.health === 'missing' || member.health === 'checking').length
+  const unavailableCount = members.filter((member) => member.health === 'missing' || member.health === 'checking' || member.health === 'blocked').length
   const sourceCount = activeContextProtected ? 0 : brief.sourceLabels.length
   const hasPrivate = members.some((member) => member.health === 'private-local')
 
@@ -75,7 +75,7 @@ export function buildAgentCouncilPassBrief({
   brief,
   members,
 }: WorkflowParams): AgentCouncilPassBrief {
-  const missingCount = members.filter((member) => member.health === 'missing' || member.health === 'checking').length
+  const missingCount = members.filter((member) => member.health === 'missing' || member.health === 'checking' || member.health === 'blocked').length
   const privateCount = members.filter((member) => member.health === 'private-local').length
 
   if (activeContextProtected) {

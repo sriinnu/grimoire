@@ -40,10 +40,16 @@ final_selection.py
 .claude-done
 .claude-blocked
 .claude/settings.local.json
+.husky/_/
 src-tauri/target
 
 # Generated mcp-server bundle (built by scripts/bundle-mcp-server.mjs)
 src-tauri/resources/
+src-tauri/resources/qmd/
+src-tauri/gen/schemas/
+
+# Local SwiftPM build output
+markdown-editor/packages/swift/.build/
 
 # Python cache
 __pycache__/
@@ -62,6 +68,7 @@ ChatGPT Image*
 REDESIGN-PLAN.md
 SF-SYMBOLS-MIGRATION.md
 CODE-HEALTH-REPORT.md
+docs/QUICK-CAPTURE-AUTO-PROMOTION.md
 
 # Local home dir artifact from worktree ops
 (HOME)/

@@ -7,7 +7,7 @@
 .editor__blocknote-container .bn-editor {
   font-family: var(--grimoire-editor-font-family, var(--editor-font-family));
   font-size: var(--editor-font-size);
-  line-height: var(--editor-line-height);
+  line-height: var(--editor-line-height, 1.44);
   max-width: var(--editor-max-width);
   margin: 0 auto;  /* Center the editor body */
   padding: var(--editor-padding-vertical) var(--editor-padding-horizontal);
@@ -17,40 +17,59 @@
 
 /* Override BlockNote's default line-height on block-outer so our theme controls it */
 .editor__blocknote-container .bn-block-outer {
-  line-height: var(--editor-line-height) !important;
+  line-height: var(--editor-line-height, 1.44) !important;
 }
 
 /* Stack handle buttons horizontally instead of vertically to reduce height,
    so they fit within a single text line for headings and paragraphs. */
 .editor__blocknote-container .bn-side-menu {
   --group-wrap: nowrap !important;
+  --grimoire-block-side-control-size: 30px;
+  --grimoire-block-side-control-gap: 4px;
+  position: relative;
+  z-index: calc(var(--bn-ui-base-z-index, 1000) + 20);
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   align-items: center !important;
-  gap: 2px !important;
+  gap: var(--grimoire-block-side-control-gap) !important;
   width: max-content !important;
-  max-width: 68px !important;
-  min-height: 32px !important;
+  max-width: calc((var(--grimoire-block-side-control-size) * 2) + var(--grimoire-block-side-control-gap) + 8px) !important;
+  min-height: calc(var(--grimoire-block-side-control-size) + 6px) !important;
   margin-top: 18px !important;
-  overflow: hidden;
-  padding: 2px !important;
+  overflow: visible !important;
+  padding: 3px !important;
   border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 80%, transparent);
-  border-radius: 9px;
+  border-radius: 10px;
   background: color-mix(in srgb, var(--surface-popover, var(--background)) 92%, transparent);
   box-shadow: 0 12px 28px color-mix(in srgb, #000 16%, transparent);
   isolation: isolate;
-  translate: -4px 6px;
+  translate: -8px 6px;
 }
 
 .editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root) {
   flex-wrap: nowrap !important;
-  gap: 2px !important;
+  gap: var(--grimoire-block-side-control-gap) !important;
 }
 
 .editor__blocknote-container .bn-side-menu button {
-  flex: 0 0 28px !important;
-  width: 28px !important;
-  height: 28px !important;
+  flex: 0 0 var(--grimoire-block-side-control-size) !important;
+  width: var(--grimoire-block-side-control-size) !important;
+  height: var(--grimoire-block-side-control-size) !important;
+  border-radius: 7px !important;
+}
+
+.editor__blocknote-container .bn-side-menu .bn-drag-handle-menu {
+  min-width: 132px;
+  border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 88%, transparent);
+  background: color-mix(in srgb, var(--surface-popover, var(--background)) 96%, transparent);
+  box-shadow: 0 16px 34px color-mix(in srgb, #000 22%, transparent);
+}
+
+.editor__blocknote-container .bn-suggestion-menu {
+  max-height: min(420px, 56vh) !important;
+  overscroll-behavior: contain;
+  border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 88%, transparent);
+  box-shadow: 0 18px 42px color-mix(in srgb, #000 24%, transparent);
 }
 
 /* More horizontal space between drag handle and content */
@@ -161,7 +180,7 @@
   min-width: var(--lists-indent-size) !important;
   width: var(--lists-indent-size) !important;
   /* Align bullet with first line of text */
-  height: calc(var(--editor-font-size) * var(--editor-line-height)) !important;
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.44)) !important;
   align-items: center !important;
   flex-shrink: 0 !important;
 }
@@ -188,7 +207,7 @@
   font-size: var(--editor-font-size) !important;
   min-width: var(--lists-indent-size) !important;
   width: var(--lists-indent-size) !important;
-  height: calc(var(--editor-font-size) * var(--editor-line-height)) !important;
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.44)) !important;
   align-items: center !important;
   flex-shrink: 0 !important;
 }
@@ -215,7 +234,7 @@
 .editor__blocknote-container [data-content-type="checkListItem"] > div[contenteditable="false"] {
   width: var(--lists-indent-size) !important;
   min-width: var(--lists-indent-size) !important;
-  height: calc(var(--editor-font-size) * var(--editor-line-height)) !important;
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.44)) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

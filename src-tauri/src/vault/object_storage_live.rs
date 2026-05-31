@@ -269,6 +269,36 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn settings_style_preflight_ignores_hidden_s3_env_fallback() {
+        let old_bucket = std::env::var("GRIMOIRE_S3_BUCKET").ok();
+        let old_region = std::env::var("GRIMOIRE_S3_REGION").ok();
+        let old_prefix = std::env::var("GRIMOIRE_S3_PREFIX").ok();
+        std::env::set_var("GRIMOIRE_S3_BUCKET", "hidden-bucket");
+        std::env::set_var("GRIMOIRE_S3_REGION", "hidden-region");
+        std::env::set_var("GRIMOIRE_S3_PREFIX", "hidden-prefix");
+
+        let result = s3_live_preflight(S3LivePreflightInput {
+            bucket: None,
+            region: None,
+            prefix: None,
+            allow_env_fallback: Some(false),
+        })
+        .await
+        .unwrap();
+
+        restore_env("GRIMOIRE_S3_BUCKET", old_bucket);
+        restore_env("GRIMOIRE_S3_REGION", old_region);
+        restore_env("GRIMOIRE_S3_PREFIX", old_prefix);
+        assert_eq!(result.status, "missing_config");
+        assert!(!result.configured);
+        assert!(!result.bucket_configured);
+        assert!(!result.region_configured);
+        assert!(!result.prefix_configured);
+        assert!(!result.head_bucket_checked);
+        assert!(!result.list_prefix_checked);
+    }
+
+    #[tokio::test]
     #[ignore = "requires real AWS credentials and GRIMOIRE_S3_BUCKET"]
     async fn s3_live_preflight_ignored_live_probe() {
         if std::env::var("GRIMOIRE_S3_LIVE_PROOF").ok().as_deref() != Some("1") {
@@ -284,5 +314,13 @@ mod tests {
         .unwrap();
         assert!(!result.message.contains('/'));
         assert_eq!(result.provider_id, "s3");
+    }
+
+    fn restore_env(key: &str, old: Option<String>) {
+        if let Some(value) = old {
+            std::env::set_var(key, value);
+        } else {
+            std::env::remove_var(key);
+        }
     }
 }

@@ -59,9 +59,120 @@ describe('resolveDashboardCapture', () => {
     expect(plan.kind).toBe('note')
     if (plan.kind !== 'note') return
     expect(plan.typeName).toBe('Dream')
-    expect(plan.entry.title).toBe('Dream - flying over the city')
+    expect(plan.entry.title).toBe('Dream 2026-05-17 - flying over the city')
+    expect(plan.entry.properties.date).toBe('2026-05-17')
+    expect(plan.content).toContain('date: 2026-05-17')
     expect(plan.content).toContain('egress: blocked')
     expect(plan.content).toContain('## Dream')
+    expect(plan.content).toContain('## Emotional Weather')
+    expect(plan.content).toContain('## Thread')
+  })
+
+  it('backfills journal captures onto the selected local calendar date', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/journal checking what surfaced',
+      now: new Date(2026, 4, 27),
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('note')
+    if (plan.kind !== 'note') return
+    expect(plan.typeName).toBe('Journal')
+    expect(plan.entry.title).toBe('Journal 2026-05-27 - checking what surfaced')
+    expect(plan.entry.properties).toMatchObject({
+      date: '2026-05-27',
+      egress: 'blocked',
+      locality: 'local',
+    })
+    expect(plan.content).toContain('date: 2026-05-27')
+    expect(plan.content).toContain('## Check-in')
+    expect(plan.content).toContain('## Open Loops')
+    expect(plan.content).not.toContain('## Signals')
+  })
+
+  it('uses the selected journal template and stamps it into local frontmatter', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/journal choosing what to release',
+      now: new Date(2026, 4, 28),
+      selectedKind: 'note',
+      templateId: 'evening',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('note')
+    if (plan.kind !== 'note') return
+    expect(plan.entry.properties.capture_template).toBe('evening')
+    expect(plan.content).toContain('capture_template: evening')
+    expect(plan.content).toContain('## Evening Review')
+    expect(plan.content).toContain('choosing what to release')
+    expect(plan.content).toContain('## Release')
+    expect(plan.content).not.toContain('## Check-in')
+  })
+
+  it('uses the selected dream template and inserts the capture body into its first section', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/dream I knew I was dreaming',
+      now: new Date(2026, 4, 29),
+      selectedKind: 'note',
+      templateId: 'lucid',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('note')
+    if (plan.kind !== 'note') return
+    expect(plan.entry.properties.capture_template).toBe('lucid')
+    expect(plan.content).toContain('capture_template: lucid')
+    expect(plan.content).toContain('## Lucid Moment')
+    expect(plan.content).toContain('I knew I was dreaming')
+    expect(plan.content).toContain('## Practice')
+    expect(plan.content).not.toContain('## Dream')
+  })
+
+  it('creates blank dated journal and dream templates from calendar captures', async () => {
+    const journal = await resolveDashboardCapture({
+      entries: [],
+      input: '/journal ',
+      now: new Date(2026, 4, 27),
+      selectedKind: 'note',
+      templateId: 'evening',
+      vaultPath: '/vault',
+    })
+    const dream = await resolveDashboardCapture({
+      entries: [],
+      input: '/dream ',
+      now: new Date(2026, 4, 28),
+      selectedKind: 'note',
+      templateId: 'symbol',
+      vaultPath: '/vault',
+    })
+
+    expect(journal.kind).toBe('note')
+    expect(dream.kind).toBe('note')
+    if (journal.kind !== 'note' || dream.kind !== 'note') return
+    expect(journal.entry.title).toBe('Journal 2026-05-27')
+    expect(journal.entry.properties.capture_template).toBe('evening')
+    expect(journal.content).toContain('## Evening Review')
+    expect(journal.content).toContain('capture_template: evening')
+    expect(dream.entry.title).toBe('Dream 2026-05-28')
+    expect(dream.entry.properties.capture_template).toBe('symbol')
+    expect(dream.content).toContain('## Symbol')
+    expect(dream.content).toContain('capture_template: symbol')
+  })
+
+  it('still requires body text for non-template captures', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/task ',
+      now: new Date(2026, 4, 29),
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan).toEqual({ kind: 'error', message: 'Write something to capture first' })
   })
 
   it('uses the selected type when there is no slash command', async () => {

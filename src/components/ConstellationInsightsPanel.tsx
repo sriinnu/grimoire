@@ -1,6 +1,7 @@
 import { Clock3, Network, Sparkles } from 'lucide-react'
 import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
+import { resolveEntry, wikilinkDisplay, wikilinkTarget } from '../utils/wikilink'
 
 function stripWiki(value: string): string {
   return value.replace(/^\[\[|\]\]$/gu, '')
@@ -37,12 +38,27 @@ function getKeyPoints(entry: VaultEntry, content: string | null): string[] {
   return [...explicit, ...checklist].slice(0, 4)
 }
 
-function getLinkedConcepts(entry: VaultEntry): string[] {
-  return [...new Set([
+interface LinkedConcept {
+  label: string
+  target: VaultEntry | null
+  tone: 'matched' | 'unresolved'
+}
+
+function getLinkedConcepts(entry: VaultEntry, entries: VaultEntry[]): LinkedConcept[] {
+  const refs = [...new Set([
     ...(entry.belongsTo ?? []).map(stripWiki),
     ...(entry.relatedTo ?? []).map(stripWiki),
     ...(entry.outgoingLinks ?? []),
   ].filter(Boolean))].slice(0, 6)
+
+  return refs.map((ref) => {
+    const target = resolveEntry(entries, wikilinkTarget(ref)) ?? null
+    return {
+      label: target?.title ?? wikilinkDisplay(ref),
+      target,
+      tone: target ? 'matched' : 'unresolved',
+    }
+  })
 }
 
 function modifiedLabel(entry: VaultEntry): string {
@@ -50,19 +66,26 @@ function modifiedLabel(entry: VaultEntry): string {
   return modified ? relativeDate(modified) : 'recently'
 }
 
-function ConceptMap({ concepts }: { concepts: string[] }) {
+function ConceptMap({ concepts, onNavigate }: { concepts: LinkedConcept[]; onNavigate: (target: string) => void }) {
   const nodes = concepts.slice(0, 6)
 
   return (
     <div className="constellation-concept-map" aria-label="Linked concept map">
       <span className="constellation-concept-map__core"><Network className="size-4" /></span>
       {nodes.map((concept, index) => (
-        <span
+        <button
+          type="button"
+          aria-label={concept.target ? `Open linked concept ${concept.label}` : `Unresolved linked concept ${concept.label}`}
           className={`constellation-concept-map__node constellation-concept-map__node--${index + 1}`}
-          key={concept}
+          key={`${concept.label}-${index}`}
+          data-concept-state={concept.tone}
+          disabled={!concept.target}
+          onClick={() => {
+            if (concept.target) onNavigate(concept.target.title)
+          }}
         >
-          {concept}
-        </span>
+          {concept.label}
+        </button>
       ))}
     </div>
   )
@@ -71,13 +94,17 @@ function ConceptMap({ concepts }: { concepts: string[] }) {
 /** Local, inspectable insight layer for the right-side panel. */
 export function ConstellationInsightsPanel({
   entry,
+  entries,
   content,
+  onNavigate,
 }: {
   entry: VaultEntry
+  entries: VaultEntry[]
   content: string | null
+  onNavigate: (target: string) => void
 }) {
   const keyPoints = getKeyPoints(entry, content)
-  const linkedConcepts = getLinkedConcepts(entry)
+  const linkedConcepts = getLinkedConcepts(entry, entries)
 
   return (
     <section className="constellation-insights" aria-label="AI Insights">
@@ -100,7 +127,7 @@ export function ConstellationInsightsPanel({
       {linkedConcepts.length > 0 ? (
         <div className="constellation-insights__section">
           <h3>Linked Concepts</h3>
-          <ConceptMap concepts={linkedConcepts} />
+          <ConceptMap concepts={linkedConcepts} onNavigate={onNavigate} />
         </div>
       ) : null}
       <div className="constellation-insights__section constellation-insights__activity">

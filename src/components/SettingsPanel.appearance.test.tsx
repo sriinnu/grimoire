@@ -148,7 +148,8 @@ describe('SettingsPanel appearance and agent settings', () => {
       release_channel: null,
       theme_mode: 'light',
       theme_preset: 'constellation',
-      editor_font: 'system',
+      editor_font: 'literary',
+      editor_line_height: 'comfortable',
       menu_bar_icon_enabled: false,
     }))
     expect(onClose).toHaveBeenCalled()
@@ -277,19 +278,22 @@ describe('SettingsPanel appearance and agent settings', () => {
     }))
   })
 
-  it('saves the selected theme preset and editor font', () => {
+  it('saves the selected theme preset, editor font, and editor line height', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
     fireEvent.click(screen.getByTestId('settings-theme-preset-retro-terminal'))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
-    fireEvent.click(screen.getByRole('option', { name: 'Serif' }))
+    fireEvent.click(screen.getByRole('option', { name: 'Readable Sans' }))
+    fireEvent.pointerDown(screen.getByTestId('settings-editor-line-height'), { button: 0, pointerType: 'mouse' })
+    fireEvent.click(screen.getByRole('option', { name: 'Spacious' }))
     fireEvent.click(screen.getByTestId('settings-save'))
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       theme_preset: 'retro-terminal',
-      editor_font: 'serif',
+      editor_font: 'readable',
+      editor_line_height: 'spacious',
     }))
   })
 
@@ -331,7 +335,7 @@ describe('SettingsPanel appearance and agent settings', () => {
     render(
       <SettingsPanel
         open={true}
-        settings={{ ...emptySettings, theme_preset: 'nocturne', editor_font: 'readable' }}
+        settings={{ ...emptySettings, theme_preset: 'nocturne', editor_font: 'readable', editor_line_height: 'compact' }}
         onSave={onSave}
         onClose={onClose}
       />
@@ -342,6 +346,7 @@ describe('SettingsPanel appearance and agent settings', () => {
       'nocturne',
     )
     expect(screen.getByTestId('settings-editor-font')).toHaveAttribute('data-value', 'readable')
+    expect(screen.getByTestId('settings-editor-line-height')).toHaveAttribute('data-value', 'compact')
   })
 
   it('preserves a saved dark color mode until changed', () => {

@@ -133,6 +133,28 @@ describe('chitraguptaIntegration', () => {
     expect(diagnostic.warnings[0]).toContain('CLI chat can run separately')
   })
 
+  it('treats closed MCP transport as a separate fail-closed Chitragupta state', () => {
+    const contractStatus = evaluateChitraguptaContractStatus({
+      ok: false,
+      daemon: 'running',
+      warnings: ['tool call failed for /Users/srinivaspendela/vault.md: Transport closed'],
+      capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
+    })
+    const diagnostic = summarizeChitraguptaRuntimeReadiness({
+      availability: { status: 'installed', version: '0.1.0' },
+      contractStatus,
+      protectedNote: false,
+    })
+
+    expect(contractStatus.state).toBe('blocked')
+    expect(contractStatus.transport).toBe('closed')
+    expect(contractStatus.warnings).toContain('Chitragupta MCP transport is closed.')
+    expect(contractStatus.warnings.join(' ')).not.toContain('/Users/srinivaspendela')
+    expect(diagnostic.state).toBe('mcp_transport_closed')
+    expect(diagnostic.contractLabel).toBe('MCP transport closed')
+    expect(diagnostic.warnings[0]).toContain('MCP transport closed')
+  })
+
   it('builds source-backed active note context for memory recall', () => {
     const active = entry({
       outgoingLinks: ['Decision Log'],

@@ -125,7 +125,7 @@ function buildPreflight({
   members: AgentCouncilMember[]
   sourceCount: number
 }): AgentCouncilPreflight {
-  const unavailableLaneCount = members.filter((member) => member.health === 'missing' || member.health === 'checking').length
+  const unavailableLaneCount = members.filter((member) => member.health === 'missing' || member.health === 'checking' || member.health === 'blocked').length
   const gatedLaneCount = members.filter((member) => member.health === 'private-local').length
   const proofBoundaryLaneCount = members.filter((member) => member.id === 'portability_context').length
   const readyLaneCount = members.filter((member) => member.health === 'ready' && member.id !== 'portability_context').length
@@ -177,7 +177,7 @@ function buildAgentCouncilOneAnswer({
     }
   }
 
-  const unavailableCount = members.filter((member) => member.health === 'missing' || member.health === 'checking').length
+  const unavailableCount = members.filter((member) => member.health === 'missing' || member.health === 'checking' || member.health === 'blocked').length
   const privateCount = members.filter((member) => member.health === 'private-local').length
   const proofBoundaryCount = members.filter((member) => member.id === 'portability_context').length
   const readyCount = members.filter((member) => member.health === 'ready' && member.id !== 'portability_context').length

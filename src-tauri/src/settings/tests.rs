@@ -34,7 +34,8 @@ fn test_settings_json_roundtrip() {
         release_channel: Some("alpha".to_string()),
         theme_mode: Some("dark".to_string()),
         theme_preset: Some("living-archive".to_string()),
-        editor_font: Some("serif".to_string()),
+        editor_font: Some("literary".to_string()),
+        editor_line_height: Some("compact".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
         native_shell_material: Some("unified".to_string()),
@@ -75,7 +76,8 @@ fn test_save_and_load_preserves_values() {
         release_channel: Some("alpha".to_string()),
         theme_mode: Some("dark".to_string()),
         theme_preset: Some("living-archive".to_string()),
-        editor_font: Some("serif".to_string()),
+        editor_font: Some("literary".to_string()),
+        editor_line_height: Some("spacious".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
         native_shell_material: Some("glass-preview".to_string()),
@@ -93,7 +95,8 @@ fn test_save_and_load_preserves_values() {
     assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
     assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
     assert_eq!(loaded.theme_preset.as_deref(), Some("living-archive"));
-    assert_eq!(loaded.editor_font.as_deref(), Some("serif"));
+    assert_eq!(loaded.editor_font.as_deref(), Some("literary"));
+    assert_eq!(loaded.editor_line_height.as_deref(), Some("spacious"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
     assert_eq!(loaded.menu_bar_icon_enabled, Some(true));
     assert_eq!(

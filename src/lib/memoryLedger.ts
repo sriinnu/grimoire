@@ -14,6 +14,8 @@ export interface MemoryLedgerRecord {
   reviewedAt: string | null
   reviewLog: string[]
   handoff: MemoryLedgerHandoff | null
+  crystallizeReceipt: string | null
+  crystallizeLoop: string | null
 }
 
 export interface MemoryLedgerHandoff {
@@ -39,6 +41,9 @@ export interface MemoryLedgerDisplayState {
   contradictionLabels: string[]
   handoffLabel: string | null
   handoffTone: MemoryLedgerTone
+  receiptLabel: string | null
+  receiptTone: MemoryLedgerTone
+  loopLabel: string | null
   reviewLogLabel: string | null
 }
 
@@ -87,6 +92,8 @@ export function buildMemoryLedgerRecord(entry: VaultEntry): MemoryLedgerRecord {
     reviewedAt: stringProperty(entry, 'reviewed_at') ?? stringProperty(entry, 'reviewedAt'),
     reviewLog: propertyList(entry, REVIEW_LOG_KEYS),
     handoff: handoffProperty(entry),
+    crystallizeReceipt: stringProperty(entry, 'crystallize_receipt') ?? stringProperty(entry, 'crystallizeReceipt'),
+    crystallizeLoop: stringProperty(entry, 'crystallize_loop') ?? stringProperty(entry, 'crystallizeLoop'),
   }
 }
 
@@ -117,6 +124,9 @@ export function buildMemoryLedgerDisplayState(record: MemoryLedgerRecord, now = 
     contradictionLabels: record.contradicts.map(memoryReferenceLabel),
     handoffLabel: handoffLabel(record.handoff),
     handoffTone: handoffTone(record.handoff),
+    receiptLabel: crystallizeReceiptLabel(record.crystallizeReceipt),
+    receiptTone: record.crystallizeReceipt ? 'verified' : 'neutral',
+    loopLabel: record.crystallizeLoop ? 'Loop closed' : null,
     reviewLogLabel: latestReviewLogLabel(record.reviewLog),
   }
 }
@@ -287,6 +297,13 @@ function handoffTone(value: MemoryLedgerHandoff | null): MemoryLedgerTone {
 function latestReviewLogLabel(value: string[]): string | null {
   const latest = value.at(-1)?.trim()
   return latest || null
+}
+
+function crystallizeReceiptLabel(value: string | null): string | null {
+  const normalized = value?.trim()
+  if (!normalized) return null
+  const safeReceipt = normalized.match(/^crys-[a-z0-9-]+/i)?.[0]
+  return safeReceipt ? `Receipt ${safeReceipt.slice(0, 24)}` : 'Receipt recorded'
 }
 
 function confidenceLabel(value: string | number | null): string | null {

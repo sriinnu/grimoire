@@ -4286,7 +4286,7 @@
                               "fill": "$--foreground",
                               "textGrowth": "fixed-width",
                               "width": "fill_container",
-                              "content": "The app uses a four-panel layout: Sidebar for navigation, NoteList for browsing, Editor for content, and Inspector for metadata. All data lives in markdown files with YAML frontmatter, git-versioned.",
+                              "content": "The app uses a four-panel layout: Sidebar for navigation, NoteList for browsing, Editor for content, and Inspector for metadata. All data lives first in a local Markdown folder with YAML frontmatter; Git and sync are optional layers.",
                               "lineHeight": 1.6,
                               "fontFamily": "Inter",
                               "fontSize": 15,
@@ -5622,7 +5622,7 @@
                       "id": "NjLRf",
                       "name": "anthropicValue",
                       "fill": "$--foreground",
-                      "content": "sk-ant-•••••••••••••k4Rm",
+                      "content": "redacted-provider-key",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"

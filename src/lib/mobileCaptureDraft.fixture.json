@@ -42,6 +42,7 @@
     "requiredContent": [
       "mobile_capture_schema: grimoire-mobile-capture-v1",
       "mobile_capture_id: \"journal-a\"",
+      "date: 2026-05-25",
       "attachment_count: 3",
       "## Mobile Attachments",
       "- [ ] Voice: Voice Memo.m4a (audio/mp4) - local asset pending review",

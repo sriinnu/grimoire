@@ -26,12 +26,15 @@ vi.mock('@/components/ui/action-tooltip', () => ({
 vi.mock('./CanvasDrawingSurface', () => ({
   CanvasDrawingSurface: ({ document, setDocument }: {
     document: ReturnType<typeof createCanvasDocument>
-    setDocument: (updater: ReturnType<typeof createStrokeUpdater>) => void
+    setDocument: (updater: (document: ReturnType<typeof createCanvasDocument>) => ReturnType<typeof createCanvasDocument>) => void
   }) => (
     <>
       <div data-testid="canvas-background">{document.background}</div>
       <button type="button" onClick={() => setDocument(createStrokeUpdater())}>
         Draw stroke
+      </button>
+      <button type="button" onClick={() => setDocument((current) => current)}>
+        Miss eraser
       </button>
     </>
   ),
@@ -131,6 +134,28 @@ describe('CanvasAttachmentDialog', () => {
     expect(screen.getByRole('button', { name: 'Undo' })).toBeEnabled()
     expect(save).toBeEnabled()
     expect(screen.getByRole('status')).toHaveTextContent('Unsaved local canvas')
+  })
+
+  it('does not mark the canvas dirty when a tool action changes nothing', async () => {
+    vi.mocked(loadCanvasDocumentState).mockResolvedValueOnce({
+      document: createCanvasDocument('whiteboard'),
+      sourceFound: true,
+    })
+
+    render(
+      <CanvasAttachmentDialog
+        attachment={attachment}
+        onOpenChange={vi.fn()}
+        open
+        vaultPath="/vault"
+      />,
+    )
+
+    const save = await screen.findByRole('button', { name: /save/i })
+    fireEvent.click(await screen.findByRole('button', { name: 'Miss eraser' }))
+
+    expect(save).toBeDisabled()
+    expect(screen.getByRole('status')).toHaveTextContent('Local source ready')
   })
 
   it('imports a local image into the editable canvas before saving', async () => {

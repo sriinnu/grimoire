@@ -79,6 +79,9 @@ mod portability_capsule_import;
 mod portability_capsule_import_filter;
 mod portability_capsule_import_readers;
 mod portability_capsule_io;
+mod portability_capsule_loop;
+#[cfg(test)]
+mod portability_capsule_loop_tests;
 #[cfg(test)]
 mod portability_capsule_signature_tests;
 #[cfg(test)]
@@ -157,6 +160,9 @@ pub use portability_capsule::{
 };
 pub use portability_capsule_import::{
     import_portability_capsule, preview_portability_capsule_import,
+};
+pub use portability_capsule_loop::{
+    run_portability_capsule_loop_proof, PortabilityCapsuleLoopProofReport,
 };
 pub use rename::{
     auto_rename_untitled, detect_renames, move_note_to_folder, rename_note, rename_note_filename,
