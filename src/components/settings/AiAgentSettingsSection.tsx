@@ -142,14 +142,14 @@ export function AiAgentSettingsSection({
           <label className="text-xs font-medium text-foreground" htmlFor="settings-default-ai-provider">
             {t('settings.aiAgents.provider')}
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input
               id="settings-default-ai-provider"
               value={selectedProvider}
               placeholder={providerPlaceholder}
               onChange={(event) => handleProviderChange(event.target.value)}
               data-testid="settings-default-ai-provider"
-              className="w-full bg-transparent"
+              className="min-w-[220px] flex-1 bg-transparent"
             />
             <Button
               variant="outline"
@@ -157,6 +157,7 @@ export function AiAgentSettingsSection({
               onClick={() => handleProviderChange('')}
               disabled={!selectedProvider}
               data-testid="settings-default-ai-provider-clear"
+              className="shrink-0"
             >
               {t('settings.aiAgents.providerDefault')}
             </Button>
@@ -168,14 +169,14 @@ export function AiAgentSettingsSection({
         <label className="text-xs font-medium text-foreground" htmlFor="settings-default-ai-model">
           {t('settings.aiAgents.model')}
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input
             id="settings-default-ai-model"
             value={selectedModel}
             placeholder={t('settings.aiAgents.modelPlaceholder')}
             onChange={(event) => handleModelChange(event.target.value)}
             data-testid="settings-default-ai-model"
-            className="w-full bg-transparent"
+            className="min-w-[220px] flex-1 bg-transparent"
           />
           <Button
             variant="outline"
@@ -183,6 +184,7 @@ export function AiAgentSettingsSection({
             onClick={() => handleModelChange('')}
             disabled={!selectedModel}
             data-testid="settings-default-ai-model-clear"
+            className="shrink-0"
           >
             {t('settings.aiAgents.modelDefault')}
           </Button>

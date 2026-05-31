@@ -24,8 +24,8 @@
    so they fit within a single text line for headings and paragraphs. */
 .editor__blocknote-container .bn-side-menu {
   --group-wrap: nowrap !important;
-  --grimoire-block-side-control-size: 30px;
-  --grimoire-block-side-control-gap: 4px;
+  --grimoire-block-side-control-size: 28px;
+  --grimoire-block-side-control-gap: 3px;
   position: relative;
   z-index: calc(var(--bn-ui-base-z-index, 1000) + 20);
   flex-direction: row !important;
@@ -34,19 +34,20 @@
   gap: var(--grimoire-block-side-control-gap) !important;
   width: max-content !important;
   max-width: calc((var(--grimoire-block-side-control-size) * 2) + var(--grimoire-block-side-control-gap) + 8px) !important;
-  min-height: calc(var(--grimoire-block-side-control-size) + 6px) !important;
-  margin-top: 18px !important;
+  min-height: calc(var(--grimoire-block-side-control-size) + 5px) !important;
+  margin-top: 0 !important;
   overflow: visible !important;
-  padding: 3px !important;
+  padding: 2px !important;
   border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 80%, transparent);
-  border-radius: 10px;
+  border-radius: 8px;
   background: color-mix(in srgb, var(--surface-popover, var(--background)) 92%, transparent);
   box-shadow: 0 12px 28px color-mix(in srgb, #000 16%, transparent);
   isolation: isolate;
-  translate: -8px 6px;
+  translate: -12px 0;
 }
 
 .editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root) {
+  align-items: center !important;
   flex-wrap: nowrap !important;
   gap: var(--grimoire-block-side-control-gap) !important;
 }

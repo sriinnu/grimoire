@@ -299,16 +299,16 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     return null
   },
   save_image: (args: { vault_path?: string; filename: string; data: string }) => {
-    const vault = args.vault_path ?? '/Users/srinivas/Grimoire'
+    const vault = args.vault_path ?? '/Users/mock/Grimoire'
     return `${vault}/attachments/${Date.now()}-${args.filename}`
   },
   save_audio_recording: (args: { vault_path?: string; vaultPath?: string; filename: string; data: string }) => {
-    const vault = args.vault_path ?? args.vaultPath ?? '/Users/srinivas/Grimoire'
+    const vault = args.vault_path ?? args.vaultPath ?? '/Users/mock/Grimoire'
     return `${vault}/Private/attachments/recordings/${Date.now()}-${args.filename}`
   },
   save_canvas_preview: () => null,
   copy_image_to_vault: (args: { vault_path?: string; source_path: string }) => {
-    const vault = args.vault_path ?? '/Users/srinivas/Grimoire'
+    const vault = args.vault_path ?? '/Users/mock/Grimoire'
     const filename = args.source_path.split('/').pop() ?? 'image.png'
     return `${vault}/attachments/${Date.now()}-${filename}`
   },

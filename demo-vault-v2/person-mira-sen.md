@@ -1,11 +1,11 @@
 ---
 type: Person
 aliases:
-  - "[[Srinivas Pendela]]"
+  - "[[Mira Sen]]"
 tier: 1st
 ---
 
-# Srinivas Pendela
+# Mira Sen
 
 Owns the Grimoire product work and remains the primary owner on the fixture's project notes.
 

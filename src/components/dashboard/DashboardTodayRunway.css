@@ -153,6 +153,11 @@
   background: var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 64%, transparent));
   color: var(--foreground);
   text-align: left;
+  transition:
+    border-color var(--motion-duration-control, 160ms) ease,
+    background var(--motion-duration-control, 160ms) ease,
+    box-shadow var(--motion-duration-control, 160ms) ease,
+    transform var(--motion-duration-control, 160ms) ease;
 }
 
 .vault-dashboard__flow-step[data-state="done"] {
@@ -161,21 +166,30 @@
 }
 
 .vault-dashboard__flow-step[data-state="next"] {
-  border-color: color-mix(in srgb, var(--primary) 56%, var(--border));
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%),
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%),
     var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 74%, transparent));
-  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .vault-dashboard__flow-step[data-selected="true"] {
-  border-color: color-mix(in srgb, var(--primary) 72%, var(--border));
+  border-color: color-mix(in srgb, var(--primary) 84%, var(--foreground) 10%);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 22%, transparent), transparent 68%),
-    color-mix(in srgb, var(--surface-card, var(--card)) 92%, var(--primary) 7%);
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 27%, transparent), transparent 64%),
+    color-mix(in srgb, var(--surface-card, var(--card)) 86%, var(--primary) 12%);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent),
-    0 14px 30px color-mix(in srgb, var(--primary) 13%, transparent);
+    inset 0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent),
+    0 15px 34px color-mix(in srgb, var(--primary) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.vault-dashboard__flow-step:hover,
+.vault-dashboard__flow-step:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 54%, var(--border));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent),
+    0 10px 24px color-mix(in srgb, var(--foreground) 8%, transparent);
 }
 
 .vault-dashboard__flow-step[data-selected="true"] svg {

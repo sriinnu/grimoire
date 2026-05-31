@@ -44,7 +44,24 @@ function vaultName(vaultPath: string): string {
 
 function scrollToSettingsSection(sectionId: string, onSectionChange: (sectionId: string) => void) {
   onSectionChange(sectionId)
-  document.getElementById(sectionId)?.scrollIntoView?.({ block: 'start' })
+  const target = document.getElementById(sectionId)
+  if (!target) return
+
+  const scrollSurface = document.querySelector<HTMLElement>('[data-testid="settings-main-surface"]')
+  if (!scrollSurface) {
+    target.scrollIntoView?.({ block: 'start' })
+    return
+  }
+
+  const surfaceTop = scrollSurface.getBoundingClientRect().top
+  const targetTop = target.getBoundingClientRect().top
+  const top = scrollSurface.scrollTop + targetTop - surfaceTop - 12
+  const boundedTop = Math.max(0, top)
+  if (typeof scrollSurface.scrollTo === 'function') {
+    scrollSurface.scrollTo({ top: boundedTop, behavior: 'smooth' })
+    return
+  }
+  scrollSurface.scrollTop = boundedTop
 }
 
 /** Renders the desktop Settings sidebar rail with vault-local status context. */

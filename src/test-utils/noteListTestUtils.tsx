@@ -45,7 +45,7 @@ export const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
 
 export const mockEntries: VaultEntry[] = [
   makeEntry({
-    path: '/Users/srinivas/Grimoire/project/26q1-grimoire-app.md',
+    path: '/Users/mock/Grimoire/project/26q1-grimoire-app.md',
     filename: '26q1-grimoire-app.md',
     title: 'Build Grimoire App',
     isA: 'Project',
@@ -60,7 +60,7 @@ export const mockEntries: VaultEntry[] = [
     },
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/note/facebook-ads-strategy.md',
+    path: '/Users/mock/Grimoire/note/facebook-ads-strategy.md',
     filename: 'facebook-ads-strategy.md',
     title: 'Facebook Ads Strategy',
     isA: 'Note',
@@ -76,9 +76,9 @@ export const mockEntries: VaultEntry[] = [
     },
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/person/karthik-reddy.md',
-    filename: 'karthik-reddy.md',
-    title: 'Karthik Reddy',
+    path: '/Users/mock/Grimoire/person/arjun-mehta.md',
+    filename: 'arjun-mehta.md',
+    title: 'Arjun Mehta',
     isA: 'Person',
     modifiedAt: 1700000000,
     createdAt: null,
@@ -86,7 +86,7 @@ export const mockEntries: VaultEntry[] = [
     snippet: 'Sponsorship manager.',
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/event/2026-02-14-kickoff.md',
+    path: '/Users/mock/Grimoire/event/2026-02-14-kickoff.md',
     filename: '2026-02-14-kickoff.md',
     title: 'Kickoff Meeting',
     isA: 'Event',
@@ -96,7 +96,7 @@ export const mockEntries: VaultEntry[] = [
     snippet: 'Project kickoff meeting notes.',
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/topic/software-development.md',
+    path: '/Users/mock/Grimoire/topic/software-development.md',
     filename: 'software-development.md',
     title: 'Software Development',
     isA: 'Topic',

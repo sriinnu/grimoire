@@ -46,6 +46,7 @@ src-tauri/target
 # Generated mcp-server bundle (built by scripts/bundle-mcp-server.mjs)
 src-tauri/resources/
 src-tauri/resources/qmd/
+src-tauri/gen/apple/assets/mcp-server/
 src-tauri/gen/schemas/
 
 # Local SwiftPM build output

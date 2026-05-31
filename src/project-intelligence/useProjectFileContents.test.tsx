@@ -43,7 +43,7 @@ function entry(overrides: Partial<VaultEntry>): VaultEntry {
 describe('useProjectFileContents', () => {
   it('does not load folder content until explicitly enabled', async () => {
     const entries = [
-      entry({ path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md' }),
+      entry({ path: '/Users/mock/Grimoire/26q1-grimoire-app.md' }),
     ]
     const selection: SidebarSelection = { kind: 'folder', path: 'Grimoire' }
     const { result } = renderHook(() =>
@@ -56,8 +56,8 @@ describe('useProjectFileContents', () => {
 
   it('loads bounded full content for folder entries', async () => {
     const entries = [
-      entry({ path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md' }),
-      entry({ path: '/Users/srinivas/Other/beta.md' }),
+      entry({ path: '/Users/mock/Grimoire/26q1-grimoire-app.md' }),
+      entry({ path: '/Users/mock/Other/beta.md' }),
     ]
     const selection: SidebarSelection = { kind: 'folder', path: 'Grimoire' }
     const { result } = renderHook(() =>
@@ -65,11 +65,11 @@ describe('useProjectFileContents', () => {
     )
 
     await waitFor(() =>
-      expect(result.current.contentByPath.get('/Users/srinivas/Grimoire/26q1-grimoire-app.md')).toContain(
+      expect(result.current.contentByPath.get('/Users/mock/Grimoire/26q1-grimoire-app.md')).toContain(
         '# Build Grimoire App',
       ),
     )
-    expect(result.current.contentByPath.has('/Users/srinivas/Other/beta.md')).toBe(false)
+    expect(result.current.contentByPath.has('/Users/mock/Other/beta.md')).toBe(false)
   })
 
   it('skips binary and oversized files', async () => {

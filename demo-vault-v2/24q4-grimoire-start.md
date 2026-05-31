@@ -3,7 +3,7 @@ type: Project
 aliases:
   - "[[Start Grimoire App Project]]"
 belongs_to: "[[24q4]]"
-owner: "[[person-srinivas-pendela]]"
+owner: "[[person-mira-sen]]"
 status: Done
 ---
 
