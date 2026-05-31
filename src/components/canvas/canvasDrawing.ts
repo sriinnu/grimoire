@@ -262,6 +262,7 @@ export function moveCanvasLayer(
   deltaX: number,
   deltaY: number,
 ): CanvasDocument {
+  if ((deltaX === 0 && deltaY === 0) || !canvasLayerBounds(document, hit.id)) return document
   return {
     ...document,
     images: document.images.map((image) => (
@@ -301,6 +302,12 @@ export function moveCanvasSelection(
   deltaX: number,
   deltaY: number,
 ): CanvasDocument {
+  const selected = new Set([...selection.images, ...selection.shapes, ...selection.strokes, ...selection.textBoxes])
+  const hasSelectedLayer = document.images.some((image) => selected.has(image.id))
+    || document.shapes.some((shape) => selected.has(shape.id))
+    || document.strokes.some((stroke) => selected.has(stroke.id))
+    || document.textBoxes.some((textBox) => selected.has(textBox.id))
+  if ((deltaX === 0 && deltaY === 0) || !hasSelectedLayer) return document
   return {
     ...document,
     images: document.images.map((image) => (
@@ -333,6 +340,29 @@ export function undoCanvasDocument(document: CanvasDocument): CanvasDocument {
     shapes: document.shapes.filter((shape) => shape.id !== latest),
     strokes: document.strokes.filter((stroke) => stroke.id !== latest),
     textBoxes: document.textBoxes.filter((textBox) => textBox.id !== latest),
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+/** Removes every editable layer and clears persisted ordering metadata. */
+export function clearCanvasDocument(document: CanvasDocument): CanvasDocument {
+  if (
+    document.images.length === 0
+    && document.shapes.length === 0
+    && document.strokes.length === 0
+    && document.textBoxes.length === 0
+    && document.layerOrder.length === 0
+  ) {
+    return document
+  }
+
+  return {
+    ...document,
+    images: [],
+    layerOrder: [],
+    shapes: [],
+    strokes: [],
+    textBoxes: [],
     updatedAt: new Date().toISOString(),
   }
 }

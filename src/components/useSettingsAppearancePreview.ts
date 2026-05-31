@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import {
   applyAppearanceToDocument,
   type EditorFont,
+  type EditorLineHeight,
   type NativeShellMaterial,
   type ResolvedAppearance,
   type ThemePreset,
@@ -17,6 +18,7 @@ export interface SettingsAppearanceState {
   themeMode: ThemeMode
   themePreset: ThemePreset
   editorFont: EditorFont
+  editorLineHeight: EditorLineHeight
   nativeShellMaterial: NativeShellMaterial
 }
 
@@ -29,6 +31,7 @@ function applySettingsAppearance(state: SettingsAppearanceState): void {
   const appearance: ResolvedAppearance = {
     themePreset: state.themePreset,
     editorFont: state.editorFont,
+    editorLineHeight: state.editorLineHeight,
     nativeShellMaterial: state.nativeShellMaterial,
   }
   const localThemeDefinition = readStoredLocalThemeDefinition(window.localStorage)

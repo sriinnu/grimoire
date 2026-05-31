@@ -4,6 +4,7 @@ import type { VaultEntry } from '../types'
 import {
   buildNewEntry,
   buildNoteContent,
+  resolveLocalLifeLaneMetadata,
   resolveTemplate,
   slugify,
   slugToTitle,
@@ -70,8 +71,23 @@ function createNoteImmediate(deps: ImmediateCreateDeps, type?: string): void {
   const title = slugToTitle(slug)
   const template = resolveTemplate({ entries: deps.entries, typeName: noteType })
   const status = null
-  const entry = buildNewEntry({ path: `${deps.vaultPath}/${slug}.md`, slug, title, type: noteType, status })
-  const content = buildNoteContent({ title: null, type: noteType, status, template, initialEmptyHeading: true })
+  const lifeLaneMetadata = resolveLocalLifeLaneMetadata(noteType)
+  const entry = buildNewEntry({
+    path: `${deps.vaultPath}/${slug}.md`,
+    slug,
+    title,
+    type: noteType,
+    status,
+    properties: lifeLaneMetadata?.properties,
+  })
+  const content = buildNoteContent({
+    title: null,
+    type: noteType,
+    status,
+    frontmatter: lifeLaneMetadata?.frontmatter,
+    template,
+    initialEmptyHeading: true,
+  })
   deps.openTabWithContent(entry, content)
   addEntryWithMock(entry, content, deps.addEntry)
   deps.trackUnsaved?.(entry.path)

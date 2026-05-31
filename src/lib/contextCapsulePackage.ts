@@ -31,6 +31,9 @@ function contextCapsulePackageLines(preview: ContextCapsulePreview, protectedCon
     ...preview.rules.map((rule) => `- ${rule}`),
     ...handoffIntentLines(preview),
     '',
+    '## Capsule Manifest',
+    ...capsuleManifestLines(preview, protectedContext),
+    '',
     '## Egress Matrix',
     ...egressLines(protectedContext),
     '',
@@ -78,6 +81,17 @@ function egressLines(protectedContext: boolean): string[] {
   return localityEgressLanes(protectedContext).map((lane) => (
     `- ${lane.label}: ${lane.state}; ${lane.allowedMaterial}; ${lane.detail}.`
   ))
+}
+
+function capsuleManifestLines(preview: ContextCapsulePreview, protectedContext: boolean): string[] {
+  const preflight = packagePreflight(preview)
+  return [
+    `- Review mode: ${protectedContext ? 'blocked-local' : 'review-before-handoff'}`,
+    `- Source-safe notes: ${preflight.sourceCount}`,
+    `- Held local items: ${preflight.heldLocalCount}`,
+    `- Trimmed graph items: ${preflight.trimmedCount}`,
+    `- Next gate: ${protectedContext ? 'No agent handoff' : 'User-reviewed package only'}`,
+  ]
 }
 
 function includedNoteLines(preview: ContextCapsulePreview): string[] {

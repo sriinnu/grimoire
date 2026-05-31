@@ -58,6 +58,20 @@ describe('localityPolicy', () => {
     expect(resolveEntryLocalityPolicy(entry({ properties: { egress: 'blocked' } })).localOnly).toBe(true)
   })
 
+  it('treats explicit agent, export, and sync context gates as protected', () => {
+    expect(resolveEntryLocalityPolicy(entry({ properties: { agent_context: 'blocked_private_lane' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { export_context: 'blocked_until_review' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { sync_context: 'local_private_lane' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { sync_context: 'review_complete_local_policy_applies' } })).localOnly).toBe(false)
+  })
+
+  it('matches native locality policy for numeric truthy frontmatter markers', () => {
+    expect(resolveEntryLocalityPolicy(entry({ properties: { private: 1 } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { no_sync: 1 } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { never_sync: [1] } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { private: 0 } })).localOnly).toBe(false)
+  })
+
   it('treats journal, dream, and memory types as local-only by default', () => {
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Journal' })).localOnly).toBe(true)
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Dream' })).localOnly).toBe(true)

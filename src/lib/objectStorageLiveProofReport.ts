@@ -1,10 +1,30 @@
 import type { PortabilityLiveProof } from './portabilityProof'
 
 export type ObjectStorageLiveProofProviderId = 'azure' | 's3'
+export type ObjectStorageLiveProofFailureKind =
+  | 'auth'
+  | 'cleanup'
+  | 'config'
+  | 'conflict'
+  | 'network'
+  | 'none'
+  | 'permission'
+  | 'unknown'
+export type ObjectStorageLiveProofFailureStage =
+  | 'apply'
+  | 'cleanup'
+  | 'config'
+  | 'gate'
+  | 'none'
+  | 'preview'
+  | 'pull'
+  | 'unknown'
 
 export interface ObjectStorageLiveProofProviderReport {
   id: ObjectStorageLiveProofProviderId
   enabled: boolean
+  failure_kind: ObjectStorageLiveProofFailureKind
+  failure_stage: ObjectStorageLiveProofFailureStage
   gate: { name: string; state: 'missing' | 'set' }
   optional: Record<string, 'missing' | 'set'>
   required: Record<string, 'missing' | 'set'>
@@ -20,6 +40,13 @@ export interface ObjectStorageLiveProofReport {
   providers: readonly ObjectStorageLiveProofProviderReport[]
   summary: { status: 'dry_run' | 'failed' | 'passed' | 'planned' | 'skipped'; message: string }
 }
+
+export interface ObjectStorageLiveProofReportHistory {
+  schema: 'grimoire-object-storage-live-proof-history-v1'
+  reports: readonly ObjectStorageLiveProofReport[]
+}
+
+const MAX_PROOF_REPORT_HISTORY = 24
 
 /** Parses the proof-runner JSON report while discarding arbitrary text and provider targets. */
 export function parseObjectStorageLiveProofReport(input: string | unknown): ObjectStorageLiveProofReport | null {
@@ -43,6 +70,33 @@ export function parseObjectStorageLiveProofReport(input: string | unknown): Obje
       status: summaryStatus(isRecord(raw.summary) ? raw.summary.status : null),
       message: 'Redacted provider proof report loaded.',
     },
+  }
+}
+
+/** Parses a redacted proof-report history, accepting older single-report storage too. */
+export function parseObjectStorageLiveProofReports(input: string | unknown): readonly ObjectStorageLiveProofReport[] {
+  const raw = typeof input === 'string' ? parseJsonObject(input) : input
+  if (Array.isArray(raw)) return raw.map(parseObjectStorageLiveProofReport).filter(isObjectStorageLiveProofReport)
+
+  const singleReport = parseObjectStorageLiveProofReport(raw)
+  if (singleReport) return [singleReport]
+
+  if (!isRecord(raw) || raw.schema !== 'grimoire-object-storage-live-proof-history-v1' || !Array.isArray(raw.reports)) {
+    return []
+  }
+  return raw.reports.map(parseObjectStorageLiveProofReport).filter(isObjectStorageLiveProofReport)
+}
+
+/** Appends one sanitized report to the local proof history without retaining raw provider output. */
+export function appendObjectStorageLiveProofReport(
+  currentHistory: string | ObjectStorageLiveProofReportHistory | readonly ObjectStorageLiveProofReport[] | null,
+  nextReport: ObjectStorageLiveProofReport,
+): ObjectStorageLiveProofReportHistory {
+  const sanitized = parseObjectStorageLiveProofReport(nextReport)
+  const reports = sanitized ? [...parseObjectStorageLiveProofReports(currentHistory), sanitized] : parseObjectStorageLiveProofReports(currentHistory)
+  return {
+    schema: 'grimoire-object-storage-live-proof-history-v1',
+    reports: dedupeProofReports(reports).slice(-MAX_PROOF_REPORT_HISTORY),
   }
 }
 
@@ -80,6 +134,7 @@ function providerReportProof(provider: ObjectStorageLiveProofProviderReport): Po
       `${setCount(provider.required)}/${Object.keys(provider.required).length} required set`,
       `${setCount(provider.optional)}/${Object.keys(provider.optional).length} optional set`,
       providerStatusDetail(provider.status),
+      ...providerFailureDetails(provider),
     ].join('; '),
   }
 }
@@ -95,6 +150,8 @@ function parseJsonObject(input: string): unknown {
 function parseObjectStorageProviderReport(input: unknown): ObjectStorageLiveProofProviderReport | null {
   if (!isRecord(input) || (input.id !== 's3' && input.id !== 'azure')) return null
   const gate = isRecord(input.gate) ? input.gate : {}
+  const status = providerStatus(input.status)
+  const failure = providerFailure(input, status)
   return {
     id: input.id,
     enabled: input.enabled === true,
@@ -104,7 +161,9 @@ function parseObjectStorageProviderReport(input: unknown): ObjectStorageLiveProo
     },
     optional: envStateRecord(input.optional),
     required: envStateRecord(input.required),
-    status: providerStatus(input.status),
+    status,
+    failure_kind: failure.kind,
+    failure_stage: failure.stage,
   }
 }
 
@@ -114,8 +173,26 @@ function isObjectStorageProviderReport(
   return report !== null
 }
 
+function isObjectStorageLiveProofReport(
+  report: ObjectStorageLiveProofReport | null,
+): report is ObjectStorageLiveProofReport {
+  return report !== null
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function dedupeProofReports(
+  reports: readonly ObjectStorageLiveProofReport[],
+): readonly ObjectStorageLiveProofReport[] {
+  const seen = new Set<string>()
+  return reports.filter((report) => {
+    const fingerprint = JSON.stringify(report)
+    if (seen.has(fingerprint)) return false
+    seen.add(fingerprint)
+    return true
+  })
 }
 
 function stringValue(value: unknown): string {
@@ -162,6 +239,56 @@ function providerStatus(value: unknown): ObjectStorageLiveProofProviderReport['s
   return 'planned'
 }
 
+function failureKind(value: unknown): ObjectStorageLiveProofFailureKind {
+  if (
+    value === 'auth'
+    || value === 'cleanup'
+    || value === 'config'
+    || value === 'conflict'
+    || value === 'network'
+    || value === 'none'
+    || value === 'permission'
+    || value === 'unknown'
+  ) {
+    return value
+  }
+  return 'none'
+}
+
+function failureStage(value: unknown): ObjectStorageLiveProofFailureStage {
+  if (
+    value === 'apply'
+    || value === 'cleanup'
+    || value === 'config'
+    || value === 'gate'
+    || value === 'none'
+    || value === 'preview'
+    || value === 'pull'
+    || value === 'unknown'
+  ) {
+    return value
+  }
+  return 'none'
+}
+
+function providerFailure(
+  input: Record<string, unknown>,
+  status: ObjectStorageLiveProofProviderReport['status'],
+): { kind: ObjectStorageLiveProofFailureKind; stage: ObjectStorageLiveProofFailureStage } {
+  const explicitKind = failureKind(input.failure_kind)
+  const explicitStage = failureStage(input.failure_stage)
+  if (explicitKind !== 'none' || explicitStage !== 'none') {
+    return {
+      kind: explicitKind === 'none' ? 'unknown' : explicitKind,
+      stage: explicitStage === 'none' ? 'unknown' : explicitStage,
+    }
+  }
+  if (status === 'gate_missing') return { kind: 'config', stage: 'gate' }
+  if (status === 'missing_config') return { kind: 'config', stage: 'config' }
+  if (status === 'failed') return { kind: 'unknown', stage: 'unknown' }
+  return { kind: 'none', stage: 'none' }
+}
+
 function summaryStatus(value: unknown): ObjectStorageLiveProofReport['summary']['status'] {
   if (value === 'dry_run' || value === 'failed' || value === 'passed' || value === 'skipped') return value
   return 'planned'
@@ -199,4 +326,9 @@ function providerStatusDetail(status: ObjectStorageLiveProofProviderReport['stat
   if (status === 'ready') return 'ready to run'
   if (status === 'running') return 'proof was running'
   return 'not run yet'
+}
+
+function providerFailureDetails(provider: ObjectStorageLiveProofProviderReport): string[] {
+  if (provider.failure_kind === 'none' && provider.failure_stage === 'none') return []
+  return [`failure ${provider.failure_kind} at ${provider.failure_stage}`]
 }

@@ -36,6 +36,8 @@ describe('MemoryPanel', () => {
               confidence: 'high',
               reviewed_at: '2026-05-22T10:00:00.000Z',
               memory_review_log: ['2026-05-22T10:00:00.000Z v1; confidence=high'],
+              crystallize_receipt: 'crys-panel1234',
+              crystallize_loop: 'Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
             },
           }),
         ]}
@@ -49,6 +51,8 @@ describe('MemoryPanel', () => {
     expect(panel).toHaveAttribute('data-private-surface', 'memory-ledger')
     expect(record).toHaveClass('grimoire-memory-trace')
     expect(record).toHaveTextContent('Test Project Memory')
+    expect(record).toHaveTextContent('Receipt crys-panel1234')
+    expect(record).toHaveTextContent('Loop closed')
     expect(screen.getByTestId('memory-ledger-review-log')).toHaveTextContent('Latest review: 2026-05-22T10:00:00.000Z v1')
 
     const evidence = screen.getByTestId('memory-ledger-evidence-strip')
@@ -74,6 +78,30 @@ describe('MemoryPanel', () => {
     expect(runtime).toHaveTextContent('MCP contract unverified')
     expect(runtime).toHaveTextContent('0/8 MCP capabilities')
     expect(screen.getByTestId('memory-chitragupta-warnings')).toHaveTextContent('CLI chat can run separately')
+  })
+
+  it('shows closed Chitragupta MCP transport as blocked without leaking local paths', () => {
+    render(
+      <MemoryPanel
+        entry={activeEntry}
+        entries={[activeEntry]}
+        semantics={semantics}
+        chitraguptaAvailability={{ status: 'installed', version: '0.1.0' }}
+        chitraguptaStatus={{
+          ok: false,
+          daemon: 'running',
+          capabilities: [],
+          warnings: ['tool call failed for /Users/srinivaspendela/private/project.md: Transport closed'],
+        }}
+      />,
+    )
+
+    const runtime = screen.getByTestId('memory-chitragupta-runtime')
+    expect(runtime).toHaveAttribute('data-state', 'mcp_transport_closed')
+    expect(runtime).toHaveTextContent('CLI installed')
+    expect(runtime).toHaveTextContent('MCP transport closed')
+    expect(screen.getByTestId('memory-chitragupta-warnings')).toHaveTextContent('Local ledger stays active')
+    expect(runtime).not.toHaveTextContent('/Users/srinivaspendela')
   })
 
   it('opens memory records and saves editable ledger metadata with a version stamp', async () => {

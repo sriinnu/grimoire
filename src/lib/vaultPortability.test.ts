@@ -38,12 +38,12 @@ describe('vaultPortability', () => {
       'sqlite-capsule',
     ]))
     expect(listVaultImportSources()).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'obsidian', status: 'ready', preservesMarkdown: true }),
-      expect.objectContaining({ id: 'notion-markdown', status: 'ready' }),
-      expect.objectContaining({ id: 'spanda', status: 'ready' }),
-      expect.objectContaining({ id: 'apple-journal', status: 'ready' }),
-      expect.objectContaining({ id: 'json-capsule', status: 'ready', preservesMarkdown: true }),
-      expect.objectContaining({ id: 'sqlite-capsule', status: 'ready', preservesMarkdown: true }),
+      expect.objectContaining({ id: 'obsidian', status: 'preview-backed', preservesMarkdown: true }),
+      expect.objectContaining({ id: 'notion-markdown', status: 'preview-backed' }),
+      expect.objectContaining({ id: 'spanda', status: 'preview-backed' }),
+      expect.objectContaining({ id: 'apple-journal', status: 'preview-backed' }),
+      expect.objectContaining({ id: 'json-capsule', status: 'preview-backed', preservesMarkdown: true }),
+      expect.objectContaining({ id: 'sqlite-capsule', status: 'preview-backed', preservesMarkdown: true }),
     ]))
     expect(listVaultStorageProviders().map(provider => provider.id)).toEqual(expect.arrayContaining([
       'icloud-drive',
@@ -60,20 +60,20 @@ describe('vaultPortability', () => {
       requiresLocalWorkingCopy: true,
     })
     expect(getVaultStorageProvider('icloud-drive')).toMatchObject({
-      status: 'ready',
+      status: 'folder-proof',
       kind: 'cloud-folder',
     })
   })
 
   it('keeps object storage as adapter work instead of editing buckets directly', () => {
     expect(getVaultStorageProvider('s3')).toMatchObject({
-      status: 'planned',
+      status: 'proof-preview',
       kind: 'object-storage',
       localFirst: true,
       requiresLocalWorkingCopy: true,
     })
     expect(getVaultStorageProvider('azure-blob')).toMatchObject({
-      status: 'planned',
+      status: 'proof-preview',
       kind: 'object-storage',
       localFirst: true,
       requiresLocalWorkingCopy: true,
@@ -102,14 +102,22 @@ describe('vaultPortability', () => {
     expect(isVaultPathInStorageProvider('icloud-drive', googlePath)).toBe(false)
   })
 
-  it('returns storage health without claiming planned object storage is live', () => {
+  it('returns storage health without claiming proof-preview object storage is live', () => {
     const health = getVaultStorageHealth('/Users/sri/Grimoire')
 
     expect(health).toEqual(expect.arrayContaining([
       expect.objectContaining({ providerId: 'local-folder', state: 'active' }),
       expect.objectContaining({ providerId: 'icloud-drive', state: 'not_selected' }),
-      expect.objectContaining({ providerId: 's3', state: 'planned' }),
-      expect.objectContaining({ providerId: 'azure-blob', state: 'planned' }),
+      expect.objectContaining({
+        providerId: 's3',
+        state: 'proof-preview',
+        message: 'Proof preview available; provider sync not proven.',
+      }),
+      expect.objectContaining({
+        providerId: 'azure-blob',
+        state: 'proof-preview',
+        message: 'Proof preview available; provider sync not proven.',
+      }),
     ]))
   })
 
@@ -120,6 +128,7 @@ describe('vaultPortability', () => {
       expect.objectContaining({
         providerId: 'google-drive-desktop',
         state: 'active',
+        message: expect.stringContaining('provider sync not proven'),
         privacyNote: expect.stringContaining('Grimoire only edits the local files'),
       }),
     ]))

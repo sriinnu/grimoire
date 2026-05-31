@@ -64,13 +64,29 @@ describe('NoteListChrome CSS', () => {
     expect(actionsRule).toContain('grid-area: actions')
     expect(css).toContain('.project-workspace-chrome__action[data-state="saved"]')
     expect(css).toContain('grid-area: docs')
-    expect(docsRule).toContain('border-top')
-    expect(docsRule).toContain('background: transparent')
+    expect(docsRule).toContain('border: 1px solid color-mix')
+    expect(docsRule).toContain('border-radius: 7px')
+    expect(docsRule).toContain('background:')
     expect(docsScrollRules).toContain('mask-image')
     expect(filtersRule).toContain('grid-area: filters')
-    expect(filtersRule).toContain('border: 0')
+    expect(filtersRule).toContain('border-top')
     expect(filtersRule).toContain('background: transparent')
     expect(css).toContain('.note-list-filter-rail--embedded .note-list-filter-group')
+  })
+
+  it('keeps project filters and docs as one polished control deck instead of loose chip islands', () => {
+    const overviewRule = css.match(/\.project-workspace-chrome__overview\s*\{[^}]+\}/)?.[0] ?? ''
+    const overviewGlowRule = css.match(/\.project-workspace-chrome__overview::before\s*\{[^}]+\}/)?.[0] ?? ''
+    const embeddedGroupRule = css.match(/\.note-list-filter-rail--embedded \.note-list-filter-group\s*\{[^}]+\}/)?.[0] ?? ''
+    const docsRule = css.match(/\.project-workspace-chrome__docs\s*\{[^}]+\}/)?.[0] ?? ''
+
+    expect(overviewRule).toContain('overflow: hidden')
+    expect(overviewRule).toContain('position: relative')
+    expect(overviewGlowRule).toContain('linear-gradient')
+    expect(overviewGlowRule).toContain('pointer-events: none')
+    expect(embeddedGroupRule).toContain('border-color: color-mix')
+    expect(embeddedGroupRule).toContain('background:')
+    expect(docsRule).toContain('linear-gradient')
   })
 
   it('keeps note-list header actions in the same chrome control language', () => {
@@ -106,5 +122,31 @@ describe('NoteListChrome CSS', () => {
     expect(css).not.toContain('left: 10px')
     expect(css).not.toContain('width: 4px')
     expect(css).not.toContain('border-l-[3px]')
+  })
+
+  it('keeps icon-bearing note cards on one title/body grid', () => {
+    const titleRowRule = css.match(/\.note-title-row\s*\{[^}]+\}/)?.[0] ?? ''
+    const titleGridRule = css.match(/\.note-title-row--with-icon\s*\{[^}]+\}/)?.[0] ?? ''
+    const iconCellRule = css.match(/\.note-title-icon-cell\s*\{[^}]+\}/)?.[0] ?? ''
+    const leadingTypeIconRule = css.match(/\.note-title-leading-type-icon\s*\{[^}]+\}/)?.[0] ?? ''
+    const titleTextRule = css.match(/\.note-title-text\s*\{[^}]+\}/)?.[0] ?? ''
+    const iconIndentRule = css.match(/\.note-content-stack\[data-title-icon="true"\] > :not\(\.note-title-row\)\s*\{[^}]+\}/)?.[0] ?? ''
+
+    expect(css).not.toContain('[data-note-path] > .note-type-indicator')
+    expect(css).toContain('--note-title-icon-size: 18px')
+    expect(css).toContain('--note-title-icon-gap: 8px')
+    expect(css).toContain('--note-title-icon-indent: calc(var(--note-title-icon-size) + var(--note-title-icon-gap))')
+    expect(titleRowRule).toContain('min-width: 0')
+    expect(titleGridRule).toContain('grid-template-columns: var(--note-title-icon-size) minmax(0, 1fr)')
+    expect(titleGridRule).toContain('align-items: center')
+    expect(iconCellRule).toContain('align-self: center')
+    expect(iconCellRule).toContain('height: var(--note-title-icon-size)')
+    expect(iconCellRule).not.toContain('transform:')
+    expect(leadingTypeIconRule).toContain('color: var(--note-type-color, currentColor)')
+    expect(titleTextRule).toContain('display: block')
+    expect(titleTextRule).toContain('text-overflow: ellipsis')
+    expect(iconIndentRule).toContain('margin-left: var(--note-title-icon-indent)')
+    expect(iconIndentRule).toContain('max-width: calc(100% - var(--note-title-icon-indent))')
+    expect(iconIndentRule).toContain('min-width: 0')
   })
 })

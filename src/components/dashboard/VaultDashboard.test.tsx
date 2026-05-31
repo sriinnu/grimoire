@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { PulseCommit, VaultEntry } from '../../types'
+import type { VaultEntry } from '../../types'
 import { VaultDashboard } from './VaultDashboard'
 
 function entry(title: string, type = 'Note', overrides: Partial<VaultEntry> = {}): VaultEntry {
@@ -40,21 +40,6 @@ function entry(title: string, type = 'Note', overrides: Partial<VaultEntry> = {}
   }
 }
 
-function commit(overrides: Partial<PulseCommit> = {}): PulseCommit {
-  return {
-    hash: 'private-commit-hash',
-    shortHash: 'prv1234',
-    message: 'Journal sync with private details',
-    date: Math.floor(Date.now() / 1000),
-    githubUrl: null,
-    files: [{ path: 'journal/private-checkin.md', status: 'modified', title: 'private checkin' }],
-    added: 0,
-    modified: 1,
-    deleted: 0,
-    ...overrides,
-  }
-}
-
 function todayIso(now = new Date()): string {
   return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-')
 }
@@ -89,7 +74,62 @@ describe('VaultDashboard', () => {
     fireEvent.change(screen.getByTestId('dashboard-capture-input'), { target: { value: '/ask summarize today' } })
     fireEvent.click(screen.getByTestId('dashboard-capture-submit'))
 
-    await waitFor(() => expect(onCapture).toHaveBeenCalledWith('/ask summarize today', 'ask'))
+    await waitFor(() => expect(onCapture).toHaveBeenCalledWith('/ask summarize today', 'ask', expect.any(Date), null))
+  })
+
+  it('passes day-before-yesterday date intent into local journal capture', async () => {
+    const onCapture = vi.fn().mockResolvedValue({ status: 'created', captureKind: 'journal', entry: entry('Journal') })
+    const expectedDate = new Date()
+    expectedDate.setDate(expectedDate.getDate() - 2)
+
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={onCapture}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('dashboard-capture-kind-journal'))
+    fireEvent.click(screen.getByTestId('dashboard-capture-date-2'))
+    fireEvent.change(screen.getByTestId('dashboard-capture-input'), { target: { value: 'what I felt then' } })
+    fireEvent.click(screen.getByTestId('dashboard-capture-submit'))
+
+    await waitFor(() => expect(onCapture).toHaveBeenCalled())
+    expect(onCapture.mock.calls[0][0]).toBe('what I felt then')
+    expect(onCapture.mock.calls[0][1]).toBe('journal')
+    expect(todayIso(onCapture.mock.calls[0][2])).toBe(todayIso(expectedDate))
+    expect(onCapture.mock.calls[0][3]).toBe('daily')
+  })
+
+  it('adds lightweight Markdown from the quick capture toolbar', async () => {
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const input = screen.getByTestId('dashboard-capture-input') as HTMLTextAreaElement
+    fireEvent.change(input, { target: { value: 'capture this' } })
+    input.setSelectionRange(0, 7)
+
+    fireEvent.click(screen.getByTestId('dashboard-markdown-bold'))
+
+    await waitFor(() => expect(input).toHaveValue('**capture** this'))
   })
 
   it('prefills private lane prompts and opens recent notes', () => {
@@ -154,144 +194,6 @@ describe('VaultDashboard', () => {
 
     fireEvent.click(screen.getByTestId('dream-forge-capture'))
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
-  })
-
-  it('shows Time Loom as metadata-only timeline without protected labels', async () => {
-    const now = Math.floor(Date.now() / 1000)
-    const yesterday = now - 24 * 60 * 60
-    const protectedDream = {
-      ...entry('Secret River Dream', 'Dream'),
-      path: '/vault/dreams/secret-river.md',
-      modifiedAt: now,
-      createdAt: now,
-    }
-    const protectedJournal = {
-      ...entry('Private Checkin', 'Journal'),
-      path: '/vault/journal/private-checkin.md',
-      modifiedAt: now,
-      createdAt: now,
-    }
-    const task = { ...entry('Open Task', 'Task'), status: 'blocked but private language' }
-    const meeting = {
-      ...entry('Yesterday Sync', 'Meeting'),
-      modifiedAt: yesterday,
-      createdAt: yesterday,
-    }
-    const voice = {
-      ...entry('Transcript - private voice memo', 'Transcript'),
-      path: '/vault/Private/transcript-private-voice-memo.md',
-      properties: {
-        locality: 'local',
-        source_audio: '/vault/Private/attachments/recordings/private-voice.webm',
-        transcription_provider: 'local_whisper',
-      },
-      modifiedAt: now,
-      createdAt: now,
-    }
-
-    render(
-      <VaultDashboard
-        conflictCount={0}
-        entries={[protectedDream, protectedJournal, task, meeting, voice]}
-        isGitVault={false}
-        modifiedCount={0}
-        onCapture={vi.fn()}
-        onOpenCreateVault={vi.fn()}
-        onOpenNote={vi.fn()}
-        syncStatus="idle"
-        vaultPath="/vault"
-      />,
-    )
-
-    const panel = await screen.findByTestId('time-loom-panel')
-    const dailyThread = await screen.findByTestId('daily-thread-rail')
-    expect(dailyThread).toHaveTextContent('Review private captures')
-    expect(dailyThread).toHaveTextContent('3 held local')
-    expect(dailyThread).toHaveTextContent('Held local')
-    expect(dailyThread).not.toHaveTextContent('Secret River Dream')
-    expect(dailyThread).not.toHaveTextContent('private voice memo')
-    expect(panel).toHaveTextContent('Time Loom')
-    expect(panel).toHaveTextContent('Local timeline')
-    expect(panel).toHaveTextContent('3 private')
-    expect(panel).toHaveTextContent('1 voice')
-    expect(panel).toHaveTextContent('Today')
-    expect(panel).toHaveTextContent('Yesterday')
-    expect(panel).toHaveTextContent('Dream 1')
-    expect(panel).toHaveTextContent('Journal 1')
-    expect(panel).toHaveTextContent('Voice 1')
-    expect(panel).toHaveTextContent('Open 1')
-    expect(panel).toHaveTextContent('Unmarked 3')
-    expect(panel).not.toHaveTextContent('Secret River Dream')
-    expect(panel).not.toHaveTextContent('private voice memo')
-    expect(panel).not.toHaveTextContent('private-voice.webm')
-    expect(panel).not.toHaveTextContent('/vault/dreams/secret-river.md')
-    expect(panel).not.toHaveTextContent('blocked but private language')
-
-    fireEvent.click(screen.getByTestId('time-loom-capture'))
-    expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
-  })
-
-  it('shows vault commits in Time Loom without leaking git history details', async () => {
-    render(
-      <VaultDashboard
-        conflictCount={0}
-        entries={[entry('Plain Note')]}
-        isGitVault={true}
-        modifiedCount={0}
-        onCapture={vi.fn()}
-        onOpenCreateVault={vi.fn()}
-        onOpenNote={vi.fn()}
-        pulseCommits={[commit()]}
-        syncStatus="idle"
-        vaultPath="/vault"
-      />,
-    )
-
-    const panel = await screen.findByTestId('time-loom-panel')
-    expect(panel).toHaveTextContent('1 commit')
-    expect(panel).toHaveTextContent('1 private')
-    expect(panel).toHaveTextContent('Commit 1')
-    expect(panel).not.toHaveTextContent('Journal sync with private details')
-    expect(panel).not.toHaveTextContent('private-commit-hash')
-    expect(panel).not.toHaveTextContent('prv1234')
-    expect(panel).not.toHaveTextContent('journal/private-checkin.md')
-  })
-
-  it('shows scheduled calendar entries in Time Loom without leaking event details', async () => {
-    const today = todayIso()
-    const yesterday = Math.floor(Date.now() / 1000) - 24 * 60 * 60
-
-    render(
-      <VaultDashboard
-        conflictCount={0}
-        entries={[
-          entry('Private Appointment', 'Event', {
-            path: '/vault/private/calendar/private-appointment.md',
-            modifiedAt: yesterday,
-            createdAt: yesterday,
-            properties: {
-              date: today,
-              locality: 'local-only',
-              location: 'Secret room',
-            },
-          }),
-        ]}
-        isGitVault={false}
-        modifiedCount={0}
-        onCapture={vi.fn()}
-        onOpenCreateVault={vi.fn()}
-        onOpenNote={vi.fn()}
-        syncStatus="idle"
-        vaultPath="/vault"
-      />,
-    )
-
-    const panel = await screen.findByTestId('time-loom-panel')
-    expect(panel).toHaveTextContent('1 scheduled')
-    expect(panel).toHaveTextContent('Calendar 1')
-    expect(panel).not.toHaveTextContent('Private Appointment')
-    expect(panel).not.toHaveTextContent('/vault/private/calendar/private-appointment.md')
-    expect(panel).not.toHaveTextContent('Secret room')
   })
 
   it('shows Attention Mode as a quiet local next action', () => {

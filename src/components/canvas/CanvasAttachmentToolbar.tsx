@@ -18,7 +18,7 @@ import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { CanvasDocument } from '../../utils/canvasAttachments'
-import { CANVAS_SIZES, undoCanvasDocument } from './canvasDrawing'
+import { CANVAS_SIZES, clearCanvasDocument, undoCanvasDocument } from './canvasDrawing'
 import type { CanvasTool } from './CanvasDrawingSurface'
 
 const TOOLS: Array<{ id: CanvasTool; label: string; icon: typeof PenLine }> = [
@@ -206,13 +206,7 @@ export function CanvasAttachmentToolbar({
           disabled={!hasContent}
           icon={Trash2}
           label="Clear"
-          onClick={() => setDocument((current) => ({
-            ...current,
-            images: [],
-            shapes: [],
-            strokes: [],
-            textBoxes: [],
-          }))}
+          onClick={() => setDocument(clearCanvasDocument)}
         />
       </div>
     </div>

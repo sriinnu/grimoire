@@ -54,7 +54,7 @@ export function useMcpStatus(
 
   useEffect(() => {
     let cancelled = false
-    setStatus('checking') // eslint-disable-line react-hooks/set-state-in-effect -- reset to checking on vault switch
+    setStatus('checking')
 
     const cancelVisibleWork = scheduleVisibleWork(() => {
       fetchMcpStatus(vaultPath).then((nextStatus) => {

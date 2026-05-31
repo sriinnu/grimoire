@@ -3,6 +3,7 @@ import type { VaultEntry, FolderNode, SidebarSelection, ViewFile } from '../type
 import { FolderTree } from './FolderTree'
 import {
   useEntryCounts,
+  usePrimaryLaneCounts,
   useSidebarCollapsed,
   useSidebarSections,
 } from './sidebar/sidebarHooks'
@@ -83,6 +84,7 @@ export const Sidebar = memo(function Sidebar({
 }: SidebarProps) {
   const { typeEntryMap, allSectionGroups, visibleSections, sectionIds } = useSidebarSections(entries)
   const { activeCount, archivedCount } = useEntryCounts(entries)
+  const { noteCount, journalCount, dreamCount } = usePrimaryLaneCounts(entries)
   const { collapsed: groupCollapsed, toggle: toggleGroup } = useSidebarCollapsed()
   const typeInteractions = useSidebarTypeInteractions({
     allSectionGroups,
@@ -118,6 +120,9 @@ export const Sidebar = memo(function Sidebar({
         showInbox={showInbox}
         inboxCount={inboxCount}
         activeCount={activeCount}
+        noteCount={noteCount}
+        journalCount={journalCount}
+        dreamCount={dreamCount}
         archivedCount={archivedCount}
       />
     )
@@ -133,6 +138,9 @@ export const Sidebar = memo(function Sidebar({
           showInbox={showInbox}
           inboxCount={inboxCount}
           activeCount={activeCount}
+          noteCount={noteCount}
+          journalCount={journalCount}
+          dreamCount={dreamCount}
           archivedCount={archivedCount}
         />
         {hasFavorites && (

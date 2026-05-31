@@ -5,6 +5,7 @@ import {
   type AiAgentId,
 } from '../../lib/aiAgents'
 import {
+  resolveEditorLineHeight,
   resolveEditorFont,
   resolveNativeShellMaterial,
   resolveThemePreset,
@@ -52,6 +53,7 @@ export function createSettingsDraft(
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
     editorFont: resolveEditorFont(settings.editor_font),
+    editorLineHeight: resolveEditorLineHeight(settings.editor_line_height),
     uiLanguage: settings.ui_language ?? SYSTEM_UI_LANGUAGE,
     menuBarIconEnabled: settings.menu_bar_icon_enabled ?? false,
     nativeShellMaterial: resolveNativeShellMaterial(settings.native_shell_material),
@@ -103,6 +105,7 @@ export function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft)
     theme_mode: draft.themeMode,
     theme_preset: draft.themePreset,
     editor_font: draft.editorFont,
+    editor_line_height: draft.editorLineHeight,
     ui_language: serializeUiLanguagePreference(draft.uiLanguage),
     menu_bar_icon_enabled: draft.menuBarIconEnabled,
     native_shell_material: draft.nativeShellMaterial,

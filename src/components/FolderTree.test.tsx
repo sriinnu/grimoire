@@ -90,6 +90,16 @@ describe('FolderTree', () => {
     expect(screen.getByTestId('folder-row:areas').className).toContain('text-primary')
   })
 
+  it('marks selected folder row chrome with the resolved semantic glyph tone', () => {
+    const selection: SidebarSelection = { kind: 'folder', path: 'journal' }
+    render(<FolderTree folders={mockFolders} selection={selection} onSelect={vi.fn()} />)
+
+    const rowChrome = screen.getByTestId('folder-row:journal').parentElement
+    expect(rowChrome).toHaveAttribute('data-selected', 'true')
+    expect(rowChrome).toHaveAttribute('data-folder-row-tone', 'journal')
+    expect(rowChrome).toHaveAttribute('data-folder-row-motif', 'private')
+  })
+
   it('opens the create-folder input from the header action', () => {
     render(
       <FolderTree

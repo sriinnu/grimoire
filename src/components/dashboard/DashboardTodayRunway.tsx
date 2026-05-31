@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import type { AttentionModeSuggestion } from '../../lib/attentionMode'
 import type { CaptureKind } from '../../utils/dashboardCapture'
 import type { DailyBrief, DashboardSummary } from '../../utils/dashboardModel'
+import { flowKindForCaptureKind, type DashboardFlowKind } from './DashboardTodayRunwayModel'
 import './DashboardTodayRunway.css'
 
 interface DashboardTodayRunwayProps {
@@ -11,7 +12,9 @@ interface DashboardTodayRunwayProps {
   brief: DailyBrief
   canUseAttentionAction: boolean
   onAttentionAction: () => void
+  onSelectFlowKind: (kind: DashboardFlowKind) => void
   onSeedPrompt: (kind: CaptureKind) => void
+  selectedFlowKind: DashboardFlowKind | null
   summary: Pick<DashboardSummary,
     'crystallizedTodayCount' | 'hasDreamToday' | 'hasJournalToday' | 'memoryQueueCount' | 'mobileReviewCount' | 'openLoopCount'
   >
@@ -23,8 +26,6 @@ const flowSteps = [
   { kind: 'task', label: 'Organize', detail: 'Pick the next move.', icon: ListChecks },
   { kind: 'ask', label: 'Crystallize', detail: 'Ask, then review.', icon: Sparkles },
 ] as const
-
-type FlowKind = typeof flowSteps[number]['kind']
 type FlowStepState = 'done' | 'next' | 'open'
 
 function reviewLabel(count: number, lane: string): string {
@@ -32,18 +33,10 @@ function reviewLabel(count: number, lane: string): string {
   return `${count} ${lane} review${count === 1 ? '' : 's'}`
 }
 
-function flowKindForCaptureKind(captureKind: CaptureKind | null): FlowKind | null {
-  if (captureKind === 'ask') return 'ask'
-  if (captureKind === 'journal' || captureKind === 'dream') return 'journal'
-  if (captureKind === 'task' || captureKind === 'memory') return 'task'
-  if (captureKind === 'note') return 'note'
-  return null
-}
-
 function attentionFlowKind(
   summary: DashboardTodayRunwayProps['summary'],
   captureKind: CaptureKind | null,
-): FlowKind | null {
+): DashboardFlowKind | null {
   const captureFlowKind = flowKindForCaptureKind(captureKind)
   if (captureFlowKind) return captureFlowKind
   if (summary.memoryQueueCount > 0 || summary.mobileReviewCount > 0) return 'task'
@@ -54,7 +47,7 @@ function nextFlowKind(
   summary: DashboardTodayRunwayProps['summary'],
   canUseAttentionAction: boolean,
   attentionCaptureKind: CaptureKind | null,
-): FlowKind {
+): DashboardFlowKind {
   if (canUseAttentionAction) {
     const attentionKind = attentionFlowKind(summary, attentionCaptureKind)
     if (attentionKind) return attentionKind
@@ -65,7 +58,7 @@ function nextFlowKind(
   return 'note'
 }
 
-function stepState(kind: FlowKind, nextKind: FlowKind, summary: DashboardTodayRunwayProps['summary']): FlowStepState {
+function stepState(kind: DashboardFlowKind, nextKind: DashboardFlowKind, summary: DashboardTodayRunwayProps['summary']): FlowStepState {
   if (kind === 'journal' && summary.hasJournalToday) return 'done'
   if (kind === nextKind) return 'next'
   if (kind === 'task' && summary.hasJournalToday && summary.memoryQueueCount === 0 && summary.mobileReviewCount === 0) {
@@ -76,7 +69,7 @@ function stepState(kind: FlowKind, nextKind: FlowKind, summary: DashboardTodayRu
 }
 
 function nextActionCopy(
-  nextKind: FlowKind,
+  nextKind: DashboardFlowKind,
   summary: DashboardTodayRunwayProps['summary'],
   actionLabel: string | null,
 ): string {
@@ -87,8 +80,8 @@ function nextActionCopy(
 }
 
 function stepDetail(
-  kind: FlowKind,
-  nextKind: FlowKind,
+  kind: DashboardFlowKind,
+  nextKind: DashboardFlowKind,
   state: FlowStepState,
   detail: string,
   summary: DashboardTodayRunwayProps['summary'],
@@ -108,7 +101,9 @@ export function DashboardTodayRunway({
   brief,
   canUseAttentionAction,
   onAttentionAction,
+  onSelectFlowKind,
   onSeedPrompt,
+  selectedFlowKind,
   summary,
 }: DashboardTodayRunwayProps) {
   const items = brief.supportingItems.length > 0 ? brief.supportingItems : ['Capture freely']
@@ -119,9 +114,13 @@ export function DashboardTodayRunway({
   const nextAction = nextActionCopy(nextKind, summary, attention.actionLabel)
   const progressValue = Math.min(flowSteps.length, Math.max(0, settledCount))
   const showAction = !!attention.actionLabel && canUseAttentionAction
+  const activeFlowKind = selectedFlowKind ?? nextKind
 
   function runStep(kind: CaptureKind) {
-    if (flowKindForCaptureKind(kind) === attentionKind && canUseAttentionAction) {
+    const flowKind = flowKindForCaptureKind(kind)
+    if (!flowKind) return
+    onSelectFlowKind(flowKind)
+    if (flowKind === attentionKind && canUseAttentionAction) {
       onAttentionAction()
       return
     }
@@ -212,6 +211,7 @@ export function DashboardTodayRunway({
           <div className="vault-dashboard__flow-steps">
             {flowSteps.map(({ detail, icon: Icon, kind, label }) => {
               const state = stepState(kind, nextKind, summary)
+              const selected = activeFlowKind === kind
               return (
                 <Button
                   key={kind}
@@ -219,7 +219,9 @@ export function DashboardTodayRunway({
                   variant="ghost"
                   className="vault-dashboard__flow-step"
                   onClick={() => runStep(kind)}
-                  aria-current={state === 'next' ? 'step' : undefined}
+                  aria-current={selected ? 'step' : undefined}
+                  aria-pressed={selected}
+                  data-selected={selected ? 'true' : 'false'}
                   data-state={state}
                 >
                   <Icon size={16} />

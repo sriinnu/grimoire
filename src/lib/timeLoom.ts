@@ -1,6 +1,7 @@
 import type { PulseCommit, VaultEntry } from '../types'
 import { isMobileCaptureEntry, mobileCapturedTimestamp } from './mobileCaptureMetadata'
 import { resolveEntryLocalityPolicy } from './localityPolicy'
+import { buildTimeLoomGraph, type TimeLoomGraph } from './timeLoomGraph'
 import { buildTimeLoomPatterns, type TimeLoomPattern } from './timeLoomPatterns'
 import { timeLoomMemoryTypeLabel } from './timeLoomMemory'
 
@@ -29,6 +30,7 @@ export interface TimeLoomBucket {
 /** Metadata-only temporal summary for the dashboard. */
 export interface TimeLoomSummary {
   buckets: TimeLoomBucket[]
+  calendarDays: TimeLoomBucket[]
   totalEvents: number
   protectedEvents: number
   voiceEvents: number
@@ -37,6 +39,7 @@ export interface TimeLoomSummary {
   commitEvents: number
   calendarEvents: number
   taskEvents: number
+  graph: TimeLoomGraph
   patterns: TimeLoomPattern[]
   activeSpanLabel: string
 }
@@ -144,7 +147,7 @@ export function buildTimeLoomSummary(
     buckets.set(bucket.dateKey, bucket)
   }
 
-  const sortedBuckets = [...buckets.values()]
+  const calendarDays = [...buckets.values()]
     .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
     .map((bucket) => ({
       ...bucket,
@@ -155,13 +158,20 @@ export function buildTimeLoomSummary(
           b.count - a.count
           || typeRank(a.label) - typeRank(b.label)
           || a.label.localeCompare(b.label)
-        ))
-        .slice(0, 3),
+        )),
+    }))
+
+  const sortedBuckets = calendarDays
+    .map((bucket) => ({
+      ...bucket,
+      statusCounts: [...bucket.statusCounts],
+      typeCounts: bucket.typeCounts.slice(0, 3),
     }))
     .slice(0, 5)
 
   return {
     buckets: sortedBuckets,
+    calendarDays,
     totalEvents,
     protectedEvents,
     voiceEvents,
@@ -170,6 +180,7 @@ export function buildTimeLoomSummary(
     commitEvents,
     calendarEvents,
     taskEvents,
+    graph: buildTimeLoomGraph(sortedBuckets),
     patterns: buildTimeLoomPatterns({
       activeDays: sortedBuckets.length,
       calendarEvents,

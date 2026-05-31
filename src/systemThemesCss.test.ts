@@ -7,7 +7,7 @@ describe('system theme CSS', () => {
     'theme-flagship-shared.css', 'theme-editor-navigator.css', 'theme-coherence.css', 'theme-status-bar.css',
     'theme-surface-coherence.css', 'theme-agent-council.css', 'theme-ai-brief.css', 'theme-accessibility.css',
   ].map((file) => readFileSync(`${process.cwd()}/src/${file}`, 'utf8')).join('\n')
-  const appCss = readFileSync(`${process.cwd()}/src/App.css`, 'utf8')
+  const dashboardLayoutCss = readFileSync(`${process.cwd()}/src/components/dashboard/VaultDashboardLayout.css`, 'utf8')
   const aiMarkdownCss = readFileSync(`${process.cwd()}/src/ai-markdown.css`, 'utf8')
   const baseCss = readFileSync(`${process.cwd()}/src/theme-base.css`, 'utf8')
   const flagshipSharedCss = readFileSync(`${process.cwd()}/src/theme-flagship-shared.css`, 'utf8')
@@ -35,15 +35,12 @@ describe('system theme CSS', () => {
     const bodyEnd = source.indexOf('}', bodyStart)
     return source.slice(bodyStart + 1, bodyEnd)
   }
-
   function getDeclaration(body: string, name: string): string {
     const declaration = body.split('\n').map((line) => line.trim()).find((line) => line.startsWith(`${name}:`))
     expect(declaration).toBeDefined()
     return declaration!.slice(name.length + 1).replace(';', '').trim()
   }
-
   const classOrAttributeCount = (selector: string): number => (selector.match(/(?:\.|\[)/gu) ?? []).length
-
   function relativeLuminance(hex: string): number {
     const value = Number.parseInt(hex.slice(1), 16)
     const [red, green, blue] = [value >> 16, (value >> 8) & 255, value & 255].map((channel) => {
@@ -52,7 +49,6 @@ describe('system theme CSS', () => {
     })
     return 0.2126 * red + 0.7152 * green + 0.0722 * blue
   }
-
   function contrastRatio(background: string, foreground: string): number {
     const [lighter, darker] = [relativeLuminance(background), relativeLuminance(foreground)].sort((a, b) => b - a)
     return (lighter + 0.05) / (darker + 0.05)
@@ -70,7 +66,6 @@ describe('system theme CSS', () => {
     expect(css).not.toContain('[data-theme-preset="research-cockpit"]')
     expect(css).not.toContain('[data-theme-preset="manuscript"]')
   })
-
   it('keeps Settings appearance previews aligned with selected light and dark modes', () => {
     expect(getRuleBody(css, '[data-theme-preset-preview="daylight-atelier"][data-theme-preview="dark"]')).toContain('--surface-editor: #0f1c22')
     expect(getRuleBody(css, '[data-theme-preset-preview="living-archive"][data-theme-preview="dark"]')).toContain('--foreground: #efe6cc')
@@ -89,7 +84,6 @@ describe('system theme CSS', () => {
     expect(sidebarCss).not.toContain('var(--accent-yellow)')
     expect(sidebarCss).not.toContain('rgba(155, 255, 122')
   })
-
   it('propagates themes beyond color tokens into shell surfaces and motion', () => {
     expect(css).toContain('.note-list-panel .note-location-chip')
     expect(css).toContain('.note-list-chrome-row')
@@ -129,13 +123,12 @@ describe('system theme CSS', () => {
 
   it('routes density variables into dashboard and note-list rhythm', () => {
     expect(baseCss).toContain('--grimoire-density-panel-padding: 16px')
-    expect(appCss).toContain('padding: var(--grimoire-density-page-padding, 28px)')
-    expect(appCss).toContain('gap: var(--grimoire-density-card-gap, 14px)')
+    expect(dashboardLayoutCss).toContain('padding: var(--grimoire-density-page-padding, 28px)')
+    expect(dashboardLayoutCss).toContain('gap: var(--grimoire-density-card-gap, 14px)')
     expect(flagshipSharedCss).toContain('margin: var(--grimoire-density-note-card-margin, 8px 10px 0)')
     expect(noteListChromeCss).toContain('padding: var(--grimoire-density-toolbar-padding, 8px 10px)')
     expect(noteListChromeCss).toContain('padding: var(--grimoire-density-note-footer-padding, 7px 10px)')
   })
-
   it('routes code blocks through theme-pack code treatment variables', () => {
     expect(baseCss).toContain('--grimoire-code-block-bg')
     expect(editorThemeCss).toContain('var(--grimoire-code-block-bg, var(--surface-input))')
@@ -161,7 +154,6 @@ describe('system theme CSS', () => {
     expect(getRuleBody(editorThemeCss, '.html-preview-frame')).toContain('var(--grimoire-html-preview-bg')
     expect(graphAnimationsCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
   })
-
   it('keeps editor metadata styled even outside flagship presets', () => {
     const body = getRuleBody(editorMetaCss, '.editor-meta-strip')
     const pillBody = getRuleBody(editorMetaCss, '.editor-meta-pill')
@@ -187,20 +179,26 @@ describe('system theme CSS', () => {
     expect(editorMetaCss).toContain('[data-theme-metadata-strip="quiet"] .editor-meta-pill')
     expect(editorMetaCss).toContain('[data-theme-metadata-strip="terminal"] .editor-meta-pill')
   })
-
   it('keeps BlockNote floating side controls compact and below the editor top edge', () => {
     const body = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu')
     const buttonBody = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu button')
     const groupBody = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root)')
 
     expect(body).toContain('flex-direction: row !important')
-    expect(body).toContain('gap: 2px !important')
+    expect(body).toContain('--grimoire-block-side-control-size: 30px')
+    expect(body).toContain('--grimoire-block-side-control-gap: 4px')
+    expect(body).toContain('gap: var(--grimoire-block-side-control-gap) !important')
     expect(body).toContain('width: max-content !important')
+    expect(body).toContain('max-width: calc((var(--grimoire-block-side-control-size) * 2) + var(--grimoire-block-side-control-gap) + 8px) !important')
     expect(body).toContain('margin-top: 18px !important')
-    expect(body).toContain('translate: -4px 6px')
-    expect(buttonBody).toContain('width: 28px !important')
-    expect(buttonBody).toContain('height: 28px !important')
+    expect(body).toContain('overflow: visible !important')
+    expect(body).toContain('padding: 3px !important')
+    expect(body).toContain('translate: -8px 6px')
+    expect(buttonBody).toContain('width: var(--grimoire-block-side-control-size) !important')
+    expect(buttonBody).toContain('height: var(--grimoire-block-side-control-size) !important')
+    expect(buttonBody).toContain('border-radius: 7px !important')
     expect(groupBody).toContain('flex-wrap: nowrap !important')
+    expect(groupBody).toContain('gap: var(--grimoire-block-side-control-gap) !important')
   })
 
   it('keeps the Living Archive editor pane on one parchment stack', () => {
@@ -361,7 +359,7 @@ describe('system theme CSS', () => {
     expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-dialog-content, .grimoire-command-surface)')).toContain('var(--grimoire-dialog-material)')
     expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) .grimoire-dialog-content')).toContain('var(--grimoire-density-panel-padding')
     expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy)')).toContain('var(--grimoire-portability-material)')
-    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat)')).toContain('var(--grimoire-portability-preview-material)')
+    expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__bucket, .grimoire-import-autopsy__manifest, .grimoire-import-autopsy__manifest-row, .grimoire-import-autopsy__step, .grimoire-preview-stat)')).toContain('var(--grimoire-portability-preview-material)')
     expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) .settings-main-surface')).toContain('var(--grimoire-settings-main-material)')
     expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat)')).toContain('var(--grimoire-card-material)')
     expect(getRuleBody(coherenceCss, ':is([data-theme-preset]) :is(.project-workspace-chrome, .note-list-filter-shelf)')).toContain('background: transparent')
@@ -400,6 +398,8 @@ describe('system theme CSS', () => {
     expect(css).toContain('ButtonBorder !important')
     expect(css).toContain(':where(:focus, :focus-visible')
     expect(css).toContain('outline: 2px solid Highlight')
+    expect(css).toContain('.sidebar-artwork__glyph')
+    expect(css).toContain('mix-blend-mode: normal !important')
     expect(css).toContain('.settings-panel-shell')
     expect(css).toContain('.editor-navigator-popover-shell')
     expect(css).toContain('.status-bar')

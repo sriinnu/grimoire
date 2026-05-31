@@ -7,6 +7,8 @@ import {
 } from '../test-utils/noteListTestUtils'
 import { expectOnlySearchMatch, renderBookNoteList, searchNoteList } from '../test-utils/noteListRenderingTestUtils'
 
+const ENTITY_VIEW_WAIT = { timeout: 4_000 } as const
+
 describe('NoteList rendering', () => {
   function visibleNoteTitles(): string[] {
     return screen.getAllByTestId('note-title').map((element) => element.textContent ?? '')
@@ -96,8 +98,32 @@ describe('NoteList rendering', () => {
 
   it('passes the selected type when creating a note from a type section', () => {
     const { onCreateNote } = renderNoteList({ selection: { kind: 'sectionGroup', type: 'Project' } })
-    fireEvent.click(screen.getByTitle('Create new note'))
+    fireEvent.click(screen.getByTitle('Create Project'))
     expect(onCreateNote).toHaveBeenCalledWith('Project')
+  })
+
+  it('names journal creation/search actions after the journal lane', () => {
+    const { onCreateNote } = renderNoteList({
+      selection: { kind: 'sectionGroup', type: 'Journal' },
+    })
+
+    expect(screen.getByText('Journal')).toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Search journal entries'))
+    expect(screen.getByPlaceholderText('Search journal entries...')).toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Create journal entry'))
+    expect(onCreateNote).toHaveBeenCalledWith('Journal')
+  })
+
+  it('names dream creation/search actions after the dreams lane', () => {
+    const { onCreateNote } = renderNoteList({
+      selection: { kind: 'sectionGroup', type: 'Dream' },
+    })
+
+    expect(screen.getByText('Dreams')).toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Search dreams'))
+    expect(screen.getByPlaceholderText('Search dreams...')).toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Create dream entry'))
+    expect(onCreateNote).toHaveBeenCalledWith('Dream')
   })
 
   it('creates an untyped note from all notes', () => {
@@ -109,7 +135,7 @@ describe('NoteList rendering', () => {
   it('pins the current entity and shows grouped children', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
     expect(screen.getAllByText('Build Grimoire App').length).toBeGreaterThanOrEqual(1)
-    expect(await screen.findByText('Facebook Ads Strategy')).toBeInTheDocument()
+    expect(await screen.findByText('Facebook Ads Strategy', undefined, ENTITY_VIEW_WAIT)).toBeInTheDocument()
     expect(screen.queryByText('Karthik Reddy')).not.toBeInTheDocument()
     expect(screen.getByText('Children')).toBeInTheDocument()
     expect(screen.getByText('Related to')).toBeInTheDocument()
@@ -117,8 +143,8 @@ describe('NoteList rendering', () => {
 
   it('shows referenced-by groups for topic entities', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[4] } })
-    expect(await screen.findByText('Build Grimoire App')).toBeInTheDocument()
-    expect(await screen.findByText('Referenced by')).toBeInTheDocument()
+    expect(await screen.findByText('Build Grimoire App', undefined, ENTITY_VIEW_WAIT)).toBeInTheDocument()
+    expect(await screen.findByText('Referenced by', undefined, ENTITY_VIEW_WAIT)).toBeInTheDocument()
   })
 
   it('toggles the search input from the header action', () => {

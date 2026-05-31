@@ -71,8 +71,52 @@ describe('buildTimeLoomSummary', () => {
       { label: 'Journal', count: 1 },
       { label: 'Task', count: 1 },
     ])
+    expect(summary.graph.nodes).toContainEqual({
+      count: 2,
+      id: 'lane:held-local',
+      label: 'Held local',
+      privacy: 'held-local',
+      tone: 'private',
+    })
+    expect(summary.graph.links).toContainEqual(expect.objectContaining({
+      from: 'day:2026-05-23',
+      label: '2 held',
+      privacy: 'held-local',
+      to: 'lane:held-local',
+    }))
+    expect(summary.graph.privacyNote).toBe('count-only temporal graph; private labels withheld')
     expect(JSON.stringify(summary)).not.toContain('River Dream')
     expect(JSON.stringify(summary)).not.toContain('/vault/dreams/river.md')
+  })
+
+  it('keeps full calendar days while limiting dashboard timeline buckets', () => {
+    const now = new Date(2026, 4, 23, 12)
+    const localNoon = (day: number) => new Date(2026, 4, day, 12).getTime() / 1000
+    const summary = buildTimeLoomSummary([
+      entry({ isA: 'Dream', modifiedAt: localNoon(23), createdAt: localNoon(23) }),
+      entry({ isA: 'Journal', modifiedAt: localNoon(23), createdAt: localNoon(23) }),
+      entry({ isA: 'Task', modifiedAt: localNoon(23), createdAt: localNoon(23) }),
+      entry({ isA: 'Note', modifiedAt: localNoon(23), createdAt: localNoon(23) }),
+      ...[22, 21, 20, 19, 18].map((day) => entry({
+        isA: 'Journal',
+        modifiedAt: localNoon(day),
+        createdAt: localNoon(day),
+      })),
+    ], now)
+
+    expect(summary.buckets).toHaveLength(5)
+    expect(summary.calendarDays).toHaveLength(6)
+    expect(summary.buckets[0].typeCounts).toEqual([
+      { label: 'Dream', count: 1 },
+      { label: 'Journal', count: 1 },
+      { label: 'Task', count: 1 },
+    ])
+    expect(summary.calendarDays[0].typeCounts).toEqual([
+      { label: 'Dream', count: 1 },
+      { label: 'Journal', count: 1 },
+      { label: 'Task', count: 1 },
+      { label: 'Note', count: 1 },
+    ])
   })
 
   it('uses locality markers for private counts without leaking protected labels', () => {
@@ -218,7 +262,8 @@ describe('buildTimeLoomSummary', () => {
     expect(payload).not.toContain('sensitive-council-memory')
     expect(payload).not.toContain('stable-memory')
     expect(payload).not.toContain('Private/Oil Signal')
-    expect(payload).not.toContain('local')
+    expect(payload).not.toContain('"locality"')
+    expect(payload).not.toContain('local-only')
   })
 
 })

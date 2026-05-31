@@ -1,6 +1,6 @@
 use crate::vault::{
-    self, PortabilityCapsuleFormat, PortabilityCapsulePreviewReport, VaultExportProgressEvent,
-    VaultExportReport,
+    self, PortabilityCapsuleFormat, PortabilityCapsuleLoopProofReport,
+    PortabilityCapsulePreviewReport, VaultExportProgressEvent, VaultExportReport,
 };
 use std::path::PathBuf;
 use tauri::ipc::Channel;
@@ -50,6 +50,18 @@ pub fn export_portability_capsule(
             format,
             preview_signature.as_str(),
         )
+    })
+}
+
+/// Proves a generated local capsule can be immediately previewed for import.
+#[tauri::command]
+pub fn run_portability_capsule_loop_proof(
+    vault_path: PathBuf,
+    format: PortabilityCapsuleFormat,
+) -> Result<PortabilityCapsuleLoopProofReport, String> {
+    let raw_vault_path = vault_path.to_string_lossy();
+    with_boundary(Some(raw_vault_path.as_ref()), |boundary| {
+        vault::run_portability_capsule_loop_proof(boundary.requested_root(), format)
     })
 }
 

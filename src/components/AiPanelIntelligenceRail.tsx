@@ -125,11 +125,16 @@ export function AiPanelIntelligenceRail({
       <AiPanelIntelligenceSummary
         activeContextProtected={activeContextProtected}
         canCrystallize={canCrystallize}
+        contextPackageSummary={contextCapsule.state === 'empty' ? null : {
+          receipt: contextCapsulePackage.reviewReceipt,
+          state: contextCapsule.state,
+        }}
         expanded={detailsOpen}
         graphNodeCount={graphNodeCount}
         hasContext={hasContext}
         hasLatestResponse={hasLatestResponse}
         heldCount={heldCount}
+        proposalSummary={proposalSummary}
         routeReady={routeReady}
         sourceCount={sourceCount}
         onCrystallize={onCrystallize}

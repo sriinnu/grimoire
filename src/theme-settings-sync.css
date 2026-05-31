@@ -1,0 +1,131 @@
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__step {
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 0.625rem;
+  background:
+    radial-gradient(circle at 16% 0%, color-mix(in srgb, var(--settings-sync-runway-tone, var(--primary)) 15%, transparent), transparent 4.75rem),
+    var(--grimoire-settings-control-row-material);
+  box-shadow: var(--grimoire-settings-control-shadow);
+  color: var(--text-primary);
+  min-width: 0;
+  padding: 0.75rem;
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__step[data-sync-runway-tone="local"] {
+  --settings-sync-runway-tone: var(--grimoire-private-local-accent);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__step[data-sync-runway-tone="ready"] {
+  --settings-sync-runway-tone: var(--accent-green);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__step[data-sync-runway-tone="gated"] {
+  --settings-sync-runway-tone: var(--accent-orange);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__step[data-sync-runway-tone="watch"] {
+  --settings-sync-runway-tone: var(--accent-blue);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__state {
+  color: color-mix(in srgb, var(--settings-sync-runway-tone, var(--primary)) 76%, var(--text-primary));
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__label {
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  margin-top: 0.35rem;
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .settings-sync-runway__detail {
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  line-height: 1.35;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 760px) {
+  :is(
+    [data-theme-preset="constellation"],
+    [data-theme-preset="daylight-atelier"],
+    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="living-archive"],
+    [data-theme-preset="nocturne"],
+    [data-theme-preset="retro-terminal"]
+  ) .settings-sync-runway {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

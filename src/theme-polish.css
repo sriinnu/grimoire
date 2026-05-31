@@ -171,12 +171,11 @@
   box-shadow: 0 8px 24px rgba(5, 24, 18, 0.26);
 }
 
-[data-theme-preset="living-archive"] .sidebar-brand [class*="text-foreground"] {
+[data-theme-preset="living-archive"] .sidebar-brand-wordmark {
   color: var(--sidebar-foreground);
-  font-family: var(--grimoire-hand-font);
   font-size: 21px;
-  font-weight: 700;
-  line-height: 0.92;
+  font-weight: 760;
+  line-height: 0.94;
 }
 
 [data-theme-preset="living-archive"] .font-mono-overline,

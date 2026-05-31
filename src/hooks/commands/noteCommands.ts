@@ -7,6 +7,8 @@ interface NoteCommandsConfig {
   isArchived: boolean
   activeNoteHasIcon?: boolean
   onCreateNote: () => void
+  createNoteLabel?: string
+  createNoteKeywords?: string[]
   onCreateType?: () => void
   onSave: () => void
   onDeleteNote: (path: string) => void
@@ -64,9 +66,9 @@ function buildCoreNoteCommands(config: NoteCommandsConfig): CommandAction[] {
   return [
     createNoteCommand({
       id: 'create-note',
-      label: 'New Note',
+      label: config.createNoteLabel ?? 'New Note',
       shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileNewNote),
-      keywords: ['new', 'create', 'add'],
+      keywords: config.createNoteKeywords ?? ['new', 'create', 'add'],
       enabled: true,
       execute: config.onCreateNote,
     }),

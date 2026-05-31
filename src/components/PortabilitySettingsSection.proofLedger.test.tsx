@@ -129,7 +129,7 @@ describe('PortabilitySettingsSection proof ledger', () => {
       '/Users/sri/Library/Mobile Documents/com~apple~CloudDocs/Grimoire',
       'icloud-drive',
     ))
-    expect(proof).toHaveTextContent('iCloud Drive folder proof: ready')
+    expect(proof).toHaveTextContent('iCloud Drive folder proof: folder readable')
     expect(proof).toHaveTextContent('credentials not stored')
     expect(proof).toHaveTextContent('checked 2026-05-28T13:00:00Z')
     expect(screen.getByTestId('portability-proof-desktop-sync')).not.toHaveTextContent('/Users/')
@@ -187,5 +187,27 @@ describe('PortabilitySettingsSection proof ledger', () => {
     expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('/Users/')
     expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('private.md')
     expect(screen.getByTestId('portability-proof-ledger')).not.toHaveTextContent('local-only.md')
+  })
+
+  it('runs a local generated capsule artifact loop proof from Settings', async () => {
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        vaultPath="/Users/sri/Vault"
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Run JSON loop proof' }))
+
+    const proof = await screen.findByTestId('portability-capsule-loop-live-proof')
+    expect(proof).toHaveTextContent('Generated artifact loop: passed')
+    expect(proof).toHaveTextContent('JSON')
+    expect(proof).toHaveTextContent('artifact path not stored')
+    expect(screen.getByTestId('portability-capsule-loop-live-step-export-signature')).toHaveAttribute('data-step-status', 'done')
+    expect(screen.getByTestId('portability-capsule-loop-live-step-import-signature')).toHaveAttribute('data-step-status', 'done')
+    expect(screen.getByTestId('portability-capsule-loop-live-step-count-match')).toHaveAttribute('data-step-status', 'done')
+    expect(screen.getByTestId('portability-capsule-loop-live-step-locality-proof')).toHaveAttribute('data-step-status', 'done')
+    expect(screen.getByTestId('portability-capsule-loop-live-step-path-redaction')).toHaveAttribute('data-step-status', 'done')
+    expect(screen.getByTestId('portability-capsule-loop-proof')).not.toHaveTextContent('/Users/')
   })
 })

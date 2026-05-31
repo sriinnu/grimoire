@@ -1,7 +1,11 @@
 import type { VaultEntry } from '../types'
+import { formatLocalDateKey } from '../utils/localDate'
 import { slugifyNoteStem as slugify } from '../utils/noteSlug'
 import { DEFAULT_TEMPLATES } from '../utils/noteTemplates'
 import { resolveEntry } from '../utils/wikilink'
+
+export type NoteFrontmatterValue = string | number | boolean
+export type NoteFrontmatterPair = readonly [key: string, value: NoteFrontmatterValue]
 
 export interface NewEntryParams {
   path: string
@@ -9,17 +13,18 @@ export interface NewEntryParams {
   title: string
   type: string
   status: string | null
+  properties?: VaultEntry['properties']
 }
 
 /** Build the vault entry metadata for a newly created Markdown file. */
-export function buildNewEntry({ path, slug, title, type, status }: NewEntryParams): VaultEntry {
+export function buildNewEntry({ path, slug, title, type, status, properties = {} }: NewEntryParams): VaultEntry {
   const now = Math.floor(Date.now() / 1000)
   return {
     path, filename: `${slug}.md`, title, isA: type,
     aliases: [], belongsTo: [], relatedTo: [],
     status, archived: false,
     modifiedAt: now, createdAt: now, fileSize: 0,
-    snippet: '', wordCount: 0, relationships: {}, icon: null, color: null, order: null, outgoingLinks: [], sidebarLabel: null, template: null, sort: null, view: null, visible: null, properties: {}, organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
+    snippet: '', wordCount: 0, relationships: {}, icon: null, color: null, order: null, outgoingLinks: [], sidebarLabel: null, template: null, sort: null, view: null, visible: null, properties, organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   }
 }
 
@@ -75,8 +80,52 @@ export interface NoteContentParams {
   title: string | null
   type: string
   status: string | null
+  frontmatter?: NoteFrontmatterPair[]
   template?: string | null
   initialEmptyHeading?: boolean
+}
+
+export interface LocalLifeLaneMetadata {
+  frontmatter: NoteFrontmatterPair[]
+  properties: VaultEntry['properties']
+}
+
+export type LocalLifeLaneCreationSource = 'lane-create' | 'named-create'
+
+const DATED_LOCAL_LIFE_LANES = new Set(['journal', 'dream'])
+const LOCAL_LIFE_LANE_CONTEXT: NoteFrontmatterPair[] = [
+  ['agent_context', 'blocked_private_lane'],
+  ['export_context', 'blocked_private_lane'],
+  ['sync_context', 'local_private_lane'],
+]
+
+/** Resolve local-only metadata for personal lanes that must stay portable across runtimes. */
+export function resolveLocalLifeLaneMetadata(
+  typeName: string,
+  now = new Date(),
+  createdFrom: LocalLifeLaneCreationSource = 'lane-create',
+): LocalLifeLaneMetadata | null {
+  if (!DATED_LOCAL_LIFE_LANES.has(typeName.trim().toLowerCase())) return null
+
+  const date = formatLocalDateKey(now)
+  return {
+    frontmatter: [
+      ['date', date],
+      ['locality', 'local'],
+      ['egress', 'blocked'],
+      ['created_from', createdFrom],
+      ...LOCAL_LIFE_LANE_CONTEXT,
+    ],
+    properties: {
+      date,
+      locality: 'local',
+      egress: 'blocked',
+      created_from: createdFrom,
+      agent_context: 'blocked_private_lane',
+      export_context: 'blocked_private_lane',
+      sync_context: 'local_private_lane',
+    },
+  }
 }
 
 function buildNoteBody({ template, initialEmptyHeading }: Pick<NoteContentParams, 'template' | 'initialEmptyHeading'>): string {
@@ -87,11 +136,12 @@ function buildNoteBody({ template, initialEmptyHeading }: Pick<NoteContentParams
 }
 
 /** Build portable Markdown for a new note, preserving frontmatter readability. */
-export function buildNoteContent({ title, type, status, template, initialEmptyHeading = false }: NoteContentParams): string {
+export function buildNoteContent({ title, type, status, frontmatter = [], template, initialEmptyHeading = false }: NoteContentParams): string {
   const lines = ['---']
   if (title) lines.push(`title: ${title}`)
   lines.push(`type: ${type}`)
   if (status) lines.push(`status: ${status}`)
+  for (const [key, value] of frontmatter) lines.push(`${key}: ${value}`)
   lines.push('---')
   const body = buildNoteBody({ template, initialEmptyHeading })
   return `${lines.join('\n')}\n${body}`
@@ -133,8 +183,19 @@ export type TypeCreationPlan = BlockedCreationPlan | ExistingTypeCreationPlan | 
 export function resolveNewNote({ title, type, vaultPath, template }: NewNoteParams): ResolvedEntry {
   const slug = slugify(title)
   const status = null
-  const entry = buildNewEntry({ path: `${vaultPath}/${slug}.md`, slug, title, type, status })
-  return { entry, content: buildNoteContent({ title, type, status, template }) }
+  const lifeLaneMetadata = resolveLocalLifeLaneMetadata(type, new Date(), 'named-create')
+  const entry = buildNewEntry({
+    path: `${vaultPath}/${slug}.md`,
+    slug,
+    title,
+    type,
+    status,
+    properties: lifeLaneMetadata?.properties,
+  })
+  return {
+    entry,
+    content: buildNoteContent({ title, type, status, frontmatter: lifeLaneMetadata?.frontmatter, template }),
+  }
 }
 
 /** Resolve a custom Type definition note. */

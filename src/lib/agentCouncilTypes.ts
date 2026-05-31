@@ -12,7 +12,7 @@ export interface AgentCouncilMember {
   active: boolean
 }
 
-export type AgentCouncilHealth = 'ready' | 'checking' | 'missing' | 'private-local'
+export type AgentCouncilHealth = 'ready' | 'blocked' | 'checking' | 'missing' | 'private-local'
 
 export type AgentCouncilClaimConfidence = 'blocked' | 'high' | 'low' | 'medium'
 

@@ -70,7 +70,87 @@
   color: var(--text-primary);
 }
 
-:is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__step, .grimoire-preview-stat) {
+:is([data-theme-preset]) .grimoire-portability-action-deck {
+  position: relative;
+  contain: paint;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow:
+    0 18px 48px color-mix(in srgb, var(--foreground) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--background) 72%, transparent);
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck > * {
+  position: relative;
+  z-index: 1;
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck::before,
+:is([data-theme-preset]) .grimoire-portability-action-deck::after {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid color-mix(in srgb, var(--grimoire-hairline) 78%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent 62%),
+    var(--grimoire-portability-preview-material);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--foreground) 8%, transparent);
+  content: "";
+  height: 46px;
+  pointer-events: none;
+  transform-origin: top center;
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck::before {
+  inset: 11px 22px auto;
+  opacity: 0.48;
+  transform: translateY(-11px) scale(0.955);
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck::after {
+  inset: 24px 34px auto;
+  opacity: 0.28;
+  transform: translateY(-18px) scale(0.91);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is([data-theme-preset]) .grimoire-portability-action-deck::before,
+  :is([data-theme-preset]) .grimoire-portability-action-deck::after {
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+
+  :is([data-theme-preset]) .grimoire-portability-action-deck:focus-within::before {
+    opacity: 0.56;
+    transform: translateY(-9px) scale(0.965);
+  }
+
+  :is([data-theme-preset]) .grimoire-portability-action-deck:focus-within::after {
+    opacity: 0.34;
+    transform: translateY(-15px) scale(0.925);
+  }
+}
+
+:is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__bucket, .grimoire-import-autopsy__manifest, .grimoire-import-autopsy__manifest-row, .grimoire-import-autopsy__step, .grimoire-preview-stat) {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-portability-contract__item {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-portability-contract__item[data-contract-item="private"] {
+  border-color: color-mix(in srgb, var(--grimoire-portability-warn-fg) 28%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-portability-contract__item[data-contract-item="provider"] {
+  border-color: color-mix(in srgb, var(--accent-blue) 28%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-portability-review-gate {
   background: var(--grimoire-portability-preview-material);
   border-color: var(--grimoire-hairline);
 }
@@ -236,4 +316,51 @@
   background: color-mix(in srgb, var(--surface-input) 88%, var(--surface-panel));
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .inspector-body {
+  gap: 18px;
+  padding: 16px;
+  scroll-padding-block: 16px;
+}
+
+:is([data-theme-preset]) .inspector-panel .inspector-card,
+:is([data-theme-preset]) .inspector-panel .constellation-insights {
+  min-width: 0;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 54%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-card));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 13%, transparent),
+    0 10px 24px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node[data-concept-state="matched"] {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--grimoire-hairline));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), transparent 62%),
+    color-mix(in srgb, var(--surface-card) 88%, var(--primary) 6%);
+  color: color-mix(in srgb, var(--primary) 24%, var(--text-primary));
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node:disabled {
+  cursor: default;
+  opacity: 0.72;
 }

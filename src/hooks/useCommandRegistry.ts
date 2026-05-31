@@ -14,6 +14,7 @@ import { buildAiAgentCommands } from './commands/aiAgentCommands'
 import { buildTypeCommands } from './commands/typeCommands'
 import { buildFilterCommands } from './commands/filterCommands'
 import { extractVaultTypes } from '../utils/vaultTypes'
+import { resolveCreateNoteActionLabel } from '../components/note-list/noteListUtils'
 
 // Re-export types and helpers for backward compatibility
 export type { CommandAction, CommandGroup } from './commands/types'
@@ -147,6 +148,21 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
   const isArchived = activeEntry?.archived ?? false
   const isFavorite = activeEntry?.favorite ?? false
   const isSectionGroup = selection?.kind === 'sectionGroup'
+  const selectedSectionType = isSectionGroup ? selection.type : null
+  const createNoteFromCurrentScope = useMemo(
+    () => selectedSectionType
+      ? () => onCreateNoteOfType(selectedSectionType)
+      : onCreateNote,
+    [onCreateNote, onCreateNoteOfType, selectedSectionType],
+  )
+  const createNoteLabel = useMemo(
+    () => selection ? resolveCreateNoteActionLabel(selection, locale) : 'New Note',
+    [locale, selection],
+  )
+  const createNoteKeywords = useMemo(
+    () => selectedSectionType ? ['new', 'create', 'add', selectedSectionType.toLowerCase()] : undefined,
+    [selectedSectionType],
+  )
   const noteListColumnsLabel = config.noteListColumnsLabel ?? (
     selection?.kind === 'filter' && selection.filter === 'all'
       ? 'Customize All Notes columns'
@@ -174,7 +190,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     }),
     ...buildNoteCommands({
       hasActiveNote, activeTabPath, isArchived,
-      onCreateNote, onCreateType, onSave,
+      onCreateNote: createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave,
       onDeleteNote, onArchiveNote, onUnarchiveNote,
       onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
       onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onOpenInNewWindow, onToggleFavorite, isFavorite,
@@ -217,7 +233,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
   ], [
     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
-    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onCaptureDream, onCreateNoteOfType, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCaptureThought, onCaptureJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
     onCheckForUpdates,

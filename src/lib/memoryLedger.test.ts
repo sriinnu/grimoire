@@ -78,6 +78,8 @@ describe('memoryLedger', () => {
         handoff_unavailable_lanes: 1,
         handoff_local_hold: false,
         handoff_source_count: 4,
+        crystallize_receipt: 'crys-1234abcd',
+        crystallize_loop: 'Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
       },
     }))
 
@@ -95,6 +97,8 @@ describe('memoryLedger', () => {
       reviewLog: [
         '2026-05-23T12:00:00.000Z v2; confidence=0.8; expires=2026-06-16; contradicts=[[Old Note]]',
       ],
+      crystallizeReceipt: 'crys-1234abcd',
+      crystallizeLoop: 'Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
       handoff: {
         kind: 'agent_council',
         localHold: false,
@@ -138,6 +142,8 @@ describe('memoryLedger', () => {
         expires_at: '2026-05-30',
         contradicts: ['[[Old Plan]]'],
         memory_review_log: ['2026-05-24T12:00:00.000Z v4; confidence=0.92'],
+        crystallize_receipt: 'crys-5678abcd',
+        crystallize_loop: 'Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
       },
     }))
 
@@ -150,7 +156,26 @@ describe('memoryLedger', () => {
       contradictionTone: 'warning',
       sourceLabels: ['Source Note', 'Research/Trail'],
       contradictionLabels: ['Old Plan'],
+      receiptLabel: 'Receipt crys-5678abcd',
+      receiptTone: 'verified',
+      loopLabel: 'Loop closed',
       reviewLogLabel: '2026-05-24T12:00:00.000Z v4; confidence=0.92',
+    })
+  })
+
+  it('keeps unusual Crystallize receipt text private while showing the loop landed', () => {
+    const record = buildMemoryLedgerRecord(entry({
+      isA: 'Memory',
+      properties: {
+        crystallize_receipt: '/Users/srinivaspendela/private/token',
+        crystallize_loop: 'Capture -> Local context -> Agent answer -> Human review -> Markdown memory',
+      },
+    }))
+
+    expect(buildMemoryLedgerDisplayState(record)).toMatchObject({
+      receiptLabel: 'Receipt recorded',
+      receiptTone: 'verified',
+      loopLabel: 'Loop closed',
     })
   })
 

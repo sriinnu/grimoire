@@ -131,4 +131,33 @@ describe('EditorRightPanel AI chat lifecycle', () => {
 
     expect(screen.getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
   })
+
+  it('passes Chitragupta MCP transport failures into the inspector memory lane', () => {
+    render(
+      <EditorRightPanel
+        aiAgentsStatus={installedAiAgentsStatus}
+        chitraguptaStatus={{
+          ok: false,
+          daemon: 'running',
+          capabilities: [],
+          warnings: ['Transport closed'],
+        }}
+        entries={[entry]}
+        gitHistory={[]}
+        inspectorCollapsed={false}
+        inspectorContent="hello"
+        inspectorEntry={entry}
+        inspectorWidth={320}
+        onNavigateWikilink={vi.fn()}
+        onToggleInspector={vi.fn()}
+        onViewCommitDiff={vi.fn()}
+        showAIChat={false}
+        vaultPath="/tmp/vault"
+      />,
+    )
+
+    const runtime = screen.getByTestId('memory-chitragupta-runtime')
+    expect(runtime).toHaveAttribute('data-state', 'mcp_transport_closed')
+    expect(runtime).toHaveTextContent('MCP transport closed')
+  })
 })

@@ -173,6 +173,7 @@ where
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    crate::ai_provider_keys::apply_provider_keys_to_command(&mut command, AiAgentId::Codex);
 
     let mut thread_id = String::new();
     let outcome = match run_command_line_stream(
@@ -237,6 +238,7 @@ where
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    crate::ai_provider_keys::apply_provider_keys_to_command(&mut command, AiAgentId::Chitragupta);
 
     let idle_timeout = agent_stream_idle_timeout("GRIMOIRE_CHITRAGUPTA_STREAM_IDLE_TIMEOUT_SECS");
     let outcome = match run_command_line_stream(command, idle_timeout, "chitragupta", |line| {

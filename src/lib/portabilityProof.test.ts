@@ -3,9 +3,30 @@ import {
   listPortabilityProofRows,
   OBJECT_STORAGE_LIVE_PROOF_COMMAND,
   OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND,
-  parseObjectStorageLiveProofReport,
   portabilityProofLevelLabel,
 } from './portabilityProof'
+import type { ObjectStorageSyncReport } from '../utils/objectStorageSync'
+
+const providerPreviewReport: ObjectStorageSyncReport = {
+  provider_id: 's3',
+  adapter_phase: 'provider-sdk-adapter',
+  prototype_mode: 's3-live-provider',
+  direction: 'push',
+  mirror_path: 'redacted provider target',
+  preview_signature: 'sync-v1:test',
+  applied: false,
+  files_to_upload: 1,
+  files_to_download: 0,
+  files_to_delete: 0,
+  conflicts: 2,
+  excluded_files: 3,
+  operations: [
+    { kind: 'conflict', path: 's3://secret-bucket/private-prefix/changed.md', reason: 'conflict' },
+    { kind: 'exclude', path: '/Users/sriinnu/mockups/private.png', reason: 'local only' },
+  ],
+  sync_report_path: null,
+  conflict_artifacts: [],
+}
 
 describe('portabilityProof', () => {
   it('separates support status from proof level', () => {
@@ -21,6 +42,7 @@ describe('portabilityProof', () => {
     ])
     expect(rowById.imports.supportStatus).toBe('ready')
     expect(rowById.imports.proofLevel).toBe('fixture-regression')
+    expect(rowById['desktop-sync'].supportStatus).toBe('folder-proof')
     expect(rowById['desktop-sync'].proofLevel).toBe('provider-managed-local-folder')
     expect(rowById['object-storage'].supportStatus).toBe('fixture')
     expect(rowById['object-storage'].proofLevel).toBe('live-read-only-plus-local-mirror')
@@ -69,7 +91,8 @@ describe('portabilityProof', () => {
     expect(combined).toContain('GRIMOIRE_AZURE_STORAGE_ACCOUNT')
     expect(combined).toContain('permission, auth, conflict')
     expect(combined).toContain('exact preview signatures')
-    expect(combined).toContain('local read proof for iCloud/GDrive')
+    expect(combined).toContain('folder proof paths; provider sync not proven')
+    expect(combined).toContain('Settings proves local folder readability only')
     expect(combined).toContain('Run the live provider proof runner')
     expect(combined).toContain('Provider quota, offline recovery')
     expect(publicCopy).toContain('Load a redacted live proof report')
@@ -122,6 +145,38 @@ describe('portabilityProof', () => {
     expect(JSON.stringify(objectStorage?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\//)
   })
 
+  it('lifts provider preview reports into object-storage proof without provider targets', () => {
+    const objectStorage = listPortabilityProofRows({
+      objectStorageProviderPreviewReports: {
+        azurePull: {
+          ...providerPreviewReport,
+          provider_id: 'azure-blob',
+          prototype_mode: 'azure-live-provider',
+          direction: 'pull',
+          conflicts: 0,
+          excluded_files: 1,
+        },
+        s3Push: providerPreviewReport,
+      },
+    }).find(row => row.id === 'object-storage')
+
+    expect(objectStorage?.liveProofs).toEqual([
+      {
+        id: 's3-provider-push-preview',
+        label: 'S3 provider push preview',
+        status: 'reviewed preview',
+        detail: 's3-live-provider push; 2 conflicts; 3 local-only withheld; signature captured; not provider-proven sync yet',
+      },
+      {
+        id: 'azure-provider-pull-preview',
+        label: 'Azure provider pull preview',
+        status: 'reviewed preview',
+        detail: 'azure-live-provider pull; 0 conflicts; 1 local-only withheld; signature captured; not provider-proven sync yet',
+      },
+    ])
+    expect(JSON.stringify(objectStorage?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\/|secret-bucket|private-prefix/i)
+  })
+
   it('adds redacted desktop-folder proof when Settings checks iCloud or Google Drive', () => {
     const desktopSync = listPortabilityProofRows({
       desktopStorageHealthReports: {
@@ -154,7 +209,7 @@ describe('portabilityProof', () => {
       {
         id: 'icloud-drive-folder',
         label: 'iCloud Drive folder proof',
-        status: 'ready',
+        status: 'folder readable',
         detail: 'configured; local path checked; provider root detected; vault folder checked; readable; credentials not stored; checked 2026-05-28T13:00:00Z',
       },
       {
@@ -218,107 +273,6 @@ describe('portabilityProof', () => {
       detail: '3 notes; 1 assets; 2 withheld; 0 failed; local-only report planned',
     }])
     expect(JSON.stringify([imports?.liveProofs, exports?.liveProofs])).not.toMatch(/\/Users\/|private\.md|token|secret|password/i)
-  })
-
-  it('loads sanitized provider proof runner reports without provider targets', () => {
-    const report = parseObjectStorageLiveProofReport(JSON.stringify({
-      schema: 'grimoire-object-storage-live-proof-v1',
-      generated_at: '2026-05-28T12:30:00Z',
-      finished_at: '2026-05-28T12:35:00Z',
-      provider_filter: 'all',
-      summary: { status: 'passed', message: 'wrote /Users/sriinnu/.aws and s3://secret-bucket' },
-      providers: [
-        {
-          id: 's3',
-          label: 's3://secret-bucket/private-prefix',
-          enabled: true,
-          gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
-          required: { GRIMOIRE_S3_BUCKET: 'set', AWS_SECRET_ACCESS_KEY: 'set' },
-          optional: { GRIMOIRE_S3_REGION: 'set', GRIMOIRE_S3_PREFIX: 'set', TOKEN: 'set' },
-          status: 'passed',
-          message: 'provider returned token=abc',
-        },
-        {
-          id: 'azure',
-          label: 'azblob://secret-account/private-container',
-          enabled: true,
-          gate: { name: 'GRIMOIRE_AZURE_LIVE_WRITE_PROOF', state: 'set' },
-          required: {
-            GRIMOIRE_AZURE_CONTAINER: 'missing',
-            GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'set',
-            PASSWORD: 'set',
-          },
-          optional: { GRIMOIRE_AZURE_PREFIX: 'missing' },
-          status: 'missing_config',
-          message: '/Users/sriinnu/Library/Azure leaked here',
-        },
-      ],
-    }))
-
-    expect(report?.summary.message).toBe('Redacted provider proof report loaded.')
-    expect(report?.providers[0]).toMatchObject({
-      id: 's3',
-      gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
-      required: { GRIMOIRE_S3_BUCKET: 'set' },
-      optional: { GRIMOIRE_S3_REGION: 'set', GRIMOIRE_S3_PREFIX: 'set' },
-      status: 'passed',
-    })
-    expect(report?.providers[1]?.required).toEqual({
-      GRIMOIRE_AZURE_CONTAINER: 'missing',
-      GRIMOIRE_AZURE_STORAGE_ACCOUNT: 'set',
-    })
-
-    const runner = listPortabilityProofRows({ objectStorageLiveProofReport: report })
-      .find(row => row.id === 'provider-proof-runner')
-    expect(runner?.liveProofs).toEqual([
-      {
-        id: 'provider-report-summary',
-        label: 'Latest proof report',
-        status: 'passed',
-        detail: 'scope all; 1 passed, 1 missing config; generated 2026-05-28T12:30:00Z; finished 2026-05-28T12:35:00Z',
-      },
-      {
-        id: 's3-provider-proof',
-        label: 'S3 provider proof',
-        status: 'passed',
-        detail: 'gate set; 1/1 required set; 2/2 optional set; preview/apply/pull proof passed',
-      },
-      {
-        id: 'azure-provider-proof',
-        label: 'Azure provider proof',
-        status: 'missing config',
-        detail: 'gate set; 1/2 required set; 0/1 optional set; missing config recorded',
-      },
-    ])
-    expect(JSON.stringify(runner?.liveProofs)).not.toMatch(/s3:\/\/|azblob:\/\/|\/Users\//)
-    expect(JSON.stringify(report)).not.toContain('secret-bucket')
-    expect(JSON.stringify(report)).not.toContain('AWS_SECRET_ACCESS_KEY')
-    expect(JSON.stringify(report)).not.toContain('TOKEN')
-    expect(JSON.stringify(report)).not.toContain('PASSWORD')
-  })
-
-  it('sanitizes proof report timestamps before storing pasted report state', () => {
-    const report = parseObjectStorageLiveProofReport(JSON.stringify({
-      schema: 'grimoire-object-storage-live-proof-v1',
-      generated_at: '/Users/sriinnu/.aws s3://secret-bucket',
-      finished_at: 'azblob://secret-account/container',
-      provider_filter: 's3',
-      summary: { status: 'passed', message: 'done' },
-      providers: [
-        {
-          id: 's3',
-          enabled: true,
-          gate: { name: 'GRIMOIRE_S3_LIVE_WRITE_PROOF', state: 'set' },
-          required: { GRIMOIRE_S3_BUCKET: 'set' },
-          optional: {},
-          status: 'passed',
-        },
-      ],
-    }))
-
-    expect(report?.generated_at).toBe('redacted-time')
-    expect(report?.finished_at).toBe('redacted-time')
-    expect(JSON.stringify(report)).not.toMatch(/\/Users\/|s3:\/\/|azblob:\/\//)
   })
 
   it('uses compact user-facing proof labels', () => {

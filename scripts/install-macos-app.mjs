@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { stampMacOsLaunchServicesMetadata } from './app-bundle-launchservices.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -39,6 +40,13 @@ function run(command, args) {
   if (result.status !== 0) {
     throw new Error(`${command} ${args.join(' ')} failed`)
   }
+}
+
+function runAllowFailure(command, args) {
+  spawnSync(command, args, {
+    cwd: REPO_ROOT,
+    stdio: 'ignore',
+  })
 }
 
 function packageVersion() {
@@ -81,8 +89,11 @@ function sleepSync(ms) {
 
 function runningInstalledAppProcesses(appPath = APPLICATIONS_APP_PATH) {
   const marker = `${resolve(appPath)}/Contents/MacOS/`
-  const result = spawnSync('ps', ['-Ao', 'pid=,args='], { encoding: 'utf8' })
-  if (result.status !== 0) {
+  const result = spawnSync('ps', ['-Ao', 'pid=,args='], {
+    encoding: 'utf8',
+    maxBuffer: 8 * 1024 * 1024,
+  })
+  if (result.error || result.status !== 0) {
     throw new Error('Could not inspect running Grimoire processes before install')
   }
 
@@ -120,6 +131,14 @@ function verifyInstalledVersion(appPath, expectedVersion) {
   ])
 }
 
+function removeLegacyLaunchServicesKeys(appPath) {
+  runAllowFailure('/usr/libexec/PlistBuddy', [
+    '-c',
+    'Delete :LSRequiresCarbon',
+    resolve(appPath, 'Contents/Info.plist'),
+  ])
+}
+
 function installBuiltApp({
   applicationsDir = '/Applications',
   applicationsAppPath = APPLICATIONS_APP_PATH,
@@ -140,6 +159,8 @@ function installBuiltApp({
 
   rmSync(applicationsAppPath, { recursive: true, force: true })
   cpSync(sourceAppPath, applicationsAppPath, { recursive: true, verbatimSymlinks: true })
+  removeLegacyLaunchServicesKeys(applicationsAppPath)
+  stampMacOsLaunchServicesMetadata(applicationsAppPath)
   assertSingletonInstall(applicationsDir)
 
   if (!skipSystemActions) {

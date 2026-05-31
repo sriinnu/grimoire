@@ -347,13 +347,19 @@ describe('NoteList note context menu', () => {
   it('offers right-click organization actions for normal note rows', () => {
     const onUpdateFrontmatter = vi.fn()
     const entries = [
-      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', favorite: false }),
+      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', favorite: false, status: 'Active', color: 'green' }),
     ]
 
     renderNoteList({ entries, onUpdateFrontmatter })
 
     fireEvent.contextMenu(screen.getByText('Alpha'))
-    expect(screen.getByTestId('note-context-menu')).toHaveClass('w-[216px]')
+    const menu = screen.getByTestId('note-context-menu')
+    expect(menu).toHaveClass('w-[216px]')
+    expect(menu).toHaveTextContent('Note actions')
+    expect(menu).toHaveTextContent('Status')
+    expect(menu).toHaveTextContent('Color')
+    expect(screen.getByRole('menuitem', { name: 'Status: Active' })).toHaveClass('bg-accent/70')
+    expect(screen.getByTestId('note-context-color-green')).toHaveClass('ring-1')
 
     fireEvent.click(screen.getByTestId('note-context-make-project'))
     expect(onUpdateFrontmatter).toHaveBeenCalledWith('/vault/alpha.md', 'type', 'Project')

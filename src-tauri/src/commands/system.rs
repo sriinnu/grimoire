@@ -296,7 +296,10 @@ pub fn save_settings(app_handle: tauri::AppHandle, settings: Settings) -> Result
     let menu_bar_enabled = settings.menu_bar_icon_enabled == Some(true);
     crate::settings::save_settings(settings)?;
     #[cfg(desktop)]
-    crate::menu_bar::apply_menu_bar_icon_setting(&app_handle, menu_bar_enabled)?;
+    if let Err(error) = crate::menu_bar::apply_menu_bar_icon_setting(&app_handle, menu_bar_enabled)
+    {
+        log::warn!("Failed to apply menu bar icon setting after settings save: {error}");
+    }
     Ok(())
 }
 

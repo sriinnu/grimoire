@@ -1,18 +1,21 @@
 import { useEffect } from 'react'
 import {
   applyAppearanceToDocument,
+  readStoredEditorLineHeight,
   readStoredEditorFont,
   readStoredNativeShellMaterial,
   readStoredThemePreset,
+  resolveEditorLineHeight,
   resolveEditorFont,
   resolveNativeShellMaterial,
   resolveThemePreset,
   type ResolvedAppearance,
+  writeStoredEditorLineHeight,
   writeStoredEditorFont,
   writeStoredNativeShellMaterial,
   writeStoredThemePreset,
 } from '../lib/appearance'
-import type { EditorFont, NativeShellMaterial, ThemePreset } from '../lib/appearance'
+import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from '../lib/appearance'
 import { loadFontAssetsForAppearance } from '../lib/fontConfig'
 import type { ThemeMode } from '../lib/themeMode'
 import {
@@ -27,6 +30,7 @@ interface AppearanceSettingsInput {
   themeMode: ThemeMode | null | undefined
   themePreset: ThemePreset | null | undefined
   editorFont: EditorFont | null | undefined
+  editorLineHeight?: EditorLineHeight | null | undefined
   nativeShellMaterial?: NativeShellMaterial | null | undefined
   loaded: boolean
 }
@@ -34,9 +38,15 @@ interface AppearanceSettingsInput {
 function buildResolvedAppearance(
   themePreset: ThemePreset,
   editorFont: EditorFont,
+  editorLineHeight: EditorLineHeight,
   nativeShellMaterial: NativeShellMaterial,
 ): ResolvedAppearance {
-  const appearance: ResolvedAppearance = { themePreset, editorFont, nativeShellMaterial }
+  const appearance: ResolvedAppearance = {
+    themePreset,
+    editorFont,
+    editorLineHeight,
+    nativeShellMaterial,
+  }
   const localThemeDefinition = readStoredLocalThemeDefinition(window.localStorage)
   if (localThemeDefinition) appearance.themeDefinition = localThemeDefinition
   return appearance
@@ -47,6 +57,7 @@ export function useAppearanceSettings({
   themeMode,
   themePreset,
   editorFont,
+  editorLineHeight,
   nativeShellMaterial,
   loaded,
 }: AppearanceSettingsInput): void {
@@ -61,6 +72,9 @@ export function useAppearanceSettings({
     const resolvedEditorFont = resolveEditorFont(
       editorFont ?? readStoredEditorFont(window.localStorage),
     )
+    const resolvedEditorLineHeight = resolveEditorLineHeight(
+      editorLineHeight ?? readStoredEditorLineHeight(window.localStorage),
+    )
     const resolvedNativeShellMaterial = resolveNativeShellMaterial(
       nativeShellMaterial ?? readStoredNativeShellMaterial(window.localStorage),
     )
@@ -69,6 +83,7 @@ export function useAppearanceSettings({
       const appearance = buildResolvedAppearance(
         resolvedThemePreset,
         resolvedEditorFont,
+        resolvedEditorLineHeight,
         resolvedNativeShellMaterial,
       )
       applyAppearanceToDocument(document, appearance)
@@ -78,6 +93,7 @@ export function useAppearanceSettings({
     applyResolvedAppearance()
     writeStoredThemePreset(window.localStorage, resolvedThemePreset)
     writeStoredEditorFont(window.localStorage, resolvedEditorFont)
+    writeStoredEditorLineHeight(window.localStorage, resolvedEditorLineHeight)
     writeStoredNativeShellMaterial(window.localStorage, resolvedNativeShellMaterial)
 
     const handleStorage = (event: StorageEvent) => {
@@ -109,5 +125,5 @@ export function useAppearanceSettings({
       window.removeEventListener('storage', handleStorage)
       window.removeEventListener(LOCAL_THEME_PACK_CHANGE_EVENT, handleLocalThemePackChange)
     }
-  }, [editorFont, loaded, nativeShellMaterial, themeMode, themePreset])
+  }, [editorFont, editorLineHeight, loaded, nativeShellMaterial, themeMode, themePreset])
 }

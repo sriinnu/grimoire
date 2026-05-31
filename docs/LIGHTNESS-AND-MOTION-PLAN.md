@@ -62,7 +62,7 @@ Observed on 2026-05-22.
 - [x] Note rows render a visible vault-relative folder/project chip instead of hiding context in a theme-specific pseudo-element.
 - [x] The Notes column now has a single top-chrome wrapper for header/search, project intelligence, and file/state filters, with project/filter CSS split into focused files below the LOC guardrail.
 - [x] AI message route chips are backed by structured Grimoire-owned route state instead of only parsing collapsed reasoning text.
-- [x] Production builds report app-shell gzip size against the 380/320/250 KiB budget ladder; latest installed shell is 222.09 KiB gzip in `/Applications/Grimoire.app` 0.1.259.
+- [x] Production builds report app-shell gzip size against the 380/320/250 KiB budget ladder; latest installed shell is 229.68 KiB gzip in `/Applications/Grimoire.app` 0.1.362.
 - [x] Local theme-pack JSON can be loaded/exported from Settings, applied as an app-local override, hot-reloaded from `.grimoire-local/theme-pack.json` in dev, and manually reloaded from Settings when tuning a pack.
 - [x] Local theme-pack JSON can carry typography roles for UI, editor body/list text, monospace/code, display headings, and labels.
 - [x] Built-in theme-pack JSON now carries the same typography role contract, and runtime font resolution applies those roles before user editor-font overrides or local theme-pack overrides.
@@ -75,6 +75,8 @@ Observed on 2026-05-22.
 - [x] Import/export lanes, Import Autopsy, and object-storage dry runs now use theme-owned portability materials and semantic warning/safe tokens.
 - [x] Settings now has a compact iPad/mobile section rail when the desktop rail collapses, using the same theme-owned toolbar/card materials as the full Settings shell.
 - [x] Settings navigation is split out of the main Settings body, keeping `SettingsBody.tsx` down to 234 LOC while the compact rail keeps the active section centered as scroll state changes.
+- [x] Privacy Settings now shows a local-first egress runway for private capture, cloud transcription, and anonymous diagnostics before the toggles.
+- [x] Workflow Settings now shows the daily assistant runway before switches: brief, Inbox triage, flow-through, and title hygiene state read as one local-first loop.
 - [x] Theme-pack heading profiles and metadata-strip visibility now change the live editor structure, not just the Settings preview copy.
 - [x] Settings portability actions now use intent lanes for Markdown, app, journal, export, and storage controls instead of rendering every provider action at once.
 - [x] The full emoji picker catalog is split out of normal note/sidebar icon rendering.
@@ -88,6 +90,8 @@ Observed on 2026-05-22.
 - [x] Sidebar artwork now uses one visible theme-aware vault-atlas sigil with page, orbit, memory, route, and protected-keeper layers instead of a disconnected hidden glyph contract.
 - [x] Sidebar artwork now uses a cleaner book, vault arch, and memory constellation mark with fewer nodes, stronger silhouette, and explicit theme color channels.
 - [x] Sidebar artwork now has a stronger theme-lit aura, core glow, and local-memory jewel so the mark reads as a living Grimoire signature instead of a faint background sketch.
+- [x] Sidebar artwork and folder glyphs now inherit one panel-level art palette, and compact/short-height sigils hide low-priority detail to avoid visual soup.
+- [x] Sidebar glyphs now have a refinement layer for cel-highlight medallions, semantic selected-row rails, and a stronger ambient sigil crest/crown while remaining cheap CSS/SVG.
 - [x] Graph Agent Package chips/cards carry theme-addressable ready/guarded/blocked states, and center-pane chrome uses solid scoped muted text instead of fragile alpha-muted labels.
 - [x] Project-scoped note-list chrome now behaves like a stable cockpit: path first, compact metric chips beneath, actions anchored right, with search and flat filters in dedicated rows.
 - [x] Memory Ledger rows and badges now carry theme-addressable neutral/proposed/verified/warning/danger state materials instead of isolated utility colors.
@@ -97,6 +101,9 @@ Observed on 2026-05-22.
 - [x] Infinite motion is now treated as a busy-state exception only: pending note save pulses are finite, update/typing loops are reduced-motion-aware, and the editor loading illustration uses one finite compositor-safe settle cue with paint containment.
 - [x] The branded Grimoire refresh scene now runs a finite cinematic settle sequence and then rests, instead of looping book/orbit/aura motion forever while a vault is slow to open.
 - [x] Dashboard Assistant Brief derives its next-action summary from metadata only, routes its primary action through the existing Attention Mode path, and uses finite compositor-safe entry motion with no protected title/path/body leakage.
+- [x] Dashboard quick capture now has explicit date intent chips for Today, Yesterday, and Day before yesterday, while the sidebar owns permanent Notes, Journal, and Dreams browse lanes for exclusive search/filter context.
+- [x] Journal/Dream lane creation now follows the selected scope: search placeholders, create labels, and `Cmd+N`/command-palette actions create the correct local Markdown type.
+- [x] Mobile capture drafts now reuse the shared local date formatter and write `date` frontmatter, keeping iPhone/iPad capture compatible with desktop life lanes, Time Loom, import/export, and agent packets.
 - [x] Bottom-bar AI agent menus now disclose the selected provider/model route from app settings, including Chitragupta's stream-resolved default, without exposing private CLI configuration or MCP internals.
 - [x] Agent Council and graph runway surfaces now disclose the same active provider/model route next to source-safe/no-note-payload privacy state, with theme-owned materials and no new polling or startup work.
 - [x] Agent Council map now includes explicit live-readiness lanes for source-safe, private, blocked, waiting, and unavailable agent paths instead of relying on dot decoding.
@@ -136,14 +143,17 @@ Observed on 2026-05-22.
   - [x] Add theme-specific Settings shell, rail, main-surface, and local/private card materials for built-in presets.
   - [x] Add an iPad/mobile Settings section rail so collapsed Settings still has visible navigation and full-theme material coverage.
   - [x] Move Settings rail, mobile rail, active section buttons, and form controls onto a dedicated token-driven `theme-settings.css` layer instead of ad-hoc background utilities.
+  - [x] Split Sync & Updates into a local-first runway so Markdown source, Git, AutoGit, and release feed read as separate native lanes.
+  - [x] Split Privacy into a local-first runway so private capture, cloud transcription, and diagnostics show egress state before toggles.
+  - [x] Split Workflow into a daily assistant runway so assistant brief, Inbox triage, auto-advance, and title hygiene state are visible before toggles.
   - [ ] Verify theme-specific Settings tuning in native screenshots.
 
 Acceptance:
 
 - [ ] Native screenshot shows no traffic-light/logo/floating-control overlap.
-  - [ ] The latest ad-hoc-signed singleton `/Applications/Grimoire.app` build installs and verifies at `0.1.259`, but the Codex runner still needs a user-visible native window check before marking this done.
+  - [x] The latest ad-hoc-signed singleton `/Applications/Grimoire.app` build installs and verifies at `0.1.362`; escalated `open` confirms one visible AX window at `56,38` sized `1400x881`.
   - [x] Automated Playwright coverage verifies the collapsed rail safe zone and native shell material targets in the browser harness.
-  - [ ] Native screenshot capture is blocked until Screen Recording permission is granted to the running terminal/Codex host.
+  - [ ] Native screenshot capture now works, but `/tmp/grimoire-native-0.1.362.png` shows Grimoire active with a blank/transparent app window, so native overlap/theme parity is still blocked by rendering, not permission.
 - [x] Light and dark themes pass visible contrast checks on sidebar, center pane, editor, inspector, and bottom bar.
 - [x] Theme surfaces feel coherent in Settings, not only in the main workspace.
 - [x] Dashboard daily flow, ask preview, graph controls, graph nodes, graph agent rails, and mobile-ready shells route through shared material, spacing, radius, shadow, and gradient tokens.
@@ -300,6 +310,15 @@ Next implementation:
 - [x] Curate Settings theme presets into Signature, Studio, and Lab groups so strong directions surface first while weaker/experimental presets stop reading as equal defaults.
 - [x] Replace the ambient sidebar sketch with a theme-tinted vault-map glyph: book, memory orbit, constellation nodes, and star signal.
 - [x] Repair the sidebar glyph display contract and move the mark toward a cleaner vault-atlas identity: book/map, source routes, local keeper, memory trace, and finite arrival motion with reduced-motion parity.
+- [x] Add a second sidebar glyph polish pass so row medallions, nav/rail/section marks, and the ambient sigil share route beads, bright/memory inks, and finite reduced-motion-safe arrival cues.
+- [x] Add a third sidebar glyph polish pass so primary nav, collapsed rail, and section icons get matching halo, route, and bead anatomy instead of isolated icon chips.
+- [x] Add a fourth sidebar glyph polish pass so nav/rail glyphs carry paired route beads, section glyphs carry a matching thread, folder medallions carry a small constellation layer, and agent/import/export/provider/astral folder names resolve to authored semantic glyphs.
+- [x] Add a fifth sidebar glyph polish pass so agent/Council, storage/sync/provider, and astral folders use distinct SVG anatomy while keeping the effect in cheap CSS/SVG layers.
+- [x] Add a sixth sidebar glyph polish pass so vault, private/local-only, research/evidence, and template folders have authored SVG anatomy and motif-specific route/thread/constellation behavior without runtime image weight.
+- [x] Add a heavier ambient sidebar sigil redraw with vault shell, atlas ridge, compass, and source-route bloom in a focused `sidebar-artwork-atlas.css` layer.
+- [x] Replace raw fallback folder icons with authored Grimoire folder glyphs, plus Sanskrit/Hindi/transliteration aliases and motif-specific Vedas/Shaastras/Puranas/Rishi/Brain anatomy.
+- [x] Make selected folder rows semantic-tone aware so the row chrome follows the glyph motif instead of forcing a fixed blue selection.
+- [x] Add an eighth sidebar glyph refinement layer so nav, rail, section, and folder glyphs share cel highlights and selected folder rows get semantic tone rails without extra image assets.
 - [x] Remove weak presets once Nocturne, Living, one light mode, and one retro direction cover the ecosystem.
   - [x] Retire `research-cockpit` and standalone `manuscript` from the shipped catalog; keep the manuscript writing voice inside Living Archive through font/style roles.
 - [x] Add theme-pack graph/canvas profiles: Constellation and Nocturne use luminous map/blueprint surfaces, Living/Daylight use ledger-paper surfaces, and Retro uses terminal graph/canvas materials.
@@ -311,6 +330,7 @@ Acceptance:
   - [x] CSS/unit coverage keeps status bar and Settings shell material ownership centralized in theme coherence instead of theme-specific islands.
   - [x] Playwright covers iPad-width Settings after the desktop rail collapses, including themed compact navigation and no horizontal overflow.
   - [x] Context Capsule card/dialog route surfaces now reuse active agent route truth and theme-owned materials, keeping the package boundary coherent with the footer, Council, graph, and Settings route state.
+  - [x] Context Capsule package review now includes an explicit capsule manifest in both the dialog and Markdown packet: review mode, source-safe sources, held-local items, trimmed graph items, and the next gate.
   - [ ] Native-window theme parity remains unproven here; current proof is browser/token level plus installed bundle verification.
 - [x] Theme JSON validates before use and cannot break core readability.
 - [x] Older local theme JSON derives semantic accent/text tokens instead of failing import.
@@ -345,7 +365,7 @@ Motion should serve the parts that make Grimoire special:
   - [x] Context Capsule, Graph Council handoff, and Agent Council synthesis review dialogs now include a shared Locality Firewall preflight strip for allowed context, held-local counts, and trimmed counts.
   - [x] Per-note Inspector Firewall lanes now expose blocked/withheld/review/preview/vault-setting egress states with theme-owned guarded, blocked, and review materials.
 - [x] Crystallize: AI output becomes Markdown diffs with source-backed provenance and a satisfying accept moment.
-- [ ] Time Loom: journal, dream, task, meeting, voice, commit, and calendar events become a calm temporal graph.
+- [x] Time Loom: journal, dream, task, meeting, voice, commit, and calendar events become a calm temporal graph.
   - [x] The dashboard Time Loom now reduces voice, commit, and scheduled calendar/event Markdown into counts before rendering, so private filenames, paths, locations, and messages stay out of the visual surface.
   - [x] The dashboard Time Loom now reduces mobile capture drafts into metadata-only mobile counts before rendering, so iPhone/iPad titles, paths, device/source metadata, and bodies stay out of the visual surface.
   - [x] Scheduled mobile captures now count as mobile and calendar activity without exposing device/source/title/path metadata.
@@ -356,12 +376,15 @@ Motion should serve the parts that make Grimoire special:
   - [x] Memory Ledger audit pressure now enters Time Loom and Daily Thread as count-only `Memory` / `Memory review` lanes; protected titles, paths, contradiction labels, source links, provider/device markers, snippets, and local-only fields stay out of preview and `/ask` packages.
   - [x] Daily Thread now fuses Time Loom counts with Dream Forge rhythm into one theme-owned next-action rail, using only count/type/date/frontmatter-safe state and no private labels or provider claims.
   - [x] Daily Thread `Crystallize the day` now seeds the existing `/ask` plus ask-context preview path with a source-safe Crystallize-ready prompt and structured `crystallize-memory` intent; the same intent now appears in Context Capsule card/package review, so the daily workflow points toward reviewable memory instead of another journal prompt or prose-only inference.
-- [ ] Dream Forge: local-only analysis uses private visual language and never implies cloud processing.
+  - [x] Time Loom now has a count-only temporal graph layer: day, lane, held-local, and link nodes render through shared signal/private material without exposing titles, paths, snippets, providers, device metadata, or raw local-only fields.
+  - [x] Focused Time Loom graph verification passed on 2026-05-30: 22 tests across the Time Loom model, guidance, dashboard graph panel, dashboard privacy, and dashboard CSS contracts.
+- [x] Dream Forge: local-only analysis uses private visual language and never implies cloud processing.
   - [x] Dream Forge now owns its private visual layer in `DreamForgePanel.css`, keeping the dashboard shell small while rendering a theme-owned private-lens contract for records, held-local count, and frontmatter-only signals.
   - [x] Dream Forge now has a private-local dashboard material, explicit local-only surface markers, a finite private signal map, and a no-cloud/egress-blocked loading fallback.
   - [x] Dream Forge now shows recency instead of latest dream title in the dashboard shell, keeping private labels out of ambient surfaces.
   - [x] Dream Forge now adds a metadata-only private rhythm rail for last-night, this-week, and older activity counts without titles, paths, bodies, or cloud language.
   - [x] Dream Forge now adds a private timeline rail for last-night, weekly, monthly, and archive bands using only record counts, held-local counts, and signal counts; titles, paths, bodies, and signal labels stay out of the timeline model.
+  - [x] Dream Forge now exposes a count-only local manifest for Lens, Read, Egress, and Export so the private-only rule is visible before any handoff/export while non-local reports stay redacted.
 
 ## Implementation Order
 
@@ -392,9 +415,9 @@ Motion should serve the parts that make Grimoire special:
   - [x] Reduced-motion screenshot/regression covers Settings, workspace arrival, in-note search, TOC jump, and navigator target highlight.
   - [x] Forced-colors screenshot/regression covers workspace, Settings, status bar, focus outline, and editor navigator surfaces.
 - [x] Focused Playwright latency spec for command palette, quick open, note switch, document search, and TOC scroll
-- [ ] native Tauri screenshot from `/Applications/Grimoire.app` (blocked in this runner until Screen Recording permission is granted; app bundle/version/local-only checks pass for 0.1.259)
+- [ ] native Tauri screenshot from `/Applications/Grimoire.app` (capture works for 0.1.362, but the app window is blank/transparent despite menu ownership and visible AX window metadata)
 - [x] reduced-motion runtime check
-  - [x] bundle chunk report attached to the session notes: app shell `222.09 KiB` gzip, DashboardInsightPanels cold chunk `7.01 KiB` gzip, `NoteList` cold chunk `43.40 KiB` gzip, SettingsPanel cold chunk `45.62 KiB` gzip, rich editor `441.61 KiB` gzip, raw editor `179.01 KiB` gzip, graph modal lazy chunk `14.78 KiB` gzip, AI right-panel lazy chunk `35.16 KiB` gzip
+  - [x] latest bundle chunk report attached to the session notes: app shell `229.68 KiB` gzip, `NoteList` cold chunk `43.79 KiB` gzip, SettingsPanel cold chunk `82.23 KiB` gzip, rich editor `549.94 KiB` gzip, raw editor `180.09 KiB` gzip, graph modal lazy chunk `15.28 KiB` gzip, AI right-panel lazy chunk `38.38 KiB` gzip
 
 ## Sources
 

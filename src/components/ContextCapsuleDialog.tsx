@@ -121,6 +121,29 @@ export function ContextCapsuleDialog({
             trimmedCount={packagePreview.preflight.trimmedCount}
           />
 
+          <div
+            className="grid grid-cols-2 gap-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] p-2 sm:grid-cols-4"
+            data-locality={packagePreview.protectedContext ? 'protected-local' : 'source-safe'}
+            data-testid="context-capsule-manifest"
+          >
+            <ManifestMetric
+              label="Mode"
+              value={packagePreview.protectedContext ? 'Blocked' : 'Review'}
+            />
+            <ManifestMetric
+              label="Sources"
+              value={String(packagePreview.preflight.sourceCount)}
+            />
+            <ManifestMetric
+              label="Held"
+              value={String(packagePreview.preflight.heldLocalCount)}
+            />
+            <ManifestMetric
+              label="Trimmed"
+              value={String(packagePreview.preflight.trimmedCount)}
+            />
+          </div>
+
           <Textarea
             readOnly
             aria-label="Context Capsule Markdown package preview"
@@ -169,4 +192,13 @@ function copyStatus(state: CopyState): string {
   if (state === 'failed') return 'Copy failed. Package stayed local.'
   if (state === 'unavailable') return 'Clipboard unavailable. Package stayed local.'
   return 'Portable, review-only Markdown.'
+}
+
+function ManifestMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-md border border-border bg-background/55 px-2 py-1">
+      <div className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
+      <div className="truncate text-xs font-medium text-foreground">{value}</div>
+    </div>
+  )
 }

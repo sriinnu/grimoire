@@ -3,8 +3,6 @@ import { MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { Loader2 } from 'lucide-react'
 import type { VaultEntry } from '../../types'
 import type { SortOption, SortDirection } from '../../utils/noteListSorting'
-import type { AppLocale } from '../../lib/i18nCore'
-import { translateNoteList } from '../../lib/i18nNoteList'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDragRegion } from '../../hooks/useDragRegion'
@@ -16,8 +14,11 @@ const ListPropertiesPopoverSurface = lazy(async () => ({
   default: (await import('./ListPropertiesPopover')).ListPropertiesPopover,
 }))
 
-export function NoteListHeader({ title, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, locale = 'en', onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown }: {
+export function NoteListHeader({ title, createNoteLabel, searchActionLabel, searchPlaceholder, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown }: {
   title: string
+  createNoteLabel: string
+  searchActionLabel: string
+  searchPlaceholder: string
   typeDocument: VaultEntry | null
   isEntityView: boolean
   listSort: SortOption
@@ -29,7 +30,6 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
   isSearching: boolean
   searchInputRef: React.RefObject<HTMLInputElement | null>
   propertyPicker?: ListPropertiesPopoverProps | null
-  locale?: AppLocale
   onSortChange: (groupLabel: string, option: SortOption, direction: SortDirection) => void
   onCreateNote: () => void
   onOpenType: (entry: VaultEntry) => void
@@ -60,7 +60,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
               onChange={onSortChange}
             />
           )}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={translateNoteList(locale, 'noteList.searchAction')} aria-label={translateNoteList(locale, 'noteList.searchAction')}>
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={searchActionLabel} aria-label={searchActionLabel}>
             <MagnifyingGlass size={16} />
           </Button>
           {propertyPicker && (
@@ -68,7 +68,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
               <ListPropertiesPopoverSurface {...propertyPicker} triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME} />
             </Suspense>
           )}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={translateNoteList(locale, 'noteList.createNote')} aria-label={translateNoteList(locale, 'noteList.createNote')}>
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={createNoteLabel} aria-label={createNoteLabel}>
             <Plus size={16} />
           </Button>
         </div>
@@ -78,7 +78,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
           <div className="relative flex-1" aria-live="polite">
             <Input
               ref={searchInputRef}
-              placeholder={translateNoteList(locale, 'noteList.searchPlaceholder')}
+              placeholder={searchPlaceholder}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={onSearchKeyDown}

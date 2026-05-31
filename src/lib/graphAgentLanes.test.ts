@@ -32,11 +32,31 @@ describe('graph agent lanes', () => {
     }
 
     expect(resolveGraphAgentLaneState(chitragupta, 'ready', false, statuses)).toBe('guarded')
-    expect(graphAgentLaneCopy(chitragupta, 'guarded', statuses)).toBe('CLI eligible')
+    expect(graphAgentLaneCopy(chitragupta, 'guarded', statuses)).toBe('MCP unverified')
     expect(resolveGraphAgentLaneState(codex, 'ready', false, statuses)).toBe('blocked')
     expect(graphAgentLaneCopy(codex, 'blocked', statuses)).toBe('Missing')
     expect(resolveGraphAgentLaneState(claude, 'ready', false, statuses)).toBe('waiting')
     expect(graphAgentLaneCopy(claude, 'waiting', statuses)).toBe('Checking')
+  })
+
+  it('makes Chitragupta MCP transport failures explicit in graph lanes', () => {
+    const chitragupta = GRAPH_AGENT_LANES.find((lane) => lane.id === 'chitragupta')
+    if (!chitragupta) throw new Error('Expected Chitragupta graph lane')
+    const statuses = {
+      chitragupta: createAiAgentAvailability('installed', '0.9.1'),
+      codex: createAiAgentAvailability('installed'),
+      claude_code: createAiAgentAvailability('installed'),
+    }
+    const transportClosed = {
+      ok: false,
+      daemon: 'running',
+      transport: 'closed',
+      capabilities: ['memory.search'],
+      warnings: ['Transport closed at /Users/sriinnu/private.sock'],
+    }
+
+    expect(resolveGraphAgentLaneState(chitragupta, 'ready', false, statuses, transportClosed)).toBe('blocked')
+    expect(graphAgentLaneCopy(chitragupta, 'blocked', statuses, { chitraguptaStatus: transportClosed })).toBe('MCP closed')
   })
 
   it('keeps Locality Firewall policy ahead of CLI availability for protected selections', () => {

@@ -3,15 +3,25 @@ import type { CSSProperties } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TimeLoomBucket, TimeLoomSummary } from '../../lib/timeLoom'
+import type { TimeLoomGraph, TimeLoomGraphLink, TimeLoomGraphNode } from '../../lib/timeLoomGraph'
+import { PersonalCalendar, type PersonalCalendarDay } from '../personal-calendar'
 
 interface TimeLoomPanelProps {
   crystallizedTodayCount?: number
   summary: TimeLoomSummary
-  onCaptureJournal: () => void
+  onCaptureDream?: (date?: Date) => void
+  onCaptureJournal: (date?: Date) => void
 }
 
 /** Metadata-only temporal graph preview for the dashboard. */
-export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJournal }: TimeLoomPanelProps) {
+export function TimeLoomPanel({
+  crystallizedTodayCount = 0,
+  summary,
+  onCaptureDream,
+  onCaptureJournal,
+}: TimeLoomPanelProps) {
+  const calendarDays = summary.calendarDays.map(timeLoomBucketToCalendarDay)
+
   return (
     <div
       className="vault-dashboard__panel vault-dashboard__time-loom"
@@ -81,6 +91,12 @@ export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJo
       <p className="vault-dashboard__panel-copy">
         Dates, types, scheduled events, due tasks, mobile captures, voice captures, memory review flags, commits, reviewed memory, and status only. Private lanes are counted here without exposing titles.
       </p>
+      <PersonalCalendar
+        days={calendarDays}
+        density="compact"
+        onCaptureDream={onCaptureDream}
+        onCaptureJournal={onCaptureJournal}
+      />
       {summary.patterns.length > 0 ? (
         <div className="vault-dashboard__time-patterns" data-testid="time-loom-patterns" aria-label="Metadata-only Time Loom pattern lens">
           {summary.patterns.map((pattern) => (
@@ -98,6 +114,7 @@ export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJo
           <div className="vault-dashboard__time-map-empty">Quiet</div>
         )}
       </div>
+      <TimeLoomGraphView graph={summary.graph} />
       <div className="vault-dashboard__loop-list">
         {summary.buckets.length > 0 ? summary.buckets.map((bucket) => (
           <TimeLoomRow key={bucket.dateKey} bucket={bucket} />
@@ -110,13 +127,68 @@ export function TimeLoomPanel({ crystallizedTodayCount = 0, summary, onCaptureJo
         variant="outline"
         size="sm"
         className="vault-dashboard__panel-action"
-        onClick={onCaptureJournal}
+        onClick={() => onCaptureJournal()}
         data-testid="time-loom-capture"
       >
         <Sparkles className="size-4" />
         Journal
       </Button>
     </div>
+  )
+}
+
+function timeLoomBucketToCalendarDay(bucket: TimeLoomBucket): PersonalCalendarDay {
+  return {
+    dateKey: bucket.dateKey,
+    label: bucket.label,
+    protectedCount: bucket.protectedCount,
+    statusCounts: bucket.statusCounts,
+    total: bucket.total,
+    typeCounts: bucket.typeCounts,
+  }
+}
+
+function TimeLoomGraphView({ graph }: { graph: TimeLoomGraph }) {
+  if (graph.nodes.length === 0) return null
+
+  return (
+    <div
+      className="vault-dashboard__time-graph"
+      data-testid="time-loom-graph"
+      aria-label={graph.privacyNote}
+    >
+      <div className="vault-dashboard__time-graph-nodes">
+        {graph.nodes.map((node) => (
+          <TimeLoomGraphNodeView key={node.id} node={node} />
+        ))}
+      </div>
+      <div className="vault-dashboard__time-graph-links" aria-label="Time Loom count-only links">
+        {graph.links.slice(0, 8).map((link) => (
+          <TimeLoomGraphLinkView key={link.id} link={link} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TimeLoomGraphNodeView({ node }: { node: TimeLoomGraphNode }) {
+  return (
+    <span
+      className="vault-dashboard__time-graph-node"
+      data-privacy={node.privacy}
+      data-tone={node.tone}
+    >
+      <strong>{node.count}</strong>
+      <span>{node.label}</span>
+    </span>
+  )
+}
+
+function TimeLoomGraphLinkView({ link }: { link: TimeLoomGraphLink }) {
+  return (
+    <span className="vault-dashboard__time-graph-link" data-privacy={link.privacy}>
+      {link.label}
+    </span>
   )
 }
 

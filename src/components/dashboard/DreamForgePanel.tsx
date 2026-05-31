@@ -77,6 +77,16 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
         <DreamContractMetric label="Held local" value={summary.protectedCount} detail="egress blocked" />
         <DreamContractMetric label="Signals" value={signalCount} detail="frontmatter only" />
       </div>
+      <div
+        className="vault-dashboard__dream-manifest"
+        data-testid="dream-forge-private-manifest"
+        aria-label="Dream Forge local-only manifest"
+      >
+        <DreamContractMetric label="Lens" value="Local" detail={`${summary.manifest.recordCount} records`} compact />
+        <DreamContractMetric label="Read" value="Frontmatter" detail={`${summary.manifest.signalCount} signals`} compact />
+        <DreamContractMetric label="Egress" value="Blocked" detail={`${summary.manifest.heldLocalCount} held`} compact />
+        <DreamContractMetric label="Export" value="Explicit" detail="user action" compact />
+      </div>
       <div className="vault-dashboard__dream-field" data-testid="dream-forge-private-map" aria-label="Private dream signal map">
         <MoonStar className="vault-dashboard__dream-field-core" size={22} aria-hidden="true" />
         {(privateMapSignals.length > 0 ? privateMapSignals : ['Quiet', 'Waiting', 'Local']).map((label, index) => (
@@ -125,16 +135,18 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
 }
 
 function DreamContractMetric({
+  compact = false,
   detail,
   label,
   value,
 }: {
+  compact?: boolean
   detail: string
   label: string
-  value: number
+  value: number | string
 }) {
   return (
-    <div className="vault-dashboard__dream-contract-metric">
+    <div className="vault-dashboard__dream-contract-metric" data-compact={compact ? 'true' : 'false'}>
       <span>{label}</span>
       <strong>{value}</strong>
       <small>{detail}</small>

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildSectionGroup, buildDynamicSections, collectActiveTypes } from '../utils/sidebarSections'
 import { resolveIcon } from '../utils/iconRegistry'
+import { VedasIcon } from './icons/grimoireKnowledgeIcons'
 import type { VaultEntry } from '../types'
 import { GearSix, CookingPot, FileText } from '@phosphor-icons/react'
 
@@ -48,6 +49,13 @@ describe('buildSectionGroup', () => {
     expect(group.label).toBe('Widgets')
     expect(group.customColor).toBeNull()
     expect(group.Icon).toBe(FileText)
+  })
+
+  it('infers Grimoire semantic glyphs from section type names without type docs', () => {
+    const group = buildSectionGroup('Vedas', {})
+    expect(group.label).toBe('Vedas')
+    expect(group.Icon).toBe(VedasIcon)
+    expect(group.iconValue).toBe('Vedas')
   })
 
   it('overrides built-in type icon/color when type entry has custom values', () => {

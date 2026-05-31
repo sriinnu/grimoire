@@ -43,6 +43,8 @@ export const CHITRAGUPTA_MCP_REQUIRED_SURFACES = [
 ] as const
 export const CHITRAGUPTA_MCP_READINESS_COPY =
   'Live memory lanes stay local-ledger only until Chitragupta MCP reports recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions ready.'
+export const CHITRAGUPTA_MCP_TRANSPORT_COPY =
+  'If the MCP transport closes, Grimoire keeps chat separate and blocks live memory actions until recall, wiki, graph, and diagnostics reconnect.'
 
 export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
   {

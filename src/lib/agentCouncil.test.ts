@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createAiAgentAvailability, type AiAgentsStatus } from './aiAgents'
 import { buildAgentCouncilBrief, buildAgentCouncilMembers } from './agentCouncil'
 import { buildAgentCouncilPassBrief, buildAgentCouncilWorkflow } from './agentCouncilWorkflow'
+import { REQUIRED_CHITRAGUPTA_CAPABILITIES } from './chitraguptaIntegration'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 
 const statuses: AiAgentsStatus = {
@@ -36,6 +37,14 @@ const graphContext: AgentGraphContext = {
     visibleEdges: 1,
     visibleNodes: 2,
   },
+}
+
+const readyChitraguptaStatus = {
+  ok: true,
+  daemon: 'running',
+  transport: 'open',
+  capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
+  warnings: [],
 }
 
 describe('agentCouncil', () => {
@@ -348,6 +357,7 @@ describe('agentCouncil', () => {
       activeContextProtected: false,
       activeSourceLabel: 'Public Plan',
       activeSourcePath: 'plans/public.md',
+      chitraguptaStatus: readyChitraguptaStatus,
     })
     const chitragupta = members.find((member) => member.id === 'chitragupta')
 
@@ -359,6 +369,38 @@ describe('agentCouncil', () => {
     })
     expect(chitragupta?.role).toContain('Local memory')
     expect(chitragupta?.sources).toContainEqual({ kind: 'tool', label: 'Locality Firewall' })
+  })
+
+  it('blocks installed Chitragupta when the MCP transport is closed', () => {
+    const members = buildAgentCouncilMembers({
+      statuses: {
+        ...statuses,
+        chitragupta: createAiAgentAvailability('installed', '1.2.3'),
+      },
+      activeAgent: 'chitragupta',
+      activeContextProtected: false,
+      activeSourceLabel: 'Public Plan',
+      activeSourcePath: 'plans/public.md',
+      chitraguptaStatus: {
+        ok: false,
+        daemon: 'running',
+        transport: 'closed',
+        capabilities: ['memory.search'],
+        warnings: ['Transport closed at /Users/sriinnu/private.sock'],
+      },
+    })
+    const chitragupta = members.find((member) => member.id === 'chitragupta')
+    const brief = buildAgentCouncilBrief(members, false)
+
+    expect(chitragupta).toMatchObject({
+      active: true,
+      health: 'blocked',
+      stance: 'MCP transport closed; live recall, wiki, graph, and diagnostics are blocked.',
+    })
+    expect(chitragupta?.contribution).toContain('MCP transport closed')
+    expect(chitragupta?.evidence[0].label).toBe('MCP transport closed')
+    expect(chitragupta?.evidence[0].detail).not.toContain('/Users/')
+    expect(brief.disagreements).toContain('Blocked lanes: Chitragupta.')
   })
 
 })

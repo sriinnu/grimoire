@@ -10,8 +10,8 @@ import { TimeLoomPanel } from './TimeLoomPanel'
 interface DashboardInsightPanelsProps {
   crystallizedTodayCount: number
   entries: VaultEntry[]
-  onCaptureDream: () => void
-  onCaptureJournal: () => void
+  onCaptureDream: (date?: Date) => void
+  onCaptureJournal: (date?: Date) => void
   onStartAsk: (promptSeed?: string) => void
   pulseCommits: PulseCommit[]
 }
@@ -38,21 +38,22 @@ export function DashboardInsightPanels({
 
   return (
     <>
-      <DailyThreadRail
-        guidance={dailyThreadGuidance}
+      <TimeLoomPanel
+        crystallizedTodayCount={crystallizedTodayCount}
+        summary={timeLoomSummary}
         onCaptureDream={onCaptureDream}
         onCaptureJournal={onCaptureJournal}
+      />
+      <DailyThreadRail
+        guidance={dailyThreadGuidance}
+        onCaptureDream={() => onCaptureDream()}
+        onCaptureJournal={() => onCaptureJournal()}
         onStartAsk={onStartAsk}
       />
       <DreamForgePanel
         privacyReport={dreamForgePrivacyReport}
         summary={dreamForgeSummary}
-        onCaptureDream={onCaptureDream}
-      />
-      <TimeLoomPanel
-        crystallizedTodayCount={crystallizedTodayCount}
-        summary={timeLoomSummary}
-        onCaptureJournal={onCaptureJournal}
+        onCaptureDream={() => onCaptureDream()}
       />
     </>
   )

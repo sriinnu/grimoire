@@ -18,6 +18,12 @@ import {
 } from './agentCouncilEvidence'
 import { buildRedTeamCouncilContribution, buildRedTeamCouncilSources } from './agentCouncilRedTeam'
 import type { AgentCouncilEvidence, AgentCouncilHealth, AgentCouncilMember, AgentCouncilSource } from './agentCouncilTypes'
+import {
+  evaluateChitraguptaContractStatus,
+  summarizeChitraguptaRuntimeReadiness,
+  type ChitraguptaRuntimeDiagnostic,
+  type ChitraguptaStatusPayload,
+} from './chitraguptaIntegration'
 import type { RedTeamPlanReview } from './redTeamPlan'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 export type { AgentCouncilEvidence, AgentCouncilHealth, AgentCouncilMember, AgentCouncilSource, AgentCouncilSourceKind } from './agentCouncilTypes'
@@ -29,6 +35,7 @@ interface AgentCouncilParams {
   activeSourceLabel?: string | null
   activeSourcePath?: string | null
   askContextPackage?: AskContextPackage | null
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
   graphContext?: AgentGraphContext | null
   linkedContextCount?: number
   redTeamReview?: RedTeamPlanReview | null
@@ -48,6 +55,7 @@ export function buildAgentCouncilMembers({
   activeSourceLabel,
   activeSourcePath,
   askContextPackage,
+  chitraguptaStatus,
   graphContext,
   linkedContextCount = 0,
   redTeamReview,
@@ -142,6 +150,7 @@ export function buildAgentCouncilMembers({
       activeAgent === 'chitragupta',
       activeContextProtected,
       contextSources,
+      chitraguptaStatus,
     ),
     ...privateLaneMembers(activeContextProtected),
   ])
@@ -163,6 +172,7 @@ export function buildAgentCouncilBrief(
   askContextPackage?: AskContextPackage | null,
 ): AgentCouncilBrief {
   const missing = members.filter((member) => member.health === 'missing').map((member) => member.label)
+  const blocked = members.filter((member) => member.health === 'blocked').map((member) => member.label)
   const checking = members.filter((member) => member.health === 'checking').map((member) => member.label)
   const privateLocal = members.some((member) => member.health === 'private-local')
   const memoryConflicts = !activeContextProtected && askContextPackage ? memoryConflictLabels(askContextPackage) : []
@@ -170,6 +180,7 @@ export function buildAgentCouncilBrief(
   const disagreements = [
     activeContextProtected ? 'Privacy gate keeps protected note content out of the pass.' : null,
     missing.length > 0 ? `Unavailable lanes: ${missing.join(', ')}.` : null,
+    blocked.length > 0 ? `Blocked lanes: ${blocked.join(', ')}.` : null,
     checking.length > 0 ? `Pending lanes: ${checking.join(', ')}.` : null,
     memoryConflicts.length > 0 ? `Memory conflicts: ${memoryConflicts.join(', ')}.` : null,
     privateLocal ? 'Private lanes require explicit output approval.' : null,
@@ -235,10 +246,10 @@ function chitraguptaPrivateMember(
   active: boolean,
   activeContextProtected: boolean,
   contextSources: AgentCouncilSource[],
+  chitraguptaStatus?: ChitraguptaStatusPayload | null,
 ): AgentCouncilMemberDraft {
-  const health = status === 'missing'
-    ? 'missing'
-    : status === 'checking' ? 'checking' : 'private-local'
+  const diagnostic = chitraguptaCouncilDiagnostic(status, activeContextProtected, chitraguptaStatus)
+  const health = chitraguptaCouncilHealth(diagnostic)
   return {
     id: lane.id,
     label: lane.label,
@@ -247,13 +258,11 @@ function chitraguptaPrivateMember(
     permission: activeContextProtected
       ? 'Private memory lane; protected note withheld'
       : 'Private memory lane; contract-gated outputs',
-    stance: chitraguptaStance(status),
-    contribution: activeContextProtected
-      ? 'Can report capability health while the protected note stays local.'
-      : 'Live recall, wiki, graph, and diagnostics require the Chitragupta MCP contract.',
+    stance: chitraguptaStance(diagnostic),
+    contribution: chitraguptaContribution(diagnostic),
     evidence: activeContextProtected
       ? toolEvidence('Locality Firewall', 'Protected active note stays out of the private memory lane.')
-      : toolEvidence('Chitragupta MCP contract', 'Local memory action is contract-gated and approval-gated.'),
+      : toolEvidence(diagnostic.contractLabel, diagnostic.warnings[0] ?? 'Local memory action is contract-gated and approval-gated.'),
     sources: [
       ...contextSources,
       { kind: 'tool', label: 'Chitragupta MCP contract' },
@@ -263,10 +272,40 @@ function chitraguptaPrivateMember(
   }
 }
 
-function chitraguptaStance(status: AiAgentStatus): string {
-  if (status === 'missing') return 'Private memory contract unavailable until local setup is repaired.'
-  if (status === 'checking') return 'Checking private local memory contract; no handoff yet.'
+function chitraguptaCouncilDiagnostic(
+  status: AiAgentStatus,
+  protectedNote: boolean,
+  chitraguptaStatus: ChitraguptaStatusPayload | null | undefined,
+): ChitraguptaRuntimeDiagnostic {
+  return summarizeChitraguptaRuntimeReadiness({
+    availability: { status, version: null },
+    contractStatus: evaluateChitraguptaContractStatus(chitraguptaStatus),
+    protectedNote,
+  })
+}
+
+function chitraguptaCouncilHealth(diagnostic: ChitraguptaRuntimeDiagnostic): AgentCouncilHealth {
+  if (diagnostic.state === 'checking') return 'checking'
+  if (diagnostic.state === 'cli_missing') return 'missing'
+  if (diagnostic.state === 'ready' || diagnostic.state === 'protected') return 'private-local'
+  return 'blocked'
+}
+
+function chitraguptaStance(diagnostic: ChitraguptaRuntimeDiagnostic): string {
+  if (diagnostic.state === 'cli_missing') return 'Private memory contract unavailable until local setup is repaired.'
+  if (diagnostic.state === 'checking') return 'Checking private local memory contract; no handoff yet.'
+  if (diagnostic.state === 'mcp_transport_closed') return 'MCP transport closed; live recall, wiki, graph, and diagnostics are blocked.'
+  if (diagnostic.state === 'mcp_unverified') return 'MCP contract is unverified; no memory handoff yet.'
+  if (diagnostic.state === 'mcp_blocked') return 'MCP contract blocked; repair capabilities before live memory handoff.'
   return 'Private memory contract is local; outputs require explicit approval.'
+}
+
+function chitraguptaContribution(diagnostic: ChitraguptaRuntimeDiagnostic): string {
+  if (diagnostic.state === 'protected') return 'Can report capability health while the protected note stays local.'
+  if (diagnostic.state === 'checking') return 'Checking the Chitragupta MCP contract before live memory handoff.'
+  if (diagnostic.state === 'ready') return 'Live recall, wiki, graph, and diagnostics are available through approval-gated MCP.'
+  if (diagnostic.state === 'mcp_transport_closed') return 'Live recall, wiki, graph, and diagnostics are blocked because MCP transport closed.'
+  return 'CLI chat can run separately; memory recall stays local-ledger until MCP diagnostics pass.'
 }
 
 function graphContribution(

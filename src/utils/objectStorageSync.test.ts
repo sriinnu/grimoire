@@ -68,6 +68,22 @@ describe('objectStorageSync', () => {
     expect(toast).not.toContain('private-prefix')
   })
 
+  it('labels provider-sdk previews without calling them local-mirror fixtures', () => {
+    const providerReport: ObjectStorageSyncReport = {
+      ...baseReport,
+      adapter_phase: 'provider-sdk-adapter',
+      prototype_mode: 's3-live-provider',
+      mirror_path: 'redacted provider target',
+    }
+
+    expect(formatObjectStoragePreviewToast(providerReport))
+      .toContain('S3 provider proof preview (not provider-proven sync yet)')
+    expect(formatObjectStorageApplyToast({ ...providerReport, applied: true }))
+      .toContain('S3 provider proof applied (not provider-proven sync yet)')
+    expect(formatObjectStoragePreviewToast(providerReport)).not.toContain('local-mirror fixture')
+    expect(formatObjectStorageApplyToast({ ...providerReport, applied: true })).not.toContain('local-mirror fixture')
+  })
+
   it('formats applied syncs with the local report cue', () => {
     expect(formatObjectStorageApplyToast({
       ...baseReport,

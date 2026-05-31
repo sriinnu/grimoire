@@ -2,6 +2,7 @@
   position: relative;
   isolation: isolate;
   grid-column: 1 / -1;
+  container-type: inline-size;
   overflow: hidden;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--card) 88%, var(--primary) 7%), color-mix(in srgb, var(--background) 90%, var(--accent-blue, var(--primary)) 5%)),
@@ -13,6 +14,7 @@
   grid-column: 1 / -1;
   grid-template-columns: minmax(260px, 0.92fr) minmax(420px, 1.4fr);
   gap: 14px;
+  min-width: 0;
   border: 1px solid var(--grimoire-hairline, color-mix(in srgb, var(--accent-blue) 24%, var(--border)));
   border-radius: var(--grimoire-surface-radius, 8px);
   padding: 14px;
@@ -135,6 +137,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(120px, 1fr));
   gap: 8px;
+  min-width: 0;
 }
 
 .vault-dashboard__flow-step {
@@ -163,6 +166,20 @@
     linear-gradient(135deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 70%),
     var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 74%, transparent));
   box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.vault-dashboard__flow-step[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--primary) 72%, var(--border));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 22%, transparent), transparent 68%),
+    color-mix(in srgb, var(--surface-card, var(--card)) 92%, var(--primary) 7%);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent),
+    0 14px 30px color-mix(in srgb, var(--primary) 13%, transparent);
+}
+
+.vault-dashboard__flow-step[data-selected="true"] svg {
+  color: var(--primary);
 }
 
 .vault-dashboard__flow-step span {
@@ -251,6 +268,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .vault-dashboard__assistant-focus {
@@ -358,6 +376,16 @@
 
   .vault-dashboard__flow-steps {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}
+
+@container (max-width: 840px) {
+  .vault-dashboard__today-runway .vault-dashboard__flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vault-dashboard__flow-steps {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
   }
 }
 

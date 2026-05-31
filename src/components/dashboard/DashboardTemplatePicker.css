@@ -1,0 +1,60 @@
+.vault-dashboard__template-picker {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--grimoire-signal-border, var(--border)) 64%, transparent);
+  border-radius: 8px;
+  padding: 8px;
+  background: color-mix(in srgb, var(--grimoire-signal-bg, var(--card)) 34%, transparent);
+}
+
+.vault-dashboard__template-label {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.vault-dashboard__template-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 7px;
+  min-width: 0;
+}
+
+.vault-dashboard__template-option {
+  display: grid;
+  justify-items: start;
+  min-width: 0;
+  min-height: 54px;
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  white-space: normal;
+}
+
+.vault-dashboard__template-option strong,
+.vault-dashboard__template-option span {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.vault-dashboard__template-option strong {
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.vault-dashboard__template-option span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+@media (max-width: 560px) {
+  .vault-dashboard__template-options {
+    grid-template-columns: 1fr;
+  }
+}

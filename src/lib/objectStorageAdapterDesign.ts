@@ -96,7 +96,7 @@ export function getObjectStorageAdapterDesign(
   return OBJECT_STORAGE_ADAPTER_DESIGNS.find(design => design.providerId === providerId) ?? null
 }
 
-/** Returns true when the provider registry and adapter contract agree it is still planned. */
+/** Returns true when the provider registry and adapter contract agree it is not provider-proven yet. */
 export function hasPlannedObjectStorageAdapter(providerId: ObjectStorageProviderId): boolean {
   const provider = getVaultStorageProvider(providerId)
   const design = getObjectStorageAdapterDesign(providerId)
@@ -105,7 +105,7 @@ export function hasPlannedObjectStorageAdapter(providerId: ObjectStorageProvider
     provider
       && design
       && provider.kind === 'object-storage'
-      && provider.status === 'planned'
+      && (provider.status === 'planned' || provider.status === 'proof-preview')
       && provider.requiresLocalWorkingCopy,
   )
 }

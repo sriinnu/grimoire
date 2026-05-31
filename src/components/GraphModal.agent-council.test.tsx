@@ -91,6 +91,11 @@ describe('GraphModal Agent Council handoff', () => {
         defaultAiAgent="chitragupta"
         defaultAiProvider="google"
         defaultAiModel="gemini-2.5-pro"
+        aiAgentsStatus={{
+          chitragupta: createAiAgentAvailability('installed'),
+          codex: createAiAgentAvailability('installed'),
+          claude_code: createAiAgentAvailability('installed'),
+        }}
         onOpenNote={vi.fn()}
         onClose={vi.fn()}
       />,
@@ -109,7 +114,8 @@ describe('GraphModal Agent Council handoff', () => {
     expect(council.getByText('Chitragupta')).toBeInTheDocument()
     expect(council.getByText('Claude Code')).toBeInTheDocument()
     expect(council.getAllByText('Source-safe')).toHaveLength(4)
-    expect(council.getByText('Private')).toBeInTheDocument()
+    expect(council.getByText('MCP unverified')).toBeInTheDocument()
+    expect(runway.getByText('MCP contract unverified')).toBeInTheDocument()
   })
 
   it('keeps graph content scroll-contained inside the dialog shell', () => {

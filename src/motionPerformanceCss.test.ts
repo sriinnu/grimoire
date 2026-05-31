@@ -8,6 +8,10 @@ const PRODUCT_MOTION_FILES = [
   'src/theme-flagship-shared.css',
   'src/graph-animations.css',
   'src/sidebar-artwork-themes.css',
+  'src/sidebar-artwork-polish.css',
+  'src/sidebar-glyph-polish.css',
+  'src/sidebar-glyph-refinement.css',
+  'src/components/folder-tree/FolderGlyph.css',
   'src/components/dashboard/VaultDashboard.css',
 ] as const
 
@@ -163,5 +167,15 @@ describe('product motion performance CSS', () => {
     expect(readCss('src/components/EditorLoadingState.css')).toContain('contain: layout paint style')
     expect(readCss('src/components/GrimoireRefreshAnimation.css')).not.toContain('infinite')
     expect(readCss('src/components/GrimoireRefreshAnimation.css')).toContain('contain: layout paint style')
+  })
+
+  it('keeps context menus finite and compositor-scoped', () => {
+    const css = readCss('src/motion.css')
+
+    expect(css).toContain('.grimoire-context-menu-surface')
+    expect(css).toContain('animation: grimoire-context-menu-arrive var(--motion-duration-fast)')
+    expect(css).toContain('contain: layout paint style')
+    expect(css).toContain('will-change: opacity, transform')
+    expect(css).toContain('@keyframes grimoire-context-menu-arrive')
   })
 })

@@ -55,6 +55,7 @@ let mockSettings: Settings = {
   theme_mode: null,
   theme_preset: null,
   editor_font: null,
+  editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: false,
   default_ai_agent: 'claude_code',
@@ -62,6 +63,39 @@ let mockSettings: Settings = {
   ai_agent_providers: null,
   transcription_provider: 'local_whisper',
   cloud_transcription_enabled: false,
+}
+
+const MOCK_AI_PROVIDER_KEYS = [
+  { provider_id: 'anthropic', label: 'Anthropic', env_var: 'ANTHROPIC_API_KEY' },
+  { provider_id: 'openai', label: 'OpenAI', env_var: 'OPENAI_API_KEY' },
+  { provider_id: 'openrouter', label: 'OpenRouter', env_var: 'OPENROUTER_API_KEY' },
+  { provider_id: 'deepseek', label: 'DeepSeek', env_var: 'DEEPSEEK_API_KEY' },
+  { provider_id: 'gemini', label: 'Gemini', env_var: 'GEMINI_API_KEY' },
+  { provider_id: 'google', label: 'Google AI', env_var: 'GOOGLE_API_KEY' },
+  { provider_id: 'groq', label: 'Groq', env_var: 'GROQ_API_KEY' },
+  { provider_id: 'xai', label: 'xAI', env_var: 'XAI_API_KEY' },
+] as const
+
+const mockConfiguredAiProviderKeys = new Set<string>()
+
+function getMockAiProviderKeyStatuses() {
+  return MOCK_AI_PROVIDER_KEYS.map((provider) => ({
+    ...provider,
+    configured: mockConfiguredAiProviderKeys.has(provider.provider_id),
+    source: mockConfiguredAiProviderKeys.has(provider.provider_id) ? 'keychain' : 'missing',
+  }))
+}
+
+function saveMockAiProviderApiKey(args: { providerId?: string; provider_id?: string }) {
+  const providerId = args.providerId ?? args.provider_id
+  if (providerId) mockConfiguredAiProviderKeys.add(providerId)
+  return getMockAiProviderKeyStatuses()
+}
+
+function clearMockAiProviderApiKey(args: { providerId?: string; provider_id?: string }) {
+  const providerId = args.providerId ?? args.provider_id
+  if (providerId) mockConfiguredAiProviderKeys.delete(providerId)
+  return getMockAiProviderKeyStatuses()
 }
 
 const DEFAULT_MOCK_VAULT_PATH = '/Users/mock/demo-vault-v2'
@@ -194,11 +228,25 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     codex: { installed: true, version: 'mock' },
     chitragupta: { installed: true, version: 'mock' },
   }),
+  get_ai_provider_key_statuses: () => getMockAiProviderKeyStatuses(),
+  save_ai_provider_api_key: saveMockAiProviderApiKey,
+  clear_ai_provider_api_key: clearMockAiProviderApiKey,
   get_vault_ai_guidance_status: () => getMockVaultAiGuidanceStatus(),
   restore_vault_ai_guidance: () => restoreMockVaultAiGuidance(),
   stream_claude_chat: () => 'mock-session',
   stream_claude_agent: () => null,
   stream_ai_agent: () => null,
+  get_transcription_readiness: (args: { provider?: string }) => ({
+    provider: args.provider ?? 'local_whisper',
+    ready: true,
+    status: 'ready',
+    message: 'Mock local transcription is ready.',
+    cliPath: '/mock/bin/whisper-cli',
+    modelPath: '/mock/models/ggml-base.en.bin',
+    recommendedModelPath: '/mock/models/ggml-base.en.bin',
+    downloadUrl: 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin',
+    installHint: 'Mock whisper.cpp runtime.',
+  }),
   transcribe_audio: (args: { audioPath?: string; audio_path?: string; provider?: string; allowCloud?: boolean; allow_cloud?: boolean }) => {
     const audioPath = args.audioPath ?? args.audio_path ?? '/tmp/voice-note.m4a'
     const provider = args.provider ?? 'local_whisper'
@@ -281,6 +329,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       theme_mode: s.theme_mode ?? null,
       theme_preset: s.theme_preset ?? null,
       editor_font: s.editor_font ?? null,
+      editor_line_height: s.editor_line_height ?? null,
       ui_language: s.ui_language ?? null,
       menu_bar_icon_enabled: s.menu_bar_icon_enabled ?? false,
       default_ai_agent: s.default_ai_agent ?? null,

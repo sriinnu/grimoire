@@ -34,9 +34,11 @@ pub fn get_file_history(
 
 #[cfg(desktop)]
 #[tauri::command]
-pub fn get_modified_files(vault_path: VaultPathArg) -> Result<Vec<ModifiedFile>, String> {
-    let vault_path = expand_tilde(&vault_path);
-    crate::git::get_modified_files(&vault_path)
+pub async fn get_modified_files(vault_path: VaultPathArg) -> Result<Vec<ModifiedFile>, String> {
+    let vault_path = expand_tilde(&vault_path).into_owned();
+    tauri::async_runtime::spawn_blocking(move || crate::git::get_modified_files(&vault_path))
+        .await
+        .map_err(|e| format!("Git status task failed: {e}"))?
 }
 
 #[cfg(desktop)]

@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   EDITOR_FONT_STORAGE_KEY,
+  EDITOR_LINE_HEIGHT_STORAGE_KEY,
   NATIVE_SHELL_MATERIAL_STORAGE_KEY,
   THEME_PRESET_STORAGE_KEY,
 } from '../lib/appearance'
@@ -32,6 +33,7 @@ describe('useAppearanceSettings', () => {
     document.documentElement.removeAttribute('data-theme')
     document.documentElement.removeAttribute('data-theme-preset')
     document.documentElement.removeAttribute('data-editor-font')
+    document.documentElement.removeAttribute('data-editor-line-height')
     document.documentElement.removeAttribute('data-native-shell-material')
     document.documentElement.classList.remove('dark')
     window.localStorage.clear()
@@ -53,35 +55,41 @@ describe('useAppearanceSettings', () => {
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
       themePreset: 'living-archive',
-      editorFont: 'serif',
+      editorFont: 'literary',
+      editorLineHeight: 'compact',
       nativeShellMaterial: 'glass-preview',
       loaded: true,
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
-    expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
+    expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')
     expect(window.localStorage.getItem(THEME_PRESET_STORAGE_KEY)).toBe('living-archive')
-    expect(window.localStorage.getItem(EDITOR_FONT_STORAGE_KEY)).toBe('serif')
+    expect(window.localStorage.getItem(EDITOR_FONT_STORAGE_KEY)).toBe('literary')
+    expect(window.localStorage.getItem(EDITOR_LINE_HEIGHT_STORAGE_KEY)).toBe('compact')
     expect(window.localStorage.getItem(NATIVE_SHELL_MATERIAL_STORAGE_KEY)).toBe('glass-preview')
   })
 
   it('uses mirrored appearance when persisted settings are empty', () => {
     window.localStorage.setItem(THEME_PRESET_STORAGE_KEY, 'nocturne')
     window.localStorage.setItem(EDITOR_FONT_STORAGE_KEY, 'readable')
+    window.localStorage.setItem(EDITOR_LINE_HEIGHT_STORAGE_KEY, 'spacious')
     window.localStorage.setItem(NATIVE_SHELL_MATERIAL_STORAGE_KEY, 'unified')
 
     renderHook(() => useAppearanceSettings({
       themeMode: null,
       themePreset: null,
       editorFont: null,
+      editorLineHeight: null,
       nativeShellMaterial: null,
       loaded: true,
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
   })
 

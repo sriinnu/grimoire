@@ -1,0 +1,45 @@
+.sidebar-brand-mark,
+.app-sidebar-rail__mark {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-brand-mark::before,
+.app-sidebar-rail__mark::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 28% 22%, color-mix(in srgb, var(--sidebar-primary) 34%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent-purple) 14%, transparent), transparent 58%);
+  opacity: 0.72;
+}
+
+.sidebar-brand-mark > img,
+.app-sidebar-rail__mark > img {
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar-brand-wordmark {
+  color: var(--sidebar-foreground, var(--foreground));
+  display: block;
+  font-family: var(--grimoire-wordmark-font-family);
+  font-feature-settings: "kern" 1, "liga" 1, "dlig" 1, "swsh" 1;
+  font-size: 21px;
+  font-style: italic;
+  font-variant-ligatures: discretionary-ligatures;
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 0.94;
+  max-width: 100%;
+  text-rendering: geometricPrecision;
+  text-shadow: 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+}
+
+.sidebar-brand-wordmark::first-letter {
+  color: color-mix(in srgb, var(--sidebar-primary) 76%, var(--sidebar-foreground));
+  font-size: 1.18em;
+  font-style: normal;
+  font-weight: 820;
+}

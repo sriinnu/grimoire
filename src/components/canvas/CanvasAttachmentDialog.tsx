@@ -96,10 +96,14 @@ export function CanvasAttachmentDialog({
   }, [attachment, inkColors, open, vaultPath])
 
   const updateDocument = useCallback((updater: (document: CanvasDocument) => CanvasDocument) => {
-    setExtractState('idle')
-    setSaveState('idle')
-    setDirty(true)
-    setDocument(updater)
+    setDocument((current) => {
+      const next = updater(current)
+      if (Object.is(next, current)) return current
+      setExtractState('idle')
+      setSaveState('idle')
+      setDirty(true)
+      return next
+    })
   }, [])
 
   const handleAddImage = useCallback(async () => {

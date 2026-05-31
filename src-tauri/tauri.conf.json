@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Grimoire",
-  "version": "0.1.298",
+  "version": "0.1.383",
   "identifier": "com.sriinnu.grimoire",
   "build": {
     "frontendDist": "../dist",
@@ -13,6 +13,8 @@
     "withGlobalTauri": true,
     "windows": [
       {
+        "label": "main",
+        "url": "index.html",
         "title": "Grimoire",
         "width": 1400,
         "height": 900,
@@ -20,9 +22,14 @@
         "minHeight": 400,
         "resizable": true,
         "fullscreen": false,
-        "titleBarStyle": "Overlay",
-        "hiddenTitle": true,
+        "visible": true,
+        "decorations": true,
+        "titleBarStyle": "Visible",
+        "hiddenTitle": false,
         "backgroundColor": "#F7F6F3",
+        "transparent": false,
+        "contentProtected": false,
+        "shadow": true,
         "dragDropEnabled": true
       }
     ],

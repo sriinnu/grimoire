@@ -165,6 +165,11 @@ function labelFromVaultPath(path: string): string {
   return path.split('/').filter(Boolean).pop() || 'Local Vault'
 }
 
+interface VaultSwitchTransition {
+  label: string
+  path: string
+}
+
 type TauriCoreModule = typeof import('@tauri-apps/api/core')
 
 let tauriCoreImport: Promise<TauriCoreModule> | null = null
@@ -445,6 +450,23 @@ function App() {
   ])
 
   const vault = useVaultLoader(noteWindowParams ? '' : resolvedPath, { isGitVault })
+  const [vaultSwitchTarget, setVaultSwitchTarget] = useState<VaultSwitchTransition | null>(null)
+  const handleStatusBarSwitchVault = useCallback((path: string) => {
+    if (!path || path === resolvedPath) return
+
+    const label = vaultSwitcher.allVaults.find((vaultOption) => vaultOption.path === path)?.label
+      ?? labelFromVaultPath(path)
+    setVaultSwitchTarget({ label, path })
+    window.setTimeout(() => {
+      vaultSwitcher.switchVault(path)
+    }, 0)
+  }, [resolvedPath, vaultSwitcher])
+  useEffect(() => {
+    if (!vaultSwitchTarget) return
+    if (resolvedPath !== vaultSwitchTarget.path || vault.isLoading || vault.loadError) return
+
+    setVaultSwitchTarget(null)
+  }, [resolvedPath, vault.isLoading, vault.loadError, vaultSwitchTarget])
   const handleGitInitialized = useCallback(() => {
     setGitRepoState('ready')
     void persistActiveVaultSyncProvider('git')
@@ -509,6 +531,7 @@ function App() {
     themeMode: settings.theme_mode,
     themePreset: settings.theme_preset,
     editorFont: settings.editor_font,
+    editorLineHeight: settings.editor_line_height,
     nativeShellMaterial: settings.native_shell_material,
     loaded: settingsLoaded,
   })
@@ -1701,6 +1724,20 @@ function App() {
     )
   }
 
+  if (!noteWindowParams && vaultSwitchTarget) {
+    const isFailedSwitch = resolvedPath === vaultSwitchTarget.path && !!vault.loadError
+
+    return (
+      <>
+        <LoadingView
+          detail={isFailedSwitch ? vault.loadError ?? 'The vault did not open cleanly' : `Opening ${vaultSwitchTarget.label}`}
+          label={isFailedSwitch ? 'Could not open vault' : 'Switching vault'}
+        />
+        <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
+      </>
+    )
+  }
+
   return (
     <NoteRetargetingProvider value={noteRetargetingUi.contextValue}>
       <div className="app-shell">
@@ -1820,7 +1857,7 @@ function App() {
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />
-        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={vaultSwitcher.switchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
+        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} onSwitchVault={handleStatusBarSwitchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={vaultSwitcher.handleOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
@@ -1976,10 +2013,10 @@ function AiAgentsOnboardingView({
 }
 
 /** Loading spinner view - extracted from main App component */
-function LoadingView() {
+function LoadingView({ detail = 'Opening the vault', label = 'Loading…' }: { detail?: string; label?: string }) {
   return (
     <div className="app-shell">
-      <GrimoireRefreshAnimation />
+      <GrimoireRefreshAnimation detail={detail} label={label} />
     </div>
   )
 }

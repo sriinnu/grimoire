@@ -1,22 +1,28 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   DEFAULT_EDITOR_FONT,
+  DEFAULT_EDITOR_LINE_HEIGHT,
   DEFAULT_NATIVE_SHELL_MATERIAL,
   DEFAULT_THEME_PRESET,
   EDITOR_FONT_STORAGE_KEY,
+  EDITOR_LINE_HEIGHT_STORAGE_KEY,
   NATIVE_SHELL_MATERIAL_STORAGE_KEY,
   THEME_PRESET_STORAGE_KEY,
   applyAppearanceToDocument,
   applyStoredAppearance,
   normalizeEditorFont,
+  normalizeEditorLineHeight,
   normalizeNativeShellMaterial,
   normalizeThemePreset,
+  readStoredEditorLineHeight,
   readStoredEditorFont,
   readStoredNativeShellMaterial,
   readStoredThemePreset,
+  resolveEditorLineHeight,
   resolveEditorFont,
   resolveNativeShellMaterial,
   resolveThemePreset,
+  writeStoredEditorLineHeight,
   writeStoredEditorFont,
   writeStoredNativeShellMaterial,
   writeStoredThemePreset,
@@ -57,11 +63,21 @@ describe('appearance', () => {
     expect(normalizeThemePreset('neon')).toBeNull()
     expect(resolveThemePreset('neon')).toBe(DEFAULT_THEME_PRESET)
 
-    expect(normalizeEditorFont('serif')).toBe('serif')
+    expect(normalizeEditorFont('serif')).toBe('literary')
     expect(normalizeEditorFont('literary')).toBe('literary')
-    expect(normalizeEditorFont('handwritten')).toBe('handwritten')
+    expect(normalizeEditorFont('editorial')).toBe('editorial')
+    expect(normalizeEditorFont('manuscript')).toBe('manuscript')
+    expect(normalizeEditorFont('humanist')).toBe('humanist')
+    expect(normalizeEditorFont('handwritten')).toBe('literary')
+    expect(normalizeEditorFont('compact')).toBe('system')
     expect(normalizeEditorFont('papyrus')).toBeNull()
     expect(resolveEditorFont('papyrus')).toBe(DEFAULT_EDITOR_FONT)
+
+    expect(normalizeEditorLineHeight('compact')).toBe('compact')
+    expect(normalizeEditorLineHeight('comfortable')).toBe('comfortable')
+    expect(normalizeEditorLineHeight('spacious')).toBe('spacious')
+    expect(normalizeEditorLineHeight('huge')).toBeNull()
+    expect(resolveEditorLineHeight('huge')).toBe(DEFAULT_EDITOR_LINE_HEIGHT)
 
     expect(normalizeNativeShellMaterial('standard')).toBe('standard')
     expect(normalizeNativeShellMaterial('unified')).toBe('unified')
@@ -75,13 +91,16 @@ describe('appearance', () => {
 
     writeStoredThemePreset(storage, 'retro-terminal')
     writeStoredEditorFont(storage, 'mono')
+    writeStoredEditorLineHeight(storage, 'compact')
     writeStoredNativeShellMaterial(storage, 'glass-preview')
 
     expect(readStoredThemePreset(storage)).toBe('retro-terminal')
     expect(readStoredEditorFont(storage)).toBe('mono')
+    expect(readStoredEditorLineHeight(storage)).toBe('compact')
     expect(readStoredNativeShellMaterial(storage)).toBe('glass-preview')
     expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'retro-terminal')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_FONT_STORAGE_KEY, 'mono')
+    expect(storage.setItem).toHaveBeenCalledWith(EDITOR_LINE_HEIGHT_STORAGE_KEY, 'compact')
     expect(storage.setItem).toHaveBeenCalledWith(NATIVE_SHELL_MATERIAL_STORAGE_KEY, 'glass-preview')
   })
 
@@ -89,7 +108,8 @@ describe('appearance', () => {
     document.documentElement.setAttribute('data-theme', 'dark')
     applyAppearanceToDocument(document, {
       themePreset: 'constellation',
-      editorFont: 'serif',
+      editorFont: 'literary',
+      editorLineHeight: 'compact',
       nativeShellMaterial: 'unified',
     })
 
@@ -105,9 +125,11 @@ describe('appearance', () => {
     expect(document.documentElement).toHaveAttribute('data-theme-metadata-strip', 'badges')
     expect(document.documentElement).toHaveAttribute('data-theme-motion', 'expressive')
     expect(document.documentElement).toHaveAttribute('data-sidebar-artwork', 'grimoire-sigil')
-    expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
+    expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
     expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#07111a')
+    expect(document.documentElement.style.getPropertyValue('--editor-line-height')).toBe('1.34')
     expect(document.documentElement.style.getPropertyValue('--background')).toBe('#07111a')
     expect(document.documentElement.style.getPropertyValue('--grimoire-code-block-radius')).toBe('8px')
     expect(document.documentElement.style.getPropertyValue('--grimoire-graph-bg')).toContain('radial-gradient')
@@ -120,16 +142,19 @@ describe('appearance', () => {
     const storage = makeStorage({
       [THEME_PRESET_STORAGE_KEY]: 'nocturne',
       [EDITOR_FONT_STORAGE_KEY]: 'readable',
+      [EDITOR_LINE_HEIGHT_STORAGE_KEY]: 'spacious',
       [NATIVE_SHELL_MATERIAL_STORAGE_KEY]: 'unified',
     })
 
     expect(applyStoredAppearance(document, storage)).toEqual({
       themePreset: 'nocturne',
       editorFont: 'readable',
+      editorLineHeight: 'spacious',
       nativeShellMaterial: 'unified',
     })
     expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
   })
 

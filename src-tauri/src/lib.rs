@@ -1,4 +1,5 @@
 pub mod ai_agents;
+pub mod ai_provider_keys;
 pub mod app_updater;
 pub mod claude_cli;
 mod commands;
@@ -8,25 +9,26 @@ mod invoke_handler;
 pub mod mcp;
 #[cfg(desktop)]
 pub mod menu;
-#[cfg(desktop)]
+#[cfg(all(desktop, target_os = "macos"))]
 pub mod menu_bar;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
 pub mod transcription;
+mod transcription_runtime;
 pub mod vault;
 pub mod vault_list;
+#[cfg(desktop)]
+mod window_lifecycle;
 
-use std::ffi::OsStr;
-use std::process::Command;
+use std::{ffi::OsStr, process::Command};
 
 #[cfg(desktop)]
-use std::path::{Path, PathBuf};
-#[cfg(desktop)]
-use std::process::Child;
-#[cfg(desktop)]
-use std::sync::Mutex;
-
+use std::{
+    path::{Path, PathBuf},
+    process::Child,
+    sync::Mutex,
+};
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
@@ -157,6 +159,7 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     app.handle().plugin(tauri_plugin_opener::init())?;
     #[cfg(not(target_os = "linux"))]
     menu::setup_menu(app)?;
+    #[cfg(all(desktop, target_os = "macos"))]
     menu_bar::setup_menu_bar_icon(app)?;
     setup_linux_window_chrome(app)?;
     Ok(())
@@ -283,12 +286,12 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
     use tauri::Manager;
 
     match event {
-        tauri::RunEvent::Ready => menu_bar::show_main_window(app_handle),
+        tauri::RunEvent::Ready => window_lifecycle::show_main_window(app_handle),
         tauri::RunEvent::Reopen {
             has_visible_windows,
             ..
         } if should_show_window_on_reopen(*has_visible_windows) => {
-            menu_bar::show_main_window(app_handle)
+            window_lifecycle::show_main_window(app_handle)
         }
         tauri::RunEvent::Exit => {
             let state: tauri::State<'_, WsBridgeChild> = app_handle.state();

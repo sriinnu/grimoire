@@ -27,6 +27,7 @@ describe('Memory Ledger theme CSS', () => {
     expect(css).toContain('[data-memory-tone="danger"]')
     expect(css).toContain('.memory-ledger-badge[data-memory-tone]')
     expect(css).toContain('.grimoire-memory-panel[data-locality="local-only"]')
+    expect(css).toContain('.grimoire-memory-runtime[data-state="mcp_transport_closed"]')
     expect(css).toContain('.grimoire-memory-signal')
     expect(css).toContain('.grimoire-memory-audit')
     expect(css).toContain('.grimoire-memory-audit__icon')

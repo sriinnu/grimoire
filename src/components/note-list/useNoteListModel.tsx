@@ -20,7 +20,13 @@ import {
 } from '../../utils/noteListHelpers'
 import { addNoteListSearchToggleListener, dispatchNoteListSearchAvailability } from '../../utils/noteListSearchEvents'
 import { useModifiedFilesState } from './noteListDataHooks'
-import { resolveHeaderTitle, type DeletedNoteEntry } from './noteListUtils'
+import {
+  resolveCreateNoteActionLabel,
+  resolveHeaderTitle,
+  resolveSearchActionLabel,
+  resolveSearchPlaceholder,
+  type DeletedNoteEntry,
+} from './noteListUtils'
 import { useNoteListContent } from './useNoteListContent'
 import { useNoteListInteractionState, useRenderItem } from './useNoteListInteractionState'
 
@@ -106,6 +112,9 @@ function buildNoteListLayoutModel(params: {
 }) {
   return {
     title: resolveHeaderTitle(params.selection, params.content.typeDocument, params.views, params.locale),
+    createNoteLabel: resolveCreateNoteActionLabel(params.selection, params.locale),
+    searchActionLabel: resolveSearchActionLabel(params.selection, params.locale),
+    searchPlaceholder: resolveSearchPlaceholder(params.selection, params.locale),
     locale: params.locale,
     typeDocument: params.content.typeDocument,
     isEntityView: params.content.isEntityView,

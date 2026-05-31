@@ -5,6 +5,7 @@ import type { PortabilityProgressState } from '../lib/vaultPortability'
 import { PortabilityActionProgress } from './PortabilityActionProgress'
 
 const progress: PortabilityProgressState = {
+  actionId: 'day-one',
   currentPath: 'imports/day-one/entry.md',
   label: 'Importing Day One',
   operationId: 'import-1',
@@ -42,5 +43,87 @@ describe('PortabilityActionProgress', () => {
 
     expect(screen.getByText(/Cancelling import/)).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-cancel')).toBeDisabled()
+  })
+
+  it('uses export starting and cancelling copy for export actions', () => {
+    const exportProgress = {
+      ...progress,
+      actionId: 'export-json-preview' as const,
+      currentPath: null,
+      label: 'JSON snapshot preview',
+      processedFiles: 0,
+      totalFiles: null,
+    }
+
+    render(<PortabilityActionProgress progress={exportProgress} t={createTranslator('en')} />)
+    expect(screen.getByText('Preparing export...')).toBeInTheDocument()
+    expect(screen.queryByText('Preparing import...')).not.toBeInTheDocument()
+
+    render(
+      <PortabilityActionProgress
+        progress={{ ...exportProgress, phase: 'cancelling' }}
+        onCancel={vi.fn()}
+        t={createTranslator('en')}
+      />,
+    )
+    expect(screen.getByText('Cancelling export...')).toBeInTheDocument()
+  })
+
+  it('uses storage proof starting and cancelling copy for storage actions', () => {
+    const storageProgress = {
+      ...progress,
+      actionId: 'storage-azure-provider-push-preview' as const,
+      currentPath: null,
+      label: 'Azure proof preview',
+      processedFiles: 0,
+      totalFiles: null,
+    }
+
+    render(<PortabilityActionProgress progress={storageProgress} t={createTranslator('en')} />)
+    expect(screen.getByText('Preparing storage proof...')).toBeInTheDocument()
+    expect(screen.queryByText('Preparing import...')).not.toBeInTheDocument()
+
+    render(
+      <PortabilityActionProgress
+        progress={{ ...storageProgress, phase: 'cancelling' }}
+        onCancel={vi.fn()}
+        t={createTranslator('en')}
+      />,
+    )
+    expect(screen.getByText('Cancelling storage action...')).toBeInTheDocument()
+  })
+
+  it('uses export progress copy for export actions', () => {
+    render(
+      <PortabilityActionProgress
+        progress={{
+          ...progress,
+          actionId: 'export-markdown-zip',
+          currentPath: 'archive.zip',
+          label: 'Markdown ZIP export',
+        }}
+        t={createTranslator('en')}
+      />,
+    )
+
+    expect(screen.getByText(/Exported 4 of 10 files/)).toBeInTheDocument()
+    expect(screen.queryByText(/Imported 4 of 10 files/)).not.toBeInTheDocument()
+  })
+
+  it('uses neutral progress copy for storage actions', () => {
+    render(
+      <PortabilityActionProgress
+        progress={{
+          ...progress,
+          actionId: 'storage-s3-preview',
+          currentPath: 'Notes/public.md',
+          label: 'S3 push preview',
+        }}
+        t={createTranslator('en')}
+      />,
+    )
+
+    expect(screen.getByText(/Processed 4 of 10 files/)).toBeInTheDocument()
+    expect(screen.queryByText(/Imported 4 of 10 files/)).not.toBeInTheDocument()
   })
 })

@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import type { VaultEntry } from '../types'
+import { getTranscriptionReadiness } from '../utils/transcriptionReadiness'
 import {
   getTranscriptionProviderDefinition,
   resolveConfiguredTranscriptionProvider,
@@ -32,6 +33,10 @@ function errorMessage(error: unknown): string {
     : error instanceof Error
       ? error.message
       : 'Failed to transcribe audio'
+}
+
+function readinessMessage(message: string, hint: string): string {
+  return hint.trim() ? `${message} ${hint}` : message
 }
 
 async function loadAudioTranscriptionFlow() {
@@ -67,6 +72,11 @@ export function useAudioTranscription({
 
     setToastMessage('Choose an audio file to transcribe')
     try {
+      const readiness = await getTranscriptionReadiness(transcriptionPreference)
+      if (!readiness.ready) {
+        setToastMessage(readinessMessage(readiness.message, readiness.installHint))
+        return
+      }
       const { createTranscriptionNotes, transcribeAudioIntoNotes } = await loadAudioTranscriptionFlow()
       const bundle = await transcribeAudioIntoNotes({
         vaultPath,
@@ -99,6 +109,11 @@ export function useAudioTranscription({
 
     try {
       setToastMessage(`Transcribing recorded audio with ${providerLabel}...`)
+      const readiness = await getTranscriptionReadiness(transcriptionPreference)
+      if (!readiness.ready) {
+        setToastMessage(readinessMessage(readiness.message, readiness.installHint))
+        return
+      }
       const { createTranscriptionNotes, transcribeAudioPathIntoNotes } = await loadAudioTranscriptionFlow()
       const bundle = await transcribeAudioPathIntoNotes(audioPath, {
         vaultPath,

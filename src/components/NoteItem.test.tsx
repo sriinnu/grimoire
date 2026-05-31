@@ -146,6 +146,42 @@ describe('NoteItem', () => {
     expect(screen.getByTestId('note-content-stack').className).toContain('space-y-2')
   })
 
+  it('aligns icon-bearing note rows under the title text column', () => {
+    const entry = makeEntry({
+      title: 'Icon aligned note',
+      icon: '🚀',
+      snippet: 'Body preview',
+      createdAt: NOW_SECONDS - 86400 * 3,
+      modifiedAt: NOW_SECONDS - 86400,
+    })
+
+    render(<NoteItem entry={entry} isSelected={false} typeEntryMap={{}} onClickNote={vi.fn()} />)
+
+    expect(screen.getByTestId('note-content-stack')).toHaveAttribute('data-title-icon', 'true')
+    expect(screen.getByTestId('note-title')).toHaveClass('note-title-row', 'note-title-row--with-icon', 'grid')
+    expect(screen.getByTestId('note-title-icon-cell')).toBeInTheDocument()
+    expect(screen.getByTestId('note-title-text')).toHaveClass('note-title-text')
+    expect(screen.getByTestId('note-title-text')).toHaveTextContent('Icon aligned note')
+    expect(screen.getByTestId('note-location-chip')).toBeInTheDocument()
+    expect(screen.getByTestId('note-date-row')).toBeInTheDocument()
+  })
+
+  it('uses the type icon as the title-row leading icon when no custom note icon exists', () => {
+    const entry = makeEntry({
+      title: 'Type icon note',
+      isA: 'Event',
+      snippet: 'Body preview',
+    })
+
+    render(<NoteItem entry={entry} isSelected={false} typeEntryMap={{}} onClickNote={vi.fn()} />)
+
+    expect(screen.getByTestId('note-content-stack')).toHaveAttribute('data-title-icon', 'true')
+    expect(screen.getByTestId('note-title')).toHaveAttribute('data-title-icon', 'true')
+    expect(screen.getByTestId('note-title-icon-cell')).toContainElement(screen.getByTestId('type-icon'))
+    expect(screen.getByTestId('type-icon')).toHaveClass('note-type-indicator', 'note-title-leading-type-icon')
+    expect(screen.getByTestId('note-title-text')).toHaveTextContent('Type icon note')
+  })
+
   it('leaves selected row background to theme CSS while exposing a type accent', () => {
     const entry = makeEntry({ title: 'Selected note', isA: 'Project' })
     const projectType = makeEntry({ title: 'Project', isA: 'Type', color: 'green' })

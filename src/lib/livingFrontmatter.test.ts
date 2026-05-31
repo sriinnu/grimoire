@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { buildLivingFrontmatterHints } from './livingFrontmatter'
+import { buildLivingFrontmatterHints, buildLivingFrontmatterReviewPlan } from './livingFrontmatter'
 
 function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
@@ -52,6 +52,7 @@ describe('buildLivingFrontmatterHints', () => {
         field: 'status',
         kind: 'missing-field',
         label: 'Add status',
+        source: 'built-in-rule',
         suggestedValue: 'Active',
       }),
     ])
@@ -98,6 +99,7 @@ describe('buildLivingFrontmatterHints', () => {
         kind: 'type-schema',
         label: 'Add source note',
         severity: 'warn',
+        source: 'type-note',
       }),
       expect.objectContaining({
         field: 'confidence',
@@ -145,6 +147,7 @@ describe('buildLivingFrontmatterHints', () => {
       id: 'stale-active-status',
       detail: 'Still marked Active, but untouched for 142 days.',
       severity: 'warn',
+      source: 'built-in-rule',
     }))
   })
 
@@ -166,6 +169,7 @@ describe('buildLivingFrontmatterHints', () => {
     expect(hints).toContainEqual(expect.objectContaining({
       id: 'duplicate-concept',
       detail: 'Looks close to Agent Council.',
+      source: 'vault-neighborhood',
     }))
   })
 
@@ -180,8 +184,34 @@ describe('buildLivingFrontmatterHints', () => {
       id: 'promote-wikilinks',
       field: 'related_to',
       kind: 'relationship-hint',
+      source: 'body-wikilinks',
       suggestedValue: ['[[Agent Council]]'],
     }))
+  })
+
+  it('builds a count-only review plan before Markdown frontmatter writes', () => {
+    const hints = buildLivingFrontmatterHints({
+      entry: entry({ aliases: ['Agent Council'], outgoingLinks: ['Agent Council'] }),
+      entries: [
+        entry(),
+        entry({
+          path: '/vault/product/agent-council.md',
+          filename: 'agent-council.md',
+          title: 'Agent Council',
+          isA: 'Note',
+        }),
+      ],
+      frontmatter: { type: 'Project' },
+    })
+
+    expect(buildLivingFrontmatterReviewPlan(hints)).toEqual({
+      applicableCount: 2,
+      fieldCount: 2,
+      readOnlyCount: 2,
+      sourceLabels: ['Built-in rules', 'Vault neighbors', 'Wikilinks'],
+      storagePolicy: 'markdown-on-disk',
+      writePolicy: 'frontmatter-only',
+    })
   })
 
   it('does not suggest a relationship when frontmatter already holds wikilink edges', () => {

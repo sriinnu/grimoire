@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { VaultEntry } from '../types'
 import type { createTranslator } from '../lib/i18n'
+import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
+import type { PortabilityCapsuleLoopLiveProof } from '../lib/portabilityCapsuleLoopLiveProof'
 import {
   type ImportAutopsyPreviewState,
   type PortabilityProgressState,
@@ -11,10 +13,12 @@ import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { DesktopStorageHealthReport, DesktopStorageProviderId } from '../utils/desktopStorageHealth'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
+import { runPortabilityCapsuleLoopProof } from '../utils/vaultExport'
 import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
 import { LocalityFirewallSettingsCard } from './LocalityFirewallSettingsCard'
 import { PortabilityActionDeck } from './PortabilityActionDeck'
 import { PortabilityGroups } from './PortabilityGroups'
+import { PortabilityLocalContract } from './PortabilityLocalContract'
 import { PortabilityProofLedger } from './PortabilityProofLedger'
 
 type Translate = ReturnType<typeof createTranslator>
@@ -190,11 +194,24 @@ export function PortabilitySettingsSection({
   const [desktopStorageHealthReports, setDesktopStorageHealthReports] = useState<
     Partial<Record<DesktopStorageProviderId, DesktopStorageHealthReport>>
   >({})
+  const [capsuleLoopProof, setCapsuleLoopProof] = useState<PortabilityCapsuleLoopLiveProof | null>(null)
+  const [capsuleLoopProofBusyFormat, setCapsuleLoopProofBusyFormat] = useState<PortabilityCapsuleFormat | null>(null)
   const handleDesktopStorageHealthReport = (report: DesktopStorageHealthReport) => {
     setDesktopStorageHealthReports((current) => ({
       ...current,
       [report.provider_id]: report,
     }))
+  }
+  const handleCapsuleLoopProof = async (format: PortabilityCapsuleFormat) => {
+    if (!vaultReady || capsuleLoopProofBusyFormat) return
+    setCapsuleLoopProofBusyFormat(format)
+    try {
+      setCapsuleLoopProof(await runPortabilityCapsuleLoopProof(vaultPath, format))
+    } catch {
+      setCapsuleLoopProof(null)
+    } finally {
+      setCapsuleLoopProofBusyFormat(null)
+    }
   }
 
   return (
@@ -207,6 +224,8 @@ export function PortabilitySettingsSection({
           {t('settings.portability.description')}
         </div>
       </div>
+
+      <PortabilityLocalContract t={t} />
 
       <PortabilityActionDeck
         t={t}
@@ -298,11 +317,21 @@ export function PortabilitySettingsSection({
         <LocalityFirewallSettingsCard entries={entries} />
         <PortabilityProofLedger
           azureLivePreflightReport={azureLivePreflightReport}
+          capsuleLoopArtifactProof={capsuleLoopProof}
+          capsuleLoopProofBusyFormat={capsuleLoopProofBusyFormat}
           capsuleExportPreview={exportPreview}
           capsuleImportPreview={importPreview}
           desktopStorageHealthReports={desktopStorageHealthReports}
           objectStorageLiveProofReport={objectStorageLiveProofReport}
+          objectStorageProviderPreviewReports={{
+            azurePull: azureProviderPullPreviewReport,
+            azurePush: azureProviderPushPreviewReport,
+            s3Pull: s3ProviderPullPreviewReport,
+            s3Push: s3ProviderPushPreviewReport,
+          }}
+          onRunCapsuleLoopProof={(format) => { void handleCapsuleLoopProof(format) }}
           s3LivePreflightReport={s3LivePreflightReport}
+          t={t}
         />
         <PortabilityGroups
           onDesktopStorageHealthReport={handleDesktopStorageHealthReport}

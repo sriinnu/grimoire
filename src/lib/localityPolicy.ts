@@ -49,6 +49,9 @@ const LOCAL_ONLY_FIELD_KEYS = new Set([
   'nosync',
   'neversync',
   'egress',
+  'agentcontext',
+  'exportcontext',
+  'synccontext',
   'private',
 ])
 
@@ -82,11 +85,17 @@ const TRUE_LOCALITY_VALUES = new Set([
   '1',
   'always',
   'blocked',
+  'blocked_discarded',
+  'blocked_private_lane',
+  'blocked_until_review',
   'deny',
   'denied',
   'local',
   'local-only',
   'local_only',
+  'local_discarded',
+  'local_private_lane',
+  'local_until_review',
   'never',
   'private',
   'true',
@@ -103,9 +112,13 @@ function normalizeValue(value: string): string {
 
 function hasTruthyLocalityValue(value: VaultEntry['properties'][string]): boolean {
   if (value === true) return true
+  if (typeof value === 'number') return value === 1
   if (typeof value === 'string') return TRUE_LOCALITY_VALUES.has(normalizeValue(value))
   if (Array.isArray(value)) {
-    return value.some((item) => typeof item === 'string' && TRUE_LOCALITY_VALUES.has(normalizeValue(item)))
+    return value.some((item) => {
+      if (typeof item === 'number') return item === 1
+      return typeof item === 'string' && TRUE_LOCALITY_VALUES.has(normalizeValue(item))
+    })
   }
   return false
 }

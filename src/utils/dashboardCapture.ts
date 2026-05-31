@@ -1,6 +1,15 @@
 import type { VaultEntry } from '../types'
 import type { DashboardAskPlan } from './dashboardAskContext'
+import { formatLocalDateKey } from './localDate'
 import { slugifyNoteStem } from './noteSlug'
+import {
+  DEFAULT_TEMPLATES,
+  DREAM_TEMPLATES,
+  JOURNAL_TEMPLATES,
+  type DashboardCaptureTemplateId,
+  type DreamTemplateId,
+  type JournalTemplateId,
+} from './noteTemplates'
 
 export type CaptureKind = 'note' | 'journal' | 'dream' | 'task' | 'memory' | 'ask'
 
@@ -32,6 +41,7 @@ interface ResolveDashboardCaptureParams {
   input: string
   now?: Date
   selectedKind: CaptureKind
+  templateId?: DashboardCaptureTemplateId | null
   vaultPath: string
 }
 
@@ -52,12 +62,6 @@ export type DashboardCapturePlan = CapturedNotePlan | DashboardAskPlan | Capture
 
 const SLASH_COMMANDS = new Map(CAPTURE_KIND_CONFIGS.map((config) => [config.slash.slice(1), config.kind]))
 const LOCALITY_FRONTMATTER = ['locality: local', 'egress: blocked', 'created_from: dashboard-capture']
-
-function formatLocalDate(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
-}
 
 function normalizeBody(text: string): string {
   return text.replace(/\r\n?/g, '\n').trim()
@@ -99,8 +103,8 @@ function defaultTitle(captureKind: CaptureKind, date: string): string {
 function titleForCapture(captureKind: CaptureKind, body: string, date: string): string {
   const seed = titleSeedFromBody(body)
   if (!seed) return defaultTitle(captureKind, date)
-  if (captureKind === 'dream') return `Dream - ${seed}`
-  if (captureKind === 'journal') return `Journal - ${seed}`
+  if (captureKind === 'dream') return `Dream ${date} - ${seed}`
+  if (captureKind === 'journal') return `Journal ${date} - ${seed}`
   if (captureKind === 'memory') return `Memory - ${seed}`
   return seed
 }
@@ -138,15 +142,19 @@ function uniqueSlug(title: string, entries: VaultEntry[], vaultPath: string): st
 
 function buildEntry({
   body,
+  date,
   slug,
   status,
+  templateId,
   title,
   typeName,
   vaultPath,
 }: {
   body: string
+  date: string
   slug: string
   status: string | null
+  templateId?: DashboardCaptureTemplateId | null
   title: string
   typeName: string
   vaultPath: string
@@ -180,6 +188,8 @@ function buildEntry({
       locality: 'local',
       egress: 'blocked',
       created_from: 'dashboard-capture',
+      date,
+      ...(templateId ? { capture_template: templateId } : {}),
     },
     organized: false,
     favorite: false,
@@ -191,19 +201,82 @@ function buildEntry({
   }
 }
 
-function bodyForCapture(captureKind: CaptureKind, body: string): string {
-  if (captureKind === 'task') return `- [ ] ${body}\n`
-  if (captureKind === 'memory') {
-    return `## Source\n\nDashboard capture\n\n## Memory\n\n${body}\n\n## Confidence\n\nmedium\n\n## Review\n\n- [ ] Verify or crystallize this memory.\n`
+function templateIdForCapture(
+  captureKind: CaptureKind,
+  templateId?: DashboardCaptureTemplateId | null,
+): DashboardCaptureTemplateId | null {
+  if (captureKind === 'journal') {
+    return templateId && templateId in JOURNAL_TEMPLATES ? templateId as JournalTemplateId : 'daily'
   }
-  if (captureKind === 'journal') return `## Check-in\n\n${body}\n\n## Signals\n\n## Next\n`
-  if (captureKind === 'dream') return `## Dream\n\n${body}\n\n## Symbols\n\n## Emotional Weather\n\n## Thread\n`
+  if (captureKind === 'dream') {
+    return templateId && templateId in DREAM_TEMPLATES ? templateId as DreamTemplateId : 'capture'
+  }
+  return null
+}
+
+function templateForCapture(captureKind: CaptureKind, templateId?: DashboardCaptureTemplateId | null): string {
+  const id = templateIdForCapture(captureKind, templateId)
+  if (captureKind === 'journal' && id) return JOURNAL_TEMPLATES[id as JournalTemplateId]
+  if (captureKind === 'dream' && id) return DREAM_TEMPLATES[id as DreamTemplateId]
+  return ''
+}
+
+function templateHeadingForCapture(captureKind: CaptureKind, templateId?: DashboardCaptureTemplateId | null): string {
+  if (captureKind === 'journal') {
+    if (templateId === 'evening') return '## Evening Review'
+    if (templateId === 'weekly') return '## Week Thread'
+    if (templateId === 'decision') return '## Decision'
+    return '## Check-in'
+  }
+  if (captureKind === 'dream') {
+    if (templateId === 'lucid') return '## Lucid Moment'
+    if (templateId === 'nightmare') return '## Nightmare'
+    if (templateId === 'symbol') return '## Symbol'
+    return '## Dream'
+  }
+  return ''
+}
+
+function bodyForCapture(captureKind: CaptureKind, body: string, templateId?: DashboardCaptureTemplateId | null): string {
+  if (captureKind === 'task') return DEFAULT_TEMPLATES.Task.replace('- [ ] ', `- [ ] ${body}`)
+  if (captureKind === 'memory') {
+    return DEFAULT_TEMPLATES.Memory
+      .replace('## Source\n\n', '## Source\n\nDashboard capture\n\n')
+      .replace('## Memory\n\n', `## Memory\n\n${body}\n\n`)
+  }
+  if (captureKind === 'journal' || captureKind === 'dream') {
+    if (!body.trim()) return templateForCapture(captureKind, templateId)
+    return injectBodyAfterHeading(
+      templateForCapture(captureKind, templateId),
+      templateHeadingForCapture(captureKind, templateId),
+      body,
+    )
+  }
   return `${body}\n`
 }
 
-function buildContent(title: string, typeName: string, status: string | null, body: string): string {
+function canCreateBlankTemplateCapture(captureKind: CaptureKind): boolean {
+  return captureKind === 'journal' || captureKind === 'dream'
+}
+
+function injectBodyAfterHeading(template: string, heading: string, body: string): string {
+  const marker = `${heading}\n\n`
+  if (!template.includes(marker)) return `${heading}\n\n${body}\n\n${template}`
+  return template.replace(marker, `${marker}${body}\n\n`)
+}
+
+function buildContent(
+  title: string,
+  typeName: string,
+  status: string | null,
+  date: string,
+  body: string,
+  templateId?: DashboardCaptureTemplateId | null,
+): string {
   const frontmatter = ['---', `title: ${yamlString(title)}`, `type: ${typeName}`]
   if (status) frontmatter.push(`status: ${status}`)
+  frontmatter.push(`date: ${date}`)
+  if (templateId) frontmatter.push(`capture_template: ${templateId}`)
   frontmatter.push(...LOCALITY_FRONTMATTER, '---')
   return `${frontmatter.join('\n')}\n# ${title}\n\n${body}`
 }
@@ -214,11 +287,14 @@ export async function resolveDashboardCapture({
   input,
   now = new Date(),
   selectedKind,
+  templateId,
   vaultPath,
 }: ResolveDashboardCaptureParams): Promise<DashboardCapturePlan> {
   const { body, captureKind } = parseLeadingSlash(input, selectedKind)
   const normalizedBody = normalizeBody(body)
-  if (!normalizedBody) return { kind: 'error', message: 'Write something to capture first' }
+  if (!normalizedBody && !canCreateBlankTemplateCapture(captureKind)) {
+    return { kind: 'error', message: 'Write something to capture first' }
+  }
   if (captureKind === 'ask') {
     const { buildDashboardAskPlan } = await import('./dashboardAskContext')
     return buildDashboardAskPlan(entries, normalizedBody)
@@ -226,16 +302,17 @@ export async function resolveDashboardCapture({
 
   const config = CAPTURE_KIND_CONFIGS.find((item) => item.kind === captureKind)
   const typeName = config?.typeName ?? 'Note'
-  const localDate = formatLocalDate(now)
+  const localDate = formatLocalDateKey(now)
   const title = titleForCapture(captureKind, normalizedBody, localDate)
   const slug = uniqueSlug(title, entries, vaultPath)
   const status = statusForCapture(captureKind)
-  const noteBody = bodyForCapture(captureKind, normalizedBody)
-  const entry = buildEntry({ body: normalizedBody, slug, status, title, typeName, vaultPath })
+  const activeTemplateId = templateIdForCapture(captureKind, templateId)
+  const noteBody = bodyForCapture(captureKind, normalizedBody, activeTemplateId)
+  const entry = buildEntry({ body: normalizedBody, date: localDate, slug, status, templateId: activeTemplateId, title, typeName, vaultPath })
   return {
     kind: 'note',
     captureKind,
-    content: buildContent(title, typeName, status, noteBody),
+    content: buildContent(title, typeName, status, localDate, noteBody, activeTemplateId),
     entry,
     typeName,
   }

@@ -30,6 +30,7 @@ describe('agent council readiness', () => {
     const lanes = buildAgentCouncilReadiness([
       member('codex', 'Codex', 'ready'),
       member('chitragupta', 'Chitragupta', 'missing'),
+      member('chitra_mcp', 'Chitra MCP', 'blocked'),
       member('woosh', 'Woosh', 'private-local'),
       member('local_search', 'Local Search', 'ready'),
       member('portability_context', 'Import/Export', 'ready'),
@@ -38,6 +39,7 @@ describe('agent council readiness', () => {
     expect(lanes).toEqual([
       expect.objectContaining({ detail: 'Receives source-safe labels only.', label: 'Codex', state: 'ready', status: 'Source-safe' }),
       expect.objectContaining({ label: 'Chitragupta', state: 'unavailable', status: 'Unavailable' }),
+      expect.objectContaining({ detail: 'Runtime contract is blocked; no live handoff.', label: 'Chitra MCP', state: 'blocked', status: 'Blocked' }),
       expect.objectContaining({ label: 'Woosh', state: 'private', status: 'Private' }),
       expect.objectContaining({ detail: 'Runs against local metadata and source labels.', label: 'Local Search', status: 'Local' }),
       expect.objectContaining({
@@ -48,7 +50,7 @@ describe('agent council readiness', () => {
       }),
     ])
     expect(summarizeAgentCouncilReadiness(lanes)).toEqual({
-      blocked: 0,
+      blocked: 1,
       private: 1,
       proof: 1,
       ready: 2,

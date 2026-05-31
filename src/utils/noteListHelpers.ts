@@ -72,6 +72,10 @@ const isActive = (e: VaultEntry) => !e.archived
 const isMarkdown = (e: VaultEntry) => e.fileKind === 'markdown' || !e.fileKind
 const ATTACHMENTS_FOLDER = 'attachments'
 
+function matchesType(entry: VaultEntry, type: string): boolean {
+  return entry.isA?.trim().toLowerCase() === type.trim().toLowerCase()
+}
+
 function applySubFilter(entries: VaultEntry[], subFilter: NoteListFilter): VaultEntry[] {
   if (subFilter === 'archived') return entries.filter((e) => e.archived)
   return entries.filter(isActive)
@@ -117,7 +121,7 @@ function filterFolderEntries(
 }
 
 function filterSectionGroupEntries(entries: VaultEntry[], type: string, subFilter?: NoteListFilter): VaultEntry[] {
-  const typeEntries = entries.filter((entry) => isMarkdown(entry) && entry.isA === type)
+  const typeEntries = entries.filter((entry) => isAllNotesEntry(entry) && matchesType(entry, type))
   return subFilter ? applySubFilter(typeEntries, subFilter) : typeEntries.filter(isActive)
 }
 
@@ -171,7 +175,7 @@ export function filterEntries(
 export function countByFilter(entries: VaultEntry[], type: string): Record<NoteListFilter, number> {
   let open = 0, archived = 0
   for (const e of entries) {
-    if (!isMarkdown(e) || e.isA !== type) continue
+    if (!isAllNotesEntry(e) || !matchesType(e, type)) continue
     if (e.archived) archived++
     else open++
   }

@@ -96,7 +96,7 @@ export function useChangesContextMenu({
   const contextMenuNode = ctxMenu ? (
     <div
       ref={ctxMenuRef}
-      className="fixed z-50 w-[184px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
+      className="grimoire-context-menu-surface fixed z-50 w-[184px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
       style={{ left: menuPosition?.left, top: menuPosition?.top }}
       data-testid="changes-context-menu"
     >

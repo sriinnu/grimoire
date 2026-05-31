@@ -1,44 +1,49 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { TimeLoomSummary } from '../../lib/timeLoom'
+import { buildTimeLoomGraph } from '../../lib/timeLoomGraph'
 import { TimeLoomPanel } from './TimeLoomPanel'
+
+const buckets: TimeLoomSummary['buckets'] = [
+  {
+    dateKey: '2026-05-25',
+    label: 'Today',
+    total: 4,
+    protectedCount: 2,
+    statusCounts: [
+      { label: 'Open', count: 1 },
+      { label: 'Unmarked', count: 3 },
+    ],
+    typeCounts: [
+      { label: 'Mobile', count: 2 },
+      { label: 'Dream', count: 1 },
+      { label: 'Journal', count: 1 },
+    ],
+  },
+  {
+    dateKey: '2026-05-24',
+    label: 'Yesterday',
+    total: 3,
+    protectedCount: 1,
+    statusCounts: [
+      { label: 'Done', count: 1 },
+      { label: 'Unmarked', count: 2 },
+    ],
+    typeCounts: [
+      { label: 'Commit', count: 1 },
+      { label: 'Calendar', count: 1 },
+      { label: 'Note', count: 1 },
+    ],
+  },
+]
 
 const summary: TimeLoomSummary = {
   activeSpanLabel: '7 events across 2 active days',
-  buckets: [
-    {
-      dateKey: '2026-05-25',
-      label: 'Today',
-      total: 4,
-      protectedCount: 2,
-      statusCounts: [
-        { label: 'Open', count: 1 },
-        { label: 'Unmarked', count: 3 },
-      ],
-      typeCounts: [
-        { label: 'Mobile', count: 2 },
-        { label: 'Dream', count: 1 },
-        { label: 'Journal', count: 1 },
-      ],
-    },
-    {
-      dateKey: '2026-05-24',
-      label: 'Yesterday',
-      total: 3,
-      protectedCount: 1,
-      statusCounts: [
-        { label: 'Done', count: 1 },
-        { label: 'Unmarked', count: 2 },
-      ],
-      typeCounts: [
-        { label: 'Commit', count: 1 },
-        { label: 'Calendar', count: 1 },
-        { label: 'Note', count: 1 },
-      ],
-    },
-  ],
+  buckets,
+  calendarDays: buckets,
   calendarEvents: 1,
   commitEvents: 1,
+  graph: buildTimeLoomGraph(buckets),
   memoryReviewEvents: 1,
   mobileEvents: 2,
   patterns: [
@@ -58,13 +63,19 @@ describe('TimeLoomPanel', () => {
 
     const panel = screen.getByTestId('time-loom-panel')
     const map = screen.getByTestId('time-loom-map')
+    const graph = screen.getByTestId('time-loom-graph')
     const patterns = screen.getByTestId('time-loom-patterns')
     const nodes = screen.getAllByTestId('time-loom-node')
 
     expect(panel).toHaveAttribute('data-locality', 'metadata-only')
     expect(panel).toHaveAttribute('data-private-surface', 'time-loom')
+    expect(screen.getByTestId('personal-calendar')).toHaveAttribute('data-density', 'compact')
     expect(within(map).getByText('Today')).toBeInTheDocument()
     expect(within(map).getByText('Yesterday')).toBeInTheDocument()
+    expect(graph).toHaveAccessibleName('count-only temporal graph; private labels withheld')
+    expect(within(graph).getByText('Held local')).toBeInTheDocument()
+    expect(within(graph).getByText('2 Mobile')).toBeInTheDocument()
+    expect(within(graph).getByText('2 held')).toBeInTheDocument()
     expect(nodes).toHaveLength(2)
     expect(nodes[0]).toHaveTextContent('4')
     expect(nodes[0]).toHaveTextContent('Mobile 2 / Dream 1')
@@ -94,5 +105,49 @@ describe('TimeLoomPanel', () => {
 
     fireEvent.click(screen.getByTestId('time-loom-capture'))
     expect(onCaptureJournal).toHaveBeenCalledTimes(1)
+  })
+
+  it('uses the personal calendar to capture journal and dream entries for a selected date', () => {
+    const onCaptureDream = vi.fn()
+    const onCaptureJournal = vi.fn()
+    render(
+      <TimeLoomPanel
+        summary={summary}
+        onCaptureDream={onCaptureDream}
+        onCaptureJournal={onCaptureJournal}
+      />,
+    )
+
+    const calendar = screen.getByTestId('personal-calendar')
+    const agenda = within(calendar).getByTestId('personal-calendar-agenda')
+    fireEvent.click(within(agenda).getByRole('button', { name: 'Journal' }))
+    fireEvent.click(within(agenda).getByRole('button', { name: 'Dream' }))
+
+    expect(onCaptureJournal).toHaveBeenCalledWith(expect.any(Date))
+    expect(onCaptureDream).toHaveBeenCalledWith(expect.any(Date))
+  })
+
+  it('feeds the calendar from full calendar days, not only visible timeline rows', () => {
+    render(
+      <TimeLoomPanel
+        summary={{
+          ...summary,
+          calendarDays: [
+            ...summary.calendarDays,
+            {
+              dateKey: '2026-05-20',
+              label: 'May 20',
+              total: 2,
+              protectedCount: 1,
+              statusCounts: [{ label: 'Unmarked', count: 2 }],
+              typeCounts: [{ label: 'Journal', count: 1 }, { label: 'Dream', count: 1 }],
+            },
+          ],
+        }}
+        onCaptureJournal={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('gridcell', { name: /May 20, 2 local signals/ })).toHaveAttribute('data-has-events', 'true')
   })
 })

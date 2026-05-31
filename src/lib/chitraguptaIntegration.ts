@@ -49,9 +49,12 @@ export type ChitraguptaContractState = 'ready' | 'blocked'
 export interface ChitraguptaStatusPayload {
   ok?: boolean
   daemon?: ChitraguptaDaemonState | string
+  transport?: ChitraguptaMcpTransportState | string
   capabilities?: string[] | null
   warnings?: string[] | null
 }
+
+export type ChitraguptaMcpTransportState = 'open' | 'closed' | 'unavailable' | 'unknown'
 
 export interface ChitraguptaCapabilityStatus {
   name: ChitraguptaCapability
@@ -61,6 +64,7 @@ export interface ChitraguptaCapabilityStatus {
 export interface ChitraguptaContractStatus {
   state: ChitraguptaContractState
   daemon: ChitraguptaDaemonState | 'unknown'
+  transport: ChitraguptaMcpTransportState
   capabilities: ChitraguptaCapabilityStatus[]
   missingCapabilities: ChitraguptaCapability[]
   warnings: string[]
@@ -71,6 +75,7 @@ export type ChitraguptaRuntimeReadinessState =
   | 'checking'
   | 'cli_missing'
   | 'mcp_unverified'
+  | 'mcp_transport_closed'
   | 'mcp_blocked'
   | 'ready'
 
@@ -91,16 +96,21 @@ export function evaluateChitraguptaContractStatus(
     capability => !availableCapabilities.has(capability),
   )
   const daemon = normalizeDaemonState(payload?.daemon)
+  const transport = normalizeTransportState(payload?.transport, payload?.warnings ?? [])
   const warnings = [
     ...(payload?.warnings ?? []).map(sanitizeChitraguptaWarning),
-    ...contractWarnings(payload, daemon, missingCapabilities),
+    ...contractWarnings(payload, daemon, transport, missingCapabilities),
   ].filter(warning => warning.trim().length > 0)
 
   return {
-    state: payload?.ok === true && daemon === 'running' && missingCapabilities.length === 0
+    state: payload?.ok === true
+      && daemon === 'running'
+      && transport !== 'closed'
+      && missingCapabilities.length === 0
       ? 'ready'
       : 'blocked',
     daemon,
+    transport,
     capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES.map(capability => ({
       name: capability,
       available: availableCapabilities.has(capability),
@@ -151,6 +161,20 @@ export function summarizeChitraguptaRuntimeReadiness({
       capabilityLabel,
       warnings: [
         'Install Chitragupta CLI before live memory recall.',
+        ...contractStatus.warnings,
+      ].slice(0, 2),
+    }
+  }
+
+  if (contractStatus.transport === 'closed') {
+    return {
+      state: 'mcp_transport_closed',
+      cliLabel: 'CLI installed',
+      contractLabel: 'MCP transport closed',
+      capabilityLabel,
+      warnings: [
+        'MCP transport closed before Chitragupta memory tools answered.',
+        'Local ledger stays active; live recall, wiki, graph, and diagnostics remain blocked.',
         ...contractStatus.warnings,
       ].slice(0, 2),
     }
@@ -214,6 +238,7 @@ export function buildChitraguptaMemoryContext(
 function contractWarnings(
   payload: ChitraguptaStatusPayload | null | undefined,
   daemon: ChitraguptaContractStatus['daemon'],
+  transport: ChitraguptaContractStatus['transport'],
   missingCapabilities: ChitraguptaCapability[],
 ): string[] {
   const warnings: string[] = []
@@ -225,6 +250,9 @@ function contractWarnings(
   if (daemon !== 'running') {
     warnings.push('Chitragupta daemon is not running.')
   }
+  if (transport === 'closed') {
+    warnings.push('Chitragupta MCP transport is closed.')
+  }
   if (missingCapabilities.length > 0) {
     warnings.push(`Missing Chitragupta capabilities: ${missingCapabilities.join(', ')}`)
   }
@@ -234,6 +262,22 @@ function contractWarnings(
 function normalizeDaemonState(value: ChitraguptaStatusPayload['daemon']): ChitraguptaContractStatus['daemon'] {
   if (value === 'running' || value === 'stopped' || value === 'degraded') return value
   return 'unknown'
+}
+
+function normalizeTransportState(
+  value: ChitraguptaStatusPayload['transport'],
+  warnings: string[],
+): ChitraguptaMcpTransportState {
+  if (value === 'open' || value === 'closed' || value === 'unavailable') return value
+  if (warnings.some(isTransportClosedWarning)) return 'closed'
+  return 'unknown'
+}
+
+function isTransportClosedWarning(value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  return normalized.includes('transport closed')
+    || normalized.includes('mcp bridge disconnected')
+    || normalized.includes('websocket connection closed')
 }
 
 function sanitizeChitraguptaWarning(value: string): string {

@@ -49,6 +49,10 @@ where
         .env_remove("CLAUDECODE")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    crate::ai_provider_keys::apply_provider_keys_to_command(
+        &mut cmd,
+        crate::ai_agents::AiAgentId::ClaudeCode,
+    );
     if let Some(dir) = cwd {
         cmd.current_dir(dir);
     }

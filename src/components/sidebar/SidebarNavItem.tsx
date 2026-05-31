@@ -1,5 +1,6 @@
 import type { ComponentType, CSSProperties } from 'react'
 import type { IconProps } from '@phosphor-icons/react'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SIDEBAR_ITEM_PADDING } from './sidebarStyles'
 
@@ -20,7 +21,7 @@ function getNavItemPadding(compact: boolean | undefined, hasCount: boolean) {
 }
 
 function getNavItemIconSize(compact?: boolean) {
-  return compact ? 14 : 16
+  return compact ? 15 : 17
 }
 
 function getNavItemTextClass(compact?: boolean) {
@@ -57,10 +58,27 @@ function SidebarNavIcon({
   iconSize: number
   isActive?: boolean
 }) {
+  const glyphClassName = cn('sidebar-nav-glyph', emoji && 'sidebar-nav-glyph--emoji')
   if (emoji) {
-    return <span style={{ fontSize: iconSize, lineHeight: 1, width: iconSize, textAlign: 'center' }}>{emoji}</span>
+    return (
+      <span className={glyphClassName} data-active={isActive ? 'true' : 'false'}>
+        <span className="sidebar-nav-glyph__halo" />
+        <span className="sidebar-nav-glyph__route" />
+        <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--near" />
+        <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--far" />
+        <span style={{ fontSize: iconSize, lineHeight: 1, width: iconSize, textAlign: 'center' }}>{emoji}</span>
+      </span>
+    )
   }
-  return <Icon size={iconSize} weight={isActive ? 'fill' : 'regular'} />
+  return (
+    <span className={glyphClassName} data-active={isActive ? 'true' : 'false'}>
+      <span className="sidebar-nav-glyph__halo" />
+      <span className="sidebar-nav-glyph__route" />
+      <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--near" />
+      <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--far" />
+      <Icon className="sidebar-nav-glyph__icon" size={iconSize} weight={isActive ? 'duotone' : 'regular'} />
+    </span>
+  )
 }
 
 export function SidebarCountPill({
@@ -129,10 +147,17 @@ function DisabledNavItem({
   padding: ReturnType<typeof getNavItemPadding>
 }) {
   return (
-    <div className="flex select-none items-center gap-2 rounded text-foreground" style={{ padding, borderRadius: 4, opacity: 0.4, cursor: 'not-allowed' }} title={disabledTooltip ?? "Coming soon"}>
+    <Button
+      type="button"
+      variant="ghost"
+      disabled
+      className="h-auto w-full select-none justify-start gap-2 rounded text-foreground disabled:opacity-40"
+      style={{ padding, borderRadius: 4, cursor: 'not-allowed' }}
+      title={disabledTooltip ?? "Coming soon"}
+    >
       <SidebarNavIcon Icon={Icon} emoji={emoji} iconSize={getNavItemIconSize(compact)} />
       <NavItemLabel label={label} compact={compact} />
-    </div>
+    </Button>
   )
 }
 
@@ -166,8 +191,14 @@ function ClickableNavItem({
   padding: ReturnType<typeof getNavItemPadding>
 }) {
   return (
-    <div
-      className={cn("flex cursor-pointer select-none items-center gap-2 rounded transition-colors", isActive ? activeClassName : "text-foreground hover:bg-accent")}
+    <Button
+      type="button"
+      variant="ghost"
+      aria-current={isActive ? 'page' : undefined}
+      className={cn(
+        "h-auto w-full cursor-pointer select-none justify-start gap-2 rounded text-left transition-colors",
+        isActive ? activeClassName : "text-foreground hover:bg-accent",
+      )}
       style={{ padding, borderRadius: 4 }}
       onClick={onClick}
     >
@@ -179,7 +210,7 @@ function ClickableNavItem({
         style={resolveBadgeStyle(isActive, activeBadgeClassName, activeBadgeStyle, badgeStyle)}
         compact={compact}
       />
-    </div>
+    </Button>
   )
 }
 

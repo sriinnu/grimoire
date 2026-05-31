@@ -19,7 +19,7 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
   useLayoutEffect(() => {
     if (!open) return
 
-    setQuery('') // eslint-disable-line react-hooks/set-state-in-effect -- reset on dialog open
+    setQuery('')
     setSelectedIndex(0)
     inputRef.current?.focus()
 

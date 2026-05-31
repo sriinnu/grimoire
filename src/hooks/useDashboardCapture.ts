@@ -3,6 +3,7 @@ import { addMockEntry, isTauri } from '../mock-tauri'
 import type { VaultEntry } from '../types'
 import { queueAiPrompt, requestOpenAiChat } from '../utils/aiPromptBridge'
 import { resolveDashboardCapture, type CaptureKind } from '../utils/dashboardCapture'
+import type { DashboardCaptureTemplateId } from '../utils/noteTemplates'
 import { persistNewNote } from './useNoteCreation'
 
 export type DashboardCaptureResult =
@@ -68,8 +69,13 @@ export function useDashboardCapture({
   setToastMessage,
   vaultPath,
 }: DashboardCaptureConfig) {
-  return useCallback(async (input: string, selectedKind: CaptureKind): Promise<DashboardCaptureResult> => {
-    const plan = await resolveDashboardCapture({ entries, input, selectedKind, vaultPath })
+  return useCallback(async (
+    input: string,
+    selectedKind: CaptureKind,
+    captureDate?: Date,
+    templateId?: DashboardCaptureTemplateId | null,
+  ): Promise<DashboardCaptureResult> => {
+    const plan = await resolveDashboardCapture({ entries, input, now: captureDate, selectedKind, templateId, vaultPath })
     if (plan.kind === 'error') {
       setToastMessage(plan.message)
       return { status: 'blocked' }

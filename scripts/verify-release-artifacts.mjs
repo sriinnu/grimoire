@@ -3,11 +3,13 @@ import { createHash } from 'node:crypto'
 import {
   cpSync,
   existsSync,
+  chmodSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -61,6 +63,37 @@ function sha256(path) {
 function assertExists(path, label) {
   if (!existsSync(path)) {
     throw new Error(`${label} does not exist: ${formatPath(path)}`)
+  }
+}
+
+function readPlistValue(plistPath, key) {
+  const content = readFileSync(plistPath, 'utf8')
+  const pattern = new RegExp(`<key>${key}</key>\\s*<string>([^<]+)</string>`)
+  return content.match(pattern)?.[1] ?? null
+}
+
+function hasPlistKey(plistPath, key) {
+  const content = readFileSync(plistPath, 'utf8')
+  return new RegExp(`<key>${key}</key>`).test(content)
+}
+
+function assertLaunchableAppBundle(appPath) {
+  const plistPath = join(appPath, 'Contents/Info.plist')
+  assertExists(plistPath, 'App Info.plist')
+
+  if (hasPlistKey(plistPath, 'LSRequiresCarbon')) {
+    throw new Error(`${formatPath(appPath)} has legacy LSRequiresCarbon set; LaunchServices may reject it`)
+  }
+
+  const executable = readPlistValue(plistPath, 'CFBundleExecutable')
+  if (!executable) {
+    throw new Error(`${formatPath(appPath)} Info.plist is missing CFBundleExecutable`)
+  }
+
+  const executablePath = join(appPath, 'Contents/MacOS', executable)
+  assertExists(executablePath, 'App executable')
+  if ((statSync(executablePath).mode & 0o111) === 0) {
+    throw new Error(`${formatPath(executablePath)} is not executable`)
   }
 }
 
@@ -144,6 +177,7 @@ function verifyCodesign(appPath) {
 function verifyApp(appPath, options = {}) {
   const resolvedAppPath = resolve(appPath)
   assertExists(resolvedAppPath, 'Application bundle')
+  assertLaunchableAppBundle(resolvedAppPath)
 
   const iconPath = join(resolvedAppPath, 'Contents/Resources/icon.icns')
   assertIconMatchesSource(iconPath, `${formatPath(resolvedAppPath)}`)
@@ -300,12 +334,35 @@ function copySourceIconToApp(appPath) {
   cpSync(SOURCE_ICON_PATH, join(resources, 'icon.icns'))
 }
 
+function addExecutableToTestApp(appPath) {
+  const contents = join(appPath, 'Contents')
+  const plistPath = join(contents, 'Info.plist')
+  const executableName = 'grimoire'
+  const plist = readFileSync(plistPath, 'utf8')
+    .replace(
+      '</dict>',
+      [
+        '<key>CFBundleExecutable</key>',
+        `<string>${executableName}</string>`,
+        '</dict>',
+      ].join('\n'),
+    )
+  writeFileSync(plistPath, plist)
+
+  const macosDir = join(contents, 'MacOS')
+  mkdirSync(macosDir, { recursive: true })
+  const executablePath = join(macosDir, executableName)
+  writeFileSync(executablePath, '#!/bin/sh\nexit 0\n')
+  chmodSync(executablePath, 0o755)
+}
+
 function runSelfTest() {
   const tempDir = mkdtempSync(join(tmpdir(), 'grimoire-artifacts-test-'))
   try {
     const appPath = join(tempDir, 'Grimoire.app')
     copySourceIconToApp(appPath)
     writeTestAppInfoPlist(appPath, '9.9.9')
+    addExecutableToTestApp(appPath)
     verifyApp(appPath, { expectedVersion: '9.9.9' })
 
     const webDir = join(tempDir, 'web')
@@ -320,6 +377,7 @@ function runSelfTest() {
     const staleAppPath = join(tempDir, 'Stale.app')
     copySourceIconToApp(staleAppPath)
     writeTestAppInfoPlist(staleAppPath, '9.9.9')
+    addExecutableToTestApp(staleAppPath)
     writeFileSync(join(staleAppPath, 'Contents/Resources/icon.icns'), 'stale')
 
     let failedAsExpected = false
@@ -336,6 +394,7 @@ function runSelfTest() {
     const staleVersionAppPath = join(tempDir, 'StaleVersion.app')
     copySourceIconToApp(staleVersionAppPath)
     writeTestAppInfoPlist(staleVersionAppPath, '9.9.8')
+    addExecutableToTestApp(staleVersionAppPath)
     failedAsExpected = false
     try {
       verifyApp(staleVersionAppPath, { expectedVersion: '9.9.9' })
@@ -344,6 +403,28 @@ function runSelfTest() {
     }
     if (!failedAsExpected) {
       throw new Error('Self-test did not reject a stale app version')
+    }
+
+    const carbonAppPath = join(tempDir, 'Carbon.app')
+    copySourceIconToApp(carbonAppPath)
+    writeTestAppInfoPlist(carbonAppPath, '9.9.9')
+    addExecutableToTestApp(carbonAppPath)
+    const carbonPlistPath = join(carbonAppPath, 'Contents/Info.plist')
+    writeFileSync(
+      carbonPlistPath,
+      readFileSync(carbonPlistPath, 'utf8').replace(
+        '</dict>',
+        '<key>LSRequiresCarbon</key>\n<true/>\n</dict>',
+      ),
+    )
+    failedAsExpected = false
+    try {
+      verifyApp(carbonAppPath, { expectedVersion: '9.9.9' })
+    } catch {
+      failedAsExpected = true
+    }
+    if (!failedAsExpected) {
+      throw new Error('Self-test did not reject LSRequiresCarbon')
     }
 
     const leakingWebDir = join(tempDir, 'leaking-web')

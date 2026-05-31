@@ -336,6 +336,7 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
         linkToolbar={false}
         slashMenu={false}
         sideMenu={false}
+        tableHandles={false}
       >
         <SideMenuController sideMenu={GrimoireSideMenu} />
         <Suspense fallback={null}>

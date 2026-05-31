@@ -75,10 +75,10 @@ function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGro
       description: t('settings.portability.brainDescription'),
       icon: <Brain size={15} />,
       items: [
-        { id: 'journal', label: 'Journal capture', status: 'ready' },
-        { id: 'agent-briefs', label: 'Agent work briefs', status: 'ready' },
-        { id: 'memory-graph', label: 'Memory graph', status: 'planned' },
-        { id: 'crystallization', label: 'Crystallized notes', status: 'planned' },
+        { id: 'journal', label: t('settings.portability.brainJournalCapture'), status: 'ready' },
+        { id: 'agent-briefs', label: t('settings.portability.brainAgentBriefs'), status: 'ready' },
+        { id: 'memory-graph', label: t('settings.portability.brainMemoryGraph'), status: 'planned' },
+        { id: 'crystallization', label: t('settings.portability.brainCrystallizedNotes'), status: 'planned' },
       ],
     },
   ]
@@ -109,7 +109,7 @@ function PortabilityGroupCard({
           <Badge key={item.id} variant={item.status === 'ready' ? 'secondary' : 'outline'} className="max-w-full gap-1 rounded-md text-[11px]">
             {renderItemIcon(item.id)}
             <span className="min-w-0 truncate">{item.label}</span>
-            <span className="text-muted-foreground">{statusLabel(item.status, t)}</span>
+            <span className="text-muted-foreground">{portabilityStatusLabel(item.status, t)}</span>
           </Badge>
         ))}
       </div>
@@ -134,7 +134,7 @@ function StorageHealthRows({ health, t }: { health: readonly VaultStorageHealth[
         <div key={item.providerId} className="flex min-w-0 items-start gap-1.5 text-[11px] leading-snug">
           <span className="grimoire-storage-health-dot mt-1 size-1.5 shrink-0 rounded-full" data-state={item.state} />
           <span className="min-w-0 flex-1 text-muted-foreground">
-            <span className="font-medium text-foreground">{storageHealthLabel(item.state, t)}</span>
+            <span className="font-medium text-foreground">{storageHealthLabel(item, t)}</span>
             <span> · {item.message}</span>
             {item.privacyNote ? <span className="block pt-0.5 text-[10px] leading-snug">{item.privacyNote}</span> : null}
           </span>
@@ -150,13 +150,20 @@ function renderItemIcon(id: string): ReactNode {
   return null
 }
 
-function statusLabel(status: VaultPortabilityStatus, t: Translate): string {
-  return status === 'ready' ? t('settings.portability.ready') : t('settings.portability.planned')
+function portabilityStatusLabel(status: VaultPortabilityStatus, t: Translate): string {
+  if (status === 'ready') return t('settings.portability.ready')
+  if (status === 'preview-backed') return t('settings.portability.supportPreviewBacked')
+  if (status === 'folder-proof') return t('settings.portability.supportFolderProofOnly')
+  if (status === 'proof-preview') return t('settings.portability.proofPreview')
+  return t('settings.portability.planned')
 }
 
-function storageHealthLabel(state: VaultStorageHealthState, t: Translate): string {
+function storageHealthLabel(item: VaultStorageHealth, t: Translate): string {
+  const state: VaultStorageHealthState = item.state
+  if (state === 'active' && item.privacyNote) return t('settings.portability.supportFolderProofOnly')
   if (state === 'active') return t('settings.portability.active')
   if (state === 'available') return t('settings.portability.available')
+  if (state === 'proof-preview') return t('settings.portability.proofPreview')
   if (state === 'planned') return t('settings.portability.planned')
   return t('settings.portability.notSelected')
 }

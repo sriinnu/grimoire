@@ -7,6 +7,9 @@
 @import './theme-status-bar.css';
 @import './theme-surface-coherence.css';
 @import './theme-settings.css';
+@import './theme-settings-workflow.css';
+@import './theme-settings-sync.css';
+@import './theme-settings-privacy.css';
 @import './theme-agent-council.css';
 @import './theme-ai-brief.css';
 @import './theme-memory-ledger.css';

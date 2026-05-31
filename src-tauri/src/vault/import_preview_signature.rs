@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
-use walkdir::{DirEntry, WalkDir};
+use walkdir::WalkDir;
 
 use super::app_importer::import_app_export;
 use super::app_importer_progress::import_app_export_with_progress;
@@ -233,17 +233,20 @@ fn selected_label(root: &Path, selected: &Path) -> String {
 
 fn directory_signature_lines(root: &Path) -> Result<Vec<String>, String> {
     let mut lines = Vec::new();
-    for entry in WalkDir::new(root)
-        .follow_links(false)
-        .into_iter()
-        .filter_entry(should_enter)
-    {
+    for entry in WalkDir::new(root).follow_links(false) {
         let entry = entry.map_err(|e| format!("Failed to inspect import source: {e}"))?;
+        if entry.depth() == 0 {
+            continue;
+        }
+        let relative = entry
+            .path()
+            .strip_prefix(root)
+            .map_err(|_| "Failed to resolve import source fingerprint".to_string())?;
+        if is_private_source(relative) {
+            lines.push(private_shape_signature_line(relative, &entry));
+            continue;
+        }
         if entry.file_type().is_file() {
-            let relative = entry
-                .path()
-                .strip_prefix(root)
-                .map_err(|_| "Failed to resolve import source fingerprint".to_string())?;
             lines.push(file_signature_line("file", relative, entry.path())?);
         }
     }
@@ -264,15 +267,19 @@ fn file_signature_line(role: &str, relative: &Path, source: &Path) -> Result<Str
     ))
 }
 
-fn normalize_relative(path: &Path) -> String {
-    path_to_string(path).replace('\\', "/")
+fn private_shape_signature_line(relative: &Path, entry: &walkdir::DirEntry) -> String {
+    let kind = if entry.file_type().is_dir() {
+        "dir"
+    } else if entry.file_type().is_file() {
+        "file"
+    } else {
+        "other"
+    };
+    format!("shape:withheld:{kind}:{}", normalize_relative(relative))
 }
 
-fn should_enter(entry: &DirEntry) -> bool {
-    if entry.depth() == 0 || !entry.file_type().is_dir() {
-        return true;
-    }
-    !is_private_name(&entry.file_name().to_string_lossy().to_ascii_lowercase())
+fn normalize_relative(path: &Path) -> String {
+    path_to_string(path).replace('\\', "/")
 }
 
 fn is_private_source(path: &Path) -> bool {

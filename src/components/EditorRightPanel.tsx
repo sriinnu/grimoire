@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
+import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
 import type { VaultEntry, GitCommit } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { Inspector, type FrontmatterValue } from './Inspector'
@@ -18,6 +19,7 @@ interface EditorRightPanelProps {
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
   aiAgentsStatus?: AiAgentsStatus
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
   defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onUnsupportedAiPaste?: (message: string) => void
@@ -60,6 +62,7 @@ export function EditorRightPanel({
   showAIChat, inspectorCollapsed, inspectorWidth,
   defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
   aiAgentsStatus,
+  chitraguptaStatus,
   defaultAiProvider,
   defaultAiModel,
   onUnsupportedAiPaste,
@@ -142,6 +145,7 @@ export function EditorRightPanel({
         entries={entries}
         gitHistory={gitHistory}
         chitraguptaAvailability={aiAgentsStatus?.chitragupta ?? null}
+        chitraguptaStatus={chitraguptaStatus}
         vaultPath={vaultPath}
         onNavigate={onNavigateWikilink}
         onViewCommitDiff={onViewCommitDiff}

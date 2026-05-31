@@ -305,19 +305,19 @@ export function ObjectStoragePrototypeActions({
           </span>
         </span>
       </div>
-      <div className="mb-2 grid gap-2 sm:grid-cols-2" role="tablist" aria-label="Object storage providers">
+      <div className="mb-2 grid gap-2 sm:grid-cols-2" role="tablist" aria-label={t('settings.portability.objectStorageProvidersAria')}>
         <ProviderToggle
           provider="s3"
           active={activeProvider === 's3'}
           label="Amazon S3"
-          detail="Read-only preflight, proof preview/apply, local mirror."
+          detail={t('settings.portability.objectStorageS3ProviderDetail')}
           onSelect={setExpandedProvider}
         />
         <ProviderToggle
           provider="azure"
           active={activeProvider === 'azure'}
           label="Azure Blob"
-          detail="CLI-auth proof preview/apply and local mirror."
+          detail={t('settings.portability.objectStorageAzureProviderDetail')}
           onSelect={setExpandedProvider}
         />
       </div>
@@ -336,11 +336,11 @@ export function ObjectStoragePrototypeActions({
           >
             <PrototypeButtons buttons={s3MirrorButtons} busyAction={busyAction} vaultReady={vaultReady} />
           </StorageActionGroup>
-          <S3LivePreflightCard report={s3LivePreflightReport} />
-          <ObjectStoragePreviewCard report={s3ProviderPushPreviewReport} target="provider" />
-          <ObjectStoragePreviewCard report={s3ProviderPullPreviewReport} target="provider" />
-          <ObjectStoragePreviewCard report={s3MirrorPreviewReport} target="mirror" />
-          <ObjectStoragePreviewCard report={s3MirrorPullPreviewReport} target="mirror" />
+          <S3LivePreflightCard report={s3LivePreflightReport} t={t} />
+          <ObjectStoragePreviewCard report={s3ProviderPushPreviewReport} target="provider" t={t} />
+          <ObjectStoragePreviewCard report={s3ProviderPullPreviewReport} target="provider" t={t} />
+          <ObjectStoragePreviewCard report={s3MirrorPreviewReport} target="mirror" t={t} />
+          <ObjectStoragePreviewCard report={s3MirrorPullPreviewReport} target="mirror" t={t} />
         </ProviderPanel>
       ) : null}
       {activeProvider === 'azure' ? (
@@ -358,16 +358,16 @@ export function ObjectStoragePrototypeActions({
           >
             <PrototypeButtons buttons={azureButtons.slice(5)} busyAction={busyAction} vaultReady={vaultReady} />
           </StorageActionGroup>
-          <AzureLivePreflightCard report={azureLivePreflightReport} />
-          <ObjectStoragePreviewCard report={azureProviderPushPreviewReport} target="provider" />
-          <ObjectStoragePreviewCard report={azureProviderPullPreviewReport} target="provider" />
-          <ObjectStoragePreviewCard report={azureMirrorPreviewReport} target="mirror" />
-          <ObjectStoragePreviewCard report={azureMirrorPullPreviewReport} target="mirror" />
+          <AzureLivePreflightCard report={azureLivePreflightReport} t={t} />
+          <ObjectStoragePreviewCard report={azureProviderPushPreviewReport} target="provider" t={t} />
+          <ObjectStoragePreviewCard report={azureProviderPullPreviewReport} target="provider" t={t} />
+          <ObjectStoragePreviewCard report={azureMirrorPreviewReport} target="mirror" t={t} />
+          <ObjectStoragePreviewCard report={azureMirrorPullPreviewReport} target="mirror" t={t} />
         </ProviderPanel>
       ) : null}
       {activeProvider === null ? (
         <div className="grimoire-object-storage-preview rounded-md border border-border p-2 text-[11px] leading-snug text-muted-foreground" data-testid="object-storage-provider-empty">
-          Pick a provider to reveal local-only preflight fields and sync actions.
+          {t('settings.portability.objectStorageProviderEmpty')}
         </div>
       ) : null}
     </div>
@@ -375,14 +375,14 @@ export function ObjectStoragePrototypeActions({
 }
 
 function sameS3ProviderArgs(current: S3LivePreflightArgs, preview?: S3LivePreflightArgs): boolean {
-  if (!preview) return true
+  if (!preview) return false
   return current.bucket === preview.bucket
     && current.region === preview.region
     && current.prefix === preview.prefix
 }
 
 function sameAzureProviderArgs(current: AzureLivePreflightArgs, preview?: AzureLivePreflightArgs): boolean {
-  if (!preview) return true
+  if (!preview) return false
   return current.account === preview.account
     && current.container === preview.container
     && current.prefix === preview.prefix

@@ -57,6 +57,62 @@
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
   [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__context-strip,
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__memory-strip {
+  border-color: var(--grimoire-signal-border);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-signal-accent) 12%, transparent), transparent 64%),
+    color-mix(in srgb, var(--surface-card) 80%, var(--surface-panel));
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__context-strip [data-metric],
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__memory-strip [data-metric] {
+  border-color: color-mix(in srgb, var(--grimoire-signal-border) 42%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--surface-input) 58%, transparent);
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) .grimoire-ai-brief__context-strip[data-locality="protected-local"] {
+  border-color: color-mix(in srgb, var(--grimoire-private-local-accent) 30%, var(--grimoire-hairline));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-private-local-accent) 13%, transparent), transparent 64%),
+    color-mix(in srgb, var(--surface-card) 80%, var(--surface-panel));
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
 ) .grimoire-ai-brief[data-locality="protected-local"] .grimoire-ai-brief__inner {
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--grimoire-private-local-accent) 10%, transparent), transparent 62%),

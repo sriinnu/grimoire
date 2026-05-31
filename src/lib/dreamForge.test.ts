@@ -69,6 +69,15 @@ describe('buildDreamForgeSummary', () => {
       pathPolicy: 'never',
       agentPolicy: 'counts-and-redaction-only',
     })
+    expect(summary.manifest).toEqual({
+      lens: 'local-only',
+      source: 'frontmatter-only',
+      egress: 'blocked-by-default',
+      export: 'explicit-user-action',
+      recordCount: 3,
+      heldLocalCount: 3,
+      signalCount: 7,
+    })
     expect(summary.latestDreamAt).toBe(30)
     expect(summary.rhythm).toHaveLength(3)
     expect(summary.symbols[0]).toEqual({ label: 'river', count: 2 })

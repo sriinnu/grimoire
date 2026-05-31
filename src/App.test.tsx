@@ -317,6 +317,16 @@ async function pressEscape() {
   })
 }
 
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, reject, resolve }
+}
+
 async function selectSidebarNav(label: string) {
   const nav = await screen.findByTestId('sidebar-top-nav', {}, { timeout: 5000 })
   fireEvent.click(within(nav).getByText(label))
@@ -1143,6 +1153,10 @@ describe('App', () => {
   })
 
   it('switches vaults from the bottom bar after onboarding is ready', async () => {
+    const switchedEntries = [
+      { ...mockEntries[0], path: '/vault-2/project/work.md', filename: 'work.md', title: 'Work Project' },
+    ]
+    const switchLoad = createDeferred<typeof switchedEntries>()
     mockCommandResults.load_vault_list = {
       vaults: [
         { label: 'Test Vault', path: '/work' },
@@ -1151,6 +1165,8 @@ describe('App', () => {
       active_vault: '/work',
       hidden_defaults: [],
     }
+    mockCommandResults.list_vault = (args?: { path?: string }) =>
+      args?.path === '/vault-2' ? switchLoad.promise : mockEntries
 
     render(<App />)
 
@@ -1160,6 +1176,17 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('grimoire-refresh-animation')).toBeInTheDocument()
+      expect(screen.getByText('Switching vault')).toBeInTheDocument()
+      expect(screen.getByText('Opening Work Vault')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      switchLoad.resolve(switchedEntries)
+      await switchLoad.promise
+    })
 
     await waitFor(() => {
       expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Work Vault')

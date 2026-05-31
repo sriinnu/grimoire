@@ -5,6 +5,7 @@ import {
   appendCanvasShape,
   appendCanvasTextBox,
   appendStroke,
+  clearCanvasDocument,
   eraseStrokesAt,
   findCanvasImageAt,
   moveCanvasSelection,
@@ -101,5 +102,38 @@ describe('canvasDrawing image layers', () => {
     expect(moved.shapes[0]).toMatchObject({ x: 22, y: 38 })
     expect(moved.textBoxes[0]).toMatchObject({ x: 112, y: 118 })
     expect(moved).not.toHaveProperty('selection')
+  })
+
+  it('keeps zero-distance and stale canvas moves as no-ops', () => {
+    const document = appendCanvasImage(createCanvasDocument('whiteboard'), 'attachments/photo.png')
+    const image = document.images[0]
+
+    expect(moveCanvasImage(document, image.id, 0, 0)).toBe(document)
+    expect(moveCanvasImage(document, 'missing-image', 12, 18)).toBe(document)
+    expect(moveCanvasSelection(document, { images: [image.id], shapes: [], strokes: [], textBoxes: [] }, 0, 0))
+      .toBe(document)
+    expect(moveCanvasSelection(document, { images: ['missing-image'], shapes: [], strokes: [], textBoxes: [] }, 12, 18))
+      .toBe(document)
+  })
+
+  it('clears drawable layers without leaving stale layer order ids in saved JSON', () => {
+    const document = appendStroke(
+      appendCanvasImage(createCanvasDocument('whiteboard'), 'attachments/photo.png'),
+      stroke(),
+    )
+
+    const cleared = clearCanvasDocument(document)
+
+    expect(cleared.images).toEqual([])
+    expect(cleared.strokes).toEqual([])
+    expect(cleared.shapes).toEqual([])
+    expect(cleared.textBoxes).toEqual([])
+    expect(cleared.layerOrder).toEqual([])
+  })
+
+  it('keeps empty canvas clear as a no-op so the dialog does not become dirty', () => {
+    const document = createCanvasDocument('whiteboard')
+
+    expect(clearCanvasDocument(document)).toBe(document)
   })
 })

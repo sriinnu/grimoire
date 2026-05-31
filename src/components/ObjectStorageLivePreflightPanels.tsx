@@ -1,11 +1,11 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { createTranslator } from '../lib/i18n'
 import {
-  s3LivePreflightStatusLabel,
+  type S3LivePreflightStatus,
   type S3LivePreflightReport,
 } from '../utils/objectStorageSync'
 import {
-  azureLivePreflightStatusLabel,
+  type AzureLivePreflightStatus,
   type AzureLivePreflightReport,
 } from '../utils/objectStorageLivePreflight'
 import { Badge } from './ui/badge'
@@ -58,41 +58,43 @@ export function AzureLivePreflightControls({
   )
 }
 
-export function S3LivePreflightCard({ report }: { report?: S3LivePreflightReport }) {
+export function S3LivePreflightCard({ report, t }: { report?: S3LivePreflightReport; t: Translate }) {
   if (!report) return null
   return (
     <LivePreflightCard
       status={report.status}
-      statusLabel={s3LivePreflightStatusLabel(report.status)}
-      title="S3 live preflight"
+      statusLabel={s3PreflightStatusLabel(report.status, t)}
+      title={t('settings.portability.objectStorageS3PreflightTitle')}
       message={report.message}
       testId="object-storage-s3-live-preflight"
+      t={t}
       stats={[
-        ['Bucket', report.bucket_configured ? 'set' : 'missing'],
-        ['Region', report.region_configured ? 'set' : 'default'],
-        ['Prefix', report.prefix_configured ? 'set' : 'none'],
-        ['HeadBucket', report.head_bucket_checked ? 'checked' : 'skipped'],
-        ['List', report.list_prefix_checked ? 'checked' : 'skipped'],
+        [t('settings.portability.objectStorageBucket'), valueLabel(report.bucket_configured ? 'set' : 'missing', t)],
+        [t('settings.portability.objectStorageRegion'), valueLabel(report.region_configured ? 'set' : 'default', t)],
+        [t('settings.portability.objectStoragePrefix'), valueLabel(report.prefix_configured ? 'set' : 'none', t)],
+        [t('settings.portability.objectStorageHeadBucket'), valueLabel(report.head_bucket_checked ? 'checked' : 'skipped', t)],
+        [t('settings.portability.objectStorageList'), valueLabel(report.list_prefix_checked ? 'checked' : 'skipped', t)],
       ]}
     />
   )
 }
 
-export function AzureLivePreflightCard({ report }: { report?: AzureLivePreflightReport }) {
+export function AzureLivePreflightCard({ report, t }: { report?: AzureLivePreflightReport; t: Translate }) {
   if (!report) return null
   return (
     <LivePreflightCard
       status={report.status}
-      statusLabel={azureLivePreflightStatusLabel(report.status)}
-      title="Azure live preflight"
+      statusLabel={azurePreflightStatusLabel(report.status, t)}
+      title={t('settings.portability.objectStorageAzurePreflightTitle')}
       message={report.message}
       testId="object-storage-azure-live-preflight"
+      t={t}
       stats={[
-        ['Account', report.account_configured ? 'set' : 'missing'],
-        ['Container', report.container_configured ? 'set' : 'missing'],
-        ['Prefix', report.prefix_configured ? 'set' : 'none'],
-        ['Container check', report.container_checked ? 'checked' : 'skipped'],
-        ['List', report.list_prefix_checked ? 'checked' : 'skipped'],
+        [t('settings.portability.objectStorageAccount'), valueLabel(report.account_configured ? 'set' : 'missing', t)],
+        [t('settings.portability.objectStorageContainer'), valueLabel(report.container_configured ? 'set' : 'missing', t)],
+        [t('settings.portability.objectStoragePrefix'), valueLabel(report.prefix_configured ? 'set' : 'none', t)],
+        [t('settings.portability.objectStorageContainerCheck'), valueLabel(report.container_checked ? 'checked' : 'skipped', t)],
+        [t('settings.portability.objectStorageList'), valueLabel(report.list_prefix_checked ? 'checked' : 'skipped', t)],
       ]}
     />
   )
@@ -148,6 +150,7 @@ function LivePreflightCard({
   title,
   message,
   testId,
+  t,
   stats,
 }: {
   status: string
@@ -155,6 +158,7 @@ function LivePreflightCard({
   title: string
   message: string
   testId: string
+  t: Translate
   stats: [string, string][]
 }) {
   return (
@@ -167,17 +171,58 @@ function LivePreflightCard({
         <Badge variant={status === 'reachable' ? 'secondary' : 'outline'} className="rounded-md">
           {statusLabel}
         </Badge>
-        <Badge variant="outline" className="rounded-md">Read-only</Badge>
+        <Badge variant="outline" className="rounded-md">{t('settings.portability.objectStorageReadOnly')}</Badge>
         <span className="text-xs font-semibold text-foreground">{title}</span>
       </div>
       <div className="grid grid-cols-2 gap-1 text-[11px] sm:grid-cols-5">
         {stats.map(([label, value]) => <PreflightStat key={label} label={label} value={value} />)}
       </div>
       <div className="text-[11px] leading-snug text-muted-foreground">
-        {message} No object keys, credentials, or local file paths are returned.
+        {message} {t('settings.portability.objectStorageNoSecretsReturned')}
       </div>
     </div>
   )
+}
+
+function valueLabel(value: 'set' | 'missing' | 'default' | 'none' | 'checked' | 'skipped', t: Translate): string {
+  const key = ({
+    checked: 'settings.portability.objectStorageValueChecked',
+    default: 'settings.portability.objectStorageValueDefault',
+    missing: 'settings.portability.objectStorageValueMissing',
+    none: 'settings.portability.objectStorageValueNone',
+    set: 'settings.portability.objectStorageValueSet',
+    skipped: 'settings.portability.objectStorageValueSkipped',
+  } as const)[value]
+  return t(key)
+}
+
+function s3PreflightStatusLabel(status: S3LivePreflightStatus, t: Translate): string {
+  const key = ({
+    auth_denied: 'settings.portability.objectStorageStatusAccessDenied',
+    bucket_missing: 'settings.portability.objectStorageStatusBucketMissing',
+    failed: 'settings.portability.objectStorageStatusFailed',
+    missing_config: 'settings.portability.objectStorageStatusNotConfigured',
+    missing_credentials: 'settings.portability.objectStorageStatusCredentialsMissing',
+    network: 'settings.portability.objectStorageStatusNetworkFailed',
+    reachable: 'settings.portability.objectStorageStatusReachable',
+    throttled: 'settings.portability.objectStorageStatusThrottled',
+  } as const)[status]
+  return t(key)
+}
+
+function azurePreflightStatusLabel(status: AzureLivePreflightStatus, t: Translate): string {
+  const key = ({
+    auth_denied: 'settings.portability.objectStorageStatusAccessDenied',
+    container_missing: 'settings.portability.objectStorageStatusContainerMissing',
+    failed: 'settings.portability.objectStorageStatusFailed',
+    missing_cli: 'settings.portability.objectStorageStatusAzureCliMissing',
+    missing_config: 'settings.portability.objectStorageStatusNotConfigured',
+    missing_credentials: 'settings.portability.objectStorageStatusLoginMissing',
+    network: 'settings.portability.objectStorageStatusNetworkFailed',
+    reachable: 'settings.portability.objectStorageStatusReachable',
+    throttled: 'settings.portability.objectStorageStatusThrottled',
+  } as const)[status]
+  return t(key)
 }
 
 function PreflightStat({ label, value }: { label: string; value: string }) {

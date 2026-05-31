@@ -116,6 +116,9 @@ describe('VaultDashboard daily flow', () => {
 
     fireEvent.click(within(flow).getByRole('button', { name: /Reflect/ }))
     expect(input).toHaveValue('/journal ')
+    expect(within(flow).getByRole('button', { name: /Reflect/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Reflect/ })).toHaveAttribute('data-selected', 'true')
+    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('data-selected', 'false')
 
     fireEvent.change(input, { target: { value: '' } })
     fireEvent.click(within(flow).getByRole('button', { name: /Crystallize/ }))
@@ -137,6 +140,23 @@ describe('VaultDashboard daily flow', () => {
     expect(flow).toHaveTextContent('mobile clear')
     expect(flow).not.toHaveTextContent('0 memory reviews')
     expect(flow).not.toHaveTextContent('0 mobile reviews')
+  })
+
+  it('keeps the selected daily-flow step in sync with typed slash commands', () => {
+    renderDashboard()
+    const flow = screen.getByTestId('dashboard-daily-flow')
+    const input = screen.getByTestId('dashboard-capture-input')
+
+    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('aria-current', 'step')
+
+    fireEvent.change(input, { target: { value: '/note hello what are we doing today' } })
+    expect(within(flow).getByRole('button', { name: /Capture/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Capture/ })).toHaveAttribute('data-selected', 'true')
+    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('data-selected', 'false')
+
+    fireEvent.change(input, { target: { value: '/ask crystallize this' } })
+    expect(within(flow).getByRole('button', { name: /Crystallize/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Crystallize/ })).toHaveAttribute('data-selected', 'true')
   })
 
   it('lists every public note that can travel in the ask preview', async () => {

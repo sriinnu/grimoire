@@ -1,21 +1,29 @@
 import {
   AI_AGENT_CLI_DEFAULT_ROUTE,
   AI_AGENT_DEFINITIONS,
-  CHITRAGUPTA_CLI_MCP_BOUNDARY,
-  CHITRAGUPTA_MCP_READINESS_COPY,
-  CHITRAGUPTA_MCP_REQUIRED_SURFACES,
   getAiAgentDefinition,
   type AiAgentId,
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { AiProviderKeysCard } from './AiProviderKeysCard'
 import { LabeledSelect, SectionHeading } from './SettingsControls'
 import {
   updateAiAgentModelDraft,
   updateAiAgentProviderDraft,
 } from './settingsDraft'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
+
+const CHITRAGUPTA_MCP_SURFACE_KEYS = [
+  'settings.aiAgents.mcpSurfaceMemorySearch',
+  'settings.aiAgents.mcpSurfaceRecall',
+  'settings.aiAgents.mcpSurfaceWiki',
+  'settings.aiAgents.mcpSurfaceGraph',
+  'settings.aiAgents.mcpSurfaceIngest',
+  'settings.aiAgents.mcpSurfaceDiagnostics',
+  'settings.aiAgents.mcpSurfaceWriteSuggestions',
+] as const
 
 function buildDefaultAiAgentOptions(aiAgentsStatus: AiAgentsStatus, t: SettingsTranslate): Array<{ value: string; label: string }> {
   return AI_AGENT_DEFINITIONS.map((definition) => {
@@ -56,21 +64,24 @@ function renderChitraguptaRouteSummary(provider: string, model: string, t: Setti
   })
 }
 
-function ChitraguptaMcpContractCard() {
+function ChitraguptaMcpContractCard({ t }: { t: SettingsTranslate }) {
   return (
     <div
       className="settings-material-inner mt-2 rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
       data-testid="settings-ai-agent-chitragupta-contract"
     >
-      <div className="font-medium text-foreground">MCP memory contract</div>
-      <div>{CHITRAGUPTA_MCP_READINESS_COPY}</div>
+      <div className="font-medium text-foreground">{t('settings.aiAgents.mcpContractTitle')}</div>
+      <div>{t('settings.aiAgents.mcpContractReady')}</div>
+      <div className="mt-1" data-testid="settings-ai-agent-chitragupta-transport">
+        {t('settings.aiAgents.mcpContractTransport')}
+      </div>
       <div className="mt-2 flex flex-wrap gap-1">
-        {CHITRAGUPTA_MCP_REQUIRED_SURFACES.map((surface) => (
+        {CHITRAGUPTA_MCP_SURFACE_KEYS.map((surfaceKey) => (
           <span
-            key={surface}
+            key={surfaceKey}
             className="settings-material-chip rounded-full border px-2 py-0.5 font-medium text-foreground/85"
           >
-            {surface}
+            {t(surfaceKey)}
           </span>
         ))}
       </div>
@@ -182,6 +193,8 @@ export function AiAgentSettingsSection({
         {renderDefaultAiAgentSummary(defaultAiAgent, aiAgentsStatus, t)}
       </div>
 
+      <AiProviderKeysCard t={t} />
+
       {showProviderOverride ? (
         <div
           className="settings-material-card rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
@@ -189,9 +202,9 @@ export function AiAgentSettingsSection({
         >
           <div>{renderChitraguptaRouteSummary(selectedProvider, selectedModel, t)}</div>
           <div className="mt-1" data-testid="settings-ai-agent-chitragupta-boundary">
-            {CHITRAGUPTA_CLI_MCP_BOUNDARY}
+            {t('settings.aiAgents.mcpBoundary')}
           </div>
-          <ChitraguptaMcpContractCard />
+          <ChitraguptaMcpContractCard t={t} />
         </div>
       ) : null}
     </>

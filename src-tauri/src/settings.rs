@@ -14,15 +14,8 @@ const THEME_PRESETS: &[&str] = &[
     "nocturne",
     "retro-terminal",
 ];
-const EDITOR_FONTS: &[&str] = &[
-    "system",
-    "serif",
-    "mono",
-    "readable",
-    "literary",
-    "compact",
-    "handwritten",
-];
+const EDITOR_FONTS: &[&str] = &["system", "readable", "literary", "mono"];
+const EDITOR_LINE_HEIGHTS: &[&str] = &["compact", "comfortable", "spacious"];
 const NATIVE_SHELL_MATERIALS: &[&str] = &["standard", "unified", "glass-preview"];
 const TRANSCRIPTION_PROVIDERS: &[&str] = &["local_whisper", "whisper_api", "local_voice_model"];
 
@@ -41,6 +34,7 @@ pub struct Settings {
     pub theme_mode: Option<String>,
     pub theme_preset: Option<String>,
     pub editor_font: Option<String>,
+    pub editor_line_height: Option<String>,
     pub ui_language: Option<String>,
     pub menu_bar_icon_enabled: Option<bool>,
     pub native_shell_material: Option<String>,
@@ -145,7 +139,18 @@ pub fn normalize_theme_preset(value: Option<&str>) -> Option<String> {
 
 pub fn normalize_editor_font(value: Option<&str>) -> Option<String> {
     let font = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
-    EDITOR_FONTS.contains(&font.as_str()).then_some(font)
+    match font.as_str() {
+        "compact" => Some("system".to_string()),
+        "handwritten" | "serif" => Some("literary".to_string()),
+        _ => EDITOR_FONTS.contains(&font.as_str()).then_some(font),
+    }
+}
+
+pub fn normalize_editor_line_height(value: Option<&str>) -> Option<String> {
+    let line_height = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    EDITOR_LINE_HEIGHTS
+        .contains(&line_height.as_str())
+        .then_some(line_height)
 }
 
 pub fn normalize_native_shell_material(value: Option<&str>) -> Option<String> {
@@ -230,6 +235,7 @@ fn normalize_settings(settings: Settings) -> Settings {
         theme_mode: normalize_theme_mode(settings.theme_mode.as_deref()),
         theme_preset: normalize_theme_preset(settings.theme_preset.as_deref()),
         editor_font: normalize_editor_font(settings.editor_font.as_deref()),
+        editor_line_height: normalize_editor_line_height(settings.editor_line_height.as_deref()),
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         menu_bar_icon_enabled: settings.menu_bar_icon_enabled,
         native_shell_material: normalize_native_shell_material(

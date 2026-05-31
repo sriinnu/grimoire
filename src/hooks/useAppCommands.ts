@@ -315,7 +315,6 @@ function createCommandRegistryConfig(config: AppCommandsConfig): CommandRegistry
 /** Sets up keyboard shortcuts, command registry, menu events, and keyboard navigation. */
 export function useAppCommands(config: AppCommandsConfig): CommandAction[] {
   const entriesRef = useRef(config.entries)
-  // eslint-disable-next-line react-hooks/refs
   entriesRef.current = config.entries
 
   const toggleArchive = useCallback((path: string) => {

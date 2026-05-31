@@ -1,6 +1,5 @@
 import { UploadSimple } from '@phosphor-icons/react'
 import { hasReviewedExportPreview, exportRequiresReview, type PortabilityExportPreviewState } from '../lib/exportReviewGate'
-import { portabilityCapsuleFormatLabel } from '../lib/portabilityCapsule'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
 import { PortabilityActionButton } from './PortabilityActionButton'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
@@ -90,7 +89,7 @@ export function PortabilityExportActions({
         onClick={onExportSqliteSnapshot}
         t={t}
       />
-      <ExportPreviewSummary exportPreview={exportPreview} />
+      <ExportPreviewSummary exportPreview={exportPreview} t={t} />
     </>
   )
 }
@@ -113,7 +112,7 @@ function ExportButton({ label, testId, actionId, busyAction, exportPreview, vaul
       label={label}
       testId={testId}
       busy={busyAction === actionId}
-      busyLabel={t('settings.portability.exporting')}
+      busyLabel={t(actionId.endsWith('-preview') ? 'settings.portability.previewing' : 'settings.portability.exporting')}
       disabled={Boolean(busyAction) || !vaultReady || !onClick || exportLocked(actionId, exportPreview)}
       onClick={onClick}
       t={t}
@@ -128,23 +127,41 @@ function exportLocked(
   return exportRequiresReview(actionId) && !hasReviewedExportPreview(actionId, preview)
 }
 
-function ExportPreviewSummary({ exportPreview }: { exportPreview?: PortabilityExportPreviewState | null }) {
+function ExportPreviewSummary({
+  exportPreview,
+  t,
+}: { exportPreview?: PortabilityExportPreviewState | null; t: PortabilityActionDeckTranslate }) {
   if (!exportPreview) return null
   const { result } = exportPreview
+  const proofValue = (proved: boolean) => (
+    proved ? t('settings.portability.proofYes') : t('settings.portability.proofNeedsReview')
+  )
   return (
     <div
-      className="grimoire-portability-inline-panel grid w-full gap-1.5 rounded-md border border-border bg-background/65 px-2.5 py-2 text-[11px]"
+      className="grimoire-portability-inline-panel grid w-full gap-1.5 rounded-md border border-border px-2.5 py-2 text-[11px]"
       data-testid="settings-export-preview-summary"
     >
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge variant="secondary" className="rounded-md">Reviewed preview</Badge>
-        <span className="font-medium text-foreground">{portabilityCapsuleFormatLabel(exportPreview.format)}</span>
+        <Badge variant="secondary" className="rounded-md">{t('settings.portability.exportPreviewReviewed')}</Badge>
+        <span className="font-medium text-foreground">
+          {t(exportPreview.format === 'json'
+            ? 'settings.portability.exportPreviewFormatJson'
+            : 'settings.portability.exportPreviewFormatSqlite')}
+        </span>
       </div>
       <div className="text-muted-foreground">
-        {result.files_exportable} files, {result.notes_exportable} notes, {result.assets_exportable} assets exportable; {result.skipped_files} local-only withheld.
+        {t('settings.portability.exportPreviewCounts', {
+          assets: result.assets_exportable,
+          files: result.files_exportable,
+          notes: result.notes_exportable,
+          withheld: result.skipped_files,
+        })}
       </div>
       <div className="text-muted-foreground">
-        Markdown source of truth: {result.locality_proof.markdown_source_of_truth ? 'yes' : 'needs review'}. Absolute paths redacted: {result.locality_proof.absolute_source_paths_redacted ? 'yes' : 'needs review'}.
+        {t('settings.portability.exportPreviewProof', {
+          paths: proofValue(result.locality_proof.absolute_source_paths_redacted),
+          source: proofValue(result.locality_proof.markdown_source_of_truth),
+        })}
       </div>
     </div>
   )

@@ -4,6 +4,12 @@ import { cn } from '@/lib/utils'
 import type { AiAgentAvailability, AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 import { graphHandoffLaneLabel } from '../lib/graphAgentLanes'
+import {
+  evaluateChitraguptaContractStatus,
+  summarizeChitraguptaRuntimeReadiness,
+  type ChitraguptaRuntimeDiagnostic,
+  type ChitraguptaStatusPayload,
+} from '../lib/chitraguptaIntegration'
 import { AgentRouteDisclosure } from './AgentRouteDisclosure'
 
 type RunwayState = 'blocked' | 'guarded' | 'ready' | 'waiting'
@@ -14,6 +20,7 @@ interface GraphAgentRunwayProps {
   defaultAiModel?: string | null
   defaultAiProvider?: string | null
   aiAgentsStatus?: AiAgentsStatus
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
   selectedLocalOnly: boolean
 }
 
@@ -32,11 +39,13 @@ export function GraphAgentRunway({
   defaultAiModel,
   defaultAiProvider,
   aiAgentsStatus,
+  chitraguptaStatus,
   selectedLocalOnly,
 }: GraphAgentRunwayProps) {
   const defaultAgentStatus = defaultAiAgent ? aiAgentsStatus?.[defaultAiAgent] : undefined
-  const steps = buildRunwaySteps(agentGraphContext, selectedLocalOnly)
-  const summary = runwaySummary(agentGraphContext, selectedLocalOnly, defaultAgentStatus)
+  const chitraguptaDiagnostic = chitraguptaRunwayDiagnostic(agentGraphContext, aiAgentsStatus, chitraguptaStatus, selectedLocalOnly)
+  const steps = buildRunwaySteps(agentGraphContext, selectedLocalOnly, chitraguptaDiagnostic)
+  const summary = runwaySummary(agentGraphContext, selectedLocalOnly, defaultAiAgent, defaultAgentStatus, chitraguptaDiagnostic)
 
   return (
     <section
@@ -82,6 +91,7 @@ export function GraphAgentRunway({
 function buildRunwaySteps(
   context: AgentGraphContext,
   selectedLocalOnly: boolean,
+  chitraguptaDiagnostic: ChitraguptaRuntimeDiagnostic,
 ): RunwayStep[] {
   const blocked = context.state === 'protected-active' || selectedLocalOnly
   const empty = context.state === 'empty'
@@ -103,11 +113,11 @@ function buildRunwaySteps(
       status: empty ? 'Waiting' : 'On-device',
     },
     {
-      detail: 'Private-memory lane is policy-eligible; live CLI/MCP health is checked outside this graph package.',
+      detail: chitraguptaRunwayDetail(chitraguptaDiagnostic, empty),
       icon: <BrainCircuit className="size-3.5" />,
       label: 'Chitragupta',
-      state: empty ? 'waiting' : 'guarded',
-      status: empty ? 'Waiting' : 'Eligible',
+      state: empty ? 'waiting' : chitraguptaRunwayState(chitraguptaDiagnostic),
+      status: empty ? 'Waiting' : chitraguptaDiagnostic.contractLabel,
     },
     {
       detail: blocked ? 'External agents are blocked by the Locality Firewall.' : 'Codex and Claude Code are eligible for source-safe graph labels only.',
@@ -129,7 +139,9 @@ function buildRunwaySteps(
 function runwaySummary(
   context: AgentGraphContext,
   selectedLocalOnly: boolean,
+  defaultAiAgent?: AiAgentId,
   defaultAgentStatus?: AiAgentAvailability,
+  chitraguptaDiagnostic?: ChitraguptaRuntimeDiagnostic,
 ): {
   metrics: Array<{ label: string; state: RunwayState; value: string }>
   state: RunwayState
@@ -139,18 +151,61 @@ function runwaySummary(
   const held = context.omitted.protectedNodes + context.omitted.protectedEdges
   const routeBlocked = defaultAgentStatus?.status === 'missing'
   const routeChecking = defaultAgentStatus?.status === 'checking'
+  const chitraguptaRoute = defaultAiAgent === 'chitragupta' && chitraguptaDiagnostic
+  const chitraguptaBlocked = chitraguptaRoute && chitraguptaRunwayState(chitraguptaDiagnostic) === 'blocked'
+  const chitraguptaWaiting = chitraguptaRoute && chitraguptaRunwayState(chitraguptaDiagnostic) === 'waiting'
   const sourceLabel = empty ? 'No package' : `${context.nodes.length} labels / ${context.edges.length} links`
   const privacyLabel = blocked ? 'Locality firewall' : held > 0 ? `${held} held from agents` : 'Source-safe'
-  const reviewLabel = empty ? 'Waiting' : blocked ? 'Guarded review' : routeBlocked ? 'Agent missing' : routeChecking ? 'Agent checking' : 'Markdown diff'
+  const reviewLabel = empty ? 'Waiting'
+    : blocked ? 'Guarded review'
+      : routeBlocked ? 'Agent missing'
+        : chitraguptaBlocked ? chitraguptaDiagnostic.contractLabel
+          : routeChecking || chitraguptaWaiting ? 'Agent checking'
+            : 'Markdown diff'
+  const resultState = empty ? 'waiting'
+    : blocked ? 'guarded'
+      : routeChecking || chitraguptaWaiting ? 'waiting'
+        : routeBlocked || chitraguptaBlocked ? 'blocked'
+          : 'ready'
 
   return {
     metrics: [
       { label: 'Packet', state: empty ? 'waiting' : blocked ? 'guarded' : 'ready', value: sourceLabel },
       { label: 'Privacy', state: blocked || held > 0 ? 'guarded' : 'ready', value: privacyLabel },
-      { label: 'Result', state: empty ? 'waiting' : blocked ? 'guarded' : routeChecking ? 'waiting' : routeBlocked ? 'blocked' : 'ready', value: reviewLabel },
+      { label: 'Result', state: resultState, value: reviewLabel },
     ],
-    state: empty ? 'waiting' : blocked ? 'guarded' : routeChecking ? 'waiting' : routeBlocked ? 'blocked' : 'ready',
+    state: resultState,
   }
+}
+
+function chitraguptaRunwayDiagnostic(
+  context: AgentGraphContext,
+  aiAgentsStatus: AiAgentsStatus | undefined,
+  chitraguptaStatus: ChitraguptaStatusPayload | null | undefined,
+  selectedLocalOnly: boolean,
+): ChitraguptaRuntimeDiagnostic {
+  return summarizeChitraguptaRuntimeReadiness({
+    availability: aiAgentsStatus?.chitragupta ?? null,
+    contractStatus: evaluateChitraguptaContractStatus(chitraguptaStatus),
+    protectedNote: context.state === 'protected-active' || selectedLocalOnly,
+  })
+}
+
+function chitraguptaRunwayState(diagnostic: ChitraguptaRuntimeDiagnostic): RunwayState {
+  if (diagnostic.state === 'checking') return 'waiting'
+  if (diagnostic.state === 'cli_missing' || diagnostic.state === 'mcp_blocked' || diagnostic.state === 'mcp_transport_closed') return 'blocked'
+  return 'guarded'
+}
+
+function chitraguptaRunwayDetail(
+  diagnostic: ChitraguptaRuntimeDiagnostic,
+  empty: boolean,
+): string {
+  if (empty) return 'Choose a graph node before asking private memory.'
+  if (diagnostic.warnings.length > 0) return diagnostic.warnings[0]
+  if (diagnostic.state === 'ready') return 'Private memory tools are ready; output still returns through review.'
+  if (diagnostic.state === 'protected') return 'Protected graph context stays local and out of private memory tools.'
+  return 'CLI chat can run separately; memory recall waits for MCP diagnostics.'
 }
 
 function packageDetail(context: AgentGraphContext, held: number): string {
