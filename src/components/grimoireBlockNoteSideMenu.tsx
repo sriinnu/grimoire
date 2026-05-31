@@ -43,7 +43,7 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
         if (open) sideMenu.freezeMenu()
         else sideMenu.unfreezeMenu()
       }}
-      position="right-start"
+      position="left-start"
     >
       <Components.Generic.Menu.Trigger>
         <Components.SideMenu.Button

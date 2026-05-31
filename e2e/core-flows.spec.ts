@@ -43,7 +43,7 @@ test('sidebar filter: People shows only Person entries', async ({ page }) => {
   await page.waitForTimeout(200)
 
   await expect(page.locator('.note-list__count')).toHaveText('1')
-  await expect(page.locator('.note-list__title', { hasText: 'Karthik Reddy' })).toBeVisible()
+  await expect(page.locator('.note-list__title', { hasText: 'Arjun Mehta' })).toBeVisible()
   await expect(page.locator('.note-list__title', { hasText: 'Build Grimoire App' })).not.toBeVisible()
 })
 
@@ -152,7 +152,7 @@ test('inspector shows properties for selected note', async ({ page }) => {
   // Status
   await expect(page.locator('.inspector__status-pill', { hasText: 'Active' })).toBeVisible()
   // Owner
-  await expect(page.locator('.inspector__prop-value', { hasText: 'Srinivas Pendela' })).toBeVisible()
+  await expect(page.locator('.inspector__prop-value', { hasText: 'Mira Sen' })).toBeVisible()
 
   await page.screenshot({ path: 'test-results/core-inspector.png', fullPage: true })
 })
@@ -192,7 +192,7 @@ test('inspector updates when switching tabs', async ({ page }) => {
   await expect(page.locator('.inspector__prop-value', { hasText: 'Project' })).toBeVisible()
 
   // Open second note with different type — use title locator for precision
-  await page.locator('.note-list__item').filter({ has: page.locator('.note-list__title', { hasText: 'Karthik Reddy' }) }).click()
+  await page.locator('.note-list__item').filter({ has: page.locator('.note-list__title', { hasText: 'Arjun Mehta' }) }).click()
   await page.waitForTimeout(300)
   await expect(page.locator('.inspector__prop-value', { hasText: 'Person' })).toBeVisible()
 })
@@ -235,7 +235,7 @@ test('full create note flow', async ({ page }) => {
 // --- Flow 8: Wiki-link navigation ---
 
 test('clicking a wikilink opens the target note in a new tab', async ({ page }) => {
-  // Open "Manage Sponsorships" which contains [[Karthik Reddy]] wikilink
+  // Open "Manage Sponsorships" which contains [[Arjun Mehta]] wikilink
   await page.locator('.note-list__item', { hasText: 'Manage Sponsorships' }).click()
   await page.waitForTimeout(300)
 
@@ -243,7 +243,7 @@ test('clicking a wikilink opens the target note in a new tab', async ({ page }) 
   await expect(page.locator('.editor__tab--active')).toHaveText(/Manage Sponsorships/)
 
   // Click the wikilink — use mouse.click to fire real mousedown
-  const wikilink = page.locator('.cm-wikilink', { hasText: 'Karthik Reddy' })
+  const wikilink = page.locator('.cm-wikilink', { hasText: 'Arjun Mehta' })
   await expect(wikilink).toBeVisible()
   const box = await wikilink.boundingBox()
   expect(box).not.toBeNull()
@@ -251,10 +251,10 @@ test('clicking a wikilink opens the target note in a new tab', async ({ page }) 
   await page.waitForTimeout(300)
 
   // New tab should open with the target note active
-  await expect(page.locator('.editor__tab--active')).toHaveText(/Karthik Reddy/)
+  await expect(page.locator('.editor__tab--active')).toHaveText(/Arjun Mehta/)
 
   // Editor should show the target note's content
-  await expect(page.locator('.cm-content')).toContainText('Karthik Reddy')
+  await expect(page.locator('.cm-content')).toContainText('Arjun Mehta')
 
   await page.screenshot({ path: 'test-results/core-wikilink-nav.png', fullPage: true })
 })

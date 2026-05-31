@@ -107,19 +107,19 @@ describe('mockHandlers coverage', () => {
     const { mockHandlers } = await loadHandlers()
 
     mockHandlers.save_note_content({
-      path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md',
+      path: '/Users/mock/Grimoire/26q1-grimoire-app.md',
       content: '# Updated project note',
     })
     mockHandlers.save_note_content({
-      path: '/Users/srinivas/Grimoire/new-note.md',
+      path: '/Users/mock/Grimoire/new-note.md',
       content: '# New note',
     })
 
     const modifiedBeforeCommit = mockHandlers.get_modified_files()
-    const basePathCount = modifiedBeforeCommit.filter((entry) => entry.path === '/Users/srinivas/Grimoire/26q1-grimoire-app.md').length
+    const basePathCount = modifiedBeforeCommit.filter((entry) => entry.path === '/Users/mock/Grimoire/26q1-grimoire-app.md').length
 
     expect(basePathCount).toBe(1)
-    expect(modifiedBeforeCommit.some((entry) => entry.path === '/Users/srinivas/Grimoire/new-note.md')).toBe(true)
+    expect(modifiedBeforeCommit.some((entry) => entry.path === '/Users/mock/Grimoire/new-note.md')).toBe(true)
 
     expect(mockHandlers.git_commit({ message: 'Save everything' })).toContain('6 files changed')
     expect(mockHandlers.get_modified_files()).toEqual([])
@@ -127,7 +127,7 @@ describe('mockHandlers coverage', () => {
 
   it('searches mock content and slices pulse results to the requested limit', async () => {
     const { mockHandlers } = await loadHandlers()
-    const projectPath = '/Users/srinivas/Grimoire/26q1-grimoire-app.md'
+    const projectPath = '/Users/mock/Grimoire/26q1-grimoire-app.md'
 
     mockHandlers.save_note_content({
       path: projectPath,

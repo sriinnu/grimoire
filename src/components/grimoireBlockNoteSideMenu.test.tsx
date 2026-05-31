@@ -61,7 +61,7 @@ describe('GrimoireSideMenu', () => {
     expect(screen.getByTestId('side-menu')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add block' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Open block menu' })).toBeInTheDocument()
-    expect(capturedMenuPosition).toBe('right-start')
+    expect(capturedMenuPosition).toBe('left-start')
 
     expect(screen.getByText('Delete')).toBeInTheDocument()
     expect(screen.getByText('Header row')).toBeInTheDocument()

@@ -15,7 +15,7 @@ describe('NoteList neighborhood rendering', () => {
     })
 
     expect(await screen.findByText('Backlinks')).toBeInTheDocument()
-    expect(screen.getByText('Karthik Reddy')).toBeInTheDocument()
+    expect(screen.getByText('Arjun Mehta')).toBeInTheDocument()
   })
 
   it('shows no placeholder neighborhood groups when none exist', () => {

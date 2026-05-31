@@ -1,11 +1,11 @@
 ---
 type: Person
 aliases:
-  - "[[Karthik Reddy]]"
+  - "[[Arjun Mehta]]"
 tier: 1st
 ---
 
-# Karthik Reddy
+# Arjun Mehta
 
 Owns sponsor outreach and makes the responsibility/procedure relationships feel like real working notes.
 

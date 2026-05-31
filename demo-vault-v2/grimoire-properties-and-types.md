@@ -7,7 +7,7 @@ related_to:
   - "[[grimoire-feature-tour]]"
   - "[[grimoire-markdown-learning]]"
 status: Active
-owner: "[[person-srinivas-pendela]]"
+owner: "[[person-mira-sen]]"
 priority: High
 color: green
 ---

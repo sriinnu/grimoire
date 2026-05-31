@@ -169,7 +169,7 @@ describe('NoteList multi-select', () => {
     const { onReplaceActiveTab } = renderNoteList()
     fireEvent.click(getNoteTitleElement('Build Grimoire App'))
     fireEvent.click(getNoteTitleElement('Facebook Ads Strategy'), { shiftKey: true })
-    fireEvent.click(getNoteTitleElement('Karthik Reddy'))
+    fireEvent.click(getNoteTitleElement('Arjun Mehta'))
 
     expect(screen.queryByTestId('multi-selected-item')).not.toBeInTheDocument()
     expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[2])
@@ -179,7 +179,7 @@ describe('NoteList multi-select', () => {
     const { onEnterNeighborhood, onReplaceActiveTab } = renderNoteList()
     fireEvent.click(getNoteTitleElement('Build Grimoire App'))
     fireEvent.click(getNoteTitleElement('Facebook Ads Strategy'), { shiftKey: true })
-    fireEvent.click(getNoteTitleElement('Karthik Reddy'), { metaKey: true })
+    fireEvent.click(getNoteTitleElement('Arjun Mehta'), { metaKey: true })
 
     expect(screen.queryByTestId('multi-selected-item')).not.toBeInTheDocument()
     await waitFor(() => {

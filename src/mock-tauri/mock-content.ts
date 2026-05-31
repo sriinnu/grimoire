@@ -4,11 +4,11 @@
  */
 
 export const MOCK_CONTENT: Record<string, string> = {
-  '/Users/srinivas/Grimoire/26q1-grimoire-app.md': `---
+  '/Users/mock/Grimoire/26q1-grimoire-app.md': `---
 title: Build Grimoire App
 type: Project
 status: Active
-owner: Srinivas Pendela
+owner: Mira Sen
 deadline: 2026-03-31
 published: true
 archived: false
@@ -24,7 +24,7 @@ related_to:
 # Build Grimoire App
 
 ## Text Formatting
-This paragraph has **bold text**, *italic text*, ***bold italic***, ~~strikethrough~~, and \`inline code\`. Here's a [regular link](https://example.com) and a wiki-link to [[Karthik Reddy]].
+This paragraph has **bold text**, *italic text*, ***bold italic***, ~~strikethrough~~, and \`inline code\`. Here's a [regular link](https://example.com) and a wiki-link to [[Arjun Mehta]].
 
 ## Headings
 
@@ -106,7 +106,7 @@ status: Active
 
 ## Wiki-Links
 See [[Stock Screener — EMA200 Wick Bounce]] for the experiment approach.
-Contact [[Karthik Reddy]] for sponsorship data.
+Contact [[Arjun Mehta]] for sponsorship data.
 Link to [[Grow Newsletter]] responsibility.
 Check [[Software Development]] for tech notes.
 See [[Grimoire App Design Session]] event recap.
@@ -118,11 +118,11 @@ This is a normal paragraph with enough text to test line wrapping and spacing be
 
 And this is a second paragraph to verify inter-paragraph spacing is correct. Good typography requires consistent vertical rhythm throughout the document.
 `,
-  '/Users/srinivas/Grimoire/grow-newsletter.md': `---
+  '/Users/mock/Grimoire/grow-newsletter.md': `---
 title: Grow Newsletter
 type: Responsibility
 status: Active
-owner: Srinivas Pendela
+owner: Mira Sen
 ---
 
 # Grow Newsletter
@@ -148,17 +148,17 @@ Build a sustainable audience through high-quality weekly essays on **engineering
 ## Notes
 The newsletter is the *engine* that drives everything else — sponsorships, consulting leads, and brand building.
 `,
-  '/Users/srinivas/Grimoire/manage-sponsorships.md': `---
+  '/Users/mock/Grimoire/manage-sponsorships.md': `---
 title: Manage Sponsorships
 type: Responsibility
 status: Active
-owner: Karthik Reddy
+owner: Arjun Mehta
 ---
 
 # Manage Sponsorships
 
 ## Overview
-Revenue stream from newsletter sponsorships. [[Karthik Reddy]] handles day-to-day operations.
+Revenue stream from newsletter sponsorships. [[Arjun Mehta]] handles day-to-day operations.
 
 ## Process
 1. Inbound leads via sponsorship page
@@ -172,11 +172,11 @@ Revenue stream from newsletter sponsorships. [[Karthik Reddy]] handles day-to-da
 - Close rate
 - Repeat sponsor rate
 `,
-  '/Users/srinivas/Grimoire/write-weekly-essays.md': `---
+  '/Users/mock/Grimoire/write-weekly-essays.md': `---
 title: Write Weekly Essays
 type: Procedure
 status: Active
-owner: Srinivas Pendela
+owner: Mira Sen
 cadence: Weekly
 belongs_to:
   - "[[grow-newsletter]]"
@@ -216,11 +216,11 @@ belongs_to:
 2. Second ordered item — shorter
   1. Nested ordered item that also has quite a long description to verify that the indentation works correctly for nested numbered lists too
 `,
-  '/Users/srinivas/Grimoire/run-sponsorships.md': `---
+  '/Users/mock/Grimoire/run-sponsorships.md': `---
 title: Run Sponsorships
 type: Procedure
 status: Active
-owner: Karthik Reddy
+owner: Arjun Mehta
 cadence: Weekly
 belongs_to:
   - "[[manage-sponsorships]]"
@@ -238,11 +238,11 @@ belongs_to:
 - Proposal template: \`/templates/sponsorship-proposal.md\`
 - Report template: \`/templates/sponsorship-report.md\`
 `,
-  '/Users/srinivas/Grimoire/stock-screener.md': `---
+  '/Users/mock/Grimoire/stock-screener.md': `---
 title: Stock Screener — EMA200 Wick Bounce
 type: Experiment
 status: Active
-owner: Srinivas Pendela
+owner: Mira Sen
 domains: [Finance, Quantitative Analysis]
 tools: [Python, pandas, TradingView]
 related_to:
@@ -273,7 +273,7 @@ Stocks that wick below the 200-day EMA and close above it show a **statistically
 - [ ] Add RSI filter for oversold confirmation
 - [ ] Build automated alerts via Python script
 `,
-  '/Users/srinivas/Grimoire/facebook-ads-strategy.md': `---
+  '/Users/mock/Grimoire/facebook-ads-strategy.md': `---
 title: Facebook Ads Strategy
 type: Note
 belongs_to:
@@ -298,7 +298,7 @@ related_to:
 1. Long-form vs short-form ad copy
 2. Testimonial vs data-driven creative
 `,
-  '/Users/srinivas/Grimoire/budget-allocation.md': `---
+  '/Users/mock/Grimoire/budget-allocation.md': `---
 title: Budget Allocation
 type: Note
 belongs_to:
@@ -318,14 +318,14 @@ belongs_to:
 - Under budget on ads due to improved targeting efficiency
 - Consider reallocating savings to content production
 `,
-  '/Users/srinivas/Grimoire/karthik-reddy.md': `---
-title: Karthik Reddy
+  '/Users/mock/Grimoire/arjun-mehta.md': `---
+title: Arjun Mehta
 type: Person
 aliases:
-  - Karthik
+  - Arjun
 ---
 
-# Karthik Reddy
+# Arjun Mehta
 
 ## Role
 Sponsorship manager — handles all sponsor relationships, proposals, and reporting.
@@ -338,12 +338,12 @@ Sponsorship manager — handles all sponsor relationships, proposals, and report
 - [[Manage Sponsorships]]
 - [[Run Sponsorships]]
 `,
-  '/Users/srinivas/Grimoire/2026-02-14-grimoire-app-kickoff.md': `---
+  '/Users/mock/Grimoire/2026-02-14-grimoire-app-kickoff.md': `---
 title: Grimoire App Design Session
 type: Event
 related_to:
   - "[[26q1-grimoire-app]]"
-  - "[[karthik-reddy]]"
+  - "[[arjun-mehta]]"
 ---
 
 # Grimoire App Design Session
@@ -352,8 +352,8 @@ related_to:
 2026-02-14
 
 ## Attendees
-- Srinivas Pendela
-- [[Karthik Reddy]]
+- Mira Sen
+- [[Arjun Mehta]]
 
 ## Notes
 - Agreed on four-panel layout inspired by Bear Notes
@@ -364,9 +364,9 @@ related_to:
 ## Action Items
 - [ ] Luca: finalize ontology mapping
 - [x] Luca: set up Tauri v2 project scaffold
-- [ ] Karthik: test with real vault data
+- [ ] Arjun: test with real vault data
 `,
-  '/Users/srinivas/Grimoire/software-development.md': `---
+  '/Users/mock/Grimoire/software-development.md': `---
 title: Software Development
 type: Topic
 aliases:
@@ -384,7 +384,7 @@ A broad topic covering everything from frontend to systems programming.
 - **AI/ML**: LLMs, agents, code generation
 - **Systems**: Rust, performance optimization
 `,
-  '/Users/srinivas/Grimoire/trading.md': `---
+  '/Users/mock/Grimoire/trading.md': `---
 title: Trading
 type: Topic
 aliases:
@@ -401,7 +401,7 @@ aliases:
 ## Active Experiments
 - [[Stock Screener — EMA200 Wick Bounce]]
 `,
-  '/Users/srinivas/Grimoire/on-writing-well.md': `---
+  '/Users/mock/Grimoire/on-writing-well.md': `---
 title: On Writing Well
 type: Essay
 Belongs to:
@@ -412,7 +412,7 @@ Belongs to:
 
 Good writing is lean and confident. Every sentence should serve a purpose.
 `,
-  '/Users/srinivas/Grimoire/engineering-leadership-101.md': `---
+  '/Users/mock/Grimoire/engineering-leadership-101.md': `---
 title: Engineering Leadership 101
 type: Essay
 Belongs to:
@@ -425,7 +425,7 @@ Related to:
 
 The transition from IC to manager is the hardest career shift in engineering.
 `,
-  '/Users/srinivas/Grimoire/ai-agents-primer.md': `---
+  '/Users/mock/Grimoire/ai-agents-primer.md': `---
 title: AI Agents Primer
 type: Essay
 Belongs to:
@@ -436,7 +436,7 @@ Belongs to:
 
 AI agents are autonomous systems that can plan, execute, and adapt to achieve goals.
 `,
-  '/Users/srinivas/Grimoire/meera-krishnan.md': `---
+  '/Users/mock/Grimoire/meera-krishnan.md': `---
 title: Meera Krishnan
 type: Person
 aliases:
@@ -452,7 +452,7 @@ Product designer — leads UX research and design sprints for the app.
 - Email: maria@example.com
 - Slack: @maria
 `,
-  '/Users/srinivas/Grimoire/arun-kumar.md': `---
+  '/Users/mock/Grimoire/arun-kumar.md': `---
 title: Arun Kumar
 type: Person
 aliases:
@@ -467,7 +467,7 @@ Frontend engineer — focuses on React performance and accessibility.
 ## Contact
 - Email: marco@example.com
 `,
-  '/Users/srinivas/Grimoire/deepti-singh.md': `---
+  '/Users/mock/Grimoire/deepti-singh.md': `---
 title: Deepti Singh
 type: Person
 aliases:
@@ -479,7 +479,7 @@ aliases:
 ## Role
 Content strategist — plans newsletter topics and manages the editorial calendar.
 `,
-  '/Users/srinivas/Grimoire/project.md': `---
+  '/Users/mock/Grimoire/project.md': `---
 type: Type
 order: 0
 ---
@@ -493,7 +493,7 @@ A **time-bound initiative** that advances a [[responsibility|Responsibility]]. P
 - **Owner**: The person accountable
 - **Belongs to**: Usually a Quarter or Responsibility
 `,
-  '/Users/srinivas/Grimoire/responsibility.md': `---
+  '/Users/mock/Grimoire/responsibility.md': `---
 type: Type
 order: 1
 ---
@@ -506,7 +506,7 @@ An **ongoing area of ownership** — something you're accountable for indefinite
 - **Status**: Active, Paused, Archived
 - **Owner**: The person accountable
 `,
-  '/Users/srinivas/Grimoire/procedure.md': `---
+  '/Users/mock/Grimoire/procedure.md': `---
 type: Type
 order: 2
 ---
@@ -521,7 +521,7 @@ A **recurring process** tied to a [[responsibility|Responsibility]]. Procedures 
 - **Cadence**: Weekly, Monthly, Quarterly
 - **Belongs to**: A Responsibility
 `,
-  '/Users/srinivas/Grimoire/experiment.md': `---
+  '/Users/mock/Grimoire/experiment.md': `---
 type: Type
 order: 3
 ---
@@ -534,7 +534,7 @@ A **hypothesis-driven investigation** with a clear test and measurable outcome. 
 - **Status**: Active, Done, Dropped
 - **Owner**: The person running the experiment
 `,
-  '/Users/srinivas/Grimoire/person.md': `---
+  '/Users/mock/Grimoire/person.md': `---
 type: Type
 order: 4
 ---
@@ -546,7 +546,7 @@ A **person** you interact with — team members, collaborators, contacts. People
 ## Properties
 - **Aliases**: Alternative names for wikilink resolution
 `,
-  '/Users/srinivas/Grimoire/event.md': `---
+  '/Users/mock/Grimoire/event.md': `---
 type: Type
 order: 5
 ---
@@ -558,7 +558,7 @@ A **point-in-time occurrence** — meetings, launches, milestones. Events are li
 ## Properties
 - **Related to**: Entities this event is about
 `,
-  '/Users/srinivas/Grimoire/topic.md': `---
+  '/Users/mock/Grimoire/topic.md': `---
 type: Type
 order: 6
 ---
@@ -570,7 +570,7 @@ A **subject area** for categorization. Topics group related notes, projects, and
 ## Properties
 - **Aliases**: Alternative names
 `,
-  '/Users/srinivas/Grimoire/essay.md': `---
+  '/Users/mock/Grimoire/essay.md': `---
 type: Type
 order: 7
 ---
@@ -582,7 +582,7 @@ A **published piece of writing** — newsletter essays, blog posts, articles. Es
 ## Properties
 - **Belongs to**: Usually a Responsibility
 `,
-  '/Users/srinivas/Grimoire/note.md': `---
+  '/Users/mock/Grimoire/note.md': `---
 type: Type
 order: 8
 ---
@@ -594,7 +594,7 @@ A **general-purpose document** — research notes, meeting notes, strategy docs.
 ## Properties
 - **Belongs to**: A Project, Responsibility, or other parent
 `,
-  '/Users/srinivas/Grimoire/recipe.md': `---
+  '/Users/mock/Grimoire/recipe.md': `---
 type: Type
 icon: cooking-pot
 color: orange
@@ -609,7 +609,7 @@ A **recipe** for cooking or baking. Recipes have ingredients, steps, and serving
 - **Prep Time**: Time to prepare
 - **Cook Time**: Time to cook
 `,
-  '/Users/srinivas/Grimoire/book.md': `---
+  '/Users/mock/Grimoire/book.md': `---
 type: Type
 icon: book-open
 color: green
@@ -624,12 +624,12 @@ A **book** you're reading or have read. Track reading progress, notes, and key t
 - **Status**: Reading, Finished, Abandoned
 - **Rating**: 1-5 stars
 `,
-  '/Users/srinivas/Grimoire/25q3-website-redesign.md': `---
+  '/Users/mock/Grimoire/25q3-website-redesign.md': `---
 title: Website Redesign
 type: Project
 status: Done
 archived: true
-owner: Srinivas Pendela
+owner: Mira Sen
 belongs_to:
   - "[[q3-2025]]"
 ---
@@ -643,12 +643,12 @@ Completed redesign of the company website. Migrated from WordPress to Next.js wi
 - Organic traffic: +35% in 3 months
 - Bounce rate: 58% → 42%
 `,
-  '/Users/srinivas/Grimoire/twitter-thread-experiment.md': `---
+  '/Users/mock/Grimoire/twitter-thread-experiment.md': `---
 title: Twitter Thread Growth Experiment
 type: Experiment
 status: Done
 archived: true
-owner: Srinivas Pendela
+owner: Mira Sen
 related_to:
   - "[[grow-newsletter]]"
 ---
@@ -664,7 +664,7 @@ After 6 weeks, signups increased by only 12%. The additional threads had diminis
 ## Decision
 Reverted to 1 high-quality thread per week. Archived this experiment.
 `,
-  '/Users/srinivas/Grimoire/pasta-carbonara.md': `---
+  '/Users/mock/Grimoire/pasta-carbonara.md': `---
 title: Pasta Carbonara
 type: Recipe
 servings: 4
@@ -683,7 +683,7 @@ Classic Roman pasta dish with eggs, pecorino, guanciale, and black pepper.
 - 100g Paneer
 - Black pepper
 `,
-  '/Users/srinivas/Grimoire/designing-data-intensive-applications.md': `---
+  '/Users/mock/Grimoire/designing-data-intensive-applications.md': `---
 title: Designing Data-Intensive Applications
 type: Book
 author: Martin Kleppmann
@@ -695,7 +695,7 @@ rating: 5
 
 Essential reading for anyone building distributed systems. Covers replication, partitioning, transactions, and stream processing.
 `,
-  '/Users/srinivas/Grimoire/grimoire-learning-project.md': `---
+  '/Users/mock/Grimoire/grimoire-learning-project.md': `---
 title: Grimoire Feature Showcase
 type: Project
 status: Active
@@ -735,7 +735,7 @@ This is the shippable project inside the demo vault. It shows Markdown notes, jo
 - [[Portability and Sync]]
 - [[Settings and Themes]]
 `,
-  '/Users/srinivas/Grimoire/grimoire-feature-tour.md': `---
+  '/Users/mock/Grimoire/grimoire-feature-tour.md': `---
 title: Grimoire Feature Tour
 type: Note
 status: Active
@@ -769,7 +769,7 @@ This is the launch-day checklist for the demo vault. Each row points to an edita
 | Portability and sync | [[Portability and Sync]] |
 | Settings and themes | [[Settings and Themes]] |
 `,
-  '/Users/srinivas/Grimoire/grimoire-start-here.md': `---
+  '/Users/mock/Grimoire/grimoire-start-here.md': `---
 title: Start Here - Learn Grimoire
 type: Note
 belongs_to:
@@ -788,7 +788,7 @@ Welcome to the demo vault. This project is the shippable, editable tour of Grimo
 4. Compare [[Journal Demo - 2026-05-31]] with [[Dream Demo - 2026-05-31]].
 5. Open [[Console and Agents]] to see how local agent lanes fit beside project notes.
 `,
-  '/Users/srinivas/Grimoire/grimoire-markdown-learning.md': `---
+  '/Users/mock/Grimoire/grimoire-markdown-learning.md': `---
 title: Markdown Learning
 type: Note
 belongs_to:
@@ -817,7 +817,7 @@ belongs_to: "[[grimoire-learning-project]]"
 ---
 \`\`\`
 `,
-  '/Users/srinivas/Grimoire/grimoire-properties-and-types.md': `---
+  '/Users/mock/Grimoire/grimoire-properties-and-types.md': `---
 title: Properties and Types
 type: Note
 status: Active
@@ -825,7 +825,7 @@ belongs_to:
   - "[[grimoire-learning-project]]"
 related_to:
   - "[[grimoire-feature-tour]]"
-owner: "[[person-srinivas-pendela]]"
+owner: "[[person-mira-sen]]"
 priority: High
 color: green
 ---
@@ -840,7 +840,7 @@ Grimoire keeps structure in frontmatter so the vault stays portable.
 
 Type notes in the demo include [[Journal]], [[Dream]], [[Console]], and [[Agent]].
 `,
-  '/Users/srinivas/Grimoire/grimoire-search-and-commands.md': `---
+  '/Users/mock/Grimoire/grimoire-search-and-commands.md': `---
 title: Search and Commands
 type: Note
 status: Active
@@ -858,7 +858,7 @@ Use this note to test Quick Open, command palette, note search, and document fin
 - Quick Open to [[Canvas and Attachments]].
 - Use document find to search for command palette.
 `,
-  '/Users/srinivas/Grimoire/grimoire-journal-demo-2026-05-31.md': `---
+  '/Users/mock/Grimoire/grimoire-journal-demo-2026-05-31.md': `---
 title: Journal Demo - 2026-05-31
 type: Journal
 date: 2026-05-31
@@ -875,7 +875,7 @@ This is a sample launch-day journal entry. It shows how dated daily writing can 
 Related tour: [[Grimoire Feature Tour]].
 Related dream: [[Dream Demo - 2026-05-31]].
 `,
-  '/Users/srinivas/Grimoire/grimoire-dream-demo-2026-05-31.md': `---
+  '/Users/mock/Grimoire/grimoire-dream-demo-2026-05-31.md': `---
 title: Dream Demo - 2026-05-31
 type: Dream
 date: 2026-05-31
@@ -888,7 +888,7 @@ symbols: [library, door, river]
 
 A sample dream entry with symbols, interpretation, and a link back to [[Journal Demo - 2026-05-31]] and [[Grimoire Feature Tour]].
 `,
-  '/Users/srinivas/Grimoire/grimoire-links-and-backlinks.md': `---
+  '/Users/mock/Grimoire/grimoire-links-and-backlinks.md': `---
 title: Links and Backlinks
 type: Note
 belongs_to:
@@ -903,7 +903,7 @@ Use wikilinks for notes: [[Grimoire Learning Project]].
 
 Use belongs_to for project membership and related_to for looser context.
 `,
-  '/Users/srinivas/Grimoire/grimoire-console-and-agents.md': `---
+  '/Users/mock/Grimoire/grimoire-console-and-agents.md': `---
 title: Console and Agents
 type: Console
 belongs_to:
@@ -925,7 +925,7 @@ cargo test --manifest-path src-tauri/Cargo.toml
 
 See [[Local Agent Map]] for local assistant lanes and [[Agent Council]] for the review-gated Council surface.
 `,
-  '/Users/srinivas/Grimoire/grimoire-agent-council.md': `---
+  '/Users/mock/Grimoire/grimoire-agent-council.md': `---
 title: Agent Council
 type: Agent
 status: Active
@@ -959,7 +959,7 @@ The Council surface, privacy gates, review packet, graph handoff, and Memory wri
 
 See [[Privacy and Memory]], [[Local Agent Map]], and [[Crystallize Example]].
 `,
-  '/Users/srinivas/Grimoire/grimoire-local-agent-map.md': `---
+  '/Users/mock/Grimoire/grimoire-local-agent-map.md': `---
 title: Local Agent Map
 type: Agent
 belongs_to:
@@ -981,7 +981,7 @@ Example lanes:
 | Chitragupta | Local routing and memory | Intent is not approval |
 | Agent Council | Source-safe lane review and synthesis handoff | Does not prove every external agent ran |
 `,
-  '/Users/srinivas/Grimoire/grimoire-canvas-and-attachments.md': `---
+  '/Users/mock/Grimoire/grimoire-canvas-and-attachments.md': `---
 title: Canvas and Attachments
 type: Note
 belongs_to:
@@ -996,7 +996,7 @@ Use a canvas when the thought is spatial. Use attachments when the image belongs
 
 See [[Grimoire QA Reference]] for an existing embedded image example.
 `,
-  '/Users/srinivas/Grimoire/grimoire-crystallize-example.md': `---
+  '/Users/mock/Grimoire/grimoire-crystallize-example.md': `---
 title: Crystallize Example
 type: Note
 status: Draft
@@ -1012,7 +1012,7 @@ Raw material can come from [[Journal Demo - 2026-05-31]], [[Dream Demo - 2026-05
 
 The crystallized output is [[Grimoire Feature Tour]].
 `,
-  '/Users/srinivas/Grimoire/grimoire-audio-transcription.md': `---
+  '/Users/mock/Grimoire/grimoire-audio-transcription.md': `---
 title: Audio Transcription
 type: Note
 status: Active
@@ -1028,7 +1028,7 @@ Import or record audio, run local transcription first, save the raw transcript, 
 
 Cloud speech providers need explicit opt-in.
 `,
-  '/Users/srinivas/Grimoire/grimoire-privacy-and-memory.md': `---
+  '/Users/mock/Grimoire/grimoire-privacy-and-memory.md': `---
 title: Privacy and Memory
 type: Note
 status: Active
@@ -1044,7 +1044,7 @@ The Locality Firewall keeps private journals, dreams, and memories withheld unle
 
 Compare this with [[Local Agent Map]] and [[Journal Demo - 2026-05-31]].
 `,
-  '/Users/srinivas/Grimoire/grimoire-portability-and-sync.md': `---
+  '/Users/mock/Grimoire/grimoire-portability-and-sync.md': `---
 title: Portability and Sync
 type: Note
 status: Active
@@ -1057,7 +1057,7 @@ locality: local-first
 
 Grimoire should not trap the user: local Markdown, Git, import, export, portable bundles, capsules, and object-storage readiness all stay visible.
 `,
-  '/Users/srinivas/Grimoire/grimoire-settings-and-themes.md': `---
+  '/Users/mock/Grimoire/grimoire-settings-and-themes.md': `---
 title: Settings and Themes
 type: Note
 status: Active
@@ -1071,7 +1071,7 @@ Try theme presets, typography, provider API key settings, privacy, workflow, syn
 
 No theme should make the vault unreadable, and no provider key should be written into Markdown.
 `,
-  '/Users/srinivas/Grimoire/journal.md': `---
+  '/Users/mock/Grimoire/journal.md': `---
 title: Journal
 type: Type
 icon: notebook
@@ -1083,7 +1083,7 @@ sidebar label: Journal
 
 Journal entries capture dated, private daily reflections.
 `,
-  '/Users/srinivas/Grimoire/dream.md': `---
+  '/Users/mock/Grimoire/dream.md': `---
 title: Dream
 type: Type
 icon: moon
@@ -1095,7 +1095,7 @@ sidebar label: Dreams
 
 Dream entries capture dated recall, symbols, and interpretations.
 `,
-  '/Users/srinivas/Grimoire/agent.md': `---
+  '/Users/mock/Grimoire/agent.md': `---
 title: Agent
 type: Type
 icon: bot
@@ -1107,7 +1107,7 @@ sidebar label: Agents
 
 Agents describe local assistants, CLI lanes, and repeatable AI workflows.
 `,
-  '/Users/srinivas/Grimoire/console.md': `---
+  '/Users/mock/Grimoire/console.md': `---
 title: Console
 type: Type
 icon: terminal

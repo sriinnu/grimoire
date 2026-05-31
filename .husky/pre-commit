@@ -45,6 +45,11 @@ fi
 
 echo "🔍 Pre-commit checks..."
 
+# Secret scan — repo-local fallback keeps public pushes honest even when the
+# private shared scanner is unavailable on a contributor machine.
+echo "  → secret scan..."
+pnpm audit:secrets -- --staged
+
 # Local-only files are allowed to exist on disk, but never in commit-ready paths.
 echo "  → local-only audit..."
 pnpm audit:local-only

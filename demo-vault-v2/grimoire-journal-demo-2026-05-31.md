@@ -26,7 +26,7 @@ The useful detail is not the date alone. The useful detail is the connection:
 
 - This entry belongs to [[grimoire-learning-project]].
 - It appears in the feature tour through [[grimoire-feature-tour]].
-- It can refer to a person like [[person-srinivas-pendela]].
+- It can refer to a person like [[person-mira-sen]].
 - It can connect to a project note like [[25q2-grimoire-v2]].
 - It can stay local-first with `egress-blocked: true`.
 

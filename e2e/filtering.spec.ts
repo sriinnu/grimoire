@@ -15,7 +15,7 @@ test('clicking People filter shows only people', async ({ page }) => {
   await page.waitForTimeout(100)
   const count = page.locator('.note-list__count')
   await expect(count).toHaveText('1')
-  await expect(page.locator('.note-list__title', { hasText: 'Karthik Reddy' })).toBeVisible()
+  await expect(page.locator('.note-list__title', { hasText: 'Arjun Mehta' })).toBeVisible()
   await page.screenshot({ path: 'test-results/filter-people.png' })
 })
 
@@ -72,7 +72,7 @@ test('type filter pills narrow results', async ({ page }) => {
   const count = page.locator('.note-list__count')
   await expect(count).toHaveText('1')
   await expect(page.locator('.note-list__title', { hasText: 'Build Grimoire App' })).toBeVisible()
-  await expect(page.locator('.note-list__title', { hasText: 'Karthik Reddy' })).not.toBeVisible()
+  await expect(page.locator('.note-list__title', { hasText: 'Arjun Mehta' })).not.toBeVisible()
   await page.screenshot({ path: 'test-results/pill-projects.png' })
 
   // Click "All" to reset

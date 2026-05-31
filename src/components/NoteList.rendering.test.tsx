@@ -24,13 +24,13 @@ describe('NoteList rendering', () => {
     expect(visibleNoteTitles()).toEqual(expect.arrayContaining([
       'Build Grimoire App',
       'Facebook Ads Strategy',
-      'Karthik Reddy',
+      'Arjun Mehta',
     ]))
   })
 
   it('filters section groups by type', () => {
     renderNoteList({ selection: { kind: 'sectionGroup', type: 'Person' } })
-    expect(screen.getByText('Karthik Reddy')).toBeInTheDocument()
+    expect(screen.getByText('Arjun Mehta')).toBeInTheDocument()
     expect(screen.queryByText('Build Grimoire App')).not.toBeInTheDocument()
   })
 
@@ -93,7 +93,7 @@ describe('NoteList rendering', () => {
   it('supports project sections', () => {
     renderNoteList({ selection: { kind: 'sectionGroup', type: 'Project' } })
     expect(screen.getByText('Build Grimoire App')).toBeInTheDocument()
-    expect(screen.queryByText('Karthik Reddy')).not.toBeInTheDocument()
+    expect(screen.queryByText('Arjun Mehta')).not.toBeInTheDocument()
   })
 
   it('passes the selected type when creating a note from a type section', () => {
@@ -136,7 +136,7 @@ describe('NoteList rendering', () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
     expect(screen.getAllByText('Build Grimoire App').length).toBeGreaterThanOrEqual(1)
     expect(await screen.findByText('Facebook Ads Strategy', undefined, ENTITY_VIEW_WAIT)).toBeInTheDocument()
-    expect(screen.queryByText('Karthik Reddy')).not.toBeInTheDocument()
+    expect(screen.queryByText('Arjun Mehta')).not.toBeInTheDocument()
     expect(screen.getByText('Children')).toBeInTheDocument()
     expect(screen.getByText('Related to')).toBeInTheDocument()
   })

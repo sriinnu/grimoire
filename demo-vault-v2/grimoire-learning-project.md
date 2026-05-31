@@ -5,7 +5,7 @@ aliases:
   - "[[Grimoire Feature Showcase]]"
   - "[[Ship Grimoire with a demo vault]]"
 belongs_to: "[[25q2]]"
-owner: "[[person-srinivas-pendela]]"
+owner: "[[person-mira-sen]]"
 status: Active
 priority: High
 related_to:

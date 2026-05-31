@@ -32,6 +32,7 @@ export const REQUIRED_GITIGNORE_PATTERNS = [
   'certs/*.pem',
   '*.key',
   '*.key.pub',
+  'src-tauri/gen/apple/assets/mcp-server/',
 ]
 
 const FORBIDDEN_TRACKED_RULES = [
@@ -48,6 +49,10 @@ const FORBIDDEN_TRACKED_RULES = [
   { label: 'certs/*.pem', test: (path) => path.startsWith('certs/') && path.endsWith('.pem') },
   { label: '*.key', test: (path) => path.endsWith('.key') },
   { label: '*.key.pub', test: (path) => path.endsWith('.key.pub') },
+  {
+    label: 'src-tauri/gen/apple/assets/mcp-server/',
+    test: (path) => hasPrefix(path, 'src-tauri/gen/apple/assets/mcp-server/'),
+  },
   { label: 'docs/.DS_Store', test: (path) => path === 'docs/.DS_Store' },
 ]
 
@@ -249,6 +254,10 @@ function runSelfTest() {
       trackedFiles: ['docs/plan.local.md'],
       worktreeFiles: [],
     }), 'docs/*.local.md')
+    assertIssue('tracked generated MCP server bundle', auditLocalOnly(root, {
+      trackedFiles: ['src-tauri/gen/apple/assets/mcp-server/index.js'],
+      worktreeFiles: [],
+    }), 'src-tauri/gen/apple/assets/mcp-server/')
 
     writeFileSync(resolve(root, 'docs/private-plan.md'), 'DO NOT COMMIT\n')
     assertIssue(

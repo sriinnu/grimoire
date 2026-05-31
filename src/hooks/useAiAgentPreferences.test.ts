@@ -59,7 +59,7 @@ describe('useAiAgentPreferences', () => {
     expect(onToast).toHaveBeenCalledWith('Default AI agent: Codex')
   })
 
-  it('keeps the browser mock agent composer enabled when no CLI is installed', () => {
+  it('marks the selected agent unavailable when no CLI is installed', () => {
     const { result } = renderHook(() => useAiAgentPreferences({
       settings,
       saveSettings: vi.fn(),
@@ -70,7 +70,7 @@ describe('useAiAgentPreferences', () => {
       },
     }))
 
-    expect(result.current.defaultAiAgentReady).toBe(true)
+    expect(result.current.defaultAiAgentReady).toBe(false)
   })
 
   it('persists a model override for the selected local agent', () => {

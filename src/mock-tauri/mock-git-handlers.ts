@@ -2,10 +2,10 @@ import type { ModifiedFile } from '../types'
 
 function mockModifiedFiles(): ModifiedFile[] {
   return [
-    { path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md', relativePath: '26q1-grimoire-app.md', status: 'modified' },
-    { path: '/Users/srinivas/Grimoire/facebook-ads-strategy.md', relativePath: 'facebook-ads-strategy.md', status: 'modified' },
-    { path: '/Users/srinivas/Grimoire/ai-agents-primer.md', relativePath: 'ai-agents-primer.md', status: 'added' },
-    { path: '/Users/srinivas/Grimoire/old-draft.md', relativePath: 'old-draft.md', status: 'deleted' },
+    { path: '/Users/mock/Grimoire/26q1-grimoire-app.md', relativePath: '26q1-grimoire-app.md', status: 'modified' },
+    { path: '/Users/mock/Grimoire/facebook-ads-strategy.md', relativePath: 'facebook-ads-strategy.md', status: 'modified' },
+    { path: '/Users/mock/Grimoire/ai-agents-primer.md', relativePath: 'ai-agents-primer.md', status: 'added' },
+    { path: '/Users/mock/Grimoire/old-draft.md', relativePath: 'old-draft.md', status: 'deleted' },
   ]
 }
 
@@ -17,10 +17,10 @@ export function mockFileHistory(path: string) {
   const filename = path.split('/').pop()?.replace('.md', '') ?? 'unknown'
   const ts = Math.floor(Date.now() / 1000)
   return [
-    { hash: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0', shortHash: 'a1b2c3d', message: `Update ${filename} with latest changes`, author: 'Srinivas Pendela', date: ts - 86400 * 2 },
-    { hash: 'e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3', shortHash: 'e4f5g6h', message: `Add new section to ${filename}`, author: 'Srinivas Pendela', date: ts - 86400 * 5 },
-    { hash: 'i7j8k9l0m1n2o3p4q5r6s7t8u9v0w1x2y3z4a5b6', shortHash: 'i7j8k9l', message: `Fix formatting in ${filename}`, author: 'Srinivas Pendela', date: ts - 86400 * 12 },
-    { hash: 'm0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f9', shortHash: 'm0n1o2p', message: `Create ${filename}`, author: 'Srinivas Pendela', date: ts - 86400 * 30 },
+    { hash: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0', shortHash: 'a1b2c3d', message: `Update ${filename} with latest changes`, author: 'Mira Sen', date: ts - 86400 * 2 },
+    { hash: 'e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3', shortHash: 'e4f5g6h', message: `Add new section to ${filename}`, author: 'Mira Sen', date: ts - 86400 * 5 },
+    { hash: 'i7j8k9l0m1n2o3p4q5r6s7t8u9v0w1x2y3z4a5b6', shortHash: 'i7j8k9l', message: `Fix formatting in ${filename}`, author: 'Mira Sen', date: ts - 86400 * 12 },
+    { hash: 'm0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f9', shortHash: 'm0n1o2p', message: `Create ${filename}`, author: 'Mira Sen', date: ts - 86400 * 30 },
   ]
 }
 

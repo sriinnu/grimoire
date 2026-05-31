@@ -76,7 +76,7 @@ export function AppearanceSettingsSection({
               <div
                 style={{
                   color: 'var(--muted-foreground)',
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: 0,
                   textTransform: 'uppercase',
@@ -86,7 +86,7 @@ export function AppearanceSettingsSection({
               </div>
               <div
                 className="grid gap-2"
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))' }}
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}
               >
                 {group.options.map((preset) => (
                   <ThemePresetCard

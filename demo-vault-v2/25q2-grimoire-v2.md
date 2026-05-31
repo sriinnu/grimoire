@@ -3,7 +3,7 @@ type: Project
 aliases:
   - "[[Grimoire App V2]]"
 belongs_to: "[[25q2]]"
-owner: "[[person-srinivas-pendela]]"
+owner: "[[person-mira-sen]]"
 status: Active
 related_to:
   - "[[grimoire-qa-reference]]"

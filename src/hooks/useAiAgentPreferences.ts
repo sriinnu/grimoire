@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from 'react'
-import { isTauri } from '../mock-tauri'
 import {
   AI_AGENT_CLI_DEFAULT_ROUTE,
   getAiAgentDefinition,
@@ -32,7 +31,7 @@ export function useAiAgentPreferences({
   )
 
   const defaultAiAgentLabel = getAiAgentDefinition(defaultAiAgent).label
-  const defaultAiAgentReady = !isTauri() || isAiAgentInstalled(aiAgentsStatus, defaultAiAgent)
+  const defaultAiAgentReady = isAiAgentInstalled(aiAgentsStatus, defaultAiAgent)
   const storedAiProvider = settings.ai_agent_providers?.[defaultAiAgent]?.trim() || null
   const defaultAiProvider = resolveDefaultAiProvider(defaultAiAgent, storedAiProvider)
   const defaultAiModel = settings.ai_agent_models?.[defaultAiAgent]?.trim() || null

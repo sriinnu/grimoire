@@ -34,10 +34,10 @@
 }
 
 .vault-dashboard__daily-thread {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   grid-column: 1 / -1;
-  align-items: center;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1.7fr) max-content;
+  align-items: stretch;
   gap: 12px;
   width: 100%;
   max-width: 100%;
@@ -55,8 +55,8 @@
 
 .vault-dashboard__daily-thread-copy {
   display: grid;
-  flex: 1 1 240px;
   min-width: 0;
+  align-content: center;
   gap: 4px;
 }
 
@@ -81,7 +81,6 @@
 
 .vault-dashboard__daily-thread-lanes {
   display: grid;
-  flex: 2 1 520px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 96px), 1fr));
   gap: 6px;
   min-width: 0;
@@ -138,8 +137,8 @@
 }
 
 .vault-dashboard__daily-thread-action {
-  flex: 0 1 auto;
   min-width: 0;
+  align-self: center;
   white-space: nowrap;
 }
 
@@ -356,13 +355,15 @@
 }
 
 @container vault-dashboard (max-width: 980px) {
+  .vault-dashboard__daily-thread {
+    grid-template-columns: 1fr;
+  }
+
   .vault-dashboard__daily-thread-lanes {
-    flex-basis: 100%;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .vault-dashboard__daily-thread-action {
-    flex-basis: 100%;
     width: 100%;
     justify-content: center;
   }

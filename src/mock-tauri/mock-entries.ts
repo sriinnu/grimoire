@@ -41,7 +41,7 @@ type MockEntrySeed = {
 
 function mockEntry(seed: MockEntrySeed): VaultEntry {
   return {
-    path: `/Users/srinivas/Grimoire/${seed.filename}`,
+    path: `/Users/mock/Grimoire/${seed.filename}`,
     filename: seed.filename,
     title: seed.title,
     isA: seed.isA,
@@ -115,7 +115,7 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
       'Type': ['[[project]]'],
     },
     outgoingLinks: ['grimoire-feature-tour', 'grimoire-start-here', 'grimoire-markdown-learning', 'grimoire-console-and-agents', 'grimoire-agent-council', 'grimoire-local-agent-map'],
-    properties: { Priority: 'High', Owner: 'Srinivas Pendela' },
+    properties: { Priority: 'High', Owner: 'Mira Sen' },
   }),
   mockEntry({
     filename: 'grimoire-feature-tour.md',
@@ -197,7 +197,7 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
     wordCount: 220,
     relationships: { 'Belongs to': [LEARNING_PROJECT], 'Related to': [FEATURE_TOUR], 'Type': ['[[note]]'] },
     outgoingLinks: ['grimoire-feature-tour', 'grimoire-markdown-learning', 'journal', 'dream', 'console', 'agent'],
-    properties: { Priority: 'High', Owner: 'Srinivas Pendela', color: 'green' },
+    properties: { Priority: 'High', Owner: 'Mira Sen', color: 'green' },
   }),
   mockEntry({
     filename: 'grimoire-search-and-commands.md',
@@ -229,7 +229,7 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
     snippet: 'A May 31 launch-day local-first journal entry showing daily capture, reflection, project links, and privacy frontmatter.',
     wordCount: 250,
     relationships: { 'Belongs to': [LEARNING_PROJECT], 'Related to': [FEATURE_TOUR, '[[grimoire-dream-demo-2026-05-31]]'], 'Type': ['[[journal]]'] },
-    outgoingLinks: ['grimoire-learning-project', 'grimoire-feature-tour', 'grimoire-dream-demo-2026-05-31', 'person-srinivas-pendela'],
+    outgoingLinks: ['grimoire-learning-project', 'grimoire-feature-tour', 'grimoire-dream-demo-2026-05-31', 'person-mira-sen'],
     properties: { date: '2026-05-31', locality: 'local-first', 'egress-blocked': true },
   }),
   mockEntry({
@@ -479,7 +479,7 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
 export const MOCK_ENTRIES: VaultEntry[] = [
   ...LEARNING_GUIDE_ENTRIES,
   {
-    path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md',
+    path: '/Users/mock/Grimoire/26q1-grimoire-app.md',
     filename: '26q1-grimoire-app.md',
     title: 'Build Grimoire App',
     isA: 'Project',
@@ -491,7 +491,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     modifiedAt: now,
     createdAt: now - 86400 * 60,
     fileSize: 2048,
-    snippet: 'This paragraph has bold text, italic text, bold italic, strikethrough, and inline code. Here\'s a regular link and a wiki-link to Karthik Reddy.',
+    snippet: 'This paragraph has bold text, italic text, bold italic, strikethrough, and inline code. Here\'s a regular link and a wiki-link to Arjun Mehta.',
     wordCount: 342,
     relationships: {
       'Belongs to': ['[[q1-2026]]'],
@@ -503,12 +503,12 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     order: null,
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
-    outgoingLinks: ['q1-2026', 'software-development', 'karthik-reddy', 'meera-krishnan', 'arun-kumar'],
-    properties: { Priority: 'High', 'Due date': '2026-06-15', Owner: 'Srinivas Pendela' },
+    outgoingLinks: ['q1-2026', 'software-development', 'arjun-mehta', 'meera-krishnan', 'arun-kumar'],
+    properties: { Priority: 'High', 'Due date': '2026-06-15', Owner: 'Mira Sen' },
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/grow-newsletter.md',
+    path: '/Users/mock/Grimoire/grow-newsletter.md',
     filename: 'grow-newsletter.md',
     title: 'Grow Newsletter',
     isA: 'Responsibility',
@@ -538,11 +538,11 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
     outgoingLinks: ['on-writing-well', 'engineering-leadership-101', 'ai-agents-primer', 'growth', 'writing'],
-    properties: { Priority: 'High', Rating: 5, Cadence: 'Weekly', Owner: 'Srinivas Pendela' },
+    properties: { Priority: 'High', Rating: 5, Cadence: 'Weekly', Owner: 'Mira Sen' },
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/manage-sponsorships.md',
+    path: '/Users/mock/Grimoire/manage-sponsorships.md',
     filename: 'manage-sponsorships.md',
     title: 'Manage Sponsorships',
     isA: 'Responsibility',
@@ -554,10 +554,10 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     modifiedAt: now - 7200,
     createdAt: now - 86400 * 150,
     fileSize: 890,
-    snippet: 'Revenue stream from newsletter sponsorships. Karthik Reddy handles day-to-day operations.',
+    snippet: 'Revenue stream from newsletter sponsorships. Arjun Mehta handles day-to-day operations.',
     wordCount: 180,
     relationships: {
-      'Owner': ['[[karthik-reddy|Karthik Reddy]]'],
+      'Owner': ['[[arjun-mehta|Arjun Mehta]]'],
       'Type': ['[[responsibility]]'],
     },
     icon: null,
@@ -565,12 +565,12 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     order: null,
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
-    outgoingLinks: ['karthik-reddy'],
+    outgoingLinks: ['arjun-mehta'],
     properties: {},
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/write-weekly-essays.md',
+    path: '/Users/mock/Grimoire/write-weekly-essays.md',
     filename: 'write-weekly-essays.md',
     title: 'Write Weekly Essays',
     isA: 'Procedure',
@@ -594,11 +594,11 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
     outgoingLinks: ['grow-newsletter'],
-    properties: { Owner: 'Srinivas Pendela', Cadence: 'Weekly' },
+    properties: { Owner: 'Mira Sen', Cadence: 'Weekly' },
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/run-sponsorships.md',
+    path: '/Users/mock/Grimoire/run-sponsorships.md',
     filename: 'run-sponsorships.md',
     title: 'Run Sponsorships',
     isA: 'Procedure',
@@ -622,11 +622,11 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
     outgoingLinks: ['manage-sponsorships'],
-    properties: { Owner: 'Karthik Reddy', Cadence: 'Weekly' },
+    properties: { Owner: 'Arjun Mehta', Cadence: 'Weekly' },
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/stock-screener.md',
+    path: '/Users/mock/Grimoire/stock-screener.md',
     filename: 'stock-screener.md',
     title: 'Stock Screener — EMA200 Wick Bounce',
     isA: 'Experiment',
@@ -651,11 +651,11 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
     outgoingLinks: ['trading', 'algorithmic-trading', 'ema200-backtest-results'],
-    properties: { Priority: 'Low', 'Due date': '2026-03-01', Owner: 'Srinivas Pendela' },
+    properties: { Priority: 'Low', 'Due date': '2026-03-01', Owner: 'Mira Sen' },
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/facebook-ads-strategy.md',
+    path: '/Users/mock/Grimoire/facebook-ads-strategy.md',
     filename: 'facebook-ads-strategy.md',
     title: 'Facebook Ads Strategy',
     isA: 'Note',
@@ -684,7 +684,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/budget-allocation.md',
+    path: '/Users/mock/Grimoire/budget-allocation.md',
     filename: 'budget-allocation.md',
     title: 'Budget Allocation',
     isA: 'Note',
@@ -712,11 +712,11 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/karthik-reddy.md',
-    filename: 'karthik-reddy.md',
-    title: 'Karthik Reddy',
+    path: '/Users/mock/Grimoire/arjun-mehta.md',
+    filename: 'arjun-mehta.md',
+    title: 'Arjun Mehta',
     isA: 'Person',
-    aliases: ['Karthik'],
+    aliases: ['Arjun'],
     belongsTo: [],
     relatedTo: [],
     status: null,
@@ -739,7 +739,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/meera-krishnan.md',
+    path: '/Users/mock/Grimoire/meera-krishnan.md',
     filename: 'meera-krishnan.md',
     title: 'Meera Krishnan',
     isA: 'Person',
@@ -766,7 +766,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/arun-kumar.md',
+    path: '/Users/mock/Grimoire/arun-kumar.md',
     filename: 'arun-kumar.md',
     title: 'Arun Kumar',
     isA: 'Person',
@@ -793,7 +793,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/deepti-singh.md',
+    path: '/Users/mock/Grimoire/deepti-singh.md',
     filename: 'deepti-singh.md',
     title: 'Deepti Singh',
     isA: 'Person',
@@ -820,13 +820,13 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/2026-02-14-grimoire-app-kickoff.md',
+    path: '/Users/mock/Grimoire/2026-02-14-grimoire-app-kickoff.md',
     filename: '2026-02-14-grimoire-app-kickoff.md',
     title: 'Grimoire App Design Session',
     isA: 'Event',
     aliases: [],
     belongsTo: [],
-    relatedTo: ['[[26q1-grimoire-app]]', '[[karthik-reddy]]'],
+    relatedTo: ['[[26q1-grimoire-app]]', '[[arjun-mehta]]'],
     status: null,
     archived: false,
     modifiedAt: now - 3600 * 2,
@@ -835,7 +835,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     snippet: 'Agreed on four-panel layout inspired by Bear Notes CodeMirror 6 for the editor — live preview is critical MVP by end of Q1.',
     wordCount: 310,
     relationships: {
-      'Related to': ['[[26q1-grimoire-app]]', '[[karthik-reddy]]'],
+      'Related to': ['[[26q1-grimoire-app]]', '[[arjun-mehta]]'],
       'Type': ['[[event]]'],
     },
     icon: null,
@@ -843,12 +843,12 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     order: null,
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
-    outgoingLinks: ['26q1-grimoire-app', 'karthik-reddy'],
+    outgoingLinks: ['26q1-grimoire-app', 'arjun-mehta'],
     properties: {},
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/software-development.md',
+    path: '/Users/mock/Grimoire/software-development.md',
     filename: 'software-development.md',
     title: 'Software Development',
     isA: 'Topic',
@@ -876,7 +876,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/trading.md',
+    path: '/Users/mock/Grimoire/trading.md',
     filename: 'trading.md',
     title: 'Trading',
     isA: 'Topic',
@@ -904,7 +904,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/on-writing-well.md',
+    path: '/Users/mock/Grimoire/on-writing-well.md',
     filename: 'on-writing-well.md',
     title: 'On Writing Well',
     isA: 'Essay',
@@ -932,7 +932,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/engineering-leadership-101.md',
+    path: '/Users/mock/Grimoire/engineering-leadership-101.md',
     filename: 'engineering-leadership-101.md',
     title: 'Engineering Leadership 101',
     isA: 'Essay',
@@ -961,7 +961,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/ai-agents-primer.md',
+    path: '/Users/mock/Grimoire/ai-agents-primer.md',
     filename: 'ai-agents-primer.md',
     title: 'AI Agents Primer',
     isA: 'Essay',
@@ -990,7 +990,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
   },
   // --- Type documents ---
   {
-    path: '/Users/srinivas/Grimoire/project.md',
+    path: '/Users/mock/Grimoire/project.md',
     filename: 'project.md',
     title: 'Project',
     isA: 'Type',
@@ -1015,7 +1015,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/responsibility.md',
+    path: '/Users/mock/Grimoire/responsibility.md',
     filename: 'responsibility.md',
     title: 'Responsibility',
     isA: 'Type',
@@ -1040,7 +1040,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/procedure.md',
+    path: '/Users/mock/Grimoire/procedure.md',
     filename: 'procedure.md',
     title: 'Procedure',
     isA: 'Type',
@@ -1065,7 +1065,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/experiment.md',
+    path: '/Users/mock/Grimoire/experiment.md',
     filename: 'experiment.md',
     title: 'Experiment',
     isA: 'Type',
@@ -1090,7 +1090,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/person.md',
+    path: '/Users/mock/Grimoire/person.md',
     filename: 'person.md',
     title: 'Person',
     isA: 'Type',
@@ -1115,7 +1115,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/event.md',
+    path: '/Users/mock/Grimoire/event.md',
     filename: 'event.md',
     title: 'Event',
     isA: 'Type',
@@ -1140,7 +1140,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/topic.md',
+    path: '/Users/mock/Grimoire/topic.md',
     filename: 'topic.md',
     title: 'Topic',
     isA: 'Type',
@@ -1165,7 +1165,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/essay.md',
+    path: '/Users/mock/Grimoire/essay.md',
     filename: 'essay.md',
     title: 'Essay',
     isA: 'Type',
@@ -1190,7 +1190,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/note.md',
+    path: '/Users/mock/Grimoire/note.md',
     filename: 'note.md',
     title: 'Note',
     isA: 'Type',
@@ -1216,7 +1216,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
   },
   // --- Custom type documents ---
   {
-    path: '/Users/srinivas/Grimoire/config.md',
+    path: '/Users/mock/Grimoire/config.md',
     filename: 'config.md',
     title: 'Config',
     isA: 'Type',
@@ -1241,7 +1241,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/recipe.md',
+    path: '/Users/mock/Grimoire/recipe.md',
     filename: 'recipe.md',
     title: 'Recipe',
     isA: 'Type',
@@ -1266,7 +1266,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/book.md',
+    path: '/Users/mock/Grimoire/book.md',
     filename: 'book.md',
     title: 'Book',
     isA: 'Type',
@@ -1292,7 +1292,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
   },
   // --- Instances of custom types ---
   {
-    path: '/Users/srinivas/Grimoire/config/agents.md',
+    path: '/Users/mock/Grimoire/config/agents.md',
     filename: 'agents.md',
     title: 'Agent Instructions',
     isA: 'Config',
@@ -1319,7 +1319,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/pasta-carbonara.md',
+    path: '/Users/mock/Grimoire/pasta-carbonara.md',
     filename: 'pasta-carbonara.md',
     title: 'Pasta Carbonara',
     isA: 'Recipe',
@@ -1346,7 +1346,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/designing-data-intensive-applications.md',
+    path: '/Users/mock/Grimoire/designing-data-intensive-applications.md',
     filename: 'designing-data-intensive-applications.md',
     title: 'Designing Data-Intensive Applications',
     isA: 'Book',
@@ -1374,7 +1374,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
   },
   // --- Archived entries ---
   {
-    path: '/Users/srinivas/Grimoire/25q3-website-redesign.md',
+    path: '/Users/mock/Grimoire/25q3-website-redesign.md',
     filename: '25q3-website-redesign.md',
     title: 'Website Redesign',
     isA: 'Project',
@@ -1389,7 +1389,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
     outgoingLinks: [],
-    properties: { Owner: 'Srinivas Pendela' },
+    properties: { Owner: 'Mira Sen' },
     modifiedAt: now - 86400 * 120,
     createdAt: now - 86400 * 200,
     fileSize: 680,
@@ -1402,7 +1402,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/twitter-thread-experiment.md',
+    path: '/Users/mock/Grimoire/twitter-thread-experiment.md',
     filename: 'twitter-thread-experiment.md',
     title: 'Twitter Thread Growth Experiment',
     isA: 'Experiment',
@@ -1417,7 +1417,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     sidebarLabel: null,
     template: null, sort: null, view: null, visible: null,
     outgoingLinks: [],
-    properties: { Owner: 'Srinivas Pendela' },
+    properties: { Owner: 'Mira Sen' },
     modifiedAt: now - 86400 * 90,
     createdAt: now - 86400 * 150,
     fileSize: 520,
@@ -1431,7 +1431,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
   },
   // --- Refactoring entries for exact-match search testing ---
   {
-    path: '/Users/srinivas/Grimoire/refactoring.md',
+    path: '/Users/mock/Grimoire/refactoring.md',
     filename: 'refactoring.md',
     title: 'Refactoring',
     isA: 'Area',
@@ -1456,7 +1456,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/refactoring-ideas.md',
+    path: '/Users/mock/Grimoire/refactoring-ideas.md',
     filename: 'refactoring-ideas.md',
     title: 'Refactoring Ideas',
     isA: 'Note',
@@ -1481,7 +1481,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/refactoring-key-ideas.md',
+    path: '/Users/mock/Grimoire/refactoring-key-ideas.md',
     filename: 'refactoring-key-ideas.md',
     title: 'Refactoring Key Ideas',
     isA: 'Note',
@@ -1506,7 +1506,7 @@ export const MOCK_ENTRIES: VaultEntry[] = [
     organized: false, favorite: false, favoriteIndex: null, listPropertiesDisplay: [], hasH1: false,
   },
   {
-    path: '/Users/srinivas/Grimoire/refactoring-patterns.md',
+    path: '/Users/mock/Grimoire/refactoring-patterns.md',
     filename: 'refactoring-patterns.md',
     title: 'Refactoring Patterns',
     isA: 'Note',
@@ -1557,7 +1557,7 @@ function generateBulkEntries(count: number): VaultEntry[] {
     const title = `${adj} ${noun} ${i + 1}`
     const slug = title.toLowerCase().replace(/\s+/g, '-')
     entries.push({
-      path: `/Users/srinivas/Grimoire/${slug}.md`,
+      path: `/Users/mock/Grimoire/${slug}.md`,
       filename: `${slug}.md`,
       title,
       isA: type,

@@ -22,7 +22,7 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const SOURCE_ICON_PATH = resolve(REPO_ROOT, 'src-tauri/icons/icon.icns')
 const FORBIDDEN_FIXTURE_STRINGS = [
-  '/Users/srinivas/Grimoire',
+  '/Users/',
   '/Users/mock',
   'demo-vault',
   'demo-vault-v2',

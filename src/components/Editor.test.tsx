@@ -1005,11 +1005,11 @@ describe('wikilink autocomplete', () => {
 describe('person @mention autocomplete', () => {
   const personEntry: VaultEntry = {
     ...mockEntry,
-    title: 'Karthik Reddy',
-    filename: 'karthik-reddy.md',
-    path: '/vault/person/karthik-reddy.md',
+    title: 'Arjun Mehta',
+    filename: 'arjun-mehta.md',
+    path: '/vault/person/arjun-mehta.md',
     isA: 'Person',
-    aliases: ['Karthik'],
+    aliases: ['Arjun'],
   }
   const nonPersonEntry: VaultEntry = {
     ...mockEntry,
@@ -1046,9 +1046,9 @@ describe('person @mention autocomplete', () => {
 
   it('returns only Person entries for matching query', async () => {
     renderForMention()
-    const items = await (await waitForPersonItems())('Kar')
+    const items = await (await waitForPersonItems())('Arj')
     expect(items.length).toBe(1)
-    expect(items[0].title).toBe('Karthik Reddy')
+    expect(items[0].title).toBe('Arjun Mehta')
   })
 
   it('excludes non-Person entries', async () => {
@@ -1059,25 +1059,25 @@ describe('person @mention autocomplete', () => {
 
   it('works with single-character query', async () => {
     renderForMention()
-    const items = await (await waitForPersonItems())('K')
+    const items = await (await waitForPersonItems())('A')
     expect(items.length).toBeGreaterThan(0)
   })
 
   it('inserts a wikilink when person item is clicked', async () => {
     renderForMention()
     mockEditor.insertInlineContent.mockClear()
-    const items = await (await waitForPersonItems())('Karthik')
+    const items = await (await waitForPersonItems())('Arjun')
     expect(items.length).toBeGreaterThan(0)
     items[0].onItemClick()
     expect(mockEditor.insertInlineContent).toHaveBeenCalledWith([
-      { type: 'wikilink', props: { target: 'vault/person/karthik-reddy' } },
+      { type: 'wikilink', props: { target: 'vault/person/arjun-mehta' } },
       ' ',
     ], { updateSelection: true })
   })
 
   it('shows Person type badge on results', async () => {
     renderForMention()
-    const items = await (await waitForPersonItems())('Karthik')
+    const items = await (await waitForPersonItems())('Arjun')
     expect(items[0].noteType).toBe('Person')
     expect(items[0].typeColor).toBeTruthy()
   })

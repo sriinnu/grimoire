@@ -36,6 +36,6 @@ test('screenshot AI chat panel', async ({ page }) => {
   console.log('AI btn result:', aiBtn)
   await page.waitForTimeout(800)
 
-  await page.screenshot({ path: '/Users/srinivas/removed/ai-chat-final.jpg', type: 'jpeg', quality: 90 })
+  await page.screenshot({ path: test.info().outputPath('ai-chat-final.jpg'), type: 'jpeg', quality: 90 })
   console.log('Done')
 })
