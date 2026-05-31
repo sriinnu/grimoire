@@ -160,7 +160,7 @@ export function VaultDashboard({
       : null,
     [attentionSuggestion.openEntryPath, entries],
   )
-  const activeVaultLabel = activeVault?.label ?? vaultPath.split('/').filter(Boolean).pop() ?? 'Vault'
+  const activeVaultLabel = activeVault?.label ?? vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Vault'
   const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
   const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)
   const selectedTemplateId: DashboardCaptureTemplateId | null = selectedKind === 'journal'

@@ -36,7 +36,7 @@
 .vault-dashboard__daily-thread {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(220px, 0.9fr) minmax(320px, 1.7fr) max-content;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.7fr) max-content;
   align-items: stretch;
   gap: 12px;
   width: 100%;

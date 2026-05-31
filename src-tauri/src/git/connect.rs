@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Output;
 
+use super::command_timeout::remote_git_output;
 use super::git_command;
 
 const DEFAULT_REMOTE_NAME: &str = "origin";
@@ -215,7 +216,7 @@ fn run_git(vault: &Path, args: &[&str]) -> Result<(), String> {
 }
 
 fn fetch_remote(vault: &Path) -> Result<(), String> {
-    run_git(vault, &["fetch", DEFAULT_REMOTE_NAME, "--prune"])
+    run_remote_git(vault, &["fetch", DEFAULT_REMOTE_NAME, "--prune"])
 }
 
 fn list_remote_branches(vault: &Path) -> Result<Vec<String>, String> {
@@ -276,7 +277,7 @@ fn push_with_tracking(
     connection: &RemoteConnection,
     success_message: String,
 ) -> GitAddRemoteResult {
-    match run_git(
+    match run_remote_git(
         vault,
         &[
             "push",
@@ -322,6 +323,16 @@ fn git_output(vault: &Path, args: &[&str]) -> Result<Output, String> {
         .current_dir(vault)
         .output()
         .map_err(|e| format!("Failed to run git {}: {e}", args[0]))
+}
+
+fn run_remote_git(vault: &Path, args: &[&str]) -> Result<(), String> {
+    let output = remote_git_output(vault, args)?;
+
+    if output.status.success() {
+        return Ok(());
+    }
+
+    Err(stderr_text(&output))
 }
 
 fn command_error(command: &str, output: &Output) -> String {

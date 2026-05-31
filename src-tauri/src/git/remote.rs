@@ -1,13 +1,9 @@
+use super::command_timeout::remote_git_output;
 use super::git_command;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use std::process::{Command, Output, Stdio};
-use std::thread;
-use std::time::{Duration, Instant};
 
 use super::conflict::get_conflict_files;
-
-const REMOTE_GIT_TIMEOUT: Duration = Duration::from_secs(15);
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct GitPullResult {
@@ -185,57 +181,6 @@ fn current_branch(vault: &Path) -> Result<String, String> {
         .output()
         .map_err(|e| format!("Failed to get branch: {}", e))?;
     Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-}
-
-fn remote_git_output(vault: &Path, args: &[&str]) -> Result<Output, String> {
-    let mut command = git_command();
-    command
-        .args(args)
-        .current_dir(vault)
-        .env("GIT_TERMINAL_PROMPT", "0")
-        .env("GIT_ASKPASS", "");
-    command_output_with_timeout(
-        command,
-        args.first().copied().unwrap_or("git"),
-        REMOTE_GIT_TIMEOUT,
-    )
-}
-
-fn command_output_with_timeout(
-    mut command: Command,
-    label: &str,
-    timeout: Duration,
-) -> Result<Output, String> {
-    let started = Instant::now();
-    command
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    let mut child = command
-        .spawn()
-        .map_err(|e| format!("Failed to run git {label}: {e}"))?;
-
-    loop {
-        match child
-            .try_wait()
-            .map_err(|e| format!("Failed to wait for git {label}: {e}"))?
-        {
-            Some(_) => {
-                return child
-                    .wait_with_output()
-                    .map_err(|e| format!("Failed to read git {label} output: {e}"));
-            }
-            None if started.elapsed() >= timeout => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(format!(
-                    "git {label} timed out after {}s",
-                    timeout.as_secs()
-                ));
-            }
-            None => thread::sleep(Duration::from_millis(50)),
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -492,16 +437,6 @@ hint: have locally."#;
     fn test_classify_push_error_timeout() {
         let result = classify_push_error("git push timed out after 15s");
         assert_eq!(result.status, "network_error");
-    }
-
-    #[test]
-    fn test_command_output_with_timeout_stops_hanging_git_process() {
-        let mut command = Command::new("sh");
-        command.args(["-c", "sleep 2"]);
-
-        let result = command_output_with_timeout(command, "fetch", Duration::from_millis(10));
-
-        assert!(result.unwrap_err().contains("timed out"));
     }
 
     #[test]

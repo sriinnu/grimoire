@@ -1,6 +1,9 @@
 use std::path::Path;
 use std::process::{Command, Output, Stdio};
 
+use super::command_timeout::{
+    command_output_with_timeout, configure_noninteractive_git_command, REMOTE_GIT_TIMEOUT,
+};
 use super::git_command;
 
 struct CloneRequest<'a> {
@@ -79,9 +82,11 @@ fn run_clone(request: &CloneRequest<'_>) -> Result<(), String> {
             request.dest.display()
         )
     })?;
-    let output = build_clone_command(request, destination)
-        .output()
-        .map_err(|e| format!("Failed to run git clone: {}", e))?;
+    let output = command_output_with_timeout(
+        build_clone_command(request, destination),
+        "clone",
+        REMOTE_GIT_TIMEOUT,
+    )?;
 
     if output.status.success() {
         return Ok(());
@@ -97,9 +102,8 @@ fn build_clone_command(request: &CloneRequest<'_>, destination: &str) -> Command
     let mut command = git_command();
     command
         .args(["clone", "--quiet", request.url, destination])
-        .env("GIT_TERMINAL_PROMPT", "0")
-        .env("SSH_ASKPASS_REQUIRE", "never")
         .stdin(Stdio::null());
+    configure_noninteractive_git_command(&mut command);
     command
 }
 
@@ -129,7 +133,6 @@ fn cleanup_failed_clone(dest: &Path) {
 mod tests {
     use super::*;
     use std::fs;
-    use std::os::unix::process::ExitStatusExt;
     use std::path::Path;
 
     fn init_source_repo(path: &Path) {
@@ -196,24 +199,51 @@ mod tests {
     fn test_clone_repo_empty_dest_allowed() {
         let dir = tempfile::TempDir::new().unwrap();
         let dest = dir.path().join("empty-dir");
+        let missing_source = dir.path().join("missing-source");
         fs::create_dir(&dest).unwrap();
 
-        let result = clone_repo(
-            "https://example.com/nonexistent/repo.git",
-            dest.to_str().unwrap(),
-        );
+        let result = clone_repo(missing_source.to_str().unwrap(), dest.to_str().unwrap());
         assert!(result.unwrap_err().contains("git clone failed"));
     }
 
     #[test]
     fn test_clone_failure_message_falls_back_to_stdout() {
-        let output = Output {
-            status: std::process::ExitStatus::from_raw(128),
-            stdout: b"fatal: stdout only".to_vec(),
-            stderr: Vec::new(),
-        };
+        let mut command = git_command();
+        command.arg("--version");
+        let mut output = command.output().unwrap();
+        output.status = failed_status();
+        output.stdout = b"fatal: stdout only".to_vec();
+        output.stderr = Vec::new();
 
         assert_eq!(clone_failure_message(&output), "fatal: stdout only");
+    }
+
+    #[cfg(unix)]
+    fn failed_status() -> std::process::ExitStatus {
+        use std::os::unix::process::ExitStatusExt;
+        std::process::ExitStatus::from_raw(128)
+    }
+
+    #[cfg(windows)]
+    fn failed_status() -> std::process::ExitStatus {
+        use std::os::windows::process::ExitStatusExt;
+        std::process::ExitStatus::from_raw(1)
+    }
+
+    #[test]
+    fn test_clone_failure_message_mentions_status_when_output_is_empty() {
+        let mut command = git_command();
+        command.arg("--version");
+        let mut output = command.output().unwrap();
+        output.status = failed_status();
+        output.stdout = Vec::new();
+        output.stderr = Vec::new();
+
+        assert!(
+            clone_failure_message(&output).contains("git clone exited with status"),
+            "{}",
+            clone_failure_message(&output)
+        );
     }
 
     #[test]
@@ -242,9 +272,14 @@ mod tests {
             envs.get("GIT_TERMINAL_PROMPT"),
             Some(&Some("0".to_string()))
         );
+        assert_eq!(envs.get("GIT_ASKPASS"), Some(&Some("".to_string())));
         assert_eq!(
             envs.get("SSH_ASKPASS_REQUIRE"),
             Some(&Some("never".to_string()))
+        );
+        assert_eq!(
+            envs.get("GCM_INTERACTIVE"),
+            Some(&Some("Never".to_string()))
         );
         assert_eq!(
             args,

@@ -16,6 +16,7 @@ pub mod settings;
 pub mod telemetry;
 pub mod transcription;
 mod transcription_runtime;
+mod transcription_runtime_discovery;
 pub mod vault;
 pub mod vault_list;
 #[cfg(desktop)]
@@ -137,6 +138,15 @@ fn spawn_ws_bridge(app: &mut tauri::App) {
     }
 }
 
+#[cfg(desktop)]
+fn configure_mcp_resource_dir(app: &tauri::App) {
+    use tauri::Manager;
+    match app.path().resource_dir() {
+        Ok(resource_dir) => mcp::set_resource_dir(resource_dir),
+        Err(error) => log::warn!("Failed to resolve resource dir for MCP bridge: {error}"),
+    }
+}
+
 fn setup_common_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     if cfg!(debug_assertions) {
         app.handle().plugin(
@@ -227,6 +237,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(desktop)]
     {
+        configure_mcp_resource_dir(app);
         run_startup_tasks();
         spawn_ws_bridge(app);
     }
