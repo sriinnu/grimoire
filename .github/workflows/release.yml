@@ -15,7 +15,7 @@ permissions:
 jobs:
   macos:
     name: macOS ${{ matrix.arch }}
-    runs-on: macos-latest
+    runs-on: macos-15
     env:
       NODE_OPTIONS: --max-old-space-size=4096
     strategy:
@@ -128,7 +128,7 @@ jobs:
 
   release-pages:
     name: Release Pages
-    runs-on: macos-latest
+    runs-on: macos-15
     needs: macos
     if: startsWith(github.ref, 'refs/tags/stable-v') || startsWith(github.ref, 'refs/tags/alpha-v')
     environment:
