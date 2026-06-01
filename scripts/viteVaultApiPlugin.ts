@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import fs from 'fs'
 import path from 'path'
 import type { Plugin } from 'vite'
-import { findMarkdownFiles, parseMarkdownFile } from './viteVaultApiModel'
+import { findMarkdownFiles, findVaultFiles, parseMarkdownFile, parseVaultFile } from './viteVaultApiModel'
 
 function sendJson(res: ServerResponse, payload: unknown, statusCode = 200): void {
   res.statusCode = statusCode
@@ -71,7 +71,7 @@ function handleVaultList(url: URL, res: ServerResponse): boolean {
   if (url.pathname !== '/api/vault/list') return false
   const dirPath = readExistingQueryPath(url, res, 'path')
   if (!dirPath) return true
-  const entries = findMarkdownFiles(dirPath).map(parseMarkdownFile).filter(Boolean)
+  const entries = findVaultFiles(dirPath).map(parseVaultFile).filter(Boolean)
   sendJson(res, entries)
   return true
 }
@@ -89,7 +89,7 @@ function handleVaultAllContent(url: URL, res: ServerResponse): boolean {
   const dirPath = readExistingQueryPath(url, res, 'path')
   if (!dirPath) return true
   const contentMap: Record<string, string> = {}
-  for (const filePath of findMarkdownFiles(dirPath)) {
+  for (const filePath of findVaultFiles(dirPath)) {
     try {
       contentMap[filePath] = fs.readFileSync(filePath, 'utf-8')
     } catch {
@@ -104,7 +104,7 @@ function handleVaultEntry(url: URL, res: ServerResponse): boolean {
   if (url.pathname !== '/api/vault/entry') return false
   const filePath = readExistingQueryPath(url, res, 'path')
   if (!filePath) return true
-  sendJson(res, parseMarkdownFile(filePath))
+  sendJson(res, parseVaultFile(filePath))
   return true
 }
 
@@ -123,8 +123,8 @@ function handleVaultSearch(url: URL, res: ServerResponse): boolean {
   }
 
   const results: { title: string; path: string; snippet: string; score: number; note_type: string | null }[] = []
-  for (const filePath of findMarkdownFiles(vaultPath)) {
-    const entry = parseMarkdownFile(filePath)
+  for (const filePath of findVaultFiles(vaultPath)) {
+    const entry = parseVaultFile(filePath)
     if (!entry || entry.trashed) continue
     const raw = fs.readFileSync(filePath, 'utf-8')
     if (entry.title.toLowerCase().includes(query) || raw.toLowerCase().includes(query)) {

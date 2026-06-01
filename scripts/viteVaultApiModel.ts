@@ -28,17 +28,117 @@ interface VaultEntry {
   sort: string | null
   view: string | null
   visible: boolean | null
+  organized: boolean
+  favorite: boolean
+  favoriteIndex: number | null
+  listPropertiesDisplay: string[]
   outgoingLinks: string[]
   properties: Record<string, string | number | boolean | null>
+  hasH1: boolean
+  fileKind: 'markdown' | 'text'
 }
 
-/** Extract all [[wiki-links]] from a string. */
+const SCAN_EXCLUDED_DIRS = new Set([
+  'node_modules',
+  'dist',
+  'build',
+  'out',
+  'coverage',
+  'target',
+  'deriveddata',
+  'pods',
+  'carthage',
+  'vendor',
+  'venv',
+  '__pycache__',
+])
+
+const TEXT_EXTENSIONS = new Set([
+  'yml',
+  'yaml',
+  'json',
+  'txt',
+  'toml',
+  'csv',
+  'xml',
+  'html',
+  'htm',
+  'css',
+  'scss',
+  'less',
+  'ts',
+  'tsx',
+  'js',
+  'jsx',
+  'py',
+  'rs',
+  'sh',
+  'bash',
+  'zsh',
+  'fish',
+  'rb',
+  'go',
+  'java',
+  'kt',
+  'c',
+  'cpp',
+  'h',
+  'hpp',
+  'swift',
+  'lua',
+  'sql',
+  'graphql',
+  'env',
+  'ini',
+  'cfg',
+  'conf',
+  'properties',
+  'makefile',
+  'dockerfile',
+  'gitignore',
+  'editorconfig',
+  'mdx',
+  'svelte',
+  'vue',
+  'astro',
+  'tf',
+  'hcl',
+  'nix',
+  'zig',
+  'hs',
+  'ml',
+  'ex',
+  'exs',
+  'erl',
+  'clj',
+  'lisp',
+  'el',
+  'vim',
+  'r',
+  'jl',
+  'ps1',
+  'bat',
+  'cmd',
+])
+
+const TEXT_FILENAMES = new Set([
+  'makefile',
+  'dockerfile',
+  'rakefile',
+  'gemfile',
+  'procfile',
+  'brewfile',
+  '.gitignore',
+  '.gitattributes',
+  '.editorconfig',
+  '.env',
+])
+
 function extractWikiLinks(value: string): string[] {
   const matches = value.match(/\[\[[^\]]+\]\]/g)
   return matches ?? []
 }
 
-/** Extract wiki-links from a frontmatter value (string or array of strings). */
 function wikiLinksFromValue(value: unknown): string[] {
   if (typeof value === 'string') return extractWikiLinks(value)
   if (Array.isArray(value)) {
@@ -47,7 +147,6 @@ function wikiLinksFromValue(value: unknown): string[] {
   return []
 }
 
-// Frontmatter keys that map to dedicated VaultEntry fields (skip in generic relationships)
 const DEDICATED_KEYS = new Set([
   'aliases', 'is_a', 'is a', 'belongs_to', 'belongs to',
   'related_to', 'related to', 'status', 'title',
@@ -105,6 +204,10 @@ function markdownBodyText(content: string): string {
   return content.replace(/^#+\s+.+$/gm, '').replace(/[\n\r]+/g, ' ').trim()
 }
 
+function plainBodyText(content: string): string {
+  return content.replace(/[\n\r]+/g, ' ').trim()
+}
+
 function frontmatterWikiLinks(frontmatter: Record<string, unknown>, ...keys: string[]): string[] {
   return frontmatterStringArray(frontmatter, ...keys).flatMap((value) => extractWikiLinks(value))
 }
@@ -159,15 +262,100 @@ export function parseMarkdownFile(filePath: string): VaultEntry | null {
       sort: frontmatterString(fm, 'sort'),
       view: frontmatterString(fm, 'view'),
       visible: frontmatterBool(fm, 'visible'),
+      organized: frontmatterBool(fm, '_organized') ?? false,
+      favorite: frontmatterBool(fm, '_favorite') ?? false,
+      favoriteIndex: fm._favorite_index != null ? Number(fm._favorite_index) : null,
+      listPropertiesDisplay: frontmatterStringArray(fm, '_list_properties_display'),
       outgoingLinks: [],
       properties: {},
+      hasH1: /^#\s+.+$/m.test(content),
+      fileKind: 'markdown',
     }
   } catch {
     return null
   }
 }
 
-/** Recursively find all .md files under a directory. */
+function parseTextTitle(filePath: string, raw: string): string {
+  const ext = path.extname(filePath).toLowerCase()
+  if (ext === '.yml' || ext === '.yaml') {
+    const match = raw.match(/^name:\s*(.+)$/m)
+    if (match?.[1]) return match[1].replace(/^["']|["']$/g, '').trim()
+  }
+  return path.basename(filePath)
+}
+
+export function parseTextFile(filePath: string): VaultEntry | null {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf-8')
+    const stats = fs.statSync(filePath)
+    const filename = path.basename(filePath)
+    const bodyText = plainBodyText(raw)
+
+    return {
+      path: filePath,
+      filename,
+      title: parseTextTitle(filePath, raw),
+      isA: null,
+      aliases: [],
+      belongsTo: [],
+      relatedTo: [],
+      status: null,
+      archived: false,
+      trashed: false,
+      trashedAt: null,
+      modifiedAt: stats.mtimeMs,
+      createdAt: stats.birthtimeMs,
+      fileSize: stats.size,
+      snippet: bodyText.slice(0, 200),
+      wordCount: bodyText.split(/\s+/).filter(Boolean).length,
+      relationships: {},
+      icon: null,
+      color: null,
+      order: null,
+      sidebarLabel: null,
+      template: null,
+      sort: null,
+      view: null,
+      visible: null,
+      organized: false,
+      favorite: false,
+      favoriteIndex: null,
+      listPropertiesDisplay: [],
+      outgoingLinks: [],
+      properties: {},
+      hasH1: false,
+      fileKind: 'text',
+    }
+  } catch {
+    return null
+  }
+}
+
+export function parseVaultFile(filePath: string): VaultEntry | null {
+  const fileKind = classifyFileKind(filePath)
+  if (fileKind === 'markdown') return parseMarkdownFile(filePath)
+  if (fileKind === 'text') return parseTextFile(filePath)
+  return null
+}
+
+export function classifyFileKind(filePath: string): 'markdown' | 'text' | 'binary' {
+  const ext = path.extname(filePath).slice(1).toLowerCase()
+  if (ext === 'md' || ext === 'markdown') return 'markdown'
+  if (ext && TEXT_EXTENSIONS.has(ext)) return 'text'
+  const filename = path.basename(filePath).toLowerCase()
+  return TEXT_FILENAMES.has(filename) ? 'text' : 'binary'
+}
+
+function shouldEnterDir(name: string): boolean {
+  const lower = name.toLowerCase()
+  return !name.startsWith('.') && !SCAN_EXCLUDED_DIRS.has(lower)
+}
+
+function isVaultTextPath(filePath: string): boolean {
+  return classifyFileKind(filePath) !== 'binary'
+}
+
 export function findMarkdownFiles(dir: string): string[] {
   const results: string[] = []
   try {
@@ -187,3 +375,22 @@ export function findMarkdownFiles(dir: string): string[] {
   return results
 }
 
+export function findVaultFiles(dir: string): string[] {
+  const results: string[] = []
+  try {
+    const items = fs.readdirSync(dir, { withFileTypes: true })
+    for (const item of items) {
+      const full = path.join(dir, item.name)
+      if (item.isDirectory()) {
+        if (shouldEnterDir(item.name)) results.push(...findVaultFiles(full))
+      } else if (!item.name.startsWith('.') && isVaultTextPath(full)) {
+        results.push(full)
+      } else if (TEXT_FILENAMES.has(item.name.toLowerCase())) {
+        results.push(full)
+      }
+    }
+  } catch {
+    // skip unreadable dirs
+  }
+  return results
+}
