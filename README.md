@@ -43,7 +43,7 @@ Grimoire is built around five surfaces:
 ## Current Status
 
 - Local vault opening and onboarding
-- Starter vault clone flow implemented; the public starter repository must exist before that first-launch path can be called public-ready
+- Starter vault clone flow implemented with a public starter repository
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
 - Note list search, custom columns, sorting, saved views, and Neighborhood mode
 - BlockNote rich editor with package-owned slash commands, markdown-compatible math, wikilinks, `#` tag/collection autocomplete, code blocks, formatting, and raw CodeMirror mode
@@ -88,9 +88,9 @@ The in-app Getting Started vault flow points to:
 
 https://github.com/sriinnu/grimoire-getting-started
 
-As of 2026-06-01, that repository is not publicly available. Until it is
-published, use the tracked `demo-vault-v2/` folder in this repository as the
-showcase vault for local testing.
+That repository is public and contains the shippable starter vault used by the
+first-run flow. The tracked `demo-vault-v2/` folder in this repository mirrors
+the same showcase content for tests, local development, and review.
 
 ## Local Development
 

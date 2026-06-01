@@ -6,6 +6,11 @@ This document covers source builds. Public binary installers are not published
 yet, and the current release workflow only builds macOS artifacts after signing
 secrets are configured.
 
+The in-app Getting Started flow clones the public starter vault from
+`https://github.com/sriinnu/grimoire-getting-started.git`. The tracked
+`demo-vault-v2/` directory mirrors that showcase vault for local development and
+test coverage.
+
 ## Prerequisites
 
 - Node.js 20+
