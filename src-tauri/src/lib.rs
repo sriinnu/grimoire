@@ -130,12 +130,24 @@ fn spawn_ws_bridge(app: &mut tauri::App) {
         .map(|h| h.join("Grimoire"))
         .unwrap_or_default();
     let vp_str = vault_path.to_string_lossy().to_string();
-    match mcp::spawn_ws_bridge(&vp_str) {
+    let state: tauri::State<'_, WsBridgeChild> = app.state();
+    store_ws_bridge_spawn_result(&state.0, mcp::spawn_ws_bridge(&vp_str));
+}
+
+#[cfg(desktop)]
+fn store_ws_bridge_spawn_result(
+    slot: &Mutex<Option<Child>>,
+    result: Result<Child, String>,
+) -> bool {
+    match result {
         Ok(child) => {
-            let state: tauri::State<'_, WsBridgeChild> = app.state();
-            *state.0.lock().unwrap() = Some(child);
+            *slot.lock().unwrap() = Some(child);
+            true
         }
-        Err(e) => log::warn!("Failed to start ws-bridge: {}", e),
+        Err(error) => {
+            log::warn!("Failed to start ws-bridge: {error}");
+            false
+        }
     }
 }
 

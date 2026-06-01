@@ -3,8 +3,12 @@ use super::should_show_window_on_reopen;
 use super::StartupEnvOverride;
 use super::MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS;
 
+#[cfg(desktop)]
+use super::store_ws_bridge_spawn_result;
 #[cfg(all(desktop, unix))]
 use super::vault_asset_scope_roots;
+#[cfg(desktop)]
+use std::sync::Mutex;
 
 #[test]
 fn macos_webview_shortcut_prevention_includes_ai_panel_shortcut() {
@@ -15,6 +19,17 @@ fn macos_webview_shortcut_prevention_includes_ai_panel_shortcut() {
 fn macos_reopen_always_restores_the_singleton_window() {
     assert!(should_show_window_on_reopen(false));
     assert!(should_show_window_on_reopen(true));
+}
+
+#[cfg(desktop)]
+#[test]
+fn ws_bridge_spawn_failure_keeps_startup_optional() {
+    let slot = Mutex::new(None);
+
+    let started = store_ws_bridge_spawn_result(&slot, Err("missing optional bridge".to_string()));
+
+    assert!(!started);
+    assert!(slot.lock().unwrap().is_none());
 }
 
 #[test]
