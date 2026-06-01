@@ -72,7 +72,16 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Settings platform copy | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'Windows Credential Manager')
   assertContains('docs/PUBLIC-READINESS.md', 'Linux Secret Service/keyring')
-  assertContains('docs/PUBLIC-READINESS.md', 'The pre-push gate passed on signed commit `96b9c74`')
+  assertMatch(
+    'docs/PUBLIC-READINESS.md',
+    /\| Secrets \| Locally verified \| `node scripts\/scan-secrets\.mjs --all` completed without findings across [0-9,]+ files on 2026-06-01\. \|/u,
+    'secret-scan evidence with a file count',
+  )
+  assertMatch(
+    'docs/PUBLIC-READINESS.md',
+    /The branch pre-push gate passed repeatedly on 2026-06-01, including after signed commit `[0-9a-f]{7,40}`: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS\/Swift parity, and Rust clippy\/fmt\./u,
+    'current local pre-push evidence with a signed commit hash',
+  )
   assertContains('docs/PUBLIC-READINESS.md', '4,594 frontend tests')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
@@ -104,6 +113,12 @@ function verifyBinaryInstallTruth() {
     'This section records representative hosted CI evidence.',
     'representative hosted CI evidence boundary',
   )
+  assertMatch(
+    'docs/PUBLIC-READINESS.md',
+    /Run `\d+` for commit `[0-9a-f]{40}`\nfailed before checkout\/build\/test on 2026-06-01\./u,
+    'representative hosted CI run and commit evidence',
+  )
+  assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
   assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before hosted CI is green')
   assertNotMatch('README.md', /codecov\.io\/gh\/sriinnu\/grimoire\/graph\/badge\.svg/iu, 'dynamic Codecov badge before coverage publication is verified')

@@ -25,8 +25,8 @@ below are resolved and re-verified.
 | macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x882 on 2026-06-01. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
 | Settings platform copy | Verified | AI provider-key Settings copy now names `macOS Keychain`, `Windows Credential Manager`, or `Linux Secret Service/keyring` based on the detected desktop platform, while save controls remain disabled where native secure storage is not implemented. Regressions live in `src/components/settings/AiAgentSettingsSection.test.tsx` and `src/utils/platform.test.ts`. |
-| Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,250 files on 2026-06-01. |
-| Local checks | Locally verified | The pre-push gate passed on signed commit `96b9c74` on 2026-06-01: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS/Swift parity, and Rust clippy/fmt. |
+| Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,252 files on 2026-06-01. |
+| Local checks | Locally verified | The branch pre-push gate passed repeatedly on 2026-06-01, including after signed commit `613f8ce`: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS/Swift parity, and Rust clippy/fmt. |
 | Hosted CI | Blocked | GitHub Actions check-run annotations say each job was not started because recent account payments failed or the Actions spending limit needs to be increased. This account-level blocker must be fixed and CI must be re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. |
@@ -77,7 +77,7 @@ This section records representative hosted CI evidence. Use
 `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
 latest branch state.
 
-Run `26779367525` for commit `96b9c74142b5e450fa293010aae3cb4d6c52d98e`
+Run `26780306481` for commit `613f8ce6881a488bdc06a8bd156106f0e106839b`
 failed before checkout/build/test on 2026-06-01. The check-run annotations for
 the macOS, Ubuntu, and Windows jobs all report:
 
