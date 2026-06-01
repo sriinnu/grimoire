@@ -39,6 +39,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'Grimoire is not ready to make public for general users yet.')
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
+  assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
 }
 
@@ -65,6 +66,16 @@ function verifyReleaseWorkflowTruth() {
     '| OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |',
     'Public Readiness OS packaging row',
   )
+  assertContains(
+    '.github/workflows/release.yml',
+    'node scripts/build-release-pages.mjs --releases-json .release-pages/releases.json --output-dir .release-pages/public',
+    'release Pages generation step',
+  )
+  assertContains(
+    'package.json',
+    '"test:release-pages": "node scripts/build-release-pages.mjs --self-test"',
+    'release pages self-test script',
+  )
 }
 
 function verifyAdrIndexTruth() {
@@ -82,6 +93,16 @@ function verifyAdrIndexTruth() {
     'docs/adr/0100-public-release-packaging-truth.md',
     'Windows and Linux remain source-build targets until release jobs, artifacts, manifests, and verification are implemented and proven.',
     'ADR-0100 public release boundary',
+  )
+  assertContains(
+    'docs/adr/README.md',
+    '| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |',
+    'ADR-0101 index entry',
+  )
+  assertContains(
+    'docs/adr/0101-release-pages-and-updater-manifest-publication.md',
+    'Missing release assets produce fallback download pages, not fake updater',
+    'ADR-0101 updater manifest boundary',
   )
 }
 

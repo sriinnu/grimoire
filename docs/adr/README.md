@@ -156,3 +156,4 @@ proposed → active → superseded
 | [0098](0098-local-portability-capsule-snapshots.md) | Local Portability Capsule Snapshots | accepted |
 | [0099](0099-exact-import-autopsy-signatures.md) | Exact Import Autopsy Signatures | accepted |
 | [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |
+| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |

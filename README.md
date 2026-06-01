@@ -132,8 +132,9 @@ pnpm macos:install-built-app
 The local macOS build script cleans generated Tauri bundles first, builds a fresh
 app-only bundle, ad-hoc signs it for local use, and verifies that the packaged
 app icon matches `src-tauri/icons/icon.icns`. Release DMGs and updater tarballs
-must be produced by the tracked release workflow and verified with
-`pnpm release:verify-artifacts`.
+must be produced by the tracked release workflow, verified with
+`pnpm release:verify-artifacts`, and published through the generated release
+Pages lane before the app advertises public updates.
 
 Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
 

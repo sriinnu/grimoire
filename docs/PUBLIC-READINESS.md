@@ -14,11 +14,12 @@ below are resolved and re-verified.
 | Starter showcase coverage | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, scenario files, and internal wikilinks for `demo-vault-v2/`. `pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-97b824f` also compared a fresh public starter clone against the local mirror on 2026-06-01. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
+| Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings before this snapshot. |
 | Local checks | Locally verified | Local pre-push checks passed on the public-readiness branch before this snapshot. |
 | Hosted CI | Blocked | GitHub Actions jobs did not start because account billing or spending-limit settings blocked runners. This must be fixed and re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
-| Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. |
+| Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. |
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
 | OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
 
@@ -65,6 +66,7 @@ node scripts/scan-secrets.mjs --all
 pnpm build
 pnpm test
 pnpm test:public-readiness-docs
+pnpm test:release-pages
 pnpm test:starter-vault
 pnpm playwright:smoke
 cargo test --manifest-path src-tauri/Cargo.toml
