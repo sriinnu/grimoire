@@ -6,6 +6,7 @@ import {
   isWindows,
   desktopPlatformDeviceLabel,
   desktopPlatformLabel,
+  desktopSecureStorageLabel,
   localMachineLabel,
   shouldUseLinuxWindowChrome,
   shouldUseMacOverlayChrome,
@@ -64,17 +65,20 @@ describe('platform helpers', () => {
     expect(isWindows()).toBe(true)
     expect(desktopPlatformLabel()).toBe('Windows')
     expect(desktopPlatformDeviceLabel()).toBe('Windows PC')
+    expect(desktopSecureStorageLabel()).toBe('Windows Credential Manager')
     expect(localMachineLabel()).toBe('this Windows PC')
   })
 
   it('exposes platform labels for macOS and Linux', () => {
     setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
     expect(desktopPlatformLabel()).toBe('macOS')
+    expect(desktopSecureStorageLabel()).toBe('macOS Keychain')
     expect(localMachineLabel()).toBe('this Mac')
 
     setUserAgent('Mozilla/5.0 (X11; Linux x86_64)')
     setPlatform('Linux x86_64')
     expect(desktopPlatformLabel()).toBe('Linux')
+    expect(desktopSecureStorageLabel()).toBe('Linux Secret Service/keyring')
     expect(localMachineLabel()).toBe('this Linux machine')
   })
 
