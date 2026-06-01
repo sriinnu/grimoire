@@ -5,9 +5,11 @@ use tauri::{
 };
 
 #[cfg(target_os = "macos")]
+use objc2::{msg_send, runtime::Bool};
+#[cfg(target_os = "macos")]
 use objc2_app_kit::{
     NSApplicationActivationOptions, NSApplicationActivationPolicy, NSColor, NSRunningApplication,
-    NSWindow, NSWindowSharingType,
+    NSWindow, NSWindowCollectionBehavior, NSWindowSharingType,
 };
 
 const TRAY_ID: &str = "grimoire-menu-bar";
@@ -113,6 +115,15 @@ fn order_native_window_front(window: &WebviewWindow) {
 
     let ns_window = unsafe { &*ns_window.cast::<NSWindow>() };
     let background = NSColor::colorWithSRGBRed_green_blue_alpha(0.9686, 0.9647, 0.9529, 1.0);
+    // Tauri owns the singleton window lifecycle; AppKit snapshots can restore a
+    // classless stale window and leave Grimoire running behind a phantom shell.
+    unsafe {
+        let _: () = msg_send![ns_window, setRestorable: Bool::NO];
+        let _: () = msg_send![ns_window, disableSnapshotRestoration];
+    }
+    ns_window.setCollectionBehavior(
+        NSWindowCollectionBehavior::Managed | NSWindowCollectionBehavior::MoveToActiveSpace,
+    );
     ns_window.setSharingType(NSWindowSharingType::ReadOnly);
     ns_window.setAlphaValue(1.0);
     ns_window.setOpaque(true);
@@ -135,11 +146,7 @@ fn settle_main_window_layer(app_handle: &AppHandle) {
 #[cfg(target_os = "macos")]
 fn focus_main_window(app_handle: &AppHandle) {
     activate_app();
-    if let Some(window) = app_handle.get_webview_window(MAIN_WINDOW_LABEL) {
-        let _ = window.show();
-        order_native_window_front(&window);
-        let _ = window.set_focus();
-    }
+    reveal_main_window(app_handle);
 }
 
 #[cfg(target_os = "macos")]
@@ -160,10 +167,8 @@ fn schedule_focus_retry(app_handle: &AppHandle, delay_ms: u64) {
 
 fn reveal_main_window(app_handle: &AppHandle) {
     if let Some(window) = ensure_main_window(app_handle) {
-        if !window.is_visible().unwrap_or(false) {
-            let _ = window.set_size(LogicalSize::new(1400.0, 900.0));
-            let _ = window.center();
-        }
+        let _ = window.set_size(LogicalSize::new(1400.0, 900.0));
+        let _ = window.center();
         let _ = window.unminimize();
         let _ = window.show();
         #[cfg(target_os = "macos")]
@@ -176,7 +181,7 @@ pub(crate) fn show_main_window(app_handle: &AppHandle) {
     #[cfg(target_os = "macos")]
     {
         let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
-        run_on_main_thread(app_handle, reveal_main_window);
+        run_on_main_thread(app_handle, focus_main_window);
         schedule_focus_retry(app_handle, 75);
         schedule_focus_retry(app_handle, 350);
         let app_handle = app_handle.clone();
