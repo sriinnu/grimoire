@@ -76,10 +76,21 @@ jobs:
         if: runner.os == 'macOS'
         run: pnpm exec playwright install chromium webkit
 
-      - name: Browser Smoke (Chromium + WebKit)
+      - name: Browser Smoke Chromium
         if: runner.os == 'macOS'
-        timeout-minutes: 25
-        run: PLAYWRIGHT_BROWSERS=chromium,webkit pnpm playwright:smoke
+        timeout-minutes: 15
+        run: PLAYWRIGHT_BROWSERS=chromium PLAYWRIGHT_REPORTER=line pnpm playwright:smoke
+
+      - name: Browser Smoke WebKit Core
+        if: runner.os == 'macOS'
+        timeout-minutes: 15
+        run: >
+          PLAYWRIGHT_BROWSERS=webkit PLAYWRIGHT_REPORTER=line pnpm exec playwright test
+          --config playwright.smoke.config.ts
+          tests/smoke/example.spec.ts
+          tests/smoke/fix-crash-create-note.spec.ts
+          tests/smoke/h1-untitled-auto-rename.spec.ts
+          tests/smoke/wikilink-path-fix.spec.ts
 
       - name: Rust Lint
         run: |
