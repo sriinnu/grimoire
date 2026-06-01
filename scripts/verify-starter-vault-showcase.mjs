@@ -81,6 +81,33 @@ function aliases(content) {
   return [...content.matchAll(/-\s+["']?\[\[([^\]]+)\]\]["']?/gu)].map((match) => normalizeLinkTarget(match[1] ?? ''))
 }
 
+function splitMarkdownTableRow(line) {
+  return line
+    .trim()
+    .replace(/^\|/u, '')
+    .replace(/\|$/u, '')
+    .split('|')
+    .map((cell) => cell.trim())
+}
+
+function isTableSeparator(line) {
+  return /^\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$/u.test(line.trim())
+}
+
+function featureTourRows(markdown) {
+  return markdown
+    .split('\n')
+    .filter((line) => line.trim().startsWith('|') && !isTableSeparator(line))
+    .map(splitMarkdownTableRow)
+    .filter((cells) => cells.length >= 3 && cells[0] !== 'Surface')
+    .map(([surface, action, demoNote]) => ({ action, demoNote, surface }))
+}
+
+function firstWikiTarget(markdown) {
+  const match = markdown.match(/\[\[([^\]]+)\]\]/u)
+  return match ? normalizeLinkTarget(match[1] ?? '') : null
+}
+
 function indexedTargets(files, root) {
   const targets = new Set()
   for (const file of files) {
@@ -120,10 +147,28 @@ function verifyManifest(manifest) {
 function verifyFeatureTour(manifest) {
   const featureTourPath = join(DEMO_VAULT_DIR, manifest.showcase.feature_tour)
   const featureTour = readText(featureTourPath)
-  for (const surface of manifest.showcase.required_surfaces ?? []) {
-    if (!featureTour.includes(`| ${surface} |`)) {
-      fail(`feature tour is missing required surface: ${surface}`)
-    }
+  const requiredSurfaces = manifest.showcase.required_surfaces ?? []
+  const rows = featureTourRows(featureTour)
+  const rowBySurface = new Map(rows.map((row) => [row.surface, row]))
+  const files = markdownFiles(DEMO_VAULT_DIR)
+  const targets = indexedTargets(files, DEMO_VAULT_DIR)
+
+  const missing = requiredSurfaces.filter((surface) => !rowBySurface.has(surface))
+  const extra = rows.map((row) => row.surface).filter((surface) => !requiredSurfaces.includes(surface))
+  if (missing.length > 0 || extra.length > 0) {
+    fail([
+      'feature tour surfaces do not match manifest',
+      missing.length ? `missing:\n${missing.join('\n')}` : '',
+      extra.length ? `extra:\n${extra.join('\n')}` : '',
+    ].filter(Boolean).join('\n'))
+  }
+
+  for (const surface of requiredSurfaces) {
+    const row = rowBySurface.get(surface)
+    if (!row?.action) fail(`feature tour row has no action copy: ${surface}`)
+    const target = firstWikiTarget(row.demoNote ?? '')
+    if (!target) fail(`feature tour row has no demo-note wikilink: ${surface}`)
+    if (!targets.has(target)) fail(`feature tour row links to missing demo note: ${surface} -> ${target}`)
   }
 }
 
