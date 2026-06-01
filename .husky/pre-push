@@ -87,6 +87,11 @@ pnpm test:public-readiness-docs
 echo "  ✅ Public readiness docs OK"
 
 echo ""
+echo "🛰️  Release pages..."
+pnpm test:release-pages
+echo "  ✅ Release pages OK"
+
+echo ""
 echo "🧭 Starter vault showcase..."
 pnpm test:starter-vault
 echo "  ✅ Starter vault showcase OK"

@@ -4,7 +4,9 @@ This is the shortest path to run Grimoire locally and understand where to make c
 
 This document covers source builds. Public binary installers are not published
 yet, and the current release workflow only builds macOS artifacts after signing
-secrets are configured.
+secrets are configured. Stable and alpha update feeds are generated from GitHub
+Release assets by the release workflow; they are not evidence until that workflow
+has run successfully for a tagged release.
 
 The in-app Getting Started flow clones the public starter vault from
 `https://github.com/sriinnu/grimoire-getting-started.git`. The tracked
