@@ -134,6 +134,9 @@ Windows native development is not public-ready yet. A Windows `pnpm tauri dev`
 run on `main` reported macOS-only Rust cfg errors around the menu bar and reopen
 handlers; this branch contains those cfg guards, but a fresh Windows run still
 needs to be captured before the README can call Windows verified.
+On Windows, `pnpm doctor:source` also checks for the MSVC Rust host and
+Microsoft C++ Build Tools (`cl.exe`) so missing native compiler setup fails
+before a Tauri build gets mysterious.
 
 Check that this machine is ready for source development:
 

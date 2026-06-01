@@ -7,7 +7,12 @@ import {
   starterMirrorDriftSummary,
   starterMirrorHasDrift,
 } from './public-readiness-starter-mirror.mjs'
-import { headSignatureSummary, readHeadSignatureProof } from './public-readiness-git-proof.mjs'
+import {
+  headSignatureSummary,
+  readHeadSignatureProof,
+  readWorkingTreeProof,
+  workingTreeSummary,
+} from './public-readiness-git-proof.mjs'
 
 const DEFAULT_REPO = 'sriinnu/grimoire'
 const DEFAULT_STARTER_REPO = 'sriinnu/grimoire-getting-started'
@@ -178,6 +183,9 @@ function findBlockers(state) {
   if (!state.headSignature?.verified) {
     blockers.push(`Current branch HEAD does not have a good git signature: ${state.headSignature?.detail ?? 'missing signature proof'}.`)
   }
+  if (!state.workingTree?.clean) {
+    blockers.push(`Working tree is not clean: ${state.workingTree?.detail ?? 'missing working-tree proof'}.`)
+  }
 
   if (state.starterRepo.private) blockers.push('Starter vault repository is private.')
   if (!state.starterHead) blockers.push('Starter vault public HEAD could not be resolved.')
@@ -266,6 +274,7 @@ async function collectLiveState(options) {
     starterHead,
     starterMirror,
     starterRepo,
+    workingTree: readWorkingTreeProof(),
   }
 }
 
@@ -296,6 +305,7 @@ function runSelfTest() {
     starterHead: 'abc123',
     starterMirror: { checked: true, changed: [], localOnly: [], publicOnly: [] },
     starterRepo: { private: false },
+    workingTree: { clean: true, detail: 'clean', paths: [] },
   }
 
   const blockedState = {
@@ -334,6 +344,13 @@ function runSelfTest() {
   if (!unsignedResult.blockers.some((blocker) => blocker.includes('good git signature'))) {
     throw new Error('unsigned fixture should report missing git signature')
   }
+  const dirtyResult = findBlockers({
+    ...readyState,
+    workingTree: { clean: false, detail: '2 changed path(s)', paths: ['M README.md', '?? tmp.md'] },
+  })
+  if (!dirtyResult.blockers.some((blocker) => blocker.includes('Working tree is not clean'))) {
+    throw new Error('dirty fixture should report uncommitted changes')
+  }
   console.log('[public-readiness-audit] self-test ok')
 }
 
@@ -341,6 +358,7 @@ function printReport(state, result) {
   console.log(`[public-readiness-audit] repo=${state.repo.full_name ?? DEFAULT_REPO} branch=${state.branch}`)
   console.log(`[public-readiness-audit] latest-ci=${state.ci.run?.id ?? 'none'} conclusion=${state.ci.run?.conclusion ?? 'none'} steps=${state.ci.stepCount ?? 'unknown'}`)
   console.log(`[public-readiness-audit] head-signature=${headSignatureSummary(state.headSignature)}`)
+  console.log(`[public-readiness-audit] working-tree=${workingTreeSummary(state.workingTree)}`)
   console.log(`[public-readiness-audit] starter-mirror=${starterMirrorDriftSummary(state.starterMirror)}`)
   for (const channel of CHANNELS) {
     console.log(`[public-readiness-audit] ${channel}-feed=${state.feeds[channel]?.status ?? 'missing'}`)
