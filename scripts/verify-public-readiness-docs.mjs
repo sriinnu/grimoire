@@ -42,6 +42,8 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| README status badges | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', '| Public doc hygiene | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', 'local working notes are ignored and removed from Git tracking')
   assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
   assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-billing%2Fspending%20limit-red')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
