@@ -42,6 +42,10 @@ Grimoire is built around five surfaces:
 
 ## Current Status
 
+- Public readiness is tracked separately in
+  [docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md). As of 2026-06-01,
+  Grimoire is not ready to make public for general users because hosted CI is
+  blocked before execution and no public binary release exists yet.
 - Local vault opening and onboarding
 - Starter vault clone flow implemented with a public starter repository
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
