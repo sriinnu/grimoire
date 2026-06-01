@@ -2,6 +2,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import {
+  compareStarterMirror,
+  starterMirrorDriftSummary,
+  starterMirrorHasDrift,
+} from './public-readiness-starter-mirror.mjs'
 
 const DEFAULT_REPO = 'sriinnu/grimoire'
 const DEFAULT_STARTER_REPO = 'sriinnu/grimoire-getting-started'
@@ -171,6 +176,9 @@ function findBlockers(state) {
 
   if (state.starterRepo.private) blockers.push('Starter vault repository is private.')
   if (!state.starterHead) blockers.push('Starter vault public HEAD could not be resolved.')
+  if (starterMirrorHasDrift(state.starterMirror)) {
+    blockers.push(`Starter vault public clone does not match demo-vault-v2: ${starterMirrorDriftSummary(state.starterMirror)}.`)
+  }
 
   if (!state.ci.run) {
     blockers.push(`No GitHub Actions run found for ${state.branch}.`)
@@ -228,6 +236,7 @@ async function collectLiveState(options) {
   const starterRepo = ghJson(`repos/${options.starterRepo}`)
   const starterUrl = `https://github.com/${options.starterRepo}.git`
   const starterHead = run('git', ['ls-remote', starterUrl, 'HEAD'], { allowFailure: true }).split(/\s+/)[0] ?? ''
+  const starterMirror = compareStarterMirror(starterUrl)
   const runsPayload = ghJson(`repos/${options.repo}/actions/runs?branch=${encodeURIComponent(branch)}&per_page=1`)
   const runPayload = latestRun(runsPayload)
   const jobsPayload = runPayload ? ghJson(`repos/${options.repo}/actions/runs/${runPayload.id}/jobs?per_page=100`) : { jobs: [] }
@@ -249,6 +258,7 @@ async function collectLiveState(options) {
     releases,
     repo,
     starterHead,
+    starterMirror,
     starterRepo,
   }
 }
@@ -277,6 +287,7 @@ function runSelfTest() {
     })),
     repo: { private: false, topics: REQUIRED_TOPICS },
     starterHead: 'abc123',
+    starterMirror: { checked: true, changed: [], localOnly: [], publicOnly: [] },
     starterRepo: { private: false },
   }
 
@@ -302,12 +313,20 @@ function runSelfTest() {
   if (!blockedResult.blockers.some((blocker) => blocker.includes('spending limit'))) {
     throw new Error('blocked fixture should report hosted CI billing/spending annotation')
   }
+  const driftResult = findBlockers({
+    ...readyState,
+    starterMirror: { checked: true, changed: ['grimoire-feature-tour.md'], localOnly: [], publicOnly: [] },
+  })
+  if (!driftResult.blockers.some((blocker) => blocker.includes('Starter vault public clone'))) {
+    throw new Error('starter drift fixture should report public starter mismatch')
+  }
   console.log('[public-readiness-audit] self-test ok')
 }
 
 function printReport(state, result) {
   console.log(`[public-readiness-audit] repo=${state.repo.full_name ?? DEFAULT_REPO} branch=${state.branch}`)
   console.log(`[public-readiness-audit] latest-ci=${state.ci.run?.id ?? 'none'} conclusion=${state.ci.run?.conclusion ?? 'none'} steps=${state.ci.stepCount ?? 'unknown'}`)
+  console.log(`[public-readiness-audit] starter-mirror=${starterMirrorDriftSummary(state.starterMirror)}`)
   for (const channel of CHANNELS) {
     console.log(`[public-readiness-audit] ${channel}-feed=${state.feeds[channel]?.status ?? 'missing'}`)
   }
