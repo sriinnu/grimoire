@@ -18,6 +18,7 @@ below are resolved and re-verified.
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Public doc hygiene | Verified | Claude command prompts and local working notes are ignored and removed from Git tracking. `pnpm audit:local-only` now fails if `.claude/`, Codex/MCP local wiring, local planning docs, local mockups, cert keys, generated MCP bundles, or local-only docs are tracked. |
 | Public doc links | Verified | `pnpm test:public-doc-links` validates local links and image paths in public-facing Markdown after stripping fenced code examples. |
+| CI runner images | Ready | The CI matrix is pinned to `macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026` so public proof does not depend on moving `*-latest` labels. The release workflow is pinned to `macos-15`. |
 | Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, and update feeds return `404`. |
 | Release preflight | Blocked | `pnpm test:release-preflight` covers the preflight model. `pnpm release:preflight` currently fails because the repo has no release secrets configured and GitHub Pages is not enabled. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
@@ -83,9 +84,12 @@ the macOS, Ubuntu, and Windows jobs all report:
 The job was not started because recent account payments have failed or your spending limit needs to be increased.
 ```
 
-The Windows job also carries GitHub's notice that `windows-latest` requests are
-being redirected to `windows-2025-vs2026` by June 15, 2026. No checkout,
-dependency installation, build, test, or lint step ran on any hosted OS job.
+The Windows job also carried GitHub's notice that `windows-latest` requests were
+being redirected to `windows-2025-vs2026` by June 15, 2026. The CI workflow now
+pins Windows to `windows-2025-vs2026`, macOS to `macos-15`, and Linux to
+`ubuntu-24.04`, but no checkout, dependency installation, build, test, or lint
+step ran on any hosted OS job while the account-level billing/spending blocker
+was active.
 
 ## Verification Commands
 

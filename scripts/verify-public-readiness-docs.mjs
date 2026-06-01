@@ -28,6 +28,13 @@ function assertNotMatch(path, pattern, label) {
   }
 }
 
+function assertMatch(path, pattern, label) {
+  const text = readText(path)
+  if (!pattern.test(text)) {
+    fail(`${path} must contain ${label}`)
+  }
+}
+
 function releaseWorkflowHasPlatform(platformPattern) {
   return platformPattern.test(readText('.github/workflows/release.yml'))
 }
@@ -47,6 +54,8 @@ function verifyBinaryInstallTruth() {
   assertContains('README.md', '[Docs Index](docs/README.md)')
   assertContains('docs/README.md', 'Local working notes are kept out of Git.')
   assertContains('docs/README.md', '[Public Readiness](PUBLIC-READINESS.md)')
+  assertContains('docs/PUBLIC-READINESS.md', '| CI runner images | Ready |')
+  assertContains('docs/PUBLIC-READINESS.md', '`macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026`')
   assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
   assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-billing%2Fspending%20limit-red')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
@@ -92,6 +101,14 @@ function verifyReleaseWorkflowTruth() {
     fail('release.yml now includes non-macOS release jobs; update the public readiness docs and this guard with verified artifact evidence')
   }
 
+  assertMatch(
+    '.github/workflows/ci.yml',
+    /os:\s*\[macos-15,\s*ubuntu-24\.04,\s*windows-2025-vs2026\]/u,
+    'the pinned public CI runner matrix',
+  )
+  assertNotMatch('.github/workflows/ci.yml', /\b(?:macos|ubuntu|windows)-latest\b/u, 'moving latest runner labels')
+  assertContains('.github/workflows/release.yml', 'runs-on: macos-15', 'pinned macOS release runner')
+  assertNotMatch('.github/workflows/release.yml', /\bmacos-latest\b/u, 'moving macOS latest release runner')
   assertContains(
     'README.md',
     'source-build targets, not public-support claims, until hosted CI and platform QA',
