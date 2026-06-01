@@ -49,6 +49,11 @@ function verifyBinaryInstallTruth() {
     'fails before checkout while waiting for the hosted runner to come online',
     'hosted CI runner-startup blocker evidence',
   )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'This section records representative hosted CI evidence.',
+    'representative hosted CI evidence boundary',
+  )
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
   assertNotMatch('docs/PUBLIC-READINESS.md', /billing|spending-limit/iu, 'unverified hosted CI billing/spending claims')
 }

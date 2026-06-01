@@ -61,7 +61,11 @@ pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-9
 
 ## Hosted CI Evidence
 
-Run `26761746288` for commit `b4b1d47e6c10c31eb5a95a35d6f170bf4d5ae471`
+This section records representative hosted CI evidence. Use
+`pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
+latest branch state.
+
+Run `26762698801` for commit `4db6d32b47bae0e36a49c2c39c6eeb94ca8493a8`
 failed before checkout/build/test on 2026-06-01. The job system logs contain
 only hosted-runner assignment/startup lines, for example:
 
@@ -69,7 +73,7 @@ only hosted-runner assignment/startup lines, for example:
 Requested labels: ubuntu-latest
 Job defined at: sriinnu/grimoire/.github/workflows/ci.yml@refs/pull/18/merge
 Waiting for a runner to pick up this job...
-Job is about to start running on the hosted runner: GitHub Actions 1000006722
+Job is about to start running on the hosted runner: GitHub Actions 1000006723
 Job is waiting for a hosted runner to come online.
 ```
 
