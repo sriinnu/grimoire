@@ -9,6 +9,7 @@ interface SearchResultData {
   snippet: string
   score: number
   note_type: string | null
+  file_kind?: SearchResult['fileKind']
 }
 
 interface SearchResponseData {
@@ -38,6 +39,7 @@ function mapResults(raw: SearchResultData[], scope: SearchVaultScope): SearchRes
       snippet: r.snippet,
       score: r.score,
       noteType: r.note_type,
+      fileKind: r.file_kind,
       vaultPath: scope.path,
       vaultLabel: scope.label,
     }))

@@ -21,6 +21,35 @@ interface SearchPanelProps {
   onClose: () => void
 }
 
+function normalizeDisplayPath(value: string): string {
+  return value.replace(/\\/g, '/').replace(/\/+$/, '')
+}
+
+function formatResultPath(result: SearchResult, activeVaultPath: string): string | null {
+  const resultPath = normalizeDisplayPath(result.path)
+  const scopePath = normalizeDisplayPath(result.vaultPath ?? activeVaultPath)
+  const scopedPrefix = `${scopePath}/`.toLowerCase()
+  if (resultPath.toLowerCase().startsWith(scopedPrefix)) {
+    return resultPath.slice(scopePath.length + 1)
+  }
+  const parts = resultPath.split('/').filter(Boolean)
+  return parts.length > 0 ? parts.slice(-2).join('/') : null
+}
+
+function fileKindLabel(fileKind?: VaultEntry['fileKind']): string | null {
+  if (fileKind === 'markdown') return 'Markdown'
+  if (fileKind === 'text') return 'Text'
+  if (fileKind === 'binary') return 'Binary'
+  return null
+}
+
+function formatResultSubtitle(entry: VaultEntry | undefined, result: SearchResult, activeVaultPath: string): string {
+  const pathLabel = formatResultPath(result, activeVaultPath)
+  const kindLabel = fileKindLabel(entry?.fileKind ?? result.fileKind)
+  const metadata = entry ? formatSearchSubtitle(entry) : null
+  return [pathLabel, kindLabel, metadata].filter(Boolean).join(' · ')
+}
+
 export function SearchPanel({
   open,
   vaultPath,
@@ -177,8 +206,9 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5 pl-12 text-[10.5px] font-semibold text-muted-foreground">
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Open vaults</span>
-          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Markdown</span>
-          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Text files</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Filenames</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Contents</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Markdown + text</span>
         </div>
       </div>
     )
@@ -214,7 +244,7 @@ function SearchContent({
             Enter to open · Esc to close
           </p>
           <p className="mx-auto mt-3 max-w-[360px] text-[11px] leading-relaxed text-muted-foreground/70">
-            Searches Markdown and editable text files inside every open vault.
+            Searches note bodies, filenames, paths, docs, code, and editable text files.
           </p>
         </div>
       )}
@@ -246,7 +276,7 @@ function SearchContent({
               const te = typeEntryMap[isA ?? '']
               const typeColor = noteType ? getTypeColor(isA, te?.color) : undefined
               const TypeIcon = getTypeIcon(isA ?? null, te?.icon)
-              const subtitle = entry ? formatSearchSubtitle(entry) : null
+              const subtitle = formatResultSubtitle(entry, result, activeVaultPath)
               const vaultLabel = result.vaultPath && result.vaultPath !== activeVaultPath ? result.vaultLabel : null
               return (
                 <div
