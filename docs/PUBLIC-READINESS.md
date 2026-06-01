@@ -16,6 +16,7 @@ below are resolved and re-verified.
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, and update feeds return `404`. |
+| Release preflight | Blocked | `pnpm test:release-preflight` covers the preflight model. `pnpm release:preflight` currently fails because the repo has no release secrets configured and GitHub Pages is not enabled. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
 | macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x882 on 2026-06-01. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
@@ -34,6 +35,7 @@ release ADRs are not public install evidence.
 ## Do Not Make Public Until
 
 - The latest PR or main commit has green hosted CI on GitHub.
+- `pnpm release:preflight` passes against the live GitHub repository.
 - A fresh full-repo secret scan passes.
 - The README only advertises install paths that actually exist.
 - The starter vault clone flow is verified against the public starter repository.
@@ -89,12 +91,14 @@ gh repo view sriinnu/grimoire-getting-started --json isPrivate,visibility,url
 gh release list --repo sriinnu/grimoire --limit 10
 node scripts/scan-secrets.mjs --all
 pnpm doctor:source
+pnpm release:preflight
 pnpm audit:public-readiness -- --branch docs/public-readiness-truth
 pnpm build
 pnpm test
 pnpm test:doctor-source
 pnpm test:public-readiness-audit
 pnpm test:public-readiness-docs
+pnpm test:release-preflight
 pnpm test:release-pages
 pnpm test:starter-vault
 pnpm playwright:smoke
