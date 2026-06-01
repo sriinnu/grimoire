@@ -39,7 +39,11 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'Grimoire is not ready to make public for general users yet.')
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
+  assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
+  assertContains('README.md', 'pnpm audit:public-readiness -- --branch main')
+  assertContains('package.json', '"audit:public-readiness": "node scripts/audit-public-readiness.mjs"')
+  assertContains('package.json', '"test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test"')
   assertContains(
     'docs/PUBLIC-READINESS.md',
     'fails before checkout while waiting for the hosted runner to come online',

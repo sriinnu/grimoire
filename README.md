@@ -123,6 +123,17 @@ Run the native desktop app:
 pnpm tauri dev
 ```
 
+Audit public-release truth before advertising Grimoire to general users:
+
+```bash
+pnpm audit:public-readiness -- --branch main
+```
+
+That command checks repository visibility, discovery topics, starter vault
+access, latest GitHub Actions state, GitHub Release assets, update feeds, and
+README/public-readiness wording. It is expected to fail until the public
+release blockers in `docs/PUBLIC-READINESS.md` are resolved.
+
 Build and install a local macOS app bundle:
 
 ```bash
