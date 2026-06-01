@@ -27,7 +27,16 @@ const LOCAL_ONLY_DOCS = [
   'docs/KARYA-BOARD-SALVAGE.md',
 ]
 
+const TRACKED_ENV_FIXTURES = new Set([
+  'src-tauri/fixtures/import-corpora/mixed-markdown-folder/.env',
+  'src-tauri/fixtures/import-corpora/notion-markdown/.env',
+  'src-tauri/fixtures/import-corpora/obsidian-vault/.env',
+])
+
 export const REQUIRED_GITIGNORE_PATTERNS = [
+  '.env',
+  '.env.*',
+  '!.env.example',
   '.grimoire-local/',
   'mockups/',
   'docs/mockups/',
@@ -55,9 +64,10 @@ const FORBIDDEN_TRACKED_RULES = [
   { label: 'docs/local/', test: (path) => hasPrefix(path, 'docs/local/') },
   { label: 'docs/private/', test: (path) => hasPrefix(path, 'docs/private/') },
   { label: 'docs/*.local.md', test: (path) => path.startsWith('docs/') && path.endsWith('.local.md') },
-  { label: '.codex/', test: (path) => hasPrefix(path, '.codex/') },
-  { label: '.claude/', test: (path) => hasPrefix(path, '.claude/') },
-  { label: '.mcp.json', test: (path) => path === '.mcp.json' },
+  { label: '.codex/', test: (path) => hasPathSegment(path, '.codex') },
+  { label: '.claude/', test: (path) => hasPathSegment(path, '.claude') },
+  { label: '.mcp.json', test: (path) => path === '.mcp.json' || path.endsWith('/.mcp.json') },
+  { label: '.env*', test: (path) => isEnvFile(path) && !isAllowedTrackedEnvFile(path) },
   { label: 'certs/*.pem', test: (path) => path.startsWith('certs/') && path.endsWith('.pem') },
   { label: '*.key', test: (path) => path.endsWith('.key') },
   { label: '*.key.pub', test: (path) => path.endsWith('.key.pub') },
@@ -80,6 +90,24 @@ const STRONG_LOCAL_MARKERS = [
 
 function hasPrefix(path, prefix) {
   return path === prefix.slice(0, -1) || path.startsWith(prefix)
+}
+
+function hasPathSegment(path, segment) {
+  return path.split('/').includes(segment)
+}
+
+function basename(path) {
+  return path.split('/').at(-1) ?? path
+}
+
+function isEnvFile(path) {
+  const name = basename(path)
+  return name === '.env' || name.startsWith('.env.')
+}
+
+function isAllowedTrackedEnvFile(path) {
+  const name = basename(path)
+  return path === '.env.example' || name.endsWith('.example') || TRACKED_ENV_FIXTURES.has(path)
 }
 
 function isDocsMockupPath(path) {
@@ -180,6 +208,10 @@ function auditCandidateFiles({ files, issues, label, root }) {
       continue
     }
 
+    if (TRACKED_ENV_FIXTURES.has(candidatePath)) {
+      auditSanitizedEnvFixture({ candidatePath, issues, label, root })
+    }
+
     if (!isDocsTextFile(candidatePath)) continue
 
     const content = readCandidateText(root, candidatePath)
@@ -187,6 +219,13 @@ function auditCandidateFiles({ files, issues, label, root }) {
     if (marker) {
       issues.push(`${label} docs file contains local-only marker "${marker}": ${candidatePath}`)
     }
+  }
+}
+
+function auditSanitizedEnvFixture({ candidatePath, issues, label, root }) {
+  const content = readCandidateText(root, candidatePath)
+  if (/(SECRET|TOKEN|KEY|PASSWORD)\s*=/iu.test(content)) {
+    issues.push(`${label} import fixture .env must stay sanitized: ${candidatePath}`)
   }
 }
 
@@ -255,6 +294,14 @@ function runSelfTest() {
       trackedFiles: ['docs/mockups/wire.png'],
       worktreeFiles: [],
     }), 'docs/**/mockups/')
+    assertIssue('tracked nested codex dir', auditLocalOnly(root, {
+      trackedFiles: ['fixtures/.codex/session.json'],
+      worktreeFiles: [],
+    }), '.codex/')
+    assertIssue('tracked env file', auditLocalOnly(root, {
+      trackedFiles: ['packages/app/.env'],
+      worktreeFiles: [],
+    }), '.env*')
     assertIssue('tracked nested docs mockup', auditLocalOnly(root, {
       trackedFiles: ['docs/design/mockups/wire.png'],
       worktreeFiles: [],
@@ -279,6 +326,12 @@ function runSelfTest() {
       trackedFiles: ['docs/ACTIVE-WORK.md'],
       worktreeFiles: [],
     }), 'local planning docs')
+    mkdirSync(resolve(root, 'src-tauri/fixtures/import-corpora/obsidian-vault'), { recursive: true })
+    writeFileSync(resolve(root, 'src-tauri/fixtures/import-corpora/obsidian-vault/.env'), 'SECRET=value\n')
+    assertIssue('tracked dirty env fixture', auditLocalOnly(root, {
+      trackedFiles: ['src-tauri/fixtures/import-corpora/obsidian-vault/.env'],
+      worktreeFiles: [],
+    }), 'sanitized')
 
     writeFileSync(resolve(root, 'docs/private-plan.md'), 'DO NOT COMMIT\n')
     assertIssue(

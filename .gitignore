@@ -95,6 +95,9 @@ docs/KARYA-BOARD-SALVAGE.md
 src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset/.!*
 
 # Local environment variables (never commit)
+.env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 
