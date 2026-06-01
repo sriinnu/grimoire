@@ -138,7 +138,7 @@ proposed → active → superseded
 | [0080](0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md) | Cross-platform desktop release artifacts and portable vault names | superseded → [0083](0083-dual-architecture-macos-release-artifacts.md) |
 | [0081](0081-internal-light-dark-theme-runtime.md) | Internal light and dark theme runtime | active |
 | [0082](0082-markdown-durable-math-notes.md) | Markdown-durable math in notes | active |
-| [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | active |
+| [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | superseded -> [0100](0100-public-release-packaging-truth.md) |
 | [0084](0084-app-localization-foundation.md) | App-owned localization foundation | active |
 | [0085](0085-markdown-editor-package-boundary.md) | Markdown editor package boundary | active |
 | [0086](0086-platform-native-app-shells.md) | Platform-native app shells over shared vault semantics | superseded → [0088](0088-tauri-first-editor-product.md) |
@@ -153,3 +153,6 @@ proposed → active → superseded
 | [0095](0095-release-artifact-verification-guardrails.md) | Release artifact verification guardrails | active |
 | [0096](0096-per-vault-git-capability-switch.md) | Per-Vault Git Capability Switch | active |
 | [0097](0097-locality-firewall-no-mcp-overrides.md) | Locality Firewall Has No MCP Read Override | active |
+| [0098](0098-local-portability-capsule-snapshots.md) | Local Portability Capsule Snapshots | accepted |
+| [0099](0099-exact-import-autopsy-signatures.md) | Exact Import Autopsy Signatures | accepted |
+| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |

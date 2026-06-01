@@ -56,6 +56,9 @@ jobs:
       - name: Verify Release Artifact Guard
         run: pnpm test:release-artifacts
 
+      - name: Verify Public Readiness Docs
+        run: pnpm test:public-readiness-docs
+
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
