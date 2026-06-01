@@ -134,8 +134,9 @@ describe('AiAgentSettingsSection', () => {
     renderSection()
 
     expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Provider API keys')
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('macOS Keychain')
     expect(screen.getByTestId('settings-ai-provider-key-anthropic')).toHaveTextContent('ANTHROPIC_API_KEY')
-    expect(screen.getByTestId('settings-ai-provider-key-source-anthropic')).toHaveTextContent('Keychain')
+    expect(screen.getByTestId('settings-ai-provider-key-source-anthropic')).toHaveTextContent('macOS Keychain')
     expect(screen.getByTestId('settings-ai-provider-key-source-openai')).toHaveTextContent('Environment')
     expect(screen.getByTestId('settings-ai-provider-key-source-deepseek')).toHaveTextContent('Missing')
     expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
@@ -160,6 +161,8 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent(
       'On Windows, Grimoire detects provider keys from environment variables.',
     )
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Windows Credential Manager')
+    expect(screen.getByTestId('settings-ai-provider-keys')).not.toHaveTextContent('macOS Keychain')
     expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
     expect(screen.getByTestId('settings-ai-provider-key-save-deepseek')).toBeDisabled()
   })
@@ -172,8 +175,21 @@ describe('AiAgentSettingsSection', () => {
 
     const providerKeys = screen.getByTestId('settings-ai-provider-keys')
     expect(providerKeys).toHaveTextContent('Unter Windows erkennt Grimoire Provider-Keys')
-    expect(providerKeys).toHaveTextContent('native sichere Speicherung')
+    expect(providerKeys).toHaveTextContent('Windows Credential Manager')
     expect(providerKeys).not.toHaveTextContent('macOS Keychain')
     expect(providerKeys).not.toHaveTextContent('Finder')
+  })
+
+  it('names Linux secure-storage support without macOS-only copy', () => {
+    setUserAgent('Mozilla/5.0 (X11; Linux x86_64)')
+    setPlatform('Linux x86_64')
+
+    renderSection()
+
+    const providerKeys = screen.getByTestId('settings-ai-provider-keys')
+    expect(providerKeys).toHaveTextContent('On Linux, Grimoire detects provider keys from environment variables.')
+    expect(providerKeys).toHaveTextContent('Linux Secret Service/keyring')
+    expect(providerKeys).not.toHaveTextContent('macOS Keychain')
+    expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
   })
 })

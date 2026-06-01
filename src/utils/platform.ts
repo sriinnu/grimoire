@@ -53,6 +53,13 @@ export function desktopPlatformDeviceLabel(platform: DesktopPlatform = getDeskto
   return 'device'
 }
 
+export function desktopSecureStorageLabel(platform: DesktopPlatform = getDesktopPlatform()): string {
+  if (platform === 'macos') return 'macOS Keychain'
+  if (platform === 'windows') return 'Windows Credential Manager'
+  if (platform === 'linux') return 'Linux Secret Service/keyring'
+  return 'native secure storage'
+}
+
 export function localMachineLabel(platform: DesktopPlatform = getDesktopPlatform()): string {
   return `this ${desktopPlatformDeviceLabel(platform)}`
 }
