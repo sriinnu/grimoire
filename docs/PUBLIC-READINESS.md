@@ -19,7 +19,7 @@ below are resolved and re-verified.
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,245 files on 2026-06-01. |
 | Local checks | Locally verified | `pnpm build`, `pnpm test`, `cargo test --manifest-path src-tauri/Cargo.toml`, `node scripts/scan-secrets.mjs --all`, `pnpm test:public-readiness-docs`, `plutil -lint src-tauri/Info.plist`, and `git diff --check` passed on 2026-06-01. |
-| Hosted CI | Blocked | GitHub Actions jobs did not start because account billing or spending-limit settings blocked runners. This must be fixed and re-run before public release. |
+| Hosted CI | Blocked | GitHub Actions assigns hosted runners, then each job fails before checkout while waiting for the hosted runner to come online. This must be fixed and re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. |
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
@@ -57,6 +57,23 @@ git ls-remote https://github.com/sriinnu/grimoire-getting-started.git HEAD refs/
 git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-verify-97b824f
 pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-97b824f
 ```
+
+## Hosted CI Evidence
+
+Run `26760994922` for commit `92b327510aaf5bce27de41a2653b8b3e8da17038`
+failed before checkout/build/test on 2026-06-01. The job system logs contain
+only hosted-runner assignment/startup lines, for example:
+
+```text
+Requested labels: ubuntu-latest
+Job defined at: sriinnu/grimoire/.github/workflows/ci.yml@refs/pull/18/merge
+Waiting for a runner to pick up this job...
+Job is about to start running on the hosted runner: GitHub Actions 1000006717
+Job is waiting for a hosted runner to come online.
+```
+
+The macOS and Windows jobs show the same shape with their respective labels.
+No checkout, dependency installation, build, test, or lint step ran.
 
 ## Verification Commands
 

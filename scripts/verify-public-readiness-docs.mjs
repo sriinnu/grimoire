@@ -40,7 +40,13 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'fails before checkout while waiting for the hosted runner to come online',
+    'hosted CI runner-startup blocker evidence',
+  )
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
+  assertNotMatch('docs/PUBLIC-READINESS.md', /billing|spending-limit/iu, 'unverified hosted CI billing/spending claims')
 }
 
 function verifyReleaseWorkflowTruth() {
