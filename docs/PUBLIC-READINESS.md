@@ -21,6 +21,10 @@ below are resolved and re-verified.
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
 | OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
 
+Packaging scope is recorded in
+[ADR-0100](adr/0100-public-release-packaging-truth.md). Older cross-platform
+release ADRs are not public install evidence.
+
 ## Do Not Make Public Until
 
 - The latest PR or main commit has green hosted CI on GitHub.
@@ -58,6 +62,7 @@ gh release list --repo sriinnu/grimoire --limit 10
 node scripts/scan-secrets.mjs --all
 pnpm build
 pnpm test
+pnpm test:public-readiness-docs
 pnpm playwright:smoke
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
