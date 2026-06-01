@@ -69,6 +69,14 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release preflight | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
+  assertContains('docs/PUBLIC-READINESS.md', 'The pre-push gate passed on signed commit `b8ba912`')
+  assertContains('docs/PUBLIC-READINESS.md', '4,583 frontend tests')
+  assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'fresh packaged Windows/Linux/macOS launch evidence is still required before calling the bridge fully verified',
+  )
+  assertContains('src-tauri/src/lib_tests.rs', 'fn ws_bridge_spawn_failure_keeps_startup_optional()')
   assertContains('package.json', '"doctor:source": "node scripts/doctor-public-source.mjs"')
   assertContains('package.json', '"test:doctor-source": "node scripts/doctor-public-source.mjs --self-test"')
   assertContains('README.md', 'pnpm test:public-doc-links')
