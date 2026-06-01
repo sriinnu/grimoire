@@ -185,6 +185,7 @@ Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-ST
 
 ## Documentation
 
+- [Docs Index](docs/README.md) - curated public documentation map
 - [Architecture](docs/ARCHITECTURE.md) - runtime shape, platform boundaries, data flow
 - [Abstractions](docs/ABSTRACTIONS.md) - durable concepts and module contracts
 - [Markdown Semantics](docs/MARKDOWN-SEMANTICS-CONTRACT.md) - shared markdown and slash-command contract
