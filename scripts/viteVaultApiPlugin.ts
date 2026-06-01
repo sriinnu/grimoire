@@ -117,6 +117,10 @@ function handleVaultSearch(url: URL, res: ServerResponse): boolean {
     sendJson(res, { results: [], elapsed_ms: 0, query, mode })
     return true
   }
+  if (!fs.existsSync(vaultPath)) {
+    sendJson(res, { error: 'Invalid vault path' }, 400)
+    return true
+  }
 
   const results: { title: string; path: string; snippet: string; score: number; note_type: string | null }[] = []
   for (const filePath of findMarkdownFiles(vaultPath)) {

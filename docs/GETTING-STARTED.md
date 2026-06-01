@@ -139,6 +139,7 @@ src/
     SingleEditorView.tsx          rich BlockNote editor
     RawEditorView.tsx             CodeMirror source editor
     GraphModal.tsx                knowledge graph UI
+    SearchPanel.tsx               Spotlight search across open vault text/docs
     WeatherSnapshotDialog.tsx     explicit weather insertion UI
     Inspector.tsx                 properties and relationships
     sidebar/SidebarRail.tsx       collapsed left-column icon rail

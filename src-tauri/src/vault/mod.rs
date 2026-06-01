@@ -170,7 +170,7 @@ pub use rename::{
     MoveNoteToFolderRequest, RenameNoteFilenameRequest, RenameNoteRequest, RenameResult,
 };
 use scanner::extract_yml_name;
-pub(crate) use scanner::{classify_file_kind, is_md_file};
+pub(crate) use scanner::{classify_file_kind, is_hidden_dir, is_md_file};
 pub use scanner::{scan_vault, scan_vault_folders};
 pub use scanner_progress::{scan_vault_with_progress, VaultRebuildProgressEvent};
 pub use title_sync::{sync_title_on_open, SyncAction};

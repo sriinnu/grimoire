@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { SidebarRail } from './SidebarRail'
 
@@ -37,5 +37,26 @@ describe('SidebarRail', () => {
     expect(document.querySelector('[data-sidebar-glyph="expand-sidebar"]')).not.toBeNull()
     expect(document.querySelectorAll('.sidebar-rail__signal')).toHaveLength(8)
     expect(document.querySelectorAll('.sidebar-rail__bead')).toHaveLength(16)
+  })
+
+  it('opens search from the collapsed left rail', () => {
+    const onOpenSearch = vi.fn()
+    render(
+      <SidebarRail
+        selection={{ kind: 'dashboard' }}
+        onSelect={vi.fn()}
+        showInbox
+        inboxCount={0}
+        activeCount={0}
+        noteCount={0}
+        journalCount={0}
+        dreamCount={0}
+        archivedCount={0}
+        onOpenSearch={onOpenSearch}
+      />,
+    )
+
+    fireEvent.click(screen.getByTestId('sidebar-rail-search'))
+    expect(onOpenSearch).toHaveBeenCalledOnce()
   })
 })

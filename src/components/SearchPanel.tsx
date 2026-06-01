@@ -8,19 +8,30 @@ import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
 import { NoteTitleIcon } from './NoteTitleIcon'
 import { Input } from './ui/input'
+import type { SearchVaultScope } from '../hooks/useUnifiedSearch'
 
 interface SearchPanelProps {
   open: boolean
   vaultPath: string
+  vaultScopes?: SearchVaultScope[]
   entries: VaultEntry[]
   onSelectNote: (entry: VaultEntry) => void
+  onSelectSearchResult?: (result: SearchResult) => void
   onClose: () => void
 }
 
-export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }: SearchPanelProps) {
+export function SearchPanel({
+  open,
+  vaultPath,
+  vaultScopes,
+  entries,
+  onSelectNote,
+  onSelectSearchResult,
+  onClose,
+}: SearchPanelProps) {
   const {
     query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs,
-  } = useUnifiedSearch(vaultPath, open)
+  } = useUnifiedSearch(vaultPath, open, vaultScopes)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -38,8 +49,11 @@ export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }:
     if (entry) {
       onSelectNote(entry)
       onClose()
+      return
     }
-  }, [entries, onSelectNote, onClose])
+    onSelectSearchResult?.(result)
+    onClose()
+  }, [entries, onSelectNote, onSelectSearchResult, onClose])
 
   useLayoutEffect(() => {
     resultsRef.current = results
@@ -106,6 +120,8 @@ export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }:
           selectedIndex={selectedIndex}
           loading={loading}
           elapsedMs={elapsedMs}
+          activeVaultPath={vaultPath}
+          vaultCount={vaultScopes?.length ?? 1}
           entryLookup={entryLookup}
           typeEntryMap={typeEntryMap}
           listRef={listRef}
@@ -138,7 +154,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           ref={ref}
           className="h-auto flex-1 border-0 bg-transparent px-0 py-0 text-[15px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
           type="text"
-          placeholder="Search in all notes..."
+          placeholder="Search notes, docs, and project files..."
           value={query}
           onChange={e => onChange(e.target.value)}
           onKeyDown={onKeyDown}
@@ -165,6 +181,8 @@ interface SearchContentProps {
   selectedIndex: number
   loading: boolean
   elapsedMs: number | null
+  activeVaultPath: string
+  vaultCount: number
   entryLookup: Map<string, VaultEntry>
   typeEntryMap: Record<string, VaultEntry>
   listRef: React.RefObject<HTMLDivElement | null>
@@ -173,13 +191,15 @@ interface SearchContentProps {
 }
 
 function SearchContent({
-  query, results, selectedIndex, loading, elapsedMs, entryLookup, typeEntryMap, listRef, onSelect, onHover,
+  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, listRef, onSelect, onHover,
 }: SearchContentProps) {
   return (
     <div className="flex-1 overflow-y-auto">
       {!query.trim() && (
         <div className="px-4 py-8 text-center">
-          <p className="text-[13px] text-muted-foreground">Search across all note contents</p>
+          <p className="text-[13px] text-muted-foreground">
+            {vaultCount > 1 ? `Search across ${vaultCount} open vaults` : 'Search across notes, docs, and text files'}
+          </p>
           <p className="mt-1 text-[11px] text-muted-foreground/60">
             Enter to open · Esc to close
           </p>
@@ -214,6 +234,7 @@ function SearchContent({
               const typeColor = noteType ? getTypeColor(isA, te?.color) : undefined
               const TypeIcon = getTypeIcon(isA ?? null, te?.icon)
               const subtitle = entry ? formatSearchSubtitle(entry) : null
+              const vaultLabel = result.vaultPath && result.vaultPath !== activeVaultPath ? result.vaultLabel : null
               return (
                 <div
                   key={result.path}
@@ -230,13 +251,20 @@ function SearchContent({
                       <NoteTitleIcon icon={entry?.icon} size={14} className="mr-1" />
                       {entry?.title ?? result.title}
                     </span>
-                    {noteType && (
-                      <span className="shrink-0 text-[11px] text-muted-foreground/70">{noteType}</span>
+                    {(noteType || vaultLabel) && (
+                      <span className="shrink-0 text-[11px] text-muted-foreground/70">
+                        {[noteType, vaultLabel].filter(Boolean).join(' · ')}
+                      </span>
                     )}
                   </div>
                   {subtitle && (
                     <p className="mt-0.5 pl-[22px] text-[11px] text-muted-foreground">
                       {subtitle}
+                    </p>
+                  )}
+                  {result.snippet && (
+                    <p className="mt-1 max-h-[2.8em] overflow-hidden pl-[22px] text-[11px] leading-snug text-muted-foreground/80">
+                      {result.snippet}
                     </p>
                   )}
                 </div>

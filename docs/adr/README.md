@@ -64,7 +64,7 @@ proposed → active → superseded
 | [0006](0006-flat-vault-structure.md) | Flat vault structure (no type-based folders) | active |
 | [0007](0007-title-filename-sync.md) | Title equals filename (slug sync) | active |
 | [0008](0008-underscore-system-properties.md) | Underscore convention for system properties | active |
-| [0009](0009-keyword-only-search.md) | Keyword-only search (remove semantic indexing) | active |
+| [0009](0009-keyword-only-search.md) | Keyword-only search (remove semantic indexing) | superseded -> [0102](0102-sidebar-spotlight-search-over-open-vault-text.md) |
 | [0010](0010-dynamic-wikilink-relationship-detection.md) | Dynamic wikilink relationship detection | active |
 | [0011](0011-mcp-server-for-ai-integration.md) | MCP server for AI tool integration | superseded → [0074](0074-explicit-external-ai-tool-setup-and-least-privilege-desktop-scope.md) |
 | [0012](0012-claude-cli-for-ai-agent.md) | Claude CLI subprocess for AI agent | active |
@@ -157,3 +157,4 @@ proposed → active → superseded
 | [0099](0099-exact-import-autopsy-signatures.md) | Exact Import Autopsy Signatures | accepted |
 | [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |
 | [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |
+| [0102](0102-sidebar-spotlight-search-over-open-vault-text.md) | Sidebar Spotlight search over open vault text | active |
