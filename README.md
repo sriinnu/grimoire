@@ -3,11 +3,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/sriinnu/grimoire/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sriinnu/grimoire/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
-  <a href="https://github.com/sriinnu/grimoire/actions/workflows/release.yml"><img alt="Build" src="https://github.com/sriinnu/grimoire/actions/workflows/release.yml/badge.svg?branch=main" /></a>
+  <img alt="Repository visibility: private until public readiness passes" src="https://img.shields.io/badge/repository-private%20until%20ready-lightgrey" />
+  <img alt="Hosted CI: blocked before checkout" src="https://img.shields.io/badge/hosted%20CI-blocked%20before%20checkout-red" />
   <img alt="Public binary release: not published" src="https://img.shields.io/badge/public%20binary-not%20published-lightgrey" />
-  <a href="https://codecov.io/gh/sriinnu/grimoire"><img alt="Codecov" src="https://codecov.io/gh/sriinnu/grimoire/graph/badge.svg?branch=main" /></a>
-  <a href="https://codescene.io/projects/76865"><img alt="CodeScene Hotspot Code Health" src="https://codescene.io/projects/76865/status-badges/hotspot-code-health" /></a>
 </p>
 
 # Grimoire
