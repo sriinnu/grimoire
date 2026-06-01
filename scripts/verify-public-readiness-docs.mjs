@@ -51,6 +51,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| README status badges | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc hygiene | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'local working notes are ignored and removed from Git tracking')
+  assertContains('docs/PUBLIC-READINESS.md', 'The only allowed tracked importer `.env` fixtures must contain sanitized `KEY=redacted` assignments.')
   assertContains('README.md', '[Docs Index](docs/README.md)')
   assertContains('docs/README.md', 'Local working notes are kept out of Git.')
   assertContains('docs/README.md', '[Public Readiness](PUBLIC-READINESS.md)')

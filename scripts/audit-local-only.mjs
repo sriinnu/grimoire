@@ -224,8 +224,14 @@ function auditCandidateFiles({ files, issues, label, root }) {
 
 function auditSanitizedEnvFixture({ candidatePath, issues, label, root }) {
   const content = readCandidateText(root, candidatePath)
-  if (/(SECRET|TOKEN|KEY|PASSWORD)\s*=/iu.test(content)) {
-    issues.push(`${label} import fixture .env must stay sanitized: ${candidatePath}`)
+  for (const rawLine of content.split(/\r?\n/u)) {
+    const line = rawLine.trim()
+    if (!line || line.startsWith('#')) continue
+    const match = line.match(/^[A-Z0-9_]+\s*=\s*(.+)$/u)
+    if (!match || match[1].trim() !== 'redacted') {
+      issues.push(`${label} import fixture .env must stay sanitized: ${candidatePath}`)
+      return
+    }
   }
 }
 
@@ -327,7 +333,7 @@ function runSelfTest() {
       worktreeFiles: [],
     }), 'local planning docs')
     mkdirSync(resolve(root, 'src-tauri/fixtures/import-corpora/obsidian-vault'), { recursive: true })
-    writeFileSync(resolve(root, 'src-tauri/fixtures/import-corpora/obsidian-vault/.env'), 'SECRET=value\n')
+    writeFileSync(resolve(root, 'src-tauri/fixtures/import-corpora/obsidian-vault/.env'), 'OBSIDIAN_FIXTURE_ENV=placeholder\n')
     assertIssue('tracked dirty env fixture', auditLocalOnly(root, {
       trackedFiles: ['src-tauri/fixtures/import-corpora/obsidian-vault/.env'],
       worktreeFiles: [],
