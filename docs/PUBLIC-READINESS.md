@@ -10,7 +10,8 @@ below are resolved and re-verified.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and resolved to `dcc2c60259370e5b6b783825c6f880e5b0813470` on 2026-06-01. |
+| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and resolved to `97b824f7839ab94ef09b07a6b95f767936de262f` on 2026-06-01. |
+| Starter showcase coverage | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, scenario files, and internal wikilinks for `demo-vault-v2/`. `pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-97b824f` also compared a fresh public starter clone against the local mirror on 2026-06-01. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings before this snapshot. |
@@ -50,7 +51,8 @@ Verified on 2026-06-01:
 
 ```bash
 git ls-remote https://github.com/sriinnu/grimoire-getting-started.git HEAD refs/heads/main
-git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-clone-verify-dcc2c60
+git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-verify-97b824f
+pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-97b824f
 ```
 
 ## Verification Commands
@@ -63,6 +65,7 @@ node scripts/scan-secrets.mjs --all
 pnpm build
 pnpm test
 pnpm test:public-readiness-docs
+pnpm test:starter-vault
 pnpm playwright:smoke
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
