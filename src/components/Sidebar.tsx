@@ -19,6 +19,7 @@ import {
 } from './sidebar/SidebarSections'
 import { SidebarArtwork } from './sidebar/SidebarArtwork'
 import { SidebarRail } from './sidebar/SidebarRail'
+import { SidebarSearchLauncher } from './sidebar/SidebarSearchLauncher'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
 
 interface SidebarProps {
@@ -51,6 +52,7 @@ interface SidebarProps {
   collapsed?: boolean
   onCollapse?: () => void
   onExpand?: () => void
+  onOpenSearch?: () => void
 }
 
 export const Sidebar = memo(function Sidebar({
@@ -80,6 +82,7 @@ export const Sidebar = memo(function Sidebar({
   collapsed = false,
   onCollapse,
   onExpand,
+  onOpenSearch,
   onCreateNewType,
 }: SidebarProps) {
   const { typeEntryMap, allSectionGroups, visibleSections, sectionIds } = useSidebarSections(entries)
@@ -124,6 +127,7 @@ export const Sidebar = memo(function Sidebar({
         journalCount={journalCount}
         dreamCount={dreamCount}
         archivedCount={archivedCount}
+        onOpenSearch={onOpenSearch}
       />
     )
   }
@@ -131,6 +135,7 @@ export const Sidebar = memo(function Sidebar({
   return (
     <aside className="app-sidebar-panel flex h-full flex-col overflow-hidden border-r border-[var(--sidebar-border)] bg-sidebar text-sidebar-foreground">
       <SidebarTitleBar onCollapse={onCollapse} />
+      <SidebarSearchLauncher onOpenSearch={onOpenSearch} />
       <nav className="app-sidebar-nav flex-1 overflow-y-auto">
         <SidebarTopNav
           selection={selection}

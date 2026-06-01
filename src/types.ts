@@ -144,6 +144,8 @@ export interface SearchResult {
   snippet: string
   score: number
   noteType: string | null
+  vaultPath?: string
+  vaultLabel?: string
 }
 
 export interface SearchResponse {

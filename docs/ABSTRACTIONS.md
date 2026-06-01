@@ -254,11 +254,16 @@ Views should reuse the same filtering/sorting primitives as built-in lists.
 ## Search
 
 Search currently means keyword search over local files and indexed note metadata.
+The full search panel is launched from the sidebar or shortcut layer and searches
+all available open vault paths. It scans markdown and editable text files,
+skipping hidden, dependency, and build-output directories so code-project vaults
+stay usable.
 
 Search surfaces:
 
 - quick open
 - note list filtering
+- sidebar Spotlight search
 - full search panel
 - graph filter
 - future semantic search

@@ -57,6 +57,23 @@ fn score_match(title_lower: &str, content_lower: &str, query_lower: &str) -> f64
     score
 }
 
+fn is_searchable_text_path(path: &Path) -> bool {
+    matches!(crate::vault::classify_file_kind(path), "markdown" | "text")
+}
+
+fn search_result_title(path: &Path, content: &str) -> String {
+    let filename = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("");
+
+    if crate::vault::is_md_file(path) {
+        return crate::vault::derive_markdown_title_from_content(content, filename);
+    }
+
+    filename.to_string()
+}
+
 pub fn search_vault(
     vault_path: &str,
     query: &str,
@@ -69,16 +86,23 @@ pub fn search_vault(
 
     let mut results: Vec<SearchResult> = Vec::new();
 
-    for entry in WalkDir::new(vault_dir).into_iter().filter_map(|e| e.ok()) {
+    let walker = WalkDir::new(vault_dir)
+        .follow_links(false)
+        .into_iter()
+        .filter_entry(|entry| {
+            if entry.file_type().is_dir() {
+                let name = entry.file_name().to_string_lossy();
+                return entry.depth() == 0 || !crate::vault::is_hidden_dir(&name);
+            }
+            true
+        });
+
+    for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
-        if !path.extension().is_some_and(|ext| ext == "md") {
+        if !entry.file_type().is_file() {
             continue;
         }
-        // Skip hidden dirs and .grimoire config
-        if path
-            .components()
-            .any(|c| c.as_os_str().to_string_lossy().starts_with('.'))
-        {
+        if entry.file_name().to_string_lossy().starts_with('.') || !is_searchable_text_path(path) {
             continue;
         }
 
@@ -88,11 +112,7 @@ pub fn search_vault(
         };
 
         let content_lower = content.to_lowercase();
-        let filename = path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or("");
-        let title = crate::vault::derive_markdown_title_from_content(&content, filename);
+        let title = search_result_title(path, &content);
         let title_lower = title.to_lowercase();
 
         if !title_lower.contains(&query_lower) && !content_lower.contains(&query_lower) {
@@ -187,5 +207,40 @@ mod tests {
 
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].title, "Updated Display Title");
+    }
+
+    #[test]
+    fn test_search_vault_includes_editable_text_files() {
+        let dir = Builder::new()
+            .prefix("search-vault-text-")
+            .tempdir_in(std::env::current_dir().unwrap())
+            .unwrap();
+        let text_path = dir.path().join("notes.txt");
+        fs::write(&text_path, "Spotlight should find text project notes.").unwrap();
+
+        let response =
+            search_vault(dir.path().to_str().unwrap(), "project", "keyword", 10).unwrap();
+
+        assert_eq!(response.results.len(), 1);
+        assert_eq!(response.results[0].title, "notes.txt");
+        assert_eq!(response.results[0].path, text_path.to_string_lossy());
+    }
+
+    #[test]
+    fn test_search_vault_skips_build_and_dependency_dirs() {
+        let dir = Builder::new()
+            .prefix("search-vault-skip-")
+            .tempdir_in(std::env::current_dir().unwrap())
+            .unwrap();
+        let dependency_dir = dir.path().join("node_modules/pkg");
+        fs::create_dir_all(&dependency_dir).unwrap();
+        fs::write(dependency_dir.join("hidden.md"), "# Hidden\n\nkeyword").unwrap();
+        fs::write(dir.path().join("visible.md"), "# Visible\n\nkeyword").unwrap();
+
+        let response =
+            search_vault(dir.path().to_str().unwrap(), "keyword", "keyword", 10).unwrap();
+
+        assert_eq!(response.results.len(), 1);
+        assert_eq!(response.results[0].title, "Visible");
     }
 }

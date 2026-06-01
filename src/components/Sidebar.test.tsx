@@ -235,6 +235,17 @@ describe('Sidebar', () => {
     expect(screen.getByText('Markdown agent')).toHaveStyle({ textAlign: 'left' })
   })
 
+  it('opens vault-wide search from the left sidebar', () => {
+    const onOpenSearch = vi.fn()
+    render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} onOpenSearch={onOpenSearch} />)
+
+    expect(screen.getByTestId('sidebar-search-launcher')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Search open vaults' })).toHaveTextContent('Search vaults')
+
+    fireEvent.click(screen.getByTestId('sidebar-search-button'))
+    expect(onOpenSearch).toHaveBeenCalledOnce()
+  })
+
   it('renders section group headers only for types present in entries', () => {
     render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
     expect(screen.getByText('Projects')).toBeInTheDocument()

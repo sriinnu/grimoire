@@ -53,7 +53,8 @@ roadmap, not a packaged-release claim yet.
 - Local vault opening and onboarding
 - Starter vault clone flow implemented with a public starter repository
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
-- Note list search, custom columns, sorting, saved views, and Neighborhood mode
+- Sidebar Spotlight search across open vault text/docs, note list search,
+  custom columns, sorting, saved views, and Neighborhood mode
 - BlockNote rich editor with package-owned slash commands, markdown-compatible math, wikilinks, `#` tag/collection autocomplete, code blocks, formatting, and raw CodeMirror mode
 - Inspector for frontmatter, relationships, backlinks, instances, note metadata, and git history
 - Knowledge graph with local/vault scope, relationship/wikilink edge filters, type-colored nodes, and large-vault caps

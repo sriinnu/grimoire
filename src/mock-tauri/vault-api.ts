@@ -33,6 +33,10 @@ interface VaultApiRequest {
 /** Tracks last vault path for commands that don't receive it as an argument. */
 let lastVaultPath: string | null = null
 
+function isMockOnlyVaultPath(vaultPath: string): boolean {
+  return vaultPath.startsWith('/Users/mock/')
+}
+
 const VAULT_API_COMMANDS: Record<string, (args: Record<string, unknown>) => VaultApiRequest | null> = {
   list_vault: (args) => {
     if (args.path) lastVaultPath = args.path as string
@@ -78,8 +82,10 @@ const VAULT_API_COMMANDS: Record<string, (args: Record<string, unknown>) => Vaul
     args.path ? { url: '/api/vault/delete', method: 'POST', body: { path: args.path } } : null,
   search_vault: (args) => {
     const q = args.query as string
-    if (!q || !lastVaultPath) return null
-    return { url: `/api/vault/search?vault_path=${encodeURIComponent(lastVaultPath)}&query=${encodeURIComponent(q)}&mode=${encodeURIComponent((args.mode as string) || 'all')}` }
+    const vaultPath = (args.vaultPath ?? args.vault_path ?? lastVaultPath) as string | null
+    if (!q || !vaultPath || isMockOnlyVaultPath(vaultPath)) return null
+    lastVaultPath = vaultPath
+    return { url: `/api/vault/search?vault_path=${encodeURIComponent(vaultPath)}&query=${encodeURIComponent(q)}&mode=${encodeURIComponent((args.mode as string) || 'all')}` }
   },
 }
 
