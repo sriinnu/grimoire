@@ -14,6 +14,7 @@ below are resolved and re-verified.
 | Starter showcase coverage | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, scenario files, and internal wikilinks for `demo-vault-v2/`. `pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-97b824f` also compared a fresh public starter clone against the local mirror on 2026-06-01. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
+| Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, and update feeds return `404`. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
 | macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x882 on 2026-06-01. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
@@ -60,7 +61,7 @@ pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-9
 
 ## Hosted CI Evidence
 
-Run `26760994922` for commit `92b327510aaf5bce27de41a2653b8b3e8da17038`
+Run `26761746288` for commit `b4b1d47e6c10c31eb5a95a35d6f170bf4d5ae471`
 failed before checkout/build/test on 2026-06-01. The job system logs contain
 only hosted-runner assignment/startup lines, for example:
 
@@ -68,7 +69,7 @@ only hosted-runner assignment/startup lines, for example:
 Requested labels: ubuntu-latest
 Job defined at: sriinnu/grimoire/.github/workflows/ci.yml@refs/pull/18/merge
 Waiting for a runner to pick up this job...
-Job is about to start running on the hosted runner: GitHub Actions 1000006717
+Job is about to start running on the hosted runner: GitHub Actions 1000006722
 Job is waiting for a hosted runner to come online.
 ```
 
@@ -82,8 +83,10 @@ gh repo view sriinnu/grimoire --json isPrivate,visibility,repositoryTopics
 gh repo view sriinnu/grimoire-getting-started --json isPrivate,visibility,url
 gh release list --repo sriinnu/grimoire --limit 10
 node scripts/scan-secrets.mjs --all
+pnpm audit:public-readiness -- --branch docs/public-readiness-truth
 pnpm build
 pnpm test
+pnpm test:public-readiness-audit
 pnpm test:public-readiness-docs
 pnpm test:release-pages
 pnpm test:starter-vault
