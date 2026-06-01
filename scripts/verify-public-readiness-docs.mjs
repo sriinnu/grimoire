@@ -45,6 +45,7 @@ function verifyBinaryInstallTruth() {
   assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
   assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-billing%2Fspending%20limit-red')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', 'requires every advertised surface row to link to a real demo note')
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc links | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release preflight | Blocked |')
