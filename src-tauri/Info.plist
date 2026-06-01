@@ -12,8 +12,12 @@
   <string>NSApplication</string>
   <key>NSMicrophoneUsageDescription</key>
   <string>Grimoire records local voice notes only when you start recording.</string>
+  <key>NSQuitAlwaysKeepsWindows</key>
+  <false/>
+  <key>NSWindowRestoresWorkspaceAtLaunch</key>
+  <false/>
   <key>NSSupportsAutomaticTermination</key>
-  <true/>
+  <false/>
   <key>NSSupportsSuddenTermination</key>
   <true/>
 </dict>
