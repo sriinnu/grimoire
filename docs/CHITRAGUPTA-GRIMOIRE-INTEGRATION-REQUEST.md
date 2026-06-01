@@ -1,14 +1,14 @@
 # Chitragupta Grimoire Integration Request
 
-Last reviewed by Chitragupta: 2026-05-04
+Last reviewed by Grimoire: 2026-06-01
 
-This is the handoff note between Grimoire and Chitragupta. Grimoire is ready to surface Chitragupta as a first-class local memory/wiki lane, but automatic enablement still needs a stable vertical handshake and a Grimoire-facing MCP facade.
+This is the handoff note between Grimoire and Chitragupta. Grimoire has app-side UI and CLI route/status disclosure for Chitragupta, but the Chitragupta MCP memory/wiki/graph product surface is not public-ready until the stable Grimoire-facing facade below is implemented and re-verified.
 
 The exact MCP tool shapes live in [Chitragupta Grimoire MCP Contract](CHITRAGUPTA-GRIMOIRE-MCP-CONTRACT.md).
 
 ## Current Verdict
 
-Grimoire is bridge-ready, but the integration is not fully automatic yet.
+Grimoire is app-bridge-ready for local CLI chat and route disclosure, but the MCP memory integration is still contract-gated.
 
 Already in place:
 
@@ -20,7 +20,9 @@ Already in place:
 - Shared Markdown semantics extract headings/frontmatter and power the right-sidebar outline/TOC/YAML view.
 - The right sidebar has a Chitragupta-ready Memory lane for active-note context and pending capability count.
 - The shared slash-command package includes `/recall`, `/related`, `/memory`, `/crystallize`, and `/diagnose` placeholders.
-- Basic Chitragupta project memory append works from this repo.
+- Earlier local validation recorded basic Chitragupta project memory append from
+  this repo; public readiness does not rely on that path until the MCP facade is
+  re-verified.
 
 Missing for automatic enablement:
 
