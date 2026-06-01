@@ -7,6 +7,7 @@ pub mod frontmatter;
 pub mod git;
 mod invoke_handler;
 pub mod mcp;
+mod mcp_resources;
 #[cfg(desktop)]
 pub mod menu;
 #[cfg(all(desktop, target_os = "macos"))]
