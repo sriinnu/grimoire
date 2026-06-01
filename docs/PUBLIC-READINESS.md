@@ -29,7 +29,8 @@ below are resolved and re-verified.
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. |
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
 | OS packaging | Partial | macOS source development is locally verified. Linux and Windows are intended source-development targets, but they are not public-support claims until hosted CI and fresh platform QA prove them. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
-| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`. This branch contains cfg guards for those paths, but a fresh Windows dev/build/open run has not yet been captured. |
+| Packaged MCP bridge | Partially verified | The bundled `mcp-server` resolver now checks Tauri resource directories, app-beside resources, Windows-style `resources/mcp-server`, macOS `Contents/Resources/mcp-server`, AppImage, and Linux `/usr/lib/grimoire/mcp-server` layouts. Packaged bridge launch still requires Node.js on `PATH`; normal vault UI must open without the optional bridge. |
+| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`. This branch contains cfg guards for those paths and a broader packaged bridge resource lookup, but a fresh Windows dev/build/open run has not yet been captured. |
 
 Packaging scope is recorded in
 [ADR-0100](adr/0100-public-release-packaging-truth.md). Older cross-platform
@@ -49,8 +50,8 @@ release ADRs are not public install evidence.
   recall, wiki, graph, ingest, and diagnostics readiness.
 - Known high-priority crash paths have a passing regression test or documented
   limitation.
-- Windows and Linux native source runs have fresh platform evidence, not only
-  cross-platform intent.
+- Windows and Linux native source runs have fresh platform evidence, including
+  app launch and optional bridge status, not only cross-platform intent.
 
 ## Starter Vault Verification
 
