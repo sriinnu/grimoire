@@ -11,7 +11,8 @@ interface ThemePreset {
 }
 
 describe('status bar theme CSS', () => {
-  const css = readFileSync(`${process.cwd()}/src/theme-status-bar.css`, 'utf8')
+  const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
+  const css = readText(`${process.cwd()}/src/theme-status-bar.css`)
   const presets = JSON.parse(readFileSync(`${process.cwd()}/src/themes/presets.json`, 'utf8')) as ThemePreset[]
   const statusBarComponentDir = `${process.cwd()}/src/components/status-bar`
 
@@ -80,7 +81,7 @@ describe('status bar theme CSS', () => {
     const problems = readdirSync(statusBarComponentDir)
       .filter((file) => file.endsWith('.tsx'))
       .flatMap((file) => {
-        const source = readFileSync(`${statusBarComponentDir}/${file}`, 'utf8')
+        const source = readText(`${statusBarComponentDir}/${file}`)
         return ['var(--foreground)', 'var(--muted-foreground)']
           .filter((token) => source.includes(token))
           .map((token) => `${file}: ${token}`)

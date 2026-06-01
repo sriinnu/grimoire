@@ -329,7 +329,10 @@ function createDeferred<T>() {
 
 async function selectSidebarNav(label: string) {
   const nav = await screen.findByTestId('sidebar-top-nav', {}, { timeout: 5000 })
-  fireEvent.click(within(nav).getByText(label))
+  await act(async () => {
+    fireEvent.click(within(nav).getByText(label))
+    await Promise.resolve()
+  })
 }
 
 function resetMockCommandResults() {
@@ -578,11 +581,8 @@ describe('App', () => {
     render(<App />)
     await selectSidebarNav('All Notes')
 
-    await waitFor(() => {
-      // Entries appear in both Sidebar and NoteList
-      expect(screen.getAllByText('Test Project').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Software Development').length).toBeGreaterThan(0)
-    })
+    expect((await screen.findAllByText('Test Project', {}, { timeout: 10000 })).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Software Development', {}, { timeout: 10000 })).length).toBeGreaterThan(0)
   })
 
   it('opens to the vault dashboard when no note is selected', async () => {

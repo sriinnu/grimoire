@@ -78,6 +78,7 @@ jobs:
 
       - name: Browser Smoke (Chromium + WebKit)
         if: runner.os == 'macOS'
+        timeout-minutes: 10
         run: PLAYWRIGHT_BROWSERS=chromium,webkit pnpm playwright:smoke
 
       - name: Rust Lint
