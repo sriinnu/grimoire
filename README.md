@@ -3,9 +3,9 @@
 </p>
 
 <p align="center">
-  <img alt="Latest stable" src="https://img.shields.io/github/v/release/sriinnu/grimoire?display_name=tag" />
   <a href="https://github.com/sriinnu/grimoire/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/sriinnu/grimoire/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
   <a href="https://github.com/sriinnu/grimoire/actions/workflows/release.yml"><img alt="Build" src="https://github.com/sriinnu/grimoire/actions/workflows/release.yml/badge.svg?branch=main" /></a>
+  <img alt="Public binary release: not published" src="https://img.shields.io/badge/public%20binary-not%20published-lightgrey" />
   <a href="https://codecov.io/gh/sriinnu/grimoire"><img alt="Codecov" src="https://codecov.io/gh/sriinnu/grimoire/graph/badge.svg?branch=main" /></a>
   <a href="https://codescene.io/projects/76865"><img alt="CodeScene Hotspot Code Health" src="https://codescene.io/projects/76865/status-badges/hotspot-code-health" /></a>
 </p>
@@ -42,7 +42,8 @@ Grimoire is built around five surfaces:
 
 ## Current Status
 
-- Local vault opening, onboarding, and starter vault cloning
+- Local vault opening and onboarding
+- Starter vault clone flow implemented; the public starter repository must exist before that first-launch path can be called public-ready
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
 - Note list search, custom columns, sorting, saved views, and Neighborhood mode
 - BlockNote rich editor with package-owned slash commands, markdown-compatible math, wikilinks, `#` tag/collection autocomplete, code blocks, formatting, and raw CodeMirror mode
@@ -65,15 +66,31 @@ Grimoire is built around five surfaces:
 
 ## Getting Started
 
-Download the latest release:
+There is no public packaged release yet. The previous `Grimoire.app.tar.gz`
+link has been removed because GitHub currently has no latest Grimoire release
+asset to download.
 
-[Grimoire.app.tar.gz](https://github.com/sriinnu/grimoire/releases/latest/download/Grimoire.app.tar.gz)
+For now, run Grimoire from source:
 
-On first launch, Grimoire can clone the Getting Started vault:
+```bash
+corepack enable
+pnpm install
+pnpm dev
+```
+
+For the native desktop app:
+
+```bash
+pnpm tauri dev
+```
+
+The in-app Getting Started vault flow points to:
 
 https://github.com/sriinnu/grimoire-getting-started
 
-That vault is the fastest way to learn the workflows without risking your own notes.
+As of 2026-06-01, that repository is not publicly available. Until it is
+published, use the tracked `demo-vault-v2/` folder in this repository as the
+showcase vault for local testing.
 
 ## Local Development
 
@@ -82,7 +99,11 @@ Prerequisites:
 - Node.js 20+
 - pnpm 10+ through Corepack
 - Rust stable
-- macOS or Linux for development
+- macOS, Linux, or Windows for source development
+
+Public binary installers are not published yet. The tracked release workflow is
+currently macOS-only once signing secrets are configured; Linux and Windows are
+source-build targets until release packaging is added for those platforms.
 
 Install and run browser mock mode:
 

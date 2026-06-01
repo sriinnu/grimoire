@@ -2,12 +2,16 @@
 
 This is the shortest path to run Grimoire locally and understand where to make changes.
 
+This document covers source builds. Public binary installers are not published
+yet, and the current release workflow only builds macOS artifacts after signing
+secrets are configured.
+
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 8+
+- pnpm 10+ through Corepack
 - Rust stable
-- macOS or Linux
+- macOS, Linux, or Windows
 
 Install JavaScript dependencies:
 
@@ -57,9 +61,14 @@ Install Node from the distro package manager too if you want the bundled MCP ser
 pnpm lint
 pnpm exec tsc --noEmit
 pnpm test
-pnpm run test:markdown-editor
+pnpm run test:markdown-editor:js
 pnpm build
 cargo test --manifest-path src-tauri/Cargo.toml
+```
+
+macOS-only Swift parity check:
+
+```bash
 swift test --package-path markdown-editor/packages/swift
 ```
 
