@@ -18,10 +18,12 @@ import {
 } from './vaultSwitcherActionModel'
 import type { RegisterVaultSelectionOptions, RestoreGettingStartedOptions } from './vaultSwitcherActionModel'
 import { labelFromPath, tauriCall } from './vaultSwitcherShared'
+import { useOpenLocalFolderAction } from './vaultSwitcherOpenLocalAction'
 
 interface VaultActionOptions extends PersistedVaultState, VaultCollections {
   onSwitchRef: MutableRefObject<() => void>
   onToastRef: MutableRefObject<(msg: string) => void>
+  onVaultOpeningRef: MutableRefObject<((target: { label: string; path: string }) => void) | undefined>
 }
 
 interface RemoveVaultActionOptions {
@@ -104,6 +106,7 @@ function useRegisterVaultSelectionAction({
       selectedVaultPath: nextSelection.nextSelectedVaultPath,
       vaults: nextSelection.nextExtraVaults,
     })
+    options.onBeforeSwitch?.({ label, path })
     applyRegisteredVaultSelection({
       ...nextSelection,
       onSwitchRef,
@@ -181,27 +184,6 @@ function useSyncVaultSelectionAction({
     setSelectedVaultPath,
     setVaultPath,
   ])
-}
-
-function useOpenLocalFolderAction(
-  addAndSwitch: (path: string, label: string) => void,
-  onToastRef: MutableRefObject<(msg: string) => void>,
-) {
-  return useCallback(async () => {
-    let path: string | null
-    try {
-      path = await pickFolder('Open vault folder')
-    } catch (err) {
-      onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
-      return
-    }
-
-    if (!path) return
-
-    const label = labelFromPath(path)
-    addAndSwitch(path, label)
-    onToastRef.current(`Vault "${label}" opened`)
-  }, [addAndSwitch, onToastRef])
 }
 
 function useCreateEmptyVaultAction(
@@ -314,6 +296,7 @@ export function useVaultActions({
   lastPersistedSnapshotRef,
   onSwitchRef,
   onToastRef,
+  onVaultOpeningRef,
   setDefaultAvailable,
   setExtraVaults,
   setHiddenDefaults,
@@ -367,7 +350,7 @@ export function useVaultActions({
 
   return {
     handleCreateEmptyVault: useCreateEmptyVaultAction(addAndSwitch, onToastRef),
-    handleOpenLocalFolder: useOpenLocalFolderAction(addAndSwitch, onToastRef),
+    handleOpenLocalFolder: useOpenLocalFolderAction(registerVaultSelection, onToastRef, onVaultOpeningRef),
     handleVaultCloned: useVaultClonedAction(addAndSwitch, onToastRef),
     registerVaultSelection,
     removeVault: useRemoveVaultAction({

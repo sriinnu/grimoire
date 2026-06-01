@@ -92,6 +92,16 @@ describe('useVaultSwitcher', () => {
     return hook
   }
 
+  const renderLoadedVaultSwitcherWithOpening = async (
+    onVaultOpening: (target: { label: string; path: string }) => void,
+  ) => {
+    const hook = renderHook(() => useVaultSwitcher({ onSwitch, onToast, onVaultOpening }))
+    await waitFor(() => {
+      expect(hook.result.current.loaded).toBe(true)
+    })
+    return hook
+  }
+
   const setWorkVaultWithHiddenGettingStarted = () => {
     mockVaultListStore = {
       vaults: [{ label: 'Work', path: '/work/vault' }],
@@ -418,8 +428,9 @@ describe('useVaultSwitcher', () => {
   it('opens local folder and persists', async () => {
     const { pickFolder } = await import('../utils/vault-dialog')
     vi.mocked(pickFolder).mockResolvedValue(pickedVaultPath)
+    const onVaultOpening = vi.fn()
 
-    const { result } = renderHook(() => useVaultSwitcher({ onSwitch, onToast }))
+    const { result } = renderHook(() => useVaultSwitcher({ onSwitch, onToast, onVaultOpening }))
     await waitFor(() => { expect(result.current.loaded).toBe(true) })
 
     await act(async () => {
@@ -427,7 +438,42 @@ describe('useVaultSwitcher', () => {
     })
 
     expect(result.current.allVaults.some(v => v.path === pickedVaultPath)).toBe(true)
+    expect(result.current.vaultPath).toBe(pickedVaultPath)
+    expect(mockVaultListStore).toEqual({
+      vaults: [{
+        id: null,
+        label: 'my-vault',
+        path: pickedVaultPath,
+        storage_provider: 'local-folder',
+        sync_provider: 'none',
+      }],
+      active_vault: pickedVaultPath,
+      hidden_defaults: [],
+    })
+    expect(onVaultOpening).toHaveBeenCalledWith({ label: 'my-vault', path: pickedVaultPath })
     expect(onToast).toHaveBeenCalledWith('Vault "my-vault" opened')
+  })
+
+  it('does not switch to a picked folder that fails vault availability checks', async () => {
+    const { pickFolder } = await import('../utils/vault-dialog')
+    vi.mocked(pickFolder).mockResolvedValue(pickedVaultPath)
+    setMockInvokeBehavior({
+      checkVaultExists: ({ path }) => path === expectedDefaultVaultPath,
+    })
+    const onVaultOpening = vi.fn()
+
+    const { result } = await renderLoadedVaultSwitcherWithOpening(onVaultOpening)
+
+    await act(async () => {
+      await result.current.handleOpenLocalFolder()
+    })
+
+    expect(result.current.vaultPath).toBe(expectedDefaultVaultPath)
+    expect(result.current.allVaults.some(v => v.path === pickedVaultPath)).toBe(false)
+    expect(mockVaultListStore.active_vault).toBeNull()
+    expect(onVaultOpening).not.toHaveBeenCalled()
+    expect(onSwitch).not.toHaveBeenCalled()
+    expect(onToast).toHaveBeenCalledWith('Could not open vault folder: Selected folder is not available')
   })
 
   it('shows a clear toast when folder picking is blocked until restart', async () => {

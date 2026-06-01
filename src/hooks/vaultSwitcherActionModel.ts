@@ -11,9 +11,16 @@ import {
 
 /** Options used when registering a selected folder as a vault. */
 export interface RegisterVaultSelectionOptions {
+  onBeforeSwitch?: (target: VaultOpeningTarget) => void
   verifyAvailability?: boolean
   storageProvider?: VaultOption['storageProvider']
   syncProvider?: VaultOption['syncProvider']
+}
+
+/** Label and path for a vault transition that is ready to be shown as loading. */
+export interface VaultOpeningTarget {
+  label: string
+  path: string
 }
 
 /** The next vault-list and selection state after registration. */
