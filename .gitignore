@@ -37,9 +37,9 @@ select_demo_notes*.py
 final_selection.py
 
 # Claude Code task signals
+.claude/
 .claude-done
 .claude-blocked
-.claude/settings.local.json
 .husky/_/
 src-tauri/target
 
