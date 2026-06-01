@@ -106,12 +106,12 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'Linux Secret Service/keyring')
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /\| Secrets \| Locally verified \| `node scripts\/scan-secrets\.mjs --all` completed without findings across [0-9,]+ files on 2026-06-01\. \|/u,
+    /\| Secrets \| Locally verified \| `node scripts\/scan-secrets\.mjs --all` completed without findings across [0-9,]+ files on 2026-06-02\. \|/u,
     'secret-scan evidence with a file count',
   )
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /The branch pre-push gate passed repeatedly on 2026-06-01: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS\/Swift parity, and Rust clippy\/fmt\./u,
+    /The branch pre-push gate passed on 2026-06-02: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,597 frontend tests, Markdown editor JS\/Swift parity, and Rust clippy\/fmt\./u,
     'current local pre-push evidence without a self-staling commit hash',
   )
   assertContains(
@@ -119,7 +119,7 @@ function verifyBinaryInstallTruth() {
     'Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from a self-staling commit hash in this file.',
     'durable current-head evidence boundary',
   )
-  assertContains('docs/PUBLIC-READINESS.md', '4,594 frontend tests')
+  assertContains('docs/PUBLIC-READINESS.md', '4,597 frontend tests')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
   assertContains(
@@ -152,7 +152,7 @@ function verifyBinaryInstallTruth() {
   )
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /Run `\d+` for commit `[0-9a-f]{40}`\nfailed before checkout\/build\/test on 2026-06-01\./u,
+    /Run `\d+` for commit `[0-9a-f]{40}`\nfailed before checkout\/build\/test on 2026-06-01 UTC \(2026-06-02 Europe\/Vienna\)\./u,
     'representative hosted CI run and commit evidence',
   )
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
