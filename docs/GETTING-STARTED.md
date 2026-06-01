@@ -26,6 +26,18 @@ Install JavaScript dependencies:
 pnpm install
 ```
 
+Check this machine before spending time debugging setup:
+
+```bash
+pnpm doctor:source
+```
+
+The source doctor reports two readiness lanes:
+
+- Browser source mode: Node.js 20+, pnpm, and Git.
+- Native Tauri mode: browser source mode plus Rust/Cargo and platform-specific
+  native dependencies.
+
 Run browser mock mode:
 
 ```bash

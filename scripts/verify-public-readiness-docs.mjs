@@ -34,13 +34,18 @@ function releaseWorkflowHasPlatform(platformPattern) {
 
 function verifyBinaryInstallTruth() {
   assertContains('README.md', 'There is no public packaged release yet.')
+  assertContains('README.md', 'pnpm doctor:source')
+  assertContains('docs/GETTING-STARTED.md', 'pnpm doctor:source')
   assertContains('README.md', 'Public binary installers are not published yet.')
   assertContains('docs/GETTING-STARTED.md', 'Public binary installers are not published')
   assertContains('docs/PUBLIC-READINESS.md', 'Grimoire is not ready to make public for general users yet.')
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
+  assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
+  assertContains('package.json', '"doctor:source": "node scripts/doctor-public-source.mjs"')
+  assertContains('package.json', '"test:doctor-source": "node scripts/doctor-public-source.mjs --self-test"')
   assertContains('README.md', 'pnpm audit:public-readiness -- --branch main')
   assertContains('package.json', '"audit:public-readiness": "node scripts/audit-public-readiness.mjs"')
   assertContains('package.json', '"test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test"')

@@ -12,6 +12,7 @@ below are resolved and re-verified.
 | --- | --- | --- |
 | Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and resolved to `97b824f7839ab94ef09b07a6b95f767936de262f` on 2026-06-01. |
 | Starter showcase coverage | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, scenario files, and internal wikilinks for `demo-vault-v2/`. `pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-97b824f` also compared a fresh public starter clone against the local mirror on 2026-06-01. |
+| Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, and update feeds return `404`. |
@@ -87,9 +88,11 @@ gh repo view sriinnu/grimoire --json isPrivate,visibility,repositoryTopics
 gh repo view sriinnu/grimoire-getting-started --json isPrivate,visibility,url
 gh release list --repo sriinnu/grimoire --limit 10
 node scripts/scan-secrets.mjs --all
+pnpm doctor:source
 pnpm audit:public-readiness -- --branch docs/public-readiness-truth
 pnpm build
 pnpm test
+pnpm test:doctor-source
 pnpm test:public-readiness-audit
 pnpm test:public-readiness-docs
 pnpm test:release-pages

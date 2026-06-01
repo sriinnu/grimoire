@@ -80,6 +80,7 @@ For now, run Grimoire from source:
 ```bash
 corepack enable
 pnpm install
+pnpm doctor:source
 pnpm dev
 ```
 
@@ -122,6 +123,17 @@ Run the native desktop app:
 ```bash
 pnpm tauri dev
 ```
+
+Check that this machine is ready for source development:
+
+```bash
+pnpm doctor:source
+```
+
+The doctor separates browser source mode from native Tauri mode. Browser mode
+needs Node, pnpm, and Git; native mode also needs Rust and platform-specific
+Tauri dependencies. If native mode is blocked on Linux, install the packages in
+[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
 
 Audit public-release truth before advertising Grimoire to general users:
 
