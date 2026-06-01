@@ -42,6 +42,7 @@ vi.mock('../utils/vault-dialog', async (importOriginal) => {
 })
 
 import { NativeFolderPickerBlockedError } from '../utils/vault-dialog'
+import { RESTART_REQUIRED_FOLDER_PICKER_MESSAGE } from '../lib/appUpdater'
 
 type MockInvokeOverrides = {
   checkVaultExists?: boolean | ((args: { path?: string }) => boolean)
@@ -486,9 +487,7 @@ describe('useVaultSwitcher', () => {
       await result.current.handleOpenLocalFolder()
     })
 
-    expect(onToast).toHaveBeenCalledWith(
-      'Grimoire needs a restart before macOS can open another folder picker. Restart to apply the downloaded update and try again.',
-    )
+    expect(onToast).toHaveBeenCalledWith(RESTART_REQUIRED_FOLDER_PICKER_MESSAGE)
   })
 
   it('creates an empty vault and switches to it', async () => {

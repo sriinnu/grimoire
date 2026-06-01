@@ -89,7 +89,7 @@ function verifyReleaseWorkflowTruth() {
 
   assertContains(
     'README.md',
-    'currently macOS-only once signing secrets are configured; Linux and Windows are',
+    'source-build targets, not public-support claims, until hosted CI and platform QA',
     'macOS-only release workflow disclaimer',
   )
   assertContains(
@@ -99,8 +99,13 @@ function verifyReleaseWorkflowTruth() {
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    '| OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |',
+    '| OS packaging | Partial | macOS source development is locally verified. Linux and Windows are intended source-development targets, but they are not public-support claims until hosted CI and fresh platform QA prove them. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |',
     'Public Readiness OS packaging row',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    '| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`.',
+    'Public Readiness Windows native run row',
   )
   assertContains(
     '.github/workflows/release.yml',

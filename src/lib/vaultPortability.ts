@@ -1,4 +1,5 @@
 import type { VaultPortabilityActionId } from './vaultPortabilityActions'
+import { localMachineLabel } from '../utils/platform'
 export type { VaultPortabilityActionId } from './vaultPortabilityActions'
 
 export type VaultPortabilityStatus = 'ready' | 'planned' | 'proof-preview' | 'preview-backed' | 'folder-proof'
@@ -234,7 +235,7 @@ const STORAGE_PROVIDERS = [
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Store the vault in any normal local folder.',
-    userAction: 'Choose a folder on this Mac.',
+    userAction: `Choose a folder on ${localMachineLabel()}.`,
   },
   {
     id: 'git',

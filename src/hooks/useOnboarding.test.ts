@@ -39,6 +39,7 @@ vi.mock('../utils/vault-dialog', async (importOriginal) => {
 })
 
 import { NativeFolderPickerBlockedError, pickFolder } from '../utils/vault-dialog'
+import { RESTART_REQUIRED_FOLDER_PICKER_MESSAGE } from '../lib/appUpdater'
 import { useOnboarding } from './useOnboarding'
 
 function mockCommands(overrides: Record<string, MockOverride> = {}) {
@@ -370,9 +371,7 @@ describe('useOnboarding', () => {
       await result.current.handleOpenFolder()
     })
 
-    expect(result.current.error).toBe(
-      'Grimoire needs a restart before macOS can open another folder picker. Restart to apply the downloaded update and try again.',
-    )
+    expect(result.current.error).toBe(RESTART_REQUIRED_FOLDER_PICKER_MESSAGE)
     expect(result.current.state.status).toBe('welcome')
   })
 

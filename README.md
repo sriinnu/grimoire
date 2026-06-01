@@ -103,11 +103,13 @@ Prerequisites:
 - Node.js 20+
 - pnpm 10+ through Corepack
 - Rust stable
-- macOS, Linux, or Windows for source development
+- macOS for locally verified source development
+- Linux or Windows for intended source development, pending fresh platform QA
 
 Public binary installers are not published yet. The tracked release workflow is
 currently macOS-only once signing secrets are configured; Linux and Windows are
-source-build targets until release packaging is added for those platforms.
+source-build targets, not public-support claims, until hosted CI and platform QA
+prove them on those operating systems.
 
 Install and run browser mock mode:
 
@@ -121,6 +123,11 @@ Run the native desktop app:
 ```bash
 pnpm tauri dev
 ```
+
+Windows native development is not public-ready yet. A Windows `pnpm tauri dev`
+run on `main` reported macOS-only Rust cfg errors around the menu bar and reopen
+handlers; this branch contains those cfg guards, but a fresh Windows run still
+needs to be captured before the README can call Windows verified.
 
 Check that this machine is ready for source development:
 

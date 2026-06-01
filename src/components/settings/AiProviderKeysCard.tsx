@@ -6,6 +6,7 @@ import {
   type AiProviderKeyStatus,
 } from '../../lib/aiProviderKeys'
 import { useAiProviderKeys } from '../../hooks/useAiProviderKeys'
+import { desktopPlatformLabel, isMac } from '../../utils/platform'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import type { SettingsTranslate } from './settingsTypes'
@@ -40,6 +41,8 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [busyProvider, setBusyProvider] = useState<string | null>(null)
   const [localError, setLocalError] = useState<string | null>(null)
+  const canSaveSecureKeys = isMac()
+  const platform = desktopPlatformLabel()
 
   const updateDraft = (providerId: string, value: string) => {
     setDrafts((current) => ({ ...current, [providerId]: value }))
@@ -82,7 +85,9 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
           {t('settings.aiAgents.providerKeysTitle')}
         </div>
         <p className="m-0 text-muted-foreground">
-          {t('settings.aiAgents.providerKeysDescription')}
+          {canSaveSecureKeys
+            ? t('settings.aiAgents.providerKeysDescription')
+            : t('settings.aiAgents.providerKeysDescriptionUnavailable', { platform })}
         </p>
       </div>
 
@@ -120,6 +125,7 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
                     autoComplete="off"
                     value={draft}
                     placeholder={AI_PROVIDER_KEY_PLACEHOLDER}
+                    disabled={!canSaveSecureKeys}
                     aria-label={t('settings.aiAgents.providerKeysInputLabel', {
                       provider: status.label,
                     })}
@@ -130,7 +136,7 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!draft.trim() || busy}
+                    disabled={!canSaveSecureKeys || !draft.trim() || busy}
                     onClick={() => void saveDraft(status.provider_id)}
                     data-testid={`settings-ai-provider-key-save-${status.provider_id}`}
                   >

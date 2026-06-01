@@ -22,13 +22,14 @@ below are resolved and re-verified.
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
 | macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x882 on 2026-06-01. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
-| Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,249 files on 2026-06-01. |
+| Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,250 files on 2026-06-01. |
 | Local checks | Locally verified | `pnpm build`, `pnpm test`, `cargo test --manifest-path src-tauri/Cargo.toml`, `node scripts/scan-secrets.mjs --all`, `pnpm test:public-readiness-docs`, `plutil -lint src-tauri/Info.plist`, and `git diff --check` passed on 2026-06-01. |
 | Hosted CI | Blocked | GitHub Actions assigns hosted runners, then each job fails before checkout while waiting for the hosted runner to come online. This must be fixed and re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. |
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
-| OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
+| OS packaging | Partial | macOS source development is locally verified. Linux and Windows are intended source-development targets, but they are not public-support claims until hosted CI and fresh platform QA prove them. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
+| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`. This branch contains cfg guards for those paths, but a fresh Windows dev/build/open run has not yet been captured. |
 
 Packaging scope is recorded in
 [ADR-0100](adr/0100-public-release-packaging-truth.md). Older cross-platform
@@ -48,6 +49,8 @@ release ADRs are not public install evidence.
   recall, wiki, graph, ingest, and diagnostics readiness.
 - Known high-priority crash paths have a passing regression test or documented
   limitation.
+- Windows and Linux native source runs have fresh platform evidence, not only
+  cross-platform intent.
 
 ## Starter Vault Verification
 
