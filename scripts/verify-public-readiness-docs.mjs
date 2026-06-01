@@ -148,6 +148,36 @@ function verifyReleaseWorkflowTruth() {
 
 function verifyAdrIndexTruth() {
   assertContains(
+    'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
+    'status: superseded',
+    'ADR-0080 superseded status',
+  )
+  assertContains(
+    'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
+    'earlier release intent, not current public install evidence',
+    'ADR-0080 public evidence disclaimer',
+  )
+  assertNotMatch(
+    'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
+    /^status:\s*active\s*$/imu,
+    'active status in superseded ADR-0080',
+  )
+  assertContains(
+    'docs/adr/0083-dual-architecture-macos-release-artifacts.md',
+    'status: superseded',
+    'ADR-0083 superseded status',
+  )
+  assertContains(
+    'docs/adr/0083-dual-architecture-macos-release-artifacts.md',
+    'earlier release intent, not current public install evidence',
+    'ADR-0083 public evidence disclaimer',
+  )
+  assertNotMatch(
+    'docs/adr/0083-dual-architecture-macos-release-artifacts.md',
+    /^status:\s*active\s*$/imu,
+    'active status in superseded ADR-0083',
+  )
+  assertContains(
     'docs/adr/README.md',
     '| [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | superseded -> [0100](0100-public-release-packaging-truth.md) |',
     'ADR-0083 superseded by ADR-0100',
