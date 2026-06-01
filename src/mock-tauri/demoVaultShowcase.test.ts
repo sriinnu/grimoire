@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { MOCK_ENTRIES } from './mock-entries'
+import { MOCK_CONTENT } from './mock-content'
 
 const DEMO_VAULT_DIR = path.resolve('demo-vault-v2')
 const LAUNCH_DAY = '2026-05-31'
@@ -61,6 +62,28 @@ function wikiTargets(content: string): string[] {
   return [...content.matchAll(/\[\[([^\]]+)\]\]/gu)].map((match) => normalizeLinkTarget(match[1] ?? ''))
 }
 
+function splitMarkdownTableRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/u, '')
+    .replace(/\|$/u, '')
+    .split('|')
+    .map((cell) => cell.trim())
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$/u.test(line.trim())
+}
+
+function featureTourSurfaces(markdown: string): string[] {
+  return markdown
+    .split('\n')
+    .filter((line) => line.trim().startsWith('|') && !isTableSeparator(line))
+    .map(splitMarkdownTableRow)
+    .filter((cells) => cells.length >= 3 && cells[0] !== 'Surface')
+    .map(([surface]) => surface ?? '')
+}
+
 function aliases(content: string): string[] {
   return [...content.matchAll(/-\s+["']?\[\[([^\]]+)\]\]["']?/gu)].map((match) => normalizeLinkTarget(match[1] ?? ''))
 }
@@ -112,5 +135,12 @@ describe('demo vault feature showcase', () => {
     for (const file of REQUIRED_SHOWCASE_FILES) {
       expect(mockFilenames.has(file), `${file} should exist in browser mock entries`).toBe(true)
     }
+  })
+
+  it('keeps browser mock feature-tour surfaces aligned with the demo vault', () => {
+    const demoTour = readFileSync(path.join(DEMO_VAULT_DIR, 'grimoire-feature-tour.md'), 'utf8')
+    const mockTour = MOCK_CONTENT['/Users/mock/Grimoire/grimoire-feature-tour.md'] ?? ''
+
+    expect(featureTourSurfaces(mockTour)).toEqual(featureTourSurfaces(demoTour))
   })
 })

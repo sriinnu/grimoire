@@ -20,7 +20,9 @@ Grimoire is created and maintained by **Srinivas Pendela** ([@sriinnu](https://x
 
 Grimoire is built around five surfaces:
 
-- **Journal**: daily capture, long-form reflection, weather/context snapshots, and review flows.
+- **Journal**: local-first dated notes, long-form reflection, weather/context
+  snapshots, dreams, and review patterns; the fuller weekly/monthly review
+  surfaces are still a next product bet.
 - **Workbench**: projects, people, procedures, decisions, sources, and typed notes.
 - **Graph**: local neighborhood first, whole-vault map when needed, with relationship-aware filters.
 - **Memory**: Git history, backlinks, frontmatter, and agent-readable structure.
@@ -28,7 +30,10 @@ Grimoire is built around five surfaces:
 
 ## What Makes Grimoire Different
 
-**The journal is not an afterthought.** Grimoire treats daily notes, weather, time context, reviews, and life logs as first-class knowledge, not loose text beside the "real" database.
+**The journal is not an afterthought.** Grimoire treats dated notes, dreams,
+weather/time context, and reflective writing as first-class knowledge, not loose
+text beside the "real" database. Richer review surfaces are part of the public
+roadmap, not a packaged-release claim yet.
 
 **The graph starts from the active thought.** The first graph view is the neighborhood around what you are touching now. Whole-vault mode exists, but the product bias is sensemaking, not drawing a pretty hairball.
 

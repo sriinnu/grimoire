@@ -751,23 +751,25 @@ related_to:
 
 This is the launch-day checklist for the demo vault. Each row points to an editable note that shows the feature in ordinary Markdown.
 
-| Surface | Demo note |
-| --- | --- |
-| Dashboard and Daily Flow | [[Start Here - Learn Grimoire]] |
-| Markdown editor | [[Markdown Learning]] |
-| Properties and types | [[Properties and Types]] |
-| Search and commands | [[Search and Commands]] |
-| Wikilinks and backlinks | [[Links and Backlinks]] |
-| Journal lane | [[Journal Demo - 2026-05-31]] |
-| Dream lane | [[Dream Demo - 2026-05-31]] |
-| Canvas and attachments | [[Canvas and Attachments]] |
-| Audio transcription | [[Audio Transcription]] |
-| Console notes | [[Console and Agents]] |
-| Agent Council | [[Agent Council]] |
-| Local agents | [[Local Agent Map]] |
-| Privacy and memory | [[Privacy and Memory]] |
-| Portability and sync | [[Portability and Sync]] |
-| Settings and themes | [[Settings and Themes]] |
+| Surface | Try it | Demo note |
+| --- | --- | --- |
+| Dashboard and Daily Flow | Open the dashboard, click Capture, Reflect, Organize, and Crystallize. | [[Start Here - Learn Grimoire]] |
+| Quick Capture | Capture a note, journal, dream, task, memory, or ask prompt. | [[Crystallize Example]] |
+| Markdown editor | Edit headings, tasks, links, code, frontmatter, and rich Markdown. | [[Markdown Learning]] |
+| Properties and types | Inspect type, status, owner, priority, colors, and custom icons. | [[Properties and Types]] |
+| Search and commands | Use Quick Open, command palette, note search, and document find. | [[Search and Commands]] |
+| Wikilinks, backlinks, graph | Follow links, then inspect incoming and outgoing context. | [[Links and Backlinks]] |
+| Journal lane | Open a dated local-first daily note. | [[Journal Demo - 2026-05-31]] |
+| Dream lane | Open a dated dream note with symbols and interpretation. | [[Dream Demo - 2026-05-31]] |
+| Calendar and Time Loom | Use dated entries as the calendar substrate. | [[Journal Demo - 2026-05-31]] |
+| Canvas and attachments | Keep sketches and images beside the explanatory note. | [[Canvas and Attachments]] |
+| Audio transcription | Import or record audio, then create transcript and clean notes. | [[Audio Transcription]] |
+| Console notes | Keep repeatable command checks beside the project. | [[Console and Agents]] |
+| Agent Council | Inspect source-safe agent lanes, review-gated synthesis, and what is not live yet. | [[Agent Council]] |
+| Local agents | Track Claude Code, Codex, and Chitragupta lanes with boundaries. | [[Local Agent Map]] |
+| Privacy and memory | Show what can travel and what stays local. | [[Privacy and Memory]] |
+| Portability and sync | Explain Git, export/import, capsules, and object-storage proofs. | [[Portability and Sync]] |
+| Settings and themes | Show typography, themes, providers, API keys, and local preferences. | [[Settings and Themes]] |
 `,
   '/Users/mock/Grimoire/grimoire-start-here.md': `---
 title: Start Here - Learn Grimoire
