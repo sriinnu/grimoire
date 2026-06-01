@@ -24,6 +24,7 @@ interface MockEntry {
 
 interface VaultSwitcherPaths {
   gettingStartedPath: string
+  localVaultPath: string
   personalVaultPath: string
   workVaultPath: string
 }
@@ -42,6 +43,7 @@ interface InstallVaultSwitcherMocksOptions {
 function createVaultSwitcherPaths(): VaultSwitcherPaths {
   return {
     gettingStartedPath: '/Users/mock/Documents/Getting Started',
+    localVaultPath: '/Users/mock/Documents/Local Vault',
     personalVaultPath: '/Users/mock/Personal',
     workVaultPath: '/Users/mock/Work',
   }
@@ -74,6 +76,7 @@ function createMockEntry(vaultPath: string, filename: string, title: string, sni
 function buildEntriesByVault(paths: VaultSwitcherPaths): Record<string, MockEntry[]> {
   return {
     [paths.gettingStartedPath]: [createMockEntry(paths.gettingStartedPath, 'getting-started.md', 'Getting Started Note', 'Getting Started snippet')],
+    [paths.localVaultPath]: [createMockEntry(paths.localVaultPath, 'local-home.md', 'Local Folder Home', 'Local Folder snippet')],
     [paths.workVaultPath]: [createMockEntry(paths.workVaultPath, 'work-home.md', 'Work Home', 'Work Home snippet')],
     [paths.personalVaultPath]: [createMockEntry(paths.personalVaultPath, 'personal-home.md', 'Personal Home', 'Personal Home snippet')],
   }
@@ -102,7 +105,7 @@ function buildVaultSwitcherInitData(defaultVaultExists: boolean): VaultSwitcherI
 async function installVaultSwitcherMocks(
   page: Page,
   options: InstallVaultSwitcherMocksOptions = {},
-) {
+): Promise<VaultSwitcherInitData> {
   const initData = buildVaultSwitcherInitData(options.defaultVaultExists ?? true)
 
   await page.addInitScript((data: VaultSwitcherInitData) => {
@@ -136,6 +139,7 @@ async function installVaultSwitcherMocks(
           return data.defaultVaultExists
             || args.path === data.paths.workVaultPath
             || args.path === data.paths.personalVaultPath
+            || args.path === data.paths.localVaultPath
         }
         ref.list_vault = (args: { path?: string }) => data.entriesByVault[args?.path ?? ''] ?? []
         ref.list_vault_folders = () => []
@@ -150,6 +154,8 @@ async function installVaultSwitcherMocks(
       },
     })
   }, initData)
+
+  return initData
 }
 
 test('bottom bar vault switching works with keyboard and mouse @smoke', async ({ page }) => {
@@ -220,4 +226,30 @@ test('missing Getting Started vault stays hidden while remove actions still work
   await trigger.click()
   await expect(page.getByTestId('vault-menu-item-Personal Vault')).toHaveCount(0)
   await expect(page.getByTestId('vault-menu-item-Getting Started')).toHaveCount(0)
+})
+
+test('bottom bar open-local-folder action switches to the picked vault @smoke', async ({ page }) => {
+  const initData = await installVaultSwitcherMocks(page)
+
+  let promptHandled = false
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain('Open vault folder')
+    await dialog.accept(initData.paths.localVaultPath)
+    promptHandled = true
+  })
+
+  await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+  const trigger = page.getByTestId('status-vault-trigger')
+  const noteList = page.getByTestId('note-list-container')
+
+  await expect(trigger).toContainText('Work Vault')
+  await trigger.click()
+  await page.getByTestId('vault-menu-open-local').click()
+
+  await expect.poll(() => promptHandled).toBe(true)
+  await expect(trigger).toContainText('Local Vault')
+  await page.getByRole('button', { name: /All Notes/ }).click()
+  await expect(noteList.getByText('Local Folder Home', { exact: true })).toBeVisible()
+  await expect(noteList.getByText('Work Home', { exact: true })).toHaveCount(0)
 })
