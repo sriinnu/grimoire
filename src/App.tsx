@@ -316,6 +316,10 @@ function App() {
   // onSwitch closure captures `notes` declared below — safe because it's only
   // called on user interaction, never during render (refs inside the hook
   // guarantee the latest closure is always used).
+  const [vaultSwitchTarget, setVaultSwitchTarget] = useState<VaultSwitchTransition | null>(null)
+  const handleVaultOpening = useCallback((target: VaultSwitchTransition) => {
+    setVaultSwitchTarget(target)
+  }, [])
   const vaultSwitcher = useVaultSwitcher({
     onSwitch: () => {
       if (noteWindowParams) return
@@ -323,6 +327,7 @@ function App() {
       notes.closeAllTabs()
     },
     onToast: (msg) => setToastMessage(msg),
+    onVaultOpening: handleVaultOpening,
   })
   const {
     allVaults,
@@ -450,7 +455,6 @@ function App() {
   ])
 
   const vault = useVaultLoader(noteWindowParams ? '' : resolvedPath, { isGitVault })
-  const [vaultSwitchTarget, setVaultSwitchTarget] = useState<VaultSwitchTransition | null>(null)
   const handleStatusBarSwitchVault = useCallback((path: string) => {
     if (!path || path === resolvedPath) return
 

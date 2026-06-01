@@ -15,6 +15,7 @@ below are resolved and re-verified.
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
+| Vault switching guard | Partially verified | The bottom-bar Open local folder path now verifies and persists a folder before switching to it, with a regression in `src/hooks/useVaultSwitcher.test.ts`. Native bottom-bar picker QA is still required before public release. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings before this snapshot. |
 | Local checks | Locally verified | Local pre-push checks passed on the public-readiness branch before this snapshot. |
 | Hosted CI | Blocked | GitHub Actions jobs did not start because account billing or spending-limit settings blocked runners. This must be fixed and re-run before public release. |
