@@ -5,7 +5,6 @@ import { spawnSync } from 'node:child_process'
 import {
   compareStarterMirror,
   starterMirrorDriftSummary,
-  starterMirrorHasDrift,
 } from './public-readiness-starter-mirror.mjs'
 import {
   headSignatureSummary,
@@ -13,27 +12,21 @@ import {
   readWorkingTreeProof,
   workingTreeSummary,
 } from './public-readiness-git-proof.mjs'
+import {
+  CHANNELS,
+  FEED_URLS,
+  REQUIRED_TOPICS,
+  findBlockers,
+  releasePreflightSummary,
+} from './public-readiness-evaluation.mjs'
+import {
+  collectLiveState as collectReleasePreflightLiveState,
+  collectLocalState as collectReleasePreflightLocalState,
+  evaluatePreflight as evaluateReleasePreflight,
+} from './release-preflight.mjs'
 
 const DEFAULT_REPO = 'sriinnu/grimoire'
 const DEFAULT_STARTER_REPO = 'sriinnu/grimoire-getting-started'
-const REQUIRED_TOPICS = [
-  'ai-agents',
-  'desktop-app',
-  'knowledge-graph',
-  'local-first',
-  'local-first-ai',
-  'markdown',
-  'notes',
-  'personal-knowledge-management',
-  'pkm',
-  'tauri',
-  'zettelkasten',
-]
-const CHANNELS = ['stable', 'alpha']
-const FEED_URLS = {
-  alpha: 'https://sriinnu.github.io/grimoire/alpha/latest.json',
-  stable: 'https://sriinnu.github.io/grimoire/stable/latest.json',
-}
 
 function parseArgs(argv) {
   const args = {
@@ -106,38 +99,6 @@ async function fetchFeed(url) {
   }
 }
 
-function topicNames(repo) {
-  const names = repo.topics ?? repo.repositoryTopics ?? []
-  return names.map((topic) => (typeof topic === 'string' ? topic : topic.name)).filter(Boolean)
-}
-
-function releaseChannel(release) {
-  const tag = String(release.tag_name ?? '')
-  if (release.prerelease === true || tag.startsWith('alpha-v')) return 'alpha'
-  if (tag.startsWith('stable-v')) return 'stable'
-  return null
-}
-
-function assetNames(release) {
-  return (release.assets ?? []).map((asset) => String(asset.name ?? ''))
-}
-
-function hasArchAsset(names, arch, suffix) {
-  const archPattern = arch === 'arm64'
-    ? /(?:aarch64|arm64|apple-silicon|silicon)/iu
-    : /(?:x86_64|x64|intel)/iu
-  return names.some((name) => archPattern.test(name) && name.endsWith(suffix))
-}
-
-function hasCompleteMacAssets(release) {
-  const names = assetNames(release)
-  return ['arm64', 'x64'].every((arch) => (
-    hasArchAsset(names, arch, '.dmg')
-    && hasArchAsset(names, arch, '.app.tar.gz')
-    && hasArchAsset(names, arch, '.app.tar.gz.sig')
-  ))
-}
-
 function latestRun(runsPayload) {
   return Array.isArray(runsPayload.workflow_runs) ? runsPayload.workflow_runs[0] ?? null : null
 }
@@ -157,92 +118,6 @@ function checkRunAnnotations(repoName, jobsPayload) {
   })
 }
 
-function annotationMessages(annotations, level) {
-  return Array.from(new Set(
-    (annotations ?? [])
-      .filter((annotation) => annotation.annotation_level === level)
-      .map((annotation) => String(annotation.message ?? '').trim())
-      .filter(Boolean),
-  ))
-}
-
-function sentence(text) {
-  return /[.!?]$/u.test(text) ? text : `${text}.`
-}
-
-function findBlockers(state) {
-  const blockers = []
-  const warnings = []
-
-  if (state.repo.private) blockers.push('Repository is still private.')
-
-  const topics = new Set(topicNames(state.repo))
-  const missingTopics = REQUIRED_TOPICS.filter((topic) => !topics.has(topic))
-  if (missingTopics.length > 0) blockers.push(`Repository topics missing: ${missingTopics.join(', ')}.`)
-
-  if (!state.headSignature?.verified) {
-    blockers.push(`Current branch HEAD does not have a good git signature: ${state.headSignature?.detail ?? 'missing signature proof'}.`)
-  }
-  if (!state.workingTree?.clean) {
-    blockers.push(`Working tree is not clean: ${state.workingTree?.detail ?? 'missing working-tree proof'}.`)
-  }
-
-  if (state.starterRepo.private) blockers.push('Starter vault repository is private.')
-  if (!state.starterHead) blockers.push('Starter vault public HEAD could not be resolved.')
-  if (starterMirrorHasDrift(state.starterMirror)) {
-    blockers.push(`Starter vault public clone does not match demo-vault-v2: ${starterMirrorDriftSummary(state.starterMirror)}.`)
-  }
-
-  if (!state.ci.run) {
-    blockers.push(`No GitHub Actions run found for ${state.branch}.`)
-  } else if (state.ci.run.conclusion !== 'success') {
-    const stepNote = state.ci.stepCount === 0 ? ' with zero executed steps' : ''
-    blockers.push(`Latest GitHub Actions run ${state.ci.run.id} is ${state.ci.run.conclusion ?? state.ci.run.status}${stepNote}.`)
-    for (const message of annotationMessages(state.ci.annotations, 'failure')) {
-      blockers.push(`Hosted CI failure annotation: ${sentence(message)}`)
-    }
-    for (const message of annotationMessages(state.ci.annotations, 'notice')) {
-      warnings.push(`Hosted CI notice: ${sentence(message)}`)
-    }
-  }
-
-  for (const channel of CHANNELS) {
-    const release = state.releases.find((candidate) => releaseChannel(candidate) === channel)
-    if (!release) {
-      blockers.push(`No ${channel} GitHub Release exists.`)
-      continue
-    }
-    if (!hasCompleteMacAssets(release)) {
-      blockers.push(`${channel} release ${release.tag_name} is missing complete macOS DMG/updater/signature assets for both architectures.`)
-    }
-  }
-
-  for (const channel of CHANNELS) {
-    const feed = state.feeds[channel]
-    if (!feed || feed.status !== 200) {
-      blockers.push(`${channel} update feed is unavailable: HTTP ${feed?.status ?? 'missing'}.`)
-      continue
-    }
-    if (!feed.json?.platforms || Object.keys(feed.json.platforms).length === 0) {
-      blockers.push(`${channel} update feed does not contain updater platforms.`)
-    }
-  }
-
-  if (/https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu.test(state.readme)) {
-    blockers.push('README still advertises a direct Grimoire.app.tar.gz URL.')
-  }
-
-  if (blockers.length > 0 && !state.publicReadiness.includes('Grimoire is not ready to make public')) {
-    blockers.push('Public readiness docs do not clearly say the app is not public-ready.')
-  }
-
-  if (blockers.length === 0 && state.publicReadiness.includes('not ready to make public')) {
-    warnings.push('Public readiness docs still say not ready; update them before making the repository public.')
-  }
-
-  return { blockers, warnings }
-}
-
 async function collectLiveState(options) {
   const branch = options.branch ?? currentBranch()
   const repo = ghJson(`repos/${options.repo}`)
@@ -254,6 +129,10 @@ async function collectLiveState(options) {
   const runPayload = latestRun(runsPayload)
   const jobsPayload = runPayload ? ghJson(`repos/${options.repo}/actions/runs/${runPayload.id}/jobs?per_page=100`) : { jobs: [] }
   const releases = ghJson(`repos/${options.repo}/releases?per_page=20`)
+  const releasePreflight = evaluateReleasePreflight({
+    ...collectReleasePreflightLocalState(),
+    live: collectReleasePreflightLiveState(options.repo),
+  })
   const feeds = Object.fromEntries(await Promise.all(
     CHANNELS.map(async (channel) => [channel, await fetchFeed(FEED_URLS[channel])]),
   ))
@@ -270,6 +149,7 @@ async function collectLiveState(options) {
     publicReadiness: readFileSync(resolve('docs/PUBLIC-READINESS.md'), 'utf8'),
     readme: readFileSync(resolve('README.md'), 'utf8'),
     releases,
+    releasePreflight,
     repo,
     starterHead,
     starterMirror,
@@ -301,6 +181,7 @@ function runSelfTest() {
       prerelease: channel === 'alpha',
       tag_name: `${channel}-v1.0.0`,
     })),
+    releasePreflight: { blockers: [], warnings: [] },
     repo: { private: false, topics: REQUIRED_TOPICS },
     starterHead: 'abc123',
     starterMirror: { checked: true, changed: [], localOnly: [], publicOnly: [] },
@@ -321,6 +202,10 @@ function runSelfTest() {
     feeds: { alpha: { status: 404 }, stable: { status: 404 } },
     publicReadiness: 'Grimoire is not ready to make public.',
     releases: [],
+    releasePreflight: {
+      blockers: ['GitHub Pages is not configured for this repository.'],
+      warnings: ['TAURI_SIGNING_PRIVATE_KEY_PASSWORD is absent; this is okay only if the updater key has no password.'],
+    },
     repo: { private: true, topics: [] },
   }
 
@@ -329,6 +214,9 @@ function runSelfTest() {
   if (blockedResult.blockers.length < 5) throw new Error('blocked fixture should report multiple blockers')
   if (!blockedResult.blockers.some((blocker) => blocker.includes('spending limit'))) {
     throw new Error('blocked fixture should report hosted CI billing/spending annotation')
+  }
+  if (!blockedResult.blockers.some((blocker) => blocker.includes('Release preflight'))) {
+    throw new Error('blocked fixture should surface release preflight blockers')
   }
   const driftResult = findBlockers({
     ...readyState,
@@ -360,6 +248,7 @@ function printReport(state, result) {
   console.log(`[public-readiness-audit] head-signature=${headSignatureSummary(state.headSignature)}`)
   console.log(`[public-readiness-audit] working-tree=${workingTreeSummary(state.workingTree)}`)
   console.log(`[public-readiness-audit] starter-mirror=${starterMirrorDriftSummary(state.starterMirror)}`)
+  console.log(`[public-readiness-audit] release-preflight=${releasePreflightSummary(state.releasePreflight)}`)
   for (const channel of CHANNELS) {
     console.log(`[public-readiness-audit] ${channel}-feed=${state.feeds[channel]?.status ?? 'missing'}`)
   }
