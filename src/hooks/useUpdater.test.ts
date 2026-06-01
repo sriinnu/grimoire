@@ -252,6 +252,32 @@ describe('useUpdater', () => {
     expect(result.current.status).toEqual({ state: 'idle' })
   })
 
+  it('explains missing public update feeds without treating source builds as broken', async () => {
+    const { result, outcome } = await performManualCheck(
+      'stable',
+      new Error('HTTP status client error (404 Not Found) for url https://sriinnu.github.io/grimoire/stable/latest.json'),
+    )
+
+    expect(outcome).toEqual({
+      kind: 'error',
+      message: 'Public Grimoire updates are not published yet. Run from source for now.',
+    })
+    expect(console.warn).toHaveBeenCalledWith('[updater] Failed to check for updates')
+    expect(result.current.status).toEqual({ state: 'idle' })
+  })
+
+  it('maps not-found update errors to the missing feed message', async () => {
+    const { outcome } = await performManualCheck(
+      'alpha',
+      new Error('not found'),
+    )
+
+    expect(outcome).toEqual({
+      kind: 'error',
+      message: 'Public Grimoire updates are not published yet. Run from source for now.',
+    })
+  })
+
   it('dismiss resets the banner state', async () => {
     vi.mocked(isTauri).mockReturnValue(true)
     installInvokeHandlers({ checkResult: makeUpdate() })
@@ -279,7 +305,7 @@ describe('useUpdater', () => {
     })
 
     expect(mockOpenExternalUrl).toHaveBeenCalledWith(
-      'https://sriinnu.github.io/grimoire/'
+      'https://github.com/sriinnu/grimoire/releases'
     )
   })
 

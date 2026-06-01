@@ -17,6 +17,7 @@ below are resolved and re-verified.
 | Local checks | Locally verified | Local pre-push checks passed on the public-readiness branch before this snapshot. |
 | Hosted CI | Blocked | GitHub Actions jobs did not start because account billing or spending-limit settings blocked runners. This must be fixed and re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
+| Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. |
 | OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
 
 ## Do Not Make Public Until
@@ -26,6 +27,8 @@ below are resolved and re-verified.
 - The README only advertises install paths that actually exist.
 - The starter vault clone flow is verified against the public starter repository.
 - Public binary wording is either removed or backed by real release assets.
+- The stable and alpha update feeds either exist or the app clearly explains
+  that public updates are not published yet.
 - Known high-priority crash paths have a passing regression test or documented
   limitation.
 
