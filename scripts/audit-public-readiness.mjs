@@ -7,6 +7,7 @@ import {
   starterMirrorDriftSummary,
   starterMirrorHasDrift,
 } from './public-readiness-starter-mirror.mjs'
+import { headSignatureSummary, readHeadSignatureProof } from './public-readiness-git-proof.mjs'
 
 const DEFAULT_REPO = 'sriinnu/grimoire'
 const DEFAULT_STARTER_REPO = 'sriinnu/grimoire-getting-started'
@@ -174,6 +175,10 @@ function findBlockers(state) {
   const missingTopics = REQUIRED_TOPICS.filter((topic) => !topics.has(topic))
   if (missingTopics.length > 0) blockers.push(`Repository topics missing: ${missingTopics.join(', ')}.`)
 
+  if (!state.headSignature?.verified) {
+    blockers.push(`Current branch HEAD does not have a good git signature: ${state.headSignature?.detail ?? 'missing signature proof'}.`)
+  }
+
   if (state.starterRepo.private) blockers.push('Starter vault repository is private.')
   if (!state.starterHead) blockers.push('Starter vault public HEAD could not be resolved.')
   if (starterMirrorHasDrift(state.starterMirror)) {
@@ -253,6 +258,7 @@ async function collectLiveState(options) {
       stepCount: jobStepCount(jobsPayload),
     },
     feeds,
+    headSignature: readHeadSignatureProof(),
     publicReadiness: readFileSync(resolve('docs/PUBLIC-READINESS.md'), 'utf8'),
     readme: readFileSync(resolve('README.md'), 'utf8'),
     releases,
@@ -271,6 +277,7 @@ function runSelfTest() {
       alpha: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
       stable: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
     },
+    headSignature: { commit: 'signed-test-head', detail: 'Good "git" signature', verified: true },
     publicReadiness: 'Public release is ready.',
     readme: 'Run from source or download from GitHub Releases.',
     releases: CHANNELS.map((channel) => ({
@@ -320,12 +327,20 @@ function runSelfTest() {
   if (!driftResult.blockers.some((blocker) => blocker.includes('Starter vault public clone'))) {
     throw new Error('starter drift fixture should report public starter mismatch')
   }
+  const unsignedResult = findBlockers({
+    ...readyState,
+    headSignature: { commit: 'unsigned-test-head', detail: 'No signature', verified: false },
+  })
+  if (!unsignedResult.blockers.some((blocker) => blocker.includes('good git signature'))) {
+    throw new Error('unsigned fixture should report missing git signature')
+  }
   console.log('[public-readiness-audit] self-test ok')
 }
 
 function printReport(state, result) {
   console.log(`[public-readiness-audit] repo=${state.repo.full_name ?? DEFAULT_REPO} branch=${state.branch}`)
   console.log(`[public-readiness-audit] latest-ci=${state.ci.run?.id ?? 'none'} conclusion=${state.ci.run?.conclusion ?? 'none'} steps=${state.ci.stepCount ?? 'unknown'}`)
+  console.log(`[public-readiness-audit] head-signature=${headSignatureSummary(state.headSignature)}`)
   console.log(`[public-readiness-audit] starter-mirror=${starterMirrorDriftSummary(state.starterMirror)}`)
   for (const channel of CHANNELS) {
     console.log(`[public-readiness-audit] ${channel}-feed=${state.feeds[channel]?.status ?? 'missing'}`)
