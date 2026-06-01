@@ -163,4 +163,17 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
     expect(screen.getByTestId('settings-ai-provider-key-save-deepseek')).toBeDisabled()
   })
+
+  it('localizes Windows provider-key storage limits without macOS-only copy', () => {
+    setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    setPlatform('Win32')
+
+    renderSection({ t: createTranslator('de') })
+
+    const providerKeys = screen.getByTestId('settings-ai-provider-keys')
+    expect(providerKeys).toHaveTextContent('Unter Windows erkennt Grimoire Provider-Keys')
+    expect(providerKeys).toHaveTextContent('native sichere Speicherung')
+    expect(providerKeys).not.toHaveTextContent('macOS Keychain')
+    expect(providerKeys).not.toHaveTextContent('Finder')
+  })
 })
