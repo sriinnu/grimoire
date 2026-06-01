@@ -298,6 +298,7 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
 
     match event {
         tauri::RunEvent::Ready => window_lifecycle::show_main_window(app_handle),
+        #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen {
             has_visible_windows,
             ..
@@ -316,7 +317,7 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
     }
 }
 
-#[cfg(any(test, desktop))]
+#[cfg(any(test, all(desktop, target_os = "macos")))]
 fn should_show_window_on_reopen(has_visible_windows: bool) -> bool {
     !has_visible_windows
 }
