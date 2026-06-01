@@ -10,7 +10,7 @@ below are resolved and re-verified.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public and is the clone target for the in-app Getting Started flow. |
+| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and resolved to `dcc2c60259370e5b6b783825c6f880e5b0813470` on 2026-06-01. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings before this snapshot. |
@@ -28,6 +28,20 @@ below are resolved and re-verified.
 - Public binary wording is either removed or backed by real release assets.
 - Known high-priority crash paths have a passing regression test or documented
   limitation.
+
+## Starter Vault Verification
+
+The in-app Getting Started flow clones the public starter repository first, then
+Grimoire repairs local vault config files such as `AGENTS.md`, `type.md`, and
+`note.md` in the cloned vault. Those repaired files are local app-managed state;
+they do not all need to exist in the public starter repository itself.
+
+Verified on 2026-06-01:
+
+```bash
+git ls-remote https://github.com/sriinnu/grimoire-getting-started.git HEAD refs/heads/main
+git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-clone-verify-dcc2c60
+```
 
 ## Verification Commands
 
