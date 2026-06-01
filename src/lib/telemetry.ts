@@ -1,14 +1,15 @@
-import * as Sentry from '@sentry/react'
 import { resolveFrontendTelemetryConfig } from './telemetryConfig'
 
 /** Pattern that matches absolute file paths (macOS / Linux / Windows). */
 const PATH_PATTERN = /(?:\/[\w.-]+){2,}|[A-Z]:\\[\w\\.-]+/g
+type SentryModule = typeof import('@sentry/react')
+type SentryErrorEvent = import('@sentry/react').ErrorEvent
 
 function scrubPaths(input: string): string {
   return input.replace(PATH_PATTERN, '<redacted-path>')
 }
 
-function scrubSentryEvent(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
+function scrubSentryEvent(event: SentryErrorEvent): SentryErrorEvent {
   if (event.message) event.message = scrubPaths(event.message)
   for (const ex of event.exception?.values ?? []) {
     if (ex.value) ex.value = scrubPaths(ex.value)
@@ -20,13 +21,28 @@ function scrubSentryEvent(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
 }
 
 let sentryInitialized = false
+let sentryLifecycleVersion = 0
+let sentryImport: Promise<SentryModule> | null = null
 let posthogInstance: typeof import('posthog-js').default | null = null
 
-export function initSentry(anonymousId: string): void {
-  if (sentryInitialized) return
+function loadSentry(): Promise<SentryModule> {
+  sentryImport ??= import('@sentry/react')
+  return sentryImport
+}
+
+export async function initSentry(anonymousId: string): Promise<void> {
+  const initVersion = ++sentryLifecycleVersion
 
   const { sentryDsn } = resolveFrontendTelemetryConfig()
   if (!sentryDsn) return
+
+  const Sentry = await loadSentry()
+  if (initVersion !== sentryLifecycleVersion) return
+
+  if (sentryInitialized) {
+    Sentry.setUser({ id: anonymousId })
+    return
+  }
 
   Sentry.init({
     dsn: sentryDsn,
@@ -37,9 +53,12 @@ export function initSentry(anonymousId: string): void {
   sentryInitialized = true
 }
 
-export function teardownSentry(): void {
+export async function teardownSentry(): Promise<void> {
+  const teardownVersion = ++sentryLifecycleVersion
   if (!sentryInitialized) return
-  Sentry.close()
+  const Sentry = await loadSentry()
+  if (teardownVersion !== sentryLifecycleVersion) return
+  await Sentry.close()
   sentryInitialized = false
 }
 
@@ -88,6 +107,14 @@ export function isFeatureEnabled(flagKey: string): boolean {
 
 export function trackEvent(name: string, properties?: Record<string, string | number>): void {
   posthogInstance?.capture(name, properties)
+}
+
+export function _resetTelemetryStateForTest(): void {
+  sentryInitialized = false
+  sentryLifecycleVersion = 0
+  sentryImport = null
+  posthogInstance = null
+  currentReleaseChannel = 'stable'
 }
 
 export { scrubPaths as _scrubPathsForTest }

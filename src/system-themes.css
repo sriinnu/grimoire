@@ -1,0 +1,92 @@
+@import './theme-system-tokens.css';
+@import './theme-semantic-tokens.css';
+@import './theme-constellation.css';
+@import './theme-flagship-shared.css';
+@import './theme-editor-navigator.css';
+@import './theme-coherence.css';
+@import './theme-status-bar.css';
+@import './theme-surface-coherence.css';
+@import './theme-settings.css';
+@import './theme-settings-workflow.css';
+@import './theme-settings-sync.css';
+@import './theme-settings-privacy.css';
+@import './theme-agent-council.css';
+@import './theme-ai-brief.css';
+@import './theme-memory-ledger.css';
+@import './native-shell-material.css';
+@import './theme-accessibility.css';
+
+[data-theme-preset-preview="constellation"] {
+  --surface-editor: #07111a;
+  --foreground: #e8fbff;
+  --muted-foreground: #91a7b7;
+  --border: #203141;
+}
+
+[data-theme-preset-preview="daylight-atelier"] {
+  --surface-editor: #fffefb;
+  --foreground: #233038;
+  --muted-foreground: #5c6d73;
+  --border: #c8dce1;
+  --primary: #377484;
+}
+
+[data-theme-preset-preview="daylight-atelier"][data-theme-preview="dark"] {
+  --surface-editor: #0f1c22;
+  --foreground: #e6f3f2;
+  --muted-foreground: #9ebabe;
+  --border: #2d4147;
+  --primary: #8ddbe4;
+}
+
+[data-theme-preset-preview="prabhat-studio"] {
+  --surface-editor: #fbfffd;
+  --foreground: #243238;
+  --muted-foreground: #62747a;
+  --border: #c9dad5;
+  --primary: #286f84;
+}
+
+[data-theme-preset-preview="prabhat-studio"][data-theme-preview="dark"] {
+  --surface-editor: #111a1d;
+  --foreground: #e7f3f0;
+  --muted-foreground: #abc3c0;
+  --border: #2d4243;
+  --primary: #88d8d2;
+}
+
+[data-theme-preset-preview="living-archive"] {
+  --surface-editor: #fff7e8;
+  --foreground: #2d3428;
+  --muted-foreground: #6c6e58;
+  --border: #dbc99d;
+}
+
+[data-theme-preset-preview="living-archive"][data-theme-preview="dark"] {
+  --surface-editor: #182017;
+  --foreground: #efe6cc;
+  --muted-foreground: #c5b88f;
+  --border: #3a472e;
+}
+
+[data-theme-preset-preview="nocturne"] {
+  --surface-editor: #141513;
+  --foreground: #eef3ea;
+  --muted-foreground: #b6c2b7;
+  --border: #2b3129;
+}
+
+[data-theme-preset-preview="nocturne"][data-theme-preview="light"] {
+  --surface-editor: #ffffff;
+  --foreground: #202723;
+  --muted-foreground: #63716a;
+  --border: #d9e5dd;
+}
+
+[data-theme-preset-preview="retro-terminal"] {
+  --surface-editor: #070907;
+  --foreground: #dcf8cf;
+  --muted-foreground: #8daa80;
+  --border: #26341f;
+  --primary: #9bff7a;
+}

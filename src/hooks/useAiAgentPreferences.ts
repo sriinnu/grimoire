@@ -1,10 +1,12 @@
 import { useCallback, useMemo } from 'react'
-import { isTauri } from '../mock-tauri'
 import {
+  AI_AGENT_CLI_DEFAULT_ROUTE,
   getAiAgentDefinition,
   getNextAiAgentId,
   isAiAgentInstalled,
   resolveDefaultAiAgent,
+  resolveDefaultAiProvider,
+  supportsAiAgentProviderRoute,
   type AiAgentId,
   type AiAgentsStatus,
 } from '../lib/aiAgents'
@@ -29,9 +31,11 @@ export function useAiAgentPreferences({
   )
 
   const defaultAiAgentLabel = getAiAgentDefinition(defaultAiAgent).label
-  const defaultAiAgentReady = !isTauri() || isAiAgentInstalled(aiAgentsStatus, defaultAiAgent)
-  const defaultAiProvider = settings.ai_agent_providers?.[defaultAiAgent]?.trim() || null
+  const defaultAiAgentReady = isAiAgentInstalled(aiAgentsStatus, defaultAiAgent)
+  const storedAiProvider = settings.ai_agent_providers?.[defaultAiAgent]?.trim() || null
+  const defaultAiProvider = resolveDefaultAiProvider(defaultAiAgent, storedAiProvider)
   const defaultAiModel = settings.ai_agent_models?.[defaultAiAgent]?.trim() || null
+  const defaultRouteLabel = supportsAiAgentProviderRoute(defaultAiAgent) ? AI_AGENT_CLI_DEFAULT_ROUTE : 'CLI default'
 
   const setDefaultAiAgent = useCallback((agent: AiAgentId) => {
     saveSettings({
@@ -54,12 +58,22 @@ export function useAiAgentPreferences({
       ...settings,
       ai_agent_models: Object.keys(aiAgentModels).length > 0 ? aiAgentModels : null,
     })
-    onToast?.(`${defaultAiAgentLabel} model: ${normalized || 'CLI default'}`)
-  }, [defaultAiAgent, defaultAiAgentLabel, onToast, saveSettings, settings])
+    onToast?.(`${defaultAiAgentLabel} model: ${normalized || defaultRouteLabel}`)
+  }, [defaultAiAgent, defaultAiAgentLabel, defaultRouteLabel, onToast, saveSettings, settings])
 
   const setDefaultAiProvider = useCallback((provider: string) => {
     const normalized = provider.trim()
     const aiAgentProviders = { ...(settings.ai_agent_providers ?? {}) }
+    if (!supportsAiAgentProviderRoute(defaultAiAgent)) {
+      delete aiAgentProviders[defaultAiAgent]
+      saveSettings({
+        ...settings,
+        ai_agent_providers: Object.keys(aiAgentProviders).length > 0 ? aiAgentProviders : null,
+      })
+      onToast?.(`${defaultAiAgentLabel} provider: ${defaultRouteLabel}`)
+      return
+    }
+
     if (normalized) {
       aiAgentProviders[defaultAiAgent] = normalized
     } else {
@@ -70,8 +84,8 @@ export function useAiAgentPreferences({
       ...settings,
       ai_agent_providers: Object.keys(aiAgentProviders).length > 0 ? aiAgentProviders : null,
     })
-    onToast?.(`${defaultAiAgentLabel} provider: ${normalized || 'CLI default'}`)
-  }, [defaultAiAgent, defaultAiAgentLabel, onToast, saveSettings, settings])
+    onToast?.(`${defaultAiAgentLabel} provider: ${resolveDefaultAiProvider(defaultAiAgent, normalized) ?? defaultRouteLabel}`)
+  }, [defaultAiAgent, defaultAiAgentLabel, defaultRouteLabel, onToast, saveSettings, settings])
 
   const cycleDefaultAiAgent = useCallback(() => {
     setDefaultAiAgent(getNextAiAgentId(defaultAiAgent))

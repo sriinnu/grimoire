@@ -1,0 +1,32 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "audios/river-voice.m4a",
+    "destination_path": "attachments/river-voice.m4a",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "asset",
+    "source_path": "pdfs/river-receipt.pdf",
+    "destination_path": "attachments/river-receipt.pdf",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "asset",
+    "source_path": "photos/river-photo.jpg",
+    "destination_path": "attachments/river-photo.jpg",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "asset",
+    "source_path": "videos/river-video.mov",
+    "destination_path": "attachments/river-video.mov",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "note",
+    "source_path": "entries.json",
+    "destination_path": "2026-05-22-river-walk.md",
+    "detail": "journal metadata/frontmatter map"
+  }
+]

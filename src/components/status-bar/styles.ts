@@ -1,5 +1,11 @@
 import type { CSSProperties } from 'react'
 
+export const STATUS_BAR_FOREGROUND = 'var(--status-bar-foreground, var(--foreground))'
+export const STATUS_BAR_MUTED_FOREGROUND = 'var(--status-bar-muted-foreground, var(--muted-foreground))'
+export const STATUS_BAR_POPOVER_FOREGROUND = 'var(--status-bar-popover-fg, var(--foreground))'
+export const STATUS_BAR_POPOVER_MUTED_FOREGROUND = 'var(--status-bar-popover-muted-foreground, var(--status-bar-muted-foreground, var(--muted-foreground)))'
+export const STATUS_BAR_POPOVER_BACKGROUND = 'var(--status-bar-popover-bg, var(--popover))'
+
 export const ICON_STYLE: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
@@ -14,5 +20,5 @@ export const DISABLED_STYLE: CSSProperties = {
 }
 
 export const SEP_STYLE: CSSProperties = {
-  color: 'var(--border)',
+  color: 'var(--status-bar-control-border, var(--border))',
 }

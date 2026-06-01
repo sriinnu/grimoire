@@ -33,9 +33,12 @@ vi.mock('./useDismissibleLayer', () => ({
 }))
 
 import {
+  ChangesBadge,
   CommitBadge,
   ConflictBadge,
+  LocalOnlyBadge,
   NoRemoteBadge,
+  OfflineBadge,
   SyncBadge,
 } from './StatusBarBadges'
 
@@ -67,6 +70,7 @@ describe('StatusBarBadges extra coverage', () => {
 
     fireEvent.click(screen.getByTestId('status-no-remote'))
     expect(onAddRemote).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('status-no-remote')).toHaveAttribute('data-status-action-tone', 'warning')
 
     rerender(
       <NoRemoteBadge
@@ -75,10 +79,23 @@ describe('StatusBarBadges extra coverage', () => {
     )
 
     expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
+    expect(screen.getByTestId('status-no-remote')).toHaveAttribute('data-status-pill-tone', 'warning')
     expect(screen.getByTestId('status-no-remote')).toHaveAttribute(
       'title',
       'This git vault has no remote configured. Commits stay local until you add one.',
     )
+  })
+
+  it('renders local-only vault state without implying a missing remote', () => {
+    render(<LocalOnlyBadge />)
+
+    expect(screen.getByTestId('status-local-only')).toHaveTextContent('Local only')
+    expect(screen.getByTestId('status-local-only')).toHaveAttribute('data-status-pill-tone', 'success')
+    expect(screen.getByTestId('status-local-only')).toHaveAttribute(
+      'title',
+      'This vault is using local files only. Git, sync, and history are off until you enable them in Settings.',
+    )
+    expect(screen.queryByTestId('status-no-remote')).not.toBeInTheDocument()
   })
 
   it('shows sync popup details, handles pull actions, and covers no-remote summaries', () => {
@@ -155,6 +172,19 @@ describe('StatusBarBadges extra coverage', () => {
 
     fireEvent.click(screen.getByTestId('status-conflict-count'))
     expect(onClick).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('status-conflict-count')).toHaveAttribute('data-status-action-tone', 'danger')
     expect(screen.getByTestId('status-conflict-count')).toHaveTextContent('2 conflicts')
+  })
+
+  it('marks offline and pending-change controls with theme-safe semantic tones', () => {
+    render(
+      <>
+        <OfflineBadge isOffline />
+        <ChangesBadge count={3} />
+      </>,
+    )
+
+    expect(screen.getByTestId('status-offline')).toHaveAttribute('data-status-pill-tone', 'danger')
+    expect(screen.getByTestId('status-modified-count')).toHaveAttribute('data-status-action-tone', 'warning')
   })
 })

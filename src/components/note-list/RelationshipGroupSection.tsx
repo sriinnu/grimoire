@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { CaretDown, CaretRight } from '@phosphor-icons/react'
 import type { VaultEntry } from '../../types'
+import type { RelationshipGroup } from '../../utils/noteListHelpers'
 import {
-  type SortOption, type SortDirection, type SortConfig, type RelationshipGroup,
+  type SortOption, type SortDirection, type SortConfig,
   getSortComparator, extractSortableProperties,
-} from '../../utils/noteListHelpers'
+} from '../../utils/noteListSorting'
 import { humanizePropertyKey } from '../../utils/propertyLabels'
 import { SortDropdown } from '../SortDropdown'
 import { Button } from '../ui/button'

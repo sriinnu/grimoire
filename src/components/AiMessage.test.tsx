@@ -12,9 +12,9 @@ describe('AiMessage', () => {
     expect(screen.getByText('Hello AI')).toBeTruthy()
   })
 
-  it('renders response as markdown', () => {
+  it('renders response as markdown', async () => {
     render(<AiMessage userMessage="Ask" actions={[]} response="Here is the **answer**" />)
-    expect(screen.getByTestId('markdown-content')).toBeTruthy()
+    expect(await screen.findByTestId('markdown-content')).toBeTruthy()
     expect(screen.getByText('Here is the **answer**')).toBeTruthy()
   })
 
@@ -34,6 +34,56 @@ describe('AiMessage', () => {
     render(<AiMessage userMessage="Ask" reasoning="Thinking..." reasoningDone actions={[]} />)
     expect(screen.getByTestId('reasoning-toggle')).toBeTruthy()
     expect(screen.queryByTestId('reasoning-content')).toBeNull()
+  })
+
+  it('surfaces Chitragupta route truth outside collapsed reasoning', () => {
+    render(
+      <AiMessage
+        userMessage="Which model?"
+        route={{
+          agent: 'chitragupta',
+          provider: 'ollama',
+          model: 'qwen3:8b',
+          source: 'stream',
+        }}
+        reasoning="Chitragupta route resolved: provider ollama, model qwen3:8b\n"
+        reasoningDone
+        actions={[]}
+        response="I am not guessing."
+      />,
+    )
+
+    expect(screen.queryByTestId('reasoning-content')).toBeNull()
+    expect(screen.getByTestId('ai-route-disclosure')).toHaveTextContent('Agent: Chitragupta')
+    expect(screen.getByTestId('ai-route-disclosure')).toHaveTextContent('Provider: ollama')
+    expect(screen.getByTestId('ai-route-disclosure')).toHaveTextContent('Model: qwen3:8b')
+    expect(screen.getByTestId('ai-route-disclosure')).toHaveTextContent('Source: Chitragupta route stream')
+  })
+
+  it('parses flexible Chitragupta route disclosures', () => {
+    render(
+      <AiMessage
+        userMessage="Which model?"
+        reasoning="Chitragupta route resolved: model=qwen3:8b provider: ollama\n"
+        reasoningDone
+        actions={[]}
+      />,
+    )
+
+    expect(screen.getByTestId('ai-route-disclosure')).toHaveTextContent('Provider: ollama · Model: qwen3:8b')
+  })
+
+  it('parses multiline provider-only route disclosures', () => {
+    render(
+      <AiMessage
+        userMessage="Which provider?"
+        reasoning="Chitragupta route resolved:\nprovider: ollama\n"
+        reasoningDone
+        actions={[]}
+      />,
+    )
+
+    expect(screen.getByTestId('ai-route-disclosure')).toHaveTextContent('Provider: ollama')
   })
 
   it('expands collapsed reasoning on toggle click', () => {
@@ -117,6 +167,9 @@ describe('AiMessage', () => {
     expect(pills).toHaveLength(2)
     expect(pills[0].textContent).toBe('Marco')
     expect(pills[1].textContent).toBe('Project X')
+    expect(pills[0]).toHaveAttribute('data-reference-pill', 'true')
+    expect(pills[0].getAttribute('style')).toContain('--reference-type-color')
+    expect(pills[0].getAttribute('style')).toContain('--ai-reference-pill-bg')
   })
 
   it('does not render pills when no references', () => {

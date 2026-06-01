@@ -1,4 +1,5 @@
 import {
+  AI_AGENT_CLI_DEFAULT_ROUTE,
   AI_AGENT_DEFINITIONS,
   getAiAgentDefinition,
   type AiAgentId,
@@ -6,12 +7,23 @@ import {
 } from '../../lib/aiAgents'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { AiProviderKeysCard } from './AiProviderKeysCard'
 import { LabeledSelect, SectionHeading } from './SettingsControls'
 import {
   updateAiAgentModelDraft,
   updateAiAgentProviderDraft,
 } from './settingsDraft'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
+
+const CHITRAGUPTA_MCP_SURFACE_KEYS = [
+  'settings.aiAgents.mcpSurfaceMemorySearch',
+  'settings.aiAgents.mcpSurfaceRecall',
+  'settings.aiAgents.mcpSurfaceWiki',
+  'settings.aiAgents.mcpSurfaceGraph',
+  'settings.aiAgents.mcpSurfaceIngest',
+  'settings.aiAgents.mcpSurfaceDiagnostics',
+  'settings.aiAgents.mcpSurfaceWriteSuggestions',
+] as const
 
 function buildDefaultAiAgentOptions(aiAgentsStatus: AiAgentsStatus, t: SettingsTranslate): Array<{ value: string; label: string }> {
   return AI_AGENT_DEFINITIONS.map((definition) => {
@@ -38,6 +50,45 @@ function renderDefaultAiAgentSummary(defaultAiAgent: AiAgentId, aiAgentsStatus: 
   return t('settings.aiAgents.notInstalled', { agent: definition.label })
 }
 
+function renderChitraguptaRouteSummary(provider: string, model: string, t: SettingsTranslate): string {
+  const providerCopy = provider.trim()
+    ? t('settings.aiAgents.routeProviderOverride', { provider: provider.trim() })
+    : t('settings.aiAgents.routeProviderCli')
+  const modelCopy = model.trim()
+    ? t('settings.aiAgents.routeModelOverride', { model: model.trim() })
+    : t('settings.aiAgents.routeModelCli')
+
+  return t('settings.aiAgents.routeTruth', {
+    modelRoute: modelCopy,
+    providerRoute: providerCopy,
+  })
+}
+
+function ChitraguptaMcpContractCard({ t }: { t: SettingsTranslate }) {
+  return (
+    <div
+      className="settings-material-inner mt-2 rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
+      data-testid="settings-ai-agent-chitragupta-contract"
+    >
+      <div className="font-medium text-foreground">{t('settings.aiAgents.mcpContractTitle')}</div>
+      <div>{t('settings.aiAgents.mcpContractReady')}</div>
+      <div className="mt-1" data-testid="settings-ai-agent-chitragupta-transport">
+        {t('settings.aiAgents.mcpContractTransport')}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1">
+        {CHITRAGUPTA_MCP_SURFACE_KEYS.map((surfaceKey) => (
+          <span
+            key={surfaceKey}
+            className="settings-material-chip rounded-full border px-2 py-0.5 font-medium text-foreground/85"
+          >
+            {t(surfaceKey)}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Renders default AI agent, provider, and model preferences. */
 export function AiAgentSettingsSection({
   t,
@@ -60,6 +111,9 @@ export function AiAgentSettingsSection({
 >) {
   const selectedProvider = aiAgentProviders[defaultAiAgent] ?? ''
   const selectedModel = aiAgentModels[defaultAiAgent] ?? ''
+  const providerPlaceholder = defaultAiAgent === 'chitragupta'
+    ? AI_AGENT_CLI_DEFAULT_ROUTE
+    : t('settings.aiAgents.providerPlaceholder')
   const handleProviderChange = (value: string) => {
     setAiAgentProviders(updateAiAgentProviderDraft(aiAgentProviders, defaultAiAgent, value))
   }
@@ -88,14 +142,14 @@ export function AiAgentSettingsSection({
           <label className="text-xs font-medium text-foreground" htmlFor="settings-default-ai-provider">
             {t('settings.aiAgents.provider')}
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input
               id="settings-default-ai-provider"
               value={selectedProvider}
-              placeholder={t('settings.aiAgents.providerPlaceholder')}
+              placeholder={providerPlaceholder}
               onChange={(event) => handleProviderChange(event.target.value)}
               data-testid="settings-default-ai-provider"
-              className="w-full bg-transparent"
+              className="min-w-[220px] flex-1 bg-transparent"
             />
             <Button
               variant="outline"
@@ -103,6 +157,7 @@ export function AiAgentSettingsSection({
               onClick={() => handleProviderChange('')}
               disabled={!selectedProvider}
               data-testid="settings-default-ai-provider-clear"
+              className="shrink-0"
             >
               {t('settings.aiAgents.providerDefault')}
             </Button>
@@ -114,14 +169,14 @@ export function AiAgentSettingsSection({
         <label className="text-xs font-medium text-foreground" htmlFor="settings-default-ai-model">
           {t('settings.aiAgents.model')}
         </label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input
             id="settings-default-ai-model"
             value={selectedModel}
             placeholder={t('settings.aiAgents.modelPlaceholder')}
             onChange={(event) => handleModelChange(event.target.value)}
             data-testid="settings-default-ai-model"
-            className="w-full bg-transparent"
+            className="min-w-[220px] flex-1 bg-transparent"
           />
           <Button
             variant="outline"
@@ -129,6 +184,7 @@ export function AiAgentSettingsSection({
             onClick={() => handleModelChange('')}
             disabled={!selectedModel}
             data-testid="settings-default-ai-model-clear"
+            className="shrink-0"
           >
             {t('settings.aiAgents.modelDefault')}
           </Button>
@@ -138,6 +194,21 @@ export function AiAgentSettingsSection({
       <div className="text-[11px] leading-relaxed text-muted-foreground">
         {renderDefaultAiAgentSummary(defaultAiAgent, aiAgentsStatus, t)}
       </div>
+
+      <AiProviderKeysCard t={t} />
+
+      {showProviderOverride ? (
+        <div
+          className="settings-material-card rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
+          data-testid="settings-ai-agent-route-note"
+        >
+          <div>{renderChitraguptaRouteSummary(selectedProvider, selectedModel, t)}</div>
+          <div className="mt-1" data-testid="settings-ai-agent-chitragupta-boundary">
+            {t('settings.aiAgents.mcpBoundary')}
+          </div>
+          <ChitraguptaMcpContractCard t={t} />
+        </div>
+      ) : null}
     </>
   )
 }

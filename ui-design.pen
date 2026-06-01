@@ -3,6 +3,45 @@
   "children": [
     {
       "type": "frame",
+      "id": "graph_node_agent_map",
+      "x": 0,
+      "y": -1220,
+      "name": "Graph Node Agent Map",
+      "theme": {
+        "Mode": "Light"
+      },
+      "width": 1440,
+      "height": 220,
+      "fill": "$--background",
+      "layout": "vertical",
+      "gap": 18,
+      "padding": 40,
+      "children": [
+        {
+          "type": "text",
+          "id": "graph_node_agent_map_title",
+          "fill": "$--foreground",
+          "content": "Graph Node Agent Map",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "graph_node_agent_map_body",
+          "fill": "$--muted-foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "The graph modal reads as an inspectable agent package: selected nodes get a clear stack, public package nodes show a source-safe orbit, protected local nodes show a guarded badge, and the canvas HUD names the current package safety without exposing protected labels.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
       "id": "collapsible_left_column_note",
       "x": 0,
       "y": -980,
@@ -4247,7 +4286,7 @@
                               "fill": "$--foreground",
                               "textGrowth": "fixed-width",
                               "width": "fill_container",
-                              "content": "The app uses a four-panel layout: Sidebar for navigation, NoteList for browsing, Editor for content, and Inspector for metadata. All data lives in markdown files with YAML frontmatter, git-versioned.",
+                              "content": "The app uses a four-panel layout: Sidebar for navigation, NoteList for browsing, Editor for content, and Inspector for metadata. All data lives first in a local Markdown folder with YAML frontmatter; Git and sync are optional layers.",
                               "lineHeight": 1.6,
                               "fontFamily": "Inter",
                               "fontSize": 15,
@@ -5583,7 +5622,7 @@
                       "id": "NjLRf",
                       "name": "anthropicValue",
                       "fill": "$--foreground",
-                      "content": "sk-ant-•••••••••••••k4Rm",
+                      "content": "redacted-provider-key",
                       "fontFamily": "Inter",
                       "fontSize": 13,
                       "fontWeight": "normal"

@@ -1,5 +1,6 @@
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../types'
+import type { AiAgentAvailability } from './aiAgents'
 import { resolveEntryLocalityPolicy, type EntryLocalityPolicy } from './localityPolicy'
 
 export type ChitraguptaCapability =
@@ -42,6 +43,166 @@ export const REQUIRED_CHITRAGUPTA_CAPABILITIES: ChitraguptaCapability[] = [
   'ingest.markdown',
 ]
 
+export type ChitraguptaDaemonState = 'running' | 'stopped' | 'degraded'
+export type ChitraguptaContractState = 'ready' | 'blocked'
+
+export interface ChitraguptaStatusPayload {
+  ok?: boolean
+  daemon?: ChitraguptaDaemonState | string
+  transport?: ChitraguptaMcpTransportState | string
+  capabilities?: string[] | null
+  warnings?: string[] | null
+}
+
+export type ChitraguptaMcpTransportState = 'open' | 'closed' | 'unavailable' | 'unknown'
+
+export interface ChitraguptaCapabilityStatus {
+  name: ChitraguptaCapability
+  available: boolean
+}
+
+export interface ChitraguptaContractStatus {
+  state: ChitraguptaContractState
+  daemon: ChitraguptaDaemonState | 'unknown'
+  transport: ChitraguptaMcpTransportState
+  capabilities: ChitraguptaCapabilityStatus[]
+  missingCapabilities: ChitraguptaCapability[]
+  warnings: string[]
+}
+
+export type ChitraguptaRuntimeReadinessState =
+  | 'protected'
+  | 'checking'
+  | 'cli_missing'
+  | 'mcp_unverified'
+  | 'mcp_transport_closed'
+  | 'mcp_blocked'
+  | 'ready'
+
+export interface ChitraguptaRuntimeDiagnostic {
+  state: ChitraguptaRuntimeReadinessState
+  cliLabel: string
+  contractLabel: string
+  capabilityLabel: string
+  warnings: string[]
+}
+
+/** Evaluates the public Chitragupta MCP contract without exposing private runtime details. */
+export function evaluateChitraguptaContractStatus(
+  payload: ChitraguptaStatusPayload | null | undefined,
+): ChitraguptaContractStatus {
+  const availableCapabilities = new Set(payload?.capabilities ?? [])
+  const missingCapabilities = REQUIRED_CHITRAGUPTA_CAPABILITIES.filter(
+    capability => !availableCapabilities.has(capability),
+  )
+  const daemon = normalizeDaemonState(payload?.daemon)
+  const transport = normalizeTransportState(payload?.transport, payload?.warnings ?? [])
+  const warnings = [
+    ...(payload?.warnings ?? []).map(sanitizeChitraguptaWarning),
+    ...contractWarnings(payload, daemon, transport, missingCapabilities),
+  ].filter(warning => warning.trim().length > 0)
+
+  return {
+    state: payload?.ok === true
+      && daemon === 'running'
+      && transport !== 'closed'
+      && missingCapabilities.length === 0
+      ? 'ready'
+      : 'blocked',
+    daemon,
+    transport,
+    capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES.map(capability => ({
+      name: capability,
+      available: availableCapabilities.has(capability),
+    })),
+    missingCapabilities,
+    warnings: [...new Set(warnings)],
+  }
+}
+
+/** Summarizes the app-visible Chitragupta runtime truth for memory UI. */
+export function summarizeChitraguptaRuntimeReadiness({
+  availability,
+  contractStatus,
+  protectedNote,
+}: {
+  availability?: AiAgentAvailability | null
+  contractStatus: ChitraguptaContractStatus
+  protectedNote: boolean
+}): ChitraguptaRuntimeDiagnostic {
+  const availableCapabilities = contractStatus.capabilities.filter(capability => capability.available).length
+  const capabilityLabel = `${availableCapabilities}/${contractStatus.capabilities.length} MCP capabilities`
+
+  if (protectedNote) {
+    return {
+      state: 'protected',
+      cliLabel: 'Context withheld',
+      contractLabel: 'Protected local',
+      capabilityLabel,
+      warnings: [],
+    }
+  }
+
+  if (!availability || availability.status === 'checking') {
+    return {
+      state: 'checking',
+      cliLabel: 'CLI checking',
+      contractLabel: 'MCP contract pending',
+      capabilityLabel,
+      warnings: contractStatus.warnings.slice(0, 2),
+    }
+  }
+
+  if (availability.status === 'missing') {
+    return {
+      state: 'cli_missing',
+      cliLabel: 'CLI missing',
+      contractLabel: 'MCP contract blocked',
+      capabilityLabel,
+      warnings: [
+        'Install Chitragupta CLI before live memory recall.',
+        ...contractStatus.warnings,
+      ].slice(0, 2),
+    }
+  }
+
+  if (contractStatus.transport === 'closed') {
+    return {
+      state: 'mcp_transport_closed',
+      cliLabel: 'CLI installed',
+      contractLabel: 'MCP transport closed',
+      capabilityLabel,
+      warnings: [
+        'MCP transport closed before Chitragupta memory tools answered.',
+        'Local ledger stays active; live recall, wiki, graph, and diagnostics remain blocked.',
+        ...contractStatus.warnings,
+      ].slice(0, 2),
+    }
+  }
+
+  if (contractStatus.state === 'ready') {
+    return {
+      state: 'ready',
+      cliLabel: 'CLI installed',
+      contractLabel: 'MCP contract ready',
+      capabilityLabel,
+      warnings: [],
+    }
+  }
+
+  const statusUnavailable = contractStatus.warnings.includes('Chitragupta status is unavailable.')
+  return {
+    state: statusUnavailable ? 'mcp_unverified' : 'mcp_blocked',
+    cliLabel: 'CLI installed',
+    contractLabel: statusUnavailable ? 'MCP contract unverified' : 'MCP contract blocked',
+    capabilityLabel,
+    warnings: [
+      'CLI chat can run separately; memory recall stays local-ledger until MCP diagnostics pass.',
+      ...contractStatus.warnings,
+    ].slice(0, 2),
+  }
+}
+
 /** Builds the active-note context packet Grimoire will send to Chitragupta. */
 export function buildChitraguptaMemoryContext(
   entry: VaultEntry,
@@ -72,6 +233,60 @@ export function buildChitraguptaMemoryContext(
     requiredCapabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
     locality,
   }
+}
+
+function contractWarnings(
+  payload: ChitraguptaStatusPayload | null | undefined,
+  daemon: ChitraguptaContractStatus['daemon'],
+  transport: ChitraguptaContractStatus['transport'],
+  missingCapabilities: ChitraguptaCapability[],
+): string[] {
+  const warnings: string[] = []
+  if (!payload) {
+    warnings.push('Chitragupta status is unavailable.')
+  } else if (payload.ok !== true) {
+    warnings.push('Chitragupta status is not healthy.')
+  }
+  if (daemon !== 'running') {
+    warnings.push('Chitragupta daemon is not running.')
+  }
+  if (transport === 'closed') {
+    warnings.push('Chitragupta MCP transport is closed.')
+  }
+  if (missingCapabilities.length > 0) {
+    warnings.push(`Missing Chitragupta capabilities: ${missingCapabilities.join(', ')}`)
+  }
+  return warnings
+}
+
+function normalizeDaemonState(value: ChitraguptaStatusPayload['daemon']): ChitraguptaContractStatus['daemon'] {
+  if (value === 'running' || value === 'stopped' || value === 'degraded') return value
+  return 'unknown'
+}
+
+function normalizeTransportState(
+  value: ChitraguptaStatusPayload['transport'],
+  warnings: string[],
+): ChitraguptaMcpTransportState {
+  if (value === 'open' || value === 'closed' || value === 'unavailable') return value
+  if (warnings.some(isTransportClosedWarning)) return 'closed'
+  return 'unknown'
+}
+
+function isTransportClosedWarning(value: string): boolean {
+  const normalized = value.trim().toLowerCase()
+  return normalized.includes('transport closed')
+    || normalized.includes('mcp bridge disconnected')
+    || normalized.includes('websocket connection closed')
+}
+
+function sanitizeChitraguptaWarning(value: string): string {
+  return value
+    .trim()
+    .replace(/\/Users\/[^\s,;:)]+/g, '[local path withheld]')
+    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email withheld]')
+    .replace(/\b(token|secret|password|api[_-]?key|key)=([^\s,;]+)/gi, '$1=[redacted]')
+    .slice(0, 180)
 }
 
 function relatedNoteTitles(entry: VaultEntry, entries: VaultEntry[]): string[] {

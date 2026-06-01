@@ -1,18 +1,41 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { lazy, Suspense, useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { MagnifyingGlass, Smiley } from '@phosphor-icons/react'
-import { ICON_OPTIONS, type IconEntry } from '../utils/iconRegistry'
+import { useIconOptions } from '../hooks/useIconOptions'
+import type { IconEntry } from '../utils/iconRegistry'
 import { ACCENT_COLORS } from '../utils/typeColors'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { EmojiPicker } from './EmojiPicker'
 import { TypeImagePicker } from './TypeImagePicker'
 
+const EmojiPicker = lazy(() => import('./EmojiPicker').then((module) => ({ default: module.EmojiPicker })))
+
+const COMMON_EMOJI_OPTIONS = [
+  { emoji: '🔥', label: 'fire' },
+  { emoji: '✨', label: 'sparkles' },
+  { emoji: '⭐', label: 'star' },
+  { emoji: '🧠', label: 'brain' },
+  { emoji: '📚', label: 'books' },
+  { emoji: '🧪', label: 'test tube' },
+  { emoji: '🚀', label: 'rocket' },
+  { emoji: '📝', label: 'memo' },
+] as const
+type CommonEmojiOption = (typeof COMMON_EMOJI_OPTIONS)[number]
+const MAX_ICON_PICKER_RESULTS = 72
+
 function filterIcons(icons: IconEntry[], query: string): IconEntry[] {
-  if (!query) return icons
+  if (!query) return icons.slice(0, MAX_ICON_PICKER_RESULTS)
   const lower = query.toLowerCase()
-  return icons.filter((o) => o.name.includes(lower))
+  return icons.filter((o) => o.name.includes(lower)).slice(0, MAX_ICON_PICKER_RESULTS)
+}
+
+function filterCommonEmoji(query: string): readonly CommonEmojiOption[] {
+  const normalizedQuery = query.trim().toLowerCase()
+  if (!normalizedQuery) return COMMON_EMOJI_OPTIONS
+  return COMMON_EMOJI_OPTIONS.filter(({ emoji, label }) => (
+    label.includes(normalizedQuery) || emoji.includes(query.trim())
+  ))
 }
 
 interface TypeCustomizePopoverProps {
@@ -39,6 +62,43 @@ function useDebouncedCallback(fn: (v: string) => void, delay: number): (v: strin
   }, [delay])
 }
 
+function EmojiPickerLoadingFallback({ onSelect }: { onSelect: (emoji: string) => void }) {
+  const [query, setQuery] = useState('')
+  const emojiOptions = filterCommonEmoji(query)
+
+  return (
+    <div className="mt-2 rounded-md border border-border bg-muted/35 p-2">
+      <Input
+        aria-label="Search emoji"
+        className="h-8 text-[12px]"
+        data-testid="emoji-picker-search"
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search emoji..."
+        value={query}
+      />
+      <div className="mt-2 grid grid-cols-8 gap-1">
+        {emojiOptions.map(({ emoji, label }) => (
+          <Button
+            aria-label={label}
+            className="h-8 w-8 text-lg"
+            data-testid="emoji-option"
+            key={emoji}
+            onClick={() => onSelect(emoji)}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            {emoji}
+          </Button>
+        ))}
+      </div>
+      <div className="mt-2 text-[11px] text-muted-foreground">
+        Loading full emoji catalog...
+      </div>
+    </div>
+  )
+}
+
 /** Popover for editing a type's visual identity and default note template. */
 export function TypeCustomizePopover({
   currentIcon,
@@ -54,8 +114,20 @@ export function TypeCustomizePopover({
   const [search, setSearch] = useState('')
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [templateText, setTemplateText] = useState(currentTemplate ?? '')
+  const {
+    ensureFullCatalog,
+    fullCatalogLoaded,
+    iconOptions,
+    iconsLoaded,
+    isFullCatalogLoading,
+  } = useIconOptions()
 
-  const filteredIcons = useMemo(() => filterIcons(ICON_OPTIONS, search), [search])
+  const filteredIcons = useMemo(() => filterIcons(iconOptions, search), [iconOptions, search])
+  const searchNeedsFullCatalog = search.trim().length > 0 && !fullCatalogLoaded
+
+  useEffect(() => {
+    if (search.trim().length > 0) ensureFullCatalog()
+  }, [ensureFullCatalog, search])
 
   const handleColorClick = (key: string) => {
     setSelectedColor(key)
@@ -104,7 +176,24 @@ export function TypeCustomizePopover({
       </div>
 
       {/* Icon section */}
-      <div className="font-mono-overline mb-2 text-muted-foreground">Icon</div>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="font-mono-overline text-muted-foreground">Icon</div>
+        {!fullCatalogLoaded ? (
+          <Button
+            className="h-6 px-2 text-[10px]"
+            data-testid="load-full-icon-catalog"
+            disabled={isFullCatalogLoading}
+            onClick={ensureFullCatalog}
+            size="xs"
+            type="button"
+            variant="outline"
+          >
+            {isFullCatalogLoading ? 'Loading' : 'Full catalog'}
+          </Button>
+        ) : (
+          <span className="text-[10px] text-muted-foreground">Full catalog</span>
+        )}
+      </div>
       <div className="relative mb-3">
         <TypeImagePicker selectedIcon={selectedIcon} onSelectIcon={handleIconClick} />
         <Button
@@ -120,10 +209,12 @@ export function TypeCustomizePopover({
           Emoji
         </Button>
         {showEmojiPicker && (
-          <EmojiPicker
-            onClose={() => setShowEmojiPicker(false)}
-            onSelect={handleIconClick}
-          />
+          <Suspense fallback={<EmojiPickerLoadingFallback onSelect={handleIconClick} />}>
+            <EmojiPicker
+              onClose={() => setShowEmojiPicker(false)}
+              onSelect={handleIconClick}
+            />
+          </Suspense>
         )}
       </div>
 
@@ -144,7 +235,11 @@ export function TypeCustomizePopover({
 
       {/* Icon grid */}
       <div className="flex flex-wrap gap-1 overflow-y-auto" style={{ maxHeight: 160 }}>
-        {filteredIcons.length === 0 ? (
+        {!iconsLoaded || searchNeedsFullCatalog ? (
+          <div className="w-full py-6 text-center text-[12px] text-muted-foreground">
+            {searchNeedsFullCatalog ? 'Loading full icon catalog...' : 'Loading icons...'}
+          </div>
+        ) : filteredIcons.length === 0 ? (
           <div className="w-full py-6 text-center text-[12px] text-muted-foreground">
             No icons found
           </div>

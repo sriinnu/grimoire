@@ -1,6 +1,11 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Settings } from '../types'
+import {
+  emitLocalThemePackChange,
+  writeStoredLocalThemeDefinition,
+} from '../themes/localThemePacks'
+import { THEME_PRESET_CATALOG } from '../themes/themeRegistry'
 import { SettingsPanel } from './SettingsPanel'
 
 const emptySettings: Settings = {
@@ -32,9 +37,25 @@ function installPointerCapturePolyfill(): void {
   }
 }
 
+function createStorageMock(): Storage {
+  const values = new Map<string, string>()
+  return {
+    get length() { return values.size },
+    clear: vi.fn(() => { values.clear() }),
+    getItem: vi.fn((key: string) => values.get(key) ?? null),
+    key: vi.fn((index: number) => Array.from(values.keys())[index] ?? null),
+    removeItem: vi.fn((key: string) => { values.delete(key) }),
+    setItem: vi.fn((key: string, value: string) => { values.set(key, value) }),
+  }
+}
+
 describe('SettingsPanel sidebar appearance', () => {
+  const localStorageMock = createStorageMock()
+
   beforeEach(() => {
     vi.clearAllMocks()
+    Object.defineProperty(window, 'localStorage', { value: localStorageMock, configurable: true })
+    window.localStorage.clear()
     installPointerCapturePolyfill()
   })
 
@@ -42,7 +63,7 @@ describe('SettingsPanel sidebar appearance', () => {
     render(
       <SettingsPanel
         open={true}
-        settings={{ ...emptySettings, theme_preset: 'graphite' }}
+        settings={{ ...emptySettings, theme_preset: 'nocturne' }}
         onSave={vi.fn()}
         onClose={vi.fn()}
       />
@@ -50,7 +71,7 @@ describe('SettingsPanel sidebar appearance', () => {
 
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-sidebar-preset-preview',
-      'graphite',
+      'nocturne',
     )
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-theme-preview',
@@ -63,11 +84,11 @@ describe('SettingsPanel sidebar appearance', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-ion'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-retro-terminal'))
 
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-sidebar-preset-preview',
-      'ion',
+      'retro-terminal',
     )
   })
 
@@ -75,12 +96,28 @@ describe('SettingsPanel sidebar appearance', () => {
     render(
       <SettingsPanel
         open={true}
-        settings={{ ...emptySettings, theme_preset: 'manuscript' }}
+        settings={{ ...emptySettings, theme_preset: 'living-archive' }}
         onSave={vi.fn()}
         onClose={vi.fn()}
       />
     )
 
     expect(screen.getByTestId('settings-sidebar-artwork-preview')).toBeInTheDocument()
+  })
+
+  it('updates the left-sidebar preview from a local theme pack override', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
+    )
+
+    act(() => {
+      writeStoredLocalThemeDefinition(window.localStorage, THEME_PRESET_CATALOG[0])
+      emitLocalThemePackChange()
+    })
+
+    expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
+      'data-theme-definition-preview',
+      THEME_PRESET_CATALOG[0].id,
+    )
   })
 })

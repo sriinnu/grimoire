@@ -1,21 +1,35 @@
 import { render, screen } from '@testing-library/react'
-import type { ComponentType, PropsWithChildren } from 'react'
+import type { PropsWithChildren, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
 
-let capturedDragHandleMenu: ComponentType | null = null
+let capturedMenuPosition: string | undefined
 
 vi.mock('@blocknote/react', () => ({
+  AddBlockButton: () => <button type="button">Add block</button>,
   DragHandleMenu: ({ children }: PropsWithChildren) => (
     <div data-testid="drag-handle-menu">{children}</div>
   ),
   RemoveBlockItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
-  SideMenu: ({ dragHandleMenu }: { dragHandleMenu?: ComponentType }) => {
-    capturedDragHandleMenu = dragHandleMenu ?? null
-    return <div data-testid="side-menu" />
-  },
+  SideMenu: ({ children }: PropsWithChildren) => <div data-testid="side-menu">{children}</div>,
   TableColumnHeaderItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
   TableRowHeaderItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  useComponentsContext: () => ({
+    Generic: {
+      Menu: {
+        Root: ({ children, position }: PropsWithChildren<{ position?: string }>) => {
+          capturedMenuPosition = position
+          return <div data-testid="drag-menu-root">{children}</div>
+        },
+        Trigger: ({ children }: PropsWithChildren) => <div>{children}</div>,
+      },
+    },
+    SideMenu: {
+      Button: ({ label, icon }: { label: string; icon: ReactNode }) => (
+        <button type="button" aria-label={label}>{icon}</button>
+      ),
+    },
+  }),
   useDictionary: () => ({
     drag_handle: {
       delete_menuitem: 'Delete',
@@ -23,7 +37,21 @@ vi.mock('@blocknote/react', () => ({
       header_column_menuitem: 'Header column',
       colors_menuitem: 'Colors',
     },
+    side_menu: {
+      drag_handle_label: 'Open block menu',
+    },
   }),
+  useExtension: () => ({
+    blockDragEnd: vi.fn(),
+    blockDragStart: vi.fn(),
+    freezeMenu: vi.fn(),
+    unfreezeMenu: vi.fn(),
+  }),
+  useExtensionState: () => ({ type: 'paragraph', content: [] }),
+}))
+
+vi.mock('@blocknote/core/extensions', () => ({
+  SideMenuExtension: {},
 }))
 
 describe('GrimoireSideMenu', () => {
@@ -31,10 +59,9 @@ describe('GrimoireSideMenu', () => {
     render(<GrimoireSideMenu />)
 
     expect(screen.getByTestId('side-menu')).toBeInTheDocument()
-    expect(capturedDragHandleMenu).not.toBeNull()
-
-    const DragHandleMenuComponent = capturedDragHandleMenu!
-    render(<DragHandleMenuComponent />)
+    expect(screen.getByRole('button', { name: 'Add block' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Open block menu' })).toBeInTheDocument()
+    expect(capturedMenuPosition).toBe('right-start')
 
     expect(screen.getByText('Delete')).toBeInTheDocument()
     expect(screen.getByText('Header row')).toBeInTheDocument()

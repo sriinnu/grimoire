@@ -1,0 +1,97 @@
+@layer components {
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway {
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__step {
+    --settings-privacy-runway-tone: var(--grimoire-private-local-accent);
+    background:
+      radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--settings-privacy-runway-tone) 16%, transparent), transparent 4.75rem),
+      linear-gradient(150deg, color-mix(in srgb, var(--settings-privacy-runway-tone) 7%, transparent), transparent 64%),
+      var(--grimoire-settings-control-row-material);
+    border-color: color-mix(in srgb, var(--settings-privacy-runway-tone) 26%, var(--grimoire-settings-section-divider));
+    box-shadow: var(--grimoire-settings-control-shadow);
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__step::before {
+    background:
+      linear-gradient(180deg, transparent, color-mix(in srgb, var(--settings-privacy-runway-tone) 38%, transparent), transparent),
+      color-mix(in srgb, var(--settings-privacy-runway-tone) 26%, transparent);
+    border-radius: 999px;
+    content: '';
+    inset: 0 auto 0 0;
+    opacity: 0.75;
+    position: absolute;
+    width: 0.17rem;
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__step[data-privacy-runway-tone="cloud"] {
+    --settings-privacy-runway-tone: var(--accent-blue);
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__step[data-privacy-runway-tone="diagnostic"] {
+    --settings-privacy-runway-tone: var(--accent-orange);
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__state {
+    color: color-mix(in srgb, var(--settings-privacy-runway-tone) 76%, var(--text-primary));
+    font-size: 0.65rem;
+    font-weight: 780;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__label {
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 680;
+    letter-spacing: 0;
+    line-height: 1.25;
+    margin-top: 0.18rem;
+  }
+
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway__detail {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+    margin-top: 0.28rem;
+  }
+}
+
+@media (max-width: 760px) {
+  :where(
+    .grimoire-theme-root,
+    [data-theme-preset-preview]
+  ) .settings-privacy-runway {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo, type KeyboardEvent } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { cn } from '@/lib/utils'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { useDragRegion } from '../hooks/useDragRegion'

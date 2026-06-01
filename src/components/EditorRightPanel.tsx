@@ -1,11 +1,16 @@
-import { useEffect } from 'react'
-import { DEFAULT_AI_AGENT, type AiAgentId } from '../lib/aiAgents'
+import { lazy, Suspense, useEffect } from 'react'
+import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
+import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
 import type { VaultEntry, GitCommit } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { Inspector, type FrontmatterValue } from './Inspector'
-import { AiPanelView } from './AiPanel'
-import { useAiPanelController, type AiPanelController } from './useAiPanelController'
+import { useAiPanelController } from './useAiPanelController'
 import { NEW_AI_CHAT_EVENT } from '../utils/aiPromptBridge'
+import type { AiChatRightPanelProps } from './AiChatRightPanel'
+
+const AiChatRightPanelSurface = lazy(async () => ({
+  default: (await import('./AiChatRightPanel')).AiChatRightPanel,
+}))
 
 interface EditorRightPanelProps {
   showAIChat?: boolean
@@ -13,6 +18,8 @@ interface EditorRightPanelProps {
   inspectorWidth: number
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  aiAgentsStatus?: AiAgentsStatus
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
   defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onUnsupportedAiPaste?: (message: string) => void
@@ -41,56 +48,21 @@ interface EditorRightPanelProps {
   onVaultChanged?: () => void
 }
 
-function AiChatRightPanel({
-  width,
-  controller,
-  defaultAiAgent,
-  defaultAiAgentReady,
-  onUnsupportedAiPaste,
-  inspectorEntry,
-  entries,
-  vaultPath,
-  onToggleAIChat,
-  onOpenNote,
-  onFileCreated,
-  onVaultChanged,
-}: Pick<EditorRightPanelProps,
-  | 'defaultAiAgent'
-  | 'defaultAiAgentReady'
-  | 'onUnsupportedAiPaste'
-  | 'inspectorEntry'
-  | 'entries'
-  | 'vaultPath'
-  | 'onToggleAIChat'
-  | 'onOpenNote'
-  | 'onFileCreated'
-  | 'onVaultChanged'
-> & { controller: AiPanelController; width: number }) {
+function AiChatRightPanelFallback({ width }: { width: number }) {
   return (
     <div
+      aria-hidden="true"
       className="shrink-0 flex flex-col min-h-0"
       style={{ width, minWidth: 240, height: '100%' }}
-    >
-      <AiPanelView
-        controller={controller}
-        vaultPath={vaultPath}
-        onClose={() => onToggleAIChat?.()}
-        onOpenNote={onOpenNote}
-        onUnsupportedAiPaste={onUnsupportedAiPaste}
-        defaultAiAgent={defaultAiAgent ?? DEFAULT_AI_AGENT}
-        defaultAiAgentReady={defaultAiAgentReady ?? true}
-        activeEntry={inspectorEntry}
-        entries={entries}
-        onFileCreated={onFileCreated}
-        onVaultChanged={onVaultChanged}
-      />
-    </div>
+    />
   )
 }
 
 export function EditorRightPanel({
   showAIChat, inspectorCollapsed, inspectorWidth,
   defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+  aiAgentsStatus,
+  chitraguptaStatus,
   defaultAiProvider,
   defaultAiModel,
   onUnsupportedAiPaste,
@@ -128,21 +100,33 @@ export function EditorRightPanel({
   }, [handleNewChat])
 
   if (showAIChat) {
+    const lazyAiPanelProps: AiChatRightPanelProps = {
+      aiAgentsStatus,
+      controller: aiPanelController,
+      defaultAiAgent,
+      defaultAiAgentReady,
+      defaultAiModel,
+      defaultAiProvider,
+      entries,
+      inspectorContent,
+      inspectorEntry,
+      noteList,
+      noteListFilter,
+      onFileCreated,
+      onFileModified,
+      onOpenNote,
+      onReplaceContent,
+      onToggleAIChat,
+      onUnsupportedAiPaste,
+      onVaultChanged,
+      vaultPath,
+      width: inspectorWidth,
+    }
+
     return (
-      <AiChatRightPanel
-        width={inspectorWidth}
-        controller={aiPanelController}
-        defaultAiAgent={defaultAiAgent}
-        defaultAiAgentReady={defaultAiAgentReady}
-        onUnsupportedAiPaste={onUnsupportedAiPaste}
-        inspectorEntry={inspectorEntry}
-        entries={entries}
-        vaultPath={vaultPath}
-        onToggleAIChat={onToggleAIChat}
-        onOpenNote={onOpenNote}
-        onFileCreated={onFileCreated}
-        onVaultChanged={onVaultChanged}
-      />
+      <Suspense fallback={<AiChatRightPanelFallback width={inspectorWidth} />}>
+        <AiChatRightPanelSurface {...lazyAiPanelProps} />
+      </Suspense>
     )
   }
 
@@ -160,6 +144,8 @@ export function EditorRightPanel({
         content={inspectorContent}
         entries={entries}
         gitHistory={gitHistory}
+        chitraguptaAvailability={aiAgentsStatus?.chitragupta ?? null}
+        chitraguptaStatus={chitraguptaStatus}
         vaultPath={vaultPath}
         onNavigate={onNavigateWikilink}
         onViewCommitDiff={onViewCommitDiff}

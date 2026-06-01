@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LinuxMenuButton } from './LinuxMenuButton'
 
@@ -15,6 +15,11 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 vi.mock('@tauri-apps/api/window', () => ({
   getCurrentWindow: () => ({ minimize, toggleMaximize, close }),
+}))
+
+vi.mock('../lib/tauriRuntime', () => ({
+  invoke,
+  getCurrentTauriWindow: vi.fn(async () => ({ minimize, toggleMaximize, close })),
 }))
 
 async function openSubmenu(label: string) {
@@ -35,7 +40,7 @@ describe('LinuxMenuButton', () => {
     await openSubmenu('Note')
     expect(screen.getByText('Ctrl+Shift+L')).toBeInTheDocument()
     fireEvent.click(await screen.findByText('Toggle AI Panel'))
-    expect(invoke).toHaveBeenCalledWith('trigger_menu_command', { id: 'view-toggle-ai-chat' })
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('trigger_menu_command', { id: 'view-toggle-ai-chat' }))
   })
 
   it('invokes direct window actions from the Window submenu', async () => {
@@ -50,8 +55,10 @@ describe('LinuxMenuButton', () => {
     await openSubmenu('Window')
     fireEvent.click(await screen.findByText('Close'))
 
-    expect(minimize).toHaveBeenCalledOnce()
-    expect(toggleMaximize).toHaveBeenCalledOnce()
-    expect(close).toHaveBeenCalledOnce()
+    await waitFor(() => {
+      expect(minimize).toHaveBeenCalledOnce()
+      expect(toggleMaximize).toHaveBeenCalledOnce()
+      expect(close).toHaveBeenCalledOnce()
+    })
   })
 })

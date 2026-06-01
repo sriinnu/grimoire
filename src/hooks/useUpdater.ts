@@ -7,6 +7,7 @@ import {
   type AppUpdateMetadata,
 } from '../lib/appUpdater'
 import { openExternalUrl } from '../utils/url'
+import { isDocumentVisible } from './visibleDocument'
 
 const RELEASE_NOTES_URL = 'https://sriinnu.github.io/grimoire/'
 const CALENDAR_VERSION_PATTERN = /^(\d{4})\.(\d{1,2})\.(\d{1,2})(?:-(alpha|stable)\.(\d+))?$/
@@ -131,8 +132,40 @@ export function useUpdater(
 
   useEffect(() => {
     if (!isTauri()) return
-    const timer = setTimeout(() => { checkForUpdates() }, 3000)
-    return () => clearTimeout(timer)
+    let checked = false
+    let timer: ReturnType<typeof window.setTimeout> | null = null
+
+    const clearTimer = () => {
+      if (timer === null) return
+      window.clearTimeout(timer)
+      timer = null
+    }
+
+    const scheduleVisibleStartupCheck = () => {
+      if (checked) return
+      if (!isDocumentVisible()) {
+        clearTimer()
+        return
+      }
+      if (timer !== null) return
+
+      timer = window.setTimeout(() => {
+        timer = null
+        if (!isDocumentVisible()) return
+        checked = true
+        void checkForUpdates()
+      }, 3000)
+    }
+
+    scheduleVisibleStartupCheck()
+    document.addEventListener('visibilitychange', scheduleVisibleStartupCheck)
+    window.addEventListener('focus', scheduleVisibleStartupCheck)
+
+    return () => {
+      clearTimer()
+      document.removeEventListener('visibilitychange', scheduleVisibleStartupCheck)
+      window.removeEventListener('focus', scheduleVisibleStartupCheck)
+    }
   }, [checkForUpdates])
 
   const startDownload = useCallback(async () => {

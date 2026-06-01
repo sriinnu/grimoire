@@ -1,0 +1,122 @@
+.graph-agent-command-center {
+  display: grid;
+  gap: 8px;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--primary) 42%, var(--border));
+}
+
+.graph-agent-command-center__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.graph-agent-command-center__stack {
+  display: grid;
+  gap: 8px;
+}
+
+.graph-canvas-agent-rail span {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+  padding-inline: 8px;
+}
+
+.graph-canvas-agent-rail strong,
+.graph-canvas-agent-rail em {
+  line-height: 1;
+}
+
+.graph-canvas-agent-rail strong {
+  color: var(--foreground);
+  font-size: 11px;
+}
+
+.graph-canvas-agent-rail em {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 620;
+}
+
+.graph-canvas-agent-rail__mark {
+  background: var(--muted-foreground);
+  border-radius: 999px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--muted-foreground) 10%, transparent);
+  display: inline-block;
+  height: 6px;
+  width: 6px;
+}
+
+.graph-canvas-agent-rail span[data-state="ready"] .graph-canvas-agent-rail__mark {
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.graph-canvas-agent-rail span[data-state="guarded"] .graph-canvas-agent-rail__mark {
+  background: var(--grimoire-private-local-accent, var(--accent-purple));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--grimoire-private-local-accent, var(--accent-purple)) 14%, transparent);
+}
+
+.graph-canvas-agent-rail span[data-state="blocked"] .graph-canvas-agent-rail__mark {
+  background: var(--destructive);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--destructive) 14%, transparent);
+}
+
+.graph-canvas-agent-rail span[data-state="guarded"] em,
+.graph-canvas-agent-rail span[data-state="blocked"] em {
+  color: var(--foreground);
+}
+
+.graph-canvas-agent-rail span[data-state="waiting"] .graph-canvas-agent-rail__mark {
+  background: var(--muted-foreground);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--muted-foreground) 13%, transparent);
+}
+
+.grimoire-graph-agent-orbit__lane[data-state="waiting"] circle {
+  fill: color-mix(in srgb, var(--surface-editor) 92%, var(--muted-foreground));
+  stroke: color-mix(in srgb, var(--muted-foreground) 36%, transparent);
+}
+
+.grimoire-graph-agent-orbit__lane[data-state="waiting"] text {
+  fill: var(--muted-foreground);
+}
+
+.grimoire-graph-agent-orbit__health {
+  fill: var(--muted-foreground);
+  stroke: var(--surface-editor);
+  stroke-width: 1.4;
+}
+
+.grimoire-graph-agent-orbit__health[data-availability="installed"],
+.grimoire-graph-agent-orbit__health[data-availability="local"] {
+  fill: var(--primary);
+}
+
+.grimoire-graph-agent-orbit__health[data-availability="missing"] {
+  fill: var(--destructive);
+}
+
+.grimoire-graph-agent-orbit__health[data-availability="checking"] {
+  fill: var(--muted-foreground);
+  stroke-dasharray: 1 2;
+}
+
+.graph-canvas-legend__item[data-tone="health"] .graph-canvas-legend__mark {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid color-mix(in srgb, var(--surface-editor) 86%, var(--foreground));
+  border-radius: 999px;
+  background: var(--primary);
+}
+
+.grimoire-graph-node:focus-visible {
+  outline: none;
+}
+
+.grimoire-graph-node:focus-visible .grimoire-graph-node-core {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--node-color, var(--primary)) 38%, transparent));
+}

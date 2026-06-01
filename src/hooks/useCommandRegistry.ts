@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
-import type { AppLocale, UiLanguagePreference } from '../lib/i18n'
+import type { AppLocale, UiLanguagePreference } from '../lib/i18nCore'
 import type { VaultAiGuidanceStatus } from '../lib/vaultAiGuidance'
 import type { NoteLayout, SidebarSelection, VaultEntry } from '../types'
 import type { NoteListFilter } from '../utils/noteListHelpers'
@@ -14,6 +14,7 @@ import { buildAiAgentCommands } from './commands/aiAgentCommands'
 import { buildTypeCommands } from './commands/typeCommands'
 import { buildFilterCommands } from './commands/filterCommands'
 import { extractVaultTypes } from '../utils/vaultTypes'
+import { resolveCreateNoteActionLabel } from '../components/note-list/noteListUtils'
 
 // Re-export types and helpers for backward compatibility
 export type { CommandAction, CommandGroup } from './commands/types'
@@ -50,10 +51,14 @@ interface CommandRegistryConfig {
   onMoveNoteToFolder?: () => void
   canMoveNoteToFolder?: boolean
   onOpenInNewWindow?: () => void
+  onRevealNoteInFinder?: (path: string) => void
+  onPreviewNoteWithQuickLook?: (path: string) => void
+  onRevealVaultInFinder?: () => void
   onToggleFavorite?: (path: string) => void
   onToggleOrganized?: (path: string) => void
   onInsertWeatherSnapshot?: () => void
   onTranscribeAudio?: () => void
+  onRecordAudio?: () => void
   onCustomizeNoteListColumns?: () => void
   canCustomizeNoteListColumns?: boolean
   noteListColumnsLabel?: string
@@ -61,6 +66,9 @@ interface CommandRegistryConfig {
   canRestoreDeletedNote?: boolean
   onQuickOpen: () => void
   onCreateNote: () => void
+  onCaptureThought?: () => void
+  onCaptureJournal?: () => void
+  onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
   onOpenSettings: () => void
@@ -110,7 +118,7 @@ interface CommandRegistryConfig {
 export function useCommandRegistry(config: CommandRegistryConfig): import('./commands/types').CommandAction[] {
   const {
     activeTabPath, entries, isGitVault = true, modifiedCount,
-    onQuickOpen, onCreateNote, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault,
     activeNoteModified,
@@ -125,7 +133,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onReloadVault, onRepairVault,
     locale, systemLocale, selectedUiLanguage, onSetUiLanguage,
     onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
-    onOpenInNewWindow, onToggleFavorite, onToggleOrganized, onInsertWeatherSnapshot, onTranscribeAudio,
+    onOpenInNewWindow, onRevealNoteInFinder, onPreviewNoteWithQuickLook, onRevealVaultInFinder, onToggleFavorite, onToggleOrganized, onInsertWeatherSnapshot, onTranscribeAudio, onRecordAudio,
     onCustomizeNoteListColumns, canCustomizeNoteListColumns,
     onRestoreDeletedNote, canRestoreDeletedNote,
     selection, noteListFilter, onSetNoteListFilter,
@@ -140,6 +148,21 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
   const isArchived = activeEntry?.archived ?? false
   const isFavorite = activeEntry?.favorite ?? false
   const isSectionGroup = selection?.kind === 'sectionGroup'
+  const selectedSectionType = isSectionGroup ? selection.type : null
+  const createNoteFromCurrentScope = useMemo(
+    () => selectedSectionType
+      ? () => onCreateNoteOfType(selectedSectionType)
+      : onCreateNote,
+    [onCreateNote, onCreateNoteOfType, selectedSectionType],
+  )
+  const createNoteLabel = useMemo(
+    () => selection ? resolveCreateNoteActionLabel(selection, locale) : 'New Note',
+    [locale, selection],
+  )
+  const createNoteKeywords = useMemo(
+    () => selectedSectionType ? ['new', 'create', 'add', selectedSectionType.toLowerCase()] : undefined,
+    [selectedSectionType],
+  )
   const noteListColumnsLabel = config.noteListColumnsLabel ?? (
     selection?.kind === 'filter' && selection.filter === 'all'
       ? 'Customize All Notes columns'
@@ -152,6 +175,9 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildNavigationCommands({
       isGitVault,
       onQuickOpen,
+      onCaptureThought,
+      onCaptureJournal,
+      onCaptureDream,
       onSelect,
       selection,
       onRenameFolder,
@@ -164,12 +190,12 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     }),
     ...buildNoteCommands({
       hasActiveNote, activeTabPath, isArchived,
-      onCreateNote, onCreateType, onSave,
+      onCreateNote: createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave,
       onDeleteNote, onArchiveNote, onUnarchiveNote,
       onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
       onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onOpenInNewWindow, onToggleFavorite, isFavorite,
-      onToggleOrganized, isOrganized: activeEntry?.organized ?? false, onInsertWeatherSnapshot,
-      onTranscribeAudio,
+      onRevealNoteInFinder, onPreviewNoteWithQuickLook, onToggleOrganized, isOrganized: activeEntry?.organized ?? false, onInsertWeatherSnapshot,
+      onTranscribeAudio, onRecordAudio,
       onRestoreDeletedNote, canRestoreDeletedNote,
     }),
     ...buildGitCommands({
@@ -190,7 +216,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildSettingsCommands({
       mcpStatus, vaultCount, isGettingStartedHidden,
       onOpenSettings, onOpenFeedback, onOpenVault, onCreateEmptyVault, onRemoveActiveVault, onRestoreGettingStarted,
-      onCheckForUpdates, onInstallMcp, onReloadVault, onRepairVault,
+      onCheckForUpdates, onInstallMcp, onReloadVault, onRepairVault, onRevealVaultInFinder,
       locale, systemLocale, selectedUiLanguage, onSetUiLanguage,
     }),
     ...buildAiAgentCommands({
@@ -207,7 +233,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
   ], [
     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
-    onQuickOpen, onCreateNote, onCreateNoteOfType, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCaptureThought, onCaptureJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
     onCheckForUpdates,
@@ -223,7 +249,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
     isSectionGroup, noteListFilter, onSetNoteListFilter,
     selection,
-    onOpenInNewWindow, onToggleFavorite, isFavorite, onInsertWeatherSnapshot, onTranscribeAudio,
+    onOpenInNewWindow, onRevealNoteInFinder, onPreviewNoteWithQuickLook, onRevealVaultInFinder, onToggleFavorite, isFavorite, onInsertWeatherSnapshot, onTranscribeAudio, onRecordAudio,
     onToggleOrganized, onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
     onRestoreDeletedNote, canRestoreDeletedNote, activeEntry,
   ])

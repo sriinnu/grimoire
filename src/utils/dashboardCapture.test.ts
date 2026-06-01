@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { resolveDashboardCapture } from './dashboardCapture'
+import { DAILY_THREAD_CRYSTALLIZE_PROMPT } from '../lib/timeLoomGuidance'
+import {
+  resolveDashboardCapture,
+} from './dashboardCapture'
+import {
+  buildDashboardAskContextPreview,
+  buildDashboardAskReferences,
+} from './dashboardAskContext'
 
-function entry(path: string, title = 'Existing'): VaultEntry {
+function entry(path: string, title = 'Existing', overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
     path,
     filename: path.split('/').pop() ?? 'existing.md',
@@ -35,12 +42,13 @@ function entry(path: string, title = 'Existing'): VaultEntry {
     properties: {},
     hasH1: true,
     fileKind: 'markdown',
+    ...overrides,
   }
 }
 
 describe('resolveDashboardCapture', () => {
-  it('routes slash dream captures to a local Dream note', () => {
-    const plan = resolveDashboardCapture({
+  it('routes slash dream captures to a local Dream note', async () => {
+    const plan = await resolveDashboardCapture({
       entries: [],
       input: '/dream flying over the city',
       now: new Date(2026, 4, 17),
@@ -51,13 +59,124 @@ describe('resolveDashboardCapture', () => {
     expect(plan.kind).toBe('note')
     if (plan.kind !== 'note') return
     expect(plan.typeName).toBe('Dream')
-    expect(plan.entry.title).toBe('Dream - flying over the city')
+    expect(plan.entry.title).toBe('Dream 2026-05-17 - flying over the city')
+    expect(plan.entry.properties.date).toBe('2026-05-17')
+    expect(plan.content).toContain('date: 2026-05-17')
     expect(plan.content).toContain('egress: blocked')
     expect(plan.content).toContain('## Dream')
+    expect(plan.content).toContain('## Emotional Weather')
+    expect(plan.content).toContain('## Thread')
   })
 
-  it('uses the selected type when there is no slash command', () => {
-    const plan = resolveDashboardCapture({
+  it('backfills journal captures onto the selected local calendar date', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/journal checking what surfaced',
+      now: new Date(2026, 4, 27),
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('note')
+    if (plan.kind !== 'note') return
+    expect(plan.typeName).toBe('Journal')
+    expect(plan.entry.title).toBe('Journal 2026-05-27 - checking what surfaced')
+    expect(plan.entry.properties).toMatchObject({
+      date: '2026-05-27',
+      egress: 'blocked',
+      locality: 'local',
+    })
+    expect(plan.content).toContain('date: 2026-05-27')
+    expect(plan.content).toContain('## Check-in')
+    expect(plan.content).toContain('## Open Loops')
+    expect(plan.content).not.toContain('## Signals')
+  })
+
+  it('uses the selected journal template and stamps it into local frontmatter', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/journal choosing what to release',
+      now: new Date(2026, 4, 28),
+      selectedKind: 'note',
+      templateId: 'evening',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('note')
+    if (plan.kind !== 'note') return
+    expect(plan.entry.properties.capture_template).toBe('evening')
+    expect(plan.content).toContain('capture_template: evening')
+    expect(plan.content).toContain('## Evening Review')
+    expect(plan.content).toContain('choosing what to release')
+    expect(plan.content).toContain('## Release')
+    expect(plan.content).not.toContain('## Check-in')
+  })
+
+  it('uses the selected dream template and inserts the capture body into its first section', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/dream I knew I was dreaming',
+      now: new Date(2026, 4, 29),
+      selectedKind: 'note',
+      templateId: 'lucid',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('note')
+    if (plan.kind !== 'note') return
+    expect(plan.entry.properties.capture_template).toBe('lucid')
+    expect(plan.content).toContain('capture_template: lucid')
+    expect(plan.content).toContain('## Lucid Moment')
+    expect(plan.content).toContain('I knew I was dreaming')
+    expect(plan.content).toContain('## Practice')
+    expect(plan.content).not.toContain('## Dream')
+  })
+
+  it('creates blank dated journal and dream templates from calendar captures', async () => {
+    const journal = await resolveDashboardCapture({
+      entries: [],
+      input: '/journal ',
+      now: new Date(2026, 4, 27),
+      selectedKind: 'note',
+      templateId: 'evening',
+      vaultPath: '/vault',
+    })
+    const dream = await resolveDashboardCapture({
+      entries: [],
+      input: '/dream ',
+      now: new Date(2026, 4, 28),
+      selectedKind: 'note',
+      templateId: 'symbol',
+      vaultPath: '/vault',
+    })
+
+    expect(journal.kind).toBe('note')
+    expect(dream.kind).toBe('note')
+    if (journal.kind !== 'note' || dream.kind !== 'note') return
+    expect(journal.entry.title).toBe('Journal 2026-05-27')
+    expect(journal.entry.properties.capture_template).toBe('evening')
+    expect(journal.content).toContain('## Evening Review')
+    expect(journal.content).toContain('capture_template: evening')
+    expect(dream.entry.title).toBe('Dream 2026-05-28')
+    expect(dream.entry.properties.capture_template).toBe('symbol')
+    expect(dream.content).toContain('## Symbol')
+    expect(dream.content).toContain('capture_template: symbol')
+  })
+
+  it('still requires body text for non-template captures', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [],
+      input: '/task ',
+      now: new Date(2026, 4, 29),
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan).toEqual({ kind: 'error', message: 'Write something to capture first' })
+  })
+
+  it('uses the selected type when there is no slash command', async () => {
+    const plan = await resolveDashboardCapture({
       entries: [],
       input: 'pay the renewal',
       selectedKind: 'task',
@@ -71,19 +190,189 @@ describe('resolveDashboardCapture', () => {
     expect(plan.content).toContain('- [ ] pay the renewal')
   })
 
-  it('routes ask captures to AI without creating a note', () => {
-    const plan = resolveDashboardCapture({
+  it('routes ask captures to AI without creating a note', async () => {
+    const plan = await resolveDashboardCapture({
       entries: [],
       input: '/ask summarize today',
       selectedKind: 'note',
       vaultPath: '/vault',
     })
 
-    expect(plan).toEqual({ kind: 'ask', prompt: 'summarize today' })
+    expect(plan).toMatchObject({
+      kind: 'ask',
+      prompt: 'summarize today',
+      references: [],
+      contextPackage: {
+        kind: 'dashboard-ask',
+        prompt: 'summarize today',
+        references: [],
+      },
+    })
   })
 
-  it('generates a unique slug when a captured title already exists', () => {
-    const plan = resolveDashboardCapture({
+  it('adds only non-private recent references to dashboard asks', () => {
+    const publicProject = entry('/vault/projects/public.md', 'Public Project', {
+      isA: 'Project',
+      modifiedAt: 20,
+    })
+    const protectedDream = entry('/vault/dreams/river.md', 'River Dream', {
+      isA: 'Dream',
+      modifiedAt: 30,
+    })
+    const localNote = entry('/vault/private/secret.md', 'Secret Plan', {
+      properties: { locality: 'local' },
+      modifiedAt: 40,
+    })
+
+    const references = buildDashboardAskReferences([protectedDream, publicProject, localNote])
+
+    expect(references).toEqual([{ title: 'Public Project', path: '/vault/projects/public.md', type: 'Project' }])
+    expect(JSON.stringify(references)).not.toContain('River Dream')
+    expect(JSON.stringify(references)).not.toContain('/vault/private')
+  })
+
+  it('summarizes safe ask context without leaking protected titles or paths', () => {
+    const preview = buildDashboardAskContextPreview([
+      entry('/vault/projects/public.md', 'Public Project', { isA: 'Project' }),
+      entry('/vault/dreams/river.md', 'River Dream', { isA: 'Dream' }),
+      entry('/vault/private/secret.md', 'Secret Plan', { properties: { locality: 'local' } }),
+      entry('/vault/memory/public.md', 'Public Memory', {
+        isA: 'Memory',
+        properties: { source_note: '[[Public Project]]' },
+      }),
+    ])
+
+    expect(preview.protectedCount).toBe(2)
+    expect(preview.protectedMemoryCount).toBe(1)
+    expect(preview.references).toEqual([{ title: 'Public Project', path: '/vault/projects/public.md', type: 'Project' }])
+    expect(preview.memoryReferences).toEqual([])
+    expect(preview.sourceLabels).toContain('Public Project')
+    expect(preview.sourceLabels).not.toContain('Public Memory')
+    expect(JSON.stringify(preview)).not.toContain('River Dream')
+    expect(JSON.stringify(preview)).not.toContain('/vault/private')
+  })
+
+  it('carries safe dashboard references into ask plans', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [
+        entry('/vault/projects/grimoire.md', 'Grimoire', { isA: 'Project' }),
+        entry('/vault/dreams/river.md', 'River Dream', { isA: 'Dream' }),
+        entry('/vault/private/secret.md', 'Secret Plan', { properties: { locality: 'local' } }),
+      ],
+      input: '/ask what needs attention?',
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('ask')
+    if (plan.kind !== 'ask') return
+    expect(plan.references).toEqual([{ title: 'Grimoire', path: '/vault/projects/grimoire.md', type: 'Project' }])
+    expect(plan.contextPackage.sourceLabels).toEqual(['Grimoire'])
+    expect(plan.contextPackage.withheld).toEqual({ protectedMemories: 0, protectedNotes: 0 })
+    expect(JSON.stringify(plan.contextPackage)).not.toContain('River Dream')
+    expect(JSON.stringify(plan.contextPackage)).not.toContain('/vault/private')
+  })
+
+  it('attaches Daily Thread Crystallize intent without leaking protected context', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [
+        entry('/vault/projects/grimoire.md', 'Grimoire', { isA: 'Project' }),
+        entry('/vault/dreams/river.md', 'River Dream', { isA: 'Dream' }),
+        entry('/vault/private/secret.md', 'Secret Plan', { properties: { locality: 'local' } }),
+      ],
+      input: DAILY_THREAD_CRYSTALLIZE_PROMPT,
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('ask')
+    if (plan.kind !== 'ask') return
+    expect(plan.intent).toMatchObject({
+      kind: 'crystallize-memory',
+      label: 'Daily Thread Crystallize',
+      origin: 'daily-thread',
+      reviewMode: 'review-before-write',
+      sourcePolicy: 'public-references-only',
+    })
+    expect(plan.contextPackage.intent).toEqual(plan.intent)
+    expect(plan.contextPackage.withheld).toEqual({ protectedMemories: 0, protectedNotes: 0 })
+    expect(JSON.stringify(plan.contextPackage)).not.toContain('River Dream')
+    expect(JSON.stringify(plan.contextPackage)).not.toContain('/vault/private')
+  })
+
+  it('keeps protected provider and device sentinels out of Daily Thread ask preview and plan', async () => {
+    const protectedEntry = entry('/vault/private/sentinel-journal.md', 'SENTINEL private title', {
+      isA: 'Journal',
+      modifiedAt: 50,
+      snippet: 'SENTINEL private snippet',
+      properties: {
+        locality: 'local',
+        mobile_source: 'SENTINEL iPhone source',
+        source_audio: '/vault/private/audio/SENTINEL-recording.webm',
+        transcription_provider: 'SENTINEL-provider',
+      },
+    })
+    const protectedMemory = entry('/vault/memory/sentinel-memory.md', 'SENTINEL memory title', {
+      isA: 'Memory',
+      properties: {
+        source_note: '[[Public Project]]',
+        contradicted_by: ['[[SENTINEL private title]]'],
+      },
+    })
+    const entries = [
+      entry('/vault/projects/public.md', 'Public Project', { isA: 'Project', modifiedAt: 60 }),
+      protectedEntry,
+      protectedMemory,
+    ]
+
+    const preview = buildDashboardAskContextPreview(entries, 5, DAILY_THREAD_CRYSTALLIZE_PROMPT)
+    const plan = await resolveDashboardCapture({
+      entries,
+      input: DAILY_THREAD_CRYSTALLIZE_PROMPT,
+      selectedKind: 'ask',
+      vaultPath: '/vault',
+    })
+    const payload = JSON.stringify({ plan, preview })
+
+    expect(preview.references).toEqual([{ title: 'Public Project', path: '/vault/projects/public.md', type: 'Project' }])
+    expect(preview.protectedCount).toBe(1)
+    expect(preview.protectedMemoryCount).toBe(1)
+    expect(plan.kind).toBe('ask')
+    expect(payload).toContain('Public Project')
+    expect(payload).not.toContain('SENTINEL')
+    expect(payload).not.toContain('source_audio')
+    expect(payload).not.toContain('transcription_provider')
+    expect(payload).not.toContain('mobile_source')
+    expect(payload).not.toContain('/vault/private')
+  })
+
+  it('redacts local wikilinks before dashboard asks reach provider handoff', async () => {
+    const plan = await resolveDashboardCapture({
+      entries: [
+        entry('/vault/projects/grimoire.md', 'Grimoire', { isA: 'Project' }),
+        entry('/vault/private/ritual.md', 'Private Ritual', { properties: { locality: 'local' } }),
+        entry('/vault/dreams/river.md', 'River Dream', { isA: 'Dream' }),
+      ],
+      input: '/ask compare [[Grimoire]] with [[Private Ritual]] and [[River Dream]]',
+      selectedKind: 'note',
+      vaultPath: '/vault',
+    })
+
+    expect(plan.kind).toBe('ask')
+    if (plan.kind !== 'ask') return
+    expect(plan.prompt).toBe(
+      'compare [[grimoire]] with [local-only note withheld] and [local-only note withheld]',
+    )
+    expect(plan.references).toEqual([
+      { title: 'Grimoire', path: '/vault/projects/grimoire.md', type: 'Project' },
+    ])
+    expect(plan.contextPackage.prompt).toBe(plan.prompt)
+    expect(JSON.stringify(plan)).not.toContain('Private Ritual')
+    expect(JSON.stringify(plan)).not.toContain('River Dream')
+  })
+
+  it('generates a unique slug when a captured title already exists', async () => {
+    const plan = await resolveDashboardCapture({
       entries: [entry('/vault/same-title.md', 'Same Title')],
       input: 'same title',
       selectedKind: 'note',

@@ -1,6 +1,7 @@
 import type { VaultEntry, SidebarSelection, SidebarFilter, ModifiedFile, NoteStatus, ViewFile } from '../../types'
 import type { RelationshipGroup } from '../../utils/noteListHelpers'
-import { translate, type AppLocale } from '../../lib/i18n'
+import type { AppLocale } from '../../lib/i18nCore'
+import { translateNoteList } from '../../lib/i18nNoteList'
 import { filenameStemToTitle } from '../../utils/noteTitle'
 
 export interface DeletedNoteEntry extends VaultEntry {
@@ -27,18 +28,86 @@ function isLocalizedFilter(filter: SidebarFilter): filter is LocalizedFilter {
 function resolveSelectionFilterTitle(selection: SidebarSelection, locale: AppLocale): string | null {
   if (selection.kind !== 'filter') return null
   if (!isLocalizedFilter(selection.filter)) return null
-  return translate(locale, FILTER_TITLE_KEYS[selection.filter])
+  return translateNoteList(locale, FILTER_TITLE_KEYS[selection.filter])
+}
+
+type PrimarySectionType = 'note' | 'journal' | 'dream'
+
+const PRIMARY_SECTION_TRANSLATIONS: Record<PrimarySectionType, {
+  title: 'noteList.title.notes' | 'noteList.title.journal' | 'noteList.title.dreams'
+  create: 'noteList.createNote' | 'noteList.createJournal' | 'noteList.createDream'
+  searchPlaceholder: 'noteList.searchPlaceholder' | 'noteList.searchJournalPlaceholder' | 'noteList.searchDreamPlaceholder'
+  searchAction: 'noteList.searchAction' | 'noteList.searchJournalAction' | 'noteList.searchDreamAction'
+}> = {
+  note: {
+    title: 'noteList.title.notes',
+    create: 'noteList.createNote',
+    searchPlaceholder: 'noteList.searchPlaceholder',
+    searchAction: 'noteList.searchAction',
+  },
+  journal: {
+    title: 'noteList.title.journal',
+    create: 'noteList.createJournal',
+    searchPlaceholder: 'noteList.searchJournalPlaceholder',
+    searchAction: 'noteList.searchJournalAction',
+  },
+  dream: {
+    title: 'noteList.title.dreams',
+    create: 'noteList.createDream',
+    searchPlaceholder: 'noteList.searchDreamPlaceholder',
+    searchAction: 'noteList.searchDreamAction',
+  },
+}
+
+function primarySectionType(type: string): PrimarySectionType | null {
+  const normalized = type.trim().toLowerCase()
+  if (normalized === 'note') return 'note'
+  if (normalized === 'journal') return 'journal'
+  if (normalized === 'dream') return 'dream'
+  return null
+}
+
+function resolveSectionTypeTitle(type: string, locale: AppLocale): string {
+  const primary = primarySectionType(type)
+  return primary
+    ? translateNoteList(locale, PRIMARY_SECTION_TRANSLATIONS[primary].title)
+    : type
 }
 
 export function resolveHeaderTitle(selection: SidebarSelection, typeDocument: VaultEntry | null, views?: ViewFile[], locale: AppLocale = 'en'): string {
   if (selection.kind === 'view') {
     const view = views?.find((v) => v.filename === selection.filename)
-    return view?.definition.name ?? translate(locale, 'noteList.title.view')
+    return view?.definition.name ?? translateNoteList(locale, 'noteList.title.view')
   }
   if (selection.kind === 'entity') return selection.entry.title
   if (typeDocument) return typeDocument.title
+  if (selection.kind === 'sectionGroup') return resolveSectionTypeTitle(selection.type, locale)
 
-  return resolveSelectionFilterTitle(selection, locale) ?? translate(locale, 'noteList.title.notes')
+  return resolveSelectionFilterTitle(selection, locale) ?? translateNoteList(locale, 'noteList.title.notes')
+}
+
+/** Resolve the create action label for the current note-list scope. */
+export function resolveCreateNoteActionLabel(selection: SidebarSelection, locale: AppLocale = 'en'): string {
+  if (selection.kind !== 'sectionGroup') return translateNoteList(locale, 'noteList.createNote')
+  const primary = primarySectionType(selection.type)
+  if (primary) return translateNoteList(locale, PRIMARY_SECTION_TRANSLATIONS[primary].create)
+  return translateNoteList(locale, 'noteList.createTyped', { type: selection.type })
+}
+
+/** Resolve the search button label for the current note-list scope. */
+export function resolveSearchActionLabel(selection: SidebarSelection, locale: AppLocale = 'en'): string {
+  if (selection.kind !== 'sectionGroup') return translateNoteList(locale, 'noteList.searchAction')
+  const primary = primarySectionType(selection.type)
+  if (primary) return translateNoteList(locale, PRIMARY_SECTION_TRANSLATIONS[primary].searchAction)
+  return translateNoteList(locale, 'noteList.searchTypedAction', { type: selection.type })
+}
+
+/** Resolve the search input placeholder for the current note-list scope. */
+export function resolveSearchPlaceholder(selection: SidebarSelection, locale: AppLocale = 'en'): string {
+  if (selection.kind !== 'sectionGroup') return translateNoteList(locale, 'noteList.searchPlaceholder')
+  const primary = primarySectionType(selection.type)
+  if (primary) return translateNoteList(locale, PRIMARY_SECTION_TRANSLATIONS[primary].searchPlaceholder)
+  return translateNoteList(locale, 'noteList.searchTypedPlaceholder', { type: selection.type })
 }
 
 export function filterByQuery<T extends { title: string }>(items: T[], query: string): T[] {

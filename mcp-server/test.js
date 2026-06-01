@@ -153,15 +153,16 @@ describe('getNote', () => {
     )
   })
 
-  it('should withhold local-only notes unless a call explicitly allows them', async () => {
+  it('should withhold local-only notes from agent reads even with legacy override-shaped options', async () => {
     await assert.rejects(
       () => getNote(tmpDir, 'Private/secret.md'),
       { message: 'Note withheld by Locality Firewall' },
     )
 
-    const note = await getNote(tmpDir, 'Private/secret.md', { allowLocalOnly: true })
-    assert.equal(note.frontmatter.title, 'Secret Note')
-    assert.ok(note.content.includes('secret ritual phrase'))
+    await assert.rejects(
+      () => getNote(tmpDir, 'Private/secret.md', { allowLocalOnly: true }),
+      { message: 'Note withheld by Locality Firewall' },
+    )
   })
 })
 
@@ -187,13 +188,12 @@ describe('searchNotes', () => {
     assert.ok(results.length <= 1)
   })
 
-  it('should omit local-only matches from search by default', async () => {
+  it('should omit local-only matches from search even when an override is requested', async () => {
     const results = await searchNotes(tmpDir, 'secret ritual')
     assert.equal(results.length, 0)
 
-    const allowedResults = await searchNotes(tmpDir, 'secret ritual', 10, { allowLocalOnly: true })
-    assert.equal(allowedResults.length, 1)
-    assert.equal(allowedResults[0].path, path.join('Private', 'secret.md'))
+    const legacyOverrideResults = await searchNotes(tmpDir, 'secret ritual', 10, { allowLocalOnly: true })
+    assert.equal(legacyOverrideResults.length, 0)
   })
 })
 
@@ -235,13 +235,13 @@ describe('vaultContext', () => {
     assert.equal(ctx.noteCount, 4)
   })
 
-  it('should omit local-only notes from recent vault context', async () => {
+  it('should omit local-only notes from recent vault context even when an override is requested', async () => {
     const ctx = await vaultContext(tmpDir)
     assert.ok(!ctx.recentNotes.some(note => note.title === 'Secret Note'))
     assert.ok(!ctx.folders.includes('Private/'))
 
-    const allowedCtx = await vaultContext(tmpDir, { allowLocalOnly: true })
-    assert.ok(allowedCtx.recentNotes.some(note => note.title === 'Secret Note'))
+    const legacyOverrideCtx = await vaultContext(tmpDir, { allowLocalOnly: true })
+    assert.ok(!legacyOverrideCtx.recentNotes.some(note => note.title === 'Secret Note'))
   })
 })
 
@@ -253,9 +253,9 @@ describe('project intelligence MCP helpers', () => {
     assert.ok(!docs.some(doc => doc.path === 'project/dream-plan.md'))
   })
 
-  it('can explicitly include protected project docs for one call', async () => {
+  it('does not include protected project docs when an override is requested', async () => {
     const docs = await listProjectDocs(tmpDir, 'project', { allowLocalOnly: true })
-    assert.ok(docs.some(doc => doc.path === 'project/dream-plan.md'))
+    assert.ok(!docs.some(doc => doc.path === 'project/dream-plan.md'))
   })
 
   it('reads missing boards as an empty durable artifact', async () => {
@@ -323,7 +323,7 @@ describe('project intelligence MCP helpers', () => {
     assert.ok(!graph.nodes.some(node => node.id === 'project/dream-plan.md'))
   })
 
-  it('blocks project task writes in protected lanes unless explicitly allowed', async () => {
+  it('blocks project task writes in protected lanes without an override', async () => {
     await assert.rejects(
       () => createProjectTask(tmpDir, { folder: 'Private', title: 'No agent writes here' }),
       { message: 'Project write withheld by Locality Firewall' },

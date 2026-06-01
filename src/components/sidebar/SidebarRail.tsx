@@ -1,11 +1,19 @@
-import { Archive, FileText, Inbox, LayoutDashboard, PanelLeftOpen } from 'lucide-react'
 import type { ComponentType } from 'react'
-import type { LucideProps } from 'lucide-react'
+import type { IconProps } from '@phosphor-icons/react'
 import grimoireIcon from '@/assets/app-icon.png'
 import { Button } from '@/components/ui/button'
 import type { SidebarSelection } from '../../types'
 import { cn } from '../../lib/utils'
 import { isSelectionActive } from '../SidebarParts'
+import {
+  ArchiveGlyphIcon,
+  DashboardGlyphIcon,
+  DreamGlyphIcon,
+  InboxGlyphIcon,
+  JournalGlyphIcon,
+  NotesGlyphIcon,
+  SidebarExpandGlyphIcon,
+} from '../icons/sidebarGlyphIcons'
 
 interface SidebarRailProps {
   selection: SidebarSelection
@@ -14,13 +22,17 @@ interface SidebarRailProps {
   showInbox: boolean
   inboxCount: number
   activeCount: number
+  noteCount: number
+  journalCount: number
+  dreamCount: number
   archivedCount: number
 }
 
 interface RailItem {
   label: string
-  icon: ComponentType<LucideProps>
+  icon: ComponentType<IconProps>
   selection: SidebarSelection
+  tone: 'aura' | 'amber' | 'blue' | 'violet'
   count?: number
 }
 
@@ -58,14 +70,22 @@ function RailButton({
       size="icon"
       className={cn(
         'relative h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground',
+        'sidebar-rail__tone',
         active && 'bg-primary/10 text-primary shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--primary)_22%,transparent)]',
       )}
       aria-label={item.label}
       title={item.label}
+      data-active={active ? 'true' : 'false'}
+      data-sidebar-rail-tone={item.tone}
       data-testid={`sidebar-rail-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
       onClick={() => onSelect(item.selection)}
     >
-      <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+      <span className="sidebar-rail__glyph" data-active={active ? 'true' : 'false'}>
+        <span className="sidebar-rail__signal" />
+        <span className="sidebar-rail__bead sidebar-rail__bead--near" />
+        <span className="sidebar-rail__bead sidebar-rail__bead--far" />
+        <Icon size={21} weight={active ? 'duotone' : 'regular'} />
+      </span>
       <RailCount count={item.count} active={active} />
     </Button>
   )
@@ -81,31 +101,59 @@ export function SidebarRail({
   showInbox,
   inboxCount,
   activeCount,
+  noteCount,
+  journalCount,
+  dreamCount,
   archivedCount,
 }: SidebarRailProps) {
   const items: RailItem[] = [
     {
       label: 'Dashboard',
-      icon: LayoutDashboard,
+      icon: DashboardGlyphIcon,
+      tone: 'aura',
       selection: { kind: 'dashboard' },
     },
     ...(showInbox
       ? [{
           label: 'Inbox',
-          icon: Inbox,
+          icon: InboxGlyphIcon,
+          tone: 'amber' as const,
           selection: { kind: 'filter', filter: 'inbox' } as SidebarSelection,
           count: inboxCount,
         }]
       : []),
     {
       label: 'All Notes',
-      icon: FileText,
+      icon: NotesGlyphIcon,
+      tone: 'blue',
       selection: { kind: 'filter', filter: 'all' },
       count: activeCount,
     },
     {
+      label: 'Notes',
+      icon: NotesGlyphIcon,
+      tone: 'blue',
+      selection: { kind: 'sectionGroup', type: 'Note' },
+      count: noteCount,
+    },
+    {
+      label: 'Journal',
+      icon: JournalGlyphIcon,
+      tone: 'aura',
+      selection: { kind: 'sectionGroup', type: 'Journal' },
+      count: journalCount,
+    },
+    {
+      label: 'Dreams',
+      icon: DreamGlyphIcon,
+      tone: 'violet',
+      selection: { kind: 'sectionGroup', type: 'Dream' },
+      count: dreamCount,
+    },
+    {
       label: 'Archive',
-      icon: Archive,
+      icon: ArchiveGlyphIcon,
+      tone: 'violet',
       selection: { kind: 'filter', filter: 'archived' },
       count: archivedCount,
     },
@@ -113,11 +161,11 @@ export function SidebarRail({
 
   return (
     <aside
-      className="app-sidebar-rail flex h-full flex-col items-center border-r border-[var(--sidebar-border)] bg-sidebar px-2 py-3 text-sidebar-foreground"
+      className="app-sidebar-rail flex h-full flex-col items-center border-r border-[var(--sidebar-border)] bg-sidebar px-2 pb-3 pt-[72px] text-sidebar-foreground"
       data-testid="sidebar-rail"
       aria-label="Collapsed sidebar"
     >
-      <div className="mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background shadow-xs">
+      <div className="app-sidebar-rail__mark mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background shadow-xs">
         <img
           src={grimoireIcon}
           alt="Grimoire icon"
@@ -139,12 +187,18 @@ export function SidebarRail({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+          className="h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground sidebar-rail__tone"
           aria-label="Expand sidebar"
           title="Expand sidebar"
+          data-sidebar-rail-tone="aura"
           onClick={onExpand}
         >
-          <PanelLeftOpen size={18} />
+          <span className="sidebar-rail__glyph" data-active="false">
+            <span className="sidebar-rail__signal" />
+            <span className="sidebar-rail__bead sidebar-rail__bead--near" />
+            <span className="sidebar-rail__bead sidebar-rail__bead--far" />
+            <SidebarExpandGlyphIcon size={21} weight="regular" />
+          </span>
         </Button>
       )}
     </aside>

@@ -68,9 +68,11 @@ export function CanvasAttachmentLauncher({
       {attachments.map((attachment) => (
         <Button
           key={`${attachment.source}-${attachment.preview}`}
+          aria-label={`Open ${attachment.title} canvas`}
           className="canvas-attachment__launcher-button"
           onClick={() => openAttachment(attachment)}
           size="sm"
+          title={`Open ${attachment.title} canvas`}
           type="button"
           variant="outline"
         >

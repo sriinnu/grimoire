@@ -1,8 +1,10 @@
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
-import { ActionTooltip, type ActionTooltipCopy } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { StatusBarHint, type StatusBarHintCopy } from './StatusBarHint'
 import { SEP_STYLE } from './styles'
+
+type StatusBarActionTone = 'accent' | 'agent' | 'danger' | 'success' | 'warning'
 
 function handleStatusBarActionKeyDown(
   event: ReactKeyboardEvent<HTMLButtonElement>,
@@ -22,21 +24,23 @@ export function StatusBarAction({
   ariaLabel,
   className,
   style,
+  tone,
   disabled = false,
   compact = false,
 }: {
-  copy: ActionTooltipCopy
+  copy: StatusBarHintCopy
   children: ReactNode
   onClick?: () => void
   testId?: string
   ariaLabel?: string
   className?: string
   style?: CSSProperties
+  tone?: StatusBarActionTone
   disabled?: boolean
   compact?: boolean
 }) {
   return (
-    <ActionTooltip copy={copy} side="top">
+    <StatusBarHint copy={copy}>
       <Button
         type="button"
         variant="ghost"
@@ -52,11 +56,12 @@ export function StatusBarAction({
         onKeyDown={(event) => handleStatusBarActionKeyDown(event, disabled ? undefined : onClick)}
         aria-label={ariaLabel ?? copy.label}
         aria-disabled={disabled || undefined}
+        data-status-action-tone={tone}
         data-testid={testId}
       >
         {children}
       </Button>
-    </ActionTooltip>
+    </StatusBarHint>
   )
 }
 

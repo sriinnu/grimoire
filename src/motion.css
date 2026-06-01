@@ -5,94 +5,177 @@
   --motion-duration-base: 180ms;
   --motion-duration-slow: 420ms;
   --motion-duration-cinematic: 2400ms;
+  --motion-duration-panel: 260ms;
+  --motion-duration-control: 160ms;
+  --motion-duration-hover: var(--motion-duration-base);
+  --motion-duration-page-settle: 360ms;
+  --motion-duration-ink-settle: 320ms;
+  --motion-duration-state-pulse: 720ms;
   --motion-delay-memory-thread: 620ms;
+  --motion-stagger-delay: 0ms;
   --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --motion-ease-expressive: cubic-bezier(0.34, 1.56, 0.64, 1);
   --motion-ease-cinematic: cubic-bezier(0.37, 0, 0.63, 1);
+  --motion-distance-panel-y: 10px;
+  --motion-distance-control-y: 4px;
+  --motion-distance-page-y: 6px;
+  --motion-distance-ink-y: 3px;
+  --motion-hover-lift-distance: -2px;
+  --motion-hover-shadow: 0 10px 24px color-mix(in srgb, var(--foreground) 10%, transparent);
+  --motion-hover-border: color-mix(in srgb, var(--primary) 24%, var(--border));
+  --motion-state-pulse-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 0%, transparent);
+  --motion-cancel-action-z-index: 2;
 }
 
-.grimoire-memory-signal {
-  position: relative;
-  display: grid;
-  min-height: 48px;
-  place-items: center;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border));
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--primary) 18%, transparent) 0 18%, transparent 42%),
-    linear-gradient(135deg, color-mix(in srgb, var(--card) 88%, var(--primary)) 0%, var(--background) 100%);
+.grimoire-panel-reveal {
+  animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-standard) both;
 }
 
-.grimoire-memory-signal::before,
-.grimoire-memory-signal::after {
-  position: absolute;
-  inset: 9px 16px;
-  content: "";
-  border-top: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
-  opacity: 0.46;
-  transform: scaleX(0.64);
+.grimoire-command-stage {
+  animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-expressive) both;
+}
+
+.grimoire-settings-stage,
+.grimoire-inspector-stage {
+  animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+.grimoire-page-arrive {
+  animation: grimoire-page-settle var(--motion-duration-page-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-ink-settle {
+  animation: grimoire-ink-settle var(--motion-duration-ink-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-constellation-focus {
+  animation: grimoire-page-settle var(--motion-duration-page-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-control-entrance {
+  animation: grimoire-control-entrance var(--motion-duration-control) var(--motion-ease-standard) both;
+  animation-delay: var(--motion-stagger-delay);
+}
+
+.grimoire-soft-hover-lift {
+  transition:
+    transform var(--motion-duration-hover) var(--motion-ease-standard),
+    border-color var(--motion-duration-hover) var(--motion-ease-standard),
+    box-shadow var(--motion-duration-hover) var(--motion-ease-standard),
+    background var(--motion-duration-hover) var(--motion-ease-standard);
+}
+
+.grimoire-page-settle {
+  animation: grimoire-page-settle var(--motion-duration-page-settle) var(--motion-ease-cinematic) both;
+}
+
+.grimoire-state-pulse {
+  box-shadow: var(--motion-state-pulse-shadow);
+  animation: grimoire-state-pulse var(--motion-duration-state-pulse) var(--motion-ease-standard) 1 both;
   transform-origin: center;
-  animation: grimoire-memory-thread var(--motion-duration-cinematic) var(--motion-ease-cinematic) 1 both;
 }
 
-.grimoire-memory-signal::after {
-  inset: auto 18px 10px;
-  animation-delay: var(--motion-delay-memory-thread);
+.grimoire-context-menu-surface {
+  animation: grimoire-context-menu-arrive var(--motion-duration-fast) var(--motion-ease-standard) both;
+  contain: layout paint style;
+  transform-origin: var(--radix-context-menu-content-transform-origin, top left);
+  will-change: opacity, transform;
 }
 
-.grimoire-memory-signal__orb {
+[data-motion-cancellable="true"] {
   position: relative;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 35% 30%, color-mix(in srgb, white 80%, var(--primary)) 0 18%, transparent 22%),
-    radial-gradient(circle, var(--primary) 0 46%, color-mix(in srgb, var(--primary) 38%, transparent) 72%);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--primary) 10%, transparent),
-    0 0 24px color-mix(in srgb, var(--primary) 42%, transparent);
-  animation: grimoire-memory-breathe var(--motion-duration-cinematic) var(--motion-ease-cinematic) 1 both;
+  isolation: isolate;
+  pointer-events: auto;
 }
 
-.grimoire-memory-signal__node {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary) 78%, var(--background));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--primary) 38%, transparent);
+[data-motion-cancellable="true"] [data-motion-cancel-action="true"] {
+  position: relative;
+  z-index: var(--motion-cancel-action-z-index);
+  pointer-events: auto;
 }
 
-.grimoire-memory-signal__node:nth-child(2) {
-  transform: translate(-42px, -5px);
+@media (hover: hover) and (pointer: fine) {
+  .grimoire-soft-hover-lift:is(:hover, :focus-visible) {
+    border-color: var(--motion-hover-border);
+    box-shadow: var(--motion-hover-shadow);
+    transform: translateY(var(--motion-hover-lift-distance));
+  }
 }
 
-.grimoire-memory-signal__node:nth-child(3) {
-  transform: translate(42px, 6px);
-}
-
-@keyframes grimoire-memory-breathe {
-  0%, 100% {
-    transform: scale(0.94);
-    opacity: 0.78;
+@keyframes grimoire-panel-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-panel-y)) scale(0.992);
   }
 
-  45% {
-    transform: scale(1.08);
+  to {
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes grimoire-memory-thread {
-  0%, 100% {
-    transform: scaleX(0.58);
-    opacity: 0.24;
+@keyframes grimoire-control-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y)) scale(0.98);
   }
 
-  48% {
-    transform: scaleX(1);
-    opacity: 0.58;
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-page-settle {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-page-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grimoire-ink-settle {
+  from {
+    opacity: 0.88;
+    transform: translateY(var(--motion-distance-ink-y));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes grimoire-state-pulse {
+  0% {
+    opacity: 0.92;
+    transform: scale(0.992);
+  }
+
+  42% {
+    opacity: 1;
+    transform: scale(1.006);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes grimoire-context-menu-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -102,11 +185,40 @@
     --motion-duration-base: 0ms;
     --motion-duration-slow: 0ms;
     --motion-duration-cinematic: 0ms;
+    --motion-duration-panel: 0ms;
+    --motion-duration-control: 0ms;
+    --motion-duration-hover: 0ms;
+    --motion-duration-page-settle: 0ms;
+    --motion-duration-ink-settle: 0ms;
+    --motion-duration-state-pulse: 0ms;
+    --motion-distance-panel-y: 0px;
+    --motion-distance-control-y: 0px;
+    --motion-distance-page-y: 0px;
+    --motion-distance-ink-y: 0px;
+    --motion-hover-lift-distance: 0px;
   }
 
-  .grimoire-memory-signal::before,
-  .grimoire-memory-signal::after,
-  .grimoire-memory-signal__orb {
+  .grimoire-panel-reveal,
+  .grimoire-command-stage,
+  .grimoire-settings-stage,
+  .grimoire-inspector-stage,
+  .grimoire-page-arrive,
+  .grimoire-ink-settle,
+  .grimoire-constellation-focus,
+  .grimoire-control-entrance,
+  .grimoire-page-settle,
+  .grimoire-state-pulse,
+  .grimoire-context-menu-surface {
     animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .grimoire-soft-hover-lift {
+    transition: none;
+  }
+
+  .grimoire-soft-hover-lift:is(:hover, :focus-visible) {
+    transform: none;
   }
 }

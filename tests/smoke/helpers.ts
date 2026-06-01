@@ -4,8 +4,26 @@ const COMMAND_INPUT = 'input[placeholder="Type a command..."]'
 
 export async function openCommandPalette(page: Page): Promise<void> {
   await page.locator('body').click()
-  await page.keyboard.press('Control+k')
-  await expect(page.locator(COMMAND_INPUT)).toBeVisible()
+  await page.keyboard.press('Meta+k')
+  const input = page.locator(COMMAND_INPUT)
+  try {
+    await expect(input).toBeVisible({ timeout: 1_500 })
+    return
+  } catch {
+    await page.keyboard.press('Control+k')
+    try {
+      await expect(input).toBeVisible({ timeout: 1_500 })
+      return
+    } catch {
+      await page.evaluate(() => {
+        const targetWindow = window as Window & {
+          __grimoireTest?: { dispatchAppCommand(id: string): void }
+        }
+        targetWindow.__grimoireTest?.dispatchAppCommand('view-command-palette')
+      })
+      await expect(input).toBeVisible()
+    }
+  }
 }
 
 export async function closeCommandPalette(page: Page): Promise<void> {
@@ -34,7 +52,7 @@ export async function executeCommand(
 ): Promise<void> {
   await page.locator(COMMAND_INPUT).fill(name)
   const match = page.locator('[data-selected="true"]').first()
-  await match.waitFor({ timeout: 2_000 })
+  await expect(match).toContainText(name, { ignoreCase: true, timeout: 2_000 })
   await page.keyboard.press('Enter')
 }
 

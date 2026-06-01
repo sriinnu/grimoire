@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildVaultCreationPlan,
   buildVaultTargetPath,
   getVaultStorageChoice,
   getVaultTemplateKind,
@@ -26,5 +27,25 @@ describe('vaultCreation', () => {
     expect(getVaultTemplateKind('dreams').defaultName).toBe('Dreams')
     expect(getVaultTemplateKind('personal-os').detail).toContain('memory')
     expect(getVaultTemplateKind('missing' as never).id).toBe('blank')
+  })
+
+  it('describes create-vault storage and Git without hiding setup facts', () => {
+    expect(buildVaultCreationPlan({
+      choiceId: 'google-drive',
+      initializeGit: false,
+      targetPath: '~/Library/CloudStorage/GoogleDrive/My Drive/Grimoire/Dreams',
+      templateKind: 'dreams',
+    })).toMatchObject({
+      storageDetail: 'Google Drive is still a local folder. Grimoire stores no cloud credentials.',
+      syncDetail: 'Git stays off. The vault opens and saves as plain Markdown without a repo.',
+      templateLabel: 'Dreams',
+    })
+
+    expect(buildVaultCreationPlan({
+      choiceId: 'local',
+      initializeGit: true,
+      targetPath: '~/Grimoire/Vaults/Work',
+      templateKind: 'work-log',
+    }).syncDetail).toContain('Git history starts')
   })
 })

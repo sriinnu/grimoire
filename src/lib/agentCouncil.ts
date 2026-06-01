@@ -1,0 +1,376 @@
+import {
+  AI_AGENT_DEFINITIONS,
+  type AiAgentId,
+  type AiAgentsStatus,
+  type AiAgentStatus,
+} from './aiAgents'
+import type { AskContextPackage } from './askContextPackage'
+import { getPrivateAgentLane, listPrivateAgentLanes, type PrivateAgentLane } from './privateAgentLanes'
+import { buildAgentCouncilClaims } from './agentCouncilContributions'
+import { buildContextSources, buildGraphSources, memoryConflictLabels } from './agentCouncilContext'
+import {
+  buildCouncilContextEvidence,
+  buildLocalSearchEvidence,
+  buildPortabilityEvidence,
+  buildVaultGraphEvidence,
+  evidenceFromSources,
+  toolEvidence,
+} from './agentCouncilEvidence'
+import { buildRedTeamCouncilContribution, buildRedTeamCouncilSources } from './agentCouncilRedTeam'
+import type { AgentCouncilEvidence, AgentCouncilHealth, AgentCouncilMember, AgentCouncilSource } from './agentCouncilTypes'
+import {
+  evaluateChitraguptaContractStatus,
+  summarizeChitraguptaRuntimeReadiness,
+  type ChitraguptaRuntimeDiagnostic,
+  type ChitraguptaStatusPayload,
+} from './chitraguptaIntegration'
+import type { RedTeamPlanReview } from './redTeamPlan'
+import type { AgentGraphContext } from '../utils/agentGraphContext'
+export type { AgentCouncilEvidence, AgentCouncilHealth, AgentCouncilMember, AgentCouncilSource, AgentCouncilSourceKind } from './agentCouncilTypes'
+
+interface AgentCouncilParams {
+  statuses: AiAgentsStatus
+  activeAgent: AiAgentId
+  activeContextProtected: boolean
+  activeSourceLabel?: string | null
+  activeSourcePath?: string | null
+  askContextPackage?: AskContextPackage | null
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
+  graphContext?: AgentGraphContext | null
+  linkedContextCount?: number
+  redTeamReview?: RedTeamPlanReview | null
+}
+
+export interface AgentCouncilBrief {
+  synthesis: string
+  disagreements: string[]
+  sourceLabels: string[]
+}
+
+/** Builds the source-safe Agent Council cards shown in the AI panel. */
+export function buildAgentCouncilMembers({
+  statuses,
+  activeAgent,
+  activeContextProtected,
+  activeSourceLabel,
+  activeSourcePath,
+  askContextPackage,
+  chitraguptaStatus,
+  graphContext,
+  linkedContextCount = 0,
+  redTeamReview,
+}: AgentCouncilParams): AgentCouncilMember[] {
+  const permission = activeContextProtected
+    ? 'Active local-only note withheld'
+    : 'Vault-context notes only'
+  const contextSources = buildContextSources(
+    activeContextProtected,
+    activeSourceLabel,
+    activeSourcePath,
+    askContextPackage,
+    linkedContextCount,
+  )
+  const graphSources = buildGraphSources(graphContext, activeContextProtected)
+  const contextEvidence = buildCouncilContextEvidence({
+    activeContextProtected,
+    activeSourceLabel,
+    activeSourcePath,
+    askContextPackage,
+    linkedContextCount,
+  })
+  const cliMembers = AI_AGENT_DEFINITIONS
+    .filter((definition) => definition.id !== 'chitragupta')
+    .map((definition) => ({
+      id: definition.id,
+      label: definition.label,
+      role: roleForAgent(definition.id),
+      health: healthForAgentStatus(statuses[definition.id].status),
+      permission,
+      stance: stanceForAgent(statuses[definition.id].status, definition.id === activeAgent),
+      contribution: contributionForAgent(definition.id, activeContextProtected, linkedContextCount, askContextPackage),
+      evidence: contextEvidence,
+      sources: contextSources,
+      active: definition.id === activeAgent,
+    }))
+  return attachClaims([
+    ...cliMembers,
+    localMember(
+      'local_search',
+      'Local Search',
+      'Finds matching Markdown and source-backed context.',
+      permission,
+      'Can ground answers in vault Markdown search results.',
+      [...contextSources, { kind: 'tool', label: 'Markdown index' }],
+      buildLocalSearchEvidence({
+        activeContextProtected,
+        activeSourceLabel,
+        activeSourcePath,
+        askContextPackage,
+        linkedContextCount,
+      }),
+    ),
+    localMember(
+      'vault_graph',
+      'Vault Graph',
+      'Surfaces links, backlinks, and nearby notes.',
+      permission,
+      graphContribution(graphContext, activeContextProtected),
+      [...contextSources, ...graphSources, { kind: 'tool', label: 'Wikilink graph' }],
+      buildVaultGraphEvidence({ activeContextProtected, askContextPackage, graphContext }),
+    ),
+    localMember(
+      'red_team',
+      'Red Team',
+      'Critiques product, code, UX, privacy, evidence, and execution risk.',
+      permission,
+      buildRedTeamCouncilContribution(redTeamReview, activeContextProtected),
+      buildRedTeamCouncilSources(redTeamReview, activeContextProtected, contextSources),
+      evidenceFromSources(
+        buildRedTeamCouncilSources(redTeamReview, activeContextProtected, contextSources),
+        { detail: 'Product, code, UX, privacy, evidence, and execution critique.', label: 'Red-Team My Plan', sourceKind: 'red-team' },
+      ),
+    ),
+    localMember(
+      'portability_context',
+      'Import/Export',
+      'Explains importer, export, and sync constraints.',
+      permission,
+      'Can audit Import Autopsy manifests, export exits, storage proof level, and local-only holds before handoff.',
+      [
+        { kind: 'tool', label: 'Import Autopsy' },
+        { kind: 'tool', label: 'Export Manifest' },
+        { kind: 'tool', label: 'Storage Proof Ledger' },
+        { kind: 'tool', label: 'Locality Firewall' },
+      ],
+      buildPortabilityEvidence(),
+    ),
+    chitraguptaPrivateMember(
+      getPrivateAgentLane('chitragupta'),
+      statuses.chitragupta.status,
+      activeAgent === 'chitragupta',
+      activeContextProtected,
+      contextSources,
+      chitraguptaStatus,
+    ),
+    ...privateLaneMembers(activeContextProtected),
+  ])
+}
+
+type AgentCouncilMemberDraft = Omit<AgentCouncilMember, 'claims'>
+
+function attachClaims(members: AgentCouncilMemberDraft[]): AgentCouncilMember[] {
+  return members.map((member) => ({
+    ...member,
+    claims: buildAgentCouncilClaims(member),
+  }))
+}
+
+/** Builds the small synthesis row below the Council cards. */
+export function buildAgentCouncilBrief(
+  members: AgentCouncilMember[],
+  activeContextProtected: boolean,
+  askContextPackage?: AskContextPackage | null,
+): AgentCouncilBrief {
+  const missing = members.filter((member) => member.health === 'missing').map((member) => member.label)
+  const blocked = members.filter((member) => member.health === 'blocked').map((member) => member.label)
+  const checking = members.filter((member) => member.health === 'checking').map((member) => member.label)
+  const privateLocal = members.some((member) => member.health === 'private-local')
+  const memoryConflicts = !activeContextProtected && askContextPackage ? memoryConflictLabels(askContextPackage) : []
+  const sourceLabels = uniqueSourceLabels(members)
+  const disagreements = [
+    activeContextProtected ? 'Privacy gate keeps protected note content out of the pass.' : null,
+    missing.length > 0 ? `Unavailable lanes: ${missing.join(', ')}.` : null,
+    blocked.length > 0 ? `Blocked lanes: ${blocked.join(', ')}.` : null,
+    checking.length > 0 ? `Pending lanes: ${checking.join(', ')}.` : null,
+    memoryConflicts.length > 0 ? `Memory conflicts: ${memoryConflicts.join(', ')}.` : null,
+    privateLocal ? 'Private lanes require explicit output approval.' : null,
+  ].filter((item): item is string => Boolean(item))
+
+  return {
+    synthesis: activeContextProtected
+      ? 'Council can compare capability and policy while the protected note stays local.'
+      : askContextPackage
+        ? `Council can synthesize the ${askContextPackageLabel(askContextPackage)}, related memory, graph, and local tool constraints.`
+      : 'Council can synthesize the active context, graph, search, and portability constraints.',
+    disagreements,
+    sourceLabels,
+  }
+}
+
+function askContextPackageLabel(contextPackage: AskContextPackage): string {
+  return contextPackage.kind === 'graph-council' ? 'graph Council package' : 'dashboard ask package'
+}
+
+function roleForAgent(agent: AiAgentId): string {
+  if (agent === 'codex') return 'Code and execution critique lane.'
+  return 'Reasoning, writing, and implementation lane.'
+}
+
+function healthForAgentStatus(status: AiAgentStatus): AgentCouncilHealth {
+  if (status === 'installed') return 'ready'
+  if (status === 'checking') return 'checking'
+  return 'missing'
+}
+
+function stanceForAgent(status: AiAgentStatus, active: boolean): string {
+  if (status === 'missing') return 'Needs local setup before it can contribute.'
+  if (status === 'checking') return 'Checking local availability.'
+  return active ? 'Current speaker.' : 'Available for a council pass.'
+}
+
+function contributionForAgent(
+  agent: AiAgentId,
+  protectedContext: boolean,
+  linkedCount: number,
+  askContextPackage?: AskContextPackage | null,
+): string {
+  if (protectedContext) return 'Can respond without protected note body, title, or path.'
+  if (askContextPackage) {
+    const askSources = countLabel(askContextPackage.references.length, 'ask source')
+    const memoryRecords = countLabel(askContextPackage.memoryReferences.length, 'memory record')
+    const conflictCount = memoryConflictLabels(askContextPackage).length
+    if (conflictCount > 0) {
+      return `Can synthesize ${askSources}, ${memoryRecords}, and ${countLabel(conflictCount, 'memory conflict')}.`
+    }
+    return `Can synthesize ${askSources} and ${memoryRecords}.`
+  }
+  if (agent === 'codex') return 'Can critique plans and execution risks from allowed context.'
+  return linkedCount > 0
+    ? 'Can synthesize the active note with linked context.'
+    : 'Can work from the active vault-context note.'
+}
+
+function chitraguptaPrivateMember(
+  lane: PrivateAgentLane,
+  status: AiAgentStatus,
+  active: boolean,
+  activeContextProtected: boolean,
+  contextSources: AgentCouncilSource[],
+  chitraguptaStatus?: ChitraguptaStatusPayload | null,
+): AgentCouncilMemberDraft {
+  const diagnostic = chitraguptaCouncilDiagnostic(status, activeContextProtected, chitraguptaStatus)
+  const health = chitraguptaCouncilHealth(diagnostic)
+  return {
+    id: lane.id,
+    label: lane.label,
+    role: lane.role,
+    health,
+    permission: activeContextProtected
+      ? 'Private memory lane; protected note withheld'
+      : 'Private memory lane; contract-gated outputs',
+    stance: chitraguptaStance(diagnostic),
+    contribution: chitraguptaContribution(diagnostic),
+    evidence: activeContextProtected
+      ? toolEvidence('Locality Firewall', 'Protected active note stays out of the private memory lane.')
+      : toolEvidence(diagnostic.contractLabel, diagnostic.warnings[0] ?? 'Local memory action is contract-gated and approval-gated.'),
+    sources: [
+      ...contextSources,
+      { kind: 'tool', label: 'Chitragupta MCP contract' },
+      { kind: 'tool', label: 'Locality Firewall' },
+    ],
+    active,
+  }
+}
+
+function chitraguptaCouncilDiagnostic(
+  status: AiAgentStatus,
+  protectedNote: boolean,
+  chitraguptaStatus: ChitraguptaStatusPayload | null | undefined,
+): ChitraguptaRuntimeDiagnostic {
+  return summarizeChitraguptaRuntimeReadiness({
+    availability: { status, version: null },
+    contractStatus: evaluateChitraguptaContractStatus(chitraguptaStatus),
+    protectedNote,
+  })
+}
+
+function chitraguptaCouncilHealth(diagnostic: ChitraguptaRuntimeDiagnostic): AgentCouncilHealth {
+  if (diagnostic.state === 'checking') return 'checking'
+  if (diagnostic.state === 'cli_missing') return 'missing'
+  if (diagnostic.state === 'ready' || diagnostic.state === 'protected') return 'private-local'
+  return 'blocked'
+}
+
+function chitraguptaStance(diagnostic: ChitraguptaRuntimeDiagnostic): string {
+  if (diagnostic.state === 'cli_missing') return 'Private memory contract unavailable until local setup is repaired.'
+  if (diagnostic.state === 'checking') return 'Checking private local memory contract; no handoff yet.'
+  if (diagnostic.state === 'mcp_transport_closed') return 'MCP transport closed; live recall, wiki, graph, and diagnostics are blocked.'
+  if (diagnostic.state === 'mcp_unverified') return 'MCP contract is unverified; no memory handoff yet.'
+  if (diagnostic.state === 'mcp_blocked') return 'MCP contract blocked; repair capabilities before live memory handoff.'
+  return 'Private memory contract is local; outputs require explicit approval.'
+}
+
+function chitraguptaContribution(diagnostic: ChitraguptaRuntimeDiagnostic): string {
+  if (diagnostic.state === 'protected') return 'Can report capability health while the protected note stays local.'
+  if (diagnostic.state === 'checking') return 'Checking the Chitragupta MCP contract before live memory handoff.'
+  if (diagnostic.state === 'ready') return 'Live recall, wiki, graph, and diagnostics are available through approval-gated MCP.'
+  if (diagnostic.state === 'mcp_transport_closed') return 'Live recall, wiki, graph, and diagnostics are blocked because MCP transport closed.'
+  return 'CLI chat can run separately; memory recall stays local-ledger until MCP diagnostics pass.'
+}
+
+function graphContribution(
+  graphContext: AgentGraphContext | null | undefined,
+  protectedContext: boolean,
+): string {
+  if (protectedContext || graphContext?.state === 'protected-active') {
+    return 'Graph neighborhood withheld by the Locality Firewall.'
+  }
+  if (!graphContext || graphContext.state === 'empty' || graphContext.nodes.length <= 1) {
+    return 'No source-safe graph neighbors found yet.'
+  }
+  const neighborCount = graphContext.nodes.filter((node) => !node.active).length
+  return `Can traverse ${neighborCount} source-safe graph neighbors and ${graphContext.edges.length} edges.`
+}
+
+function localMember(
+  id: string,
+  label: string,
+  role: string,
+  permission: string,
+  contribution: string,
+  sources: AgentCouncilSource[],
+  evidence: AgentCouncilEvidence[],
+): AgentCouncilMemberDraft {
+  return {
+    id,
+    label,
+    role,
+    health: 'ready',
+    permission,
+    stance: 'Ready to contribute source-backed context.',
+    contribution,
+    evidence,
+    sources,
+    active: false,
+  }
+}
+
+function privateLaneMembers(activeContextProtected: boolean): AgentCouncilMemberDraft[] {
+  const permission = activeContextProtected
+    ? 'Private lane; protected note still withheld'
+    : 'Private lane; explicit output approval'
+  return listPrivateAgentLanes()
+    .filter((lane) => lane.id !== 'chitragupta')
+    .map((lane) => ({
+      id: lane.id,
+      label: lane.label,
+      role: lane.role,
+      health: 'private-local',
+      permission,
+      stance: 'Visible as capability only; no private internals exposed.',
+      contribution: 'Can contribute only after explicit user approval of its output.',
+      evidence: toolEvidence('Private local capability', 'Capability is visible; output requires explicit user approval.'),
+      sources: [{ kind: 'tool', label: 'Private local capability' }],
+      active: false,
+    }))
+}
+
+function countLabel(count: number, singular: string): string {
+  return `${count} ${singular}${count === 1 ? '' : 's'}`
+}
+
+function uniqueSourceLabels(members: AgentCouncilMember[]): string[] {
+  return [...new Set(members.flatMap((member) => member.sources)
+    .filter((source) => source.kind !== 'withheld')
+    .map((source) => source.label))]
+}

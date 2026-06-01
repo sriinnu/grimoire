@@ -1,0 +1,53 @@
+{
+  "schema": "grimoire-mobile-capture-v1",
+  "case": "voice-camera-pencil-local-assets",
+  "input": {
+    "attachments": [
+      {
+        "checksum": "sha256:voice-a",
+        "kind": "voice",
+        "localPath": "/private/var/mobile/Containers/Data/Application/Grimoire/Voice Memo.m4a",
+        "mimeType": "audio/mp4"
+      },
+      {
+        "checksum": "sha256:image-a",
+        "kind": "image",
+        "localPath": "/private/var/mobile/Containers/Data/Application/Grimoire/Dream Photo.heic",
+        "mimeType": "image/heic"
+      },
+      {
+        "checksum": "sha256:sketch-a",
+        "kind": "sketch",
+        "localPath": "On My iPad/Grimoire/sketches/thread.draw",
+        "mimeType": "image/png",
+        "name": "Thread sketch.draw"
+      }
+    ],
+    "body": "Capture from the phone, waiting for review.",
+    "capturedAt": "2026-05-25T10:30:00.000Z",
+    "deviceClass": "iphone",
+    "draftId": "journal-a",
+    "kind": "journal",
+    "source": "voice"
+  },
+  "expected": {
+    "attachmentCount": 3,
+    "forbiddenContent": [
+      "/private/var/mobile",
+      "On My iPad/Grimoire",
+      "Containers/Data/Application"
+    ],
+    "mobileCaptureId": "journal-a",
+    "relativePath": "journals/mobile/2026-05-25-journal-journal-a.md",
+    "requiredContent": [
+      "mobile_capture_schema: grimoire-mobile-capture-v1",
+      "mobile_capture_id: \"journal-a\"",
+      "date: 2026-05-25",
+      "attachment_count: 3",
+      "## Mobile Attachments",
+      "- [ ] Voice: Voice Memo.m4a (audio/mp4) - local asset pending review",
+      "- [ ] Image: Dream Photo.heic (image/heic) - local asset pending review",
+      "- [ ] Sketch: Thread sketch.draw (image/png) - local asset pending review"
+    ]
+  }
+}

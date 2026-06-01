@@ -26,7 +26,7 @@ export function SettingsSection({
   showDivider?: boolean
 }) {
   return (
-    <section id={id} className="flex scroll-mt-6 flex-col gap-4 py-5">
+    <section id={id} className="settings-section flex scroll-mt-6 flex-col gap-4 py-5">
       {showDivider ? <Divider /> : null}
       {children}
     </section>
@@ -43,7 +43,7 @@ export function SectionHeading({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <div className="text-[11px] font-bold uppercase text-muted-foreground" style={{ letterSpacing: '0.08em' }}>
+      <div className="text-[11px] font-bold uppercase text-muted-foreground">
         {title}
       </div>
       <div className="max-w-[560px] text-xs leading-relaxed text-muted-foreground">
@@ -55,7 +55,7 @@ export function SectionHeading({
 
 /** Hairline divider used between settings groups. */
 export function Divider() {
-  return <div className="h-px bg-[color-mix(in_srgb,var(--border)_82%,transparent)]" />
+  return <div className="settings-section-divider h-px" />
 }
 
 /** Labelled shadcn Select wrapper with test-friendly metadata. */
@@ -66,20 +66,23 @@ export function LabeledSelect({
   options,
   testId,
   autoFocus = false,
+  disabled = false,
 }: {
   label: string
   value: string
   onValueChange: (value: string) => void
-  options: Array<{ value: string; label: string }>
+  options: Array<{ value: string; label: string; disabled?: boolean }>
   testId: string
   autoFocus?: boolean
+  disabled?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="settings-field-control flex flex-col gap-1.5">
       <label className="text-xs font-medium text-foreground">{label}</label>
-      <Select value={value} onValueChange={onValueChange}>
+      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger
           className="w-full bg-transparent"
+          aria-label={label}
           data-testid={testId}
           data-value={value}
           data-settings-autofocus={autoFocus ? 'true' : undefined}
@@ -88,7 +91,7 @@ export function LabeledSelect({
         </SelectTrigger>
         <SelectContent position="popper" data-anchor-strategy="popper">
           {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </SelectItem>
           ))}
@@ -113,7 +116,7 @@ export function LabeledNumberInput({
   disabled?: boolean
 }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="settings-field-control flex flex-col gap-1.5">
       <label className="text-xs font-medium text-foreground" htmlFor={testId}>{label}</label>
       <Input
         id={testId}
@@ -148,8 +151,8 @@ export function SettingsSwitchRow({
 }) {
   return (
     <label
-      className="flex items-start justify-between gap-3"
-      style={{ cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1 }}
+      className="settings-control-row flex items-start justify-between gap-3 rounded-md border px-3 py-2.5"
+      data-disabled={disabled ? 'true' : undefined}
       data-testid={testId}
     >
       <div className="space-y-1">
@@ -176,7 +179,7 @@ export function TelemetryToggle({
   testId: string
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3" data-testid={testId}>
+    <label className="settings-control-row flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5" data-testid={testId}>
       <Checkbox checked={checked} onCheckedChange={(value) => onChange(isChecked(value))} />
       <div>
         <div className="text-[13px] font-medium text-foreground">{label}</div>

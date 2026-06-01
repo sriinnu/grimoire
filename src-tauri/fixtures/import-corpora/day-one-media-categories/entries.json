@@ -1,0 +1,15 @@
+{
+  "entries": [
+    {
+      "uuid": "day-one-media-categories",
+      "creationDate": "2026-05-22T08:15:00Z",
+      "modifiedDate": "2026-05-22T09:00:00Z",
+      "text": "# River Walk\nPhoto, video, voice memo, and PDF receipt.",
+      "tags": ["journal", "media"],
+      "photos": [{ "md5": "river-photo" }],
+      "videos": [{ "md5": "river-video" }],
+      "audios": [{ "md5": "river-voice" }],
+      "pdfs": [{ "md5": "river-receipt" }]
+    }
+  ]
+}

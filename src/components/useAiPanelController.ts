@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import type { AskContextPackage } from '../lib/askContextPackage'
 import type { AiAgentId } from '../lib/aiAgents'
 import { useCliAiAgent, type AgentFileCallbacks } from '../hooks/useCliAiAgent'
 import type { VaultEntry } from '../types'
@@ -33,7 +34,7 @@ export interface AiPanelController {
   linkedEntries: ReturnType<typeof useAiPanelContextSnapshot>['linkedEntries']
   hasContext: boolean
   isActive: boolean
-  handleSend: (text: string, references: NoteReference[]) => void
+  handleSend: (text: string, references: NoteReference[], contextPackage?: AskContextPackage) => void
   handleNavigateWikilink: (target: string) => void
   handleNewChat: () => void
 }
@@ -81,9 +82,10 @@ export function useAiPanelController({
   const hasContext = !!activeEntry
   const isActive = agent.status === 'thinking' || agent.status === 'tool-executing'
 
-  const handleSend = useCallback((text: string, references: NoteReference[]) => {
+  const handleSend = useCallback((text: string, references: NoteReference[], contextPackage?: AskContextPackage) => {
     if (!text.trim()) return
-    agent.sendMessage(text, references)
+    if (contextPackage) agent.sendMessage(text, references, contextPackage)
+    else agent.sendMessage(text, references)
     setInput('')
   }, [agent])
 

@@ -1,0 +1,182 @@
+.folder-glyph[data-folder-glyph-motif="vault"] {
+  --folder-glyph-tone: var(--art-veda, var(--accent-yellow));
+  --folder-glyph-secondary: var(--accent-teal);
+  --folder-glyph-warm: var(--art-spark, var(--accent-yellow));
+}
+
+.folder-glyph:not([data-folder-glyph-motif="folder"]) {
+  border-color: color-mix(in srgb, var(--folder-glyph-tone) 44%, var(--sidebar-border));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #fff 12%, transparent),
+    inset 0 -9px 16px color-mix(in srgb, var(--folder-glyph-tone) 9%, transparent),
+    0 5px 12px color-mix(in srgb, var(--folder-glyph-tone) 18%, transparent);
+}
+
+.folder-glyph[data-folder-glyph-motif="folder"] {
+  --folder-glyph-tone: color-mix(in srgb, var(--sidebar-foreground) 56%, var(--sidebar-border));
+  --folder-glyph-secondary: color-mix(in srgb, var(--sidebar-primary) 52%, var(--sidebar-foreground));
+  --folder-glyph-warm: color-mix(in srgb, var(--accent-yellow) 42%, var(--sidebar-foreground));
+}
+
+.folder-glyph[data-folder-glyph-motif="folder"] .folder-glyph__constellation,
+.folder-glyph[data-folder-glyph-motif="folder"] .folder-glyph__spark {
+  opacity: 0.18;
+}
+
+.folder-glyph[data-folder-glyph-motif="folder"] .folder-glyph__route,
+.folder-glyph[data-folder-glyph-motif="folder"] .folder-glyph__thread {
+  opacity: 0.34;
+  transform: rotate(0deg) scaleX(0.52);
+}
+
+.folder-glyph[data-folder-glyph-motif="private"] {
+  --folder-glyph-secondary: var(--art-rishi, var(--accent-teal));
+  --folder-glyph-warm: var(--accent-purple);
+}
+
+.folder-glyph[data-folder-glyph-motif="route"] {
+  --folder-glyph-secondary: var(--accent-blue);
+}
+
+.folder-glyph[data-folder-glyph-motif="blueprint"] {
+  --folder-glyph-secondary: var(--accent-teal);
+  --folder-glyph-warm: var(--accent-blue);
+}
+
+.folder-glyph[data-folder-glyph-motif="knowledge"] .folder-glyph__thread {
+  top: 10px;
+  transform: rotate(-8deg) scaleX(0.78);
+}
+
+.folder-glyph[data-folder-glyph-motif="knowledge"] .folder-glyph__route {
+  bottom: 5px;
+  left: 5px;
+  transform: scaleX(0.76);
+  width: 12px;
+}
+
+.folder-glyph[data-folder-glyph="vedas"] .folder-glyph__thread {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--folder-glyph-warm) 72%, transparent), transparent),
+    color-mix(in srgb, var(--folder-glyph-secondary) 28%, transparent);
+  top: 8px;
+  transform: rotate(0deg) scaleX(0.86);
+}
+
+.folder-glyph[data-folder-glyph="shaastras"] .folder-glyph__constellation {
+  border-radius: 2px;
+  height: 8px;
+  transform: skewX(0deg) rotate(0deg) scale(0.9);
+  width: 8px;
+}
+
+.folder-glyph[data-folder-glyph="puranas"] .folder-glyph__constellation {
+  border-radius: 999px 999px 999px 2px;
+  transform: rotate(-28deg) scale(0.94);
+}
+
+.folder-glyph[data-folder-glyph-motif="mind"] .folder-glyph__constellation {
+  border-bottom-color: color-mix(in srgb, var(--folder-glyph-warm) 46%, transparent);
+  border-left-color: color-mix(in srgb, var(--folder-glyph-secondary) 46%, transparent);
+  border-radius: 999px 999px 2px 999px;
+  height: 8px;
+  transform: rotate(18deg) scale(0.92);
+}
+
+.folder-glyph[data-folder-glyph="brain"] .folder-glyph__route,
+.folder-glyph[data-folder-glyph="second-brain"] .folder-glyph__route {
+  bottom: 6px;
+  transform: scaleX(0.62);
+}
+
+.folder-glyph[data-folder-glyph="second-brain"] .folder-glyph__constellation {
+  border-radius: 999px;
+  transform: rotate(0deg) scale(0.98);
+}
+
+.folder-glyph[data-folder-glyph-motif="private"] .folder-glyph__route {
+  bottom: 6px;
+  opacity: 0.46;
+  transform: scaleX(0.48);
+}
+
+.folder-glyph[data-folder-glyph-motif="private"] .folder-glyph__spark {
+  box-shadow:
+    -4px 8px 0 -1.2px color-mix(in srgb, var(--folder-glyph-secondary) 34%, transparent),
+    0 0 9px color-mix(in srgb, var(--folder-glyph-warm) 38%, transparent);
+  right: 6px;
+  top: 4px;
+}
+
+.folder-glyph[data-folder-glyph-motif="route"] .folder-glyph__thread {
+  top: 11px;
+  transform: rotate(0deg) scaleX(0.82);
+}
+
+.folder-glyph[data-folder-glyph-motif="route"] .folder-glyph__route {
+  opacity: 0.8;
+  transform: scaleX(0.82);
+}
+
+.folder-glyph[data-folder-glyph-motif="sky"] .folder-glyph__constellation {
+  border-bottom-color: color-mix(in srgb, var(--folder-glyph-warm) 56%, transparent);
+  border-left-color: color-mix(in srgb, var(--folder-glyph-secondary) 52%, transparent);
+  transform: skewX(-10deg) rotate(24deg);
+}
+
+.folder-glyph[data-folder-glyph="rishi"] .folder-glyph__spark {
+  background: color-mix(in srgb, var(--folder-glyph-warm) 84%, var(--folder-glyph-bright));
+  box-shadow:
+    -5px 7px 0 -1.3px color-mix(in srgb, var(--folder-glyph-secondary) 42%, transparent),
+    4px 5px 0 -1.4px color-mix(in srgb, var(--folder-glyph-tone) 38%, transparent),
+    0 0 11px color-mix(in srgb, var(--folder-glyph-warm) 48%, transparent);
+}
+
+.folder-glyph[data-folder-glyph-motif="blueprint"] .folder-glyph__thread {
+  top: 12px;
+  transform: rotate(-1deg) scaleX(0.76);
+}
+
+.folder-glyph[data-folder-glyph-motif="blueprint"] .folder-glyph__constellation {
+  border-radius: 2px;
+  transform: skewX(0deg) rotate(0deg) scale(0.9);
+}
+
+.folder-glyph[data-folder-glyph-motif="folder"][data-open="true"] .folder-glyph__route,
+.folder-glyph[data-folder-glyph-motif="folder"][data-selected="true"] .folder-glyph__route,
+.folder-glyph[data-folder-glyph-motif="folder"][data-open="true"] .folder-glyph__thread,
+.folder-glyph[data-folder-glyph-motif="folder"][data-selected="true"] .folder-glyph__thread {
+  opacity: 0.54;
+  transform: rotate(0deg) scaleX(0.76);
+}
+
+.folder-glyph[data-folder-glyph-motif="knowledge"][data-open="true"] .folder-glyph__thread,
+.folder-glyph[data-folder-glyph-motif="knowledge"][data-selected="true"] .folder-glyph__thread {
+  transform: rotate(-8deg) scaleX(1);
+}
+
+.folder-glyph[data-folder-glyph-motif="mind"][data-open="true"] .folder-glyph__constellation,
+.folder-glyph[data-folder-glyph-motif="mind"][data-selected="true"] .folder-glyph__constellation {
+  transform: rotate(18deg) scale(1.04);
+}
+
+.folder-glyph[data-folder-glyph-motif="private"][data-open="true"] .folder-glyph__route,
+.folder-glyph[data-folder-glyph-motif="private"][data-selected="true"] .folder-glyph__route {
+  opacity: 0.68;
+  transform: scaleX(0.72);
+}
+
+.folder-glyph[data-folder-glyph-motif="route"][data-open="true"] .folder-glyph__thread,
+.folder-glyph[data-folder-glyph-motif="route"][data-selected="true"] .folder-glyph__thread {
+  transform: rotate(0deg) scaleX(1);
+}
+
+.folder-glyph[data-folder-glyph-motif="sky"][data-open="true"] .folder-glyph__constellation,
+.folder-glyph[data-folder-glyph-motif="sky"][data-selected="true"] .folder-glyph__constellation {
+  transform: skewX(-10deg) rotate(24deg) scale(1.08);
+}
+
+.folder-glyph[data-folder-glyph-motif="blueprint"][data-open="true"] .folder-glyph__constellation,
+.folder-glyph[data-folder-glyph-motif="blueprint"][data-selected="true"] .folder-glyph__constellation {
+  transform: skewX(0deg) rotate(0deg) scale(1.02);
+}

@@ -4,6 +4,8 @@ use std::process::{Command, Output, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
+use super::path_env::command_for_binary;
+
 pub(super) fn find_codex_binary() -> Result<PathBuf, String> {
     if let Some(binary) = find_binary_on_path("codex") {
         return Ok(binary);
@@ -33,7 +35,7 @@ pub(super) fn find_chitragupta_binary() -> Result<PathBuf, String> {
 }
 
 pub(super) fn version_for_binary(binary: &Path) -> Option<String> {
-    let mut command = Command::new(binary);
+    let mut command = command_for_binary(binary);
     command.arg("--version");
 
     output_with_timeout(command, Duration::from_secs(2))
@@ -65,13 +67,28 @@ fn output_with_timeout(mut command: Command, timeout: Duration) -> Result<Output
 }
 
 fn find_binary_on_path(command: &str) -> Option<PathBuf> {
-    Command::new("which")
-        .arg(command)
+    path_lookup_command(command)
         .output()
         .ok()
         .and_then(|output| path_from_successful_output(&output))
 }
 
+fn path_lookup_command(command: &str) -> Command {
+    #[cfg(windows)]
+    let mut lookup = crate::hidden_command("where.exe");
+    #[cfg(not(windows))]
+    let mut lookup = crate::hidden_command("which");
+
+    lookup.arg(command);
+    lookup
+}
+
+#[cfg(windows)]
+fn find_binary_in_user_shell(_command: &str) -> Option<PathBuf> {
+    None
+}
+
+#[cfg(not(windows))]
 fn find_binary_in_user_shell(command: &str) -> Option<PathBuf> {
     user_shell_candidates()
         .into_iter()
@@ -79,6 +96,7 @@ fn find_binary_in_user_shell(command: &str) -> Option<PathBuf> {
         .find_map(|shell| command_path_from_shell(&shell, command))
 }
 
+#[cfg(not(windows))]
 fn user_shell_candidates() -> Vec<PathBuf> {
     let mut shells = Vec::new();
     if let Some(shell) = std::env::var_os("SHELL") {
@@ -91,6 +109,7 @@ fn user_shell_candidates() -> Vec<PathBuf> {
     shells
 }
 
+#[cfg(not(windows))]
 fn command_path_from_shell(shell: &Path, command: &str) -> Option<PathBuf> {
     Command::new(shell)
         .arg("-lc")
@@ -140,6 +159,7 @@ fn codex_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
         PathBuf::from("/opt/homebrew/bin/codex"),
         PathBuf::from("/Applications/Codex.app/Contents/Resources/codex"),
     ];
+    candidates.extend(windows_cli_shim_candidates(home, "codex"));
     candidates.extend(node_version_manager_binary_candidates(home, "codex"));
     candidates
 }
@@ -163,6 +183,7 @@ fn chitragupta_binary_candidates_for_home(home: &Path) -> Vec<PathBuf> {
         PathBuf::from("/Applications/Chitragupta.app/Contents/Resources/chitragupta"),
         PathBuf::from("/Applications/Chitragupta.app/Contents/MacOS/chitragupta"),
     ];
+    candidates.extend(windows_cli_shim_candidates(home, "chitragupta"));
     candidates.extend(node_version_manager_binary_candidates(home, "chitragupta"));
     candidates
 }
@@ -184,6 +205,22 @@ fn node_version_manager_binary_candidates(home: &Path, binary_name: &str) -> Vec
         binary_name,
     ));
     candidates
+}
+
+fn windows_cli_shim_candidates(home: &Path, binary_name: &str) -> Vec<PathBuf> {
+    let npm = home.join("AppData").join("Roaming").join("npm");
+    let volta = home.join(".volta").join("bin");
+    [
+        npm.join(format!("{binary_name}.cmd")),
+        npm.join(format!("{binary_name}.exe")),
+        volta.join(format!("{binary_name}.cmd")),
+        volta.join(format!("{binary_name}.exe")),
+        home.join(".local")
+            .join("bin")
+            .join(format!("{binary_name}.exe")),
+    ]
+    .into_iter()
+    .collect()
 }
 
 fn versioned_child_binary_candidates(
@@ -224,6 +261,7 @@ mod tests {
             home.join(".npm-global/bin/codex"),
             home.join(".bun/bin/codex"),
             PathBuf::from("/Applications/Codex.app/Contents/Resources/codex"),
+            home.join("AppData/Roaming/npm/codex.cmd"),
         ];
 
         for candidate in expected {
@@ -245,6 +283,7 @@ mod tests {
             home.join(".bun/bin/chitragupta"),
             home.join(".volta/bin/chitragupta"),
             home.join(".local/share/pnpm/chitragupta"),
+            home.join("AppData/Roaming/npm/chitragupta.cmd"),
             PathBuf::from("/Applications/Chitragupta.app/Contents/MacOS/chitragupta"),
         ];
 

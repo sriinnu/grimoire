@@ -405,6 +405,46 @@ describe('buildContextSnapshot', () => {
     expect(json.activeNote.frontmatter.relationships).toEqual({ people: ['[[Alice]]'] })
   })
 
+  it('includes source-safe graph neighborhood context', () => {
+    const result = buildContextSnapshot({
+      activeEntry: active,
+      entries,
+      graphContext: {
+        state: 'ready',
+        nodes: [
+          { active: true, degree: 1, path: active.path, title: active.title, type: 'Project' },
+          { active: false, degree: 1, path: '/vault/b.md', title: 'Beta', type: 'Person' },
+        ],
+        edges: [{
+          kind: 'wikilink',
+          label: 'wikilink',
+          sourcePath: active.path,
+          sourceTitle: active.title,
+          targetPath: '/vault/b.md',
+          targetTitle: 'Beta',
+        }],
+        omitted: {
+          protectedEdges: 1,
+          protectedNodes: 1,
+          truncatedEdges: 0,
+          truncatedNodes: 0,
+        },
+        totals: {
+          visibleEdges: 1,
+          visibleNodes: 2,
+        },
+      },
+    })
+    const json = JSON.parse(result.split('```json\n')[1].split('\n```')[0])
+
+    expect(json.graphNeighborhood.nodes).toHaveLength(2)
+    expect(json.graphNeighborhood.edges).toHaveLength(1)
+    expect(json.graphNeighborhood.omitted.localOnly).toBe('held-by-policy')
+    expect(json.graphNeighborhood.omitted).not.toHaveProperty('protectedNodes')
+    expect(json.graphNeighborhood.omitted).not.toHaveProperty('protectedEdges')
+    expect(result).toContain('source-safe graph context')
+  })
+
   it('omits local-only frontmatter relationship targets and filters', () => {
     const secret = makeEntry({ path: '/vault/Private/secret.md', title: 'Secret' })
     const visible = makeEntry({ path: '/vault/public.md', title: 'Visible' })

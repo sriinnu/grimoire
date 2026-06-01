@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import mermaid from 'mermaid'
 import { MarkdownContent } from './MarkdownContent'
 import { preprocessWikilinks } from '../utils/chatWikilinks'
@@ -26,16 +26,19 @@ describe('MarkdownContent', () => {
     expect(code.tagName).toBe('CODE')
   })
 
-  it('renders fenced code blocks', () => {
+  it('renders fenced code blocks', async () => {
     const { container } = render(<MarkdownContent content={'```js\nconst x = 1\n```'} />)
+    await waitFor(() => expect(container.querySelector('pre')).toBeTruthy())
     const pre = container.querySelector('pre')
-    expect(pre).toBeTruthy()
     expect(pre!.textContent).toContain('const x = 1')
   })
 
-  it('auto-detects unlabeled fenced code languages', () => {
+  it('auto-detects unlabeled fenced code languages', async () => {
     const code = 'def greet(name):\n    return f"Hello {name}"'
     const { container } = render(<MarkdownContent content={`\`\`\`\n${code}\n\`\`\``} />)
+    await waitFor(() => expect(container.querySelector('pre code')?.className).toContain('language-python'), {
+      timeout: 5000,
+    })
     const codeBlock = container.querySelector('pre code')
 
     expect(codeBlock?.className).toContain('language-python')
@@ -54,6 +57,12 @@ describe('MarkdownContent', () => {
 
     expect(await screen.findByTestId('rendered-mermaid')).toBeInTheDocument()
     expect(screen.getByTestId('rendered-mermaid')).toHaveTextContent('sequenceDiagram')
+  })
+
+  it('renders indented mermaid fences as diagrams', async () => {
+    render(<MarkdownContent content={'   ```mermaid\nsequenceDiagram\nA->>B: hi\n   ```'} />)
+
+    expect(await screen.findByTestId('rendered-mermaid')).toHaveTextContent('sequenceDiagram')
   })
 
   it('renders classDiagram fences as Mermaid class diagrams', async () => {
@@ -200,11 +209,12 @@ describe('MarkdownContent', () => {
       expect(container.querySelector('.chat-wikilink')).toBeNull()
     })
 
-    it('does not render wikilinks inside code blocks', () => {
+    it('does not render wikilinks inside code blocks', async () => {
       const onClick = vi.fn()
       const { container } = render(
         <MarkdownContent content={'```\n[[Not a link]]\n```'} onWikilinkClick={onClick} />,
       )
+      await waitFor(() => expect(container.querySelector('pre')).toBeTruthy())
       expect(container.querySelector('.chat-wikilink')).toBeNull()
     })
 

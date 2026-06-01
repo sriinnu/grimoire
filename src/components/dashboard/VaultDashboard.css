@@ -1,0 +1,398 @@
+.vault-dashboard__capture-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, var(--grimoire-signal-border, var(--border)) 70%, transparent);
+  border-radius: 8px;
+  padding: 6px;
+  background: color-mix(in srgb, var(--grimoire-signal-bg, var(--card)) 42%, transparent);
+}
+
+.vault-dashboard__capture-date {
+  min-height: 28px;
+  border-radius: 999px;
+  color: var(--grimoire-signal-text, var(--foreground));
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.vault-dashboard__capture-date--active {
+  border-color: color-mix(in srgb, var(--accent-teal, var(--primary)) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent-teal, var(--primary)) 15%, var(--card));
+  color: color-mix(in srgb, var(--accent-teal, var(--primary)) 72%, var(--foreground));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-teal, var(--primary)) 20%, transparent);
+}
+
+.vault-dashboard__time-loom {
+  container-name: time-loom;
+  container-type: inline-size;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.vault-dashboard__daily-thread {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.7fr) max-content;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--grimoire-signal-border, var(--border));
+  border-radius: var(--grimoire-shell-radius, 8px);
+  padding: 10px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-signal-bg, var(--card)) 68%, transparent), transparent 66%),
+    var(--grimoire-card-material, var(--card));
+  font-family: var(--grimoire-ui-font-family);
+  box-shadow: var(--grimoire-card-shadow, none);
+}
+
+.vault-dashboard__daily-thread-copy {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  gap: 4px;
+}
+
+.vault-dashboard__daily-thread-copy span,
+.vault-dashboard__daily-thread-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__daily-thread-copy span {
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 680;
+}
+
+.vault-dashboard__daily-thread-copy strong {
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.vault-dashboard__daily-thread-lanes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 96px), 1fr));
+  gap: 6px;
+  min-width: 0;
+}
+
+.vault-dashboard__daily-thread-lane {
+  display: grid;
+  min-width: 0;
+  min-height: 62px;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  border: 1px solid var(--grimoire-signal-border, var(--border));
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 82%, transparent);
+  color: var(--grimoire-signal-text, var(--foreground));
+}
+
+.vault-dashboard__daily-thread-lane[data-state="private"] {
+  border-color: var(--grimoire-private-chip-border, var(--grimoire-signal-border, var(--border)));
+  background: var(--grimoire-private-chip-bg, color-mix(in srgb, var(--primary) 9%, transparent));
+  color: var(--grimoire-private-chip-fg, var(--foreground));
+}
+
+.vault-dashboard__daily-thread-lane[data-state="quiet"] {
+  opacity: 0.62;
+}
+
+.vault-dashboard__daily-thread-lane strong {
+  font-size: 17px;
+  line-height: 1;
+}
+
+.vault-dashboard__daily-thread-lane em,
+.vault-dashboard__daily-thread-lane small {
+  max-width: 100%;
+  overflow: hidden;
+  font-style: normal;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__daily-thread-lane em {
+  font-size: 11px;
+  font-weight: 640;
+}
+
+.vault-dashboard__daily-thread-lane small {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.vault-dashboard__daily-thread-action {
+  min-width: 0;
+  align-self: center;
+  white-space: nowrap;
+}
+
+.vault-dashboard__time-map {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 112px), 1fr));
+  gap: 9px;
+  margin: 5px 0 12px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid var(--grimoire-signal-border, var(--border));
+  border-radius: var(--grimoire-shell-radius, 8px);
+  background: var(--grimoire-signal-bg, color-mix(in srgb, var(--primary) 10%, var(--card)));
+}
+
+.vault-dashboard__time-map::before {
+  position: absolute;
+  inset: 50% 16px auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--grimoire-signal-text, var(--foreground)) 34%, transparent), transparent);
+  content: "";
+}
+
+.vault-dashboard__time-patterns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 7px;
+  min-width: 0;
+  margin: 0 0 12px;
+}
+
+.vault-dashboard__time-pattern {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid var(--grimoire-signal-border, var(--border));
+  border-radius: 8px;
+  padding: 9px;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 86%, transparent);
+  color: var(--grimoire-signal-text, var(--foreground));
+}
+
+.vault-dashboard__time-pattern[data-tone="attention"] {
+  border-color: color-mix(in srgb, var(--status-bar-warning-fg, var(--primary)) 38%, var(--grimoire-signal-border, var(--border)));
+}
+
+.vault-dashboard__time-pattern[data-tone="private"] {
+  border-color: var(--grimoire-private-chip-border, var(--grimoire-signal-border, var(--border)));
+  background: color-mix(in srgb, var(--grimoire-private-chip-bg, var(--surface-card)) 86%, transparent);
+}
+
+.vault-dashboard__time-pattern span {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.vault-dashboard__time-pattern strong {
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__time-node,
+.vault-dashboard__time-map-empty {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 96px;
+  align-content: center;
+  gap: 3px;
+  border: 1px solid color-mix(in srgb, var(--grimoire-signal-border, var(--border)) 72%, transparent);
+  border-radius: 8px;
+  padding: 11px;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 82%, transparent);
+  color: var(--grimoire-signal-text, var(--foreground));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+.vault-dashboard__time-node--private {
+  border-color: var(--grimoire-private-chip-border, var(--grimoire-signal-border, var(--border)));
+  background: color-mix(in srgb, var(--grimoire-private-chip-bg, var(--surface-card)) 82%, transparent);
+}
+
+.vault-dashboard__time-node span,
+.vault-dashboard__time-map-empty {
+  font-size: 11px;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+.vault-dashboard__time-node strong {
+  font-size: clamp(26px, 7vw, 42px);
+  line-height: 1;
+}
+
+.vault-dashboard__time-node small,
+.vault-dashboard__time-node em {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 650;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vault-dashboard__time-node em {
+  color: var(--grimoire-private-chip-fg, var(--foreground));
+}
+
+.vault-dashboard__time-graph {
+  display: grid;
+  gap: 8px;
+  margin: -3px 0 12px;
+  min-width: 0;
+  max-width: 100%;
+  border: 1px solid var(--grimoire-signal-border, var(--border));
+  border-radius: var(--grimoire-shell-radius, 8px);
+  padding: 10px;
+  background: color-mix(in srgb, var(--grimoire-signal-bg, var(--card)) 62%, transparent);
+}
+
+.vault-dashboard__time-graph-nodes,
+.vault-dashboard__time-graph-links {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vault-dashboard__time-graph-node,
+.vault-dashboard__time-graph-link {
+  display: inline-flex;
+  flex: 1 1 96px;
+  align-items: center;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 27px;
+  gap: 5px;
+  border: 1px solid color-mix(in srgb, var(--grimoire-signal-border, var(--border)) 78%, transparent);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 84%, transparent);
+  color: var(--grimoire-signal-text, var(--foreground));
+}
+
+.vault-dashboard__time-graph-node[data-privacy="held-local"],
+.vault-dashboard__time-graph-link[data-privacy="held-local"] {
+  border-color: var(--grimoire-private-chip-border, var(--grimoire-signal-border, var(--border)));
+  background: var(--grimoire-private-chip-bg, color-mix(in srgb, var(--primary) 9%, transparent));
+  color: var(--grimoire-private-chip-fg, var(--foreground));
+}
+
+.vault-dashboard__time-graph-node[data-tone="capture"] {
+  border-color: color-mix(in srgb, var(--accent-teal, var(--primary)) 38%, var(--grimoire-signal-border, var(--border)));
+}
+
+.vault-dashboard__time-graph-node[data-tone="memory"] {
+  border-color: color-mix(in srgb, var(--accent-purple, var(--primary)) 38%, var(--grimoire-signal-border, var(--border)));
+}
+
+.vault-dashboard__time-graph-node[data-tone="external"] {
+  border-color: color-mix(in srgb, var(--accent-blue, var(--primary)) 38%, var(--grimoire-signal-border, var(--border)));
+}
+
+.vault-dashboard__time-graph-node strong {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.vault-dashboard__time-graph-node span,
+.vault-dashboard__time-graph-link {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vault-dashboard__daily-thread-lane {
+    animation: grimoire-time-node-arrive var(--motion-duration-panel, 260ms) var(--motion-ease-cinematic, ease-out) 1 both;
+  }
+
+  .vault-dashboard__time-node {
+    animation: grimoire-time-node-arrive var(--motion-duration-panel, 260ms) var(--motion-ease-cinematic, ease-out) 1 both;
+    animation-delay: var(--motion-stagger-delay, 0ms);
+  }
+
+  .vault-dashboard__time-graph-node,
+  .vault-dashboard__time-graph-link {
+    animation: grimoire-time-node-arrive var(--motion-duration-panel, 260ms) var(--motion-ease-cinematic, ease-out) 1 both;
+  }
+}
+
+@container time-loom (max-width: 560px) {
+  .vault-dashboard__time-patterns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@container vault-dashboard (max-width: 980px) {
+  .vault-dashboard__daily-thread {
+    grid-template-columns: 1fr;
+  }
+
+  .vault-dashboard__daily-thread-lanes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .vault-dashboard__daily-thread-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@container time-loom (max-width: 720px) {
+  .vault-dashboard__time-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container vault-dashboard (max-width: 420px) {
+  .vault-dashboard__daily-thread-lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vault-dashboard__time-map {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes grimoire-time-node-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y, 4px)) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

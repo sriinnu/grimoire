@@ -1,15 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  Eraser,
-  Hand,
-  Highlighter,
-  Loader2,
-  PenLine,
-  Save,
-  Trash2,
-  Undo2,
-} from 'lucide-react'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Loader2, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,11 +9,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { pickFile } from '../../utils/vault-dialog'
 import type { CanvasAttachment, CanvasDocument } from '../../utils/canvasAttachments'
 import { createCanvasDocument } from '../../utils/canvasAttachments'
-import { CANVAS_COLORS, CANVAS_SIZES } from './canvasDrawing'
+import { appendCanvasImage, CANVAS_COLORS, CANVAS_SIZES } from './canvasDrawing'
+import { CanvasAttachmentToolbar } from './CanvasAttachmentToolbar'
 import { CanvasDrawingSurface, type CanvasTool } from './CanvasDrawingSurface'
-import { loadCanvasDocument, saveCanvasDocument } from './canvasPersistence'
+import { extractCanvasDocumentMarkdown } from './canvasMarkdownExtraction'
+import {
+  importCanvasImageToVault,
+  loadCanvasDocumentState,
+  saveCanvasDocument,
+} from './canvasPersistence'
 import './CanvasAttachment.css'
 
 interface CanvasAttachmentDialogProps {
@@ -33,136 +30,30 @@ interface CanvasAttachmentDialogProps {
   vaultPath?: string
 }
 
-const TOOLS: Array<{ id: CanvasTool; label: string; icon: typeof PenLine }> = [
-  { id: 'pen', label: 'Pen', icon: PenLine },
-  { id: 'highlighter', label: 'Highlighter', icon: Highlighter },
-  { id: 'eraser', label: 'Eraser', icon: Eraser },
-  { id: 'hand', label: 'Hand', icon: Hand },
-]
-
-function ToolButton({
-  active,
-  icon: Icon,
-  label,
-  onClick,
-}: {
-  active: boolean
-  icon: typeof PenLine
-  label: string
-  onClick: () => void
-}) {
-  return (
-    <ActionTooltip copy={{ label }}>
-      <Button
-        aria-label={label}
-        aria-pressed={active}
-        className="canvas-attachment__icon-button"
-        onClick={onClick}
-        size="icon-sm"
-        type="button"
-        variant={active ? 'default' : 'outline'}
-      >
-        <Icon />
-      </Button>
-    </ActionTooltip>
-  )
+function readThemeColor(variableName: string, fallback: string): string {
+  const root = globalThis.document?.documentElement
+  if (!root || !globalThis.getComputedStyle) return fallback
+  const value = globalThis.getComputedStyle(root).getPropertyValue(variableName).trim()
+  if (!value || value.includes('var(')) return fallback
+  return value
 }
 
-function ColorButton({
-  active,
-  color,
-  onClick,
-}: {
-  active: boolean
-  color: string
-  onClick: () => void
-}) {
-  return (
-    <Button
-      aria-label={`Ink ${color}`}
-      aria-pressed={active}
-      className="canvas-attachment__color"
-      onClick={onClick}
-      size="icon-xs"
-      style={{ backgroundColor: color }}
-      type="button"
-      variant={active ? 'default' : 'outline'}
-    />
-  )
+function resolveCanvasInkPalette(): readonly string[] {
+  return [
+    readThemeColor('--text-primary', CANVAS_COLORS[0]),
+    readThemeColor('--accent-red', CANVAS_COLORS[1]),
+    readThemeColor('--accent-blue', CANVAS_COLORS[2]),
+    readThemeColor('--accent-green', CANVAS_COLORS[3]),
+    readThemeColor('--accent-purple', CANVAS_COLORS[4]),
+    readThemeColor('--accent-orange', CANVAS_COLORS[5]),
+  ]
 }
 
-function SizeButton({ active, size, onClick }: { active: boolean; size: number; onClick: () => void }) {
-  return (
-    <Button
-      aria-label={`${size}px ink`}
-      aria-pressed={active}
-      className="canvas-attachment__size"
-      onClick={onClick}
-      size="icon-sm"
-      type="button"
-      variant={active ? 'default' : 'outline'}
-    >
-      <span style={{ width: size + 4, height: size + 4 }} />
-    </Button>
-  )
-}
-
-function CanvasToolbar({
-  color,
-  setColor,
-  setDocument,
-  setSize,
-  setTool,
-  size,
-  tool,
-}: {
-  color: string
-  setColor: (color: string) => void
-  setDocument: (updater: (document: CanvasDocument) => CanvasDocument) => void
-  setSize: (size: number) => void
-  setTool: (tool: CanvasTool) => void
-  size: number
-  tool: CanvasTool
-}) {
-  return (
-    <div className="canvas-attachment__toolbar">
-      <div className="canvas-attachment__tool-group">
-        {TOOLS.map((item) => (
-          <ToolButton
-            key={item.id}
-            active={tool === item.id}
-            icon={item.icon}
-            label={item.label}
-            onClick={() => setTool(item.id)}
-          />
-        ))}
-      </div>
-      <div className="canvas-attachment__tool-group">
-        {CANVAS_COLORS.map((swatch) => (
-          <ColorButton key={swatch} active={color === swatch} color={swatch} onClick={() => setColor(swatch)} />
-        ))}
-      </div>
-      <div className="canvas-attachment__tool-group">
-        {CANVAS_SIZES.map((option) => (
-          <SizeButton key={option} active={size === option} size={option} onClick={() => setSize(option)} />
-        ))}
-      </div>
-      <div className="canvas-attachment__tool-group canvas-attachment__tool-group--end">
-        <ToolButton
-          active={false}
-          icon={Undo2}
-          label="Undo"
-          onClick={() => setDocument((current) => ({ ...current, strokes: current.strokes.slice(0, -1) }))}
-        />
-        <ToolButton
-          active={false}
-          icon={Trash2}
-          label="Clear"
-          onClick={() => setDocument((current) => ({ ...current, strokes: [] }))}
-        />
-      </div>
-    </div>
-  )
+function withThemeCanvasBackground(document: CanvasDocument): CanvasDocument {
+  return {
+    ...document,
+    background: readThemeColor('--surface-card', document.background),
+  }
 }
 
 /** Modal canvas editor for Markdown-backed handwriting and whiteboard attachments. */
@@ -176,30 +67,114 @@ export function CanvasAttachmentDialog({
   const [tool, setTool] = useState<CanvasTool>('pen')
   const [color, setColor] = useState(CANVAS_COLORS[0])
   const [size, setSize] = useState(CANVAS_SIZES[1])
+  const [textValue, setTextValue] = useState('Text')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [addingImage, setAddingImage] = useState(false)
+  const [dirty, setDirty] = useState(false)
+  const [extractState, setExtractState] = useState<'idle' | 'copied' | 'failed'>('idle')
+  const [saveState, setSaveState] = useState<'idle' | 'saved' | 'error'>('idle')
+  const inkColors = useMemo(resolveCanvasInkPalette, [open])
 
   useEffect(() => {
     if (!open || !attachment) return
     setLoading(true)
-    const fallback = createCanvasDocument(attachment.kind)
+    setDirty(false)
+    setExtractState('idle')
+    setSaveState('idle')
+    setColor(inkColors[0] ?? CANVAS_COLORS[0])
+    const fallback = withThemeCanvasBackground(createCanvasDocument(attachment.kind))
     if (!vaultPath) {
       setDocument(fallback)
       setLoading(false)
       return
     }
-    void loadCanvasDocument(vaultPath, attachment).then(setDocument).finally(() => setLoading(false))
-  }, [attachment, open, vaultPath])
+    void loadCanvasDocumentState(vaultPath, attachment).then((result) => {
+      setDocument(result.sourceFound ? result.document : withThemeCanvasBackground(result.document))
+      setDirty(!result.sourceFound)
+    }).finally(() => setLoading(false))
+  }, [attachment, inkColors, open, vaultPath])
+
+  const updateDocument = useCallback((updater: (document: CanvasDocument) => CanvasDocument) => {
+    setDocument((current) => {
+      const next = updater(current)
+      if (Object.is(next, current)) return current
+      setExtractState('idle')
+      setSaveState('idle')
+      setDirty(true)
+      return next
+    })
+  }, [])
+
+  const handleAddImage = useCallback(async () => {
+    if (!vaultPath) return
+    setAddingImage(true)
+    try {
+      const sourcePath = await pickFile('Add image to canvas', [
+        { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'tiff'] },
+      ])
+      if (!sourcePath) return
+      const imagePath = await importCanvasImageToVault(vaultPath, sourcePath)
+      updateDocument((current) => appendCanvasImage(current, imagePath))
+    } catch {
+      setSaveState('error')
+    } finally {
+      setAddingImage(false)
+    }
+  }, [updateDocument, vaultPath])
 
   const handleSave = useCallback(async () => {
     if (!attachment || !vaultPath) return
     setSaving(true)
     try {
       await saveCanvasDocument(vaultPath, attachment, document)
+      setDirty(false)
+      setSaveState('saved')
+    } catch {
+      setSaveState('error')
     } finally {
       setSaving(false)
     }
   }, [attachment, document, vaultPath])
+
+  const hasCanvasContent = document.strokes.length > 0
+    || document.images.length > 0
+    || document.shapes.length > 0
+    || document.textBoxes.length > 0
+
+  const handleCopyMarkdown = useCallback(async () => {
+    if (!navigator.clipboard?.writeText) {
+      setExtractState('failed')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(extractCanvasDocumentMarkdown(document, {
+        title: attachment?.title,
+      }))
+      setExtractState('copied')
+    } catch {
+      setExtractState('failed')
+    }
+  }, [attachment, document])
+
+  const statusCopy = loading
+    ? 'Loading local source'
+    : saving
+      ? 'Saving local files'
+      : extractState === 'copied'
+        ? 'Markdown extraction copied locally'
+        : extractState === 'failed'
+          ? 'Markdown extraction copy failed'
+      : saveState === 'error'
+        ? 'Save failed'
+        : !vaultPath
+          ? 'Open a vault to save locally'
+          : dirty
+            ? 'Unsaved local canvas'
+            : saveState === 'saved'
+              ? 'Saved locally'
+              : 'Local source ready'
+  const saveDisabled = !vaultPath || saving || (!dirty && saveState !== 'error')
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -210,13 +185,23 @@ export function CanvasAttachmentDialog({
             Edit the selected Grimoire canvas attachment.
           </DialogDescription>
         </DialogHeader>
-        <CanvasToolbar
+        <CanvasAttachmentToolbar
+          addingImage={addingImage}
+          canAddImage={Boolean(vaultPath)}
           color={color}
+          copyMarkdownDisabled={!hasCanvasContent}
+          copyMarkdownState={extractState}
+          document={document}
+          inkColors={inkColors}
+          onAddImage={() => { void handleAddImage() }}
+          onCopyMarkdown={() => { void handleCopyMarkdown() }}
           setColor={setColor}
-          setDocument={setDocument}
+          setDocument={updateDocument}
           setSize={setSize}
+          setTextValue={setTextValue}
           setTool={setTool}
           size={size}
+          textValue={textValue}
           tool={tool}
         />
         <div className="canvas-attachment__stage">
@@ -226,14 +211,19 @@ export function CanvasAttachmentDialog({
             <CanvasDrawingSurface
               color={color}
               document={document}
-              setDocument={setDocument}
+              setDocument={updateDocument}
               size={size}
+              textValue={textValue}
               tool={tool}
+              vaultPath={vaultPath}
             />
           )}
         </div>
         <DialogFooter>
-          <Button disabled={!vaultPath || saving} onClick={handleSave} type="button">
+          <div className="canvas-attachment__status" role="status">
+            {statusCopy}
+          </div>
+          <Button disabled={saveDisabled} onClick={handleSave} type="button">
             {saving ? <Loader2 className="animate-spin" /> : <Save />}
             Save
           </Button>

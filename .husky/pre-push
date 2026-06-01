@@ -75,6 +75,12 @@ echo ""
 echo "🚀 Pre-push gate"
 echo "================"
 
+# 0. Local-only audit — private docs/mockups/MCP wiring must not ship.
+echo ""
+echo "🔒 Local-only audit..."
+pnpm audit:local-only
+echo "  ✅ Local-only audit OK"
+
 # 1. TypeScript + Vite build — catches compile errors fast
 echo ""
 echo "📦 Build..."

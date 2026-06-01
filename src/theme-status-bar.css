@@ -1,0 +1,156 @@
+:root,
+[data-theme="light"],
+[data-theme="dark"],
+:where(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-atelier"],
+  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="retro-terminal"]
+) {
+  --status-bar-raw-accent-blue: var(--accent-blue);
+  --status-bar-raw-accent-green: var(--accent-green);
+  --status-bar-raw-accent-orange: var(--accent-orange);
+  --status-bar-raw-accent-purple: var(--accent-purple);
+  --status-bar-raw-accent-red: var(--accent-red);
+  --status-bar-background: var(--surface-sidebar);
+  --status-bar-foreground: var(--sidebar-foreground);
+  --status-bar-muted-foreground: color-mix(in srgb, var(--sidebar-foreground) 78%, transparent);
+  --status-bar-hairline: var(--grimoire-hairline, color-mix(in srgb, var(--sidebar-border) 78%, transparent));
+  --status-bar-material: var(--grimoire-status-material, linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 90%, var(--surface-panel)), var(--surface-sidebar)));
+  --status-bar-tooltip-bg: var(--status-bar-foreground);
+  --status-bar-tooltip-fg: var(--status-bar-background);
+  --status-bar-popover-muted-foreground: color-mix(in srgb, var(--status-bar-popover-fg) 86%, transparent);
+  --status-bar-control-material: linear-gradient(180deg, color-mix(in srgb, var(--sidebar-foreground) 7%, transparent), color-mix(in srgb, var(--surface-sidebar) 96%, transparent));
+  --status-bar-control-border: color-mix(in srgb, var(--sidebar-border) 82%, transparent);
+  --status-bar-group-shadow: inset 0 1px 0 color-mix(in srgb, var(--status-bar-foreground) 5%, transparent);
+  --status-bar-accent-fg: color-mix(in srgb, var(--sidebar-primary) 34%, var(--status-bar-foreground));
+  --status-bar-agent-fg: color-mix(in srgb, var(--status-bar-raw-accent-purple) 24%, var(--status-bar-foreground));
+  --status-bar-warning-fg: color-mix(in srgb, var(--status-bar-raw-accent-orange) 24%, var(--status-bar-foreground));
+  --status-bar-success-fg: color-mix(in srgb, var(--status-bar-raw-accent-green) 24%, var(--status-bar-foreground));
+  --status-bar-danger-fg: color-mix(in srgb, var(--status-bar-raw-accent-red) 42%, var(--status-bar-foreground));
+  --status-bar-badge-bg: color-mix(in srgb, var(--status-bar-warning-fg) 22%, transparent);
+  --status-bar-badge-fg: var(--status-bar-foreground);
+  --status-bar-popover-bg: color-mix(in srgb, var(--surface-sidebar) 82%, var(--surface-popover));
+  --status-bar-popover-fg: var(--status-bar-foreground);
+  --status-bar-hover: color-mix(in srgb, var(--sidebar-primary) 12%, transparent);
+  --status-bar-tone-line: color-mix(in srgb, var(--status-bar-hairline) 82%, transparent);
+}
+
+.status-bar {
+  --hover: var(--status-bar-hover);
+  --popover: var(--status-bar-popover-bg);
+  --popover-foreground: var(--status-bar-popover-fg);
+  --background: var(--status-bar-background);
+  --foreground: var(--status-bar-foreground);
+  --muted-foreground: var(--status-bar-muted-foreground);
+  --card-foreground: var(--status-bar-foreground);
+  --accent-foreground: var(--status-bar-foreground);
+  --secondary-foreground: var(--status-bar-foreground);
+  --border: var(--status-bar-control-border);
+  --input: var(--status-bar-control-border);
+  --sidebar: var(--status-bar-background);
+  --sidebar-foreground: var(--status-bar-foreground);
+  --color-background: var(--status-bar-background);
+  --color-foreground: var(--status-bar-foreground);
+  --color-muted-foreground: var(--status-bar-muted-foreground);
+  --color-popover: var(--status-bar-popover-bg);
+  --color-popover-foreground: var(--status-bar-popover-fg);
+  --color-card-foreground: var(--status-bar-foreground);
+  --color-accent-foreground: var(--status-bar-foreground);
+  --color-secondary-foreground: var(--status-bar-foreground);
+  background: var(--status-bar-material) !important;
+  border-top: 1px solid var(--status-bar-hairline) !important;
+  box-shadow:
+    inset 0 1px 0 var(--status-bar-tone-line),
+    0 -10px 24px color-mix(in srgb, var(--status-bar-background) 28%, transparent);
+  color: var(--status-bar-muted-foreground, color-mix(in srgb, var(--sidebar-foreground) 76%, transparent)) !important;
+  backdrop-filter: blur(12px);
+}
+
+.status-bar[data-status-tone="healthy"] {
+  --status-bar-tone-line: color-mix(in srgb, var(--status-bar-success-fg) 58%, transparent);
+}
+
+.status-bar[data-status-tone="attention"] {
+  --status-bar-tone-line: color-mix(in srgb, var(--status-bar-warning-fg) 70%, transparent);
+}
+
+.status-bar[data-status-tone="danger"] {
+  --status-bar-tone-line: color-mix(in srgb, var(--status-bar-danger-fg) 70%, transparent);
+}
+
+.status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) :is(button, [role="button"]) {
+  color: var(--status-bar-muted-foreground) !important;
+}
+
+.status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) :is(button:hover, button:focus-visible, button[aria-expanded="true"], [role="button"]:hover, [role="button"]:focus-visible) {
+  color: var(--status-bar-foreground) !important;
+}
+
+.status-bar :is([data-testid="spanda-intent-trigger"], [data-testid="status-mcp"], [data-testid="status-conflict-count"], [data-testid="status-claude-code"]) {
+  color: var(--status-bar-foreground) !important;
+}
+
+.status-bar [data-status-action-tone="accent"] {
+  color: var(--status-bar-accent-fg) !important;
+}
+
+.status-bar [data-status-action-tone="agent"] {
+  color: var(--status-bar-agent-fg) !important;
+}
+
+.status-bar [data-status-action-tone="warning"] {
+  color: var(--status-bar-warning-fg) !important;
+}
+
+.status-bar [data-status-action-tone="success"] {
+  color: var(--status-bar-success-fg) !important;
+}
+
+.status-bar [data-status-action-tone="danger"] {
+  color: var(--status-bar-danger-fg) !important;
+}
+
+.status-bar [data-status-pill-tone] {
+  border: 1px solid currentColor !important;
+  color: var(--status-bar-foreground) !important;
+}
+
+.status-bar [data-status-pill-tone="warning"] {
+  background: color-mix(in srgb, var(--status-bar-warning-fg) 14%, transparent) !important;
+  color: var(--status-bar-warning-fg) !important;
+}
+
+.status-bar [data-status-pill-tone="success"] {
+  background: color-mix(in srgb, var(--status-bar-success-fg) 14%, transparent) !important;
+  color: var(--status-bar-success-fg) !important;
+}
+
+.status-bar [data-status-pill-tone="danger"] {
+  background: color-mix(in srgb, var(--status-bar-danger-fg) 14%, transparent) !important;
+  color: var(--status-bar-danger-fg) !important;
+}
+
+.status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) {
+  background: var(--status-bar-control-material) !important;
+  border-color: var(--status-bar-control-border) !important;
+  box-shadow: var(--status-bar-group-shadow) !important;
+}
+
+.status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) :is(button:not([data-status-action-tone]), [role="button"]:not([data-status-action-tone])) {
+  color: inherit !important;
+}
+
+.status-bar [data-testid="status-modified-count"] span span {
+  background: var(--status-bar-badge-bg) !important;
+  border: 1px solid color-mix(in srgb, var(--status-bar-warning-fg) 32%, transparent) !important;
+  color: var(--status-bar-badge-fg) !important;
+}
+
+.status-bar :is([role="menu"], [data-testid="git-status-popup"]) {
+  --muted-foreground: var(--status-bar-popover-muted-foreground);
+  --color-muted-foreground: var(--status-bar-popover-muted-foreground);
+  color: var(--status-bar-popover-fg) !important;
+}

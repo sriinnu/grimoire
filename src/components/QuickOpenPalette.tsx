@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import type { VaultEntry } from '../types'
 import { NoteSearchList } from './NoteSearchList'
+import { Input } from './ui/input'
 import { useNoteSearch } from '../hooks/useNoteSearch'
 
 interface QuickOpenPaletteProps {
@@ -15,13 +16,16 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
   const inputRef = useRef<HTMLInputElement>(null)
   const { results, selectedIndex, setSelectedIndex, handleKeyDown } = useNoteSearch(entries, query)
 
-  useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on dialog open
-      setQuery('')
-      setSelectedIndex(0)
-      setTimeout(() => inputRef.current?.focus(), 50)
-    }
+  useLayoutEffect(() => {
+    if (!open) return
+
+    setQuery('')
+    setSelectedIndex(0)
+    inputRef.current?.focus()
+
+    if (document.activeElement === inputRef.current) return
+    const retry = window.requestAnimationFrame(() => inputRef.current?.focus())
+    return () => window.cancelAnimationFrame(retry)
   }, [open, setSelectedIndex])
 
   useEffect(() => {
@@ -49,15 +53,16 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
   return (
     <div
       data-testid="quick-open-palette"
-      className="fixed inset-0 z-[1000] flex justify-center bg-[var(--shadow-dialog)] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
       onClick={onClose}
     >
       <div
-        className="flex w-[500px] max-w-[90vw] max-h-[400px] flex-col self-start overflow-hidden rounded-xl border border-[var(--border-dialog)] bg-popover shadow-[0_8px_32px_var(--shadow-dialog)]"
+        className="grimoire-command-stage grimoire-command-surface flex w-[500px] max-w-[90vw] max-h-[400px] flex-col self-start overflow-hidden border"
         onClick={(e) => e.stopPropagation()}
       >
-        <input
+        <Input
           ref={inputRef}
+          data-testid="quick-open-input"
           className="border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
           type="text"
           placeholder="Search notes..."

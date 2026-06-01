@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 
 function tauriCall<T>(cmd: string, args: Record<string, unknown>): Promise<T> {

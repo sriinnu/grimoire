@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useMcpStatus } from './useMcpStatus'
 
@@ -12,6 +12,9 @@ vi.mock('../mock-tauri', () => ({
 }))
 
 const { mockInvoke } = await import('../mock-tauri') as { mockInvoke: ReturnType<typeof vi.fn> }
+
+let visibilityState: DocumentVisibilityState = 'visible'
+let visibilitySpy: ReturnType<typeof vi.spyOn> | null = null
 
 function mockCommands(handlers: Partial<Record<string, unknown>>) {
   mockInvoke.mockImplementation((command: string) => {
@@ -75,7 +78,14 @@ async function runMutationScenario({
 
 describe('useMcpStatus', () => {
   beforeEach(() => {
+    visibilityState = 'visible'
     vi.clearAllMocks()
+    visibilitySpy = vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
+  })
+
+  afterEach(() => {
+    visibilitySpy?.mockRestore()
+    visibilitySpy = null
   })
 
   it('checks the active vault status without auto-registering on mount', async () => {
@@ -93,6 +103,26 @@ describe('useMcpStatus', () => {
 
     expect(mockInvoke).toHaveBeenCalledWith('check_mcp_status', { vaultPath: '/vault' })
     expect(mockInvoke).not.toHaveBeenCalledWith('register_mcp_tools', { vaultPath: '/vault' })
+  })
+
+  it('defers the startup vault status check while the app is hidden', async () => {
+    visibilityState = 'hidden'
+    mockCommands({
+      check_mcp_status: 'installed',
+    })
+
+    const { result } = renderSubject()
+
+    expect(result.current.mcpStatus).toBe('checking')
+    expect(mockInvoke).not.toHaveBeenCalled()
+
+    visibilityState = 'visible'
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+
+    await waitFor(() => {
+      expect(result.current.mcpStatus).toBe('installed')
+    })
+    expect(mockInvoke).toHaveBeenCalledWith('check_mcp_status', { vaultPath: '/vault' })
   })
 
   it('resolves to not_installed when the active vault is not connected', async () => {

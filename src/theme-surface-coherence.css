@@ -1,0 +1,177 @@
+:where([data-theme-preset]) {
+  --grimoire-surface-padding: var(--grimoire-density-panel-padding, 16px);
+  --grimoire-surface-gap: var(--grimoire-density-card-gap, 14px);
+  --grimoire-surface-row-gap: var(--grimoire-density-row-gap, 8px);
+  --grimoire-surface-radius: var(--grimoire-shell-radius, calc(var(--radius) + 4px));
+  --grimoire-surface-shadow: var(--grimoire-card-shadow, none);
+  --grimoire-rail-material: linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 82%, var(--primary) 8%), color-mix(in srgb, var(--surface-panel) 92%, var(--surface-app)));
+  --grimoire-rail-card-material: color-mix(in srgb, var(--surface-card) 86%, var(--surface-panel));
+  --grimoire-rail-chip-material: color-mix(in srgb, var(--surface-app) 78%, transparent);
+  --grimoire-graph-material: linear-gradient(145deg, color-mix(in srgb, var(--surface-card) 88%, var(--primary) 5%), color-mix(in srgb, var(--surface-panel) 96%, var(--surface-app)));
+  --grimoire-graph-inner-material: color-mix(in srgb, var(--surface-card) 80%, var(--surface-panel));
+  --grimoire-graph-node-label-material: color-mix(in srgb, var(--surface-popover) 82%, transparent);
+  --grimoire-graph-node-chip-material: color-mix(in srgb, var(--surface-card) 76%, var(--surface-editor));
+  --grimoire-graph-agent-orbit-material: color-mix(in srgb, var(--surface-card) 88%, var(--surface-editor));
+  --grimoire-graph-node-shadow: drop-shadow(0 9px 16px color-mix(in srgb, var(--node-color, var(--primary)) 18%, transparent));
+  --grimoire-mobile-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 92%, var(--surface-app)), var(--surface-app));
+}
+
+:is([data-theme-preset]) :is(.app__dashboard, .vault-dashboard) {
+  background: var(--grimoire-dashboard-material);
+}
+
+:is([data-theme-preset]) :is(.vault-dashboard__hero, .vault-dashboard__grid, .vault-dashboard__capture-form, .vault-dashboard__loop-list) {
+  gap: var(--grimoire-surface-gap);
+}
+
+:is([data-theme-preset]) .vault-dashboard__flow {
+  gap: var(--grimoire-surface-gap);
+  border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-surface-radius);
+  padding: var(--grimoire-surface-padding);
+  background: var(--grimoire-rail-material);
+  box-shadow: var(--grimoire-surface-shadow);
+}
+
+:is([data-theme-preset]) :is(.vault-dashboard__flow-step, .vault-dashboard__ask-preview) {
+  gap: var(--grimoire-surface-row-gap);
+  border-color: var(--grimoire-hairline);
+  border-radius: calc(var(--grimoire-surface-radius) - 2px);
+  background: var(--grimoire-rail-card-material);
+}
+
+:is([data-theme-preset]) :is(.vault-dashboard__flow-states span, .vault-dashboard__ask-preview-chip) {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-rail-chip-material);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) :is([data-testid="graph-control-panel"], [data-testid="graph-insight-panel"], [data-testid="graph-selected-node"], [data-testid="graph-agent-runway"], [data-testid="graph-agent-council"], [data-testid="graph-agent-handoff"]) {
+  border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-surface-radius);
+  padding: var(--grimoire-surface-padding);
+  background: var(--grimoire-graph-material);
+  box-shadow: var(--grimoire-surface-shadow);
+}
+
+:is([data-theme-preset]) :is(.grimoire-graph-filter-shell, .graph-surface-inner, [data-testid="graph-control-panel"] [role="radiogroup"]) {
+  border-color: var(--grimoire-hairline);
+  border-radius: calc(var(--grimoire-surface-radius) - 2px);
+  background: var(--grimoire-graph-inner-material);
+}
+
+:is([data-theme-preset]) :is(.graph-agent-card, .graph-agent-chip, .grimoire-agent-route, .grimoire-agent-route__chip) {
+  border-color: var(--grimoire-hairline);
+  border-radius: calc(var(--grimoire-surface-radius) - 2px);
+  background: var(--grimoire-graph-inner-material);
+}
+
+:is([data-theme-preset]) :is(.graph-agent-card, .graph-agent-chip)[data-state="ready"],
+:is([data-theme-preset]) .grimoire-agent-route[data-locality="source-safe"] {
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--primary) 12%, var(--grimoire-graph-inner-material));
+  color: var(--foreground);
+}
+
+:is([data-theme-preset]) :is(.graph-agent-card, .graph-agent-chip)[data-state="guarded"],
+:is([data-theme-preset]) .grimoire-agent-route[data-locality="protected-local"] {
+  border-color: color-mix(in srgb, var(--grimoire-private-local-accent) 34%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--grimoire-private-local-accent) 10%, var(--grimoire-graph-inner-material));
+}
+
+:is([data-theme-preset]) :is(.graph-agent-card, .graph-agent-chip)[data-state="blocked"] {
+  border-color: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 38%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 10%, var(--grimoire-graph-inner-material));
+}
+
+:is([data-theme-preset]) .graph-canvas-shell {
+  border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-surface-radius);
+  background: var(--grimoire-graph-material);
+  box-shadow: var(--grimoire-surface-shadow);
+}
+
+:is([data-theme-preset]) :is(.graph-canvas-package-card, .graph-canvas-agent-rail span, .graph-canvas-legend__item) {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-graph-inner-material);
+  box-shadow: var(--grimoire-surface-shadow);
+}
+
+:is([data-theme-preset]) .graph-canvas-package-card[data-state="ready"],
+:is([data-theme-preset]) .graph-canvas-agent-rail span[data-state="ready"] {
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--primary) 12%, var(--grimoire-graph-inner-material));
+  color: var(--foreground);
+}
+
+:is([data-theme-preset]) .graph-canvas-agent-rail span[data-state="guarded"] {
+  border-color: color-mix(in srgb, var(--grimoire-private-local-accent) 36%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--grimoire-private-local-accent) 10%, var(--grimoire-graph-inner-material));
+  color: var(--foreground);
+}
+
+:is([data-theme-preset]) .graph-canvas-agent-rail span[data-state="blocked"] {
+  border-color: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 38%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 10%, var(--grimoire-graph-inner-material));
+  color: var(--foreground);
+}
+
+:is([data-theme-preset]) .graph-canvas-agent-rail span[data-state="waiting"] {
+  background: color-mix(in srgb, var(--muted-foreground) 7%, var(--grimoire-graph-inner-material));
+}
+
+:is([data-theme-preset]) :is(.grimoire-graph-node-title-backdrop, .grimoire-graph-node-type-pill) {
+  stroke: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-graph-node-title-backdrop {
+  fill: var(--grimoire-graph-node-label-material);
+}
+
+:is([data-theme-preset]) .grimoire-graph-node-type-pill {
+  fill: var(--grimoire-graph-node-chip-material);
+}
+
+:is([data-theme-preset]) .grimoire-graph-node-core {
+  filter: var(--grimoire-graph-node-shadow);
+}
+
+:is([data-theme-preset]) .grimoire-graph-agent-orbit__lane circle {
+  fill: var(--grimoire-graph-agent-orbit-material);
+  stroke: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-graph-agent-orbit__lane[data-state="ready"] circle {
+  fill: color-mix(in srgb, var(--primary) 18%, var(--grimoire-graph-agent-orbit-material));
+  stroke: color-mix(in srgb, var(--primary) 56%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-graph-agent-orbit__lane[data-state="guarded"] circle {
+  fill: color-mix(in srgb, var(--grimoire-private-local-accent) 12%, var(--grimoire-graph-agent-orbit-material));
+  stroke: color-mix(in srgb, var(--grimoire-private-local-accent) 38%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-graph-agent-orbit__lane[data-state="blocked"] circle {
+  fill: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 12%, var(--grimoire-graph-agent-orbit-material));
+  stroke: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 48%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-graph-agent-orbit__lane[data-state="waiting"] circle {
+  fill: color-mix(in srgb, var(--muted-foreground) 8%, var(--grimoire-graph-agent-orbit-material));
+  stroke: color-mix(in srgb, var(--muted-foreground) 36%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .graph-canvas-legend__item[data-tone="safe"] .graph-canvas-legend__mark {
+  border-top-color: color-mix(in srgb, var(--primary) 72%, var(--foreground));
+}
+
+@media (max-width: 720px) {
+  :is([data-theme-preset]) :is(.app__dashboard, .vault-dashboard, .grimoire-dialog-content) {
+    background: var(--grimoire-mobile-material);
+  }
+
+  :is([data-theme-preset]) :is(.vault-dashboard__flow, [data-testid="graph-control-panel"], [data-testid="graph-insight-panel"], [data-testid="graph-agent-runway"], [data-testid="graph-agent-council"], [data-testid="graph-agent-handoff"]) {
+    gap: var(--grimoire-surface-row-gap);
+    padding: calc(var(--grimoire-surface-padding) - 2px);
+  }
+}

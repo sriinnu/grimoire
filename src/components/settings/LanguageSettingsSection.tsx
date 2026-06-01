@@ -1,9 +1,10 @@
 import {
+  APP_LOCALES,
   SYSTEM_UI_LANGUAGE,
   localeDisplayName,
   type AppLocale,
   type UiLanguagePreference,
-} from '../../lib/i18n'
+} from '../../lib/i18nCore'
 import { LabeledSelect, SectionHeading } from './SettingsControls'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
 
@@ -15,8 +16,10 @@ function buildLanguageOptions(t: SettingsTranslate, locale: AppLocale, systemLoc
         language: localeDisplayName(systemLocale, locale),
       }),
     },
-    { value: 'en', label: t('settings.language.en') },
-    { value: 'zh-Hans', label: t('settings.language.zhHans') },
+    ...APP_LOCALES.map((value) => ({
+      value,
+      label: localeDisplayName(value, locale),
+    })),
   ]
 }
 

@@ -2,6 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import {
   appendLocalResponse,
   appendStreamingMessage,
+  buildMessageRouteDisclosure,
   buildFormattedMessage,
   createMissingAgentResponse,
   type AgentExecutionContext,
@@ -32,6 +33,7 @@ interface SendAgentMessageOptions {
 
 function normalizePrompt(prompt: PendingUserPrompt): PendingUserPrompt {
   return {
+    contextPackage: prompt.contextPackage,
     text: prompt.text.trim(),
     references: prompt.references && prompt.references.length > 0 ? prompt.references : undefined,
   }
@@ -65,7 +67,11 @@ export async function sendAgentMessage({
   runtime.responseAccRef.current = ''
   runtime.toolInputMapRef.current = new Map()
 
-  const messageId = appendStreamingMessage(runtime.setMessages, normalizedPrompt)
+  const messageId = appendStreamingMessage(
+    runtime.setMessages,
+    normalizedPrompt,
+    buildMessageRouteDisclosure(context),
+  )
   runtime.setStatus('thinking')
 
   const { formattedMessage, systemPrompt } = buildFormattedMessage(

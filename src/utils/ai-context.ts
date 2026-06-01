@@ -5,6 +5,7 @@
 
 import type { VaultEntry } from '../types'
 import { isLocalOnlyTypeName, resolveEntryLocalityPolicy } from '../lib/localityPolicy'
+import type { AgentGraphContext } from './agentGraphContext'
 import { wikilinkTarget, resolveEntry } from './wikilink'
 import { splitFrontmatter } from './wikilinks'
 
@@ -79,6 +80,7 @@ export interface ContextSnapshotParams {
   noteList?: NoteListItem[]
   noteListFilter?: { type: string | null; query: string }
   entries: VaultEntry[]
+  graphContext?: AgentGraphContext
   references?: NoteReference[]
 }
 
@@ -139,9 +141,57 @@ function noteListFilterForAgents(
   return type || query ? { type, query } : null
 }
 
+function graphContextForAgents(graphContext?: AgentGraphContext): Record<string, unknown> | null {
+  if (!graphContext || graphContext.state === 'empty') return null
+  const base = {
+    state: graphContext.state,
+    omitted: graphOmissionsForAgents(graphContext.omitted),
+    totals: graphContext.totals,
+  }
+  if (graphContext.state === 'protected-active') return base
+  return {
+    ...base,
+    nodes: graphContext.nodes.map((node) => ({
+      active: node.active,
+      degree: node.degree,
+      path: node.path,
+      title: node.title,
+      type: node.type,
+    })),
+    edges: graphContext.edges.map((edge) => ({
+      kind: edge.kind,
+      label: edge.label,
+      sourcePath: edge.sourcePath,
+      sourceTitle: edge.sourceTitle,
+      targetPath: edge.targetPath,
+      targetTitle: edge.targetTitle,
+    })),
+  }
+}
+
+function graphOmissionsForAgents(omitted: AgentGraphContext['omitted']): Record<string, unknown> {
+  return {
+    localOnly: omitted.protectedNodes + omitted.protectedEdges > 0 ? 'held-by-policy' : 'none',
+    truncatedEdges: omitted.truncatedEdges,
+    truncatedNodes: omitted.truncatedNodes,
+  }
+}
+
+function addLocalOnlyOmission(
+  snapshot: Record<string, unknown>,
+  key: string,
+  omitted: number,
+): void {
+  if (omitted <= 0) return
+  snapshot.localOnlyOmitted = {
+    ...(snapshot.localOnlyOmitted as Record<string, string> | undefined),
+    [key]: 'held-by-policy',
+  }
+}
+
 /** Build a structured context snapshot as a system prompt for Claude. */
 export function buildContextSnapshot(params: ContextSnapshotParams): string {
-  const { activeEntry, activeNoteContent, openTabs, noteList, noteListFilter, entries, references } = params
+  const { activeEntry, activeNoteContent, openTabs, noteList, noteListFilter, entries, graphContext, references } = params
   const activeLocality = resolveEntryLocalityPolicy(activeEntry)
 
   const rawContent = activeNoteContent || ''
@@ -193,14 +243,17 @@ export function buildContextSnapshot(params: ContextSnapshotParams): string {
       snapshot.noteListTruncated = { shown: MAX_NOTE_LIST_ITEMS, total: visibleItems.length }
     }
     const omitted = noteList.length - visibleItems.length
-    if (omitted > 0) {
-      snapshot.localOnlyOmitted = { noteList: omitted }
-    }
+    addLocalOnlyOmission(snapshot, 'noteList', omitted)
   }
 
   const visibleNoteListFilter = noteListFilterForAgents(noteListFilter, entries)
   if (visibleNoteListFilter) {
     snapshot.noteListFilter = visibleNoteListFilter
+  }
+
+  const visibleGraphContext = graphContextForAgents(graphContext)
+  if (visibleGraphContext) {
+    snapshot.graphNeighborhood = visibleGraphContext
   }
 
   const visibleEntries = entries.filter((entry) => !resolveEntryLocalityPolicy(entry).localOnly)
@@ -225,12 +278,7 @@ export function buildContextSnapshot(params: ContextSnapshotParams): string {
       }))
     }
     const omitted = references.length - visibleReferences.length
-    if (omitted > 0) {
-      snapshot.localOnlyOmitted = {
-        ...(snapshot.localOnlyOmitted as Record<string, number> | undefined),
-        referencedNotes: omitted,
-      }
-    }
+    addLocalOnlyOmission(snapshot, 'referencedNotes', omitted)
   }
 
   const preamble = [
@@ -238,6 +286,7 @@ export function buildContextSnapshot(params: ContextSnapshotParams): string {
     'The user is viewing a specific note. Use the structured context below to answer questions accurately.',
     'You can also use MCP tools to search, read, create, or edit notes in the vault.',
     'Never read, summarize, export, sync, upload, or transmit notes marked local-only unless the user explicitly authorizes that exact action.',
+    'If graphNeighborhood is present, treat it as source-safe graph context only; do not infer hidden local-only node titles or paths from omissions.',
     'If the body field is empty but wordCount is > 0, the content may be stale — use get_note to read the full note from disk.',
     'When you mention or reference a note by name, always use [[Note Title]] wikilink syntax so the user can click to open it.',
   ].join('\n')

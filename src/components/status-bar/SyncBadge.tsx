@@ -7,10 +7,16 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { ActionTooltipCopy } from '@/components/ui/action-tooltip'
 import type { GitRemoteStatus, SyncStatus } from '../../types'
-import { ICON_STYLE } from './styles'
+import {
+  ICON_STYLE,
+  STATUS_BAR_MUTED_FOREGROUND,
+  STATUS_BAR_POPOVER_BACKGROUND,
+  STATUS_BAR_POPOVER_FOREGROUND,
+  STATUS_BAR_POPOVER_MUTED_FOREGROUND,
+} from './styles'
 import { StatusBarAction } from './StatusBarAction'
+import type { StatusBarHintCopy } from './StatusBarHint'
 import { useDismissibleLayer } from './useDismissibleLayer'
 
 const SYNC_ICON_MAP: Record<string, typeof RefreshCw> = {
@@ -27,9 +33,9 @@ const SYNC_LABELS: Record<string, string> = {
 }
 
 const SYNC_COLORS: Record<string, string> = {
-  conflict: 'var(--accent-orange)',
-  error: 'var(--muted-foreground)',
-  pull_required: 'var(--accent-orange)',
+  conflict: 'var(--status-bar-warning-fg, var(--accent-orange))',
+  error: STATUS_BAR_MUTED_FOREGROUND,
+  pull_required: 'var(--status-bar-warning-fg, var(--accent-orange))',
 }
 
 function formatElapsedSync(lastSyncTime: number | null): string {
@@ -43,10 +49,10 @@ function formatSyncLabel(status: SyncStatus, lastSyncTime: number | null): strin
 }
 
 function syncIconColor(status: SyncStatus): string {
-  return SYNC_COLORS[status] ?? 'var(--accent-green)'
+  return SYNC_COLORS[status] ?? 'var(--status-bar-success-fg, var(--accent-green))'
 }
 
-function syncBadgeTooltipCopy(status: SyncStatus): ActionTooltipCopy {
+function syncBadgeTooltipCopy(status: SyncStatus): StatusBarHintCopy {
   if (status === 'conflict') return { label: 'Resolve merge conflicts' }
   if (status === 'syncing') return { label: 'Sync in progress' }
   if (status === 'pull_required') return { label: 'Pull from remote and push' }
@@ -69,21 +75,21 @@ function hasRemote(remoteStatus: GitRemoteStatus | null): boolean {
 
 function RemoteStatusSummary({ remoteStatus }: { remoteStatus: GitRemoteStatus | null }) {
   if (!hasRemote(remoteStatus)) {
-    return <div style={{ color: 'var(--muted-foreground)', marginBottom: 6 }}>No remote configured</div>
+    return <div style={{ color: STATUS_BAR_POPOVER_MUTED_FOREGROUND, marginBottom: 6 }}>No remote configured</div>
   }
 
   const ahead = remoteStatus?.ahead ?? 0
   const behind = remoteStatus?.behind ?? 0
 
   if (ahead === 0 && behind === 0) {
-    return <div style={{ display: 'flex', gap: 12, marginBottom: 6, color: 'var(--muted-foreground)' }}>In sync with remote</div>
+    return <div style={{ display: 'flex', gap: 12, marginBottom: 6, color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }}>In sync with remote</div>
   }
 
   return (
-    <div style={{ display: 'flex', gap: 12, marginBottom: 6, color: 'var(--muted-foreground)' }}>
+    <div style={{ display: 'flex', gap: 12, marginBottom: 6, color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }}>
       {ahead > 0 && <span title={`${ahead} commit${ahead > 1 ? 's' : ''} ahead of remote`}>↑ {ahead} ahead</span>}
       {behind > 0 && (
-        <span title={`${behind} commit${behind > 1 ? 's' : ''} behind remote`} style={{ color: 'var(--accent-orange)' }}>
+        <span title={`${behind} commit${behind > 1 ? 's' : ''} behind remote`} style={{ color: 'var(--status-bar-warning-fg, var(--accent-orange))' }}>
           ↓ {behind} behind
         </span>
       )}
@@ -94,8 +100,8 @@ function RemoteStatusSummary({ remoteStatus }: { remoteStatus: GitRemoteStatus |
 function SyncPanelRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '5px 0', borderBottom: '1px solid color-mix(in srgb, var(--border) 58%, transparent)' }}>
-      <span style={{ color: 'var(--muted-foreground)' }}>{label}</span>
-      <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>{value}</span>
+      <span style={{ color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }}>{label}</span>
+      <span style={{ color: STATUS_BAR_POPOVER_FOREGROUND, fontWeight: 600 }}>{value}</span>
     </div>
   )
 }
@@ -149,19 +155,19 @@ function GitStatusPopup({
         bottom: '100%',
         left: 0,
         marginBottom: 4,
-        background: 'var(--sidebar)',
-        border: '1px solid var(--border)',
+        background: STATUS_BAR_POPOVER_BACKGROUND,
+        border: '1px solid var(--status-bar-control-border, var(--border))',
         borderRadius: 6,
         padding: 10,
         minWidth: 280,
-        boxShadow: '0 4px 12px var(--shadow-dialog)',
+        boxShadow: '0 14px 36px color-mix(in srgb, var(--status-bar-background, var(--background)) 34%, transparent)',
         zIndex: 1000,
         fontSize: 12,
-        color: 'var(--foreground)',
+        color: STATUS_BAR_POPOVER_FOREGROUND,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-        <GitBranch size={13} style={{ color: 'var(--muted-foreground)' }} />
+        <GitBranch size={13} style={{ color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }} />
         <span style={{ fontWeight: 650 }}>Sync Panel</span>
       </div>
       <SyncPanelRow label="Files" value="Local" />
@@ -170,12 +176,12 @@ function GitStatusPopup({
       <SyncPanelRow label="Export" value="Gate required" />
       <div style={{ marginTop: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-          <GitBranch size={13} style={{ color: 'var(--muted-foreground)' }} />
+          <GitBranch size={13} style={{ color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }} />
           <span style={{ fontWeight: 500 }}>{remoteStatus?.branch || 'No Git remote'}</span>
         </div>
       </div>
       <RemoteStatusSummary remoteStatus={remoteStatus} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, color: 'var(--muted-foreground)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }}>
         Status: {syncStatusText(status)}
       </div>
       <PullAction remoteStatus={remoteStatus} onPull={onPull} onClose={onClose} />

@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "Dream Seed.textbundle/assets/moon.png",
+    "destination_path": "Dream Seed.textbundle/assets/moon.png",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "metadata",
+    "source_path": "Dream Seed.textbundle/info.json",
+    "destination_path": "Dream Seed.textbundle/info.json",
+    "detail": "Bear TextBundle metadata"
+  },
+  {
+    "kind": "note",
+    "source_path": "Dream Seed.textbundle/text.md",
+    "destination_path": "Dream Seed.textbundle/text.md",
+    "detail": "Bear TextBundle Markdown copy"
+  },
+  {
+    "kind": "withheld",
+    "source_path": ".codex/session.json",
+    "destination_path": null,
+    "detail": "local-only folder skip"
+  }
+]

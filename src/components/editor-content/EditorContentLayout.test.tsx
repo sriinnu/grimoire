@@ -20,7 +20,11 @@ vi.mock('../RawEditorView', () => ({
 }))
 
 vi.mock('../SingleEditorView', () => ({
-  SingleEditorView: () => <div data-testid="single-editor-view" />,
+  SingleEditorView: () => (
+    <div className="editor__blocknote-container" data-testid="single-editor-view">
+      <div className="bn-editor" data-testid="blocknote-editor-core" />
+    </div>
+  ),
 }))
 
 vi.mock('../DiffView', () => ({
@@ -109,5 +113,22 @@ describe('EditorContentLayout', () => {
 
     expect(container.firstElementChild).toHaveClass('editor-content-layout--left')
     expect(screen.getByTestId('breadcrumb-bar')).toHaveAttribute('data-note-layout', 'left')
+    expect(container.querySelector('.editor-scroll-area')).toHaveClass('grimoire-ink-settle')
+  })
+
+  it('keeps note-arrival motion on the shell instead of the typing surface', () => {
+    const { container } = render(<EditorContentLayout {...createModel()} />)
+
+    expect(container.querySelector('.editor-scroll-area')).toHaveClass('grimoire-ink-settle')
+
+    for (const element of [
+      container.querySelector('.editor-content-wrapper'),
+      screen.getByTestId('single-editor-view'),
+      screen.getByTestId('blocknote-editor-core'),
+    ]) {
+      expect(element).not.toHaveClass('grimoire-ink-settle')
+      expect(element).not.toHaveClass('grimoire-page-arrive')
+      expect(element).not.toHaveClass('grimoire-state-pulse')
+    }
   })
 })

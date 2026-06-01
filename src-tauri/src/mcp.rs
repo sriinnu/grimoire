@@ -1,9 +1,11 @@
 use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
+use std::sync::OnceLock;
 
 const MCP_SERVER_NAME: &str = "grimoire";
 const LEGACY_MCP_SERVER_NAME: &str = "grimoire-vault";
+static MCP_RESOURCE_DIR: OnceLock<PathBuf> = OnceLock::new();
 
 /// Status of the MCP server installation.
 #[derive(Debug, Serialize, Clone, PartialEq)]
@@ -71,35 +73,91 @@ fn fallback_node_path() -> Option<PathBuf> {
     candidates.into_iter().find(|path| path.is_file())
 }
 
+pub(crate) fn set_resource_dir(path: PathBuf) {
+    let _ = MCP_RESOURCE_DIR.set(path);
+}
+
 /// Resolve the path to `mcp-server/`.
 ///
 /// In dev mode, uses `CARGO_MANIFEST_DIR` (set at compile time).
-/// In release mode, navigates from the current executable.
+/// In release mode, uses Tauri's resource directory when available and falls
+/// back to known desktop bundle layouts for macOS, Windows, and Linux.
 pub(crate) fn mcp_server_dir() -> Result<PathBuf, String> {
     let dev_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("mcp-server");
-    if dev_path.join("ws-bridge.js").exists() {
-        return Ok(std::fs::canonicalize(&dev_path).unwrap_or(dev_path));
+    for candidate in mcp_server_dir_candidates(&dev_path) {
+        if is_mcp_server_dir(&candidate) {
+            return Ok(std::fs::canonicalize(&candidate).unwrap_or(candidate));
+        }
     }
 
-    let exe = std::env::current_exe().map_err(|e| format!("Cannot find executable: {e}"))?;
-    // On macOS the exe lives at Contents/MacOS/<binary>.
-    // Resources are placed at Contents/Resources/ by Tauri.
-    let release_path = exe
-        .parent()
-        .and_then(|p| p.parent())
-        .map(|p| p.join("Resources").join("mcp-server"))
-        .ok_or_else(|| "Cannot resolve mcp-server directory".to_string())?;
-    if release_path.join("ws-bridge.js").exists() {
-        return Ok(release_path);
+    let attempted = mcp_server_dir_candidates(&dev_path)
+        .into_iter()
+        .map(|path| path.display().to_string())
+        .collect::<Vec<_>>()
+        .join(", ");
+    Err(format!("mcp-server not found. Checked: {}", attempted))
+}
+
+fn is_mcp_server_dir(path: &Path) -> bool {
+    path.join("ws-bridge.js").is_file() && path.join("index.js").is_file()
+}
+
+fn mcp_server_dir_candidates(dev_path: &Path) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if cfg!(debug_assertions) {
+        push_unique(&mut candidates, dev_path.to_path_buf());
     }
 
-    Err(format!(
-        "mcp-server not found at {} or {}",
-        dev_path.display(),
-        release_path.display()
-    ))
+    if let Some(resource_dir) = MCP_RESOURCE_DIR.get() {
+        push_unique(&mut candidates, resource_dir.join("mcp-server"));
+    }
+
+    if let Ok(exe) = std::env::current_exe() {
+        let appdir = std::env::var_os("APPDIR").map(PathBuf::from);
+        for candidate in resource_dir_candidates_from_exe(&exe, appdir.as_deref()) {
+            push_unique(&mut candidates, candidate);
+        }
+    }
+
+    if !cfg!(debug_assertions) {
+        push_unique(&mut candidates, dev_path.to_path_buf());
+    }
+
+    candidates
+}
+
+fn resource_dir_candidates_from_exe(exe: &Path, appdir: Option<&Path>) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Some(exe_dir) = exe.parent() {
+        push_unique(&mut candidates, exe_dir.join("mcp-server"));
+        if let Some(parent) = exe_dir.parent() {
+            push_unique(&mut candidates, parent.join("Resources").join("mcp-server"));
+            push_unique(&mut candidates, parent.join("lib/grimoire/mcp-server"));
+        }
+    }
+    if let Some(appdir) = appdir {
+        push_unique(
+            &mut candidates,
+            appdir
+                .join("usr")
+                .join("lib")
+                .join("grimoire")
+                .join("mcp-server"),
+        );
+    }
+    push_unique(
+        &mut candidates,
+        PathBuf::from("/usr/lib/grimoire/mcp-server"),
+    );
+    candidates
+}
+
+fn push_unique(paths: &mut Vec<PathBuf>, candidate: PathBuf) {
+    if !paths.iter().any(|existing| existing == &candidate) {
+        paths.push(candidate);
+    }
 }
 
 /// Spawn the WebSocket bridge as a child process.
@@ -373,6 +431,21 @@ mod tests {
         assert_eq!(entry["command"], "node");
         assert_eq!(entry["args"][0], "/path/to/index.js");
         assert_eq!(entry["env"]["VAULT_PATH"], "/my/vault");
+    }
+
+    #[test]
+    fn release_resource_candidates_cover_desktop_bundle_layouts() {
+        let appdir = PathBuf::from("/tmp/.mount_grimoire");
+        let candidates = resource_dir_candidates_from_exe(
+            Path::new("/Applications/Grimoire.app/Contents/MacOS/grimoire"),
+            Some(&appdir),
+        );
+
+        assert!(candidates.contains(&PathBuf::from(
+            "/Applications/Grimoire.app/Contents/Resources/mcp-server"
+        )));
+        assert!(candidates.contains(&appdir.join("usr/lib/grimoire/mcp-server")));
+        assert!(candidates.contains(&PathBuf::from("/usr/lib/grimoire/mcp-server")));
     }
 
     #[test]

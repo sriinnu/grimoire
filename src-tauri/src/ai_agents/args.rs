@@ -7,6 +7,7 @@ pub(super) fn build_chitragupta_args(request: &AiAgentStreamRequest) -> Vec<Stri
         "grimoire".into(),
         "--thinking".into(),
         "off".into(),
+        "--stream-json".into(),
         "--project".into(),
         request.vault_path.clone(),
     ];
@@ -47,6 +48,7 @@ pub(super) fn build_codex_args(request: &AiAgentStreamRequest) -> Result<Vec<Str
         ),
         "--sandbox".into(),
         "workspace-write".into(),
+        "--skip-git-repo-check".into(),
         "-c".into(),
         r#"approval_policy="never""#.into(),
     ];
@@ -116,6 +118,7 @@ mod tests {
             assert!(!args.contains(&"--dangerously-bypass-approvals-and-sandbox".to_string()));
             assert!(args.contains(&"--sandbox".to_string()));
             assert!(args.contains(&"workspace-write".to_string()));
+            assert!(args.contains(&"--skip-git-repo-check".to_string()));
             assert!(args.contains(&r#"approval_policy="never""#.to_string()));
             assert!(args.contains(&"--json".to_string()));
             assert!(args.contains(&"-C".to_string()));
@@ -153,6 +156,7 @@ mod tests {
         assert!(args.contains(&"grimoire".to_string()));
         assert!(args.contains(&"--thinking".to_string()));
         assert!(args.contains(&"off".to_string()));
+        assert!(args.contains(&"--stream-json".to_string()));
         assert!(args.contains(&"--project".to_string()));
         assert!(args.contains(&"/tmp/vault".to_string()));
         assert!(args.contains(&"--model".to_string()));
@@ -165,5 +169,36 @@ mod tests {
             .unwrap()
             .contains("System instructions:\nBe concise"));
         assert!(args.last().unwrap().contains("User request:\nhi there"));
+    }
+
+    #[test]
+    fn build_chitragupta_args_uses_cli_default_without_route_overrides() {
+        let args = build_chitragupta_args(&AiAgentStreamRequest {
+            agent: AiAgentId::Chitragupta,
+            message: "which model are you using?".into(),
+            system_prompt: None,
+            vault_path: "/tmp/vault".into(),
+            provider: None,
+            model: None,
+        });
+
+        assert!(!args.contains(&"--provider".to_string()));
+        assert!(!args.contains(&"--model".to_string()));
+        assert_eq!(args.last(), Some(&"which model are you using?".to_string()));
+    }
+
+    #[test]
+    fn build_chitragupta_args_drops_unsafe_route_overrides() {
+        let args = build_chitragupta_args(&AiAgentStreamRequest {
+            agent: AiAgentId::Chitragupta,
+            message: "hi".into(),
+            system_prompt: None,
+            vault_path: "/tmp/vault".into(),
+            provider: Some("google gemini".into()),
+            model: Some("gemini 2.5".into()),
+        });
+
+        assert!(!args.contains(&"--provider".to_string()));
+        assert!(!args.contains(&"--model".to_string()));
     }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import { initSentry, teardownSentry, initPostHog, teardownPostHog, updatePostHogIdentify, setReleaseChannel } from '../lib/telemetry'
 import { normalizeReleaseChannel, type ReleaseChannel } from '../lib/releaseChannel'
@@ -19,13 +19,13 @@ function syncCrashReporting(
   wasEnabled: boolean,
 ): void {
   if (crashEnabled && anonymousId) {
-    if (!wasEnabled) initSentry(anonymousId)
+    if (!wasEnabled) void initSentry(anonymousId)
     return
   }
 
   if (!wasEnabled) return
 
-  teardownSentry()
+  void teardownSentry()
   tauriCall('reinit_telemetry').catch((err) => console.warn('[telemetry] Reinit failed:', err))
 }
 

@@ -1,5 +1,5 @@
 import type { ComponentProps } from 'react'
-import { render } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { NoteList } from '../components/NoteList'
 import type { NoteListFilter } from '../utils/noteListHelpers'
@@ -45,7 +45,7 @@ export const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
 
 export const mockEntries: VaultEntry[] = [
   makeEntry({
-    path: '/Users/srinivas/Grimoire/project/26q1-grimoire-app.md',
+    path: '/Users/mock/Grimoire/project/26q1-grimoire-app.md',
     filename: '26q1-grimoire-app.md',
     title: 'Build Grimoire App',
     isA: 'Project',
@@ -60,7 +60,7 @@ export const mockEntries: VaultEntry[] = [
     },
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/note/facebook-ads-strategy.md',
+    path: '/Users/mock/Grimoire/note/facebook-ads-strategy.md',
     filename: 'facebook-ads-strategy.md',
     title: 'Facebook Ads Strategy',
     isA: 'Note',
@@ -76,9 +76,9 @@ export const mockEntries: VaultEntry[] = [
     },
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/person/karthik-reddy.md',
-    filename: 'karthik-reddy.md',
-    title: 'Karthik Reddy',
+    path: '/Users/mock/Grimoire/person/arjun-mehta.md',
+    filename: 'arjun-mehta.md',
+    title: 'Arjun Mehta',
     isA: 'Person',
     modifiedAt: 1700000000,
     createdAt: null,
@@ -86,7 +86,7 @@ export const mockEntries: VaultEntry[] = [
     snippet: 'Sponsorship manager.',
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/event/2026-02-14-kickoff.md',
+    path: '/Users/mock/Grimoire/event/2026-02-14-kickoff.md',
     filename: '2026-02-14-kickoff.md',
     title: 'Kickoff Meeting',
     isA: 'Event',
@@ -96,7 +96,7 @@ export const mockEntries: VaultEntry[] = [
     snippet: 'Project kickoff meeting notes.',
   }),
   makeEntry({
-    path: '/Users/srinivas/Grimoire/topic/software-development.md',
+    path: '/Users/mock/Grimoire/topic/software-development.md',
     filename: 'software-development.md',
     title: 'Software Development',
     isA: 'Topic',
@@ -162,4 +162,18 @@ export function renderNoteList(overrides: Partial<NoteListProps> = {}) {
     ...render(<NoteList {...built.props} />),
     ...built,
   }
+}
+
+export function getNoteTitleElement(title: string, index = 0): HTMLElement {
+  const matches = screen
+    .getAllByTestId('note-title')
+    .filter((element) => element.textContent?.includes(title))
+  const match = matches[index]
+  if (!match) throw new Error(`No note title found for "${title}" at index ${index}`)
+  return match as HTMLElement
+}
+
+/** Waits for lazy note-list surfaces to reveal a rendered note title. */
+export async function findNoteTitleElement(title: string, index = 0): Promise<HTMLElement> {
+  return waitFor(() => getNoteTitleElement(title, index))
 }

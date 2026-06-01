@@ -1,0 +1,366 @@
+:where([data-theme-preset]) {
+  --grimoire-hairline: color-mix(in srgb, var(--border-default) 76%, transparent);
+  --grimoire-panel-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 18%, var(--surface-panel)), var(--surface-panel));
+  --grimoire-toolbar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 30%, var(--surface-panel)), var(--surface-panel));
+  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 18rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 92%, var(--surface-panel)), var(--surface-app));
+  --grimoire-card-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)));
+  --grimoire-card-selected-material: linear-gradient(135deg, color-mix(in srgb, var(--note-type-color, var(--primary)) 16%, var(--surface-card)), color-mix(in srgb, var(--state-selected) 68%, var(--surface-card)));
+  --grimoire-dialog-material: linear-gradient(145deg, color-mix(in srgb, var(--primary) 7%, transparent), transparent 34%), var(--surface-panel);
+  --grimoire-dialog-overlay: color-mix(in srgb, var(--shadow-overlay) 82%, transparent);
+  --grimoire-dialog-shadow: 0 18px 54px color-mix(in srgb, var(--shadow-dialog) 84%, transparent);
+  --grimoire-shell-radius: calc(var(--radius) + 4px);
+  --grimoire-portability-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-panel)));
+  --grimoire-portability-preview-material: color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel));
+  --grimoire-portability-rail-material: color-mix(in srgb, var(--primary) 8%, var(--surface-card));
+  --grimoire-portability-warn-fg: var(--feedback-warning-text); --grimoire-portability-safe-fg: var(--feedback-success-text);
+  --grimoire-editor-material: linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, transparent), transparent 18rem), var(--surface-editor);
+  --grimoire-editor-page-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 74%, var(--surface-editor)), var(--surface-editor));
+  --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 19rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 82%, var(--surface-panel)), var(--surface-app));
+  --grimoire-status-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 90%, var(--surface-panel)), var(--surface-sidebar));
+  --grimoire-agent-card-material: linear-gradient(145deg, color-mix(in srgb, var(--primary) 8%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)));
+  --grimoire-signal-accent: color-mix(in srgb, var(--primary) 82%, var(--text-primary));
+  --grimoire-signal-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
+  --grimoire-signal-border: color-mix(in srgb, var(--primary) 34%, var(--border-default));
+  --grimoire-signal-text: color-mix(in srgb, var(--primary) 26%, var(--text-primary));
+  --grimoire-private-local-accent: color-mix(in srgb, var(--accent-orange) 36%, var(--primary));
+  --grimoire-private-local-material: radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--grimoire-private-local-accent) 18%, transparent), transparent 10rem), linear-gradient(145deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
+  --grimoire-private-local-border: color-mix(in srgb, var(--grimoire-private-local-accent) 34%, var(--border-default)); --grimoire-private-local-glow: 0 20px 54px color-mix(in srgb, var(--grimoire-private-local-accent) 12%, transparent);
+  --grimoire-private-chip-bg: color-mix(in srgb, var(--grimoire-private-local-accent) 10%, transparent); --grimoire-private-chip-border: color-mix(in srgb, var(--grimoire-private-local-accent) 28%, var(--border-default)); --grimoire-private-chip-fg: color-mix(in srgb, var(--grimoire-private-local-accent) 62%, var(--text-primary));
+  --ai-message-user-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 86%, var(--surface-panel)));
+  --ai-message-user-border: color-mix(in srgb, var(--primary) 22%, var(--border-default)); --ai-message-user-fg: var(--text-primary);
+  --ai-reference-pill-bg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 12%, var(--surface-card));
+  --ai-reference-pill-border: color-mix(in srgb, var(--reference-type-color, var(--primary)) 24%, var(--border-default));
+  --ai-reference-pill-fg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 72%, var(--text-primary));
+}
+
+:is([data-theme-preset]) :is(.note-list-panel, .inspector-panel, .ai-panel) {
+  background: var(--grimoire-panel-material);
+  border-color: var(--grimoire-hairline);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .settings-panel-shell {
+  background: var(--grimoire-dialog-material);
+  border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-shell-radius);
+  box-shadow: var(--grimoire-dialog-shadow);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .grimoire-dialog-overlay {
+  background: var(--grimoire-dialog-overlay);
+  backdrop-filter: blur(var(--grimoire-overlay-blur, 10px));
+}
+
+:is([data-theme-preset]) :is(.grimoire-dialog-content, .grimoire-command-surface) {
+  background: var(--grimoire-dialog-material);
+  border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-shell-radius);
+  box-shadow: var(--grimoire-dialog-shadow);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .grimoire-dialog-content {
+  padding: var(--grimoire-density-panel-padding, 16px);
+}
+
+:is([data-theme-preset]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy) {
+  background: var(--grimoire-portability-material);
+  border-color: var(--grimoire-hairline);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck {
+  position: relative;
+  contain: paint;
+  isolation: isolate;
+  overflow: hidden;
+  box-shadow:
+    0 18px 48px color-mix(in srgb, var(--foreground) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--background) 72%, transparent);
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck > * {
+  position: relative;
+  z-index: 1;
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck::before,
+:is([data-theme-preset]) .grimoire-portability-action-deck::after {
+  position: absolute;
+  z-index: 0;
+  border: 1px solid color-mix(in srgb, var(--grimoire-hairline) 78%, transparent);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent 62%),
+    var(--grimoire-portability-preview-material);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--foreground) 8%, transparent);
+  content: "";
+  height: 46px;
+  pointer-events: none;
+  transform-origin: top center;
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck::before {
+  inset: 11px 22px auto;
+  opacity: 0.48;
+  transform: translateY(-11px) scale(0.955);
+}
+
+:is([data-theme-preset]) .grimoire-portability-action-deck::after {
+  inset: 24px 34px auto;
+  opacity: 0.28;
+  transform: translateY(-18px) scale(0.91);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is([data-theme-preset]) .grimoire-portability-action-deck::before,
+  :is([data-theme-preset]) .grimoire-portability-action-deck::after {
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease;
+  }
+
+  :is([data-theme-preset]) .grimoire-portability-action-deck:focus-within::before {
+    opacity: 0.56;
+    transform: translateY(-9px) scale(0.965);
+  }
+
+  :is([data-theme-preset]) .grimoire-portability-action-deck:focus-within::after {
+    opacity: 0.34;
+    transform: translateY(-15px) scale(0.925);
+  }
+}
+
+:is([data-theme-preset]) :is(.grimoire-portability-lanes, .grimoire-portability-inline-panel, .grimoire-object-storage-preview, .grimoire-import-autopsy__bucket, .grimoire-import-autopsy__manifest, .grimoire-import-autopsy__manifest-row, .grimoire-import-autopsy__step, .grimoire-preview-stat) {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-portability-contract__item {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-portability-contract__item[data-contract-item="private"] {
+  border-color: color-mix(in srgb, var(--grimoire-portability-warn-fg) 28%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-portability-contract__item[data-contract-item="provider"] {
+  border-color: color-mix(in srgb, var(--accent-blue) 28%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .grimoire-portability-review-gate {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) :is(.settings-desktop-storage-row, .settings-proof-chip) {
+  background: var(--grimoire-portability-preview-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-portability-lanes {
+  background: var(--grimoire-portability-rail-material);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="active"] {
+  background: var(--accent-green);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="available"] {
+  background: var(--accent-blue);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="planned"] {
+  background: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+}
+
+:is([data-theme-preset]) .grimoire-storage-health-dot[data-state="not_selected"] {
+  background: var(--accent-orange);
+}
+
+:is([data-theme-preset]) .grimoire-portability-progress-track {
+  background: color-mix(in srgb, var(--surface-panel) 70%, var(--surface-card));
+}
+
+:is([data-theme-preset]) .grimoire-portability-progress-bar {
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--accent-blue) 42%, var(--primary)));
+}
+
+:is([data-theme-preset]) :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) [data-tone="warn"] :is(.grimoire-preview-stat__value, .grimoire-import-autopsy__value) {
+  color: var(--grimoire-portability-warn-fg);
+}
+
+:is([data-theme-preset]) [data-tone="safe"] .grimoire-preview-stat__value {
+  color: var(--grimoire-portability-safe-fg);
+}
+
+:is([data-theme-preset]) .settings-navigation-rail {
+  background: var(--grimoire-panel-material);
+  border-right-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .settings-mobile-navigation {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 82%, transparent), transparent);
+}
+
+:is([data-theme-preset]) .settings-mobile-navigation__rail {
+  background: var(--grimoire-toolbar-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .settings-mobile-navigation button[aria-current="page"] {
+  background: var(--grimoire-card-selected-material);
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--grimoire-hairline));
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .settings-main-surface {
+  background: var(--grimoire-settings-main-material);
+}
+
+:is([data-theme-preset]) :is(.settings-theme-preset-card, .settings-appearance-preview) {
+  background: var(--grimoire-card-material);
+  border-color: var(--grimoire-hairline);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .settings-theme-preset-card[data-group="signature"] {
+  background: linear-gradient(135deg, var(--surface-editor), color-mix(in srgb, var(--primary) 14%, var(--surface-panel)));
+  border-color: color-mix(in srgb, var(--primary) 36%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .settings-theme-preset-card[data-selected="true"] {
+  background: var(--surface-panel);
+  border-color: var(--primary);
+}
+
+:is([data-theme-preset]) .settings-appearance-preview {
+  padding: 14px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__sample {
+  color: var(--foreground);
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__body {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.55;
+  margin-top: 6px;
+}
+
+:is([data-theme-preset]) .ai-panel [data-ai-message-bubble="user"] {
+  background: var(--ai-message-user-bg);
+  border-color: var(--ai-message-user-border);
+  color: var(--ai-message-user-fg);
+}
+
+:is([data-theme-preset]) .ai-panel [data-reference-pill="true"] {
+  background: var(--ai-reference-pill-bg) !important;
+  border-color: var(--ai-reference-pill-border) !important;
+  color: var(--ai-reference-pill-fg) !important;
+}
+
+:is([data-theme-preset]) :is(.breadcrumb-bar, .note-list-top-chrome, .note-list-chrome-row, .note-list-search-row, .project-workspace-strip, .note-list-filter-rail) {
+  background: var(--grimoire-toolbar-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) :is(.project-workspace-chrome, .note-list-filter-shelf) {
+  background: transparent;
+}
+
+:is([data-theme-preset]) :is(.editor, .editor-scroll-area) {
+  background: var(--grimoire-editor-material);
+}
+
+:is([data-theme-preset]) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat) {
+  background: var(--grimoire-card-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
+  background: var(--grimoire-card-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .note-list-panel [data-note-path][data-selected="true"] {
+  background: var(--grimoire-card-selected-material);
+}
+
+:is([data-theme-preset]) :is(.ai-panel, .inspector-panel) {
+  --background: var(--surface-panel);
+  --foreground: var(--text-primary);
+  --card: var(--surface-card);
+  --muted: color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel));
+  --muted-foreground: var(--text-secondary);
+  --border: var(--grimoire-hairline);
+  --input: var(--border-subtle);
+  --grimoire-private-local-accent: color-mix(in srgb, var(--accent-orange) 36%, var(--primary));
+  --grimoire-signal-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
+  --grimoire-signal-border: color-mix(in srgb, var(--primary) 34%, var(--border-default));
+  --grimoire-signal-text: color-mix(in srgb, var(--primary) 26%, var(--text-primary));
+}
+
+:is([data-theme-preset]) .ai-panel :is(.border-b, .border-t, [data-testid="context-bar"]) {
+  border-color: var(--grimoire-hairline) !important;
+}
+
+:is([data-theme-preset]) .ai-panel [data-testid="agent-input"] {
+  background: color-mix(in srgb, var(--surface-input) 88%, var(--surface-panel));
+  border-color: var(--grimoire-hairline);
+  color: var(--text-primary);
+}
+
+:is([data-theme-preset]) .inspector-body {
+  gap: 18px;
+  padding: 16px;
+  scroll-padding-block: 16px;
+}
+
+:is([data-theme-preset]) .inspector-panel .inspector-card,
+:is([data-theme-preset]) .inspector-panel .constellation-insights {
+  min-width: 0;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 54%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--primary) 14%, var(--surface-card));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 13%, transparent),
+    0 10px 24px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node[data-concept-state="matched"] {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--grimoire-hairline));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), transparent 62%),
+    color-mix(in srgb, var(--surface-card) 88%, var(--primary) 6%);
+  color: color-mix(in srgb, var(--primary) 24%, var(--text-primary));
+}
+
+:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node:disabled {
+  cursor: default;
+  opacity: 0.72;
+}

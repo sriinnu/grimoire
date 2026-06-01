@@ -3,6 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Output;
 
+pub use crate::transcription_runtime::TranscriptionReadiness;
+
 const AUDIO_EXTENSIONS: &[&str] = &[
     "aac", "flac", "m4a", "mp3", "mp4", "ogg", "opus", "wav", "webm",
 ];
@@ -51,6 +53,52 @@ fn normalize_provider(provider: Option<&str>) -> Result<&'static str, String> {
         Some(value) if value == WHISPER_API_PROVIDER => Ok(WHISPER_API_PROVIDER),
         Some(value) => Err(format!("Unsupported transcription provider: {value}")),
     }
+}
+
+fn ensure_provider_allowed(provider: &str, allow_cloud: Option<bool>) -> Result<(), String> {
+    if provider == WHISPER_API_PROVIDER && allow_cloud != Some(true) {
+        return Err(
+            "Cloud transcription is disabled. Enable it in Settings before using Whisper API."
+                .to_string(),
+        );
+    }
+    Ok(())
+}
+
+pub fn get_transcription_readiness(
+    provider: Option<String>,
+    model: Option<String>,
+    allow_cloud: Option<bool>,
+) -> Result<TranscriptionReadiness, String> {
+    let provider = normalize_provider(provider.as_deref())?;
+    if provider == WHISPER_API_PROVIDER {
+        return Ok(TranscriptionReadiness {
+            provider: provider.to_string(),
+            ready: false,
+            status: if allow_cloud == Some(true) {
+                "api_pending".to_string()
+            } else {
+                "cloud_blocked".to_string()
+            },
+            message: if allow_cloud == Some(true) {
+                "Whisper API is selected, but native API-key transport is not implemented yet."
+                    .to_string()
+            } else {
+                "Cloud transcription is blocked until Settings explicitly allows it.".to_string()
+            },
+            cli_path: None,
+            model_path: None,
+            recommended_model_path: crate::transcription_runtime::recommended_model_path()
+                .map(|path| path.display().to_string()),
+            download_url: None,
+            install_hint: "Use Local Whisper for private on-device transcription today."
+                .to_string(),
+        });
+    }
+    Ok(crate::transcription_runtime::local_transcription_readiness(
+        provider,
+        model.as_deref(),
+    ))
 }
 
 fn validate_audio_path(audio_path: &str) -> Result<PathBuf, String> {
@@ -189,11 +237,21 @@ pub fn transcribe_audio(
     provider: Option<String>,
     language: Option<String>,
     model: Option<String>,
+    allow_cloud: Option<bool>,
 ) -> Result<TranscriptionResult, String> {
     let provider = normalize_provider(provider.as_deref())?;
+    ensure_provider_allowed(provider, allow_cloud)?;
     let audio_path = validate_audio_path(&audio_path)?;
     match provider {
         LOCAL_WHISPER_PROVIDER | LOCAL_VOICE_MODEL_PROVIDER => {
+            if let Some(result) = crate::transcription_runtime::try_transcribe_with_whisper_cpp(
+                &audio_path,
+                provider,
+                language.clone(),
+                model.as_deref(),
+            )? {
+                return Ok(result);
+            }
             run_local_whisper(&audio_path, provider, language, model)
         }
         WHISPER_API_PROVIDER => Err(
@@ -258,5 +316,40 @@ mod tests {
             .unwrap();
 
         assert!(validate_audio_path(audio_path.to_str().unwrap()).is_err());
+    }
+
+    #[test]
+    fn rejects_cloud_transcription_without_explicit_opt_in() {
+        let err = transcribe_audio(
+            "/tmp/voice-note.m4a".to_string(),
+            Some(WHISPER_API_PROVIDER.to_string()),
+            None,
+            None,
+            Some(false),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("Cloud transcription is disabled"));
+    }
+
+    #[test]
+    fn reaches_api_transport_guard_after_cloud_opt_in() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let audio_path = dir.path().join("voice-note.m4a");
+        fs::File::create(&audio_path)
+            .unwrap()
+            .write_all(b"audio")
+            .unwrap();
+
+        let err = transcribe_audio(
+            audio_path.to_string_lossy().to_string(),
+            Some(WHISPER_API_PROVIDER.to_string()),
+            None,
+            None,
+            Some(true),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("needs API key transport"));
     }
 }

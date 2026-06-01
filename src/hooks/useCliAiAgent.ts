@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
+import type { AskContextPackage } from '../lib/askContextPackage'
 import type { AiAgentId } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
 import {
@@ -90,8 +91,12 @@ export function useCliAiAgent(
     setQueuedVersion((current) => current + 1)
   }
 
-  async function sendMessage(text: string, references?: NoteReference[]): Promise<void> {
-    const prompt = { text, references }
+  async function sendMessage(
+    text: string,
+    references?: NoteReference[],
+    contextPackage?: AskContextPackage,
+  ): Promise<void> {
+    const prompt = { text, references, contextPackage }
     if (runtime.statusRef.current === 'thinking' || runtime.statusRef.current === 'tool-executing') {
       if (text.trim()) enqueuePrompt(prompt)
       return

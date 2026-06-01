@@ -1,8 +1,14 @@
 import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import { AlertTriangle, Check, FolderOpen, GitBranch, Plus, Rocket, X } from 'lucide-react'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
+import {
+  STATUS_BAR_POPOVER_BACKGROUND,
+  STATUS_BAR_POPOVER_FOREGROUND,
+  STATUS_BAR_POPOVER_MUTED_FOREGROUND,
+} from './styles'
+import { StatusBarHint } from './StatusBarHint'
 import type { VaultOption } from './types'
 import { useDismissibleLayer } from './useDismissibleLayer'
 
@@ -110,7 +116,7 @@ function buildVaultActions({
 
 function VaultMenuIcon({ isActive, unavailable }: { isActive: boolean; unavailable: boolean }) {
   if (isActive) return <Check size={12} />
-  if (unavailable) return <AlertTriangle size={12} style={{ color: 'var(--muted-foreground)' }} />
+  if (unavailable) return <AlertTriangle size={12} style={{ color: STATUS_BAR_POPOVER_MUTED_FOREGROUND }} />
   return <span style={{ width: 12 }} />
 }
 
@@ -177,13 +183,21 @@ function VaultMenuAction({ icon, label, testId, accent = false, onClick }: Vault
       size="xs"
       onClick={onClick}
       className="h-auto w-full justify-start rounded-sm px-2 py-1 text-xs font-normal"
-      style={{ color: accent ? 'var(--accent-blue)' : 'var(--muted-foreground)' }}
+      style={{ color: accent ? 'var(--status-bar-accent-fg, var(--accent-blue))' : STATUS_BAR_POPOVER_MUTED_FOREGROUND }}
       data-testid={testId}
     >
       {icon}
       {label}
     </Button>
   )
+}
+
+function runAfterVaultMenuCloses(action: () => void, closeMenu: () => void) {
+  flushSync(closeMenu)
+
+  window.setTimeout(() => {
+    action()
+  }, 0)
 }
 
 export function VaultMenu({
@@ -218,7 +232,7 @@ export function VaultMenu({
 
   return (
     <div ref={menuRef} style={{ position: 'relative' }}>
-      <ActionTooltip copy={{ label: 'Switch vault' }} side="top">
+      <StatusBarHint copy={{ label: 'Switch vault' }}>
         <Button
           type="button"
           variant="ghost"
@@ -231,7 +245,7 @@ export function VaultMenu({
           <FolderOpen size={13} />
           {compact ? null : <span className="max-w-32 truncate">{activeVaultLabel}</span>}
         </Button>
-      </ActionTooltip>
+      </StatusBarHint>
       {open && (
         <div
           style={{
@@ -239,12 +253,13 @@ export function VaultMenu({
             bottom: '100%',
             left: 0,
             marginBottom: 4,
-            background: 'var(--sidebar)',
-            border: '1px solid var(--border)',
+            background: STATUS_BAR_POPOVER_BACKGROUND,
+            border: '1px solid var(--status-bar-control-border, var(--border))',
             borderRadius: 6,
             padding: 4,
             minWidth: 200,
             boxShadow: '0 4px 12px var(--shadow-dialog)',
+            color: STATUS_BAR_POPOVER_FOREGROUND,
             zIndex: 1000,
           }}
         >
@@ -255,12 +270,15 @@ export function VaultMenu({
               isActive={vault.path === vaultPath}
               canRemove={canRemove}
               onSelect={() => {
-                onSwitchVault(vault.path)
-                setOpen(false)
+                if (vault.path === vaultPath) {
+                  setOpen(false)
+                  return
+                }
+
+                runAfterVaultMenuCloses(() => onSwitchVault(vault.path), () => setOpen(false))
               }}
               onRemove={onRemoveVault ? () => {
-                onRemoveVault(vault.path)
-                setOpen(false)
+                runAfterVaultMenuCloses(() => onRemoveVault(vault.path), () => setOpen(false))
               } : undefined}
             />
           ))}
@@ -273,8 +291,7 @@ export function VaultMenu({
               testId={action.testId}
               accent={action.accent}
               onClick={() => {
-                action.onClick()
-                setOpen(false)
+                runAfterVaultMenuCloses(action.onClick, () => setOpen(false))
               }}
             />
           ))}

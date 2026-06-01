@@ -7,28 +7,17 @@ const APP_CONFIG_DIR: &str = "com.grimoire.app";
 const LEGACY_APP_CONFIG_DIR: &str = "com.tolaria.app";
 const LAPUTA_LEGACY_APP_CONFIG_DIR: &str = "com.laputa.app";
 const THEME_PRESETS: &[&str] = &[
-    "classic",
-    "manuscript",
-    "graphite",
-    "studio",
-    "folio",
+    "constellation",
+    "daylight-atelier",
+    "prabhat-studio",
+    "living-archive",
     "nocturne",
-    "aether",
-    "ion",
-    "moss",
-    "lumen",
-    "lotus",
-    "ember",
+    "retro-terminal",
 ];
-const EDITOR_FONTS: &[&str] = &[
-    "system",
-    "serif",
-    "mono",
-    "readable",
-    "literary",
-    "compact",
-    "handwritten",
-];
+const EDITOR_FONTS: &[&str] = &["system", "readable", "literary", "mono"];
+const EDITOR_LINE_HEIGHTS: &[&str] = &["compact", "comfortable", "spacious"];
+const NATIVE_SHELL_MATERIALS: &[&str] = &["standard", "unified", "glass-preview"];
+const TRANSCRIPTION_PROVIDERS: &[&str] = &["local_whisper", "whisper_api", "local_voice_model"];
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct Settings {
@@ -45,12 +34,16 @@ pub struct Settings {
     pub theme_mode: Option<String>,
     pub theme_preset: Option<String>,
     pub editor_font: Option<String>,
+    pub editor_line_height: Option<String>,
     pub ui_language: Option<String>,
     pub menu_bar_icon_enabled: Option<bool>,
+    pub native_shell_material: Option<String>,
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
     pub ai_agent_models: Option<BTreeMap<String, String>>,
     pub ai_agent_providers: Option<BTreeMap<String, String>>,
+    pub transcription_provider: Option<String>,
+    pub cloud_transcription_enabled: Option<bool>,
 }
 
 fn normalize_optional_string(value: Option<String>) -> Option<String> {
@@ -114,7 +107,22 @@ pub fn normalize_ai_agent_models(
 pub fn normalize_ai_agent_providers(
     value: Option<BTreeMap<String, String>>,
 ) -> Option<BTreeMap<String, String>> {
-    normalize_ai_agent_string_map(value)
+    let mut normalized_values = BTreeMap::new();
+    for (agent, raw_value) in value? {
+        let Some(agent) = normalize_default_ai_agent(Some(&agent)) else {
+            continue;
+        };
+        if agent != "chitragupta" {
+            continue;
+        }
+        let Some(value) = normalize_optional_string(Some(raw_value)) else {
+            continue;
+        };
+        if !value.chars().any(char::is_whitespace) {
+            normalized_values.insert("chitragupta".to_string(), value);
+        }
+    }
+    (!normalized_values.is_empty()).then_some(normalized_values)
 }
 
 pub fn normalize_theme_mode(value: Option<&str>) -> Option<String> {
@@ -131,7 +139,32 @@ pub fn normalize_theme_preset(value: Option<&str>) -> Option<String> {
 
 pub fn normalize_editor_font(value: Option<&str>) -> Option<String> {
     let font = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
-    EDITOR_FONTS.contains(&font.as_str()).then_some(font)
+    match font.as_str() {
+        "compact" => Some("system".to_string()),
+        "handwritten" | "serif" => Some("literary".to_string()),
+        _ => EDITOR_FONTS.contains(&font.as_str()).then_some(font),
+    }
+}
+
+pub fn normalize_editor_line_height(value: Option<&str>) -> Option<String> {
+    let line_height = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    EDITOR_LINE_HEIGHTS
+        .contains(&line_height.as_str())
+        .then_some(line_height)
+}
+
+pub fn normalize_native_shell_material(value: Option<&str>) -> Option<String> {
+    let material = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    NATIVE_SHELL_MATERIALS
+        .contains(&material.as_str())
+        .then_some(material)
+}
+
+pub fn normalize_transcription_provider(value: Option<&str>) -> Option<String> {
+    let provider = value.map(|candidate| candidate.trim().to_ascii_lowercase())?;
+    TRANSCRIPTION_PROVIDERS
+        .contains(&provider.as_str())
+        .then_some(provider)
 }
 
 fn canonical_language_code(value: &str) -> Option<String> {
@@ -151,6 +184,18 @@ fn is_simplified_chinese_language(code: &str) -> bool {
     matches!(code, "zh" | "zh-cn" | "zh-hans" | "zh-sg")
 }
 
+fn is_german_language(code: &str) -> bool {
+    matches!(code, "de" | "de-at" | "de-ch" | "de-de") || code.starts_with("de-")
+}
+
+fn is_hindi_language(code: &str) -> bool {
+    matches!(code, "hi" | "hi-in") || code.starts_with("hi-")
+}
+
+fn is_sanskrit_language(code: &str) -> bool {
+    matches!(code, "sa" | "sa-deva" | "sa-devanagari" | "sa-in") || code.starts_with("sa-")
+}
+
 pub fn normalize_ui_language(value: Option<&str>) -> Option<String> {
     let language = canonical_language_code(value?)?;
     if is_english_language(&language) {
@@ -158,6 +203,15 @@ pub fn normalize_ui_language(value: Option<&str>) -> Option<String> {
     }
     if is_simplified_chinese_language(&language) {
         return Some("zh-Hans".to_string());
+    }
+    if is_german_language(&language) {
+        return Some("de".to_string());
+    }
+    if is_hindi_language(&language) {
+        return Some("hi".to_string());
+    }
+    if is_sanskrit_language(&language) {
+        return Some("sa".to_string());
     }
     None
 }
@@ -181,12 +235,20 @@ fn normalize_settings(settings: Settings) -> Settings {
         theme_mode: normalize_theme_mode(settings.theme_mode.as_deref()),
         theme_preset: normalize_theme_preset(settings.theme_preset.as_deref()),
         editor_font: normalize_editor_font(settings.editor_font.as_deref()),
+        editor_line_height: normalize_editor_line_height(settings.editor_line_height.as_deref()),
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         menu_bar_icon_enabled: settings.menu_bar_icon_enabled,
+        native_shell_material: normalize_native_shell_material(
+            settings.native_shell_material.as_deref(),
+        ),
         initial_h1_auto_rename_enabled: settings.initial_h1_auto_rename_enabled,
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
         ai_agent_models: normalize_ai_agent_models(settings.ai_agent_models),
         ai_agent_providers: normalize_ai_agent_providers(settings.ai_agent_providers),
+        transcription_provider: normalize_transcription_provider(
+            settings.transcription_provider.as_deref(),
+        ),
+        cloud_transcription_enabled: settings.cloud_transcription_enabled,
     }
 }
 
@@ -287,3 +349,11 @@ pub fn set_last_vault(vault_path: &str) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+#[path = "settings/theme_preset_tests.rs"]
+mod theme_preset_tests;
+
+#[cfg(test)]
+#[path = "settings/last_vault_tests.rs"]
+mod last_vault_tests;

@@ -11,12 +11,22 @@ permissions:
 
 jobs:
   verify:
-    name: Build, Test, And Lint
-    runs-on: macos-latest
+    name: Build, Test, And Lint (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install Linux Tauri Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -35,6 +45,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify Local-Only Audit Guard
+        run: pnpm test:local-only-audit
+
+      - name: Local-Only Audit
+        run: pnpm audit:local-only
+
       - name: Verify Release Artifact Guard
         run: pnpm test:release-artifacts
 
@@ -47,8 +63,20 @@ jobs:
       - name: Frontend Tests
         run: pnpm test --silent
 
-      - name: Markdown Editor Parity
-        run: pnpm test:markdown-editor
+      - name: Markdown Editor Parity JS
+        run: pnpm test:markdown-editor:js
+
+      - name: Markdown Editor Parity Swift
+        if: runner.os == 'macOS'
+        run: pnpm test:markdown-editor:swift
+
+      - name: Install Playwright Browsers
+        if: runner.os == 'macOS'
+        run: pnpm exec playwright install chromium webkit
+
+      - name: Browser Smoke (Chromium + WebKit)
+        if: runner.os == 'macOS'
+        run: PLAYWRIGHT_BROWSERS=chromium,webkit pnpm playwright:smoke
 
       - name: Rust Lint
         run: |

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
+import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { VaultEntry } from '../types'
 import { EditorRightPanel } from './EditorRightPanel'
 
@@ -50,9 +51,25 @@ const entry: VaultEntry = {
   wordCount: 2,
 }
 
-function renderRightPanel(showAIChat: boolean) {
+const installedAiAgentsStatus: AiAgentsStatus = {
+  chitragupta: { status: 'installed', version: '0.1.0' },
+  claude_code: { status: 'missing', version: null },
+  codex: { status: 'missing', version: null },
+}
+
+function renderRightPanel(
+  showAIChat: boolean,
+  route: {
+    defaultAiAgent?: AiAgentId
+    defaultAiProvider?: string | null
+    defaultAiModel?: string | null
+  } = {},
+) {
   return (
     <EditorRightPanel
+      defaultAiAgent={route.defaultAiAgent}
+      defaultAiModel={route.defaultAiModel}
+      defaultAiProvider={route.defaultAiProvider}
       entries={[entry]}
       gitHistory={[]}
       inspectorCollapsed
@@ -69,10 +86,10 @@ function renderRightPanel(showAIChat: boolean) {
 }
 
 describe('EditorRightPanel AI chat lifecycle', () => {
-  it('keeps AI chat history when the panel is closed and reopened', () => {
+  it('keeps AI chat history when the panel is closed and reopened', async () => {
     const { rerender } = render(renderRightPanel(true))
 
-    fireEvent.change(screen.getByTestId('agent-input'), { target: { value: 'remember this' } })
+    fireEvent.change(await screen.findByTestId('agent-input'), { target: { value: 'remember this' } })
     fireEvent.click(screen.getByTestId('agent-send'))
     expect(screen.getByText('remember this')).toBeInTheDocument()
 
@@ -80,7 +97,67 @@ describe('EditorRightPanel AI chat lifecycle', () => {
     expect(screen.queryByTestId('ai-panel')).toBeNull()
 
     rerender(renderRightPanel(true))
-    expect(screen.getByText('remember this')).toBeInTheDocument()
+    expect(await screen.findByText('remember this')).toBeInTheDocument()
     expect(screen.getByText('Still here.')).toBeInTheDocument()
+  })
+
+  it('keeps Chitragupta provider and model route visible in the production AI panel', async () => {
+    render(renderRightPanel(true, {
+      defaultAiAgent: 'chitragupta',
+      defaultAiModel: 'gemini-2.5-pro',
+      defaultAiProvider: 'google',
+    }))
+
+    expect(await screen.findByText('Chitragupta · provider: google · model: gemini-2.5-pro')).toBeInTheDocument()
+  })
+
+  it('passes Chitragupta CLI availability into the inspector memory lane', () => {
+    render(
+      <EditorRightPanel
+        aiAgentsStatus={installedAiAgentsStatus}
+        entries={[entry]}
+        gitHistory={[]}
+        inspectorCollapsed={false}
+        inspectorContent="hello"
+        inspectorEntry={entry}
+        inspectorWidth={320}
+        onNavigateWikilink={vi.fn()}
+        onToggleInspector={vi.fn()}
+        onViewCommitDiff={vi.fn()}
+        showAIChat={false}
+        vaultPath="/tmp/vault"
+      />,
+    )
+
+    expect(screen.getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
+  })
+
+  it('passes Chitragupta MCP transport failures into the inspector memory lane', () => {
+    render(
+      <EditorRightPanel
+        aiAgentsStatus={installedAiAgentsStatus}
+        chitraguptaStatus={{
+          ok: false,
+          daemon: 'running',
+          capabilities: [],
+          warnings: ['Transport closed'],
+        }}
+        entries={[entry]}
+        gitHistory={[]}
+        inspectorCollapsed={false}
+        inspectorContent="hello"
+        inspectorEntry={entry}
+        inspectorWidth={320}
+        onNavigateWikilink={vi.fn()}
+        onToggleInspector={vi.fn()}
+        onViewCommitDiff={vi.fn()}
+        showAIChat={false}
+        vaultPath="/tmp/vault"
+      />,
+    )
+
+    const runtime = screen.getByTestId('memory-chitragupta-runtime')
+    expect(runtime).toHaveAttribute('data-state', 'mcp_transport_closed')
+    expect(runtime).toHaveTextContent('MCP transport closed')
   })
 })

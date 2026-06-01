@@ -84,6 +84,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
     expect(screen.getByPlaceholderText('Search in all notes...')).toBeInTheDocument()
+    expect(screen.getByTestId('search-panel-surface')).toHaveClass('grimoire-command-surface')
   })
 
   it('shows empty state hint when no query', () => {

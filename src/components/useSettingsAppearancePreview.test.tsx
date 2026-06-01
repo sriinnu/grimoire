@@ -7,6 +7,8 @@ describe('useSettingsAppearancePreview', () => {
     document.documentElement.removeAttribute('data-theme')
     document.documentElement.removeAttribute('data-theme-preset')
     document.documentElement.removeAttribute('data-editor-font')
+    document.documentElement.removeAttribute('data-editor-line-height')
+    document.documentElement.removeAttribute('data-native-shell-material')
     document.documentElement.classList.remove('dark')
   })
 
@@ -14,38 +16,50 @@ describe('useSettingsAppearancePreview', () => {
     const { unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'ion',
-        editorFont: 'handwritten',
+        themePreset: 'retro-terminal',
+        editorFont: 'literary',
+        editorLineHeight: 'compact',
+        nativeShellMaterial: 'glass-preview',
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'classic',
+        themePreset: 'living-archive',
         editorFont: 'system',
+        editorLineHeight: 'spacious',
+        nativeShellMaterial: 'unified',
       },
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'ion')
-    expect(document.documentElement).toHaveAttribute('data-editor-font', 'handwritten')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'retro-terminal')
+    expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
+    expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')
 
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'classic')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'system')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
+    expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
   })
 
   it('keeps draft appearance on unmount after commit', () => {
     const { result, unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'manuscript',
-        editorFont: 'serif',
+        themePreset: 'living-archive',
+        editorFont: 'literary',
+        editorLineHeight: 'spacious',
+        nativeShellMaterial: 'glass-preview',
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'classic',
+        themePreset: 'nocturne',
         editorFont: 'system',
+        editorLineHeight: 'comfortable',
+        nativeShellMaterial: 'unified',
       },
     }))
 
@@ -53,7 +67,9 @@ describe('useSettingsAppearancePreview', () => {
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'manuscript')
-    expect(document.documentElement).toHaveAttribute('data-editor-font', 'serif')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
+    expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
+    expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
+    expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')
   })
 })

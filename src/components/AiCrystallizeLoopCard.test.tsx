@@ -1,0 +1,145 @@
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { AiCrystallizeLoopCard } from './AiCrystallizeLoopCard'
+
+const writeContract = {
+  format: 'Markdown',
+  requiresGit: false,
+  requiresRemoteSync: false,
+  reviewGate: 'before-write',
+  visibility: 'human-reviewed',
+} as const
+
+describe('AiCrystallizeLoopCard', () => {
+  it('offers review when a public AI response can become Markdown memory', () => {
+    const onCrystallize = vi.fn()
+
+    render(
+      <AiCrystallizeLoopCard
+        activeContextProtected={false}
+        blockedReason={null}
+        canCrystallize
+        hasContext
+        hasLatestResponse
+        linkedCount={2}
+        onCrystallize={onCrystallize}
+        proposalSummary={{
+          activeNoteHunkCount: 2,
+          activeNoteTarget: 'notes/source.md',
+          contradictionCount: 0,
+          expiresAt: '2026-08-14',
+          hunkCount: 4,
+          ledgerFieldCount: 9,
+          loopReceipt: 'crys-1234abcd',
+          loopStepCount: 5,
+          sourceCount: 2,
+          targetFolder: 'memory/crystallized',
+          taskCount: 0,
+          writeContract,
+        }}
+      />,
+    )
+
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Context ready')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 linked')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review packet')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('4 hunks')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 active-note hunks · notes/source.md')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('9 ledger fields')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Markdown / no Git / no remote / review-before-write')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('crys-1234abcd')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('review by 2026-08-14')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('0 contradictions')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('2 sources')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('memory/crystallized')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Review diff')
+    expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Context')
+    expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Council')
+    expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Answer')
+    expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Review')
+    fireEvent.click(screen.getByTestId('crystallize-loop-action'))
+    expect(onCrystallize).toHaveBeenCalledOnce()
+  })
+
+  it('keeps local-only active context from opening a durable write path', () => {
+    const onCrystallize = vi.fn()
+
+    render(
+      <AiCrystallizeLoopCard
+        activeContextProtected
+        blockedReason="Local-only context is protected."
+        canCrystallize={false}
+        hasContext
+        hasLatestResponse
+        linkedCount={3}
+        onCrystallize={onCrystallize}
+        proposalSummary={null}
+      />,
+    )
+
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Protected context stays local')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Local-only gate')
+    expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Firewall')
+    expect(screen.getByTestId('crystallize-loop-action')).toBeDisabled()
+    expect(onCrystallize).not.toHaveBeenCalled()
+  })
+
+  it('shows the waiting state before there is an assistant response', () => {
+    render(
+      <AiCrystallizeLoopCard
+        activeContextProtected={false}
+        blockedReason="Send an AI message first."
+        canCrystallize={false}
+        hasContext={false}
+        hasLatestResponse={false}
+        linkedCount={0}
+        onCrystallize={vi.fn()}
+        proposalSummary={null}
+      />,
+    )
+
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('No context')
+    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Ask first')
+    expect(screen.getByTestId('crystallize-loop-trail')).toHaveTextContent('Capture')
+    expect(screen.getByTestId('crystallize-loop-action')).toHaveTextContent('Waiting')
+  })
+
+  it('uses polished singular labels in the review packet', () => {
+    render(
+      <AiCrystallizeLoopCard
+        activeContextProtected={false}
+        blockedReason={null}
+        canCrystallize
+        hasContext
+        hasLatestResponse
+        linkedCount={1}
+        onCrystallize={vi.fn()}
+        proposalSummary={{
+          activeNoteHunkCount: 0,
+          activeNoteTarget: null,
+          contradictionCount: 1,
+          expiresAt: '2026-08-14',
+          hunkCount: 1,
+          ledgerFieldCount: 1,
+          loopReceipt: 'crys-5678abcd',
+          loopStepCount: 5,
+          sourceCount: 1,
+          targetFolder: 'memory/crystallized',
+          taskCount: 1,
+          writeContract,
+        }}
+      />,
+    )
+
+    const packet = screen.getByTestId('crystallize-review-packet')
+    expect(packet).toHaveTextContent('1 hunk')
+    expect(packet).toHaveTextContent('memory note only')
+    expect(packet).toHaveTextContent('Markdown / no Git / no remote / review-before-write')
+    expect(packet).toHaveTextContent('1 source')
+    expect(packet).toHaveTextContent('1 ledger field')
+    expect(packet).toHaveTextContent('review by 2026-08-14')
+    expect(packet).toHaveTextContent('1 contradiction')
+    expect(packet).toHaveTextContent('1 task hunk')
+    expect(packet).not.toHaveTextContent('1 sources')
+  })
+})

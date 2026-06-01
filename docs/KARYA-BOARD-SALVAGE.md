@@ -4,7 +4,7 @@ Date: 2026-05-03
 
 ## Verdict
 
-Karya Board should not be deleted until its current worktree is preserved. The app is working enough to salvage: `pnpm typecheck` and `pnpm test` both pass in `/Users/srinivaspendela/Sriinnu/Personal/karya-board`.
+Karya Board should not be deleted until its current worktree is preserved. The app is working enough to salvage: `pnpm typecheck` and `pnpm test` both pass in `/path/to/karya-board`.
 
 The useful parts are not the whole standalone app. The value is the project-intelligence layer that can become part of Grimoire: scanning project repositories, surfacing project documents, generating a durable board, and handing scoped work to local AI executors.
 
@@ -105,7 +105,7 @@ The current app integration uses Grimoire's loaded vault entries immediately, th
 
 ## Cleanup Before Deleting Karya
 
-Before deleting `/Users/srinivaspendela/Sriinnu/Personal/karya-board`:
+Before deleting `/path/to/karya-board`:
 
 1. Preserve the dirty worktree.
    - Commit it on a salvage branch, or

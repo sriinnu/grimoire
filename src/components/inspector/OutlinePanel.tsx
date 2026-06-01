@@ -6,6 +6,7 @@ import {
 } from '@grimoire/markdown-editor'
 import { useState } from 'react'
 import { Button } from '../ui/button'
+import { scrollToNoteHeading } from '../../utils/noteNavigation'
 
 interface OutlinePanelProps {
   semantics: MarkdownDocumentSemantics
@@ -19,16 +20,28 @@ function headingIndent(level: number): string {
   return `${Math.max(0, level - 1) * 10}px`
 }
 
-function OutlineHeading({ heading }: { heading: MarkdownHeading }) {
+function OutlineHeading({
+  heading,
+  headingIndex,
+  headings,
+}: {
+  heading: MarkdownHeading
+  headingIndex: number
+  headings: MarkdownHeading[]
+}) {
   return (
-    <div
-      className="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 text-[12px] text-muted-foreground"
+    <Button
+      type="button"
+      variant="ghost"
+      className="h-auto w-full justify-start rounded-md px-1.5 py-1 text-[12px] text-muted-foreground hover:text-foreground"
       style={{ paddingLeft: headingIndent(heading.level) }}
       title={`Line ${heading.line}`}
+      aria-label={`Jump to H${heading.level} ${heading.text}`}
+      onClick={() => scrollToNoteHeading(heading, headingIndex, headings)}
     >
       <span className="shrink-0 font-mono text-[10px] text-muted-foreground/70">H{heading.level}</span>
       <span className="min-w-0 flex-1 truncate text-foreground">{heading.text}</span>
-    </div>
+    </Button>
   )
 }
 
@@ -93,6 +106,7 @@ export function OutlinePanel({
       <div className="mb-2 flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1 text-[11px] text-muted-foreground">
         <FileText className="size-3" />
         <span className="truncate">YAML: {frontmatterLabel}</span>
+        <span className="ml-auto shrink-0">{semantics.headings.length} headings</span>
       </div>
       {formatStatus && (
         <div className="mb-2 flex items-center gap-1 rounded-md bg-muted/40 px-2 py-1 text-[11px] text-muted-foreground">
@@ -102,8 +116,13 @@ export function OutlinePanel({
       )}
       {hasHeadings ? (
         <div className="flex flex-col gap-0.5">
-          {semantics.headings.map((heading) => (
-            <OutlineHeading key={`${heading.slug}:${heading.line}`} heading={heading} />
+          {semantics.headings.map((heading, index) => (
+            <OutlineHeading
+              key={`${heading.slug}:${heading.line}`}
+              heading={heading}
+              headingIndex={index}
+              headings={semantics.headings}
+            />
           ))}
         </div>
       ) : (

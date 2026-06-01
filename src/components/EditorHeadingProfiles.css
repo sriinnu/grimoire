@@ -1,0 +1,64 @@
+/* Structural heading treatments driven by JSON theme packs. */
+
+[data-theme-heading="graph"] .editor__blocknote-container .bn-block-outer:has(h1) {
+  border-bottom-color: color-mix(in srgb, var(--primary) 32%, var(--border-primary));
+}
+
+[data-theme-heading="graph"] .editor__blocknote-container :is(
+  [data-content-type="heading"]:not([data-level]),
+  [data-content-type="heading"][data-level="1"],
+  [data-content-type="heading"][data-level="2"]
+) .bn-inline-content {
+  color: var(--syntax-heading, var(--text-heading));
+  text-shadow: 0 0 22px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+[data-theme-heading="graph"] .editor__blocknote-container [data-content-type="heading"][data-level="2"] .bn-inline-content::before,
+[data-theme-heading="graph"] .editor__blocknote-container [data-content-type="heading"][data-level="3"] .bn-inline-content::before {
+  display: inline-block;
+  width: 0.48em;
+  height: 0.48em;
+  margin-right: 0.46em;
+  border: 1px solid color-mix(in srgb, var(--primary) 64%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  content: "";
+  vertical-align: 0.08em;
+}
+
+[data-theme-heading="manuscript"] .editor__blocknote-container .bn-block-outer:has(h1) {
+  border-bottom-color: color-mix(in srgb, var(--syntax-heading) 30%, var(--border-default));
+}
+
+[data-theme-heading="manuscript"] .editor__blocknote-container :is(
+  [data-content-type="heading"]:not([data-level]),
+  [data-content-type="heading"][data-level="1"],
+  [data-content-type="heading"][data-level="2"]
+) .bn-inline-content {
+  color: var(--syntax-heading, var(--text-heading));
+  font-family: var(--grimoire-display-font-family, var(--grimoire-editor-font-family));
+}
+
+[data-theme-heading="manuscript"] .editor__blocknote-container [data-content-type="heading"][data-level="3"] .bn-inline-content,
+[data-theme-heading="manuscript"] .editor__blocknote-container [data-content-type="heading"][data-level="4"] .bn-inline-content {
+  color: var(--text-heading);
+  font-family: var(--grimoire-label-font-family, var(--grimoire-editor-font-family));
+}
+
+[data-theme-heading="terminal"] .editor__blocknote-container .bn-block-outer:has(h1) {
+  border-bottom-color: color-mix(in srgb, var(--primary) 36%, var(--border-default));
+  border-bottom-style: dashed;
+}
+
+[data-theme-heading="terminal"] .editor__blocknote-container [data-content-type="heading"] .bn-inline-content {
+  color: color-mix(in srgb, var(--primary) 76%, var(--text-heading));
+  font-family: var(--grimoire-mono-font-family);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+[data-theme-heading="terminal"] .editor__blocknote-container [data-content-type="heading"][data-level="2"] .bn-inline-content::before,
+[data-theme-heading="terminal"] .editor__blocknote-container [data-content-type="heading"][data-level="3"] .bn-inline-content::before {
+  color: var(--primary);
+  content: "#";
+  margin-right: 0.5em;
+}

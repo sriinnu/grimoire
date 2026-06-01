@@ -1,9 +1,13 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { lazy, Suspense, useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
 import { CaretRight, CaretDown, Brain, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { AiActionCard, type AiActionStatus } from './AiActionCard'
-import { MarkdownContent } from './MarkdownContent'
+import { AI_AGENT_CLI_DEFAULT_ROUTE, getAiAgentDefinition, type AiAgentRuntimeRoute } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
-import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
+import { getTypeColor } from '../utils/typeColors'
+
+const MarkdownContentSurface = lazy(async () => ({
+  default: (await import('./MarkdownContent')).MarkdownContent,
+}))
 
 export interface AiAction {
   tool: string
@@ -18,6 +22,7 @@ export interface AiAction {
 export interface AiMessageProps {
   userMessage: string
   references?: NoteReference[]
+  route?: AiAgentRuntimeRoute
   reasoning?: string
   reasoningDone?: boolean
   actions: AiAction[]
@@ -33,21 +38,25 @@ function ReferencePill({ reference, onClick }: {
   onClick?: (path: string) => void
 }) {
   const color = getTypeColor(reference.type)
-  const lightColor = getTypeLightColor(reference.type)
+  const style = {
+    '--reference-type-color': color,
+    background: 'var(--ai-reference-pill-bg, color-mix(in srgb, var(--reference-type-color) 11%, var(--card)))',
+    borderColor: 'var(--ai-reference-pill-border, color-mix(in srgb, var(--reference-type-color) 22%, var(--border)))',
+    color: 'var(--ai-reference-pill-fg, var(--reference-type-color))',
+    borderRadius: 9999,
+    padding: '1px 8px',
+    fontSize: 11,
+    fontWeight: 500,
+    fontFamily: 'inherit',
+    lineHeight: 1.4,
+  } as CSSProperties & { '--reference-type-color': string }
+
   return (
     <button
-      className="inline-flex items-center border-none cursor-pointer transition-opacity hover:opacity-80"
-      style={{
-        background: lightColor,
-        color,
-        borderRadius: 9999,
-        padding: '1px 8px',
-        fontSize: 11,
-        fontWeight: 500,
-        fontFamily: 'inherit',
-        lineHeight: 1.4,
-      }}
+      className="ai-reference-pill inline-flex items-center cursor-pointer border transition-opacity hover:opacity-80"
+      style={style}
       onClick={() => onClick?.(reference.path)}
+      data-reference-pill="true"
       data-testid="message-reference-pill"
     >
       {reference.title}
@@ -63,9 +72,11 @@ function UserBubble({ content, references, onOpenNote }: {
   return (
     <div className="flex justify-end" style={{ marginBottom: 8 }}>
       <div
+        data-ai-message-bubble="user"
         style={{
-          background: 'var(--muted)',
-          color: 'var(--foreground)',
+          background: 'var(--ai-message-user-bg, var(--muted))',
+          border: '1px solid var(--ai-message-user-border, transparent)',
+          color: 'var(--ai-message-user-fg, var(--foreground))',
           borderRadius: '12px 12px 2px 12px',
           maxWidth: '85%',
           padding: '8px 12px',
@@ -123,6 +134,61 @@ function ReasoningBlock({ text, expanded, onToggle }: {
   )
 }
 
+interface RouteDisclosure {
+  provider?: string
+  model?: string
+}
+
+function extractRouteDisclosure(reasoning?: string): RouteDisclosure | null {
+  const routeIndex = reasoning?.search(/Chitragupta route resolved/i) ?? -1
+  if (routeIndex < 0 || !reasoning) return null
+
+  const routeBlock = reasoning.slice(routeIndex, routeIndex + 220).replace(/\\[rn]/g, ' ').replace(/\s+/g, ' ')
+  const provider = extractRouteField(routeBlock, 'provider')
+  const model = extractRouteField(routeBlock, 'model')
+
+  if (!provider && !model) return null
+  return { provider, model }
+}
+
+function extractRouteField(routeBlock: string, fieldName: 'provider' | 'model'): string | undefined {
+  return routeBlock.match(new RegExp(`\\b${fieldName}\\s*(?::|=)?\\s*([^,\\s]+)`, 'i'))?.[1]?.trim()
+}
+
+function routeChipDetail(route: RouteDisclosure | AiAgentRuntimeRoute): string {
+  const detail = [
+    'agent' in route ? `Agent: ${getAiAgentDefinition(route.agent).label}` : null,
+    route.provider ? `Provider: ${route.provider}` : null,
+    route.model ? `Model: ${route.model}` : null,
+    'source' in route ? routeSourceLabel(route) : null,
+  ].filter(Boolean).join(' · ')
+
+  return detail
+}
+
+function routeSourceLabel(route: AiAgentRuntimeRoute): string {
+  if (route.source === 'stream') return 'Source: Chitragupta route stream'
+  if (route.source === 'configured') return 'Source: Grimoire route settings'
+  return route.provider === AI_AGENT_CLI_DEFAULT_ROUTE || route.model === AI_AGENT_CLI_DEFAULT_ROUTE
+    ? 'Source: pending CLI stream'
+    : 'Source: CLI default'
+}
+
+function RouteDisclosureChip({ route }: { route: RouteDisclosure | AiAgentRuntimeRoute }) {
+  const detail = routeChipDetail(route)
+
+  return (
+    <div
+      className="inline-flex max-w-full items-center rounded-full border border-border bg-muted/45 px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+      data-testid="ai-route-disclosure"
+      title={detail}
+      style={{ marginBottom: 8 }}
+    >
+      <span className="truncate">{detail}</span>
+    </div>
+  )
+}
+
 function ActionCardsList({ actions, onOpenNote, expandedIds, onToggleExpand }: {
   actions: AiAction[]
   onOpenNote?: (path: string) => void
@@ -152,7 +218,9 @@ function ActionCardsList({ actions, onOpenNote, expandedIds, onToggleExpand }: {
 function ResponseBlock({ text, onNavigateWikilink }: { text: string; onNavigateWikilink?: (target: string) => void }) {
   return (
     <div style={{ marginBottom: 4 }}>
-      <MarkdownContent content={text} onWikilinkClick={onNavigateWikilink} />
+      <Suspense fallback={<ResponsePlainTextFallback text={text} />}>
+        <MarkdownContentSurface content={text} onWikilinkClick={onNavigateWikilink} />
+      </Suspense>
       <button
         className="flex items-center gap-1 border-none bg-transparent p-0 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
         style={{ fontSize: 11, marginTop: 4 }}
@@ -161,6 +229,18 @@ function ResponseBlock({ text, onNavigateWikilink }: { text: string; onNavigateW
         <ArrowCounterClockwise size={12} />
         <span>Undo</span>
       </button>
+    </div>
+  )
+}
+
+function ResponsePlainTextFallback({ text }: { text: string }) {
+  return (
+    <div
+      className="whitespace-pre-wrap"
+      data-testid="markdown-content-fallback"
+      style={{ color: 'var(--ai-message-assistant-fg, var(--foreground))', fontSize: 13, lineHeight: 1.55 }}
+    >
+      {text}
     </div>
   )
 }
@@ -185,10 +265,11 @@ function QueuedIndicator() {
   )
 }
 
-export function AiMessage({ userMessage, references, reasoning, reasoningDone, actions, response, isStreaming, isQueued, onOpenNote, onNavigateWikilink }: AiMessageProps) {
+export function AiMessage({ userMessage, references, route, reasoning, reasoningDone, actions, response, isStreaming, isQueued, onOpenNote, onNavigateWikilink }: AiMessageProps) {
   // Manual override: null = follow auto behavior, true/false = user forced
   const [userOverride, setUserOverride] = useState(false)
   const [expandedActions, setExpandedActions] = useState<Set<string>>(new Set())
+  const routeDisclosure = route ?? extractRouteDisclosure(reasoning)
 
   // Auto: expanded while reasoning streams, collapsed once done
   // User can manually toggle to override the auto state
@@ -214,6 +295,7 @@ export function AiMessage({ userMessage, references, reasoning, reasoningDone, a
           onToggle={() => setUserOverride(prev => !prev)}
         />
       )}
+      {routeDisclosure && <RouteDisclosureChip route={routeDisclosure} />}
       {actions.length > 0 && (
         <ActionCardsList
           actions={actions}

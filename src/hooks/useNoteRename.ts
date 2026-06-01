@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { VaultEntry } from '../types'
 import { slugify } from './useNoteCreation'
@@ -241,7 +241,6 @@ function useRenameResultApplier(
   const { setTabs, activeTabPathRef, handleSwitchTab, updateTabContent } = tabDeps
 
   const tabsRef = useRef(tabDeps.tabs)
-  // eslint-disable-next-line react-hooks/refs
   tabsRef.current = tabDeps.tabs
 
   const applyRenameResult = useCallback(async (

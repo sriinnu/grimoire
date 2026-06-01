@@ -1,7 +1,13 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NoteList } from './NoteList'
-import { makeEntry, makeIndexedEntry, mockEntries, renderNoteList } from '../test-utils/noteListTestUtils'
+import {
+  getNoteTitleElement,
+  makeEntry,
+  makeIndexedEntry,
+  mockEntries,
+  renderNoteList,
+} from '../test-utils/noteListTestUtils'
 
 describe('NoteList status indicators', () => {
   it('shows a modified indicator for modified notes', () => {
@@ -150,8 +156,8 @@ describe('NoteList multi-select', () => {
 
   function selectTwoNotes(extraProps: Record<string, unknown> = {}) {
     renderNoteList(extraProps)
-    fireEvent.click(screen.getByText('Build Grimoire App'))
-    fireEvent.click(screen.getByText('Facebook Ads Strategy'), { shiftKey: true })
+    fireEvent.click(getNoteTitleElement('Build Grimoire App'))
+    fireEvent.click(getNoteTitleElement('Facebook Ads Strategy'), { shiftKey: true })
   }
 
   it('selects a range on Shift+Click', () => {
@@ -161,9 +167,9 @@ describe('NoteList multi-select', () => {
 
   it('clears multi-select and opens the note on regular click', () => {
     const { onReplaceActiveTab } = renderNoteList()
-    fireEvent.click(screen.getByText('Build Grimoire App'))
-    fireEvent.click(screen.getByText('Facebook Ads Strategy'), { shiftKey: true })
-    fireEvent.click(screen.getByText('Karthik Reddy'))
+    fireEvent.click(getNoteTitleElement('Build Grimoire App'))
+    fireEvent.click(getNoteTitleElement('Facebook Ads Strategy'), { shiftKey: true })
+    fireEvent.click(getNoteTitleElement('Arjun Mehta'))
 
     expect(screen.queryByTestId('multi-selected-item')).not.toBeInTheDocument()
     expect(onReplaceActiveTab).toHaveBeenCalledWith(mockEntries[2])
@@ -171,9 +177,9 @@ describe('NoteList multi-select', () => {
 
   it('clears multi-select and enters Neighborhood on Cmd+Click', async () => {
     const { onEnterNeighborhood, onReplaceActiveTab } = renderNoteList()
-    fireEvent.click(screen.getByText('Build Grimoire App'))
-    fireEvent.click(screen.getByText('Facebook Ads Strategy'), { shiftKey: true })
-    fireEvent.click(screen.getByText('Karthik Reddy'), { metaKey: true })
+    fireEvent.click(getNoteTitleElement('Build Grimoire App'))
+    fireEvent.click(getNoteTitleElement('Facebook Ads Strategy'), { shiftKey: true })
+    fireEvent.click(getNoteTitleElement('Arjun Mehta'), { metaKey: true })
 
     expect(screen.queryByTestId('multi-selected-item')).not.toBeInTheDocument()
     await waitFor(() => {
@@ -226,6 +232,8 @@ describe('NoteList filter pills', () => {
 
   it('shows filter pills for type sections', () => {
     renderNoteList({ entries: projectEntries, selection: { kind: 'sectionGroup', type: 'Project' } })
+    expect(screen.getByRole('tablist', { name: 'Archive state' })).toBeInTheDocument()
+    expect(screen.getByText('Archive')).toBeInTheDocument()
     expect(screen.getByTestId('filter-pills')).toBeInTheDocument()
     expect(screen.getByTestId('filter-pill-open')).toBeInTheDocument()
     expect(screen.getByTestId('filter-pill-archived')).toBeInTheDocument()
@@ -314,6 +322,8 @@ describe('NoteList filter pills', () => {
 
     renderNoteList({ entries, selection: { kind: 'folder', path: 'project' } })
 
+    expect(screen.getByRole('tablist', { name: 'File type scope' })).toBeInTheDocument()
+    expect(screen.getByText('Files')).toBeInTheDocument()
     expect(screen.getByTestId('file-scope-pills')).toBeInTheDocument()
     expect(screen.getByText('Readme')).toBeInTheDocument()
     expect(screen.queryByText('App.tsx')).not.toBeInTheDocument()
@@ -337,13 +347,19 @@ describe('NoteList note context menu', () => {
   it('offers right-click organization actions for normal note rows', () => {
     const onUpdateFrontmatter = vi.fn()
     const entries = [
-      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', favorite: false }),
+      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', favorite: false, status: 'Active', color: 'green' }),
     ]
 
     renderNoteList({ entries, onUpdateFrontmatter })
 
     fireEvent.contextMenu(screen.getByText('Alpha'))
-    expect(screen.getByTestId('note-context-menu')).toHaveClass('w-[216px]')
+    const menu = screen.getByTestId('note-context-menu')
+    expect(menu).toHaveClass('w-[216px]')
+    expect(menu).toHaveTextContent('Note actions')
+    expect(menu).toHaveTextContent('Status')
+    expect(menu).toHaveTextContent('Color')
+    expect(screen.getByRole('menuitem', { name: 'Status: Active' })).toHaveClass('bg-accent/70')
+    expect(screen.getByTestId('note-context-color-green')).toHaveClass('ring-1')
 
     fireEvent.click(screen.getByTestId('note-context-make-project'))
     expect(onUpdateFrontmatter).toHaveBeenCalledWith('/vault/alpha.md', 'type', 'Project')

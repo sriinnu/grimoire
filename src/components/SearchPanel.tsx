@@ -7,6 +7,7 @@ import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
 import { NoteTitleIcon } from './NoteTitleIcon'
+import { Input } from './ui/input'
 
 interface SearchPanelProps {
   open: boolean
@@ -84,11 +85,12 @@ export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }:
 
   return (
     <div
-      className="fixed inset-0 z-[1000] flex justify-center bg-[var(--shadow-dialog)] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
       onClick={onClose}
     >
       <div
-        className="flex w-[540px] max-w-[90vw] max-h-[480px] flex-col self-start overflow-hidden rounded-xl border border-[var(--border-dialog)] bg-popover shadow-[0_8px_32px_var(--shadow-dialog)]"
+        className="grimoire-command-stage grimoire-command-surface flex w-[540px] max-w-[90vw] max-h-[480px] flex-col self-start overflow-hidden border"
+        data-testid="search-panel-surface"
         onClick={e => e.stopPropagation()}
       >
         <SearchInput
@@ -132,9 +134,9 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.35-4.35" />
         </svg>
-        <input
+        <Input
           ref={ref}
-          className="flex-1 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+          className="h-auto flex-1 border-0 bg-transparent px-0 py-0 text-[15px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
           type="text"
           placeholder="Search in all notes..."
           value={query}

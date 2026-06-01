@@ -107,19 +107,19 @@ describe('mockHandlers coverage', () => {
     const { mockHandlers } = await loadHandlers()
 
     mockHandlers.save_note_content({
-      path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md',
+      path: '/Users/mock/Grimoire/26q1-grimoire-app.md',
       content: '# Updated project note',
     })
     mockHandlers.save_note_content({
-      path: '/Users/srinivas/Grimoire/new-note.md',
+      path: '/Users/mock/Grimoire/new-note.md',
       content: '# New note',
     })
 
     const modifiedBeforeCommit = mockHandlers.get_modified_files()
-    const basePathCount = modifiedBeforeCommit.filter((entry) => entry.path === '/Users/srinivas/Grimoire/26q1-grimoire-app.md').length
+    const basePathCount = modifiedBeforeCommit.filter((entry) => entry.path === '/Users/mock/Grimoire/26q1-grimoire-app.md').length
 
     expect(basePathCount).toBe(1)
-    expect(modifiedBeforeCommit.some((entry) => entry.path === '/Users/srinivas/Grimoire/new-note.md')).toBe(true)
+    expect(modifiedBeforeCommit.some((entry) => entry.path === '/Users/mock/Grimoire/new-note.md')).toBe(true)
 
     expect(mockHandlers.git_commit({ message: 'Save everything' })).toContain('6 files changed')
     expect(mockHandlers.get_modified_files()).toEqual([])
@@ -127,7 +127,7 @@ describe('mockHandlers coverage', () => {
 
   it('searches mock content and slices pulse results to the requested limit', async () => {
     const { mockHandlers } = await loadHandlers()
-    const projectPath = '/Users/srinivas/Grimoire/26q1-grimoire-app.md'
+    const projectPath = '/Users/mock/Grimoire/26q1-grimoire-app.md'
 
     mockHandlers.save_note_content({
       path: projectPath,
@@ -183,11 +183,14 @@ describe('mockHandlers coverage', () => {
       theme_mode: null,
       theme_preset: null,
       editor_font: null,
+      editor_line_height: null,
       ui_language: 'zh-Hans',
       menu_bar_icon_enabled: false,
       default_ai_agent: 'codex',
       ai_agent_models: { codex: 'gpt-5.2' },
       ai_agent_providers: null,
+      transcription_provider: 'local_whisper',
+      cloud_transcription_enabled: false,
     })
 
     const list = {
@@ -214,6 +217,12 @@ describe('mockHandlers coverage', () => {
       filename: 'diagram.png',
       data: 'base64',
     })).toBe('/vault/attachments/12345-diagram.png')
+
+    expect(mockHandlers.save_audio_recording({
+      vault_path: '/vault',
+      filename: 'voice-note.webm',
+      data: 'base64',
+    })).toBe('/vault/Private/attachments/recordings/12345-voice-note.webm')
 
     expect(mockHandlers.copy_image_to_vault({
       vault_path: '/vault',

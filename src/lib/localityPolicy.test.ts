@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { isLocalOnlyTypeName, resolveEntryLocalityPolicy } from './localityPolicy'
+import {
+  entryLocalityEgressLanes,
+  isLocalOnlyTypeName,
+  resolveEntryLocalityPolicy,
+  summarizeVaultLocality,
+} from './localityPolicy'
 
 function entry(overrides: Partial<VaultEntry> = {}): VaultEntry {
   return {
@@ -53,10 +58,26 @@ describe('localityPolicy', () => {
     expect(resolveEntryLocalityPolicy(entry({ properties: { egress: 'blocked' } })).localOnly).toBe(true)
   })
 
+  it('treats explicit agent, export, and sync context gates as protected', () => {
+    expect(resolveEntryLocalityPolicy(entry({ properties: { agent_context: 'blocked_private_lane' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { export_context: 'blocked_until_review' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { sync_context: 'local_private_lane' } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { sync_context: 'review_complete_local_policy_applies' } })).localOnly).toBe(false)
+  })
+
+  it('matches native locality policy for numeric truthy frontmatter markers', () => {
+    expect(resolveEntryLocalityPolicy(entry({ properties: { private: 1 } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { no_sync: 1 } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { never_sync: [1] } })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ properties: { private: 0 } })).localOnly).toBe(false)
+  })
+
   it('treats journal, dream, and memory types as local-only by default', () => {
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Journal' })).localOnly).toBe(true)
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Dream' })).localOnly).toBe(true)
     expect(resolveEntryLocalityPolicy(entry({ isA: 'Memory' })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ isA: 'Import Report' })).localOnly).toBe(true)
+    expect(resolveEntryLocalityPolicy(entry({ isA: 'Sadhana' })).localOnly).toBe(true)
     expect(isLocalOnlyTypeName('Health')).toBe(true)
   })
 
@@ -72,5 +93,48 @@ describe('localityPolicy', () => {
 
     expect(policy.localOnly).toBe(false)
     expect(policy.badgeLabel).toBe('Vault context')
+  })
+
+  it('returns the shared egress matrix for protected and vault-context notes', () => {
+    const protectedPolicy = resolveEntryLocalityPolicy(entry({ isA: 'Journal' }))
+    const publicPolicy = resolveEntryLocalityPolicy(entry())
+
+    expect(entryLocalityEgressLanes(protectedPolicy).map((lane) => [lane.label, lane.state])).toEqual([
+      ['Agents', 'Blocked'],
+      ['Export/sync', 'Withheld'],
+      ['Git/cloud', 'Not staged'],
+    ])
+    expect(entryLocalityEgressLanes(publicPolicy).map((lane) => [lane.label, lane.allowedMaterial])).toEqual([
+      ['Agents', 'Reviewed titles, types, and paths'],
+      ['Export/sync', 'Preview-approved files'],
+      ['Git/cloud', 'Vault setting only'],
+    ])
+  })
+
+  it('summarizes protected and vault-context lanes for the whole vault', () => {
+    const summary = summarizeVaultLocality([
+      entry({ title: 'Public Plan' }),
+      entry({ title: 'Dream', isA: 'Dream' }),
+      entry({ title: 'Pinned Private', properties: { egress: 'blocked' } }),
+      entry({ title: 'Private Folder', path: '/vault/Private/folder-note.md' }),
+    ])
+
+    expect(summary).toMatchObject({
+      total: 4,
+      localOnly: 3,
+      vaultContext: 1,
+      frontmatter: 1,
+      type: 1,
+      path: 1,
+    })
+    expect(summary.examples).toEqual([
+      { label: 'Dream note', reason: 'Dream notes are protected by default', source: 'type' },
+      { label: 'Frontmatter-protected note', reason: 'Marked egress in frontmatter', source: 'frontmatter' },
+      { label: 'Private folder note', reason: 'Path is under private', source: 'path' },
+    ])
+    expect(summary.protectedTypes).toEqual([
+      { type: 'Note', count: 2 },
+      { type: 'Dream', count: 1 },
+    ])
   })
 })

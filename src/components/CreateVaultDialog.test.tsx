@@ -14,6 +14,15 @@ describe('CreateVaultDialog', () => {
 
     render(<CreateVaultDialog open={true} onClose={onClose} onCreate={onCreate} />)
 
+    const contract = screen.getByTestId('create-vault-local-contract')
+    expect(contract).toHaveTextContent('Plain Markdown')
+    expect(contract).toHaveTextContent('Private by default')
+    expect(contract).toHaveTextContent('Git optional')
+    expect(screen.getByText('Vault home')).toBeInTheDocument()
+    expect(screen.getByText('Markdown folder')).toBeInTheDocument()
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Git stays off')
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('plain Markdown without a repo')
+
     fireEvent.change(screen.getByTestId('create-vault-name'), { target: { value: 'Dreams' } })
     fireEvent.click(screen.getByTestId('create-vault-submit'))
 
@@ -38,6 +47,9 @@ describe('CreateVaultDialog', () => {
     fireEvent.change(screen.getByTestId('create-vault-name'), { target: { value: 'Journals' } })
     fireEvent.click(screen.getByTestId('create-vault-storage-icloud'))
     fireEvent.click(screen.getByTestId('create-vault-git'))
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('iCloud Drive is still a local folder')
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Grimoire stores no cloud credentials')
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Git history starts')
     fireEvent.click(screen.getByTestId('create-vault-submit'))
 
     await waitFor(() => {

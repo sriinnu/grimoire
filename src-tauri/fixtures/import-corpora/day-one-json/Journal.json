@@ -1,0 +1,18 @@
+{
+  "entries": [
+    {
+      "uuid": "morning-1",
+      "creationDate": "2026-05-09T10:00:00Z",
+      "modifiedDate": "2026-05-09T10:15:00Z",
+      "text": "# Morning\nGood coffee and a clean notebook.",
+      "tags": ["journal", "home"],
+      "photos": [{ "md5": "photo-1" }]
+    },
+    {
+      "uuid": "evening-1",
+      "creationDate": "2026-05-09T21:30:00Z",
+      "text": "Evening voice memo",
+      "audios": [{ "filename": "voice-1.m4a" }]
+    }
+  ]
+}

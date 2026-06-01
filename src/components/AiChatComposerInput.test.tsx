@@ -43,6 +43,7 @@ const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
 const entries = [
   makeEntry(),
   makeEntry({ path: '/vault/beta.md', filename: 'beta.md', title: 'Beta', isA: 'Person', aliases: ['BLT'] }),
+  makeEntry({ path: '/vault/private/secret.md', filename: 'secret.md', title: 'Secret Plan', properties: { locality: 'local-only' } }),
 ]
 
 function Controlled({ onSend = vi.fn(), onUnsupportedPaste }: {
@@ -103,6 +104,16 @@ describe('AiChatComposerInput', () => {
     expect(onSend).toHaveBeenCalledWith('summarize [[alpha]]', [
       { title: 'Alpha', path: '/vault/alpha.md', type: 'Project' },
     ])
+  })
+
+  it('redacts protected wikilinks before sending textarea content', () => {
+    const onSend = vi.fn()
+    render(<Controlled onSend={onSend} />)
+
+    const input = changeInput('summarize [[Secret Plan]]')
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(onSend).toHaveBeenCalledWith('summarize [local-only note withheld]', [])
   })
 
   it('rejects image paste without mutating the draft', () => {

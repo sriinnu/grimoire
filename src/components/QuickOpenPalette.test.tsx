@@ -56,6 +56,13 @@ describe('QuickOpenPalette', () => {
   it('shows search input when open', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
     expect(screen.getByPlaceholderText('Search notes...')).toBeInTheDocument()
+    expect(screen.getByTestId('quick-open-palette').querySelector('.grimoire-command-surface')).toBeInTheDocument()
+  })
+
+  it('focuses the search input without an artificial timer delay', () => {
+    render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
+
+    expect(screen.getByTestId('quick-open-input')).toHaveFocus()
   })
 
   it('shows entries sorted by most recently modified when no query', () => {
@@ -86,6 +93,22 @@ describe('QuickOpenPalette', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
     expect(screen.getByText('Project')).toBeInTheDocument()
     expect(screen.getByText('Experiment')).toBeInTheDocument()
+  })
+
+  it('uses customized type icons in quick-open results', () => {
+    const projectType = makeEntry({
+      path: '/vault/types/project.md',
+      filename: 'project.md',
+      title: 'Project',
+      isA: 'Type',
+      icon: 'second-brain',
+      modifiedAt: 1600000000,
+    })
+
+    render(<QuickOpenPalette open={true} entries={[...entries, projectType]} onSelect={onSelect} onClose={onClose} />)
+    fireEvent.change(screen.getByPlaceholderText('Search notes...'), { target: { value: 'alpha' } })
+
+    expect(screen.getByTestId('note-search-item-type-icon').tagName.toLowerCase()).toBe('svg')
   })
 
   it('calls onSelect and onClose when clicking an entry', () => {

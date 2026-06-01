@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../types'
-import { buildChitraguptaMemoryContext } from './chitraguptaIntegration'
+import {
+  REQUIRED_CHITRAGUPTA_CAPABILITIES,
+  buildChitraguptaMemoryContext,
+  evaluateChitraguptaContractStatus,
+  summarizeChitraguptaRuntimeReadiness,
+} from './chitraguptaIntegration'
 
 function entry(overrides: Partial<VaultEntry>): VaultEntry {
   return {
@@ -50,6 +55,106 @@ const semantics: MarkdownDocumentSemantics = {
 }
 
 describe('chitraguptaIntegration', () => {
+  it('marks the contract ready only when daemon health and required capabilities are present', () => {
+    const status = evaluateChitraguptaContractStatus({
+      ok: true,
+      daemon: 'running',
+      capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
+      warnings: [],
+    })
+
+    expect(status.state).toBe('ready')
+    expect(status.daemon).toBe('running')
+    expect(status.missingCapabilities).toEqual([])
+    expect(status.capabilities.every(capability => capability.available)).toBe(true)
+  })
+
+  it('blocks live memory UX when Chitragupta exposes only health-level tools', () => {
+    const status = evaluateChitraguptaContractStatus({
+      ok: true,
+      daemon: 'running',
+      capabilities: ['health.status', 'memory.search'],
+      warnings: ['Project access denied'],
+    })
+
+    expect(status.state).toBe('blocked')
+    expect(status.warnings).toContain('Project access denied')
+    expect(status.warnings).toContain('Missing Chitragupta capabilities: memory.append, recall.unified, wiki.list, wiki.read, graph.neighborhood, diagnostics.memory, ingest.markdown')
+    expect(status.missingCapabilities).toEqual([
+      'memory.append',
+      'recall.unified',
+      'wiki.list',
+      'wiki.read',
+      'graph.neighborhood',
+      'diagnostics.memory',
+      'ingest.markdown',
+    ])
+  })
+
+  it('fails closed when Chitragupta status is unavailable', () => {
+    const status = evaluateChitraguptaContractStatus(null)
+
+    expect(status.state).toBe('blocked')
+    expect(status.daemon).toBe('unknown')
+    expect(status.warnings).toContain('Chitragupta status is unavailable.')
+    expect(status.missingCapabilities).toEqual(REQUIRED_CHITRAGUPTA_CAPABILITIES)
+  })
+
+  it('sanitizes runtime warnings before they reach product UI', () => {
+    const status = evaluateChitraguptaContractStatus({
+      ok: false,
+      daemon: 'stopped',
+      capabilities: [],
+      warnings: [
+        'failed for /Users/srinivaspendela/private/vault.md token=secret-token srinivas@example.com',
+      ],
+    })
+
+    expect(status.warnings[0]).toContain('[local path withheld]')
+    expect(status.warnings[0]).toContain('token=[redacted]')
+    expect(status.warnings[0]).toContain('[email withheld]')
+    expect(status.warnings[0]).not.toContain('/Users/srinivaspendela')
+    expect(status.warnings[0]).not.toContain('secret-token')
+    expect(status.warnings[0]).not.toContain('srinivas@example.com')
+  })
+
+  it('separates installed CLI chat from unverified MCP memory readiness', () => {
+    const contractStatus = evaluateChitraguptaContractStatus(null)
+    const diagnostic = summarizeChitraguptaRuntimeReadiness({
+      availability: { status: 'installed', version: '0.1.0' },
+      contractStatus,
+      protectedNote: false,
+    })
+
+    expect(diagnostic.state).toBe('mcp_unverified')
+    expect(diagnostic.cliLabel).toBe('CLI installed')
+    expect(diagnostic.contractLabel).toBe('MCP contract unverified')
+    expect(diagnostic.capabilityLabel).toBe('0/8 MCP capabilities')
+    expect(diagnostic.warnings[0]).toContain('CLI chat can run separately')
+  })
+
+  it('treats closed MCP transport as a separate fail-closed Chitragupta state', () => {
+    const contractStatus = evaluateChitraguptaContractStatus({
+      ok: false,
+      daemon: 'running',
+      warnings: ['tool call failed for /Users/srinivaspendela/vault.md: Transport closed'],
+      capabilities: REQUIRED_CHITRAGUPTA_CAPABILITIES,
+    })
+    const diagnostic = summarizeChitraguptaRuntimeReadiness({
+      availability: { status: 'installed', version: '0.1.0' },
+      contractStatus,
+      protectedNote: false,
+    })
+
+    expect(contractStatus.state).toBe('blocked')
+    expect(contractStatus.transport).toBe('closed')
+    expect(contractStatus.warnings).toContain('Chitragupta MCP transport is closed.')
+    expect(contractStatus.warnings.join(' ')).not.toContain('/Users/srinivaspendela')
+    expect(diagnostic.state).toBe('mcp_transport_closed')
+    expect(diagnostic.contractLabel).toBe('MCP transport closed')
+    expect(diagnostic.warnings[0]).toContain('MCP transport closed')
+  })
+
   it('builds source-backed active note context for memory recall', () => {
     const active = entry({
       outgoingLinks: ['Decision Log'],

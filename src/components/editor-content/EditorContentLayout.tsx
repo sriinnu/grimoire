@@ -1,15 +1,21 @@
+import { lazy, Suspense } from 'react'
 import type React from 'react'
 import { cn } from '@/lib/utils'
 import { DiffView } from '../DiffView'
 import { BreadcrumbBar } from '../BreadcrumbBar'
 import { ArchivedNoteBanner } from '../ArchivedNoteBanner'
 import { ConflictNoteBanner } from '../ConflictNoteBanner'
-import { RawEditorView } from '../RawEditorView'
 import { SingleEditorView } from '../SingleEditorView'
 import type { useEditorContentModel } from './useEditorContentModel'
 import { HtmlPreview } from './HtmlPreview'
 import { VaultImagePreview } from './VaultImagePreview'
 import { EditorLoadingState } from '../EditorLoadingState'
+import { EditorConstellationMeta } from '../EditorConstellationMeta'
+import { EditorAgentComposerBar } from '../EditorAgentComposerBar'
+
+const RawEditorViewSurface = lazy(async () => ({
+  default: (await import('../RawEditorView')).RawEditorView,
+}))
 
 type EditorContentModel = ReturnType<typeof useEditorContentModel>
 
@@ -42,7 +48,7 @@ function EditorLoadingSkeleton() {
 
 function DiffModeView({ diffContent, onToggleDiff }: { diffContent: string | null; onToggleDiff: () => void }) {
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="grimoire-page-arrive flex-1 overflow-auto">
       <button
         className="flex items-center gap-1.5 px-4 py-2 text-xs text-primary bg-muted border-b border-border cursor-pointer hover:bg-accent transition-colors w-full border-t-0 border-l-0 border-r-0"
         onClick={onToggleDiff}
@@ -74,16 +80,18 @@ function RawModeEditorSection({
   if (!rawMode || !activeTab) return null
 
   return (
-    <RawEditorView
-      key={activeTab.entry.path}
-      content={rawModeContent ?? activeTab.content}
-      path={activeTab.entry.path}
-      entries={entries}
-      onContentChange={onRawContentChange ?? (() => {})}
-      onSave={onSave ?? (() => {})}
-      latestContentRef={rawLatestContentRef}
-      vaultPath={vaultPath}
-    />
+    <Suspense fallback={<EditorLoadingState detail="Opening raw editor" />}>
+      <RawEditorViewSurface
+        key={activeTab.entry.path}
+        content={rawModeContent ?? activeTab.content}
+        path={activeTab.entry.path}
+        entries={entries}
+        onContentChange={onRawContentChange ?? (() => {})}
+        onSave={onSave ?? (() => {})}
+        latestContentRef={rawLatestContentRef}
+        vaultPath={vaultPath}
+      />
+    </Suspense>
   )
 }
 
@@ -189,7 +197,7 @@ function EditorCanvas({
   if (!showEditor) return null
 
   return (
-    <div className="editor-scroll-area" style={cssVars as React.CSSProperties}>
+    <div key={activeTab?.entry.path} className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
       <div className="editor-content-wrapper">
         <SingleEditorView
           activeContent={activeTab?.content ?? ''}
@@ -278,6 +286,7 @@ export function EditorContentLayout(model: EditorContentModel) {
           onToggleNoteLayout: model.onToggleNoteLayout,
         }}
       />
+      <EditorConstellationMeta content={activeTab.content} entry={activeTab.entry} />
       <EditorChrome
         isArchived={isArchived}
         onUnarchiveNote={onUnarchiveNote}
@@ -314,6 +323,13 @@ export function EditorContentLayout(model: EditorContentModel) {
         onEditorChange={onEditorChange}
         isDeletedPreview={isDeletedPreview}
       />
+      {!diffMode && !effectiveRawMode && !model.isImagePreview && !model.isHtmlPreview ? (
+        <EditorAgentComposerBar
+          content={activeTab.content}
+          disabled={model.showAIChat}
+          onOpen={model.onToggleAIChat}
+        />
+      ) : null}
       {isLoadingNewTab && showEditor && <EditorLoadingSkeleton />}
     </div>
   )

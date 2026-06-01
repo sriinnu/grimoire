@@ -59,7 +59,7 @@ describe('useAiAgentPreferences', () => {
     expect(onToast).toHaveBeenCalledWith('Default AI agent: Codex')
   })
 
-  it('keeps the browser mock agent composer enabled when no CLI is installed', () => {
+  it('marks the selected agent unavailable when no CLI is installed', () => {
     const { result } = renderHook(() => useAiAgentPreferences({
       settings,
       saveSettings: vi.fn(),
@@ -70,7 +70,7 @@ describe('useAiAgentPreferences', () => {
       },
     }))
 
-    expect(result.current.defaultAiAgentReady).toBe(true)
+    expect(result.current.defaultAiAgentReady).toBe(false)
   })
 
   it('persists a model override for the selected local agent', () => {
@@ -116,5 +116,29 @@ describe('useAiAgentPreferences', () => {
       ai_agent_providers: { chitragupta: 'openai' },
     })
     expect(onToast).toHaveBeenCalledWith('Chitragupta provider: openai')
+  })
+
+  it('uses Chitragupta CLI defaults when no provider override is set', () => {
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings: { ...settings, default_ai_agent: 'chitragupta' },
+      saveSettings: vi.fn(),
+      aiAgentsStatus,
+    }))
+
+    expect(result.current.defaultAiProvider).toBeNull()
+  })
+
+  it('ignores stale provider overrides for Codex', () => {
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings: {
+        ...settings,
+        default_ai_agent: 'codex',
+        ai_agent_providers: { codex: 'google', chitragupta: 'openai' },
+      },
+      saveSettings: vi.fn(),
+      aiAgentsStatus,
+    }))
+
+    expect(result.current.defaultAiProvider).toBeNull()
   })
 })

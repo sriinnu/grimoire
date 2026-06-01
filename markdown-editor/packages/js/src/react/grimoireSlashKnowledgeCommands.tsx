@@ -292,8 +292,8 @@ export const GRIMOIRE_KNOWLEDGE_SLASH_COMMANDS: GrimoireCommandDefinition[] = [
   {
     key: 'grimoire_backlink_review',
     title: 'Backlink Review',
-    subtext: 'Audit inbound links, unlinked mentions, and orphan notes.',
-    aliases: ['backlinks', 'unlinked mentions', 'orphans', 'graph cleanup', 'obsidian'],
+    subtext: 'Audit inbound [[links]], unlinked mentions, and orphan notes.',
+    aliases: ['backlinks', 'wikilinks', 'spelllinks', 'unlinked mentions', 'orphans', 'graph cleanup', 'obsidian'],
     group: 'Knowledge',
     icon: FileSearch,
     run: (editor, context) => insertMarkdown(editor, backlinkReviewTemplate(context)),
@@ -319,8 +319,8 @@ export const GRIMOIRE_KNOWLEDGE_SLASH_COMMANDS: GrimoireCommandDefinition[] = [
   {
     key: 'grimoire_link_map',
     title: 'Link Map',
-    subtext: 'Map relationships between notes as durable markdown.',
-    aliases: ['graph', 'edges', 'links', 'nodes', 'relationship map'],
+    subtext: 'Map [[note]] relationships as durable markdown.',
+    aliases: ['graph', 'edges', 'links', 'wikilinks', 'spelllinks', 'nodes', 'relationship map'],
     group: 'Knowledge',
     icon: ListTree,
     run: editor => insertMarkdown(editor, graphEdgesTemplate()),

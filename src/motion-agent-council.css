@@ -1,0 +1,83 @@
+/* Agent Council motion keeps multi-agent stance changes staged and source-safe. */
+
+.grimoire-agent-council__map-step {
+  animation: grimoire-agent-council-node var(--motion-duration-control) var(--motion-ease-standard) both;
+  animation-delay: var(--motion-stagger-delay, 0ms);
+}
+
+.grimoire-agent-council__member {
+  animation-duration: calc(var(--motion-duration-control) + 40ms);
+}
+
+.grimoire-agent-council__friction-step {
+  animation: grimoire-agent-council-friction var(--motion-duration-control) var(--motion-ease-standard) both;
+  animation-delay: var(--motion-stagger-delay, 0ms);
+}
+
+.grimoire-agent-council__brief {
+  animation: grimoire-agent-council-synthesis var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+.grimoire-agent-council__answer {
+  animation: grimoire-agent-council-answer var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+@keyframes grimoire-agent-council-synthesis {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y)) scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-agent-council-friction {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y)) scale(0.986);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-agent-council-answer {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--motion-distance-control-y) * 0.75)) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-agent-council-node {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-distance-control-y)) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grimoire-agent-council__map-step,
+  .grimoire-agent-council__friction-step,
+  .grimoire-agent-council__member,
+  .grimoire-agent-council__brief,
+  .grimoire-agent-council__answer {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

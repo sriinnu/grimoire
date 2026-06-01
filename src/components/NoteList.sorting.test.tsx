@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { NoteList } from './NoteList'
 import { APP_STORAGE_KEYS, LEGACY_APP_STORAGE_KEYS } from '../constants/appStorage'
-import { getSortComparator } from '../utils/noteListHelpers'
+import { getSortComparator } from '../utils/noteListSorting'
 import { buildNoteListProps, makeEntry, mockEntries, renderNoteList } from '../test-utils/noteListTestUtils'
 import type { ViewFile } from '../types'
 
@@ -180,9 +180,11 @@ describe('NoteList sort controls', () => {
     expect(screen.getByTestId('sort-button-__list__')).toBeInTheDocument()
   })
 
-  it('shows a per-group sort button in entity view', () => {
+  it('shows a per-group sort button in entity view', async () => {
     renderNoteList({ selection: { kind: 'entity', entry: mockEntries[0] } })
-    expect(screen.getByTestId('sort-button-Children')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('sort-button-Children')).toBeInTheDocument()
+    })
   })
 
   it('opens the sort menu and lists all built-in options', () => {
@@ -256,7 +258,7 @@ describe('NoteList sort controls', () => {
     expect(screen.getByTestId('sort-direction-icon-__list__')).toBeInTheDocument()
   })
 
-  it('sorts entity relationship groups independently', () => {
+  it('sorts entity relationship groups independently', async () => {
     const parent = makeEntry({
       path: '/parent.md',
       filename: 'parent.md',
@@ -283,14 +285,16 @@ describe('NoteList sort controls', () => {
       selection: { kind: 'entity', entry: parent },
     })
 
-    let titles = screen.getAllByText(/Zebra Note|Alpha Note/).map((element) => element.textContent)
-    expect(titles).toEqual(['Zebra Note', 'Alpha Note'])
+    let titles = await screen.findAllByText(/Zebra Note|Alpha Note/)
+    let titleText = titles.map((element) => element.textContent)
+    expect(titleText).toEqual(['Zebra Note', 'Alpha Note'])
 
     fireEvent.click(screen.getByTestId('sort-button-Children'))
     fireEvent.click(screen.getByTestId('sort-option-title'))
 
-    titles = screen.getAllByText(/Zebra Note|Alpha Note/).map((element) => element.textContent)
-    expect(titles).toEqual(['Alpha Note', 'Zebra Note'])
+    titles = await screen.findAllByText(/Zebra Note|Alpha Note/)
+    titleText = titles.map((element) => element.textContent)
+    expect(titleText).toEqual(['Alpha Note', 'Zebra Note'])
   })
 
   it('shows custom properties after a separator in the sort menu', () => {

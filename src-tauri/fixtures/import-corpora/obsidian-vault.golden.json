@@ -1,0 +1,32 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "assets/sigil.png",
+    "destination_path": "assets/sigil.png",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "note",
+    "source_path": "Daily.md",
+    "destination_path": "Daily.md",
+    "detail": "metadata/frontmatter map"
+  },
+  {
+    "kind": "note",
+    "source_path": "Projects/Grimoire.md",
+    "destination_path": "Projects/Grimoire.md",
+    "detail": "metadata/frontmatter map"
+  },
+  {
+    "kind": "withheld",
+    "source_path": ".env",
+    "destination_path": null,
+    "detail": "local-only folder skip"
+  },
+  {
+    "kind": "withheld",
+    "source_path": ".obsidian/workspace.json",
+    "destination_path": null,
+    "detail": "local-only folder skip"
+  }
+]
