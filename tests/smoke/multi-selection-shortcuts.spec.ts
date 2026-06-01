@@ -30,6 +30,8 @@ async function dispatchCommandShortcut(page: Page, key: string, code: string) {
 }
 
 async function selectVisibleInboxBatch(page: Page) {
+  await page.getByTestId('sidebar-top-nav').getByText('Inbox', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Inbox' })).toBeVisible({ timeout: 5_000 })
   await focusNoteList(page)
   await dispatchCommandShortcut(page, 'a', 'KeyA')
   await expect(page.getByTestId('bulk-action-bar')).toBeVisible({ timeout: 5_000 })

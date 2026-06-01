@@ -131,4 +131,27 @@ describe('EditorContentLayout', () => {
       expect(element).not.toHaveClass('grimoire-state-pulse')
     }
   })
+
+  it('does not remount the typing surface when an untitled note is renamed', () => {
+    const { container, rerender } = render(<EditorContentLayout {...createModel()} />)
+    const initialScrollArea = container.querySelector('.editor-scroll-area')
+
+    rerender(
+      <EditorContentLayout
+        {...createModel({
+          activeTab: {
+            entry: {
+              path: '/vault/project/renamed.md',
+              filename: 'renamed.md',
+              title: 'Renamed',
+            },
+            content: 'Body',
+          },
+          path: '/vault/project/renamed.md',
+        })}
+      />,
+    )
+
+    expect(container.querySelector('.editor-scroll-area')).toBe(initialScrollArea)
+  })
 })

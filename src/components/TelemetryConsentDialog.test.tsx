@@ -39,6 +39,16 @@ describe('TelemetryConsentDialog', () => {
     expect(screen.getByTestId('telemetry-decline')).toHaveFocus()
   })
 
+  it('moves focus between actions with Tab inside WebKit-style button focus scopes', () => {
+    render(<TelemetryConsentDialog onAccept={vi.fn()} onDecline={vi.fn()} />)
+
+    fireEvent.keyDown(screen.getByTestId('telemetry-decline'), { key: 'Tab' })
+    expect(screen.getByTestId('telemetry-accept')).toHaveFocus()
+
+    fireEvent.keyDown(screen.getByTestId('telemetry-accept'), { key: 'Tab', shiftKey: true })
+    expect(screen.getByTestId('telemetry-decline')).toHaveFocus()
+  })
+
   it('uses the surrounding surface as a drag region and excludes the dialog card', () => {
     render(<TelemetryConsentDialog onAccept={vi.fn()} onDecline={vi.fn()} />)
 
