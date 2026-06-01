@@ -146,6 +146,12 @@ access, latest GitHub Actions state, GitHub Release assets, update feeds, and
 README/public-readiness wording. It is expected to fail until the public
 release blockers in `docs/PUBLIC-READINESS.md` are resolved.
 
+Check public-facing Markdown links before publishing docs:
+
+```bash
+pnpm test:public-doc-links
+```
+
 Before cutting a tagged release, check the live release prerequisites:
 
 ```bash

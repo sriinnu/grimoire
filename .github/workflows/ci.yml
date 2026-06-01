@@ -62,6 +62,9 @@ jobs:
       - name: Verify Public Readiness Docs
         run: pnpm test:public-readiness-docs
 
+      - name: Verify Public Doc Links
+        run: pnpm test:public-doc-links
+
       - name: Verify Starter Vault Showcase
         run: pnpm test:starter-vault
 

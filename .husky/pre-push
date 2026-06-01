@@ -87,6 +87,11 @@ pnpm test:public-readiness-docs
 echo "  ✅ Public readiness docs OK"
 
 echo ""
+echo "🔗 Public doc links..."
+pnpm test:public-doc-links
+echo "  ✅ Public doc links OK"
+
+echo ""
 echo "🛰️  Release pages..."
 pnpm test:release-pages
 echo "  ✅ Release pages OK"

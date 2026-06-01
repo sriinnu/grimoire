@@ -45,6 +45,8 @@
     "test:release-artifacts": "node scripts/verify-release-artifacts.mjs --self-test",
     "test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test",
     "test:release-pages": "node scripts/build-release-pages.mjs --self-test",
+    "test:public-doc-links": "node scripts/verify-public-doc-links.mjs",
+    "test:public-doc-links:self": "node scripts/verify-public-doc-links.mjs --self-test",
     "test:public-readiness-docs": "node scripts/verify-public-readiness-docs.mjs",
     "test:starter-vault": "node scripts/verify-starter-vault-showcase.mjs",
     "test:e2e": "playwright test",
