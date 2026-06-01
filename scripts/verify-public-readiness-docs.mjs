@@ -43,9 +43,14 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', '| Release preflight | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
   assertContains('package.json', '"doctor:source": "node scripts/doctor-public-source.mjs"')
   assertContains('package.json', '"test:doctor-source": "node scripts/doctor-public-source.mjs --self-test"')
+  assertContains('README.md', 'pnpm release:preflight')
+  assertContains('docs/GETTING-STARTED.md', 'pnpm release:preflight')
+  assertContains('package.json', '"release:preflight": "node scripts/release-preflight.mjs"')
+  assertContains('package.json', '"test:release-preflight": "node scripts/release-preflight.mjs --self-test"')
   assertContains('README.md', 'pnpm audit:public-readiness -- --branch main')
   assertContains('package.json', '"audit:public-readiness": "node scripts/audit-public-readiness.mjs"')
   assertContains('package.json', '"test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test"')
@@ -85,6 +90,11 @@ function verifyReleaseWorkflowTruth() {
     'docs/PUBLIC-READINESS.md',
     '| OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |',
     'Public Readiness OS packaging row',
+  )
+  assertContains(
+    '.github/workflows/release.yml',
+    'APPLE_ID, APPLE_PASSWORD, and APPLE_TEAM_ID are required for notarized public release builds.',
+    'release workflow notarization guard',
   )
   assertContains(
     '.github/workflows/release.yml',

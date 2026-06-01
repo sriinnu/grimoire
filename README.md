@@ -146,6 +146,16 @@ access, latest GitHub Actions state, GitHub Release assets, update feeds, and
 README/public-readiness wording. It is expected to fail until the public
 release blockers in `docs/PUBLIC-READINESS.md` are resolved.
 
+Before cutting a tagged release, check the live release prerequisites:
+
+```bash
+pnpm release:preflight
+```
+
+That command verifies release workflow wiring, GitHub Pages, and the required
+repo secret names for signed and notarized macOS artifacts. It does not print
+secret values.
+
 Build and install a local macOS app bundle:
 
 ```bash

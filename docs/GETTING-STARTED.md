@@ -8,6 +8,16 @@ secrets are configured. Stable and alpha update feeds are generated from GitHub
 Release assets by the release workflow; they are not evidence until that workflow
 has run successfully for a tagged release.
 
+Before cutting a public release tag, run:
+
+```bash
+pnpm release:preflight
+```
+
+The preflight checks release workflow wiring, GitHub Pages, and required repo
+secret names for signed and notarized macOS artifacts. It reports secret names
+only; it never prints secret values.
+
 The in-app Getting Started flow clones the public starter vault from
 `https://github.com/sriinnu/grimoire-getting-started.git`. The tracked
 `demo-vault-v2/` directory mirrors that showcase vault for local development and
