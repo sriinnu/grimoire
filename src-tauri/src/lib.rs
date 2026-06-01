@@ -301,13 +301,6 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
 
     match event {
         tauri::RunEvent::Ready => window_lifecycle::show_main_window(app_handle),
-        #[cfg(target_os = "macos")]
-        tauri::RunEvent::Reopen {
-            has_visible_windows,
-            ..
-        } if should_show_window_on_reopen(*has_visible_windows) => {
-            window_lifecycle::show_main_window(app_handle)
-        }
         tauri::RunEvent::Exit => {
             let state: tauri::State<'_, WsBridgeChild> = app_handle.state();
             let mut guard = state.0.lock().unwrap();
@@ -316,9 +309,25 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
                 log::info!("ws-bridge child process killed on exit");
             }
         }
+        _ => handle_platform_run_event(app_handle, event),
+    }
+}
+
+#[cfg(all(desktop, target_os = "macos"))]
+fn handle_platform_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
+    match event {
+        tauri::RunEvent::Reopen {
+            has_visible_windows,
+            ..
+        } if should_show_window_on_reopen(*has_visible_windows) => {
+            window_lifecycle::show_main_window(app_handle)
+        }
         _ => {}
     }
 }
+
+#[cfg(all(desktop, not(target_os = "macos")))]
+fn handle_platform_run_event(_app_handle: &tauri::AppHandle, _event: &tauri::RunEvent) {}
 
 #[cfg(any(test, all(desktop, target_os = "macos")))]
 fn should_show_window_on_reopen(_has_visible_windows: bool) -> bool {

@@ -3,9 +3,6 @@ use std::process::Command;
 
 #[cfg(desktop)]
 use crate::menu;
-use crate::settings::Settings;
-use crate::vault_list;
-use crate::vault_list::VaultList;
 use serde::Deserialize;
 #[cfg(desktop)]
 use tauri::ipc::Channel;
@@ -13,8 +10,6 @@ use tauri::ipc::Channel;
 use tauri::LogicalSize;
 #[cfg(desktop)]
 use tauri::Window;
-
-use super::parse_build_label;
 
 #[cfg(desktop)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -278,36 +273,6 @@ pub fn perform_current_window_titlebar_double_click(_window: tauri::Window) -> R
     Ok(())
 }
 
-// ── Settings & config commands ──────────────────────────────────────────────
-
-#[tauri::command]
-pub fn get_build_number(app_handle: tauri::AppHandle) -> String {
-    let version = app_handle.package_info().version.to_string();
-    parse_build_label(&version)
-}
-
-#[tauri::command]
-pub fn get_settings() -> Result<Settings, String> {
-    crate::settings::get_settings()
-}
-
-#[tauri::command]
-pub fn save_settings(app_handle: tauri::AppHandle, settings: Settings) -> Result<(), String> {
-    #[cfg(not(all(desktop, target_os = "macos")))]
-    let _ = &app_handle;
-
-    #[cfg(all(desktop, target_os = "macos"))]
-    let menu_bar_enabled = settings.menu_bar_icon_enabled == Some(true);
-    crate::settings::save_settings(settings)?;
-
-    #[cfg(all(desktop, target_os = "macos"))]
-    if let Err(error) = crate::menu_bar::apply_menu_bar_icon_setting(&app_handle, menu_bar_enabled)
-    {
-        log::warn!("Failed to apply menu bar icon setting after settings save: {error}");
-    }
-    Ok(())
-}
-
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn check_for_app_update(
@@ -354,189 +319,6 @@ pub async fn download_and_install_app_update(
     Err("App updates are not available on mobile".into())
 }
 
-#[tauri::command]
-pub fn reinit_telemetry() {
-    crate::telemetry::reinit_sentry();
-}
-
-#[tauri::command]
-pub fn load_vault_list() -> Result<VaultList, String> {
-    vault_list::load_vault_list()
-}
-
-#[tauri::command]
-pub fn save_vault_list(list: VaultList) -> Result<(), String> {
-    vault_list::save_vault_list(&list)
-}
-
 #[cfg(test)]
-mod tests {
-    use super::*;
-    #[cfg(desktop)]
-    use std::cell::RefCell;
-    #[cfg(desktop)]
-    use std::os::unix::process::ExitStatusExt;
-    #[cfg(desktop)]
-    use std::process::{ExitStatus, Output};
-    #[cfg(desktop)]
-    use std::rc::Rc;
-
-    #[test]
-    fn parses_title_bar_action_values() {
-        for (value, expected) in [
-            ("Fill", Some(TitleBarDoubleClickAction::Fill)),
-            ("zoom", Some(TitleBarDoubleClickAction::Fill)),
-            ("Minimize", Some(TitleBarDoubleClickAction::Minimize)),
-            ("No Action", Some(TitleBarDoubleClickAction::None)),
-            ("tile", None),
-        ] {
-            assert_eq!(parse_title_bar_double_click_action(value), expected);
-        }
-
-        for (value, expected) in [
-            ("1", Some(TitleBarDoubleClickAction::Minimize)),
-            ("false", Some(TitleBarDoubleClickAction::Fill)),
-            ("maybe", None),
-        ] {
-            assert_eq!(parse_legacy_title_bar_double_click_action(value), expected);
-        }
-    }
-
-    #[test]
-    fn resolves_title_bar_action_preferences() {
-        assert_eq!(
-            resolve_with(&[
-                ("AppleActionOnDoubleClick", "No Action"),
-                ("AppleMiniaturizeOnDoubleClick", "1"),
-            ]),
-            TitleBarDoubleClickAction::None
-        );
-        assert_eq!(
-            resolve_with(&[("AppleMiniaturizeOnDoubleClick", "1")]),
-            TitleBarDoubleClickAction::Minimize
-        );
-        assert_eq!(
-            resolve_with(&[
-                ("AppleActionOnDoubleClick", "tile"),
-                ("AppleMiniaturizeOnDoubleClick", "1"),
-            ]),
-            TitleBarDoubleClickAction::Minimize
-        );
-        assert_eq!(resolve_with(&[]), TitleBarDoubleClickAction::Fill);
-    }
-
-    #[test]
-    fn parses_defaults_output_variants() {
-        for (code, stdout, expected) in [
-            (0, b" Maximize \n".to_vec(), Some("Maximize")),
-            (1, b"Minimize\n".to_vec(), None),
-            (0, b"   \n".to_vec(), None),
-            (0, vec![0xff], None),
-        ] {
-            assert_eq!(
-                parse_defaults_read_output(output(code, stdout)),
-                expected.map(str::to_string)
-            );
-        }
-    }
-
-    #[test]
-    fn routes_title_bar_actions_to_expected_window_calls() {
-        for (action, state, expected_calls) in [
-            (
-                TitleBarDoubleClickAction::Fill,
-                Ok(false),
-                vec!["is_maximized", "maximize"],
-            ),
-            (
-                TitleBarDoubleClickAction::Fill,
-                Ok(true),
-                vec!["is_maximized", "unmaximize"],
-            ),
-            (
-                TitleBarDoubleClickAction::Minimize,
-                Ok(false),
-                vec!["minimize"],
-            ),
-            (TitleBarDoubleClickAction::None, Ok(false), Vec::new()),
-        ] {
-            let (result, calls) = run_action(action, state, Ok(()), Ok(()), Ok(()));
-            assert_eq!(result, Ok(()));
-            assert_eq!(calls, expected_calls);
-        }
-    }
-
-    #[test]
-    fn propagates_title_bar_action_errors() {
-        for (state, maximize, unmaximize, expected) in [
-            (Err("state"), Ok(()), Ok(()), "state"),
-            (Ok(false), Err("maximize"), Ok(()), "maximize"),
-            (Ok(true), Ok(()), Err("unmaximize"), "unmaximize"),
-        ] {
-            let (result, _) = run_action(
-                TitleBarDoubleClickAction::Fill,
-                state,
-                maximize,
-                unmaximize,
-                Ok(()),
-            );
-            assert_eq!(result, Err(expected.to_string()));
-        }
-    }
-
-    fn exit_status(code: i32) -> ExitStatus {
-        ExitStatus::from_raw(code << 8)
-    }
-
-    fn output(code: i32, stdout: Vec<u8>) -> Output {
-        Output {
-            status: exit_status(code),
-            stdout,
-            stderr: Vec::new(),
-        }
-    }
-
-    fn resolve_with(values: &[(&str, &str)]) -> TitleBarDoubleClickAction {
-        resolve_title_bar_double_click_action(|key| {
-            values
-                .iter()
-                .find(|(candidate, _)| *candidate == key)
-                .map(|(_, value)| (*value).to_string())
-        })
-    }
-
-    fn run_action(
-        action: TitleBarDoubleClickAction,
-        state: Result<bool, &'static str>,
-        maximize: Result<(), &'static str>,
-        unmaximize: Result<(), &'static str>,
-        minimize: Result<(), &'static str>,
-    ) -> (Result<(), String>, Vec<&'static str>) {
-        let calls = Rc::new(RefCell::new(Vec::new()));
-        let state_calls = Rc::clone(&calls);
-        let maximize_calls = Rc::clone(&calls);
-        let unmaximize_calls = Rc::clone(&calls);
-        let minimize_calls = Rc::clone(&calls);
-        let result = apply_title_bar_double_click_action(
-            action,
-            move || {
-                state_calls.borrow_mut().push("is_maximized");
-                state.map_err(str::to_string)
-            },
-            move || {
-                maximize_calls.borrow_mut().push("maximize");
-                maximize.map_err(str::to_string)
-            },
-            move || {
-                unmaximize_calls.borrow_mut().push("unmaximize");
-                unmaximize.map_err(str::to_string)
-            },
-            move || {
-                minimize_calls.borrow_mut().push("minimize");
-                minimize.map_err(str::to_string)
-            },
-        );
-        let call_log = calls.borrow().clone();
-        (result, call_log)
-    }
-}
+#[path = "system_tests.rs"]
+mod tests;
