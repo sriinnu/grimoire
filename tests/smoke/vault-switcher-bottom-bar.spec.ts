@@ -161,6 +161,7 @@ test('bottom bar vault switching works with keyboard and mouse @smoke', async ({
   const noteList = page.getByTestId('note-list-container')
 
   await expect(trigger).toContainText('Work Vault')
+  await page.getByRole('button', { name: /All Notes/ }).click()
   await expect(noteList.getByText('Work Home', { exact: true })).toBeVisible()
 
   await trigger.focus()
@@ -173,6 +174,7 @@ test('bottom bar vault switching works with keyboard and mouse @smoke', async ({
   await page.keyboard.press('Enter')
 
   await expect(trigger).toContainText('Personal Vault')
+  await page.getByRole('button', { name: /All Notes/ }).click()
   await expect(noteList.getByText('Personal Home', { exact: true })).toBeVisible()
   await expect(noteList.getByText('Work Home', { exact: true })).toHaveCount(0)
 
@@ -180,6 +182,7 @@ test('bottom bar vault switching works with keyboard and mouse @smoke', async ({
   await page.getByTestId('vault-menu-item-Work Vault').click()
 
   await expect(trigger).toContainText('Work Vault')
+  await page.getByRole('button', { name: /All Notes/ }).click()
   await expect(noteList.getByText('Work Home', { exact: true })).toBeVisible()
   await expect(noteList.getByText('Personal Home', { exact: true })).toHaveCount(0)
 })
