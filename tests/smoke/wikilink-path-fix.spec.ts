@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
+import { sendShortcut } from './helpers'
 
 const SOURCE_NOTE_TITLE = 'Grow Newsletter'
 const INSERTED_WIKILINK_QUERY = '[[Mana'
@@ -30,15 +31,25 @@ async function insertWikilink(page: Page) {
   return matchingWikilinks.nth(existingCount)
 }
 
+async function openNote(page: Page, title: string) {
+  await page.locator('body').click()
+  await sendShortcut(page, 'p', ['Control'])
+  const quickOpenInput = page.locator('input[placeholder="Search notes..."]')
+  await expect(quickOpenInput).toBeVisible({ timeout: 5_000 })
+  await quickOpenInput.fill(title)
+  const selectedResult = page.getByTestId('quick-open-palette').locator('[class*="bg-accent"]').first()
+  const selectedTitle = selectedResult.locator('span.truncate').first()
+  await expect(selectedTitle).toHaveText(title, { timeout: 5_000 })
+  await selectedResult.click()
+  await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible({ timeout: 5_000 })
+}
+
 test.describe('Wikilink insertion and navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('**/api/vault/ping', route => route.fulfill({ status: 503 }))
     await page.goto('/')
-    await page.waitForTimeout(500)
-
-    const noteItem = page.locator('.app__note-list .cursor-pointer').filter({ hasText: SOURCE_NOTE_TITLE }).first()
-    await noteItem.click()
-    await page.waitForTimeout(1000)
+    await expect(page.getByTestId('vault-dashboard')).toBeVisible({ timeout: 10_000 })
+    await openNote(page, SOURCE_NOTE_TITLE)
   })
 
   test('[[ autocomplete inserts wikilink that is not broken', async ({ page }) => {

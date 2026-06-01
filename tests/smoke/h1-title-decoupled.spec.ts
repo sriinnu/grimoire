@@ -153,7 +153,6 @@ test('@smoke edited H1 titles drive search and wikilink autocomplete', async ({ 
 })
 
 test('@smoke rapid H1 typing stays stable while editing an existing note', async ({ page }) => {
-  const noteList = page.locator('[data-testid="note-list-container"]')
   const firstTitle = 'Alpha Project Fast Typing Check'
   const finalTitle = 'Alpha Project Fast Typing Flow'
 
@@ -170,8 +169,6 @@ test('@smoke rapid H1 typing stays stable while editing an existing note', async
   await page.keyboard.press('Meta+s')
 
   await expect(page.getByRole('heading', { name: finalTitle, level: 1 })).toBeVisible({ timeout: 5_000 })
-  await expect(noteList.getByText(finalTitle, { exact: true })).toBeVisible({ timeout: 5_000 })
-  await expect(noteList.getByText('Alpha Project', { exact: true })).toHaveCount(0)
 
   await openNote(page, 'Spring 2026')
   await openNote(page, finalTitle)
