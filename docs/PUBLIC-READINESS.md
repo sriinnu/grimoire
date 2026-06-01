@@ -18,6 +18,7 @@ below are resolved and re-verified.
 | Hosted CI | Blocked | GitHub Actions jobs did not start because account billing or spending-limit settings blocked runners. This must be fixed and re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. |
+| AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
 | OS packaging | Partial | Source development targets macOS, Linux, and Windows. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
 
 ## Do Not Make Public Until
@@ -29,6 +30,8 @@ below are resolved and re-verified.
 - Public binary wording is either removed or backed by real release assets.
 - The stable and alpha update feeds either exist or the app clearly explains
   that public updates are not published yet.
+- Public docs separate CLI agent chat/tooling from Chitragupta MCP memory,
+  recall, wiki, graph, ingest, and diagnostics readiness.
 - Known high-priority crash paths have a passing regression test or documented
   limitation.
 
