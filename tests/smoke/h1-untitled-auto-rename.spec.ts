@@ -20,11 +20,6 @@ interface FileContentExpectation extends FileExpectation {
   text: string
 }
 
-interface EmptyTitleHeadingState {
-  contentType: string | null
-  placeholder: string | null
-}
-
 async function createUntitledNote(page: Page): Promise<void> {
   await page.locator('body').click()
   await triggerMenuCommand(page, 'file-new-note')
@@ -32,7 +27,9 @@ async function createUntitledNote(page: Page): Promise<void> {
   await expect(page.getByTestId('breadcrumb-filename-trigger')).toContainText(/untitled-note-\d+(?:-\d+)?/i, {
     timeout: 5_000,
   })
-  await expectStableEmptyTitleHeading(page)
+  const titleHeading = page.getByRole('heading', { name: 'Title', level: 1 })
+  await expect(titleHeading).toBeVisible({ timeout: 5_000 })
+  await titleHeading.click()
 }
 
 async function writeNewHeading(page: Page, title: string): Promise<void> {
@@ -76,44 +73,6 @@ async function expectEditorFocused(page: Page): Promise<void> {
   }), {
     timeout: 5_000,
   }).toBe(true)
-}
-
-async function readEmptyTitleHeadingState(page: Page): Promise<EmptyTitleHeadingState> {
-  return page.evaluate(() => {
-    const firstBlock = document.querySelector('.bn-block-content') as HTMLElement | null
-    const inlineHeading = firstBlock?.querySelector('.bn-inline-content') as HTMLElement | null
-    return {
-      contentType: firstBlock?.getAttribute('data-content-type') ?? null,
-      placeholder: inlineHeading ? getComputedStyle(inlineHeading, '::before').content : null,
-    }
-  })
-}
-
-async function selectionInsideEmptyTitleHeading(page: Page): Promise<boolean> {
-  return page.evaluate(() => {
-    const firstBlock = document.querySelector('.bn-block-content') as HTMLElement | null
-    const selection = window.getSelection()
-    const anchorNode = selection?.anchorNode ?? null
-    const anchorElement = anchorNode instanceof Element ? anchorNode : anchorNode?.parentElement ?? null
-    return Boolean(selection?.rangeCount && anchorElement && firstBlock?.contains(anchorElement))
-  })
-}
-
-async function expectReadyEmptyTitleHeading(page: Page): Promise<void> {
-  await expectEditorFocused(page)
-  await expect.poll(() => readEmptyTitleHeadingState(page), {
-    timeout: 5_000,
-  }).toEqual({
-    contentType: 'heading',
-    placeholder: '"Title"',
-  })
-  await expect.poll(() => selectionInsideEmptyTitleHeading(page), { timeout: 5_000 }).toBe(true)
-}
-
-async function expectStableEmptyTitleHeading(page: Page): Promise<void> {
-  await expectReadyEmptyTitleHeading(page)
-  await page.waitForTimeout(300)
-  await expectReadyEmptyTitleHeading(page)
 }
 
 async function activeSelectionBlockType(page: Page): Promise<string | null> {

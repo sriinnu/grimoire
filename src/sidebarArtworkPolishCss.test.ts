@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('sidebar artwork polish CSS', () => {
+  const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
+
   it('adds theme-tonal knowledge tokens to the ambient sidebar sigil', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-polish.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-polish.css`)
 
     expect(css).toContain('--art-token-veda')
     expect(css).toContain('--art-token-shaastra')
@@ -21,7 +23,7 @@ describe('sidebar artwork polish CSS', () => {
   })
 
   it('keeps token motion finite, compositor-safe, and reduced-motion aware', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-polish.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-polish.css`)
 
     expect(css).toContain('@media (prefers-reduced-motion: no-preference)')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')

@@ -2,29 +2,30 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('system theme CSS', () => {
+  const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
   const css = [
     'system-themes.css', 'theme-system-tokens.css', 'theme-semantic-tokens.css', 'theme-constellation.css',
     'theme-flagship-shared.css', 'theme-editor-navigator.css', 'theme-coherence.css', 'theme-status-bar.css',
     'theme-surface-coherence.css', 'theme-agent-council.css', 'theme-ai-brief.css', 'theme-accessibility.css',
-  ].map((file) => readFileSync(`${process.cwd()}/src/${file}`, 'utf8')).join('\n')
-  const dashboardLayoutCss = readFileSync(`${process.cwd()}/src/components/dashboard/VaultDashboardLayout.css`, 'utf8')
-  const aiMarkdownCss = readFileSync(`${process.cwd()}/src/ai-markdown.css`, 'utf8')
-  const baseCss = readFileSync(`${process.cwd()}/src/theme-base.css`, 'utf8')
-  const flagshipSharedCss = readFileSync(`${process.cwd()}/src/theme-flagship-shared.css`, 'utf8')
-  const coherenceCss = readFileSync(`${process.cwd()}/src/theme-coherence.css`, 'utf8')
-  const statusBarCss = readFileSync(`${process.cwd()}/src/theme-status-bar.css`, 'utf8')
-  const constellationCss = readFileSync(`${process.cwd()}/src/theme-constellation.css`, 'utf8')
-  const editorCss = readFileSync(`${process.cwd()}/src/components/Editor.css`, 'utf8')
-  const editorHeadingCss = readFileSync(`${process.cwd()}/src/components/EditorHeadingProfiles.css`, 'utf8')
-  const editorMetaCss = readFileSync(`${process.cwd()}/src/components/EditorMeta.css`, 'utf8')
-  const editorThemeCss = readFileSync(`${process.cwd()}/src/components/EditorTheme.css`, 'utf8')
-  const graphAnimationsCss = readFileSync(`${process.cwd()}/src/graph-animations.css`, 'utf8')
-  const agentCouncilThemeCss = readFileSync(`${process.cwd()}/src/theme-agent-council.css`, 'utf8')
-  const canvasAttachmentCss = readFileSync(`${process.cwd()}/src/components/canvas/CanvasAttachment.css`, 'utf8')
-  const mainTsx = readFileSync(`${process.cwd()}/src/main.tsx`, 'utf8')
+  ].map((file) => readText(`${process.cwd()}/src/${file}`)).join('\n')
+  const dashboardLayoutCss = readText(`${process.cwd()}/src/components/dashboard/VaultDashboardLayout.css`)
+  const aiMarkdownCss = readText(`${process.cwd()}/src/ai-markdown.css`)
+  const baseCss = readText(`${process.cwd()}/src/theme-base.css`)
+  const flagshipSharedCss = readText(`${process.cwd()}/src/theme-flagship-shared.css`)
+  const coherenceCss = readText(`${process.cwd()}/src/theme-coherence.css`)
+  const statusBarCss = readText(`${process.cwd()}/src/theme-status-bar.css`)
+  const constellationCss = readText(`${process.cwd()}/src/theme-constellation.css`)
+  const editorCss = readText(`${process.cwd()}/src/components/Editor.css`)
+  const editorHeadingCss = readText(`${process.cwd()}/src/components/EditorHeadingProfiles.css`)
+  const editorMetaCss = readText(`${process.cwd()}/src/components/EditorMeta.css`)
+  const editorThemeCss = readText(`${process.cwd()}/src/components/EditorTheme.css`)
+  const graphAnimationsCss = readText(`${process.cwd()}/src/graph-animations.css`)
+  const agentCouncilThemeCss = readText(`${process.cwd()}/src/theme-agent-council.css`)
+  const canvasAttachmentCss = readText(`${process.cwd()}/src/components/canvas/CanvasAttachment.css`)
+  const mainTsx = readText(`${process.cwd()}/src/main.tsx`)
   const noteListChromeCss = ['NoteListChrome.css', 'ProjectWorkspaceChrome.css', 'NoteListFilterRail.css']
-    .map((file) => readFileSync(`${process.cwd()}/src/components/note-list/${file}`, 'utf8')).join('\n')
-  const polishCss = readFileSync(`${process.cwd()}/src/theme-polish.css`, 'utf8')
+    .map((file) => readText(`${process.cwd()}/src/components/note-list/${file}`)).join('\n')
+  const polishCss = readText(`${process.cwd()}/src/theme-polish.css`)
   const nonConstellationFlagshipSelector = ':where([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="prabhat-studio"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
   const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="living-archive"], [data-theme-preset="daylight-atelier"], [data-theme-preset="prabhat-studio"], [data-theme-preset="nocturne"], [data-theme-preset="retro-terminal"])'
 
@@ -74,8 +75,8 @@ describe('system theme CSS', () => {
   })
 
   it('routes navigation and sidebar special effects through theme tokens', () => {
-    const navigatorCss = readFileSync(`${process.cwd()}/src/theme-editor-navigator.css`, 'utf8')
-    const sidebarCss = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const navigatorCss = readText(`${process.cwd()}/src/theme-editor-navigator.css`)
+    const sidebarCss = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(getRuleBody(navigatorCss, '[data-theme-preset="constellation"] .editor-navigator-popover-shell')).toContain('var(--surface-popover)')
     expect(navigatorCss).not.toContain('#08131f')
