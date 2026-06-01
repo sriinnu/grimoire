@@ -1,7 +1,24 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { Sidebar } from './Sidebar'
 import type { VaultEntry, SidebarSelection } from '../types'
+
+const originalUserAgent = navigator.userAgent
+const originalPlatform = navigator.platform
+
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(window.navigator, 'userAgent', {
+    configurable: true,
+    value: userAgent,
+  })
+}
+
+function setPlatform(platform: string) {
+  Object.defineProperty(window.navigator, 'platform', {
+    configurable: true,
+    value: platform,
+  })
+}
 
 const mockEntries: VaultEntry[] = [
   {
@@ -217,6 +234,11 @@ const mockEntries: VaultEntry[] = [
 const defaultSelection: SidebarSelection = { kind: 'filter', filter: 'all' }
 
 describe('Sidebar', () => {
+  afterEach(() => {
+    setUserAgent(originalUserAgent)
+    setPlatform(originalPlatform)
+  })
+
   it('renders top nav items (All Notes)', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
     expect(screen.getByText('All Notes')).toBeInTheDocument()
@@ -236,11 +258,20 @@ describe('Sidebar', () => {
   })
 
   it('opens vault-wide search from the left sidebar', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    setPlatform('MacIntel')
+
     const onOpenSearch = vi.fn()
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} onOpenSearch={onOpenSearch} />)
 
     expect(screen.getByTestId('sidebar-search-launcher')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Search open vaults' })).toHaveTextContent('Search vaults')
+    expect(screen.getByRole('button', { name: 'Search open vaults' })).toHaveTextContent('⌘⇧F')
+    expect(screen.getByRole('button', { name: 'Search open vaults' })).toHaveAttribute(
+      'title',
+      'Search open vaults (⌘⇧F)',
+    )
+    expect(screen.getByRole('button', { name: 'Search open vaults' })).not.toHaveTextContent('Cmd F')
 
     fireEvent.click(screen.getByTestId('sidebar-search-button'))
     expect(onOpenSearch).toHaveBeenCalledOnce()
