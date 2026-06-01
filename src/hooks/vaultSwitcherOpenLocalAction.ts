@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import type { MutableRefObject } from 'react'
 import { formatFolderPickerActionError, pickFolder } from '../utils/vault-dialog'
 import type { RegisterVaultSelectionOptions, VaultOpeningTarget } from './vaultSwitcherActionModel'
@@ -16,27 +16,44 @@ export function useOpenLocalFolderAction(
   onToastRef: MutableRefObject<(msg: string) => void>,
   onVaultOpeningRef: MutableRefObject<((target: VaultOpeningTarget) => void) | undefined>,
 ) {
+  const openLocalFolderPromiseRef = useRef<Promise<void> | null>(null)
+
   return useCallback(async () => {
-    let path: string | null
-    try {
-      path = await pickFolder('Open vault folder')
-    } catch (err) {
-      onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
-      return
+    if (openLocalFolderPromiseRef.current) {
+      return openLocalFolderPromiseRef.current
     }
 
-    if (!path) return
+    const openLocalFolderPromise = (async () => {
+      let path: string | null
+      try {
+        path = await pickFolder('Open vault folder')
+      } catch (err) {
+        onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
+        return
+      }
 
-    const label = labelFromPath(path)
+      if (!path) return
+
+      const label = labelFromPath(path)
+      try {
+        await registerVaultSelection(path, label, {
+          onBeforeSwitch: onVaultOpeningRef.current,
+          storageProvider: 'local-folder',
+          syncProvider: 'none',
+        })
+        onToastRef.current(`Vault "${label}" opened`)
+      } catch (err) {
+        onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
+      }
+    })()
+
+    openLocalFolderPromiseRef.current = openLocalFolderPromise
     try {
-      await registerVaultSelection(path, label, {
-        onBeforeSwitch: onVaultOpeningRef.current,
-        storageProvider: 'local-folder',
-        syncProvider: 'none',
-      })
-      onToastRef.current(`Vault "${label}" opened`)
-    } catch (err) {
-      onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
+      await openLocalFolderPromise
+    } finally {
+      if (openLocalFolderPromiseRef.current === openLocalFolderPromise) {
+        openLocalFolderPromiseRef.current = null
+      }
     }
   }, [onToastRef, onVaultOpeningRef, registerVaultSelection])
 }
