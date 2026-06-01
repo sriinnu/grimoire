@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const DEFAULT_REPO = 'sriinnu/grimoire'
-const REQUIRED_RELEASE_SECRETS = [
+export const REQUIRED_RELEASE_SECRETS = [
   'APPLE_CERTIFICATE',
   'APPLE_CERTIFICATE_PASSWORD',
   'APPLE_ID',
@@ -90,7 +90,7 @@ function collectSecretNames(repo) {
   }
 }
 
-function collectLiveState(repo) {
+export function collectLiveState(repo) {
   return {
     pages: ghJson(`repos/${repo}/pages`),
     releaseWorkflow: ghJson(`repos/${repo}/actions/workflows/release.yml`),
@@ -98,7 +98,7 @@ function collectLiveState(repo) {
   }
 }
 
-function collectLocalState() {
+export function collectLocalState() {
   return {
     packageJson: readJson('package.json'),
     tauriConfig: readJson('src-tauri/tauri.conf.json'),
@@ -110,7 +110,7 @@ function hasText(value) {
   return typeof value === 'string' && value.trim().length > 0
 }
 
-function evaluatePreflight(state) {
+export function evaluatePreflight(state) {
   const blockers = []
   const warnings = []
   const scripts = state.packageJson.scripts ?? {}
@@ -251,18 +251,20 @@ function printReport(result) {
   process.exitCode = 1
 }
 
-try {
-  const args = parseArgs(process.argv.slice(2))
-  if (args.selfTest) {
-    runSelfTest()
-  } else {
-    const state = {
-      ...collectLocalState(),
-      live: collectLiveState(args.repo),
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    const args = parseArgs(process.argv.slice(2))
+    if (args.selfTest) {
+      runSelfTest()
+    } else {
+      const state = {
+        ...collectLocalState(),
+        live: collectLiveState(args.repo),
+      }
+      printReport(evaluatePreflight(state))
     }
-    printReport(evaluatePreflight(state))
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error))
+    process.exit(1)
   }
-} catch (error) {
-  console.error(error instanceof Error ? error.message : String(error))
-  process.exit(1)
 }
