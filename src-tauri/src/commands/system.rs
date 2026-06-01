@@ -293,9 +293,14 @@ pub fn get_settings() -> Result<Settings, String> {
 
 #[tauri::command]
 pub fn save_settings(app_handle: tauri::AppHandle, settings: Settings) -> Result<(), String> {
+    #[cfg(not(all(desktop, target_os = "macos")))]
+    let _ = &app_handle;
+
+    #[cfg(all(desktop, target_os = "macos"))]
     let menu_bar_enabled = settings.menu_bar_icon_enabled == Some(true);
     crate::settings::save_settings(settings)?;
-    #[cfg(desktop)]
+
+    #[cfg(all(desktop, target_os = "macos"))]
     if let Err(error) = crate::menu_bar::apply_menu_bar_icon_setting(&app_handle, menu_bar_enabled)
     {
         log::warn!("Failed to apply menu bar icon setting after settings save: {error}");
