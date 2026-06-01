@@ -46,7 +46,7 @@ roadmap, not a packaged-release claim yet.
 ## Current Status
 
 - Public readiness is tracked separately in
-  [docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md). As of 2026-06-01,
+  [docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md). As of 2026-06-02,
   Grimoire is not ready to make public for general users because hosted CI is
   blocked before checkout/build/test by the GitHub Actions billing or spending
   limit, and no public binary release exists yet.

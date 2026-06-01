@@ -1,6 +1,6 @@
 # Public Readiness
 
-Snapshot date: 2026-06-01.
+Snapshot date: 2026-06-02.
 
 Grimoire is not ready to make public for general users yet. The source tree is
 getting closer, but public visibility should wait until the remaining blockers
@@ -27,8 +27,8 @@ below are resolved and re-verified.
 | macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x882 on 2026-06-01. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
 | Settings platform copy | Verified | AI provider-key Settings copy now names `macOS Keychain`, `Windows Credential Manager`, or `Linux Secret Service/keyring` based on the detected desktop platform, while save controls remain disabled where native secure storage is not implemented. Regressions live in `src/components/settings/AiAgentSettingsSection.test.tsx` and `src/utils/platform.test.ts`. |
-| Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,256 files on 2026-06-01. |
-| Local checks | Locally verified | The branch pre-push gate passed repeatedly on 2026-06-01: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS/Swift parity, and Rust clippy/fmt. Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from a self-staling commit hash in this file. |
+| Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,259 files on 2026-06-02. |
+| Local checks | Locally verified | The branch pre-push gate passed on 2026-06-02: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,597 frontend tests, Markdown editor JS/Swift parity, and Rust clippy/fmt. Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from a self-staling commit hash in this file. |
 | Hosted CI | Blocked | GitHub Actions check-run annotations say each job was not started because recent account payments failed or the Actions spending limit needs to be increased. This account-level blocker must be fixed and CI must be re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. Manual update checks do not present this as a broken install: `src/hooks/useUpdater.test.ts` covers the 404/not-found path and verifies the app says public Grimoire updates are not published yet. |
@@ -79,9 +79,9 @@ This section records representative hosted CI evidence. Use
 `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
 latest branch state.
 
-Run `26782297318` for commit `7e522e108cb7649f27a3208639eed011eed31f6b`
-failed before checkout/build/test on 2026-06-01. The macOS, Ubuntu, and Windows
-jobs all completed with zero recorded steps.
+Run `26787021505` for commit `ce9d4a607ad48be706c04493d776ab96eba00fe6`
+failed before checkout/build/test on 2026-06-01 UTC (2026-06-02 Europe/Vienna).
+The macOS, Ubuntu, and Windows jobs all completed with zero recorded steps.
 
 Earlier check-run annotations for this same hosted-CI failure mode reported:
 
