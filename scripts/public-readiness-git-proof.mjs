@@ -22,12 +22,44 @@ function gitLogHeadSignature() {
   }
 }
 
+function gitWorkingTreeStatus() {
+  const result = spawnSync('git', ['status', '--porcelain'], {
+    encoding: 'utf8',
+    stdio: 'pipe',
+  })
+
+  if (result.status !== 0) {
+    const detail = result.stderr.trim() || result.stdout.trim() || `exit ${result.status}`
+    return { clean: false, detail, paths: [] }
+  }
+
+  const paths = result.stdout
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  return {
+    clean: paths.length === 0,
+    detail: paths.length === 0 ? 'clean' : `${paths.length} changed path(s)`,
+    paths,
+  }
+}
+
 export function readHeadSignatureProof() {
   return gitLogHeadSignature()
+}
+
+export function readWorkingTreeProof() {
+  return gitWorkingTreeStatus()
 }
 
 export function headSignatureSummary(proof) {
   if (!proof?.commit) return 'missing'
   const status = proof.verified ? 'good' : 'not-good'
   return `${status} ${proof.commit.slice(0, 7)}`
+}
+
+export function workingTreeSummary(proof) {
+  if (!proof) return 'missing'
+  return proof.clean ? 'clean' : proof.detail
 }

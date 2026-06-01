@@ -68,6 +68,10 @@ call Windows verified until a fresh Windows dev/build/open run is captured.
 `pnpm test:rust-platform-guards` statically guards the known macOS-only
 `menu_bar` and `RunEvent::Reopen` regression paths; it is regression coverage,
 not a replacement for native Windows launch QA.
+`pnpm doctor:source` also checks Windows native setup for the MSVC Rust host and
+Microsoft C++ Build Tools (`cl.exe`). If either fails, install Rust's stable
+MSVC toolchain and Microsoft's Desktop development with C++ workload before
+rerunning `pnpm tauri dev`.
 
 Packaged desktop apps also try to start Grimoire's local MCP WebSocket bridge
 from the bundled `mcp-server` resource. Node.js must be available on `PATH` for

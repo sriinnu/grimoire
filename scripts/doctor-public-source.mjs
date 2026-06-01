@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { platform } from 'node:os'
 import { resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -36,6 +36,11 @@ function run(command, args = []) {
 function commandVersion(command, args = ['--version']) {
   const result = run(command, args)
   return result.ok ? result.output.split(/\r?\n/)[0] ?? '' : null
+}
+
+function commandOutput(command, args = []) {
+  const result = run(command, args)
+  return result.ok ? result.output : null
 }
 
 function hasCommand(command) {
@@ -130,14 +135,56 @@ function checkMacNative(context = {}) {
   }]
 }
 
+function windowsToolFound(command, context = {}) {
+  const configured = context.commands?.[command]
+  if (configured !== undefined) return Boolean(configured)
+  return run('where', [command]).ok
+}
+
+function windowsRustHost(context = {}) {
+  const configured = context.commands?.['rustc -vV']
+  if (configured !== undefined) return configured
+  return commandOutput('rustc', ['-vV'])
+}
+
+function windowsWebView2Found(context = {}) {
+  if (context.webview2Runtime !== undefined) return Boolean(context.webview2Runtime)
+  const programFiles = [
+    process.env['ProgramFiles(x86)'],
+    process.env.ProgramFiles,
+  ].filter(Boolean)
+  return programFiles.some((root) => existsSync(resolve(root, 'Microsoft/EdgeWebView/Application')))
+}
+
 function checkWindowsNative(context = {}) {
   if ((context.platform ?? platform()) !== 'win32') return []
-  return [{
-    detail: 'WebView2 is required by Tauri on Windows; the runtime is normally present on supported Windows 10/11 installs',
-    ok: true,
-    title: 'Windows WebView2 note',
-    warning: true,
-  }]
+  const rustHost = windowsRustHost(context)
+  return [
+    {
+      detail: rustHost
+        ? rustHost.includes('pc-windows-msvc')
+          ? 'Rust host targets MSVC'
+          : `found non-MSVC Rust host: ${rustHost.split(/\r?\n/u).find((line) => line.startsWith('host:')) ?? rustHost}`
+        : 'rustc -vV did not report a Windows MSVC host; install Rust with the stable MSVC toolchain',
+      ok: Boolean(rustHost?.includes('pc-windows-msvc')),
+      title: 'Windows Rust MSVC host',
+    },
+    {
+      detail: windowsToolFound('cl', context)
+        ? 'cl.exe found on PATH'
+        : 'cl.exe was not found; install Microsoft C++ Build Tools with the Desktop development with C++ workload',
+      ok: windowsToolFound('cl', context),
+      title: 'Microsoft C++ Build Tools',
+    },
+    {
+      detail: windowsWebView2Found(context)
+        ? 'WebView2 runtime found'
+        : 'WebView2 runtime was not detected; install the evergreen WebView2 runtime if Tauri cannot open a window',
+      ok: windowsWebView2Found(context),
+      title: 'Windows WebView2 runtime',
+      warning: true,
+    },
+  ]
 }
 
 function summarize(checks) {
@@ -198,6 +245,42 @@ function runSelfTest() {
     platform: 'linux',
   })
   if (blocked.browser.ok || blocked.native.ok) throw new Error('blocked fixture should fail both modes')
+
+  const windowsReady = runDoctor({
+    commands: {
+      cargo: 'cargo 1.90.0',
+      cl: 'C:\\BuildTools\\VC\\Tools\\MSVC\\cl.exe',
+      git: 'git version 2.50.0',
+      pnpm: '10.33.0',
+      rustc: 'rustc 1.90.0',
+      'rustc -vV': 'rustc 1.90.0\nhost: x86_64-pc-windows-msvc',
+    },
+    nodeVersion: '20.19.0',
+    packageManager: 'pnpm@10.33.0',
+    platform: 'win32',
+    webview2Runtime: true,
+  })
+  if (!windowsReady.browser.ok || !windowsReady.native.ok) {
+    throw new Error('Windows ready fixture should pass')
+  }
+
+  const windowsBlocked = runDoctor({
+    commands: {
+      cargo: 'cargo 1.90.0',
+      cl: null,
+      git: 'git version 2.50.0',
+      pnpm: '10.33.0',
+      rustc: 'rustc 1.90.0',
+      'rustc -vV': 'rustc 1.90.0\nhost: x86_64-pc-windows-gnu',
+    },
+    nodeVersion: '20.19.0',
+    packageManager: 'pnpm@10.33.0',
+    platform: 'win32',
+    webview2Runtime: false,
+  })
+  if (windowsBlocked.browser.ok !== true || windowsBlocked.native.ok !== false) {
+    throw new Error('Windows blocked fixture should fail native mode only')
+  }
 
   console.log('[source-doctor] self-test ok')
 }
