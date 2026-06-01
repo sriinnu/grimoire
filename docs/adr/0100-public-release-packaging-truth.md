@@ -46,9 +46,9 @@ but public distribution is not claimed until release evidence exists. This makes
 the temporary public story less exciting and much safer: every install path in
 the README must correspond to a command or artifact that currently works.
 
-Hosted CI must be green before publication. If GitHub Actions cannot start jobs
-because billing or runner access blocks them, the repository remains private even
-if local checks pass.
+Hosted CI must be green before publication. If GitHub Actions jobs fail before
+checkout/build/test because hosted runners never come online, the repository
+remains private even if local checks pass.
 
 ## Alternatives Considered
 
