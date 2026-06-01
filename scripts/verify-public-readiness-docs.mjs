@@ -98,8 +98,13 @@ function verifyBinaryInstallTruth() {
   )
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /The branch pre-push gate passed repeatedly on 2026-06-01, including after signed commit `[0-9a-f]{7,40}`: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS\/Swift parity, and Rust clippy\/fmt\./u,
-    'current local pre-push evidence with a signed commit hash',
+    /The branch pre-push gate passed repeatedly on 2026-06-01: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,594 frontend tests, Markdown editor JS\/Swift parity, and Rust clippy\/fmt\./u,
+    'current local pre-push evidence without a self-staling commit hash',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from a self-staling commit hash in this file.',
+    'durable current-head evidence boundary',
   )
   assertContains('docs/PUBLIC-READINESS.md', '4,594 frontend tests')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
