@@ -1,0 +1,5 @@
+export type { SectionGroup } from './sidebar/sidebarSectionTypes'
+export { isSelectionActive } from './sidebar/sidebarSelection'
+export { NavItem, SidebarCountPill } from './sidebar/SidebarNavItem'
+export { SectionContent } from './sidebar/SidebarSectionContent'
+export { VisibilityPopover } from './sidebar/SidebarVisibilityPopover'

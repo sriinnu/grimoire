@@ -80,7 +80,9 @@ describe('StatusBar rail layout', () => {
     setWindowWidth(1280)
     renderStatusBar()
 
-    expect(screen.getByTestId('spanda-intent-trigger')).toHaveStyle({ color: 'var(--foreground)' })
+    expect(screen.getByTestId('spanda-intent-trigger')).toHaveStyle({
+      color: 'var(--status-bar-foreground, var(--foreground))',
+    })
 
     fireEvent.mouseEnter(screen.getByTestId('spanda-rail-intent'))
 

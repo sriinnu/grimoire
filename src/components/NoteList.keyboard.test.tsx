@@ -96,6 +96,7 @@ describe('NoteList keyboard activation', () => {
     )
 
     const container = screen.getByTestId('note-list-container')
+    await screen.findByText('Facebook Ads Strategy')
     fireEvent.keyDown(container, { key: 'ArrowDown' })
     fireEvent.keyDown(container, { key: 'ArrowDown' })
     fireEvent.keyDown(container, { key: 'Enter', metaKey: true })

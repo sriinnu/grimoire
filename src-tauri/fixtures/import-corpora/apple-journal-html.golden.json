@@ -1,0 +1,20 @@
+[
+  {
+    "kind": "asset",
+    "source_path": "Media/lake.jpg",
+    "destination_path": "attachments/lake.jpg",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "asset",
+    "source_path": "Media/voice.m4a",
+    "destination_path": "attachments/voice.m4a",
+    "detail": "attachment move"
+  },
+  {
+    "kind": "note",
+    "source_path": "2026-05-11-evening.html",
+    "destination_path": "2026-05-11-evening-walk.md",
+    "detail": "journal metadata/frontmatter map"
+  }
+]

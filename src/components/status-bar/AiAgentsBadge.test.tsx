@@ -134,4 +134,49 @@ describe('AiAgentsBadge', () => {
     expect(onRefresh).toHaveBeenCalledOnce()
     window.removeEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
   })
+
+  it('separates Chitragupta CLI chat health from MCP memory readiness', () => {
+    render(
+      <AiAgentsBadge
+        statuses={installedStatuses}
+        defaultAgent="chitragupta"
+        onSetDefaultAgent={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      const trigger = screen.getByTestId('status-ai-agents')
+      trigger.focus()
+      fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+    })
+
+    expect(screen.getByTestId('status-ai-agents-chitragupta-boundary')).toHaveTextContent(
+      'Chitragupta chat uses the local CLI route',
+    )
+    expect(screen.getByTestId('status-ai-agents-chitragupta-boundary')).toHaveTextContent(
+      'MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks.',
+    )
+  })
+
+  it('shows configured route truth for the selected private agent lane', () => {
+    render(
+      <AiAgentsBadge
+        statuses={installedStatuses}
+        defaultAgent="chitragupta"
+        defaultAgentProvider="google"
+        defaultAgentModel="gemini-2.5-pro"
+        onSetDefaultAgent={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      const trigger = screen.getByTestId('status-ai-agents')
+      trigger.focus()
+      fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+    })
+
+    expect(screen.getByTestId('status-ai-agents-route-truth')).toHaveTextContent(
+      'Route: provider: google · model: gemini-2.5-pro',
+    )
+  })
 })

@@ -76,6 +76,11 @@ describe('parseFrontmatter', () => {
     expect(fm['Owner']).toBe('[[person/alice]]')
     expect(fm['Belongs to']).toBe('[[project/alpha]]')
   })
+
+  it('parses empty inline arrays as empty arrays', () => {
+    const fm = parseFrontmatter('---\ncontradicted_by: []\n---\nBody')
+    expect(fm['contradicted_by']).toEqual([])
+  })
 })
 
 describe('detectFrontmatterState', () => {

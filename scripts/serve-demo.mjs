@@ -13,11 +13,57 @@ import matter from 'gray-matter'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.join(__dirname, '..', 'dist')
 const REPO_DIR = path.resolve(__dirname, '..')
-const PORT = 5173
+const DEFAULT_VAULT_DIR = path.join(REPO_DIR, 'demo-vault-v2')
+const PORT = Number(process.env.PORT ?? 5173)
+const HOST = process.env.GRIMOIRE_DEMO_PUBLIC === '1' ? '0.0.0.0' : '127.0.0.1'
 
-function isAllowedPath(p) {
-  const resolved = path.resolve(p)
-  return resolved.startsWith(REPO_DIR)
+function realpathIfExists(p) {
+  try {
+    return fs.realpathSync.native(p)
+  } catch {
+    return null
+  }
+}
+
+function isPathInside(root, candidate) {
+  const relative = path.relative(root, candidate)
+  return relative === '' || (!!relative && !relative.startsWith('..') && !path.isAbsolute(relative))
+}
+
+function resolveAllowedVaultRoots() {
+  const roots = [DEFAULT_VAULT_DIR]
+  const explicitVault = process.env.GRIMOIRE_DEMO_VAULT_DIR
+  if (explicitVault) roots.push(explicitVault)
+  return roots
+    .map((root) => realpathIfExists(root))
+    .filter(Boolean)
+}
+
+const ALLOWED_VAULT_ROOTS = resolveAllowedVaultRoots()
+
+function allowedVaultPath(p, kind = 'any') {
+  const resolved = realpathIfExists(p)
+  if (!resolved) return null
+  if (!ALLOWED_VAULT_ROOTS.some((root) => isPathInside(root, resolved))) return null
+  if (kind === 'dir' && !fs.statSync(resolved).isDirectory()) return null
+  if (kind === 'file' && !fs.statSync(resolved).isFile()) return null
+  if (kind === 'markdown' && (!fs.statSync(resolved).isFile() || !/\.m(?:d|arkdown)$/iu.test(resolved))) return null
+  return resolved
+}
+
+function resolveStaticPath(urlPath) {
+  let decodedPath
+  try {
+    decodedPath = decodeURIComponent(urlPath.split('?')[0] ?? '/')
+  } catch {
+    return path.join(DIST_DIR, 'index.html')
+  }
+  const requested = path.resolve(DIST_DIR, decodedPath === '/' ? 'index.html' : `.${decodedPath}`)
+  if (!isPathInside(DIST_DIR, requested)) return path.join(DIST_DIR, 'index.html')
+  if (!fs.existsSync(requested) || fs.statSync(requested).isDirectory()) {
+    return path.join(DIST_DIR, 'index.html')
+  }
+  return requested
 }
 
 const MIME = {
@@ -98,10 +144,11 @@ function serveVaultApi(url, res) {
 
   if (params.pathname === '/api/vault/list') {
     const dir = params.searchParams.get('path')
-    if (!dir || !isAllowedPath(dir) || !fs.existsSync(dir)) {
+    const vaultDir = dir ? allowedVaultPath(dir, 'dir') : null
+    if (!vaultDir) {
       res.writeHead(400); res.end(JSON.stringify({ error: 'bad path' })); return true
     }
-    const entries = findMarkdownFiles(dir).map(parseMarkdownFile).filter(Boolean)
+    const entries = findMarkdownFiles(vaultDir).map(parseMarkdownFile).filter(Boolean)
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify(entries))
     return true
@@ -109,21 +156,23 @@ function serveVaultApi(url, res) {
 
   if (params.pathname === '/api/vault/content') {
     const file = params.searchParams.get('path')
-    if (!file || !isAllowedPath(file) || !fs.existsSync(file)) {
+    const vaultFile = file ? allowedVaultPath(file, 'markdown') : null
+    if (!vaultFile) {
       res.writeHead(400); res.end(JSON.stringify({ error: 'bad path' })); return true
     }
     res.writeHead(200, { 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ content: fs.readFileSync(file, 'utf-8') }))
+    res.end(JSON.stringify({ content: fs.readFileSync(vaultFile, 'utf-8') }))
     return true
   }
 
   if (params.pathname === '/api/vault/all-content') {
     const dir = params.searchParams.get('path')
-    if (!dir || !isAllowedPath(dir) || !fs.existsSync(dir)) {
+    const vaultDir = dir ? allowedVaultPath(dir, 'dir') : null
+    if (!vaultDir) {
       res.writeHead(400); res.end(JSON.stringify({ error: 'bad path' })); return true
     }
     const map = {}
-    for (const f of findMarkdownFiles(dir)) {
+    for (const f of findMarkdownFiles(vaultDir)) {
       try { map[f] = fs.readFileSync(f, 'utf-8') } catch {}
     }
     res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -146,16 +195,16 @@ const server = http.createServer((req, res) => {
   }
 
   // Static files
-  let filePath = path.join(DIST_DIR, url === '/' ? 'index.html' : url)
-  if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(DIST_DIR, 'index.html') // SPA fallback
-  }
+  const filePath = resolveStaticPath(url)
   const ext = path.extname(filePath)
   res.writeHead(200, { 'Content-Type': MIME[ext] ?? 'application/octet-stream' })
   fs.createReadStream(filePath).pipe(res)
 })
 
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Grimoire demo server running on http://0.0.0.0:${PORT}`)
-  console.log(`   Tailscale: https://mac-mini.tail7cbc15.ts.net`)
+server.listen(PORT, HOST, () => {
+  console.log(`✅ Grimoire demo server running on http://${HOST}:${PORT}`)
+  console.log(`   Vault API roots: ${ALLOWED_VAULT_ROOTS.join(', ') || 'none'}`)
+  if (HOST === '0.0.0.0') {
+    console.warn('⚠️  Public bind enabled by GRIMOIRE_DEMO_PUBLIC=1; vault API remains restricted to allowed demo roots.')
+  }
 })

@@ -1,55 +1,69 @@
 import { applyFontRolesToDocument } from './fontConfig'
+import {
+  applyThemeDefinitionToRoot,
+  resolveThemePresetDefinition,
+  type ThemeDefinition,
+  type ThemeDefinitionMode,
+} from '../themes/themeRegistry'
+import { readStoredLocalThemeDefinition } from '../themes/localThemePacks'
+export {
+  SUPPORTED_THEME_PRESETS,
+  type ThemePreset,
+} from '../themes/themePresetIds'
+import { SUPPORTED_THEME_PRESETS } from '../themes/themePresetIds'
+import type { ThemePreset } from '../themes/themePresetIds'
 
-export const DEFAULT_THEME_PRESET = 'manuscript'
-export const DEFAULT_EDITOR_FONT = 'system'
+export const DEFAULT_THEME_PRESET = 'constellation'
+export const DEFAULT_EDITOR_FONT = 'literary'
+export const DEFAULT_EDITOR_LINE_HEIGHT = 'comfortable'
+export const DEFAULT_NATIVE_SHELL_MATERIAL = 'standard'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'
+export const EDITOR_LINE_HEIGHT_STORAGE_KEY = 'grimoire:editor-line-height'
+export const NATIVE_SHELL_MATERIAL_STORAGE_KEY = 'grimoire:native-shell-material'
 
-const THEME_PRESETS = new Set([
-  'classic',
-  'manuscript',
-  'graphite',
-  'studio',
-  'folio',
-  'nocturne',
-  'aether',
-  'ion',
-  'moss',
-  'lumen',
-  'lotus',
-  'ember',
-])
-const EDITOR_FONTS = new Set([
+export const SUPPORTED_EDITOR_FONTS = [
   'system',
-  'serif',
-  'mono',
   'readable',
+  'humanist',
   'literary',
-  'compact',
-  'handwritten',
-])
+  'editorial',
+  'manuscript',
+  'mono',
+] as const
 
-export type ThemePreset =
-  | 'classic'
-  | 'manuscript'
-  | 'graphite'
-  | 'studio'
-  | 'folio'
-  | 'nocturne'
-  | 'aether'
-  | 'ion'
-  | 'moss'
-  | 'lumen'
-  | 'lotus'
-  | 'ember'
-export type EditorFont =
-  | 'system'
-  | 'serif'
-  | 'mono'
-  | 'readable'
-  | 'literary'
-  | 'compact'
-  | 'handwritten'
+export const SUPPORTED_EDITOR_LINE_HEIGHTS = [
+  'compact',
+  'comfortable',
+  'spacious',
+] as const
+
+export const SUPPORTED_NATIVE_SHELL_MATERIALS = [
+  'standard',
+  'unified',
+  'glass-preview',
+] as const
+
+const EDITOR_LINE_HEIGHT_VALUES: Record<EditorLineHeight, number> = {
+  compact: 1.34,
+  comfortable: 1.44,
+  spacious: 1.58,
+}
+
+const THEME_PRESETS = new Set<string>(SUPPORTED_THEME_PRESETS)
+const EDITOR_FONTS = new Set<string>(SUPPORTED_EDITOR_FONTS)
+const EDITOR_LINE_HEIGHTS = new Set<string>(SUPPORTED_EDITOR_LINE_HEIGHTS)
+const NATIVE_SHELL_MATERIALS = new Set<string>(SUPPORTED_NATIVE_SHELL_MATERIALS)
+
+export type EditorFont = typeof SUPPORTED_EDITOR_FONTS[number]
+export type EditorLineHeight = typeof SUPPORTED_EDITOR_LINE_HEIGHTS[number]
+export type NativeShellMaterial = typeof SUPPORTED_NATIVE_SHELL_MATERIALS[number]
+
+const LEGACY_EDITOR_FONT_ALIASES: Record<string, EditorFont> = {
+  compact: 'system',
+  handwritten: 'literary',
+  serif: 'literary',
+}
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>
 type AppearanceDocument = Pick<Document, 'documentElement'>
@@ -57,16 +71,42 @@ type AppearanceDocument = Pick<Document, 'documentElement'>
 export interface ResolvedAppearance {
   themePreset: ThemePreset
   editorFont: EditorFont
+  editorLineHeight?: EditorLineHeight
+  themeDefinition?: ThemeDefinition
+  nativeShellMaterial?: NativeShellMaterial
+}
+
+function isSupportedValue<T extends string>(
+  values: ReadonlySet<string>,
+  value: unknown,
+): value is T {
+  return typeof value === 'string' && values.has(value)
+}
+
+function readDocumentThemeMode(root: Element): ThemeDefinitionMode {
+  return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'
 }
 
 /** Returns a supported theme preset or null for untrusted persisted values. */
 export function normalizeThemePreset(value: unknown): ThemePreset | null {
-  return typeof value === 'string' && THEME_PRESETS.has(value) ? value as ThemePreset : null
+  return isSupportedValue<ThemePreset>(THEME_PRESETS, value) ? value : null
 }
 
 /** Returns a supported editor font or null for untrusted persisted values. */
 export function normalizeEditorFont(value: unknown): EditorFont | null {
-  return typeof value === 'string' && EDITOR_FONTS.has(value) ? value as EditorFont : null
+  if (isSupportedValue<EditorFont>(EDITOR_FONTS, value)) return value
+  if (typeof value !== 'string') return null
+  return LEGACY_EDITOR_FONT_ALIASES[value.trim().toLowerCase()] ?? null
+}
+
+/** Returns a supported editor line-height preset or null for untrusted persisted values. */
+export function normalizeEditorLineHeight(value: unknown): EditorLineHeight | null {
+  return isSupportedValue<EditorLineHeight>(EDITOR_LINE_HEIGHTS, value) ? value : null
+}
+
+/** Returns a supported native shell material flag or null for untrusted values. */
+export function normalizeNativeShellMaterial(value: unknown): NativeShellMaterial | null {
+  return isSupportedValue<NativeShellMaterial>(NATIVE_SHELL_MATERIALS, value) ? value : null
 }
 
 /** Resolves any theme preset input to the product default when it is missing or invalid. */
@@ -77,6 +117,16 @@ export function resolveThemePreset(value: unknown): ThemePreset {
 /** Resolves any editor font input to the product default when it is missing or invalid. */
 export function resolveEditorFont(value: unknown): EditorFont {
   return normalizeEditorFont(value) ?? DEFAULT_EDITOR_FONT
+}
+
+/** Resolves editor line-height to the product default when it is missing or invalid. */
+export function resolveEditorLineHeight(value: unknown): EditorLineHeight {
+  return normalizeEditorLineHeight(value) ?? DEFAULT_EDITOR_LINE_HEIGHT
+}
+
+/** Resolves any shell material input to the conservative native default. */
+export function resolveNativeShellMaterial(value: unknown): NativeShellMaterial {
+  return normalizeNativeShellMaterial(value) ?? DEFAULT_NATIVE_SHELL_MATERIAL
 }
 
 function safeRead<T extends string>(
@@ -109,6 +159,16 @@ export function readStoredEditorFont(storage: AppearanceStorage): EditorFont | n
   return safeRead(storage, EDITOR_FONT_STORAGE_KEY, normalizeEditorFont)
 }
 
+/** Reads the mirrored editor line-height used before native settings finish loading. */
+export function readStoredEditorLineHeight(storage: AppearanceStorage): EditorLineHeight | null {
+  return safeRead(storage, EDITOR_LINE_HEIGHT_STORAGE_KEY, normalizeEditorLineHeight)
+}
+
+/** Reads the mirrored native shell material used before native settings finish loading. */
+export function readStoredNativeShellMaterial(storage: AppearanceStorage): NativeShellMaterial | null {
+  return safeRead(storage, NATIVE_SHELL_MATERIAL_STORAGE_KEY, normalizeNativeShellMaterial)
+}
+
 /** Mirrors the resolved theme preset for flash-free startup. */
 export function writeStoredThemePreset(storage: AppearanceStorage, preset: ThemePreset): void {
   safeWrite(storage, THEME_PRESET_STORAGE_KEY, preset)
@@ -119,6 +179,21 @@ export function writeStoredEditorFont(storage: AppearanceStorage, font: EditorFo
   safeWrite(storage, EDITOR_FONT_STORAGE_KEY, font)
 }
 
+/** Mirrors the resolved editor line-height for flash-free startup. */
+export function writeStoredEditorLineHeight(storage: AppearanceStorage, lineHeight: EditorLineHeight): void {
+  safeWrite(storage, EDITOR_LINE_HEIGHT_STORAGE_KEY, lineHeight)
+}
+
+/** Mirrors the resolved native shell material for flash-free startup. */
+export function writeStoredNativeShellMaterial(storage: AppearanceStorage, material: NativeShellMaterial): void {
+  safeWrite(storage, NATIVE_SHELL_MATERIAL_STORAGE_KEY, material)
+}
+
+function applyEditorLineHeightToRoot(root: HTMLElement, lineHeight: EditorLineHeight | undefined): void {
+  root.setAttribute('data-editor-line-height', resolveEditorLineHeight(lineHeight))
+  root.style.setProperty('--editor-line-height', String(EDITOR_LINE_HEIGHT_VALUES[resolveEditorLineHeight(lineHeight)]))
+}
+
 /** Applies appearance choices as root attributes consumed by CSS tokens. */
 export function applyAppearanceToDocument(
   documentObject: AppearanceDocument,
@@ -127,6 +202,13 @@ export function applyAppearanceToDocument(
   const root = documentObject.documentElement
   root.setAttribute('data-theme-preset', appearance.themePreset)
   root.setAttribute('data-editor-font', appearance.editorFont)
+  root.setAttribute('data-native-shell-material', resolveNativeShellMaterial(appearance.nativeShellMaterial))
+  applyThemeDefinitionToRoot(
+    root,
+    appearance.themeDefinition ?? resolveThemePresetDefinition(appearance.themePreset),
+    readDocumentThemeMode(root),
+  )
+  applyEditorLineHeightToRoot(root, appearance.editorLineHeight)
   applyFontRolesToDocument(documentObject, appearance)
 }
 
@@ -135,10 +217,15 @@ export function applyStoredAppearance(
   documentObject: AppearanceDocument,
   storage: AppearanceStorage,
 ): ResolvedAppearance {
-  const appearance = {
+  const appearance: ResolvedAppearance = {
     themePreset: readStoredThemePreset(storage) ?? DEFAULT_THEME_PRESET,
     editorFont: readStoredEditorFont(storage) ?? DEFAULT_EDITOR_FONT,
+    editorLineHeight: readStoredEditorLineHeight(storage) ?? DEFAULT_EDITOR_LINE_HEIGHT,
   }
+  const nativeShellMaterial = readStoredNativeShellMaterial(storage)
+  if (nativeShellMaterial) appearance.nativeShellMaterial = nativeShellMaterial
+  const localThemeDefinition = readStoredLocalThemeDefinition(storage)
+  if (localThemeDefinition) appearance.themeDefinition = localThemeDefinition
   applyAppearanceToDocument(documentObject, appearance)
   return appearance
 }

@@ -31,7 +31,9 @@ describe('WelcomeScreen', () => {
     it('renders welcome title and subtitle', () => {
       render(<WelcomeScreen {...defaultProps} />)
       expect(screen.getByText('Welcome to Grimoire')).toBeInTheDocument()
-      expect(screen.getByText('Markdown knowledge management for the age of AI')).toBeInTheDocument()
+      expect(screen.getByText('Plain Markdown vaults. Local by default. Git optional.')).toBeInTheDocument()
+      expect(screen.getByText('Create a local Markdown folder with Grimoire defaults. No Git required.')).toBeInTheDocument()
+      expect(screen.getByText(/Git stays optional/)).toBeInTheDocument()
     })
 
     it('renders the local Grimoire branding icon', () => {

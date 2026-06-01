@@ -1,0 +1,201 @@
+:where([data-theme-preset]) {
+  --grimoire-agent-council-material: var(--grimoire-agent-card-material);
+  --grimoire-agent-council-inner-material: color-mix(in srgb, var(--surface-card) 82%, var(--surface-panel));
+  --grimoire-agent-council-map-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 62%),
+    color-mix(in srgb, var(--surface-panel) 88%, var(--surface-card));
+  --grimoire-agent-council-private-material: var(--grimoire-private-local-material);
+  --grimoire-agent-council-friction-material: color-mix(in srgb, var(--surface-card) 86%, var(--status-bar-warning-fg, var(--primary)) 8%);
+  --grimoire-agent-council-answer-material: color-mix(in srgb, var(--surface-card) 84%, var(--grimoire-signal-accent) 10%);
+  --grimoire-agent-review-material: var(--grimoire-graph-material);
+  --grimoire-agent-review-inner-material: var(--grimoire-graph-inner-material);
+  --grimoire-context-capsule-material: var(--grimoire-agent-council-material);
+  --grimoire-context-capsule-route-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--grimoire-signal-accent) 10%, transparent), transparent 58%),
+    color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel));
+  --grimoire-context-capsule-step-material: var(--grimoire-agent-council-inner-material);
+  --grimoire-crystallize-runway-material: var(--grimoire-context-capsule-route-material);
+  --grimoire-crystallize-stage-material: var(--grimoire-agent-council-inner-material);
+  --grimoire-crystallize-blocked-material: color-mix(in srgb, var(--surface-card) 82%, var(--status-bar-danger-fg, var(--destructive)) 10%);
+}
+
+:is([data-theme-preset]) .ai-panel :is(
+  [data-testid="context-capsule-card"],
+  [data-testid="crystallize-loop-card"],
+  [data-testid="red-team-plan-card"]
+) > div,
+:is([data-theme-preset]) .ai-panel :is(
+  .grimoire-agent-council__member,
+  .grimoire-agent-council__brief,
+  .grimoire-agent-council__evidence,
+  .grimoire-agent-council__pass,
+  .grimoire-agent-council__readiness,
+  .grimoire-context-capsule,
+  .grimoire-agent-route,
+  .grimoire-agent-council__workflow > *,
+  .grimoire-agent-council__map
+) {
+  background: var(--grimoire-agent-council-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__map {
+  background: var(--grimoire-agent-council-map-material);
+}
+
+:is([data-theme-preset]) .ai-panel :is(
+  .grimoire-agent-council__map-metric,
+  .grimoire-agent-council__map-lane,
+  .grimoire-agent-council__map-step,
+  .grimoire-agent-council__friction-step,
+  .grimoire-agent-council__readiness-lane,
+  .grimoire-agent-council__graph-lane,
+  .grimoire-context-capsule__stat,
+  .grimoire-agent-route__chip
+) {
+  background: var(--grimoire-agent-council-inner-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) :is(.grimoire-context-capsule, .grimoire-context-capsule-dialog) {
+  background: var(--grimoire-context-capsule-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-context-capsule__route {
+  background: var(--grimoire-context-capsule-route-material);
+  border-color: var(--grimoire-signal-border);
+}
+
+:is([data-theme-preset]) .grimoire-context-capsule__step {
+  background: var(--grimoire-context-capsule-step-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) :is(.graph-agent-runway__summary, .graph-agent-package__envelope) {
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  background: var(--grimoire-context-capsule-route-material);
+  border-color: var(--grimoire-signal-border);
+}
+
+:is([data-theme-preset]) :is(.graph-agent-runway__metric, .graph-agent-package__metric) {
+  background: var(--grimoire-agent-council-inner-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) :is(.graph-agent-runway__metric, .graph-agent-package__metric)[data-state="ready"] {
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--primary) 10%, var(--grimoire-agent-council-inner-material));
+}
+
+:is([data-theme-preset]) :is(.graph-agent-runway__metric, .graph-agent-package__metric)[data-state="guarded"] {
+  border-color: color-mix(in srgb, var(--grimoire-private-local-accent) 36%, var(--grimoire-hairline));
+  background: color-mix(in srgb, var(--grimoire-private-local-accent) 10%, var(--grimoire-agent-council-inner-material));
+}
+
+:is([data-theme-preset]) :is(.graph-agent-runway__metric, .graph-agent-package__metric)[data-state="waiting"] {
+  background: color-mix(in srgb, var(--muted-foreground) 7%, var(--grimoire-agent-council-inner-material));
+}
+
+:is([data-theme-preset]) .graph-agent-runway__connector {
+  background: linear-gradient(180deg, var(--grimoire-signal-border), var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .graph-agent-runway__marker {
+  background: var(--grimoire-agent-council-inner-material);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--surface-panel) 74%, transparent);
+}
+
+:is([data-theme-preset]) .grimoire-crystallize-runway {
+  background: var(--grimoire-crystallize-runway-material);
+  border-color: var(--grimoire-signal-border);
+}
+
+:is([data-theme-preset]) .grimoire-crystallize-runway__stage {
+  background: var(--grimoire-crystallize-stage-material);
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .grimoire-crystallize-runway__stage[data-state="blocked"] {
+  background: var(--grimoire-crystallize-blocked-material);
+  border-color: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 34%, var(--grimoire-hairline));
+}
+
+@media (max-width: 720px) {
+  :is([data-theme-preset]) :is(.graph-agent-runway__summary, .graph-agent-package__envelope) {
+    grid-template-columns: 1fr;
+  }
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__map-lane[data-active="true"] {
+  border-color: var(--grimoire-signal-border);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--grimoire-signal-border) 36%, transparent);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__map-lane[data-health="private-local"] {
+  background: var(--grimoire-agent-council-private-material);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__readiness {
+  background: color-mix(in srgb, var(--surface-panel) 82%, var(--grimoire-agent-council-material));
+  border-color: var(--grimoire-hairline);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__readiness-lane[data-state="ready"] {
+  border-color: color-mix(in srgb, var(--grimoire-signal-accent) 34%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__readiness-lane[data-state="private"] {
+  background: var(--grimoire-agent-council-private-material);
+  border-color: color-mix(in srgb, var(--grimoire-private-local-accent) 34%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__readiness-lane[data-state="blocked"] {
+  background: var(--grimoire-crystallize-blocked-material);
+  border-color: color-mix(in srgb, var(--status-bar-danger-fg, var(--destructive)) 34%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__friction-step[data-state="guarded"] {
+  background: var(--grimoire-agent-council-friction-material);
+  border-color: color-mix(in srgb, var(--status-bar-warning-fg, var(--primary)) 38%, var(--grimoire-hairline));
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__friction-step:is([data-state="blocked"], [data-state="review"]) {
+  background: var(--grimoire-agent-council-private-material);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-route[data-locality="protected-local"] {
+  background: var(--grimoire-agent-council-private-material);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__answer {
+  background: var(--grimoire-signal-bg);
+  border-color: var(--grimoire-signal-border);
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__answer[data-answer-state="guarded"] {
+  background: var(--grimoire-agent-council-answer-material);
+  border-color: color-mix(in srgb, var(--status-bar-warning-fg, var(--primary)) 36%, var(--grimoire-signal-border));
+}
+
+:is([data-theme-preset]) .ai-panel .grimoire-agent-council__answer[data-answer-state="blocked"] {
+  background: var(--grimoire-agent-council-private-material);
+}
+
+:is([data-theme-preset]) :is(
+  .grimoire-agent-preflight,
+  .grimoire-agent-manifest,
+  .grimoire-agent-edge-manifest
+) {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-agent-review-material);
+  box-shadow: var(--grimoire-surface-shadow);
+}
+
+:is([data-theme-preset]) :is(
+  .grimoire-agent-preflight__metric,
+  .grimoire-agent-manifest__metric
+) {
+  border-color: var(--grimoire-hairline);
+  background: var(--grimoire-agent-review-inner-material);
+}

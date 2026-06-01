@@ -14,9 +14,14 @@ import {
 } from './inlineWikilinkEdits'
 import {
   buildInlineWikilinkSegments,
-  extractInlineWikilinkReferences,
   findActiveWikilinkQuery,
 } from './inlineWikilinkText'
+import {
+  containsUnsupportedInlineContent,
+  hasUnsupportedClipboardPayload,
+  submitInlineValue,
+  UNSUPPORTED_INLINE_PASTE_MESSAGE,
+} from './inlineWikilinkInputBehavior'
 import { extractDroppedPathText, formatDroppedPathList } from './inlineWikilinkDropText'
 import {
   readSelectionRange,
@@ -66,36 +71,7 @@ function collapseSelectionRange(nextSelectionIndex: number) {
   }
 }
 
-export const UNSUPPORTED_INLINE_PASTE_MESSAGE = 'Only text paste is supported in the AI composer right now.'
-
-function hasUnsupportedClipboardPayload(clipboardData: DataTransfer) {
-  if (clipboardData.files.length > 0) return true
-
-  return Array.from(clipboardData.items).some((item) =>
-    item.kind === 'file' || item.type.startsWith('image/'),
-  )
-}
-
-function containsUnsupportedInlineContent(editor: HTMLDivElement) {
-  return editor.querySelector('img, picture, video, audio, canvas, figure, iframe, object') !== null
-}
-
-function submitInlineValue({
-  onSubmit,
-  submitOnEmpty,
-  value,
-  references,
-}: {
-  onSubmit?: (text: string, references: NoteReference[]) => void
-  submitOnEmpty: boolean
-  value: string
-  references: NoteReference[]
-}) {
-  if (!onSubmit) return
-  const normalizedValue = normalizeInlineWikilinkValue(value)
-  if (!submitOnEmpty && !normalizedValue.trim()) return
-  onSubmit(normalizedValue, references)
-}
+export { UNSUPPORTED_INLINE_PASTE_MESSAGE }
 
 function renderInlineSuggestionList({
   suggestions,
@@ -185,7 +161,6 @@ export function InlineWikilinkInput({
       : null,
     [selectionIndex, selectionRange.end, selectionRange.start, value],
   )
-  const references = useMemo(() => extractInlineWikilinkReferences(value, entries), [entries, value])
   const {
     suggestions,
     selectedSuggestionIndex,
@@ -365,7 +340,7 @@ export function InlineWikilinkInput({
     syncValueFromEditor()
   }
   const submitValue = () =>
-    submitInlineValue({ onSubmit, submitOnEmpty, value, references })
+    submitInlineValue({ entries, onSubmit, submitOnEmpty, value })
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) =>
     handleInlineWikilinkKeyDown({
       event,

@@ -31,6 +31,7 @@ vi.mock('@blocknote/react', () => ({
     linkToolbar?: boolean
     slashMenu?: boolean
     sideMenu?: boolean
+    tableHandles?: boolean
     onChange?: () => void
     theme?: string
   }) => {
@@ -42,6 +43,7 @@ vi.mock('@blocknote/react', () => ({
       linkToolbar,
       slashMenu,
       sideMenu,
+      tableHandles,
       ...restProps
     } = props
     state.capturedBlockNoteOnChange = props.onChange ?? null
@@ -54,6 +56,7 @@ vi.mock('@blocknote/react', () => ({
         data-testid="blocknote-view"
         data-editable={editable !== false ? 'true' : 'false'}
         data-link-toolbar={linkToolbar !== false ? 'true' : 'false'}
+        data-table-handles={tableHandles !== false ? 'true' : 'false'}
         className={className}
         {...restProps}
       >
@@ -455,7 +458,7 @@ describe('SingleEditorView', () => {
     expect(editor.insertInlineContent).not.toHaveBeenCalled()
   })
 
-  it('wires the toolbar mouse guard and suggestion item click handlers', () => {
+  it('wires the toolbar mouse guard and suggestion item click handlers', async () => {
     const editor = createEditor()
     render(
       <SingleEditorView
@@ -477,6 +480,7 @@ describe('SingleEditorView', () => {
         }),
       }),
     }))
+    await screen.findByTestId('grimoire-formatting-toolbar-controller')
 
     const onMouseDownCapture = (
       (state.capturedToolbarProps?.floatingUIOptions as { elementProps: { onMouseDownCapture: (event: { target: HTMLElement; preventDefault: () => void }) => void } })
@@ -695,6 +699,21 @@ describe('SingleEditorView', () => {
 
     expect(editor.setTextCursorPosition).not.toHaveBeenCalled()
     expect(editor.focus).not.toHaveBeenCalled()
+  })
+
+  it('disables BlockNote table handles so stale column controls do not float above notes', () => {
+    const editor = createEditor()
+
+    render(
+      <SingleEditorView
+        activeContent=""
+        editor={editor as never}
+        entries={[makeEntry()]}
+        onNavigateWikilink={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('blocknote-view')).toHaveAttribute('data-table-handles', 'false')
   })
 
   it('falls back to the nearest editable block when the trailing block has no inline content', () => {

@@ -1,9 +1,12 @@
 import { useDeferredValue, useMemo } from 'react'
 import type { VaultEntry, GitCommit } from '../types'
+import type { AiAgentAvailability } from '../lib/aiAgents'
+import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
 import { cn } from '@/lib/utils'
 import { Separator } from './ui/separator'
 import { parseFrontmatter, detectFrontmatterState } from '../utils/frontmatter'
 import { markdownSemanticsAdapter } from '../utils/markdownSemanticsAdapter'
+import { mobileReviewState } from '../lib/mobileCaptureMetadata'
 import { DynamicPropertiesPanel } from './DynamicPropertiesPanel'
 import {
   DynamicRelationshipsPanel,
@@ -11,7 +14,10 @@ import {
   ReferencedByPanel,
   GitHistoryPanel,
   InstancesPanel,
+  LivingFrontmatterPanel,
+  LocalityFirewallPanel,
   MemoryPanel,
+  MobileCaptureReviewPanel,
   NoteInfoPanel,
   OutlinePanel,
 } from './InspectorPanels'
@@ -19,6 +25,7 @@ import type { ReferencedByItem } from './InspectorPanels'
 import { EmptyInspector, InitializePropertiesPrompt, InspectorHeader, InvalidFrontmatterNotice } from './inspector/InspectorChrome'
 import { useBacklinks, useReferencedBy } from './inspector/useInspectorData'
 import { useInspectorPropertyActions } from './inspector/useInspectorPropertyActions'
+import { ConstellationInsightsPanel } from './ConstellationInsightsPanel'
 
 export type FrontmatterValue = string | number | boolean | string[] | null
 
@@ -29,6 +36,8 @@ interface InspectorProps {
   content: string | null
   entries: VaultEntry[]
   gitHistory: GitCommit[]
+  chitraguptaAvailability?: AiAgentAvailability | null
+  chitraguptaStatus?: ChitraguptaStatusPayload | null
   vaultPath?: string
   onNavigate: (target: string) => void
   onViewCommitDiff?: (commitHash: string) => void
@@ -88,6 +97,12 @@ function ValidFrontmatterPanels({
         onAddProperty={onAddProperty}
         onNavigate={onNavigate}
         onCreateMissingType={onCreateMissingType}
+      />
+      <LivingFrontmatterPanel
+        entry={entry}
+        entries={entries}
+        frontmatter={frontmatter}
+        onApplySuggestion={onUpdateProperty}
       />
       <Separator data-testid="inspector-properties-relationships-separator" />
       <DynamicRelationshipsPanel
@@ -171,6 +186,8 @@ function InspectorBody({
   entries,
   content,
   gitHistory,
+  chitraguptaAvailability,
+  chitraguptaStatus,
   vaultPath,
   onNavigate,
   onViewCommitDiff,
@@ -190,6 +207,7 @@ function InspectorBody({
   const frontmatterState = useMemo(() => detectFrontmatterState(deferredContent), [deferredContent])
   const semantics = useMemo(() => markdownSemanticsAdapter.parseDocument(deferredContent), [deferredContent])
   const typeEntryMap = useMemo(() => buildTypeEntryMap(entries), [entries])
+  const hasMobileReview = entry ? mobileReviewState(entry) !== null : false
   const {
     handleUpdateProperty,
     handleDeleteProperty,
@@ -209,6 +227,12 @@ function InspectorBody({
 
   return (
     <>
+      <ConstellationInsightsPanel
+        entry={entry}
+        entries={entries}
+        content={content}
+        onNavigate={onNavigate}
+      />
       <OutlinePanel
         semantics={semantics}
         path={entry.path}
@@ -217,7 +241,27 @@ function InspectorBody({
         onReplaceContent={onReplaceContent}
       />
       <Separator />
-      <MemoryPanel entry={entry} entries={entries} semantics={semantics} />
+      <LocalityFirewallPanel entry={entry} />
+      {hasMobileReview && (
+        <>
+          <Separator />
+          <MobileCaptureReviewPanel
+            entry={entry}
+            onUpdateReviewProperty={onUpdateFrontmatter ? handleUpdateProperty : undefined}
+          />
+        </>
+      )}
+      <Separator />
+      <MemoryPanel
+        entry={entry}
+        entries={entries}
+        semantics={semantics}
+        chitraguptaAvailability={chitraguptaAvailability}
+        chitraguptaStatus={chitraguptaStatus}
+        onNavigate={onNavigate}
+        onUpdateRecordProperty={onUpdateFrontmatter}
+        onDeleteRecordProperty={onDeleteProperty}
+      />
       <Separator />
       <PrimaryInspectorPanel
         entry={entry}
@@ -248,10 +292,13 @@ function InspectorBody({
 
 export function Inspector({ collapsed, onToggle, ...bodyProps }: InspectorProps) {
   return (
-    <aside className={cn('inspector-panel flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}>
+    <aside
+      className={cn('inspector-panel grimoire-inspector-stage flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}
+      data-panel-role="inspector"
+    >
       <InspectorHeader collapsed={collapsed} onToggle={onToggle} />
       {!collapsed && (
-        <div className="inspector-body flex flex-1 flex-col gap-4 overflow-y-auto p-3">
+        <div className="inspector-body grimoire-panel-reveal flex flex-1 flex-col gap-4 overflow-y-auto p-3">
           <InspectorBody {...bodyProps} />
         </div>
       )}

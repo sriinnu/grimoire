@@ -24,14 +24,22 @@ const NOTE_CONTEXT_COLOR_VALUES: Record<(typeof NOTE_CONTEXT_COLORS)[number], st
   red: '#f87171',
 }
 
-function menuItemClassName(danger = false): string {
+function menuItemClassName(danger = false, active = false): string {
   return `h-7 w-full justify-start gap-2 rounded-[5px] px-2 text-left text-xs font-medium ${
     danger ? 'text-destructive hover:text-destructive' : 'text-foreground'
-  }`
+  } ${active ? 'bg-accent/70' : ''}`
 }
 
 function menuSeparator() {
   return <div className="my-1 h-px bg-border/70" role="none" />
+}
+
+function menuSectionLabel(label: string) {
+  return (
+    <div className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground" role="presentation">
+      {label}
+    </div>
+  )
 }
 
 function clampMenuPosition(x: number, y: number): { left: number; top: number } {
@@ -69,6 +77,20 @@ function tagsWith(entry: VaultEntry, tag: string): string[] {
   return existingTags.some(existing => existing.toLowerCase() === tag.toLowerCase())
     ? existingTags
     : [...existingTags, tag]
+}
+
+function statusForEntry(entry: VaultEntry): string {
+  const value = entry.status ?? entry.properties.status ?? entry.properties.Status
+  return typeof value === 'string' ? value.toLowerCase() : ''
+}
+
+function colorForEntry(entry: VaultEntry): string {
+  const value = entry.color ?? entry.properties.color ?? entry.properties.Color
+  return typeof value === 'string' ? value.toLowerCase() : ''
+}
+
+function isProjectEntry(entry: VaultEntry): boolean {
+  return entry.isA?.toLowerCase() === 'project'
 }
 
 /** Right-click organization actions for normal note-list rows. */
@@ -135,41 +157,52 @@ export function useNoteListContextMenu({
     onOpenInNewWindow(entry)
   }, [closeMenu, menu, onOpenInNewWindow])
   const menuPosition = menu ? clampMenuPosition(menu.x, menu.y) : null
+  const activeStatus = menu ? statusForEntry(menu.entry) : ''
+  const activeColor = menu ? colorForEntry(menu.entry) : ''
+  const projectEntry = menu ? isProjectEntry(menu.entry) : false
 
   const contextMenuNode = menu ? (
     <div
       ref={menuRef}
-      className="fixed z-50 max-h-[min(360px,calc(100vh-16px))] w-[216px] max-w-[calc(100vw-16px)] overflow-y-auto rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
+      className="grimoire-context-menu-surface fixed z-50 max-h-[min(360px,calc(100vh-16px))] w-[216px] max-w-[calc(100vw-16px)] overflow-y-auto rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
       style={{ left: menuPosition?.left, top: menuPosition?.top }}
       data-testid="note-context-menu"
       role="menu"
       aria-label={`Actions for ${menu.entry.title}`}
       onKeyDown={handleMenuKeyDown}
     >
+      <div className="px-2 pb-1 pt-1" role="presentation">
+        <div className="truncate text-xs font-semibold text-foreground">{menu.entry.title}</div>
+        <div className="text-[10px] font-medium uppercase tracking-[0.12em] text-muted-foreground">Note actions</div>
+      </div>
+      {menuSeparator()}
+      {menuSectionLabel('Open')}
       {onOpenInNewWindow && (
         <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={openInNewWindow}>
           <ExternalLink className="size-3.5" />
           Open in new window
         </Button>
       )}
-      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={() => void update('type', 'Project')} data-testid="note-context-make-project">
-        <FolderKanban className="size-3.5" />
-        Make project
+      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName(false, projectEntry)} disabled={projectEntry} onClick={() => void update('type', 'Project')} data-testid="note-context-make-project">
+        {projectEntry ? <CheckCircle2 className="size-3.5" /> : <FolderKanban className="size-3.5" />}
+        {projectEntry ? 'Already a project' : 'Convert to project'}
       </Button>
       {menuSeparator()}
-      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={() => void update('status', 'Active')}>
-        <Circle className="size-3.5" />
+      {menuSectionLabel('Status')}
+      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName(false, activeStatus === 'active')} onClick={() => void update('status', 'Active')}>
+        {activeStatus === 'active' ? <CheckCircle2 className="size-3.5" /> : <Circle className="size-3.5" />}
         Status: Active
       </Button>
-      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={() => void update('status', 'Done')}>
-        <CheckCircle2 className="size-3.5" />
+      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName(false, activeStatus === 'done')} onClick={() => void update('status', 'Done')}>
+        {activeStatus === 'done' ? <CheckCircle2 className="size-3.5" /> : <Circle className="size-3.5" />}
         Status: Done
       </Button>
-      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={() => void update('_favorite', !menu.entry.favorite)} data-testid="note-context-toggle-favorite">
-        <Star className="size-3.5" />
+      <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName(false, menu.entry.favorite)} onClick={() => void update('_favorite', !menu.entry.favorite)} data-testid="note-context-toggle-favorite">
+        <Star className={`size-3.5${menu.entry.favorite ? ' fill-current' : ''}`} />
         {menu.entry.favorite ? 'Remove favorite flag' : 'Favorite flag'}
       </Button>
       {menuSeparator()}
+      {menuSectionLabel('Color')}
       <div className="grid grid-cols-5 gap-1 px-1 py-0.5" role="group" aria-label="Color flag">
         {NOTE_CONTEXT_COLORS.map(color => (
           <Button
@@ -178,14 +211,14 @@ export function useNoteListContextMenu({
             role="menuitem"
             variant="ghost"
             size="icon"
-            className="size-7 rounded-[6px]"
+            className={`size-7 rounded-[6px] ${activeColor === color ? 'ring-1 ring-primary/70 ring-offset-1 ring-offset-popover' : ''}`}
             onClick={() => void update('color', color)}
             data-testid={`note-context-color-${color}`}
             title={`Color: ${color}`}
             aria-label={`Color: ${color}`}
           >
             <span
-              className="size-3.5 rounded-full border border-border"
+              className={`size-3.5 rounded-full border ${activeColor === color ? 'border-foreground/70' : 'border-border'}`}
               style={{ backgroundColor: NOTE_CONTEXT_COLOR_VALUES[color] }}
             />
           </Button>
@@ -205,6 +238,7 @@ export function useNoteListContextMenu({
         </Button>
       </div>
       {menuSeparator()}
+      {menuSectionLabel('Tags')}
       <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={() => void update('tags', tagsWith(menu.entry, 'todo'))} data-testid="note-context-tag-todo">
         <Flag className="size-3.5" />
         Add #todo

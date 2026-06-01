@@ -1,11 +1,5 @@
-/**
- * Mock command handlers for Tauri invoke calls.
- * Each handler simulates a Tauri backend command.
- */
-
 import type {
   VaultEntry,
-  ModifiedFile,
   Settings,
   GitAddRemoteResult,
   GitPullResult,
@@ -16,89 +10,36 @@ import type {
 } from '../types'
 import { MOCK_CONTENT } from './mock-content'
 import { MOCK_ENTRIES } from './mock-entries'
+import {
+  commitMockChanges,
+  getMockModifiedFiles,
+  mockFileDiff,
+  mockFileDiffAtCommit,
+  mockFileHistory,
+  trackMockChange as trackMockGitChange,
+} from './mock-git-handlers'
+import { getMockVaultAiGuidanceStatus, restoreMockVaultAiGuidance } from './mock-guidance-state'
+import {
+  handleMoveNoteToFolder,
+  handleRenameNote,
+  handleRenameNoteFilename,
+} from './mock-rename-handlers'
+import {
+  mockAzureProviderSyncReport,
+  mockAzureLivePreflightReport,
+  mockDesktopStorageHealthReport,
+  mockObjectStorageReport,
+  mockS3LivePreflightReport,
+  mockS3ProviderSyncReport,
+} from './mock-object-storage-handlers'
+import { mockImportHandlers } from './mock-import-handlers'
+import { mockExportHandlers } from './mock-export-handlers'
 
 function syncWindowContent(): void {
   if (typeof window !== 'undefined') {
     window.__mockContent = MOCK_CONTENT
   }
 }
-
-function mockFileHistory(path: string) {
-  const filename = path.split('/').pop()?.replace('.md', '') ?? 'unknown'
-  const ts = Math.floor(Date.now() / 1000)
-  return [
-    { hash: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0', shortHash: 'a1b2c3d', message: `Update ${filename} with latest changes`, author: 'Srinivas Pendela', date: ts - 86400 * 2 },
-    { hash: 'e4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3', shortHash: 'e4f5g6h', message: `Add new section to ${filename}`, author: 'Srinivas Pendela', date: ts - 86400 * 5 },
-    { hash: 'i7j8k9l0m1n2o3p4q5r6s7t8u9v0w1x2y3z4a5b6', shortHash: 'i7j8k9l', message: `Fix formatting in ${filename}`, author: 'Srinivas Pendela', date: ts - 86400 * 12 },
-    { hash: 'm0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f9', shortHash: 'm0n1o2p', message: `Create ${filename}`, author: 'Srinivas Pendela', date: ts - 86400 * 30 },
-  ]
-}
-
-function mockModifiedFiles(): ModifiedFile[] {
-  return [
-    { path: '/Users/srinivas/Grimoire/26q1-grimoire-app.md', relativePath: '26q1-grimoire-app.md', status: 'modified' },
-    { path: '/Users/srinivas/Grimoire/facebook-ads-strategy.md', relativePath: 'facebook-ads-strategy.md', status: 'modified' },
-    { path: '/Users/srinivas/Grimoire/ai-agents-primer.md', relativePath: 'ai-agents-primer.md', status: 'added' },
-    { path: '/Users/srinivas/Grimoire/old-draft.md', relativePath: 'old-draft.md', status: 'deleted' },
-  ]
-}
-
-function mockFileDiff(path: string): string {
-  const filename = path.split('/').pop() ?? 'unknown'
-  if (filename === 'old-draft.md') {
-    return `diff --git a/${filename} b/${filename}
-deleted file mode 100644
-index abc1234..0000000
---- a/${filename}
-+++ /dev/null
-@@ -1,7 +0,0 @@
-----
--title: Old Draft
--type: Note
-----
--
--# Old Draft
--
--This note was deleted.`
-  }
-  return `diff --git a/${filename} b/${filename}
-index abc1234..def5678 100644
---- a/${filename}
-+++ b/${filename}
-@@ -1,8 +1,10 @@
- ---
- title: Example Note
- type: Note
-+status: Active
- ---
-
- # Example Note
-
--This is the original content.
-+This is the updated content.
-+
-+A new paragraph has been added.`
-}
-
-function mockFileDiffAtCommit(path: string, commitHash: string): string {
-  const filename = path.split('/').pop() ?? 'unknown'
-  const shortHash = commitHash.slice(0, 7)
-  return `diff --git a/${filename} b/${filename}
-index abc1234..${shortHash} 100644
---- a/${filename}
-+++ b/${filename}
-@@ -5,3 +5,5 @@
- ---
-
- # Example Note
--Old paragraph from before ${shortHash}.
-+Updated paragraph at commit ${shortHash}.
-+
-+New content added in this commit.`
-}
-
-let mockHasChanges = true
-const mockSavedSinceCommit = new Set<string>()
 
 let mockSettings: Settings = {
   auto_pull_interval_minutes: 5,
@@ -114,11 +55,47 @@ let mockSettings: Settings = {
   theme_mode: null,
   theme_preset: null,
   editor_font: null,
+  editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: false,
   default_ai_agent: 'claude_code',
   ai_agent_models: null,
   ai_agent_providers: null,
+  transcription_provider: 'local_whisper',
+  cloud_transcription_enabled: false,
+}
+
+const MOCK_AI_PROVIDER_KEYS = [
+  { provider_id: 'anthropic', label: 'Anthropic', env_var: 'ANTHROPIC_API_KEY' },
+  { provider_id: 'openai', label: 'OpenAI', env_var: 'OPENAI_API_KEY' },
+  { provider_id: 'openrouter', label: 'OpenRouter', env_var: 'OPENROUTER_API_KEY' },
+  { provider_id: 'deepseek', label: 'DeepSeek', env_var: 'DEEPSEEK_API_KEY' },
+  { provider_id: 'gemini', label: 'Gemini', env_var: 'GEMINI_API_KEY' },
+  { provider_id: 'google', label: 'Google AI', env_var: 'GOOGLE_API_KEY' },
+  { provider_id: 'groq', label: 'Groq', env_var: 'GROQ_API_KEY' },
+  { provider_id: 'xai', label: 'xAI', env_var: 'XAI_API_KEY' },
+] as const
+
+const mockConfiguredAiProviderKeys = new Set<string>()
+
+function getMockAiProviderKeyStatuses() {
+  return MOCK_AI_PROVIDER_KEYS.map((provider) => ({
+    ...provider,
+    configured: mockConfiguredAiProviderKeys.has(provider.provider_id),
+    source: mockConfiguredAiProviderKeys.has(provider.provider_id) ? 'keychain' : 'missing',
+  }))
+}
+
+function saveMockAiProviderApiKey(args: { providerId?: string; provider_id?: string }) {
+  const providerId = args.providerId ?? args.provider_id
+  if (providerId) mockConfiguredAiProviderKeys.add(providerId)
+  return getMockAiProviderKeyStatuses()
+}
+
+function clearMockAiProviderApiKey(args: { providerId?: string; provider_id?: string }) {
+  const providerId = args.providerId ?? args.provider_id
+  if (providerId) mockConfiguredAiProviderKeys.delete(providerId)
+  return getMockAiProviderKeyStatuses()
 }
 
 const DEFAULT_MOCK_VAULT_PATH = '/Users/mock/demo-vault-v2'
@@ -154,12 +131,6 @@ let mockVaultList: {
   hidden_defaults: [],
 }
 
-let mockVaultAiGuidanceStatus = {
-  agents_state: 'managed',
-  claude_state: 'managed',
-  can_restore: false,
-} as const
-
 function normalizeMockVaultPath(path: string | null | undefined): string | null {
   const trimmed = path?.trim()
   return trimmed ? trimmed : null
@@ -189,159 +160,6 @@ function getMockGitState(path: string | null | undefined): boolean {
   return mockGitStateByVault[normalizedPath] ?? true
 }
 
-function escapeRegex({ text }: { text: string }) {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function relativePathStem({ path, vaultPath }: { path: string; vaultPath: string }) {
-  const prefix = vaultPath.endsWith('/') ? vaultPath : `${vaultPath}/`
-  if (path.startsWith(prefix)) return path.slice(prefix.length).replace(/\.md$/, '')
-  return (path.split('/').pop() ?? path).replace(/\.md$/, '')
-}
-
-function canonicalRenameTargets({ oldTitle, oldPathStem }: { oldTitle: string; oldPathStem: string }) {
-  const oldFilenameStem = oldPathStem.split('/').pop() ?? oldPathStem
-  return [...new Set([oldTitle, oldPathStem, oldFilenameStem].filter(Boolean))]
-}
-
-function slugifyMockTitle({ title }: { title: string }) {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-}
-
-function buildRenamedMockPath({ oldPath, newTitle }: { oldPath: string; newTitle: string }) {
-  const parentDir = oldPath.replace(/\/[^/]+$/, '')
-  return `${parentDir}/${slugifyMockTitle({ title: newTitle })}.md`
-}
-
-function replaceMockTitleFrontmatter({ content, newTitle }: { content: string; newTitle: string }) {
-  return /^title:\s*/m.test(content)
-    ? content.replace(/^title:\s*.*$/m, `title: ${newTitle}`)
-    : content
-}
-
-function replaceRenamedWikilinks({ content, oldTargets, newPathStem }: {
-  content: string
-  oldTargets: string[]
-  newPathStem: string
-}) {
-  if (oldTargets.length === 0) return content
-  const pattern = new RegExp(`\\[\\[(?:${oldTargets.map((target) => escapeRegex({ text: target })).join('|')})(\\|[^\\]]*?)?\\]\\]`, 'g')
-  return content.replace(pattern, (_match: string, pipe: string | undefined) =>
-    pipe ? `[[${newPathStem}${pipe}]]` : `[[${newPathStem}]]`
-  )
-}
-
-function updateMockRenameReferences({ newPath, newPathStem, oldTargets }: {
-  newPath: string
-  newPathStem: string
-  oldTargets: string[]
-}) {
-  let updatedFiles = 0
-  for (const [path, content] of Object.entries(MOCK_CONTENT)) {
-    if (path === newPath) continue
-    const replaced = replaceRenamedWikilinks({ content, oldTargets, newPathStem })
-    if (replaced === content) continue
-    MOCK_CONTENT[path] = replaced
-    updatedFiles += 1
-  }
-  return updatedFiles
-}
-
-function handleRenameNote(args: { vault_path: string; old_path: string; new_title: string; old_title?: string | null }) {
-  const oldEntry = MOCK_ENTRIES.find(e => e.path === args.old_path)
-  const oldTitle = args.old_title ?? oldEntry?.title ?? ''
-  const oldContent = MOCK_CONTENT[args.old_path] ?? ''
-  const newPath = buildRenamedMockPath({ oldPath: args.old_path, newTitle: args.new_title })
-  const oldPathStem = relativePathStem({ path: args.old_path, vaultPath: args.vault_path })
-  const newPathStem = relativePathStem({ path: newPath, vaultPath: args.vault_path })
-
-  if (oldTitle === args.new_title && newPath === args.old_path) {
-    return { new_path: args.old_path, updated_files: 0, failed_updates: 0 }
-  }
-
-  const newContent = replaceMockTitleFrontmatter({ content: oldContent, newTitle: args.new_title })
-  delete MOCK_CONTENT[args.old_path]
-  MOCK_CONTENT[newPath] = newContent
-  const oldTargets = canonicalRenameTargets({ oldTitle, oldPathStem })
-  const updatedFiles = updateMockRenameReferences({ newPath, newPathStem, oldTargets })
-
-  syncWindowContent()
-  return { new_path: newPath, updated_files: updatedFiles, failed_updates: 0 }
-}
-
-function handleRenameNoteFilename(args: {
-  vault_path: string
-  old_path: string
-  new_filename_stem: string
-}) {
-  const oldEntry = MOCK_ENTRIES.find(e => e.path === args.old_path)
-  const oldContent = MOCK_CONTENT[args.old_path] ?? ''
-  const oldTitle = oldEntry?.title ?? ''
-  const normalizedStem = args.new_filename_stem.trim().replace(/\.md$/, '')
-  const oldFilename = args.old_path.split('/').pop() ?? ''
-  const newFilename = `${normalizedStem}.md`
-
-  if (!normalizedStem) {
-    throw new Error('Invalid filename')
-  }
-  if (oldFilename === newFilename) {
-    return { new_path: args.old_path, updated_files: 0, failed_updates: 0 }
-  }
-
-  const parentDir = args.old_path.replace(/\/[^/]+$/, '')
-  const newPath = `${parentDir}/${newFilename}`
-  if (newPath !== args.old_path && Object.prototype.hasOwnProperty.call(MOCK_CONTENT, newPath)) {
-    throw new Error('A note with that name already exists')
-  }
-
-  delete MOCK_CONTENT[args.old_path]
-  MOCK_CONTENT[newPath] = oldContent
-
-  const oldPathStem = relativePathStem({ path: args.old_path, vaultPath: args.vault_path })
-  const newPathStem = relativePathStem({ path: newPath, vaultPath: args.vault_path })
-  const oldTargets = canonicalRenameTargets({ oldTitle, oldPathStem })
-  const updatedFiles = updateMockRenameReferences({ newPath, newPathStem, oldTargets })
-
-  syncWindowContent()
-  return { new_path: newPath, updated_files: updatedFiles, failed_updates: 0 }
-}
-
-function handleMoveNoteToFolder(args: {
-  vault_path: string
-  old_path: string
-  folder_path: string
-}) {
-  const oldEntry = MOCK_ENTRIES.find(e => e.path === args.old_path)
-  const oldContent = MOCK_CONTENT[args.old_path] ?? ''
-  const oldTitle = oldEntry?.title ?? ''
-  const oldFilename = args.old_path.split('/').pop() ?? ''
-  const normalizedFolderPath = args.folder_path.trim().replace(/^\/+|\/+$/g, '')
-
-  if (!normalizedFolderPath) {
-    throw new Error('Folder path cannot be empty')
-  }
-
-  const vaultRoot = args.vault_path.replace(/\/+$/, '')
-  const newPath = `${vaultRoot}/${normalizedFolderPath}/${oldFilename}`
-  if (newPath === args.old_path) {
-    return { new_path: args.old_path, updated_files: 0, failed_updates: 0 }
-  }
-  if (Object.prototype.hasOwnProperty.call(MOCK_CONTENT, newPath)) {
-    throw new Error('A note with that name already exists')
-  }
-
-  delete MOCK_CONTENT[args.old_path]
-  MOCK_CONTENT[newPath] = oldContent
-
-  const oldPathStem = relativePathStem({ path: args.old_path, vaultPath: args.vault_path })
-  const newPathStem = relativePathStem({ path: newPath, vaultPath: args.vault_path })
-  const oldTargets = canonicalRenameTargets({ oldTitle, oldPathStem })
-  const updatedFiles = updateMockRenameReferences({ newPath, newPathStem, oldTargets })
-
-  syncWindowContent()
-  return { new_path: newPath, updated_files: updatedFiles, failed_updates: 0 }
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- mock handler map accepts heterogeneous arg types
 export const mockHandlers: Record<string, (args: any) => any> = {
   list_vault: () => MOCK_ENTRIES,
@@ -355,23 +173,11 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   get_note_content: (args: { path: string }) => MOCK_CONTENT[args.path] ?? '',
   get_all_content: () => MOCK_CONTENT,
   get_file_history: (args: { path: string }) => mockFileHistory(args.path),
-  get_modified_files: () => {
-    const base = mockHasChanges ? mockModifiedFiles() : []
-    const basePaths = new Set(base.map(f => f.path))
-    const extra: ModifiedFile[] = [...mockSavedSinceCommit]
-      .filter(p => !basePaths.has(p))
-      .map(p => ({ path: p, relativePath: p.replace(/^.*?\/Grimoire\//, ''), status: 'modified' as const }))
-    return [...base, ...extra]
-  },
+  get_modified_files: () => getMockModifiedFiles(),
   get_file_diff: (args: { path: string }) => mockFileDiff(args.path),
   get_file_diff_at_commit: (args: { path: string; commitHash: string }) => mockFileDiffAtCommit(args.path, args.commitHash),
   git_discard_file: () => {},
-  git_commit: (args: { message: string }) => {
-    const count = (mockHasChanges ? mockModifiedFiles().length : 0) + mockSavedSinceCommit.size
-    mockHasChanges = false
-    mockSavedSinceCommit.clear()
-    return `[main abc1234] ${args.message}\n ${count} files changed`
-  },
+  git_commit: (args: { message: string }) => commitMockChanges(args.message),
   get_build_number: () => 'bDEV',
   get_last_commit_info: (): LastCommitInfo => ({ shortHash: 'a1b2c3d', commitUrl: 'https://github.com/sriinnu/grimoire-vault/commit/a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0' }),
   git_pull: (): GitPullResult => ({ status: 'up_to_date', message: 'Already up to date', updatedFiles: [], conflictFiles: [] }),
@@ -422,25 +228,37 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     codex: { installed: true, version: 'mock' },
     chitragupta: { installed: true, version: 'mock' },
   }),
-  get_vault_ai_guidance_status: () => ({ ...mockVaultAiGuidanceStatus }),
-  restore_vault_ai_guidance: () => {
-    mockVaultAiGuidanceStatus = {
-      agents_state: 'managed',
-      claude_state: 'managed',
-      can_restore: false,
-    }
-    return { ...mockVaultAiGuidanceStatus }
-  },
+  get_ai_provider_key_statuses: () => getMockAiProviderKeyStatuses(),
+  save_ai_provider_api_key: saveMockAiProviderApiKey,
+  clear_ai_provider_api_key: clearMockAiProviderApiKey,
+  get_vault_ai_guidance_status: () => getMockVaultAiGuidanceStatus(),
+  restore_vault_ai_guidance: () => restoreMockVaultAiGuidance(),
   stream_claude_chat: () => 'mock-session',
   stream_claude_agent: () => null,
   stream_ai_agent: () => null,
-  transcribe_audio: (args: { audioPath?: string; audio_path?: string; provider?: string }) => {
+  get_transcription_readiness: (args: { provider?: string }) => ({
+    provider: args.provider ?? 'local_whisper',
+    ready: true,
+    status: 'ready',
+    message: 'Mock local transcription is ready.',
+    cliPath: '/mock/bin/whisper-cli',
+    modelPath: '/mock/models/ggml-base.en.bin',
+    recommendedModelPath: '/mock/models/ggml-base.en.bin',
+    downloadUrl: 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin',
+    installHint: 'Mock whisper.cpp runtime.',
+  }),
+  transcribe_audio: (args: { audioPath?: string; audio_path?: string; provider?: string; allowCloud?: boolean; allow_cloud?: boolean }) => {
     const audioPath = args.audioPath ?? args.audio_path ?? '/tmp/voice-note.m4a'
+    const provider = args.provider ?? 'local_whisper'
+    const allowCloud = args.allowCloud ?? args.allow_cloud ?? false
+    if (provider === 'whisper_api' && !allowCloud) {
+      throw new Error('Cloud transcription is disabled. Enable it in Settings before using Whisper API.')
+    }
     const title = audioPath.split('/').pop()?.replace(/\.[^.]+$/, '') ?? 'voice-note'
     return {
       title: `Transcript - ${title}`,
       audioPath,
-      provider: args.provider ?? 'local_whisper',
+      provider,
       language: 'en',
       transcript: 'Mock transcript from local Whisper.',
       segments: [
@@ -448,62 +266,49 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       ],
     }
   },
-  import_markdown_folder: (args: { vaultPath?: string; sourcePath?: string }) => {
-    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
-    const source = args.sourcePath ?? '/Users/mock/Exports/Bear'
-    const sourceName = source.split('/').filter(Boolean).pop() ?? 'markdown-import'
-    return {
-      imported_root: `${vault}/imports/${sourceName}`,
-      report_path: `${vault}/imports/${sourceName}/import-report.md`,
-      notes_copied: 3,
-      assets_copied: 2,
-      skipped_files: 1,
-      failed_files: 0,
-    }
-  },
-  import_markdown_zip: (args: { vaultPath?: string; sourcePath?: string }) => {
-    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
-    const source = args.sourcePath ?? '/Users/mock/Exports/grimoire-vault.zip'
-    const sourceName = source.split('/').filter(Boolean).pop()?.replace(/\.zip$/i, '') ?? 'markdown-zip'
-    return {
-      imported_root: `${vault}/imports/${sourceName}`,
-      report_path: `${vault}/imports/${sourceName}/import-report.md`,
-      notes_copied: 5,
-      assets_copied: 3,
-      skipped_files: 1,
-      failed_files: 0,
-    }
-  },
-  import_journal_export: (args: { vaultPath?: string; sourcePath?: string; sourceKind?: string }) => {
-    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
-    const kind = args.sourceKind ?? 'day-one'
-    return {
-      imported_root: `${vault}/imports/${kind}-export`,
-      report_path: `${vault}/imports/${kind}-export/import-report.md`,
-      notes_copied: 8,
-      assets_copied: 4,
-      skipped_files: 0,
-      failed_files: 0,
-    }
-  },
-  export_markdown_zip: (args: { targetPath?: string }) => ({
-    export_path: args.targetPath ?? '/Users/mock/Desktop/grimoire-vault.zip',
-    files_exported: 12,
-    skipped_files: 0,
-  }),
+  ...mockImportHandlers,
+  ...mockExportHandlers,
+  storage_s3_live_preflight: (args: { bucket?: string | null; region?: string | null; prefix?: string | null }) =>
+    mockS3LivePreflightReport(args),
+  storage_s3_provider_push_preview: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null }) =>
+    mockS3ProviderSyncReport({ ...args, direction: 'push' }, false),
+  storage_s3_provider_pull_preview: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null }) =>
+    mockS3ProviderSyncReport({ ...args, direction: 'pull' }, false),
+  storage_s3_provider_sync_apply: (args: { vaultPath?: string; bucket?: string | null; region?: string | null; prefix?: string | null; direction?: 'push' | 'pull'; previewSignature?: string }) =>
+    mockS3ProviderSyncReport(args, true),
+  storage_azure_live_preflight: (args: { account?: string | null; container?: string | null; prefix?: string | null }) =>
+    mockAzureLivePreflightReport(args),
+  storage_azure_provider_push_preview: (args: { vaultPath?: string; account?: string | null; container?: string | null; prefix?: string | null }) =>
+    mockAzureProviderSyncReport({ ...args, direction: 'push' }, false),
+  storage_azure_provider_pull_preview: (args: { vaultPath?: string; account?: string | null; container?: string | null; prefix?: string | null }) =>
+    mockAzureProviderSyncReport({ ...args, direction: 'pull' }, false),
+  storage_azure_provider_sync_apply: (args: { vaultPath?: string; account?: string | null; container?: string | null; prefix?: string | null; direction?: 'push' | 'pull'; previewSignature?: string }) =>
+    mockAzureProviderSyncReport(args, true),
+  storage_desktop_provider_health_check: (args: { vaultPath?: string; providerId?: 'icloud-drive' | 'google-drive-desktop' }) =>
+    mockDesktopStorageHealthReport(args),
+  storage_push_preview: (args: { vaultPath?: string; mirrorPath?: string; providerId?: string }) =>
+    mockObjectStorageReport({ ...args, direction: 'push' }, false),
+  storage_pull_preview: (args: { vaultPath?: string; mirrorPath?: string; providerId?: string }) =>
+    mockObjectStorageReport({ ...args, direction: 'pull' }, false),
+  storage_sync_apply: (args: { vaultPath?: string; mirrorPath?: string; providerId?: string; direction?: 'push' | 'pull'; previewSignature?: string }) =>
+    mockObjectStorageReport(args, true),
   save_note_content: (args: { path: string; content: string }) => {
     MOCK_CONTENT[args.path] = args.content
-    mockSavedSinceCommit.add(args.path)
+    trackMockGitChange(args.path)
     syncWindowContent()
     return null
   },
   save_image: (args: { vault_path?: string; filename: string; data: string }) => {
-    const vault = args.vault_path ?? '/Users/srinivas/Grimoire'
+    const vault = args.vault_path ?? '/Users/mock/Grimoire'
     return `${vault}/attachments/${Date.now()}-${args.filename}`
+  },
+  save_audio_recording: (args: { vault_path?: string; vaultPath?: string; filename: string; data: string }) => {
+    const vault = args.vault_path ?? args.vaultPath ?? '/Users/mock/Grimoire'
+    return `${vault}/Private/attachments/recordings/${Date.now()}-${args.filename}`
   },
   save_canvas_preview: () => null,
   copy_image_to_vault: (args: { vault_path?: string; source_path: string }) => {
-    const vault = args.vault_path ?? '/Users/srinivas/Grimoire'
+    const vault = args.vault_path ?? '/Users/mock/Grimoire'
     const filename = args.source_path.split('/').pop() ?? 'image.png'
     return `${vault}/attachments/${Date.now()}-${filename}`
   },
@@ -524,11 +329,14 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       theme_mode: s.theme_mode ?? null,
       theme_preset: s.theme_preset ?? null,
       editor_font: s.editor_font ?? null,
+      editor_line_height: s.editor_line_height ?? null,
       ui_language: s.ui_language ?? null,
       menu_bar_icon_enabled: s.menu_bar_icon_enabled ?? false,
       default_ai_agent: s.default_ai_agent ?? null,
       ai_agent_models: s.ai_agent_models ?? null,
       ai_agent_providers: s.ai_agent_providers ?? null,
+      transcription_provider: s.transcription_provider ?? 'local_whisper',
+      cloud_transcription_enabled: s.cloud_transcription_enabled ?? false,
     }
     return null
   },
@@ -603,11 +411,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   register_mcp_tools: () => 'registered',
   check_mcp_status: () => 'installed',
   repair_vault: (): string => {
-    mockVaultAiGuidanceStatus = {
-      agents_state: 'managed',
-      claude_state: 'managed',
-      can_restore: false,
-    }
+    restoreMockVaultAiGuidance()
     return 'Vault repaired'
   },
   reinit_telemetry: (): null => null,
@@ -627,5 +431,5 @@ export function updateMockContent(path: string, content: string): void {
 }
 
 export function trackMockChange(path: string): void {
-  mockSavedSinceCommit.add(path)
+  trackMockGitChange(path)
 }

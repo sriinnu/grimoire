@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react'
 import { Check, Moon, Palette, Sun, TextAa } from '@phosphor-icons/react'
-import type { EditorFont, ThemePreset } from '../lib/appearance'
+import type { EditorFont, EditorLineHeight, ThemePreset } from '../lib/appearance'
 import { resolveFontRoles } from '../lib/fontConfig'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
 import { SidebarAppearancePreview } from './SidebarAppearancePreview'
-import { buildPresetOptions, type PresetOption } from './appearanceSettingsOptions'
+import { ThemePackSettingsControls } from './ThemePackSettingsControls'
+import { buildPresetGroups, type PresetOption } from './appearanceSettingsOptions'
+import { SectionHeading } from './settings/SettingsControls'
 import { Button } from './ui/button'
 import {
   Select,
@@ -17,6 +19,16 @@ import {
 
 type Translate = ReturnType<typeof createTranslator>
 
+const CURATED_EDITOR_FONT_OPTIONS: Array<{ value: EditorFont; labelKey: Parameters<Translate>[0] }> = [
+  { value: 'literary', labelKey: 'settings.editorFont.literary' },
+  { value: 'editorial', labelKey: 'settings.editorFont.editorial' },
+  { value: 'manuscript', labelKey: 'settings.editorFont.manuscript' },
+  { value: 'system', labelKey: 'settings.editorFont.system' },
+  { value: 'readable', labelKey: 'settings.editorFont.readable' },
+  { value: 'humanist', labelKey: 'settings.editorFont.humanist' },
+  { value: 'mono', labelKey: 'settings.editorFont.mono' },
+]
+
 interface AppearanceSettingsSectionProps {
   t: Translate
   themeMode: ThemeMode
@@ -25,6 +37,8 @@ interface AppearanceSettingsSectionProps {
   setThemePreset: (value: ThemePreset) => void
   editorFont: EditorFont
   setEditorFont: (value: EditorFont) => void
+  editorLineHeight: EditorLineHeight
+  setEditorLineHeight: (value: EditorLineHeight) => void
 }
 
 /** Renders Grimoire's visual appearance controls and a compact live reading sample. */
@@ -36,8 +50,10 @@ export function AppearanceSettingsSection({
   setThemePreset,
   editorFont,
   setEditorFont,
+  editorLineHeight,
+  setEditorLineHeight,
 }: AppearanceSettingsSectionProps) {
-  const presets = buildPresetOptions(t)
+  const presetGroups = buildPresetGroups(t)
 
   return (
     <>
@@ -51,21 +67,42 @@ export function AppearanceSettingsSection({
       <div className="space-y-2">
         <ControlLabel icon={<Palette size={14} />} label={t('settings.themePreset.label')} />
         <div
-          className="grid gap-2"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(132px, 1fr))' }}
+          className="space-y-3"
           role="radiogroup"
           aria-label={t('settings.themePreset.label')}
         >
-          {presets.map((preset) => (
-            <ThemePresetCard
-              key={preset.value}
-              option={preset}
-              selected={themePreset === preset.value}
-              onSelect={setThemePreset}
-            />
+          {presetGroups.map((group) => (
+            <div key={group.id} className="space-y-1.5" data-testid={`settings-theme-preset-group-${group.id}`}>
+              <div
+                style={{
+                  color: 'var(--muted-foreground)',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 0,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {group.label}
+              </div>
+              <div
+                className="grid gap-2"
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}
+              >
+                {group.options.map((preset) => (
+                  <ThemePresetCard
+                    key={preset.value}
+                    option={preset}
+                    selected={themePreset === preset.value}
+                    onSelect={setThemePreset}
+                  />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
+
+      <ThemePackSettingsControls t={t} themePreset={themePreset} />
 
       <SidebarAppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} />
 
@@ -80,46 +117,42 @@ export function AppearanceSettingsSection({
             <SelectValue />
           </SelectTrigger>
           <SelectContent position="popper" data-anchor-strategy="popper">
-            <SelectItem value="system">{t('settings.editorFont.system')}</SelectItem>
-            <SelectItem value="serif">{t('settings.editorFont.serif')}</SelectItem>
-            <SelectItem value="mono">{t('settings.editorFont.mono')}</SelectItem>
-            <SelectItem value="readable">{t('settings.editorFont.readable')}</SelectItem>
-            <SelectItem value="literary">{t('settings.editorFont.literary')}</SelectItem>
-            <SelectItem value="compact">{t('settings.editorFont.compact')}</SelectItem>
-            <SelectItem value="handwritten">{t('settings.editorFont.handwritten')}</SelectItem>
+            {CURATED_EDITOR_FONT_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      <AppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} editorFont={editorFont} />
-    </>
-  )
-}
+      <div className="space-y-2">
+        <ControlLabel icon={<TextAa size={14} />} label={t('settings.editorLineHeight.label')} />
+        <Select value={editorLineHeight} onValueChange={(value) => setEditorLineHeight(value as EditorLineHeight)}>
+          <SelectTrigger
+            aria-label={t('settings.editorLineHeight.label')}
+            className="w-full bg-transparent"
+            data-testid="settings-editor-line-height"
+            data-value={editorLineHeight}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" data-anchor-strategy="popper">
+            <SelectItem value="compact">{t('settings.editorLineHeight.compact')}</SelectItem>
+            <SelectItem value="comfortable">{t('settings.editorLineHeight.comfortable')}</SelectItem>
+            <SelectItem value="spacious">{t('settings.editorLineHeight.spacious')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--muted-foreground)',
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.55, maxWidth: 420 }}>
-        {description}
-      </div>
-    </div>
+      <AppearancePreview
+        t={t}
+        themeMode={themeMode}
+        themePreset={themePreset}
+        editorFont={editorFont}
+        editorLineHeight={editorLineHeight}
+      />
+    </>
   )
 }
 
@@ -143,7 +176,7 @@ function ThemeModeControl({
 }) {
   return (
     <div
-      className="inline-flex w-full rounded-md border border-border bg-muted p-1"
+      className="settings-material-inner inline-flex w-full rounded-md border p-1"
       role="radiogroup"
       aria-label={t('settings.theme.label')}
       data-testid="settings-theme-mode"
@@ -182,7 +215,7 @@ function ThemeModeButton({
       data-testid={`settings-theme-${value}`}
       className={
         selected
-          ? 'h-7 flex-1 border border-border bg-background text-foreground shadow-xs hover:bg-background'
+          ? 'settings-theme-mode-button h-7 flex-1 border text-foreground shadow-xs'
           : 'h-7 flex-1 text-muted-foreground hover:text-foreground'
       }
       onClick={() => onSelect(value)}
@@ -209,10 +242,12 @@ function ThemePresetCard({
       role="radio"
       aria-checked={selected}
       data-testid={`settings-theme-preset-${option.value}`}
+      data-group={option.group}
+      data-selected={selected ? 'true' : 'false'}
       className={
         selected
-          ? 'h-auto min-w-0 justify-start whitespace-normal rounded-md border border-primary bg-background p-3 text-left shadow-xs'
-          : 'h-auto min-w-0 justify-start whitespace-normal rounded-md border border-border bg-transparent p-3 text-left hover:bg-muted'
+          ? 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left shadow-xs'
+          : 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left'
       }
       onClick={() => onSelect(option.value)}
     >
@@ -245,30 +280,31 @@ function AppearancePreview({
   themeMode,
   themePreset,
   editorFont,
+  editorLineHeight,
 }: {
   t: Translate
   themeMode: ThemeMode
   themePreset: ThemePreset
   editorFont: EditorFont
+  editorLineHeight: EditorLineHeight
 }) {
   const fontRoles = resolveFontRoles({ themePreset, editorFont })
+  const previewLineHeight = editorLineHeight === 'compact'
+    ? 1.34
+    : editorLineHeight === 'spacious' ? 1.58 : 1.44
 
   return (
     <div
-      className="rounded-md border border-border"
+      className="settings-appearance-preview rounded-md border border-border"
       data-testid="settings-appearance-preview"
       data-theme-preview={themeMode}
       data-theme-preset-preview={themePreset}
-      style={{
-        background: 'var(--surface-editor)',
-        padding: 14,
-      }}
     >
-      <div style={{ fontFamily: fontRoles.editor, color: 'var(--foreground)' }}>
+      <div className="settings-appearance-preview__sample" style={{ fontFamily: fontRoles.editor }}>
         <div style={{ fontFamily: fontRoles.display, fontSize: 19, fontWeight: 650, lineHeight: 1.2 }}>
           {t('settings.appearance.previewTitle')}
         </div>
-        <div style={{ color: 'var(--muted-foreground)', fontSize: 12, lineHeight: 1.55, marginTop: 6 }}>
+        <div className="settings-appearance-preview__body" style={{ lineHeight: previewLineHeight }}>
           {t('settings.appearance.previewBody')}
         </div>
       </div>

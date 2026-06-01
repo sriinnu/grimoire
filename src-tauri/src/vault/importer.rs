@@ -4,12 +4,28 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::{DirEntry, WalkDir};
 
-const MARKDOWN_EXTENSIONS: &[&str] = &["md", "markdown", "mdown", "mkd"];
-const ATTACHMENT_EXTENSIONS: &[&str] = &[
+use super::import_manifest::{preview_markdown_manifest_rows, ImportAutopsyManifestRow};
+use super::import_preview_signature::import_preview_signature;
+
+pub(crate) const MARKDOWN_EXTENSIONS: &[&str] = &["md", "markdown", "mdown", "mkd"];
+pub(crate) const ATTACHMENT_EXTENSIONS: &[&str] = &[
     "avif", "canvas", "csv", "gif", "heic", "heif", "jpeg", "jpg", "json", "m4a", "mdx", "mov",
     "mp3", "mp4", "ogg", "opus", "pdf", "png", "svg", "txt", "wav", "webm", "webp", "yaml", "yml",
 ];
-const SKIPPED_DIRS: &[&str] = &[".git", ".obsidian", ".trash", "__macosx", "node_modules"];
+pub(crate) const SKIPPED_DIRS: &[&str] = &[
+    ".claude",
+    ".codex",
+    ".git",
+    ".grimoire",
+    ".grimoire-local",
+    ".obsidian",
+    ".trash",
+    "__macosx",
+    "certs",
+    "mockups",
+    "node_modules",
+];
+pub(crate) const SKIPPED_FILES: &[&str] = &[".ds_store", ".mcp.json"];
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct MarkdownFolderImportReport {
@@ -21,17 +37,31 @@ pub struct MarkdownFolderImportReport {
     pub failed_files: usize,
 }
 
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub struct MarkdownFolderImportPreview {
+    pub source_path: String,
+    pub planned_import_root: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub preview_signature: Option<String>,
+    pub notes_to_copy: usize,
+    pub assets_to_copy: usize,
+    pub skipped_files: usize,
+    pub failed_files: usize,
+    pub writes_local_only_report: bool,
+    pub manifest_rows: Vec<ImportAutopsyManifestRow>,
+}
+
 #[derive(Debug)]
-struct ImportCounters {
-    notes_copied: usize,
-    assets_copied: usize,
-    skipped_files: usize,
-    failed_files: usize,
-    failures: Vec<String>,
+pub(crate) struct ImportCounters {
+    pub(crate) notes_copied: usize,
+    pub(crate) assets_copied: usize,
+    pub(crate) skipped_files: usize,
+    pub(crate) failed_files: usize,
+    pub(crate) failures: Vec<String>,
 }
 
 impl ImportCounters {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {
             notes_copied: 0,
             assets_copied: 0,
@@ -43,9 +73,10 @@ impl ImportCounters {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ImportFileKind {
+pub(crate) enum ImportFileKind {
     Markdown,
     Attachment,
+    Metadata,
     Skip,
 }
 
@@ -75,7 +106,32 @@ pub fn import_markdown_folder(
     })
 }
 
-fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
+/// Previews the shared Markdown/Bear folder import without writing to the vault.
+pub fn preview_markdown_folder_import(
+    vault_path: &Path,
+    source_path: &Path,
+) -> Result<MarkdownFolderImportPreview, String> {
+    let vault_root = canonical_dir(vault_path, "Vault")?;
+    let source_root = canonical_dir(source_path, "Source")?;
+    validate_source_boundary(&vault_root, &source_root)?;
+
+    let import_root = unique_import_root(&vault_root, &source_root)?;
+    let counters = preview_importable_files(&source_root)?;
+    let manifest_rows = preview_markdown_manifest_rows(&source_root, &import_root)?;
+    Ok(MarkdownFolderImportPreview {
+        source_path: path_to_string(&source_root),
+        planned_import_root: path_to_string(&import_root),
+        preview_signature: Some(import_preview_signature("markdown-folder", &source_root)?),
+        notes_to_copy: counters.notes_copied,
+        assets_to_copy: counters.assets_copied,
+        skipped_files: counters.skipped_files,
+        failed_files: counters.failed_files,
+        writes_local_only_report: true,
+        manifest_rows,
+    })
+}
+
+pub(crate) fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
     let canonical = path
         .canonicalize()
         .map_err(|e| format!("{label} folder is not available: {e}"))?;
@@ -85,7 +141,10 @@ fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
     Ok(canonical)
 }
 
-fn validate_source_boundary(vault_root: &Path, source_root: &Path) -> Result<(), String> {
+pub(crate) fn validate_source_boundary(
+    vault_root: &Path,
+    source_root: &Path,
+) -> Result<(), String> {
     if source_root == vault_root {
         return Err("Choose a source folder outside the active vault".to_string());
     }
@@ -95,7 +154,7 @@ fn validate_source_boundary(vault_root: &Path, source_root: &Path) -> Result<(),
     Ok(())
 }
 
-fn unique_import_root(vault_root: &Path, source_root: &Path) -> Result<PathBuf, String> {
+pub(crate) fn unique_import_root(vault_root: &Path, source_root: &Path) -> Result<PathBuf, String> {
     let imports_root = vault_root.join("imports");
     let base = source_root
         .file_name()
@@ -126,11 +185,12 @@ fn slugify_name(value: &str) -> String {
     output.trim_matches('-').to_string()
 }
 
-fn copy_importable_files(
+pub(crate) fn copy_importable_files(
     source_root: &Path,
     import_root: &Path,
     counters: &mut ImportCounters,
 ) -> Result<(), String> {
+    counters.skipped_files += count_files_in_pruned_dirs(source_root)?;
     for entry in WalkDir::new(source_root)
         .follow_links(false)
         .into_iter()
@@ -158,15 +218,49 @@ fn copy_importable_files(
     Ok(())
 }
 
-fn should_enter(entry: &DirEntry) -> bool {
+pub(crate) fn preview_importable_files(source_root: &Path) -> Result<ImportCounters, String> {
+    let mut counters = ImportCounters::new();
+    counters.skipped_files += count_files_in_pruned_dirs(source_root)?;
+    for entry in WalkDir::new(source_root)
+        .follow_links(false)
+        .into_iter()
+        .filter_entry(should_enter)
+    {
+        let entry = entry.map_err(|e| format!("Failed to read source folder: {e}"))?;
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        match classify_import_file(entry.path()) {
+            ImportFileKind::Markdown => counters.notes_copied += 1,
+            ImportFileKind::Attachment | ImportFileKind::Metadata => counters.assets_copied += 1,
+            ImportFileKind::Skip => counters.skipped_files += 1,
+        }
+    }
+    Ok(counters)
+}
+
+pub(crate) fn should_enter(entry: &DirEntry) -> bool {
+    if entry.depth() == 0 {
+        return true;
+    }
     if !entry.file_type().is_dir() {
         return true;
     }
     let name = entry.file_name().to_string_lossy().to_ascii_lowercase();
-    !SKIPPED_DIRS.contains(&name.as_str())
+    !is_skipped_name(&name)
 }
 
-fn classify_import_file(path: &Path) -> ImportFileKind {
+pub(crate) fn classify_import_file(path: &Path) -> ImportFileKind {
+    let file_name = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    if is_skipped_name(&file_name) || file_name.starts_with(".env") {
+        return ImportFileKind::Skip;
+    }
+    if is_textbundle_metadata_file(path) {
+        return ImportFileKind::Metadata;
+    }
     let extension = path
         .extension()
         .map(|value| value.to_string_lossy().to_ascii_lowercase())
@@ -180,7 +274,60 @@ fn classify_import_file(path: &Path) -> ImportFileKind {
     ImportFileKind::Skip
 }
 
-fn copy_import_file(
+pub(crate) fn is_skipped_name(name: &str) -> bool {
+    name.starts_with('.') || SKIPPED_DIRS.contains(&name) || SKIPPED_FILES.contains(&name)
+}
+
+pub(crate) fn is_textbundle_metadata_file(path: &Path) -> bool {
+    let file_name = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    file_name == "info.json"
+        && path.parent().is_some_and(|parent| {
+            parent
+                .extension()
+                .map(|value| value.to_string_lossy().eq_ignore_ascii_case("textbundle"))
+                .unwrap_or(false)
+        })
+}
+
+pub(crate) fn is_textbundle_markdown_file(path: &Path) -> bool {
+    let file_name = path
+        .file_name()
+        .map(|value| value.to_string_lossy().to_ascii_lowercase())
+        .unwrap_or_default();
+    MARKDOWN_EXTENSIONS
+        .iter()
+        .any(|extension| file_name == format!("text.{extension}"))
+        && path.parent().is_some_and(|parent| {
+            parent
+                .extension()
+                .map(|value| value.to_string_lossy().eq_ignore_ascii_case("textbundle"))
+                .unwrap_or(false)
+        })
+}
+
+pub(crate) fn count_files_in_pruned_dirs(source_root: &Path) -> Result<usize, String> {
+    let mut skipped = 0;
+    for entry in WalkDir::new(source_root).follow_links(false) {
+        let entry = entry.map_err(|e| format!("Failed to read source folder: {e}"))?;
+        if entry.file_type().is_file() && has_skipped_parent(source_root, entry.path()) {
+            skipped += 1;
+        }
+    }
+    Ok(skipped)
+}
+
+fn has_skipped_parent(source_root: &Path, path: &Path) -> bool {
+    let relative = path.strip_prefix(source_root).unwrap_or(path);
+    relative.components().rev().skip(1).any(|component| {
+        let name = component.as_os_str().to_string_lossy().to_ascii_lowercase();
+        is_skipped_name(&name)
+    })
+}
+
+pub(crate) fn copy_import_file(
     source_path: &Path,
     destination_path: &Path,
     counters: &mut ImportCounters,
@@ -211,7 +358,7 @@ fn copy_import_file(
     }
 }
 
-fn write_import_report(
+pub(crate) fn write_import_report(
     source_root: &Path,
     import_root: &Path,
     counters: &ImportCounters,
@@ -230,7 +377,7 @@ fn write_import_report(
 
 fn format_report(source_root: &Path, import_root: &Path, counters: &ImportCounters) -> String {
     let mut report = format!(
-        "---\ntype: Import Report\nsource: \"{}\"\n---\n\n# Import Report\n\n- Source: `{}`\n- Imported to: `{}`\n- Markdown notes copied: {}\n- Assets copied: {}\n- Skipped files: {}\n- Failed files: {}\n",
+        "---\ntype: Import Report\nlocality: local\nlocal_only: true\nsource: \"{}\"\n---\n\n# Import Report\n\n- Source: `{}`\n- Imported to: `{}`\n- Markdown notes copied: {}\n- Assets copied: {}\n- Skipped files: {}\n- Failed files: {}\n",
         source_root.display(),
         source_root.display(),
         import_root.display(),
@@ -248,44 +395,6 @@ fn format_report(source_root: &Path, import_root: &Path, counters: &ImportCounte
     report
 }
 
-fn path_to_string(path: &Path) -> String {
+pub(crate) fn path_to_string(path: &Path) -> String {
     path.to_string_lossy().into_owned()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::TempDir;
-
-    #[test]
-    fn imports_markdown_and_assets_into_imports_folder() {
-        let vault = TempDir::new().unwrap();
-        let source = TempDir::new().unwrap();
-        fs::write(source.path().join("note.md"), "# Note\n").unwrap();
-        fs::create_dir_all(source.path().join("assets")).unwrap();
-        fs::write(source.path().join("assets/image.svg"), "<svg/>").unwrap();
-        fs::write(source.path().join("script.ts"), "console.log('skip')").unwrap();
-
-        let result = import_markdown_folder(vault.path(), source.path()).unwrap();
-
-        assert_eq!(result.notes_copied, 1);
-        assert_eq!(result.assets_copied, 1);
-        assert_eq!(result.skipped_files, 1);
-        assert!(Path::new(&result.imported_root).join("note.md").exists());
-        assert!(Path::new(&result.imported_root)
-            .join("assets/image.svg")
-            .exists());
-        assert!(Path::new(&result.report_path).exists());
-    }
-
-    #[test]
-    fn rejects_sources_that_contain_the_active_vault() {
-        let source = TempDir::new().unwrap();
-        let vault = source.path().join("vault");
-        fs::create_dir_all(&vault).unwrap();
-
-        let error = import_markdown_folder(&vault, source.path()).unwrap_err();
-
-        assert!(error.contains("must not contain each other"));
-    }
 }

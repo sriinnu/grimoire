@@ -1,0 +1,85 @@
+@media (prefers-contrast: more) {
+  :where(
+    [data-theme-preset="constellation"],
+    [data-theme-preset="daylight-atelier"],
+    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="living-archive"],
+    [data-theme-preset="nocturne"],
+    [data-theme-preset="retro-terminal"]
+  ) {
+    --grimoire-panel-shadow: none;
+    --grimoire-card-shadow: none;
+    --grimoire-focus-line: var(--border-strong);
+    --grimoire-muted-line: var(--border-strong);
+    --border: var(--border-strong);
+    --input: var(--border-strong);
+    --ring: var(--border-strong);
+  }
+}
+
+@media (forced-colors: active) {
+  :where(
+    [data-theme-preset="constellation"],
+    [data-theme-preset="daylight-atelier"],
+    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="living-archive"],
+    [data-theme-preset="nocturne"],
+    [data-theme-preset="retro-terminal"]
+  ) {
+    --surface-app: Canvas;
+    --surface-sidebar: Canvas;
+    --surface-panel: Canvas;
+    --surface-card: Canvas;
+    --surface-popover: Canvas;
+    --surface-input: Canvas;
+    --surface-editor: Canvas;
+    --text-primary: CanvasText;
+    --text-secondary: CanvasText;
+    --text-heading: CanvasText;
+    --border-default: CanvasText;
+    --border-subtle: CanvasText;
+    --border-strong: CanvasText;
+    --primary: Highlight;
+    --primary-foreground: HighlightText;
+    --accent-blue: Highlight;
+    --accent-blue-hover: Highlight;
+    --syntax-heading: CanvasText;
+    --syntax-link: LinkText;
+    --sidebar-foreground: CanvasText;
+    --sidebar-primary: Highlight;
+    --sidebar-primary-foreground: HighlightText;
+    --sidebar-border: CanvasText;
+    --grimoire-panel-shadow: none;
+    --grimoire-card-shadow: none;
+    --grimoire-workspace-texture: none;
+  }
+
+  :where(.app, .app-sidebar-panel, .app-sidebar-rail, .note-list-panel, .editor, .editor-scroll-area, .inspector-panel, .ai-panel, .settings-panel-shell, .settings-navigation-rail, .settings-main-surface, .editor-navigator-popover-shell, .status-bar) {
+    forced-color-adjust: auto;
+    border-color: CanvasText !important;
+    background: Canvas !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: CanvasText !important;
+  }
+
+  :where(button, [role="button"], input, textarea, select, [data-slot="input"]) {
+    border-color: ButtonBorder !important;
+    color: CanvasText !important;
+  }
+
+  :where(:focus, :focus-visible, [data-active="true"], [aria-current="page"], [aria-selected="true"]) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  :where(.editor-navigator-hit-overlay, .grimoire-memory-signal, .sidebar-artwork) {
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :where(.sidebar-artwork__glyph, .sidebar-artwork__token) {
+    filter: none !important;
+    mix-blend-mode: normal !important;
+  }
+}

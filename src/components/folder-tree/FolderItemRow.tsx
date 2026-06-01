@@ -2,14 +2,15 @@ import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import {
   CaretDown,
   CaretRight,
-  Folder,
-  FolderOpen,
   PencilSimple,
   Trash,
 } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { FolderNode } from '../../types'
+import { FolderGlyph } from './FolderGlyph'
+import './FolderItemRow.css'
+import { resolveFolderGlyphModel } from './folderGlyphModel'
 import { useFolderRowInteractions } from './useFolderRowInteractions'
 
 interface FolderItemRowProps {
@@ -40,6 +41,7 @@ export function FolderItemRow({
   const hasChildren = node.children.length > 0
   const expandLabel = isExpanded ? `Collapse ${node.name}` : `Expand ${node.name}`
   const hasActions = !!onStartRenameFolder || !!onDeleteFolder
+  const glyphModel = resolveFolderGlyphModel(node, isSelected || isExpanded)
   const { handleRenameDoubleClick, handleSelectClick } = useFolderRowInteractions({
     hasChildren,
     onRenameFolder: onStartRenameFolder ? () => onStartRenameFolder(node.path) : undefined,
@@ -50,11 +52,14 @@ export function FolderItemRow({
   return (
     <div
       className={cn(
-        'group relative flex items-center gap-1 rounded transition-colors',
+        'folder-item-row group relative flex items-center gap-1 rounded transition-colors',
         isSelected
-          ? 'bg-[var(--accent-blue-light)] text-primary'
+          ? 'text-primary'
           : 'text-foreground hover:bg-accent',
       )}
+      data-folder-row-motif={glyphModel.motif}
+      data-folder-row-tone={glyphModel.tone}
+      data-selected={isSelected ? 'true' : 'false'}
       style={{ paddingLeft: depthIndent, borderRadius: 4 }}
       onContextMenu={(event) => {
         onSelect()
@@ -203,7 +208,7 @@ function FolderSelectButton({
       type="button"
       variant="ghost"
       className={cn(
-        'h-auto flex-1 justify-start gap-2 rounded text-left text-[13px] font-medium hover:bg-transparent',
+        'folder-item-row__select h-auto flex-1 justify-start gap-2 rounded text-left text-[13px] font-medium hover:bg-transparent',
         isSelected ? 'text-primary hover:text-primary' : 'text-foreground hover:text-foreground',
       )}
       style={{
@@ -217,11 +222,7 @@ function FolderSelectButton({
       onDoubleClick={onDoubleClick}
       data-testid={`folder-row:${node.path}`}
     >
-      {isSelected || isExpanded ? (
-        <FolderOpen size={17} weight="fill" className="size-[17px] shrink-0" />
-      ) : (
-        <Folder size={17} className="size-[17px] shrink-0" />
-      )}
+      <FolderGlyph node={node} isOpen={isSelected || isExpanded} isSelected={isSelected} />
       <span className="truncate">{node.name}</span>
     </Button>
   )

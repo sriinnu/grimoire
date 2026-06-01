@@ -2,6 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import type { AgentFileCallbacks, AgentStatus } from '../hooks/useAiAgent'
 import { detectFileOperation } from '../hooks/useAiAgent'
 import type { AiAgentMessage } from './aiAgentConversation'
+import { createStreamRuntimeRouteDisclosure } from './aiAgents'
 import {
   markReasoningDone,
   updateMessage,
@@ -78,6 +79,19 @@ export function createStreamCallbacks(context: StreamMutationContext) {
         actions: message.actions.map((action) => (
           action.toolId === toolId ? { ...action, status: 'done' as const, output } : action
         )),
+      }))
+    },
+
+    onRouteResolved: (route: { provider?: string | null; model?: string | null }) => {
+      if (abortRef.current.aborted) return
+
+      updateMessage(setMessages, messageId, (message) => ({
+        ...message,
+        route: createStreamRuntimeRouteDisclosure({
+          agent: message.route?.agent ?? 'chitragupta',
+          provider: route.provider,
+          model: route.model,
+        }),
       }))
     },
 

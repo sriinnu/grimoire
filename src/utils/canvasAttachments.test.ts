@@ -56,12 +56,48 @@ describe('canvasAttachments', () => {
     expect(document).toMatchObject({
       version: 1,
       kind: 'whiteboard',
+      images: [],
+      layerOrder: [],
+      shapes: [],
       strokes: [],
+      textBoxes: [],
     })
   })
 
   it('resolves attachment paths under the vault root', () => {
     expect(resolveVaultAttachmentPath('/vault/', '/attachments/a.png')).toBe('/vault/attachments/a.png')
     expect(createCanvasDocument('handwriting').background).toBe('#fffdf8')
+  })
+
+  it('normalizes older canvas JSON without new drawable layer fields', () => {
+    const document = parseCanvasDocumentJson(JSON.stringify({
+      version: 1,
+      kind: 'handwriting',
+      width: 1600,
+      height: 1000,
+      background: '#fffdf8',
+      strokes: [],
+      updatedAt: '2026-05-24T00:00:00.000Z',
+    }), 'handwriting')
+
+    expect(document.images).toEqual([])
+    expect(document.layerOrder).toEqual([])
+    expect(document.shapes).toEqual([])
+    expect(document.textBoxes).toEqual([])
+  })
+
+  it('rebuilds layer order for older canvas JSON with drawable arrays', () => {
+    const document = parseCanvasDocumentJson(JSON.stringify({
+      version: 1,
+      kind: 'whiteboard',
+      width: 1600,
+      height: 1000,
+      background: '#fffdf8',
+      images: [{ id: 'image-1', src: 'attachments/photo.png', x: 0, y: 0, width: 10, height: 10 }],
+      strokes: [{ id: 'stroke-1', color: '#111', size: 3, tool: 'pen', points: [] }],
+      updatedAt: '2026-05-24T00:00:00.000Z',
+    }), 'whiteboard')
+
+    expect(document.layerOrder).toEqual(['image-1', 'stroke-1'])
   })
 })

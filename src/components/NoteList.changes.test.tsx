@@ -13,7 +13,7 @@ function changeFile(
 ): ModifiedFile {
   return {
     path: entry.path,
-    relativePath: entry.path.replace('/Users/srinivas/Grimoire/', ''),
+    relativePath: entry.path.replace('/Users/mock/Grimoire/', ''),
     status,
     ...overrides,
   }
@@ -31,7 +31,7 @@ describe('NoteList changes view', () => {
     expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
     expect(screen.getByText('26q1-grimoire-app.md')).toBeInTheDocument()
     expect(screen.getByText('facebook-ads-strategy.md')).toBeInTheDocument()
-    expect(screen.queryByText('Karthik Reddy')).not.toBeInTheDocument()
+    expect(screen.queryByText('Arjun Mehta')).not.toBeInTheDocument()
     expect(screen.queryByText('Kickoff Meeting')).not.toBeInTheDocument()
   })
 
@@ -61,13 +61,13 @@ describe('NoteList changes view', () => {
 
     expect(screen.getByText('Build Grimoire App')).toBeInTheDocument()
     expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
-    expect(screen.queryByText('karthik-reddy.md')).not.toBeInTheDocument()
+    expect(screen.queryByText('arjun-mehta.md')).not.toBeInTheDocument()
   })
 
   it('matches entries by relative path suffix across machines', () => {
     const crossMachineEntries: VaultEntry[] = mockEntries.map((entry) => ({
       ...entry,
-      path: entry.path.replace('/Users/srinivas/Grimoire', '/Users/other-machine/OtherVault'),
+      path: entry.path.replace('/Users/mock/Grimoire', '/Users/other-machine/OtherVault'),
     }))
 
     renderNoteList({
@@ -78,7 +78,7 @@ describe('NoteList changes view', () => {
 
     expect(screen.getByText('Build Grimoire App')).toBeInTheDocument()
     expect(screen.getByText('Facebook Ads Strategy')).toBeInTheDocument()
-    expect(screen.queryByText('karthik-reddy.md')).not.toBeInTheDocument()
+    expect(screen.queryByText('arjun-mehta.md')).not.toBeInTheDocument()
   })
 
   it('shows the load error when modifiedFilesError is set', () => {
@@ -100,7 +100,7 @@ describe('NoteList changes view', () => {
 
     renderNoteList({ selection: changesSelection, modifiedFiles: mixedFiles })
     expect(screen.getByText('Build Grimoire App')).toBeInTheDocument()
-    expect(screen.getByText('Karthik Reddy')).toBeInTheDocument()
+    expect(screen.getByText('Arjun Mehta')).toBeInTheDocument()
     expect(screen.queryByText('Facebook Ads Strategy')).not.toBeInTheDocument()
     expect(screen.getAllByTestId('change-stat-added').map((node) => node.textContent)).toEqual(
       expect.arrayContaining(['+42', '+3']),
@@ -120,8 +120,8 @@ describe('NoteList changes view', () => {
   it('shows deleted notes as rows when files are deleted', () => {
     const filesWithDeleted = [
       changeFile(mockEntries[0], 'modified', { addedLines: 42, deletedLines: 7 }),
-      { path: '/Users/srinivas/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
-      { path: '/Users/srinivas/Grimoire/note/also-gone.md', relativePath: 'note/also-gone.md', status: 'deleted' as const, deletedLines: 2 },
+      { path: '/Users/mock/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
+      { path: '/Users/mock/Grimoire/note/also-gone.md', relativePath: 'note/also-gone.md', status: 'deleted' as const, deletedLines: 2 },
     ]
 
     renderNoteList({ selection: changesSelection, modifiedFiles: filesWithDeleted })
@@ -137,7 +137,7 @@ describe('NoteList changes view', () => {
     renderNoteList({
       selection: changesSelection,
       modifiedFiles: [
-        { path: '/Users/srinivas/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
+        { path: '/Users/mock/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
       ],
     })
 
@@ -153,7 +153,7 @@ describe('NoteList changes view', () => {
     renderNoteList({
       selection: allSelection,
       modifiedFiles: [
-        { path: '/Users/srinivas/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
+        { path: '/Users/mock/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
       ],
     })
     expect(screen.queryByText(/notes? deleted/)).not.toBeInTheDocument()
@@ -172,7 +172,7 @@ describe('NoteList changes view', () => {
     renderNoteList({
       selection: changesSelection,
       modifiedFiles: [
-        { path: '/Users/srinivas/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
+        { path: '/Users/mock/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
       ],
       onDiscardFile: vi.fn(),
     })
@@ -208,7 +208,7 @@ describe('NoteList changes view', () => {
     renderNoteList({
       selection: changesSelection,
       modifiedFiles: [
-        { path: '/Users/srinivas/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
+        { path: '/Users/mock/Grimoire/note/gone.md', relativePath: 'note/gone.md', status: 'deleted' as const, deletedLines: 5 },
       ],
       onDiscardFile: vi.fn(),
     })

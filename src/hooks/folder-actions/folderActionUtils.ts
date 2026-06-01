@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../../mock-tauri'
 import type { SidebarSelection, VaultEntry } from '../../types'
 

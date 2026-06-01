@@ -1,86 +1,40 @@
-import { useEffect, useMemo, useCallback, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent, type MutableRefObject, type ReactNode } from 'react'
 import type {
-  VaultEntry,
-  SidebarSelection,
+  InboxPeriod,
   ModifiedFile,
   NoteStatus,
-  InboxPeriod,
+  SidebarSelection,
+  VaultEntry,
   ViewDefinition,
   ViewFile,
 } from '../../types'
-import type { AppLocale } from '../../lib/i18n'
-import type { NoteFileScope, NoteListFilter } from '../../utils/noteListHelpers'
+import type { AppLocale } from '../../lib/i18nCore'
 import {
   DEFAULT_NOTE_FILE_SCOPE,
-  countByFilter,
   countAllNotesByFilter,
+  countByFilter,
   countFolderByFilter,
   countFolderFileScopes,
+  type NoteFileScope,
+  type NoteListFilter,
 } from '../../utils/noteListHelpers'
-import { NoteItem } from '../NoteItem'
-import { DraggableNoteItem } from '../note-retargeting/DraggableNoteItem'
-import type { MultiSelectState } from '../../hooks/useMultiSelect'
-import { isDeletedNoteEntry, resolveHeaderTitle, type DeletedNoteEntry } from './noteListUtils'
-import { filterEntriesByNoteListQuery, filterGroupsByNoteListQuery } from './noteListSearch'
-import { useNoteListSearchState } from './useNoteListSearchState'
-import {
-  useChangeStatusResolver,
-  useListPropertyPicker,
-  useModifiedFilesState,
-  useNoteListData,
-  useNoteListInteractions,
-  useNoteListSort,
-  useTypeEntryMap,
-  useVisibleNotesSync,
-} from './noteListHooks'
-import { useChangesContextMenu } from './NoteListChangesMenu'
-import { useNoteListContextMenu } from './NoteListContextMenu'
 import { addNoteListSearchToggleListener, dispatchNoteListSearchAvailability } from '../../utils/noteListSearchEvents'
+import { useModifiedFilesState } from './noteListDataHooks'
+import {
+  resolveCreateNoteActionLabel,
+  resolveHeaderTitle,
+  resolveSearchActionLabel,
+  resolveSearchPlaceholder,
+  type DeletedNoteEntry,
+} from './noteListUtils'
+import { useNoteListContent } from './useNoteListContent'
+import { useNoteListInteractionState, useRenderItem } from './useNoteListInteractionState'
 
 type EntitySelection = Extract<SidebarSelection, { kind: 'entity' }>
 
 function useViewFlags(selection: SidebarSelection) {
-  const isSectionGroup = selection.kind === 'sectionGroup'
-  const isFolderView = selection.kind === 'folder'
-  const isInboxView = selection.kind === 'filter' && selection.filter === 'inbox'
-  const isAllNotesView = selection.kind === 'filter' && selection.filter === 'all'
-  const isChangesView = selection.kind === 'filter' && selection.filter === 'changes'
-  const showFilterPills = isSectionGroup || isFolderView
-  const showFileScopePills = isFolderView
-  return { isSectionGroup, isFolderView, isInboxView, isAllNotesView, isChangesView, showFilterPills, showFileScopePills }
-}
-
-function useBulkActions(
-  multiSelect: MultiSelectState,
-  onBulkArchive: NoteListProps['onBulkArchive'],
-  onBulkDeletePermanently: NoteListProps['onBulkDeletePermanently'],
-  isArchivedView: boolean,
-) {
-  const handleBulkArchive = useCallback(() => {
-    const paths = [...multiSelect.selectedPaths]
-    multiSelect.clear()
-    onBulkArchive?.(paths)
-  }, [multiSelect, onBulkArchive])
-
-  const handleBulkDeletePermanently = useCallback(() => {
-    const paths = [...multiSelect.selectedPaths]
-    multiSelect.clear()
-    onBulkDeletePermanently?.(paths)
-  }, [multiSelect, onBulkDeletePermanently])
-
-  const handleBulkUnarchive = useCallback(() => {
-    const paths = [...multiSelect.selectedPaths]
-    multiSelect.clear()
-    onBulkArchive?.(paths)
-  }, [multiSelect, onBulkArchive])
-
-  const bulkArchiveOrUnarchive = isArchivedView ? handleBulkUnarchive : handleBulkArchive
-
   return {
-    handleBulkArchive,
-    handleBulkDeletePermanently,
-    handleBulkUnarchive,
-    bulkArchiveOrUnarchive,
+    isInboxView: selection.kind === 'filter' && selection.filter === 'inbox',
   }
 }
 
@@ -98,325 +52,6 @@ function useFileScopeCounts(entries: VaultEntry[], selection: SidebarSelection, 
     if (selection.kind !== 'folder') return { markdown: 0, other: 0, all: 0 }
     return countFolderFileScopes(entries, selection.path, noteListFilter)
   }, [entries, noteListFilter, selection])
-}
-
-interface UseNoteListContentParams {
-  entries: VaultEntry[]
-  selection: SidebarSelection
-  noteListFilter: NoteListFilter
-  fileScope: NoteFileScope
-  inboxPeriod: InboxPeriod
-  modifiedFiles?: ModifiedFile[]
-  modifiedSuffixes: string[]
-  modifiedPathSet: Set<string>
-  isInboxView: boolean
-  allNotesNoteListProperties?: string[] | null
-  onUpdateAllNotesNoteListProperties?: (value: string[] | null) => void
-  inboxNoteListProperties?: string[] | null
-  onUpdateInboxNoteListProperties?: (value: string[] | null) => void
-  onUpdateViewDefinition?: (filename: string, patch: Partial<ViewDefinition>) => void
-  onUpdateTypeSort?: (path: string, key: string, value: string | number | boolean | string[] | null) => void
-  updateEntry?: (path: string, patch: Partial<VaultEntry>) => void
-  views?: ViewFile[]
-  visibleNotesRef?: React.MutableRefObject<VaultEntry[]>
-}
-
-function useNoteListContent({
-  entries,
-  selection,
-  noteListFilter,
-  fileScope,
-  inboxPeriod,
-  modifiedFiles,
-  modifiedSuffixes,
-  modifiedPathSet,
-  isInboxView,
-  allNotesNoteListProperties,
-  onUpdateAllNotesNoteListProperties,
-  inboxNoteListProperties,
-  onUpdateInboxNoteListProperties,
-  onUpdateViewDefinition,
-  onUpdateTypeSort,
-  updateEntry,
-  views,
-  visibleNotesRef,
-}: UseNoteListContentParams) {
-  const subFilter = (selection.kind === 'sectionGroup' || selection.kind === 'folder')
-    ? noteListFilter
-    : undefined
-  const effectiveInboxPeriod = isInboxView ? inboxPeriod : undefined
-  const { listSort, listDirection, customProperties, handleSortChange, sortPrefs, typeDocument } = useNoteListSort({
-    entries,
-    selection,
-    modifiedPathSet,
-    modifiedSuffixes,
-    subFilter,
-    fileScope,
-    inboxPeriod: effectiveInboxPeriod,
-    views,
-    onUpdateTypeSort,
-    onUpdateViewDefinition,
-    updateEntry,
-  })
-  const {
-    closeSearch,
-    isSearching,
-    query,
-    search,
-    searchInputRef,
-    searchVisible,
-    setSearch,
-    toggleSearch,
-  } = useNoteListSearchState()
-  const typeEntryMap = useTypeEntryMap(entries)
-  const { displayPropsOverride, propertyPicker } = useListPropertyPicker({
-    entries,
-    selection,
-    inboxPeriod,
-    typeDocument,
-    typeEntryMap,
-    allNotesNoteListProperties,
-    onUpdateAllNotesNoteListProperties,
-    inboxNoteListProperties,
-    onUpdateInboxNoteListProperties,
-    onUpdateViewDefinition,
-    onUpdateTypeSort,
-    views,
-  })
-  const {
-    entityEntry,
-    isEntityView,
-    isArchivedView,
-    searched: sortedEntries,
-    searchedGroups: sortedGroups,
-  } = useNoteListData({
-    entries,
-    selection,
-    query: '',
-    listSort,
-    listDirection,
-    modifiedPathSet,
-    modifiedSuffixes,
-    modifiedFiles,
-    subFilter,
-    fileScope,
-    inboxPeriod: effectiveInboxPeriod,
-    views,
-  })
-  const searched = useMemo(() => filterEntriesByNoteListQuery(sortedEntries, query, {
-    allEntries: entries,
-    typeEntryMap,
-    displayPropsOverride,
-  }), [displayPropsOverride, entries, query, sortedEntries, typeEntryMap])
-  const searchedGroups = useMemo(() => filterGroupsByNoteListQuery(sortedGroups, query, {
-    allEntries: entries,
-    typeEntryMap,
-    displayPropsOverride,
-  }), [displayPropsOverride, entries, query, sortedGroups, typeEntryMap])
-  useVisibleNotesSync({ visibleNotesRef, isEntityView, entityEntry, searched, searchedGroups })
-
-  return {
-    customProperties,
-    displayPropsOverride,
-    entityEntry,
-    handleSortChange,
-    isArchivedView,
-    isSearching,
-    isEntityView,
-    listDirection,
-    listSort,
-    propertyPicker,
-    query,
-    search,
-    searchInputRef,
-    searchVisible,
-    searched,
-    searchedGroups,
-    closeSearch,
-    setSearch,
-    sortPrefs,
-    toggleSearch,
-    typeDocument,
-    typeEntryMap,
-  }
-}
-
-interface UseNoteListInteractionStateParams {
-  searched: VaultEntry[]
-  searchedGroups: Array<{ entries: VaultEntry[] }>
-  selectedNotePath: string | null
-  selection: SidebarSelection
-  noteListFilter: NoteListFilter
-  isArchivedView: boolean
-  isChangesView: boolean
-  entityEntry: VaultEntry | null
-  searchVisible: boolean
-  toggleSearch: () => void
-  modifiedFiles?: ModifiedFile[]
-  onReplaceActiveTab: (entry: VaultEntry) => void
-  onEnterNeighborhood?: (entry: VaultEntry) => void
-  onOpenDeletedNote?: (entry: DeletedNoteEntry) => void
-  onOpenInNewWindow?: (entry: VaultEntry) => void
-  onAutoTriggerDiff?: () => void
-  onDiscardFile?: (relativePath: string) => Promise<void>
-  onUpdateFrontmatter?: (path: string, key: string, value: string | number | boolean | string[] | null) => Promise<void> | void
-  onCreateNote: (type?: string) => void
-  onBulkArchive?: (paths: string[]) => void
-  onBulkDeletePermanently?: (paths: string[]) => void
-}
-
-function useNoteListInteractionState({
-  searched,
-  searchedGroups,
-  selectedNotePath,
-  selection,
-  noteListFilter,
-  isArchivedView,
-  isChangesView,
-  entityEntry,
-  searchVisible,
-  toggleSearch,
-  modifiedFiles,
-  onReplaceActiveTab,
-  onEnterNeighborhood,
-  onOpenDeletedNote,
-  onOpenInNewWindow,
-  onAutoTriggerDiff,
-  onDiscardFile,
-  onUpdateFrontmatter,
-  onCreateNote,
-  onBulkArchive,
-  onBulkDeletePermanently,
-}: UseNoteListInteractionStateParams) {
-  const changesContextMenu = useChangesContextMenu({ isChangesView, onDiscardFile, modifiedFiles })
-  const noteContextMenu = useNoteListContextMenu({
-    enabled: !isChangesView,
-    onUpdateFrontmatter,
-    onOpenInNewWindow,
-  })
-  const {
-    collapsedGroups,
-    handleClickNote,
-    handleCreateNote,
-    handleListKeyDown,
-    multiSelect,
-    noteListKeyboard,
-    toggleGroup,
-  } = useNoteListInteractions({
-    searched,
-    searchedGroups,
-    selectedNotePath,
-    selection,
-    noteListFilter,
-    isChangesView,
-    entityEntry,
-    searchVisible,
-    toggleSearch,
-    onReplaceActiveTab,
-    onEnterNeighborhood,
-    onOpenDeletedNote,
-    onOpenInNewWindow,
-    onAutoTriggerDiff,
-    onDiscardFile,
-    openContextMenuForEntry: changesContextMenu.openContextMenuForEntry,
-    onCreateNote,
-  })
-  const getChangeStatus = useChangeStatusResolver(isChangesView, modifiedFiles)
-  const {
-    handleBulkArchive,
-    handleBulkDeletePermanently,
-    handleBulkUnarchive,
-  } = useBulkActions(multiSelect, onBulkArchive, onBulkDeletePermanently, isArchivedView)
-
-  return {
-    changesContextMenu,
-    noteContextMenu,
-    collapsedGroups,
-    getChangeStatus,
-    handleBulkArchive,
-    handleBulkDeletePermanently,
-    handleBulkUnarchive,
-    handleClickNote,
-    handleCreateNote,
-    handleListKeyDown,
-    multiSelect,
-    noteListKeyboard,
-    toggleGroup,
-  }
-}
-
-interface UseRenderItemParams {
-  entries: VaultEntry[]
-  selectedNotePath: string | null
-  typeEntryMap: Record<string, VaultEntry>
-  displayPropsOverride?: string[] | null
-  resolvedGetNoteStatus: (path: string) => NoteStatus
-  getChangeStatus: (path: string) => ModifiedFile['status'] | undefined
-  handleClickNote: (entry: VaultEntry, event: React.MouseEvent) => void
-  noteContextMenu?: ((entry: VaultEntry, event: React.MouseEvent) => void) | undefined
-  multiSelect: MultiSelectState
-  noteListKeyboard: { highlightedPath: string | null }
-}
-
-function useRenderItem({
-  entries,
-  selectedNotePath,
-  typeEntryMap,
-  displayPropsOverride,
-  resolvedGetNoteStatus,
-  getChangeStatus,
-  handleClickNote,
-  noteContextMenu,
-  multiSelect,
-  noteListKeyboard,
-}: UseRenderItemParams) {
-  const contextMenuHandler = noteContextMenu
-
-  return useCallback((entry: VaultEntry, options?: { forceSelected?: boolean }) => (
-    isDeletedNoteEntry(entry) ? (
-      <NoteItem
-        key={entry.path}
-        entry={entry}
-        isSelected={options?.forceSelected || selectedNotePath === entry.path}
-        isMultiSelected={multiSelect.selectedPaths.has(entry.path)}
-        isHighlighted={entry.path === noteListKeyboard.highlightedPath}
-        noteStatus={resolvedGetNoteStatus(entry.path)}
-        changeStatus={getChangeStatus(entry.path)}
-        typeEntryMap={typeEntryMap}
-        allEntries={entries}
-        displayPropsOverride={displayPropsOverride}
-        onClickNote={handleClickNote}
-        onContextMenu={contextMenuHandler}
-      />
-    ) : (
-      <DraggableNoteItem key={entry.path} notePath={entry.path}>
-        <NoteItem
-          entry={entry}
-          isSelected={options?.forceSelected || selectedNotePath === entry.path}
-          isMultiSelected={multiSelect.selectedPaths.has(entry.path)}
-          isHighlighted={entry.path === noteListKeyboard.highlightedPath}
-          noteStatus={resolvedGetNoteStatus(entry.path)}
-          changeStatus={getChangeStatus(entry.path)}
-          typeEntryMap={typeEntryMap}
-          allEntries={entries}
-          displayPropsOverride={displayPropsOverride}
-          onClickNote={handleClickNote}
-          onContextMenu={contextMenuHandler}
-        />
-      </DraggableNoteItem>
-    )
-  ), [
-    contextMenuHandler,
-    displayPropsOverride,
-    entries,
-    getChangeStatus,
-    handleClickNote,
-    multiSelect.selectedPaths,
-    noteListKeyboard.highlightedPath,
-    resolvedGetNoteStatus,
-    selectedNotePath,
-    typeEntryMap,
-  ])
 }
 
 export interface NoteListProps {
@@ -450,7 +85,7 @@ export interface NoteListProps {
   onUpdateInboxNoteListProperties?: (value: string[] | null) => void
   onUpdateViewDefinition?: (filename: string, patch: Partial<ViewDefinition>) => void
   views?: ViewFile[]
-  visibleNotesRef?: React.MutableRefObject<VaultEntry[]>
+  visibleNotesRef?: MutableRefObject<VaultEntry[]>
   locale?: AppLocale
 }
 
@@ -468,15 +103,18 @@ function buildNoteListLayoutModel(params: {
   onOpenType: (entry: VaultEntry) => void
   locale: AppLocale
   content: ReturnType<typeof useNoteListContent> & {
-    handleSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
+    handleSearchKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void
   }
   interaction: ReturnType<typeof useNoteListInteractionState> & {
-    renderItem: (entry: VaultEntry, options?: { forceSelected?: boolean }) => React.ReactNode
+    renderItem: (entry: VaultEntry, options?: { forceSelected?: boolean }) => ReactNode
     entitySelection: EntitySelection | null
   }
 }) {
   return {
     title: resolveHeaderTitle(params.selection, params.content.typeDocument, params.views, params.locale),
+    createNoteLabel: resolveCreateNoteActionLabel(params.selection, params.locale),
+    searchActionLabel: resolveSearchActionLabel(params.selection, params.locale),
+    searchPlaceholder: resolveSearchPlaceholder(params.selection, params.locale),
     locale: params.locale,
     typeDocument: params.content.typeDocument,
     isEntityView: params.content.isEntityView,
@@ -588,7 +226,6 @@ export function useNoteListModel({
   }, [selectedFolderPath])
   const filterCounts = useFilterCounts(entries, selection, fileScope)
   const fileScopeCounts = useFileScopeCounts(entries, selection, noteListFilter)
-
   const content = useNoteListContent({
     entries,
     selection,
@@ -646,19 +283,14 @@ export function useNoteListModel({
     multiSelect: interaction.multiSelect,
     noteListKeyboard: interaction.noteListKeyboard,
   })
-  const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Escape') return
 
     event.preventDefault()
     content.closeSearch()
-    requestAnimationFrame(() => {
-      interaction.noteListKeyboard.focusList()
-    })
+    requestAnimationFrame(() => interaction.noteListKeyboard.focusList())
   }
-  const {
-    isPanelActive: isNoteListSearchActive,
-    toggleSearchShortcut,
-  } = interaction.noteListKeyboard
+  const { isPanelActive: isNoteListSearchActive, toggleSearchShortcut } = interaction.noteListKeyboard
 
   useEffect(() => {
     dispatchNoteListSearchAvailability(isNoteListSearchActive)

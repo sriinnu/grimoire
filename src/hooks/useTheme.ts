@@ -41,6 +41,7 @@ function camelToKebab(str: string): string {
 export function useEditorTheme() {
   const { cssVars, styleString } = useMemo(() => {
     const vars = flattenTheme(themeConfig as Record<string, ThemeValue>)
+    delete vars['--editor-line-height']
     const str = Object.entries(vars)
       .map(([k, v]) => `${k}: ${v};`)
       .join('\n')

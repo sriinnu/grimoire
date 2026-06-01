@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { SidebarSelection, VaultEntry } from '../types'
+import { shouldScanProjectFile } from './issueParser'
 
 const MAX_PROJECT_FILES = 30
 const MAX_PROJECT_FILE_SIZE = 500_000
@@ -18,6 +19,7 @@ export interface ProjectFileContentsState {
 
 function isReadableProjectEntry(entry: VaultEntry): boolean {
   if (entry.archived || entry.fileKind === 'binary') return false
+  if (!shouldScanProjectFile(entry.path.replace(/\\/g, '/'))) return false
   return entry.fileSize <= MAX_PROJECT_FILE_SIZE
 }
 
@@ -40,7 +42,10 @@ function projectEntriesForSelection(
   }
 }
 
-function readProjectFileContent(path: string): Promise<string> {
+/**
+ * Reads a project file through the same Tauri/mock bridge used by the scanner.
+ */
+export function readProjectFileContent(path: string): Promise<string> {
   const args = { path }
   return isTauri()
     ? invoke<string>('get_note_content', args)

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { ArrowUp, ArrowDown } from '@phosphor-icons/react'
-import { type SortOption, type SortDirection, getDefaultDirection, SORT_OPTIONS, getSortOptionLabel } from '../utils/noteListHelpers'
+import { type SortOption, type SortDirection, getDefaultDirection, SORT_OPTIONS, getSortOptionLabel } from '../utils/noteListSorting'
+import { Button } from './ui/button'
 
 interface SortItem {
   value: SortOption
@@ -148,6 +149,7 @@ function SortDropdownTrigger({
   current,
   groupLabel,
   direction,
+  triggerClassName,
   onToggle,
 }: {
   triggerRef: React.RefObject<HTMLButtonElement | null>
@@ -155,15 +157,22 @@ function SortDropdownTrigger({
   current: SortOption
   groupLabel: string
   direction: SortDirection
+  triggerClassName?: string
   onToggle: () => void
 }) {
   const DirectionIcon = direction === 'asc' ? ArrowUp : ArrowDown
 
   return (
-    <button
+    <Button
       ref={triggerRef}
       type="button"
-      className={cn('flex items-center gap-0.5 rounded px-1 py-0.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground', open && 'bg-accent text-foreground')}
+      variant="ghost"
+      size="xs"
+      className={cn(
+        'h-auto min-w-0 gap-0.5 rounded px-1 py-0.5 text-muted-foreground hover:text-foreground',
+        triggerClassName,
+        open && 'bg-accent text-foreground',
+      )}
       onClick={(event) => {
         event.stopPropagation()
         onToggle()
@@ -175,7 +184,7 @@ function SortDropdownTrigger({
     >
       <DirectionIcon size={12} data-testid={`sort-direction-icon-${groupLabel}`} />
       <span className="text-[10px] font-medium">{getSortOptionLabel(current)}</span>
-    </button>
+    </Button>
   )
 }
 
@@ -232,11 +241,12 @@ function SortDropdownMenu({
   )
 }
 
-export function SortDropdown({ groupLabel, current, direction, customProperties, onChange }: {
+export function SortDropdown({ groupLabel, current, direction, customProperties, triggerClassName, onChange }: {
   groupLabel: string
   current: SortOption
   direction: SortDirection
   customProperties?: string[]
+  triggerClassName?: string
   onChange: (groupLabel: string, option: SortOption, direction: SortDirection) => void
 }) {
   const sortItems = useMemo(() => buildSortItems(customProperties), [customProperties])
@@ -263,6 +273,7 @@ export function SortDropdown({ groupLabel, current, direction, customProperties,
         current={current}
         groupLabel={groupLabel}
         direction={direction}
+        triggerClassName={triggerClassName}
         onToggle={() => setOpen((value) => !value)}
       />
       <SortDropdownMenu
@@ -304,12 +315,14 @@ function SortRow({ index, groupLabel, value, label, current, direction, buttonRe
         className={cn('flex items-center justify-between gap-1 rounded px-1 text-[12px] text-popover-foreground hover:bg-accent', isActive && 'bg-accent font-medium')}
         style={{ minHeight: 28 }}
       >
-        <button
+        <Button
           ref={buttonRef}
           type="button"
+          variant="ghost"
+          size="xs"
           role="menuitemradio"
           aria-checked={isActive}
-          className="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 py-1 text-left text-inherit hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="h-auto min-w-0 flex-1 justify-start gap-1.5 rounded px-1 py-1 text-left text-inherit hover:bg-background/80"
           onClick={(event) => {
             event.stopPropagation()
             onSelect(value, defaultDirection)
@@ -319,7 +332,7 @@ function SortRow({ index, groupLabel, value, label, current, direction, buttonRe
           {...itemData}
         >
           <span className="truncate">{label}</span>
-        </button>
+        </Button>
         <span className="flex items-center gap-0.5">
           <SortDirectionButton
             value={value}
@@ -363,8 +376,10 @@ function SortDirectionButton({
   itemData: Record<string, string>
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon-xs"
       className={getDirectionButtonClass(isActive, activeDirection, direction)}
       onClick={(event) => {
         event.stopPropagation()
@@ -375,6 +390,6 @@ function SortDirectionButton({
       {...itemData}
     >
       {icon}
-    </button>
+    </Button>
   )
 }

@@ -68,7 +68,7 @@ export function CommitDialog({
 
   useEffect(() => {
     if (open) {
-      setMessage(suggestedMessage ?? '') // eslint-disable-line react-hooks/set-state-in-effect -- reset on dialog open
+      setMessage(suggestedMessage ?? '')
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [open]) // eslint-disable-line react-hooks/exhaustive-deps -- only reset when dialog opens

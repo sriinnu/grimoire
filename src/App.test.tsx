@@ -7,6 +7,10 @@ import { formatShortcutDisplay } from './hooks/appCommandCatalog'
 import { resetAppCommandDispatchStateForTests } from './hooks/appCommandDispatcher'
 import { invoke } from '@tauri-apps/api/core'
 
+const { tauriInvokeMock } = vi.hoisted(() => ({
+  tauriInvokeMock: vi.fn(),
+}))
+
 // Provide a localStorage mock that supports all methods (jsdom's may be incomplete)
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
@@ -34,7 +38,21 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock @tauri-apps/api/core before importing App
 vi.mock('@tauri-apps/api/core', () => ({
-  invoke: vi.fn(),
+  invoke: tauriInvokeMock,
+}))
+
+vi.mock('./lib/tauriRuntime', () => ({
+  invoke: tauriInvokeMock,
+  createTauriChannel: vi.fn(async () => ({ onmessage: null })),
+  getCurrentTauriWindow: vi.fn(async () => ({
+    startDragging: vi.fn(async () => {}),
+    startResizeDragging: vi.fn(async () => {}),
+    minimize: vi.fn(async () => {}),
+    toggleMaximize: vi.fn(async () => {}),
+    close: vi.fn(async () => {}),
+    isMaximized: vi.fn(async () => false),
+    onResized: vi.fn(async () => () => {}),
+  })),
 }))
 
 vi.mock('@tauri-apps/api/window', async () => {
@@ -259,8 +277,9 @@ function getHeaderForNoteList(noteListContainer: HTMLElement) {
 }
 
 async function enterNeighborhood(noteListContainer: HTMLElement, title: string) {
+  const note = await within(noteListContainer).findByText(title, {}, { timeout: 10000 })
   await act(async () => {
-    fireEvent.click(within(noteListContainer).getByText(title), { metaKey: true })
+    fireEvent.click(note, { metaKey: true })
     await Promise.resolve()
   })
 }
@@ -294,7 +313,18 @@ async function pressEscape() {
   await act(async () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     await Promise.resolve()
+    await new Promise(requestAnimationFrame)
   })
+}
+
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, reject, resolve }
 }
 
 async function selectSidebarNav(label: string) {
@@ -519,7 +549,8 @@ describe('App', () => {
     expect(invoke).not.toHaveBeenCalledWith('git_remote_status', { vaultPath: '/vault' })
     expect(screen.queryByTestId('status-commit-push')).not.toBeInTheDocument()
     expect(screen.queryByTestId('status-sync')).not.toBeInTheDocument()
-    expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
+    expect(screen.getByTestId('status-local-only')).toHaveTextContent('Local only')
+    expect(screen.queryByTestId('status-no-remote')).not.toBeInTheDocument()
   })
 
   it('keeps an explicitly local-only vault local even when .git exists', async () => {
@@ -557,6 +588,23 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
       expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
+    })
+  })
+
+  it('routes menu-bar dream capture to the dashboard capture surface', async () => {
+    render(<App />)
+
+    await waitFor(() => {
+      expect(typeof window.__grimoireTest?.dispatchBrowserMenuCommand).toBe('function')
+    })
+
+    act(() => {
+      window.__grimoireTest?.dispatchBrowserMenuCommand?.('file-capture-dream')
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
+      expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
     })
   })
 
@@ -624,7 +672,7 @@ describe('App', () => {
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByTestId('status-build-number'))
+    fireEvent.click(await screen.findByTestId('status-build-number'))
 
     await waitFor(() => {
       expect(screen.getByText('Grimoire 2026.4.25 is available')).toBeInTheDocument()
@@ -679,9 +727,11 @@ describe('App', () => {
 
     render(<App />)
 
-    await waitFor(() => {
-      expect(screen.getByText('No AI agents detected')).toBeInTheDocument()
-    })
+    expect(await screen.findByText(
+      'No AI agents detected',
+      {},
+      { timeout: APP_STARTUP_WAIT_TIMEOUT_MS },
+    )).toBeInTheDocument()
 
     await waitFor(() => {
       expect(typeof window.__grimoireTest?.dispatchBrowserMenuCommand).toBe('function')
@@ -714,13 +764,13 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     fireEvent.click(screen.getByTestId('telemetry-accept'))
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open existing vault')
   })
 
@@ -750,13 +800,13 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     fireEvent.click(screen.getByTestId(buttonTestId))
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open existing vault')
   })
 
@@ -1081,12 +1131,8 @@ describe('App', () => {
 
     await openNoteFromList(noteListContainer, 'Alpha', '/vault/alpha.md')
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Set note as organized' })).toBeInTheDocument()
-    }, { timeout: 10000 })
-
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Set note as organized' }))
+      fireEvent.keyDown(window, { key: 'e', metaKey: true })
       await Promise.resolve()
     })
 
@@ -1107,6 +1153,10 @@ describe('App', () => {
   })
 
   it('switches vaults from the bottom bar after onboarding is ready', async () => {
+    const switchedEntries = [
+      { ...mockEntries[0], path: '/vault-2/project/work.md', filename: 'work.md', title: 'Work Project' },
+    ]
+    const switchLoad = createDeferred<typeof switchedEntries>()
     mockCommandResults.load_vault_list = {
       vaults: [
         { label: 'Test Vault', path: '/work' },
@@ -1115,6 +1165,8 @@ describe('App', () => {
       active_vault: '/work',
       hidden_defaults: [],
     }
+    mockCommandResults.list_vault = (args?: { path?: string }) =>
+      args?.path === '/vault-2' ? switchLoad.promise : mockEntries
 
     render(<App />)
 
@@ -1124,6 +1176,17 @@ describe('App', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('grimoire-refresh-animation')).toBeInTheDocument()
+      expect(screen.getByText('Switching vault')).toBeInTheDocument()
+      expect(screen.getByText('Opening Work Vault')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      switchLoad.resolve(switchedEntries)
+      await switchLoad.promise
+    })
 
     await waitFor(() => {
       expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Work Vault')

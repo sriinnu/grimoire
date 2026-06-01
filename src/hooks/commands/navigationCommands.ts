@@ -5,6 +5,9 @@ import type { SidebarSelection } from '../../types'
 interface NavigationCommandsConfig {
   isGitVault?: boolean
   onQuickOpen: () => void
+  onCaptureThought?: () => void
+  onCaptureJournal?: () => void
+  onCaptureDream?: () => void
   onSelect: (sel: SidebarSelection) => void
   selection?: SidebarSelection
   onRenameFolder?: () => void
@@ -44,6 +47,9 @@ function buildFolderCommands(
 function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
   const {
     onQuickOpen,
+    onCaptureThought,
+    onCaptureJournal,
+    onCaptureDream,
     onSelect,
     onGoBack,
     onGoForward,
@@ -55,6 +61,9 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
   return [
     { id: 'search-notes', label: 'Search Notes', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileQuickOpen), keywords: ['find', 'open', 'quick'], enabled: true, execute: onQuickOpen },
     { id: 'go-dashboard', label: 'Go to Dashboard', group: 'Navigation', keywords: ['home', 'today', 'assistant', 'capture'], enabled: true, execute: () => onSelect({ kind: 'dashboard' }) },
+    { id: 'capture-thought', label: 'Capture Thought', group: 'Capture', keywords: ['note', 'thought', 'quick', 'menu bar'], enabled: !!onCaptureThought, execute: () => onCaptureThought?.() },
+    { id: 'capture-journal', label: 'Journal Entry', group: 'Capture', keywords: ['journal', 'reflect', 'private', 'menu bar'], enabled: !!onCaptureJournal, execute: () => onCaptureJournal?.() },
+    { id: 'capture-dream', label: 'Dream Entry', group: 'Capture', keywords: ['dream', 'private', 'night', 'menu bar'], enabled: !!onCaptureDream, execute: () => onCaptureDream?.() },
     { id: 'go-all', label: 'Go to All Notes', group: 'Navigation', keywords: ['filter'], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'all' }) },
     { id: 'go-archived', label: 'Go to Archived', group: 'Navigation', keywords: [], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'archived' }) },
     { id: 'go-changes', label: 'Go to Changes', group: 'Navigation', keywords: ['git', 'modified', 'pending'], enabled: isGitVault, execute: () => onSelect({ kind: 'filter', filter: 'changes' }) },
@@ -79,6 +88,7 @@ function insertInboxCommand(commands: CommandAction[], showInbox: boolean, onSel
   return commands
 }
 
+/** Build navigation and lightweight capture commands for the command palette. */
 export function buildNavigationCommands(config: NavigationCommandsConfig): CommandAction[] {
   const {
     onSelect,

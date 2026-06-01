@@ -42,7 +42,7 @@ export function GraphControlPanel({
   typeStats,
 }: GraphControlPanelProps) {
   return (
-    <div className="rounded-md border border-border bg-background/80 p-3">
+    <div className="rounded-md border border-border bg-background/80 p-3" data-testid="graph-control-panel">
       <div className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">Graph</div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <Metric label="Notes" value={shownNodes} />

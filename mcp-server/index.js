@@ -74,7 +74,6 @@ const TOOLS = [
       properties: {
         query: { type: 'string', description: 'Search query string' },
         limit: { type: 'number', description: 'Maximum number of results (default: 10)' },
-        allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only notes' },
       },
       required: ['query'],
     },
@@ -85,7 +84,6 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only notes' },
       },
     },
   },
@@ -96,7 +94,6 @@ const TOOLS = [
       type: 'object',
       properties: {
         path: { type: 'string', description: 'Relative path to the note (e.g. "project/my-project.md")' },
-        allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only notes' },
       },
       required: ['path'],
     },
@@ -159,7 +156,6 @@ const TOOLS = [
         title: { type: 'string', description: 'Task title' },
         status: { type: 'string', enum: ['open', 'done'], description: 'Task status' },
         priority: { type: 'string', description: 'Optional priority token, such as p1 or urgent' },
-        allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only project boards' },
       },
       required: ['title'],
     },
@@ -175,7 +171,6 @@ const TOOLS = [
         title: { type: 'string', description: 'Replacement task title' },
         status: { type: 'string', enum: ['open', 'done'], description: 'Replacement task status' },
         priority: { type: 'string', description: 'Replacement priority token, or empty string to clear' },
-        allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only project boards' },
       },
       required: ['id'],
     },
@@ -188,7 +183,6 @@ const TOOLS = [
       properties: {
         folder: { type: 'string', description: 'Project folder relative to the vault root' },
         id: { type: 'string', description: 'Task id from list_project_tasks or create_project_task' },
-        allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only project boards' },
       },
       required: ['id'],
     },
@@ -217,20 +211,20 @@ const TOOL_HANDLERS = {
 }
 
 async function handleSearchNotes(args) {
-  const results = await searchNotes(VAULT_PATH, args.query, args.limit, { allowLocalOnly: args.allowLocalOnly })
+  const results = await searchNotes(VAULT_PATH, args.query, args.limit)
   const text = results.length === 0
     ? 'No matching notes found.'
     : results.map(r => `**${r.title}** (${r.path})\n${r.snippet}`).join('\n\n')
   return { content: [{ type: 'text', text }] }
 }
 
-async function handleVaultContext(args = {}) {
-  const ctx = await vaultContext(VAULT_PATH, { allowLocalOnly: args.allowLocalOnly })
+async function handleVaultContext() {
+  const ctx = await vaultContext(VAULT_PATH)
   return { content: [{ type: 'text', text: JSON.stringify(ctx, null, 2) }] }
 }
 
 async function handleGetNote(args) {
-  const note = await getNote(VAULT_PATH, args.path, { allowLocalOnly: args.allowLocalOnly })
+  const note = await getNote(VAULT_PATH, args.path)
   return { content: [{ type: 'text', text: JSON.stringify(note, null, 2) }] }
 }
 
@@ -253,15 +247,15 @@ function handleRefreshVault(args) {
 }
 
 async function handleListProjectDocs(args = {}) {
-  return jsonToolResponse(await listProjectDocs(VAULT_PATH, args.folder, { allowLocalOnly: args.allowLocalOnly }))
+  return jsonToolResponse(await listProjectDocs(VAULT_PATH, args.folder))
 }
 
 async function handleReadProjectBoard(args = {}) {
-  return jsonToolResponse(await readProjectBoard(VAULT_PATH, args.folder, { allowLocalOnly: args.allowLocalOnly }))
+  return jsonToolResponse(await readProjectBoard(VAULT_PATH, args.folder))
 }
 
 async function handleListProjectTasks(args = {}) {
-  return jsonToolResponse(await listProjectTasks(VAULT_PATH, args.folder, { allowLocalOnly: args.allowLocalOnly }))
+  return jsonToolResponse(await listProjectTasks(VAULT_PATH, args.folder))
 }
 
 async function handleCreateProjectTask(args) {
@@ -283,7 +277,7 @@ async function handleDeleteProjectTask(args) {
 }
 
 async function handleProjectGraph(args = {}) {
-  return jsonToolResponse(await projectGraph(VAULT_PATH, args.folder, { allowLocalOnly: args.allowLocalOnly }))
+  return jsonToolResponse(await projectGraph(VAULT_PATH, args.folder))
 }
 
 function projectFolderSchema() {
@@ -291,7 +285,6 @@ function projectFolderSchema() {
     type: 'object',
     properties: {
       folder: { type: 'string', description: 'Project folder relative to the vault root. Empty means the vault root.' },
-      allowLocalOnly: { type: 'boolean', description: 'Explicit one-call override for protected local-only project docs' },
     },
   }
 }

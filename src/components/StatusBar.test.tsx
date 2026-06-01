@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { act, render, screen, fireEvent } from '@testing-library/react'
+import { act, render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { StatusBar } from './StatusBar'
 import { StatusBarPrimarySection } from './status-bar/StatusBarSections'
@@ -168,15 +168,25 @@ describe('StatusBar', () => {
     expect(screen.getByText('Work Vault')).toBeInTheDocument()
   })
 
-  it('calls onSwitchVault when selecting a different vault', () => {
+  it('calls onSwitchVault when selecting a different vault', async () => {
     const onSwitchVault = vi.fn()
     render(<StatusBar noteCount={100} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={onSwitchVault} />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
-    // Click "Work Vault"
-    fireEvent.click(screen.getByText('Work Vault'))
+    fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
 
-    expect(onSwitchVault).toHaveBeenCalledWith('/Users/srinivas/Work')
+    await waitFor(() => expect(onSwitchVault).toHaveBeenCalledWith('/Users/srinivas/Work'))
+  })
+
+  it('closes the vault menu without switching when selecting the active vault', () => {
+    const onSwitchVault = vi.fn()
+    render(<StatusBar noteCount={100} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={onSwitchVault} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
+    fireEvent.click(screen.getByTestId('vault-menu-item-Main Vault'))
+
+    expect(onSwitchVault).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('vault-menu-item-Work Vault')).not.toBeInTheDocument()
   })
 
   it('closes vault menu when clicking outside', () => {
@@ -211,14 +221,14 @@ describe('StatusBar', () => {
     expect(screen.getByText('Open local folder')).toBeInTheDocument()
   })
 
-  it('calls onOpenLocalFolder when clicking "Open local folder"', () => {
+  it('calls onOpenLocalFolder when clicking "Open local folder"', async () => {
     const onOpenLocalFolder = vi.fn()
     render(
       <StatusBar noteCount={100} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={vi.fn()} onOpenLocalFolder={onOpenLocalFolder} />
     )
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByText('Open local folder'))
-    expect(onOpenLocalFolder).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onOpenLocalFolder).toHaveBeenCalledOnce())
   })
 
   it('shows "Create empty vault" option in vault menu', () => {
@@ -229,14 +239,14 @@ describe('StatusBar', () => {
     expect(screen.getByText('Create empty vault')).toBeInTheDocument()
   })
 
-  it('calls onCreateEmptyVault when clicking "Create empty vault"', () => {
+  it('calls onCreateEmptyVault when clicking "Create empty vault"', async () => {
     const onCreateEmptyVault = vi.fn()
     render(
       <StatusBar noteCount={100} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={vi.fn()} onCreateEmptyVault={onCreateEmptyVault} />
     )
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByText('Create empty vault'))
-    expect(onCreateEmptyVault).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onCreateEmptyVault).toHaveBeenCalledOnce())
   })
 
   it('shows add-vault options in vault menu', () => {
@@ -272,7 +282,7 @@ describe('StatusBar', () => {
     expect(screen.getByText('Clone Getting Started Vault')).toBeInTheDocument()
   })
 
-  it('calls onCloneGettingStarted when clicking the vault menu action', () => {
+  it('calls onCloneGettingStarted when clicking the vault menu action', async () => {
     const onCloneGettingStarted = vi.fn()
     render(
       <StatusBar
@@ -286,7 +296,7 @@ describe('StatusBar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByText('Clone Getting Started Vault'))
-    expect(onCloneGettingStarted).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onCloneGettingStarted).toHaveBeenCalledOnce())
   })
 
   it('exposes an in-row, hover-revealed remove action for non-active vaults', () => {
@@ -315,7 +325,7 @@ describe('StatusBar', () => {
     expect(screen.getByRole('button', { name: 'Remove Work Vault from list' })).toBeInTheDocument()
   })
 
-  it('calls onRemoveVault when clicking the remove action in the vault menu', () => {
+  it('calls onRemoveVault when clicking the remove action in the vault menu', async () => {
     const onRemoveVault = vi.fn()
     render(
       <StatusBar
@@ -330,7 +340,7 @@ describe('StatusBar', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByRole('button', { name: 'Remove Work Vault from list' }))
 
-    expect(onRemoveVault).toHaveBeenCalledWith('/Users/srinivas/Work')
+    await waitFor(() => expect(onRemoveVault).toHaveBeenCalledWith('/Users/srinivas/Work'))
   })
 
   it('shows Changes badge with count when modifiedCount is > 0', () => {
@@ -376,6 +386,19 @@ describe('StatusBar', () => {
     expect(screen.queryByText('MCP')).not.toBeInTheDocument()
     expect(screen.queryByText('b281')).not.toBeInTheDocument()
     expect(screen.queryByText('Claude Code missing')).not.toBeInTheDocument()
+  })
+
+  it('stacks the footer rails on mobile and iPad-width windows instead of overflowing one line', () => {
+    setWindowWidth(680)
+    renderDenseStatusBar()
+
+    expect(screen.getByTestId('status-bar')).toHaveStyle({
+      flexWrap: 'wrap',
+      height: 'auto',
+    })
+    expect(screen.getByTestId('status-workspace-group')).toHaveAttribute('data-status-compact', 'true')
+    expect(screen.getByTestId('status-workflow-group')).toBeInTheDocument()
+    expect(screen.getByTestId('status-utility-group')).toBeInTheDocument()
   })
 
   it('hides the active AI agent label in compact status layout', () => {
@@ -496,6 +519,20 @@ describe('StatusBar', () => {
     expect(screen.getByTestId('status-no-remote')).toHaveTextContent('No remote')
   })
 
+  it('shows a local-only chip instead of no-remote for non-git vaults', () => {
+    render(
+      <StatusBar
+        noteCount={100}
+        vaultPath="/Users/srinivas/Grimoire"
+        vaults={vaults}
+        onSwitchVault={vi.fn()}
+        isGitVault={false}
+      />
+    )
+    expect(screen.getByTestId('status-local-only')).toHaveTextContent('Local only')
+    expect(screen.queryByTestId('status-no-remote')).not.toBeInTheDocument()
+  })
+
   it('opens the add-remote flow when clicking the no-remote chip', () => {
     const onAddRemote = vi.fn()
     render(
@@ -577,7 +614,9 @@ describe('StatusBar', () => {
     const onCommitPush = vi.fn()
     render(<StatusBar noteCount={100} modifiedCount={5} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={vi.fn()} onCommitPush={onCommitPush} />)
     const commitButton = screen.getByTestId('status-commit-push')
-    commitButton.focus()
+    act(() => {
+      commitButton.focus()
+    })
     fireEvent.keyDown(commitButton, { key: 'Enter' })
     expect(onCommitPush).toHaveBeenCalledOnce()
   })
@@ -676,14 +715,14 @@ describe('StatusBar', () => {
     )
 
     const trigger = screen.getByTestId('status-ai-agents')
-    trigger.focus()
     act(() => {
+      trigger.focus()
       fireEvent.keyDown(trigger, { key: 'ArrowDown' })
     })
 
     const codexOption = screen.getByRole('menuitemradio', { name: /Codex/ })
-    codexOption.focus()
     act(() => {
+      codexOption.focus()
       fireEvent.keyDown(codexOption, { key: 'Enter' })
     })
 

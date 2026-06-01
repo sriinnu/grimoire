@@ -2,8 +2,8 @@
 type: Event
 belongs_to: "[[25q1-grimoire-v1]]"
 related_to:
-  - "[[person-srinivas-pendela]]"
-  - "[[person-karthik-reddy]]"
+  - "[[person-mira-sen]]"
+  - "[[person-arjun-mehta]]"
 date: 2025-01-13
 ---
 

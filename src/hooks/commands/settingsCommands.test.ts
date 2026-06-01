@@ -31,6 +31,31 @@ describe('buildSettingsCommands', () => {
     })
   })
 
+  it('indexes current theme presets without retired theme keywords', () => {
+    const commands = buildSettingsCommands({ onOpenSettings: vi.fn() })
+    const keywords = commands.find((item) => item.id === 'open-settings')?.keywords ?? []
+
+    expect(keywords).toEqual(expect.arrayContaining([
+      'constellation',
+      'daylight',
+      'atelier',
+      'prabhat',
+      'studio',
+      'living',
+      'archive',
+      'nocturne',
+      'retro',
+      'terminal',
+    ]))
+    expect(keywords).not.toEqual(expect.arrayContaining([
+      '2050',
+      'aether',
+      'ion',
+      'moss',
+      'lumen',
+    ]))
+  })
+
   it('adds a discoverable language settings command', () => {
     const onOpenSettings = vi.fn()
 
@@ -67,6 +92,34 @@ describe('buildSettingsCommands', () => {
     expect(onSetUiLanguage).toHaveBeenCalledWith('zh-Hans')
   })
 
+  it('adds German Hindi and Sanskrit language switch commands', () => {
+    const onSetUiLanguage = vi.fn()
+
+    const commands = buildSettingsCommands({
+      onOpenSettings: vi.fn(),
+      selectedUiLanguage: 'en',
+      onSetUiLanguage,
+    })
+
+    expect(commands.find((item) => item.id === 'switch-language-de')).toMatchObject({
+      label: 'Switch Language to German',
+      keywords: expect.arrayContaining(['german', 'deutsch']),
+      enabled: true,
+    })
+    expect(commands.find((item) => item.id === 'switch-language-hi')).toMatchObject({
+      label: 'Switch Language to Hindi',
+      keywords: expect.arrayContaining(['hindi', 'हिन्दी']),
+    })
+    const sanskrit = commands.find((item) => item.id === 'switch-language-sa')
+    expect(sanskrit).toMatchObject({
+      label: 'Switch Language to Sanskrit',
+      keywords: expect.arrayContaining(['sanskrit', 'संस्कृत']),
+    })
+
+    sanskrit?.execute()
+    expect(onSetUiLanguage).toHaveBeenCalledWith('sa')
+  })
+
   it('localizes language commands', () => {
     const commands = buildSettingsCommands({
       onOpenSettings: vi.fn(),
@@ -100,5 +153,25 @@ describe('buildSettingsCommands', () => {
 
     command?.execute()
     expect(onCreateEmptyVault).toHaveBeenCalledTimes(1)
+  })
+
+  it('adds a Finder reveal command for the active vault', () => {
+    const onRevealVaultInFinder = vi.fn()
+
+    const commands = buildSettingsCommands({
+      onOpenSettings: vi.fn(),
+      onRevealVaultInFinder,
+    })
+    const command = commands.find((item) => item.id === 'reveal-vault-in-finder')
+
+    expect(command).toMatchObject({
+      label: 'Reveal Vault in Finder',
+      enabled: true,
+      group: 'Settings',
+      keywords: expect.arrayContaining(['vault', 'finder', 'local']),
+    })
+
+    command?.execute()
+    expect(onRevealVaultInFinder).toHaveBeenCalledTimes(1)
   })
 })

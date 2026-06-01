@@ -25,6 +25,77 @@ function gitCapabilityDescription({
   return t('settings.git.description.local')
 }
 
+function syncRunwaySteps({
+  autoGitEnabled,
+  hasGitMetadata,
+  isGitVault,
+  releaseChannel,
+  t,
+}: {
+  autoGitEnabled: boolean
+  hasGitMetadata: boolean
+  isGitVault: boolean
+  releaseChannel: ReleaseChannel
+  t: SettingsTranslate
+}) {
+  return [
+    {
+      detail: t('settings.sync.runway.markdownDetail'),
+      label: t('settings.sync.runway.markdown'),
+      state: t('settings.sync.runway.local'),
+      tone: 'local',
+    },
+    {
+      detail: hasGitMetadata ? t('settings.sync.runway.gitMetadata') : t('settings.sync.runway.gitNoMetadata'),
+      label: t('settings.sync.runway.git'),
+      state: isGitVault ? t('settings.git.status.on') : t('settings.git.status.off'),
+      tone: isGitVault ? 'ready' : 'local',
+    },
+    {
+      detail: isGitVault ? t('settings.autogit.description.enabled') : t('settings.autogit.description.disabled'),
+      label: t('settings.autogit.title'),
+      state: autoGitEnabled && isGitVault ? t('settings.sync.runway.armed') : t('settings.sync.runway.gated'),
+      tone: autoGitEnabled && isGitVault ? 'ready' : 'gated',
+    },
+    {
+      detail: t('settings.sync.runway.releaseDetail'),
+      label: t('settings.releaseChannel'),
+      state: releaseChannel === 'alpha' ? t('settings.releaseAlpha') : t('settings.releaseStable'),
+      tone: releaseChannel === 'alpha' ? 'watch' : 'local',
+    },
+  ] as const
+}
+
+function SyncRunway({
+  autoGitEnabled,
+  hasGitMetadata,
+  isGitVault,
+  releaseChannel,
+  t,
+}: {
+  autoGitEnabled: boolean
+  hasGitMetadata: boolean
+  isGitVault: boolean
+  releaseChannel: ReleaseChannel
+  t: SettingsTranslate
+}) {
+  return (
+    <div className="settings-sync-runway" data-testid="settings-sync-runway">
+      {syncRunwaySteps({ autoGitEnabled, hasGitMetadata, isGitVault, releaseChannel, t }).map((step) => (
+        <div
+          key={step.label}
+          className="settings-sync-runway__step"
+          data-sync-runway-tone={step.tone}
+        >
+          <div className="settings-sync-runway__state">{step.state}</div>
+          <div className="settings-sync-runway__label">{step.label}</div>
+          <div className="settings-sync-runway__detail">{step.detail}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /** Renders local-first Git capability controls and background sync preferences. */
 export function SyncAndGitSettingsSection({
   t,
@@ -67,12 +138,20 @@ export function SyncAndGitSettingsSection({
         description={t('settings.sync.description')}
       />
 
+      <SyncRunway
+        autoGitEnabled={autoGitEnabled}
+        hasGitMetadata={hasGitMetadata}
+        isGitVault={isGitVault}
+        releaseChannel={releaseChannel}
+        t={t}
+      />
+
       <div
-        className="flex items-start justify-between gap-4 rounded-md border border-border bg-muted/35 p-4"
+        className="settings-local-card flex items-start justify-between gap-4 rounded-md border p-4"
         data-testid="settings-git-capability"
       >
         <div className="flex gap-3">
-          <div className="mt-0.5 rounded-md border border-border bg-background p-2 text-muted-foreground">
+          <div className="settings-local-card__icon mt-0.5 rounded-md border p-2">
             {isGitVault ? <GitBranch size={17} /> : <ShieldCheck size={17} />}
           </div>
           <div className="space-y-1">
@@ -135,7 +214,7 @@ export function SyncAndGitSettingsSection({
             label: `${value}`,
           }))}
           testId="settings-pull-interval"
-          autoFocus={true}
+          disabled={!isGitVault}
         />
 
         <LabeledSelect

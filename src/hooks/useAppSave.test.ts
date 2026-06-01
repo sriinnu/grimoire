@@ -4,7 +4,7 @@ import type { SetStateAction } from 'react'
 import { useAppSave } from './useAppSave'
 import type { VaultEntry } from '../types'
 import { isTauri } from '../mock-tauri'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 
 const { startTransitionMock } = vi.hoisted(() => ({
   startTransitionMock: vi.fn((callback: () => void) => callback()),
@@ -19,6 +19,9 @@ vi.mock('react', async (importOriginal) => {
 })
 
 vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('../lib/tauriRuntime', () => ({
   invoke: vi.fn().mockResolvedValue(undefined),
 }))
 vi.mock('../mock-tauri', () => ({

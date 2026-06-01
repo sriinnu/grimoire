@@ -1,0 +1,40 @@
+.editor-scroll-area {
+  --editor-composer-clearance: clamp(20px, 3vh, 36px);
+  --editor-shell-gutter: clamp(16px, 2.8vw, 40px);
+  padding-bottom: var(--editor-composer-clearance);
+}
+
+:is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor-content-wrapper {
+  flex: 0 0 auto;
+  min-height: 100%;
+  max-width: min(1320px, calc(100% - (var(--editor-shell-gutter) * 2)));
+  width: min(1320px, calc(100% - (var(--editor-shell-gutter) * 2)));
+}
+
+:is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor__blocknote-container,
+:is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor__blocknote-container .bn-container {
+  min-height: inherit;
+}
+
+:is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor__blocknote-container .bn-editor {
+  max-width: min(var(--editor-max-width, 860px), 100%);
+  width: 100%;
+}
+
+:is(.editor-agent-composer-wrap, [data-theme-preset] .editor-agent-composer-wrap) {
+  --editor-shell-gutter: clamp(16px, 2.8vw, 40px);
+  max-width: min(1320px, calc(100% - (var(--editor-shell-gutter) * 2)));
+  padding-inline: 0;
+  width: min(1320px, calc(100% - (var(--editor-shell-gutter) * 2)));
+}
+
+.editor-agent-composer {
+  min-width: 0;
+}
+
+@container editor (max-width: 620px) {
+  :is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor-content-wrapper,
+  :is(.editor-agent-composer-wrap, [data-theme-preset] .editor-agent-composer-wrap) {
+    --editor-shell-gutter: 12px;
+  }
+}

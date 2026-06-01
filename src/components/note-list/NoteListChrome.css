@@ -1,0 +1,170 @@
+.note-list-panel {
+  container-type: inline-size;
+  --note-list-chrome-radius: 8px;
+  --note-list-chrome-gap: 8px;
+  --note-list-chrome-border: color-mix(in srgb, var(--border) 82%, transparent);
+  --note-list-chrome-bg: color-mix(in srgb, var(--card) 88%, var(--background));
+  --note-list-chrome-muted: var(--muted-foreground);
+  --note-list-chrome-active: color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.note-list-panel [data-note-path] {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+}
+
+.note-list-panel [data-note-path] > * {
+  position: relative;
+  z-index: 1;
+}
+
+.note-content-stack {
+  --note-title-icon-size: 18px;
+  --note-title-icon-gap: 8px;
+  --note-title-icon-indent: calc(var(--note-title-icon-size) + var(--note-title-icon-gap));
+}
+
+.note-title-row {
+  min-width: 0;
+}
+
+.note-title-row--with-icon {
+  grid-template-columns: var(--note-title-icon-size) minmax(0, 1fr);
+  column-gap: var(--note-title-icon-gap);
+  align-items: center;
+}
+
+.note-title-icon-cell {
+  align-self: center;
+  width: var(--note-title-icon-size);
+  height: var(--note-title-icon-size);
+  color: currentColor;
+  line-height: 1;
+}
+
+.note-title-icon-cell > * {
+  flex-shrink: 0;
+}
+
+.note-title-leading-type-icon {
+  color: var(--note-type-color, currentColor);
+}
+
+.note-title-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: inherit;
+}
+
+.note-content-stack[data-title-icon="true"] > :not(.note-title-row) {
+  box-sizing: border-box;
+  margin-left: var(--note-title-icon-indent);
+  max-width: calc(100% - var(--note-title-icon-indent));
+  min-width: 0;
+}
+
+.note-list-panel [data-note-path][data-selected="true"] {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--note-type-color, var(--primary)) 12%, var(--card)),
+      color-mix(in srgb, var(--card) 92%, var(--background))
+    ),
+    var(--card);
+  border-color: color-mix(in srgb, var(--note-type-color, var(--primary)) 34%, var(--border));
+  box-shadow:
+    0 10px 26px color-mix(in srgb, var(--note-type-color, var(--primary)) 10%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--note-type-color, var(--primary)) 18%, transparent);
+}
+
+.note-list-panel [data-note-path][data-selected="true"]::before,
+.note-list-panel [data-note-path][data-selected="true"]::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.note-list-panel [data-note-path][data-selected="true"]::before {
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at 18% 0,
+      color-mix(in srgb, var(--note-type-color, var(--primary)) 20%, transparent),
+      transparent 42%
+    ),
+    linear-gradient(
+      90deg,
+      transparent 6%,
+      color-mix(in srgb, var(--note-type-color, var(--primary)) 13%, transparent) 38%,
+      color-mix(in srgb, var(--primary) 10%, transparent) 72%,
+      transparent 96%
+    );
+  opacity: 0.72;
+}
+
+.note-list-panel [data-note-path][data-selected="true"]::after {
+  top: 10px;
+  right: 18px;
+  left: 18px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--note-type-color, var(--primary)) 72%, var(--accent-teal)),
+    color-mix(in srgb, var(--primary) 62%, var(--accent-purple)),
+    transparent
+  );
+  box-shadow: 0 0 14px color-mix(in srgb, var(--note-type-color, var(--primary)) 20%, transparent);
+  opacity: 0.72;
+}
+
+.note-list-top-chrome {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--background) 58%, transparent), transparent),
+    color-mix(in srgb, var(--card) 94%, var(--background));
+}
+
+.note-list-chrome-row,
+.note-list-search-row {
+  border-color: var(--note-list-chrome-border);
+  background: color-mix(in srgb, var(--card) 94%, var(--background));
+}
+
+.note-list-chrome-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--note-list-chrome-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--background) 64%, transparent);
+  padding: 2px;
+}
+
+.note-list-chrome-action {
+  min-width: 28px;
+  height: 28px;
+  justify-content: center;
+  gap: 3px;
+  border-radius: 999px;
+  padding: 0 7px;
+  color: var(--note-list-chrome-muted);
+}
+
+.note-list-chrome-action:hover,
+.note-list-chrome-action[data-state="open"],
+.note-list-chrome-action[aria-expanded="true"] {
+  background: var(--note-list-chrome-active);
+  color: var(--foreground);
+}
+
+.note-list-chrome-action svg {
+  width: 1rem;
+  height: 1rem;
+}

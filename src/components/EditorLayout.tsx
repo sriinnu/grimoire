@@ -1,14 +1,18 @@
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type React from 'react'
-import type { AiAgentId } from '../lib/aiAgents'
+import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { FrontmatterValue } from './Inspector'
 import type { GitCommit, NoteLayout, NoteStatus, VaultEntry } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { ResizeHandle } from './ResizeHandle'
-import { EditorRightPanel } from './EditorRightPanel'
 import { EditorContent } from './EditorContent'
 import { EditorEmptyState } from './EditorEmptyState'
 import type { useCreateBlockNote } from '@blocknote/react'
 import { persistContent } from '../hooks/useSaveNote'
+
+const EditorRightPanelSurface = lazy(async () => ({
+  default: (await import('./EditorRightPanel')).EditorRightPanel,
+}))
 
 interface EditorLayoutTab {
   entry: VaultEntry
@@ -55,6 +59,7 @@ interface EditorLayoutProps {
   inspectorWidth: number
   defaultAiAgent: AiAgentId
   defaultAiAgentReady: boolean
+  aiAgentsStatus?: AiAgentsStatus
   defaultAiProvider?: string | null
   defaultAiModel?: string | null
   inspectorEntry: VaultEntry | null
@@ -82,6 +87,29 @@ async function replacePersistedContent(
 ) {
   await persistContent(path, content)
   onContentChange?.(path, content)
+}
+
+function useRightPanelActivated(visible: boolean): boolean {
+  const [activated, setActivated] = useState(visible)
+
+  useEffect(() => {
+    if (!visible || activated) return
+
+    const activationTimer = window.setTimeout(() => setActivated(true), 0)
+    return () => window.clearTimeout(activationTimer)
+  }, [activated, visible])
+
+  return activated
+}
+
+function EditorRightPanelFallback({ width }: { width: number }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="shrink-0 flex flex-col min-h-0"
+      style={{ width, minWidth: 240, height: '100%' }}
+    />
+  )
 }
 
 /** Renders the editor canvas and right-side inspector/AI shell. */
@@ -125,6 +153,7 @@ export function EditorLayout({
   inspectorWidth,
   defaultAiAgent,
   defaultAiAgentReady,
+  aiAgentsStatus,
   defaultAiProvider,
   defaultAiModel,
   inspectorEntry,
@@ -144,6 +173,9 @@ export function EditorLayout({
   onVaultChanged,
   onUnsupportedAiPaste,
 }: EditorLayoutProps) {
+  const rightPanelVisible = Boolean(showAIChat || !inspectorCollapsed)
+  const rightPanelActivated = useRightPanelActivated(rightPanelVisible)
+
   return (
     <div className="editor flex flex-col min-h-0 overflow-hidden bg-background text-foreground">
       <div className="flex flex-1 min-h-0">
@@ -187,40 +219,45 @@ export function EditorLayout({
               onKeepTheirs={onKeepTheirs}
             />
         }
-        {(showAIChat || !inspectorCollapsed) && <ResizeHandle onResize={onInspectorResize} />}
-        <EditorRightPanel
-          showAIChat={showAIChat}
-          inspectorCollapsed={inspectorCollapsed}
-          inspectorWidth={inspectorWidth}
-          defaultAiAgent={defaultAiAgent}
-          defaultAiAgentReady={defaultAiAgentReady}
-          defaultAiProvider={defaultAiProvider}
-          defaultAiModel={defaultAiModel}
-          onUnsupportedAiPaste={onUnsupportedAiPaste}
-          inspectorEntry={inspectorEntry}
-          inspectorContent={inspectorContent}
-          entries={entries}
-          gitHistory={gitHistory}
-          vaultPath={vaultPath ?? ''}
-          noteList={noteList}
-          noteListFilter={noteListFilter}
-          onToggleInspector={onToggleInspector}
-          onToggleAIChat={onToggleAIChat}
-          onNavigateWikilink={onNavigateWikilink}
-          onViewCommitDiff={handleViewCommitDiff}
-          onUpdateFrontmatter={onUpdateFrontmatter}
-          onDeleteProperty={onDeleteProperty}
-          onAddProperty={onAddProperty}
-          onCreateMissingType={onCreateMissingType}
-          onCreateAndOpenNote={onCreateAndOpenNote}
-          onInitializeProperties={onInitializeProperties}
-          onToggleRawEditor={handleToggleRawExclusive}
-          onReplaceContent={(path, content) => replacePersistedContent(path, content, onContentChange)}
-          onOpenNote={onNavigateWikilink}
-          onFileCreated={onFileCreated}
-          onFileModified={onFileModified}
-          onVaultChanged={onVaultChanged}
-        />
+        {rightPanelVisible && <ResizeHandle onResize={onInspectorResize} />}
+        {rightPanelActivated && (
+          <Suspense fallback={rightPanelVisible ? <EditorRightPanelFallback width={inspectorWidth} /> : null}>
+            <EditorRightPanelSurface
+              showAIChat={showAIChat}
+              inspectorCollapsed={inspectorCollapsed}
+              inspectorWidth={inspectorWidth}
+              defaultAiAgent={defaultAiAgent}
+              defaultAiAgentReady={defaultAiAgentReady}
+              aiAgentsStatus={aiAgentsStatus}
+              defaultAiProvider={defaultAiProvider}
+              defaultAiModel={defaultAiModel}
+              onUnsupportedAiPaste={onUnsupportedAiPaste}
+              inspectorEntry={inspectorEntry}
+              inspectorContent={inspectorContent}
+              entries={entries}
+              gitHistory={gitHistory}
+              vaultPath={vaultPath ?? ''}
+              noteList={noteList}
+              noteListFilter={noteListFilter}
+              onToggleInspector={onToggleInspector}
+              onToggleAIChat={onToggleAIChat}
+              onNavigateWikilink={onNavigateWikilink}
+              onViewCommitDiff={handleViewCommitDiff}
+              onUpdateFrontmatter={onUpdateFrontmatter}
+              onDeleteProperty={onDeleteProperty}
+              onAddProperty={onAddProperty}
+              onCreateMissingType={onCreateMissingType}
+              onCreateAndOpenNote={onCreateAndOpenNote}
+              onInitializeProperties={onInitializeProperties}
+              onToggleRawEditor={handleToggleRawExclusive}
+              onReplaceContent={(path, content) => replacePersistedContent(path, content, onContentChange)}
+              onOpenNote={onNavigateWikilink}
+              onFileCreated={onFileCreated}
+              onFileModified={onFileModified}
+              onVaultChanged={onVaultChanged}
+            />
+          </Suspense>
+        )}
       </div>
     </div>
   )

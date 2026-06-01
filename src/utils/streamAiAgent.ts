@@ -1,5 +1,5 @@
 import { isTauri } from '../mock-tauri'
-import type { AiAgentId } from '../lib/aiAgents'
+import type { AiAgentId, AiAgentRuntimeRoute } from '../lib/aiAgents'
 import { liveAiNativeAppRequiredMessage } from './liveAiRuntime'
 
 type AiAgentStreamEvent =
@@ -8,6 +8,7 @@ type AiAgentStreamEvent =
   | { kind: 'ThinkingDelta'; text: string }
   | { kind: 'ToolStart'; tool_name: string; tool_id: string; input?: string }
   | { kind: 'ToolDone'; tool_id: string; output?: string }
+  | { kind: 'RouteResolved'; provider?: string | null; model?: string | null; source?: string }
   | { kind: 'Error'; message: string }
   | { kind: 'Done' }
 
@@ -16,6 +17,7 @@ export interface AgentStreamCallbacks {
   onThinking: (text: string) => void
   onToolStart: (toolName: string, toolId: string, input?: string) => void
   onToolDone: (toolId: string, output?: string) => void
+  onRouteResolved?: (route: Pick<AiAgentRuntimeRoute, 'provider' | 'model'>) => void
   onError: (message: string) => void
   onDone: () => void
 }
@@ -43,6 +45,12 @@ function handleStreamEvent(data: AiAgentStreamEvent, callbacks: AgentStreamCallb
       return
     case 'ToolDone':
       callbacks.onToolDone(data.tool_id, data.output)
+      return
+    case 'RouteResolved':
+      callbacks.onRouteResolved?.({
+        provider: data.provider ?? null,
+        model: data.model ?? null,
+      })
       return
     case 'Error':
       callbacks.onError(data.message)

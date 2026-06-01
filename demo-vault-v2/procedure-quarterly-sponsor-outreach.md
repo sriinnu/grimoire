@@ -3,7 +3,7 @@ type: Procedure
 aliases:
   - "[[Quarterly Sponsor Outreach]]"
 belongs_to: "[[responsibility-sponsorships]]"
-owner: "[[person-karthik-reddy]]"
+owner: "[[person-arjun-mehta]]"
 cadence: Quarterly
 ---
 
@@ -12,5 +12,5 @@ cadence: Quarterly
 Review the pipeline, choose the next target companies, and send a fresh outreach batch each quarter.
 
 - Start from last quarter's warm leads.
-- Share the shortlist with [[person-karthik-reddy]] before sending outreach.
+- Share the shortlist with [[person-arjun-mehta]] before sending outreach.
 

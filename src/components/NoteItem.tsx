@@ -1,9 +1,10 @@
 import type { CSSProperties, MouseEvent as ReactMouseEvent, MouseEventHandler, ReactNode } from 'react'
 import type { VaultEntry, NoteStatus } from '../types'
 import { cn } from '@/lib/utils'
-import { getTypeColor, getTypeLightColor } from '../utils/typeColors'
+import { getTypeColor } from '../utils/typeColors'
 import { NoteItemContent } from './note-item/NoteItemContent'
 import { isOpaqueBinaryEntry } from '../utils/filePreviews'
+import { getNoteLocationLabel } from '../utils/noteLocation'
 
 type NoteItemVisualState = {
   isBinary: boolean
@@ -29,7 +30,7 @@ const BINARY_NOTE_STYLE: CSSProperties = { padding: '14px 16px' }
 const NOTE_ITEM_ROW_CLASS_NAMES: Record<NoteItemRowState, string> = {
   binary: 'cursor-default opacity-50',
   multiSelected: 'cursor-pointer',
-  selected: 'cursor-pointer border-l-[3px]',
+  selected: 'cursor-pointer',
   highlighted: 'cursor-pointer bg-muted hover:bg-muted',
   default: 'cursor-pointer hover:bg-muted',
 }
@@ -46,10 +47,14 @@ function noteItemClassName(state: NoteItemVisualState) {
   return cn(NOTE_ITEM_BASE_CLASS_NAME, NOTE_ITEM_ROW_CLASS_NAMES[resolveNoteItemRowState(state)])
 }
 
-function noteItemStyle(isSelected: boolean, isMultiSelected: boolean, typeColor: string, typeLightColor: string): CSSProperties {
-  const base: CSSProperties = { padding: isSelected && !isMultiSelected ? '14px 16px 14px 13px' : '14px 16px' }
+type NoteItemStyle = CSSProperties & { '--note-type-color': string }
+
+function noteItemStyle(isMultiSelected: boolean, typeColor: string): NoteItemStyle {
+  const base: NoteItemStyle = {
+    '--note-type-color': typeColor,
+    padding: '14px 16px',
+  }
   if (isMultiSelected) base.backgroundColor = 'color-mix(in srgb, var(--accent-blue) 10%, transparent)'
-  else if (isSelected) { base.borderLeftColor = typeColor; base.backgroundColor = typeLightColor }
   return base
 }
 
@@ -68,6 +73,7 @@ type NoteItemProps = {
   changeStatus?: 'modified' | 'added' | 'deleted' | 'untracked' | 'renamed'
   typeEntryMap: Record<string, VaultEntry>
   allEntries?: VaultEntry[]
+  vaultPath?: string
   displayPropsOverride?: string[] | null
   onClickNote: (entry: VaultEntry, e: ReactMouseEvent) => void
   onPrefetch?: (path: string) => void
@@ -98,18 +104,16 @@ function resolveNoteItemSurfaceProps({
   onPrefetch,
   onContextMenu,
   typeColor,
-  typeLightColor,
 }: NoteItemVisualState & {
   entry: VaultEntry
   onClickNote: NoteItemProps['onClickNote']
   onPrefetch?: NoteItemProps['onPrefetch']
   onContextMenu?: NoteItemProps['onContextMenu']
   typeColor: string
-  typeLightColor: string
 }): NoteItemSurfaceProps {
   return {
     className: noteItemClassName({ isBinary, isSelected, isMultiSelected, isHighlighted }),
-    style: isBinary ? BINARY_NOTE_STYLE : noteItemStyle(isSelected, isMultiSelected, typeColor, typeLightColor),
+    style: isBinary ? BINARY_NOTE_STYLE : noteItemStyle(isMultiSelected, typeColor),
     onClick: createNoteItemClickHandler(entry, isBinary, onClickNote),
     onContextMenu: onContextMenu ? (event) => onContextMenu(entry, event) : undefined,
     onMouseEnter: !isBinary && onPrefetch ? () => onPrefetch(entry.path) : undefined,
@@ -121,13 +125,17 @@ function resolveNoteItemSurfaceProps({
 function NoteItemRow({
   surfaceProps,
   entryPath,
+  locationLabel,
   isHighlighted,
+  isSelected,
   changeStatus,
   children,
 }: {
   surfaceProps: NoteItemSurfaceProps
   entryPath: string
+  locationLabel: string
   isHighlighted: boolean
+  isSelected: boolean
   changeStatus: NoteItemProps['changeStatus']
   children: ReactNode
 }) {
@@ -139,8 +147,10 @@ function NoteItemRow({
       onContextMenu={surfaceProps.onContextMenu}
       onMouseEnter={surfaceProps.onMouseEnter}
       data-testid={surfaceProps.testId}
+      data-selected={isSelected || undefined}
       data-highlighted={isHighlighted || undefined}
       data-note-path={entryPath}
+      data-note-location={locationLabel}
       data-change-status={changeStatus}
       title={surfaceProps.title}
     >
@@ -150,12 +160,11 @@ function NoteItemRow({
 }
 
 /** Renders a vault entry row for note lists, search results, and filtered sidebars. */
-export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlighted = false, noteStatus = 'clean', changeStatus, typeEntryMap, allEntries, displayPropsOverride, onClickNote, onPrefetch, onContextMenu }: NoteItemProps) {
+export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlighted = false, noteStatus = 'clean', changeStatus, typeEntryMap, allEntries, vaultPath, displayPropsOverride, onClickNote, onPrefetch, onContextMenu }: NoteItemProps) {
   const isBinary = isOpaqueBinaryEntry(entry)
   const te = typeEntryMap[entry.isA ?? '']
   const displayProps = resolveDisplayProps(entry, typeEntryMap, displayPropsOverride)
   const typeColor = isBinary ? 'var(--muted-foreground)' : getTypeColor(entry.isA ?? 'Note', te?.color)
-  const typeLightColor = getTypeLightColor(entry.isA ?? 'Note', te?.color)
   const surfaceProps = resolveNoteItemSurfaceProps({
     entry,
     isBinary,
@@ -166,20 +175,22 @@ export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlig
     onPrefetch,
     onContextMenu,
     typeColor,
-    typeLightColor,
   })
 
   return (
     <NoteItemRow
       surfaceProps={surfaceProps}
       entryPath={entry.path}
+      locationLabel={getNoteLocationLabel(entry.path, vaultPath)}
       isHighlighted={isHighlighted}
+      isSelected={isSelected}
       changeStatus={changeStatus}
     >
       <NoteItemContent
         entry={entry}
         isBinary={isBinary}
         isSelected={isSelected}
+        locationLabel={getNoteLocationLabel(entry.path, vaultPath)}
         noteStatus={noteStatus}
         changeStatus={changeStatus}
         typeColor={typeColor}

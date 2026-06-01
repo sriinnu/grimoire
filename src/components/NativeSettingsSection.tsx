@@ -1,5 +1,6 @@
 import type { createTranslator } from '../lib/i18n'
-import { Switch } from './ui/switch'
+import type { NativeShellMaterial } from '../lib/appearance'
+import { LabeledSelect, SectionHeading, SettingsSwitchRow } from './settings/SettingsControls'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -7,6 +8,8 @@ interface NativeSettingsSectionProps {
   t: Translate
   menuBarIconEnabled: boolean
   setMenuBarIconEnabled: (value: boolean) => void
+  nativeShellMaterial: NativeShellMaterial
+  setNativeShellMaterial: (value: NativeShellMaterial) => void
 }
 
 /** Renders installation-local controls for native desktop affordances. */
@@ -14,6 +17,8 @@ export function NativeSettingsSection({
   t,
   menuBarIconEnabled,
   setMenuBarIconEnabled,
+  nativeShellMaterial,
+  setNativeShellMaterial,
 }: NativeSettingsSectionProps) {
   return (
     <>
@@ -22,52 +27,32 @@ export function NativeSettingsSection({
         description={t('settings.native.description')}
       />
 
-      <label
-        className="flex items-start justify-between gap-3"
-        style={{ cursor: 'pointer' }}
-        data-testid="settings-menu-bar-icon-enabled"
-      >
-        <div className="space-y-1">
-          <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)' }}>
-            {t('settings.native.menuBarIcon')}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--muted-foreground)' }}>
-            {t('settings.native.menuBarIconDescription')}
-          </div>
-        </div>
-        <Switch
-          checked={menuBarIconEnabled}
-          onCheckedChange={setMenuBarIconEnabled}
-          aria-label={t('settings.native.menuBarIcon')}
-        />
-      </label>
-    </>
-  )
-}
+      <SettingsSwitchRow
+        label={t('settings.native.menuBarIcon')}
+        description={t('settings.native.menuBarIconDescription')}
+        checked={menuBarIconEnabled}
+        onChange={setMenuBarIconEnabled}
+        testId="settings-menu-bar-icon-enabled"
+      />
 
-function SectionHeading({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <LabeledSelect
+        label={t('settings.native.shellMaterial')}
+        value={nativeShellMaterial}
+        onValueChange={(value) => setNativeShellMaterial(value as NativeShellMaterial)}
+        options={[
+          { value: 'standard', label: t('settings.native.shellMaterialStandard') },
+          { value: 'unified', label: t('settings.native.shellMaterialUnified') },
+          { value: 'glass-preview', label: t('settings.native.shellMaterialGlassPreview') },
+        ]}
+        testId="settings-native-shell-material"
+      />
+
       <div
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: '0.08em',
-          textTransform: 'uppercase',
-          color: 'var(--muted-foreground)',
-        }}
+        className="settings-material-inner rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
+        data-testid="settings-native-locality-note"
       >
-        {title}
+        {t('settings.native.shellMaterialDescription')}
       </div>
-      <div style={{ fontSize: 12, color: 'var(--muted-foreground)', lineHeight: 1.55, maxWidth: 420 }}>
-        {description}
-      </div>
-    </div>
+    </>
   )
 }

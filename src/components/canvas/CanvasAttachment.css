@@ -27,7 +27,7 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px;
-  background: color-mix(in srgb, var(--muted) 26%, transparent);
+  background: var(--grimoire-canvas-toolbar-bg, color-mix(in srgb, var(--muted) 26%, transparent));
 }
 
 .canvas-attachment__tool-group {
@@ -38,6 +38,14 @@
 
 .canvas-attachment__tool-group--end {
   margin-left: auto;
+}
+
+.canvas-attachment__text-tool {
+  min-width: min(180px, 100%);
+}
+
+.canvas-attachment__text-tool input {
+  height: 32px;
 }
 
 .canvas-attachment__icon-button svg {
@@ -61,9 +69,9 @@
   border: 1px solid var(--border);
   border-radius: 8px;
   background:
-    linear-gradient(color-mix(in srgb, var(--border) 22%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--border) 22%, transparent) 1px, transparent 1px),
-    var(--background);
+    linear-gradient(var(--grimoire-canvas-grid, color-mix(in srgb, var(--border) 22%, transparent)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grimoire-canvas-grid, color-mix(in srgb, var(--border) 22%, transparent)) 1px, transparent 1px),
+    var(--grimoire-canvas-stage-bg, var(--background));
   background-size: 24px 24px;
 }
 
@@ -81,7 +89,8 @@
   height: auto;
   margin: 24px;
   border-radius: 8px;
-  box-shadow: 0 18px 60px color-mix(in srgb, #000 16%, transparent);
+  background: var(--grimoire-canvas-paper-bg, var(--surface-card));
+  box-shadow: var(--grimoire-canvas-paper-shadow, none);
   touch-action: none;
 }
 
@@ -90,4 +99,11 @@
   height: 100%;
   min-height: 360px;
   place-items: center;
+}
+
+.canvas-attachment__status {
+  margin-right: auto;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.4;
 }

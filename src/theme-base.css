@@ -1,0 +1,346 @@
+/* Theme Variables - app-owned light/dark contract */
+
+:root {
+  --grimoire-ui-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --grimoire-editor-font-family: 'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
+  --grimoire-mono-font-family: 'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  --grimoire-display-font-family: 'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
+  --grimoire-wordmark-font-family: 'New York', 'Iowan Old Style', Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, ui-serif, serif;
+  --grimoire-label-font-family: var(--grimoire-ui-font-family);
+  --grimoire-density-page-padding: 28px;
+  --grimoire-density-panel-padding: 16px;
+  --grimoire-density-card-gap: 14px;
+  --grimoire-density-row-gap: 8px;
+  --grimoire-density-note-card-margin: 8px 10px 0;
+  --grimoire-density-note-footer-padding: 7px 10px;
+  --grimoire-density-toolbar-padding: 8px 10px;
+  --grimoire-code-block-bg: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 82%, var(--surface-editor)), var(--surface-input));
+  --grimoire-code-block-border: color-mix(in srgb, var(--primary) 18%, var(--border-default));
+  --grimoire-code-block-radius: 8px;
+  --grimoire-code-block-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-primary) 5%, transparent);
+  --grimoire-graph-bg: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--primary) 9%, var(--surface-editor)) 0%, var(--surface-editor) 58%);
+  --grimoire-graph-grid-stroke: color-mix(in srgb, var(--primary) 22%, var(--border-subtle));
+  --grimoire-graph-hud-bg: color-mix(in srgb, var(--surface-popover) 82%, transparent);
+  --grimoire-graph-label-bg: color-mix(in srgb, var(--surface-editor) 86%, transparent);
+  --grimoire-graph-type-bg: color-mix(in srgb, var(--surface-card) 70%, var(--surface-editor));
+  --grimoire-graph-edge-relationship: var(--primary);
+  --grimoire-graph-edge-wikilink: color-mix(in srgb, var(--muted-foreground) 74%, var(--primary));
+  --grimoire-graph-edge-local: color-mix(in srgb, var(--destructive) 62%, var(--muted-foreground));
+  --grimoire-graph-shadow: 0 18px 42px color-mix(in srgb, #000 16%, transparent);
+  --grimoire-canvas-stage-bg: var(--surface-editor);
+  --grimoire-canvas-grid: color-mix(in srgb, var(--border) 24%, transparent);
+  --grimoire-canvas-paper-bg: var(--surface-card);
+  --grimoire-canvas-toolbar-bg: color-mix(in srgb, var(--surface-card) 72%, transparent);
+  --grimoire-canvas-paper-shadow: 0 18px 60px color-mix(in srgb, #000 16%, transparent);
+  --grimoire-html-preview-bg: var(--surface-card);
+  --grimoire-html-preview-border: color-mix(in srgb, var(--border-default) 86%, transparent);
+  --grimoire-html-preview-shadow: 0 16px 50px color-mix(in srgb, #000 12%, transparent);
+  --grimoire-shell-radius: 12px;
+  --grimoire-dialog-overlay: var(--shadow-overlay);
+  --grimoire-dialog-shadow: 0 18px 54px color-mix(in srgb, #000 18%, transparent);
+  --grimoire-overlay-blur: 10px;
+  --grimoire-portability-material: var(--surface-card);
+  --grimoire-portability-preview-material: color-mix(in srgb, var(--surface-card) 78%, var(--surface-panel));
+  --grimoire-portability-rail-material: color-mix(in srgb, var(--surface-card) 62%, var(--surface-panel));
+  --grimoire-portability-warn-fg: var(--feedback-warning-text);
+  --grimoire-portability-safe-fg: var(--feedback-success-text);
+  font-family: var(--grimoire-ui-font-family);
+  line-height: 1.5;
+  font-weight: 400;
+  font-size: 14px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-editor-font="serif"] {
+  --grimoire-editor-font-family: 'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
+}
+
+[data-editor-font="mono"] {
+  --grimoire-editor-font-family: var(--grimoire-mono-font-family);
+}
+
+[data-editor-font="readable"] {
+  --grimoire-editor-font-family: 'Atkinson Hyperlegible Next', 'Atkinson Hyperlegible', 'Avenir Next', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+[data-editor-font="humanist"] {
+  --grimoire-editor-font-family: 'Avenir Next', Avenir, 'Gill Sans', 'Trebuchet MS', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+[data-editor-font="literary"] {
+  --grimoire-editor-font-family: 'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
+}
+
+[data-editor-font="editorial"] {
+  --grimoire-editor-font-family: 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
+}
+
+[data-editor-font="manuscript"] {
+  --grimoire-editor-font-family: Palatino, 'Palatino Linotype', 'Book Antiqua', 'Hoefler Text', Georgia, ui-serif, serif;
+}
+
+[data-editor-font="compact"] {
+  --grimoire-editor-font-family: var(--grimoire-ui-font-family);
+}
+
+[data-editor-font="handwritten"] {
+  --grimoire-editor-font-family: 'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
+}
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --surface-app: #ffffff;
+  --surface-sidebar: #f7f6f3;
+  --surface-panel: #ffffff;
+  --surface-card: #ffffff;
+  --surface-popover: #ffffff;
+  --surface-input: #ffffff;
+  --surface-button: #ebebea;
+  --surface-dialog: #ffffff;
+  --surface-editor: #ffffff;
+  --surface-overlay: rgba(0, 0, 0, 0.3);
+  --text-primary: #37352f;
+  --text-secondary: #787774;
+  --text-tertiary: #787774;
+  --text-muted: #b4b4b4;
+  --text-faint: #b4b4b4;
+  --text-heading: #37352f;
+  --text-inverse: #ffffff;
+  --border-default: #e9e9e7;
+  --border-subtle: #e9e9e7;
+  --border-strong: #d9d9d6;
+  --border-input: #e9e9e7;
+  --border-dialog: #e9e9e7;
+  --border-focus: #155dff;
+  --state-hover: #ebebea;
+  --state-hover-subtle: #f0f0ef;
+  --state-selected: #e8f4fe;
+  --state-selected-strong: #d8ecfe;
+  --state-active: #e8f4fe;
+  --state-focus-ring: #155dff;
+  --state-drag-target: #155dff18;
+  --state-disabled: #f0f0ef;
+  --accent-blue: #155dff;
+  --accent-blue-bg: #155dff18;
+  --accent-blue-hover: #0d4ad6;
+  --accent-blue-light: #155dff14;
+  --accent-green: #38a169;
+  --accent-green-light: rgba(56, 161, 105, 0.1);
+  --accent-orange: #d9730d;
+  --accent-orange-light: rgba(217, 115, 13, 0.1);
+  --accent-red: #e53e3e;
+  --accent-red-light: rgba(229, 62, 62, 0.1);
+  --accent-purple: #805ad5;
+  --accent-purple-light: rgba(128, 90, 213, 0.1);
+  --accent-yellow: #d69e2e;
+  --accent-yellow-light: rgba(214, 158, 46, 0.1);
+  --accent-teal: #319795;
+  --accent-teal-light: rgba(49, 151, 149, 0.1);
+  --accent-pink: #d53f8c;
+  --accent-pink-light: rgba(213, 63, 140, 0.1);
+  --accent-gray: #718096;
+  --accent-gray-light: rgba(113, 128, 150, 0.1);
+  --feedback-info-text: var(--accent-blue);
+  --feedback-info-bg: var(--accent-blue-light);
+  --feedback-success-text: var(--accent-green);
+  --feedback-success-bg: var(--accent-green-light);
+  --feedback-warning-text: #92400e;
+  --feedback-warning-bg: #fef3c7;
+  --feedback-warning-border: #d97706;
+  --feedback-error-text: var(--accent-red);
+  --feedback-error-bg: var(--accent-red-light);
+  --syntax-heading: #0969da;
+  --syntax-link: #0969da;
+  --syntax-monospace: #c9383e;
+  --syntax-monospace-bg: rgba(175, 184, 193, 0.15);
+  --syntax-muted: #636c76;
+  --syntax-frontmatter-key: #c9383e;
+  --syntax-frontmatter-value: #2a7e4f;
+  --syntax-highlight-comment: #6a737d;
+  --syntax-highlight-keyword: #d73a49;
+  --syntax-highlight-string: #032f62;
+  --syntax-highlight-number: #005cc5;
+  --syntax-highlight-title: #6f42c1;
+  --syntax-highlight-type: #e36209;
+  --syntax-highlight-deletion: #b31d28;
+  --syntax-highlight-deletion-bg: #ffeef0;
+  --diff-added-text: #4caf50;
+  --diff-added-bg: rgba(76, 175, 80, 0.12);
+  --diff-removed-text: #f44336;
+  --diff-removed-bg: rgba(244, 67, 54, 0.12);
+  --diff-hunk-bg: rgba(33, 150, 243, 0.08);
+  --shadow-overlay: var(--surface-overlay);
+  --shadow-dialog: rgba(0, 0, 0, 0.15);
+  --radius: 0.5rem;
+  --background: var(--surface-app);
+  --foreground: var(--text-primary);
+  --card: var(--surface-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-popover);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-blue);
+  --primary-foreground: var(--text-inverse);
+  --secondary: var(--state-hover);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--state-hover-subtle);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--state-hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--accent-red);
+  --destructive-foreground: var(--text-inverse);
+  --border: var(--border-default);
+  --input: var(--border-input);
+  --ring: var(--state-focus-ring);
+  --sidebar: var(--surface-sidebar);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-blue);
+  --sidebar-primary-foreground: var(--text-inverse);
+  --sidebar-accent: var(--state-hover);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--state-focus-ring);
+  --bg-primary: var(--surface-app);
+  --bg-sidebar: var(--surface-sidebar);
+  --bg-card: var(--surface-card);
+  --bg-hover: var(--state-hover);
+  --bg-hover-subtle: var(--state-hover-subtle);
+  --bg-selected: var(--state-selected);
+  --bg-input: var(--surface-input);
+  --bg-button: var(--surface-button);
+  --bg-dialog: var(--surface-dialog);
+  --border-primary: var(--border-default);
+  --hover: var(--state-hover);
+  --link-color: var(--accent-blue);
+  --link-hover: var(--accent-blue-hover);
+}
+
+:root.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-app: #1f1e1b;
+  --surface-sidebar: #191814;
+  --surface-panel: #23221f;
+  --surface-card: #23221f;
+  --surface-popover: #292823;
+  --surface-input: #1f1e1b;
+  --surface-button: #34322d;
+  --surface-dialog: #272622;
+  --surface-editor: #1f1e1b;
+  --surface-overlay: rgba(8, 8, 7, 0.58);
+  --text-primary: #e6e1d8;
+  --text-secondary: #b8b1a6;
+  --text-tertiary: #9c9488;
+  --text-muted: #7f776d;
+  --text-faint: #625b53;
+  --text-heading: #f1ece3;
+  --text-inverse: #151411;
+  --border-default: #34322d;
+  --border-subtle: #2a2925;
+  --border-strong: #46433b;
+  --border-input: #3a3832;
+  --border-dialog: #3a3832;
+  --border-focus: #78a4ff;
+  --state-hover: #2d2b27;
+  --state-hover-subtle: #262520;
+  --state-selected: #1e344c;
+  --state-selected-strong: #25415f;
+  --state-active: #203a55;
+  --state-focus-ring: #78a4ff;
+  --state-drag-target: rgba(120, 164, 255, 0.2);
+  --state-disabled: #292824;
+  --accent-blue: #78a4ff;
+  --accent-blue-bg: rgba(120, 164, 255, 0.2);
+  --accent-blue-hover: #9bbeff;
+  --accent-blue-light: rgba(120, 164, 255, 0.16);
+  --accent-green: #79d89d;
+  --accent-green-light: rgba(121, 216, 157, 0.16);
+  --accent-orange: #f3a15b;
+  --accent-orange-light: rgba(243, 161, 91, 0.17);
+  --accent-red: #ff8a86;
+  --accent-red-light: rgba(255, 138, 134, 0.16);
+  --accent-purple: #b69cff;
+  --accent-purple-light: rgba(182, 156, 255, 0.17);
+  --accent-yellow: #f2c86b;
+  --accent-yellow-light: rgba(242, 200, 107, 0.18);
+  --accent-teal: #64d1c8;
+  --accent-teal-light: rgba(100, 209, 200, 0.16);
+  --accent-pink: #f28ac3;
+  --accent-pink-light: rgba(242, 138, 195, 0.16);
+  --accent-gray: #a7b0bd;
+  --accent-gray-light: rgba(167, 176, 189, 0.14);
+  --feedback-info-text: var(--accent-blue);
+  --feedback-info-bg: var(--accent-blue-light);
+  --feedback-success-text: var(--accent-green);
+  --feedback-success-bg: var(--accent-green-light);
+  --feedback-warning-text: #f5c36b;
+  --feedback-warning-bg: rgba(245, 195, 107, 0.16);
+  --feedback-warning-border: #d99b3d;
+  --feedback-error-text: var(--accent-red);
+  --feedback-error-bg: var(--accent-red-light);
+  --syntax-heading: #83b2ff;
+  --syntax-link: #83b2ff;
+  --syntax-monospace: #ffa6a3;
+  --syntax-monospace-bg: rgba(167, 176, 189, 0.16);
+  --syntax-muted: #9c9488;
+  --syntax-frontmatter-key: #ffa6a3;
+  --syntax-frontmatter-value: #8edfae;
+  --syntax-highlight-comment: #8e877d;
+  --syntax-highlight-keyword: #ff9ba0;
+  --syntax-highlight-string: #a9d6ff;
+  --syntax-highlight-number: #8bb7ff;
+  --syntax-highlight-title: #c2aaff;
+  --syntax-highlight-type: #f3b175;
+  --syntax-highlight-deletion: #ff9c9a;
+  --syntax-highlight-deletion-bg: rgba(255, 138, 134, 0.16);
+  --diff-added-text: #79d89d;
+  --diff-added-bg: rgba(121, 216, 157, 0.14);
+  --diff-removed-text: #ff8a86;
+  --diff-removed-bg: rgba(255, 138, 134, 0.14);
+  --diff-hunk-bg: rgba(120, 164, 255, 0.13);
+  --shadow-overlay: var(--surface-overlay);
+  --shadow-dialog: rgba(0, 0, 0, 0.42);
+  --background: var(--surface-app);
+  --foreground: var(--text-primary);
+  --card: var(--surface-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface-popover);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-blue);
+  --primary-foreground: var(--text-inverse);
+  --secondary: var(--state-hover);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--state-hover-subtle);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--state-hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--accent-red);
+  --destructive-foreground: var(--text-inverse);
+  --border: var(--border-default);
+  --input: var(--border-input);
+  --ring: var(--state-focus-ring);
+  --sidebar: var(--surface-sidebar);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-blue);
+  --sidebar-primary-foreground: var(--text-inverse);
+  --sidebar-accent: var(--state-hover);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--border-default);
+  --sidebar-ring: var(--state-focus-ring);
+  --bg-primary: var(--surface-app);
+  --bg-sidebar: var(--surface-sidebar);
+  --bg-card: var(--surface-card);
+  --bg-hover: var(--state-hover);
+  --bg-hover-subtle: var(--state-hover-subtle);
+  --bg-selected: var(--state-selected);
+  --bg-input: var(--surface-input);
+  --bg-button: var(--surface-button);
+  --bg-dialog: var(--surface-dialog);
+  --border-primary: var(--border-default);
+  --hover: var(--state-hover);
+  --link-color: var(--accent-blue);
+  --link-hover: var(--accent-blue-hover);
+}

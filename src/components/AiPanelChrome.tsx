@@ -3,16 +3,17 @@ import { Link, Robot } from '@phosphor-icons/react'
 import { Plus, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react'
 import { AiMessage } from './AiMessage'
 import { AiChatComposerInput } from './AiChatComposerInput'
-import { extractInlineWikilinkReferences } from './inlineWikilinkText'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
 import type { NoteReference } from '../utils/ai-context'
 import type { VaultEntry } from '../types'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
+import { buildProviderPromptDraft } from '../lib/providerPromptPrivacy'
 
 interface AiPanelHeaderProps {
   agentLabel: string
+  agentRouteLabel?: string | null
   agentReady: boolean
   legacyCopy: boolean
   canCrystallize: boolean
@@ -116,6 +117,7 @@ function AiPanelEmptyState({
 
 export function AiPanelHeader({
   agentLabel,
+  agentRouteLabel,
   agentReady,
   canCrystallize,
   crystallizeBlockedReason,
@@ -137,6 +139,7 @@ export function AiPanelHeader({
         {!legacyCopy && (
           <span className="truncate text-[11px] text-muted-foreground">
             {agentLabel}
+            {agentRouteLabel ? ` · ${agentRouteLabel}` : ''}
             {!agentReady ? ' · not installed' : ''}
           </span>
         )}
@@ -261,6 +264,12 @@ export function AiPanelComposer({
   const composerDisabled = !agentReady
   const canSend = !composerDisabled && input.trim().length > 0
   const placeholder = getComposerPlaceholder(agentLabel, agentReady, legacyCopy, hasContext)
+  const sendInput = () => {
+    const draft = buildProviderPromptDraft(input, entries)
+    if (!draft.text.trim()) return
+    onSend(draft.text, draft.references)
+  }
+
   return (
     <div
       className="flex shrink-0 flex-col border-t border-border"
@@ -284,7 +293,7 @@ export function AiPanelComposer({
           size="icon-sm"
           variant={canSend ? 'default' : 'secondary'}
           className="h-[34px] w-8 shrink-0"
-          onClick={() => onSend(input, extractInlineWikilinkReferences(input, entries))}
+          onClick={sendInput}
           disabled={!canSend}
           title="Send message"
           data-testid="agent-send"

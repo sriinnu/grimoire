@@ -6,6 +6,7 @@ import {
   preFilterWikilinks,
   type WikilinkBaseItem,
 } from '../utils/wikilinkSuggestions'
+import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { toInlineWikilinkTarget } from './inlineWikilinkTokens'
 
 export interface InlineWikilinkSuggestion {
@@ -21,7 +22,7 @@ interface SuggestionItem extends WikilinkBaseItem {
 
 function toSuggestionItems(entries: VaultEntry[]): SuggestionItem[] {
   return entries
-    .filter((entry) => !entry.archived)
+    .filter((entry) => !entry.archived && !resolveEntryLocalityPolicy(entry).localOnly)
     .map((entry) => ({
       entry,
       target: toInlineWikilinkTarget(entry),

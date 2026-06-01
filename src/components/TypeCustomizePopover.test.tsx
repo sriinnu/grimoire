@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { TypeCustomizePopover } from './TypeCustomizePopover'
-import { resolveIcon, ICON_OPTIONS } from '../utils/iconRegistry'
+import { resolveIcon } from '../utils/iconRegistry'
+import { ICON_OPTIONS } from '../utils/iconOptions'
 
 describe('resolveIcon', () => {
   it('returns the correct icon component for known name', () => {
@@ -67,8 +68,8 @@ describe('TypeCustomizePopover', () => {
   const onChangeTemplate = vi.fn()
   const onClose = vi.fn()
 
-  const renderPopover = (overrides: Partial<Parameters<typeof TypeCustomizePopover>[0]> = {}) =>
-    render(
+  const renderPopover = async (overrides: Partial<Parameters<typeof TypeCustomizePopover>[0]> = {}) => {
+    const result = render(
       <TypeCustomizePopover
         currentIcon={null}
         currentColor={null}
@@ -80,48 +81,51 @@ describe('TypeCustomizePopover', () => {
         {...overrides}
       />
     )
+    await screen.findByTitle('wrench')
+    return result
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders color, icon, and template sections', () => {
-    renderPopover()
+  it('renders color, icon, and template sections', async () => {
+    await renderPopover()
     expect(screen.getByText('Color')).toBeInTheDocument()
     expect(screen.getByText('Icon')).toBeInTheDocument()
     expect(screen.getByText('Template')).toBeInTheDocument()
     expect(screen.getByText('Done')).toBeInTheDocument()
   })
 
-  it('renders search input', () => {
-    renderPopover()
+  it('renders search input', async () => {
+    await renderPopover()
     expect(screen.getByPlaceholderText('Search icons…')).toBeInTheDocument()
   })
 
-  it('filters icons by search query', () => {
-    renderPopover()
+  it('filters icons by search query', async () => {
+    await renderPopover()
 
     const searchInput = screen.getByPlaceholderText('Search icons…')
     fireEvent.change(searchInput, { target: { value: 'book' } })
 
     // Should show book-related icons
-    expect(screen.getByTitle('book')).toBeInTheDocument()
-    expect(screen.getByTitle('book-open')).toBeInTheDocument()
+    expect(await screen.findByTitle('book')).toBeInTheDocument()
+    expect(await screen.findByTitle('book-open')).toBeInTheDocument()
     // Should not show unrelated icons
     expect(screen.queryByTitle('wrench')).not.toBeInTheDocument()
   })
 
-  it('shows empty state when no icons match search', () => {
-    renderPopover()
+  it('shows empty state when no icons match search', async () => {
+    await renderPopover()
 
     const searchInput = screen.getByPlaceholderText('Search icons…')
     fireEvent.change(searchInput, { target: { value: 'zzzznonexistent' } })
 
-    expect(screen.getByText('No icons found')).toBeInTheDocument()
+    expect(await screen.findByText('No icons found')).toBeInTheDocument()
   })
 
-  it('calls onChangeColor when a color is clicked', () => {
-    renderPopover()
+  it('calls onChangeColor when a color is clicked', async () => {
+    await renderPopover()
 
     const colorButtons = screen.getAllByTitle(/red|blue|green|purple|yellow|orange|teal|pink/i)
     fireEvent.click(colorButtons[0])
@@ -129,41 +133,42 @@ describe('TypeCustomizePopover', () => {
     expect(onChangeColor).toHaveBeenCalled()
   })
 
-  it('calls onChangeIcon when an icon is clicked', () => {
-    renderPopover()
+  it('calls onChangeIcon when an icon is clicked', async () => {
+    await renderPopover()
 
-    fireEvent.click(screen.getByTitle('wrench'))
+    fireEvent.click(await screen.findByTitle('wrench'))
     expect(onChangeIcon).toHaveBeenCalledWith('wrench')
   })
 
-  it('calls onChangeIcon when an image badge is clicked', () => {
-    renderPopover()
+  it('calls onChangeIcon when an image badge is clicked', async () => {
+    await renderPopover()
 
     fireEvent.click(screen.getByRole('button', { name: 'Spelllink badge' }))
     expect(onChangeIcon).toHaveBeenCalledWith(expect.stringMatching(/^data:image\/svg\+xml/))
   })
 
-  it('calls onChangeIcon when an emoji is selected', () => {
-    renderPopover()
+  it('calls onChangeIcon when an emoji is selected', async () => {
+    await renderPopover()
 
     fireEvent.click(screen.getByRole('button', { name: 'Choose emoji icon' }))
-    fireEvent.change(screen.getByTestId('emoji-picker-search'), { target: { value: 'fire' } })
-    const fireButton = screen.getAllByTestId('emoji-option').find((button) => button.textContent === '🔥')
+    const emojiSearch = await screen.findByTestId('emoji-picker-search')
+    fireEvent.change(emojiSearch, { target: { value: 'fire' } })
+    const fireButton = (await screen.findAllByTestId('emoji-option')).find((button) => button.textContent === '🔥')
     expect(fireButton).toBeDefined()
     fireEvent.click(fireButton!)
 
     expect(onChangeIcon).toHaveBeenCalledWith('🔥')
   })
 
-  it('calls onClose when Done is clicked', () => {
-    renderPopover()
+  it('calls onClose when Done is clicked', async () => {
+    await renderPopover()
 
     fireEvent.click(screen.getByText('Done'))
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('renders all color options including teal and pink', () => {
-    renderPopover()
+  it('renders all color options including teal and pink', async () => {
+    await renderPopover()
 
     expect(screen.getByTitle('Teal')).toBeInTheDocument()
     expect(screen.getByTitle('Pink')).toBeInTheDocument()
@@ -171,33 +176,33 @@ describe('TypeCustomizePopover', () => {
 
   // --- Template tests ---
 
-  it('renders template textarea', () => {
-    renderPopover()
+  it('renders template textarea', async () => {
+    await renderPopover()
     expect(screen.getByTestId('template-textarea')).toBeInTheDocument()
   })
 
-  it('shows placeholder when template is empty', () => {
-    renderPopover()
+  it('shows placeholder when template is empty', async () => {
+    await renderPopover()
     expect(screen.getByPlaceholderText('Markdown template for new notes of this type…')).toBeInTheDocument()
   })
 
-  it('displays current template value', () => {
-    renderPopover({ currentTemplate: '## Objective\n\n## Notes' })
+  it('displays current template value', async () => {
+    await renderPopover({ currentTemplate: '## Objective\n\n## Notes' })
     const textarea = screen.getByTestId('template-textarea') as HTMLTextAreaElement
     expect(textarea.value).toBe('## Objective\n\n## Notes')
   })
 
-  it('updates template text on user input', () => {
-    renderPopover()
+  it('updates template text on user input', async () => {
+    await renderPopover()
     const textarea = screen.getByTestId('template-textarea')
     fireEvent.change(textarea, { target: { value: '## New Template' } })
     expect((textarea as HTMLTextAreaElement).value).toBe('## New Template')
   })
 
   it('calls onChangeTemplate after debounce', async () => {
+    await renderPopover()
     vi.useFakeTimers()
     try {
-      renderPopover()
       const textarea = screen.getByTestId('template-textarea')
       fireEvent.change(textarea, { target: { value: '## Debounced' } })
 
@@ -215,8 +220,8 @@ describe('TypeCustomizePopover', () => {
     }
   })
 
-  it('treats null template as empty string', () => {
-    renderPopover({ currentTemplate: null })
+  it('treats null template as empty string', async () => {
+    await renderPopover({ currentTemplate: null })
     const textarea = screen.getByTestId('template-textarea') as HTMLTextAreaElement
     expect(textarea.value).toBe('')
   })

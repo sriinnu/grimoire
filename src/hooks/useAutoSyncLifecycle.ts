@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { GitRemoteStatus } from '../types'
 
 const DEFAULT_INTERVAL_MS = 5 * 60_000
@@ -12,7 +12,16 @@ interface AutoSyncLifecycleOptions {
   refreshRemoteStatus: () => Promise<GitRemoteStatus | null>
 }
 
-/** Starts auto-sync on launch, focus, and interval when Git sync is enabled. */
+function isDocumentVisible(): boolean {
+  return typeof document === 'undefined' || document.visibilityState !== 'hidden'
+}
+
+function syncIntervalMs(intervalMinutes: number | null): number {
+  const minutes = intervalMinutes ?? 5
+  return minutes > 0 ? minutes * 60_000 : DEFAULT_INTERVAL_MS
+}
+
+/** Starts visible-only auto-sync on launch, focus, and interval when Git sync is enabled. */
 export function useAutoSyncLifecycle(options: AutoSyncLifecycleOptions): void {
   const {
     checkExistingConflicts,
@@ -22,20 +31,34 @@ export function useAutoSyncLifecycle(options: AutoSyncLifecycleOptions): void {
     refreshRemoteStatus,
   } = options
 
+  const [visible, setVisible] = useState(() => isDocumentVisible())
+  const lastPullTimeRef = useRef(0)
+
   useEffect(() => {
     if (!enabled) return
 
+    const handleVisibilityChange = () => setVisible(isDocumentVisible())
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [enabled])
+
+  useEffect(() => {
+    if (!enabled || !visible) return
+
     void checkExistingConflicts().then(hasConflicts => {
-      if (!hasConflicts) void performPull()
+      if (!hasConflicts && isDocumentVisible()) {
+        lastPullTimeRef.current = Date.now()
+        void performPull()
+      }
     })
     void refreshRemoteStatus()
-  }, [checkExistingConflicts, enabled, performPull, refreshRemoteStatus])
+  }, [checkExistingConflicts, enabled, performPull, refreshRemoteStatus, visible])
 
-  const lastPullTimeRef = useRef(0)
   useEffect(() => {
     if (!enabled) return
 
     const handleFocus = () => {
+      if (!isDocumentVisible()) return
       const now = Date.now()
       if (now - lastPullTimeRef.current < FOCUS_COOLDOWN_MS) return
       lastPullTimeRef.current = now
@@ -46,10 +69,34 @@ export function useAutoSyncLifecycle(options: AutoSyncLifecycleOptions): void {
   }, [enabled, performPull])
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !visible) return
 
-    const ms = (intervalMinutes ?? 5) * 60_000 || DEFAULT_INTERVAL_MS
-    const id = setInterval(() => { void performPull() }, ms)
-    return () => clearInterval(id)
-  }, [enabled, performPull, intervalMinutes])
+    let cancelled = false
+    let timeoutId: ReturnType<typeof window.setTimeout> | null = null
+
+    const clearScheduledPull = () => {
+      if (timeoutId === null) return
+      window.clearTimeout(timeoutId)
+      timeoutId = null
+    }
+
+    const scheduleNextPull = () => {
+      clearScheduledPull()
+      timeoutId = window.setTimeout(() => {
+        timeoutId = null
+        if (cancelled || !isDocumentVisible()) return
+
+        lastPullTimeRef.current = Date.now()
+        void performPull().finally(() => {
+          if (!cancelled && isDocumentVisible()) scheduleNextPull()
+        })
+      }, syncIntervalMs(intervalMinutes))
+    }
+
+    scheduleNextPull()
+    return () => {
+      cancelled = true
+      clearScheduledPull()
+    }
+  }, [enabled, intervalMinutes, performPull, visible])
 }

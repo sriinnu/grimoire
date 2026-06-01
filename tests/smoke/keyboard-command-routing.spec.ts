@@ -78,6 +78,14 @@ test.describe('keyboard command routing', () => {
     expect(runtimeStyleCspSignals).toEqual([])
   })
 
+  test('desktop menu-command bridge seeds journal capture without writing a note @smoke', async ({ page }) => {
+    await openFixtureVaultDesktopHarness(page, tempVaultDir)
+    await triggerMenuCommand(page, APP_COMMAND_IDS.fileCaptureJournal)
+
+    await expect(page.getByTestId('vault-dashboard')).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
+  })
+
   test('desktop menu-command bridge toggles the properties panel through the shared command path @smoke', async ({ page }) => {
     await openAlphaProjectInEditor(page)
     await expectPropertiesPanelToggle(page, async () => {

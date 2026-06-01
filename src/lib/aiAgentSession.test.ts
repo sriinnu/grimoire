@@ -199,6 +199,12 @@ describe('aiAgentSession', () => {
     expect(getMessages().at(-1)).toEqual({
       userMessage: 'Latest question',
       references: [{ path: '/vault/ref.md', title: 'Ref' }],
+      route: {
+        agent: 'codex',
+        provider: null,
+        model: null,
+        source: 'cli-default',
+      },
       actions: [],
       isStreaming: true,
       id: 'msg-stream',
@@ -207,10 +213,18 @@ describe('aiAgentSession', () => {
       { role: 'user', content: 'Previous question', id: 'msg-1' },
       { role: 'assistant', content: 'Previous answer', id: 'msg-1-resp' },
     ], 100_000)
+    const referencedPrompt = [
+      'Latest question',
+      '',
+      '## Selected Grimoire References',
+      '- [[Ref]] (type: Note, path: /vault/ref.md)',
+      '',
+      'Use these local vault references as context. Read note bodies only through Grimoire tools and keep local-only material withheld.',
+    ].join('\n')
     expect(formatMessageWithHistoryMock).toHaveBeenCalledWith([
       { role: 'user', content: 'Previous question', id: 'msg-1' },
       { role: 'assistant', content: 'Previous answer', id: 'msg-1-resp' },
-    ], 'Latest question')
+    ], referencedPrompt)
     expect(createStreamCallbacksMock).toHaveBeenCalledWith(expect.objectContaining({
       messageId: 'msg-stream',
       vaultPath: '/vault',
@@ -219,9 +233,11 @@ describe('aiAgentSession', () => {
     }))
     expect(streamAiAgentMock).toHaveBeenCalledWith({
       agent: 'codex',
-      message: 'formatted:Latest question',
+      message: `formatted:${referencedPrompt}`,
       systemPrompt: 'OVERRIDE',
       vaultPath: '/vault',
+      provider: undefined,
+      model: undefined,
       callbacks: { stream: 'callbacks' },
     })
   })

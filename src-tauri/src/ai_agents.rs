@@ -1,16 +1,21 @@
 mod args;
+mod chitragupta_events;
 mod discovery;
 mod events;
+mod path_env;
+mod process_stream;
 
 use serde::{Deserialize, Serialize};
-use std::io::BufRead;
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 
 use args::{build_chitragupta_args, build_codex_args, build_codex_prompt};
+use chitragupta_events::dispatch_chitragupta_event;
 use discovery::{find_chitragupta_binary, find_codex_binary, version_for_binary};
 use events::{
     dispatch_codex_event, format_chitragupta_error, format_codex_error, map_claude_event,
 };
+use path_env::command_for_binary;
+use process_stream::{agent_stream_idle_timeout, run_command_line_stream};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -55,6 +60,13 @@ pub enum AiAgentStreamEvent {
         tool_id: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         output: Option<String>,
+    },
+    RouteResolved {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        provider: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        model: Option<String>,
+        source: String,
     },
     Error {
         message: String,
@@ -153,62 +165,51 @@ where
     let args = build_codex_args(&request)?;
     let prompt = build_codex_prompt(&request);
 
-    let mut command = Command::new(binary);
+    let mut command = command_for_binary(&binary);
     command
         .args(args)
         .arg(prompt)
         .current_dir(&request.vault_path)
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
-
-    let mut child = command
-        .spawn()
-        .map_err(|error| format!("Failed to spawn codex: {error}"))?;
-
-    let stdout = child.stdout.take().ok_or("No stdout handle")?;
-    let reader = std::io::BufReader::new(stdout);
+    crate::ai_provider_keys::apply_provider_keys_to_command(&mut command, AiAgentId::Codex);
 
     let mut thread_id = String::new();
-
-    for line in reader.lines() {
-        let line = match line {
-            Ok(line) => line,
-            Err(error) => {
-                emit(AiAgentStreamEvent::Error {
-                    message: format!("Read error: {error}"),
-                });
-                break;
+    let outcome = match run_command_line_stream(
+        command,
+        agent_stream_idle_timeout("GRIMOIRE_CODEX_STREAM_IDLE_TIMEOUT_SECS"),
+        "codex",
+        |line| {
+            if line.trim().is_empty() {
+                return;
             }
-        };
 
-        if line.trim().is_empty() {
-            continue;
+            let json = match serde_json::from_str::<serde_json::Value>(line) {
+                Ok(json) => json,
+                Err(_) => return,
+            };
+
+            if let Some(id) = json["thread_id"].as_str() {
+                thread_id = id.to_string();
+            }
+
+            dispatch_codex_event(&json, &mut emit);
+        },
+    ) {
+        Ok(outcome) => outcome,
+        Err(message) => {
+            emit(AiAgentStreamEvent::Error {
+                message: message.clone(),
+            });
+            emit(AiAgentStreamEvent::Done);
+            return Err(message);
         }
+    };
 
-        let json = match serde_json::from_str::<serde_json::Value>(&line) {
-            Ok(json) => json,
-            Err(_) => continue,
-        };
-
-        if let Some(id) = json["thread_id"].as_str() {
-            thread_id = id.to_string();
-        }
-
-        dispatch_codex_event(&json, &mut emit);
-    }
-
-    let stderr_output = child
-        .stderr
-        .take()
-        .and_then(|stderr| std::io::read_to_string(stderr).ok())
-        .unwrap_or_default();
-
-    let status = child
-        .wait()
-        .map_err(|error| format!("Wait failed: {error}"))?;
-    if !status.success() {
+    if !outcome.status.success() {
         emit(AiAgentStreamEvent::Error {
-            message: format_codex_error(stderr_output, status.to_string()),
+            message: format_codex_error(outcome.stderr_output, outcome.status.to_string()),
         });
     }
 
@@ -227,48 +228,35 @@ where
     let binary = find_chitragupta_binary()?;
     let args = build_chitragupta_args(&request);
 
-    let mut command = Command::new(binary);
-    command.args(args);
-
-    let mut child = command
+    let mut command = command_for_binary(&binary);
+    command
+        .args(args)
         .current_dir(&request.vault_path)
         .env("CHITRAGUPTA_PRINT_LOGS", "0")
         .env("CHITRAGUPTA_PRINT_NIDRA", "0")
         .env("LOG_LEVEL", "fatal")
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .map_err(|error| format!("Failed to spawn chitragupta: {error}"))?;
+        .stderr(Stdio::piped());
+    crate::ai_provider_keys::apply_provider_keys_to_command(&mut command, AiAgentId::Chitragupta);
 
-    let stdout = child.stdout.take().ok_or("No stdout handle")?;
-    let reader = std::io::BufReader::new(stdout);
-
-    for line in reader.lines() {
-        match line {
-            Ok(line) => emit(AiAgentStreamEvent::TextDelta {
-                text: format!("{line}\n"),
-            }),
-            Err(error) => {
-                emit(AiAgentStreamEvent::Error {
-                    message: format!("Read error: {error}"),
-                });
-                break;
-            }
+    let idle_timeout = agent_stream_idle_timeout("GRIMOIRE_CHITRAGUPTA_STREAM_IDLE_TIMEOUT_SECS");
+    let outcome = match run_command_line_stream(command, idle_timeout, "chitragupta", |line| {
+        dispatch_chitragupta_event(line, &mut emit);
+    }) {
+        Ok(outcome) => outcome,
+        Err(message) => {
+            emit(AiAgentStreamEvent::Error {
+                message: message.clone(),
+            });
+            emit(AiAgentStreamEvent::Done);
+            return Err(message);
         }
-    }
+    };
 
-    let stderr_output = child
-        .stderr
-        .take()
-        .and_then(|stderr| std::io::read_to_string(stderr).ok())
-        .unwrap_or_default();
-
-    let status = child
-        .wait()
-        .map_err(|error| format!("Wait failed: {error}"))?;
-    if !status.success() {
+    if !outcome.status.success() {
         emit(AiAgentStreamEvent::Error {
-            message: format_chitragupta_error(stderr_output, status.to_string()),
+            message: format_chitragupta_error(outcome.stderr_output, outcome.status.to_string()),
         });
     }
 

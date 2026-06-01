@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
+import { scheduleVisibleWork } from './visibleDocument'
 
 export type McpStatus = 'checking' | 'installed' | 'not_installed'
 
@@ -53,13 +54,18 @@ export function useMcpStatus(
 
   useEffect(() => {
     let cancelled = false
-    setStatus('checking') // eslint-disable-line react-hooks/set-state-in-effect -- reset to checking on vault switch
+    setStatus('checking')
 
-    fetchMcpStatus(vaultPath).then((nextStatus) => {
-      if (!cancelled) setStatus(nextStatus)
+    const cancelVisibleWork = scheduleVisibleWork(() => {
+      fetchMcpStatus(vaultPath).then((nextStatus) => {
+        if (!cancelled) setStatus(nextStatus)
+      })
     })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+      cancelVisibleWork()
+    }
   }, [vaultPath])
 
   const connectMcp = useCallback(async () => {

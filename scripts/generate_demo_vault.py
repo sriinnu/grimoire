@@ -2,7 +2,8 @@
 """Generate a large synthetic vault for scale and performance checks.
 
 Creates a realistic 2-year knowledge vault (Q1 2024 - Q4 2025) for a
-fictional persona based on Srinivas Pendela, founder of Refactoring.
+fully synthetic operator persona. Names, relationships, and places are test
+fixtures only and must not mirror a real user's private life.
 
 The curated `demo-vault-v2/` fixture is intentionally small and lives in git.
 This script generates the larger corpus on demand outside that checked-in QA
@@ -153,7 +154,7 @@ RESPONSIBILITIES = [
      ["procedure-weekly-team-sync", "procedure-biweekly-1on1-karthik",
       "procedure-biweekly-1on1-venkatesh", "procedure-biweekly-1on1-anjali",
       "procedure-quarterly-team-retro"],
-     "Managing Karthik (partnerships), Venkatesh (operations), and Anjali (editor). Building a small but high-performing team.\n\n## KPIs\n- Team NPS: >8\n- Task completion rate: >85%"),
+     "Managing Arjun (partnerships), Venkatesh (operations), and Anjali (editor). Building a small but high-performing team.\n\n## KPIs\n- Team NPS: >8\n- Task completion rate: >85%"),
     ("responsibility-health-fitness", "Health & Fitness", "area-health",
      ["measure-resting-hr", "measure-cycling-km-per-month"],
      ["procedure-weekly-cycling-block", "procedure-gym-routine",
@@ -224,10 +225,10 @@ TOPICS = [
 # (slug, name, tier, tags, bio)
 PERSONS = [
     # Self
-    ("person-srinivas-pendela", "Srinivas Pendela", "1st 🥇", ["Self"],
-     "Founder of Refactoring, a B2B tech newsletter and podcast. Based in Hyderabad. Cyclist, guitarist, reader."),
+    ("person-mira-sen", "Mira Sen", "1st 🥇", ["Self"],
+     "Founder of Refactoring, a fictional B2B tech newsletter and podcast. Based in Riverbend. Cyclist, guitarist, reader."),
     # Team
-    ("person-karthik-reddy", "Karthik Reddy", "1st 🥇", ["Team"],
+    ("person-arjun-mehta", "Arjun Mehta", "1st 🥇", ["Team"],
      "Head of Partnerships at Refactoring. Joined in 2022. Manages sponsor relationships and revenue growth."),
     ("person-venkatesh-rao", "Venkatesh Rao", "1st 🥇", ["Team"],
      "Head of Operations at Refactoring. Keeps everything running — billing, tools, workflows, and logistics."),
@@ -236,54 +237,54 @@ PERSONS = [
     ("person-arun-kumar", "Arun Kumar", "2nd 🥈", ["Team"],
      "Freelance developer. Helps with the Refactoring website, landing pages, and tooling."),
     # Partner
-    ("person-ananya-rao", "Ananya Rao", "1st 🥇", ["Personal"],
-     "Srinivas's girlfriend. Met in early 2024. Works as a UX researcher at a Hyderabad fintech. Loves hiking and contemporary art."),
+    ("person-ananya-rao", "Isha Rao", "1st 🥇", ["Personal"],
+     "Close personal contact in the synthetic fixture. Works as a UX researcher at a fictional fintech. Loves hiking and contemporary art."),
     # Family
-    ("person-lakshmi-pendela", "Lakshmi Pendela", "1st 🥇", ["Family"],
-     "Srinivas's sister. Lives in Bengaluru. Works in publishing. They talk every week."),
-    ("person-ramana-pendela", "Ramana Pendela", "1st 🥇", ["Family"],
-     "Srinivas's father. Retired engineer. Lives in Vizag. Passionate about woodworking."),
-    ("person-anasuya-pendela", "Anasuya Pendela", "1st 🥇", ["Family"],
-     "Srinivas's mother. Retired teacher. Lives in Vizag. Amazing cook — Sriinu's biryani recipes come from her."),
+    ("person-lakshmi-pendela", "Lakshmi Sen", "1st 🥇", ["Family"],
+     "Synthetic family contact used to exercise relationship graphs and recurring check-ins."),
+    ("person-ramana-pendela", "Ramana Sen", "1st 🥇", ["Family"],
+     "Synthetic family contact used to exercise household and support-network notes."),
+    ("person-anasuya-pendela", "Anasuya Sen", "1st 🥇", ["Family"],
+     "Synthetic family contact used to exercise private-note filtering and recurring rituals."),
     ("person-ravi-maruthi", "Ravi Maruthi", "2nd 🥈", ["Family"],
-     "Ananya's brother. Architect based in Chennai. They see each other at family gatherings."),
-    ("person-nannamma", "Nannamma", "1st 🥇", ["Family"],
-     "Srinivas's grandmother. 87 years old, lives in Vijayawada. Sriinu visits her monthly. Best pulihora in Andhra."),
+     "Synthetic extended-family contact. Architect in the fixture dataset."),
+    ("person-nannamma", "Elder Mentor", "1st 🥇", ["Family"],
+     "Synthetic elder contact used to exercise recurring family visit notes."),
     # Friends
     ("person-ravi-chandra", "Ravi Chandra", "2nd 🥈", ["Friend"],
-     "College friend, software engineer at a Hyderabad startup. They grab dinner regularly and talk tech."),
+     "College friend, software engineer at a fictional startup. They grab dinner regularly and talk tech."),
     ("person-suresh-naidu", "Suresh Naidu", "2nd 🥈", ["Friend"],
      "Cycling buddy. They ride together on weekends and do brevets together."),
     ("person-priya-menon", "Priya Menon", "2nd 🥈", ["Friend"],
-     "UX designer at a design agency. Met through the Hyderabad tech scene. Great conversations about product."),
+     "UX designer at a design agency. Met through the fixture's tech scene. Great conversations about product."),
     ("person-arjun-komma", "Arjun Komma", "2nd 🥈", ["Friend"],
      "Startup founder, runs a small devtools company. They swap founder war stories over chai."),
     ("person-deepti-singh", "Deepti Singh", "2nd 🥈", ["Friend"],
      "Journalist covering Indian tech. Occasionally writes about Refactoring. Good source for ecosystem news."),
     ("person-mohan-krishna", "Mohan Krishna", "2nd 🥈", ["Friend"],
-     "Works in finance. Srinivas's go-to person for investment discussions and portfolio sanity checks."),
+     "Works in finance. Mira's go-to person for investment discussions and portfolio sanity checks."),
     ("person-sneha-patel", "Sneha Patel", "3rd 🥉", ["Friend"],
      "Doctor, friend from university. They catch up every few months. Good grounding influence."),
     ("person-vikram-rajan", "Vikram Rajan", "2nd 🥈", ["Friend"],
-     "Musician and music teacher. They jam together occasionally — Sriinu on guitar, Vikram on keys."),
+     "Musician and music teacher. They jam together occasionally — Mira on guitar, Vikram on keys."),
     ("person-keerthi-priya", "Keerthi Priya", "3rd 🥉", ["Friend"],
-     "High school teacher, old friend. They meet at group dinners in Hyderabad."),
+     "High school teacher, old friend. They meet at group dinners in Riverbend."),
     ("person-ganesh-murthy", "Ganesh Murthy", "2nd 🥈", ["Friend"],
-     "Chef, runs a small restaurant in Jubilee Hills. Sriinu's favourite place for a weeknight dinner."),
+     "Chef, runs a small restaurant in the fixture city. Mira's favourite place for a weeknight dinner."),
     ("person-meera-krishnan", "Meera Krishnan", "3rd 🥉", ["Friend"],
      "Photographer. Took the photos for the Refactoring website and brand."),
     ("person-raghu-iyer", "Raghu Iyer", "3rd 🥉", ["Friend"],
      "Lawyer, handles Refactoring's contracts. Efficient and straightforward."),
     ("person-sandhya-devi", "Sandhya Devi", "3rd 🥉", ["Friend"],
-     "Friend from the gym. Personal trainer by profession. Helped Sriinu design his strength program."),
+     "Friend from the gym. Personal trainer by profession. Helped Mira design her strength program."),
     ("person-prof-murthy", "Prof. Suryanarayana Murthy", "3rd 🥉", ["Friend"],
      "Neighbor, retired university professor (philosophy). Great conversations on the terrace."),
     ("person-kavya-rao", "Kavya Rao", "3rd 🥉", ["Friend"],
-     "Ananya's best friend. They often hang out as a group on weekends."),
+     "Isha's best friend. They often hang out as a group on weekends."),
     ("person-harsha-vardhan", "Harsha Vardhan", "3rd 🥉", ["Friend"],
-     "Old colleague from Srinivas's pre-Refactoring days. Now a VP Eng at a Hyderabad scale-up."),
+     "Old colleague from Mira's pre-Refactoring days. Now a VP Eng at a fictional scale-up."),
     ("person-padmaja-naidu", "Padmaja Naidu", "3rd 🥉", ["Friend"],
-     "Runs a yoga studio near Srinivas's apartment. Ananya introduced them."),
+     "Runs a yoga studio near Mira's apartment. Isha introduced them."),
     ("person-charan-tej", "Charan Tej", "3rd 🥉", ["Friend"],
      "Ravi's roommate. Data engineer. They sometimes all go out together."),
     # Podcast guests (30)
@@ -309,7 +310,7 @@ PERSONS = [
      "VP Engineering, German enterprise. Episode on legacy modernization."),
     ("person-vikram-mehta", "Vikram Mehta", "3rd 🥉", ["Podcast Guest"],
      "CTO of an Indian edtech unicorn. Episode on building tech in India."),
-    ("person-deepak-srinivasan", "Deepak Srinivasan", "3rd 🥉", ["Podcast Guest"],
+    ("person-deepak-srinivasan", "Deepak Miraan", "3rd 🥉", ["Podcast Guest"],
      "Engineering director, gaming. Episode on high-performance engineering teams."),
     ("person-nandini-reddy", "Nandini Reddy", "3rd 🥉", ["Podcast Guest"],
      "Product lead, fintech Hyderabad. Episode on product management in regulated industries."),
@@ -380,7 +381,7 @@ PERSONS = [
      "Sponsor contact at Railway. Cloud platform partnerships."),
 ]
 
-TEAM_SLUGS = ["person-karthik-reddy", "person-venkatesh-rao", "person-anjali-sharma"]
+TEAM_SLUGS = ["person-arjun-mehta", "person-venkatesh-rao", "person-anjali-sharma"]
 SPONSOR_PERSONS = [p[0] for p in PERSONS if "Sponsor" in p[3]]
 PODCAST_GUESTS = [p[0] for p in PERSONS if "Podcast Guest" in p[3]]
 FRIEND_SLUGS = [p[0] for p in PERSONS if "Friend" in p[3]]
@@ -407,7 +408,7 @@ PROJECTS = [
     ("24q3-summer-reading-sprint","Summer Reading Sprint","24q3","responsibility-learning","Done","Read 6 books in July-August. Topics: history, business, and philosophy of science."),
     ("24q3-podcast-season-2","Podcast Season 2","24q3","responsibility-podcast","Done","Record and release 8 episodes focused on engineering leadership and org design."),
     ("24q3-new-sponsor-verticals","Expand Sponsor Verticals","24q3","responsibility-sponsorships","Done","Target cloud infra, devtools, and AI/ML companies as new sponsor categories."),
-    ("24q4-annual-review-process","Team Annual Review","24q4","responsibility-team-management","Done","Design and run the first structured annual review for Karthik, Venkatesh, and Anjali."),
+    ("24q4-annual-review-process","Team Annual Review","24q4","responsibility-team-management","Done","Design and run the first structured annual review for Arjun, Venkatesh, and Anjali."),
     ("24q4-sponsor-dashboard","Build Sponsor Dashboard","24q4","responsibility-sponsorships","Done","Build an Airtable dashboard giving sponsors real-time click and performance data."),
     ("24q4-grimoire-start","Start Grimoire App Project","24q4","responsibility-learning","Done","Begin building Grimoire — a custom Tauri desktop app for managing the personal knowledge vault."),
     ("24q4-black-friday-campaign","Black Friday Newsletter Campaign","24q4","responsibility-grow-newsletter","Done","Run a curated Black Friday campaign with tool recommendations. +1200 subscribers in 3 days."),
@@ -540,7 +541,7 @@ NOTES = [
     ("note-makers-schedule-managers","Maker's Schedule Manager's Schedule","Paul Graham","topic-productivity-systems","https://example.com/makers-schedule","Makers need long uninterrupted blocks. Managers live in 1-hour chunks. Meetings are cheap for managers, expensive for makers. Shaped how I structure my week."),
     ("note-thinking-in-bets","Thinking in Bets","Annie Duke","topic-personal-finance","https://example.com/thinking-bets","Resulting: judging decisions by outcomes is a mistake. Good decisions have bad outcomes. Bad decisions have good outcomes. Luck matters. Separate decision quality from outcome quality."),
     ("note-the-mom-test","The Mom Test","Rob Fitzpatrick","topic-saas-business","https://example.com/mom-test","How to talk to customers without them lying to you. Ask about their life, not your idea. Past behavior over future intentions. Essential for anyone doing user research."),
-    ("note-radical-candor","Radical Candor","Kim Scott","topic-team-leadership","https://example.com/radical-candor","Care personally, challenge directly. Ruinous empathy is the most common management failure mode. Framework for feedback conversations with Karthik, Venkatesh, Anjali."),
+    ("note-radical-candor","Radical Candor","Kim Scott","topic-team-leadership","https://example.com/radical-candor","Care personally, challenge directly. Ruinous empathy is the most common management failure mode. Framework for feedback conversations with Arjun, Venkatesh, Anjali."),
     ("note-the-obstacle-is-the-way","The Obstacle Is the Way","Ryan Holiday","topic-mental-health","https://example.com/obstacle","Stoic philosophy applied to adversity. The obstacle itself is the path forward. Useful mental frame for dealing with difficult periods."),
     ("note-so-good-they-cant-ignore","So Good They Can't Ignore You","Cal Newport","topic-productivity-systems","https://example.com/so-good","Career capital theory: rare and valuable skills create rare and valuable careers. 'Follow your passion' is bad advice. Deliberate practice is the path."),
     ("note-traffic-secrets","Traffic Secrets","Russell Brunson","topic-newsletter-growth","https://example.com/traffic","Dream customer avatar, hook-story-offer framework, finding where attention lives. Useful for thinking about top-of-funnel newsletter growth."),
@@ -708,7 +709,7 @@ def generate_projects():
             "Belongs to": wl(quarter),
             "Advances": wl(responsibility),
             "Status": status,
-            "Owner": wl("person-srinivas-pendela"),
+            "Owner": wl("person-mira-sen"),
         }, f"# {title}\n{body}")
 
 
@@ -719,7 +720,7 @@ def generate_experiments():
             "Is A": "Experiment",
             "Belongs to": wl(quarter),
             "Status": status,
-            "Owner": wl("person-srinivas-pendela"),
+            "Owner": wl("person-mira-sen"),
         }, f"# {title}\n{body}")
 
 
@@ -748,7 +749,7 @@ def build_procedure_map():
         "procedure-podcast-show-notes": ("Podcast Show Notes", "responsibility-podcast", "Bi-weekly", "Write show notes and episode summary for the Refactoring website and newsletter."),
         "procedure-podcast-analytics": ("Podcast Analytics Review", "responsibility-podcast", "Monthly", "Review download numbers, listener retention, and episode performance by topic."),
         "procedure-weekly-team-sync": ("Weekly Team Sync", "responsibility-team-management", "Weekly", "Monday 10am team sync. Agenda: blockers, priorities, coordination."),
-        "procedure-biweekly-1on1-karthik": ("1:1 with Karthik", "responsibility-team-management", "Bi-weekly", "Bi-weekly 1:1 with Karthik. Cover: sponsor pipeline, blockers, personal growth, feedback."),
+        "procedure-biweekly-1on1-karthik": ("1:1 with Arjun", "responsibility-team-management", "Bi-weekly", "Bi-weekly 1:1 with Arjun. Cover: sponsor pipeline, blockers, personal growth, feedback."),
         "procedure-biweekly-1on1-venkatesh": ("1:1 with Venkatesh", "responsibility-team-management", "Bi-weekly", "Bi-weekly 1:1 with Venkatesh. Cover: operations updates, tooling, process improvements, feedback."),
         "procedure-biweekly-1on1-anjali": ("1:1 with Anjali", "responsibility-team-management", "Bi-weekly", "Bi-weekly 1:1 with Anjali. Cover: content quality, workload, professional development, feedback."),
         "procedure-quarterly-team-retro": ("Quarterly Team Retrospective", "responsibility-team-management", "Quarterly", "End-of-quarter team retrospective: what went well, what didn't, what to change."),
@@ -770,7 +771,7 @@ def generate_procedures():
             "Is A": "Procedure",
             "Belongs to": wl(responsibility),
             "Cadence": cadence,
-            "Owner": wl("person-srinivas-pendela"),
+            "Owner": wl("person-mira-sen"),
         }, f"# {proc_name}\n{body}")
 
 
@@ -832,7 +833,7 @@ def generate_tasks():
             "Is A": "Task",
             "Belongs to": wl(quarter),
             "Status": status,
-            "Owner": wl("person-srinivas-pendela"),
+            "Owner": wl("person-mira-sen"),
         }, f"# {rendered_title}\n")
 
 
@@ -876,7 +877,7 @@ def generate_events():
         month_slug = current_date.strftime("%Y-%m")
 
         if weekday == 0:
-            team = [wl("person-karthik-reddy"), wl("person-venkatesh-rao")]
+            team = [wl("person-arjun-mehta"), wl("person-venkatesh-rao")]
             if current_date >= anjali_joined:
                 team.append(wl("person-anjali-sharma"))
             write_md("event", f"event-team-sync-{day_slug}", {
@@ -895,7 +896,7 @@ def generate_events():
                 "Is A": "Event",
                 "Date": day_slug,
                 "Belongs to": wl(month_slug),
-                "Related to": [wl("person-srinivas-pendela")],
+                "Related to": [wl("person-mira-sen")],
                 "Tags": ["Health", "Sport"],
             }, f"# Cycling intervals — {day_slug}\n60-min interval session. 4x8min at threshold power.")
             event_count += 1
@@ -912,13 +913,13 @@ def generate_events():
             else:
                 quarter_label = quarter_label_for_date(current_date)
                 write_md("event", f"event-1on1-karthik-{day_slug}", {
-                    "aliases": [f"1:1 Karthik — {day_slug}"],
+                    "aliases": [f"1:1 Arjun — {day_slug}"],
                     "Is A": "Event",
                     "Date": day_slug,
                     "Belongs to": wl(month_slug),
-                    "Related to": [wl("person-karthik-reddy")],
+                    "Related to": [wl("person-arjun-mehta")],
                     "Tags": ["Work"],
-                }, f"# 1:1 Karthik — {day_slug}\nBi-weekly 1:1. Covered sponsor pipeline and Q{quarter_label} priorities.")
+                }, f"# 1:1 Arjun — {day_slug}\nBi-weekly 1:1. Covered sponsor pipeline and Q{quarter_label} priorities.")
             event_count += 1
 
         if weekday == 3:
@@ -953,10 +954,10 @@ def generate_events():
             event_count += 1
 
         if weekday == 5:
-            relations = [wl("person-srinivas-pendela")]
+            relations = [wl("person-mira-sen")]
             ride_note = "Solo long ride."
             if random.random() < 0.4:
-                relations = [wl("person-srinivas-pendela"), wl("person-suresh-naidu")]
+                relations = [wl("person-mira-sen"), wl("person-suresh-naidu")]
                 ride_note = "Long ride with Alessandro."
             write_md("event", f"event-long-ride-{day_slug}", {
                 "aliases": [f"Long ride — {day_slug}"],

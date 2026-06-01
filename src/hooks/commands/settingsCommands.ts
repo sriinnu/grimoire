@@ -2,12 +2,13 @@ import { APP_COMMAND_IDS, getAppCommandShortcutDisplay } from '../appCommandCata
 import type { CommandAction } from './types'
 import { rememberFeedbackDialogOpener } from '../../lib/feedbackDialogOpener'
 import {
+  APP_LOCALES,
   SYSTEM_UI_LANGUAGE,
-  createTranslator,
   localeDisplayName,
   type AppLocale,
   type UiLanguagePreference,
-} from '../../lib/i18n'
+} from '../../lib/i18nCore'
+import { createCommandTranslator } from '../../lib/i18nCommands'
 
 interface SettingsCommandsConfig {
   mcpStatus?: string
@@ -23,6 +24,7 @@ interface SettingsCommandsConfig {
   onInstallMcp?: () => void
   onReloadVault?: () => void
   onRepairVault?: () => void
+  onRevealVaultInFinder?: () => void
   locale?: AppLocale
   systemLocale?: AppLocale
   selectedUiLanguage?: UiLanguagePreference
@@ -33,18 +35,31 @@ function commandKeywords(raw: string): string[] {
   return raw.split(/\s+/).filter(Boolean)
 }
 
+function commandIdForLocale(locale: AppLocale): string {
+  return `switch-language-${locale.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+}
+
+function languageKeywords(locale: AppLocale): string[] {
+  const common = ['language', 'locale']
+  if (locale === 'en') return [...common, 'english', 'en']
+  if (locale === 'zh-Hans') return [...common, 'chinese', 'simplified', 'zh', '中文']
+  if (locale === 'de') return [...common, 'german', 'deutsch', 'de']
+  if (locale === 'hi') return [...common, 'hindi', 'hi', 'हिन्दी', 'हिंदी']
+  return [...common, 'sanskrit', 'sa', 'संस्कृत', 'संस्कृतम्']
+}
+
 function buildPrimarySettingsCommands({
   locale = 'en',
   onOpenSettings,
   onOpenFeedback,
   onCheckForUpdates,
 }: Pick<SettingsCommandsConfig, 'locale' | 'onOpenSettings' | 'onOpenFeedback' | 'onCheckForUpdates'>): CommandAction[] {
-  const t = createTranslator(locale)
+  const t = createCommandTranslator(locale)
   return [
     {
       id: 'open-settings',
       label: t('command.openSettings'),
-      group: 'Settings',
+      group: 'Settings' as const,
       shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.appSettings),
       keywords: commandKeywords(t('command.openSettings.keywords')),
       enabled: true,
@@ -53,7 +68,7 @@ function buildPrimarySettingsCommands({
     {
       id: 'open-h1-auto-rename-setting',
       label: t('command.openH1Setting'),
-      group: 'Settings',
+      group: 'Settings' as const,
       keywords: ['h1', 'title', 'filename', 'rename', 'auto', 'untitled', 'sync', 'preference'],
       enabled: true,
       execute: onOpenSettings,
@@ -80,7 +95,7 @@ function buildLanguageCommands({
   onOpenSettings,
   onSetUiLanguage,
 }: Pick<SettingsCommandsConfig, 'locale' | 'systemLocale' | 'selectedUiLanguage' | 'onOpenSettings' | 'onSetUiLanguage'>): CommandAction[] {
-  const t = createTranslator(locale)
+  const t = createCommandTranslator(locale)
   const canSwitchLanguage = !!onSetUiLanguage
 
   return [
@@ -100,22 +115,16 @@ function buildLanguageCommands({
       enabled: canSwitchLanguage && selectedUiLanguage !== SYSTEM_UI_LANGUAGE,
       execute: () => onSetUiLanguage?.(SYSTEM_UI_LANGUAGE),
     },
-    {
-      id: 'switch-language-en',
-      label: t('command.switchToEnglish'),
-      group: 'Settings',
-      keywords: ['language', 'locale', 'english', 'en'],
-      enabled: canSwitchLanguage && selectedUiLanguage !== 'en',
-      execute: () => onSetUiLanguage?.('en'),
-    },
-    {
-      id: 'switch-language-zh-hans',
-      label: t('command.switchToChinese'),
-      group: 'Settings',
-      keywords: ['language', 'locale', 'chinese', 'simplified', 'zh', '中文'],
-      enabled: canSwitchLanguage && selectedUiLanguage !== 'zh-Hans',
-      execute: () => onSetUiLanguage?.('zh-Hans'),
-    },
+    ...APP_LOCALES.map((targetLocale) => ({
+      id: commandIdForLocale(targetLocale),
+      label: t('command.switchLanguageTo', {
+        language: localeDisplayName(targetLocale, locale),
+      }),
+      group: 'Settings' as const,
+      keywords: languageKeywords(targetLocale),
+      enabled: canSwitchLanguage && selectedUiLanguage !== targetLocale,
+      execute: () => onSetUiLanguage?.(targetLocale),
+    })),
   ]
 }
 
@@ -126,10 +135,12 @@ function buildVaultSettingsCommands({
   onCreateEmptyVault,
   onRemoveActiveVault,
   onRestoreGettingStarted,
-}: Pick<SettingsCommandsConfig, 'vaultCount' | 'isGettingStartedHidden' | 'onOpenVault' | 'onCreateEmptyVault' | 'onRemoveActiveVault' | 'onRestoreGettingStarted'>): CommandAction[] {
+  onRevealVaultInFinder,
+}: Pick<SettingsCommandsConfig, 'vaultCount' | 'isGettingStartedHidden' | 'onOpenVault' | 'onCreateEmptyVault' | 'onRemoveActiveVault' | 'onRestoreGettingStarted' | 'onRevealVaultInFinder'>): CommandAction[] {
   return [
     { id: 'create-empty-vault', label: 'Create Empty Vault…', group: 'Settings', keywords: ['vault', 'create', 'new', 'empty', 'folder'], enabled: !!onCreateEmptyVault, execute: () => onCreateEmptyVault?.() },
     { id: 'open-vault', label: 'Open Vault…', group: 'Settings', keywords: ['vault', 'folder', 'switch', 'open', 'workspace'], enabled: true, execute: () => onOpenVault?.() },
+    { id: 'reveal-vault-in-finder', label: 'Reveal Vault in Finder', group: 'Settings', keywords: ['vault', 'finder', 'reveal', 'folder', 'local', 'files'], enabled: !!onRevealVaultInFinder, execute: () => onRevealVaultInFinder?.() },
     { id: 'remove-vault', label: 'Remove Vault from List', group: 'Settings', keywords: ['vault', 'remove', 'disconnect', 'hide'], enabled: (vaultCount ?? 0) > 1 && !!onRemoveActiveVault, execute: () => onRemoveActiveVault?.() },
     { id: 'restore-getting-started', label: 'Restore Getting Started Vault', group: 'Settings', keywords: ['vault', 'restore', 'demo', 'getting started', 'reset'], enabled: !!isGettingStartedHidden && !!onRestoreGettingStarted, execute: () => onRestoreGettingStarted?.() },
   ]
@@ -159,7 +170,7 @@ export function buildSettingsCommands(config: SettingsCommandsConfig): CommandAc
   const {
     mcpStatus, vaultCount, isGettingStartedHidden,
     onOpenSettings, onOpenFeedback, onOpenVault, onCreateEmptyVault, onRemoveActiveVault, onRestoreGettingStarted,
-    onCheckForUpdates, onInstallMcp, onReloadVault, onRepairVault,
+    onCheckForUpdates, onInstallMcp, onReloadVault, onRepairVault, onRevealVaultInFinder,
     locale = 'en', systemLocale = locale, selectedUiLanguage = SYSTEM_UI_LANGUAGE, onSetUiLanguage,
   } = config
 
@@ -179,6 +190,7 @@ export function buildSettingsCommands(config: SettingsCommandsConfig): CommandAc
       onCreateEmptyVault,
       onRemoveActiveVault,
       onRestoreGettingStarted,
+      onRevealVaultInFinder,
     }),
     ...buildMaintenanceCommands({ mcpStatus, onInstallMcp, onReloadVault, onRepairVault }),
   ]

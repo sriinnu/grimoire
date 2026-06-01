@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState, type CSSProperties, type FocusEvent as ReactFocusEvent, type ReactNode } from 'react'
 import { Activity, AlertTriangle, FolderOpen, GitBranch, GitCommitHorizontal, HardDrive, PenLine, RefreshCw, Sparkles } from 'lucide-react'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
+import { STATUS_BAR_FOREGROUND } from './styles'
 import {
   getAiAgentDefinition,
   hasAnyInstalledAiAgent,
@@ -12,6 +12,7 @@ import {
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
 import type { GitRemoteStatus, SyncStatus } from '../../types'
+import { StatusBarHint } from './StatusBarHint'
 import { useDismissibleLayer } from './useDismissibleLayer'
 
 type SpandaIntentKind = 'agent' | 'commit' | 'local' | 'resolve' | 'sync' | 'write'
@@ -52,34 +53,34 @@ interface SpandaCommand {
 
 const INTENT_TONE: Record<SpandaIntentKind, { accent: string; bg: string; ring: string }> = {
   agent: {
-    accent: 'var(--accent-purple)',
-    bg: 'color-mix(in srgb, var(--accent-purple) 14%, transparent)',
-    ring: 'color-mix(in srgb, var(--accent-purple) 42%, transparent)',
+    accent: 'var(--status-bar-agent-fg, var(--accent-purple))',
+    bg: 'color-mix(in srgb, var(--status-bar-agent-fg, var(--accent-purple)) 14%, transparent)',
+    ring: 'color-mix(in srgb, var(--status-bar-agent-fg, var(--accent-purple)) 42%, transparent)',
   },
   commit: {
-    accent: 'var(--accent-orange)',
-    bg: 'color-mix(in srgb, var(--accent-orange) 14%, transparent)',
-    ring: 'color-mix(in srgb, var(--accent-orange) 42%, transparent)',
+    accent: 'var(--status-bar-warning-fg, var(--accent-orange))',
+    bg: 'color-mix(in srgb, var(--status-bar-warning-fg, var(--accent-orange)) 14%, transparent)',
+    ring: 'color-mix(in srgb, var(--status-bar-warning-fg, var(--accent-orange)) 42%, transparent)',
   },
   local: {
-    accent: 'var(--accent-blue)',
-    bg: 'color-mix(in srgb, var(--accent-blue) 12%, transparent)',
-    ring: 'color-mix(in srgb, var(--accent-blue) 38%, transparent)',
+    accent: 'var(--status-bar-accent-fg, var(--accent-blue))',
+    bg: 'color-mix(in srgb, var(--status-bar-accent-fg, var(--accent-blue)) 12%, transparent)',
+    ring: 'color-mix(in srgb, var(--status-bar-accent-fg, var(--accent-blue)) 38%, transparent)',
   },
   resolve: {
-    accent: 'var(--accent-red)',
-    bg: 'color-mix(in srgb, var(--accent-red) 14%, transparent)',
-    ring: 'color-mix(in srgb, var(--accent-red) 46%, transparent)',
+    accent: 'var(--status-bar-danger-fg, var(--accent-red))',
+    bg: 'color-mix(in srgb, var(--status-bar-danger-fg, var(--accent-red)) 14%, transparent)',
+    ring: 'color-mix(in srgb, var(--status-bar-danger-fg, var(--accent-red)) 46%, transparent)',
   },
   sync: {
-    accent: 'var(--accent-blue)',
-    bg: 'color-mix(in srgb, var(--accent-blue) 12%, transparent)',
-    ring: 'color-mix(in srgb, var(--accent-blue) 38%, transparent)',
+    accent: 'var(--status-bar-accent-fg, var(--accent-blue))',
+    bg: 'color-mix(in srgb, var(--status-bar-accent-fg, var(--accent-blue)) 12%, transparent)',
+    ring: 'color-mix(in srgb, var(--status-bar-accent-fg, var(--accent-blue)) 38%, transparent)',
   },
   write: {
-    accent: 'var(--accent-green)',
-    bg: 'color-mix(in srgb, var(--accent-green) 12%, transparent)',
-    ring: 'color-mix(in srgb, var(--accent-green) 38%, transparent)',
+    accent: 'var(--status-bar-success-fg, var(--accent-green))',
+    bg: 'color-mix(in srgb, var(--status-bar-success-fg, var(--accent-green)) 12%, transparent)',
+    ring: 'color-mix(in srgb, var(--status-bar-success-fg, var(--accent-green)) 38%, transparent)',
   },
 }
 
@@ -234,8 +235,8 @@ function triggerStyle(kind: SpandaIntentKind): CSSProperties {
   return {
     background: tone.bg,
     border: `1px solid ${tone.ring}`,
-    boxShadow: `0 0 0 1px ${tone.bg}, inset 0 1px 0 color-mix(in srgb, var(--foreground) 8%, transparent)`,
-    color: 'var(--foreground)',
+    boxShadow: `0 0 0 1px ${tone.bg}, inset 0 1px 0 color-mix(in srgb, ${STATUS_BAR_FOREGROUND} 8%, transparent)`,
+    color: STATUS_BAR_FOREGROUND,
     transition: 'transform 160ms cubic-bezier(.2,.9,.2,1), background 160ms ease, border-color 160ms ease',
   }
 }
@@ -307,7 +308,7 @@ export function SpandaRailIntent(props: SpandaRailIntentProps) {
       }}
       style={{ position: 'relative' }}
     >
-      <ActionTooltip copy={{ label: intent.description }} side="top">
+      <StatusBarHint copy={{ label: intent.description }}>
         <Button
           type="button"
           variant="ghost"
@@ -333,7 +334,7 @@ export function SpandaRailIntent(props: SpandaRailIntentProps) {
             </>
           )}
         </Button>
-      </ActionTooltip>
+      </StatusBarHint>
       {open && (
         <div
           data-testid="spanda-command-bloom"

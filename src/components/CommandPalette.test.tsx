@@ -181,6 +181,8 @@ describe('CommandPalette', () => {
   it('shows search input when open', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
     expect(screen.getByPlaceholderText('Type a command...')).toBeInTheDocument()
+    expect(screen.getByTestId('command-palette-surface')).toHaveClass('grimoire-command-stage')
+    expect(screen.getByTestId('command-palette-surface')).toHaveClass('grimoire-command-surface')
   })
 
   it('opts the command input out of spellcheck and text correction', () => {

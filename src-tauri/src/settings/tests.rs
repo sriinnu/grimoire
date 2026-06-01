@@ -1,5 +1,7 @@
 use super::*;
 
+mod appearance;
+
 fn assert_empty_settings(settings: &Settings) {
     assert_eq!(settings, &Settings::default());
 }
@@ -10,19 +12,6 @@ fn save_and_reload(settings: Settings) -> Settings {
     let path = dir.path().join("settings.json");
     save_settings_at(&path, settings).unwrap();
     get_settings_at(&path).unwrap()
-}
-
-fn create_last_vault_path(path_parts: &[&str]) -> (tempfile::TempDir, PathBuf) {
-    let dir = tempfile::TempDir::new().unwrap();
-    let path = path_parts
-        .iter()
-        .fold(dir.path().to_path_buf(), |acc, part| acc.join(part));
-    (dir, path)
-}
-
-fn write_and_assert_last_vault(path: &PathBuf, value: &str) {
-    set_last_vault_at(path, value).unwrap();
-    assert_eq!(get_last_vault_at(path).as_deref(), Some(value));
 }
 
 #[test]
@@ -44,10 +33,12 @@ fn test_settings_json_roundtrip() {
         anonymous_id: Some("abc-123-uuid".to_string()),
         release_channel: Some("alpha".to_string()),
         theme_mode: Some("dark".to_string()),
-        theme_preset: Some("manuscript".to_string()),
-        editor_font: Some("serif".to_string()),
+        theme_preset: Some("living-archive".to_string()),
+        editor_font: Some("literary".to_string()),
+        editor_line_height: Some("compact".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
+        native_shell_material: Some("unified".to_string()),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
         ai_agent_models: Some(BTreeMap::from([(
@@ -58,6 +49,8 @@ fn test_settings_json_roundtrip() {
             "chitragupta".to_string(),
             "openai".to_string(),
         )])),
+        transcription_provider: Some("local_voice_model".to_string()),
+        cloud_transcription_enabled: Some(false),
     };
     let json = serde_json::to_string(&settings).unwrap();
     let parsed: Settings = serde_json::from_str(&json).unwrap();
@@ -82,12 +75,16 @@ fn test_save_and_load_preserves_values() {
         auto_advance_inbox_after_organize: Some(true),
         release_channel: Some("alpha".to_string()),
         theme_mode: Some("dark".to_string()),
-        theme_preset: Some("manuscript".to_string()),
-        editor_font: Some("serif".to_string()),
+        theme_preset: Some("living-archive".to_string()),
+        editor_font: Some("literary".to_string()),
+        editor_line_height: Some("spacious".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
+        native_shell_material: Some("glass-preview".to_string()),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
+        transcription_provider: Some("local_whisper".to_string()),
+        cloud_transcription_enabled: Some(false),
         ..Default::default()
     });
     assert_eq!(loaded.auto_pull_interval_minutes, Some(10));
@@ -97,12 +94,22 @@ fn test_save_and_load_preserves_values() {
     assert_eq!(loaded.auto_advance_inbox_after_organize, Some(true));
     assert_eq!(loaded.release_channel.as_deref(), Some("alpha"));
     assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
-    assert_eq!(loaded.theme_preset.as_deref(), Some("manuscript"));
-    assert_eq!(loaded.editor_font.as_deref(), Some("serif"));
+    assert_eq!(loaded.theme_preset.as_deref(), Some("living-archive"));
+    assert_eq!(loaded.editor_font.as_deref(), Some("literary"));
+    assert_eq!(loaded.editor_line_height.as_deref(), Some("spacious"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
     assert_eq!(loaded.menu_bar_icon_enabled, Some(true));
+    assert_eq!(
+        loaded.native_shell_material.as_deref(),
+        Some("glass-preview")
+    );
     assert_eq!(loaded.initial_h1_auto_rename_enabled, Some(false));
     assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
+    assert_eq!(
+        loaded.transcription_provider.as_deref(),
+        Some("local_whisper")
+    );
+    assert_eq!(loaded.cloud_transcription_enabled, Some(false));
 }
 
 #[test]
@@ -140,11 +147,7 @@ fn test_save_preserves_ai_agent_providers() {
     });
 
     let providers = loaded.ai_agent_providers.unwrap();
-    assert_eq!(
-        providers.get("claude_code").map(String::as_str),
-        Some("anthropic")
-    );
-    assert_eq!(providers.get("codex").map(String::as_str), Some("openai"));
+    assert_eq!(providers.len(), 1);
     assert_eq!(
         providers.get("chitragupta").map(String::as_str),
         Some("deepseek")
@@ -159,6 +162,7 @@ fn test_save_trims_whitespace() {
         theme_mode: Some("  dark  ".to_string()),
         theme_preset: Some("  nocturne  ".to_string()),
         editor_font: Some("  literary  ".to_string()),
+        native_shell_material: Some("  UNIFIED  ".to_string()),
         ui_language: Some("  zh-cn  ".to_string()),
         default_ai_agent: Some("  codex  ".to_string()),
         ..Default::default()
@@ -168,6 +172,7 @@ fn test_save_trims_whitespace() {
     assert_eq!(loaded.theme_mode.as_deref(), Some("dark"));
     assert_eq!(loaded.theme_preset.as_deref(), Some("nocturne"));
     assert_eq!(loaded.editor_font.as_deref(), Some("literary"));
+    assert_eq!(loaded.native_shell_material.as_deref(), Some("unified"));
     assert_eq!(loaded.ui_language.as_deref(), Some("zh-Hans"));
     assert_eq!(loaded.default_ai_agent.as_deref(), Some("codex"));
 }
@@ -240,8 +245,8 @@ fn test_invalid_ai_agent_providers_are_filtered() {
     let loaded = save_and_reload(Settings {
         ai_agent_providers: Some(BTreeMap::from([
             ("cursor".to_string(), "openai".to_string()),
-            ("chitragupta".to_string(), "bad provider".to_string()),
             ("claude_code".to_string(), "  anthropic  ".to_string()),
+            ("chitragupta".to_string(), "  deepseek  ".to_string()),
         ])),
         ..Default::default()
     });
@@ -249,72 +254,33 @@ fn test_invalid_ai_agent_providers_are_filtered() {
     let providers = loaded.ai_agent_providers.unwrap();
     assert_eq!(providers.len(), 1);
     assert_eq!(
-        providers.get("claude_code").map(String::as_str),
-        Some("anthropic")
+        providers.get("chitragupta").map(String::as_str),
+        Some("deepseek")
     );
 }
 
 #[test]
-fn test_invalid_theme_mode_is_filtered() {
+fn test_chitragupta_provider_with_whitespace_is_filtered() {
     let loaded = save_and_reload(Settings {
-        theme_mode: Some("system".to_string()),
+        ai_agent_providers: Some(BTreeMap::from([(
+            "chitragupta".to_string(),
+            "bad provider".to_string(),
+        )])),
         ..Default::default()
     });
-    assert!(loaded.theme_mode.is_none());
+
+    assert!(loaded.ai_agent_providers.is_none());
 }
 
 #[test]
-fn test_expanded_theme_presets_are_supported() {
-    for preset in ["aether", "ion", "moss", "lumen", "lotus", "ember"] {
-        assert_eq!(
-            normalize_theme_preset(Some(preset)).as_deref(),
-            Some(preset)
-        );
-    }
-}
-
-#[test]
-fn test_retired_theme_presets_are_filtered() {
-    for preset in ["retro", "aurora", "future"] {
-        assert!(normalize_theme_preset(Some(preset)).is_none());
-    }
-}
-
-#[test]
-fn test_handwritten_editor_font_is_supported() {
-    assert_eq!(
-        normalize_editor_font(Some("handwritten")).as_deref(),
-        Some("handwritten")
-    );
-}
-
-#[test]
-fn test_invalid_appearance_settings_are_filtered() {
+fn test_invalid_transcription_provider_is_filtered() {
     let loaded = save_and_reload(Settings {
-        theme_preset: Some("neon".to_string()),
-        editor_font: Some("papyrus".to_string()),
+        transcription_provider: Some("cloudy".to_string()),
+        cloud_transcription_enabled: Some(true),
         ..Default::default()
     });
-    assert!(loaded.theme_preset.is_none());
-    assert!(loaded.editor_font.is_none());
-}
-
-#[test]
-fn test_invalid_ui_language_is_filtered() {
-    let loaded = save_and_reload(Settings {
-        ui_language: Some("fr-FR".to_string()),
-        ..Default::default()
-    });
-    assert!(loaded.ui_language.is_none());
-}
-
-#[test]
-fn test_ui_language_aliases_are_canonicalized() {
-    assert_eq!(normalize_ui_language(Some("en-US")).as_deref(), Some("en"));
-    assert_eq!(
-        normalize_ui_language(Some("zh_CN")).as_deref(),
-        Some("zh-Hans")
-    );
+    assert!(loaded.transcription_provider.is_none());
+    assert_eq!(loaded.cloud_transcription_enabled, Some(true));
 }
 
 #[test]
@@ -414,45 +380,4 @@ fn test_preferred_settings_path_uses_grimoire_namespace() {
         .to_str()
         .unwrap()
         .contains("com.grimoire.app"));
-}
-
-#[test]
-fn test_get_last_vault_returns_none_for_missing_file() {
-    let dir = tempfile::TempDir::new().unwrap();
-    let path = dir.path().join("last-vault.txt");
-    assert!(get_last_vault_at(&path).is_none());
-}
-
-#[test]
-fn test_set_and_get_last_vault_roundtrip() {
-    let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/MyVault");
-}
-
-#[test]
-fn test_set_last_vault_trims_whitespace() {
-    let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/Vault");
-}
-
-#[test]
-fn test_get_last_vault_returns_none_for_empty_file() {
-    let dir = tempfile::TempDir::new().unwrap();
-    let path = dir.path().join("last-vault.txt");
-    fs::write(&path, "   \n  ").unwrap();
-    assert!(get_last_vault_at(&path).is_none());
-}
-
-#[test]
-fn test_set_last_vault_creates_parent_directories() {
-    let (_dir, path) = create_last_vault_path(&["nested", "dir", "last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/Vault");
-    assert!(path.exists());
-}
-
-#[test]
-fn test_set_last_vault_overwrites_previous() {
-    let (_dir, path) = create_last_vault_path(&["last-vault.txt"]);
-    write_and_assert_last_vault(&path, "/Users/test/OldVault");
-    write_and_assert_last_vault(&path, "/Users/test/NewVault");
 }

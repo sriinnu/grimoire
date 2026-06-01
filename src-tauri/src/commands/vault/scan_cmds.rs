@@ -1,10 +1,43 @@
 use crate::commands::expand_tilde;
 use crate::search::SearchResponse;
-use crate::vault::VaultEntry;
+use crate::vault::{VaultEntry, VaultRebuildProgressEvent};
 use crate::{search, vault, vault_list};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Arc, Mutex, OnceLock};
+use tauri::ipc::Channel;
 
 use super::boundary::{with_validated_path, ValidatedPathMode};
+use super::portability_progress::{
+    operation_id_error, register_portability_operation, unregister_portability_operation,
+};
+
+static ACTIVE_RELOAD_CANCELLATION: OnceLock<Mutex<Option<Arc<AtomicBool>>>> = OnceLock::new();
+
+fn reload_cancellation_slot() -> &'static Mutex<Option<Arc<AtomicBool>>> {
+    ACTIVE_RELOAD_CANCELLATION.get_or_init(|| Mutex::new(None))
+}
+
+fn begin_reload_scan() -> Arc<AtomicBool> {
+    let token = Arc::new(AtomicBool::new(false));
+    if let Ok(mut slot) = reload_cancellation_slot().lock() {
+        if let Some(previous) = slot.replace(token.clone()) {
+            previous.store(true, Ordering::SeqCst);
+        }
+    }
+    token
+}
+
+fn finish_reload_scan(token: &Arc<AtomicBool>) {
+    if let Ok(mut slot) = reload_cancellation_slot().lock() {
+        if slot
+            .as_ref()
+            .is_some_and(|current| Arc::ptr_eq(current, token))
+        {
+            *slot = None;
+        }
+    }
+}
 
 fn collect_registered_vault_roots(vault_list: &vault_list::VaultList) -> Vec<PathBuf> {
     let mut roots = vault_list
@@ -82,12 +115,52 @@ pub async fn reload_vault(
 ) -> Result<Vec<crate::vault::VaultEntry>, String> {
     let path = expand_tilde(&path).into_owned();
     crate::sync_vault_asset_scope(&app_handle, Path::new(&path))?;
-    tokio::task::spawn_blocking(move || {
-        vault::invalidate_cache(Path::new(&path));
-        vault::scan_vault_cached(Path::new(&path))
+    let cancellation = begin_reload_scan();
+    let cleanup_cancellation = cancellation.clone();
+    let task_result = tokio::task::spawn_blocking(move || {
+        let vault_path = Path::new(&path);
+        vault::invalidate_cache(vault_path);
+        let git_dates = crate::git::get_all_file_dates(vault_path);
+        let result =
+            vault::scan_vault_with_progress(vault_path, &git_dates, cancellation.as_ref(), &|_| {});
+        finish_reload_scan(&cancellation);
+        result
     })
-    .await
-    .map_err(|e| format!("Task panicked: {e}"))?
+    .await;
+    if task_result.is_err() {
+        finish_reload_scan(&cleanup_cancellation);
+    }
+    task_result.map_err(|e| format!("Task panicked: {e}"))?
+}
+
+#[tauri::command]
+pub async fn reload_vault_with_progress(
+    app_handle: tauri::AppHandle,
+    path: String,
+    operation_id: String,
+    on_event: Channel<VaultRebuildProgressEvent>,
+) -> Result<(), String> {
+    if let Some(error) = operation_id_error(&operation_id) {
+        return Err(error);
+    }
+
+    let path = expand_tilde(&path).into_owned();
+    crate::sync_vault_asset_scope(&app_handle, Path::new(&path))?;
+    let cancellation = register_portability_operation(&operation_id)?;
+    let cleanup_operation_id = operation_id.clone();
+    let task_result = tauri::async_runtime::spawn_blocking(move || {
+        let vault_path = Path::new(&path);
+        vault::invalidate_cache(vault_path);
+        let git_dates = crate::git::get_all_file_dates(vault_path);
+        vault::scan_vault_with_progress(vault_path, &git_dates, cancellation.as_ref(), &|event| {
+            let _ = on_event.send(event);
+        })
+    })
+    .await;
+
+    unregister_portability_operation(&cleanup_operation_id);
+    let result = task_result.map_err(|e| format!("Vault reload task failed: {e}"))?;
+    result.map(|_| ())
 }
 
 #[tauri::command]
@@ -106,8 +179,12 @@ pub async fn search_vault(
 
 #[cfg(test)]
 mod tests {
-    use super::{collect_registered_vault_roots, find_registered_vault_root};
+    use super::{
+        begin_reload_scan, collect_registered_vault_roots, find_registered_vault_root,
+        finish_reload_scan,
+    };
     use crate::vault_list::{VaultEntry as VaultListEntry, VaultList};
+    use std::sync::atomic::Ordering;
 
     fn vault_entry(label: &str, path: String) -> VaultListEntry {
         VaultListEntry {
@@ -170,5 +247,17 @@ mod tests {
             find_registered_vault_root(canonical_note_path.as_path(), &registered_roots),
             Some(nested_root),
         );
+    }
+
+    #[test]
+    fn starting_reload_scan_cancels_previous_scan() {
+        let first = begin_reload_scan();
+        assert!(!first.load(Ordering::SeqCst));
+
+        let second = begin_reload_scan();
+        assert!(first.load(Ordering::SeqCst));
+        assert!(!second.load(Ordering::SeqCst));
+
+        finish_reload_scan(&second);
     }
 }

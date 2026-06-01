@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import {
   Dialog,
   DialogContent,

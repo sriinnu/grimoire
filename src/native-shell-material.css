@@ -1,0 +1,46 @@
+:root[data-native-shell-material="standard"] {
+  --grimoire-native-titlebar-material: transparent;
+  --grimoire-native-titlebar-border: transparent;
+}
+
+:root[data-native-shell-material="unified"] {
+  --grimoire-native-titlebar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 92%, var(--surface-panel)), color-mix(in srgb, var(--surface-sidebar) 78%, transparent));
+  --grimoire-native-sidebar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 96%, var(--surface-panel)), var(--surface-sidebar));
+  --grimoire-native-titlebar-border: color-mix(in srgb, var(--sidebar-border) 72%, transparent);
+}
+
+:root[data-native-shell-material="glass-preview"] {
+  --grimoire-native-titlebar-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--sidebar-primary) 14%, transparent), transparent 20rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 78%, transparent), color-mix(in srgb, var(--surface-panel) 42%, transparent));
+  --grimoire-native-sidebar-material: linear-gradient(160deg, color-mix(in srgb, var(--surface-sidebar) 84%, transparent), color-mix(in srgb, var(--surface-panel) 36%, var(--surface-sidebar)));
+  --grimoire-native-titlebar-border: color-mix(in srgb, var(--sidebar-primary) 22%, var(--sidebar-border));
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material] body.macos-overlay-chrome .app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material] body.macos-overlay-chrome .app-shell::before {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: var(--sidebar-title-bar-height, 92px);
+  pointer-events: none;
+  background: var(--grimoire-native-titlebar-material);
+  border-bottom: 1px solid var(--grimoire-native-titlebar-border);
+  content: "";
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material] body.macos-overlay-chrome .app {
+  position: relative;
+  z-index: 1;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material] body.macos-overlay-chrome :is(.app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+  background: var(--grimoire-native-sidebar-material) !important;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material] body.macos-overlay-chrome :is(.note-list-chrome-row, .breadcrumb-bar, .inspector-header) {
+  background: var(--grimoire-native-titlebar-material) !important;
+  border-bottom-color: var(--grimoire-native-titlebar-border) !important;
+}

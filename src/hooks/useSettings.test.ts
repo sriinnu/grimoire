@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from '../lib/tauriRuntime'
 import type { Settings } from '../types'
 import { useSettings } from './useSettings'
 
@@ -18,9 +18,13 @@ const defaultSettings: Settings = {
   theme_mode: null,
   theme_preset: null,
   editor_font: null,
+  editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: null,
+  native_shell_material: null,
   default_ai_agent: null,
+  transcription_provider: null,
+  cloud_transcription_enabled: null,
 }
 
 const savedSettings: Settings = {
@@ -37,9 +41,19 @@ const savedSettings: Settings = {
   theme_mode: null,
   theme_preset: null,
   editor_font: null,
+  editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: true,
+  native_shell_material: 'unified',
   default_ai_agent: null,
+  transcription_provider: 'local_whisper',
+  cloud_transcription_enabled: false,
+}
+
+const loadedDefaultSettings: Settings = {
+  ...defaultSettings,
+  transcription_provider: 'local_whisper',
+  cloud_transcription_enabled: false,
 }
 
 let mockSettingsStore: Settings = { ...defaultSettings }
@@ -56,6 +70,9 @@ const mockInvokeFn = vi.fn((cmd: string, args?: Record<string, unknown>): Promis
 const nativeInvoke = vi.mocked(invoke)
 
 vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn(),
+}))
+vi.mock('../lib/tauriRuntime', () => ({
   invoke: vi.fn(),
 }))
 
@@ -87,11 +104,15 @@ function changedSettings(): Settings {
     anonymous_id: null,
     release_channel: null,
     theme_mode: null,
-    theme_preset: 'manuscript',
-    editor_font: 'serif',
+    theme_preset: 'living-archive',
+    editor_font: 'literary',
+    editor_line_height: 'compact',
     ui_language: 'zh-Hans',
     menu_bar_icon_enabled: false,
+    native_shell_material: 'glass-preview',
     default_ai_agent: null,
+    transcription_provider: 'local_voice_model',
+    cloud_transcription_enabled: false,
   }
 }
 
@@ -120,6 +141,7 @@ describe('useSettings', () => {
     })
 
     expect(result.current.settings.auto_pull_interval_minutes).toBe(15)
+    expect(result.current.settings.native_shell_material).toBe('unified')
     expect(mockInvokeFn).toHaveBeenCalledWith('get_settings', {})
   })
 
@@ -220,7 +242,7 @@ describe('useSettings', () => {
     })
 
     // Settings should not have changed on error
-    expect(result.current.settings).toEqual(defaultSettings)
+    expect(result.current.settings).toEqual(loadedDefaultSettings)
     errorSpy.mockRestore()
   })
 })

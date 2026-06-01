@@ -1,14 +1,7 @@
 import {
-  type Dispatch, type Ref, type RefObject, type SetStateAction,
+  lazy, Suspense, type Dispatch, type Ref, type RefObject, type SetStateAction,
 } from 'react'
 import type { VaultEntry, SidebarSelection, ViewFile } from '../../types'
-import {
-  DndContext, closestCenter, useSensors, type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  SortableContext, useSortable, verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { PanelLeftClose, SlidersHorizontal } from 'lucide-react'
 import {
   Plus,
@@ -18,7 +11,6 @@ import { Button } from '@/components/ui/button'
 import {
   type SectionGroup, isSelectionActive, SectionContent, VisibilityPopover,
 } from '../SidebarParts'
-import { TypeCustomizePopover } from '../TypeCustomizePopover'
 import { useDragRegion } from '../../hooks/useDragRegion'
 import { NoteDropTarget } from '../note-retargeting/NoteDropTarget'
 import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingContext'
@@ -28,6 +20,11 @@ import { countByFilter } from '../../utils/noteListHelpers'
 
 export { SidebarTopNav } from './SidebarTopNav'
 export { FavoritesSection } from './FavoritesSection'
+
+const LazySortableTypesSection = lazy(() => import('./SortableTypesSection')
+  .then((module) => ({ default: module.SortableTypesSection })))
+const LazyTypeCustomizePopover = lazy(() => import('../TypeCustomizePopover')
+  .then((module) => ({ default: module.TypeCustomizePopover })))
 
 export interface SidebarSectionProps {
   entries: VaultEntry[]
@@ -91,7 +88,7 @@ export function ViewsSection({
   )
 }
 
-function SortableSection({
+function StaticSection({
   group,
   sectionProps,
 }: {
@@ -99,7 +96,6 @@ function SortableSection({
   sectionProps: SidebarSectionProps
 }) {
   const noteRetargeting = useNoteRetargetingContext()
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: group.type })
   const itemCount = countByFilter(sectionProps.entries, group.type).open
   const isRenaming = sectionProps.renamingType === group.type
   const content = (
@@ -109,7 +105,6 @@ function SortableSection({
       selection={sectionProps.selection}
       onSelect={sectionProps.onSelect}
       onContextMenu={sectionProps.onContextMenu}
-      dragHandleProps={listeners}
       isRenaming={isRenaming}
       renameInitialValue={isRenaming ? sectionProps.renameInitialValue : undefined}
       onRenameSubmit={sectionProps.onRenameSubmit}
@@ -118,16 +113,7 @@ function SortableSection({
   )
 
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0.5 : 1,
-        padding: '0 6px',
-      }}
-      {...attributes}
-    >
+    <div style={{ padding: '0 6px' }}>
       {noteRetargeting ? (
         <NoteDropTarget
           canAcceptNotePath={(notePath) => noteRetargeting.canDropNoteOnType(notePath, group.type)}
@@ -140,12 +126,27 @@ function SortableSection({
   )
 }
 
+function StaticTypesSectionList({
+  visibleSections,
+  sectionProps,
+}: {
+  visibleSections: SectionGroup[]
+  sectionProps: SidebarSectionProps
+}) {
+  return (
+    <>
+      {visibleSections.map((group) => (
+        <StaticSection key={group.type} group={group} sectionProps={sectionProps} />
+      ))}
+    </>
+  )
+}
+
 export function TypesSection({
   visibleSections,
   allSectionGroups,
   sectionIds,
-  sensors,
-  handleDragEnd,
+  onReorderSections,
   sectionProps,
   collapsed,
   onToggle,
@@ -159,8 +160,7 @@ export function TypesSection({
   visibleSections: SectionGroup[]
   allSectionGroups: SectionGroup[]
   sectionIds: string[]
-  sensors: ReturnType<typeof useSensors>
-  handleDragEnd: (event: DragEndEvent) => void
+  onReorderSections?: (orderedTypes: { typeName: string; order: number }[]) => void
   sectionProps: SidebarSectionProps
   collapsed: boolean
   onToggle: () => void
@@ -171,6 +171,18 @@ export function TypesSection({
   onCreateNewType?: () => void
   customizeRef: RefObject<HTMLDivElement | null>
 }) {
+  const staticList = <StaticTypesSectionList visibleSections={visibleSections} sectionProps={sectionProps} />
+  const sectionList = onReorderSections && sectionIds.length > 1 ? (
+    <Suspense fallback={staticList}>
+      <LazySortableTypesSection
+        visibleSections={visibleSections}
+        sectionIds={sectionIds}
+        sectionProps={sectionProps}
+        onReorderSections={onReorderSections}
+      />
+    </Suspense>
+  ) : staticList
+
   return (
     <div className="border-b border-border">
       <div ref={customizeRef} style={{ position: 'relative', padding: '0 6px' }}>
@@ -211,15 +223,7 @@ export function TypesSection({
           />
         )}
       </div>
-      {!collapsed && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
-            {visibleSections.map((group) => (
-              <SortableSection key={group.type} group={group} sectionProps={sectionProps} />
-            ))}
-          </SortableContext>
-        </DndContext>
-      )}
+      {!collapsed && sectionList}
     </div>
   )
 }
@@ -254,8 +258,8 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
         </span>
         <span className="flex min-w-0 flex-col leading-none" style={{ textAlign: 'left' }}>
           <span
-            className="truncate text-[18px] font-semibold tracking-normal text-foreground"
-            style={{ fontFamily: 'var(--grimoire-display-font-family)', lineHeight: 1, textAlign: 'left' }}
+            className="sidebar-brand-wordmark truncate"
+            style={{ textAlign: 'left' }}
           >
             Grimoire
           </span>
@@ -334,15 +338,17 @@ export function CustomizeOverlay({
 
   return (
     <div ref={innerRef} className="fixed z-50" style={{ left: 20, top: 100 }}>
-      <TypeCustomizePopover
-        currentIcon={typeEntryMap[target]?.icon ?? null}
-        currentColor={typeEntryMap[target]?.color ?? null}
-        currentTemplate={typeEntryMap[target]?.template ?? null}
-        onChangeIcon={(icon) => onCustomize('icon', icon)}
-        onChangeColor={(color) => onCustomize('color', color)}
-        onChangeTemplate={onChangeTemplate}
-        onClose={onClose}
-      />
+      <Suspense fallback={null}>
+        <LazyTypeCustomizePopover
+          currentIcon={typeEntryMap[target]?.icon ?? null}
+          currentColor={typeEntryMap[target]?.color ?? null}
+          currentTemplate={typeEntryMap[target]?.template ?? null}
+          onChangeIcon={(icon) => onCustomize('icon', icon)}
+          onChangeColor={(color) => onCustomize('color', color)}
+          onChangeTemplate={onChangeTemplate}
+          onClose={onClose}
+        />
+      </Suspense>
     </div>
   )
 }

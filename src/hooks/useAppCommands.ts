@@ -1,209 +1,20 @@
 import { useCallback, useRef } from 'react'
-import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
-import type { AppLocale, UiLanguagePreference } from '../lib/i18n'
-import type { VaultAiGuidanceStatus } from '../lib/vaultAiGuidance'
 import { useAppKeyboard } from './useAppKeyboard'
 import { useCommandRegistry } from './useCommandRegistry'
 import type { CommandAction } from './useCommandRegistry'
 import { useKeyboardNavigation } from './useKeyboardNavigation'
 import { useMenuEvents } from './useMenuEvents'
-import type { NoteLayout, SidebarSelection, SidebarFilter, VaultEntry } from '../types'
+import type { SidebarFilter } from '../types'
 import { requestAddRemote } from '../utils/addRemoteEvents'
-import type { NoteListFilter } from '../utils/noteListHelpers'
-import type { ViewMode } from './useViewMode'
-import type { NoteListMultiSelectionCommands } from '../components/note-list/multiSelectionCommands'
-
-interface AppCommandsConfig {
-  activeTabPath: string | null
-  activeTabPathRef: React.MutableRefObject<string | null>
-  entries: VaultEntry[]
-  visibleNotesRef: React.RefObject<VaultEntry[]>
-  multiSelectionCommandRef: React.MutableRefObject<NoteListMultiSelectionCommands | null>
-  modifiedCount: number
-  isGitVault?: boolean
-  selection: SidebarSelection
-  onQuickOpen: () => void
-  onCommandPalette: () => void
-  onSearch: () => void
-  onCreateNote: () => void
-  onCreateNoteOfType: (type: string) => void
-  onSave: () => void
-  onOpenSettings: () => void
-  onOpenFeedback?: () => void
-  onDeleteNote: (path: string) => void
-  onArchiveNote: (path: string) => void
-  onUnarchiveNote: (path: string) => void
-  onCommitPush: () => void
-  onPull?: () => void
-  onResolveConflicts?: () => void
-  onSetViewMode: (mode: ViewMode) => void
-  onToggleInspector: () => void
-  onToggleDiff?: () => void
-  onToggleRawEditor?: () => void
-  noteLayout?: NoteLayout
-  onToggleNoteLayout?: () => void
-  activeNoteModified: boolean
-  onZoomIn: () => void
-  onZoomOut: () => void
-  onZoomReset: () => void
-  zoomLevel: number
-  onSelect: (sel: SidebarSelection) => void
-  onRenameFolder?: () => void
-  onDeleteFolder?: () => void
-  showInbox?: boolean
-  onReplaceActiveTab: (entry: VaultEntry) => void
-  onSelectNote: (entry: VaultEntry) => void
-  onGoBack?: () => void
-  onGoForward?: () => void
-  canGoBack?: boolean
-  canGoForward?: boolean
-  onOpenVault?: () => void
-  onCreateEmptyVault?: () => void
-  onAddRemote?: () => void
-  canAddRemote?: boolean
-  onCreateType?: () => void
-  onToggleAIChat?: () => void
-  onOpenGraph?: () => void
-  onCheckForUpdates?: () => void
-  onRemoveActiveVault?: () => void
-  onRestoreGettingStarted?: () => void
-  isGettingStartedHidden?: boolean
-  vaultCount?: number
-  locale?: AppLocale
-  systemLocale?: AppLocale
-  selectedUiLanguage?: UiLanguagePreference
-  onSetUiLanguage?: (language: UiLanguagePreference) => void
-  mcpStatus?: string
-  onInstallMcp?: () => void
-  aiAgentsStatus?: AiAgentsStatus
-  vaultAiGuidanceStatus?: VaultAiGuidanceStatus
-  onOpenAiAgents?: () => void
-  onRestoreVaultAiGuidance?: () => void
-  onSetDefaultAiAgent?: (agent: AiAgentId) => void
-  selectedAiAgent?: AiAgentId
-  onCycleDefaultAiAgent?: () => void
-  selectedAiAgentLabel?: string
-  claudeCodeStatus?: string
-  claudeCodeVersion?: string
-  onReloadVault?: () => void
-  onRepairVault?: () => void
-  onSetNoteIcon?: () => void
-  onRemoveNoteIcon?: () => void
-  onChangeNoteType?: () => void
-  onMoveNoteToFolder?: () => void
-  canMoveNoteToFolder?: boolean
-  activeNoteHasIcon?: boolean
-  noteListFilter?: NoteListFilter
-  onSetNoteListFilter?: (filter: NoteListFilter) => void
-  onOpenInNewWindow?: () => void
-  onToggleFavorite?: (path: string) => void
-  onToggleOrganized?: (path: string) => void
-  onInsertWeatherSnapshot?: () => void
-  onTranscribeAudio?: () => void
-  onCustomizeNoteListColumns?: () => void
-  canCustomizeNoteListColumns?: boolean
-  noteListColumnsLabel?: string
-  onRestoreDeletedNote?: () => void
-  canRestoreDeletedNote?: boolean
-}
-
-type CommandRegistryConfig = Parameters<typeof useCommandRegistry>[0]
-type CommandRegistrySelectionState = Pick<
+import type {
+  AppCommandsConfig,
+  CommandRegistryAiActions,
   CommandRegistryConfig,
-  | 'activeNoteModified'
-  | 'onZoomIn'
-  | 'onZoomOut'
-  | 'onZoomReset'
-  | 'zoomLevel'
-  | 'onSelect'
-  | 'onRenameFolder'
-  | 'onDeleteFolder'
-  | 'showInbox'
-  | 'onGoBack'
-  | 'onGoForward'
-  | 'canGoBack'
-  | 'canGoForward'
-  | 'selection'
->
-type CommandRegistryCoreActions = Pick<
-  CommandRegistryConfig,
-  | 'activeTabPath'
-  | 'entries'
-  | 'modifiedCount'
-  | 'onQuickOpen'
-  | 'onCreateNote'
-  | 'onCreateNoteOfType'
-  | 'onSave'
-  | 'onOpenSettings'
-  | 'onOpenFeedback'
-  | 'onDeleteNote'
-  | 'onArchiveNote'
-  | 'onUnarchiveNote'
-  | 'onCommitPush'
-  | 'onPull'
-  | 'onResolveConflicts'
-  | 'onSetViewMode'
-  | 'onToggleInspector'
-  | 'onToggleDiff'
-  | 'onToggleRawEditor'
-  | 'noteLayout'
-  | 'onToggleNoteLayout'
-  | 'onToggleAIChat'
-  | 'onOpenGraph'
->
-type CommandRegistryVaultActions = Pick<
-  CommandRegistryConfig,
-  | 'onOpenVault'
-  | 'onCreateEmptyVault'
-  | 'onAddRemote'
-  | 'canAddRemote'
-  | 'onCheckForUpdates'
-  | 'onCreateType'
-  | 'locale'
-  | 'systemLocale'
-  | 'selectedUiLanguage'
-  | 'onSetUiLanguage'
-  | 'onRemoveActiveVault'
-  | 'onRestoreGettingStarted'
-  | 'isGettingStartedHidden'
-  | 'vaultCount'
-  | 'onReloadVault'
-  | 'onRepairVault'
-  | 'onOpenInNewWindow'
-  | 'onRestoreDeletedNote'
-  | 'canRestoreDeletedNote'
->
-type CommandRegistryAiActions = Pick<
-  CommandRegistryConfig,
-  | 'mcpStatus'
-  | 'onInstallMcp'
-  | 'aiAgentsStatus'
-  | 'vaultAiGuidanceStatus'
-  | 'onOpenAiAgents'
-  | 'onRestoreVaultAiGuidance'
-  | 'onSetDefaultAiAgent'
-  | 'selectedAiAgent'
-  | 'onCycleDefaultAiAgent'
-  | 'selectedAiAgentLabel'
->
-type CommandRegistryNoteActions = Pick<
-  CommandRegistryConfig,
-  | 'onSetNoteIcon'
-  | 'onRemoveNoteIcon'
-  | 'onChangeNoteType'
-  | 'onMoveNoteToFolder'
-  | 'canMoveNoteToFolder'
-  | 'activeNoteHasIcon'
-  | 'noteListFilter'
-  | 'onSetNoteListFilter'
-  | 'onToggleFavorite'
-  | 'onToggleOrganized'
-  | 'onInsertWeatherSnapshot'
-  | 'onTranscribeAudio'
-  | 'onCustomizeNoteListColumns'
-  | 'canCustomizeNoteListColumns'
-  | 'noteListColumnsLabel'
->
+  CommandRegistryCoreActions,
+  CommandRegistryNoteActions,
+  CommandRegistrySelectionState,
+  CommandRegistryVaultActions,
+} from './useAppCommands.types'
 
 function createKeyboardActions(
   config: AppCommandsConfig,
@@ -252,6 +63,9 @@ function createMenuEventActionHandlers(
   Omit<Parameters<typeof useMenuEvents>[0], 'onArchiveNote'>,
   | 'onSetViewMode'
   | 'onCreateNote'
+  | 'onCaptureThought'
+  | 'onCaptureJournal'
+  | 'onCaptureDream'
   | 'onCreateType'
   | 'onQuickOpen'
   | 'onSave'
@@ -275,6 +89,9 @@ function createMenuEventActionHandlers(
   return {
     onSetViewMode: config.onSetViewMode,
     onCreateNote: config.onCreateNote,
+    onCaptureThought: config.onCaptureThought,
+    onCaptureJournal: config.onCaptureJournal,
+    onCaptureDream: config.onCaptureDream,
     onCreateType: config.onCreateType,
     onQuickOpen: config.onQuickOpen,
     onSave: config.onSave,
@@ -390,6 +207,9 @@ function createCommandRegistryCoreConfig(
     modifiedCount: config.isGitVault === false ? 0 : config.modifiedCount,
     onQuickOpen: config.onQuickOpen,
     onCreateNote: config.onCreateNote,
+    onCaptureThought: config.onCaptureThought,
+    onCaptureJournal: config.onCaptureJournal,
+    onCaptureDream: config.onCaptureDream,
     onCreateNoteOfType: config.onCreateNoteOfType,
     onSave: config.onSave,
     onOpenSettings: config.onOpenSettings,
@@ -470,8 +290,11 @@ function createCommandRegistryNoteConfig(
     onSetNoteListFilter: config.onSetNoteListFilter,
     onToggleFavorite: config.onToggleFavorite,
     onToggleOrganized: config.onToggleOrganized,
+    onRevealNoteInFinder: config.onRevealNoteInFinder,
+    onPreviewNoteWithQuickLook: config.onPreviewNoteWithQuickLook,
     onInsertWeatherSnapshot: config.onInsertWeatherSnapshot,
     onTranscribeAudio: config.onTranscribeAudio,
+    onRecordAudio: config.onRecordAudio,
     onCustomizeNoteListColumns: config.onCustomizeNoteListColumns,
     canCustomizeNoteListColumns: config.canCustomizeNoteListColumns,
     noteListColumnsLabel: config.noteListColumnsLabel,
@@ -492,7 +315,6 @@ function createCommandRegistryConfig(config: AppCommandsConfig): CommandRegistry
 /** Sets up keyboard shortcuts, command registry, menu events, and keyboard navigation. */
 export function useAppCommands(config: AppCommandsConfig): CommandAction[] {
   const entriesRef = useRef(config.entries)
-  // eslint-disable-next-line react-hooks/refs
   entriesRef.current = config.entries
 
   const toggleArchive = useCallback((path: string) => {

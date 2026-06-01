@@ -1,8 +1,9 @@
-import { useId, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { isEmoji } from '../utils/emoji'
-import { ICON_OPTIONS } from '../utils/iconRegistry'
+import { useIconOptions } from '../hooks/useIconOptions'
+import { isEmoji } from '../utils/emojiRuntime'
+import type { IconEntry } from '../utils/iconRegistry'
 
 const MAX_ICON_RESULTS = 24
 
@@ -29,8 +30,8 @@ function matchesIconQuery(name: string, query: string): boolean {
   return name.includes(dashedQuery) || spacedName.includes(normalized)
 }
 
-function filterIconOptions(query: string) {
-  return ICON_OPTIONS
+function filterIconOptions(iconOptions: IconEntry[], query: string) {
+  return iconOptions
     .filter((option) => matchesIconQuery(option.name, query))
     .slice(0, MAX_ICON_RESULTS)
 }
@@ -58,7 +59,12 @@ function IconEditableInput({
   const [editValue, setEditValue] = useState(value)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const listboxId = useId()
-  const filteredIcons = useMemo(() => filterIconOptions(editValue), [editValue])
+  const { ensureFullCatalog, fullCatalogLoaded, iconOptions } = useIconOptions()
+  const filteredIcons = useMemo(() => filterIconOptions(iconOptions, editValue), [editValue, iconOptions])
+
+  useEffect(() => {
+    ensureFullCatalog()
+  }, [ensureFullCatalog])
 
   const commitTypedValue = () => onSave(editValue)
   const selectIcon = (iconName: string) => {
@@ -124,7 +130,11 @@ function IconEditableInput({
         className="max-h-44 overflow-y-auto rounded-md border border-border bg-popover p-1 shadow-sm"
         data-testid="icon-picker-results"
       >
-        {filteredIcons.length === 0 ? (
+        {!fullCatalogLoaded ? (
+          <div className="px-2 py-6 text-center text-[12px] text-muted-foreground" data-testid="icon-picker-loading">
+            Loading icons...
+          </div>
+        ) : filteredIcons.length === 0 ? (
           <div className="px-2 py-6 text-center text-[12px] text-muted-foreground" data-testid="icon-picker-empty">
             No icons found
           </div>

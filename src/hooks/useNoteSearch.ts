@@ -22,6 +22,7 @@ function toResult(e: VaultEntry, typeEntryMap: Record<string, VaultEntry>): Note
     typeColor: noteType ? getTypeColor(e.isA, te?.color) : undefined,
     typeLightColor: noteType ? getTypeLightColor(e.isA, te?.color) : undefined,
     TypeIcon: noteType ? getTypeIcon(e.isA, te?.icon) : undefined,
+    typeIconValue: noteType ? te?.icon ?? null : null,
   }
 }
 
@@ -58,7 +59,7 @@ export function useNoteSearch(entries: VaultEntry[], query: string, maxResults =
   }, [searchableEntries, query, maxResults, typeEntryMap])
 
   useEffect(() => {
-    setSelectedIndex(0) // eslint-disable-line react-hooks/set-state-in-effect -- reset on query change
+    setSelectedIndex(0)
   }, [query])
 
   const selectedEntry = results[selectedIndex]?.entry ?? null

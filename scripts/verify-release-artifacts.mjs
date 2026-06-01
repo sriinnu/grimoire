@@ -3,21 +3,38 @@ import { createHash } from 'node:crypto'
 import {
   cpSync,
   existsSync,
+  chmodSync,
   mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { assertAppBundleVersion, writeTestAppInfoPlist } from './app-bundle-version.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const SOURCE_ICON_PATH = resolve(REPO_ROOT, 'src-tauri/icons/icon.icns')
+const FORBIDDEN_FIXTURE_STRINGS = [
+  '/Users/',
+  '/Users/mock',
+  'demo-vault',
+  'demo-vault-v2',
+  'mock-content',
+  'mock-handlers',
+  'MOCK_CONTENT',
+]
+
+function readPackageVersion() {
+  const packageJson = JSON.parse(readFileSync(resolve(REPO_ROOT, 'package.json'), 'utf8'))
+  return packageJson.version
+}
 
 function formatPath(path) {
   const relativePath = relative(REPO_ROOT, path)
@@ -49,6 +66,37 @@ function assertExists(path, label) {
   }
 }
 
+function readPlistValue(plistPath, key) {
+  const content = readFileSync(plistPath, 'utf8')
+  const pattern = new RegExp(`<key>${key}</key>\\s*<string>([^<]+)</string>`)
+  return content.match(pattern)?.[1] ?? null
+}
+
+function hasPlistKey(plistPath, key) {
+  const content = readFileSync(plistPath, 'utf8')
+  return new RegExp(`<key>${key}</key>`).test(content)
+}
+
+function assertLaunchableAppBundle(appPath) {
+  const plistPath = join(appPath, 'Contents/Info.plist')
+  assertExists(plistPath, 'App Info.plist')
+
+  if (hasPlistKey(plistPath, 'LSRequiresCarbon')) {
+    throw new Error(`${formatPath(appPath)} has legacy LSRequiresCarbon set; LaunchServices may reject it`)
+  }
+
+  const executable = readPlistValue(plistPath, 'CFBundleExecutable')
+  if (!executable) {
+    throw new Error(`${formatPath(appPath)} Info.plist is missing CFBundleExecutable`)
+  }
+
+  const executablePath = join(appPath, 'Contents/MacOS', executable)
+  assertExists(executablePath, 'App executable')
+  if ((statSync(executablePath).mode & 0o111) === 0) {
+    throw new Error(`${formatPath(executablePath)} is not executable`)
+  }
+}
+
 function assertIconMatchesSource(iconPath, label) {
   assertExists(iconPath, `${label} icon`)
 
@@ -59,6 +107,27 @@ function assertIconMatchesSource(iconPath, label) {
       `${label} has stale icon ${formatPath(iconPath)}\n`
       + `expected ${expectedHash}\n`
       + `actual   ${actualHash}`,
+    )
+  }
+}
+
+function assertNoMockFixtures(root, label) {
+  assertExists(root, label)
+
+  const violations = []
+  for (const file of walkFiles(root)) {
+    const content = readFileSync(file)
+    for (const needle of FORBIDDEN_FIXTURE_STRINGS) {
+      if (content.includes(Buffer.from(needle))) {
+        violations.push(`${formatPath(file)} contains ${needle}`)
+      }
+    }
+  }
+
+  if (violations.length > 0) {
+    throw new Error(
+      `${label} contains browser-only mock fixture strings:\n`
+      + violations.slice(0, 20).join('\n'),
     )
   }
 }
@@ -108,12 +177,21 @@ function verifyCodesign(appPath) {
 function verifyApp(appPath, options = {}) {
   const resolvedAppPath = resolve(appPath)
   assertExists(resolvedAppPath, 'Application bundle')
+  assertLaunchableAppBundle(resolvedAppPath)
 
   const iconPath = join(resolvedAppPath, 'Contents/Resources/icon.icns')
   assertIconMatchesSource(iconPath, `${formatPath(resolvedAppPath)}`)
+  assertNoMockFixtures(join(resolvedAppPath, 'Contents/Resources'), `${formatPath(resolvedAppPath)} resources`)
+  if (options.expectedVersion) assertAppBundleVersion(resolvedAppPath, options.expectedVersion)
 
   if (options.requireCodesign) verifyCodesign(resolvedAppPath)
   console.log(`ok app ${formatPath(resolvedAppPath)}`)
+}
+
+function verifyWebBuild(webDir) {
+  const resolvedWebDir = resolve(webDir)
+  assertNoMockFixtures(resolvedWebDir, 'Web build')
+  console.log(`ok web ${formatPath(resolvedWebDir)}`)
 }
 
 function verifyUpdater(tarballPath, options = {}) {
@@ -186,6 +264,8 @@ function parseArgs(argv) {
     requireCodesign: false,
     selfTest: false,
     tarballs: [],
+    webDirs: [],
+    expectedVersion: null,
   }
 
   function nextValue(optionName, index) {
@@ -214,6 +294,10 @@ function parseArgs(argv) {
       case '--require-codesign':
         config.requireCodesign = true
         break
+      case '--expected-version':
+        config.expectedVersion = nextValue(arg, index)
+        index += 1
+        break
       case '--self-test':
         config.selfTest = true
         break
@@ -221,12 +305,23 @@ function parseArgs(argv) {
         config.tarballs.push(nextValue(arg, index))
         index += 1
         break
+      case '--web-dir':
+        config.webDirs.push(nextValue(arg, index))
+        index += 1
+        break
       default:
         throw new Error(`Unknown argument: ${arg}`)
     }
   }
 
-  if (!config.selfTest && !config.apps.length && !config.bundleDirs.length && !config.dmgs.length && !config.tarballs.length) {
+  if (
+    !config.selfTest
+    && !config.apps.length
+    && !config.bundleDirs.length
+    && !config.dmgs.length
+    && !config.tarballs.length
+    && !config.webDirs.length
+  ) {
     config.bundleDirs.push(resolve(REPO_ROOT, 'src-tauri/target/release/bundle'))
   }
 
@@ -239,12 +334,41 @@ function copySourceIconToApp(appPath) {
   cpSync(SOURCE_ICON_PATH, join(resources, 'icon.icns'))
 }
 
+function addExecutableToTestApp(appPath) {
+  const contents = join(appPath, 'Contents')
+  const plistPath = join(contents, 'Info.plist')
+  const executableName = 'grimoire'
+  const plist = readFileSync(plistPath, 'utf8')
+    .replace(
+      '</dict>',
+      [
+        '<key>CFBundleExecutable</key>',
+        `<string>${executableName}</string>`,
+        '</dict>',
+      ].join('\n'),
+    )
+  writeFileSync(plistPath, plist)
+
+  const macosDir = join(contents, 'MacOS')
+  mkdirSync(macosDir, { recursive: true })
+  const executablePath = join(macosDir, executableName)
+  writeFileSync(executablePath, '#!/bin/sh\nexit 0\n')
+  chmodSync(executablePath, 0o755)
+}
+
 function runSelfTest() {
   const tempDir = mkdtempSync(join(tmpdir(), 'grimoire-artifacts-test-'))
   try {
     const appPath = join(tempDir, 'Grimoire.app')
     copySourceIconToApp(appPath)
-    verifyApp(appPath)
+    writeTestAppInfoPlist(appPath, '9.9.9')
+    addExecutableToTestApp(appPath)
+    verifyApp(appPath, { expectedVersion: '9.9.9' })
+
+    const webDir = join(tempDir, 'web')
+    mkdirSync(webDir, { recursive: true })
+    writeFileSync(join(webDir, 'index.js'), 'console.log("clean")')
+    verifyWebBuild(webDir)
 
     const tarballPath = join(tempDir, 'Grimoire.app.tar.gz')
     run('tar', ['-czf', tarballPath, '-C', tempDir, 'Grimoire.app'])
@@ -252,6 +376,8 @@ function runSelfTest() {
 
     const staleAppPath = join(tempDir, 'Stale.app')
     copySourceIconToApp(staleAppPath)
+    writeTestAppInfoPlist(staleAppPath, '9.9.9')
+    addExecutableToTestApp(staleAppPath)
     writeFileSync(join(staleAppPath, 'Contents/Resources/icon.icns'), 'stale')
 
     let failedAsExpected = false
@@ -263,6 +389,57 @@ function runSelfTest() {
 
     if (!failedAsExpected) {
       throw new Error('Self-test did not reject a stale app icon')
+    }
+
+    const staleVersionAppPath = join(tempDir, 'StaleVersion.app')
+    copySourceIconToApp(staleVersionAppPath)
+    writeTestAppInfoPlist(staleVersionAppPath, '9.9.8')
+    addExecutableToTestApp(staleVersionAppPath)
+    failedAsExpected = false
+    try {
+      verifyApp(staleVersionAppPath, { expectedVersion: '9.9.9' })
+    } catch {
+      failedAsExpected = true
+    }
+    if (!failedAsExpected) {
+      throw new Error('Self-test did not reject a stale app version')
+    }
+
+    const carbonAppPath = join(tempDir, 'Carbon.app')
+    copySourceIconToApp(carbonAppPath)
+    writeTestAppInfoPlist(carbonAppPath, '9.9.9')
+    addExecutableToTestApp(carbonAppPath)
+    const carbonPlistPath = join(carbonAppPath, 'Contents/Info.plist')
+    writeFileSync(
+      carbonPlistPath,
+      readFileSync(carbonPlistPath, 'utf8').replace(
+        '</dict>',
+        '<key>LSRequiresCarbon</key>\n<true/>\n</dict>',
+      ),
+    )
+    failedAsExpected = false
+    try {
+      verifyApp(carbonAppPath, { expectedVersion: '9.9.9' })
+    } catch {
+      failedAsExpected = true
+    }
+    if (!failedAsExpected) {
+      throw new Error('Self-test did not reject LSRequiresCarbon')
+    }
+
+    const leakingWebDir = join(tempDir, 'leaking-web')
+    mkdirSync(leakingWebDir, { recursive: true })
+    writeFileSync(join(leakingWebDir, 'asset.js'), 'const path = "/Users/mock/demo-vault-v2"')
+
+    failedAsExpected = false
+    try {
+      verifyWebBuild(leakingWebDir)
+    } catch {
+      failedAsExpected = true
+    }
+
+    if (!failedAsExpected) {
+      throw new Error('Self-test did not reject mock fixture strings')
     }
 
     console.log('self-test passed')
@@ -279,11 +456,15 @@ function main() {
     return
   }
 
-  const options = { requireCodesign: config.requireCodesign }
+  const options = {
+    expectedVersion: config.expectedVersion ?? readPackageVersion(),
+    requireCodesign: config.requireCodesign,
+  }
   for (const bundleDir of config.bundleDirs) verifyBundleDirectory(bundleDir, options)
   for (const app of config.apps) verifyApp(app, options)
   for (const tarball of config.tarballs) verifyUpdater(tarball, options)
   for (const dmg of config.dmgs) verifyDmg(dmg, options)
+  for (const webDir of config.webDirs) verifyWebBuild(webDir)
 }
 
 try {

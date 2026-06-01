@@ -1,0 +1,237 @@
+.personal-calendar {
+  container-name: personal-calendar;
+  container-type: inline-size;
+  --personal-calendar-cell-block-size: clamp(42px, 8cqi, 68px);
+  display: grid;
+  gap: 14px;
+  align-self: stretch;
+  justify-self: stretch;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.personal-calendar[data-density="compact"] {
+  --personal-calendar-cell-block-size: clamp(36px, 6cqi, 54px);
+  gap: 12px;
+}
+
+.personal-calendar__header,
+.personal-calendar__agenda-head,
+.personal-calendar__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.personal-calendar__eyebrow,
+.personal-calendar__agenda-head span,
+.personal-calendar__actions span {
+  align-items: center;
+  color: var(--text-secondary);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 720;
+  gap: 6px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.personal-calendar h3 {
+  color: var(--text-primary);
+  font-size: var(--personal-calendar-title-size, 28px);
+  font-weight: 780;
+  line-height: 1.05;
+  margin: 4px 0 0;
+}
+
+.personal-calendar__nav,
+.personal-calendar__lanes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.personal-calendar__nav [data-slot="button"] {
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.personal-calendar__lane {
+  border-radius: 999px;
+  min-height: 28px;
+}
+
+.personal-calendar__grid {
+  display: grid;
+  gap: clamp(3px, 1vw, 6px);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.personal-calendar__weekday {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 760;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.personal-calendar__cell {
+  block-size: auto;
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, transparent);
+  border-radius: 10px;
+  box-sizing: border-box;
+  display: grid;
+  height: var(--personal-calendar-cell-block-size);
+  min-height: var(--personal-calendar-cell-block-size);
+  min-width: 0;
+  width: 100%;
+  padding: 4px;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.personal-calendar__cell[data-outside-month="true"] {
+  opacity: 0.42;
+}
+
+.personal-calendar__cell[data-today="true"] {
+  color: var(--primary);
+}
+
+.personal-calendar__cell[data-has-events="true"] {
+  background:
+    radial-gradient(circle at 78% 24%, color-mix(in srgb, var(--accent-teal, var(--primary)) 28%, transparent), transparent 38%),
+    color-mix(in srgb, var(--surface-card) 86%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.personal-calendar__cell--selected {
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--border-default));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 18%, transparent),
+    0 14px 30px color-mix(in srgb, var(--primary) 14%, transparent);
+  transform: translateY(-1px);
+}
+
+.personal-calendar__cell span {
+  font-size: 14px;
+  font-weight: 760;
+}
+
+.personal-calendar__cell small {
+  bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  position: absolute;
+  right: 6px;
+}
+
+.personal-calendar__agenda {
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, transparent);
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, transparent), color-mix(in srgb, var(--surface-editor) 94%, transparent));
+}
+
+.personal-calendar__agenda-head strong {
+  color: var(--text-primary);
+  display: block;
+  font-size: 16px;
+  margin-top: 3px;
+}
+
+.personal-calendar__agenda-head em {
+  align-items: center;
+  color: var(--text-secondary);
+  display: inline-flex;
+  font-size: 12px;
+  font-style: normal;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.personal-calendar__agenda-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  min-width: 0;
+}
+
+.personal-calendar__agenda-list span {
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 76%, transparent);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.personal-calendar__agenda-list strong {
+  color: var(--text-primary);
+}
+
+.personal-calendar__actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+@container personal-calendar (max-width: 520px) {
+  .personal-calendar {
+    --personal-calendar-title-size: 24px;
+  }
+
+  .personal-calendar__header,
+  .personal-calendar__agenda-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .personal-calendar__nav {
+    width: 100%;
+  }
+}
+
+@container personal-calendar (max-width: 360px) {
+  .personal-calendar {
+    --personal-calendar-title-size: 22px;
+  }
+
+  .personal-calendar__cell {
+    --personal-calendar-cell-block-size: 34px;
+    padding: 2px;
+  }
+
+  .personal-calendar__cell small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .personal-calendar__cell[data-has-events="true"],
+  .personal-calendar__agenda {
+    animation: personal-calendar-pop 280ms var(--motion-ease-expressive, ease-out) both;
+  }
+}
+
+@keyframes personal-calendar-pop {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

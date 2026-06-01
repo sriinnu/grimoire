@@ -1,0 +1,50 @@
+[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel {
+  --sidebar-artwork-safe-space: calc(clamp(148px, 22vh, 220px) + 38px);
+  isolation: isolate;
+}
+
+[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .app-sidebar-nav {
+  background: var(--sidebar);
+  margin-bottom: var(--sidebar-artwork-safe-space);
+  min-height: 0;
+  padding-bottom: 12px;
+  position: relative;
+  scroll-padding-bottom: var(--sidebar-artwork-safe-space);
+  z-index: 3;
+}
+
+[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork {
+  opacity: 0.58;
+  z-index: 0;
+}
+
+[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel::after {
+  background:
+    linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--sidebar) 88%, transparent) 44%, var(--sidebar) 100%);
+  bottom: 0;
+  content: "";
+  height: clamp(112px, 22vh, 220px);
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  z-index: 1;
+}
+
+.sidebar-title-bar,
+.app-sidebar-nav,
+.app-sidebar-nav :is(button, a, [role="button"], input),
+.app-sidebar-nav :is(.folder-item-row, .sidebar-section-glyph, [data-folder-row-tone]) {
+  position: relative;
+  z-index: 3;
+}
+
+@media (max-height: 760px) {
+  [data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel {
+    --sidebar-artwork-safe-space: 124px;
+  }
+
+  [data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .app-sidebar-nav {
+    padding-bottom: 10px;
+  }
+}

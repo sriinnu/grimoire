@@ -7,6 +7,8 @@ interface NoteCommandsConfig {
   isArchived: boolean
   activeNoteHasIcon?: boolean
   onCreateNote: () => void
+  createNoteLabel?: string
+  createNoteKeywords?: string[]
   onCreateType?: () => void
   onSave: () => void
   onDeleteNote: (path: string) => void
@@ -18,12 +20,15 @@ interface NoteCommandsConfig {
   onSetNoteIcon?: () => void
   onRemoveNoteIcon?: () => void
   onOpenInNewWindow?: () => void
+  onRevealNoteInFinder?: (path: string) => void
+  onPreviewNoteWithQuickLook?: (path: string) => void
   onToggleFavorite?: (path: string) => void
   isFavorite?: boolean
   onToggleOrganized?: (path: string) => void
   isOrganized?: boolean
   onInsertWeatherSnapshot?: () => void
   onTranscribeAudio?: () => void
+  onRecordAudio?: () => void
   onRestoreDeletedNote?: () => void
   canRestoreDeletedNote?: boolean
 }
@@ -61,9 +66,9 @@ function buildCoreNoteCommands(config: NoteCommandsConfig): CommandAction[] {
   return [
     createNoteCommand({
       id: 'create-note',
-      label: 'New Note',
+      label: config.createNoteLabel ?? 'New Note',
       shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileNewNote),
-      keywords: ['new', 'create', 'add'],
+      keywords: config.createNoteKeywords ?? ['new', 'create', 'add'],
       enabled: true,
       execute: config.onCreateNote,
     }),
@@ -200,6 +205,13 @@ function buildPresentationCommands(config: NoteCommandsConfig): CommandAction[] 
       execute: () => config.onTranscribeAudio?.(),
     }),
     createNoteCommand({
+      id: 'record-audio',
+      label: 'Record Audio...',
+      keywords: ['audio', 'voice', 'microphone', 'record', 'whisper', 'dictation'],
+      enabled: !!config.onRecordAudio,
+      execute: () => config.onRecordAudio?.(),
+    }),
+    createNoteCommand({
       id: 'remove-note-icon',
       label: 'Remove Note Icon',
       keywords: ['icon', 'emoji', 'remove', 'delete', 'clear'],
@@ -213,6 +225,22 @@ function buildPresentationCommands(config: NoteCommandsConfig): CommandAction[] 
       keywords: ['window', 'new', 'detach', 'pop', 'external', 'separate'],
       enabled: config.hasActiveNote,
       execute: () => config.onOpenInNewWindow?.(),
+    }),
+    createNoteCommand({
+      id: 'reveal-note-in-finder',
+      label: 'Reveal Note in Finder',
+      keywords: ['finder', 'reveal', 'file', 'local', 'markdown', 'path'],
+      enabled: config.hasActiveNote && !!config.onRevealNoteInFinder,
+      path: config.activeTabPath,
+      run: (path) => config.onRevealNoteInFinder?.(path),
+    }),
+    createNoteCommand({
+      id: 'preview-note-with-quick-look',
+      label: 'Preview Note with Quick Look',
+      keywords: ['quicklook', 'quick', 'look', 'finder', 'preview', 'markdown', 'native'],
+      enabled: config.hasActiveNote && !!config.onPreviewNoteWithQuickLook,
+      path: config.activeTabPath,
+      run: (path) => config.onPreviewNoteWithQuickLook?.(path),
     }),
   ]
 }

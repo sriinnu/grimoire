@@ -3,9 +3,9 @@ import { Megaphone } from '@phosphor-icons/react'
 import type { ThemeMode } from '../../lib/themeMode'
 import { rememberFeedbackDialogOpener } from '../../lib/feedbackDialogOpener'
 import { formatShortcutDisplay } from '../../hooks/appCommandCatalog'
-import { ActionTooltip } from '@/components/ui/action-tooltip'
 import { Button } from '@/components/ui/button'
 import { ICON_STYLE } from './styles'
+import { StatusBarHint } from './StatusBarHint'
 import { StatusBarGroup } from './StatusBarGroup'
 
 const ZOOM_RESET_TOOLTIP = {
@@ -44,7 +44,7 @@ function FeedbackButton({
     : 'h-6 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground'
 
   return (
-    <ActionTooltip copy={FEEDBACK_TOOLTIP} side="top">
+    <StatusBarHint copy={FEEDBACK_TOOLTIP}>
       <Button
         type="button"
         variant="ghost"
@@ -60,7 +60,7 @@ function FeedbackButton({
         <Megaphone size={14} />
         {compact ? null : 'Contribute'}
       </Button>
-    </ActionTooltip>
+    </StatusBarHint>
   )
 }
 
@@ -93,7 +93,7 @@ export function StatusBarSecondarySection({
     >
       <StatusBarGroup compact={compact} testId="status-utility-group">
         {zoomLevel === 100 ? null : (
-          <ActionTooltip copy={ZOOM_RESET_TOOLTIP} side="top">
+          <StatusBarHint copy={ZOOM_RESET_TOOLTIP}>
             <Button
               type="button"
               variant="ghost"
@@ -105,10 +105,10 @@ export function StatusBarSecondarySection({
             >
               <span style={ICON_STYLE}>{zoomLevel}%</span>
             </Button>
-          </ActionTooltip>
+          </StatusBarHint>
         )}
         {onOpenFeedback && <FeedbackButton compact={compact} onOpenFeedback={onOpenFeedback} />}
-        <ActionTooltip copy={themeTooltip} side="top">
+        <StatusBarHint copy={themeTooltip}>
           <Button
             type="button"
             variant="ghost"
@@ -121,8 +121,8 @@ export function StatusBarSecondarySection({
           >
             <ThemeIcon size={14} />
           </Button>
-        </ActionTooltip>
-        <ActionTooltip copy={SETTINGS_TOOLTIP} side="top" align="end">
+        </StatusBarHint>
+        <StatusBarHint copy={SETTINGS_TOOLTIP} align="end">
           <Button
             type="button"
             variant="ghost"
@@ -134,7 +134,7 @@ export function StatusBarSecondarySection({
           >
             <Settings size={14} />
           </Button>
-        </ActionTooltip>
+        </StatusBarHint>
       </StatusBarGroup>
     </div>
   )

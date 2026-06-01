@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { SettingsPanel } from './SettingsPanel'
 import type { Settings } from '../types'
-import { THEME_MODE_STORAGE_KEY } from '../lib/themeMode'
 
 const emptySettings: Settings = {
   auto_pull_interval_minutes: null,
@@ -34,351 +33,13 @@ function installPointerCapturePolyfill() {
   }
 }
 
-function createStorageMock(): Storage {
-  const values = new Map<string, string>()
-  return {
-    get length() { return values.size },
-    clear: vi.fn(() => { values.clear() }),
-    getItem: vi.fn((key: string) => values.get(key) ?? null),
-    key: vi.fn((index: number) => Array.from(values.keys())[index] ?? null),
-    removeItem: vi.fn((key: string) => { values.delete(key) }),
-    setItem: vi.fn((key: string, value: string) => { values.set(key, value) }),
-  }
-}
-
-describe('SettingsPanel', () => {
+describe('SettingsPanel workflow settings', () => {
   const onSave = vi.fn()
   const onClose = vi.fn()
-  const localStorageMock = createStorageMock()
 
   beforeEach(() => {
     vi.clearAllMocks()
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock, configurable: true })
-    window.localStorage.clear()
     installPointerCapturePolyfill()
-  })
-
-  it('renders nothing when not open', () => {
-    const { container } = render(
-      <SettingsPanel open={false} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-    expect(container.innerHTML).toBe('')
-  })
-
-  it('renders modal when open', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-    expect(screen.getByText('Settings')).toBeInTheDocument()
-    expect(screen.getAllByText('Sync & Updates')).not.toHaveLength(0)
-  })
-
-  it('updates the draft language when stored settings finish loading', () => {
-    const { rerender } = render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    rerender(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, ui_language: 'zh-Hans' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByText('设置')).toBeInTheDocument()
-    expect(screen.queryByText('Settings')).not.toBeInTheDocument()
-  })
-
-  it('calls onSave with stable defaults on save', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      auto_pull_interval_minutes: 5,
-      autogit_enabled: false,
-      autogit_idle_threshold_seconds: 90,
-      autogit_inactive_threshold_seconds: 30,
-      release_channel: null,
-      theme_mode: 'light',
-      theme_preset: 'manuscript',
-      editor_font: 'system',
-      menu_bar_icon_enabled: false,
-    }))
-    expect(onClose).toHaveBeenCalled()
-  })
-
-  it('saves the native menu bar icon preference when toggled on', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.click(screen.getByRole('switch', { name: 'Show Grimoire in the menu bar' }))
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      menu_bar_icon_enabled: true,
-    }))
-  })
-
-  it('defaults the color mode control to light', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    expect(screen.getByTestId('settings-theme-mode')).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'Light' })).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'false')
-  })
-
-  it('defaults the language selector to system language', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={emptySettings}
-        locale="en"
-        systemLocale="zh-Hans"
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByTestId('settings-ui-language')).toHaveAttribute('data-value', 'system')
-    expect(screen.getByText('系统（简体中文）')).toBeInTheDocument()
-  })
-
-  it('keeps the language selector keyboard accessible', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    const trigger = screen.getByTestId('settings-ui-language')
-    trigger.focus()
-    fireEvent.keyDown(trigger, { key: 'ArrowDown', code: 'ArrowDown' })
-
-    expect(screen.getByRole('option', { name: 'Simplified Chinese' })).toBeInTheDocument()
-  })
-
-  it('saves the selected UI language and updates visible settings text', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.pointerDown(screen.getByTestId('settings-ui-language'), { button: 0, pointerType: 'mouse' })
-    fireEvent.click(screen.getByRole('option', { name: 'Simplified Chinese' }))
-
-    expect(screen.getByText('设置')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      ui_language: 'zh-Hans',
-    }))
-  })
-
-  it('uses the stored color mode mirror when settings have no saved mode', () => {
-    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, 'dark')
-
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
-  })
-
-  it('saves the selected dark color mode', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.click(screen.getByRole('radio', { name: 'Dark' }))
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_mode: 'dark',
-    }))
-  })
-
-  it('saves the selected theme preset and editor font', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.click(screen.getByTestId('settings-theme-preset-ion'))
-    fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
-    fireEvent.click(screen.getByRole('option', { name: 'Serif' }))
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'ion',
-      editor_font: 'serif',
-    }))
-  })
-
-  it('saves the 2050+ theme preset', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.click(screen.getByTestId('settings-theme-preset-aether'))
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'aether',
-    }))
-  })
-
-  it('renders the expanded personal theme preset set', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    expect(screen.getByTestId('settings-theme-preset-aether')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-ion')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-moss')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-lumen')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-lotus')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-ember')).toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-retro')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-aurora')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-future')).not.toBeInTheDocument()
-  })
-
-  it('renders the appearance preview with the selected preset', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, theme_preset: 'graphite', editor_font: 'readable' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute(
-      'data-theme-preset-preview',
-      'graphite',
-    )
-    expect(screen.getByTestId('settings-editor-font')).toHaveAttribute('data-value', 'readable')
-  })
-
-  it('preserves a saved dark color mode until changed', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, theme_mode: 'dark' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_mode: 'dark',
-    }))
-  })
-
-  it('defaults the release channel trigger to stable', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    expect(screen.getByTestId('settings-release-channel')).toHaveAttribute('data-value', 'stable')
-    expect(screen.queryByText(/Beta\/Stable/i)).not.toBeInTheDocument()
-  })
-
-  it('anchors the default agent dropdown with the popper strategy', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.pointerDown(screen.getByTestId('settings-default-ai-agent'), { button: 0, pointerType: 'mouse' })
-
-    expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
-  })
-
-  it('keeps keyboard opening enabled for the default agent dropdown', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    const trigger = screen.getByTestId('settings-default-ai-agent')
-    trigger.focus()
-    fireEvent.keyDown(trigger, { key: 'ArrowDown', code: 'ArrowDown' })
-
-    expect(document.querySelector('[data-anchor-strategy="popper"]')).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: /Codex/i })).toBeInTheDocument()
-  })
-
-  it('saves a model override for the selected default agent', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.change(screen.getByTestId('settings-default-ai-model'), {
-      target: { value: 'sonnet' },
-    })
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      ai_agent_models: { claude_code: 'sonnet' },
-    }))
-  })
-
-  it('saves a provider override for the selected default agent', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    fireEvent.change(screen.getByTestId('settings-default-ai-provider'), {
-      target: { value: 'openai' },
-    })
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      ai_agent_providers: { chitragupta: 'openai' },
-    }))
-  })
-
-  it('treats a legacy beta release channel as stable', () => {
-    render(
-      <SettingsPanel
-        open={true}
-        settings={{ ...emptySettings, release_channel: 'beta' }}
-        onSave={onSave}
-        onClose={onClose}
-      />
-    )
-
-    expect(screen.getByTestId('settings-release-channel')).toHaveAttribute('data-value', 'stable')
-    expect(screen.queryByText('Beta')).not.toBeInTheDocument()
-  })
-
-  it('preserves alpha when alpha is already selected', () => {
-    const alphaSettings: Settings = {
-      ...emptySettings,
-      release_channel: 'alpha',
-    }
-
-    render(
-      <SettingsPanel open={true} settings={alphaSettings} onSave={onSave} onClose={onClose} />
-    )
-
-    fireEvent.click(screen.getByTestId('settings-save'))
-
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      release_channel: 'alpha',
-    }))
   })
 
   it('defaults the organization workflow switch to on', () => {
@@ -400,6 +61,38 @@ describe('SettingsPanel', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
     expect(screen.getByRole('switch', { name: 'Auto-rename untitled notes from first H1' })).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('shows a daily assistant workflow runway before workflow toggles', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    const runway = screen.getByTestId('settings-workflow-runway')
+    expect(within(runway).getByText('Daily brief')).toBeInTheDocument()
+    expect(within(runway).getByText(/journal nudges/i)).toBeInTheDocument()
+    expect(within(runway).getByText('Inbox triage')).toBeInTheDocument()
+    expect(within(runway).getByText('Inbox on')).toBeInTheDocument()
+    expect(within(runway).getByText('Flow-through')).toBeInTheDocument()
+    expect(within(runway).getByText('Manual')).toBeInTheDocument()
+    expect(within(runway).getByText('Title hygiene')).toBeInTheDocument()
+    expect(within(runway).getByText('H1 sync')).toBeInTheDocument()
+  })
+
+  it('updates the workflow runway as workflow settings change', () => {
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Organize notes explicitly' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Auto-advance to next Inbox item' }))
+    fireEvent.click(screen.getByRole('switch', { name: 'Auto-rename untitled notes from first H1' }))
+
+    const runway = screen.getByTestId('settings-workflow-runway')
+    expect(within(runway).getByText('Simple flow')).toBeInTheDocument()
+    expect(within(runway).getByText('Auto')).toBeInTheDocument()
+    expect(within(runway).getAllByText('Manual')).not.toHaveLength(0)
+    expect(within(runway).getByText('Filenames wait until you rename them yourself.')).toBeInTheDocument()
   })
 
   it('defaults AutoGit to off with recommended thresholds', () => {
@@ -443,6 +136,8 @@ describe('SettingsPanel', () => {
     expect(screen.getByRole('switch', { name: 'Enable AutoGit' })).toBeDisabled()
     expect(screen.getByTestId('settings-autogit-idle-threshold')).toBeDisabled()
     expect(screen.getByTestId('settings-autogit-inactive-threshold')).toBeDisabled()
+    expect(screen.getByTestId('settings-pull-interval')).toBeDisabled()
+    expect(screen.getByTestId('settings-pull-interval')).not.toHaveAttribute('data-settings-autofocus')
   })
 
   it('shows an explicit local-only Git capability when Git metadata is paused', () => {
@@ -465,6 +160,27 @@ describe('SettingsPanel', () => {
     fireEvent.click(within(screen.getByTestId('settings-git-enabled')).getByRole('switch', { name: 'Git' }))
 
     expect(onSetGitEnabled).toHaveBeenCalledWith(true)
+  })
+
+  it('shows a local-first sync runway before Git and AutoGit controls', () => {
+    render(
+      <SettingsPanel
+        open={true}
+        settings={emptySettings}
+        isGitVault={false}
+        hasGitMetadata={false}
+        onSave={onSave}
+        onClose={onClose}
+      />
+    )
+
+    const runway = screen.getByTestId('settings-sync-runway')
+    expect(within(runway).getByText('Markdown source')).toBeInTheDocument()
+    expect(within(runway).getByText('Files stay readable on disk first.')).toBeInTheDocument()
+    expect(within(runway).getByText('Git lane')).toBeInTheDocument()
+    expect(within(runway).getByText('No repository metadata required.')).toBeInTheDocument()
+    expect(within(runway).getByText('Gated')).toBeInTheDocument()
+    expect(within(runway).getByText('Controls app updates only.')).toBeInTheDocument()
   })
 
   it('can turn Git off for the current vault from Settings', () => {
@@ -566,19 +282,22 @@ describe('SettingsPanel', () => {
     }))
   })
 
-  it('calls onClose when clicking backdrop', () => {
+  it('renders the Radix backdrop for outside dismissal', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
-    fireEvent.click(screen.getByTestId('settings-panel'))
-    expect(onClose).toHaveBeenCalled()
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).not.toBeNull()
+    fireEvent.pointerDown(document.body, { button: 0 })
+    fireEvent.pointerUp(document.body, { button: 0 })
+    fireEvent.click(document.body)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 
   it('shows keyboard shortcut hint in footer', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
-    expect(screen.getByText(/to open settings/)).toBeInTheDocument()
+    expect(screen.getByText(/to save/)).toBeInTheDocument()
   })
 
   describe('Privacy & Telemetry section', () => {
@@ -586,8 +305,55 @@ describe('SettingsPanel', () => {
       render(
         <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
       )
+      expect(screen.getByTestId('settings-cloud-transcription')).toBeInTheDocument()
       expect(screen.getByTestId('settings-crash-reporting')).toBeInTheDocument()
       expect(screen.getByTestId('settings-analytics')).toBeInTheDocument()
+    })
+
+    it('shows a local-first privacy runway before cloud and telemetry controls', () => {
+      render(
+        <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+      )
+
+      const runway = screen.getByTestId('settings-privacy-runway')
+      expect(within(runway).getByText('Private by default')).toBeInTheDocument()
+      expect(within(runway).getByText('Private capture')).toBeInTheDocument()
+      expect(within(runway).getByText('Cloud blocked')).toBeInTheDocument()
+      expect(within(runway).getByText('Local only')).toBeInTheDocument()
+      expect(within(runway).getByText(/never include vault content/i)).toBeInTheDocument()
+    })
+
+    it('updates the privacy runway when cloud or diagnostics are enabled', () => {
+      const privacyEnabled: Settings = {
+        ...emptySettings,
+        analytics_enabled: true,
+        cloud_transcription_enabled: true,
+        crash_reporting_enabled: false,
+      }
+      render(
+        <SettingsPanel open={true} settings={privacyEnabled} onSave={onSave} onClose={onClose} />
+      )
+
+      const runway = screen.getByTestId('settings-privacy-runway')
+      expect(within(runway).getByText('Cloud allowed')).toBeInTheDocument()
+      expect(within(runway).getByText('Anonymous opt-in')).toBeInTheDocument()
+    })
+
+    it('keeps cloud transcription off until explicitly enabled', () => {
+      render(
+        <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+      )
+
+      const cloudSwitch = within(screen.getByTestId('settings-cloud-transcription')).getByRole('switch')
+      expect(cloudSwitch).toHaveAttribute('aria-checked', 'false')
+
+      fireEvent.click(cloudSwitch)
+      fireEvent.click(screen.getByTestId('settings-save'))
+
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
+        cloud_transcription_enabled: true,
+        transcription_provider: 'local_whisper',
+      }))
     })
 
     it('toggles reflect initial settings state', () => {

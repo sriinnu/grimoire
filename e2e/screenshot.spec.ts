@@ -75,7 +75,7 @@ test('wikilinks: rendered as styled elements and clickable', async ({ page }) =>
   await page.goto('/')
   await page.waitForTimeout(500)
 
-  // Open "Manage Sponsorships" which contains [[Karthik Reddy]] wikilink
+  // Open "Manage Sponsorships" which contains [[Arjun Mehta]] wikilink
   await page.locator('.note-list__item', { hasText: 'Manage Sponsorships' }).click()
   await page.waitForTimeout(500)
 
@@ -83,12 +83,12 @@ test('wikilinks: rendered as styled elements and clickable', async ({ page }) =>
   await page.screenshot({ path: 'test-results/wikilinks-styled.png', fullPage: true })
 
   // Click the wikilink to navigate — use mouse.click to fire real mousedown
-  const wikilink = page.locator('.cm-wikilink', { hasText: 'Karthik Reddy' })
+  const wikilink = page.locator('.cm-wikilink', { hasText: 'Arjun Mehta' })
   const box = await wikilink.boundingBox()
   if (box) {
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
     await page.waitForTimeout(500)
-    // Should now have a new tab for Karthik Reddy
+    // Should now have a new tab for Arjun Mehta
     await page.screenshot({ path: 'test-results/wikilinks-navigated.png', fullPage: true })
   }
 })

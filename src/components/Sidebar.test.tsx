@@ -228,6 +228,7 @@ describe('Sidebar', () => {
     expect(screen.getByTestId('sidebar-title-bar')).toHaveStyle({ paddingLeft: '12px' })
     expect(screen.getByTestId('sidebar-brand')).toHaveClass('justify-start')
     expect(screen.getByText('Grimoire')).toBeInTheDocument()
+    expect(screen.getByText('Grimoire')).toHaveClass('sidebar-brand-wordmark')
     expect(screen.getByText('Grimoire')).toHaveStyle({ textAlign: 'left' })
     expect(screen.getByAltText('Grimoire icon')).toBeInTheDocument()
     expect(screen.getByText('Markdown agent')).toBeInTheDocument()
@@ -933,41 +934,53 @@ describe('Sidebar', () => {
       },
     ]
 
+    function queryNotesTypeSection(): HTMLElement | null {
+      return screen.queryAllByText('Notes')
+        .map((label) => label.closest('[class*="group/section"]') as HTMLElement | null)
+        .find(Boolean) ?? null
+    }
+
+    function getNotesTypeSection(): HTMLElement {
+      const section = queryNotesTypeSection()
+      if (!section) throw new Error('Expected Notes type section')
+      return section
+    }
+
     it('shows Notes section when Note entries exist', () => {
       render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.getByText('Notes')).toBeInTheDocument()
+      expect(getNotesTypeSection()).toBeInTheDocument()
     })
 
     it('counts only explicit Note entries in the Notes section chip', () => {
       render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const notesHeader = screen.getByText('Notes').closest('[class*="group/section"]')!
+      const notesHeader = getNotesTypeSection()
       expect(notesHeader.textContent).toContain('1')
     })
 
     it('ignores non-markdown Note entries in the Notes section chip', () => {
       render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const notesHeader = screen.getByText('Notes').closest('[class*="group/section"]')!
+      const notesHeader = getNotesTypeSection()
       expect(notesHeader.textContent).toContain('1')
       expect(notesHeader.textContent).not.toContain('2')
     })
 
     it('keeps the Notes section count aligned when an entry changes to or from Note', () => {
       const { rerender } = render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      let notesHeader = screen.getByText('Notes').closest('[class*="group/section"]')!
+      let notesHeader = getNotesTypeSection()
       expect(notesHeader.textContent).toContain('1')
 
       const withoutExplicitNote = noteEntries.map((entry) =>
         entry.path === '/vault/explicit-note.md' ? { ...entry, isA: null } : entry,
       )
       rerender(<Sidebar entries={withoutExplicitNote} selection={defaultSelection} onSelect={() => {}} />)
-      notesHeader = screen.getByText('Notes').closest('[class*="group/section"]')!
+      notesHeader = getNotesTypeSection()
       expect(notesHeader.textContent).toBe('Notes')
 
       const withNewExplicitNote = noteEntries.map((entry) =>
         entry.path === '/vault/untyped-note.md' ? { ...entry, isA: 'Note' } : entry,
       )
       rerender(<Sidebar entries={withNewExplicitNote} selection={defaultSelection} onSelect={() => {}} />)
-      notesHeader = screen.getByText('Notes').closest('[class*="group/section"]')!
+      notesHeader = getNotesTypeSection()
       expect(notesHeader.textContent).toContain('2')
     })
 
@@ -983,7 +996,7 @@ describe('Sidebar', () => {
         },
       ]
       render(<Sidebar entries={untypedOnly} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.queryByText('Notes')).not.toBeInTheDocument()
+      expect(queryNotesTypeSection()).not.toBeInTheDocument()
     })
   })
 
@@ -1032,6 +1045,10 @@ describe('Sidebar', () => {
     expect(items[0].textContent).toContain('Dashboard')
     expect(items[1].textContent).toContain('Inbox')
     expect(items[2].textContent).toContain('All Notes')
+    expect(items[3].textContent).toContain('Notes')
+    expect(items[4].textContent).toContain('Journal')
+    expect(items[5].textContent).toContain('Dreams')
+    expect(items[6].textContent).toContain('Archive')
   })
 
   it('displays inbox count badge', () => {
@@ -1052,6 +1069,8 @@ describe('Sidebar', () => {
     const topNav = screen.getByTestId('sidebar-top-nav')
     expect(topNav.children[0].textContent).toContain('Dashboard')
     expect(topNav.children[1].textContent).toContain('All Notes')
+    expect(topNav.children[2].textContent).toContain('Notes')
+    expect(topNav.children[3].textContent).toContain('Journal')
   })
 
   it('excludes attachments-folder markdown from top-nav note totals', () => {
@@ -1132,8 +1151,29 @@ describe('Sidebar', () => {
     render(<Sidebar entries={entries} selection={defaultSelection} onSelect={() => {}} />)
 
     const topNav = screen.getByTestId('sidebar-top-nav')
-    expect(topNav.children[2].textContent).toContain('All Notes1')
-    expect(topNav.children[3].textContent).toContain('Archive1')
+    expect(within(topNav).getByRole('button', { name: /all notes/i }).textContent).toContain('All Notes1')
+    expect(within(topNav).getByRole('button', { name: /^notes/i }).textContent).toContain('Notes1')
+    expect(within(topNav).getByRole('button', { name: /archive/i }).textContent).toContain('Archive1')
+  })
+
+  it('adds dedicated local lanes for notes, journals, and dreams', () => {
+    const onSelect = vi.fn()
+    const entries: VaultEntry[] = [
+      { ...mockEntries[0], path: '/vault/notes/plain.md', title: 'Plain', isA: 'Note' },
+      { ...mockEntries[0], path: '/vault/journal/today.md', title: 'Today', isA: 'journal' },
+      { ...mockEntries[0], path: '/vault/dreams/river.md', title: 'River', isA: 'Dream' },
+    ]
+
+    render(<Sidebar entries={entries} selection={{ kind: 'sectionGroup', type: 'Journal' }} onSelect={onSelect} />)
+
+    const topNav = screen.getByTestId('sidebar-top-nav')
+    expect(within(topNav).getByRole('button', { name: /^notes/i }).textContent).toContain('Notes1')
+    expect(within(topNav).getByRole('button', { name: /journal/i }).textContent).toContain('Journal1')
+    expect(within(topNav).getByRole('button', { name: /dreams/i }).textContent).toContain('Dreams1')
+    expect(within(topNav).getByRole('button', { name: /journal/i })).toHaveAttribute('aria-current', 'page')
+
+    fireEvent.click(within(topNav).getByRole('button', { name: /dreams/i }))
+    expect(onSelect).toHaveBeenCalledWith({ kind: 'sectionGroup', type: 'Dream' })
   })
 
   it('does not show inline entries — no child items in type sections', () => {

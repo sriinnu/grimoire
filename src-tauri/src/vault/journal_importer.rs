@@ -8,29 +8,27 @@ use walkdir::{DirEntry, WalkDir};
 use zip::ZipArchive;
 
 use super::importer::MarkdownFolderImportReport;
+use super::journal_html_import_helpers::{html_entry_files, read_entry_from_html};
 use super::journal_import_helpers::{
     extension, format_entry_markdown, read_entries_from_json, slugify_name, unique_note_name,
     JournalEntry,
 };
+use super::journal_media_import::{AttachmentPlanner, MediaIndex};
 
-const MEDIA_EXTENSIONS: &[&str] = &[
-    "aac", "avif", "gif", "heic", "heif", "jpeg", "jpg", "m4a", "mov", "mp3", "mp4", "pdf", "png",
-    "svg", "wav", "webm", "webp",
-];
 const JOURNAL_JSON_EXTENSIONS: &[&str] = &["json"];
 const SKIPPED_DIRS: &[&str] = &[".git", "__macosx", "node_modules"];
 
 #[derive(Debug)]
-struct ImportState {
-    notes: usize,
-    assets: usize,
-    skipped: usize,
-    failed: usize,
-    failures: Vec<String>,
+pub(super) struct ImportState {
+    pub(super) notes: usize,
+    pub(super) assets: usize,
+    pub(super) skipped: usize,
+    pub(super) failed: usize,
+    pub(super) failures: Vec<String>,
 }
 
 impl ImportState {
-    fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             notes: 0,
             assets: 0,
@@ -79,7 +77,7 @@ pub fn import_journal_export(
     })
 }
 
-fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
+pub(super) fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
     let canonical = path
         .canonicalize()
         .map_err(|e| format!("{label} folder is not available: {e}"))?;
@@ -89,12 +87,12 @@ fn canonical_dir(path: &Path, label: &str) -> Result<PathBuf, String> {
     Ok(canonical)
 }
 
-fn canonical_existing(path: &Path, label: &str) -> Result<PathBuf, String> {
+pub(super) fn canonical_existing(path: &Path, label: &str) -> Result<PathBuf, String> {
     path.canonicalize()
         .map_err(|e| format!("{label} path is not available: {e}"))
 }
 
-fn validate_source_boundary(vault_root: &Path, source: &Path) -> Result<(), String> {
+pub(super) fn validate_source_boundary(vault_root: &Path, source: &Path) -> Result<(), String> {
     if source == vault_root || source.starts_with(vault_root) {
         return Err("Choose a source outside the active vault".to_string());
     }
@@ -104,7 +102,7 @@ fn validate_source_boundary(vault_root: &Path, source: &Path) -> Result<(), Stri
     Ok(())
 }
 
-fn prepare_import_source(source: &Path, temp_root: &Path) -> Result<PathBuf, String> {
+pub(super) fn prepare_import_source(source: &Path, temp_root: &Path) -> Result<PathBuf, String> {
     if source.is_file() && extension(source).as_deref() == Some("zip") {
         extract_zip(source, temp_root)?;
         return Ok(temp_root.to_path_buf());
@@ -145,7 +143,7 @@ fn extract_zip(zip_path: &Path, target_root: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn unique_import_root(
+pub(super) fn unique_import_root(
     vault_root: &Path,
     source_kind: &str,
     source: &Path,
@@ -171,36 +169,16 @@ fn unique_import_root(
     Ok(candidate)
 }
 
-fn build_media_index(
+pub(super) fn build_media_index(
     root: &Path,
     state: &mut ImportState,
-) -> Result<HashMap<String, PathBuf>, String> {
-    let mut index = HashMap::new();
-    for entry in walk_files(root)? {
-        let Some(ext) = extension(&entry) else {
-            state.skipped += 1;
-            continue;
-        };
-        if !MEDIA_EXTENSIONS.contains(&ext.as_str()) {
-            continue;
-        }
-        if let Some(file_name) = entry
-            .file_name()
-            .map(|value| value.to_string_lossy().to_ascii_lowercase())
-        {
-            index.entry(file_name).or_insert_with(|| entry.clone());
-        }
-        if let Some(stem) = entry
-            .file_stem()
-            .map(|value| value.to_string_lossy().to_ascii_lowercase())
-        {
-            index.entry(stem).or_insert(entry);
-        }
-    }
+) -> Result<MediaIndex, String> {
+    let (index, skipped) = super::journal_media_import::build_media_index(root, walk_files(root)?);
+    state.skipped += skipped;
     Ok(index)
 }
 
-fn collect_entries(
+pub(super) fn collect_entries(
     selected_source: &Path,
     root: &Path,
     source_kind: &str,
@@ -227,6 +205,18 @@ fn collect_entries(
             Err(error) => {
                 state.failed += 1;
                 state.failures.push(error);
+            }
+        }
+    }
+    if source_kind == "apple-journal" {
+        for html_path in html_entry_files(selected_source, root, walk_files)? {
+            match read_entry_from_html(&html_path, source_kind) {
+                Ok(Some(entry)) => entries.push(entry),
+                Ok(None) => state.skipped += 1,
+                Err(error) => {
+                    state.failed += 1;
+                    state.failures.push(error);
+                }
             }
         }
     }
@@ -259,17 +249,24 @@ fn should_enter(entry: &DirEntry) -> bool {
     !SKIPPED_DIRS.contains(&name.as_str())
 }
 
-fn write_entries(
+pub(super) fn write_entries(
     entries: &[JournalEntry],
     import_root: &Path,
     source_kind: &str,
-    media_index: &HashMap<String, PathBuf>,
+    media_index: &MediaIndex,
     state: &mut ImportState,
 ) -> Result<(), String> {
     let mut used_names = HashMap::<String, usize>::new();
+    let mut attachment_planner = AttachmentPlanner::default();
     for entry in entries {
         let note_path = import_root.join(unique_note_name(entry, &mut used_names));
-        let links = copy_entry_media(entry, import_root, media_index, state);
+        let links = copy_entry_media(
+            entry,
+            import_root,
+            media_index,
+            &mut attachment_planner,
+            state,
+        );
         let content = format_entry_markdown(entry, source_kind, &links)?;
         match fs::write(&note_path, content) {
             Ok(()) => state.notes += 1,
@@ -284,35 +281,31 @@ fn write_entries(
     Ok(())
 }
 
-fn copy_entry_media(
+pub(super) fn copy_entry_media(
     entry: &JournalEntry,
     import_root: &Path,
-    media_index: &HashMap<String, PathBuf>,
+    media_index: &MediaIndex,
+    attachment_planner: &mut AttachmentPlanner,
     state: &mut ImportState,
 ) -> Vec<String> {
     let mut links = Vec::new();
     for key in &entry.media_keys {
-        let lookup = key.to_ascii_lowercase();
-        let Some(source) = media_index
-            .get(&lookup)
-            .or_else(|| media_index.get(file_stem_key(&lookup).as_str()))
-        else {
+        let Some(source) = media_index.resolve(key) else {
             continue;
         };
-        let Some(file_name) = source
-            .file_name()
-            .map(|value| value.to_string_lossy().into_owned())
-        else {
+        let Some(plan) = attachment_planner.plan(source) else {
             continue;
         };
-        let destination = import_root.join("attachments").join(&file_name);
-        if let Err(error) = copy_file(source, &destination) {
-            state.failed += 1;
-            state.failures.push(error);
-            continue;
+        if plan.is_new_copy {
+            let destination = import_root.join(&plan.link);
+            if let Err(error) = copy_file(&plan.source, &destination) {
+                state.failed += 1;
+                state.failures.push(error);
+                continue;
+            }
+            state.assets += 1;
         }
-        state.assets += 1;
-        links.push(format!("attachments/{file_name}"));
+        links.push(plan.link);
     }
     links.sort();
     links.dedup();
@@ -329,7 +322,7 @@ fn copy_file(source: &Path, destination: &Path) -> Result<(), String> {
         .map_err(|e| format!("Failed to copy media {}: {e}", source.display()))
 }
 
-fn write_report(
+pub(super) fn write_report(
     source: &Path,
     import_root: &Path,
     source_kind: &str,
@@ -341,7 +334,7 @@ fn write_report(
         Utc::now().format("%Y%m%d-%H%M%S")
     ));
     let mut report = format!(
-        "---\ntype: Import Report\nsource_app: {source_kind}\n---\n\n# {source_kind} Import Report\n\n- Source: `{}`\n- Imported to: `{}`\n- Entries discovered: {}\n- Notes created: {}\n- Attachments copied: {}\n- Skipped files: {}\n- Failed files: {}\n",
+        "---\ntype: Import Report\nsource_app: {source_kind}\nlocality: local\nlocal_only: true\n---\n\n# {source_kind} Import Report\n\n- Source: `{}`\n- Imported to: `{}`\n- Entries discovered: {}\n- Notes created: {}\n- Attachments copied: {}\n- Skipped files: {}\n- Failed files: {}\n",
         source.display(),
         import_root.display(),
         discovered_entries,
@@ -360,13 +353,6 @@ fn write_report(
     Ok(report_path)
 }
 
-fn file_stem_key(value: &str) -> String {
-    Path::new(value)
-        .file_stem()
-        .map(|stem| stem.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_else(|| value.to_string())
-}
-
-fn path_to_string(path: &Path) -> String {
+pub(super) fn path_to_string(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }

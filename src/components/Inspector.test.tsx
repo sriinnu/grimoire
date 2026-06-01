@@ -113,6 +113,8 @@ describe('Inspector', () => {
     render(<Inspector {...defaultProps} />)
     // Header now says "Properties" (not "Inspector")
     expect(screen.getAllByText('Properties').length).toBeGreaterThan(0)
+    expect(document.querySelector('[data-panel-role="inspector"]')).toHaveClass('grimoire-inspector-stage')
+    expect(document.querySelector('.inspector-body')).toHaveClass('grimoire-panel-reveal')
     expect(screen.getByText('No note selected')).toBeInTheDocument()
   })
 
@@ -138,6 +140,49 @@ describe('Inspector', () => {
     expect(screen.getByText('Words')).toBeInTheDocument()
   })
 
+  it('opens matched linked concepts from the insight map', () => {
+    const onNavigate = vi.fn()
+    renderSelectedInspector({
+      entries: [
+        mockEntry,
+        {
+          ...referrerEntry,
+          path: '/vault/topic/software-development.md',
+          filename: 'software-development.md',
+          title: 'Software Development',
+          isA: 'Topic',
+        },
+      ],
+      onNavigate,
+    })
+
+    const conceptMap = screen.getByLabelText('Linked concept map')
+    fireEvent.click(within(conceptMap).getByRole('button', { name: 'Open linked concept Software Development' }))
+
+    expect(onNavigate).toHaveBeenCalledWith('Software Development')
+  })
+
+  it('applies Living Frontmatter suggestions through frontmatter updates', () => {
+    const onUpdateFrontmatter = vi.fn()
+    renderSelectedInspector({
+      entry: { ...mockEntry, status: null, modifiedAt: null },
+      content: `---
+title: Test Project
+type: Project
+owner: Sriinnu
+---
+
+# Test Project
+`,
+      onUpdateFrontmatter,
+    })
+
+    const panel = screen.getByTestId('living-frontmatter-panel')
+    expect(within(panel).getByText('Markdown-owned')).toBeInTheDocument()
+    fireEvent.click(within(panel).getByRole('button', { name: 'Apply' }))
+    expect(onUpdateFrontmatter).toHaveBeenCalledWith(mockEntry.path, 'status', 'Active')
+  })
+
   it('shows the Chitragupta memory lane for the active note', () => {
     renderSelectedInspector({
       entries: [
@@ -154,9 +199,11 @@ describe('Inspector', () => {
             source_note: '[[Test Project]]',
             confidence: 'high',
             last_seen: '2026-05-16',
+            reviewed_at: '2026-05-20',
           },
         },
       ],
+      chitraguptaAvailability: { status: 'installed', version: '0.1.0' },
     })
 
     const panel = screen.getByTestId('memory-panel')
@@ -165,9 +212,23 @@ describe('Inspector', () => {
     expect(within(panel).getByRole('heading', { name: 'Memory' })).toBeInTheDocument()
     expect(screen.getByText('Local ledger')).toBeInTheDocument()
     expect(screen.getByText('Ledger')).toBeInTheDocument()
-    expect(screen.getByText('Ready for recall')).toBeInTheDocument()
+    expect(screen.getByText('Local ledger only')).toBeInTheDocument()
+    expect(within(panel).getByText('Chitragupta')).toBeInTheDocument()
+    expect(within(panel).getByText('Blocked')).toBeInTheDocument()
+    expect(within(panel).getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
+    expect(within(panel).getByTestId('memory-chitragupta-runtime')).toHaveTextContent('MCP contract unverified')
     expect(within(panel).getByText('Test Project Memory')).toBeInTheDocument()
     expect(within(panel).getByText('Remember the project launch constraints.')).toBeInTheDocument()
+  })
+
+  it('shows the per-note Locality Firewall before the memory lane', () => {
+    renderSelectedInspector()
+
+    const panel = screen.getByTestId('note-locality-firewall')
+    expect(within(panel).getByRole('heading', { name: 'Firewall' })).toBeInTheDocument()
+    expect(within(panel).getByText('Vault context')).toBeInTheDocument()
+    expect(within(panel).getByText('Review packet')).toBeInTheDocument()
+    expect(within(panel).getByText('Preview first')).toBeInTheDocument()
   })
 
   it('withholds stats and context details for local-only notes', () => {
@@ -179,6 +240,11 @@ describe('Inspector', () => {
         isA: 'Journal',
       },
     })
+
+    const firewall = screen.getByTestId('note-locality-firewall')
+    expect(within(firewall).getByText('Protected local')).toBeInTheDocument()
+    expect(within(firewall).getByText('Blocked')).toBeInTheDocument()
+    expect(within(firewall).getByText('Withheld')).toBeInTheDocument()
 
     const panel = screen.getByTestId('memory-panel')
     expect(within(panel).getByText('Local-only')).toBeInTheDocument()
@@ -219,16 +285,17 @@ describe('Inspector', () => {
 
   it('shows relationships with clickable links', () => {
     render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
-    expect(screen.getByText('Belongs to')).toBeInTheDocument()
-    expect(screen.getByText('Grow Newsletter')).toBeInTheDocument()
-    expect(screen.getByText('Related to')).toBeInTheDocument()
-    expect(screen.getByText('Software Development')).toBeInTheDocument()
+    const relationshipsPanel = screen.getByTestId('relationships-panel-grid')
+    expect(within(relationshipsPanel).getByText('Belongs to')).toBeInTheDocument()
+    expect(within(relationshipsPanel).getByText('Grow Newsletter')).toBeInTheDocument()
+    expect(within(relationshipsPanel).getByText('Related to')).toBeInTheDocument()
+    expect(within(relationshipsPanel).getByText('Software Development')).toBeInTheDocument()
   })
 
   it('navigates when a relationship link is clicked', () => {
     const onNavigate = vi.fn()
     render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} onNavigate={onNavigate} />)
-    fireEvent.click(screen.getByText('Grow Newsletter'))
+    fireEvent.click(within(screen.getByTestId('relationships-panel-grid')).getByText('Grow Newsletter'))
     expect(onNavigate).toHaveBeenCalledWith('responsibility/grow-newsletter')
   })
 

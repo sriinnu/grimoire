@@ -1,6 +1,9 @@
-export type VaultPortabilityStatus = 'ready' | 'planned'
+import type { VaultPortabilityActionId } from './vaultPortabilityActions'
+export type { VaultPortabilityActionId } from './vaultPortabilityActions'
+
+export type VaultPortabilityStatus = 'ready' | 'planned' | 'proof-preview' | 'preview-backed' | 'folder-proof'
 export type VaultStorageKind = 'local-folder' | 'git' | 'cloud-folder' | 'object-storage'
-export type VaultStorageHealthState = 'active' | 'available' | 'not_selected' | 'planned'
+export type VaultStorageHealthState = 'active' | 'available' | 'not_selected' | 'planned' | 'proof-preview'
 
 export interface VaultImportSource {
   id: string
@@ -36,6 +39,7 @@ export interface VaultStorageHealth {
   providerId: string
   state: VaultStorageHealthState
   message: string
+  privacyNote?: string
 }
 
 export interface MarkdownFolderImportResult {
@@ -45,6 +49,35 @@ export interface MarkdownFolderImportResult {
   assets_copied: number
   skipped_files: number
   failed_files: number
+}
+
+export interface ImportAutopsyManifestRow { kind: 'note' | 'asset' | 'metadata' | 'withheld'; source_path: string; destination_path?: string | null; detail: string }
+
+export interface MarkdownFolderImportPreviewResult {
+  source_path: string
+  planned_import_root: string
+  preview_signature?: string | null
+  notes_to_copy: number
+  assets_to_copy: number
+  skipped_files: number
+  failed_files: number
+  writes_local_only_report: boolean
+  manifest_rows?: ImportAutopsyManifestRow[]
+}
+
+export interface ImportAutopsyPreviewState {
+  sourceId: VaultPortabilityActionId
+  result: MarkdownFolderImportPreviewResult
+}
+
+export interface PortabilityProgressState {
+  actionId: VaultPortabilityActionId
+  operationId: string
+  label: string
+  processedFiles: number
+  totalFiles: number | null
+  currentPath: string | null
+  phase: 'starting' | 'copying' | 'cancelling'
 }
 
 export interface MarkdownZipExportResult {
@@ -75,7 +108,7 @@ const IMPORT_SOURCES = [
   {
     id: 'bear',
     label: 'Bear',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Bear Markdown folder or TextBundle package folder',
     output: 'vault-folder',
     preservesMarkdown: true,
@@ -84,7 +117,7 @@ const IMPORT_SOURCES = [
   {
     id: 'day-one',
     label: 'Day One',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Day One JSON or JSON ZIP export',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -93,7 +126,7 @@ const IMPORT_SOURCES = [
   {
     id: 'journey',
     label: 'Journey',
-    status: 'ready',
+    status: 'preview-backed',
     input: 'Journey ZIP or JSON backup export',
     output: 'vault-folder',
     preservesMarkdown: false,
@@ -102,38 +135,56 @@ const IMPORT_SOURCES = [
   {
     id: 'apple-journal',
     label: 'Apple Journal',
-    status: 'planned',
-    input: 'AppleJournalEntries ZIP export',
+    status: 'preview-backed',
+    input: 'AppleJournalEntries ZIP, HTML, or JSON export',
     output: 'vault-folder',
     preservesMarkdown: false,
-    description: 'Convert Apple Journal ZIP exports into local Markdown journal notes.',
+    description: 'Convert Apple Journal exports into local Markdown journal notes with media.',
   },
   {
     id: 'obsidian',
     label: 'Obsidian',
-    status: 'planned',
+    status: 'preview-backed',
     input: 'Obsidian vault folder',
     output: 'vault-folder',
     preservesMarkdown: true,
-    description: 'Read an Obsidian vault directly and normalize links where needed.',
+    description: 'Copy Markdown vault files and attachments while skipping Obsidian runtime config.',
   },
   {
     id: 'notion-markdown',
     label: 'Notion Markdown',
-    status: 'planned',
+    status: 'preview-backed',
     input: 'Notion Markdown + CSV export',
     output: 'vault-folder',
     preservesMarkdown: false,
-    description: 'Convert Notion Markdown exports into clean files and documented metadata.',
+    description: 'Import Markdown ZIP/folder exports, clean page IDs, and preserve CSV/assets.',
   },
   {
     id: 'spanda',
     label: 'Spanda',
-    status: 'planned',
+    status: 'preview-backed',
     input: 'Spanda practice sessions, panchanga context, and practice library exports',
     output: 'vault-folder',
     preservesMarkdown: false,
-    description: 'Map practice sessions and rituals into durable Sadhana Markdown notes.',
+    description: 'Map practice sessions and rituals into local-only Sadhana Markdown notes.',
+  },
+  {
+    id: 'json-capsule',
+    label: 'JSON capsule',
+    status: 'preview-backed',
+    input: 'Grimoire JSON portability capsule',
+    output: 'vault-folder',
+    preservesMarkdown: true,
+    description: 'Restore a local JSON snapshot into imports while withheld rows remain withheld.',
+  },
+  {
+    id: 'sqlite-capsule',
+    label: 'SQLite capsule',
+    status: 'preview-backed',
+    input: 'Grimoire SQLite portability capsule',
+    output: 'vault-folder',
+    preservesMarkdown: true,
+    description: 'Restore a local queryable capsule as Markdown files without making SQLite the live vault.',
   },
 ] as const satisfies readonly VaultImportSource[]
 
@@ -165,11 +216,13 @@ const EXPORT_TARGETS = [
   {
     id: 'static-html',
     label: 'Static HTML archive',
-    status: 'planned',
+    status: 'ready',
     output: 'Read-only HTML pages generated from Markdown',
     portable: true,
-    description: 'Generate a browsable archive for sharing and long-term reading.',
+    description: 'Generate a browsable read-only archive while excluding local-only lanes.',
   },
+  { id: 'json-snapshot', label: 'Pure JSON snapshot', status: 'ready', output: 'Human-diffable capsule with Markdown text, asset payloads, manifest, and locality proof', portable: true, description: 'Export an agent-friendly local snapshot while Markdown remains the source of truth.' },
+  { id: 'sqlite-snapshot', label: 'Local SQLite snapshot', status: 'ready', output: 'Read-optimized SQLite capsule with file, withheld, and locality proof tables', portable: true, description: 'Export a local queryable snapshot for tools without turning SQLite into the live vault.' },
 ] as const satisfies readonly VaultExportTarget[]
 
 const STORAGE_PROVIDERS = [
@@ -197,7 +250,7 @@ const STORAGE_PROVIDERS = [
     id: 'icloud-drive',
     label: 'iCloud Drive',
     kind: 'cloud-folder',
-    status: 'ready',
+    status: 'folder-proof',
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Use an iCloud Drive folder as the local working vault.',
@@ -207,7 +260,7 @@ const STORAGE_PROVIDERS = [
     id: 'google-drive-desktop',
     label: 'Google Drive Desktop',
     kind: 'cloud-folder',
-    status: 'ready',
+    status: 'folder-proof',
     localFirst: true,
     requiresLocalWorkingCopy: true,
     description: 'Use a Google Drive Desktop folder as the local working vault.',
@@ -217,21 +270,21 @@ const STORAGE_PROVIDERS = [
     id: 's3',
     label: 'Amazon S3',
     kind: 'object-storage',
-    status: 'planned',
+    status: 'proof-preview',
     localFirst: true,
     requiresLocalWorkingCopy: true,
-    description: 'Mirror a local working vault to an S3 bucket through a sync adapter.',
-    userAction: 'Configure bucket, region, and local credentials when the adapter lands.',
+    description: 'Preview/apply S3 provider sync from a local working vault using local AWS credentials; provider failure-state proof is still pending.',
+    userAction: 'Enter a bucket, optional region/prefix, run preview, then apply only the reviewed target.',
   },
   {
     id: 'azure-blob',
     label: 'Azure Blob Storage',
     kind: 'object-storage',
-    status: 'planned',
+    status: 'proof-preview',
     localFirst: true,
     requiresLocalWorkingCopy: true,
-    description: 'Mirror a local working vault to Azure Blob Storage through a sync adapter.',
-    userAction: 'Configure account, container, and local credentials when the adapter lands.',
+    description: 'Preview/apply Azure Blob provider sync from a local working vault using local Azure CLI login; provider failure-state proof is still pending.',
+    userAction: 'Enter account, container, optional prefix, run preview, then apply only the reviewed target.',
   },
 ] as const satisfies readonly VaultStorageProvider[]
 
@@ -279,9 +332,12 @@ export function isVaultPathInStorageProvider(providerId: string, vaultPath: stri
 function healthForProvider(
   provider: VaultStorageProvider,
   normalizedPath: string,
-): Pick<VaultStorageHealth, 'state' | 'message'> {
+): Pick<VaultStorageHealth, 'state' | 'message' | 'privacyNote'> {
   if (provider.status === 'planned') {
     return { state: 'planned', message: 'Adapter planned around a local working copy.' }
+  }
+  if (provider.status === 'proof-preview') {
+    return { state: 'proof-preview', message: 'Proof preview available; provider sync not proven.' }
   }
   if (provider.id === 'local-folder') {
     return normalizedPath
@@ -292,7 +348,12 @@ function healthForProvider(
     return { state: 'available', message: 'Git health is shown in the status bar.' }
   }
   if (provider.id === 'icloud-drive') {
-    return cloudFolderHealth(normalizedPath, isICloudDrivePath, 'Current vault is inside iCloud Drive.', provider.userAction)
+    return cloudFolderHealth(
+      normalizedPath,
+      isICloudDrivePath,
+      'Current vault is inside iCloud Drive.',
+      provider.userAction,
+    )
   }
   if (provider.id === 'google-drive-desktop') {
     return cloudFolderHealth(
@@ -310,9 +371,13 @@ function cloudFolderHealth(
   matcher: (path: string) => boolean,
   activeMessage: string,
   fallbackMessage: string,
-): Pick<VaultStorageHealth, 'state' | 'message'> {
+): Pick<VaultStorageHealth, 'state' | 'message' | 'privacyNote'> {
   return normalizedPath && matcher(normalizedPath)
-    ? { state: 'active', message: activeMessage }
+      ? {
+        state: 'active',
+        message: `${activeMessage} Local folder detected; provider sync not proven by Grimoire.`,
+        privacyNote: 'Cloud sync is handled by the folder provider; Grimoire only edits the local files and never stores cloud credentials in the vault.',
+      }
     : { state: 'not_selected', message: fallbackMessage }
 }
 

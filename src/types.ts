@@ -1,7 +1,8 @@
 import type { AiAgentId } from './lib/aiAgents'
-import type { EditorFont, ThemePreset } from './lib/appearance'
+import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from './lib/appearance'
+import type { TranscriptionProviderId } from './lib/transcriptionProviders'
 import type { ThemeMode } from './lib/themeMode'
-import type { AppLocale } from './lib/i18n'
+import type { AppLocale } from './lib/i18nCore'
 
 export interface VaultEntry {
   path: string
@@ -95,14 +96,20 @@ export interface Settings {
   theme_mode?: ThemeMode | null
   theme_preset?: ThemePreset | null
   editor_font?: EditorFont | null
+  editor_line_height?: EditorLineHeight | null
   ui_language?: AppLocale | null
   menu_bar_icon_enabled?: boolean | null
+  native_shell_material?: NativeShellMaterial | null
   initial_h1_auto_rename_enabled?: boolean | null
   default_ai_agent?: AiAgentId | null
   /** Optional per-agent model override passed to local CLI agents. */
   ai_agent_models?: Partial<Record<AiAgentId, string>> | null
   /** Optional per-agent provider override passed to local CLI agents that support provider routing. */
   ai_agent_providers?: Partial<Record<AiAgentId, string>> | null
+  /** Speech-to-text backend. Cloud-capable providers require cloud_transcription_enabled=true. */
+  transcription_provider?: TranscriptionProviderId | null
+  /** Explicit opt-in before any transcription audio may leave the local machine. */
+  cloud_transcription_enabled?: boolean | null
 }
 
 export interface GitPullResult {

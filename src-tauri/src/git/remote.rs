@@ -1,3 +1,4 @@
+use super::command_timeout::remote_git_output;
 use super::git_command;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -40,11 +41,17 @@ pub fn git_pull(vault_path: &str) -> Result<GitPullResult, String> {
         });
     }
 
-    let output = git_command()
-        .args(["pull", "--no-rebase"])
-        .current_dir(vault)
-        .output()
-        .map_err(|e| format!("Failed to run git pull: {}", e))?;
+    let output = match remote_git_output(vault, &["pull", "--no-rebase"]) {
+        Ok(output) => output,
+        Err(message) => {
+            return Ok(GitPullResult {
+                status: "error".to_string(),
+                message,
+                updated_files: vec![],
+                conflict_files: vec![],
+            });
+        }
+    };
 
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
@@ -134,10 +141,7 @@ pub fn git_remote_status(vault_path: &str) -> Result<GitRemoteStatus, String> {
     }
 
     // Fetch latest remote refs (silent, best-effort)
-    let _ = git_command()
-        .args(["fetch", "--quiet"])
-        .current_dir(vault)
-        .output();
+    let _ = remote_git_output(vault, &["fetch", "--quiet"]);
 
     let branch = current_branch(vault)?;
 
@@ -283,11 +287,10 @@ fn push_error_detail(stderr: &str) -> String {
 pub fn git_push(vault_path: &str) -> Result<GitPushResult, String> {
     let vault = Path::new(vault_path);
 
-    let output = git_command()
-        .args(["push"])
-        .current_dir(vault)
-        .output()
-        .map_err(|e| format!("Failed to run git push: {}", e))?;
+    let output = match remote_git_output(vault, &["push"]) {
+        Ok(output) => output,
+        Err(message) => return Ok(classify_push_error(&message)),
+    };
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -428,6 +431,12 @@ hint: have locally."#;
         let result = classify_push_error(stderr);
         assert_eq!(result.status, "network_error");
         assert!(result.message.contains("network"));
+    }
+
+    #[test]
+    fn test_classify_push_error_timeout() {
+        let result = classify_push_error("git push timed out after 15s");
+        assert_eq!(result.status, "network_error");
     }
 
     #[test]

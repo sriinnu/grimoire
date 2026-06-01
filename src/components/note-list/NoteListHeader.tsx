@@ -1,18 +1,24 @@
+import { lazy, Suspense } from 'react'
 import { MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { Loader2 } from 'lucide-react'
 import type { VaultEntry } from '../../types'
-import type { SortOption, SortDirection } from '../../utils/noteListHelpers'
-import { translate, type AppLocale } from '../../lib/i18n'
+import type { SortOption, SortDirection } from '../../utils/noteListSorting'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useDragRegion } from '../../hooks/useDragRegion'
 import { SortDropdown } from '../SortDropdown'
-import { ListPropertiesPopover, type ListPropertiesPopoverProps } from './ListPropertiesPopover'
+import type { ListPropertiesPopoverProps } from './ListPropertiesPopover'
 
-const NOTE_LIST_ACTION_BUTTON_CLASSNAME = '!h-auto !w-auto !min-w-0 !rounded-none !p-0 !text-muted-foreground hover:!bg-transparent hover:!text-foreground focus-visible:!bg-transparent data-[state=open]:!bg-transparent data-[state=open]:!text-foreground [&_svg]:!size-4'
+const NOTE_LIST_ACTION_BUTTON_CLASSNAME = 'note-list-chrome-action'
+const ListPropertiesPopoverSurface = lazy(async () => ({
+  default: (await import('./ListPropertiesPopover')).ListPropertiesPopover,
+}))
 
-export function NoteListHeader({ title, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, locale = 'en', onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown }: {
+export function NoteListHeader({ title, createNoteLabel, searchActionLabel, searchPlaceholder, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown }: {
   title: string
+  createNoteLabel: string
+  searchActionLabel: string
+  searchPlaceholder: string
   typeDocument: VaultEntry | null
   isEntityView: boolean
   listSort: SortOption
@@ -24,7 +30,6 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
   isSearching: boolean
   searchInputRef: React.RefObject<HTMLInputElement | null>
   propertyPicker?: ListPropertiesPopoverProps | null
-  locale?: AppLocale
   onSortChange: (groupLabel: string, option: SortOption, direction: SortDirection) => void
   onCreateNote: () => void
   onOpenType: (entry: VaultEntry) => void
@@ -35,7 +40,7 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
   const { onMouseDown: onDragMouseDown } = useDragRegion()
   return (
     <>
-      <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-border px-4" onMouseDown={onDragMouseDown} style={{ cursor: 'default', paddingLeft: sidebarCollapsed ? 80 : undefined }}>
+      <div className="note-list-chrome-row flex h-[52px] shrink-0 items-center justify-between border-b px-4" onMouseDown={onDragMouseDown} style={{ cursor: 'default', paddingLeft: sidebarCollapsed ? 80 : undefined }}>
         <h3
           className="m-0 min-w-0 flex-1 truncate text-[14px] font-semibold"
           style={typeDocument ? { cursor: 'pointer' } : undefined}
@@ -44,23 +49,36 @@ export function NoteListHeader({ title, typeDocument, isEntityView, listSort, li
         >
           {title}
         </h3>
-        <div className="ml-3 flex shrink-0 items-center justify-end gap-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          {!isEntityView && <SortDropdown groupLabel="__list__" current={listSort} direction={listDirection} customProperties={customProperties} onChange={onSortChange} />}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={translate(locale, 'noteList.searchAction')} aria-label={translate(locale, 'noteList.searchAction')}>
+        <div className="note-list-chrome-actions ml-3" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+          {!isEntityView && (
+            <SortDropdown
+              groupLabel="__list__"
+              current={listSort}
+              direction={listDirection}
+              customProperties={customProperties}
+              triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME}
+              onChange={onSortChange}
+            />
+          )}
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={searchActionLabel} aria-label={searchActionLabel}>
             <MagnifyingGlass size={16} />
           </Button>
-          {propertyPicker && <ListPropertiesPopover {...propertyPicker} triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME} />}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={translate(locale, 'noteList.createNote')} aria-label={translate(locale, 'noteList.createNote')}>
+          {propertyPicker && (
+            <Suspense fallback={null}>
+              <ListPropertiesPopoverSurface {...propertyPicker} triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME} />
+            </Suspense>
+          )}
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={createNoteLabel} aria-label={createNoteLabel}>
             <Plus size={16} />
           </Button>
         </div>
       </div>
       {searchVisible && (
-        <div className="border-b border-border px-3 py-2">
+        <div className="note-list-search-row border-b px-3 py-2">
           <div className="relative flex-1" aria-live="polite">
             <Input
               ref={searchInputRef}
-              placeholder={translate(locale, 'noteList.searchPlaceholder')}
+              placeholder={searchPlaceholder}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={onSearchKeyDown}

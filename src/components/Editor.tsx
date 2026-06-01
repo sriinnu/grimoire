@@ -4,7 +4,7 @@ import { useCreateBlockNote } from '@blocknote/react'
 import '@blocknote/mantine/style.css'
 import 'katex/dist/katex.min.css'
 import { uploadImageFile } from '../hooks/useImageDrop'
-import { DEFAULT_AI_AGENT, type AiAgentId } from '../lib/aiAgents'
+import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import { RUNTIME_STYLE_NONCE } from '../lib/runtimeStyleNonce'
 import type { VaultEntry, GitCommit, NoteLayout, NoteStatus } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
@@ -22,6 +22,8 @@ import { useRawModeWithFlush } from './useRawModeWithFlush'
 import { createArrowLigaturesExtension } from './arrowLigaturesExtension'
 import { useFilenameAutolinkGuard } from './useFilenameAutolinkGuard'
 import './Editor.css'
+import './EditorHeadingProfiles.css'
+import './EditorMeta.css'
 import './EditorTheme.css'
 
 interface Tab {
@@ -46,6 +48,7 @@ export interface EditorProps {
   inspectorWidth: number
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
+  aiAgentsStatus?: AiAgentsStatus
   defaultAiProvider?: string | null
   defaultAiModel?: string | null
   onInspectorResize: (delta: number) => void
@@ -251,7 +254,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
     tabs, activeTabPath, entries, onNavigateWikilink,
     getNoteStatus,
     inspectorCollapsed, onToggleInspector, inspectorWidth,
-    defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
+    defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true, aiAgentsStatus,
     defaultAiProvider,
     defaultAiModel,
     onUnsupportedAiPaste,
@@ -332,6 +335,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
       inspectorWidth={inspectorWidth}
       defaultAiAgent={defaultAiAgent}
       defaultAiAgentReady={defaultAiAgentReady}
+      aiAgentsStatus={aiAgentsStatus}
       defaultAiProvider={defaultAiProvider}
       defaultAiModel={defaultAiModel}
       onUnsupportedAiPaste={onUnsupportedAiPaste}

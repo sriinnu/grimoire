@@ -1,5 +1,4 @@
-import { invoke } from '@tauri-apps/api/core'
-import { getCurrentWindow } from '@tauri-apps/api/window'
+import { getCurrentTauriWindow, invoke } from '../lib/tauriRuntime'
 import type { AppCommandId } from '../hooks/appCommandCatalog'
 import { APP_COMMAND_DEFINITIONS, APP_COMMAND_IDS } from '../hooks/appCommandCatalog'
 import { Button } from './ui/button'
@@ -26,6 +25,12 @@ type MenuSection = {
 }
 
 type MenuCommandId = AppCommandId | 'edit-toggle-note-list-search'
+
+function withCurrentWindow(action: (window: Awaited<ReturnType<typeof getCurrentTauriWindow>>) => Promise<void>): void {
+  void getCurrentTauriWindow()
+    .then(action)
+    .catch(() => {})
+}
 
 const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
   {
@@ -110,10 +115,10 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
   {
     label: 'Window',
     items: [
-      { kind: 'action', label: 'Minimize', action: () => void getCurrentWindow().minimize().catch(() => {}) },
-      { kind: 'action', label: 'Maximize', action: () => void getCurrentWindow().toggleMaximize().catch(() => {}) },
+      { kind: 'action', label: 'Minimize', action: () => withCurrentWindow((window) => window.minimize()) },
+      { kind: 'action', label: 'Maximize', action: () => withCurrentWindow((window) => window.toggleMaximize()) },
       { kind: 'separator' },
-      { kind: 'action', label: 'Close', action: () => void getCurrentWindow().close().catch(() => {}) },
+      { kind: 'action', label: 'Close', action: () => withCurrentWindow((window) => window.close()) },
     ],
   },
 ]

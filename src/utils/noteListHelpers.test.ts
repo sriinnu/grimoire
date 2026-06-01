@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-  buildRelationshipGroups,
   countAllByFilter,
   countAllNotesByFilter,
   countByFilter,
@@ -8,6 +7,7 @@ import {
   countFolderFileScopes,
   filterEntries,
 } from './noteListHelpers'
+import { buildRelationshipGroups } from './noteRelationships'
 import { allSelection, makeEntry, mockEntries } from '../test-utils/noteListTestUtils'
 
 describe('filterEntries', () => {
@@ -25,6 +25,16 @@ describe('filterEntries', () => {
 
     const result = filterEntries(entries, { kind: 'sectionGroup', type: 'Project' }, 'open')
     expect(result.map((entry) => entry.title)).toEqual(['Active'])
+  })
+
+  it('excludes attachment markdown from typed section groups', () => {
+    const entries = [
+      makeEntry({ path: '/vault/notes/real.md', title: 'Real', isA: 'Note' }),
+      makeEntry({ path: '/vault/attachments/reference.md', title: 'Attachment', isA: 'Note' }),
+    ]
+
+    const result = filterEntries(entries, { kind: 'sectionGroup', type: 'Note' })
+    expect(result.map((entry) => entry.title)).toEqual(['Real'])
   })
 
   it('filters section groups by archived sub-filter', () => {
@@ -47,6 +57,16 @@ describe('filterEntries', () => {
 
     const result = filterEntries(entries, { kind: 'sectionGroup', type: 'Project' })
     expect(result.map((entry) => entry.title)).toEqual(['Active'])
+  })
+
+  it('matches section group types case-insensitively for legacy journal frontmatter', () => {
+    const entries = [
+      makeEntry({ path: '/journal.md', title: 'Journal', isA: 'journal' }),
+      makeEntry({ path: '/dream.md', title: 'Dream', isA: 'Dream' }),
+    ]
+
+    const result = filterEntries(entries, { kind: 'sectionGroup', type: 'Journal' })
+    expect(result.map((entry) => entry.title)).toEqual(['Journal'])
   })
 
   it('filters all notes by open sub-filter', () => {
@@ -101,12 +121,21 @@ describe('countByFilter', () => {
   it('counts open and archived entries for a type', () => {
     const entries = [
       makeEntry({ path: '/1.md', isA: 'Project' }),
-      makeEntry({ path: '/2.md', isA: 'Project', archived: true }),
+      makeEntry({ path: '/2.md', isA: 'project', archived: true }),
       makeEntry({ path: '/3.md', isA: 'Project' }),
       makeEntry({ path: '/4.md', isA: 'Note' }),
     ]
 
     expect(countByFilter(entries, 'Project')).toEqual({ open: 2, archived: 1 })
+  })
+
+  it('excludes attachment markdown from typed counts', () => {
+    const entries = [
+      makeEntry({ path: '/vault/notes/real.md', isA: 'Note' }),
+      makeEntry({ path: '/vault/attachments/reference.md', isA: 'Note' }),
+    ]
+
+    expect(countByFilter(entries, 'Note')).toEqual({ open: 1, archived: 0 })
   })
 
   it('returns zeros when a type has no matching entries', () => {

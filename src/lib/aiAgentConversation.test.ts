@@ -27,15 +27,12 @@ import {
   appendLocalResponse,
   appendQueuedMessage,
   appendStreamingMessage,
+  buildMessageRouteDisclosure,
   buildFormattedMessage,
   createMissingAgentResponse,
   type AiAgentMessage,
 } from './aiAgentConversation'
-import {
-  markReasoningDone,
-  updateMessage,
-  updateToolAction,
-} from './aiAgentMessageState'
+import { markReasoningDone, updateMessage, updateToolAction } from './aiAgentMessageState'
 
 function createMessageStore(initial: AiAgentMessage[] = []) {
   let messages = initial
@@ -164,6 +161,26 @@ describe('aiAgentConversation', () => {
     })
   })
 
+  it('adds selected Grimoire references to the provider prompt', () => {
+    buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault' },
+      [],
+      {
+        text: 'summarize the open loop',
+        references: [{ path: '/vault/projects/grimoire.md', title: 'Grimoire', type: 'Project' }],
+      },
+    )
+
+    expect(formatMessageWithHistoryMock).toHaveBeenCalledWith([], [
+      'summarize the open loop',
+      '',
+      '## Selected Grimoire References',
+      '- [[Grimoire]] (type: Project, path: /vault/projects/grimoire.md)',
+      '',
+      'Use these local vault references as context. Read note bodies only through Grimoire tools and keep local-only material withheld.',
+    ].join('\n'))
+  })
+
   it('prefers a system prompt override when provided', () => {
     const result = buildFormattedMessage(
       { agent: 'codex', ready: true, vaultPath: '/vault', systemPromptOverride: 'OVERRIDE' },
@@ -173,6 +190,66 @@ describe('aiAgentConversation', () => {
 
     expect(buildAgentSystemPromptMock).not.toHaveBeenCalled()
     expect(result.systemPrompt).toBe('OVERRIDE')
+  })
+
+  it('adds a runtime route disclosure for Chitragupta identity questions', () => {
+    const result = buildFormattedMessage(
+      {
+        agent: 'chitragupta',
+        ready: true,
+        vaultPath: '/vault',
+        provider: 'google',
+        model: 'gemini-2.5-pro',
+      },
+      [],
+      { text: 'which model are you using?' },
+    )
+
+    expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
+    expect(result.systemPrompt).toContain('- Agent: Chitragupta')
+    expect(result.systemPrompt).toContain('- Provider: google')
+    expect(result.systemPrompt).toContain('- Model: gemini-2.5-pro')
+    expect(result.systemPrompt).toContain('Do not guess a model family')
+  })
+
+  it('keeps Chitragupta route identity unresolved until the CLI stream resolves it', () => {
+    const result = buildFormattedMessage(
+      { agent: 'chitragupta', ready: true, vaultPath: '/vault' },
+      [],
+      { text: 'which model are you using?' },
+    )
+
+    expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
+    expect(result.systemPrompt).toContain('- Provider: resolved by stream')
+    expect(result.systemPrompt).toContain('- Model: resolved by stream')
+    expect(result.systemPrompt).toContain('exact model is resolved by the CLI stream')
+  })
+
+  it('builds app-owned route metadata for pending Chitragupta streams', () => {
+    expect(buildMessageRouteDisclosure({
+      agent: 'chitragupta',
+      ready: true,
+      vaultPath: '/vault',
+    })).toEqual({
+      agent: 'chitragupta',
+      provider: 'resolved by stream',
+      model: 'resolved by stream',
+      source: 'cli-default',
+    })
+  })
+
+  it('ignores stale provider settings for agents without provider routing', () => {
+    const result = buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault', provider: 'google', model: 'gpt-5.3-codex' },
+      [],
+      { text: 'which provider are you using?' },
+    )
+
+    expect(result.systemPrompt).toContain('Runtime route visible in Grimoire')
+    expect(result.systemPrompt).toContain('- Agent: Codex')
+    expect(result.systemPrompt).toContain('- Provider: CLI default')
+    expect(result.systemPrompt).toContain('- Model: gpt-5.3-codex')
+    expect(result.systemPrompt).not.toContain('- Provider: google')
   })
 })
 
