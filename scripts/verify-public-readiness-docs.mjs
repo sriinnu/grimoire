@@ -69,8 +69,12 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release preflight | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release Pages generator | Locally verified |')
-  assertContains('docs/PUBLIC-READINESS.md', 'The pre-push gate passed on signed commit `b8ba912`')
-  assertContains('docs/PUBLIC-READINESS.md', '4,583 frontend tests')
+  assertContains('docs/PUBLIC-READINESS.md', '| Settings platform copy | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', 'Windows Credential Manager')
+  assertContains('docs/PUBLIC-READINESS.md', 'Linux Secret Service/keyring')
+  assertContains('docs/PUBLIC-READINESS.md', 'The pre-push gate passed on signed commit `96b9c74`')
+  assertContains('docs/PUBLIC-READINESS.md', '4,594 frontend tests')
+  assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
   assertContains(
     'docs/PUBLIC-READINESS.md',
