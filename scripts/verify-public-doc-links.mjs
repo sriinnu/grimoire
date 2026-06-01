@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -32,7 +33,7 @@ async function collectMarkdownFiles(roots, rootDir = REPO_ROOT) {
   for (const root of roots) {
     await collectPath(resolve(rootDir, root), files)
   }
-  return files.sort()
+  return files.filter((file) => !isGitIgnored(file, rootDir)).sort()
 }
 
 async function collectPath(path, files) {
@@ -149,6 +150,14 @@ function relativePath(path, rootDir = REPO_ROOT) {
   return path.startsWith(`${rootDir}/`) ? path.slice(rootDir.length + 1) : path
 }
 
+function isGitIgnored(path, rootDir = REPO_ROOT) {
+  const result = spawnSync('git', ['check-ignore', '--quiet', '--', relativePath(path, rootDir)], {
+    cwd: rootDir,
+    stdio: 'ignore',
+  })
+  return result.status === 0
+}
+
 async function runSelfTest() {
   const tempRoot = mkdtempSync(join(tmpdir(), 'grimoire-doc-links-'))
   try {
@@ -176,6 +185,18 @@ async function runSelfTest() {
     const brokenIssues = await verifyLinks(await collectMarkdownFiles(['BROKEN.md'], tempRoot), tempRoot)
     if (brokenIssues.length !== 1 || !brokenIssues[0].includes('NOPE.md')) {
       throw new Error('broken fixture should report one missing link')
+    }
+
+    spawnSync('git', ['init'], { cwd: tempRoot, stdio: 'ignore' })
+    writeFileSync(resolve(tempRoot, '.gitignore'), 'docs/local-only.md\n')
+    writeFileSync(resolve(tempRoot, 'docs/local-only.md'), '[Ignored broken link](MISSING.md)\n')
+    const publicFiles = await collectMarkdownFiles(['docs'], tempRoot)
+    if (publicFiles.some((file) => file.endsWith('local-only.md'))) {
+      throw new Error('ignored markdown should not be collected as a public doc')
+    }
+    const ignoredIssues = await verifyLinks(publicFiles, tempRoot)
+    if (ignoredIssues.some((issue) => issue.includes('local-only.md'))) {
+      throw new Error('ignored markdown should not affect public doc link checks')
     }
   } finally {
     rmSync(tempRoot, { recursive: true, force: true })

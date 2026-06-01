@@ -16,6 +16,17 @@ const SCRIPT_PATH = fileURLToPath(import.meta.url)
 const SCRIPT_DIR = dirname(SCRIPT_PATH)
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 
+const LOCAL_ONLY_DOCS = [
+  'docs/ACTIVE-WORK.md',
+  'docs/GRIMOIRE-REVIEW-TODO.md',
+  'docs/GRIMOIRE-SPECIALNESS-TODO.md',
+  'docs/LIGHTNESS-AND-MOTION-PLAN.md',
+  'docs/QUICK-CAPTURE-AUTO-PROMOTION.md',
+  'docs/CHITRAGUPTA-GRIMOIRE-INTEGRATION-REQUEST.md',
+  'docs/CHITRAGUPTA-WIRING-NEEDS.md',
+  'docs/KARYA-BOARD-SALVAGE.md',
+]
+
 export const REQUIRED_GITIGNORE_PATTERNS = [
   '.grimoire-local/',
   'mockups/',
@@ -33,6 +44,7 @@ export const REQUIRED_GITIGNORE_PATTERNS = [
   '*.key',
   '*.key.pub',
   'src-tauri/gen/apple/assets/mcp-server/',
+  ...LOCAL_ONLY_DOCS,
 ]
 
 const FORBIDDEN_TRACKED_RULES = [
@@ -53,6 +65,7 @@ const FORBIDDEN_TRACKED_RULES = [
     label: 'src-tauri/gen/apple/assets/mcp-server/',
     test: (path) => hasPrefix(path, 'src-tauri/gen/apple/assets/mcp-server/'),
   },
+  { label: 'local planning docs', test: (path) => LOCAL_ONLY_DOCS.includes(path) },
   { label: 'docs/.DS_Store', test: (path) => path === 'docs/.DS_Store' },
 ]
 
@@ -262,6 +275,10 @@ function runSelfTest() {
       trackedFiles: ['.claude/commands/grimoire-next-task.md'],
       worktreeFiles: [],
     }), '.claude/')
+    assertIssue('tracked local planning doc', auditLocalOnly(root, {
+      trackedFiles: ['docs/ACTIVE-WORK.md'],
+      worktreeFiles: [],
+    }), 'local planning docs')
 
     writeFileSync(resolve(root, 'docs/private-plan.md'), 'DO NOT COMMIT\n')
     assertIssue(

@@ -16,6 +16,7 @@ below are resolved and re-verified.
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | README status badges | Verified | README badges are static truth badges while the repository is private and hosted CI is blocked. Dynamic Actions, coverage, and CodeScene badges should only return after their public endpoints are verified. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
+| Public doc hygiene | Verified | Claude command prompts and local working notes are ignored and removed from Git tracking. `pnpm audit:local-only` now fails if `.claude/`, Codex/MCP local wiring, local planning docs, local mockups, cert keys, generated MCP bundles, or local-only docs are tracked. |
 | Public doc links | Verified | `pnpm test:public-doc-links` validates local links and image paths in public-facing Markdown after stripping fenced code examples. |
 | Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, and update feeds return `404`. |
 | Release preflight | Blocked | `pnpm test:release-preflight` covers the preflight model. `pnpm release:preflight` currently fails because the repo has no release secrets configured and GitHub Pages is not enabled. |

@@ -65,11 +65,18 @@ ChatGPT Image*
 # Local MCP wiring may contain absolute machine paths.
 .mcp.json
 
-# Stale planning docs (keep locally if needed, not in repo)
+# Local planning docs (keep locally if needed, not in repo)
 REDESIGN-PLAN.md
 SF-SYMBOLS-MIGRATION.md
 CODE-HEALTH-REPORT.md
+docs/ACTIVE-WORK.md
+docs/GRIMOIRE-REVIEW-TODO.md
+docs/GRIMOIRE-SPECIALNESS-TODO.md
+docs/LIGHTNESS-AND-MOTION-PLAN.md
 docs/QUICK-CAPTURE-AUTO-PROMOTION.md
+docs/CHITRAGUPTA-GRIMOIRE-INTEGRATION-REQUEST.md
+docs/CHITRAGUPTA-WIRING-NEEDS.md
+docs/KARYA-BOARD-SALVAGE.md
 
 # Local home dir artifact from worktree ops
 (HOME)/
