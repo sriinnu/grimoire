@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import fs from 'fs'
 import path from 'path'
 import type { Plugin } from 'vite'
-import { findMarkdownFiles, findVaultFiles, parseMarkdownFile, parseVaultFile } from './viteVaultApiModel'
+import { classifyFileKind, findMarkdownFiles, findVaultFiles, parseMarkdownFile, parseVaultFile } from './viteVaultApiModel'
 
 function sendJson(res: ServerResponse, payload: unknown, statusCode = 200): void {
   res.statusCode = statusCode
@@ -122,15 +122,35 @@ function handleVaultSearch(url: URL, res: ServerResponse): boolean {
     return true
   }
 
-  const results: { title: string; path: string; snippet: string; score: number; note_type: string | null }[] = []
+  const results: {
+    title: string
+    path: string
+    snippet: string
+    score: number
+    note_type: string | null
+    file_kind: 'markdown' | 'text' | 'binary'
+  }[] = []
   for (const filePath of findVaultFiles(vaultPath)) {
     const entry = parseVaultFile(filePath)
     if (!entry || entry.trashed) continue
     const raw = fs.readFileSync(filePath, 'utf-8')
-    if (entry.title.toLowerCase().includes(query) || raw.toLowerCase().includes(query)) {
-      results.push({ title: entry.title, path: entry.path, snippet: entry.snippet, score: 1.0, note_type: entry.isA })
+    const relativePath = path.relative(vaultPath, filePath).replaceAll(path.sep, '/')
+    const titleMatch = entry.title.toLowerCase().includes(query)
+    const pathMatch = relativePath.toLowerCase().includes(query)
+    const bodyMatch = raw.toLowerCase().includes(query)
+    if (titleMatch || pathMatch || bodyMatch) {
+      const score = (titleMatch ? 10 : 0) + (pathMatch ? 6 : 0) + (bodyMatch ? 1 : 0)
+      results.push({
+        title: entry.title,
+        path: entry.path,
+        snippet: bodyMatch ? entry.snippet : relativePath,
+        score,
+        note_type: entry.isA,
+        file_kind: classifyFileKind(filePath),
+      })
     }
   }
+  results.sort((a, b) => b.score - a.score)
   sendJson(res, { results: results.slice(0, 20), elapsed_ms: 1, query, mode })
   return true
 }

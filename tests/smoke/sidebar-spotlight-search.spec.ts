@@ -39,6 +39,10 @@ test.describe('Sidebar Spotlight search', () => {
     await expect(page.getByText('spotlight-proof.ts', { exact: true })).toBeVisible({ timeout: 5_000 })
     await expect(page.getByText('project docs searchable from the sidebar')).toBeVisible()
 
+    await searchInput.fill('docs/spotlight-proof')
+    await expect(page.getByText('spotlight-proof.ts', { exact: true })).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByText('docs/spotlight-proof.ts', { exact: true }).first()).toBeVisible()
+
     await page.getByText('spotlight-proof.ts', { exact: true }).click()
     await expect(page.getByTestId('breadcrumb-filename-trigger')).toContainText('spotlight-proof', {
       timeout: 5_000,

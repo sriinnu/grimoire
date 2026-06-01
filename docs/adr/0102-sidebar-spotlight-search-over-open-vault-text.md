@@ -26,11 +26,12 @@ sidebar Spotlight surface that searches every available open vault path across
 markdown and editable text files.**
 
 `search_vault` continues to scan files directly with `walkdir`. It now includes
-files classified as `markdown` or `text`, skips hidden/dependency/build-output
-directories through the same vault scan exclusion model, and keeps binary files
-out of search. The React search hook aggregates available open vault scopes,
-merges results by score, and lets cross-vault selections switch to the target
-vault before opening the file.
+files classified as `markdown` or `text`, matches title, content, filename, and
+vault-relative path, skips hidden/dependency/build-output directories through
+the same vault scan exclusion model, and keeps binary files out of search. The
+React search hook aggregates available open vault scopes, merges results by
+score, and lets cross-vault selections switch to the target vault before opening
+the file.
 
 ## Options Considered
 

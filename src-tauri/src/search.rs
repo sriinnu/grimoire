@@ -10,6 +10,7 @@ pub struct SearchResult {
     pub snippet: String,
     pub score: f64,
     pub note_type: Option<String>,
+    pub file_kind: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -42,9 +43,17 @@ fn extract_snippet(content: &str, query_lower: &str) -> String {
     }
 }
 
-fn score_match(title_lower: &str, content_lower: &str, query_lower: &str) -> f64 {
+fn score_match(
+    title_lower: &str,
+    content_lower: &str,
+    relative_path_lower: &str,
+    filename_lower: &str,
+    query_lower: &str,
+) -> f64 {
     let title_exact = title_lower.contains(query_lower);
     let title_word = title_lower.split_whitespace().any(|w| w == query_lower);
+    let filename_exact = filename_lower.contains(query_lower);
+    let relative_path_exact = relative_path_lower.contains(query_lower);
     let content_count = content_lower.matches(query_lower).count();
 
     let mut score = 0.0;
@@ -53,12 +62,13 @@ fn score_match(title_lower: &str, content_lower: &str, query_lower: &str) -> f64
     } else if title_exact {
         score += 5.0;
     }
+    if filename_exact {
+        score += 8.0;
+    } else if relative_path_exact {
+        score += 4.0;
+    }
     score += (content_count as f64).min(20.0) * 0.5;
     score
-}
-
-fn is_searchable_text_path(path: &Path) -> bool {
-    matches!(crate::vault::classify_file_kind(path), "markdown" | "text")
 }
 
 fn search_result_title(path: &Path, content: &str) -> String {
@@ -72,6 +82,13 @@ fn search_result_title(path: &Path, content: &str) -> String {
     }
 
     filename.to_string()
+}
+
+fn relative_search_path(vault_dir: &Path, path: &Path) -> String {
+    path.strip_prefix(vault_dir)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .replace('\\', "/")
 }
 
 pub fn search_vault(
@@ -102,7 +119,8 @@ pub fn search_vault(
         if !entry.file_type().is_file() {
             continue;
         }
-        if entry.file_name().to_string_lossy().starts_with('.') || !is_searchable_text_path(path) {
+        let file_kind = crate::vault::classify_file_kind(path);
+        if entry.file_name().to_string_lossy().starts_with('.') || file_kind == "binary" {
             continue;
         }
 
@@ -114,13 +132,32 @@ pub fn search_vault(
         let content_lower = content.to_lowercase();
         let title = search_result_title(path, &content);
         let title_lower = title.to_lowercase();
+        let relative_path = relative_search_path(vault_dir, path);
+        let relative_path_lower = relative_path.to_lowercase();
+        let filename_lower = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or("")
+            .to_lowercase();
 
-        if !title_lower.contains(&query_lower) && !content_lower.contains(&query_lower) {
+        if !title_lower.contains(&query_lower)
+            && !content_lower.contains(&query_lower)
+            && !relative_path_lower.contains(&query_lower)
+        {
             continue;
         }
 
-        let score = score_match(&title_lower, &content_lower, &query_lower);
-        let snippet = extract_snippet(&content, &query_lower);
+        let score = score_match(
+            &title_lower,
+            &content_lower,
+            &relative_path_lower,
+            &filename_lower,
+            &query_lower,
+        );
+        let snippet = match extract_snippet(&content, &query_lower) {
+            snippet if !snippet.is_empty() => snippet,
+            _ => relative_path.clone(),
+        };
         let full_path = path.to_string_lossy().to_string();
 
         results.push(SearchResult {
@@ -129,6 +166,7 @@ pub fn search_vault(
             snippet,
             score,
             note_type: None,
+            file_kind: file_kind.to_string(),
         });
     }
 
@@ -170,13 +208,13 @@ mod tests {
 
     #[test]
     fn test_score_match_title_word() {
-        let score = score_match("my keyword", "", "keyword");
+        let score = score_match("my keyword", "", "", "", "keyword");
         assert!(score >= 10.0);
     }
 
     #[test]
     fn test_score_match_content_only() {
-        let score = score_match("unrelated", "some keyword text keyword", "keyword");
+        let score = score_match("unrelated", "some keyword text keyword", "", "", "keyword");
         assert!(score > 0.0);
         assert!(score < 10.0);
     }
@@ -224,6 +262,30 @@ mod tests {
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].title, "notes.txt");
         assert_eq!(response.results[0].path, text_path.to_string_lossy());
+        assert_eq!(response.results[0].file_kind, "text");
+    }
+
+    #[test]
+    fn test_search_vault_matches_relative_path_for_project_docs() {
+        let dir = Builder::new()
+            .prefix("search-vault-path-")
+            .tempdir_in(std::env::current_dir().unwrap())
+            .unwrap();
+        let docs_dir = dir.path().join("docs/reference");
+        fs::create_dir_all(&docs_dir).unwrap();
+        let docs_path = docs_dir.join("spotlight-proof.ts");
+        fs::write(&docs_path, "export const proof = true;").unwrap();
+
+        let response =
+            search_vault(dir.path().to_str().unwrap(), "reference", "keyword", 10).unwrap();
+
+        assert_eq!(response.results.len(), 1);
+        assert_eq!(response.results[0].title, "spotlight-proof.ts");
+        assert_eq!(
+            response.results[0].snippet,
+            "docs/reference/spotlight-proof.ts"
+        );
+        assert_eq!(response.results[0].file_kind, "text");
     }
 
     #[test]
