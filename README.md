@@ -147,7 +147,9 @@ pnpm doctor:source
 The doctor separates browser source mode from native Tauri mode. Browser mode
 needs Node, pnpm, and Git; native mode also needs Rust and platform-specific
 Tauri dependencies. If native mode is blocked on Linux, install the packages in
-[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
+[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md). On Linux, the doctor checks
+pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
+4.1, xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
 Audit public-release truth before advertising Grimoire to general users:
 

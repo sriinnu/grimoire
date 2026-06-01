@@ -7,11 +7,15 @@ import { spawnSync } from 'node:child_process'
 const MIN_NODE_MAJOR = 20
 const REQUIRED_BROWSER_TOOLS = ['git']
 const REQUIRED_NATIVE_TOOLS = ['cargo', 'rustc']
-const LINUX_NATIVE_PACKAGES = [
-  'gtk+-3.0',
-  'javascriptcoregtk-4.1',
-  'libsoup-3.0',
-  'webkit2gtk-4.1',
+const LINUX_NATIVE_PKG_CONFIG_CHECKS = [
+  { label: 'GTK 3', packages: ['gtk+-3.0'] },
+  { label: 'JavaScriptCoreGTK 4.1', packages: ['javascriptcoregtk-4.1'] },
+  { label: 'libsoup 3', packages: ['libsoup-3.0'] },
+  { label: 'WebKitGTK 4.1', packages: ['webkit2gtk-4.1'] },
+  { label: 'xdo', packages: ['xdo'] },
+  { label: 'OpenSSL', packages: ['openssl'] },
+  { label: 'librsvg', packages: ['librsvg-2.0'] },
+  { label: 'AppIndicator/Ayatana AppIndicator', packages: ['ayatana-appindicator3-0.1', 'appindicator3-0.1'] },
 ]
 
 function parseArgs(argv) {
@@ -115,12 +119,15 @@ function checkLinuxPackages(context = {}) {
     }]
   }
 
-  return LINUX_NATIVE_PACKAGES.map((name) => {
-    const present = context.pkgConfig?.[name] ?? run('pkg-config', ['--exists', name]).ok
+  return LINUX_NATIVE_PKG_CONFIG_CHECKS.map((dependency) => {
+    const foundPackage = dependency.packages.find((name) => (
+      context.pkgConfig?.[name] ?? run('pkg-config', ['--exists', name]).ok
+    ))
+    const names = dependency.packages.join(' or ')
     return {
-      detail: present ? `${name} found` : `${name} missing`,
-      ok: Boolean(present),
-      title: `pkg-config ${name}`,
+      detail: foundPackage ? `${foundPackage} found` : `${names} missing`,
+      ok: Boolean(foundPackage),
+      title: `pkg-config ${dependency.label}`,
     }
   })
 }
@@ -241,10 +248,36 @@ function runSelfTest() {
     commands: { git: null, pnpm: null, cargo: null, rustc: null, 'pkg-config': 'pkg-config available' },
     nodeVersion: '18.0.0',
     packageManager: 'pnpm@10.33.0',
-    pkgConfig: Object.fromEntries(LINUX_NATIVE_PACKAGES.map((name) => [name, false])),
+    pkgConfig: Object.fromEntries(
+      LINUX_NATIVE_PKG_CONFIG_CHECKS.flatMap((dependency) => dependency.packages.map((name) => [name, false])),
+    ),
     platform: 'linux',
   })
   if (blocked.browser.ok || blocked.native.ok) throw new Error('blocked fixture should fail both modes')
+
+  const linuxReady = runDoctor({
+    commands: {
+      cargo: 'cargo 1.90.0',
+      git: 'git version 2.50.0',
+      pnpm: '10.33.0',
+      rustc: 'rustc 1.90.0',
+      'pkg-config': 'pkg-config available',
+    },
+    nodeVersion: '20.19.0',
+    packageManager: 'pnpm@10.33.0',
+    pkgConfig: {
+      'appindicator3-0.1': true,
+      'gtk+-3.0': true,
+      'javascriptcoregtk-4.1': true,
+      'librsvg-2.0': true,
+      'libsoup-3.0': true,
+      openssl: true,
+      'webkit2gtk-4.1': true,
+      xdo: true,
+    },
+    platform: 'linux',
+  })
+  if (!linuxReady.browser.ok || !linuxReady.native.ok) throw new Error('Linux ready fixture should pass')
 
   const windowsReady = runDoctor({
     commands: {

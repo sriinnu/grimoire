@@ -47,7 +47,9 @@ The source doctor reports two readiness lanes:
 
 - Browser source mode: Node.js 20+, pnpm, and Git.
 - Native Tauri mode: browser source mode plus Rust/Cargo and platform-specific
-  native dependencies.
+  native dependencies. On Linux it verifies the pkg-config packages Grimoire's
+  Tauri build expects: WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1,
+  xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
 Run browser mock mode:
 
