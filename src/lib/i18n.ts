@@ -2,9 +2,9 @@ import { EN_APPEARANCE_TRANSLATIONS } from './i18nAppearance'
 import {
   DE_TRANSLATIONS,
   HI_TRANSLATIONS,
-  SA_TRANSLATIONS,
   ZH_HANS_TRANSLATIONS,
 } from './i18nLocaleTranslations'
+import { SA_TRANSLATIONS } from './i18nSanskritTranslations'
 import {
   DE_SETTINGS_POLISH_TRANSLATIONS,
   HI_SETTINGS_POLISH_TRANSLATIONS,
@@ -120,7 +120,7 @@ const EN_TRANSLATIONS = {
   'settings.editorLineHeight.comfortable': 'Comfortable',
   'settings.editorLineHeight.spacious': 'Spacious',
   'settings.language.title': 'Language',
-  'settings.language.description': 'Choose the display language for Grimoire chrome. System follows macOS when that language is supported, with English as the fallback.',
+  'settings.language.description': 'Choose the display language for Grimoire chrome. System follows your OS language when it is supported, with English as the fallback.',
   'settings.language.label': 'Display language',
   'settings.language.system': 'System ({language})',
   'settings.language.en': 'English',
@@ -129,10 +129,12 @@ const EN_TRANSLATIONS = {
   'settings.language.hi': 'Hindi',
   'settings.language.sa': 'Sanskrit',
   'settings.language.summary': 'Missing translations fall back to English so partially translated locales stay usable.',
-  'settings.native.title': 'Native macOS',
-  'settings.native.description': 'Keep Grimoire reachable outside the main window with a small menu bar icon and quick actions.',
+  'settings.native.title': 'Native {platform}',
+  'settings.native.description': 'Tune Grimoire for the native shell behavior available on {platform}.',
   'settings.native.menuBarIcon': 'Show Grimoire in the menu bar',
   'settings.native.menuBarIconDescription': 'Adds Open, New Note, Quick Open, Settings, Reload Vault, and Quit to the native menu bar menu.',
+  'settings.native.menuBarIconUnavailable': '{platform} tray integration not available yet',
+  'settings.native.menuBarIconUnavailableDescription': 'This control stays off until Grimoire ships native quick actions for {platform}.',
   'settings.native.shellMaterial': 'Window material',
   'settings.native.shellMaterialDescription': 'Changes only Grimoire-owned shell layers. Release builds stay conservative and avoid private transparent-window APIs.',
   'settings.native.shellMaterialStandard': 'Standard',
@@ -161,6 +163,7 @@ const EN_TRANSLATIONS = {
   'settings.aiAgents.modelDefault': 'Default',
   'settings.aiAgents.providerKeysTitle': 'Provider API keys',
   'settings.aiAgents.providerKeysDescription': 'Keys are stored in macOS Keychain and injected only into local CLI agent processes. Environment keys can be detected, but saving here makes Finder-launched Grimoire reliable.',
+  'settings.aiAgents.providerKeysDescriptionUnavailable': 'On {platform}, Grimoire detects provider keys from environment variables. Saving keys in Settings waits for native secure storage on this OS.',
   'settings.aiAgents.providerKeysLoading': 'Checking provider keys...',
   'settings.aiAgents.providerKeysInputLabel': '{provider} API key',
   'settings.aiAgents.providerKeysSave': 'Save',

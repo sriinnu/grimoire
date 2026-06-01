@@ -3,6 +3,10 @@ import { isTauri } from '../mock-tauri'
 import {
   isLinux,
   isMac,
+  isWindows,
+  desktopPlatformDeviceLabel,
+  desktopPlatformLabel,
+  localMachineLabel,
   shouldUseLinuxWindowChrome,
   shouldUseMacOverlayChrome,
 } from './platform'
@@ -52,6 +56,26 @@ describe('platform helpers', () => {
     setUserAgent('Mozilla/5.0 AppleWebKit/605.1.15')
     setPlatform('MacIntel')
     expect(isMac()).toBe(true)
+  })
+
+  it('detects Windows and exposes Windows-facing labels', () => {
+    setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    setPlatform('Win32')
+    expect(isWindows()).toBe(true)
+    expect(desktopPlatformLabel()).toBe('Windows')
+    expect(desktopPlatformDeviceLabel()).toBe('Windows PC')
+    expect(localMachineLabel()).toBe('this Windows PC')
+  })
+
+  it('exposes platform labels for macOS and Linux', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    expect(desktopPlatformLabel()).toBe('macOS')
+    expect(localMachineLabel()).toBe('this Mac')
+
+    setUserAgent('Mozilla/5.0 (X11; Linux x86_64)')
+    setPlatform('Linux x86_64')
+    expect(desktopPlatformLabel()).toBe('Linux')
+    expect(localMachineLabel()).toBe('this Linux machine')
   })
 
   it('only enables Linux window chrome inside Tauri', () => {

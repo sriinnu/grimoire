@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../../lib/i18n'
 import { AiAgentSettingsSection } from './AiAgentSettingsSection'
 
@@ -67,7 +67,27 @@ function renderSection(overrides: Partial<AiAgentSettingsProps> = {}) {
   render(<AiAgentSettingsSection {...createProps(overrides)} />)
 }
 
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(window.navigator, 'userAgent', {
+    configurable: true,
+    value: userAgent,
+  })
+}
+
+function setPlatform(platform: string) {
+  Object.defineProperty(window.navigator, 'platform', {
+    configurable: true,
+    value: platform,
+  })
+}
+
 describe('AiAgentSettingsSection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    setPlatform('MacIntel')
+  })
+
   it('separates Chitragupta CLI route truth from MCP memory readiness', () => {
     renderSection()
 
@@ -129,5 +149,18 @@ describe('AiAgentSettingsSection', () => {
       expect(aiProviderKeyMocks.saveProviderApiKey).toHaveBeenCalledWith('deepseek', 'unit-test-provider-token')
     })
     expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
+  })
+
+  it('explains Windows provider keys without enabling unsupported secure storage', () => {
+    setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    setPlatform('Win32')
+
+    renderSection()
+
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent(
+      'On Windows, Grimoire detects provider keys from environment variables.',
+    )
+    expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
+    expect(screen.getByTestId('settings-ai-provider-key-save-deepseek')).toBeDisabled()
   })
 })

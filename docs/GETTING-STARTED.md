@@ -28,7 +28,8 @@ test coverage.
 - Node.js 20+
 - pnpm 10+ through Corepack
 - Rust stable
-- macOS, Linux, or Windows
+- macOS for locally verified source development
+- Linux or Windows for intended source development, pending fresh platform QA
 
 Install JavaScript dependencies:
 
@@ -59,6 +60,11 @@ Run the native desktop app:
 ```bash
 pnpm tauri dev
 ```
+
+Windows native development is still a recheck item. A Windows `pnpm tauri dev`
+run on `main` failed with macOS-only Rust cfg errors around the menu bar and
+reopen handlers. Use the public-readiness branch for those guards, and do not
+call Windows verified until a fresh Windows dev/build/open run is captured.
 
 ## Linux Dependencies
 

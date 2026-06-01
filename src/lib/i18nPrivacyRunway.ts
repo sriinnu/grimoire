@@ -26,7 +26,7 @@ export const ZH_HANS_PRIVACY_RUNWAY_TRANSLATIONS: PrivacyRunwayTranslations = {
 export const DE_PRIVACY_RUNWAY_TRANSLATIONS: PrivacyRunwayTranslations = {
   'settings.privacy.runway.localLabel': 'Private Erfassung',
   'settings.privacy.runway.private': 'Standardmaessig privat',
-  'settings.privacy.runway.localDetail': 'Aufnahmen und Transkripte bleiben auf diesem Mac, bis Cloud-Transkription ausdruecklich erlaubt ist.',
+  'settings.privacy.runway.localDetail': 'Aufnahmen und Transkripte bleiben auf diesem Geraet, bis Cloud-Transkription ausdruecklich erlaubt ist.',
   'settings.privacy.runway.cloudAllowed': 'Cloud erlaubt',
   'settings.privacy.runway.cloudBlocked': 'Cloud blockiert',
   'settings.privacy.runway.diagnostics': 'Diagnostik',

@@ -1,3 +1,5 @@
+import { localMachineLabel } from '../utils/platform'
+
 export const EN_PORTABILITY_TRANSLATIONS = {
   'settings.portability.title': 'Import, Export & Storage',
   'settings.portability.description': 'Keep Grimoire local-first while moving between journal apps, Markdown folders, Git, iCloud, Google Drive, and object storage adapters.',
@@ -119,7 +121,7 @@ export const EN_PORTABILITY_TRANSLATIONS = {
   'settings.portability.checkICloudFolder': 'Check iCloud folder',
   'settings.portability.checkGoogleDriveFolder': 'Check Google Drive folder',
   'settings.portability.desktopHealthFailed': 'Desktop folder check failed',
-  'settings.portability.desktopHealthNotRun': 'Run a local-folder check to prove this provider path on this Mac.',
+  'settings.portability.desktopHealthNotRun': `Run a local-folder check to prove this provider path on ${localMachineLabel()}.`,
   'settings.portability.localPathChecked': 'local path checked',
   'settings.portability.providerRootDetected': 'provider root detected',
   'settings.portability.vaultFolderChecked': 'vault folder checked',
