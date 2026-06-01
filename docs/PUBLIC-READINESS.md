@@ -15,6 +15,7 @@ below are resolved and re-verified.
 | Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
+| Public doc links | Verified | `pnpm test:public-doc-links` validates local links and image paths in public-facing Markdown after stripping fenced code examples. |
 | Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, and update feeds return `404`. |
 | Release preflight | Blocked | `pnpm test:release-preflight` covers the preflight model. `pnpm release:preflight` currently fails because the repo has no release secrets configured and GitHub Pages is not enabled. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
@@ -96,6 +97,7 @@ pnpm audit:public-readiness -- --branch docs/public-readiness-truth
 pnpm build
 pnpm test
 pnpm test:doctor-source
+pnpm test:public-doc-links
 pnpm test:public-readiness-audit
 pnpm test:public-readiness-docs
 pnpm test:release-preflight
