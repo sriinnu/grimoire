@@ -41,6 +41,9 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'Grimoire is not ready to make public for general users yet.')
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
+  assertContains('docs/PUBLIC-READINESS.md', '| README status badges | Verified |')
+  assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
+  assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-blocked%20before%20checkout-red')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc links | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
@@ -70,6 +73,9 @@ function verifyBinaryInstallTruth() {
     'representative hosted CI evidence boundary',
   )
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
+  assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before hosted CI is green')
+  assertNotMatch('README.md', /codecov\.io\/gh\/sriinnu\/grimoire\/graph\/badge\.svg/iu, 'dynamic Codecov badge before coverage publication is verified')
+  assertNotMatch('README.md', /codescene\.io\/projects\/76865\/status-badges/iu, 'dynamic CodeScene badge before CodeScene access is verified')
   assertNotMatch('docs/PUBLIC-READINESS.md', /billing|spending-limit/iu, 'unverified hosted CI billing/spending claims')
 }
 
