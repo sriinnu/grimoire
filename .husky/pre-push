@@ -82,6 +82,11 @@ pnpm audit:local-only
 echo "  ✅ Local-only audit OK"
 
 echo ""
+echo "🪟 Rust platform guards..."
+pnpm test:rust-platform-guards
+echo "  ✅ Rust platform guards OK"
+
+echo ""
 echo "📣 Public readiness docs..."
 pnpm test:public-readiness-docs
 echo "  ✅ Public readiness docs OK"

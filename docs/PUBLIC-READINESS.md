@@ -32,7 +32,7 @@ below are resolved and re-verified.
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
 | OS packaging | Partial | macOS source development is locally verified. Linux and Windows are intended source-development targets, but they are not public-support claims until hosted CI and fresh platform QA prove them. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |
 | Packaged MCP bridge | Partially verified | The bundled `mcp-server` resolver now checks Tauri resource directories, app-beside resources, Windows-style `resources/mcp-server`, macOS `Contents/Resources/mcp-server`, AppImage, and Linux `/usr/lib/grimoire/mcp-server` layouts. `ws_bridge_spawn_failure_keeps_startup_optional` proves a bridge spawn failure leaves startup non-blocking. Packaged bridge launch still requires Node.js on `PATH`; fresh packaged Windows/Linux/macOS launch evidence is still required before calling the bridge fully verified. |
-| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`. This branch contains cfg guards for those paths and a broader packaged bridge resource lookup, but a fresh Windows dev/build/open run has not yet been captured. |
+| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`. This branch contains cfg guards for those paths, a broader packaged bridge resource lookup, and `pnpm test:rust-platform-guards` to fail if those macOS-only symbols leak outside macOS cfg again. A fresh Windows dev/build/open run has not yet been captured. |
 
 Packaging scope is recorded in
 [ADR-0100](adr/0100-public-release-packaging-truth.md). Older cross-platform
@@ -109,6 +109,7 @@ pnpm test:public-readiness-audit
 pnpm test:public-readiness-docs
 pnpm test:release-preflight
 pnpm test:release-pages
+pnpm test:rust-platform-guards
 pnpm test:starter-vault
 pnpm playwright:smoke
 cargo test --manifest-path src-tauri/Cargo.toml

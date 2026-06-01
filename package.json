@@ -40,6 +40,8 @@
     "test:secret-scan": "node scripts/scan-secrets.mjs --self-test",
     "test:macos-install-app": "node scripts/verify-app-bundle-version.mjs --self-test && node scripts/install-macos-app.mjs --self-test",
     "test:doctor-source": "node scripts/doctor-public-source.mjs --self-test",
+    "test:rust-platform-guards": "node scripts/verify-rust-platform-guards.mjs",
+    "test:rust-platform-guards:self": "node scripts/verify-rust-platform-guards.mjs --self-test",
     "test:object-storage-live": "node scripts/run-object-storage-live-proof.mjs --require-enabled",
     "test:release-preflight": "node scripts/release-preflight.mjs --self-test",
     "test:release-artifacts": "node scripts/verify-release-artifacts.mjs --self-test",

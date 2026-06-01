@@ -143,6 +143,41 @@ function verifyReleaseWorkflowTruth() {
     'Public Readiness Windows native run row',
   )
   assertContains(
+    'docs/PUBLIC-READINESS.md',
+    '`pnpm test:rust-platform-guards` to fail if those macOS-only symbols leak outside macOS cfg again',
+    'Public Readiness Rust platform guard evidence',
+  )
+  assertContains(
+    'docs/GETTING-STARTED.md',
+    '`pnpm test:rust-platform-guards` statically guards the known macOS-only',
+    'Getting Started Rust platform guard caveat',
+  )
+  assertContains(
+    'package.json',
+    '"test:rust-platform-guards": "node scripts/verify-rust-platform-guards.mjs"',
+    'Rust platform guard script',
+  )
+  assertContains(
+    'package.json',
+    '"test:rust-platform-guards:self": "node scripts/verify-rust-platform-guards.mjs --self-test"',
+    'Rust platform guard self-test script',
+  )
+  assertContains(
+    '.husky/pre-push',
+    'pnpm test:rust-platform-guards',
+    'pre-push Rust platform guard',
+  )
+  assertContains(
+    '.github/workflows/ci.yml',
+    'pnpm test:rust-platform-guards:self',
+    'CI Rust platform guard self-test',
+  )
+  assertContains(
+    '.github/workflows/ci.yml',
+    'pnpm test:rust-platform-guards',
+    'CI Rust platform guard',
+  )
+  assertContains(
     '.github/workflows/release.yml',
     'APPLE_ID, APPLE_PASSWORD, and APPLE_TEAM_ID are required for notarized public release builds.',
     'release workflow notarization guard',
