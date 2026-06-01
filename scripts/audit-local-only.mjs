@@ -27,7 +27,7 @@ export const REQUIRED_GITIGNORE_PATTERNS = [
   'docs/*.local.md',
   'docs/**/*.local.md',
   '.codex/',
-  '.claude/settings.local.json',
+  '.claude/',
   '.mcp.json',
   'certs/*.pem',
   '*.key',
@@ -44,7 +44,7 @@ const FORBIDDEN_TRACKED_RULES = [
   { label: 'docs/private/', test: (path) => hasPrefix(path, 'docs/private/') },
   { label: 'docs/*.local.md', test: (path) => path.startsWith('docs/') && path.endsWith('.local.md') },
   { label: '.codex/', test: (path) => hasPrefix(path, '.codex/') },
-  { label: '.claude/settings.local.json', test: (path) => path === '.claude/settings.local.json' },
+  { label: '.claude/', test: (path) => hasPrefix(path, '.claude/') },
   { label: '.mcp.json', test: (path) => path === '.mcp.json' },
   { label: 'certs/*.pem', test: (path) => path.startsWith('certs/') && path.endsWith('.pem') },
   { label: '*.key', test: (path) => path.endsWith('.key') },
@@ -258,6 +258,10 @@ function runSelfTest() {
       trackedFiles: ['src-tauri/gen/apple/assets/mcp-server/index.js'],
       worktreeFiles: [],
     }), 'src-tauri/gen/apple/assets/mcp-server/')
+    assertIssue('tracked claude command', auditLocalOnly(root, {
+      trackedFiles: ['.claude/commands/grimoire-next-task.md'],
+      worktreeFiles: [],
+    }), '.claude/')
 
     writeFileSync(resolve(root, 'docs/private-plan.md'), 'DO NOT COMMIT\n')
     assertIssue(
