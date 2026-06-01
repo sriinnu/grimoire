@@ -43,7 +43,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| README status badges | Verified |')
   assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
-  assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-blocked%20before%20checkout-red')
+  assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-billing%2Fspending%20limit-red')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc links | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
@@ -64,8 +64,8 @@ function verifyBinaryInstallTruth() {
   assertContains('package.json', '"test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test"')
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'fails before checkout while waiting for the hosted runner to come online',
-    'hosted CI runner-startup blocker evidence',
+    'recent account payments failed or the Actions spending limit needs to be increased',
+    'hosted CI billing/spending blocker evidence',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
@@ -76,7 +76,6 @@ function verifyBinaryInstallTruth() {
   assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before hosted CI is green')
   assertNotMatch('README.md', /codecov\.io\/gh\/sriinnu\/grimoire\/graph\/badge\.svg/iu, 'dynamic Codecov badge before coverage publication is verified')
   assertNotMatch('README.md', /codescene\.io\/projects\/76865\/status-badges/iu, 'dynamic CodeScene badge before CodeScene access is verified')
-  assertNotMatch('docs/PUBLIC-READINESS.md', /billing|spending-limit/iu, 'unverified hosted CI billing/spending claims')
 }
 
 function verifyReleaseWorkflowTruth() {

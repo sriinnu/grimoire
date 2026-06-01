@@ -68,6 +68,17 @@ function ghJson(endpoint) {
   return JSON.parse(run('gh', ['api', endpoint]))
 }
 
+function ghJsonOptional(endpoint) {
+  const result = spawnSync('gh', ['api', endpoint], {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    stdio: 'pipe',
+  })
+
+  if (result.status !== 0) return null
+  return JSON.parse(result.stdout.trim() || 'null')
+}
+
 async function fetchFeed(url) {
   try {
     const response = await fetch(url, { redirect: 'follow' })
@@ -125,6 +136,29 @@ function jobStepCount(jobsPayload) {
   return jobsPayload.jobs.reduce((total, job) => total + (Array.isArray(job.steps) ? job.steps.length : 0), 0)
 }
 
+function checkRunAnnotations(repoName, jobsPayload) {
+  if (!Array.isArray(jobsPayload.jobs)) return []
+
+  return jobsPayload.jobs.flatMap((job) => {
+    const annotations = ghJsonOptional(`repos/${repoName}/check-runs/${job.id}/annotations?per_page=100`)
+    if (!Array.isArray(annotations)) return []
+    return annotations.map((annotation) => ({ ...annotation, jobName: job.name }))
+  })
+}
+
+function annotationMessages(annotations, level) {
+  return Array.from(new Set(
+    (annotations ?? [])
+      .filter((annotation) => annotation.annotation_level === level)
+      .map((annotation) => String(annotation.message ?? '').trim())
+      .filter(Boolean),
+  ))
+}
+
+function sentence(text) {
+  return /[.!?]$/u.test(text) ? text : `${text}.`
+}
+
 function findBlockers(state) {
   const blockers = []
   const warnings = []
@@ -143,6 +177,12 @@ function findBlockers(state) {
   } else if (state.ci.run.conclusion !== 'success') {
     const stepNote = state.ci.stepCount === 0 ? ' with zero executed steps' : ''
     blockers.push(`Latest GitHub Actions run ${state.ci.run.id} is ${state.ci.run.conclusion ?? state.ci.run.status}${stepNote}.`)
+    for (const message of annotationMessages(state.ci.annotations, 'failure')) {
+      blockers.push(`Hosted CI failure annotation: ${sentence(message)}`)
+    }
+    for (const message of annotationMessages(state.ci.annotations, 'notice')) {
+      warnings.push(`Hosted CI notice: ${sentence(message)}`)
+    }
   }
 
   for (const channel of CHANNELS) {
@@ -198,7 +238,11 @@ async function collectLiveState(options) {
 
   return {
     branch,
-    ci: { run: runPayload, stepCount: jobStepCount(jobsPayload) },
+    ci: {
+      annotations: checkRunAnnotations(options.repo, jobsPayload),
+      run: runPayload,
+      stepCount: jobStepCount(jobsPayload),
+    },
     feeds,
     publicReadiness: readFileSync(resolve('docs/PUBLIC-READINESS.md'), 'utf8'),
     readme: readFileSync(resolve('README.md'), 'utf8'),
@@ -212,7 +256,7 @@ async function collectLiveState(options) {
 function runSelfTest() {
   const readyState = {
     branch: 'main',
-    ci: { run: { conclusion: 'success', id: 1, status: 'completed' }, stepCount: 12 },
+    ci: { annotations: [], run: { conclusion: 'success', id: 1, status: 'completed' }, stepCount: 12 },
     feeds: {
       alpha: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
       stable: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
@@ -238,7 +282,14 @@ function runSelfTest() {
 
   const blockedState = {
     ...readyState,
-    ci: { run: { conclusion: 'failure', id: 2, status: 'completed' }, stepCount: 0 },
+    ci: {
+      annotations: [{
+        annotation_level: 'failure',
+        message: 'The job was not started because recent account payments have failed or your spending limit needs to be increased',
+      }],
+      run: { conclusion: 'failure', id: 2, status: 'completed' },
+      stepCount: 0,
+    },
     feeds: { alpha: { status: 404 }, stable: { status: 404 } },
     publicReadiness: 'Grimoire is not ready to make public.',
     releases: [],
@@ -246,7 +297,11 @@ function runSelfTest() {
   }
 
   if (findBlockers(readyState).blockers.length !== 0) throw new Error('ready fixture should have no blockers')
-  if (findBlockers(blockedState).blockers.length < 5) throw new Error('blocked fixture should report multiple blockers')
+  const blockedResult = findBlockers(blockedState)
+  if (blockedResult.blockers.length < 5) throw new Error('blocked fixture should report multiple blockers')
+  if (!blockedResult.blockers.some((blocker) => blocker.includes('spending limit'))) {
+    throw new Error('blocked fixture should report hosted CI billing/spending annotation')
+  }
   console.log('[public-readiness-audit] self-test ok')
 }
 

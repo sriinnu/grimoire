@@ -4,7 +4,7 @@
 
 <p align="center">
   <img alt="Repository visibility: private until public readiness passes" src="https://img.shields.io/badge/repository-private%20until%20ready-lightgrey" />
-  <img alt="Hosted CI: blocked before checkout" src="https://img.shields.io/badge/hosted%20CI-blocked%20before%20checkout-red" />
+  <img alt="Hosted CI: blocked by billing or spending limit" src="https://img.shields.io/badge/hosted%20CI-billing%2Fspending%20limit-red" />
   <img alt="Public binary release: not published" src="https://img.shields.io/badge/public%20binary-not%20published-lightgrey" />
 </p>
 
@@ -43,8 +43,8 @@ Grimoire is built around five surfaces:
 - Public readiness is tracked separately in
   [docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md). As of 2026-06-01,
   Grimoire is not ready to make public for general users because hosted CI is
-  failing before checkout/build/test while waiting for hosted runners, and no
-  public binary release exists yet.
+  blocked before checkout/build/test by the GitHub Actions billing or spending
+  limit, and no public binary release exists yet.
 - Local vault opening and onboarding
 - Starter vault clone flow implemented with a public starter repository
 - Sidebar filters, folders, type sections, favorites, archive, inbox, and changes

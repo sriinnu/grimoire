@@ -24,7 +24,7 @@ below are resolved and re-verified.
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,250 files on 2026-06-01. |
 | Local checks | Locally verified | `pnpm build`, `pnpm test`, `cargo test --manifest-path src-tauri/Cargo.toml`, `node scripts/scan-secrets.mjs --all`, `pnpm test:public-readiness-docs`, `plutil -lint src-tauri/Info.plist`, and `git diff --check` passed on 2026-06-01. |
-| Hosted CI | Blocked | GitHub Actions assigns hosted runners, then each job fails before checkout while waiting for the hosted runner to come online. This must be fixed and re-run before public release. |
+| Hosted CI | Blocked | GitHub Actions check-run annotations say each job was not started because recent account payments failed or the Actions spending limit needs to be increased. This account-level blocker must be fixed and CI must be re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. |
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
@@ -73,20 +73,17 @@ This section records representative hosted CI evidence. Use
 `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
 latest branch state.
 
-Run `26766591243` for commit `ff702f48a6039684e68fe1493a2786458ef6f4fb`
-failed before checkout/build/test on 2026-06-01. The job system logs contain
-only hosted-runner assignment/startup lines, for example:
+Run `26768320267` for commit `7dee342ce95c78d466463e60acf22099bc9c98a8`
+failed before checkout/build/test on 2026-06-01. The check-run annotations for
+the macOS, Ubuntu, and Windows jobs all report:
 
 ```text
-Requested labels: ubuntu-latest
-Job defined at: sriinnu/grimoire/.github/workflows/ci.yml@refs/pull/18/merge
-Waiting for a runner to pick up this job...
-Job is about to start running on the hosted runner: GitHub Actions 1000006723
-Job is waiting for a hosted runner to come online.
+The job was not started because recent account payments have failed or your spending limit needs to be increased.
 ```
 
-The macOS and Windows jobs show the same shape with their respective labels.
-No checkout, dependency installation, build, test, or lint step ran.
+The Windows job also carries GitHub's notice that `windows-latest` requests are
+being redirected to `windows-2025-vs2026` by June 15, 2026. No checkout,
+dependency installation, build, test, or lint step ran on any hosted OS job.
 
 ## Verification Commands
 
