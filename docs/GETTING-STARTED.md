@@ -65,6 +65,9 @@ Windows native development is still a recheck item. A Windows `pnpm tauri dev`
 run on `main` failed with macOS-only Rust cfg errors around the menu bar and
 reopen handlers. Use the public-readiness branch for those guards, and do not
 call Windows verified until a fresh Windows dev/build/open run is captured.
+`pnpm test:rust-platform-guards` statically guards the known macOS-only
+`menu_bar` and `RunEvent::Reopen` regression paths; it is regression coverage,
+not a replacement for native Windows launch QA.
 
 Packaged desktop apps also try to start Grimoire's local MCP WebSocket bridge
 from the bundled `mcp-server` resource. Node.js must be available on `PATH` for

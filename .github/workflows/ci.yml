@@ -53,6 +53,12 @@ jobs:
       - name: Local-Only Audit
         run: pnpm audit:local-only
 
+      - name: Verify Rust Platform Guard
+        run: pnpm test:rust-platform-guards:self
+
+      - name: Rust Platform Guard
+        run: pnpm test:rust-platform-guards
+
       - name: Verify Release Artifact Guard
         run: pnpm test:release-artifacts
 
