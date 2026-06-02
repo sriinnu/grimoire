@@ -17,6 +17,7 @@
 }
 
 .sidebar-artwork__cloud-wisp,
+.sidebar-artwork__pouch-throat,
 .sidebar-artwork__pouch-lip {
   fill: none;
   stroke: currentColor;
@@ -25,30 +26,50 @@
 }
 
 .sidebar-artwork__cloud-wisp {
-  opacity: 0.78;
-  stroke-dasharray: 54 18;
-  stroke-width: 4.4;
+  opacity: 0.86;
+  stroke-dasharray: 62 18;
+  stroke-width: 4.8;
 }
 
 .sidebar-artwork__cloud-wisp--center {
   color: color-mix(in srgb, var(--art-memory) 58%, var(--art-aura));
-  opacity: 0.64;
-  stroke-width: 3.8;
+  opacity: 0.78;
+  stroke-width: 4.2;
+}
+
+.sidebar-artwork__cloud-particle {
+  fill: color-mix(in srgb, var(--art-spark) 44%, var(--art-aura));
+  opacity: 0.86;
+  stroke: color-mix(in srgb, var(--sidebar) 52%, transparent);
+  stroke-width: 1.4;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sidebar-artwork__pouch-shadow {
+  fill: color-mix(in srgb, var(--art-memory) 10%, var(--sidebar) 90%);
+  opacity: 0.58;
 }
 
 .sidebar-artwork__pouch-mouth {
-  fill: color-mix(in srgb, var(--art-memory) 18%, var(--sidebar) 82%);
-  opacity: 0.82;
-  stroke: color-mix(in srgb, var(--art-spark) 42%, var(--art-aura));
+  fill: color-mix(in srgb, var(--art-memory) 24%, var(--sidebar) 76%);
+  opacity: 0.9;
+  stroke: color-mix(in srgb, var(--art-spark) 58%, var(--art-aura));
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 3.2;
+  stroke-width: 3.8;
+}
+
+.sidebar-artwork__pouch-throat {
+  color: color-mix(in srgb, var(--art-memory) 46%, var(--sidebar));
+  opacity: 0.62;
+  stroke-width: 7;
 }
 
 .sidebar-artwork__pouch-lip {
-  color: color-mix(in srgb, var(--art-spark) 72%, var(--art-aura));
-  opacity: 0.86;
-  stroke-width: 3.6;
+  color: color-mix(in srgb, var(--art-spark) 86%, var(--art-aura));
+  opacity: 0.95;
+  stroke-width: 4.2;
 }
 
 .sidebar-artwork--compact .sidebar-artwork__pouch-flow {
@@ -67,10 +88,15 @@
   .app-sidebar-panel .sidebar-artwork__cloud-puff {
     animation: sidebar-cloud-soften 720ms var(--motion-ease-expressive, ease-out) both;
   }
+
+  .app-sidebar-panel .sidebar-artwork__cloud-particle {
+    animation: sidebar-cloud-drop 780ms var(--motion-ease-expressive, ease-out) both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar-panel .sidebar-artwork__cloud-puff,
+  .app-sidebar-panel .sidebar-artwork__cloud-particle,
   .app-sidebar-panel .sidebar-artwork__cloud-wisp,
   .app-sidebar-panel .sidebar-artwork__pouch-flow {
     animation: none;
@@ -97,7 +123,7 @@
   }
 
   to {
-    opacity: 0.78;
+    opacity: 0.86;
     stroke-dashoffset: 0;
     transform: translateY(0);
   }
@@ -112,5 +138,21 @@
   to {
     opacity: 0.72;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sidebar-cloud-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(1.18);
+  }
+
+  72% {
+    opacity: 0.9;
+  }
+
+  to {
+    opacity: 0.46;
+    transform: translateY(13px) scale(0.72);
   }
 }
