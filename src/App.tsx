@@ -1889,7 +1889,7 @@ function App() {
           locale={appLocale}
           onClose={dialogs.closeCommandPalette}
         />
-        <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onClose={dialogs.closeSearch} />
+        <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onClose={dialogs.closeSearch} />
         <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} aiAgentsStatus={aiAgentsStatus} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <AudioRecordingDialog open={showAudioRecordingDialog} vaultPath={resolvedPath} onClose={closeAudioRecordingDialog} onRecordingSaved={audioTranscription.transcribeRecordedAudio} />

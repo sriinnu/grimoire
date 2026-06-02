@@ -3,6 +3,8 @@ use std::path::Path;
 use std::time::Instant;
 use walkdir::WalkDir;
 
+const MAX_SEARCHABLE_FILE_BYTES: u64 = 2 * 1024 * 1024;
+
 #[derive(Debug, Serialize, Clone)]
 pub struct SearchResult {
     pub title: String,
@@ -91,6 +93,12 @@ fn relative_search_path(vault_dir: &Path, path: &Path) -> String {
         .replace('\\', "/")
 }
 
+fn is_searchable_file_size(path: &Path) -> bool {
+    std::fs::metadata(path)
+        .map(|metadata| metadata.len() <= MAX_SEARCHABLE_FILE_BYTES)
+        .unwrap_or(false)
+}
+
 pub fn search_vault(
     vault_path: &str,
     query: &str,
@@ -121,6 +129,9 @@ pub fn search_vault(
         }
         let file_kind = crate::vault::classify_file_kind(path);
         if entry.file_name().to_string_lossy().starts_with('.') || file_kind == "binary" {
+            continue;
+        }
+        if !is_searchable_file_size(path) {
             continue;
         }
 
@@ -304,5 +315,23 @@ mod tests {
 
         assert_eq!(response.results.len(), 1);
         assert_eq!(response.results[0].title, "Visible");
+    }
+
+    #[test]
+    fn test_search_vault_skips_large_text_files() {
+        let dir = Builder::new()
+            .prefix("search-vault-large-")
+            .tempdir_in(std::env::current_dir().unwrap())
+            .unwrap();
+        let large_path = dir.path().join("generated.json");
+        let small_path = dir.path().join("small.md");
+        let large_content = "needle ".repeat((MAX_SEARCHABLE_FILE_BYTES as usize / 7) + 2);
+        fs::write(&large_path, large_content).unwrap();
+        fs::write(&small_path, "# Small\n\nneedle").unwrap();
+
+        let response = search_vault(dir.path().to_str().unwrap(), "needle", "keyword", 10).unwrap();
+
+        assert_eq!(response.results.len(), 1);
+        assert_eq!(response.results[0].title, "Small");
     }
 }

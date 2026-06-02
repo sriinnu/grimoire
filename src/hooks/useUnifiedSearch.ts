@@ -80,7 +80,13 @@ async function searchScope(scope: SearchVaultScope, query: string) {
   }
 }
 
-export function useUnifiedSearch(vaultPath: string, active: boolean, vaultScopes?: SearchVaultScope[]) {
+export function useUnifiedSearch(
+  vaultPath: string,
+  active: boolean,
+  vaultScopes?: SearchVaultScope[],
+  initialQuery = '',
+  openKey = 0,
+) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -89,8 +95,8 @@ export function useUnifiedSearch(vaultPath: string, active: boolean, vaultScopes
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchGenRef = useRef(0)
 
-  const reset = useCallback(() => {
-    setQuery('')
+  const reset = useCallback((nextQuery = '') => {
+    setQuery(nextQuery)
     setResults([])
     setSelectedIndex(0)
     setElapsedMs(null)
@@ -103,8 +109,8 @@ export function useUnifiedSearch(vaultPath: string, active: boolean, vaultScopes
     searchGenRef.current++
     clearTimeout(debounceRef.current ?? undefined)
     debounceRef.current = null
-    if (active) reset()
-  }, [active, reset])
+    if (active) reset(initialQuery)
+  }, [active, initialQuery, openKey, reset])
 
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); setElapsedMs(null); setLoading(false); return }

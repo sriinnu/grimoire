@@ -26,7 +26,7 @@ interface SidebarRailProps {
   journalCount: number
   dreamCount: number
   archivedCount: number
-  onOpenSearch?: () => void
+  onOpenSearch?: (initialQuery?: string) => void
 }
 
 interface RailItem {
@@ -184,7 +184,7 @@ export function SidebarRail({
           title="Open Spotlight search across open vaults"
           data-sidebar-rail-tone="blue"
           data-testid="sidebar-rail-search"
-          onClick={onOpenSearch}
+          onClick={() => onOpenSearch()}
         >
           <span className="sidebar-rail__glyph" data-active="false">
             <span className="sidebar-rail__signal" />
