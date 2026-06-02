@@ -264,7 +264,7 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
             Grimoire
           </span>
           <span className="mt-1 truncate text-[10px] font-medium text-muted-foreground" style={{ textAlign: 'left' }}>
-            Markdown agent
+            Local memory studio
           </span>
         </span>
       </div>

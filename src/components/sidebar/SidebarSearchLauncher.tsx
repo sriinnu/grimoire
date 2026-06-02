@@ -1,9 +1,15 @@
 import { Search } from 'lucide-react'
 import type { KeyboardEvent } from 'react'
 import { Input } from '@/components/ui/input'
+import { APP_COMMAND_IDS, getAppCommandShortcutDisplay } from '../../hooks/appCommandCatalog'
+import { isMac } from '../../utils/platform'
 
 interface SidebarSearchLauncherProps {
   onOpenSearch?: (initialQuery?: string) => void
+}
+
+function ariaSearchShortcut(): string {
+  return isMac() ? 'Meta+Shift+F' : 'Control+Shift+F'
 }
 
 function keyboardSeed(event: KeyboardEvent<HTMLInputElement>): string | null {
@@ -15,6 +21,7 @@ function keyboardSeed(event: KeyboardEvent<HTMLInputElement>): string | null {
 /** Opens the open-vault Spotlight search from the left sidebar. */
 export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherProps) {
   if (!onOpenSearch) return null
+  const searchShortcut = getAppCommandShortcutDisplay(APP_COMMAND_IDS.editFindInVault)
 
   return (
     <div className="border-b border-border px-2.5 py-2" data-testid="sidebar-search-launcher">
@@ -25,12 +32,20 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
           strokeWidth={2.3}
           aria-hidden="true"
         />
+        {searchShortcut && (
+          <span
+            className="pointer-events-none absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-md border border-border/70 bg-background/80 px-1.5 py-0.5 font-mono text-[10px] font-semibold leading-none text-muted-foreground shadow-sm"
+            data-testid="sidebar-search-shortcut"
+          >
+            {searchShortcut}
+          </span>
+        )}
         <Input
           type="search"
           readOnly
           value=""
           placeholder="Search open vaults..."
-          className="h-10 cursor-pointer rounded-xl border-border/75 bg-background/75 pl-9 pr-3 text-[12px] font-semibold text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
+          className="h-10 cursor-pointer rounded-xl border-border/75 bg-background/75 pl-9 pr-20 text-[12px] font-semibold text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
           onClick={() => onOpenSearch()}
           onKeyDown={(event) => {
             const seed = keyboardSeed(event)
@@ -38,6 +53,7 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
             event.preventDefault()
             onOpenSearch(seed)
           }}
+          aria-keyshortcuts={ariaSearchShortcut()}
           aria-label="Search open vaults"
           title="Search open vaults"
           data-testid="sidebar-search-input"
