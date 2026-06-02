@@ -1,10 +1,13 @@
 import { ArrowUpRight, Bot, CheckCircle2, Loader2 } from 'lucide-react'
 import {
   AI_AGENT_DEFINITIONS,
+  CHITRAGUPTA_CLI_MCP_BOUNDARY,
   getAiAgentDefinition,
   hasAnyInstalledAiAgent,
   isBrowserPreviewAiAgentsStatus,
   isAiAgentsStatusChecking,
+  type AiAgentAvailability,
+  type AiAgentDefinition,
   type AiAgentsStatus,
 } from '../lib/aiAgents'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
@@ -48,10 +51,46 @@ function getPromptCopy(statuses: AiAgentsStatus) {
 
   return {
     accentClassName: 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]',
-    description: 'Your AI agents are ready to use in Grimoire.',
+    description: 'At least one local CLI route is available. Missing agents can be installed later.',
     icon: <CheckCircle2 className="size-7" />,
-    title: 'AI agents ready',
+    title: 'AI CLI routes detected',
   }
+}
+
+function scanSummary(statuses: AiAgentsStatus): string {
+  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Browser preview cannot inspect local CLI paths.'
+  if (isAiAgentsStatusChecking(statuses)) return 'Scanning PATH, login shell, Homebrew, npm/pnpm, nvm/fnm, Volta, and common app launcher paths.'
+  const installed = AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'installed').length
+  const missing = AI_AGENT_DEFINITIONS.length - installed
+  return `${installed} detected, ${missing} missing after scanning local CLI paths.`
+}
+
+function statusBadgeClass(status: AiAgentAvailability['status']): string {
+  if (status === 'installed') return 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]'
+  if (status === 'checking') return 'bg-muted text-muted-foreground'
+  return 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]'
+}
+
+function statusBadgeLabel(status: AiAgentAvailability['status']): string {
+  if (status === 'installed') return 'Installed'
+  if (status === 'checking') return 'Checking'
+  return 'Missing'
+}
+
+function agentStatusDetail(definition: AiAgentDefinition, status: AiAgentAvailability): string {
+  if (status.status === 'checking') return 'Scanning local CLI paths.'
+  if (status.status === 'installed') {
+    const version = status.version ? ` ${status.version}` : ''
+    if (definition.id === 'chitragupta') return `Chitragupta${version} CLI chat route found.`
+    return `${definition.label}${version} CLI route found.`
+  }
+  return status.detail ?? status.version ?? `${definition.label} CLI was not found in common local paths.`
+}
+
+function agentSecondaryDetail(definition: AiAgentDefinition, status: AiAgentAvailability): string | null {
+  if (definition.id === 'chitragupta' && status.status === 'installed') return CHITRAGUPTA_CLI_MCP_BOUNDARY
+  if (status.status === 'missing') return 'Install or link the CLI, then choose Check again.'
+  return status.detail ?? null
 }
 
 function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
@@ -59,24 +98,24 @@ function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
     <div className="space-y-3">
       {AI_AGENT_DEFINITIONS.map((definition) => {
         const status = statuses[definition.id]
-        const ready = status.status === 'installed'
+        const secondaryDetail = agentSecondaryDetail(definition, status)
         return (
           <div
             key={definition.id}
-            className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm"
+            className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm"
+            data-testid={`ai-agent-status-${definition.id}`}
           >
-            <div className="space-y-1 text-left">
+            <div className="min-w-0 space-y-1 text-left">
               <div className="font-medium text-foreground">{definition.label}</div>
               <div className="text-xs text-muted-foreground">
-                {ready
-                  ? `${definition.label}${status.version ? ` ${status.version}` : ''} is ready.`
-                  : (status.version ?? `${definition.label} is not installed yet.`)}
+                {agentStatusDetail(definition, status)}
               </div>
+              {secondaryDetail ? <div className="text-[11px] leading-5 text-muted-foreground/80">{secondaryDetail}</div> : null}
             </div>
             <span
-              className={`rounded-full px-2 py-1 text-[11px] font-medium ${ready ? 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]' : 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]'}`}
+              className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClass(status.status)}`}
             >
-              {ready ? 'Installed' : 'Missing'}
+              {statusBadgeLabel(status.status)}
             </span>
           </div>
         )
@@ -120,6 +159,13 @@ export function AiAgentsOnboardingPrompt({
         </CardHeader>
 
         <CardContent className="space-y-4">
+          <div
+            className="rounded-lg border border-border bg-muted/15 px-4 py-3 text-left"
+            data-testid="ai-agents-onboarding-scan-summary"
+          >
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Native CLI scan</div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">{scanSummary(statuses)}</p>
+          </div>
           {showLegacyClaudeCompatibility && !isBrowserPreview ? (
             <div
               className="rounded-lg border border-[var(--feedback-warning-border)] bg-[var(--feedback-warning-bg)] px-4 py-3 text-left"

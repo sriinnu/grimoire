@@ -124,6 +124,7 @@ pub fn check_claude_cli() -> ClaudeCliStatus {
     ClaudeCliStatus {
         installed: false,
         version: None,
+        detail: Some("Claude CLI is not available on mobile.".into()),
     }
 }
 
@@ -134,14 +135,17 @@ pub fn get_ai_agents_status() -> AiAgentsStatus {
         claude_code: crate::ai_agents::AiAgentAvailability {
             installed: false,
             version: None,
+            detail: Some("Claude Code CLI is not available on mobile.".into()),
         },
         codex: crate::ai_agents::AiAgentAvailability {
             installed: false,
             version: None,
+            detail: Some("Codex CLI is not available on mobile.".into()),
         },
         chitragupta: crate::ai_agents::AiAgentAvailability {
             installed: false,
             version: None,
+            detail: Some("Chitragupta CLI is not available on mobile.".into()),
         },
     }
 }

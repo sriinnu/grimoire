@@ -5,6 +5,7 @@ export type AiAgentStatus = 'checking' | 'installed' | 'missing'
 export interface AiAgentAvailability {
   status: AiAgentStatus
   version: string | null
+  detail?: string | null
 }
 
 export interface AiAgentsStatus {
@@ -67,7 +68,9 @@ export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
   },
 ] as const
 
-export function createAiAgentAvailability(status: AiAgentStatus = 'checking', version: string | null = null): AiAgentAvailability {
+export function createAiAgentAvailability(status: AiAgentStatus = 'checking', version: string | null = null, detail?: string | null): AiAgentAvailability {
+  const trimmedDetail = detail?.trim()
+  if (trimmedDetail) return { status, version, detail: trimmedDetail }
   return { status, version }
 }
 
@@ -182,15 +185,15 @@ export function getAiAgentDefinition(agent: AiAgentId): AiAgentDefinition {
   return AI_AGENT_DEFINITIONS.find((definition) => definition.id === agent) ?? AI_AGENT_DEFINITIONS[0]
 }
 
-function normalizeAvailability(agent: { installed?: boolean | null; version?: string | null } | null | undefined): AiAgentAvailability {
+function normalizeAvailability(agent: { installed?: boolean | null; version?: string | null; detail?: string | null } | null | undefined): AiAgentAvailability {
   if (agent?.installed) {
-    return createAiAgentAvailability('installed', agent.version ?? null)
+    return createAiAgentAvailability('installed', agent.version ?? null, agent.detail)
   }
 
-  return createAiAgentAvailability('missing', agent?.version ?? null)
+  return createAiAgentAvailability('missing', agent?.version ?? null, agent?.detail)
 }
 
-export function normalizeAiAgentsStatus(payload: Partial<Record<AiAgentId, { installed?: boolean | null; version?: string | null }>> | null | undefined): AiAgentsStatus {
+export function normalizeAiAgentsStatus(payload: Partial<Record<AiAgentId, { installed?: boolean | null; version?: string | null; detail?: string | null }>> | null | undefined): AiAgentsStatus {
   return {
     claude_code: normalizeAvailability(payload?.claude_code),
     codex: normalizeAvailability(payload?.codex),
