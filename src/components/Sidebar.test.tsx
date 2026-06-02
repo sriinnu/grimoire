@@ -264,15 +264,19 @@ describe('Sidebar', () => {
     const onOpenSearch = vi.fn()
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} onOpenSearch={onOpenSearch} />)
 
+    const searchButton = screen.getByRole('button', {
+      name: 'Open Spotlight search across open vaults, docs, and project text',
+    })
+
     expect(screen.getByTestId('sidebar-search-launcher')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Search open vaults, docs, and project text' })).toHaveTextContent('Search open vaults...')
-    expect(screen.getByRole('button', { name: 'Search open vaults, docs, and project text' })).toHaveTextContent('Notes, docs, code, text')
-    expect(screen.getByRole('button', { name: 'Search open vaults, docs, and project text' })).toHaveTextContent('⌘⇧F')
-    expect(screen.getByRole('button', { name: 'Search open vaults, docs, and project text' })).toHaveAttribute(
+    expect(searchButton).toHaveTextContent('Spotlight search')
+    expect(searchButton).toHaveTextContent('Open vaults · docs · text')
+    expect(searchButton).toHaveTextContent('⌘⇧F')
+    expect(searchButton).toHaveAttribute(
       'title',
-      'Search open vaults, docs, and project text (⌘⇧F)',
+      'Open Spotlight search across open vaults, docs, and project text (⌘⇧F)',
     )
-    expect(screen.getByRole('button', { name: 'Search open vaults, docs, and project text' })).not.toHaveTextContent('Cmd F')
+    expect(searchButton).not.toHaveTextContent('Cmd F')
 
     fireEvent.click(screen.getByTestId('sidebar-search-button'))
     expect(onOpenSearch).toHaveBeenCalledOnce()

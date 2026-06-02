@@ -18,12 +18,17 @@ describe('SidebarSearchLauncher', () => {
     const onOpenSearch = vi.fn()
     render(<SidebarSearchLauncher onOpenSearch={onOpenSearch} />)
 
-    const button = screen.getByRole('button', { name: 'Search open vaults, docs, and project text' })
+    const button = screen.getByRole('button', {
+      name: 'Open Spotlight search across open vaults, docs, and project text',
+    })
 
-    expect(button).toHaveTextContent('Search open vaults...')
-    expect(button).toHaveTextContent('Notes, docs, code, text')
+    expect(button).toHaveTextContent('Spotlight search')
+    expect(button).toHaveTextContent('Open vaults · docs · text')
     expect(button).toHaveTextContent('Ctrl+Shift+F')
-    expect(button).toHaveAttribute('title', 'Search open vaults, docs, and project text (Ctrl+Shift+F)')
+    expect(button).toHaveAttribute(
+      'title',
+      'Open Spotlight search across open vaults, docs, and project text (Ctrl+Shift+F)',
+    )
 
     fireEvent.click(button)
     expect(onOpenSearch).toHaveBeenCalledOnce()

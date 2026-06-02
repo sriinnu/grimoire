@@ -180,8 +180,8 @@ export function SidebarRail({
           variant="ghost"
           size="icon"
           className="mb-3 h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground sidebar-rail__tone"
-          aria-label="Search open vaults"
-          title="Search open vaults"
+          aria-label="Open Spotlight search across open vaults"
+          title="Open Spotlight search across open vaults"
           data-sidebar-rail-tone="blue"
           data-testid="sidebar-rail-search"
           onClick={onOpenSearch}
