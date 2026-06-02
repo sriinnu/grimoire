@@ -111,15 +111,20 @@ function installedCount(statuses: AiAgentsStatus): number {
   return AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'installed').length
 }
 
-function statusBadgeClass(status: AiAgentAvailability['status']): string {
-  if (status === 'installed') return 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]'
-  if (status === 'checking') return 'bg-muted text-muted-foreground'
+function isRetryNeededAgentStatus(status: AiAgentAvailability): boolean {
+  return status.status === 'missing' && status.detail === AI_AGENTS_STATUS_SCAN_FAILED_DETAIL
+}
+
+function statusBadgeClass(status: AiAgentAvailability): string {
+  if (status.status === 'installed') return 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]'
+  if (status.status === 'checking') return 'bg-muted text-muted-foreground'
   return 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]'
 }
 
-function statusBadgeLabel(status: AiAgentAvailability['status']): string {
-  if (status === 'installed') return 'Installed'
-  if (status === 'checking') return 'Checking'
+function statusBadgeLabel(status: AiAgentAvailability): string {
+  if (status.status === 'installed') return 'Installed'
+  if (status.status === 'checking') return 'Checking'
+  if (isRetryNeededAgentStatus(status)) return 'Retry needed'
   return 'Missing'
 }
 
@@ -168,9 +173,9 @@ function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
               {secondaryDetail ? <div className="text-[11px] leading-5 text-muted-foreground/80">{secondaryDetail}</div> : null}
             </div>
             <span
-              className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClass(status.status)}`}
+              className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClass(status)}`}
             >
-              {statusBadgeLabel(status.status)}
+              {statusBadgeLabel(status)}
             </span>
           </div>
         )
