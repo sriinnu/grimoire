@@ -15,6 +15,8 @@ local-only audit before publication.
   codebase map.
 - [Public Readiness](PUBLIC-READINESS.md) - what is verified, blocked, or still
   needs platform proof before the repository is advertised publicly.
+- [Release Runbook](RELEASE-RUNBOOK.md) - operator checklist for release
+  preflight, required secret names, tags, and post-release verification.
 - [Architecture](ARCHITECTURE.md) - runtime shape, platform boundaries, and data
   flow.
 - [Abstractions](ABSTRACTIONS.md) - durable concepts and module contracts.
