@@ -700,7 +700,7 @@ describe('useVaultSwitcher', () => {
       expect(mockInvokeFn).toHaveBeenCalledWith('create_getting_started_vault', { targetPath: expectedDefaultVaultPath })
     })
 
-    it('shows a friendly toast and keeps the hidden vault hidden when cloning fails', async () => {
+    it('shows a friendly toast and keeps the hidden vault hidden when starter prep fails', async () => {
       setWorkVaultWithHiddenGettingStarted()
       setMockInvokeBehavior({
         checkVaultExists: false,
@@ -715,7 +715,7 @@ describe('useVaultSwitcher', () => {
 
       expect(result.current.vaultPath).toBe('/work/vault')
       expect(result.current.isGettingStartedHidden).toBe(true)
-      expect(onToast).toHaveBeenCalledWith('Getting Started requires internet. Clone it later.')
+      expect(onToast).toHaveBeenCalledWith('Could not prepare Getting Started vault: git clone failed: fatal: unable to access')
     })
   })
 

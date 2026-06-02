@@ -19,9 +19,10 @@ secret names for signed and notarized macOS artifacts. It reports secret names
 only; it never prints secret values.
 
 The in-app Getting Started flow clones the public starter vault from
-`https://github.com/sriinnu/grimoire-getting-started.git`. The tracked
-`demo-vault-v2/` directory mirrors that showcase vault for local development and
-test coverage.
+`https://github.com/sriinnu/grimoire-getting-started.git` first. If that clone
+is unavailable, packaged apps copy the bundled starter-vault resource instead.
+The tracked `demo-vault-v2/` directory is that bundled mirror for local
+development and test coverage.
 
 ## Prerequisites
 

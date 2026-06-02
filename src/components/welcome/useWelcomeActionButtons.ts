@@ -20,13 +20,12 @@ function triggerWelcomeAction(
 export function useWelcomeActionButtons({
   mode,
   busy,
-  isOffline,
   onCreateEmptyVault,
   onOpenFolder,
   onCreateVault,
 }: Pick<
   WelcomeScreenProps,
-  'mode' | 'isOffline' | 'onCreateEmptyVault' | 'onOpenFolder' | 'onCreateVault'
+  'mode' | 'onCreateEmptyVault' | 'onOpenFolder' | 'onCreateVault'
 > & {
   busy: boolean
 }) {
@@ -39,11 +38,11 @@ export function useWelcomeActionButtons({
   )
   const actions = useMemo<WelcomeAction[]>(
     () => ([
-      { disabled: isOffline, run: onCreateVault },
+      { disabled: false, run: onCreateVault },
       { disabled: false, run: onCreateEmptyVault },
       { disabled: false, run: onOpenFolder },
     ]),
-    [isOffline, onCreateEmptyVault, onCreateVault, onOpenFolder],
+    [onCreateEmptyVault, onCreateVault, onOpenFolder],
   )
 
   useEffect(() => {

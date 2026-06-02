@@ -88,7 +88,6 @@ export function WelcomeScreen({
   const { templateActionRef, createEmptyActionRef, openFolderActionRef } = useWelcomeActionButtons({
     mode,
     busy,
-    isOffline,
     onCreateEmptyVault,
     onOpenFolder,
     onCreateVault,
@@ -111,10 +110,10 @@ export function WelcomeScreen({
             iconBg="var(--accent-purple-light)"
             label="Get started with a template"
             description={presentation.templateDescription}
-            loadingLabel="Downloading template…"
-            loadingDescription="Cloning the Getting Started vault template"
+            loadingLabel="Preparing starter…"
+            loadingDescription="Preparing the Getting Started vault"
             onClick={onCreateVault}
-            disabled={busy || isOffline}
+            disabled={busy}
             loading={creatingAction === 'template'}
             testId="welcome-create-vault"
             autoFocus
@@ -149,7 +148,7 @@ export function WelcomeScreen({
 
         {creatingAction === 'template' && (
           <p style={STATUS_STYLE} data-testid="welcome-status" role="status" aria-live="polite">
-            Downloading the Getting Started vault template…
+            Preparing the Getting Started vault…
           </p>
         )}
 

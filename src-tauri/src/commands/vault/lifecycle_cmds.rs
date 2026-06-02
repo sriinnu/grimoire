@@ -168,9 +168,15 @@ fn canonical_vault_path_string(vault_dir: &Path) -> String {
 }
 
 #[tauri::command]
-pub async fn create_getting_started_vault(target_path: Option<String>) -> Result<String, String> {
+pub async fn create_getting_started_vault(
+    app_handle: tauri::AppHandle,
+    target_path: Option<String>,
+) -> Result<String, String> {
+    use tauri::Manager;
+
     let path = resolve_getting_started_target(target_path.as_deref())?;
-    tokio::task::spawn_blocking(move || vault::create_getting_started_vault(&path))
+    let resource_dir = app_handle.path().resource_dir().ok();
+    tokio::task::spawn_blocking(move || vault::create_getting_started_vault(&path, resource_dir))
         .await
         .map_err(|e| format!("Task panicked: {e}"))?
 }

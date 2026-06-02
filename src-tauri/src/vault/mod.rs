@@ -93,6 +93,7 @@ mod scanner_progress;
 #[cfg(test)]
 mod scanner_progress_tests;
 mod spanda_importer;
+mod starter_bundle;
 mod title_sync;
 mod trash;
 mod views;

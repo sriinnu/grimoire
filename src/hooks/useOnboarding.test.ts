@@ -250,7 +250,7 @@ describe('useOnboarding', () => {
     expect(mockInvokeFn).not.toHaveBeenCalledWith('create_getting_started_vault', expect.anything())
   })
 
-  it('sets a friendly template error on clone failure', async () => {
+  it('sets a friendly template error when starter preparation fails', async () => {
     mockCommands({
       create_getting_started_vault: () => { throw 'git clone failed: fatal: unable to access' },
     })
@@ -263,7 +263,7 @@ describe('useOnboarding', () => {
       await result.current.handleCreateVault()
     })
 
-    expect(result.current.error).toBe('Could not download Getting Started vault: git clone failed: fatal: unable to access')
+    expect(result.current.error).toBe('Could not prepare Getting Started vault: git clone failed: fatal: unable to access')
     expect(result.current.state.status).toBe('welcome')
   })
 
