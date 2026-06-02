@@ -10,65 +10,60 @@
 
 # Grimoire
 
-Grimoire is a local-first memory workbench for people who want their notes,
-journals, projects, graph, and AI collaborators to share the same durable
-substrate: plain markdown, frontmatter, wikilinks, folders, and Git history.
+Grimoire is a local operating system for thought: a Markdown vault, journal,
+graph, writing surface, project workbench, and inspectable AI workspace built
+around files you own.
 
-It is not a hosted notes service. It is not a public installer yet. Today,
-Grimoire is public source you can run, inspect, and help harden while the real
-release blockers are tracked in the open.
+The durable contract is intentionally boring: plain Markdown, YAML
+frontmatter, wikilinks, folders, attachments, and Git history. The app can be
+rich and native, but the data should stay readable in another editor years from
+now.
 
-Grimoire is created and maintained by **Srinivas Pendela**
+It is not a hosted notes service. It is not an Obsidian clone. It is not a
+chatbot with a file picker. Today, Grimoire is public source you can run,
+inspect, and help harden while the remaining release blockers are tracked in
+the open.
+
+Created and maintained by **Srinivas Pendela**
 ([@sriinnu](https://x.com/sriinnu)).
 
-## Why It Exists
+## Product Shape
 
 Most tools split memory into disconnected surfaces: a journal here, a task list
 there, a project folder somewhere else, and an AI chat that forgets the shape of
 the work as soon as the session ends.
 
-Grimoire keeps those surfaces together without hiding the data model. The app
-can feel rich and native, but the long-lived contract stays boring on purpose:
-files you can read, links you can grep, history you can diff, and vaults you can
-carry elsewhere.
+Grimoire tries to keep those surfaces together:
 
-## What You Can Explore
+| Lens | What it is for |
+| --- | --- |
+| Daily Flow | Capture, reflect, organize, and crystallize notes without leaving the dashboard. |
+| Vault Workbench | Projects, people, procedures, decisions, sources, tasks, custom note types, saved views, filters, and columns. |
+| Markdown Studio | Rich BlockNote editing, raw CodeMirror editing, wikilinks, math, code, frontmatter, images, slash commands, and shared Markdown semantics. |
+| Graph And Topography | Active-note neighborhoods, whole-vault graph views, relationship edges, type-colored nodes, filters, and large-vault caps. |
+| Sidebar Spotlight | Project-text search across the open vault, note-list search, metadata filters, saved views, and command entry points. |
+| Agent Workspace | Claude Code, Codex, and Chitragupta CLI panels with route/status disclosure and review-gated boundaries. |
+| Native Shell | Tauri desktop app, vault switching, macOS menu/window work, platform-specific settings copy, update-feed preferences, and source setup diagnostics. |
 
-- **Daily flow**: capture, reflect, organize, and crystallize notes with a
-  review-oriented dashboard, quick capture, journals, dreams, events, and dated
-  memory surfaces.
-- **Vault workbench**: projects, people, procedures, decisions, tasks, sources,
-  custom note types, frontmatter, saved views, filters, sorting, and columns.
-- **Markdown editor**: BlockNote rich editing, raw CodeMirror editing, math,
-  wikilinks, slash commands, code blocks, YAML, images, and shared markdown
-  semantics across editor modes.
-- **Graph and topography**: active-note neighborhood view, whole-vault graph,
-  wikilink and relationship edges, type-colored nodes, filters, and large-vault
-  caps.
-- **Sidebar Spotlight search**: project-text search across the open vault,
-  note-list search, metadata filters, and saved views.
-- **Agent workspace**: Claude Code, Codex, and Chitragupta CLI panels with
-  route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work, not public-complete claims.
-- **Native shell**: Tauri desktop app, local vault switching, macOS menu/window
-  work, platform-specific settings copy, update-feed preferences, and source
-  setup diagnostics.
+The AI surface is deliberately conservative. CLI panels and provider settings
+exist, but Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work, not public-complete claims.
 
-## Current Truth
+## Current Status
 
 Snapshot date: 2026-06-02.
 
-| Area | Current state |
+| Area | Truth |
 | --- | --- |
 | Source repository | Public. |
 | Public binary installers | Not published. There is no public packaged release yet. |
-| Update feeds | Not published. Stable and alpha feed URLs still return 404 until real release assets are generated and deployed. |
+| Update feeds | Not published. Stable and alpha feed URLs return 404 until real release assets are generated and deployed. |
 | Local macOS source/dev | Locally exercised and the active development host. |
-| Windows source/dev | Known cfg and SQLite link failures were fixed in source, and hosted Windows native link smoke now builds the Tauri Rust binary, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
-| Linux source/dev | Intended source target with documented Tauri dependencies and hosted native link smoke, pending fresh platform launch QA. |
+| Windows source/dev | Known cfg and SQLite link failures were fixed in source. Hosted Windows native link smoke builds the Tauri Rust binary, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
+| Linux source/dev | Intended source target with documented Tauri dependencies and hosted native link smoke. Fresh platform launch QA is still required. |
 | Hosted CI | Live-audited. Latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners; rerun the public-readiness audit before making public claims. |
 | Release readiness | Cross-platform release jobs are configured, but public release is still blocked by missing release secrets, missing GitHub Releases, missing update feeds, and missing tagged platform launch proof. |
 
-Run the live audit before advertising Grimoire publicly:
+Before advertising Grimoire publicly, run the live audit:
 
 ```bash
 pnpm audit:public-readiness -- --branch main
@@ -80,10 +75,12 @@ checklist is [docs/RELEASE-RUNBOOK.md](docs/RELEASE-RUNBOOK.md).
 
 ## Run From Source
 
-Public binary installers are not published yet. For now, run Grimoire from the
-source tree.
+Public binary installers are not published yet. For now, run Grimoire from
+source.
 
 ```bash
+git clone https://github.com/sriinnu/grimoire.git
+cd grimoire
 corepack enable
 pnpm install
 pnpm doctor:source
@@ -91,9 +88,9 @@ pnpm dev
 ```
 
 Browser source mode needs Node, pnpm 10+, and Git. It runs the app through Vite
-and is the fastest way to inspect most UI behavior.
+and is the fastest way to inspect UI behavior without opening the Tauri shell.
 
-Run the native desktop app:
+To run the native desktop app:
 
 ```bash
 pnpm tauri dev
@@ -107,11 +104,17 @@ On Windows, the doctor checks for the MSVC Rust host and Microsoft C++ Build
 Tools (`cl.exe`), and it warns when the evergreen WebView2 runtime is not
 detected. Earlier Windows source runs exposed macOS-only menu/reopen guards and
 a missing `sqlite3.lib` linker dependency. For those issues, the current source tree contains guards for those paths and bundles SQLite through `rusqlite` instead of requiring a separate Windows
-SQLite import library. Hosted CI also runs `pnpm test:native-tauri-link`, which
-executes `cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked`
-on the pinned OS matrix so Windows link regressions fail before merge. Fresh
-Windows native launch evidence is still required before this README can call
-Windows verified.
+SQLite import library.
+
+Hosted CI also runs `pnpm test:native-tauri-link`, which executes:
+
+```bash
+cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked
+```
+
+That native link smoke runs on the pinned macOS, Windows, and Linux CI matrix so
+Windows link regressions fail before merge. Fresh Windows native launch evidence
+is still required before this README can call Windows verified.
 
 On Linux, the doctor checks pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
@@ -121,7 +124,7 @@ Linux and Windows now have tagged-release workflow jobs, but they are still not 
 Full setup notes and Linux package examples are in
 [Getting Started](docs/GETTING-STARTED.md).
 
-## Starter Vault
+## Starter Vault And Demo
 
 The first-run Getting Started flow clones this public starter vault:
 
@@ -131,8 +134,18 @@ If GitHub is unavailable, packaged apps fall back to the bundled
 `starter-vault` resource. In this repository, `demo-vault-v2/` is the tracked
 mirror used for tests, development, and review.
 
-The starter vault is both a showcase and a QA fixture. It demonstrates real
-surfaces in the app, but it is not proof that every surface is feature-complete.
+The starter vault is both a showcase and a QA fixture. It includes editable
+notes for the feature tour, Markdown learning, properties and types, Sidebar
+Spotlight, wikilinks, journal and dream lanes, calendar/time metadata, canvas
+and attachments, audio transcription, local agents, privacy, portability, and
+themes.
+
+This is structural proof that the tour content exists and links together. It is
+not proof that every advertised surface is feature-complete.
+
+```bash
+pnpm test:starter-vault
+```
 
 ## AI And Privacy
 
@@ -144,6 +157,19 @@ Agent surfaces are intentionally explicit about boundaries. CLI chat panels and
 external-provider settings are not the same thing as finished Chitragupta MCP
 memory or source-backed write tooling. When those contracts are public-ready,
 the readiness doc should say so with tests and live evidence.
+
+## Repository Map
+
+```text
+src/                         React app, editor shell, dashboard, graph, settings
+src-tauri/src/               Tauri commands, vault IO, native menus, bridge code
+markdown-editor/packages/js  Shared JavaScript Markdown editor package
+markdown-editor/packages/swift
+                             Swift Markdown semantics package and parity bridge
+demo-vault-v2/               Tracked starter-vault mirror and feature tour
+docs/                        Architecture, setup, readiness, release, contracts
+scripts/                     Audits, release checks, source doctor, doc guards
+```
 
 ## Development Checks
 
@@ -162,7 +188,7 @@ pnpm test:starter-vault
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-Before a public release tag:
+Before a public release tag, run:
 
 ```bash
 pnpm release:preflight
@@ -176,21 +202,21 @@ print secret values.
 
 ## Documentation
 
-- [Docs Index](docs/README.md) - curated public documentation map
-- [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map
+- [Docs Index](docs/README.md) - curated public documentation map.
+- [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map.
 - [Public Readiness](docs/PUBLIC-READINESS.md) - current release blockers and
   verification commands
 - [Release Runbook](docs/RELEASE-RUNBOOK.md) - release secrets, signed tags,
   workflow checks, and post-release verification
-- [Architecture](docs/ARCHITECTURE.md) - runtime shape and data flow
-- [Abstractions](docs/ABSTRACTIONS.md) - durable module and product contracts
+- [Architecture](docs/ARCHITECTURE.md) - runtime shape and data flow.
+- [Abstractions](docs/ABSTRACTIONS.md) - durable module and product contracts.
 - [Markdown Semantics](docs/MARKDOWN-SEMANTICS-CONTRACT.md) - shared markdown
   and slash-command behavior
-- [Vision](docs/VISION.md) - product direction
+- [Vision](docs/VISION.md) - product direction.
 - [Differentiation](docs/GRIMOIRE-DIFFERENTIATION.md) - what makes Grimoire its
   own product
-- [Enhancements](ENHANCEMENTS.md) - roadmap and research tracks
-- [ADRs](docs/adr) - architecture decision records
+- [Enhancements](ENHANCEMENTS.md) - roadmap and research tracks.
+- [ADRs](docs/adr) - architecture decision records.
 
 ## Security
 
