@@ -114,6 +114,20 @@ export function resolveDefaultAiAgent(value: string | null | undefined): AiAgent
   return normalizeStoredAiAgent(value) ?? DEFAULT_AI_AGENT
 }
 
+export function resolveUsableDefaultAiAgent(
+  value: string | null | undefined,
+  statuses: AiAgentsStatus,
+): AiAgentId {
+  const storedAgent = normalizeStoredAiAgent(value)
+  if (storedAgent && isAiAgentInstalled(statuses, storedAgent)) return storedAgent
+
+  const fallbackAgent = AI_AGENT_DEFINITIONS.find((definition) => (
+    isAiAgentInstalled(statuses, definition.id)
+  ))
+
+  return fallbackAgent?.id ?? resolveDefaultAiAgent(value)
+}
+
 export function supportsAiAgentProviderRoute(agent: AiAgentId): boolean {
   return agent === 'chitragupta'
 }

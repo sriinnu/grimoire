@@ -10,6 +10,7 @@ import {
   normalizeStoredAiAgent,
   resolveDefaultAiAgent,
   resolveDefaultAiProvider,
+  resolveUsableDefaultAiAgent,
   supportsAiAgentProviderRoute,
 } from './aiAgents'
 
@@ -24,6 +25,18 @@ describe('aiAgents helpers', () => {
   it('falls back to Claude Code as the default agent', () => {
     expect(resolveDefaultAiAgent(undefined)).toBe('claude_code')
     expect(resolveDefaultAiAgent(null)).toBe('claude_code')
+  })
+
+  it('falls forward to an installed local route when the stored default is unavailable', () => {
+    const statuses = normalizeAiAgentsStatus({
+      claude_code: { installed: false, version: null },
+      codex: { installed: true, version: '0.37.0' },
+      chitragupta: { installed: true, version: '0.1.16' },
+    })
+
+    expect(resolveUsableDefaultAiAgent(null, statuses)).toBe('codex')
+    expect(resolveUsableDefaultAiAgent('claude_code', statuses)).toBe('codex')
+    expect(resolveUsableDefaultAiAgent('chitragupta', statuses)).toBe('chitragupta')
   })
 
   it('normalizes raw status payloads', () => {

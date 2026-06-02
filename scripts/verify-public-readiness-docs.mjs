@@ -135,6 +135,9 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Settings platform copy | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'Windows Credential Manager')
   assertContains('docs/PUBLIC-READINESS.md', 'Linux Secret Service/keyring')
+  assertContains('docs/PUBLIC-READINESS.md', 'browser smoke coverage through the same bottom-bar action')
+  assertContains('package.json', 'tests/smoke/vault-switcher-bottom-bar.spec.ts')
+  assertContains('tests/smoke/vault-switcher-bottom-bar.spec.ts', 'bottom bar open-local-folder action switches to the picked vault @smoke')
   assertMatch(
     'docs/PUBLIC-READINESS.md',
     /\| Secrets \| Locally verified \| `node scripts\/scan-secrets\.mjs --all` completed without findings across [0-9,]+ files on 2026-06-02\. \|/u,
