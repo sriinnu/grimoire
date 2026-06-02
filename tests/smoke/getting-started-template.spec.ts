@@ -53,7 +53,7 @@ test('Getting Started template shows inline retry on clone failure and opens aft
   await page.getByTestId('welcome-create-vault').click()
 
   await expect(page.getByTestId('welcome-error')).toContainText(
-    'Could not download Getting Started vault: git clone failed: fatal: unable to access',
+    'Could not prepare Getting Started vault: git clone failed: fatal: unable to access',
   )
   await expect(page.getByTestId('welcome-retry-template')).toBeVisible()
 

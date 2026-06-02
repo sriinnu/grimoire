@@ -73,6 +73,22 @@ describe('useAiAgentPreferences', () => {
     expect(result.current.defaultAiAgentReady).toBe(false)
   })
 
+  it('uses the first installed local agent when the stored default is missing', () => {
+    const { result } = renderHook(() => useAiAgentPreferences({
+      settings: { ...settings, default_ai_agent: null },
+      saveSettings: vi.fn(),
+      aiAgentsStatus: {
+        claude_code: { status: 'missing', version: null },
+        codex: { status: 'installed', version: '0.37.0' },
+        chitragupta: { status: 'installed', version: '0.1.16' },
+      },
+    }))
+
+    expect(result.current.defaultAiAgent).toBe('codex')
+    expect(result.current.defaultAiAgentLabel).toBe('Codex')
+    expect(result.current.defaultAiAgentReady).toBe(true)
+  })
+
   it('persists a model override for the selected local agent', () => {
     const saveSettings = vi.fn()
     const onToast = vi.fn()
