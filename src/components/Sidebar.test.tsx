@@ -1,7 +1,24 @@
 import { render, screen, fireEvent, within } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { Sidebar } from './Sidebar'
 import type { VaultEntry, SidebarSelection } from '../types'
+
+const originalUserAgent = navigator.userAgent
+const originalPlatform = navigator.platform
+
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(window.navigator, 'userAgent', {
+    configurable: true,
+    value: userAgent,
+  })
+}
+
+function setPlatform(platform: string) {
+  Object.defineProperty(window.navigator, 'platform', {
+    configurable: true,
+    value: platform,
+  })
+}
 
 const mockEntries: VaultEntry[] = [
   {
@@ -217,6 +234,11 @@ const mockEntries: VaultEntry[] = [
 const defaultSelection: SidebarSelection = { kind: 'filter', filter: 'all' }
 
 describe('Sidebar', () => {
+  afterEach(() => {
+    setUserAgent(originalUserAgent)
+    setPlatform(originalPlatform)
+  })
+
   it('renders top nav items (All Notes)', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
     expect(screen.getByText('All Notes')).toBeInTheDocument()
@@ -231,8 +253,31 @@ describe('Sidebar', () => {
     expect(screen.getByText('Grimoire')).toHaveClass('sidebar-brand-wordmark')
     expect(screen.getByText('Grimoire')).toHaveStyle({ textAlign: 'left' })
     expect(screen.getByAltText('Grimoire icon')).toBeInTheDocument()
-    expect(screen.getByText('Markdown agent')).toBeInTheDocument()
-    expect(screen.getByText('Markdown agent')).toHaveStyle({ textAlign: 'left' })
+    expect(screen.getByText('Local memory studio')).toBeInTheDocument()
+    expect(screen.getByText('Local memory studio')).toHaveStyle({ textAlign: 'left' })
+  })
+
+  it('opens vault-wide search from the left sidebar', () => {
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    setPlatform('MacIntel')
+
+    const onOpenSearch = vi.fn()
+    render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} onOpenSearch={onOpenSearch} />)
+
+    const searchInput = screen.getByRole('searchbox', {
+      name: 'Search open vaults',
+    })
+
+    expect(screen.getByTestId('sidebar-search-launcher')).toBeInTheDocument()
+    expect(searchInput).toHaveAttribute('placeholder', 'Search open vaults...')
+    expect(searchInput).toHaveAttribute(
+      'title',
+      'Search open vaults',
+    )
+    expect(searchInput).not.toHaveDisplayValue('Cmd F')
+
+    fireEvent.click(screen.getByTestId('sidebar-search-input'))
+    expect(onOpenSearch).toHaveBeenCalledOnce()
   })
 
   it('renders section group headers only for types present in entries', () => {

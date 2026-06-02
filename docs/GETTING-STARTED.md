@@ -2,18 +2,56 @@
 
 This is the shortest path to run Grimoire locally and understand where to make changes.
 
+This document covers source builds. Public binary installers are not published
+yet, and the current release workflow only builds macOS artifacts after signing
+secrets are configured. Stable and alpha update feeds are generated from GitHub
+Release assets by the release workflow; they are not evidence until that workflow
+has run successfully for a tagged release.
+
+Before cutting a public release tag, run:
+
+```bash
+pnpm release:preflight
+```
+
+The preflight checks release workflow wiring, GitHub Pages, and required repo
+secret names for signed and notarized macOS artifacts. It reports secret names
+only; it never prints secret values. The full operator checklist is in
+[RELEASE-RUNBOOK.md](RELEASE-RUNBOOK.md).
+
+The in-app Getting Started flow clones the public starter vault from
+`https://github.com/sriinnu/grimoire-getting-started.git` first. If that clone
+is unavailable, packaged apps copy the bundled starter-vault resource instead.
+The tracked `demo-vault-v2/` directory is that bundled mirror for local
+development and test coverage.
+
 ## Prerequisites
 
 - Node.js 20+
-- pnpm 8+
+- pnpm 10+ through Corepack
 - Rust stable
-- macOS or Linux
+- macOS for locally verified source development
+- Linux or Windows for intended source development, pending fresh platform QA
 
 Install JavaScript dependencies:
 
 ```bash
 pnpm install
 ```
+
+Check this machine before spending time debugging setup:
+
+```bash
+pnpm doctor:source
+```
+
+The source doctor reports two readiness lanes:
+
+- Browser source mode: Node.js 20+, pnpm 10+, and Git.
+- Native Tauri mode: browser source mode plus Rust/Cargo and platform-specific
+  native dependencies. On Linux it verifies the pkg-config packages Grimoire's
+  Tauri build expects: WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1,
+  libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
 Run browser mock mode:
 
@@ -27,6 +65,33 @@ Run the native desktop app:
 pnpm tauri dev
 ```
 
+Windows native development is still a recheck item. A Windows `pnpm tauri dev`
+run on `main` failed with macOS-only Rust cfg errors around the menu bar and
+reopen handlers. A later Windows run failed at link time with
+`LNK1181: cannot open input file 'sqlite3.lib'`. The current source includes
+guards for the macOS-only paths and bundles SQLite through `rusqlite` instead of
+requiring a separately installed Windows SQLite import library, but do not call
+Windows verified until a fresh Windows dev/build/open run is captured.
+`pnpm test:rust-platform-guards` statically guards the known macOS-only
+`menu_bar` and `RunEvent::Reopen` regression paths plus the bundled-SQLite
+contract; it is regression coverage, not a replacement for native Windows
+launch QA.
+`pnpm doctor:source` also checks Windows native setup for the MSVC Rust host and
+Microsoft C++ Build Tools (`cl.exe`). If either fails, install Rust's stable
+MSVC toolchain and Microsoft's Desktop development with C++ workload before
+rerunning `pnpm tauri dev`. The doctor also warns when the evergreen WebView2
+runtime is not detected. That warning does not block browser source mode or
+native readiness, but a Windows launch/open recheck should verify WebView2 if
+the built `.exe` does not display a Tauri window.
+
+Packaged desktop apps also try to start Grimoire's local MCP WebSocket bridge
+from the bundled `mcp-server` resource. Node.js must be discoverable on `PATH`
+or in common Node install locations for that optional external-AI bridge to run,
+but normal vault browsing and editing must still open without it. Grimoire checks
+Homebrew, `/usr/local`, Volta, nvm, nvm-windows, Program Files, LocalAppData, and
+Scoop-style Node locations before treating the bridge as unavailable. A Windows
+recheck should cover both app launch and bridge status after `pnpm tauri build`.
+
 ## Linux Dependencies
 
 Tauri 2 needs WebKit2GTK 4.1 and GTK 3.
@@ -34,7 +99,7 @@ Tauri 2 needs WebKit2GTK 4.1 and GTK 3.
 Arch / Manjaro:
 
 ```bash
-sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl appmenu-gtk-module libappindicator-gtk3 librsvg
+sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl appmenu-gtk-module libappindicator-gtk3 librsvg xdotool
 ```
 
 Debian / Ubuntu 22.04+:
@@ -46,10 +111,11 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev
 Fedora 38+:
 
 ```bash
-sudo dnf install webkit2gtk4.1-devel openssl-devel curl wget file libappindicator-gtk3-devel librsvg2-devel
+sudo dnf install webkit2gtk4.1-devel openssl-devel curl wget file libappindicator-gtk3-devel librsvg2-devel libxdo-devel
 ```
 
-Install Node from the distro package manager too if you want the bundled MCP server to run from a packaged Linux app.
+Install Node from the distro package manager too if you want the bundled MCP
+server to run from a packaged Linux app.
 
 ## Useful Commands
 
@@ -57,9 +123,14 @@ Install Node from the distro package manager too if you want the bundled MCP ser
 pnpm lint
 pnpm exec tsc --noEmit
 pnpm test
-pnpm run test:markdown-editor
+pnpm run test:markdown-editor:js
 pnpm build
 cargo test --manifest-path src-tauri/Cargo.toml
+```
+
+macOS-only Swift parity check:
+
+```bash
 swift test --package-path markdown-editor/packages/swift
 ```
 
@@ -85,6 +156,7 @@ src/
     SingleEditorView.tsx          rich BlockNote editor
     RawEditorView.tsx             CodeMirror source editor
     GraphModal.tsx                knowledge graph UI
+    SearchPanel.tsx               Spotlight search across open vault text/docs
     WeatherSnapshotDialog.tsx     explicit weather insertion UI
     Inspector.tsx                 properties and relationships
     sidebar/SidebarRail.tsx       collapsed left-column icon rail

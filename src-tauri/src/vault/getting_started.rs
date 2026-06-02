@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use super::starter_bundle;
+
 /// Public starter vault cloned when the user chooses Getting Started.
 pub const GETTING_STARTED_REPO_URL: &str =
     "https://github.com/sriinnu/grimoire-getting-started.git";
@@ -501,13 +503,34 @@ Use kebab-case: `my-note-title.md`. One note per file.
 Do not modify app configuration files — those are local to each installation.
 "##;
 
-/// Clone the public starter vault into the requested path.
-pub fn create_getting_started_vault(target_path: &str) -> Result<String, String> {
-    let vault_path = create_getting_started_vault_from_repo(
+/// Prepare the Getting Started vault by cloning the public starter first, then
+/// falling back to the packaged starter bundle when cloning is unavailable.
+pub fn create_getting_started_vault(
+    target_path: &str,
+    resource_dir: Option<PathBuf>,
+) -> Result<String, String> {
+    let vault_path = create_getting_started_vault_from_repo_or_bundle(
         Path::new(target_path),
         &getting_started_repo_url(),
+        resource_dir.as_deref(),
     )?;
     Ok(vault_path.to_string_lossy().to_string())
+}
+
+fn create_getting_started_vault_from_repo_or_bundle(
+    target_path: &Path,
+    repo_url: &str,
+    resource_dir: Option<&Path>,
+) -> Result<PathBuf, String> {
+    match create_getting_started_vault_from_repo(target_path, repo_url) {
+        Ok(vault_path) => Ok(vault_path),
+        Err(repo_error) => starter_bundle::copy_bundled_starter_vault(target_path, resource_dir)
+            .map_err(|bundle_error| {
+                format!(
+                    "Could not clone public starter ({repo_error}) or copy bundled starter ({bundle_error})"
+                )
+            }),
+    }
 }
 
 fn create_getting_started_vault_from_repo(
@@ -700,6 +723,17 @@ mod tests {
         fs::write(path.join("note.md"), "# Note\n").unwrap();
     }
 
+    fn write_bundled_starter(path: &Path) {
+        fs::create_dir_all(path.join("views")).unwrap();
+        fs::write(path.join(".fixture-manifest.json"), "{}\n").unwrap();
+        fs::write(path.join("grimoire-start-here.md"), "# Start here\n").unwrap();
+        fs::write(
+            path.join("views").join("active-projects.yml"),
+            "title: Active Projects\nfilters: []\n",
+        )
+        .unwrap();
+    }
+
     fn assert_getting_started_vault_replaces_template(agents_content: &str) {
         let dir = tempfile::TempDir::new().unwrap();
         let source = dir.path().join("starter");
@@ -822,6 +856,36 @@ mod tests {
 
         assert!(err.contains("git clone failed"));
         assert!(!dest.exists());
+    }
+
+    #[test]
+    fn test_create_getting_started_vault_falls_back_to_bundled_starter() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let missing_repo = dir.path().join("missing");
+        let resource_dir = dir.path().join("resources");
+        let dest = dir.path().join("Getting Started");
+        write_bundled_starter(&resource_dir.join("starter-vault"));
+
+        let result = create_getting_started_vault_from_repo_or_bundle(
+            dest.as_path(),
+            missing_repo.to_str().unwrap(),
+            Some(resource_dir.as_path()),
+        )
+        .unwrap();
+
+        assert_eq!(result, dest.canonicalize().unwrap());
+        assert!(dest.join("grimoire-start-here.md").exists());
+        assert!(dest.join("AGENTS.md").exists());
+        assert!(dest.join("type.md").exists());
+        assert!(dest.join("note.md").exists());
+        assert!(dest.join(".git").exists());
+        assert!(!crate::git::has_remote(dest.to_str().unwrap()).unwrap());
+        let output = test_git_command()
+            .args(["status", "--porcelain"])
+            .current_dir(&dest)
+            .output()
+            .unwrap();
+        assert!(String::from_utf8_lossy(&output.stdout).trim().is_empty());
     }
 
     #[test]

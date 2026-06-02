@@ -47,6 +47,20 @@ function createStorageMock(): Storage {
   }
 }
 
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(window.navigator, 'userAgent', {
+    configurable: true,
+    value: userAgent,
+  })
+}
+
+function setPlatform(platform: string) {
+  Object.defineProperty(window.navigator, 'platform', {
+    configurable: true,
+    value: platform,
+  })
+}
+
 describe('SettingsPanel appearance and agent settings', () => {
   const onSave = vi.fn()
   const onClose = vi.fn()
@@ -56,6 +70,8 @@ describe('SettingsPanel appearance and agent settings', () => {
     vi.clearAllMocks()
     Object.defineProperty(window, 'localStorage', { value: localStorageMock, configurable: true })
     window.localStorage.clear()
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    setPlatform('MacIntel')
     installPointerCapturePolyfill()
   })
 
@@ -67,9 +83,7 @@ describe('SettingsPanel appearance and agent settings', () => {
   })
 
   it('renders modal when open', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
+    render(<SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />)
     expect(screen.getByText('Settings')).toBeInTheDocument()
     expect(document.querySelector('.settings-panel-shell')).toHaveClass('grimoire-settings-stage')
     expect(screen.getAllByText('Sync & Updates')).not.toHaveLength(0)
@@ -134,9 +148,7 @@ describe('SettingsPanel appearance and agent settings', () => {
   })
 
   it('calls onSave with stable defaults on save', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
+    render(<SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />)
 
     fireEvent.click(screen.getByTestId('settings-save'))
 
@@ -166,6 +178,21 @@ describe('SettingsPanel appearance and agent settings', () => {
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
       menu_bar_icon_enabled: true,
     }))
+  })
+
+  it('labels unsupported native quick actions with the current Windows platform', () => {
+    setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    setPlatform('Win32')
+
+    render(
+      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
+    )
+
+    expect(screen.getByText('Native Windows')).toBeInTheDocument()
+    expect(screen.getByRole('switch', { name: 'Windows tray integration not available yet' })).toBeDisabled()
+    expect(screen.getByTestId('settings-menu-bar-icon-enabled')).toHaveTextContent(
+      'This control stays off until Grimoire ships native quick actions for Windows.',
+    )
   })
 
   it('labels and saves the native shell material preference', () => {

@@ -124,7 +124,8 @@ Store data in app settings when it describes this installation:
 - `hooks/useAppCommands.ts`: bridges keyboard, command palette, and native menu events.
 - `hooks/useLayoutPanels.ts`: owns default sidebar, note-list, and inspector widths. It keeps wide monitors on the full layout while narrower laptop viewports start with editor-safe navigation widths and a collapsed inspector.
 - `hooks/useSidebarColumnCollapse.ts`: persists the app-local compact sidebar rail preference outside the vault.
-- `components/sidebar/SidebarRail.tsx`: collapsed left-column navigation rail for Inbox, All Notes, Archive, and returning to the full sidebar.
+- `components/sidebar/SidebarRail.tsx`: collapsed left-column navigation rail for search, Inbox, All Notes, Archive, and returning to the full sidebar.
+- `components/SearchPanel.tsx` and `hooks/useUnifiedSearch.ts`: Spotlight-style search launched from the sidebar, command layer, or shortcut. It aggregates available open vault paths and calls the Rust `search_vault` command, which scans markdown and editable text files while skipping hidden, dependency, and build-output directories.
 - `components/AppLazySurfaces.tsx`: delayed surface boundary for heavyweight dialogs, palettes, Settings, graph/Pulse routes, onboarding, and the bottom status rail. The status rail keeps a stable local-only fallback so startup can paint before its menu and badge dependencies load.
 - `components/LazyNoteList.tsx`: delayed boundary for the virtualized note-list route. Dashboard-first startup does not import `NoteList`, `react-virtuoso`, project workspace chrome CSS, or note-list relationship views until the user opens a note-list selection.
 - `components/sidebar/SortableTypesSection.tsx`, `components/sidebar/FavoritesSortableList.tsx`, `components/note-list/ListPropertiesPopover.tsx`, and `components/note-list/ListPropertiesSortableOptions.tsx`: lazy customization/sortable surfaces that keep property editing and DnD libraries off the startup path while preserving immediate static lists as fallbacks.
@@ -308,6 +309,20 @@ the app icon inside exploded `.app` bundles, updater `.app.tar.gz` files, and DM
 against `src-tauri/icons/icon.icns`, and can require `codesign --verify` for
 packaged apps. The GitHub release workflow runs this after producing signed
 macOS artifacts for both Apple Silicon and Intel targets.
+
+`scripts/build-release-pages.mjs` is the release-page guard. It delegates the
+manifest/page model to `scripts/release-pages-core.mjs` and keeps the fixture
+self-test in `scripts/release-pages-self-test.mjs`, so the public release
+generator stays below the source-file size guardrail. After tagged release
+assets are uploaded, the workflow reads GitHub Release metadata, downloads the
+`.app.tar.gz.sig` contents through the GitHub asset API, writes Tauri static
+updater manifests under `stable/latest.json` or `alpha/latest.json`, and emits
+small download pages that prefer the DMG for manual installs. When both macOS
+architectures exist, the generated page requires an explicit Apple Silicon vs
+Intel choice instead of redirecting generic Mac browsers to whichever asset
+happens to appear first. The self-test is part of CI and pre-push so update
+feeds cannot be documented as ready without a generator that knows the required
+signature shape.
 
 ## Platform Direction
 

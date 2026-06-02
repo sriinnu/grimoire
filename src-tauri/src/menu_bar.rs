@@ -1,19 +1,12 @@
 use tauri::{
     menu::{Menu, MenuBuilder, MenuItemBuilder},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    App, AppHandle, LogicalSize, Manager, WebviewWindow,
-};
-
-#[cfg(target_os = "macos")]
-use objc2_app_kit::{
-    NSApplicationActivationOptions, NSApplicationActivationPolicy, NSColor, NSRunningApplication,
-    NSWindow, NSWindowSharingType,
+    App, AppHandle,
 };
 
 const TRAY_ID: &str = "grimoire-menu-bar";
 const TRAY_OPEN_GRIMOIRE: &str = "tray-open-grimoire";
 const TRAY_QUIT: &str = "tray-quit";
-const MAIN_WINDOW_LABEL: &str = "main";
 
 const APP_SETTINGS: &str = "app-settings";
 const FILE_NEW_NOTE: &str = "file-new-note";
@@ -66,128 +59,8 @@ fn tray_menu_action(id: &str) -> Option<TrayMenuAction> {
     }
 }
 
-fn ensure_main_window(app_handle: &AppHandle) -> Option<WebviewWindow> {
-    if let Some(window) = app_handle.get_webview_window(MAIN_WINDOW_LABEL) {
-        return Some(window);
-    }
-
-    let window_config = app_handle
-        .config()
-        .app
-        .windows
-        .iter()
-        .find(|config| config.label == MAIN_WINDOW_LABEL)
-        .or_else(|| app_handle.config().app.windows.first())?;
-
-    tauri::WebviewWindowBuilder::from_config(app_handle, window_config)
-        .and_then(|builder| builder.build())
-        .map_err(|error| log::warn!("Failed to create main window: {}", error))
-        .ok()
-}
-
-#[cfg(target_os = "macos")]
-fn activate_app() {
-    if let Some(mtm) = objc2::MainThreadMarker::new() {
-        let app = objc2_app_kit::NSApplication::sharedApplication(mtm);
-        app.unhide(None);
-        app.setActivationPolicy(NSApplicationActivationPolicy::Regular);
-        app.activate();
-        #[allow(deprecated)]
-        app.activateIgnoringOtherApps(true);
-        let running_app = NSRunningApplication::currentApplication();
-        let _ = running_app.activateWithOptions(NSApplicationActivationOptions::ActivateAllWindows);
-    }
-}
-
-#[cfg(target_os = "macos")]
-fn order_native_window_front(window: &WebviewWindow) {
-    let _ = window.set_content_protected(false);
-    let _ = window.set_always_on_top(true);
-
-    let Ok(ns_window) = window.ns_window() else {
-        return;
-    };
-    if ns_window.is_null() {
-        return;
-    }
-
-    let ns_window = unsafe { &*ns_window.cast::<NSWindow>() };
-    let background = NSColor::colorWithSRGBRed_green_blue_alpha(0.9686, 0.9647, 0.9529, 1.0);
-    ns_window.setSharingType(NSWindowSharingType::ReadOnly);
-    ns_window.setAlphaValue(1.0);
-    ns_window.setOpaque(true);
-    ns_window.setBackgroundColor(Some(&background));
-    if let Some(content_view) = ns_window.contentView() {
-        content_view.setHidden(false);
-        content_view.setAlphaValue(1.0);
-    }
-    ns_window.makeKeyAndOrderFront(None);
-    ns_window.orderFrontRegardless();
-}
-
-#[cfg(target_os = "macos")]
-fn settle_main_window_layer(app_handle: &AppHandle) {
-    if let Some(window) = app_handle.get_webview_window(MAIN_WINDOW_LABEL) {
-        let _ = window.set_always_on_top(false);
-    }
-}
-
-#[cfg(target_os = "macos")]
-fn focus_main_window(app_handle: &AppHandle) {
-    activate_app();
-    if let Some(window) = app_handle.get_webview_window(MAIN_WINDOW_LABEL) {
-        let _ = window.show();
-        order_native_window_front(&window);
-        let _ = window.set_focus();
-    }
-}
-
-#[cfg(target_os = "macos")]
-fn run_on_main_thread(app_handle: &AppHandle, action: fn(&AppHandle)) {
-    let runner = app_handle.clone();
-    let app_handle_for_main = app_handle.clone();
-    let _ = runner.run_on_main_thread(move || action(&app_handle_for_main));
-}
-
-#[cfg(target_os = "macos")]
-fn schedule_focus_retry(app_handle: &AppHandle, delay_ms: u64) {
-    let app_handle = app_handle.clone();
-    std::thread::spawn(move || {
-        std::thread::sleep(std::time::Duration::from_millis(delay_ms));
-        run_on_main_thread(&app_handle, focus_main_window);
-    });
-}
-
-fn reveal_main_window(app_handle: &AppHandle) {
-    if let Some(window) = ensure_main_window(app_handle) {
-        if !window.is_visible().unwrap_or(false) {
-            let _ = window.set_size(LogicalSize::new(1400.0, 900.0));
-            let _ = window.center();
-        }
-        let _ = window.unminimize();
-        let _ = window.show();
-        #[cfg(target_os = "macos")]
-        order_native_window_front(&window);
-        let _ = window.set_focus();
-    }
-}
-
 pub(crate) fn show_main_window(app_handle: &AppHandle) {
-    #[cfg(target_os = "macos")]
-    {
-        let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
-        run_on_main_thread(app_handle, reveal_main_window);
-        schedule_focus_retry(app_handle, 75);
-        schedule_focus_retry(app_handle, 350);
-        let app_handle = app_handle.clone();
-        std::thread::spawn(move || {
-            std::thread::sleep(std::time::Duration::from_millis(900));
-            run_on_main_thread(&app_handle, settle_main_window_layer);
-        });
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    reveal_main_window(app_handle);
+    crate::menu_bar_window::show_main_window(app_handle);
 }
 
 fn handle_tray_menu_event(app_handle: &AppHandle, id: &str) {
@@ -311,11 +184,13 @@ pub fn apply_menu_bar_icon_setting(app_handle: &AppHandle, enabled: bool) -> Res
 
 /// Restore the native menu bar icon on startup when Settings has it enabled.
 pub fn setup_menu_bar_icon(app: &App) -> Result<(), Box<dyn std::error::Error>> {
-    let settings = crate::settings::get_settings().map_err(io_error)?;
-    let app_handle = app.handle();
-    apply_menu_bar_icon_setting(app_handle, settings.menu_bar_icon_enabled == Some(true))
-        .map_err(io_error)?;
+    restore_menu_bar_icon(app.handle()).map_err(io_error)?;
     Ok(())
+}
+
+pub fn restore_menu_bar_icon(app_handle: &AppHandle) -> Result<(), String> {
+    let settings = crate::settings::get_settings().map_err(|error| error.to_string())?;
+    apply_menu_bar_icon_setting(app_handle, settings.menu_bar_icon_enabled == Some(true))
 }
 
 #[cfg(test)]

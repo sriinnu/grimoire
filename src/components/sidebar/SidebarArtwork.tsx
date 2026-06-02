@@ -13,7 +13,44 @@ export function SidebarArtwork({ compact = false }: SidebarArtworkProps) {
       data-testid={compact ? 'settings-sidebar-artwork-preview' : 'sidebar-artwork'}
     >
       <GrimoireSigil />
+      <PouchIntakeOverlay />
     </div>
+  )
+}
+
+function PouchIntakeOverlay() {
+  return (
+    <svg
+      className="sidebar-artwork__pouch-overlay"
+      data-sidebar-art-channel="foreground-pouch-intake"
+      viewBox="0 120 320 120"
+    >
+      <path className="sidebar-pouch-overlay__aura" d="M53 160c37-38 80-49 127-31 37 14 68 6 94-23v120H53z" />
+      <path className="sidebar-pouch-overlay__cloud sidebar-pouch-overlay__cloud--upper" d="M98 149c10-20 33-22 47-5 13-17 39-12 47 8 19-1 33 16 28 33-51 12-94 5-128-20 0-7 2-12 6-16z" />
+      <path className="sidebar-pouch-overlay__cloud sidebar-pouch-overlay__cloud--left" d="M44 158c7-15 24-18 34-6 8-11 26-9 31 4 13 0 22 11 18 24-35 6-63-1-84-20z" />
+      <path className="sidebar-pouch-overlay__cloud sidebar-pouch-overlay__cloud--right" d="M277 159c-8-15-25-18-35-6-8-11-26-8-31 5-13 1-22 12-17 25 34 5 62-3 83-24z" />
+      <path className="sidebar-pouch-overlay__wisp" d="M47 174c35-7 64 3 86 29 15 18 36 22 62 10" />
+      <path className="sidebar-pouch-overlay__wisp sidebar-pouch-overlay__wisp--right" d="M273 175c-36-6-65 5-86 31-15 19-36 24-62 12" />
+      <path className="sidebar-pouch-overlay__funnel" d="M69 184c38 11 72 25 101 42 25-17 55-30 91-39" />
+      <path className="sidebar-pouch-overlay__mist sidebar-pouch-overlay__mist--left" d="M25 150c34 6 67 20 98 43 18 13 35 22 52 27" />
+      <path className="sidebar-pouch-overlay__mist sidebar-pouch-overlay__mist--right" d="M295 150c-36 7-70 22-101 44-18 13-35 22-51 27" />
+      <path className="sidebar-pouch-overlay__mouth-glow" d="M82 207c43 20 87 21 135 5 25-8 47-3 67 14-60 24-154 23-215 0 1-7 4-14 13-19z" />
+      <path className="sidebar-pouch-overlay__stream sidebar-pouch-overlay__stream--left" d="M74 164c36 19 66 43 90 72" />
+      <path className="sidebar-pouch-overlay__stream sidebar-pouch-overlay__stream--center" d="M161 160c3 24 3 49 0 76" />
+      <path className="sidebar-pouch-overlay__stream sidebar-pouch-overlay__stream--right" d="M237 165c-36 19-66 43-90 72" />
+      <circle className="sidebar-pouch-overlay__cloudlet sidebar-pouch-overlay__cloudlet--left" cx="53" cy="151" r="5.2" />
+      <circle className="sidebar-pouch-overlay__cloudlet sidebar-pouch-overlay__cloudlet--upper" cx="158" cy="139" r="4.8" />
+      <circle className="sidebar-pouch-overlay__cloudlet sidebar-pouch-overlay__cloudlet--right" cx="267" cy="151" r="5.2" />
+      <circle className="sidebar-pouch-overlay__particle sidebar-pouch-overlay__particle--left" cx="113" cy="195" r="4.2" />
+      <circle className="sidebar-pouch-overlay__particle sidebar-pouch-overlay__particle--center" cx="160" cy="200" r="4.8" />
+      <circle className="sidebar-pouch-overlay__particle sidebar-pouch-overlay__particle--right" cx="209" cy="196" r="4.2" />
+      <path className="sidebar-pouch-overlay__body" d="M80 224c15-27 38-37 69-29 19 5 39 5 62-1 28-7 50 4 65 30-58 23-137 23-196 0z" />
+      <path className="sidebar-pouch-overlay__mouth" d="M71 207c43 22 88 24 138 6 26-9 49-5 73 13-58 23-158 23-216 0 0-7 2-14 5-19z" />
+      <path className="sidebar-pouch-overlay__throat" d="M112 219c34 9 72 8 113-1-19 10-38 16-58 17-24 1-47-4-67-14 4-1 8-2 12-2z" />
+      <path className="sidebar-pouch-overlay__cavity" d="M94 216c38 11 79 11 122 0 23-5 41-2 57 10-53 14-134 14-187 0 2-4 5-8 8-10z" />
+      <path className="sidebar-pouch-overlay__swallow" d="M106 220c39 12 82 11 129-1M126 226c29 6 59 6 91-1" />
+      <path className="sidebar-pouch-overlay__lip" d="M72 206c47 18 89 16 139 1 26-8 49-2 72 13" />
+    </svg>
   )
 }
 

@@ -13,6 +13,7 @@ describe('TelemetryConsentDialog', () => {
     render(<TelemetryConsentDialog onAccept={vi.fn()} onDecline={vi.fn()} />)
     expect(screen.getByText('Help improve Grimoire')).toBeDefined()
     expect(screen.getByText(/anonymous crash reports/i)).toBeDefined()
+    expect(screen.getAllByText(/no usage analytics/i)).toHaveLength(2)
   })
 
   it('calls onAccept when Allow button is clicked', () => {
@@ -36,6 +37,16 @@ describe('TelemetryConsentDialog', () => {
 
   it('focuses the first action for keyboard users', () => {
     render(<TelemetryConsentDialog onAccept={vi.fn()} onDecline={vi.fn()} />)
+    expect(screen.getByTestId('telemetry-decline')).toHaveFocus()
+  })
+
+  it('moves focus between actions with Tab inside WebKit-style button focus scopes', () => {
+    render(<TelemetryConsentDialog onAccept={vi.fn()} onDecline={vi.fn()} />)
+
+    fireEvent.keyDown(screen.getByTestId('telemetry-decline'), { key: 'Tab' })
+    expect(screen.getByTestId('telemetry-accept')).toHaveFocus()
+
+    fireEvent.keyDown(screen.getByTestId('telemetry-accept'), { key: 'Tab', shiftKey: true })
     expect(screen.getByTestId('telemetry-decline')).toHaveFocus()
   })
 

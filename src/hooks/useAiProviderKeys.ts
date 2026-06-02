@@ -17,7 +17,7 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
-/** Loads redacted provider key readiness and mutates macOS Keychain-backed keys. */
+/** Loads redacted provider key readiness and mutates platform-supported secure keys. */
 export function useAiProviderKeys() {
   const mountedRef = useRef(true)
   const [state, setState] = useState<AiProviderKeysState>({

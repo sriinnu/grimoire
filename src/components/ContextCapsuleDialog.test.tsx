@@ -82,8 +82,10 @@ describe('ContextCapsuleDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Copy Markdown' }))
 
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(packagePreview.markdown))
-    expect(screen.getByTestId('context-capsule-copy')).toHaveTextContent('Copied')
-    expect(screen.getByTestId('context-capsule-copy-status')).toHaveTextContent('Portable package copied locally.')
+    await waitFor(() => {
+      expect(screen.getByTestId('context-capsule-copy')).toHaveTextContent('Copied')
+      expect(screen.getByTestId('context-capsule-copy-status')).toHaveTextContent('Portable package copied locally.')
+    })
     expect(screen.getByTestId('context-capsule-dialog')).toHaveTextContent('No handoff')
   })
 })

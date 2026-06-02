@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('sidebar artwork theme CSS', () => {
+  const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
+
   it('styles the ambient sidebar glyph layer for live sidebars and previews', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-themes.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-themes.css`)
 
     expect(css).toContain('.app-sidebar-panel > .sidebar-artwork')
     expect(css).toContain('[data-sidebar-preset-preview] .sidebar-artwork')
@@ -13,7 +15,7 @@ describe('sidebar artwork theme CSS', () => {
   })
 
   it('keeps glyph ink theme-aware through CSS variables and blend modes', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-themes.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-themes.css`)
 
     expect(css).toContain('.app-sidebar-panel,\n[data-sidebar-preset-preview] {')
     expect(css).toContain('--art-ink')
@@ -51,7 +53,7 @@ describe('sidebar artwork theme CSS', () => {
     expect(css).toContain('.sidebar-artwork__constellation')
     expect(css).toContain('.sidebar-artwork__memory-line')
     expect(css).toContain('.sidebar-artwork__root')
-    expect(readFileSync(`${process.cwd()}/src/sidebar-artwork-polish.css`, 'utf8')).toContain('.sidebar-artwork__token')
+    expect(readText(`${process.cwd()}/src/sidebar-artwork-polish.css`)).toContain('.sidebar-artwork__token')
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel .sidebar-artwork__glyph')
     expect(css).toContain('[data-theme-preview="dark"] .sidebar-artwork__glyph')
     expect(css).toContain('opacity: var(--art-presence)')
@@ -59,7 +61,7 @@ describe('sidebar artwork theme CSS', () => {
   })
 
   it('keeps the live artwork as an ambient brand mark instead of a framed scene', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-themes.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-themes.css`)
 
     expect(css).toContain('mask-image: linear-gradient')
     expect(css).toContain('mix-blend-mode: normal')

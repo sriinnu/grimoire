@@ -9,6 +9,8 @@ export function useDialogs() {
   const [showSettings, setShowSettings] = useState(false)
   const [showCloneVault, setShowCloneVault] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
+  const [searchInitialQuery, setSearchInitialQuery] = useState('')
+  const [searchOpenKey, setSearchOpenKey] = useState(0)
   const [showConflictResolver, setShowConflictResolver] = useState(false)
   const [showCreateViewDialog, setShowCreateViewDialog] = useState(false)
   const [editingView, setEditingView] = useState<{ filename: string; definition: ViewDefinition } | null>(null)
@@ -24,7 +26,11 @@ export function useDialogs() {
   const openCloneVault = useCallback(() => setShowCloneVault(true), [])
   const closeCloneVault = useCallback(() => setShowCloneVault(false), [])
   const toggleAIChat = useCallback(() => setShowAIChat((c) => !c), [])
-  const openSearch = useCallback(() => setShowSearch(true), [])
+  const openSearch = useCallback((initialQuery = '') => {
+    setSearchInitialQuery(initialQuery)
+    setSearchOpenKey((key) => key + 1)
+    setShowSearch(true)
+  }, [])
   const closeSearch = useCallback(() => setShowSearch(false), [])
   const openConflictResolver = useCallback(() => setShowConflictResolver(true), [])
   const closeConflictResolver = useCallback(() => setShowConflictResolver(false), [])
@@ -42,7 +48,7 @@ export function useDialogs() {
     showAIChat, toggleAIChat,
     showSettings, openSettings, closeSettings,
     showCloneVault, openCloneVault, closeCloneVault,
-    showSearch, openSearch, closeSearch,
+    showSearch, searchInitialQuery, searchOpenKey, openSearch, closeSearch,
     showConflictResolver, openConflictResolver, closeConflictResolver,
     showCreateViewDialog, openCreateView, closeCreateView, editingView, openEditView,
   }

@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../../hooks/useAiAgentsStatus'
+import { AI_AGENTS_STATUS_SCAN_FAILED_DETAIL } from '../../lib/aiAgents'
 import { AiAgentsBadge } from './AiAgentsBadge'
 
 vi.mock('../../utils/url', async () => {
@@ -133,6 +134,31 @@ describe('AiAgentsBadge', () => {
 
     expect(onRefresh).toHaveBeenCalledOnce()
     window.removeEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
+  })
+
+  it('treats scan failure as retry-needed instead of missing installs', () => {
+    render(
+      <AiAgentsBadge
+        statuses={{
+          claude_code: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
+          codex: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
+          chitragupta: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
+        }}
+        defaultAgent="claude_code"
+        onSetDefaultAgent={vi.fn()}
+      />,
+    )
+
+    act(() => {
+      const trigger = screen.getByTestId('status-ai-agents')
+      trigger.focus()
+      fireEvent.keyDown(trigger, { key: 'ArrowDown' })
+    })
+
+    expect(screen.getByText('AI agent scan needs retry')).toBeInTheDocument()
+    expect(screen.getByText('Local CLI scan failed. Check again after Grimoire finishes launching.')).toBeInTheDocument()
+    expect(screen.getByTestId('status-ai-agents-refresh')).toBeInTheDocument()
+    expect(screen.queryByText('Install Claude Code')).not.toBeInTheDocument()
   })
 
   it('separates Chitragupta CLI chat health from MCP memory readiness', () => {

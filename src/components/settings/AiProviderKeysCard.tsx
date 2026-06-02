@@ -6,24 +6,25 @@ import {
   type AiProviderKeyStatus,
 } from '../../lib/aiProviderKeys'
 import { useAiProviderKeys } from '../../hooks/useAiProviderKeys'
+import { desktopPlatformLabel, desktopSecureStorageLabel, getDesktopPlatform } from '../../utils/platform'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import type { SettingsTranslate } from './settingsTypes'
 
-function sourceLabel(source: AiProviderKeySource, t: SettingsTranslate): string {
-  if (source === 'keychain') return t('settings.aiAgents.providerKeysKeychain')
+function sourceLabel(source: AiProviderKeySource, t: SettingsTranslate, secureStore: string): string {
+  if (source === 'keychain') return secureStore
   if (source === 'environment') return t('settings.aiAgents.providerKeysEnvironment')
   return t('settings.aiAgents.providerKeysMissing')
 }
 
-function keyStatusBadge(status: AiProviderKeyStatus, t: SettingsTranslate) {
+function keyStatusBadge(status: AiProviderKeyStatus, t: SettingsTranslate, secureStore: string) {
   return (
     <span
       className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${AI_PROVIDER_KEY_SOURCE_TONE[status.source]}`}
       data-source={status.source}
       data-testid={`settings-ai-provider-key-source-${status.provider_id}`}
     >
-      {sourceLabel(status.source, t)}
+      {sourceLabel(status.source, t, secureStore)}
     </span>
   )
 }
@@ -40,6 +41,10 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [busyProvider, setBusyProvider] = useState<string | null>(null)
   const [localError, setLocalError] = useState<string | null>(null)
+  const desktopPlatform = getDesktopPlatform()
+  const canSaveSecureKeys = desktopPlatform === 'macos'
+  const platform = desktopPlatformLabel(desktopPlatform)
+  const secureStore = desktopSecureStorageLabel(desktopPlatform)
 
   const updateDraft = (providerId: string, value: string) => {
     setDrafts((current) => ({ ...current, [providerId]: value }))
@@ -82,7 +87,9 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
           {t('settings.aiAgents.providerKeysTitle')}
         </div>
         <p className="m-0 text-muted-foreground">
-          {t('settings.aiAgents.providerKeysDescription')}
+          {canSaveSecureKeys
+            ? t('settings.aiAgents.providerKeysDescription', { secureStore })
+            : t('settings.aiAgents.providerKeysDescriptionUnavailable', { platform, secureStore })}
         </p>
       </div>
 
@@ -112,7 +119,7 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
                     <div className="font-medium text-foreground">{status.label}</div>
                     <code className="text-[10px] text-muted-foreground">{status.env_var}</code>
                   </div>
-                  {keyStatusBadge(status, t)}
+                  {keyStatusBadge(status, t, secureStore)}
                 </div>
                 <div className="flex gap-2">
                   <Input
@@ -120,6 +127,7 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
                     autoComplete="off"
                     value={draft}
                     placeholder={AI_PROVIDER_KEY_PLACEHOLDER}
+                    disabled={!canSaveSecureKeys}
                     aria-label={t('settings.aiAgents.providerKeysInputLabel', {
                       provider: status.label,
                     })}
@@ -130,7 +138,7 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!draft.trim() || busy}
+                    disabled={!canSaveSecureKeys || !draft.trim() || busy}
                     onClick={() => void saveDraft(status.provider_id)}
                     data-testid={`settings-ai-provider-key-save-${status.provider_id}`}
                   >

@@ -92,6 +92,12 @@ describe('CanvasAttachmentDialog', () => {
 
     const status = await screen.findByRole('status')
     await waitFor(() => expect(status).toHaveTextContent('Unsaved local canvas'))
+    const contract = screen.getByTestId('canvas-local-contract')
+    expect(contract).toHaveTextContent('Local canvas')
+    expect(contract).toHaveTextContent('Local save pending')
+    expect(contract).toHaveTextContent('Source JSON')
+    expect(contract).toHaveTextContent('Preview PNG')
+    expect(contract).toHaveTextContent('Markdown link')
     expect(screen.getByTestId('canvas-background')).toHaveTextContent('#101820')
     const save = screen.getByRole('button', { name: /save/i })
     expect(save).toBeEnabled()
@@ -105,6 +111,7 @@ describe('CanvasAttachmentDialog', () => {
       attachment,
       expect.objectContaining({ kind: 'whiteboard' }),
     )
+    await waitFor(() => expect(contract).toHaveTextContent('Source and preview saved'))
   })
 
   it('keeps undo and save quiet until the user draws on an existing canvas', async () => {
@@ -123,7 +130,10 @@ describe('CanvasAttachmentDialog', () => {
     )
 
     const save = await screen.findByRole('button', { name: /save/i })
+    const contract = screen.getByTestId('canvas-local-contract')
     expect(save).toBeDisabled()
+    expect(contract).toHaveTextContent('Strokes 0')
+    expect(contract).toHaveTextContent('Images 0')
     expect(screen.getByRole('button', { name: 'Undo' })).toBeDisabled()
     const drawStroke = await screen.findByRole('button', { name: 'Draw stroke' })
 
@@ -134,6 +144,8 @@ describe('CanvasAttachmentDialog', () => {
     expect(screen.getByRole('button', { name: 'Undo' })).toBeEnabled()
     expect(save).toBeEnabled()
     expect(screen.getByRole('status')).toHaveTextContent('Unsaved local canvas')
+    expect(contract).toHaveTextContent('Strokes 1')
+    expect(contract).toHaveTextContent('Local save pending')
   })
 
   it('does not mark the canvas dirty when a tool action changes nothing', async () => {

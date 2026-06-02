@@ -37,9 +37,9 @@ select_demo_notes*.py
 final_selection.py
 
 # Claude Code task signals
+.claude/
 .claude-done
 .claude-blocked
-.claude/settings.local.json
 .husky/_/
 src-tauri/target
 
@@ -65,11 +65,26 @@ ChatGPT Image*
 # Local MCP wiring may contain absolute machine paths.
 .mcp.json
 
-# Stale planning docs (keep locally if needed, not in repo)
+# Local planning docs (keep locally if needed, not in repo)
 REDESIGN-PLAN.md
 SF-SYMBOLS-MIGRATION.md
 CODE-HEALTH-REPORT.md
+docs/ACTIVE-WORK.md
+docs/GRIMOIRE-REVIEW-TODO.md
+docs/GRIMOIRE-SPECIALNESS-TODO.md
+docs/LIGHTNESS-AND-MOTION-PLAN.md
 docs/QUICK-CAPTURE-AUTO-PROMOTION.md
+docs/CHITRAGUPTA-GRIMOIRE-INTEGRATION-REQUEST.md
+docs/CHITRAGUPTA-WIRING-NEEDS.md
+docs/KARYA-BOARD-SALVAGE.md
+
+# Root vault type stubs belong in demo/test vaults, not the repository root.
+journal.md
+dream.md
+memory.md
+task.md
+note.md
+type.md
 
 # Local home dir artifact from worktree ops
 (HOME)/
@@ -88,6 +103,9 @@ docs/QUICK-CAPTURE-AUTO-PROMOTION.md
 src-tauri/gen/apple/Assets.xcassets/AppIcon.appiconset/.!*
 
 # Local environment variables (never commit)
+.env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 

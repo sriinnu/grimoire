@@ -6,6 +6,7 @@ mod path_env;
 mod process_stream;
 
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::process::Stdio;
 
 use args::{build_chitragupta_args, build_codex_args, build_codex_prompt};
@@ -29,6 +30,8 @@ pub enum AiAgentId {
 pub struct AiAgentAvailability {
     pub installed: bool,
     pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -120,33 +123,41 @@ fn availability_from_claude() -> AiAgentAvailability {
     AiAgentAvailability {
         installed: status.installed,
         version: status.version,
+        detail: status.detail,
     }
 }
 
 fn availability_from_codex() -> AiAgentAvailability {
     let binary = match find_codex_binary() {
         Ok(binary) => binary,
-        Err(_) => {
+        Err(error) => {
             return AiAgentAvailability {
                 installed: false,
                 version: None,
+                detail: Some(error),
             }
         }
     };
+    let version = version_for_binary(&binary);
+    let detail = version
+        .is_none()
+        .then(|| "Codex CLI found; version command did not return a value.".to_string());
 
     AiAgentAvailability {
         installed: true,
-        version: version_for_binary(&binary),
+        version,
+        detail,
     }
 }
 
 fn availability_from_chitragupta() -> AiAgentAvailability {
     let binary = match find_chitragupta_binary() {
         Ok(binary) => binary,
-        Err(_) => {
+        Err(error) => {
             return AiAgentAvailability {
                 installed: false,
                 version: None,
+                detail: Some(chitragupta_missing_detail(error)),
             }
         }
     };
@@ -154,7 +165,15 @@ fn availability_from_chitragupta() -> AiAgentAvailability {
     AiAgentAvailability {
         installed: true,
         version: version_for_binary(&binary),
+        detail: Some("Chitragupta CLI chat route found. MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks.".into()),
     }
+}
+
+fn chitragupta_missing_detail(error: String) -> String {
+    if cfg!(target_os = "macos") && Path::new("/Applications/Chitragupta.app").exists() {
+        return "Chitragupta app found, but the local `chitragupta` CLI route was not found. Install or link the CLI for Grimoire chat.".into();
+    }
+    error
 }
 
 fn run_codex_agent_stream<F>(request: AiAgentStreamRequest, mut emit: F) -> Result<String, String>

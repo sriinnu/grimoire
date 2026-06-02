@@ -1,11 +1,12 @@
 use serde::Serialize;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
-use std::sync::OnceLock;
+
+pub(crate) use crate::mcp_resources::{mcp_server_dir, set_resource_dir};
 
 const MCP_SERVER_NAME: &str = "grimoire";
 const LEGACY_MCP_SERVER_NAME: &str = "grimoire-vault";
-static MCP_RESOURCE_DIR: OnceLock<PathBuf> = OnceLock::new();
 
 /// Status of the MCP server installation.
 #[derive(Debug, Serialize, Clone, PartialEq)]
@@ -23,9 +24,8 @@ pub(crate) fn find_node() -> Result<PathBuf, String> {
         .output()
         .map_err(|e| format!("Failed to locate node on PATH: {e}"))?;
     if output.status.success() {
-        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if !path.is_empty() {
-            return Ok(PathBuf::from(path));
+        if let Some(path) = first_node_lookup_path(&output.stdout) {
+            return Ok(path);
         }
     }
 
@@ -46,14 +46,51 @@ fn node_lookup_command() -> Command {
     command
 }
 
+fn first_node_lookup_path(stdout: &[u8]) -> Option<PathBuf> {
+    String::from_utf8_lossy(stdout)
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .map(PathBuf::from)
+}
+
 fn fallback_node_path() -> Option<PathBuf> {
+    fallback_node_candidates()
+        .into_iter()
+        .find(|path| path.is_file())
+}
+
+fn fallback_node_candidates() -> Vec<PathBuf> {
+    fallback_node_candidates_for(dirs::home_dir().as_deref(), |key| std::env::var_os(key))
+}
+
+fn fallback_node_candidates_for(
+    home: Option<&Path>,
+    env_var: impl Fn(&str) -> Option<OsString>,
+) -> Vec<PathBuf> {
     let mut candidates = vec![
         PathBuf::from("/opt/homebrew/bin/node"),
         PathBuf::from("/usr/local/bin/node"),
     ];
 
-    if let Some(home) = dirs::home_dir() {
+    if let Some(path) = env_var("NVM_SYMLINK") {
+        candidates.push(PathBuf::from(path).join("node.exe"));
+    }
+    if let Some(path) = env_var("LOCALAPPDATA") {
+        candidates.push(PathBuf::from(path).join("Programs/nodejs/node.exe"));
+    }
+    if let Some(path) = env_var("ProgramFiles") {
+        candidates.push(PathBuf::from(path).join("nodejs/node.exe"));
+    }
+    if let Some(path) = env_var("ProgramFiles(x86)") {
+        candidates.push(PathBuf::from(path).join("nodejs/node.exe"));
+    }
+
+    if let Some(home) = home {
         candidates.push(home.join(".volta").join("bin").join("node"));
+        candidates.push(home.join("AppData/Local/Volta/bin/node.exe"));
+        candidates.push(home.join("scoop/apps/nodejs/current/node.exe"));
+        candidates.push(home.join("scoop/apps/nodejs-lts/current/node.exe"));
 
         let nvm_dir = home.join(".nvm").join("versions").join("node");
         if let Ok(entries) = std::fs::read_dir(nvm_dir) {
@@ -70,94 +107,7 @@ fn fallback_node_path() -> Option<PathBuf> {
         }
     }
 
-    candidates.into_iter().find(|path| path.is_file())
-}
-
-pub(crate) fn set_resource_dir(path: PathBuf) {
-    let _ = MCP_RESOURCE_DIR.set(path);
-}
-
-/// Resolve the path to `mcp-server/`.
-///
-/// In dev mode, uses `CARGO_MANIFEST_DIR` (set at compile time).
-/// In release mode, uses Tauri's resource directory when available and falls
-/// back to known desktop bundle layouts for macOS, Windows, and Linux.
-pub(crate) fn mcp_server_dir() -> Result<PathBuf, String> {
-    let dev_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("mcp-server");
-    for candidate in mcp_server_dir_candidates(&dev_path) {
-        if is_mcp_server_dir(&candidate) {
-            return Ok(std::fs::canonicalize(&candidate).unwrap_or(candidate));
-        }
-    }
-
-    let attempted = mcp_server_dir_candidates(&dev_path)
-        .into_iter()
-        .map(|path| path.display().to_string())
-        .collect::<Vec<_>>()
-        .join(", ");
-    Err(format!("mcp-server not found. Checked: {}", attempted))
-}
-
-fn is_mcp_server_dir(path: &Path) -> bool {
-    path.join("ws-bridge.js").is_file() && path.join("index.js").is_file()
-}
-
-fn mcp_server_dir_candidates(dev_path: &Path) -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
-    if cfg!(debug_assertions) {
-        push_unique(&mut candidates, dev_path.to_path_buf());
-    }
-
-    if let Some(resource_dir) = MCP_RESOURCE_DIR.get() {
-        push_unique(&mut candidates, resource_dir.join("mcp-server"));
-    }
-
-    if let Ok(exe) = std::env::current_exe() {
-        let appdir = std::env::var_os("APPDIR").map(PathBuf::from);
-        for candidate in resource_dir_candidates_from_exe(&exe, appdir.as_deref()) {
-            push_unique(&mut candidates, candidate);
-        }
-    }
-
-    if !cfg!(debug_assertions) {
-        push_unique(&mut candidates, dev_path.to_path_buf());
-    }
-
     candidates
-}
-
-fn resource_dir_candidates_from_exe(exe: &Path, appdir: Option<&Path>) -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
-    if let Some(exe_dir) = exe.parent() {
-        push_unique(&mut candidates, exe_dir.join("mcp-server"));
-        if let Some(parent) = exe_dir.parent() {
-            push_unique(&mut candidates, parent.join("Resources").join("mcp-server"));
-            push_unique(&mut candidates, parent.join("lib/grimoire/mcp-server"));
-        }
-    }
-    if let Some(appdir) = appdir {
-        push_unique(
-            &mut candidates,
-            appdir
-                .join("usr")
-                .join("lib")
-                .join("grimoire")
-                .join("mcp-server"),
-        );
-    }
-    push_unique(
-        &mut candidates,
-        PathBuf::from("/usr/lib/grimoire/mcp-server"),
-    );
-    candidates
-}
-
-fn push_unique(paths: &mut Vec<PathBuf>, candidate: PathBuf) {
-    if !paths.iter().any(|existing| existing == &candidate) {
-        paths.push(candidate);
-    }
 }
 
 /// Spawn the WebSocket bridge as a child process.
@@ -385,491 +335,13 @@ pub fn check_mcp_status(vault_path: &str) -> McpStatus {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn read_config(config_path: &Path) -> serde_json::Value {
-        let raw = std::fs::read_to_string(config_path).unwrap();
-        serde_json::from_str(&raw).unwrap()
-    }
-
-    fn temp_config_path(file_name: &str) -> (tempfile::TempDir, PathBuf) {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join(file_name);
-        (tmp, config_path)
-    }
-
-    fn write_config_json(config_path: &Path, config: serde_json::Value) {
-        std::fs::write(config_path, serde_json::to_string(&config).unwrap()).unwrap();
-    }
-
-    fn managed_server(index_js: &str, vault_path: &str) -> serde_json::Value {
-        serde_json::json!({
-            "command": "node",
-            "args": [index_js],
-            "env": { "VAULT_PATH": vault_path }
-        })
-    }
-
-    fn write_mcp_servers_config(config_path: &Path, servers: Vec<(&str, serde_json::Value)>) {
-        let servers = servers
-            .into_iter()
-            .map(|(name, server)| (name.to_string(), server))
-            .collect::<serde_json::Map<_, _>>();
-        write_config_json(config_path, serde_json::json!({ "mcpServers": servers }));
-    }
-
-    fn write_index_js(dir: &Path) -> PathBuf {
-        let index_js = dir.join("index.js");
-        std::fs::write(&index_js, "console.log('ok');").unwrap();
-        index_js
-    }
-
-    #[test]
-    fn build_mcp_entry_produces_correct_json() {
-        let entry = build_mcp_entry("/path/to/index.js", "/my/vault");
-        assert_eq!(entry["command"], "node");
-        assert_eq!(entry["args"][0], "/path/to/index.js");
-        assert_eq!(entry["env"]["VAULT_PATH"], "/my/vault");
-    }
-
-    #[test]
-    fn release_resource_candidates_cover_desktop_bundle_layouts() {
-        let appdir = PathBuf::from("/tmp/.mount_grimoire");
-        let candidates = resource_dir_candidates_from_exe(
-            Path::new("/Applications/Grimoire.app/Contents/MacOS/grimoire"),
-            Some(&appdir),
-        );
-
-        assert!(candidates.contains(&PathBuf::from(
-            "/Applications/Grimoire.app/Contents/Resources/mcp-server"
-        )));
-        assert!(candidates.contains(&appdir.join("usr/lib/grimoire/mcp-server")));
-        assert!(candidates.contains(&PathBuf::from("/usr/lib/grimoire/mcp-server")));
-    }
-
-    #[test]
-    fn upsert_creates_new_config() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-        let entry = build_mcp_entry("/test/index.js", "/test/vault");
-
-        let was_update = upsert_mcp_config(&config_path, &entry).unwrap();
-        assert!(!was_update);
-
-        let config = read_config(&config_path);
-        assert_eq!(
-            config["mcpServers"][MCP_SERVER_NAME]["args"][0],
-            "/test/index.js"
-        );
-        assert_eq!(
-            config["mcpServers"][MCP_SERVER_NAME]["env"]["VAULT_PATH"],
-            "/test/vault"
-        );
-    }
-
-    #[test]
-    fn upsert_updates_existing_config() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-
-        let entry1 = build_mcp_entry("/test/index.js", "/vault/v1");
-        upsert_mcp_config(&config_path, &entry1).unwrap();
-
-        let entry2 = build_mcp_entry("/test/index.js", "/vault/v2");
-        let was_update = upsert_mcp_config(&config_path, &entry2).unwrap();
-        assert!(was_update);
-
-        let config = read_config(&config_path);
-        assert_eq!(
-            config["mcpServers"][MCP_SERVER_NAME]["env"]["VAULT_PATH"],
-            "/vault/v2"
-        );
-    }
-
-    #[test]
-    fn upsert_migrates_legacy_server_name() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-
-        let existing = serde_json::json!({
-            "mcpServers": {
-                "grimoire": {
-                    "command": "node",
-                    "args": ["/old/index.js"],
-                    "env": { "VAULT_PATH": "/old" }
-                }
-            }
-        });
-        std::fs::write(&config_path, serde_json::to_string(&existing).unwrap()).unwrap();
-
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        let was_update = upsert_mcp_config(&config_path, &entry).unwrap();
-        assert!(was_update);
-
-        let config = read_config(&config_path);
-        assert!(config["mcpServers"][LEGACY_MCP_SERVER_NAME].is_null());
-        assert_eq!(
-            config["mcpServers"][MCP_SERVER_NAME]["args"][0],
-            "/test/index.js"
-        );
-    }
-
-    #[test]
-    fn upsert_preserves_other_servers() {
-        let (_tmp, config_path) = temp_config_path("mcp.json");
-        write_mcp_servers_config(
-            &config_path,
-            vec![(
-                "other-server",
-                serde_json::json!({ "command": "other", "args": [] }),
-            )],
-        );
-
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        upsert_mcp_config(&config_path, &entry).unwrap();
-
-        let raw = std::fs::read_to_string(&config_path).unwrap();
-        let config: serde_json::Value = serde_json::from_str(&raw).unwrap();
-        assert!(config["mcpServers"]["other-server"].is_object());
-        assert!(config["mcpServers"][MCP_SERVER_NAME].is_object());
-    }
-
-    #[test]
-    fn upsert_preserves_other_top_level_settings() {
-        let (_tmp, config_path) = temp_config_path(".claude.json");
-        write_config_json(
-            &config_path,
-            serde_json::json!({
-                "model": "sonnet",
-                "theme": "dark",
-                "mcpServers": {
-                    "other-server": { "command": "other", "args": [] }
-                }
-            }),
-        );
-
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        upsert_mcp_config(&config_path, &entry).unwrap();
-
-        let config = read_config(&config_path);
-        assert_eq!(config["model"], "sonnet");
-        assert_eq!(config["theme"], "dark");
-        assert!(config["mcpServers"]["other-server"].is_object());
-        assert!(config["mcpServers"][MCP_SERVER_NAME].is_object());
-    }
-
-    #[test]
-    fn upsert_creates_parent_dirs() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("nested").join("dir").join("mcp.json");
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-
-        upsert_mcp_config(&config_path, &entry).unwrap();
-        assert!(config_path.exists());
-    }
-
-    #[test]
-    fn register_mcp_to_configs_returns_registered_for_new() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config = tmp.path().join("claude").join("mcp.json");
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-
-        let status = register_mcp_to_configs(&entry, &[config]);
-        assert_eq!(status, "registered");
-    }
-
-    #[test]
-    fn register_mcp_to_configs_returns_updated_for_existing() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config = tmp.path().join("mcp.json");
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-
-        // First call
-        register_mcp_to_configs(&entry, std::slice::from_ref(&config));
-        // Second call
-        let status = register_mcp_to_configs(&entry, &[config]);
-        assert_eq!(status, "updated");
-    }
-
-    #[test]
-    fn find_node_returns_valid_path() {
-        let node = find_node().unwrap();
-        assert!(node.exists(), "node binary should exist at {:?}", node);
-        assert!(
-            node.to_string_lossy().contains("node"),
-            "path should contain 'node': {:?}",
-            node
-        );
-    }
-
-    #[test]
-    fn mcp_server_dir_resolves_in_dev() {
-        let dir = mcp_server_dir().unwrap();
-        assert!(dir.join("ws-bridge.js").exists());
-        assert!(dir.join("index.js").exists());
-        assert!(dir.join("vault.js").exists());
-    }
-
-    #[test]
-    fn spawn_ws_bridge_starts_and_can_be_killed() {
-        let tmp = tempfile::tempdir().unwrap();
-        let vault_path = tmp.path().to_str().unwrap();
-
-        let mut child = spawn_ws_bridge(vault_path).unwrap();
-        assert!(child.id() > 0, "child process should have a valid PID");
-
-        // Clean up: kill the spawned process
-        child.kill().unwrap();
-        child.wait().unwrap();
-    }
-
-    #[test]
-    fn register_mcp_to_configs_writes_multiple_configs() {
-        let tmp = tempfile::tempdir().unwrap();
-        let claude_user_cfg = tmp.path().join(".claude.json");
-        let claude_cfg = tmp.path().join("claude").join("mcp.json");
-        let cursor_cfg = tmp.path().join("cursor").join("mcp.json");
-        let generic_cfg = tmp.path().join(".config").join("mcp").join("mcp.json");
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-
-        register_mcp_to_configs(
-            &entry,
-            &[
-                claude_user_cfg.clone(),
-                claude_cfg.clone(),
-                cursor_cfg.clone(),
-                generic_cfg.clone(),
-            ],
-        );
-
-        assert!(claude_user_cfg.exists());
-        assert!(claude_cfg.exists());
-        assert!(cursor_cfg.exists());
-        assert!(generic_cfg.exists());
-
-        let raw = std::fs::read_to_string(&claude_user_cfg).unwrap();
-        let config: serde_json::Value = serde_json::from_str(&raw).unwrap();
-        assert_eq!(
-            config["mcpServers"][MCP_SERVER_NAME]["args"][0],
-            "/test/index.js"
-        );
-    }
-
-    #[test]
-    fn mcp_config_paths_for_home_includes_all_supported_config_paths() {
-        let home = Path::new("/Users/tester");
-        let paths = mcp_config_paths_for_home(home);
-
-        assert_eq!(
-            paths,
-            vec![
-                home.join(".claude.json"),
-                home.join(".claude").join("mcp.json"),
-                home.join(".cursor").join("mcp.json"),
-                home.join(".config").join("mcp").join("mcp.json"),
-            ]
-        );
-    }
-    #[test]
-    fn upsert_returns_error_for_invalid_json() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-        std::fs::write(&config_path, "not valid json{{{{").unwrap();
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        let result = upsert_mcp_config(&config_path, &entry);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn register_mcp_to_configs_handles_empty_list() {
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        // Empty config list — function should return "registered" (no existing)
-        let status = register_mcp_to_configs(&entry, &[]);
-        // With empty config list, there were no updates, so status should be "registered"
-        assert_eq!(status, "registered");
-    }
-
-    #[test]
-    fn read_registered_mcp_entry_prefers_primary_server_name() {
-        let (_tmp, config_path) = temp_config_path("mcp.json");
-        write_mcp_servers_config(
-            &config_path,
-            vec![
-                (
-                    MCP_SERVER_NAME,
-                    managed_server("/primary/index.js", "/primary"),
-                ),
-                (
-                    LEGACY_MCP_SERVER_NAME,
-                    managed_server("/legacy/index.js", "/legacy"),
-                ),
-            ],
-        );
-
-        let entry = read_registered_mcp_entry(&config_path).unwrap();
-        assert_eq!(entry["env"]["VAULT_PATH"], "/primary");
-    }
-
-    #[test]
-    fn read_registered_mcp_entry_uses_legacy_server_name() {
-        let (_tmp, config_path) = temp_config_path("mcp.json");
-        write_mcp_servers_config(
-            &config_path,
-            vec![(
-                LEGACY_MCP_SERVER_NAME,
-                managed_server("/legacy/index.js", "/legacy"),
-            )],
-        );
-
-        let entry = read_registered_mcp_entry(&config_path).unwrap();
-        assert_eq!(entry["env"]["VAULT_PATH"], "/legacy");
-    }
-
-    #[test]
-    fn read_registered_mcp_entry_returns_none_for_invalid_or_missing_servers() {
-        let tmp = tempfile::tempdir().unwrap();
-        let invalid_path = tmp.path().join("invalid.json");
-        std::fs::write(&invalid_path, "{not json").unwrap();
-        assert!(read_registered_mcp_entry(&invalid_path).is_none());
-
-        let empty_path = tmp.path().join("empty.json");
-        let empty_config = serde_json::json!({ "other": {} });
-        std::fs::write(&empty_path, serde_json::to_string(&empty_config).unwrap()).unwrap();
-        assert!(read_registered_mcp_entry(&empty_path).is_none());
-
-        let missing_path = tmp.path().join("missing.json");
-        assert!(read_registered_mcp_entry(&missing_path).is_none());
-    }
-
-    #[test]
-    fn entry_index_js_exists_requires_existing_first_arg() {
-        let tmp = tempfile::tempdir().unwrap();
-        let index_js = tmp.path().join("index.js");
-        std::fs::write(&index_js, "console.log('ok');").unwrap();
-
-        let existing = serde_json::json!({
-            "args": [index_js.to_string_lossy()]
-        });
-        assert!(entry_index_js_exists(&existing));
-
-        let missing = serde_json::json!({
-            "args": [tmp.path().join("missing.js").to_string_lossy()]
-        });
-        assert!(!entry_index_js_exists(&missing));
-
-        let no_args = serde_json::json!({});
-        assert!(!entry_index_js_exists(&no_args));
-    }
-
-    #[test]
-    fn upsert_returns_error_for_non_object_config() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-        std::fs::write(&config_path, "[]").unwrap();
-
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        let result = upsert_mcp_config(&config_path, &entry);
-        assert!(matches!(result, Err(ref error) if error.contains("Config is not a JSON object")));
-    }
-
-    #[test]
-    fn upsert_returns_error_for_non_object_mcp_servers() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-        let config = serde_json::json!({
-            "mcpServers": []
-        });
-        std::fs::write(&config_path, serde_json::to_string(&config).unwrap()).unwrap();
-
-        let entry = build_mcp_entry("/test/index.js", "/vault");
-        let result = upsert_mcp_config(&config_path, &entry);
-        assert!(
-            matches!(result, Err(ref error) if error.contains("mcpServers is not a JSON object"))
-        );
-    }
-
-    #[test]
-    fn remove_mcp_from_config_removes_primary_and_legacy_entries() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-        let config = serde_json::json!({
-            "mcpServers": {
-                "grimoire": { "command": "node", "args": ["/index.js"] },
-                "grimoire": { "command": "node", "args": ["/legacy.js"] },
-                "other-server": { "command": "other", "args": [] }
-            }
-        });
-        std::fs::write(&config_path, serde_json::to_string(&config).unwrap()).unwrap();
-
-        let removed = remove_mcp_from_config(&config_path).unwrap();
-        assert!(removed);
-
-        let updated = read_config(&config_path);
-        assert!(updated["mcpServers"][MCP_SERVER_NAME].is_null());
-        assert!(updated["mcpServers"][LEGACY_MCP_SERVER_NAME].is_null());
-        assert!(updated["mcpServers"]["other-server"].is_object());
-    }
-
-    #[test]
-    fn remove_mcp_from_config_returns_false_when_entry_missing() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("mcp.json");
-        let config = serde_json::json!({
-            "mcpServers": {
-                "other-server": { "command": "other", "args": [] }
-            }
-        });
-        std::fs::write(&config_path, serde_json::to_string(&config).unwrap()).unwrap();
-
-        let removed = remove_mcp_from_config(&config_path).unwrap();
-        assert!(!removed);
-    }
-
-    #[test]
-    fn check_mcp_status_returns_installed_for_matching_vault() {
-        let tmp = tempfile::tempdir().unwrap();
-        let vault_path = tmp.path().join("vault");
-        std::fs::create_dir_all(&vault_path).unwrap();
-        let index_js = write_index_js(tmp.path());
-        let config_path = tmp.path().join("mcp.json");
-        let config = serde_json::json!({
-            "mcpServers": {
-                "grimoire": {
-                    "command": "node",
-                    "args": [index_js.to_string_lossy()],
-                    "env": { "VAULT_PATH": vault_path.to_string_lossy() }
-                }
-            }
-        });
-        std::fs::write(&config_path, serde_json::to_string(&config).unwrap()).unwrap();
-
-        let entry = read_registered_mcp_entry(&config_path).unwrap();
-        assert!(entry_targets_vault(&entry, &vault_path));
-        assert!(entry_index_js_exists(&entry));
-    }
-
-    #[test]
-    fn entry_targets_vault_requires_matching_existing_directory() {
-        let tmp = tempfile::tempdir().unwrap();
-        let first_vault = tmp.path().join("vault-a");
-        let second_vault = tmp.path().join("vault-b");
-        std::fs::create_dir_all(&first_vault).unwrap();
-        std::fs::create_dir_all(&second_vault).unwrap();
-
-        let entry = serde_json::json!({
-            "env": { "VAULT_PATH": first_vault.to_string_lossy() }
-        });
-
-        assert!(entry_targets_vault(&entry, &first_vault));
-        assert!(!entry_targets_vault(&entry, &second_vault));
-    }
-
-    #[test]
-    fn mcp_status_serializes_to_snake_case() {
-        let json = serde_json::to_string(&McpStatus::Installed).unwrap();
-        assert_eq!(json, r#""installed""#);
-        let json = serde_json::to_string(&McpStatus::NotInstalled).unwrap();
-        assert_eq!(json, r#""not_installed""#);
-    }
-}
+#[path = "mcp_config_tests.rs"]
+mod config_tests;
+
+#[cfg(test)]
+#[path = "mcp_config_status_tests.rs"]
+mod config_status_tests;
+
+#[cfg(test)]
+#[path = "mcp_runtime_tests.rs"]
+mod runtime_tests;

@@ -197,7 +197,7 @@ function EditorCanvas({
   if (!showEditor) return null
 
   return (
-    <div key={activeTab?.entry.path} className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
+    <div className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
       <div className="editor-content-wrapper">
         <SingleEditorView
           activeContent={activeTab?.content ?? ''}

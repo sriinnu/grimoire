@@ -101,11 +101,28 @@ export function buildGrimoireProjectIntelligence(
  */
 export function deriveProjectBoardPath(entries: VaultEntry[], folderPath: string): string | null {
   const normalizedFolder = folderPath.replace(/^\/+|\/+$/g, '')
-  const folderNeedle = `/${normalizedFolder}/`
-  const entryPath = entries.map((entry) => entry.path.replace(/\\/g, '/')).find((path) => path.includes(folderNeedle))
-  if (!entryPath) return null
+  if (!normalizedFolder) return null
 
+  for (const entry of entries) {
+    const entryPath = entry.path.replace(/\\/g, '/')
+    const relativeBoardPath = deriveRelativeProjectBoardPath(entryPath, normalizedFolder)
+    if (relativeBoardPath) return relativeBoardPath
+
+    const absoluteBoardPath = deriveAbsoluteProjectBoardPath(entryPath, normalizedFolder)
+    if (absoluteBoardPath) return absoluteBoardPath
+  }
+
+  return null
+}
+
+function deriveRelativeProjectBoardPath(entryPath: string, normalizedFolder: string): string | null {
+  return entryPath.startsWith(`${normalizedFolder}/`) ? `${normalizedFolder}/BOARD.md` : null
+}
+
+function deriveAbsoluteProjectBoardPath(entryPath: string, normalizedFolder: string): string | null {
+  const folderNeedle = `/${normalizedFolder}/`
   const folderStart = entryPath.indexOf(folderNeedle)
+  if (folderStart < 0) return null
   return `${entryPath.slice(0, folderStart)}${folderNeedle}BOARD.md`
 }
 

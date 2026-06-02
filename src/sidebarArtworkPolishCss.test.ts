@@ -2,8 +2,10 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('sidebar artwork polish CSS', () => {
+  const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
+
   it('adds theme-tonal knowledge tokens to the ambient sidebar sigil', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-polish.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-polish.css`)
 
     expect(css).toContain('--art-token-veda')
     expect(css).toContain('--art-token-shaastra')
@@ -21,7 +23,7 @@ describe('sidebar artwork polish CSS', () => {
   })
 
   it('keeps token motion finite, compositor-safe, and reduced-motion aware', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-artwork-polish.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-artwork-polish.css`)
 
     expect(css).toContain('@media (prefers-reduced-motion: no-preference)')
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
@@ -29,6 +31,42 @@ describe('sidebar artwork polish CSS', () => {
     expect(css).toContain('@keyframes sidebar-signal-arrive')
     expect(css).toContain('transform: scale')
     expect(css).toContain('transform: translateY')
+    expect(css).not.toContain('infinite')
+  })
+
+  it('layers the pouch intake effect after the base artwork polish', () => {
+    const css = readText(`${process.cwd()}/src/sidebar-pouch-effect.css`)
+    const main = readText(`${process.cwd()}/src/main.tsx`)
+
+    expect(main.indexOf("import './sidebar-pouch-effect.css'")).toBeGreaterThan(main.indexOf("import './sidebar-artwork-polish.css'"))
+    expect(css).toContain('.sidebar-artwork__pouch-overlay')
+    expect(css).toContain('.app-sidebar-panel > .sidebar-artwork')
+    expect(css).toContain('.sidebar-artwork__glyph--vault-atlas')
+    expect(css).toContain('.sidebar-pouch-overlay__aura')
+    expect(css).toContain('.sidebar-pouch-overlay__cloud')
+    expect(css).toContain('.sidebar-pouch-overlay__cloudlet')
+    expect(css).toContain('.sidebar-pouch-overlay__wisp')
+    expect(css).toContain('.sidebar-pouch-overlay__mist')
+    expect(css).toContain('.sidebar-pouch-overlay__funnel')
+    expect(css).toContain('.sidebar-pouch-overlay__stream')
+    expect(css).toContain('.sidebar-pouch-overlay__particle')
+    expect(css).toContain('.sidebar-pouch-overlay__body')
+    expect(css).toContain('.sidebar-pouch-overlay__mouth-glow')
+    expect(css).toContain('.sidebar-pouch-overlay__mouth')
+    expect(css).toContain('.sidebar-pouch-overlay__throat')
+    expect(css).toContain('.sidebar-pouch-overlay__cavity')
+    expect(css).toContain('.sidebar-pouch-overlay__swallow')
+    expect(css).toContain('.sidebar-pouch-overlay__lip')
+    expect(css).toContain('@media (prefers-reduced-motion: no-preference)')
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(css).toContain('@keyframes sidebar-cloud-intake')
+    expect(css).toContain('@keyframes sidebar-cloud-funnel')
+    expect(css).toContain('@keyframes sidebar-cloud-siphon')
+    expect(css).toContain('@keyframes sidebar-cloud-drop')
+    expect(css).toContain('@keyframes sidebar-cloud-soften')
+    expect(css).toContain('@keyframes sidebar-cloudlet-drift')
+    expect(css).toContain('@keyframes sidebar-pouch-mouth-glow')
+    expect(css).toContain('@keyframes sidebar-pouch-swallow')
     expect(css).not.toContain('infinite')
   })
 })

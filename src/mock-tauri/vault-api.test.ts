@@ -58,4 +58,50 @@ describe('tryVaultApi', () => {
     await expect(tryVaultApi('get_note_content', { path: '/fixture/alpha.md' })).resolves.toBe('# Alpha Project')
     expect(fetchMock.mock.calls.filter(([url]) => String(url) === '/api/vault/ping')).toHaveLength(1)
   })
+
+  it('uses explicit search vault scope instead of the last loaded vault', async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = String(input)
+      if (url === '/api/vault/ping') {
+        return jsonResponse({ ok: true })
+      }
+      if (url === '/api/vault/list?path=%2Factive') {
+        return jsonResponse([])
+      }
+      if (url === '/api/vault/search?vault_path=%2Fwork&query=journal&mode=keyword') {
+        return jsonResponse({ results: [{ title: 'Work Journal' }], elapsed_ms: 1 })
+      }
+      throw new Error(`Unexpected fetch: ${url}`)
+    })
+    globalThis.fetch = fetchMock as typeof fetch
+
+    const { tryVaultApi } = await import('./vault-api')
+
+    await expect(tryVaultApi('list_vault', { path: '/active' })).resolves.toEqual([])
+    await expect(tryVaultApi('search_vault', {
+      mode: 'keyword',
+      query: 'journal',
+      vaultPath: '/work',
+    })).resolves.toEqual({ results: [{ title: 'Work Journal' }], elapsed_ms: 1 })
+  })
+
+  it('skips the vault API for mock-only search paths', async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      const url = String(input)
+      if (url === '/api/vault/ping') {
+        return jsonResponse({ ok: true })
+      }
+      throw new Error(`Unexpected fetch: ${url}`)
+    })
+    globalThis.fetch = fetchMock as typeof fetch
+
+    const { tryVaultApi } = await import('./vault-api')
+
+    await expect(tryVaultApi('search_vault', {
+      mode: 'keyword',
+      query: 'journal',
+      vaultPath: '/Users/mock/demo-vault-v2',
+    })).resolves.toBeUndefined()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
 })

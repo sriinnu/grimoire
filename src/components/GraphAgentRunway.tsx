@@ -3,6 +3,7 @@ import type React from 'react'
 import { cn } from '@/lib/utils'
 import type { AiAgentAvailability, AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
+import { localMachineLabel } from '../utils/platform'
 import { graphHandoffLaneLabel } from '../lib/graphAgentLanes'
 import {
   evaluateChitraguptaContractStatus,
@@ -106,7 +107,7 @@ function buildRunwaySteps(
       status: empty ? 'Waiting' : blocked ? 'Local only' : 'Ready',
     },
     {
-      detail: 'Vault graph and keyword search stay on this Mac.',
+      detail: `Vault graph and keyword search stay on ${localMachineLabel()}.`,
       icon: <Search className="size-3.5" />,
       label: 'Local scan',
       state: empty ? 'waiting' : 'guarded',

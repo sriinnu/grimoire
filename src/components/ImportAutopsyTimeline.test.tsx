@@ -38,7 +38,7 @@ describe('ImportAutopsyTimeline', () => {
     )
     expect(screen.getByTestId('import-autopsy-copy-status')).toHaveTextContent('Copies the redacted no-write manifest only.')
     expect(screen.getByTestId('import-autopsy-review-gate')).toHaveTextContent(
-      'Review the exact rows below before importing. Full source paths and local reports stay on this Mac.',
+      'Review the exact rows below before importing. Full source paths and local reports stay on this device.',
     )
     const manifest = screen.getByTestId('import-autopsy-manifest')
     expect(manifest).toHaveAccessibleName('Source-safe import manifest')

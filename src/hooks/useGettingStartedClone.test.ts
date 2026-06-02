@@ -17,6 +17,7 @@ vi.mock('../utils/vault-dialog', async (importOriginal) => {
 })
 
 import { NativeFolderPickerBlockedError, pickFolder } from '../utils/vault-dialog'
+import { RESTART_REQUIRED_FOLDER_PICKER_MESSAGE } from '../lib/appUpdater'
 import { useGettingStartedClone } from './useGettingStartedClone'
 
 describe('useGettingStartedClone', () => {
@@ -59,7 +60,7 @@ describe('useGettingStartedClone', () => {
     expect(onError).not.toHaveBeenCalled()
   })
 
-  it('surfaces a friendly message for download failures', async () => {
+  it('surfaces a friendly message when starter preparation fails', async () => {
     vi.mocked(pickFolder).mockResolvedValue('/Users/srinivas/Documents')
     mockInvokeFn.mockRejectedValue('git clone failed: fatal: unable to access')
 
@@ -72,7 +73,7 @@ describe('useGettingStartedClone', () => {
     })
 
     expect(onSuccess).not.toHaveBeenCalled()
-    expect(onError).toHaveBeenCalledWith('Could not download Getting Started vault: git clone failed: fatal: unable to access')
+    expect(onError).toHaveBeenCalledWith('Could not prepare Getting Started vault: git clone failed: fatal: unable to access')
   })
 
   it('surfaces the restart-required message when folder picking is blocked after update install', async () => {
@@ -87,8 +88,6 @@ describe('useGettingStartedClone', () => {
     })
 
     expect(onSuccess).not.toHaveBeenCalled()
-    expect(onError).toHaveBeenCalledWith(
-      'Grimoire needs a restart before macOS can open another folder picker. Restart to apply the downloaded update and try again.',
-    )
+    expect(onError).toHaveBeenCalledWith(RESTART_REQUIRED_FOLDER_PICKER_MESSAGE)
   })
 })

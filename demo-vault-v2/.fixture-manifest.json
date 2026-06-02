@@ -1,6 +1,42 @@
 {
-  "name": "Grimoire QA fixture",
-  "purpose": "Curated local vault for native QA and developer flows. This is not the public Getting Started starter vault.",
+  "name": "Grimoire Getting Started showcase mirror",
+  "purpose": "Curated local mirror of the public Getting Started starter vault plus a QA fixture for browser and native review.",
+  "public_starter_repo": {
+    "url": "https://github.com/sriinnu/grimoire-getting-started.git",
+    "extra_public_files": [
+      "README.md",
+      "LICENSE"
+    ],
+    "app_repaired_files": [
+      "AGENTS.md",
+      "type.md",
+      "note.md"
+    ]
+  },
+  "showcase": {
+    "launch_day": "2026-05-31",
+    "feature_tour": "grimoire-feature-tour.md",
+    "start_note": "grimoire-start-here.md",
+    "required_surfaces": [
+      "Dashboard and Daily Flow",
+      "Quick Capture",
+      "Markdown editor",
+      "Properties and types",
+      "Search and commands",
+      "Wikilinks, backlinks, graph",
+      "Journal lane",
+      "Dream lane",
+      "Calendar and Time Loom",
+      "Canvas and attachments",
+      "Audio transcription",
+      "Console notes",
+      "Agent Council",
+      "Local agents",
+      "Privacy and memory",
+      "Portability and sync",
+      "Settings and themes"
+    ]
+  },
   "large_fixture": {
     "generator": "python3 scripts/generate_demo_vault.py",
     "default_output": "generated-fixtures/demo-vault-large"
@@ -26,7 +62,7 @@
         "procedure-sponsor-onboarding.md",
         "24q4-grimoire-start.md",
         "24q4.md",
-        "person-srinivas-pendela.md"
+        "person-mira-sen.md"
       ]
     },
     {
@@ -43,6 +79,24 @@
       ]
     },
     {
+      "id": "sidebar-spotlight-project-text",
+      "reason": "Sidebar Spotlight should find editable project text and docs, not only Markdown notes.",
+      "files": [
+        "grimoire-search-and-commands.md",
+        "docs/sidebar-spotlight-proof.ts"
+      ]
+    },
+    {
+      "id": "journal-time-loom-substrate",
+      "reason": "The starter vault should prove that Journal, Dream, and Event frontmatter drive the metadata-only Time Loom calendar.",
+      "files": [
+        "grimoire-calendar-time-loom.md",
+        "grimoire-journal-demo-2026-05-31.md",
+        "grimoire-dream-demo-2026-05-31.md",
+        "event-team-sync-2025-01-13.md"
+      ]
+    },
+    {
       "id": "attachment-rendering",
       "reason": "A note with a real binary attachment keeps image/block QA anchored to the fixture.",
       "files": [
@@ -52,4 +106,3 @@
     }
   ]
 }
-

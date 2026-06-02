@@ -7,10 +7,13 @@ pub mod frontmatter;
 pub mod git;
 mod invoke_handler;
 pub mod mcp;
+mod mcp_resources;
 #[cfg(desktop)]
 pub mod menu;
 #[cfg(all(desktop, target_os = "macos"))]
 pub mod menu_bar;
+#[cfg(all(desktop, target_os = "macos"))]
+mod menu_bar_window;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
@@ -129,12 +132,24 @@ fn spawn_ws_bridge(app: &mut tauri::App) {
         .map(|h| h.join("Grimoire"))
         .unwrap_or_default();
     let vp_str = vault_path.to_string_lossy().to_string();
-    match mcp::spawn_ws_bridge(&vp_str) {
+    let state: tauri::State<'_, WsBridgeChild> = app.state();
+    store_ws_bridge_spawn_result(&state.0, mcp::spawn_ws_bridge(&vp_str));
+}
+
+#[cfg(desktop)]
+fn store_ws_bridge_spawn_result(
+    slot: &Mutex<Option<Child>>,
+    result: Result<Child, String>,
+) -> bool {
+    match result {
         Ok(child) => {
-            let state: tauri::State<'_, WsBridgeChild> = app.state();
-            *state.0.lock().unwrap() = Some(child);
+            *slot.lock().unwrap() = Some(child);
+            true
         }
-        Err(e) => log::warn!("Failed to start ws-bridge: {}", e),
+        Err(error) => {
+            log::warn!("Failed to start ws-bridge: {error}");
+            false
+        }
     }
 }
 
@@ -162,6 +177,9 @@ fn setup_common_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error::
 
 #[cfg(desktop)]
 fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(target_os = "macos")]
+    app.set_activation_policy(tauri::ActivationPolicy::Regular);
+
     setup_macos_webview_shortcut_prevention(app)?;
     app.handle()
         .plugin(tauri_plugin_updater::Builder::new().build())?;
@@ -169,8 +187,6 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     app.handle().plugin(tauri_plugin_opener::init())?;
     #[cfg(not(target_os = "linux"))]
     menu::setup_menu(app)?;
-    #[cfg(all(desktop, target_os = "macos"))]
-    menu_bar::setup_menu_bar_icon(app)?;
     setup_linux_window_chrome(app)?;
     Ok(())
 }
@@ -297,12 +313,9 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
     use tauri::Manager;
 
     match event {
-        tauri::RunEvent::Ready => window_lifecycle::show_main_window(app_handle),
-        tauri::RunEvent::Reopen {
-            has_visible_windows,
-            ..
-        } if should_show_window_on_reopen(*has_visible_windows) => {
-            window_lifecycle::show_main_window(app_handle)
+        tauri::RunEvent::Ready => {
+            window_lifecycle::show_main_window(app_handle);
+            restore_platform_menu_bar_icon_after_window_ready(app_handle);
         }
         tauri::RunEvent::Exit => {
             let state: tauri::State<'_, WsBridgeChild> = app_handle.state();
@@ -312,13 +325,46 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
                 log::info!("ws-bridge child process killed on exit");
             }
         }
+        _ => handle_platform_run_event(app_handle, event),
+    }
+}
+
+#[cfg(all(desktop, target_os = "macos"))]
+fn restore_platform_menu_bar_icon_after_window_ready(app_handle: &tauri::AppHandle) {
+    let app_handle = app_handle.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(1200));
+        let app_handle_for_main = app_handle.clone();
+        let _ = app_handle.run_on_main_thread(move || {
+            if let Err(error) = menu_bar::restore_menu_bar_icon(&app_handle_for_main) {
+                log::warn!("Failed to restore menu bar icon after window ready: {error}");
+            }
+        });
+    });
+}
+
+#[cfg(any(not(desktop), not(target_os = "macos")))]
+fn restore_platform_menu_bar_icon_after_window_ready(_app_handle: &tauri::AppHandle) {}
+
+#[cfg(all(desktop, target_os = "macos"))]
+fn handle_platform_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
+    match event {
+        tauri::RunEvent::Reopen {
+            has_visible_windows,
+            ..
+        } if should_show_window_on_reopen(*has_visible_windows) => {
+            window_lifecycle::show_main_window(app_handle)
+        }
         _ => {}
     }
 }
 
-#[cfg(any(test, desktop))]
-fn should_show_window_on_reopen(has_visible_windows: bool) -> bool {
-    !has_visible_windows
+#[cfg(all(desktop, not(target_os = "macos")))]
+fn handle_platform_run_event(_app_handle: &tauri::AppHandle, _event: &tauri::RunEvent) {}
+
+#[cfg(any(test, all(desktop, target_os = "macos")))]
+fn should_show_window_on_reopen(_has_visible_windows: bool) -> bool {
+    true
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -342,72 +388,5 @@ pub fn run() {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::linux_appimage_startup_env_overrides_with;
-    use super::should_show_window_on_reopen;
-    use super::StartupEnvOverride;
-    use super::MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS;
-
-    #[cfg(all(desktop, unix))]
-    use super::vault_asset_scope_roots;
-
-    #[test]
-    fn macos_webview_shortcut_prevention_includes_ai_panel_shortcut() {
-        assert_eq!(MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS, ["L"]);
-    }
-
-    #[test]
-    fn macos_reopen_only_shows_window_when_none_are_visible() {
-        assert!(should_show_window_on_reopen(false));
-        assert!(!should_show_window_on_reopen(true));
-    }
-
-    #[test]
-    fn linux_appimage_startup_env_overrides_are_empty_outside_appimage_launches() {
-        let overrides = linux_appimage_startup_env_overrides_with(|_| None);
-
-        assert!(overrides.is_empty());
-    }
-
-    #[test]
-    fn linux_appimage_startup_env_overrides_disable_dmabuf_for_appimages() {
-        let overrides = linux_appimage_startup_env_overrides_with(|key| match key {
-            "APPIMAGE" => Some("/tmp/Grimoire.AppImage".to_string()),
-            _ => None,
-        });
-
-        assert_eq!(
-            overrides,
-            vec![StartupEnvOverride {
-                key: "WEBKIT_DISABLE_DMABUF_RENDERER",
-                value: "1",
-            }]
-        );
-    }
-
-    #[test]
-    fn linux_appimage_startup_env_overrides_preserve_explicit_user_setting() {
-        let overrides = linux_appimage_startup_env_overrides_with(|key| match key {
-            "APPDIR" => Some("/tmp/.mount_Grimoire".to_string()),
-            "WEBKIT_DISABLE_DMABUF_RENDERER" => Some("0".to_string()),
-            _ => None,
-        });
-
-        assert!(overrides.is_empty());
-    }
-
-    #[cfg(all(desktop, unix))]
-    #[test]
-    fn vault_asset_scope_roots_include_requested_symlink_path() {
-        let dir = tempfile::tempdir().unwrap();
-        let canonical_vault = dir.path().join("Getting Started");
-        let symlinked_vault = dir.path().join("Symlinked Getting Started");
-        std::fs::create_dir(&canonical_vault).unwrap();
-        std::os::unix::fs::symlink(&canonical_vault, &symlinked_vault).unwrap();
-
-        let roots = vault_asset_scope_roots(&symlinked_vault).unwrap();
-
-        assert_eq!(roots[0], canonical_vault.canonicalize().unwrap());
-        assert!(roots.contains(&symlinked_vault));
-    }
-}
+#[path = "lib_tests.rs"]
+mod tests;

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
+import { AI_AGENTS_STATUS_SCAN_FAILED_DETAIL } from '../lib/aiAgents'
 import {
   AI_AGENTS_STATUS_FOCUS_DEBOUNCE_MS,
   AI_AGENTS_STATUS_IDLE_DELAY_MS,
@@ -47,7 +48,11 @@ describe('useAiAgentsStatus', () => {
         return Promise.resolve({
           claude_code: { installed: true, version: '1.0.20' },
           codex: { installed: false, version: null },
-          chitragupta: { installed: true, version: '0.1.16' },
+          chitragupta: {
+            installed: true,
+            version: '0.1.16',
+            detail: 'Chitragupta CLI chat route found. MCP memory is checked separately.',
+          },
         })
       }
       return Promise.resolve(null)
@@ -64,7 +69,11 @@ describe('useAiAgentsStatus', () => {
 
     expect(result.current.claude_code).toEqual({ status: 'installed', version: '1.0.20' })
     expect(result.current.codex).toEqual({ status: 'missing', version: null })
-    expect(result.current.chitragupta).toEqual({ status: 'installed', version: '0.1.16' })
+    expect(result.current.chitragupta).toEqual({
+      status: 'installed',
+      version: '0.1.16',
+      detail: 'Chitragupta CLI chat route found. MCP memory is checked separately.',
+    })
   })
 
   it('does not run CLI status probes while the app is hidden', async () => {
@@ -89,15 +98,19 @@ describe('useAiAgentsStatus', () => {
     expect(result.current.chitragupta).toEqual({ status: 'installed', version: '0.1.16' })
   })
 
-  it('falls back to missing when the status call fails', async () => {
+  it('marks scan failure separately from missing installs when the status call fails', async () => {
     mockInvoke.mockRejectedValue(new Error('failed'))
 
     const { result } = renderHook(() => useAiAgentsStatus())
     await advanceStatusProbe()
 
-    expect(result.current.claude_code.status).toBe('missing')
-    expect(result.current.codex.status).toBe('missing')
-    expect(result.current.chitragupta.status).toBe('missing')
+    expect(result.current.claude_code).toEqual({
+      status: 'missing',
+      version: null,
+      detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL,
+    })
+    expect(result.current.codex.detail).toBe(AI_AGENTS_STATUS_SCAN_FAILED_DETAIL)
+    expect(result.current.chitragupta.detail).toBe(AI_AGENTS_STATUS_SCAN_FAILED_DETAIL)
   })
 
   it('refreshes stale CLI status when the app is focused again', async () => {

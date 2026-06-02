@@ -7,6 +7,7 @@ related_to:
   - "[[grimoire-feature-tour]]"
   - "[[grimoire-markdown-learning]]"
   - "[[grimoire-links-and-backlinks]]"
+  - "[[grimoire-calendar-time-loom]]"
   - "[[grimoire-console-and-agents]]"
 status: Active
 ---
@@ -25,8 +26,9 @@ Grimoire is not only a notes app. It is a local Markdown workspace for thinking,
 4. Open [[grimoire-properties-and-types]] and inspect the frontmatter.
 5. Open [[grimoire-journal-demo-2026-05-31]] and notice the launch-day date.
 6. Open [[grimoire-dream-demo-2026-05-31]] and compare it with the journal entry.
-7. Open [[grimoire-links-and-backlinks]] to see why links matter.
-8. Open [[grimoire-console-and-agents]] to learn how command notes and agents fit into the same project.
+7. Open [[grimoire-calendar-time-loom]] to see how dated metadata becomes a private calendar graph.
+8. Open [[grimoire-links-and-backlinks]] to see why links matter.
+9. Open [[grimoire-console-and-agents]] to learn how command notes and agents fit into the same project.
 
 ## What to notice
 

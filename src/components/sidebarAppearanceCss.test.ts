@@ -2,10 +2,11 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 describe('sidebar appearance CSS', () => {
-  const brandCss = readFileSync(`${process.cwd()}/src/sidebar-brand.css`, 'utf8')
+  const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
+  const brandCss = readText(`${process.cwd()}/src/sidebar-brand.css`)
 
   it('sets readable sidebar text tokens for dark-sidebar light themes', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel')
     expect(css).toContain('[data-theme-preset="retro-terminal"] .app-sidebar-panel')
@@ -17,7 +18,7 @@ describe('sidebar appearance CSS', () => {
   })
 
   it('enables the ambient brand sigil for narrative presets', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('.sidebar-artwork')
     expect(css).toContain('[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork')
@@ -27,7 +28,7 @@ describe('sidebar appearance CSS', () => {
   })
 
   it('places live sidebar artwork behind navigation while previews stay inline', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('.app-sidebar-panel {\n  position: relative;')
     expect(css).toContain('.sidebar-title-bar,\n.app-sidebar-nav')
@@ -39,7 +40,7 @@ describe('sidebar appearance CSS', () => {
   })
 
   it('gives top navigation icons theme-aware color chips without recoloring labels', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('.sidebar-top-nav__tone')
     expect(css).toContain('.sidebar-rail__tone')
@@ -66,7 +67,7 @@ describe('sidebar appearance CSS', () => {
   })
 
   it('frames dynamic section icons as theme-tonal glyph medallions', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('.sidebar-section-glyph')
     expect(css).toContain('--sidebar-section-tone: var(--sidebar-primary)')
@@ -78,7 +79,7 @@ describe('sidebar appearance CSS', () => {
   })
 
   it('treats the sidebar brand as a dedicated wordmark instead of plain UI text', () => {
-    const baseCss = readFileSync(`${process.cwd()}/src/theme-base.css`, 'utf8')
+    const baseCss = readText(`${process.cwd()}/src/theme-base.css`)
 
     expect(baseCss).toContain('--grimoire-wordmark-font-family')
     expect(baseCss).toContain("'New York', 'Iowan Old Style', Palatino")
@@ -90,7 +91,7 @@ describe('sidebar appearance CSS', () => {
   })
 
   it('keeps short-height sidebar artwork compact instead of removing the glyph layer', () => {
-    const css = readFileSync(`${process.cwd()}/src/sidebar-appearance.css`, 'utf8')
+    const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('@media (max-height: 760px)')
     expect(css).toContain('[data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel > .sidebar-artwork')

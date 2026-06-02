@@ -31,7 +31,7 @@ fn is_scan_excluded_dir(name: &str) -> bool {
     SCAN_EXCLUDED_DIRS.contains(&lower.as_str())
 }
 
-pub(super) fn is_hidden_dir(name: &str) -> bool {
+pub(crate) fn is_hidden_dir(name: &str) -> bool {
     name.starts_with('.') || HIDDEN_DIRS.contains(&name) || is_scan_excluded_dir(name)
 }
 

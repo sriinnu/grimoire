@@ -2,9 +2,15 @@
 type: ADR
 id: "0080"
 title: "Cross-platform desktop release artifacts and portable vault names"
-status: active
+status: superseded
 date: 2026-04-24
+superseded_by: "0083"
 ---
+
+> Superseded by [ADR-0083](0083-dual-architecture-macos-release-artifacts.md),
+> which was later superseded by
+> [ADR-0100](0100-public-release-packaging-truth.md). This ADR records an
+> earlier release intent, not current public install evidence.
 
 ## Context
 

@@ -14,6 +14,7 @@ symbols:
 related_to:
   - "[[grimoire-journal-demo-2026-05-31]]"
   - "[[grimoire-links-and-backlinks]]"
+  - "[[grimoire-calendar-time-loom]]"
 ---
 
 # Dream Demo - 2026-05-31
@@ -34,4 +35,4 @@ I was walking through a library where every shelf opened into another room. A do
 
 Dream notes do not need to be correct. They need to be captured clearly enough that future patterns can emerge.
 
-Related waking context: [[grimoire-journal-demo-2026-05-31]] and [[grimoire-feature-tour]].
+Related waking context: [[grimoire-journal-demo-2026-05-31]], [[grimoire-feature-tour]], and [[grimoire-calendar-time-loom]].

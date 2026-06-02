@@ -724,6 +724,7 @@ This is the shippable project inside the demo vault. It shows Markdown notes, jo
 - [[Search and Commands]]
 - [[Journal Demo - 2026-05-31]]
 - [[Dream Demo - 2026-05-31]]
+- [[Calendar and Time Loom Demo]]
 - [[Links and Backlinks]]
 - [[Console and Agents]]
 - [[Agent Council]]
@@ -751,23 +752,25 @@ related_to:
 
 This is the launch-day checklist for the demo vault. Each row points to an editable note that shows the feature in ordinary Markdown.
 
-| Surface | Demo note |
-| --- | --- |
-| Dashboard and Daily Flow | [[Start Here - Learn Grimoire]] |
-| Markdown editor | [[Markdown Learning]] |
-| Properties and types | [[Properties and Types]] |
-| Search and commands | [[Search and Commands]] |
-| Wikilinks and backlinks | [[Links and Backlinks]] |
-| Journal lane | [[Journal Demo - 2026-05-31]] |
-| Dream lane | [[Dream Demo - 2026-05-31]] |
-| Canvas and attachments | [[Canvas and Attachments]] |
-| Audio transcription | [[Audio Transcription]] |
-| Console notes | [[Console and Agents]] |
-| Agent Council | [[Agent Council]] |
-| Local agents | [[Local Agent Map]] |
-| Privacy and memory | [[Privacy and Memory]] |
-| Portability and sync | [[Portability and Sync]] |
-| Settings and themes | [[Settings and Themes]] |
+| Surface | Try it | Demo note |
+| --- | --- | --- |
+| Dashboard and Daily Flow | Open the dashboard, click Capture, Reflect, Organize, and Crystallize. | [[Start Here - Learn Grimoire]] |
+| Quick Capture | Capture a note, journal, dream, task, memory, or ask prompt. | [[Crystallize Example]] |
+| Markdown editor | Edit headings, tasks, links, code, frontmatter, and rich Markdown. | [[Markdown Learning]] |
+| Properties and types | Inspect type, status, owner, priority, colors, and custom icons. | [[Properties and Types]] |
+| Search and commands | Use Quick Open, command palette, note search, and document find. | [[Search and Commands]] |
+| Wikilinks, backlinks, graph | Follow links, then inspect incoming and outgoing context. | [[Links and Backlinks]] |
+| Journal lane | Open a dated local-first daily note. | [[Journal Demo - 2026-05-31]] |
+| Dream lane | Open a dated dream note with symbols and interpretation. | [[Dream Demo - 2026-05-31]] |
+| Calendar and Time Loom | Compare Journal, Dream, and Event metadata in the Time Loom calendar. | [[Calendar and Time Loom Demo]] |
+| Canvas and attachments | Keep sketches and images beside the explanatory note. | [[Canvas and Attachments]] |
+| Audio transcription | Import or record audio, then create transcript and clean notes. | [[Audio Transcription]] |
+| Console notes | Keep repeatable command checks beside the project. | [[Console and Agents]] |
+| Agent Council | Inspect source-safe agent lanes, review-gated synthesis, and what is not live yet. | [[Agent Council]] |
+| Local agents | Track Claude Code, Codex, and Chitragupta lanes with boundaries. | [[Local Agent Map]] |
+| Privacy and memory | Show what can travel and what stays local. | [[Privacy and Memory]] |
+| Portability and sync | Explain Git, export/import, capsules, and object-storage proofs. | [[Portability and Sync]] |
+| Settings and themes | Show typography, themes, providers, API keys, and local preferences. | [[Settings and Themes]] |
 `,
   '/Users/mock/Grimoire/grimoire-start-here.md': `---
 title: Start Here - Learn Grimoire
@@ -786,7 +789,8 @@ Welcome to the demo vault. This project is the shippable, editable tour of Grimo
 2. Open [[Markdown Learning]] and edit one heading.
 3. Open [[Properties and Types]] and inspect the frontmatter.
 4. Compare [[Journal Demo - 2026-05-31]] with [[Dream Demo - 2026-05-31]].
-5. Open [[Console and Agents]] to see how local agent lanes fit beside project notes.
+5. Open [[Calendar and Time Loom Demo]] to see how dated metadata becomes a private calendar graph.
+6. Open [[Console and Agents]] to see how local agent lanes fit beside project notes.
 `,
   '/Users/mock/Grimoire/grimoire-markdown-learning.md': `---
 title: Markdown Learning
@@ -874,6 +878,7 @@ This is a sample launch-day journal entry. It shows how dated daily writing can 
 
 Related tour: [[Grimoire Feature Tour]].
 Related dream: [[Dream Demo - 2026-05-31]].
+Related Time Loom proof: [[Calendar and Time Loom Demo]].
 `,
   '/Users/mock/Grimoire/grimoire-dream-demo-2026-05-31.md': `---
 title: Dream Demo - 2026-05-31
@@ -886,7 +891,50 @@ symbols: [library, door, river]
 
 # Dream Demo - 2026-05-31
 
-A sample dream entry with symbols, interpretation, and a link back to [[Journal Demo - 2026-05-31]] and [[Grimoire Feature Tour]].
+A sample dream entry with symbols, interpretation, and a link back to [[Journal Demo - 2026-05-31]], [[Calendar and Time Loom Demo]], and [[Grimoire Feature Tour]].
+`,
+  '/Users/mock/Grimoire/grimoire-calendar-time-loom.md': `---
+title: Calendar and Time Loom Demo
+type: Note
+status: Active
+belongs_to:
+  - "[[grimoire-learning-project]]"
+related_to:
+  - "[[grimoire-feature-tour]]"
+  - "[[grimoire-journal-demo-2026-05-31]]"
+  - "[[grimoire-dream-demo-2026-05-31]]"
+  - "[[event-team-sync-2025-01-13]]"
+---
+
+# Calendar and Time Loom Demo
+
+Time Loom is Grimoire's metadata-only calendar substrate. It reads dates, types, and safe counters from the vault without needing to expose private note titles or bodies.
+
+| Source | Type | Date |
+| --- | --- | --- |
+| [[Journal Demo - 2026-05-31]] | Journal | 2026-05-31 |
+| [[Dream Demo - 2026-05-31]] | Dream | 2026-05-31 |
+| [[Team sync - 2025-01-13]] | Event | 2025-01-13 |
+
+The dashboard can count "Journal 1", "Dream 1", or "Calendar 1" while keeping private labels out of the graph.
+`,
+  '/Users/mock/Grimoire/event-team-sync-2025-01-13.md': `---
+title: Team sync - 2025-01-13
+type: Event
+date: 2025-01-13
+belongs_to:
+  - "[[25q1-grimoire-v1]]"
+related_to:
+  - "[[person-mira-sen]]"
+  - "[[person-arjun-mehta]]"
+  - "[[grimoire-calendar-time-loom]]"
+---
+
+# Team sync - 2025-01-13
+
+Short checkpoint on V1 priorities: stabilize quick open, tighten keyboard navigation, and keep the inspector fast.
+
+The type and date frontmatter make this a scheduled metadata point for [[Calendar and Time Loom Demo]].
 `,
   '/Users/mock/Grimoire/grimoire-links-and-backlinks.md': `---
 title: Links and Backlinks

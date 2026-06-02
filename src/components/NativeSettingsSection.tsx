@@ -1,5 +1,6 @@
 import type { createTranslator } from '../lib/i18n'
 import type { NativeShellMaterial } from '../lib/appearance'
+import { desktopPlatformLabel, isMac } from '../utils/platform'
 import { LabeledSelect, SectionHeading, SettingsSwitchRow } from './settings/SettingsControls'
 
 type Translate = ReturnType<typeof createTranslator>
@@ -20,18 +21,28 @@ export function NativeSettingsSection({
   nativeShellMaterial,
   setNativeShellMaterial,
 }: NativeSettingsSectionProps) {
+  const platform = desktopPlatformLabel()
+  const menuBarSupported = isMac()
+
   return (
     <>
       <SectionHeading
-        title={t('settings.native.title')}
-        description={t('settings.native.description')}
+        title={t('settings.native.title', { platform })}
+        description={t('settings.native.description', { platform })}
       />
 
       <SettingsSwitchRow
-        label={t('settings.native.menuBarIcon')}
-        description={t('settings.native.menuBarIconDescription')}
-        checked={menuBarIconEnabled}
-        onChange={setMenuBarIconEnabled}
+        label={menuBarSupported
+          ? t('settings.native.menuBarIcon')
+          : t('settings.native.menuBarIconUnavailable', { platform })}
+        description={menuBarSupported
+          ? t('settings.native.menuBarIconDescription')
+          : t('settings.native.menuBarIconUnavailableDescription', { platform })}
+        checked={menuBarSupported && menuBarIconEnabled}
+        onChange={(value) => {
+          if (menuBarSupported) setMenuBarIconEnabled(value)
+        }}
+        disabled={!menuBarSupported}
         testId="settings-menu-bar-icon-enabled"
       />
 

@@ -11,9 +11,16 @@ import {
 
 /** Options used when registering a selected folder as a vault. */
 export interface RegisterVaultSelectionOptions {
+  onBeforeSwitch?: (target: VaultOpeningTarget) => void
   verifyAvailability?: boolean
   storageProvider?: VaultOption['storageProvider']
   syncProvider?: VaultOption['syncProvider']
+}
+
+/** Label and path for a vault transition that is ready to be shown as loading. */
+export interface VaultOpeningTarget {
+  label: string
+  path: string
 }
 
 /** The next vault-list and selection state after registration. */
@@ -59,7 +66,7 @@ interface RemoveVaultStateOptions extends RemainingVaultOptions {
   vaultPath: string
 }
 
-/** Formats network and clone failures for restoring the Getting Started vault. */
+/** Formats native fallback failures for restoring the Getting Started vault. */
 export function formatGettingStartedRestoreError(err: unknown): string {
   const message =
     typeof err === 'string'
@@ -67,17 +74,6 @@ export function formatGettingStartedRestoreError(err: unknown): string {
       : err instanceof Error
         ? err.message
         : `${err}`
-
-  const networkErrors = [
-    'unable to access',
-    'Could not resolve host',
-    'network',
-    'timed out',
-  ]
-
-  if (networkErrors.some(fragment => message.includes(fragment))) {
-    return 'Getting Started requires internet. Clone it later.'
-  }
 
   return `Could not prepare Getting Started vault: ${message}`
 }
