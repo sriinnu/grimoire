@@ -86,6 +86,7 @@ function verifyBinaryInstallTruth() {
   assertContains('scripts/doctor-public-source.mjs', 'AppIndicator/Ayatana AppIndicator')
   assertContains('scripts/doctor-public-source.mjs', 'librsvg-2.0')
   assertContains('docs/PUBLIC-READINESS.md', '| Starter showcase structure | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', 'Sidebar Spotlight project-text fixture')
   assertContains('docs/PUBLIC-READINESS.md', 'requires every advertised surface row to link to a real demo note')
   assertContains('docs/PUBLIC-READINESS.md', 'not a claim that every advertised app surface is feature-complete')
   assertContains('docs/PUBLIC-READINESS.md', 'shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`')
@@ -173,6 +174,7 @@ function verifyBinaryInstallTruth() {
     'representative hosted CI run and commit evidence',
   )
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
+  assertNotMatch('docs/PUBLIC-READINESS.md', /97b824f7839ab94ef09b07a6b95f767936de262f/u, 'the superseded starter-vault head')
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
   assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before hosted CI is green')
   assertNotMatch('README.md', /codecov\.io\/gh\/sriinnu\/grimoire\/graph\/badge\.svg/iu, 'dynamic Codecov badge before coverage publication is verified')
