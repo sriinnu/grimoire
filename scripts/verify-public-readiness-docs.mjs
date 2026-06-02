@@ -116,7 +116,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'signed 2026-06-02 content refresh `bb9f94c`')
   assertNotMatch('docs/PUBLIC-READINESS.md', /254e687/u, 'the superseded starter-vault head')
   assertNotMatch('docs/PUBLIC-READINESS.md', /b3c9170/u, 'the superseded starter-vault head')
-  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, required macOS/Windows/Linux updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
+  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix/native-link proof, required macOS/Windows/Linux updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
   assertContains('scripts/audit-public-readiness.mjs', 'compareStarterMirror')
   assertContains('scripts/audit-public-readiness.mjs', 'readStarterBundleProof')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Packaged starter-vault fallback is not configured')
@@ -173,7 +173,7 @@ function verifyBinaryInstallTruth() {
   )
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /The branch pre-push gate is the local evidence lane: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, the frontend test suite, and any change-scoped editor or Rust lanes required by the hook\./u,
+    /The branch pre-push gate is the local evidence lane: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, native Tauri link smoke, the frontend test suite, and any change-scoped editor or Rust lanes required by the hook\./u,
     'durable local pre-push evidence without a self-staling test count',
   )
   assertContains(
@@ -183,6 +183,14 @@ function verifyBinaryInstallTruth() {
   )
   assertContains('docs/PUBLIC-READINESS.md', 'hardcoded test counts')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
+  assertContains('docs/PUBLIC-READINESS.md', '| Native source link smoke | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', 'Native Tauri Link Smoke')
+  assertContains('docs/PUBLIC-READINESS.md', 'cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked')
+  assertContains('package.json', '"test:native-tauri-link": "cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked"')
+  assertContains('.github/workflows/ci.yml', 'Native Tauri Link Smoke')
+  assertContains('.github/workflows/ci.yml', 'pnpm test:native-tauri-link')
+  assertContains('.husky/pre-push', 'pnpm test:native-tauri-link')
+  assertContains('scripts/public-readiness-evaluation.mjs', 'REQUIRED_CI_STEPS')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
   assertContains('docs/PUBLIC-READINESS.md', 'Release-mode lookup no longer falls back to the source checkout')
   assertContains('docs/PUBLIC-READINESS.md', 'Node lookup now parses multi-line `where` output')
@@ -309,13 +317,18 @@ function verifyReleaseWorkflowTruth() {
   assertNotMatch('docs/GETTING-STARTED.md', /Use the public-readiness branch for those guards/iu, 'branch-specific Windows guard wording')
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'uses `pnpm test:rust-platform-guards` to fail if those regressions return',
+    'uses `pnpm test:rust-platform-guards` plus hosted `Native Tauri Link Smoke` to fail if those source/link regressions return',
     'Public Readiness Rust platform guard evidence',
   )
   assertContains(
     'docs/GETTING-STARTED.md',
     '`pnpm test:rust-platform-guards` statically guards the known macOS-only',
     'Getting Started Rust platform guard caveat',
+  )
+  assertContains(
+    'docs/GETTING-STARTED.md',
+    '`pnpm test:native-tauri-link` runs',
+    'Getting Started native link caveat',
   )
   assertContains(
     'package.json',

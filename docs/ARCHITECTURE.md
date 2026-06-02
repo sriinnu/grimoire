@@ -326,6 +326,14 @@ generic Mac browsers to whichever asset happens to appear first. The self-test i
 part of CI and pre-push so update feeds cannot be documented as ready without a
 generator that knows the required cross-platform signature shape.
 
+CI source proof is separate from release packaging proof. The pinned macOS,
+Windows, and Linux jobs run `Native Tauri Link Smoke`, which calls
+`pnpm test:native-tauri-link` after the frontend build. That command runs
+`cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked`
+so native Rust/Tauri link failures, including Windows SQLite import-library
+regressions, fail in hosted CI. This does not prove installer launch; packaged
+launch evidence still belongs to tagged release QA.
+
 ## Platform Direction
 
 The app is Tauri-first for the editor product surface. Swift remains a support layer for Apple-native integrations and a fallback if a named WebView limitation blocks product quality.

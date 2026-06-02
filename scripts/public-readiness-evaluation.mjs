@@ -19,6 +19,7 @@ export const REQUIRED_TOPICS = [
 
 export const CHANNELS = ['stable', 'alpha']
 export const REQUIRED_CI_RUNNERS = ['macos-15', 'ubuntu-24.04', 'windows-2025-vs2026']
+export const REQUIRED_CI_STEPS = ['Native Tauri Link Smoke']
 export const REQUIRED_UPDATER_PLATFORMS = [
   'darwin-aarch64',
   'darwin-x86_64',
@@ -102,6 +103,20 @@ function successfulCiRunners(ci) {
   }))
 }
 
+function jobForRunner(ci, runner) {
+  const jobs = Array.isArray(ci?.jobs) ? ci.jobs : []
+  return jobs.find((job) => String(job.name ?? '').includes(runner))
+}
+
+function hasSuccessfulStep(job, stepName) {
+  const steps = Array.isArray(job?.steps) ? job.steps : []
+  return steps.some((step) => step.name === stepName && step.conclusion === 'success')
+}
+
+function missingRequiredCiStepRunners(ci, stepName) {
+  return REQUIRED_CI_RUNNERS.filter((runner) => !hasSuccessfulStep(jobForRunner(ci, runner), stepName))
+}
+
 function sentence(text) {
   return /[.!?]$/u.test(text) ? text : `${text}.`
 }
@@ -163,6 +178,12 @@ export function findBlockers(state) {
     const successful = successfulCiRunners(state.ci)
     const missing = REQUIRED_CI_RUNNERS.filter((runner) => !successful.has(runner))
     if (missing.length > 0) blockers.push(`Latest CI workflow run ${state.ci.run.id} lacks successful pinned runner jobs: ${missing.join(', ')}.`)
+    for (const step of REQUIRED_CI_STEPS) {
+      const missingStepRunners = missingRequiredCiStepRunners(state.ci, step)
+      if (missingStepRunners.length > 0) {
+        blockers.push(`Latest CI workflow run ${state.ci.run.id} lacks successful "${step}" proof on: ${missingStepRunners.join(', ')}.`)
+      }
+    }
   }
 
   for (const channel of CHANNELS) {
