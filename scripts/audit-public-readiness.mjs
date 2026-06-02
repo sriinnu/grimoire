@@ -16,6 +16,7 @@ import {
   CHANNELS,
   FEED_URLS,
   REQUIRED_CI_RUNNERS,
+  REQUIRED_MAC_UPDATER_PLATFORMS,
   REQUIRED_TOPICS,
   findBlockers,
   releasePreflightSummary,
@@ -184,10 +185,15 @@ function runSelfTest() {
       run: { conclusion: 'success', head_sha: 'signed-test-head', id: 1, status: 'completed' },
       stepCount: 12,
     },
-    feeds: {
-      alpha: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
-      stable: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
-    },
+    feeds: Object.fromEntries(CHANNELS.map((channel) => [channel, {
+      json: {
+        platforms: Object.fromEntries(REQUIRED_MAC_UPDATER_PLATFORMS.map((platform) => [platform, {
+          signature: `${channel}-${platform}-signature`,
+          url: `https://example.com/${channel}/${platform}.tar.gz`,
+        }])),
+      },
+      status: 200,
+    }])),
     headSignature: { commit: 'signed-test-head', detail: 'Good "git" signature', verified: true },
     publicReadiness: 'Public release is ready.',
     readme: 'Run from source or download from GitHub Releases.',
@@ -251,6 +257,13 @@ function runSelfTest() {
   })
   if (!missingRunnerResult.blockers.some((blocker) => blocker.includes('lacks successful pinned runner jobs'))) {
     throw new Error('missing CI runner fixture should report incomplete matrix proof')
+  }
+  const incompleteFeedResult = findBlockers({
+    ...readyState,
+    feeds: { ...readyState.feeds, stable: { json: { platforms: { 'darwin-aarch64': { signature: 'sig', url: 'url' } } }, status: 200 } },
+  })
+  if (!incompleteFeedResult.blockers.some((blocker) => blocker.includes('missing macOS updater payloads'))) {
+    throw new Error('incomplete updater feed fixture should report missing macOS payloads')
   }
   if (!blockedResult.blockers.some((blocker) => blocker.includes('Release preflight'))) {
     throw new Error('blocked fixture should surface release preflight blockers')
