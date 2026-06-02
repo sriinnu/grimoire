@@ -137,7 +137,7 @@ export function SearchPanel({
         data-testid="search-panel-surface"
         role="dialog"
         aria-modal="true"
-        aria-label="Search open vaults"
+        aria-label="Spotlight search across open vaults"
         onClick={e => e.stopPropagation()}
       >
         <SearchInput
