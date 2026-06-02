@@ -18,6 +18,7 @@ export const REQUIRED_TOPICS = [
 ]
 
 export const CHANNELS = ['stable', 'alpha']
+export const REQUIRED_CI_RUNNERS = ['macos-15', 'ubuntu-24.04', 'windows-2025-vs2026']
 
 export const FEED_URLS = {
   alpha: 'https://sriinnu.github.io/grimoire/alpha/latest.json',
@@ -65,6 +66,15 @@ function annotationMessages(annotations, level) {
   ))
 }
 
+function successfulCiRunners(ci) {
+  const jobs = Array.isArray(ci?.jobs) ? ci.jobs : []
+  return new Set(jobs.flatMap((job) => {
+    if (job.conclusion !== 'success') return []
+    const label = String(job.name ?? '')
+    return REQUIRED_CI_RUNNERS.filter((runner) => label.includes(runner))
+  }))
+}
+
 function sentence(text) {
   return /[.!?]$/u.test(text) ? text : `${text}.`
 }
@@ -102,16 +112,24 @@ export function findBlockers(state) {
   }
 
   if (!state.ci.run) {
-    blockers.push(`No GitHub Actions run found for ${state.branch}.`)
+    blockers.push(`No CI workflow run found for ${state.branch}.`)
   } else if (state.ci.run.conclusion !== 'success') {
     const stepNote = state.ci.stepCount === 0 ? ' with zero executed steps' : ''
-    blockers.push(`Latest GitHub Actions run ${state.ci.run.id} is ${state.ci.run.conclusion ?? state.ci.run.status}${stepNote}.`)
+    blockers.push(`Latest CI workflow run ${state.ci.run.id} is ${state.ci.run.conclusion ?? state.ci.run.status}${stepNote}.`)
     for (const message of annotationMessages(state.ci.annotations, 'failure')) {
       blockers.push(`Hosted CI failure annotation: ${sentence(message)}`)
     }
     for (const message of annotationMessages(state.ci.annotations, 'notice')) {
       warnings.push(`Hosted CI notice: ${sentence(message)}`)
     }
+  }
+  if (state.ci.run && state.headSignature?.commit && state.ci.run.head_sha !== state.headSignature.commit) {
+    blockers.push(`Latest CI workflow run ${state.ci.run.id} is for ${state.ci.run.head_sha ?? 'unknown head'}, not signed HEAD ${state.headSignature.commit}.`)
+  }
+  if (state.ci.run?.conclusion === 'success') {
+    const successful = successfulCiRunners(state.ci)
+    const missing = REQUIRED_CI_RUNNERS.filter((runner) => !successful.has(runner))
+    if (missing.length > 0) blockers.push(`Latest CI workflow run ${state.ci.run.id} lacks successful pinned runner jobs: ${missing.join(', ')}.`)
   }
 
   for (const channel of CHANNELS) {

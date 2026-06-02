@@ -45,11 +45,11 @@ pnpm doctor:source
 
 The source doctor reports two readiness lanes:
 
-- Browser source mode: Node.js 20+, pnpm, and Git.
+- Browser source mode: Node.js 20+, pnpm 10+, and Git.
 - Native Tauri mode: browser source mode plus Rust/Cargo and platform-specific
   native dependencies. On Linux it verifies the pkg-config packages Grimoire's
   Tauri build expects: WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1,
-  xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
+  libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
 Run browser mock mode:
 
@@ -73,7 +73,10 @@ not a replacement for native Windows launch QA.
 `pnpm doctor:source` also checks Windows native setup for the MSVC Rust host and
 Microsoft C++ Build Tools (`cl.exe`). If either fails, install Rust's stable
 MSVC toolchain and Microsoft's Desktop development with C++ workload before
-rerunning `pnpm tauri dev`.
+rerunning `pnpm tauri dev`. The doctor also warns when the evergreen WebView2
+runtime is not detected. That warning does not block browser source mode or
+native readiness, but a Windows launch/open recheck should verify WebView2 if
+the built `.exe` does not display a Tauri window.
 
 Packaged desktop apps also try to start Grimoire's local MCP WebSocket bridge
 from the bundled `mcp-server` resource. Node.js must be discoverable on `PATH`
@@ -90,7 +93,7 @@ Tauri 2 needs WebKit2GTK 4.1 and GTK 3.
 Arch / Manjaro:
 
 ```bash
-sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl appmenu-gtk-module libappindicator-gtk3 librsvg
+sudo pacman -S --needed webkit2gtk-4.1 base-devel curl wget file openssl appmenu-gtk-module libappindicator-gtk3 librsvg xdotool
 ```
 
 Debian / Ubuntu 22.04+:
@@ -102,7 +105,7 @@ sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev
 Fedora 38+:
 
 ```bash
-sudo dnf install webkit2gtk4.1-devel openssl-devel curl wget file libappindicator-gtk3-devel librsvg2-devel
+sudo dnf install webkit2gtk4.1-devel openssl-devel curl wget file libappindicator-gtk3-devel librsvg2-devel libxdo-devel
 ```
 
 Install Node from the distro package manager too if you want the bundled MCP

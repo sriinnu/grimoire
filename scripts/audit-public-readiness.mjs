@@ -15,6 +15,7 @@ import {
 import {
   CHANNELS,
   FEED_URLS,
+  REQUIRED_CI_RUNNERS,
   REQUIRED_TOPICS,
   findBlockers,
   releasePreflightSummary,
@@ -108,6 +109,16 @@ function jobStepCount(jobsPayload) {
   return jobsPayload.jobs.reduce((total, job) => total + (Array.isArray(job.steps) ? job.steps.length : 0), 0)
 }
 
+function ciJobs(jobsPayload) {
+  if (!Array.isArray(jobsPayload.jobs)) return []
+  return jobsPayload.jobs.map((job) => ({
+    conclusion: job.conclusion ?? null,
+    id: job.id,
+    name: job.name ?? '',
+    status: job.status ?? null,
+  }))
+}
+
 function checkRunAnnotations(repoName, jobsPayload) {
   if (!Array.isArray(jobsPayload.jobs)) return []
 
@@ -125,7 +136,7 @@ async function collectLiveState(options) {
   const starterUrl = `https://github.com/${options.starterRepo}.git`
   const starterHead = run('git', ['ls-remote', starterUrl, 'HEAD'], { allowFailure: true }).split(/\s+/)[0] ?? ''
   const starterMirror = compareStarterMirror(starterUrl)
-  const runsPayload = ghJson(`repos/${options.repo}/actions/runs?branch=${encodeURIComponent(branch)}&per_page=1`)
+  const runsPayload = ghJson(`repos/${options.repo}/actions/workflows/ci.yml/runs?branch=${encodeURIComponent(branch)}&per_page=1`)
   const runPayload = latestRun(runsPayload)
   const jobsPayload = runPayload ? ghJson(`repos/${options.repo}/actions/runs/${runPayload.id}/jobs?per_page=100`) : { jobs: [] }
   const releases = ghJson(`repos/${options.repo}/releases?per_page=20`)
@@ -141,6 +152,7 @@ async function collectLiveState(options) {
     branch,
     ci: {
       annotations: checkRunAnnotations(options.repo, jobsPayload),
+      jobs: ciJobs(jobsPayload),
       run: runPayload,
       stepCount: jobStepCount(jobsPayload),
     },
@@ -161,7 +173,17 @@ async function collectLiveState(options) {
 function runSelfTest() {
   const readyState = {
     branch: 'main',
-    ci: { annotations: [], run: { conclusion: 'success', id: 1, status: 'completed' }, stepCount: 12 },
+    ci: {
+      annotations: [],
+      jobs: REQUIRED_CI_RUNNERS.map((runner, id) => ({
+        conclusion: 'success',
+        id,
+        name: `Build, Test, And Lint (${runner})`,
+        status: 'completed',
+      })),
+      run: { conclusion: 'success', head_sha: 'signed-test-head', id: 1, status: 'completed' },
+      stepCount: 12,
+    },
     feeds: {
       alpha: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
       stable: { json: { platforms: { 'darwin-aarch64': {} } }, status: 200 },
@@ -196,7 +218,8 @@ function runSelfTest() {
         annotation_level: 'failure',
         message: 'The job was not started because recent account payments have failed or your spending limit needs to be increased',
       }],
-      run: { conclusion: 'failure', id: 2, status: 'completed' },
+      jobs: [],
+      run: { conclusion: 'failure', head_sha: 'signed-test-head', id: 2, status: 'completed' },
       stepCount: 0,
     },
     feeds: { alpha: { status: 404 }, stable: { status: 404 } },
@@ -214,6 +237,20 @@ function runSelfTest() {
   if (blockedResult.blockers.length < 5) throw new Error('blocked fixture should report multiple blockers')
   if (!blockedResult.blockers.some((blocker) => blocker.includes('spending limit'))) {
     throw new Error('blocked fixture should report hosted CI billing/spending annotation')
+  }
+  const staleCiResult = findBlockers({
+    ...readyState,
+    ci: { ...readyState.ci, run: { ...readyState.ci.run, head_sha: 'other-head' } },
+  })
+  if (!staleCiResult.blockers.some((blocker) => blocker.includes('not signed HEAD'))) {
+    throw new Error('stale CI fixture should report CI head mismatch')
+  }
+  const missingRunnerResult = findBlockers({
+    ...readyState,
+    ci: { ...readyState.ci, jobs: readyState.ci.jobs.slice(0, 1) },
+  })
+  if (!missingRunnerResult.blockers.some((blocker) => blocker.includes('lacks successful pinned runner jobs'))) {
+    throw new Error('missing CI runner fixture should report incomplete matrix proof')
   }
   if (!blockedResult.blockers.some((blocker) => blocker.includes('Release preflight'))) {
     throw new Error('blocked fixture should surface release preflight blockers')

@@ -136,7 +136,10 @@ handlers; this branch contains those cfg guards, but a fresh Windows run still
 needs to be captured before the README can call Windows verified.
 On Windows, `pnpm doctor:source` also checks for the MSVC Rust host and
 Microsoft C++ Build Tools (`cl.exe`) so missing native compiler setup fails
-before a Tauri build gets mysterious.
+before a Tauri build gets mysterious. It also warns when the evergreen WebView2
+runtime is not detected; that warning is not a source-doctor blocker, but a
+fresh Windows launch recheck should treat it seriously if the packaged `.exe`
+cannot open a window.
 
 Check that this machine is ready for source development:
 
@@ -145,11 +148,11 @@ pnpm doctor:source
 ```
 
 The doctor separates browser source mode from native Tauri mode. Browser mode
-needs Node, pnpm, and Git; native mode also needs Rust and platform-specific
+needs Node, pnpm 10+, and Git; native mode also needs Rust and platform-specific
 Tauri dependencies. If native mode is blocked on Linux, install the packages in
 [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md). On Linux, the doctor checks
 pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
-4.1, xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
+4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
 Audit public-release truth before advertising Grimoire to general users:
 
