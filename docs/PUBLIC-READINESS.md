@@ -10,7 +10,7 @@ below are resolved and re-verified.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `254e687` includes the Sidebar Spotlight project-text fixture plus the Chitragupta CLI/MCP readiness boundary. Packaged apps also bundle the tracked `demo-vault-v2/` mirror as a `starter-vault/` fallback, so first-run template onboarding is not network-only. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
+| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `bb9f94c` includes the Sidebar Spotlight project-text fixture, the Journal/Dream/Event Time Loom substrate, and the Chitragupta CLI/MCP readiness boundary. Packaged apps also bundle the tracked `demo-vault-v2/` mirror as a `starter-vault/` fallback, so first-run template onboarding is not network-only. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
 | Starter showcase structure | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, requires every advertised surface row to link to a real demo note, validates scenario files, and resolves internal wikilinks for `demo-vault-v2/`. This is structural proof for the showcase, not a claim that every advertised app surface is feature-complete. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` now also shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`, ignoring only documented public-only files such as `README.md` and `LICENSE`. |
 | Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures, including pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana. A current local 2026-06-02 run of `pnpm doctor:source` reports browser source mode and native Tauri mode ready on this macOS host. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
@@ -72,8 +72,8 @@ Verified on 2026-06-02:
 
 ```bash
 git ls-remote https://github.com/sriinnu/grimoire-getting-started.git HEAD refs/heads/main
-git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-verify-254e687
-pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-254e687
+git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-verify-bb9f94c
+pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-bb9f94c
 ```
 
 ## Hosted CI Evidence

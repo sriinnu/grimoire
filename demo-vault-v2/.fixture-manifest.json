@@ -87,6 +87,16 @@
       ]
     },
     {
+      "id": "journal-time-loom-substrate",
+      "reason": "The starter vault should prove that Journal, Dream, and Event frontmatter drive the metadata-only Time Loom calendar.",
+      "files": [
+        "grimoire-calendar-time-loom.md",
+        "grimoire-journal-demo-2026-05-31.md",
+        "grimoire-dream-demo-2026-05-31.md",
+        "event-team-sync-2025-01-13.md"
+      ]
+    },
+    {
       "id": "attachment-rendering",
       "reason": "A note with a real binary attachment keeps image/block QA anchored to the fixture.",
       "files": [

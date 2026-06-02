@@ -12,6 +12,7 @@ related_to:
   - "[[grimoire-properties-and-types]]"
   - "[[grimoire-search-and-commands]]"
   - "[[grimoire-links-and-backlinks]]"
+  - "[[grimoire-calendar-time-loom]]"
   - "[[grimoire-journal-demo-2026-05-31]]"
   - "[[grimoire-dream-demo-2026-05-31]]"
   - "[[grimoire-canvas-and-attachments]]"
@@ -38,7 +39,7 @@ This is the launch-day checklist for the demo vault. Each row points to an edita
 | Wikilinks, backlinks, graph | Follow links, then inspect incoming and outgoing context. | [[grimoire-links-and-backlinks]] |
 | Journal lane | Open a dated local-first daily note. | [[grimoire-journal-demo-2026-05-31]] |
 | Dream lane | Open a dated dream note with symbols and interpretation. | [[grimoire-dream-demo-2026-05-31]] |
-| Calendar and Time Loom | Use dated entries as the calendar substrate. | [[grimoire-journal-demo-2026-05-31]] |
+| Calendar and Time Loom | Compare Journal, Dream, and Event metadata in the Time Loom calendar. | [[grimoire-calendar-time-loom]] |
 | Canvas and attachments | Keep sketches and images beside the explanatory note. | [[grimoire-canvas-and-attachments]] |
 | Audio transcription | Import or record audio, then create transcript and clean notes. | [[grimoire-audio-transcription]] |
 | Console notes | Keep repeatable command checks beside the project. | [[grimoire-console-and-agents]] |
