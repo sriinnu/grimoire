@@ -48,9 +48,27 @@ Grimoire tries to keep those surfaces together:
 The AI surface is deliberately conservative. CLI panels and provider settings
 exist, but Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work, not public-complete claims.
 
+## What Makes It Different
+
+- **Files stay sovereign.** Markdown, frontmatter, folders, attachments,
+  wikilinks, and Git are the durable model. The app should make the vault
+  richer without trapping it.
+- **Daily work has a shape.** Capture, reflection, organization, and
+  crystallization live in the same surface as projects, notes, graph, and
+  review.
+- **Markdown is a shared contract.** The editor, slash commands, raw mode, and
+  native semantics package are tested against common Markdown behavior instead
+  of drifting into separate editors.
+- **AI is inspectable.** Agent panels show routes, readiness, provider
+  boundaries, and missing contracts instead of pretending every external tool is
+  already safe to use on a private vault.
+- **The starter vault is a product fixture.** The public Getting Started vault
+  is both a tour and a regression target, so the shipped story has files behind
+  it.
+
 ## Current Status
 
-Snapshot date: 2026-06-02.
+Snapshot date: 2026-06-03.
 
 | Area | Truth |
 | --- | --- |
