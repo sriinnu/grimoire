@@ -20,6 +20,17 @@ const LEGACY_ACTIONS = [
 
 const WORKFLOWS = ['.github/workflows/ci.yml', '.github/workflows/release.yml']
 
+const CI_STEP_TIMEOUTS = [
+  ['Native Tauri Link Smoke', 25],
+  ['Frontend Tests', 20],
+  ['Markdown Editor Parity JS', 10],
+  ['Markdown Editor Parity Swift', 10],
+  ['Install Playwright Browsers', 10],
+  ['Browser Smoke Chromium', 15],
+  ['Browser Smoke WebKit Core', 15],
+  ['Rust Lint', 20],
+]
+
 function readText(path) {
   return readFileSync(resolve(REPO_ROOT, path), 'utf8').replace(/\r\n?/gu, '\n')
 }
@@ -37,6 +48,27 @@ function assertContains(path, text, expected) {
 function assertNotContains(path, text, forbidden) {
   if (text.includes(forbidden)) {
     fail(`${path} must not contain ${forbidden}`)
+  }
+}
+
+function getStepBlock(path, text, stepName) {
+  const marker = `- name: ${stepName}`
+  const start = text.indexOf(marker)
+
+  if (start === -1) {
+    fail(`${path} must contain CI step "${stepName}"`)
+  }
+
+  const next = text.indexOf('\n      - name:', start + marker.length)
+  return text.slice(start, next === -1 ? text.length : next)
+}
+
+function assertStepTimeout(path, text, stepName, minutes) {
+  const block = getStepBlock(path, text, stepName)
+  const timeout = `timeout-minutes: ${minutes}`
+
+  if (!block.includes(timeout)) {
+    fail(`${path} step "${stepName}" must set ${timeout}`)
   }
 }
 
@@ -62,7 +94,9 @@ try {
   const ci = readText('.github/workflows/ci.yml')
   assertContains('.github/workflows/ci.yml', ci, 'Native Tauri Link Smoke')
   assertContains('.github/workflows/ci.yml', ci, 'pnpm test:native-tauri-link')
-  assertContains('.github/workflows/ci.yml', ci, 'timeout-minutes: 25')
+  for (const [stepName, timeoutMinutes] of CI_STEP_TIMEOUTS) {
+    assertStepTimeout('.github/workflows/ci.yml', ci, stepName, timeoutMinutes)
+  }
   console.log('[github-actions-runtime] ok')
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
