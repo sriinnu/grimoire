@@ -12,6 +12,8 @@ mod mcp_resources;
 pub mod menu;
 #[cfg(all(desktop, target_os = "macos"))]
 pub mod menu_bar;
+#[cfg(all(desktop, target_os = "macos"))]
+mod menu_bar_window;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
@@ -185,8 +187,6 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     app.handle().plugin(tauri_plugin_opener::init())?;
     #[cfg(not(target_os = "linux"))]
     menu::setup_menu(app)?;
-    #[cfg(all(desktop, target_os = "macos"))]
-    menu_bar::setup_menu_bar_icon(app)?;
     setup_linux_window_chrome(app)?;
     Ok(())
 }
@@ -313,7 +313,10 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
     use tauri::Manager;
 
     match event {
-        tauri::RunEvent::Ready => window_lifecycle::show_main_window(app_handle),
+        tauri::RunEvent::Ready => {
+            window_lifecycle::show_main_window(app_handle);
+            restore_platform_menu_bar_icon_after_window_ready(app_handle);
+        }
         tauri::RunEvent::Exit => {
             let state: tauri::State<'_, WsBridgeChild> = app_handle.state();
             let mut guard = state.0.lock().unwrap();
@@ -325,6 +328,23 @@ fn handle_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
         _ => handle_platform_run_event(app_handle, event),
     }
 }
+
+#[cfg(all(desktop, target_os = "macos"))]
+fn restore_platform_menu_bar_icon_after_window_ready(app_handle: &tauri::AppHandle) {
+    let app_handle = app_handle.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(std::time::Duration::from_millis(1200));
+        let app_handle_for_main = app_handle.clone();
+        let _ = app_handle.run_on_main_thread(move || {
+            if let Err(error) = menu_bar::restore_menu_bar_icon(&app_handle_for_main) {
+                log::warn!("Failed to restore menu bar icon after window ready: {error}");
+            }
+        });
+    });
+}
+
+#[cfg(any(not(desktop), not(target_os = "macos")))]
+fn restore_platform_menu_bar_icon_after_window_ready(_app_handle: &tauri::AppHandle) {}
 
 #[cfg(all(desktop, target_os = "macos"))]
 fn handle_platform_run_event(app_handle: &tauri::AppHandle, event: &tauri::RunEvent) {
