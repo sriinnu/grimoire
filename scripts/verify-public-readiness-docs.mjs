@@ -249,7 +249,7 @@ function verifyReleaseWorkflowTruth() {
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    '| Windows native run | Needs recheck | A Windows `pnpm tauri dev` run on `main` failed with macOS-only Rust cfg errors around `menu_bar` and `RunEvent::Reopen`.',
+    '| Windows native run | Needs recheck | Windows `pnpm tauri dev` runs on `main` exposed two source-portability bugs:',
     'Public Readiness Windows native run row',
   )
   assertContains(
@@ -259,19 +259,34 @@ function verifyReleaseWorkflowTruth() {
   )
   assertContains(
     'docs/GETTING-STARTED.md',
-    'The current source includes guards for those paths',
+    'The current source includes\nguards for the macOS-only paths',
     'durable Windows guard wording in Getting Started',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'The current source contains cfg guards for those paths',
+    'The current source contains cfg guards for the macOS-only paths',
     'durable Windows guard wording in Public Readiness',
+  )
+  assertContains(
+    'README.md',
+    "bundles SQLite through `rusqlite` instead of requiring a separate Windows\nSQLite import library",
+    'durable Windows SQLite linker wording in README',
+  )
+  assertContains(
+    'docs/GETTING-STARTED.md',
+    "bundles SQLite through `rusqlite` instead of\nrequiring a separately installed Windows SQLite import library",
+    'durable Windows SQLite linker wording in Getting Started',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'bundles SQLite through `rusqlite`\'s `bundled` feature instead of requiring a system SQLite import library',
+    'durable Windows SQLite linker wording in Public Readiness',
   )
   assertNotMatch('README.md', /this branch contains those cfg guards/iu, 'branch-specific Windows guard wording')
   assertNotMatch('docs/GETTING-STARTED.md', /Use the public-readiness branch for those guards/iu, 'branch-specific Windows guard wording')
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    '`pnpm test:rust-platform-guards` to fail if those macOS-only symbols leak outside macOS cfg again',
+    'uses `pnpm test:rust-platform-guards` to fail if those regressions return',
     'Public Readiness Rust platform guard evidence',
   )
   assertContains(

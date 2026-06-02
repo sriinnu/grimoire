@@ -66,11 +66,15 @@ pnpm tauri dev
 
 Windows native development is still a recheck item. A Windows `pnpm tauri dev`
 run on `main` failed with macOS-only Rust cfg errors around the menu bar and
-reopen handlers. The current source includes guards for those paths, but do not
-call Windows verified until a fresh Windows dev/build/open run is captured.
+reopen handlers. A later Windows run failed at link time with
+`LNK1181: cannot open input file 'sqlite3.lib'`. The current source includes
+guards for the macOS-only paths and bundles SQLite through `rusqlite` instead of
+requiring a separately installed Windows SQLite import library, but do not call
+Windows verified until a fresh Windows dev/build/open run is captured.
 `pnpm test:rust-platform-guards` statically guards the known macOS-only
-`menu_bar` and `RunEvent::Reopen` regression paths; it is regression coverage,
-not a replacement for native Windows launch QA.
+`menu_bar` and `RunEvent::Reopen` regression paths plus the bundled-SQLite
+contract; it is regression coverage, not a replacement for native Windows
+launch QA.
 `pnpm doctor:source` also checks Windows native setup for the MSVC Rust host and
 Microsoft C++ Build Tools (`cl.exe`). If either fails, install Rust's stable
 MSVC toolchain and Microsoft's Desktop development with C++ workload before
