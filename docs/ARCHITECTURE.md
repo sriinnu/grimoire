@@ -314,9 +314,12 @@ macOS artifacts for both Apple Silicon and Intel targets.
 release assets are uploaded, the workflow reads GitHub Release metadata,
 downloads the `.app.tar.gz.sig` contents through the GitHub asset API, writes
 Tauri static updater manifests under `stable/latest.json` or `alpha/latest.json`,
-and emits small download pages that prefer the DMG for manual installs. The
-self-test is part of CI and pre-push so update feeds cannot be documented as
-ready without a generator that knows the required signature shape.
+and emits small download pages that prefer the DMG for manual installs. When
+both macOS architectures exist, the generated page requires an explicit Apple
+Silicon vs Intel choice instead of redirecting generic Mac browsers to whichever
+asset happens to appear first. The self-test is part of CI and pre-push so
+update feeds cannot be documented as ready without a generator that knows the
+required signature shape.
 
 ## Platform Direction
 
