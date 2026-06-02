@@ -1928,6 +1928,8 @@ function App() {
           open={dialogs.showSettings}
           settings={settings}
           aiAgentsStatus={aiAgentsStatus}
+          mcpStatus={mcpStatus}
+          onInstallMcp={openMcpSetupDialog}
           locale={appLocale}
           systemLocale={systemLocale}
           vaultPath={resolvedPath}

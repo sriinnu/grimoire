@@ -89,7 +89,7 @@ describe('AiAgentSettingsSection', () => {
   })
 
   it('separates Chitragupta CLI route truth from MCP memory readiness', () => {
-    renderSection()
+    renderSection({ mcpStatus: 'checking' })
 
     expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
       'Provider resolves from the Chitragupta stream',
@@ -106,6 +106,36 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-agent-chitragupta-transport')).toHaveTextContent(
       'If the MCP transport closes',
     )
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status')).toHaveTextContent(
+      'External MCP registration',
+    )
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-detail')).toHaveTextContent(
+      'Runtime bridge readiness is still verified',
+    )
+  })
+
+  it('lets users connect external MCP clients from the Chitragupta contract card', () => {
+    const onInstallMcp = vi.fn()
+    renderSection({ mcpStatus: 'not_installed', onInstallMcp })
+
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-value')).toHaveTextContent('Not connected')
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-detail')).toHaveTextContent(
+      'Chitragupta CLI chat can still run',
+    )
+
+    fireEvent.click(screen.getByTestId('settings-ai-agent-mcp-runtime-action'))
+
+    expect(onInstallMcp).toHaveBeenCalledOnce()
+  })
+
+  it('shows connected MCP registration without claiming transport is always open', () => {
+    renderSection({ mcpStatus: 'installed', onInstallMcp: vi.fn() })
+
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-value')).toHaveTextContent('Connected')
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-detail')).toHaveTextContent(
+      'Runtime bridge readiness is still verified',
+    )
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-action')).toHaveTextContent('Manage MCP')
   })
 
   it('keeps route disclosure scoped to Chitragupta', () => {

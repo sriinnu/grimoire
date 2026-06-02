@@ -15,6 +15,7 @@ import {
   type TranscriptionProviderId,
 } from '../lib/transcriptionProviders'
 import type { Settings, VaultEntry } from '../types'
+import type { McpStatus } from '../hooks/useMcpStatus'
 import { useVaultPortabilityActions } from '../hooks/useVaultPortabilityActions'
 import { Dialog, DialogContent } from './ui/dialog'
 import { SettingsBody } from './settings/SettingsBody'
@@ -32,6 +33,8 @@ interface SettingsPanelProps {
   open: boolean
   settings: Settings
   aiAgentsStatus?: AiAgentsStatus
+  mcpStatus?: McpStatus
+  onInstallMcp?: () => void
   locale?: AppLocale
   systemLocale?: AppLocale
   vaultPath?: string
@@ -72,6 +75,8 @@ export function SettingsPanel({
   open,
   settings,
   aiAgentsStatus = createMissingAiAgentsStatus(),
+  mcpStatus,
+  onInstallMcp,
   locale = 'en',
   systemLocale = locale,
   vaultPath = '',
@@ -95,6 +100,8 @@ export function SettingsPanel({
     <SettingsPanelInner
       settings={settings}
       aiAgentsStatus={aiAgentsStatus}
+      mcpStatus={mcpStatus}
+      onInstallMcp={onInstallMcp}
       locale={locale}
       systemLocale={systemLocale}
       vaultPath={vaultPath}
@@ -118,6 +125,8 @@ export function SettingsPanel({
 function SettingsPanelInner({
   settings,
   aiAgentsStatus,
+  mcpStatus,
+  onInstallMcp,
   systemLocale,
   vaultPath = '',
   entries = [],
@@ -255,6 +264,8 @@ function SettingsPanelInner({
           setAiAgentModels={(value) => updateDraft('aiAgentModels', value)}
           aiAgentProviders={draft.aiAgentProviders}
           setAiAgentProviders={(value) => updateDraft('aiAgentProviders', value)}
+          mcpStatus={mcpStatus}
+          onInstallMcp={onInstallMcp}
           vaultPath={vaultPath}
           entries={entries}
           importMarkdownFolderBusy={portabilityActions.markdownImportBusy}
