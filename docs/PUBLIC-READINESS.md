@@ -24,7 +24,7 @@ below are resolved and re-verified.
 | Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model, including signed HEAD proof, clean worktree proof, starter-vault mirror drift, and release-preflight blockers. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, update feeds return `404`, and release preflight is blocked. |
 | Release preflight | Blocked | `pnpm test:release-preflight` covers the preflight model. `pnpm release:preflight` currently fails because the repo has no release secrets configured and GitHub Pages is not enabled, and the live public-readiness audit now surfaces those release-preflight blockers directly. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
-| macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x882 on 2026-06-01. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
+| macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x879 on 2026-06-02 after the signed `de4b7e5` startup-window restore. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
 | Settings platform copy | Verified | AI provider-key Settings copy now names `macOS Keychain`, `Windows Credential Manager`, or `Linux Secret Service/keyring` based on the detected desktop platform, while save controls remain disabled where native secure storage is not implemented. Regressions live in `src/components/settings/AiAgentSettingsSection.test.tsx` and `src/utils/platform.test.ts`. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,259 files on 2026-06-02. |
@@ -79,9 +79,10 @@ This section records representative hosted CI evidence. Use
 `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
 latest branch state.
 
-Run `26787021505` for commit `ce9d4a607ad48be706c04493d776ab96eba00fe6`
-failed before checkout/build/test on 2026-06-01 UTC (2026-06-02 Europe/Vienna).
-The macOS, Ubuntu, and Windows jobs all completed with zero recorded steps.
+Run `26790972294` for signed commit
+`de4b7e575108e16a050dba720207c73cff2a0fc7` failed before
+checkout/build/test on 2026-06-02 Europe/Vienna. The live readiness audit
+reported zero executed steps for the latest hosted CI run.
 
 Earlier check-run annotations for this same hosted-CI failure mode reported:
 
