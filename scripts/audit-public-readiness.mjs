@@ -86,6 +86,28 @@ function ghJsonOptional(endpoint) {
   return JSON.parse(result.stdout.trim() || 'null')
 }
 
+function githubCommitVerificationProof(commitPayload, fallbackCommit = null) {
+  const commit = commitPayload?.sha ?? fallbackCommit
+  const verification = commitPayload?.commit?.verification
+  if (!commit || !verification) return null
+
+  return {
+    commit,
+    detail: verification.reason ?? 'GitHub verification payload did not include a reason.',
+    source: 'github',
+    verified: verification.verified === true,
+  }
+}
+
+function githubVerifiedHeadProof(repoName, branch) {
+  const branchPayload = ghJsonOptional(`repos/${repoName}/branches/${encodeURIComponent(branch)}`)
+  const commit = branchPayload?.commit?.sha ?? null
+  if (!commit) return null
+
+  const commitPayload = ghJsonOptional(`repos/${repoName}/commits/${commit}`)
+  return githubCommitVerificationProof(commitPayload, commit)
+}
+
 function readStarterBundleProof() {
   const config = JSON.parse(readFileSync(resolve('src-tauri/tauri.conf.json'), 'utf8'))
   const resources = config.bundle?.resources ?? {}
@@ -174,7 +196,7 @@ async function collectLiveState(options) {
       stepCount: jobStepCount(jobsPayload),
     },
     feeds,
-    headSignature: readHeadSignatureProof(),
+    headSignature: githubVerifiedHeadProof(options.repo, branch) ?? readHeadSignatureProof(),
     publicReadiness: readFileSync(resolve('docs/PUBLIC-READINESS.md'), 'utf8'),
     readme: readFileSync(resolve('README.md'), 'utf8'),
     releases,
@@ -295,6 +317,20 @@ function runSelfTest() {
   }
   if (!blockedActions.some((action) => action.includes('stable-vYYYY.M.D'))) {
     throw new Error('blocked fixture should print stable release next actions')
+  }
+  const githubSignature = githubCommitVerificationProof({
+    commit: { verification: { reason: 'valid', verified: true } },
+    sha: 'github-verified-head',
+  })
+  if (!githubSignature?.verified || githubSignature.commit !== 'github-verified-head') {
+    throw new Error('GitHub verification fixture should produce signed head proof')
+  }
+  const githubUnsignedSignature = githubCommitVerificationProof({
+    commit: { verification: { reason: 'unsigned', verified: false } },
+    sha: 'github-unsigned-head',
+  })
+  if (githubUnsignedSignature?.verified !== false || githubUnsignedSignature.detail !== 'unsigned') {
+    throw new Error('GitHub verification fixture should preserve unverified proof detail')
   }
   const driftResult = findBlockers({
     ...readyState,
