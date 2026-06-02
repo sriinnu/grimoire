@@ -7,7 +7,7 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 
 function readText(path) {
-  return readFileSync(resolve(REPO_ROOT, path), 'utf8')
+  return readFileSync(resolve(REPO_ROOT, path), 'utf8').replace(/\r\n?/gu, '\n')
 }
 
 function fail(message) {
