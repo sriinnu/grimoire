@@ -47,7 +47,11 @@ describe('useAiAgentsStatus', () => {
         return Promise.resolve({
           claude_code: { installed: true, version: '1.0.20' },
           codex: { installed: false, version: null },
-          chitragupta: { installed: true, version: '0.1.16' },
+          chitragupta: {
+            installed: true,
+            version: '0.1.16',
+            detail: 'Chitragupta CLI chat route found. MCP memory is checked separately.',
+          },
         })
       }
       return Promise.resolve(null)
@@ -64,7 +68,11 @@ describe('useAiAgentsStatus', () => {
 
     expect(result.current.claude_code).toEqual({ status: 'installed', version: '1.0.20' })
     expect(result.current.codex).toEqual({ status: 'missing', version: null })
-    expect(result.current.chitragupta).toEqual({ status: 'installed', version: '0.1.16' })
+    expect(result.current.chitragupta).toEqual({
+      status: 'installed',
+      version: '0.1.16',
+      detail: 'Chitragupta CLI chat route found. MCP memory is checked separately.',
+    })
   })
 
   it('does not run CLI status probes while the app is hidden', async () => {

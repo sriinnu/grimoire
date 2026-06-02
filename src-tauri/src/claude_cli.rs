@@ -14,11 +14,12 @@ pub use types::{AgentStreamRequest, ChatStreamRequest, ClaudeCliStatus, ClaudeSt
 /// Check whether the `claude` CLI is installed and return its version.
 pub fn check_cli() -> ClaudeCliStatus {
     let bin = match find_claude_binary() {
-        Ok(b) => b,
-        Err(_) => {
+        Ok(binary) => binary,
+        Err(error) => {
             return ClaudeCliStatus {
                 installed: false,
                 version: None,
+                detail: Some(error),
             }
         }
     };
@@ -30,10 +31,14 @@ pub fn check_cli() -> ClaudeCliStatus {
         .ok()
         .filter(|o| o.status.success())
         .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+    let detail = version
+        .is_none()
+        .then(|| "Claude Code CLI found; version command did not return a value.".to_string());
 
     ClaudeCliStatus {
         installed: true,
         version,
+        detail,
     }
 }
 

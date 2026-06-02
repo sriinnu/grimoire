@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 pub struct ClaudeCliStatus {
     pub installed: bool,
     pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
 }
 
 /// Event emitted to the frontend during a streaming claude session.

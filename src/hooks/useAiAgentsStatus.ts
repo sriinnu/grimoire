@@ -12,7 +12,7 @@ import {
 } from '../lib/aiAgents'
 import { isDocumentVisible } from './visibleDocument'
 
-type RawAiAgentsStatus = Partial<Record<AiAgentId, { installed?: boolean | null; version?: string | null }>>
+type RawAiAgentsStatus = Partial<Record<AiAgentId, { installed?: boolean | null; version?: string | null; detail?: string | null }>>
 
 export const AI_AGENTS_STATUS_REFRESH_EVENT = 'grimoire:refresh-ai-agents'
 export const AI_AGENTS_STATUS_IDLE_DELAY_MS = 120
