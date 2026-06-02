@@ -102,6 +102,11 @@ pnpm test:release-pages
 echo "  ✅ Release pages OK"
 
 echo ""
+echo "⚙️  GitHub Actions runtime..."
+pnpm test:github-actions-runtime
+echo "  ✅ GitHub Actions runtime OK"
+
+echo ""
 echo "🧭 Starter vault showcase..."
 pnpm test:starter-vault
 echo "  ✅ Starter vault showcase OK"

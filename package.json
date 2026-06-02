@@ -45,6 +45,7 @@
     "test:object-storage-live": "node scripts/run-object-storage-live-proof.mjs --require-enabled",
     "test:release-preflight": "node scripts/release-preflight.mjs --self-test",
     "test:release-artifacts": "node scripts/verify-release-artifacts.mjs --self-test",
+    "test:github-actions-runtime": "node scripts/verify-github-actions-runtime.mjs",
     "test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test",
     "test:release-pages": "node scripts/build-release-pages.mjs --self-test",
     "test:public-doc-links": "node scripts/verify-public-doc-links.mjs",
