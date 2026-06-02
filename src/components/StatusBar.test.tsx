@@ -231,6 +231,27 @@ describe('StatusBar', () => {
     await waitFor(() => expect(onOpenLocalFolder).toHaveBeenCalledOnce())
   })
 
+  it('shows a disabled vault picker state while a local folder open is pending', () => {
+    render(
+      <StatusBar
+        noteCount={100}
+        vaultPath="/Users/srinivas/Grimoire"
+        vaults={vaults}
+        openingVault={{ label: 'Choose vault folder', path: '' }}
+        onSwitchVault={vi.fn()}
+        onOpenLocalFolder={vi.fn()}
+      />
+    )
+
+    const trigger = screen.getByRole('button', { name: 'Choose vault folder' })
+    expect(trigger).toBeDisabled()
+    expect(trigger).toHaveAttribute('aria-busy', 'true')
+    expect(trigger).toHaveTextContent('Choose vault folder')
+
+    fireEvent.click(trigger)
+    expect(screen.queryByText('Open local folder')).not.toBeInTheDocument()
+  })
+
   it('shows "Create empty vault" option in vault menu', () => {
     render(
       <StatusBar noteCount={100} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={vi.fn()} onCreateEmptyVault={vi.fn()} />
