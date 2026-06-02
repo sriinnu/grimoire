@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import {
@@ -85,6 +85,21 @@ function ghJsonOptional(endpoint) {
   return JSON.parse(result.stdout.trim() || 'null')
 }
 
+function readStarterBundleProof() {
+  const config = JSON.parse(readFileSync(resolve('src-tauri/tauri.conf.json'), 'utf8'))
+  const resources = config.bundle?.resources ?? {}
+  const configured = Object.entries(resources).some(([source, destination]) => (
+    String(source).includes('../demo-vault-v2/**/*')
+    && String(destination) === 'starter-vault/'
+  ))
+
+  return {
+    configured,
+    sourceExists: existsSync(resolve('demo-vault-v2/.fixture-manifest.json'))
+      && existsSync(resolve('demo-vault-v2/grimoire-start-here.md')),
+  }
+}
+
 async function fetchFeed(url) {
   try {
     const response = await fetch(url, { redirect: 'follow' })
@@ -165,6 +180,7 @@ async function collectLiveState(options) {
     releasePreflight,
     repo,
     starterHead,
+    starterBundle: readStarterBundleProof(),
     starterMirror,
     starterRepo,
     workingTree: readWorkingTreeProof(),
@@ -212,6 +228,7 @@ function runSelfTest() {
     releasePreflight: { blockers: [], warnings: [] },
     repo: { private: false, topics: REQUIRED_TOPICS },
     starterHead: 'abc123',
+    starterBundle: { configured: true, sourceExists: true },
     starterMirror: { checked: true, changed: [], localOnly: [], publicOnly: [] },
     starterRepo: { private: false },
     workingTree: { clean: true, detail: 'clean', paths: [] },
@@ -275,6 +292,13 @@ function runSelfTest() {
   if (!driftResult.blockers.some((blocker) => blocker.includes('Starter vault public clone'))) {
     throw new Error('starter drift fixture should report public starter mismatch')
   }
+  const missingStarterBundleResult = findBlockers({
+    ...readyState,
+    starterBundle: { configured: false, sourceExists: true },
+  })
+  if (!missingStarterBundleResult.blockers.some((blocker) => blocker.includes('starter-vault fallback'))) {
+    throw new Error('missing starter bundle fixture should report packaged fallback blocker')
+  }
   const unsignedResult = findBlockers({
     ...readyState,
     headSignature: { commit: 'unsigned-test-head', detail: 'No signature', verified: false },
@@ -298,6 +322,7 @@ function printReport(state, result) {
   console.log(`[public-readiness-audit] head-signature=${headSignatureSummary(state.headSignature)}`)
   console.log(`[public-readiness-audit] working-tree=${workingTreeSummary(state.workingTree)}`)
   console.log(`[public-readiness-audit] starter-mirror=${starterMirrorDriftSummary(state.starterMirror)}`)
+  console.log(`[public-readiness-audit] starter-bundle=${state.starterBundle?.configured && state.starterBundle?.sourceExists ? 'configured' : 'missing'}`)
   console.log(`[public-readiness-audit] release-preflight=${releasePreflightSummary(state.releasePreflight)}`)
   for (const channel of CHANNELS) {
     console.log(`[public-readiness-audit] ${channel}-feed=${state.feeds[channel]?.status ?? 'missing'}`)

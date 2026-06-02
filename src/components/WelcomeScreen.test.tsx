@@ -59,14 +59,14 @@ describe('WelcomeScreen', () => {
 
     it('shows the simplified template option description', () => {
       render(<WelcomeScreen {...defaultProps} />)
-      expect(screen.getByText('Download the getting started vault')).toBeInTheDocument()
+      expect(screen.getByText(/Download the Getting Started vault/)).toBeInTheDocument()
       expect(screen.queryByText(/~\/Documents\/Grimoire/)).not.toBeInTheDocument()
     })
 
-    it('shows offline guidance and disables the template option when offline', () => {
+    it('keeps the bundled template option available when offline', () => {
       render(<WelcomeScreen {...defaultProps} isOffline={true} />)
-      expect(screen.getByTestId('welcome-create-vault')).toBeDisabled()
-      expect(screen.getByText(/Requires internet — clone later/)).toBeInTheDocument()
+      expect(screen.getByTestId('welcome-create-vault')).toBeEnabled()
+      expect(screen.getByText(/Uses the bundled Getting Started vault while offline/)).toBeInTheDocument()
     })
 
     it('calls onCreateEmptyVault when create empty button is clicked', () => {
@@ -131,7 +131,7 @@ describe('WelcomeScreen', () => {
 
     it('shows loading text on template button while creating', () => {
       render(<WelcomeScreen {...defaultProps} creatingAction="template" />)
-      expect(screen.getByTestId('welcome-create-vault')).toHaveTextContent(/Downloading template/)
+      expect(screen.getByTestId('welcome-create-vault')).toHaveTextContent(/Preparing starter/)
       expect(screen.getByTestId('welcome-status')).toHaveAttribute('aria-live', 'polite')
     })
 
@@ -156,7 +156,7 @@ describe('WelcomeScreen', () => {
       render(
         <WelcomeScreen
           {...defaultProps}
-          error="Could not download Getting Started vault. Check your connection and try again."
+          error="Could not prepare Getting Started vault: git clone failed"
           canRetryTemplate={true}
           onRetryCreateVault={onRetryCreateVault}
         />,

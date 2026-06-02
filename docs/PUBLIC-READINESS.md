@@ -10,7 +10,7 @@ below are resolved and re-verified.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `254e687` includes the Sidebar Spotlight project-text fixture plus the Chitragupta CLI/MCP readiness boundary. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
+| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `254e687` includes the Sidebar Spotlight project-text fixture plus the Chitragupta CLI/MCP readiness boundary. Packaged apps also bundle the tracked `demo-vault-v2/` mirror as a `starter-vault/` fallback, so first-run template onboarding is not network-only. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
 | Starter showcase structure | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, requires every advertised surface row to link to a real demo note, validates scenario files, and resolves internal wikilinks for `demo-vault-v2/`. This is structural proof for the showcase, not a claim that every advertised app surface is feature-complete. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` now also shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`, ignoring only documented public-only files such as `README.md` and `LICENSE`. |
 | Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures, including pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
@@ -47,7 +47,8 @@ release ADRs are not public install evidence.
 - `pnpm release:preflight` passes against the live GitHub repository.
 - A fresh full-repo secret scan passes.
 - The README only advertises install paths that actually exist.
-- The starter vault clone flow is verified against the public starter repository.
+- The starter vault clone flow is verified against the public starter repository
+  and the packaged bundled fallback is present.
 - Public binary wording is either removed or backed by real release assets.
 - The stable and alpha update feeds either exist or the app clearly explains
   that public updates are not published yet.
@@ -60,10 +61,12 @@ release ADRs are not public install evidence.
 
 ## Starter Vault Verification
 
-The in-app Getting Started flow clones the public starter repository first, then
-Grimoire repairs local vault config files such as `AGENTS.md`, `type.md`, and
-`note.md` in the cloned vault. Those repaired files are local app-managed state;
-they do not all need to exist in the public starter repository itself.
+The in-app Getting Started flow clones the public starter repository first. If
+that clone fails or the machine is offline, packaged apps copy the bundled
+`starter-vault/` resource, which is sourced from tracked `demo-vault-v2/`.
+Grimoire then repairs local vault config files such as `AGENTS.md`, `type.md`,
+and `note.md` in the created vault. Those repaired files are local app-managed
+state; they do not all need to exist in the public starter repository itself.
 
 Verified on 2026-06-02:
 

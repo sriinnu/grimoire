@@ -99,8 +99,9 @@ The in-app Getting Started vault flow points to:
 https://github.com/sriinnu/grimoire-getting-started
 
 That repository is public and contains the starter vault used by the
-first-run flow. The tracked `demo-vault-v2/` folder in this repository mirrors
-the same showcase content for tests, local development, and review.
+first-run flow. If GitHub is unavailable, packaged apps fall back to the bundled
+starter-vault resource. The tracked `demo-vault-v2/` folder in this repository
+is the bundled mirror used for tests, local development, and review.
 
 ## Local Development
 

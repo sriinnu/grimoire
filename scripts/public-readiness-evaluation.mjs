@@ -120,6 +120,12 @@ export function findBlockers(state) {
   if (starterMirrorHasDrift(state.starterMirror)) {
     blockers.push(`Starter vault public clone does not match demo-vault-v2: ${starterMirrorDriftSummary(state.starterMirror)}.`)
   }
+  if (!state.starterBundle?.configured) {
+    blockers.push('Packaged starter-vault fallback is not configured in tauri.conf.json.')
+  }
+  if (!state.starterBundle?.sourceExists) {
+    blockers.push('Bundled starter-vault source mirror is missing required demo-vault-v2 files.')
+  }
 
   if (!state.ci.run) {
     blockers.push(`No CI workflow run found for ${state.branch}.`)

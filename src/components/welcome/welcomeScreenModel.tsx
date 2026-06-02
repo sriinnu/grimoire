@@ -70,8 +70,8 @@ export function getWelcomeScreenPresentation(
       openFolderLabel: 'Open existing vault',
       subtitle: 'Plain Markdown vaults. Local by default. Git optional.',
       templateDescription: isOffline
-        ? `Requires internet — clone later. Suggested path: ${defaultVaultPath}`
-        : 'Download the getting started vault',
+        ? `Uses the bundled Getting Started vault while offline. Suggested path: ${defaultVaultPath}`
+        : 'Download the Getting Started vault, with a bundled fallback if the network is unavailable.',
       title: 'Welcome to Grimoire',
       emptyVaultDescription: 'Create a local Markdown folder with Grimoire defaults. No Git required.',
     }
@@ -84,8 +84,8 @@ export function getWelcomeScreenPresentation(
     openFolderLabel: 'Choose a different folder',
     subtitle: 'The vault folder could not be found on disk.\nIt may have been moved or deleted.',
     templateDescription: isOffline
-      ? `Requires internet — clone later. Suggested path: ${defaultVaultPath}`
-      : 'Download the getting started vault',
+      ? `Uses the bundled Getting Started vault while offline. Suggested path: ${defaultVaultPath}`
+      : 'Download the Getting Started vault, with a bundled fallback if the network is unavailable.',
     title: 'Vault not found',
     emptyVaultDescription: 'Create a replacement local Markdown vault. No Git required.',
   }
