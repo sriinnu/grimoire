@@ -32,9 +32,15 @@ function PouchIntakeOverlay() {
       <path className="sidebar-pouch-overlay__wisp" d="M47 174c35-7 64 3 86 29 15 18 36 22 62 10" />
       <path className="sidebar-pouch-overlay__wisp sidebar-pouch-overlay__wisp--right" d="M273 175c-36-6-65 5-86 31-15 19-36 24-62 12" />
       <path className="sidebar-pouch-overlay__funnel" d="M69 184c38 11 72 25 101 42 25-17 55-30 91-39" />
+      <path className="sidebar-pouch-overlay__mist sidebar-pouch-overlay__mist--left" d="M25 150c34 6 67 20 98 43 18 13 35 22 52 27" />
+      <path className="sidebar-pouch-overlay__mist sidebar-pouch-overlay__mist--right" d="M295 150c-36 7-70 22-101 44-18 13-35 22-51 27" />
+      <path className="sidebar-pouch-overlay__mouth-glow" d="M82 207c43 20 87 21 135 5 25-8 47-3 67 14-60 24-154 23-215 0 1-7 4-14 13-19z" />
       <path className="sidebar-pouch-overlay__stream sidebar-pouch-overlay__stream--left" d="M74 164c36 19 66 43 90 72" />
       <path className="sidebar-pouch-overlay__stream sidebar-pouch-overlay__stream--center" d="M161 160c3 24 3 49 0 76" />
       <path className="sidebar-pouch-overlay__stream sidebar-pouch-overlay__stream--right" d="M237 165c-36 19-66 43-90 72" />
+      <circle className="sidebar-pouch-overlay__cloudlet sidebar-pouch-overlay__cloudlet--left" cx="53" cy="151" r="5.2" />
+      <circle className="sidebar-pouch-overlay__cloudlet sidebar-pouch-overlay__cloudlet--upper" cx="158" cy="139" r="4.8" />
+      <circle className="sidebar-pouch-overlay__cloudlet sidebar-pouch-overlay__cloudlet--right" cx="267" cy="151" r="5.2" />
       <circle className="sidebar-pouch-overlay__particle sidebar-pouch-overlay__particle--left" cx="113" cy="195" r="4.2" />
       <circle className="sidebar-pouch-overlay__particle sidebar-pouch-overlay__particle--center" cx="160" cy="200" r="4.8" />
       <circle className="sidebar-pouch-overlay__particle sidebar-pouch-overlay__particle--right" cx="209" cy="196" r="4.2" />

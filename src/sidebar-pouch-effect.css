@@ -51,11 +51,24 @@
   stroke-width: 3;
 }
 
+.sidebar-pouch-overlay__cloudlet {
+  fill: color-mix(in srgb, var(--art-spark) 48%, var(--sidebar) 52%);
+  opacity: 0.72;
+  stroke: color-mix(in srgb, var(--art-aura) 68%, transparent);
+  stroke-width: 1.8;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sidebar-pouch-overlay__cloudlet--upper {
+  fill: color-mix(in srgb, var(--art-aura) 56%, var(--sidebar) 44%);
+}
+
 .sidebar-pouch-overlay__cloud--upper {
   color: color-mix(in srgb, var(--art-spark) 50%, var(--art-aura));
   opacity: 0.78;
 }
-
+.sidebar-pouch-overlay__mist,
 .sidebar-pouch-overlay__wisp,
 .sidebar-pouch-overlay__funnel,
 .sidebar-pouch-overlay__stream,
@@ -65,6 +78,15 @@
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.sidebar-pouch-overlay__mist {
+  color: color-mix(in srgb, var(--art-aura) 74%, var(--art-spark));
+  opacity: 0.68;
+  stroke-dasharray: 42 22;
+  stroke-width: 2.8;
+  transform-box: view-box;
+  transform-origin: center bottom;
 }
 
 .sidebar-pouch-overlay__wisp {
@@ -146,6 +168,14 @@
   stroke: color-mix(in srgb, var(--art-spark) 64%, var(--art-aura));
 }
 
+.sidebar-pouch-overlay__mouth-glow {
+  fill: color-mix(in srgb, var(--art-spark) 18%, transparent);
+  opacity: 0.72;
+  stroke: none;
+  transform-box: view-box;
+  transform-origin: center bottom;
+}
+
 .sidebar-pouch-overlay__mouth {
   opacity: 0.98;
   stroke-width: 4;
@@ -193,6 +223,14 @@
     animation: sidebar-cloud-soften 720ms var(--motion-ease-expressive, ease-out) both;
   }
 
+  .app-sidebar-panel .sidebar-pouch-overlay__cloudlet {
+    animation: sidebar-cloudlet-drift 900ms var(--motion-ease-expressive, ease-out) both;
+  }
+
+  .app-sidebar-panel .sidebar-pouch-overlay__mist {
+    animation: sidebar-cloud-intake 960ms var(--motion-ease-expressive, ease-out) both;
+  }
+
   .app-sidebar-panel .sidebar-pouch-overlay__wisp {
     animation: sidebar-cloud-intake 820ms var(--motion-ease-expressive, ease-out) both;
   }
@@ -213,12 +251,19 @@
     animation: sidebar-pouch-swallow 760ms var(--motion-ease-expressive, ease-out) both;
   }
 
+  .app-sidebar-panel .sidebar-pouch-overlay__mouth-glow {
+    animation: sidebar-pouch-mouth-glow 760ms var(--motion-ease-expressive, ease-out) both;
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar-panel .sidebar-artwork__pouch-overlay,
   .app-sidebar-panel .sidebar-pouch-overlay__cloud,
+  .app-sidebar-panel .sidebar-pouch-overlay__cloudlet,
   .app-sidebar-panel .sidebar-pouch-overlay__funnel,
+  .app-sidebar-panel .sidebar-pouch-overlay__mist,
+  .app-sidebar-panel .sidebar-pouch-overlay__mouth-glow,
   .app-sidebar-panel .sidebar-pouch-overlay__particle,
   .app-sidebar-panel .sidebar-pouch-overlay__swallow,
   .app-sidebar-panel .sidebar-pouch-overlay__stream,
@@ -232,7 +277,6 @@
     opacity: 0;
     transform: translateY(10px) scale(0.96);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -245,7 +289,6 @@
     stroke-dashoffset: 72;
     transform: translateY(-8px);
   }
-
   to {
     opacity: 0.86;
     stroke-dashoffset: 0;
@@ -259,12 +302,10 @@
     stroke-dashoffset: 36;
     transform: translateY(-15px) scale(1.08, 0.82);
   }
-
   68% {
     opacity: 0.84;
     transform: translateY(2px) scale(0.92, 1.04);
   }
-
   to {
     opacity: 0.7;
     stroke-dashoffset: 0;
@@ -278,7 +319,6 @@
     stroke-dashoffset: 44;
     transform: translateY(-11px) scale(1.08, 0.86);
   }
-
   to {
     opacity: 0.74;
     stroke-dashoffset: 0;
@@ -298,6 +338,17 @@
   }
 }
 
+@keyframes sidebar-cloudlet-drift {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(1.18);
+  }
+  to {
+    opacity: 0.72;
+    transform: translateY(4px) scale(0.72);
+  }
+}
+
 @keyframes sidebar-cloud-drop {
   from {
     opacity: 0;
@@ -312,6 +363,21 @@
   to {
     opacity: 0.42;
     transform: translateY(16px) scale(0.54);
+  }
+}
+
+@keyframes sidebar-pouch-mouth-glow {
+  from {
+    opacity: 0;
+    transform: translateY(-3px) scale(0.94, 0.82);
+  }
+  62% {
+    opacity: 0.82;
+    transform: translateY(1px) scale(1.04, 1);
+  }
+  to {
+    opacity: 0.52;
+    transform: translateY(4px) scale(0.9, 0.8);
   }
 }
 

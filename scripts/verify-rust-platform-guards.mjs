@@ -35,6 +35,14 @@ const REQUIRED_FALLBACKS = [
   },
 ]
 
+const REQUIRED_CARGO_PATTERNS = [
+  {
+    path: 'src-tauri/Cargo.toml',
+    label: 'bundled SQLite for Windows MSVC linking',
+    pattern: /rusqlite\s*=\s*\{[^}\n]*features\s*=\s*\[[^\]]*"bundled"/u,
+  },
+]
+
 function stripLineComment(line) {
   return line.split('//')[0]
 }
@@ -152,6 +160,13 @@ export function verifyRustPlatformGuards(root = REPO_ROOT) {
     }
   }
 
+  for (const cargoPattern of REQUIRED_CARGO_PATTERNS) {
+    const content = normalizeNewlines(readFileSync(resolve(root, cargoPattern.path), 'utf8'))
+    if (!cargoPattern.pattern.test(content)) {
+      issues.push(`${cargoPattern.path} is missing ${cargoPattern.label}`)
+    }
+  }
+
   return { ok: issues.length === 0, issues }
 }
 
@@ -185,9 +200,14 @@ function settingsFallbackFixture() {
   ].join('\n')
 }
 
+function cargoTomlFixture() {
+  return 'rusqlite = { version = "0.32", features = ["bundled"] }\n'
+}
+
 function runSelfTest() {
   const root = mkdtempSync(join(tmpdir(), 'grimoire-rust-platform-guards-'))
   try {
+    writeFixture(root, 'src-tauri/Cargo.toml', cargoTomlFixture())
     writeFixture(root, 'src-tauri/src/commands/settings_cmds.rs', settingsFallbackFixture())
     writeFixture(root, 'src-tauri/src/menu_bar.rs', 'pub fn setup_menu_bar_icon() {}\n')
     writeFixture(root, 'src-tauri/src/lib.rs', [
@@ -232,6 +252,14 @@ function runSelfTest() {
       commonFallbackFixture(),
     ].join('\n'))
     assertIssue('unguarded reopen event', verifyRustPlatformGuards(root), 'tauri::RunEvent::Reopen')
+
+    writeFixture(root, 'src-tauri/src/lib.rs', [
+      '#[cfg(all(desktop, target_os = "macos"))]',
+      'pub mod menu_bar;',
+      commonFallbackFixture(),
+    ].join('\n'))
+    writeFixture(root, 'src-tauri/Cargo.toml', 'rusqlite = "0.32"\n')
+    assertIssue('unbundled sqlite', verifyRustPlatformGuards(root), 'bundled SQLite')
 
     console.log('[rust-platform-guards] self-test ok')
   } finally {
