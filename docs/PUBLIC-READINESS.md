@@ -28,7 +28,7 @@ below are resolved and re-verified.
 | Vault switching guard | Partially verified | The bottom-bar Open local folder path verifies and persists a folder before switching, rejects unavailable folders, coalesces duplicate picker clicks while the native dialog is pending, and has browser smoke coverage through the same bottom-bar action. Regressions live in `src/hooks/useVaultSwitcher.test.ts`, `src/hooks/vaultSwitcherOpenLocalAction.test.ts`, and `tests/smoke/vault-switcher-bottom-bar.spec.ts`. Manual native bottom-bar picker selection QA is still required before public release; local automation was blocked by macOS assistive access (`-25211`) on 2026-06-01. |
 | Settings platform copy | Verified | AI provider-key Settings copy now names `macOS Keychain`, `Windows Credential Manager`, or `Linux Secret Service/keyring` based on the detected desktop platform, while save controls remain disabled where native secure storage is not implemented. Regressions live in `src/components/settings/AiAgentSettingsSection.test.tsx` and `src/utils/platform.test.ts`. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,263 files on 2026-06-02. |
-| Local checks | Locally verified | The branch pre-push gate passed on 2026-06-02: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,597 frontend tests, Markdown editor JS/Swift parity, and Rust clippy/fmt. Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from a self-staling commit hash in this file. |
+| Local checks | Locally verified | The branch pre-push gate is the local evidence lane: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, the frontend test suite, and any change-scoped editor or Rust lanes required by the hook. Exact test counts and skipped change-scoped lanes can change as the branch changes; rerun the gate for current proof. Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from self-staling commit hashes or hardcoded test counts in this file. |
 | Hosted CI | Blocked | GitHub Actions check-run annotations say each job was not started because recent account payments failed or the Actions spending limit needs to be increased. This account-level blocker must be fixed and CI must be re-run before public release. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. Manual update checks do not present this as a broken install: `src/hooks/useUpdater.test.ts` covers the 404/not-found path and verifies the app says public Grimoire updates are not published yet. |
@@ -78,27 +78,25 @@ pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-2
 
 ## Hosted CI Evidence
 
-This section records representative hosted CI evidence. Use
-`pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
-latest branch state.
+This section records the hosted CI failure mode, not a frozen latest commit.
+Use `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for
+the latest branch state.
 
-Run `26790972294` for signed commit
-`de4b7e575108e16a050dba720207c73cff2a0fc7` failed before
-checkout/build/test on 2026-06-02 Europe/Vienna. The live readiness audit
-reported zero executed steps for that hosted CI run.
+The latest audited hosted CI run for this branch failed before checkout, install,
+build, test, or lint could execute on 2026-06-02 Europe/Vienna. The live
+readiness audit reports the current run id and verifies that the failed run
+executed zero workflow steps.
 
-Earlier check-run annotations for this same hosted-CI failure mode reported:
+Check-run annotations for this hosted-CI failure mode report:
 
 ```text
 The job was not started because recent account payments have failed or your spending limit needs to be increased.
 ```
 
-The Windows job also carried GitHub's notice that `windows-latest` requests were
-being redirected to `windows-2025-vs2026` by June 15, 2026. The CI workflow now
-pins Windows to `windows-2025-vs2026`, macOS to `macos-15`, and Linux to
-`ubuntu-24.04`, but no checkout, dependency installation, build, test, or lint
-step ran on any hosted OS job while the account-level billing/spending blocker
-was active.
+The CI workflow pins Windows to `windows-2025-vs2026`, macOS to `macos-15`, and
+Linux to `ubuntu-24.04`, but no checkout, dependency installation, build, test,
+or lint step has run on any hosted OS job while the account-level
+billing/spending blocker is active.
 
 ## Verification Commands
 
