@@ -310,16 +310,19 @@ against `src-tauri/icons/icon.icns`, and can require `codesign --verify` for
 packaged apps. The GitHub release workflow runs this after producing signed
 macOS artifacts for both Apple Silicon and Intel targets.
 
-`scripts/build-release-pages.mjs` is the release-page guard. After tagged
-release assets are uploaded, the workflow reads GitHub Release metadata,
-downloads the `.app.tar.gz.sig` contents through the GitHub asset API, writes
-Tauri static updater manifests under `stable/latest.json` or `alpha/latest.json`,
-and emits small download pages that prefer the DMG for manual installs. When
-both macOS architectures exist, the generated page requires an explicit Apple
-Silicon vs Intel choice instead of redirecting generic Mac browsers to whichever
-asset happens to appear first. The self-test is part of CI and pre-push so
-update feeds cannot be documented as ready without a generator that knows the
-required signature shape.
+`scripts/build-release-pages.mjs` is the release-page guard. It delegates the
+manifest/page model to `scripts/release-pages-core.mjs` and keeps the fixture
+self-test in `scripts/release-pages-self-test.mjs`, so the public release
+generator stays below the source-file size guardrail. After tagged release
+assets are uploaded, the workflow reads GitHub Release metadata, downloads the
+`.app.tar.gz.sig` contents through the GitHub asset API, writes Tauri static
+updater manifests under `stable/latest.json` or `alpha/latest.json`, and emits
+small download pages that prefer the DMG for manual installs. When both macOS
+architectures exist, the generated page requires an explicit Apple Silicon vs
+Intel choice instead of redirecting generic Mac browsers to whichever asset
+happens to appear first. The self-test is part of CI and pre-push so update
+feeds cannot be documented as ready without a generator that knows the required
+signature shape.
 
 ## Platform Direction
 
