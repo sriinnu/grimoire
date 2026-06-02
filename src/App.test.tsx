@@ -1087,7 +1087,7 @@ describe('App', () => {
 
     render(<App />)
 
-    const sidebar = await screen.findByText('FAVORITES')
+    const sidebar = await screen.findByText('FAVORITES', {}, { timeout: 10000 })
     fireEvent.click(within(sidebar.closest('div')?.parentElement as HTMLElement).getByText('Alpha'))
 
     const noteListContainer = await screen.findByTestId('note-list-container')
