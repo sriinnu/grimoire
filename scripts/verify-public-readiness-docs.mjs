@@ -142,15 +142,15 @@ function verifyBinaryInstallTruth() {
   )
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /The branch pre-push gate passed on 2026-06-02: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, 4,597 frontend tests, Markdown editor JS\/Swift parity, and Rust clippy\/fmt\./u,
-    'current local pre-push evidence without a self-staling commit hash',
+    /The branch pre-push gate is the local evidence lane: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, the frontend test suite, and any change-scoped editor or Rust lanes required by the hook\./u,
+    'durable local pre-push evidence without a self-staling test count',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from a self-staling commit hash in this file.',
+    'Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from self-staling commit hashes or hardcoded test counts in this file.',
     'durable current-head evidence boundary',
   )
-  assertContains('docs/PUBLIC-READINESS.md', '4,597 frontend tests')
+  assertContains('docs/PUBLIC-READINESS.md', 'hardcoded test counts')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
   assertContains('docs/PUBLIC-READINESS.md', 'Release-mode lookup no longer falls back to the source checkout')
@@ -182,13 +182,18 @@ function verifyBinaryInstallTruth() {
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'This section records representative hosted CI evidence.',
-    'representative hosted CI evidence boundary',
+    'This section records the hosted CI failure mode, not a frozen latest commit.',
+    'durable hosted CI evidence boundary',
   )
-  assertMatch(
+  assertContains(
     'docs/PUBLIC-READINESS.md',
-    /Run `\d+` for signed commit\n`[0-9a-f]{40}` failed before\ncheckout\/build\/test on 2026-06-02 Europe\/Vienna\./u,
-    'representative hosted CI run and commit evidence',
+    'readiness audit reports the current run id and verifies that the failed run',
+    'live hosted CI audit evidence',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'executed zero workflow steps.',
+    'zero-step hosted CI evidence',
   )
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
   assertNotMatch('docs/PUBLIC-READINESS.md', /97b824f7839ab94ef09b07a6b95f767936de262f/u, 'the superseded starter-vault head')
