@@ -4,56 +4,68 @@
 
 <p align="center">
   <img alt="Repository visibility: public source" src="https://img.shields.io/badge/source-public-blue" />
-  <img alt="Main CI: not green yet" src="https://img.shields.io/badge/main%20CI-not%20green%20yet-orange" />
+  <img alt="Main CI: green on pinned OS matrix" src="https://img.shields.io/badge/main%20CI-green%20on%20pinned%20OS%20matrix-brightgreen" />
   <img alt="Public binary release: not published" src="https://img.shields.io/badge/public%20binary-not%20published-lightgrey" />
 </p>
 
 # Grimoire
 
-Grimoire is a local-first memory studio for journals, project work, graph
-sensemaking, markdown editing, and AI collaborators that can read the same vault
-structure you do.
+Grimoire is a local-first memory workbench for people who want their notes,
+journals, projects, graph, and AI collaborators to share the same durable
+substrate: plain markdown, frontmatter, wikilinks, folders, and Git history.
 
-It is not a public installer yet. It is not a hosted notes service. It is source
-you can run today, with public-release blockers tracked openly.
+It is not a hosted notes service. It is not a public installer yet. Today,
+Grimoire is public source you can run, inspect, and help harden while the real
+release blockers are tracked in the open.
 
 Grimoire is created and maintained by **Srinivas Pendela**
 ([@sriinnu](https://x.com/sriinnu)).
 
-## What It Is
+## Why It Exists
 
-Grimoire keeps the durable contract boring on purpose: markdown files,
-frontmatter, wikilinks, local folders, and Git history. The app adds richer
-surfaces on top of that structure:
+Most tools split memory into disconnected surfaces: a journal here, a task list
+there, a project folder somewhere else, and an AI chat that forgets the shape of
+the work as soon as the session ends.
 
-- **Daily memory**: quick capture, journals, dreams, dated notes, weather/time
-  context, and review-oriented workflows.
-- **Workbench**: projects, people, procedures, decisions, sources, tasks,
-  frontmatter, saved views, and typed notes.
-- **Editor**: BlockNote rich editing, raw CodeMirror editing, markdown math,
+Grimoire keeps those surfaces together without hiding the data model. The app
+can feel rich and native, but the long-lived contract stays boring on purpose:
+files you can read, links you can grep, history you can diff, and vaults you can
+carry elsewhere.
+
+## What You Can Explore
+
+- **Daily flow**: capture, reflect, organize, and crystallize notes with a
+  review-oriented dashboard, quick capture, journals, dreams, events, and dated
+  memory surfaces.
+- **Vault workbench**: projects, people, procedures, decisions, tasks, sources,
+  custom note types, frontmatter, saved views, filters, sorting, and columns.
+- **Markdown editor**: BlockNote rich editing, raw CodeMirror editing, math,
   wikilinks, slash commands, code blocks, YAML, images, and shared markdown
-  semantics.
-- **Graph**: active-note Neighborhood mode, whole-vault graph mode, relationship
-  and wikilink edges, type-colored nodes, filters, and large-vault caps.
-- **Search**: sidebar Spotlight search across open-vault text/docs, note-list
-  search, filters, custom columns, sorting, and saved views.
-- **AI workspace**: Claude Code, Codex, and Chitragupta CLI panels with
-  route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work.
-- **Native shell**: Tauri desktop app, macOS menu/window work, platform-specific
-  settings copy, update-feed preferences, local-only vault support, and a source
-  doctor for development setup.
+  semantics across editor modes.
+- **Graph and topography**: active-note neighborhood view, whole-vault graph,
+  wikilink and relationship edges, type-colored nodes, filters, and large-vault
+  caps.
+- **Sidebar Spotlight search**: project-text search across the open vault,
+  note-list search, metadata filters, and saved views.
+- **Agent workspace**: Claude Code, Codex, and Chitragupta CLI panels with
+  route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work, not public-complete claims.
+- **Native shell**: Tauri desktop app, local vault switching, macOS menu/window
+  work, platform-specific settings copy, update-feed preferences, and source
+  setup diagnostics.
 
 ## Current Truth
+
+Snapshot date: 2026-06-02.
 
 | Area | Current state |
 | --- | --- |
 | Source repository | Public. |
 | Public binary installers | Not published. There is no public packaged release yet. |
-| Update feeds | Not published. Stable and alpha feed URLs still 404 until real release assets are generated. |
+| Update feeds | Not published. Stable and alpha feed URLs still return 404 until real release assets are generated and deployed. |
 | Local macOS source/dev | Locally exercised and the active development host. |
 | Windows source/dev | Known cfg and SQLite link failures were fixed in source, and hosted Windows Build has passed, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
 | Linux source/dev | Intended source target with documented Tauri dependencies, pending fresh platform QA. |
-| Hosted CI | Live-audited, not hardcoded here. Latest `main` is still not green yet; readiness-branch CI must be checked with the audit command before making public claims. |
+| Hosted CI | Live-audited. Latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners; rerun the public-readiness audit before making public claims. |
 | Release readiness | Blocked by missing release secrets, missing GitHub Releases, and missing update feeds. |
 
 Run the live audit before advertising Grimoire publicly:
@@ -78,8 +90,8 @@ pnpm doctor:source
 pnpm dev
 ```
 
-Browser source mode needs Node, pnpm 10+, and Git. It runs the app in Vite mock
-mode and is the fastest way to inspect most UI behavior.
+Browser source mode needs Node, pnpm 10+, and Git. It runs the app through Vite
+and is the fastest way to inspect most UI behavior.
 
 Run the native desktop app:
 
@@ -88,20 +100,22 @@ pnpm tauri dev
 ```
 
 Native Tauri mode also needs Rust and platform-specific desktop dependencies.
-On Windows, `pnpm doctor:source` checks for the MSVC Rust host and Microsoft C++
-Build Tools (`cl.exe`), and it warns when the evergreen WebView2 runtime is not
-detected. On Linux, the doctor checks pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
-4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
+`pnpm doctor:source` separates browser source readiness from native desktop
+readiness so setup failures are easier to diagnose.
 
-Linux and Windows are source-build targets, not public-support claims, until hosted CI and platform QA
-prove them on those operating systems. On Windows,
-earlier source runs exposed macOS-only menu/reopen guards and a missing
-`sqlite3.lib` linker dependency. For those issues, the current source tree contains guards for those paths
-and bundles SQLite through `rusqlite` instead of requiring a separate Windows
+On Windows, the doctor checks for the MSVC Rust host and Microsoft C++ Build
+Tools (`cl.exe`), and it warns when the evergreen WebView2 runtime is not
+detected. Earlier Windows source runs exposed macOS-only menu/reopen guards and
+a missing `sqlite3.lib` linker dependency. For those issues, the current source tree contains guards for those paths and bundles SQLite through `rusqlite` instead of requiring a separate Windows
 SQLite import library, but fresh Windows native launch evidence is still
 required before this README can call Windows verified.
 
-Linux package examples and the fuller codebase map are in
+On Linux, the doctor checks pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
+4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
+
+Linux and Windows are source-build targets, not public-support claims, until hosted CI and platform QA prove them on those operating systems.
+
+Full setup notes and Linux package examples are in
 [Getting Started](docs/GETTING-STARTED.md).
 
 ## Starter Vault
@@ -114,8 +128,19 @@ If GitHub is unavailable, packaged apps fall back to the bundled
 `starter-vault` resource. In this repository, `demo-vault-v2/` is the tracked
 mirror used for tests, development, and review.
 
-The starter vault is a showcase and QA fixture. It demonstrates real surfaces,
-but it is not proof that every surface is feature-complete.
+The starter vault is both a showcase and a QA fixture. It demonstrates real
+surfaces in the app, but it is not proof that every surface is feature-complete.
+
+## AI And Privacy
+
+Grimoire is local-first. Vault contents live in folders you choose, not in a
+hosted Grimoire account. API keys, signing keys, certificates, local vault
+contents, and machine-specific config should never be committed.
+
+Agent surfaces are intentionally explicit about boundaries. CLI chat panels and
+external-provider settings are not the same thing as finished Chitragupta MCP
+memory or source-backed write tooling. When those contracts are public-ready,
+the readiness doc should say so with tests and live evidence.
 
 ## Development Checks
 
@@ -127,6 +152,7 @@ pnpm exec tsc --noEmit
 pnpm test
 pnpm build
 pnpm test:public-doc-links
+pnpm test:public-readiness-docs
 pnpm test:rust-platform-guards
 pnpm test:starter-vault
 cargo test --manifest-path src-tauri/Cargo.toml

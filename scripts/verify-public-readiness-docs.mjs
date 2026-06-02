@@ -78,10 +78,17 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| CI runner images | Ready |')
   assertContains('docs/PUBLIC-READINESS.md', '`macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026`')
   assertContains('README.md', 'https://img.shields.io/badge/source-public-blue')
-  assertContains('README.md', 'https://img.shields.io/badge/main%20CI-not%20green%20yet-orange')
+  assertContains('README.md', 'https://img.shields.io/badge/main%20CI-green%20on%20pinned%20OS%20matrix-brightgreen')
   assertContains('README.md', 'Hosted CI')
-  assertContains('README.md', 'Live-audited, not hardcoded here')
-  assertContains('README.md', 'readiness-branch CI must be checked with the audit command')
+  assertContains('README.md', 'Live-audited. Latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners')
+  assertContains('docs/PUBLIC-READINESS.md', 'latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners')
+  assertContains('docs/PUBLIC-READINESS.md', 'pnpm audit:public-readiness -- --branch main')
+  assertNotMatch('README.md', /main%20CI-not%20green%20yet-orange/iu, 'stale non-green main CI badge')
+  assertNotMatch('README.md', /Latest `main` is still not green yet/iu, 'stale non-green main CI wording')
+  assertNotMatch('README.md', /readiness-branch CI must be checked/iu, 'stale readiness branch CI wording')
+  assertNotMatch('docs/PUBLIC-READINESS.md', /latest `main` CI is not green yet/iu, 'stale non-green main CI readiness wording')
+  assertNotMatch('docs/PUBLIC-READINESS.md', /post-merge green `main` run/iu, 'stale post-merge main CI wording')
+  assertNotMatch('docs/PUBLIC-READINESS.md', /docs\/public-readiness-truth/iu, 'stale readiness branch audit target')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks')
   assertContains('docs/PUBLIC-READINESS.md', 'libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana')
@@ -136,7 +143,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc links | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Signed branch HEAD | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Clean release tree | Verified |')
-  assertContains('docs/PUBLIC-READINESS.md', 'checks that the current branch HEAD has a good Git signature before public release can pass')
+  assertContains('docs/PUBLIC-READINESS.md', 'checks that the audited branch HEAD has a good Git signature before public release can pass')
   assertContains('docs/PUBLIC-READINESS.md', 'signed but dirty local tree cannot pass public release readiness')
   assertContains('docs/PUBLIC-READINESS.md', '| Live readiness audit | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Release preflight | Blocked |')
@@ -175,7 +182,7 @@ function verifyBinaryInstallTruth() {
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from self-staling commit hashes or hardcoded test counts in this file.',
+    'Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch main`, not from self-staling commit hashes or hardcoded test counts in this file.',
     'durable current-head evidence boundary',
   )
   assertContains('docs/PUBLIC-READINESS.md', 'hardcoded test counts')
@@ -231,7 +238,7 @@ function verifyBinaryInstallTruth() {
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
   assertNotMatch('docs/PUBLIC-READINESS.md', /97b824f7839ab94ef09b07a6b95f767936de262f/u, 'the superseded starter-vault head')
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
-  assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before main CI is green')
+  assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before public badge endpoints are verified')
   assertNotMatch('README.md', /codecov\.io\/gh\/sriinnu\/grimoire\/graph\/badge\.svg/iu, 'dynamic Codecov badge before coverage publication is verified')
   assertNotMatch('README.md', /codescene\.io\/projects\/76865\/status-badges/iu, 'dynamic CodeScene badge before CodeScene access is verified')
 }
