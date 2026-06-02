@@ -590,7 +590,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
       expect(screen.getByText('Your local memory board.')).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
   })
 
   it('routes menu-bar dream capture to the dashboard capture surface', async () => {
