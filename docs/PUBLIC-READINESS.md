@@ -10,7 +10,7 @@ below are resolved and re-verified.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `b3c9170` adds the Sidebar Spotlight project-text fixture. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
+| Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `254e687` includes the Sidebar Spotlight project-text fixture plus the Chitragupta CLI/MCP readiness boundary. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
 | Starter showcase structure | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, requires every advertised surface row to link to a real demo note, validates scenario files, and resolves internal wikilinks for `demo-vault-v2/`. This is structural proof for the showcase, not a claim that every advertised app surface is feature-complete. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` now also shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`, ignoring only documented public-only files such as `README.md` and `LICENSE`. |
 | Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures, including Windows MSVC Rust host, Microsoft C++ Build Tools, and Linux pkg-config checks for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1, xdo, OpenSSL, librsvg, and AppIndicator/Ayatana. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
@@ -69,8 +69,8 @@ Verified on 2026-06-02:
 
 ```bash
 git ls-remote https://github.com/sriinnu/grimoire-getting-started.git HEAD refs/heads/main
-git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-verify-b3c9170
-pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-b3c9170
+git clone --depth 1 https://github.com/sriinnu/grimoire-getting-started.git /private/tmp/grimoire-starter-verify-254e687
+pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-254e687
 ```
 
 ## Hosted CI Evidence

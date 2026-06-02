@@ -59,7 +59,7 @@ roadmap, not a packaged-release claim yet.
 - Inspector for frontmatter, relationships, backlinks, instances, note metadata, and git history
 - Knowledge graph with local/vault scope, relationship/wikilink edge filters, type-colored nodes, and large-vault caps
 - Weather snapshot command for journal entries using explicit user-provided location
-- Claude Code, Codex, and Chitragupta CLI agent panel with route/status disclosure; Chitragupta MCP memory, recall, wiki, graph, ingest, and diagnostics remain readiness-gated contract work
+- Claude Code, Codex, and Chitragupta CLI agent panel with route/status disclosure; Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work
 - Git history, commit/push/pull/conflict flows, and local-only Git repositories without a remote
 - Light/dark mode, multiple theme presets, and editor font choices
 - English and Simplified Chinese UI foundations
