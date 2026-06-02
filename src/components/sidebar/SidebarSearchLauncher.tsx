@@ -14,26 +14,28 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
   if (!onOpenSearch) return null
 
   const shortcut = getAppCommandShortcutDisplay(APP_COMMAND_IDS.editFindInVault) ?? ''
-  const title = shortcut ? `Search open vaults (${shortcut})` : 'Search open vaults'
+  const title = shortcut
+    ? `Search open vaults, docs, and project text (${shortcut})`
+    : 'Search open vaults, docs, and project text'
 
   return (
-    <div className="border-b border-border px-2 py-2" data-testid="sidebar-search-launcher">
+    <div className="border-b border-border px-2.5 py-2" data-testid="sidebar-search-launcher">
       <Button
         type="button"
         variant="ghost"
-        className="group h-auto min-h-14 w-full justify-start gap-2.5 rounded-lg border border-border/70 bg-background/55 px-2.5 py-2 text-left text-muted-foreground shadow-xs transition-colors hover:border-primary/35 hover:bg-accent/75 hover:text-foreground"
+        className="group h-auto min-h-11 w-full justify-start gap-2 rounded-xl border border-border/75 bg-background/70 px-2.5 py-2 text-left text-muted-foreground shadow-xs transition-colors hover:border-primary/40 hover:bg-accent/80 hover:text-foreground"
         onClick={onOpenSearch}
-        aria-label="Search open vaults"
+        aria-label="Search open vaults, docs, and project text"
         title={title}
         data-testid="sidebar-search-button"
       >
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border/60 bg-background/80 text-muted-foreground shadow-xs transition-colors group-hover:border-primary/30 group-hover:text-primary">
-          <Search size={15} strokeWidth={2.25} aria-hidden="true" />
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg border border-border/60 bg-background/85 text-muted-foreground shadow-xs transition-colors group-hover:border-primary/35 group-hover:text-primary">
+          <Search size={14} strokeWidth={2.3} aria-hidden="true" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[12px] font-semibold text-foreground">Search vaults</span>
-          <span className="block truncate text-[10.5px] font-medium text-muted-foreground">
-            Notes, docs, text files
+          <span className="block truncate text-[12px] font-semibold text-foreground">Search open vaults...</span>
+          <span className="block truncate text-[10.5px] font-medium text-muted-foreground group-hover:text-muted-foreground">
+            Notes, docs, code, text
           </span>
         </span>
         {shortcut ? (
