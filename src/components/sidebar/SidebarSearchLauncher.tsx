@@ -1,49 +1,48 @@
 import { Search } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  APP_COMMAND_IDS,
-  getAppCommandShortcutDisplay,
-} from '../../hooks/appCommandCatalog'
+import type { KeyboardEvent } from 'react'
+import { Input } from '@/components/ui/input'
 
 interface SidebarSearchLauncherProps {
-  onOpenSearch?: () => void
+  onOpenSearch?: (initialQuery?: string) => void
+}
+
+function keyboardSeed(event: KeyboardEvent<HTMLInputElement>): string | null {
+  if (event.metaKey || event.ctrlKey || event.altKey) return null
+  if (event.key === 'Enter' || event.key === ' ') return ''
+  return event.key.length === 1 ? event.key : null
 }
 
 /** Opens the open-vault Spotlight search from the left sidebar. */
 export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherProps) {
   if (!onOpenSearch) return null
 
-  const shortcut = getAppCommandShortcutDisplay(APP_COMMAND_IDS.editFindInVault) ?? ''
-  const title = shortcut
-    ? `Open Spotlight search across open vaults, docs, and project text (${shortcut})`
-    : 'Open Spotlight search across open vaults, docs, and project text'
-
   return (
-    <div className="border-b border-border px-2.5 py-2.5" data-testid="sidebar-search-launcher">
-      <Button
-        type="button"
-        variant="ghost"
-        className="group h-auto min-h-12 w-full justify-start gap-2.5 rounded-2xl border border-border/75 bg-background/75 px-3 py-2.5 text-left text-muted-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] transition-colors hover:border-primary/45 hover:bg-accent/85 hover:text-foreground"
-        onClick={onOpenSearch}
-        aria-label="Open Spotlight search across open vaults, docs, and project text"
-        title={title}
-        data-testid="sidebar-search-button"
-      >
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-border/60 bg-background/90 text-muted-foreground shadow-xs transition-colors group-hover:border-primary/40 group-hover:text-primary">
-          <Search size={15} strokeWidth={2.35} aria-hidden="true" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[12px] font-semibold text-foreground">Spotlight search</span>
-          <span className="block truncate text-[10.5px] font-medium text-muted-foreground group-hover:text-muted-foreground">
-            Open vaults · docs · text
-          </span>
-        </span>
-        {shortcut ? (
-          <kbd className="shrink-0 rounded-lg border border-border/70 bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
-            {shortcut}
-          </kbd>
-        ) : null}
-      </Button>
+    <div className="border-b border-border px-2.5 py-2" data-testid="sidebar-search-launcher">
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground"
+          size={15}
+          strokeWidth={2.3}
+          aria-hidden="true"
+        />
+        <Input
+          type="search"
+          readOnly
+          value=""
+          placeholder="Search open vaults..."
+          className="h-10 cursor-pointer rounded-xl border-border/75 bg-background/75 pl-9 pr-3 text-[12px] font-semibold text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
+          onClick={() => onOpenSearch()}
+          onKeyDown={(event) => {
+            const seed = keyboardSeed(event)
+            if (seed === null) return
+            event.preventDefault()
+            onOpenSearch(seed)
+          }}
+          aria-label="Search open vaults"
+          title="Search open vaults"
+          data-testid="sidebar-search-input"
+        />
+      </div>
     </div>
   )
 }

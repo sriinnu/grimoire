@@ -15,6 +15,8 @@ interface SearchPanelProps {
   open: boolean
   vaultPath: string
   vaultScopes?: SearchVaultScope[]
+  initialQuery?: string
+  openKey?: number
   entries: VaultEntry[]
   onSelectNote: (entry: VaultEntry) => void
   onSelectSearchResult?: (result: SearchResult) => void
@@ -54,6 +56,8 @@ export function SearchPanel({
   open,
   vaultPath,
   vaultScopes,
+  initialQuery = '',
+  openKey = 0,
   entries,
   onSelectNote,
   onSelectSearchResult,
@@ -61,7 +65,7 @@ export function SearchPanel({
 }: SearchPanelProps) {
   const {
     query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs,
-  } = useUnifiedSearch(vaultPath, open, vaultScopes)
+  } = useUnifiedSearch(vaultPath, open, vaultScopes, initialQuery, openKey)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)

@@ -28,7 +28,7 @@ test.describe('Sidebar Spotlight search', () => {
   })
 
   test('finds project text from the left sidebar search @smoke', async ({ page }) => {
-    const sidebarSearch = page.getByTestId('sidebar-search-button')
+    const sidebarSearch = page.getByTestId('sidebar-search-input')
     await expect(sidebarSearch).toBeVisible()
 
     await sidebarSearch.click()
@@ -47,5 +47,16 @@ test.describe('Sidebar Spotlight search', () => {
     await expect(page.getByTestId('breadcrumb-filename-trigger')).toContainText('spotlight-proof', {
       timeout: 5_000,
     })
+  })
+
+  test('seeds Spotlight from a typed sidebar key', async ({ page }) => {
+    const sidebarSearch = page.getByTestId('sidebar-search-input')
+    await expect(sidebarSearch).toBeVisible()
+
+    await sidebarSearch.press('s')
+
+    const searchInput = page.getByPlaceholder('Search notes, docs, and project files...')
+    await expect(searchInput).toBeFocused()
+    await expect(searchInput).toHaveValue('s')
   })
 })

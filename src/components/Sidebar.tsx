@@ -52,7 +52,7 @@ interface SidebarProps {
   collapsed?: boolean
   onCollapse?: () => void
   onExpand?: () => void
-  onOpenSearch?: () => void
+  onOpenSearch?: (initialQuery?: string) => void
 }
 
 export const Sidebar = memo(function Sidebar({

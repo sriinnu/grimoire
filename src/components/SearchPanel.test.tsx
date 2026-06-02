@@ -151,6 +151,36 @@ describe('SearchPanel', () => {
     })
   })
 
+  it('starts searching from a sidebar-seeded query', async () => {
+    mockInvokeFn.mockResolvedValue({
+      results: [
+        { title: 'Refactoring Retreat', path: '/vault/event/retreat.md', snippet: 'Roadmap retreat hit', score: 0.87, note_type: 'Event' },
+      ],
+      elapsed_ms: 21,
+    })
+
+    render(
+      <SearchPanel
+        open={true}
+        vaultPath="/vault"
+        initialQuery="roadmap"
+        openKey={1}
+        entries={MOCK_ENTRIES}
+        onSelectNote={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByPlaceholderText('Search notes, docs, and project files...')).toHaveValue('roadmap')
+
+    await waitFor(() => {
+      expect(mockInvokeFn).toHaveBeenCalledWith('search_vault', expect.objectContaining({
+        query: 'roadmap',
+      }))
+      expect(screen.getByText('Refactoring Retreat')).toBeInTheDocument()
+    })
+  })
+
   it('searches every open vault scope and delegates inactive-vault selection', async () => {
     mockInvokeFn.mockImplementation(async (_cmd: string, args?: Record<string, unknown>) => {
       if (args?.vaultPath === '/work') {
