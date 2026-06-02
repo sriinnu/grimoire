@@ -76,10 +76,12 @@ MSVC toolchain and Microsoft's Desktop development with C++ workload before
 rerunning `pnpm tauri dev`.
 
 Packaged desktop apps also try to start Grimoire's local MCP WebSocket bridge
-from the bundled `mcp-server` resource. Node.js must be available on `PATH` for
-that optional external-AI bridge to run, but normal vault browsing and editing
-must still open without it. A Windows recheck should cover both app launch and
-bridge status after `pnpm tauri build`.
+from the bundled `mcp-server` resource. Node.js must be discoverable on `PATH`
+or in common Node install locations for that optional external-AI bridge to run,
+but normal vault browsing and editing must still open without it. Grimoire checks
+Homebrew, `/usr/local`, Volta, nvm, nvm-windows, Program Files, LocalAppData, and
+Scoop-style Node locations before treating the bridge as unavailable. A Windows
+recheck should cover both app launch and bridge status after `pnpm tauri build`.
 
 ## Linux Dependencies
 

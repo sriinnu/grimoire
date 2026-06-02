@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command};
 
@@ -23,9 +24,8 @@ pub(crate) fn find_node() -> Result<PathBuf, String> {
         .output()
         .map_err(|e| format!("Failed to locate node on PATH: {e}"))?;
     if output.status.success() {
-        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if !path.is_empty() {
-            return Ok(PathBuf::from(path));
+        if let Some(path) = first_node_lookup_path(&output.stdout) {
+            return Ok(path);
         }
     }
 
@@ -46,14 +46,51 @@ fn node_lookup_command() -> Command {
     command
 }
 
+fn first_node_lookup_path(stdout: &[u8]) -> Option<PathBuf> {
+    String::from_utf8_lossy(stdout)
+        .lines()
+        .map(str::trim)
+        .find(|line| !line.is_empty())
+        .map(PathBuf::from)
+}
+
 fn fallback_node_path() -> Option<PathBuf> {
+    fallback_node_candidates()
+        .into_iter()
+        .find(|path| path.is_file())
+}
+
+fn fallback_node_candidates() -> Vec<PathBuf> {
+    fallback_node_candidates_for(dirs::home_dir().as_deref(), |key| std::env::var_os(key))
+}
+
+fn fallback_node_candidates_for(
+    home: Option<&Path>,
+    env_var: impl Fn(&str) -> Option<OsString>,
+) -> Vec<PathBuf> {
     let mut candidates = vec![
         PathBuf::from("/opt/homebrew/bin/node"),
         PathBuf::from("/usr/local/bin/node"),
     ];
 
-    if let Some(home) = dirs::home_dir() {
+    if let Some(path) = env_var("NVM_SYMLINK") {
+        candidates.push(PathBuf::from(path).join("node.exe"));
+    }
+    if let Some(path) = env_var("LOCALAPPDATA") {
+        candidates.push(PathBuf::from(path).join("Programs/nodejs/node.exe"));
+    }
+    if let Some(path) = env_var("ProgramFiles") {
+        candidates.push(PathBuf::from(path).join("nodejs/node.exe"));
+    }
+    if let Some(path) = env_var("ProgramFiles(x86)") {
+        candidates.push(PathBuf::from(path).join("nodejs/node.exe"));
+    }
+
+    if let Some(home) = home {
         candidates.push(home.join(".volta").join("bin").join("node"));
+        candidates.push(home.join("AppData/Local/Volta/bin/node.exe"));
+        candidates.push(home.join("scoop/apps/nodejs/current/node.exe"));
+        candidates.push(home.join("scoop/apps/nodejs-lts/current/node.exe"));
 
         let nvm_dir = home.join(".nvm").join("versions").join("node");
         if let Ok(entries) = std::fs::read_dir(nvm_dir) {
@@ -70,7 +107,7 @@ fn fallback_node_path() -> Option<PathBuf> {
         }
     }
 
-    candidates.into_iter().find(|path| path.is_file())
+    candidates
 }
 
 /// Spawn the WebSocket bridge as a child process.
