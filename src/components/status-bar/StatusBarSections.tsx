@@ -22,6 +22,7 @@ import { BuildNumberButton } from './BuildNumberButton'
 import { SpandaRailIntent } from './SpandaRailIntent'
 import { StatusBarGroup } from './StatusBarGroup'
 import type { VaultOption } from './types'
+import type { VaultOpeningState } from './VaultMenu'
 import { VaultMenu } from './VaultMenu'
 
 const AddRemoteModalSurface = lazy(async () => ({ default: (await import('../AddRemoteModal')).AddRemoteModal }))
@@ -30,6 +31,7 @@ interface StatusBarPrimarySectionProps {
   modifiedCount: number
   vaultPath: string
   vaults: VaultOption[]
+  openingVault?: VaultOpeningState | null
   onSwitchVault: (path: string) => void
   onOpenLocalFolder?: () => void
   onCreateEmptyVault?: () => void
@@ -227,6 +229,7 @@ export function StatusBarPrimarySection({
   modifiedCount,
   vaultPath,
   vaults,
+  openingVault,
   onSwitchVault,
   onOpenLocalFolder,
   onCreateEmptyVault,
@@ -296,6 +299,7 @@ export function StatusBarPrimarySection({
         <VaultMenu
           vaults={vaults}
           vaultPath={vaultPath}
+          openingVault={openingVault}
           onSwitchVault={onSwitchVault}
           onOpenLocalFolder={onOpenLocalFolder}
           onCreateEmptyVault={onCreateEmptyVault}

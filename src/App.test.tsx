@@ -1195,6 +1195,45 @@ describe('App', () => {
     })
   })
 
+  it('returns to the shell with a toast when a bottom-bar vault switch fails to load', async () => {
+    const switchLoad = createDeferred<typeof mockEntries>()
+    mockCommandResults.load_vault_list = {
+      vaults: [
+        { label: 'Test Vault', path: '/work' },
+        { label: 'Work Vault', path: '/vault-2' },
+      ],
+      active_vault: '/work',
+      hidden_defaults: [],
+    }
+    mockCommandResults.list_vault = (args?: { path?: string }) =>
+      args?.path === '/vault-2' ? switchLoad.promise : mockEntries
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Test Vault')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
+    fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Switching vault')).toBeInTheDocument()
+      expect(screen.getByText('Opening Work Vault')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      switchLoad.reject(new Error('cannot read vault'))
+      await expect(switchLoad.promise).rejects.toThrow('cannot read vault')
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Switching vault')).not.toBeInTheDocument()
+      expect(screen.getByTestId('status-vault-trigger')).toBeInTheDocument()
+      expect(screen.getByText('Could not open Work Vault: cannot read vault')).toBeInTheDocument()
+    })
+  })
+
   it('Cmd+1 hides sidebar and note list (editor-only mode)', async () => {
     render(<App />)
     await selectSidebarNav('All Notes')
