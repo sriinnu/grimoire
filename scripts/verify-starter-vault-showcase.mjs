@@ -191,6 +191,63 @@ function verifySidebarSpotlightShowcase() {
   }
 }
 
+function assertContentIncludes(content, needle, label) {
+  if (!content.includes(needle)) fail(`${label} must include: ${needle}`)
+}
+
+function assertFrontmatter(path, key, expectedValue, label) {
+  const value = frontmatterScalar(readText(join(DEMO_VAULT_DIR, path)), key)
+  if (value !== expectedValue) fail(`${label} must have ${key}: ${expectedValue}`)
+}
+
+function verifyTimeLoomShowcase(manifest) {
+  const scenario = (manifest.scenarios ?? []).find((item) => item.id === 'journal-time-loom-substrate')
+  if (!scenario) fail('manifest must include the journal-time-loom-substrate scenario')
+  const scenarioFiles = new Set(scenario.files ?? [])
+  for (const file of [
+    'grimoire-calendar-time-loom.md',
+    'grimoire-journal-demo-2026-05-31.md',
+    'grimoire-dream-demo-2026-05-31.md',
+    'event-team-sync-2025-01-13.md',
+  ]) {
+    if (!scenarioFiles.has(file)) fail(`journal-time-loom-substrate scenario must include ${file}`)
+  }
+
+  const featureTour = readText(join(DEMO_VAULT_DIR, 'grimoire-feature-tour.md'))
+  const timeLoomRow = featureTourRows(featureTour)
+    .find((row) => row.surface === 'Calendar and Time Loom')
+  if (!timeLoomRow) fail('feature tour must include the Calendar and Time Loom row')
+  if (timeLoomRow.demoNote !== '[[grimoire-calendar-time-loom]]') {
+    fail('Calendar and Time Loom row must link to the dedicated Time Loom demo note')
+  }
+  assertContentIncludes(
+    timeLoomRow.action,
+    'Journal, Dream, and Event metadata',
+    'Calendar and Time Loom feature-tour action',
+  )
+
+  const timeLoomNote = readText(join(DEMO_VAULT_DIR, 'grimoire-calendar-time-loom.md'))
+  for (const needle of [
+    'metadata-only calendar substrate',
+    'without needing to expose private note titles or bodies',
+    '[[grimoire-journal-demo-2026-05-31]]',
+    '[[grimoire-dream-demo-2026-05-31]]',
+    '[[event-team-sync-2025-01-13]]',
+    'The dashboard can count "Journal 1", "Dream 1", or "Calendar 1"',
+  ]) {
+    assertContentIncludes(timeLoomNote, needle, 'Time Loom demo note')
+  }
+
+  assertFrontmatter('grimoire-journal-demo-2026-05-31.md', 'type', 'Journal', 'Journal demo')
+  assertFrontmatter('grimoire-journal-demo-2026-05-31.md', 'date', '2026-05-31', 'Journal demo')
+  assertFrontmatter('grimoire-journal-demo-2026-05-31.md', 'egress-blocked', 'true', 'Journal demo')
+  assertFrontmatter('grimoire-dream-demo-2026-05-31.md', 'type', 'Dream', 'Dream demo')
+  assertFrontmatter('grimoire-dream-demo-2026-05-31.md', 'date', '2026-05-31', 'Dream demo')
+  assertFrontmatter('grimoire-dream-demo-2026-05-31.md', 'egress-blocked', 'true', 'Dream demo')
+  assertFrontmatter('event-team-sync-2025-01-13.md', 'type', 'Event', 'Event demo')
+  assertFrontmatter('event-team-sync-2025-01-13.md', 'date', '2025-01-13', 'Event demo')
+}
+
 function verifyWikilinks(root) {
   const files = markdownFiles(root)
   const targets = indexedTargets(files, root)
@@ -255,6 +312,7 @@ try {
   verifyManifest(manifest)
   verifyFeatureTour(manifest)
   verifySidebarSpotlightShowcase()
+  verifyTimeLoomShowcase(manifest)
   verifyWikilinks(DEMO_VAULT_DIR)
   if (config.publicClonePath) verifyPublicClone(config.publicClonePath, manifest)
   console.log('[starter-vault-showcase] ok')
