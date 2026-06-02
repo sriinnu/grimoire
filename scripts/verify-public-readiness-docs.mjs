@@ -152,7 +152,7 @@ function verifyBinaryInstallTruth() {
   )
   assertMatch(
     'docs/PUBLIC-READINESS.md',
-    /Run `\d+` for commit `[0-9a-f]{40}`\nfailed before checkout\/build\/test on 2026-06-01 UTC \(2026-06-02 Europe\/Vienna\)\./u,
+    /Run `\d+` for signed commit\n`[0-9a-f]{40}` failed before\ncheckout\/build\/test on 2026-06-02 Europe\/Vienna\./u,
     'representative hosted CI run and commit evidence',
   )
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
