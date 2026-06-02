@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { dirname, extname, join, resolve } from 'node:path'
+import { dirname, extname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
@@ -134,7 +134,7 @@ async function verifyLinks(files, rootDir = REPO_ROOT) {
       const target = localTarget(link)
       if (!target) continue
       const targetPath = resolve(dirname(file), target)
-      if (targetPath === rootDir || !targetPath.startsWith(`${rootDir}/`)) {
+      if (!isInsideRoot(targetPath, rootDir)) {
         issues.push(`${relativePath(file, rootDir)} links outside repo: ${link}`)
         continue
       }
@@ -146,8 +146,17 @@ async function verifyLinks(files, rootDir = REPO_ROOT) {
   return issues
 }
 
+function isInsideRoot(path, rootDir = REPO_ROOT) {
+  const relativeTarget = relative(rootDir, path)
+  return relativeTarget !== '' && !relativeTarget.startsWith('..') && !isAbsolute(relativeTarget)
+}
+
 function relativePath(path, rootDir = REPO_ROOT) {
-  return path.startsWith(`${rootDir}/`) ? path.slice(rootDir.length + 1) : path
+  const relativeTarget = relative(rootDir, path)
+  if (relativeTarget !== '' && !relativeTarget.startsWith('..') && !isAbsolute(relativeTarget)) {
+    return relativeTarget.replaceAll('\\', '/')
+  }
+  return path.replaceAll('\\', '/')
 }
 
 function isGitIgnored(path, rootDir = REPO_ROOT) {
