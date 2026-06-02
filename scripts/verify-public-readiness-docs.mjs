@@ -90,6 +90,8 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'requires every advertised surface row to link to a real demo note')
   assertContains('docs/PUBLIC-READINESS.md', 'not a claim that every advertised app surface is feature-complete')
   assertContains('docs/PUBLIC-READINESS.md', 'shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`')
+  assertContains('docs/PUBLIC-READINESS.md', 'signed 2026-06-02 content refresh `254e687`')
+  assertNotMatch('docs/PUBLIC-READINESS.md', /b3c9170/u, 'the superseded starter-vault head')
   assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, starter-vault mirror drift, and release-preflight blockers')
   assertContains('scripts/audit-public-readiness.mjs', 'compareStarterMirror')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Starter vault public clone does not match demo-vault-v2')
@@ -269,6 +271,50 @@ function verifyReleaseWorkflowTruth() {
   )
 }
 
+function verifyAiCollaboratorBoundary() {
+  const gatedCapabilities = 'memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions'
+  assertContains(
+    'README.md',
+    `Chitragupta MCP ${gatedCapabilities} remain readiness-gated contract work`,
+    'README Chitragupta MCP readiness boundary',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'Public docs separate CLI agent chat/tooling from Chitragupta MCP memory,',
+    'Public Readiness AI docs boundary checklist item',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'recall, wiki, graph, ingest, and diagnostics readiness.',
+    'Public Readiness AI docs boundary checklist continuation',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'source-backed write suggestions are not public-ready yet and remain contract-gated',
+    'Public Readiness AI collaborators row',
+  )
+  assertContains(
+    'docs/CHITRAGUPTA-GRIMOIRE-MCP-CONTRACT.md',
+    'That is not the same as this MCP contract being ready.',
+    'Chitragupta CLI versus MCP contract boundary',
+  )
+  assertContains(
+    'demo-vault-v2/grimoire-agent-council.md',
+    'The current Council is not claiming that every external agent has actually run.',
+    'demo Agent Council honesty boundary',
+  )
+  assertContains(
+    'demo-vault-v2/grimoire-local-agent-map.md',
+    '| Chitragupta CLI | Route/status disclosure and local chat handoff | Local intent is not approval |',
+    'demo Chitragupta CLI lane boundary',
+  )
+  assertContains(
+    'demo-vault-v2/grimoire-local-agent-map.md',
+    '| Chitragupta MCP | Memory, recall, wiki, graph, ingest, diagnostics, and source-backed writes | Contract-gated; not live in the public demo |',
+    'demo Chitragupta MCP gated lane boundary',
+  )
+}
+
 function verifyAdrIndexTruth() {
   assertContains(
     'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
@@ -330,6 +376,7 @@ function verifyAdrIndexTruth() {
 try {
   verifyBinaryInstallTruth()
   verifyReleaseWorkflowTruth()
+  verifyAiCollaboratorBoundary()
   verifyAdrIndexTruth()
   console.log('[public-readiness-docs] ok')
 } catch (error) {
