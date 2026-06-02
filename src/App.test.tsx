@@ -1119,8 +1119,9 @@ describe('App', () => {
 
     render(<App />)
 
+    const topNav = await screen.findByTestId('sidebar-top-nav', {}, { timeout: 10000 })
     await waitFor(() => {
-      expect(within(screen.getByTestId('sidebar-top-nav')).queryByText('Inbox')).not.toBeInTheDocument()
+      expect(within(topNav).queryByText('Inbox')).not.toBeInTheDocument()
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })
   })
