@@ -16,7 +16,8 @@ pnpm release:preflight
 
 The preflight checks release workflow wiring, GitHub Pages, and required repo
 secret names for signed and notarized macOS artifacts. It reports secret names
-only; it never prints secret values.
+only; it never prints secret values. The full operator checklist is in
+[RELEASE-RUNBOOK.md](RELEASE-RUNBOOK.md).
 
 The in-app Getting Started flow clones the public starter vault from
 `https://github.com/sriinnu/grimoire-getting-started.git` first. If that clone

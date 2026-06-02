@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { printReleaseNextActions, releaseNextActions } from './release-next-actions.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -231,6 +232,9 @@ function runSelfTest() {
   if (evaluatePreflight(blockedState).blockers.length < 2) {
     throw new Error('blocked fixture should report missing secrets and Pages')
   }
+  if (!releaseNextActions(evaluatePreflight(blockedState).blockers).some((action) => action.includes('Set the GitHub repository release secrets'))) {
+    throw new Error('blocked fixture should print missing release-secret next actions')
+  }
 
   console.log('[release-preflight] self-test ok')
 }
@@ -248,6 +252,7 @@ function printReport(result) {
 
   console.error('Blockers:')
   for (const blocker of result.blockers) console.error(`- ${blocker}`)
+  printReleaseNextActions(result.blockers, console.error)
   process.exitCode = 1
 }
 

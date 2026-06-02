@@ -185,7 +185,8 @@ pnpm release:preflight
 
 That command verifies release workflow wiring, GitHub Pages, and the required
 repo secret names for signed and notarized macOS artifacts. It does not print
-secret values.
+secret values. The operator checklist is in
+[docs/RELEASE-RUNBOOK.md](docs/RELEASE-RUNBOOK.md).
 
 Build and install a local macOS app bundle:
 
@@ -211,6 +212,8 @@ Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-ST
 - [Markdown Semantics](docs/MARKDOWN-SEMANTICS-CONTRACT.md) - shared markdown and slash-command contract
 - [Platform Roadmap](docs/PLATFORM-NATIVE-ENHANCEMENT-ROADMAP.md) - Tauri-first editor roadmap and Mem/Bear/Obsidian/Notion direction
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map
+- [Release Runbook](docs/RELEASE-RUNBOOK.md) - public release preflight,
+  secrets, tag order, and post-release verification
 - [Vision](docs/VISION.md) - product direction
 - [Differentiation](docs/GRIMOIRE-DIFFERENTIATION.md) - how Grimoire stays its own product
 - [Enhancements](ENHANCEMENTS.md) - prioritized roadmap and research tracks

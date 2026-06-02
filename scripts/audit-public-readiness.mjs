@@ -26,6 +26,7 @@ import {
   collectLocalState as collectReleasePreflightLocalState,
   evaluatePreflight as evaluateReleasePreflight,
 } from './release-preflight.mjs'
+import { printReleaseNextActions, releaseNextActions } from './release-next-actions.mjs'
 
 const DEFAULT_REPO = 'sriinnu/grimoire'
 const DEFAULT_STARTER_REPO = 'sriinnu/grimoire-getting-started'
@@ -249,7 +250,10 @@ function runSelfTest() {
     publicReadiness: 'Grimoire is not ready for public release.',
     releases: [],
     releasePreflight: {
-      blockers: ['GitHub Pages is not configured for this repository.'],
+      blockers: [
+        'GitHub Pages is not configured for this repository.',
+        'Release secrets missing: APPLE_CERTIFICATE, TAURI_SIGNING_PRIVATE_KEY.',
+      ],
       warnings: ['TAURI_SIGNING_PRIVATE_KEY_PASSWORD is absent; this is okay only if the updater key has no password.'],
     },
     repo: { private: true, topics: [] },
@@ -284,6 +288,13 @@ function runSelfTest() {
   }
   if (!blockedResult.blockers.some((blocker) => blocker.includes('Release preflight'))) {
     throw new Error('blocked fixture should surface release preflight blockers')
+  }
+  const blockedActions = releaseNextActions(blockedResult.blockers)
+  if (!blockedActions.some((action) => action.includes('Set the GitHub repository release secrets'))) {
+    throw new Error('blocked fixture should print missing release-secret next actions')
+  }
+  if (!blockedActions.some((action) => action.includes('stable-vYYYY.M.D'))) {
+    throw new Error('blocked fixture should print stable release next actions')
   }
   const driftResult = findBlockers({
     ...readyState,
@@ -337,6 +348,7 @@ function printReport(state, result) {
   }
   console.log('\nBlockers:')
   for (const blocker of result.blockers) console.log(`- ${blocker}`)
+  printReleaseNextActions(result.blockers)
 }
 
 async function main() {
