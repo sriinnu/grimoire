@@ -126,10 +126,171 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg \
             --clobber
 
+  windows:
+    name: Windows x64
+    runs-on: windows-2025-vs2026
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Clean Generated Release Artifacts
+        run: pnpm release:clean-artifacts
+
+      - name: Build Signed Release Artifacts
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "TAURI_SIGNING_PRIVATE_KEY is required so updater artifacts are freshly signed."
+            exit 1
+          fi
+          pnpm tauri build
+
+      - name: Verify Packaged Installers
+        run: pnpm release:verify-artifacts --bundle-dir "src-tauri/target/release/bundle"
+
+      - name: Upload Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: grimoire-windows-x64
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.exe.sig
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/msi/*.msi.sig
+
+      - name: Upload Tagged Release Assets
+        if: startsWith(github.ref, 'refs/tags/stable-v') || startsWith(github.ref, 'refs/tags/alpha-v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRERELEASE_FLAG=""
+          if [[ "$GITHUB_REF_NAME" == alpha-v* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Grimoire $GITHUB_REF_NAME" $PRERELEASE_FLAG || \
+              gh release view "$GITHUB_REF_NAME" >/dev/null
+          fi
+          shopt -s nullglob
+          files=(
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/*.exe.sig
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/msi/*.msi.sig
+          )
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No Windows release assets found."
+            exit 1
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+
+  linux:
+    name: Linux x64
+    runs-on: ubuntu-24.04
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Linux Tauri Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf libssl-dev libxdo-dev
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Clean Generated Release Artifacts
+        run: pnpm release:clean-artifacts
+
+      - name: Build Signed Release Artifacts
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "TAURI_SIGNING_PRIVATE_KEY is required so updater artifacts are freshly signed."
+            exit 1
+          fi
+          pnpm tauri build
+
+      - name: Verify Packaged Linux Artifacts
+        run: pnpm release:verify-artifacts --bundle-dir "src-tauri/target/release/bundle"
+
+      - name: Upload Workflow Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: grimoire-linux-x64
+          path: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.AppImage.sig
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm
+
+      - name: Upload Tagged Release Assets
+        if: startsWith(github.ref, 'refs/tags/stable-v') || startsWith(github.ref, 'refs/tags/alpha-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PRERELEASE_FLAG=""
+          if [[ "$GITHUB_REF_NAME" == alpha-v* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Grimoire $GITHUB_REF_NAME" $PRERELEASE_FLAG || \
+              gh release view "$GITHUB_REF_NAME" >/dev/null
+          fi
+          shopt -s nullglob
+          files=(
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.AppImage.sig
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm
+          )
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No Linux release assets found."
+            exit 1
+          fi
+          gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
+
   release-pages:
     name: Release Pages
     runs-on: macos-15
-    needs: macos
+    needs: [macos, windows, linux]
     if: startsWith(github.ref, 'refs/tags/stable-v') || startsWith(github.ref, 'refs/tags/alpha-v')
     environment:
       name: github-pages
