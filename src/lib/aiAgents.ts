@@ -30,6 +30,8 @@ export interface AiAgentRuntimeRoute {
 
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
 export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Open the native Grimoire app for live AI.'
+export const AI_AGENTS_STATUS_SCAN_FAILED_DETAIL =
+  'Local CLI scan failed. Check again after the native app finishes launching.'
 export const AI_AGENT_CLI_DEFAULT_ROUTE = 'resolved by stream'
 export const CHITRAGUPTA_CLI_MCP_BOUNDARY =
   'Chitragupta chat uses the local CLI route. MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks.'
@@ -98,10 +100,25 @@ export function createBrowserPreviewAiAgentsStatus(): AiAgentsStatus {
   }
 }
 
+export function createScanFailedAiAgentsStatus(): AiAgentsStatus {
+  return {
+    claude_code: createAiAgentAvailability('missing', null, AI_AGENTS_STATUS_SCAN_FAILED_DETAIL),
+    codex: createAiAgentAvailability('missing', null, AI_AGENTS_STATUS_SCAN_FAILED_DETAIL),
+    chitragupta: createAiAgentAvailability('missing', null, AI_AGENTS_STATUS_SCAN_FAILED_DETAIL),
+  }
+}
+
 export function isBrowserPreviewAiAgentsStatus(statuses: AiAgentsStatus): boolean {
   return AI_AGENT_DEFINITIONS.every((definition) => {
     const status = statuses[definition.id]
     return status.status === 'missing' && status.version === BROWSER_PREVIEW_AI_STATUS_REASON
+  })
+}
+
+export function isAiAgentsStatusScanFailed(statuses: AiAgentsStatus): boolean {
+  return AI_AGENT_DEFINITIONS.every((definition) => {
+    const status = statuses[definition.id]
+    return status.status === 'missing' && status.detail === AI_AGENTS_STATUS_SCAN_FAILED_DETAIL
   })
 }
 

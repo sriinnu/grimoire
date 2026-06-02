@@ -4,7 +4,7 @@ import { isTauri, mockInvoke } from '../mock-tauri'
 import {
   createBrowserPreviewAiAgentsStatus,
   createCheckingAiAgentsStatus,
-  createMissingAiAgentsStatus,
+  createScanFailedAiAgentsStatus,
   isAiAgentsStatusChecking,
   normalizeAiAgentsStatus,
   type AiAgentsStatus,
@@ -83,7 +83,7 @@ export function useAiAgentsStatus(): AiAgentsStatus {
         })
         .catch(() => {
           if (!cancelled && requestId === currentRequest) {
-            setStatuses(createMissingAiAgentsStatus())
+            setStatuses(createScanFailedAiAgentsStatus())
           }
         })
     }

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
+import { AI_AGENTS_STATUS_SCAN_FAILED_DETAIL } from '../lib/aiAgents'
 import { AiAgentsOnboardingPrompt } from './AiAgentsOnboardingPrompt'
 
 const openExternalUrl = vi.fn()
@@ -102,6 +103,27 @@ describe('AiAgentsOnboardingPrompt', () => {
     expect(screen.getByTestId('ai-agent-status-claude_code')).toHaveTextContent('Claude CLI not found in login shell.')
     expect(screen.getByTestId('ai-agent-status-codex')).toHaveTextContent('Codex CLI not found in PATH.')
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Chitragupta app found')
+  })
+
+  it('treats a failed scan as retry-needed instead of missing installs', () => {
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
+          codex: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
+          chitragupta: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('AI scan needs retry')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-description')).toHaveTextContent('This is not proof')
+    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('Native CLI scan failed')
+    expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Retry the scan before installing or relinking this CLI')
+    expect(screen.queryByTestId('claude-onboarding-screen')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('ai-agents-onboarding-install-claude_code')).not.toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-continue')).toHaveTextContent('Continue without live AI')
   })
 
   it('shows scan progress while statuses are still checking', () => {

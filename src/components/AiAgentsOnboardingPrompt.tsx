@@ -1,11 +1,13 @@
 import { ArrowUpRight, Bot, CheckCircle2, Loader2 } from 'lucide-react'
 import {
   AI_AGENT_DEFINITIONS,
+  AI_AGENTS_STATUS_SCAN_FAILED_DETAIL,
   CHITRAGUPTA_CLI_MCP_BOUNDARY,
   getAiAgentDefinition,
   hasAnyInstalledAiAgent,
-  isBrowserPreviewAiAgentsStatus,
   isAiAgentsStatusChecking,
+  isAiAgentsStatusScanFailed,
+  isBrowserPreviewAiAgentsStatus,
   type AiAgentAvailability,
   type AiAgentDefinition,
   type AiAgentsStatus,
@@ -40,6 +42,15 @@ function getPromptCopy(statuses: AiAgentsStatus) {
     }
   }
 
+  if (isAiAgentsStatusScanFailed(statuses)) {
+    return {
+      accentClassName: 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]',
+      description: 'The native CLI check did not finish cleanly. This is not proof that Claude, Codex, or Chitragupta are missing.',
+      icon: <Bot className="size-7" />,
+      title: 'AI scan needs retry',
+    }
+  }
+
   if (!hasAnyInstalledAiAgent(statuses)) {
     return {
       accentClassName: 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]',
@@ -59,6 +70,7 @@ function getPromptCopy(statuses: AiAgentsStatus) {
 
 function scanSummary(statuses: AiAgentsStatus): string {
   if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Browser preview cannot inspect local CLI paths.'
+  if (isAiAgentsStatusScanFailed(statuses)) return 'Native CLI scan failed before agent availability could be verified. Choose Check again after Grimoire finishes launching.'
   if (isAiAgentsStatusChecking(statuses)) return 'Scanning PATH, login shell, Homebrew, npm/pnpm, nvm/fnm, Volta, and common app launcher paths.'
   const installed = AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'installed').length
   const missing = AI_AGENT_DEFINITIONS.length - installed
@@ -89,8 +101,16 @@ function agentStatusDetail(definition: AiAgentDefinition, status: AiAgentAvailab
 
 function agentSecondaryDetail(definition: AiAgentDefinition, status: AiAgentAvailability): string | null {
   if (definition.id === 'chitragupta' && status.status === 'installed') return CHITRAGUPTA_CLI_MCP_BOUNDARY
+  if (status.detail === AI_AGENTS_STATUS_SCAN_FAILED_DETAIL) return 'Retry the scan before installing or relinking this CLI.'
   if (status.status === 'missing') return 'Install or link the CLI, then choose Check again.'
   return status.detail ?? null
+}
+
+function continueLabel(statuses: AiAgentsStatus): string {
+  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Continue in preview'
+  if (hasAnyInstalledAiAgent(statuses)) return 'Continue'
+  if (isAiAgentsStatusScanFailed(statuses)) return 'Continue without live AI'
+  return 'Continue without it'
 }
 
 function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
@@ -134,8 +154,11 @@ export function AiAgentsOnboardingPrompt({
 }: AiAgentsOnboardingPromptProps) {
   const copy = getPromptCopy(statuses)
   const isBrowserPreview = isBrowserPreviewAiAgentsStatus(statuses)
-  const showLegacyClaudeCompatibility = statuses.claude_code.status !== 'installed'
-  const missingAgents = AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'missing')
+  const isScanFailed = isAiAgentsStatusScanFailed(statuses)
+  const showLegacyClaudeCompatibility = statuses.claude_code.status !== 'installed' && !isScanFailed
+  const missingAgents = isScanFailed
+    ? []
+    : AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'missing')
 
   return (
     <OnboardingShell
@@ -210,7 +233,7 @@ export function AiAgentsOnboardingPrompt({
               disabled={isAiAgentsStatusChecking(statuses)}
               data-testid={showLegacyClaudeCompatibility && !isBrowserPreview ? 'claude-onboarding-continue' : undefined}
             >
-              {isBrowserPreview ? 'Continue in preview' : hasAnyInstalledAiAgent(statuses) ? 'Continue' : 'Continue without it'}
+              {continueLabel(statuses)}
             </Button>
           </div>
         </CardFooter>

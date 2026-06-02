@@ -401,6 +401,7 @@ Agent rules:
 - vault content stays local unless the selected agent sends it elsewhere
 - detection should work from realistic macOS/Linux/Windows install paths
 - detection returns an optional diagnostic detail so first-run setup can explain whether a CLI was found, missing, or only partially available
+- failed detection is a scan failure, not proof that every CLI is missing; setup surfaces should show retry copy before install prompts
 - streamed output must preserve reasoning, tool calls, and errors clearly
 - agent tools should operate through the same safe vault commands as the app
 - model overrides are installation-local and passed as CLI arguments only when set

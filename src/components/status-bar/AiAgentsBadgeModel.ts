@@ -5,6 +5,7 @@ import {
   hasAnyInstalledAiAgent,
   isBrowserPreviewAiAgentsStatus,
   isAiAgentInstalled,
+  isAiAgentsStatusScanFailed,
   type AiAgentDefinition,
   type AiAgentId,
   type AiAgentsStatus,
@@ -24,6 +25,7 @@ export function badgeTooltip(
   guidanceStatus?: VaultAiGuidanceStatus,
 ): string {
   if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Live AI requires the native Grimoire app'
+  if (isAiAgentsStatusScanFailed(statuses)) return 'AI agent scan failed — click to retry'
   const guidanceSummary = guidanceStatus && !isVaultAiGuidanceStatusChecking(guidanceStatus)
     ? getVaultAiGuidanceSummary(guidanceStatus)
     : null
@@ -50,6 +52,7 @@ export function installedAgentDefinitions(statuses: AiAgentsStatus): AiAgentDefi
 
 /** Returns missing local agent definitions for setup links. */
 export function missingAgentDefinitions(statuses: AiAgentsStatus): AiAgentDefinition[] {
+  if (isAiAgentsStatusScanFailed(statuses)) return []
   return AI_AGENT_DEFINITIONS.filter((definition) => !isAiAgentInstalled(statuses, definition.id))
 }
 
