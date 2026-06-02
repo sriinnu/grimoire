@@ -12,6 +12,7 @@ describe('sidebar artwork layer CSS', () => {
     expect(css).toContain('margin-bottom: var(--sidebar-artwork-safe-space)')
     expect(css).toContain('scroll-padding-bottom: var(--sidebar-artwork-safe-space)')
     expect(css).toContain('.sidebar-artwork')
+    expect(css).toContain('opacity: 1')
     expect(css).toContain('z-index: 2')
     expect(css).toContain('z-index: 3')
     expect(css).toContain('.app-sidebar-panel::after')
