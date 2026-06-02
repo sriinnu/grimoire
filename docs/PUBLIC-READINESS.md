@@ -2,8 +2,9 @@
 
 Snapshot date: 2026-06-02.
 
-Grimoire is not ready to make public for general users yet. The source tree is
-getting closer, but public visibility should wait until the remaining blockers
+Grimoire's source repository is public, but the app is not ready for public
+release or general-user installation yet. The source tree is getting closer, but
+public install and promotion claims should wait until the remaining blockers
 below are resolved and re-verified.
 
 ## Current Truth
@@ -14,14 +15,14 @@ below are resolved and re-verified.
 | Starter showcase structure | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, requires every advertised surface row to link to a real demo note, validates scenario files, and resolves internal wikilinks for `demo-vault-v2/`. This is structural proof for the showcase, not a claim that every advertised app surface is feature-complete. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` now also shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`, ignoring only documented public-only files such as `README.md` and `LICENSE`. |
 | Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures, including pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana. A current local 2026-06-02 run of `pnpm doctor:source` reports browser source mode and native Tauri mode ready on this macOS host. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
-| README status badges | Verified | README badges are static truth badges while the repository is private and hosted CI is blocked. Dynamic Actions, coverage, and CodeScene badges should only return after their public endpoints are verified. |
+| README status badges | Verified | README badges are static truth badges while the source repository is public, hosted CI is not green yet, and public binaries are unpublished. Dynamic Actions, coverage, and CodeScene badges should only return after their public endpoints are verified. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
 | Public doc hygiene | Verified | Claude command prompts and local working notes are ignored and removed from Git tracking, and `CLAUDE.md` is only a compatibility shim to `AGENTS.md`. `pnpm audit:local-only` now fails if `.claude/`, Codex/MCP local wiring, local planning docs, local mockups, cert keys, generated MCP bundles, root vault type stubs, or local-only docs are tracked. It also fails if public Markdown, JSON, TOML, or YAML files reference known local-only docs. The only allowed tracked importer `.env` fixtures must contain sanitized `KEY=redacted` assignments. |
 | Public doc links | Verified | `pnpm test:public-doc-links` validates local links and image paths in public-facing Markdown after stripping fenced code examples. |
 | CI runner images | Ready | The CI matrix is pinned to `macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026` so public proof does not depend on moving `*-latest` labels. The release workflow is pinned to `macos-15`. |
 | Signed branch HEAD | Verified | `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` now checks that the current branch HEAD has a good Git signature before public release can pass. |
 | Clean release tree | Verified | `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` now fails when `git status --porcelain` reports uncommitted tracked or untracked paths, so a signed but dirty local tree cannot pass public release readiness. |
-| Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model, including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, macOS updater platform payload proof, starter-vault mirror drift, and release-preflight blockers. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while this repository remains private, hosted CI is red, public releases are missing, update feeds return `404`, and release preflight is blocked. |
+| Live readiness audit | Verified | `pnpm test:public-readiness-audit` covers the audit model, including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, macOS updater platform payload proof, starter-vault mirror drift, and release-preflight blockers. `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` is expected to fail while hosted CI has not produced a green current run, public releases are missing, update feeds return `404`, and release preflight is blocked. |
 | Release preflight | Blocked | `pnpm test:release-preflight` covers the preflight model. `pnpm release:preflight` currently fails because the repo has no release secrets configured and GitHub Pages is not enabled, and the live public-readiness audit now surfaces those release-preflight blockers directly. |
 | Release Pages generator | Locally verified | `pnpm test:release-pages` checks that GitHub Release assets generate Tauri updater `latest.json` files and macOS download pages from signature content. |
 | macOS native launch | Locally verified | `/Applications/Grimoire.app` 0.1.390 installs and launches without the prior abort. CoreGraphics reported one onscreen Grimoire main window at 1400x879 on 2026-06-02 after the signed `de4b7e5` startup-window restore. Screenshot proof is not used for this host because `screencapture` hides normal app windows here. |
@@ -29,7 +30,7 @@ below are resolved and re-verified.
 | Settings platform copy | Verified | AI provider-key Settings copy now names `macOS Keychain`, `Windows Credential Manager`, or `Linux Secret Service/keyring` based on the detected desktop platform, while save controls remain disabled where native secure storage is not implemented. Sync & Updates also shows a platform/release truth card that names the current macOS/Windows/Linux platform, separates source-mode proof from packaged-update proof, and says Stable/Alpha is only a feed preference until a signed feed is actually published. Regressions live in `src/components/settings/AiAgentSettingsSection.test.tsx`, `src/components/settings/SyncAndGitSettingsSection.test.tsx`, and `src/utils/platform.test.ts`. |
 | Secrets | Locally verified | `node scripts/scan-secrets.mjs --all` completed without findings across 2,265 files on 2026-06-02. |
 | Local checks | Locally verified | The branch pre-push gate is the local evidence lane: local-only audit, Rust platform guards, public-readiness docs, public doc links, release pages self-test, starter vault showcase, production build, the frontend test suite, and any change-scoped editor or Rust lanes required by the hook. Exact test counts and skipped change-scoped lanes can change as the branch changes; rerun the gate for current proof. Current signed HEAD and clean-tree proof come from `pnpm audit:public-readiness -- --branch docs/public-readiness-truth`, not from self-staling commit hashes or hardcoded test counts in this file. |
-| Hosted CI | Blocked | GitHub Actions check-run annotations say each job was not started because recent account payments failed or the Actions spending limit needs to be increased. This account-level blocker must be fixed and CI must be re-run before public release. |
+| Hosted CI | Blocked | The latest audited CI workflow run must complete successfully on the pinned `macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026` jobs before public release. The live readiness audit reports the current run id, status, head SHA, step count, pinned runner coverage, and any GitHub check-run annotations instead of relying on a frozen failure reason. |
 | Public binary release | Blocked | There is no GitHub Release and no downloadable installer yet. |
 | Update feed | Blocked | `https://sriinnu.github.io/grimoire/stable/latest.json` and `https://sriinnu.github.io/grimoire/alpha/latest.json` both returned `404` on 2026-06-01. The release workflow now has a tested Pages generation lane, but the feeds remain unavailable until a tagged release publishes assets and Pages deploys successfully. Manual update checks do not present this as a broken install: `src/hooks/useUpdater.test.ts` covers the 404/not-found path and verifies the app says public Grimoire updates are not published yet. Settings also frames Stable/Alpha as an update-feed preference, not proof that public feeds already exist. |
 | AI collaborators | Partial | Claude Code, Codex, and Chitragupta CLI panels have app-side route/status disclosure. Settings now shows Chitragupta's external MCP registration status beside the CLI/MCP boundary and keeps the runtime bridge readiness caveat visible. The first-run AI setup and footer menu now treat native CLI scan failure as retry-needed instead of claiming all agents are missing or showing install prompts. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions are not public-ready yet and remain contract-gated. |
@@ -78,25 +79,20 @@ pnpm test:starter-vault -- --public-clone /private/tmp/grimoire-starter-verify-b
 
 ## Hosted CI Evidence
 
-This section records the hosted CI failure mode, not a frozen latest commit.
-Use `pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for
-the latest branch state.
+This section records how to verify hosted CI, not a frozen latest commit. Use
+`pnpm audit:public-readiness -- --branch docs/public-readiness-truth` for the
+latest branch state.
 
-The latest audited hosted CI run for this branch failed before checkout, install,
-build, test, or lint could execute on 2026-06-02 Europe/Vienna. The live
-readiness audit reports the current run id and verifies that the failed run
-executed zero workflow steps.
-
-Check-run annotations for this hosted-CI failure mode report:
-
-```text
-The job was not started because recent account payments have failed or your spending limit needs to be increased.
-```
+Public readiness requires the latest audited hosted CI run for the signed branch
+HEAD to complete successfully on the pinned Windows, macOS, and Linux jobs. The
+live readiness audit reports the current run id, conclusion or in-progress
+status, head SHA, step count, and pinned runner coverage. If GitHub emits
+check-run annotations, the audit prints those messages as evidence instead of
+hardcoding one failure mode in public docs.
 
 The CI workflow pins Windows to `windows-2025-vs2026`, macOS to `macos-15`, and
-Linux to `ubuntu-24.04`, but no checkout, dependency installation, build, test,
-or lint step has run on any hosted OS job while the account-level
-billing/spending blocker is active.
+Linux to `ubuntu-24.04`. A pending run, failed run, stale-head run, missing
+runner job, or zero-step run is not public-release evidence.
 
 ## Verification Commands
 

@@ -186,12 +186,13 @@ export function findBlockers(state) {
     blockers.push('README still advertises a direct Grimoire.app.tar.gz URL.')
   }
 
-  if (blockers.length > 0 && !state.publicReadiness.includes('Grimoire is not ready to make public')) {
-    blockers.push('Public readiness docs do not clearly say the app is not public-ready.')
+  const saysNotReadyForPublicRelease = /not ready for public\s+release/iu.test(state.publicReadiness)
+  if (blockers.length > 0 && !saysNotReadyForPublicRelease) {
+    blockers.push('Public readiness docs do not clearly say the app is not ready for public release.')
   }
 
-  if (blockers.length === 0 && state.publicReadiness.includes('not ready to make public')) {
-    warnings.push('Public readiness docs still say not ready; update them before making the repository public.')
+  if (blockers.length === 0 && saysNotReadyForPublicRelease) {
+    warnings.push('Public readiness docs still say not ready; update them before announcing a public release.')
   }
 
   return { blockers, warnings }
