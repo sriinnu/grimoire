@@ -88,4 +88,22 @@ describe('buildGrimoireProjectIntelligence', () => {
       ),
     ).toBe('/Users/sri/Vault/projects/grimoire/BOARD.md')
   })
+
+  it('derives board paths for vault-relative root folders', () => {
+    expect(
+      deriveProjectBoardPath(
+        [entry({ path: 'project/readme.md' })],
+        'project',
+      ),
+    ).toBe('project/BOARD.md')
+  })
+
+  it('derives board paths for vault-relative nested folders', () => {
+    expect(
+      deriveProjectBoardPath(
+        [entry({ path: 'projects/grimoire/docs/readme.md' })],
+        'projects/grimoire',
+      ),
+    ).toBe('projects/grimoire/BOARD.md')
+  })
 })
