@@ -56,6 +56,66 @@ function withThemeCanvasBackground(document: CanvasDocument): CanvasDocument {
   }
 }
 
+function canvasLayerCounts(document: CanvasDocument): Array<{ label: string; value: number }> {
+  return [
+    { label: 'Strokes', value: document.strokes.length },
+    { label: 'Images', value: document.images.length },
+    { label: 'Shapes', value: document.shapes.length },
+    { label: 'Text', value: document.textBoxes.length },
+  ]
+}
+
+function canvasContractStatus({
+  dirty,
+  saveState,
+  vaultPath,
+}: {
+  dirty: boolean
+  saveState: 'idle' | 'saved' | 'error'
+  vaultPath?: string
+}): string {
+  if (!vaultPath) return 'Vault required'
+  if (saveState === 'error') return 'Save needs retry'
+  if (dirty) return 'Local save pending'
+  if (saveState === 'saved') return 'Source and preview saved'
+  return 'Source and preview ready'
+}
+
+function CanvasLocalContract({
+  dirty,
+  document,
+  saveState,
+  vaultPath,
+}: {
+  dirty: boolean
+  document: CanvasDocument
+  saveState: 'idle' | 'saved' | 'error'
+  vaultPath?: string
+}) {
+  const counts = canvasLayerCounts(document)
+
+  return (
+    <div className="canvas-attachment__contract" data-testid="canvas-local-contract">
+      <div className="canvas-attachment__contract-main">
+        <span className="canvas-attachment__contract-label">Local canvas</span>
+        <strong>{canvasContractStatus({ dirty, saveState, vaultPath })}</strong>
+      </div>
+      <div className="canvas-attachment__contract-chips" aria-label="Canvas local file contract">
+        <span>Source JSON</span>
+        <span>Preview PNG</span>
+        <span>Markdown link</span>
+      </div>
+      <div className="canvas-attachment__contract-counts" aria-label="Canvas layer counts">
+        {counts.map((count) => (
+          <span key={count.label}>
+            {count.label} <strong>{count.value}</strong>
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Modal canvas editor for Markdown-backed handwriting and whiteboard attachments. */
 export function CanvasAttachmentDialog({
   attachment,
@@ -185,6 +245,12 @@ export function CanvasAttachmentDialog({
             Edit the selected Grimoire canvas attachment.
           </DialogDescription>
         </DialogHeader>
+        <CanvasLocalContract
+          dirty={dirty}
+          document={document}
+          saveState={saveState}
+          vaultPath={vaultPath}
+        />
         <CanvasAttachmentToolbar
           addingImage={addingImage}
           canAddImage={Boolean(vaultPath)}
