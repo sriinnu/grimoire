@@ -66,7 +66,7 @@ Snapshot date: 2026-06-02.
 | Windows source/dev | Known cfg and SQLite link failures were fixed in source, and hosted Windows Build has passed, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
 | Linux source/dev | Intended source target with documented Tauri dependencies, pending fresh platform QA. |
 | Hosted CI | Live-audited. Latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners; rerun the public-readiness audit before making public claims. |
-| Release readiness | Blocked by missing release secrets, missing GitHub Releases, and missing update feeds. |
+| Release readiness | Cross-platform release jobs are configured, but public release is still blocked by missing release secrets, missing GitHub Releases, missing update feeds, and missing tagged platform launch proof. |
 
 Run the live audit before advertising Grimoire publicly:
 
@@ -113,7 +113,7 @@ required before this README can call Windows verified.
 On Linux, the doctor checks pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
-Linux and Windows are source-build targets, not public-support claims, until hosted CI and platform QA prove them on those operating systems.
+Linux and Windows now have tagged-release workflow jobs, but they are still not public-support claims until signed artifacts, updater feeds, and fresh platform QA prove them on those operating systems.
 
 Full setup notes and Linux package examples are in
 [Getting Started](docs/GETTING-STARTED.md).

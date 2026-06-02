@@ -19,7 +19,12 @@ export const REQUIRED_TOPICS = [
 
 export const CHANNELS = ['stable', 'alpha']
 export const REQUIRED_CI_RUNNERS = ['macos-15', 'ubuntu-24.04', 'windows-2025-vs2026']
-export const REQUIRED_MAC_UPDATER_PLATFORMS = ['darwin-aarch64', 'darwin-x86_64']
+export const REQUIRED_UPDATER_PLATFORMS = [
+  'darwin-aarch64',
+  'darwin-x86_64',
+  'windows-x86_64',
+  'linux-x86_64',
+]
 
 export const FEED_URLS = {
   alpha: 'https://sriinnu.github.io/grimoire/alpha/latest.json',
@@ -58,10 +63,22 @@ function hasCompleteMacAssets(release) {
   ))
 }
 
+function hasWindowsAssets(release) {
+  const names = assetNames(release)
+  return names.some((name) => /(?:^|[-_.])(x64|x86_64|amd64)(?:[-_.]|$)/iu.test(name) && /\.(?:exe|msi)$/iu.test(name))
+    && names.some((name) => /(?:^|[-_.])(x64|x86_64|amd64)(?:[-_.]|$)/iu.test(name) && /\.(?:exe|msi)\.sig$/iu.test(name))
+}
+
+function hasLinuxAssets(release) {
+  const names = assetNames(release)
+  return names.some((name) => /(?:^|[-_.])(x64|x86_64|amd64)(?:[-_.]|$)/iu.test(name) && /\.AppImage$/u.test(name))
+    && names.some((name) => /(?:^|[-_.])(x64|x86_64|amd64)(?:[-_.]|$)/iu.test(name) && /\.AppImage\.sig$/u.test(name))
+}
+
 function missingUpdaterPlatforms(feed) {
   const platforms = feed?.json?.platforms
-  if (!platforms) return REQUIRED_MAC_UPDATER_PLATFORMS
-  return REQUIRED_MAC_UPDATER_PLATFORMS.filter((platform) => {
+  if (!platforms) return REQUIRED_UPDATER_PLATFORMS
+  return REQUIRED_UPDATER_PLATFORMS.filter((platform) => {
     const payload = platforms[platform]
     return !payload?.url || !payload?.signature
   })
@@ -157,6 +174,12 @@ export function findBlockers(state) {
     if (!hasCompleteMacAssets(release)) {
       blockers.push(`${channel} release ${release.tag_name} is missing complete macOS DMG/updater/signature assets for both architectures.`)
     }
+    if (!hasWindowsAssets(release)) {
+      blockers.push(`${channel} release ${release.tag_name} is missing Windows x64 installer/signature assets.`)
+    }
+    if (!hasLinuxAssets(release)) {
+      blockers.push(`${channel} release ${release.tag_name} is missing Linux x64 AppImage/signature assets.`)
+    }
   }
 
   for (const channel of CHANNELS) {
@@ -171,7 +194,7 @@ export function findBlockers(state) {
     }
     const missing = missingUpdaterPlatforms(feed)
     if (missing.length > 0) {
-      blockers.push(`${channel} update feed is missing macOS updater payloads: ${missing.join(', ')}.`)
+      blockers.push(`${channel} update feed is missing required updater payloads: ${missing.join(', ')}.`)
     }
   }
 

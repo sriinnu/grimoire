@@ -43,10 +43,6 @@ function assertMatch(path, pattern, label) {
   }
 }
 
-function releaseWorkflowHasPlatform(platformPattern) {
-  return platformPattern.test(readText('.github/workflows/release.yml'))
-}
-
 function verifyBinaryInstallTruth() {
   assertContains('README.md', 'There is no public packaged release yet.')
   assertContains('README.md', 'pnpm doctor:source')
@@ -120,7 +116,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'signed 2026-06-02 content refresh `bb9f94c`')
   assertNotMatch('docs/PUBLIC-READINESS.md', /254e687/u, 'the superseded starter-vault head')
   assertNotMatch('docs/PUBLIC-READINESS.md', /b3c9170/u, 'the superseded starter-vault head')
-  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, macOS updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
+  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, required macOS/Windows/Linux updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
   assertContains('scripts/audit-public-readiness.mjs', 'compareStarterMirror')
   assertContains('scripts/audit-public-readiness.mjs', 'readStarterBundleProof')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Packaged starter-vault fallback is not configured')
@@ -244,13 +240,6 @@ function verifyBinaryInstallTruth() {
 }
 
 function verifyReleaseWorkflowTruth() {
-  const hasWindowsRelease = releaseWorkflowHasPlatform(/windows-latest|windows-20\d\d|^\s+windows:/imu)
-  const hasLinuxRelease = releaseWorkflowHasPlatform(/ubuntu-latest|ubuntu-2\d\.\d\d|^\s+linux:/imu)
-
-  if (hasWindowsRelease || hasLinuxRelease) {
-    fail('release.yml now includes non-macOS release jobs; update the public readiness docs and this guard with verified artifact evidence')
-  }
-
   assertMatch(
     '.github/workflows/ci.yml',
     /os:\s*\[macos-15,\s*ubuntu-24\.04,\s*windows-2025-vs2026\]/u,
@@ -258,21 +247,28 @@ function verifyReleaseWorkflowTruth() {
   )
   assertNotMatch('.github/workflows/ci.yml', /\b(?:macos|ubuntu|windows)-latest\b/u, 'moving latest runner labels')
   assertContains('.github/workflows/release.yml', 'runs-on: macos-15', 'pinned macOS release runner')
-  assertNotMatch('.github/workflows/release.yml', /\bmacos-latest\b/u, 'moving macOS latest release runner')
+  assertContains('.github/workflows/release.yml', 'runs-on: windows-2025-vs2026', 'pinned Windows release runner')
+  assertContains('.github/workflows/release.yml', 'runs-on: ubuntu-24.04', 'pinned Linux release runner')
+  assertNotMatch('.github/workflows/release.yml', /\b(?:macos|ubuntu|windows)-latest\b/u, 'moving release runner labels')
   assertContains(
     'README.md',
-    'source-build targets, not public-support claims, until hosted CI and platform QA',
-    'macOS-only release workflow disclaimer',
+    'Linux and Windows now have tagged-release workflow jobs, but they are still not public-support claims until signed artifacts, updater feeds, and fresh platform QA',
+    'cross-platform release workflow disclaimer',
   )
   assertContains(
     'docs/GETTING-STARTED.md',
-    'current release workflow only builds macOS artifacts after signing',
-    'Getting Started macOS-only release workflow disclaimer',
+    'The current release workflow has macOS, Windows, and Linux jobs, but those\njobs are not public install evidence until signing secrets exist and a tagged\nrelease successfully publishes verified artifacts',
+    'Getting Started cross-platform release workflow disclaimer',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    '| OS packaging | Partial | macOS source development is locally verified. Linux and Windows are intended source-development targets, but they are not public-support claims until hosted CI and fresh platform QA prove them. The tracked release workflow currently produces macOS artifacts only after signing secrets are configured. |',
+    '| OS packaging | Partial | macOS source development is locally verified. The tracked release workflow now has macOS Apple Silicon/Intel, Windows x64, and Linux x64 artifact jobs, and the release verifier recognizes those package families. Linux and Windows are still not public-support claims until a tagged release produces signed artifacts, updater feeds, and fresh platform launch evidence. |',
     'Public Readiness OS packaging row',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    '[ADR-0104](adr/0104-cross-platform-release-jobs-with-proof-gates.md)',
+    'Public Readiness current release ADR',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',

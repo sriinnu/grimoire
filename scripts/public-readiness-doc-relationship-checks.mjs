@@ -109,23 +109,23 @@ function verifyAdrIndexTruth() {
   )
   assertContains(
     'docs/adr/README.md',
-    '| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |',
+    '| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | superseded -> [0104](0104-cross-platform-release-jobs-with-proof-gates.md) |',
     'ADR-0100 index entry',
   )
   assertContains(
-    'docs/adr/0100-public-release-packaging-truth.md',
-    'Windows and Linux remain source-build targets until release jobs, artifacts, manifests, and verification are implemented and proven.',
-    'ADR-0100 public release boundary',
+    'docs/adr/README.md',
+    '| [0104](0104-cross-platform-release-jobs-with-proof-gates.md) | Cross-platform release jobs with proof gates | active |',
+    'ADR-0104 index entry',
   )
   assertContains(
     'docs/adr/README.md',
-    '| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |',
+    '| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | superseded -> [0104](0104-cross-platform-release-jobs-with-proof-gates.md) |',
     'ADR-0101 index entry',
   )
   assertContains(
-    'docs/adr/0101-release-pages-and-updater-manifest-publication.md',
-    'Missing release assets produce fallback download pages, not fake updater',
-    'ADR-0101 updater manifest boundary',
+    'docs/adr/0104-cross-platform-release-jobs-with-proof-gates.md',
+    'macOS, Windows x64, and Linux x64 jobs',
+    'ADR-0104 cross-platform release boundary',
   )
 }
 
