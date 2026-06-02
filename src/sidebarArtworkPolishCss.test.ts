@@ -33,4 +33,19 @@ describe('sidebar artwork polish CSS', () => {
     expect(css).toContain('transform: translateY')
     expect(css).not.toContain('infinite')
   })
+
+  it('layers the pouch intake effect after the base artwork polish', () => {
+    const css = readText(`${process.cwd()}/src/sidebar-pouch-effect.css`)
+    const main = readText(`${process.cwd()}/src/main.tsx`)
+
+    expect(main.indexOf("import './sidebar-pouch-effect.css'")).toBeGreaterThan(main.indexOf("import './sidebar-artwork-polish.css'"))
+    expect(css).toContain('.sidebar-artwork__pouch-flow')
+    expect(css).toContain('.sidebar-artwork__cloud-puff')
+    expect(css).toContain('.sidebar-artwork__cloud-wisp')
+    expect(css).toContain('.sidebar-artwork__pouch-mouth')
+    expect(css).toContain('@media (prefers-reduced-motion: no-preference)')
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(css).toContain('@keyframes sidebar-cloud-intake')
+    expect(css).not.toContain('infinite')
+  })
 })

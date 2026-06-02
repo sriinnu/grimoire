@@ -3,6 +3,45 @@
   "children": [
     {
       "type": "frame",
+      "id": "sidebar_pouch_effect",
+      "x": 0,
+      "y": -1460,
+      "name": "Sidebar Pouch Intake",
+      "theme": {
+        "Mode": "Light"
+      },
+      "width": 1440,
+      "height": 180,
+      "fill": "$--background",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 40,
+      "children": [
+        {
+          "type": "text",
+          "id": "sidebar_pouch_title",
+          "fill": "$--foreground",
+          "content": "Sidebar Pouch Intake",
+          "fontFamily": "Inter",
+          "fontSize": 28,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "sidebar_pouch_body",
+          "fill": "$--muted-foreground",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "The left sidebar keeps its ambient Grimoire sigil, then adds a quiet pouch mouth and cloud-wisp paths that visually pull captured fragments into the vault. Motion is finite, compositor-scoped, and disabled under reduced-motion.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
       "id": "graph_node_agent_map",
       "x": 0,
       "y": -1220,
