@@ -152,6 +152,13 @@ function ciJobs(jobsPayload) {
     conclusion: job.conclusion ?? null,
     id: job.id,
     name: job.name ?? '',
+    steps: Array.isArray(job.steps)
+      ? job.steps.map((step) => ({
+          conclusion: step.conclusion ?? null,
+          name: step.name ?? '',
+          status: step.status ?? null,
+        }))
+      : [],
     status: job.status ?? null,
   }))
 }

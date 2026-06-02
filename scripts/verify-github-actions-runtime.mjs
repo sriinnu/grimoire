@@ -59,6 +59,10 @@ try {
   for (const workflow of WORKFLOWS) {
     verifyWorkflow(workflow)
   }
+  const ci = readText('.github/workflows/ci.yml')
+  assertContains('.github/workflows/ci.yml', ci, 'Native Tauri Link Smoke')
+  assertContains('.github/workflows/ci.yml', ci, 'pnpm test:native-tauri-link')
+  assertContains('.github/workflows/ci.yml', ci, 'timeout-minutes: 25')
   console.log('[github-actions-runtime] ok')
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)

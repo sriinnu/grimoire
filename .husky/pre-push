@@ -118,6 +118,12 @@ pnpm exec tsc --noEmit
 pnpm build
 echo "  ✅ Build OK"
 
+# 1b. Native Tauri link smoke — catches source/native linker regressions
+echo ""
+echo "🧱 Native Tauri link smoke..."
+pnpm test:native-tauri-link
+echo "  ✅ Native Tauri link OK"
+
 # 2. Frontend unit tests (no coverage threshold — that's CI's job)
 echo ""
 echo "🧪 Frontend tests..."

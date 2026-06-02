@@ -83,6 +83,10 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Native Tauri Link Smoke
+        timeout-minutes: 25
+        run: pnpm test:native-tauri-link
+
       - name: Frontend Tests
         run: pnpm test --silent
 
