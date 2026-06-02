@@ -13,6 +13,7 @@ describe('TelemetryConsentDialog', () => {
     render(<TelemetryConsentDialog onAccept={vi.fn()} onDecline={vi.fn()} />)
     expect(screen.getByText('Help improve Grimoire')).toBeDefined()
     expect(screen.getByText(/anonymous crash reports/i)).toBeDefined()
+    expect(screen.getAllByText(/no usage analytics/i)).toHaveLength(2)
   })
 
   it('calls onAccept when Allow button is clicked', () => {

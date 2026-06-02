@@ -589,7 +589,7 @@ describe('App', () => {
     render(<App />)
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
+      expect(screen.getByText('Your local memory board.')).toBeInTheDocument()
     })
   })
 
@@ -761,6 +761,8 @@ describe('App', () => {
     }
     mockCommandResults.load_vault_list = { vaults: [], active_vault: null, hidden_defaults: [] }
     mockCommandResults.check_vault_exists = (args?: { path?: string }) => args?.path === expectedDefaultVaultPath
+    const saveSettings = vi.fn(() => null)
+    mockCommandResults.save_settings = saveSettings
 
     render(<App />)
 
@@ -768,7 +770,19 @@ describe('App', () => {
       expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
     }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
-    fireEvent.click(screen.getByTestId('telemetry-accept'))
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('telemetry-accept'))
+      await Promise.resolve()
+    })
+
+    expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining({
+      settings: expect.objectContaining({
+        analytics_enabled: false,
+        anonymous_id: expect.any(String),
+        crash_reporting_enabled: true,
+        telemetry_consent: true,
+      }),
+    }))
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
@@ -1004,7 +1018,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('sidebar-rail')).toBeInTheDocument()
     })
-    expect(screen.queryByText('Markdown agent')).not.toBeInTheDocument()
+    expect(screen.queryByText('Local memory studio')).not.toBeInTheDocument()
     expect(screen.getByLabelText('All Notes')).toBeInTheDocument()
     expect(document.querySelector('.app__sidebar--collapsed')).toBeInTheDocument()
 

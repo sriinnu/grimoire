@@ -51,7 +51,7 @@ export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsent
           </h2>
           <p style={{ fontSize: 13, color: 'var(--muted-foreground)', lineHeight: 1.6, marginTop: 8 }}>
             Send anonymous crash reports to help us fix bugs faster.
-            No vault content, no personal data, no tracking.
+            No vault content, no personal data, no usage analytics.
           </p>
         </div>
 
@@ -60,11 +60,13 @@ export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsent
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             <li>Stack traces from errors (JS &amp; Rust)</li>
             <li>App version, OS, and architecture</li>
+            <li>A random anonymous crash identifier</li>
           </ul>
           <p style={{ margin: '10px 0 6px', fontWeight: 500, color: 'var(--foreground)' }}>What we never collect:</p>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             <li>No vault content, note titles, or file paths</li>
             <li>No personal data or IP addresses</li>
+            <li>No usage analytics unless you enable them in Settings</li>
           </ul>
         </div>
 

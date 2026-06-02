@@ -253,8 +253,8 @@ describe('Sidebar', () => {
     expect(screen.getByText('Grimoire')).toHaveClass('sidebar-brand-wordmark')
     expect(screen.getByText('Grimoire')).toHaveStyle({ textAlign: 'left' })
     expect(screen.getByAltText('Grimoire icon')).toBeInTheDocument()
-    expect(screen.getByText('Markdown agent')).toBeInTheDocument()
-    expect(screen.getByText('Markdown agent')).toHaveStyle({ textAlign: 'left' })
+    expect(screen.getByText('Local memory studio')).toBeInTheDocument()
+    expect(screen.getByText('Local memory studio')).toHaveStyle({ textAlign: 'left' })
   })
 
   it('opens vault-wide search from the left sidebar', () => {

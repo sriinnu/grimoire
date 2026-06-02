@@ -1708,7 +1708,7 @@ function App() {
       <TelemetryConsentDialog
         onAccept={() => {
           const id = crypto.randomUUID()
-          saveSettings({ ...settings, telemetry_consent: true, crash_reporting_enabled: true, analytics_enabled: true, anonymous_id: id })
+          saveSettings({ ...settings, telemetry_consent: true, crash_reporting_enabled: true, analytics_enabled: false, anonymous_id: id })
         }}
         onDecline={() => {
           saveSettings({ ...settings, telemetry_consent: false, crash_reporting_enabled: false, analytics_enabled: false, anonymous_id: null })
