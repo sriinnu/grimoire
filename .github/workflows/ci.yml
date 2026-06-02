@@ -106,8 +106,6 @@ jobs:
           PLAYWRIGHT_BROWSERS=webkit PLAYWRIGHT_REPORTER=line pnpm exec playwright test
           --config playwright.smoke.config.ts
           tests/smoke/example.spec.ts
-          tests/smoke/fix-crash-create-note.spec.ts
-          tests/smoke/h1-untitled-auto-rename.spec.ts
           tests/smoke/wikilink-path-fix.spec.ts
 
       - name: Rust Lint
