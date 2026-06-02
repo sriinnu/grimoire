@@ -1081,8 +1081,8 @@ describe('App', () => {
       expect(getHeaderForNoteList(noteListContainer)).toHaveTextContent('Alpha')
     })
 
-    expect(screen.getByText('Related to')).toBeInTheDocument()
-    expect(screen.getByText('Beta')).toBeInTheDocument()
+    expect(await screen.findByText('Related to', {}, { timeout: 10000 })).toBeInTheDocument()
+    expect(await screen.findByText('Beta', {}, { timeout: 10000 })).toBeInTheDocument()
   }, 10000)
 
   it('defaults to All Notes when explicit organization is disabled in vault config', async () => {
