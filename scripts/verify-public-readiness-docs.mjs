@@ -100,7 +100,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`')
   assertContains('docs/PUBLIC-READINESS.md', 'signed 2026-06-02 content refresh `254e687`')
   assertNotMatch('docs/PUBLIC-READINESS.md', /b3c9170/u, 'the superseded starter-vault head')
-  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, starter-vault mirror drift, and release-preflight blockers')
+  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix proof, macOS updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
   assertContains('scripts/audit-public-readiness.mjs', 'compareStarterMirror')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Starter vault public clone does not match demo-vault-v2')
   assertContains('scripts/public-readiness-starter-mirror.mjs', 'export function compareStarterMirror')
@@ -148,6 +148,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '4,597 frontend tests')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
+  assertContains('docs/PUBLIC-READINESS.md', 'Release-mode lookup no longer falls back to the source checkout')
   assertContains('docs/PUBLIC-READINESS.md', 'Node lookup now parses multi-line `where` output')
   assertContains('docs/GETTING-STARTED.md', 'Node.js must be discoverable on `PATH`')
   assertContains(

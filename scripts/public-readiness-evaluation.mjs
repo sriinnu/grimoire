@@ -19,6 +19,7 @@ export const REQUIRED_TOPICS = [
 
 export const CHANNELS = ['stable', 'alpha']
 export const REQUIRED_CI_RUNNERS = ['macos-15', 'ubuntu-24.04', 'windows-2025-vs2026']
+export const REQUIRED_MAC_UPDATER_PLATFORMS = ['darwin-aarch64', 'darwin-x86_64']
 
 export const FEED_URLS = {
   alpha: 'https://sriinnu.github.io/grimoire/alpha/latest.json',
@@ -55,6 +56,15 @@ function hasCompleteMacAssets(release) {
     && hasArchAsset(names, arch, '.app.tar.gz')
     && hasArchAsset(names, arch, '.app.tar.gz.sig')
   ))
+}
+
+function missingUpdaterPlatforms(feed) {
+  const platforms = feed?.json?.platforms
+  if (!platforms) return REQUIRED_MAC_UPDATER_PLATFORMS
+  return REQUIRED_MAC_UPDATER_PLATFORMS.filter((platform) => {
+    const payload = platforms[platform]
+    return !payload?.url || !payload?.signature
+  })
 }
 
 function annotationMessages(annotations, level) {
@@ -151,6 +161,11 @@ export function findBlockers(state) {
     }
     if (!feed.json?.platforms || Object.keys(feed.json.platforms).length === 0) {
       blockers.push(`${channel} update feed does not contain updater platforms.`)
+      continue
+    }
+    const missing = missingUpdaterPlatforms(feed)
+    if (missing.length > 0) {
+      blockers.push(`${channel} update feed is missing macOS updater payloads: ${missing.join(', ')}.`)
     }
   }
 

@@ -31,8 +31,12 @@ fn is_mcp_server_dir(path: &Path) -> bool {
 }
 
 fn mcp_server_dir_candidates(dev_path: &Path) -> Vec<PathBuf> {
+    mcp_server_dir_candidates_with(dev_path, cfg!(debug_assertions))
+}
+
+fn mcp_server_dir_candidates_with(dev_path: &Path, include_dev_path: bool) -> Vec<PathBuf> {
     let mut candidates = Vec::new();
-    if cfg!(debug_assertions) {
+    if include_dev_path {
         push_unique(&mut candidates, dev_path.to_path_buf());
     }
 
@@ -45,10 +49,6 @@ fn mcp_server_dir_candidates(dev_path: &Path) -> Vec<PathBuf> {
         for candidate in resource_dir_candidates_from_exe(&exe, appdir.as_deref()) {
             push_unique(&mut candidates, candidate);
         }
-    }
-
-    if !cfg!(debug_assertions) {
-        push_unique(&mut candidates, dev_path.to_path_buf());
     }
 
     candidates
@@ -121,5 +121,13 @@ mod tests {
         assert!(candidates.contains(&PathBuf::from(
             "C:/Program Files/Grimoire/resources/mcp-server"
         )));
+    }
+
+    #[test]
+    fn release_mcp_candidates_do_not_fall_back_to_source_checkout() {
+        let source_checkout = PathBuf::from("/Users/sriinnu/grimoire/mcp-server");
+        let candidates = mcp_server_dir_candidates_with(&source_checkout, false);
+
+        assert!(!candidates.contains(&source_checkout));
     }
 }
