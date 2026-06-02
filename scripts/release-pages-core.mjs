@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const CHANNELS = ['stable', 'alpha']
-const PLATFORM_ORDER = ['darwin-aarch64', 'darwin-x86_64']
+const PLATFORM_ORDER = ['darwin-aarch64', 'darwin-x86_64', 'windows-x86_64', 'linux-x86_64']
 
 function normalizeText(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
@@ -60,6 +60,26 @@ function classifyDarwinPlatform(assetName) {
   return null
 }
 
+function classifyNativePlatform(assetName) {
+  const normalized = assetName.toLowerCase()
+  if (assetName.endsWith('.app.tar.gz') || assetName.endsWith('.dmg')) return classifyDarwinPlatform(assetName)
+  if (/\.(?:exe|msi)$/iu.test(assetName) && /(?:^|[-_.])(x64|x86_64|amd64)(?:[-_.]|$)/u.test(normalized)) {
+    return 'windows-x86_64'
+  }
+  if (/\.(?:AppImage|deb|rpm)$/u.test(assetName) && /(?:^|[-_.])(x64|x86_64|amd64)(?:[-_.]|$)/u.test(normalized)) {
+    return 'linux-x86_64'
+  }
+  return null
+}
+
+function updaterAssetPriority(asset) {
+  if (asset.name.endsWith('.app.tar.gz')) return 100
+  if (asset.name.endsWith('.exe')) return 90
+  if (asset.name.endsWith('.msi')) return 80
+  if (asset.name.endsWith('.AppImage')) return 90
+  return 0
+}
+
 function normalizeReleaseAsset(asset) {
   const name = normalizeText(asset.name)
   const browserUrl = normalizeText(asset.browser_download_url)
@@ -112,10 +132,18 @@ async function buildUpdaterManifest(release, token) {
   }
 
   const platforms = {}
-  for (const asset of assets.filter((candidate) => candidate.name.endsWith('.app.tar.gz'))) {
-    const platform = classifyDarwinPlatform(asset.name)
+  const platformPriorities = {}
+  const updaterAssets = assets.filter((candidate) => (
+    candidate.name.endsWith('.app.tar.gz')
+    || /\.(?:exe|msi|AppImage)$/iu.test(candidate.name)
+  ))
+
+  for (const asset of updaterAssets) {
+    const platform = classifyNativePlatform(asset.name)
     const signatureAsset = signatureAssets.get(asset.name)
     if (!platform || !signatureAsset) continue
+    const priority = updaterAssetPriority(asset)
+    if ((platformPriorities[platform] ?? -1) > priority) continue
 
     const dmgAsset = dmgAssets.get(platform)
     platforms[platform] = {
@@ -126,6 +154,7 @@ async function buildUpdaterManifest(release, token) {
       platforms[platform].download_url = dmgAsset.browserUrl
       platforms[platform].dmg_url = dmgAsset.browserUrl
     }
+    platformPriorities[platform] = priority
   }
 
   if (Object.keys(platforms).length === 0) return null
@@ -148,7 +177,12 @@ function manualDownloadLinks(manifest) {
     .map((platform) => {
       const payload = manifest.platforms?.[platform]
       if (!payload) return null
-      const label = platform === 'darwin-aarch64' ? 'macOS Apple Silicon' : 'macOS Intel'
+      const label = {
+        'darwin-aarch64': 'macOS Apple Silicon',
+        'darwin-x86_64': 'macOS Intel',
+        'linux-x86_64': 'Linux x64 AppImage',
+        'windows-x86_64': 'Windows x64 installer',
+      }[platform] ?? platform
       return { label, url: payload.download_url ?? payload.dmg_url ?? payload.url }
     })
     .filter((link) => link?.url)
@@ -205,19 +239,28 @@ function buildDownloadPage(channel, manifest) {
   const onlyMacLink = macLinkCount === 1 ? links.find((link) => link.label.startsWith('macOS ')) : null
   return pageShell('Grimoire Download', `
     <h1>Grimoire ${channel} download</h1>
-    <p id="download-message">Choose the signed macOS build for your machine.</p>
+    <p id="download-message">Choose the signed build for your machine.</p>
     <div class="downloads">
       ${links.map((link) => `<a href="${escapeHtml(link.url)}">${escapeHtml(link.label)}</a>`).join('\n      ')}
     </div>
     <script>
+      const downloadLinks = ${JSON.stringify(links)};
       const macDownloadCount = ${JSON.stringify(macLinkCount)};
       const onlyMacDownload = ${JSON.stringify(onlyMacLink)};
       const isMac = /Mac OS X|Macintosh/i.test(navigator.userAgent);
+      const isWindows = /Windows/i.test(navigator.userAgent);
+      const isLinux = /Linux/i.test(navigator.userAgent) && !/Android/i.test(navigator.userAgent);
       if (isMac && macDownloadCount > 1) {
         const message = document.getElementById('download-message');
         if (message) message.textContent = 'Choose Apple Silicon or Intel Mac below.';
       } else if (isMac && onlyMacDownload?.url) {
         window.location.replace(onlyMacDownload.url);
+      } else if (isWindows) {
+        const windowsDownload = downloadLinks.find((link) => link.label.startsWith('Windows '));
+        if (windowsDownload?.url) window.location.replace(windowsDownload.url);
+      } else if (isLinux) {
+        const linuxDownload = downloadLinks.find((link) => link.label.startsWith('Linux '));
+        if (linuxDownload?.url) window.location.replace(linuxDownload.url);
       }
     </script>`)
 }

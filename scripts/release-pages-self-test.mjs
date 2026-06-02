@@ -10,6 +10,8 @@ import { join } from 'node:path'
 import { buildReleasePages, readJson } from './release-pages-core.mjs'
 
 function writeReleaseFixture(releasesPath, sigPath, x64SigPath) {
+  const winSigPath = sigPath.replace('Grimoire_aarch64.app.tar.gz.sig', 'Grimoire_x64-setup.exe.sig')
+  const linuxSigPath = sigPath.replace('Grimoire_aarch64.app.tar.gz.sig', 'grimoire_amd64.AppImage.sig')
   writeFileSync(releasesPath, JSON.stringify([{
     assets: [
       {
@@ -36,6 +38,22 @@ function writeReleaseFixture(releasesPath, sigPath, x64SigPath) {
         browser_download_url: 'https://example.com/Grimoire_x86_64.dmg',
         name: 'Grimoire_x86_64.dmg',
       },
+      {
+        browser_download_url: 'https://example.com/Grimoire_x64-setup.exe',
+        name: 'Grimoire_x64-setup.exe',
+      },
+      {
+        browser_download_url: `file://${winSigPath}`,
+        name: 'Grimoire_x64-setup.exe.sig',
+      },
+      {
+        browser_download_url: 'https://example.com/grimoire_amd64.AppImage',
+        name: 'grimoire_amd64.AppImage',
+      },
+      {
+        browser_download_url: `file://${linuxSigPath}`,
+        name: 'grimoire_amd64.AppImage.sig',
+      },
     ],
     body: 'Stable release notes.',
     draft: false,
@@ -56,6 +74,12 @@ function assertReleasePageOutput(outputDir) {
   if (manifest.platforms['darwin-x86_64'].signature !== 'stable-intel-signature') {
     throw new Error('self-test did not copy Intel updater signature content')
   }
+  if (manifest.platforms['windows-x86_64'].signature !== 'stable-windows-signature') {
+    throw new Error('self-test did not copy Windows updater signature content')
+  }
+  if (manifest.platforms['linux-x86_64'].signature !== 'stable-linux-signature') {
+    throw new Error('self-test did not copy Linux updater signature content')
+  }
   if (!existsSync(join(outputDir, 'stable/download/index.html'))) {
     throw new Error('self-test did not write stable download page')
   }
@@ -67,6 +91,9 @@ function assertReleasePageOutput(outputDir) {
   if (!downloadPage.includes('https://example.com/Grimoire_aarch64.dmg') || !downloadPage.includes('https://example.com/Grimoire_x86_64.dmg')) {
     throw new Error('self-test expected both macOS manual download links')
   }
+  if (!downloadPage.includes('https://example.com/Grimoire_x64-setup.exe') || !downloadPage.includes('https://example.com/grimoire_amd64.AppImage')) {
+    throw new Error('self-test expected Windows and Linux manual download links')
+  }
   if (!existsSync(join(outputDir, 'alpha/download/index.html'))) {
     throw new Error('self-test did not write alpha fallback page')
   }
@@ -77,9 +104,13 @@ export async function runReleasePagesSelfTest() {
   try {
     const sigPath = join(tempDir, 'Grimoire_aarch64.app.tar.gz.sig')
     const x64SigPath = join(tempDir, 'Grimoire_x86_64.app.tar.gz.sig')
+    const winSigPath = join(tempDir, 'Grimoire_x64-setup.exe.sig')
+    const linuxSigPath = join(tempDir, 'grimoire_amd64.AppImage.sig')
     const releasesPath = join(tempDir, 'releases.json')
     writeFileSync(sigPath, 'stable-signature\n')
     writeFileSync(x64SigPath, 'stable-intel-signature\n')
+    writeFileSync(winSigPath, 'stable-windows-signature\n')
+    writeFileSync(linuxSigPath, 'stable-linux-signature\n')
     writeReleaseFixture(releasesPath, sigPath, x64SigPath)
 
     const outputDir = join(tempDir, 'public')
