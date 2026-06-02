@@ -80,6 +80,10 @@ export function runSelfTest({ auditLocalOnly, LOCAL_ONLY_DOCS, REQUIRED_GITIGNOR
       trackedFiles: ['docs/ACTIVE-WORK.md'],
       worktreeFiles: [],
     }), 'local planning docs')
+    assertIssue('tracked root vault type stub', auditLocalOnly(root, {
+      trackedFiles: ['journal.md'],
+      worktreeFiles: [],
+    }), 'root vault type stub')
 
     writeFileSync(resolve(root, 'chitragupta.vertical.json'), `{"handover":{"sourcePath":"${LOCAL_ONLY_DOCS[0]}"}}\n`)
     assertIssue('tracked local-only doc reference', auditLocalOnly(root, {

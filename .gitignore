@@ -78,6 +78,14 @@ docs/CHITRAGUPTA-GRIMOIRE-INTEGRATION-REQUEST.md
 docs/CHITRAGUPTA-WIRING-NEEDS.md
 docs/KARYA-BOARD-SALVAGE.md
 
+# Root vault type stubs belong in demo/test vaults, not the repository root.
+journal.md
+dream.md
+memory.md
+task.md
+note.md
+type.md
+
 # Local home dir artifact from worktree ops
 (HOME)/
 
