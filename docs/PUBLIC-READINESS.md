@@ -82,7 +82,7 @@ latest branch state.
 Run `26790972294` for signed commit
 `de4b7e575108e16a050dba720207c73cff2a0fc7` failed before
 checkout/build/test on 2026-06-02 Europe/Vienna. The live readiness audit
-reported zero executed steps for the latest hosted CI run.
+reported zero executed steps for that hosted CI run.
 
 Earlier check-run annotations for this same hosted-CI failure mode reported:
 
