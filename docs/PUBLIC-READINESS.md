@@ -1,6 +1,6 @@
 # Public Readiness
 
-Snapshot date: 2026-06-02.
+Snapshot date: 2026-06-03.
 
 Grimoire's source repository is public, but the app is not ready for public
 release or general-user installation yet. The source tree is getting closer, but
@@ -13,7 +13,7 @@ below are resolved and re-verified.
 | --- | --- | --- |
 | Starter vault | Ready | `https://github.com/sriinnu/grimoire-getting-started` is public, clones successfully, and the signed 2026-06-02 content refresh `bb9f94c` includes the Sidebar Spotlight project-text fixture, the Journal/Dream/Event Time Loom substrate, and the Chitragupta CLI/MCP readiness boundary. Packaged apps also bundle the tracked `demo-vault-v2/` mirror as a `starter-vault/` fallback, so first-run template onboarding is not network-only. The live readiness audit shallow-clones the current public HEAD before comparing it with `demo-vault-v2/`. |
 | Starter showcase structure | Verified | `pnpm test:starter-vault` checks the feature-tour manifest, requires every advertised surface row to link to a real demo note, validates scenario files, and resolves internal wikilinks for `demo-vault-v2/`. This is structural proof for the showcase, not a claim that every advertised app surface is feature-complete. `pnpm audit:public-readiness -- --branch main` also shallow-clones the public starter repo and compares its tracked content against `demo-vault-v2/`, ignoring only documented public-only files such as `README.md` and `LICENSE`. |
-| Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures, including pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana. A current local 2026-06-02 run of `pnpm doctor:source` reports browser source mode and native Tauri mode ready on this macOS host. |
+| Source setup doctor | Verified | `pnpm test:doctor-source` covers the source-readiness model. `pnpm doctor:source` checks browser source mode separately from native Tauri mode so local setup failures do not masquerade as product failures, including pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana. A current local 2026-06-03 run of `pnpm doctor:source` reports browser source mode and native Tauri mode ready on this macOS host. |
 | README download link | Ready | The old `Grimoire.app.tar.gz` download path was removed. The README now says there is no public packaged release. |
 | README status badges | Verified | README badges are static truth badges while the source repository is public, latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners, and public binaries are unpublished. Dynamic Actions, coverage, and CodeScene badges should only return after their public endpoints are verified. |
 | Repository topics | Ready | GitHub topics are set for local-first notes, AI agents, graph, Tauri, Rust, React, and TypeScript discovery. |
