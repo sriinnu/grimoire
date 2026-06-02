@@ -52,7 +52,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/GETTING-STARTED.md', 'pnpm doctor:source')
   assertContains('README.md', 'Public binary installers are not published yet.')
   assertContains('docs/GETTING-STARTED.md', 'Public binary installers are not published')
-  assertContains('docs/PUBLIC-READINESS.md', 'Grimoire is not ready to make public for general users yet.')
+  assertContains('docs/PUBLIC-READINESS.md', 'Grimoire\'s source repository is public, but the app is not ready for public')
   assertContains('docs/PUBLIC-READINESS.md', '| Public binary release | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| Update feed | Blocked |')
   assertContains('docs/PUBLIC-READINESS.md', '| README status badges | Verified |')
@@ -72,8 +72,8 @@ function verifyBinaryInstallTruth() {
   )
   assertContains('docs/PUBLIC-READINESS.md', '| CI runner images | Ready |')
   assertContains('docs/PUBLIC-READINESS.md', '`macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026`')
-  assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
-  assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-billing%2Fspending%20limit-red')
+  assertContains('README.md', 'https://img.shields.io/badge/source-public-blue')
+  assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-not%20green%20yet-orange')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks')
   assertContains('docs/PUBLIC-READINESS.md', 'libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana')
@@ -182,23 +182,18 @@ function verifyBinaryInstallTruth() {
   assertContains('package.json', '"test:public-readiness-audit": "node scripts/audit-public-readiness.mjs --self-test"')
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'recent account payments failed or the Actions spending limit needs to be increased',
-    'hosted CI billing/spending blocker evidence',
-  )
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    'This section records the hosted CI failure mode, not a frozen latest commit.',
+    'This section records how to verify hosted CI, not a frozen latest commit.',
     'durable hosted CI evidence boundary',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'readiness audit reports the current run id and verifies that the failed run',
+    'live readiness audit reports the current run id, conclusion or in-progress',
     'live hosted CI audit evidence',
   )
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'executed zero workflow steps.',
-    'zero-step hosted CI evidence',
+    'A pending run, failed run, stale-head run, missing',
+    'hosted CI non-green evidence boundary',
   )
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
   assertNotMatch('docs/PUBLIC-READINESS.md', /97b824f7839ab94ef09b07a6b95f767936de262f/u, 'the superseded starter-vault head')

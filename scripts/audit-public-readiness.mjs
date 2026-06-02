@@ -246,7 +246,7 @@ function runSelfTest() {
       stepCount: 0,
     },
     feeds: { alpha: { status: 404 }, stable: { status: 404 } },
-    publicReadiness: 'Grimoire is not ready to make public.',
+    publicReadiness: 'Grimoire is not ready for public release.',
     releases: [],
     releasePreflight: {
       blockers: ['GitHub Pages is not configured for this repository.'],
