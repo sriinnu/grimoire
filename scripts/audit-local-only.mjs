@@ -22,6 +22,15 @@ export const LOCAL_ONLY_DOCS = [
   'docs/KARYA-BOARD-SALVAGE.md',
 ]
 
+const ROOT_VAULT_TYPE_STUBS = [
+  'journal.md',
+  'dream.md',
+  'memory.md',
+  'task.md',
+  'note.md',
+  'type.md',
+]
+
 const TRACKED_ENV_FIXTURES = new Set([
   'src-tauri/fixtures/import-corpora/mixed-markdown-folder/.env',
   'src-tauri/fixtures/import-corpora/notion-markdown/.env',
@@ -48,6 +57,7 @@ export const REQUIRED_GITIGNORE_PATTERNS = [
   '*.key',
   '*.key.pub',
   'src-tauri/gen/apple/assets/mcp-server/',
+  ...ROOT_VAULT_TYPE_STUBS,
   ...LOCAL_ONLY_DOCS,
 ]
 
@@ -71,6 +81,7 @@ const FORBIDDEN_TRACKED_RULES = [
     test: (path) => hasPrefix(path, 'src-tauri/gen/apple/assets/mcp-server/'),
   },
   { label: 'local planning docs', test: (path) => LOCAL_ONLY_DOCS.includes(path) },
+  { label: 'root vault type stub', test: (path) => ROOT_VAULT_TYPE_STUBS.includes(path) },
   { label: 'docs/.DS_Store', test: (path) => path === 'docs/.DS_Store' },
 ]
 
