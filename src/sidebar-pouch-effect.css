@@ -1,0 +1,116 @@
+.app-sidebar-panel .sidebar-artwork__pouch-flow,
+[data-sidebar-preset-preview] .sidebar-artwork__pouch-flow {
+  color: color-mix(in srgb, var(--art-aura) 72%, var(--art-spark));
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--art-aura) 18%, transparent));
+  opacity: 0.94;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.sidebar-artwork__cloud-puff {
+  fill: color-mix(in srgb, currentColor 20%, var(--sidebar) 80%);
+  opacity: 0.72;
+  stroke: color-mix(in srgb, currentColor 42%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.sidebar-artwork__cloud-wisp,
+.sidebar-artwork__pouch-lip {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sidebar-artwork__cloud-wisp {
+  opacity: 0.78;
+  stroke-dasharray: 54 18;
+  stroke-width: 4.4;
+}
+
+.sidebar-artwork__cloud-wisp--center {
+  color: color-mix(in srgb, var(--art-memory) 58%, var(--art-aura));
+  opacity: 0.64;
+  stroke-width: 3.8;
+}
+
+.sidebar-artwork__pouch-mouth {
+  fill: color-mix(in srgb, var(--art-memory) 18%, var(--sidebar) 82%);
+  opacity: 0.82;
+  stroke: color-mix(in srgb, var(--art-spark) 42%, var(--art-aura));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.2;
+}
+
+.sidebar-artwork__pouch-lip {
+  color: color-mix(in srgb, var(--art-spark) 72%, var(--art-aura));
+  opacity: 0.86;
+  stroke-width: 3.6;
+}
+
+.sidebar-artwork--compact .sidebar-artwork__pouch-flow {
+  opacity: 0.64;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .app-sidebar-panel .sidebar-artwork__pouch-flow {
+    animation: sidebar-pouch-settle 620ms var(--motion-ease-expressive, ease-out) both;
+  }
+
+  .app-sidebar-panel .sidebar-artwork__cloud-wisp {
+    animation: sidebar-cloud-intake 820ms var(--motion-ease-expressive, ease-out) both;
+  }
+
+  .app-sidebar-panel .sidebar-artwork__cloud-puff {
+    animation: sidebar-cloud-soften 720ms var(--motion-ease-expressive, ease-out) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar-panel .sidebar-artwork__cloud-puff,
+  .app-sidebar-panel .sidebar-artwork__cloud-wisp,
+  .app-sidebar-panel .sidebar-artwork__pouch-flow {
+    animation: none;
+  }
+}
+
+@keyframes sidebar-pouch-settle {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+
+  to {
+    opacity: 0.94;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sidebar-cloud-intake {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 72;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 0.78;
+    stroke-dashoffset: 0;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sidebar-cloud-soften {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(1.06);
+  }
+
+  to {
+    opacity: 0.72;
+    transform: translateY(0) scale(1);
+  }
+}

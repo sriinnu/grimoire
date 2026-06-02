@@ -72,6 +72,15 @@ function GrimoireSigil() {
         <circle className="sidebar-artwork__route-node" cx="204" cy="92" r="3.8" />
         <circle className="sidebar-artwork__route-node sidebar-artwork__route-node--warm" cx="160" cy="173" r="4.2" />
       </g>
+      <g className="sidebar-artwork__pouch-flow" data-sidebar-art-channel="pouch-intake">
+        <path className="sidebar-artwork__cloud-puff sidebar-artwork__cloud-puff--left" d="M49 167c5-11 18-13 25-4 5-8 18-6 22 3 9 0 16 8 13 17-25 3-45-1-60-16z" />
+        <path className="sidebar-artwork__cloud-puff sidebar-artwork__cloud-puff--right" d="M274 166c-5-10-18-12-25-3-5-8-18-5-21 4-9 1-15 9-12 18 24 2 44-3 58-19z" />
+        <path className="sidebar-artwork__cloud-wisp sidebar-artwork__cloud-wisp--left" d="M46 176c26-9 48-4 67 15 15 15 31 18 48 9" />
+        <path className="sidebar-artwork__cloud-wisp sidebar-artwork__cloud-wisp--right" d="M273 176c-27-7-49-1-66 18-14 16-30 20-48 10" />
+        <path className="sidebar-artwork__cloud-wisp sidebar-artwork__cloud-wisp--center" d="M119 188c22 9 42 9 61 0 16-7 32-5 47 7" />
+        <path className="sidebar-artwork__pouch-mouth" d="M77 209c39 20 80 21 123 5 22-8 42-5 63 10-52 20-137 20-189 0 1-5 3-10 3-15z" />
+        <path className="sidebar-artwork__pouch-lip" d="M76 208c43 15 80 13 123 1 22-6 43-2 63 10" />
+      </g>
       <path className="sidebar-artwork__purana-scroll" d="M86 192c21 11 45 10 70-2M87 202c22 7 45 6 69-2M236 189c-19 11-40 11-63 0" />
       <path className="sidebar-artwork__constellation" d="M99 85l39-25 61 27 59-25M99 199l60-24 61 22" />
       <circle className="sidebar-artwork__node" cx="190" cy="121" r="8" />
