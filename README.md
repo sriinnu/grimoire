@@ -10,78 +10,66 @@
 
 # Grimoire
 
-Grimoire is a local-first memory workspace for journals, project thinking, graph navigation, and AI collaborators.
+Grimoire is a local-first memory studio for journals, project work, graph
+sensemaking, markdown editing, and AI collaborators that can read the same vault
+structure you do.
 
-The core idea is simple: your notes stay as markdown files, but the app gives them enough shape to become a living operating space. A day note can hold weather and mood. A project note can connect people, decisions, meetings, and code. The graph can show what surrounds the current thought. Local agents can read the same structure without needing a hosted database.
+It is not a public installer yet. It is not a hosted notes service. It is source
+you can run today, with public-release blockers tracked openly.
 
-Grimoire is created and maintained by **Srinivas Pendela** ([@sriinnu](https://x.com/sriinnu)).
+Grimoire is created and maintained by **Srinivas Pendela**
+([@sriinnu](https://x.com/sriinnu)).
 
-## Product Spine
+## What It Is
 
-Grimoire is built around five surfaces:
+Grimoire keeps the durable contract boring on purpose: markdown files,
+frontmatter, wikilinks, local folders, and Git history. The app adds richer
+surfaces on top of that structure:
 
-- **Journal**: local-first dated notes, long-form reflection, weather/context
-  snapshots, dreams, and review patterns; the fuller weekly/monthly review
-  surfaces are still a next product bet.
-- **Workbench**: projects, people, procedures, decisions, sources, and typed notes.
-- **Graph**: local neighborhood first, whole-vault map when needed, with relationship-aware filters.
-- **Memory**: Git history, backlinks, frontmatter, and agent-readable structure.
-- **Native studio**: theme, typography, motion, and macOS behavior treated as product quality, not decoration.
+- **Daily memory**: quick capture, journals, dreams, dated notes, weather/time
+  context, and review-oriented workflows.
+- **Workbench**: projects, people, procedures, decisions, sources, tasks,
+  frontmatter, saved views, and typed notes.
+- **Editor**: BlockNote rich editing, raw CodeMirror editing, markdown math,
+  wikilinks, slash commands, code blocks, YAML, images, and shared markdown
+  semantics.
+- **Graph**: active-note Neighborhood mode, whole-vault graph mode, relationship
+  and wikilink edges, type-colored nodes, filters, and large-vault caps.
+- **Search**: sidebar Spotlight search across open-vault text/docs, note-list
+  search, filters, custom columns, sorting, and saved views.
+- **AI workspace**: Claude Code, Codex, and Chitragupta CLI panels with
+  route/status disclosure. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work.
+- **Native shell**: Tauri desktop app, macOS menu/window work, platform-specific
+  settings copy, update-feed preferences, local-only vault support, and a source
+  doctor for development setup.
 
-## What Makes Grimoire Different
+## Current Truth
 
-**The journal is not an afterthought.** Grimoire treats dated notes, dreams,
-weather/time context, and reflective writing as first-class knowledge, not loose
-text beside the "real" database. Richer review surfaces are part of the public
-roadmap, not a packaged-release claim yet.
+| Area | Current state |
+| --- | --- |
+| Source repository | Public. |
+| Public binary installers | Not published. There is no public packaged release yet. |
+| Update feeds | Not published. Stable and alpha feed URLs still 404 until real release assets are generated. |
+| Local macOS source/dev | Locally exercised and the active development host. |
+| Windows source/dev | Known cfg and SQLite link failures were fixed in source, and hosted Windows Build has passed, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
+| Linux source/dev | Intended source target with documented Tauri dependencies, pending fresh platform QA. |
+| Hosted CI | Live-audited, not hardcoded here. Latest `main` is still not green yet; readiness-branch CI must be checked with the audit command before making public claims. |
+| Release readiness | Blocked by missing release secrets, missing GitHub Releases, and missing update feeds. |
 
-**The graph starts from the active thought.** The first graph view is the neighborhood around what you are touching now. Whole-vault mode exists, but the product bias is sensemaking, not drawing a pretty hairball.
+Run the live audit before advertising Grimoire publicly:
 
-**Agents read the same world you do.** Frontmatter, wikilinks, relationships, files, and Git history are meant to be legible to local AI tools without turning the vault into a black-box database.
+```bash
+pnpm audit:public-readiness -- --branch main
+```
 
-**Markdown remains the contract.** Rich editing, raw editing, math, wikilinks, code blocks, YAML, images, and future exports must preserve understandable markdown.
+The active readiness notes live in
+[docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md). The release operator
+checklist is [docs/RELEASE-RUNBOOK.md](docs/RELEASE-RUNBOOK.md).
 
-**The app should feel crafted.** Themes, typography, spacing, animation, graph rendering, keyboard flow, and native macOS behavior are part of the core promise.
+## Run From Source
 
-## Current Status
-
-- Public readiness is tracked separately in
-  [docs/PUBLIC-READINESS.md](docs/PUBLIC-READINESS.md). As of 2026-06-02,
-  Grimoire's source repository is public, but it is not ready for public release
-  or general-user installation. The readiness branch has green hosted CI on the
-  pinned macOS, Linux, and Windows jobs, but the latest `main` CI is still
-  failed, no public binary release exists, and the stable/alpha update feeds are
-  not published yet.
-- Local vault opening and onboarding
-- Starter vault clone flow implemented with a public starter repository
-- Sidebar filters, folders, type sections, favorites, archive, inbox, and changes
-- Sidebar Spotlight search across open vault text/docs, note list search,
-  custom columns, sorting, saved views, and Neighborhood mode
-- BlockNote rich editor with package-owned slash commands, markdown-compatible math, wikilinks, `#` tag/collection autocomplete, code blocks, formatting, and raw CodeMirror mode
-- Inspector for frontmatter, relationships, backlinks, instances, note metadata, and git history
-- Knowledge graph with local/vault scope, relationship/wikilink edge filters, type-colored nodes, and large-vault caps
-- Weather snapshot command for journal entries using explicit user-provided location
-- Claude Code, Codex, and Chitragupta CLI agent panel with route/status disclosure; Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain readiness-gated contract work
-- Git history, commit/push/pull/conflict flows, and local-only Git repositories without a remote
-- Light/dark mode, multiple theme presets, and editor font choices
-- English and Simplified Chinese UI foundations
-
-## Next Product Bets
-
-- Editor find/replace with a real command contract across rich, raw, and native menus
-- Daily notes, templates, weather/time context, and weekly/monthly review surfaces
-- Graph clustering, pinned nodes, minimap, incoming-link filters, and semantic suggestions
-- Vault image previews, file actions, QuickLook, and better drag/drop behavior
-- Theme studio with UI font, heading font, monospace font, line height, editor width, contrast, and motion controls
-- Tauri-first editor product with SwiftUI/AppKit support only where Apple-native integration clearly beats the webview path
-
-## Getting Started
-
-There is no public packaged release yet. The previous `Grimoire.app.tar.gz`
-link has been removed because GitHub currently has no latest Grimoire release
-asset to download.
-
-For now, run Grimoire from source:
+Public binary installers are not published yet. For now, run Grimoire from the
+source tree.
 
 ```bash
 corepack enable
@@ -90,42 +78,8 @@ pnpm doctor:source
 pnpm dev
 ```
 
-For the native desktop app:
-
-```bash
-pnpm tauri dev
-```
-
-The in-app Getting Started vault flow points to:
-
-https://github.com/sriinnu/grimoire-getting-started
-
-That repository is public and contains the starter vault used by the
-first-run flow. If GitHub is unavailable, packaged apps fall back to the bundled
-starter-vault resource. The tracked `demo-vault-v2/` folder in this repository
-is the bundled mirror used for tests, local development, and review.
-
-## Local Development
-
-Prerequisites:
-
-- Node.js 20+
-- pnpm 10+ through Corepack
-- Rust stable
-- macOS for locally verified source development
-- Linux or Windows for intended source development, pending fresh platform QA
-
-Public binary installers are not published yet. The tracked release workflow is
-currently macOS-only once signing secrets are configured; Linux and Windows are
-source-build targets, not public-support claims, until hosted CI and platform QA
-prove them on those operating systems.
-
-Install and run browser mock mode:
-
-```bash
-pnpm install
-pnpm dev
-```
+Browser source mode needs Node, pnpm 10+, and Git. It runs the app in Vite mock
+mode and is the fastest way to inspect most UI behavior.
 
 Run the native desktop app:
 
@@ -133,98 +87,93 @@ Run the native desktop app:
 pnpm tauri dev
 ```
 
-Windows native development is not public-ready yet. A Windows `pnpm tauri dev`
-run on `main` reported macOS-only Rust cfg errors around the menu bar and reopen
-handlers. A later Windows run reported `LNK1181: cannot open input file
-'sqlite3.lib'`; the current source tree contains guards for those paths and
-bundles SQLite through `rusqlite` instead of requiring a separate Windows
-SQLite import library, but a fresh Windows run still needs to be captured before
-the README can call Windows verified.
-On Windows, `pnpm doctor:source` also checks for the MSVC Rust host and
-Microsoft C++ Build Tools (`cl.exe`) so missing native compiler setup fails
-before a Tauri build gets mysterious. It also warns when the evergreen WebView2
-runtime is not detected; that warning is not a source-doctor blocker, but a
-fresh Windows launch recheck should treat it seriously if the packaged `.exe`
-cannot open a window.
-
-Check that this machine is ready for source development:
-
-```bash
-pnpm doctor:source
-```
-
-The doctor separates browser source mode from native Tauri mode. Browser mode
-needs Node, pnpm 10+, and Git; native mode also needs Rust and platform-specific
-Tauri dependencies. If native mode is blocked on Linux, install the packages in
-[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md). On Linux, the doctor checks
-pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
+Native Tauri mode also needs Rust and platform-specific desktop dependencies.
+On Windows, `pnpm doctor:source` checks for the MSVC Rust host and Microsoft C++
+Build Tools (`cl.exe`), and it warns when the evergreen WebView2 runtime is not
+detected. On Linux, the doctor checks pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
-Audit public-release truth before advertising Grimoire to general users:
+Linux and Windows are source-build targets, not public-support claims, until hosted CI and platform QA
+prove them on those operating systems. On Windows,
+earlier source runs exposed macOS-only menu/reopen guards and a missing
+`sqlite3.lib` linker dependency. For those issues, the current source tree contains guards for those paths
+and bundles SQLite through `rusqlite` instead of requiring a separate Windows
+SQLite import library, but fresh Windows native launch evidence is still
+required before this README can call Windows verified.
+
+Linux package examples and the fuller codebase map are in
+[Getting Started](docs/GETTING-STARTED.md).
+
+## Starter Vault
+
+The first-run Getting Started flow clones this public starter vault:
+
+https://github.com/sriinnu/grimoire-getting-started
+
+If GitHub is unavailable, packaged apps fall back to the bundled
+`starter-vault` resource. In this repository, `demo-vault-v2/` is the tracked
+mirror used for tests, development, and review.
+
+The starter vault is a showcase and QA fixture. It demonstrates real surfaces,
+but it is not proof that every surface is feature-complete.
+
+## Development Checks
+
+Useful local checks:
 
 ```bash
-pnpm audit:public-readiness -- --branch main
-```
-
-That command checks repository visibility, discovery topics, starter vault
-access, latest GitHub Actions state, GitHub Release assets, update feeds, and
-README/public-readiness wording. It is expected to fail until the public
-release blockers in `docs/PUBLIC-READINESS.md` are resolved.
-
-Check public-facing Markdown links before publishing docs:
-
-```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm test
+pnpm build
 pnpm test:public-doc-links
+pnpm test:rust-platform-guards
+pnpm test:starter-vault
+cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-Before cutting a tagged release, check the live release prerequisites:
+Before a public release tag:
 
 ```bash
 pnpm release:preflight
+pnpm audit:public-readiness -- --branch main
+node scripts/scan-secrets.mjs --all
 ```
 
-That command verifies release workflow wiring, GitHub Pages, and the required
-repo secret names for signed and notarized macOS artifacts. It does not print
-secret values. The operator checklist is in
-[docs/RELEASE-RUNBOOK.md](docs/RELEASE-RUNBOOK.md).
-
-Build and install a local macOS app bundle:
-
-```bash
-pnpm macos:build-app
-pnpm macos:install-built-app
-```
-
-The local macOS build script cleans generated Tauri bundles first, builds a fresh
-app-only bundle, ad-hoc signs it for local use, and verifies that the packaged
-app icon matches `src-tauri/icons/icon.icns`. Release DMGs and updater tarballs
-must be produced by the tracked release workflow, verified with
-`pnpm release:verify-artifacts`, and published through the generated release
-Pages lane before the app advertises public updates.
-
-Linux Tauri dependencies are listed in [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
+`pnpm release:preflight` checks release workflow wiring, GitHub Pages, and the
+required secret names for signed/notarized macOS release artifacts. It does not
+print secret values.
 
 ## Documentation
 
 - [Docs Index](docs/README.md) - curated public documentation map
-- [Architecture](docs/ARCHITECTURE.md) - runtime shape, platform boundaries, data flow
-- [Abstractions](docs/ABSTRACTIONS.md) - durable concepts and module contracts
-- [Markdown Semantics](docs/MARKDOWN-SEMANTICS-CONTRACT.md) - shared markdown and slash-command contract
-- [Platform Roadmap](docs/PLATFORM-NATIVE-ENHANCEMENT-ROADMAP.md) - Tauri-first editor roadmap and Mem/Bear/Obsidian/Notion direction
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map
-- [Release Runbook](docs/RELEASE-RUNBOOK.md) - public release preflight,
-  secrets, tag order, and post-release verification
+- [Public Readiness](docs/PUBLIC-READINESS.md) - current release blockers and
+  verification commands
+- [Release Runbook](docs/RELEASE-RUNBOOK.md) - release secrets, signed tags,
+  workflow checks, and post-release verification
+- [Architecture](docs/ARCHITECTURE.md) - runtime shape and data flow
+- [Abstractions](docs/ABSTRACTIONS.md) - durable module and product contracts
+- [Markdown Semantics](docs/MARKDOWN-SEMANTICS-CONTRACT.md) - shared markdown
+  and slash-command behavior
 - [Vision](docs/VISION.md) - product direction
-- [Differentiation](docs/GRIMOIRE-DIFFERENTIATION.md) - how Grimoire stays its own product
-- [Enhancements](ENHANCEMENTS.md) - prioritized roadmap and research tracks
-- [ADRs](docs/adr) - historical architecture decisions
+- [Differentiation](docs/GRIMOIRE-DIFFERENTIATION.md) - what makes Grimoire its
+  own product
+- [Enhancements](ENHANCEMENTS.md) - roadmap and research tracks
+- [ADRs](docs/adr) - architecture decision records
 
 ## Security
 
 Report security issues privately as described in [SECURITY.md](SECURITY.md).
+Do not commit API keys, signing keys, certificates, local vault contents, or
+machine-specific config.
 
 ## License
 
-Grimoire's source code is licensed under AGPL-3.0-or-later. User vaults, journals, dreams, notes, attachments, and imported files remain owned by their creators and are not licensed by this repository.
+Grimoire's source code is licensed under AGPL-3.0-or-later. User vaults,
+journals, dreams, notes, attachments, and imported files remain owned by their
+creators and are not licensed by this repository.
 
-See [LICENSING.md](LICENSING.md) for the full project policy. The Grimoire name, logo, app icon, wordmark, and brand assets remain covered by the [trademark policy](TRADEMARKS.md).
+See [LICENSING.md](LICENSING.md) for the full project policy. The Grimoire name,
+logo, app icon, wordmark, and brand assets remain covered by the
+[trademark policy](TRADEMARKS.md).
