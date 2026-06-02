@@ -11,6 +11,49 @@ fn find_node_returns_valid_path() {
 }
 
 #[test]
+fn node_lookup_stdout_uses_first_non_empty_path() {
+    let stdout = b"\r\nC:\\Program Files\\nodejs\\node.exe\r\nC:\\Tools\\node.exe\r\n";
+
+    let path = first_node_lookup_path(stdout).unwrap();
+
+    assert_eq!(
+        path,
+        std::path::PathBuf::from("C:\\Program Files\\nodejs\\node.exe")
+    );
+}
+
+#[test]
+fn node_lookup_stdout_rejects_empty_output() {
+    assert!(first_node_lookup_path(b"\r\n\n").is_none());
+}
+
+#[test]
+fn fallback_node_candidates_include_common_windows_locations() {
+    let home = std::path::PathBuf::from("C:\\Users\\grimoire");
+    let candidates = fallback_node_candidates_for(Some(&home), |key| match key {
+        "NVM_SYMLINK" => Some(std::ffi::OsString::from("C:\\Program Files\\nodejs")),
+        "LOCALAPPDATA" => Some(std::ffi::OsString::from(
+            "C:\\Users\\grimoire\\AppData\\Local",
+        )),
+        "ProgramFiles" => Some(std::ffi::OsString::from("C:\\Program Files")),
+        "ProgramFiles(x86)" => Some(std::ffi::OsString::from("C:\\Program Files (x86)")),
+        _ => None,
+    });
+
+    assert!(candidates
+        .contains(&std::path::PathBuf::from("C:\\Program Files\\nodejs").join("node.exe")));
+    assert!(
+        candidates.contains(&std::path::PathBuf::from("C:\\Program Files").join("nodejs/node.exe"))
+    );
+    assert!(candidates.contains(
+        &std::path::PathBuf::from("C:\\Users\\grimoire\\AppData\\Local")
+            .join("Programs/nodejs/node.exe")
+    ));
+    assert!(candidates.contains(&home.join("AppData/Local/Volta/bin/node.exe")));
+    assert!(candidates.contains(&home.join("scoop/apps/nodejs-lts/current/node.exe")));
+}
+
+#[test]
 fn mcp_server_dir_resolves_in_dev() {
     let dir = mcp_server_dir().unwrap();
     assert!(dir.join("ws-bridge.js").exists());

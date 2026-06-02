@@ -122,9 +122,11 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '4,597 frontend tests')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
+  assertContains('docs/PUBLIC-READINESS.md', 'Node lookup now parses multi-line `where` output')
+  assertContains('docs/GETTING-STARTED.md', 'Node.js must be discoverable on `PATH`')
   assertContains(
     'docs/PUBLIC-READINESS.md',
-    'fresh packaged Windows/Linux/macOS launch evidence is still required before calling the bridge fully verified',
+    'Fresh packaged Windows/Linux/macOS launch evidence is still required before calling the bridge fully verified',
   )
   assertContains('src-tauri/src/lib_tests.rs', 'fn ws_bridge_spawn_failure_keeps_startup_optional()')
   assertContains('package.json', '"doctor:source": "node scripts/doctor-public-source.mjs"')
