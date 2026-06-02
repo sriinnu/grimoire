@@ -3,10 +3,11 @@
 This is the shortest path to run Grimoire locally and understand where to make changes.
 
 This document covers source builds. Public binary installers are not published
-yet, and the current release workflow only builds macOS artifacts after signing
-secrets are configured. Stable and alpha update feeds are generated from GitHub
-Release assets by the release workflow; they are not evidence until that workflow
-has run successfully for a tagged release.
+yet. The current release workflow has macOS, Windows, and Linux jobs, but those
+jobs are not public install evidence until signing secrets exist and a tagged
+release successfully publishes verified artifacts. Stable and alpha update feeds
+are generated from GitHub Release assets by the release workflow; they are not
+evidence until that workflow has run successfully for a tagged release.
 
 Before cutting a public release tag, run:
 
@@ -15,8 +16,9 @@ pnpm release:preflight
 ```
 
 The preflight checks release workflow wiring, GitHub Pages, and required repo
-secret names for signed and notarized macOS artifacts. It reports secret names
-only; it never prints secret values. The full operator checklist is in
+secret names for signed updater artifacts and notarized macOS artifacts. It
+reports secret names only; it never prints secret values. The full operator
+checklist is in
 [RELEASE-RUNBOOK.md](RELEASE-RUNBOOK.md).
 
 The in-app Getting Started flow clones the public starter vault from

@@ -155,7 +155,8 @@ proposed → active → superseded
 | [0097](0097-locality-firewall-no-mcp-overrides.md) | Locality Firewall Has No MCP Read Override | active |
 | [0098](0098-local-portability-capsule-snapshots.md) | Local Portability Capsule Snapshots | accepted |
 | [0099](0099-exact-import-autopsy-signatures.md) | Exact Import Autopsy Signatures | accepted |
-| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |
-| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |
+| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | superseded -> [0104](0104-cross-platform-release-jobs-with-proof-gates.md) |
+| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | superseded -> [0104](0104-cross-platform-release-jobs-with-proof-gates.md) |
 | [0102](0102-sidebar-spotlight-search-over-open-vault-text.md) | Sidebar Spotlight search over open vault text | active |
 | [0103](0103-bundled-starter-vault-fallback.md) | Bundled Getting Started vault fallback | active |
+| [0104](0104-cross-platform-release-jobs-with-proof-gates.md) | Cross-platform release jobs with proof gates | active |

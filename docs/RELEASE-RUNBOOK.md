@@ -8,10 +8,9 @@ repository.
 ## Current Boundary
 
 Grimoire is public source only until the live readiness audit passes. The tracked
-release workflow currently produces signed and notarized macOS assets after
-release secrets are configured. Windows and Linux remain source-build targets
-until separate release jobs, artifacts, updater manifests, and launch evidence
-exist.
+release workflow has macOS, Windows x64, and Linux x64 artifact jobs, but public
+install support is not claimed until a tagged run publishes signed artifacts,
+stable/alpha updater manifests, and fresh platform launch evidence.
 
 ## Required GitHub Secrets
 
@@ -67,9 +66,9 @@ git tag -s stable-vYYYY.M.D -m "stable-vYYYY.M.D"
 git push origin stable-vYYYY.M.D
 ```
 
-The release workflow creates GitHub Releases, uploads macOS artifacts, generates
-stable or alpha Pages output, and publishes updater manifests when the signed
-updater tarballs and signatures exist.
+The release workflow creates GitHub Releases, uploads macOS, Windows, and Linux
+artifacts, generates stable or alpha Pages output, and publishes updater
+manifests when the signed updater artifacts and signatures exist.
 
 ## Post-Release Verification
 
@@ -90,8 +89,12 @@ Manually verify the installed app too:
 - macOS: launch the notarized `.dmg` install and confirm the main window,
   bundled starter vault, app icon, menu-bar behavior, updater state, and optional
   MCP bridge status.
-- Windows and Linux: keep them source-build targets unless a future workflow
-  adds real platform artifacts and fresh launch evidence.
+- Windows: install the signed x64 installer, confirm the main window opens,
+  verify the bundled starter vault path, updater state, and optional MCP bridge
+  status.
+- Linux: run the x64 AppImage or install the package on a clean desktop session,
+  confirm the main window opens, verify the bundled starter vault path, updater
+  state, and optional MCP bridge status.
 
 ## If The Audit Fails
 
