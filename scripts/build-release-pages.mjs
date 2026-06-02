@@ -221,7 +221,8 @@ function buildDownloadPage(channel, manifest) {
     <p><a href="../">View release history</a></p>`)
   }
 
-  const first = links[0]
+  const macLinkCount = links.filter((link) => link.label.startsWith('macOS ')).length
+  const onlyMacLink = macLinkCount === 1 ? links.find((link) => link.label.startsWith('macOS ')) : null
   return pageShell('Grimoire Download', `
     <h1>Grimoire ${channel} download</h1>
     <p id="download-message">Choose the signed macOS build for your machine.</p>
@@ -229,9 +230,15 @@ function buildDownloadPage(channel, manifest) {
       ${links.map((link) => `<a href="${escapeHtml(link.url)}">${escapeHtml(link.label)}</a>`).join('\n      ')}
     </div>
     <script>
-      const preferred = ${JSON.stringify(first)};
+      const macDownloadCount = ${JSON.stringify(macLinkCount)};
+      const onlyMacDownload = ${JSON.stringify(onlyMacLink)};
       const isMac = /Mac OS X|Macintosh/i.test(navigator.userAgent);
-      if (isMac && preferred?.url) window.location.replace(preferred.url);
+      if (isMac && macDownloadCount > 1) {
+        const message = document.getElementById('download-message');
+        if (message) message.textContent = 'Choose Apple Silicon or Intel Mac below.';
+      } else if (isMac && onlyMacDownload?.url) {
+        window.location.replace(onlyMacDownload.url);
+      }
     </script>`)
 }
 
@@ -311,7 +318,9 @@ async function runSelfTest() {
   const tempDir = mkdtempSync(join(tmpdir(), 'grimoire-release-pages-'))
   try {
     const sigPath = join(tempDir, 'Grimoire_aarch64.app.tar.gz.sig')
+    const x64SigPath = join(tempDir, 'Grimoire_x86_64.app.tar.gz.sig')
     writeFileSync(sigPath, 'stable-signature\n')
+    writeFileSync(x64SigPath, 'stable-intel-signature\n')
     const releasesPath = join(tempDir, 'releases.json')
     writeFileSync(releasesPath, JSON.stringify([{
       assets: [
@@ -326,6 +335,18 @@ async function runSelfTest() {
         {
           browser_download_url: 'https://example.com/Grimoire_aarch64.dmg',
           name: 'Grimoire_aarch64.dmg',
+        },
+        {
+          browser_download_url: 'https://example.com/Grimoire_x86_64.app.tar.gz',
+          name: 'Grimoire_x86_64.app.tar.gz',
+        },
+        {
+          browser_download_url: `file://${x64SigPath}`,
+          name: 'Grimoire_x86_64.app.tar.gz.sig',
+        },
+        {
+          browser_download_url: 'https://example.com/Grimoire_x86_64.dmg',
+          name: 'Grimoire_x86_64.dmg',
         },
       ],
       body: 'Stable release notes.',
@@ -344,8 +365,18 @@ async function runSelfTest() {
     if (manifest.platforms['darwin-aarch64'].signature !== 'stable-signature') {
       throw new Error('self-test did not copy updater signature content')
     }
+    if (manifest.platforms['darwin-x86_64'].signature !== 'stable-intel-signature') {
+      throw new Error('self-test did not copy Intel updater signature content')
+    }
     if (!existsSync(join(outputDir, 'stable/download/index.html'))) {
       throw new Error('self-test did not write stable download page')
+    }
+    const downloadPage = readFileSync(join(outputDir, 'stable/download/index.html'), 'utf8')
+    if (!downloadPage.includes('macDownloadCount > 1') || !downloadPage.includes('Choose Apple Silicon or Intel Mac below.')) {
+      throw new Error('self-test expected dual-architecture Mac downloads to require an explicit choice')
+    }
+    if (!downloadPage.includes('https://example.com/Grimoire_aarch64.dmg') || !downloadPage.includes('https://example.com/Grimoire_x86_64.dmg')) {
+      throw new Error('self-test expected both macOS manual download links')
     }
     if (!existsSync(join(outputDir, 'alpha/download/index.html'))) {
       throw new Error('self-test did not write alpha fallback page')
