@@ -21,6 +21,13 @@ function assertContains(path, expected, label = expected) {
   }
 }
 
+function assertTrimmedEquals(path, expected, label = expected) {
+  const text = readText(path).trim()
+  if (text !== expected.trim()) {
+    fail(`${path} must exactly match: ${label}`)
+  }
+}
+
 function assertNotMatch(path, pattern, label) {
   const text = readText(path)
   if (pattern.test(text)) {
@@ -51,12 +58,18 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| README status badges | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc hygiene | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'local working notes are ignored and removed from Git tracking')
+  assertContains('docs/PUBLIC-READINESS.md', '`CLAUDE.md` is only a compatibility shim to `AGENTS.md`')
   assertContains('docs/PUBLIC-READINESS.md', 'root vault type stubs')
   assertContains('docs/PUBLIC-READINESS.md', 'public Markdown, JSON, TOML, or YAML files reference known local-only docs')
   assertContains('docs/PUBLIC-READINESS.md', 'The only allowed tracked importer `.env` fixtures must contain sanitized `KEY=redacted` assignments.')
   assertContains('README.md', '[Docs Index](docs/README.md)')
   assertContains('docs/README.md', 'Local working notes are kept out of Git.')
   assertContains('docs/README.md', '[Public Readiness](PUBLIC-READINESS.md)')
+  assertTrimmedEquals(
+    'CLAUDE.md',
+    '@AGENTS.md\n\nThis file is a Claude Code compatibility shim. Keep shared agent instructions in `AGENTS.md`.',
+    'a short Claude Code compatibility shim',
+  )
   assertContains('docs/PUBLIC-READINESS.md', '| CI runner images | Ready |')
   assertContains('docs/PUBLIC-READINESS.md', '`macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026`')
   assertContains('README.md', 'https://img.shields.io/badge/repository-private%20until%20ready-lightgrey')
