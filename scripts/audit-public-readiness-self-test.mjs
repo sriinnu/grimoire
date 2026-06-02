@@ -1,5 +1,6 @@
 import {
   CHANNELS,
+  REQUIRED_CI_STEPS,
   REQUIRED_CI_RUNNERS,
   REQUIRED_TOPICS,
   REQUIRED_UPDATER_PLATFORMS,
@@ -16,6 +17,11 @@ function readyState() {
         conclusion: 'success',
         id,
         name: `Build, Test, And Lint (${runner})`,
+        steps: REQUIRED_CI_STEPS.map((step) => ({
+          conclusion: 'success',
+          name: step,
+          status: 'completed',
+        })),
         status: 'completed',
       })),
       run: { conclusion: 'success', head_sha: 'signed-test-head', id: 1, status: 'completed' },
@@ -94,6 +100,17 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
 
   assertFixtureBlocker({ ...ready, ci: { ...ready.ci, run: { ...ready.ci.run, head_sha: 'other-head' } } }, 'not signed HEAD')
   assertFixtureBlocker({ ...ready, ci: { ...ready.ci, jobs: ready.ci.jobs.slice(0, 1) } }, 'lacks successful pinned runner jobs')
+  assertFixtureBlocker({
+    ...ready,
+    ci: {
+      ...ready.ci,
+      jobs: ready.ci.jobs.map((job) => (
+        job.name.includes('windows-2025-vs2026')
+          ? { ...job, steps: job.steps.map((step) => ({ ...step, conclusion: 'failure' })) }
+          : job
+      )),
+    },
+  }, 'Native Tauri Link Smoke')
   assertFixtureBlocker({
     ...ready,
     feeds: { ...ready.feeds, stable: { json: { platforms: { 'darwin-aarch64': { signature: 'sig', url: 'url' } } }, status: 200 } },

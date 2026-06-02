@@ -78,6 +78,11 @@ Windows verified until a fresh Windows dev/build/open run is captured.
 `menu_bar` and `RunEvent::Reopen` regression paths plus the bundled-SQLite
 contract; it is regression coverage, not a replacement for native Windows
 launch QA.
+`pnpm test:native-tauri-link` runs
+`cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked`
+and is executed on the pinned macOS, Windows, and Linux CI runners so native
+link regressions, including the Windows SQLite import-library failure, cannot
+hide behind browser-only source checks.
 `pnpm doctor:source` also checks Windows native setup for the MSVC Rust host and
 Microsoft C++ Build Tools (`cl.exe`). If either fails, install Rust's stable
 MSVC toolchain and Microsoft's Desktop development with C++ workload before
@@ -127,6 +132,7 @@ pnpm exec tsc --noEmit
 pnpm test
 pnpm run test:markdown-editor:js
 pnpm build
+pnpm test:native-tauri-link
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
