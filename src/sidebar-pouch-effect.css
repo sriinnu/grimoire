@@ -25,8 +25,10 @@
 
 .sidebar-artwork__cloud-wisp,
 .sidebar-artwork__intake-stream,
+.sidebar-artwork__intake-thread,
 .sidebar-artwork__pouch-throat,
-.sidebar-artwork__pouch-lip {
+.sidebar-artwork__pouch-lip,
+.sidebar-artwork__pouch-rim-glow {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -56,6 +58,20 @@
   color: color-mix(in srgb, var(--art-aura) 70%, var(--art-spark));
   opacity: 0.72;
   stroke-width: 3.4;
+}
+
+.sidebar-artwork__intake-thread {
+  color: color-mix(in srgb, var(--art-aura) 72%, var(--art-memory));
+  opacity: 0.66;
+  stroke-dasharray: 8 10;
+  stroke-width: 1.8;
+}
+
+.sidebar-artwork__intake-thread--center-left,
+.sidebar-artwork__intake-thread--center-right {
+  color: color-mix(in srgb, var(--art-spark) 56%, var(--art-aura));
+  opacity: 0.74;
+  stroke-width: 2.2;
 }
 
 .sidebar-artwork__cloud-particle {
@@ -97,6 +113,21 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.sidebar-artwork__pouch-depth {
+  fill: color-mix(in srgb, var(--sidebar) 86%, var(--art-memory));
+  opacity: 0.76;
+  stroke: color-mix(in srgb, var(--art-memory) 34%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.sidebar-artwork__pouch-rim-glow {
+  color: color-mix(in srgb, var(--art-spark) 72%, var(--art-aura));
+  opacity: 0.88;
+  stroke-width: 2.8;
 }
 
 .sidebar-artwork__pouch-drawstring {
@@ -144,6 +175,10 @@
     animation: sidebar-cloud-siphon 920ms var(--motion-ease-expressive, ease-out) both;
   }
 
+  .app-sidebar-panel .sidebar-artwork__intake-thread {
+    animation: sidebar-thread-slip 880ms var(--motion-ease-expressive, ease-out) both;
+  }
+
   .app-sidebar-panel .sidebar-artwork__cloud-puff {
     animation: sidebar-cloud-soften 720ms var(--motion-ease-expressive, ease-out) both;
   }
@@ -157,6 +192,7 @@
   .app-sidebar-panel .sidebar-artwork__cloud-puff,
   .app-sidebar-panel .sidebar-artwork__cloud-particle,
   .app-sidebar-panel .sidebar-artwork__intake-stream,
+  .app-sidebar-panel .sidebar-artwork__intake-thread,
   .app-sidebar-panel .sidebar-artwork__cloud-wisp,
   .app-sidebar-panel .sidebar-artwork__pouch-flow {
     animation: none;
@@ -228,5 +264,19 @@
   to {
     opacity: 0.46;
     transform: translateY(13px) scale(0.72);
+  }
+}
+
+@keyframes sidebar-thread-slip {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 28;
+    transform: translateY(-8px) scaleY(0.86);
+  }
+
+  to {
+    opacity: 0.72;
+    stroke-dashoffset: 0;
+    transform: translateY(0) scaleY(1);
   }
 }

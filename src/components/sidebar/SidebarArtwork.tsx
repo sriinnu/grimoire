@@ -94,6 +94,10 @@ function GrimoireSigil() {
         <path className="sidebar-artwork__intake-stream sidebar-artwork__intake-stream--left" d="M72 162c36 18 65 42 88 72" />
         <path className="sidebar-artwork__intake-stream sidebar-artwork__intake-stream--center" d="M161 160c3 23 3 47 0 73" />
         <path className="sidebar-artwork__intake-stream sidebar-artwork__intake-stream--right" d="M238 163c-35 18-64 41-87 70" />
+        <path className="sidebar-artwork__intake-thread sidebar-artwork__intake-thread--left" d="M91 174c24 18 43 36 58 55" />
+        <path className="sidebar-artwork__intake-thread sidebar-artwork__intake-thread--center-left" d="M132 165c11 28 18 50 20 68" />
+        <path className="sidebar-artwork__intake-thread sidebar-artwork__intake-thread--center-right" d="M190 165c-12 29-18 51-19 68" />
+        <path className="sidebar-artwork__intake-thread sidebar-artwork__intake-thread--right" d="M226 175c-23 17-42 35-57 54" />
         <circle className="sidebar-artwork__cloud-particle sidebar-artwork__cloud-particle--upper-left" cx="128" cy="177" r="3.4" />
         <circle className="sidebar-artwork__cloud-particle sidebar-artwork__cloud-particle--left" cx="112" cy="193" r="4" />
         <circle className="sidebar-artwork__cloud-particle sidebar-artwork__cloud-particle--center" cx="160" cy="198" r="4.4" />
@@ -102,6 +106,8 @@ function GrimoireSigil() {
         <path className="sidebar-artwork__pouch-body" d="M81 224c15-26 37-36 67-28 18 5 38 5 60-1 27-7 48 3 63 29-57 22-134 22-191 0z" />
         <path className="sidebar-artwork__pouch-mouth" d="M72 207c42 21 86 23 135 6 25-9 47-5 70 12-56 22-153 22-209 0 0-7 2-13 4-18z" />
         <path className="sidebar-artwork__pouch-cavity" d="M94 216c37 10 77 10 119 0 22-5 40-2 55 9-51 13-130 13-181 0 2-4 4-7 7-9z" />
+        <path className="sidebar-artwork__pouch-depth" d="M110 219c31 5 64 5 98 0 13-2 25-1 37 3-39 8-88 8-133 0z" />
+        <path className="sidebar-artwork__pouch-rim-glow" d="M83 210c45 17 89 16 134 2 20-6 39-2 58 12" />
         <path className="sidebar-artwork__pouch-drawstring" d="M88 216c26 11 54 13 84 5M232 216c-28 12-57 13-86 5" />
         <circle className="sidebar-artwork__pouch-knot" cx="91" cy="216" r="3.4" />
         <circle className="sidebar-artwork__pouch-knot" cx="232" cy="216" r="3.4" />
