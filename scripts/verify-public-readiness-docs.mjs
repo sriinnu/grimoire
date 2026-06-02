@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { verifyRelationshipDocs } from './public-readiness-doc-relationship-checks.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -73,7 +74,8 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| CI runner images | Ready |')
   assertContains('docs/PUBLIC-READINESS.md', '`macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026`')
   assertContains('README.md', 'https://img.shields.io/badge/source-public-blue')
-  assertContains('README.md', 'https://img.shields.io/badge/hosted%20CI-not%20green%20yet-orange')
+  assertContains('README.md', 'https://img.shields.io/badge/main%20CI-not%20green%20yet-orange')
+  assertContains('README.md', 'readiness branch has green hosted CI')
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks')
   assertContains('docs/PUBLIC-READINESS.md', 'libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana')
@@ -197,10 +199,13 @@ function verifyBinaryInstallTruth() {
     'A pending run, failed run, stale-head run, missing',
     'hosted CI non-green evidence boundary',
   )
+  assertContains('package.json', '"test:github-actions-runtime": "node scripts/verify-github-actions-runtime.mjs"')
+  assertContains('.github/workflows/ci.yml', 'pnpm test:github-actions-runtime')
+  assertContains('docs/PUBLIC-READINESS.md', 'GitHub Actions runtime versions')
   assertNotMatch('docs/PUBLIC-READINESS.md', /96b9c74/u, 'the superseded local-check commit hash')
   assertNotMatch('docs/PUBLIC-READINESS.md', /97b824f7839ab94ef09b07a6b95f767936de262f/u, 'the superseded starter-vault head')
   assertNotMatch('README.md', /https?:\/\/[^\s)]+Grimoire\.app\.tar\.gz/iu, 'a public Grimoire.app.tar.gz URL')
-  assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before hosted CI is green')
+  assertNotMatch('README.md', /actions\/workflows\/(?:ci|release)\.yml\/badge\.svg/iu, 'dynamic GitHub Actions badges before main CI is green')
   assertNotMatch('README.md', /codecov\.io\/gh\/sriinnu\/grimoire\/graph\/badge\.svg/iu, 'dynamic Codecov badge before coverage publication is verified')
   assertNotMatch('README.md', /codescene\.io\/projects\/76865\/status-badges/iu, 'dynamic CodeScene badge before CodeScene access is verified')
 }
@@ -310,113 +315,10 @@ function verifyReleaseWorkflowTruth() {
   )
 }
 
-function verifyAiCollaboratorBoundary() {
-  const gatedCapabilities = 'memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions'
-  assertContains(
-    'README.md',
-    `Chitragupta MCP ${gatedCapabilities} remain readiness-gated contract work`,
-    'README Chitragupta MCP readiness boundary',
-  )
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    'Public docs separate CLI agent chat/tooling from Chitragupta MCP memory,',
-    'Public Readiness AI docs boundary checklist item',
-  )
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    'recall, wiki, graph, ingest, and diagnostics readiness.',
-    'Public Readiness AI docs boundary checklist continuation',
-  )
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    'source-backed write suggestions are not public-ready yet and remain contract-gated',
-    'Public Readiness AI collaborators row',
-  )
-  assertContains(
-    'docs/CHITRAGUPTA-GRIMOIRE-MCP-CONTRACT.md',
-    'That is not the same as this MCP contract being ready.',
-    'Chitragupta CLI versus MCP contract boundary',
-  )
-  assertContains(
-    'demo-vault-v2/grimoire-agent-council.md',
-    'The current Council is not claiming that every external agent has actually run.',
-    'demo Agent Council honesty boundary',
-  )
-  assertContains(
-    'demo-vault-v2/grimoire-local-agent-map.md',
-    '| Chitragupta CLI | Route/status disclosure and local chat handoff | Local intent is not approval |',
-    'demo Chitragupta CLI lane boundary',
-  )
-  assertContains(
-    'demo-vault-v2/grimoire-local-agent-map.md',
-    '| Chitragupta MCP | Memory, recall, wiki, graph, ingest, diagnostics, and source-backed writes | Contract-gated; not live in the public demo |',
-    'demo Chitragupta MCP gated lane boundary',
-  )
-}
-
-function verifyAdrIndexTruth() {
-  assertContains(
-    'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
-    'status: superseded',
-    'ADR-0080 superseded status',
-  )
-  assertContains(
-    'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
-    'earlier release intent, not current public install evidence',
-    'ADR-0080 public evidence disclaimer',
-  )
-  assertNotMatch(
-    'docs/adr/0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md',
-    /^status:\s*active\s*$/imu,
-    'active status in superseded ADR-0080',
-  )
-  assertContains(
-    'docs/adr/0083-dual-architecture-macos-release-artifacts.md',
-    'status: superseded',
-    'ADR-0083 superseded status',
-  )
-  assertContains(
-    'docs/adr/0083-dual-architecture-macos-release-artifacts.md',
-    'earlier release intent, not current public install evidence',
-    'ADR-0083 public evidence disclaimer',
-  )
-  assertNotMatch(
-    'docs/adr/0083-dual-architecture-macos-release-artifacts.md',
-    /^status:\s*active\s*$/imu,
-    'active status in superseded ADR-0083',
-  )
-  assertContains(
-    'docs/adr/README.md',
-    '| [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | superseded -> [0100](0100-public-release-packaging-truth.md) |',
-    'ADR-0083 superseded by ADR-0100',
-  )
-  assertContains(
-    'docs/adr/README.md',
-    '| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |',
-    'ADR-0100 index entry',
-  )
-  assertContains(
-    'docs/adr/0100-public-release-packaging-truth.md',
-    'Windows and Linux remain source-build targets until release jobs, artifacts, manifests, and verification are implemented and proven.',
-    'ADR-0100 public release boundary',
-  )
-  assertContains(
-    'docs/adr/README.md',
-    '| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |',
-    'ADR-0101 index entry',
-  )
-  assertContains(
-    'docs/adr/0101-release-pages-and-updater-manifest-publication.md',
-    'Missing release assets produce fallback download pages, not fake updater',
-    'ADR-0101 updater manifest boundary',
-  )
-}
-
 try {
   verifyBinaryInstallTruth()
   verifyReleaseWorkflowTruth()
-  verifyAiCollaboratorBoundary()
-  verifyAdrIndexTruth()
+  verifyRelationshipDocs()
   console.log('[public-readiness-docs] ok')
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error)
