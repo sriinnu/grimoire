@@ -95,6 +95,10 @@ function countOccurrences(value, needle) {
   return value.split(needle).length - 1
 }
 
+function normalizeNewlines(value) {
+  return value.replace(/\r\n?/gu, '\n')
+}
+
 function hasMacosCfgContext(lines, lineIndex) {
   if (hasImmediateMacosCfg(lines, lineIndex)) return true
   if (hasEnclosingMacosCfgBlock(lines, lineIndex)) return true
@@ -142,7 +146,7 @@ export function verifyRustPlatformGuards(root = REPO_ROOT) {
   }
 
   for (const fallback of REQUIRED_FALLBACKS) {
-    const content = readFileSync(resolve(root, fallback.path), 'utf8')
+    const content = normalizeNewlines(readFileSync(resolve(root, fallback.path), 'utf8'))
     if (!content.includes(fallback.snippet)) {
       issues.push(`${fallback.path} is missing ${fallback.label}`)
     }
@@ -202,6 +206,16 @@ function runSelfTest() {
       commonFallbackFixture(),
     ].join('\n'))
     assertOk('guarded macOS references', verifyRustPlatformGuards(root))
+
+    writeFixture(root, 'src-tauri/src/commands/settings_cmds.rs', settingsFallbackFixture().replace(/\n/gu, '\r\n'))
+    writeFixture(root, 'src-tauri/src/lib.rs', [
+      '#[cfg(all(desktop, target_os = "macos"))]',
+      'pub mod menu_bar;',
+      commonFallbackFixture(),
+    ].join('\r\n'))
+    assertOk('guarded macOS references with CRLF fallback snippets', verifyRustPlatformGuards(root))
+
+    writeFixture(root, 'src-tauri/src/commands/settings_cmds.rs', settingsFallbackFixture())
 
     writeFixture(root, 'src-tauri/src/lib.rs', [
       'pub mod menu_bar;',
