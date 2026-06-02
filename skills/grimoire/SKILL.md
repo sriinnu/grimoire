@@ -122,7 +122,7 @@ as structured diagnostics and Markdown-safe suggestions.
 
 ### Crystallize research into Markdown
 
-- **input**: `{"intent":"Save accepted UI review findings","targetPath":"Research/UI Review.md","sources":[{"path":"docs/ACTIVE-WORK.md"}]}`
+- **input**: `{"intent":"Save accepted UI review findings","targetPath":"Research/UI Review.md","sources":[{"path":"Research/UI Review Notes.md"}]}`
 - **output**: Return proposed Markdown and reasons; Grimoire owns the final write.
 
 ## Anti-Patterns
