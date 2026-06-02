@@ -3,7 +3,9 @@ use std::process::Command;
 
 use crate::ai_agents::AiAgentId;
 
+#[cfg(target_os = "macos")]
 const KEYCHAIN_SERVICE: &str = "app.grimoire.ai-provider-keys";
+#[cfg(target_os = "macos")]
 const ERR_SEC_ITEM_NOT_FOUND: i32 = -25300;
 
 /// Static provider metadata for a secret-bearing CLI environment variable.

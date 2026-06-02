@@ -121,15 +121,32 @@ describe('SettingsPanel sync and agent settings', () => {
   })
 
   it('shows Chitragupta MCP readiness as a separate memory contract', () => {
-    render(<SettingsPanel open={true} settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }} onSave={onSave} onClose={onClose} />)
+    const onInstallMcp = vi.fn()
+    render(
+      <SettingsPanel
+        open={true}
+        settings={{ ...emptySettings, default_ai_agent: 'chitragupta' }}
+        mcpStatus="installed"
+        onInstallMcp={onInstallMcp}
+        onSave={onSave}
+        onClose={onClose}
+      />,
+    )
 
     const contract = screen.getByTestId('settings-ai-agent-chitragupta-contract')
     expect(contract).toHaveTextContent('MCP memory contract')
     expect(contract).toHaveTextContent('Live memory lanes stay local-ledger only')
+    expect(contract).toHaveTextContent('External MCP registration')
+    expect(contract).toHaveTextContent('Connected')
+    expect(contract).toHaveTextContent('Runtime bridge readiness is still verified')
     expect(contract).toHaveTextContent('recall')
     expect(contract).toHaveTextContent('wiki')
     expect(contract).toHaveTextContent('graph')
     expect(contract).toHaveTextContent('diagnostics')
     expect(contract).not.toHaveTextContent(/google|gemini|anthropic|openai|\/Users/i)
+
+    fireEvent.click(screen.getByTestId('settings-ai-agent-mcp-runtime-action'))
+
+    expect(onInstallMcp).toHaveBeenCalledOnce()
   })
 })

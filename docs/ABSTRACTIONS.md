@@ -161,6 +161,8 @@ The left sidebar has two app-local presentations:
 
 The compact rail is presentation state, not vault state. It persists to local app storage because it describes this installation's workspace preference, while section/folder/type data still comes from the vault.
 
+Sidebar artwork is ambient state, not navigation. The full column uses a reduced-motion-safe pouch intake motif: knowledge-cloud forms visually settle into a local vault pouch, while the actual navigation remains readable and interactive above it.
+
 ## Frontmatter
 
 Frontmatter is structured metadata. It should stay readable by a human and an AI agent.
@@ -254,11 +256,16 @@ Views should reuse the same filtering/sorting primitives as built-in lists.
 ## Search
 
 Search currently means keyword search over local files and indexed note metadata.
+The full search panel is launched from the sidebar or shortcut layer and searches
+all available open vault paths. It scans markdown and editable text files,
+skipping hidden, dependency, and build-output directories so code-project vaults
+stay usable.
 
 Search surfaces:
 
 - quick open
 - note list filtering
+- sidebar Spotlight search
 - full search panel
 - graph filter
 - future semantic search
@@ -395,6 +402,8 @@ Agent rules:
 
 - vault content stays local unless the selected agent sends it elsewhere
 - detection should work from realistic macOS/Linux/Windows install paths
+- detection returns an optional diagnostic detail so first-run setup can explain whether a CLI was found, missing, or only partially available
+- failed detection is a scan failure, not proof that every CLI is missing; setup surfaces should show retry copy before install prompts
 - streamed output must preserve reasoning, tool calls, and errors clearly
 - agent tools should operate through the same safe vault commands as the app
 - model overrides are installation-local and passed as CLI arguments only when set

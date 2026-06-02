@@ -274,7 +274,7 @@ export function VaultDashboard({
             <Sparkles size={14} />
             {activeVaultLabel}
           </div>
-          <h1>Sriinnu, here is the board.</h1>
+          <h1>Your local memory board.</h1>
           <div className="vault-dashboard__badges" aria-label="Vault locality">
             <DashboardBadge icon={Lock} label={storageLabel(activeVault)} tone="green" />
             <DashboardBadge icon={ShieldCheck} label="Cloud Blocked" tone="blue" />

@@ -8,6 +8,7 @@ import {
   isBrowserPreviewAiAgentsStatus,
   isAiAgentInstalled,
   isAiAgentsStatusChecking,
+  isAiAgentsStatusScanFailed,
   type AiAgentId,
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
@@ -178,6 +179,7 @@ function AgentMenuContent({
   const installedAgents = installedAgentDefinitions(statuses)
   const missingAgents = missingAgentDefinitions(statuses)
   const isBrowserPreview = isBrowserPreviewAiAgentsStatus(statuses)
+  const isScanFailed = isAiAgentsStatusScanFailed(statuses)
   const routeLabel = describeAiAgentRoute(defaultAgent, defaultAgentProvider, defaultAgentModel)
   const refreshAgentsStatus = () => {
     window.dispatchEvent(new Event(AI_AGENTS_STATUS_REFRESH_EVENT))
@@ -201,7 +203,7 @@ function AgentMenuContent({
       }}
       data-testid="status-ai-agents-menu"
     >
-      <MenuLabel>{menuHeading(defaultAgent, selectedAgentReady)}</MenuLabel>
+      <MenuLabel>{isScanFailed ? 'AI agent scan needs retry' : menuHeading(defaultAgent, selectedAgentReady)}</MenuLabel>
       {routeLabel ? (
         <MenuItem disabled testId="status-ai-agents-route-truth">
           Route: {routeLabel}
@@ -209,7 +211,11 @@ function AgentMenuContent({
       ) : null}
       {installedAgents.length === 0 ? (
         <MenuItem disabled>
-          {isBrowserPreview ? 'Open native Grimoire for live AI' : 'No AI agents detected'}
+          {isBrowserPreview
+            ? 'Open native Grimoire for live AI'
+            : isScanFailed
+              ? 'Local CLI scan failed. Check again after Grimoire finishes launching.'
+              : 'No AI agents detected'}
         </MenuItem>
       ) : (
         <div role="group" aria-label="Installed AI agents">

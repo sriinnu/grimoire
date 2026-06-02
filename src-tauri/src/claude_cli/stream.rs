@@ -147,10 +147,7 @@ fn spawn_stderr_reader<R: Read + Send + 'static>(mut stderr: R) -> thread::JoinH
     thread::spawn(move || {
         let mut buffer = Vec::new();
         let mut chunk = [0_u8; 1024];
-        loop {
-            let Ok(count) = stderr.read(&mut chunk) else {
-                break;
-            };
+        while let Ok(count) = stderr.read(&mut chunk) {
             if count == 0 {
                 break;
             }

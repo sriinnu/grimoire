@@ -64,7 +64,7 @@ proposed → active → superseded
 | [0006](0006-flat-vault-structure.md) | Flat vault structure (no type-based folders) | active |
 | [0007](0007-title-filename-sync.md) | Title equals filename (slug sync) | active |
 | [0008](0008-underscore-system-properties.md) | Underscore convention for system properties | active |
-| [0009](0009-keyword-only-search.md) | Keyword-only search (remove semantic indexing) | active |
+| [0009](0009-keyword-only-search.md) | Keyword-only search (remove semantic indexing) | superseded -> [0102](0102-sidebar-spotlight-search-over-open-vault-text.md) |
 | [0010](0010-dynamic-wikilink-relationship-detection.md) | Dynamic wikilink relationship detection | active |
 | [0011](0011-mcp-server-for-ai-integration.md) | MCP server for AI tool integration | superseded → [0074](0074-explicit-external-ai-tool-setup-and-least-privilege-desktop-scope.md) |
 | [0012](0012-claude-cli-for-ai-agent.md) | Claude CLI subprocess for AI agent | active |
@@ -101,7 +101,7 @@ proposed → active → superseded
 | [0043](0043-reactive-vault-state-on-save.md) | Reactive vault state: editor changes propagate immediately to all UI | active |
 | [0044](0044-h1-as-title-primary-source.md) | H1 as primary title source — filename as stable identifier | superseded → [0055](0055-h1-is-the-only-editor-title-surface.md) |
 | [0045](0045-permanent-delete-no-trash.md) | Permanent delete with confirm modal — no Trash system | active |
-| [0046](0046-starter-vault-cloned-from-github.md) | Starter vault cloned from GitHub at runtime — no bundled content | active |
+| [0046](0046-starter-vault-cloned-from-github.md) | Starter vault cloned from GitHub at runtime — no bundled content | superseded -> [0103](0103-bundled-starter-vault-fallback.md) |
 | [0047](0047-regex-mode-for-view-filter-conditions.md) | Regex mode for view filter conditions | active |
 | [0048](0048-relative-date-expressions-in-view-filters.md) | Relative date expressions in view filter conditions | active |
 | [0049](0049-per-note-icon-property.md) | Per-note icon property (_icon on individual notes) | active |
@@ -115,7 +115,7 @@ proposed → active → superseded
 | [0057](0057-alpha-stable-release-channels-and-beta-cohorts.md) | Alpha/stable release channels with PostHog beta cohorts | superseded → [0066](0066-calendar-semver-versioning-for-alpha-and-stable-releases.md) |
 | [0058](0058-claude-code-first-launch-onboarding-gate.md) | Claude Code first-launch onboarding gate | superseded → [0062](0062-selectable-cli-ai-agents.md) |
 | [0059](0059-local-only-git-commits-without-remote.md) | Local-only git commits for vaults without a remote | active |
-| [0060](0060-network-aware-ui-gating-for-remote-features.md) | Network-aware UI gating for remote-dependent features | active |
+| [0060](0060-network-aware-ui-gating-for-remote-features.md) | Network-aware UI gating for remote-dependent features | superseded -> [0103](0103-bundled-starter-vault-fallback.md) |
 | [0061](0061-ai-prompt-bridge-event-bus.md) | AI prompt bridge — module-level event bus for cross-component prompt routing | active |
 | [0062](0062-selectable-cli-ai-agents.md) | Selectable CLI AI agents with a shared panel architecture | active |
 | [0063](0063-blocknote-code-block-package-for-editor-highlighting.md) | BlockNote code-block package for editor syntax highlighting | active |
@@ -138,7 +138,7 @@ proposed → active → superseded
 | [0080](0080-cross-platform-desktop-release-artifacts-and-portable-vault-names.md) | Cross-platform desktop release artifacts and portable vault names | superseded → [0083](0083-dual-architecture-macos-release-artifacts.md) |
 | [0081](0081-internal-light-dark-theme-runtime.md) | Internal light and dark theme runtime | active |
 | [0082](0082-markdown-durable-math-notes.md) | Markdown-durable math in notes | active |
-| [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | active |
+| [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | superseded -> [0100](0100-public-release-packaging-truth.md) |
 | [0084](0084-app-localization-foundation.md) | App-owned localization foundation | active |
 | [0085](0085-markdown-editor-package-boundary.md) | Markdown editor package boundary | active |
 | [0086](0086-platform-native-app-shells.md) | Platform-native app shells over shared vault semantics | superseded → [0088](0088-tauri-first-editor-product.md) |
@@ -153,3 +153,9 @@ proposed → active → superseded
 | [0095](0095-release-artifact-verification-guardrails.md) | Release artifact verification guardrails | active |
 | [0096](0096-per-vault-git-capability-switch.md) | Per-Vault Git Capability Switch | active |
 | [0097](0097-locality-firewall-no-mcp-overrides.md) | Locality Firewall Has No MCP Read Override | active |
+| [0098](0098-local-portability-capsule-snapshots.md) | Local Portability Capsule Snapshots | accepted |
+| [0099](0099-exact-import-autopsy-signatures.md) | Exact Import Autopsy Signatures | accepted |
+| [0100](0100-public-release-packaging-truth.md) | Public release packaging truth | active |
+| [0101](0101-release-pages-and-updater-manifest-publication.md) | Release Pages and updater manifest publication | active |
+| [0102](0102-sidebar-spotlight-search-over-open-vault-text.md) | Sidebar Spotlight search over open vault text | active |
+| [0103](0103-bundled-starter-vault-fallback.md) | Bundled Getting Started vault fallback | active |

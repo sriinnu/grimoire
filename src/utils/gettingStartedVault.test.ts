@@ -28,18 +28,18 @@ describe('gettingStartedVault', () => {
       .toBe("Destination '/tmp/Getting Started' already exists and is not empty")
   })
 
-  it('maps git-not-found clone failures to an installation message', () => {
+  it('formats git-not-found failures as starter preparation failures', () => {
     expect(formatGettingStartedCloneError('Failed to run git clone: The system cannot find the file specified. (os error 2)'))
-      .toBe('Git is required to download the Getting Started vault. Install Git and try again.')
+      .toBe('Could not prepare Getting Started vault: Failed to run git clone: The system cannot find the file specified. (os error 2)')
   })
 
-  it('maps concrete network clone failures to the connection message', () => {
+  it('formats concrete network failures as starter preparation failures', () => {
     expect(formatGettingStartedCloneError('git clone failed: fatal: unable to access: Could not resolve host: github.com'))
-      .toBe('Could not download Getting Started vault. Check your connection and try again.')
+      .toBe('Could not prepare Getting Started vault: git clone failed: fatal: unable to access: Could not resolve host: github.com')
   })
 
-  it('preserves unexpected clone failure details', () => {
+  it('preserves unexpected starter preparation failure details', () => {
     expect(formatGettingStartedCloneError('git clone failed: fatal: unable to access'))
-      .toBe('Could not download Getting Started vault: git clone failed: fatal: unable to access')
+      .toBe('Could not prepare Getting Started vault: git clone failed: fatal: unable to access')
   })
 })

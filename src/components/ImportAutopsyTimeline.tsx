@@ -1,6 +1,7 @@
 import { type CSSProperties, useState } from 'react'
 import { ClipboardCheck, Copy } from 'lucide-react'
 import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
+import { localMachineLabel } from '../utils/platform'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import {
@@ -94,7 +95,7 @@ export function ImportAutopsyTimeline({ preview, vaultPath = '', isRefreshing = 
         {copyStatus(copyState)}
       </p>
       <p className="text-[11px] leading-snug text-muted-foreground" data-testid="import-autopsy-review-gate">
-        Review the exact rows below before importing. Full source paths and local reports stay on this Mac.
+        Review the exact rows below before importing. Full source paths and local reports stay on {localMachineLabel()}.
       </p>
       <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
         {livePreviewSummary(sourceLabel, preview.result, isRefreshing)}

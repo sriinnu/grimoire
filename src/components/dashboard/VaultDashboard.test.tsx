@@ -63,7 +63,7 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
+    expect(screen.getByText('Your local memory board.')).toBeInTheDocument()
     expect(screen.getByText('Personal Sync')).toBeInTheDocument()
     expect(screen.getByText('Cloud Blocked')).toBeInTheDocument()
     const fallback = screen.getByTestId('dashboard-insights-fallback')

@@ -10,8 +10,8 @@ We currently support security fixes for:
 
 | Version | Supported |
 | --- | --- |
-| Latest stable release | ✅ |
-| `main` branch | Best effort |
+| Latest stable release | Not published yet |
+| `main` branch | Best effort until the first stable release |
 | Older releases / prereleases | ❌ |
 
 ## Reporting a vulnerability

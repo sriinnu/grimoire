@@ -4,6 +4,7 @@ import {
   openFixtureVaultDesktopHarness,
   removeFixtureVaultCopy,
 } from '../helpers/fixtureVault'
+import { sendShortcut } from './helpers'
 
 let tempVaultDir: string
 
@@ -27,7 +28,15 @@ function collectLinkifyWarnings(page: import('@playwright/test').Page) {
 }
 
 async function openNote(page: import('@playwright/test').Page, title: string) {
-  await page.getByTestId('note-list-container').getByText(title, { exact: true }).click()
+  await page.locator('body').click()
+  await sendShortcut(page, 'p', ['Control'])
+  const quickOpenInput = page.locator('input[placeholder="Search notes..."]')
+  await expect(quickOpenInput).toBeVisible({ timeout: 5_000 })
+  await quickOpenInput.fill(title)
+  const selectedResult = page.getByTestId('quick-open-palette').locator('[class*="bg-accent"]').first()
+  const selectedTitle = selectedResult.locator('span.truncate').first()
+  await expect(selectedTitle).toHaveText(title, { timeout: 5_000 })
+  await selectedResult.click()
   await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible({ timeout: 5_000 })
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { MOCK_ENTRIES } from './mock-entries'
+import { MOCK_CONTENT } from './mock-content'
 
 const DEMO_VAULT_DIR = path.resolve('demo-vault-v2')
 const LAUNCH_DAY = '2026-05-31'
@@ -15,6 +16,7 @@ const REQUIRED_SHOWCASE_FILES = [
   'grimoire-properties-and-types.md',
   'grimoire-search-and-commands.md',
   'grimoire-links-and-backlinks.md',
+  'grimoire-calendar-time-loom.md',
   'grimoire-journal-demo-2026-05-31.md',
   'grimoire-dream-demo-2026-05-31.md',
   'grimoire-canvas-and-attachments.md',
@@ -59,6 +61,28 @@ function h1Title(content: string): string | null {
 
 function wikiTargets(content: string): string[] {
   return [...content.matchAll(/\[\[([^\]]+)\]\]/gu)].map((match) => normalizeLinkTarget(match[1] ?? ''))
+}
+
+function splitMarkdownTableRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/u, '')
+    .replace(/\|$/u, '')
+    .split('|')
+    .map((cell) => cell.trim())
+}
+
+function isTableSeparator(line: string): boolean {
+  return /^\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$/u.test(line.trim())
+}
+
+function featureTourSurfaces(markdown: string): string[] {
+  return markdown
+    .split('\n')
+    .filter((line) => line.trim().startsWith('|') && !isTableSeparator(line))
+    .map(splitMarkdownTableRow)
+    .filter((cells) => cells.length >= 3 && cells[0] !== 'Surface')
+    .map(([surface]) => surface ?? '')
 }
 
 function aliases(content: string): string[] {
@@ -112,5 +136,29 @@ describe('demo vault feature showcase', () => {
     for (const file of REQUIRED_SHOWCASE_FILES) {
       expect(mockFilenames.has(file), `${file} should exist in browser mock entries`).toBe(true)
     }
+  })
+
+  it('keeps browser mock feature-tour surfaces aligned with the demo vault', () => {
+    const demoTour = readFileSync(path.join(DEMO_VAULT_DIR, 'grimoire-feature-tour.md'), 'utf8')
+    const mockTour = MOCK_CONTENT['/Users/mock/Grimoire/grimoire-feature-tour.md'] ?? ''
+
+    expect(featureTourSurfaces(mockTour)).toEqual(featureTourSurfaces(demoTour))
+  })
+
+  it('mirrors the Time Loom starter substrate in browser preview mode', () => {
+    const mockFilenames = new Set(MOCK_ENTRIES.map((entry) => entry.filename))
+    const timeLoomNote = MOCK_CONTENT['/Users/mock/Grimoire/grimoire-calendar-time-loom.md'] ?? ''
+    const featureTour = MOCK_CONTENT['/Users/mock/Grimoire/grimoire-feature-tour.md'] ?? ''
+    const eventEntry = MOCK_ENTRIES.find((entry) => entry.filename === 'event-team-sync-2025-01-13.md')
+
+    expect(mockFilenames.has('grimoire-calendar-time-loom.md')).toBe(true)
+    expect(featureTour).toContain('| Calendar and Time Loom | Compare Journal, Dream, and Event metadata in the Time Loom calendar. | [[Calendar and Time Loom Demo]] |')
+    expect(timeLoomNote).toContain('metadata-only calendar substrate')
+    expect(timeLoomNote).toContain('[[Journal Demo - 2026-05-31]]')
+    expect(timeLoomNote).toContain('[[Dream Demo - 2026-05-31]]')
+    expect(timeLoomNote).toContain('[[Team sync - 2025-01-13]]')
+    expect(timeLoomNote).toContain('The dashboard can count "Journal 1", "Dream 1", or "Calendar 1"')
+    expect(eventEntry?.isA).toBe('Event')
+    expect(eventEntry?.properties.date).toBe('2025-01-13')
   })
 })

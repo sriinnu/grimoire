@@ -17,6 +17,7 @@ related_to:
   - "[[grimoire-search-and-commands]]"
   - "[[grimoire-journal-demo-2026-05-31]]"
   - "[[grimoire-dream-demo-2026-05-31]]"
+  - "[[grimoire-calendar-time-loom]]"
   - "[[grimoire-console-and-agents]]"
   - "[[grimoire-agent-council]]"
   - "[[grimoire-local-agent-map]]"
@@ -42,6 +43,7 @@ Open [[grimoire-start-here]] first, then keep [[grimoire-feature-tour]] beside i
 - [[grimoire-search-and-commands]] for Quick Open, command palette, and find flows.
 - [[grimoire-journal-demo-2026-05-31]] for dated journal capture.
 - [[grimoire-dream-demo-2026-05-31]] for dreams.
+- [[grimoire-calendar-time-loom]] for metadata-only calendar and Time Loom proof.
 - [[grimoire-links-and-backlinks]] for wikilinks, backlinks, and graph thinking.
 - [[grimoire-console-and-agents]] for command notes and local AI agents.
 - [[grimoire-agent-council]] for source-safe Council lanes, review-gated synthesis, and the live/not-live boundary.

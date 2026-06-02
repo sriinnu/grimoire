@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback, useLayoutEffect } from 'react'
 import { useMemo } from 'react'
+import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { SearchResult, VaultEntry } from '../types'
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
@@ -8,19 +9,63 @@ import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
 import { NoteTitleIcon } from './NoteTitleIcon'
 import { Input } from './ui/input'
+import type { SearchVaultScope } from '../hooks/useUnifiedSearch'
 
 interface SearchPanelProps {
   open: boolean
   vaultPath: string
+  vaultScopes?: SearchVaultScope[]
+  initialQuery?: string
+  openKey?: number
   entries: VaultEntry[]
   onSelectNote: (entry: VaultEntry) => void
+  onSelectSearchResult?: (result: SearchResult) => void
   onClose: () => void
 }
 
-export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }: SearchPanelProps) {
+function normalizeDisplayPath(value: string): string {
+  return value.replace(/\\/g, '/').replace(/\/+$/, '')
+}
+
+function formatResultPath(result: SearchResult, activeVaultPath: string): string | null {
+  const resultPath = normalizeDisplayPath(result.path)
+  const scopePath = normalizeDisplayPath(result.vaultPath ?? activeVaultPath)
+  const scopedPrefix = `${scopePath}/`.toLowerCase()
+  if (resultPath.toLowerCase().startsWith(scopedPrefix)) {
+    return resultPath.slice(scopePath.length + 1)
+  }
+  const parts = resultPath.split('/').filter(Boolean)
+  return parts.length > 0 ? parts.slice(-2).join('/') : null
+}
+
+function fileKindLabel(fileKind?: VaultEntry['fileKind']): string | null {
+  if (fileKind === 'markdown') return 'Markdown'
+  if (fileKind === 'text') return 'Text'
+  if (fileKind === 'binary') return 'Binary'
+  return null
+}
+
+function formatResultSubtitle(entry: VaultEntry | undefined, result: SearchResult, activeVaultPath: string): string {
+  const pathLabel = formatResultPath(result, activeVaultPath)
+  const kindLabel = fileKindLabel(entry?.fileKind ?? result.fileKind)
+  const metadata = entry ? formatSearchSubtitle(entry) : null
+  return [pathLabel, kindLabel, metadata].filter(Boolean).join(' · ')
+}
+
+export function SearchPanel({
+  open,
+  vaultPath,
+  vaultScopes,
+  initialQuery = '',
+  openKey = 0,
+  entries,
+  onSelectNote,
+  onSelectSearchResult,
+  onClose,
+}: SearchPanelProps) {
   const {
     query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs,
-  } = useUnifiedSearch(vaultPath, open)
+  } = useUnifiedSearch(vaultPath, open, vaultScopes, initialQuery, openKey)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -38,8 +83,11 @@ export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }:
     if (entry) {
       onSelectNote(entry)
       onClose()
+      return
     }
-  }, [entries, onSelectNote, onClose])
+    onSelectSearchResult?.(result)
+    onClose()
+  }, [entries, onSelectNote, onSelectSearchResult, onClose])
 
   useLayoutEffect(() => {
     resultsRef.current = results
@@ -85,12 +133,15 @@ export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }:
 
   return (
     <div
-      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[12vh] backdrop-blur-[10px]"
       onClick={onClose}
     >
       <div
-        className="grimoire-command-stage grimoire-command-surface flex w-[540px] max-w-[90vw] max-h-[480px] flex-col self-start overflow-hidden border"
+        className="grimoire-command-stage grimoire-command-surface flex max-h-[min(620px,72vh)] w-[min(680px,calc(100vw-32px))] flex-col self-start overflow-hidden rounded-2xl border border-border/70 bg-popover/95 shadow-2xl"
         data-testid="search-panel-surface"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Spotlight search across open vaults"
         onClick={e => e.stopPropagation()}
       >
         <SearchInput
@@ -106,6 +157,8 @@ export function SearchPanel({ open, vaultPath, entries, onSelectNote, onClose }:
           selectedIndex={selectedIndex}
           loading={loading}
           elapsedMs={elapsedMs}
+          activeVaultPath={vaultPath}
+          vaultCount={vaultScopes?.length ?? 1}
           entryLookup={entryLookup}
           typeEntryMap={typeEntryMap}
           listRef={listRef}
@@ -129,31 +182,38 @@ interface SearchInputProps {
 const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   function SearchInput({ query, loading, onChange, onKeyDown }, ref) {
     return (
-      <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-        <svg className="h-4 w-4 shrink-0 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.35-4.35" />
-        </svg>
-        <Input
-          ref={ref}
-          className="h-auto flex-1 border-0 bg-transparent px-0 py-0 text-[15px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-          type="text"
-          placeholder="Search in all notes..."
-          value={query}
-          onChange={e => onChange(e.target.value)}
-          onKeyDown={onKeyDown}
-        />
-        {loading && (
-          <svg
-            className="h-4 w-4 shrink-0 animate-spin text-muted-foreground"
-            data-testid="search-spinner"
-            viewBox="0 0 24 24"
-            fill="none"
-          >
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-        )}
+      <div className="border-b border-border/70 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border/70 bg-background/80 text-muted-foreground shadow-xs">
+            <Search size={18} strokeWidth={2.2} aria-hidden="true" />
+          </span>
+          <Input
+            ref={ref}
+            className="h-auto flex-1 border-0 bg-transparent px-0 py-0 text-[17px] font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+            type="text"
+            placeholder="Search notes, docs, and project files..."
+            value={query}
+            onChange={e => onChange(e.target.value)}
+            onKeyDown={onKeyDown}
+          />
+          {loading && (
+            <svg
+              className="h-4 w-4 shrink-0 animate-spin text-muted-foreground"
+              data-testid="search-spinner"
+              viewBox="0 0 24 24"
+              fill="none"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          )}
+        </div>
+        <div className="mt-2 flex flex-wrap gap-1.5 pl-12 text-[10.5px] font-semibold text-muted-foreground">
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Open vaults</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Filenames</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Contents</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Markdown + text</span>
+        </div>
       </div>
     )
   },
@@ -165,6 +225,8 @@ interface SearchContentProps {
   selectedIndex: number
   loading: boolean
   elapsedMs: number | null
+  activeVaultPath: string
+  vaultCount: number
   entryLookup: Map<string, VaultEntry>
   typeEntryMap: Record<string, VaultEntry>
   listRef: React.RefObject<HTMLDivElement | null>
@@ -173,15 +235,20 @@ interface SearchContentProps {
 }
 
 function SearchContent({
-  query, results, selectedIndex, loading, elapsedMs, entryLookup, typeEntryMap, listRef, onSelect, onHover,
+  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, listRef, onSelect, onHover,
 }: SearchContentProps) {
   return (
     <div className="flex-1 overflow-y-auto">
       {!query.trim() && (
         <div className="px-4 py-8 text-center">
-          <p className="text-[13px] text-muted-foreground">Search across all note contents</p>
+          <p className="text-[13px] text-muted-foreground">
+            {vaultCount > 1 ? `Search across ${vaultCount} open vaults` : 'Search across notes, docs, and text files'}
+          </p>
           <p className="mt-1 text-[11px] text-muted-foreground/60">
             Enter to open · Esc to close
+          </p>
+          <p className="mx-auto mt-3 max-w-[360px] text-[11px] leading-relaxed text-muted-foreground/70">
+            Searches note bodies, filenames, paths, docs, code, and editable text files.
           </p>
         </div>
       )}
@@ -205,7 +272,7 @@ function SearchContent({
               {results.length} result{results.length !== 1 ? 's' : ''}{elapsedMs !== null ? ` · ${elapsedMs}ms` : ''}
             </span>
           </div>
-          <div ref={listRef}>
+          <div ref={listRef} role="listbox" aria-label="Search results" className="p-2">
             {results.map((result, i) => {
               const entry = entryLookup.get(result.path)
               const isA = entry?.isA ?? result.noteType
@@ -213,14 +280,17 @@ function SearchContent({
               const te = typeEntryMap[isA ?? '']
               const typeColor = noteType ? getTypeColor(isA, te?.color) : undefined
               const TypeIcon = getTypeIcon(isA ?? null, te?.icon)
-              const subtitle = entry ? formatSearchSubtitle(entry) : null
+              const subtitle = formatResultSubtitle(entry, result, activeVaultPath)
+              const vaultLabel = result.vaultPath && result.vaultPath !== activeVaultPath ? result.vaultLabel : null
               return (
                 <div
                   key={result.path}
                   className={cn(
-                    "cursor-pointer px-4 py-2.5 transition-colors",
-                    i === selectedIndex ? "bg-accent" : "hover:bg-secondary",
+                    "cursor-pointer rounded-xl px-3 py-2.5 transition-colors",
+                    i === selectedIndex ? "bg-accent shadow-[inset_0_0_0_1px_var(--border)]" : "hover:bg-secondary",
                   )}
+                  role="option"
+                  aria-selected={i === selectedIndex}
                   onClick={() => onSelect(result)}
                   onMouseEnter={() => onHover(i)}
                 >
@@ -230,13 +300,20 @@ function SearchContent({
                       <NoteTitleIcon icon={entry?.icon} size={14} className="mr-1" />
                       {entry?.title ?? result.title}
                     </span>
-                    {noteType && (
-                      <span className="shrink-0 text-[11px] text-muted-foreground/70">{noteType}</span>
+                    {(noteType || vaultLabel) && (
+                      <span className="shrink-0 text-[11px] text-muted-foreground/70">
+                        {[noteType, vaultLabel].filter(Boolean).join(' · ')}
+                      </span>
                     )}
                   </div>
                   {subtitle && (
                     <p className="mt-0.5 pl-[22px] text-[11px] text-muted-foreground">
                       {subtitle}
+                    </p>
+                  )}
+                  {result.snippet && (
+                    <p className="mt-1 max-h-[2.8em] overflow-hidden pl-[22px] text-[11px] leading-snug text-muted-foreground/80">
+                      {result.snippet}
                     </p>
                   )}
                 </div>

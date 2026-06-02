@@ -4,6 +4,7 @@ import type { AiAgentsStatus, AiAgentStatus } from '../lib/aiAgents'
 import type { AgentGraphContext } from './agentGraphContext'
 import type { NoteReference } from './ai-context'
 import type { PositionedGraphNode } from './graphDisplay'
+import { localMachineLabel } from './platform'
 import { buildSourceLabelMap } from './sourceLabels'
 
 export interface GraphCouncilPrompt {
@@ -128,8 +129,8 @@ function councilLaneLines(aiAgentsStatus?: AiAgentsStatus): string[] {
 
   return [
     'Council lane availability:',
-    '- Local search: available on this Mac.',
-    '- Vault graph: available on this Mac.',
+    `- Local search: available on ${localMachineLabel()}.`,
+    `- Vault graph: available on ${localMachineLabel()}.`,
     agentLaneLine('Chitragupta memory', aiAgentsStatus.chitragupta.status, 'private/local eligible'),
     agentLaneLine('Codex', aiAgentsStatus.codex.status, 'source-safe eligible'),
     agentLaneLine('Claude Code', aiAgentsStatus.claude_code.status, 'source-safe eligible'),

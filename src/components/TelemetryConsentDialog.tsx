@@ -1,4 +1,5 @@
 import { ShieldCheck } from '@phosphor-icons/react'
+import { useCallback, useRef, type KeyboardEvent } from 'react'
 import { OnboardingShell } from './OnboardingShell'
 import { Button } from './ui/button'
 
@@ -8,6 +9,24 @@ interface TelemetryConsentDialogProps {
 }
 
 export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsentDialogProps) {
+  const declineButtonRef = useRef<HTMLButtonElement>(null)
+  const acceptButtonRef = useRef<HTMLButtonElement>(null)
+  const handleActionKeyDown = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Tab') return
+
+    const activeElement = document.activeElement
+    if (!event.shiftKey && activeElement === declineButtonRef.current) {
+      event.preventDefault()
+      acceptButtonRef.current?.focus()
+      return
+    }
+
+    if (event.shiftKey && activeElement === acceptButtonRef.current) {
+      event.preventDefault()
+      declineButtonRef.current?.focus()
+    }
+  }, [])
+
   return (
     <OnboardingShell
       className="fixed inset-0 z-50"
@@ -32,7 +51,7 @@ export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsent
           </h2>
           <p style={{ fontSize: 13, color: 'var(--muted-foreground)', lineHeight: 1.6, marginTop: 8 }}>
             Send anonymous crash reports to help us fix bugs faster.
-            No vault content, no personal data, no tracking.
+            No vault content, no personal data, no usage analytics.
           </p>
         </div>
 
@@ -41,16 +60,19 @@ export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsent
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             <li>Stack traces from errors (JS &amp; Rust)</li>
             <li>App version, OS, and architecture</li>
+            <li>A random anonymous crash identifier</li>
           </ul>
           <p style={{ margin: '10px 0 6px', fontWeight: 500, color: 'var(--foreground)' }}>What we never collect:</p>
           <ul style={{ margin: 0, paddingLeft: 18 }}>
             <li>No vault content, note titles, or file paths</li>
             <li>No personal data or IP addresses</li>
+            <li>No usage analytics unless you enable them in Settings</li>
           </ul>
         </div>
 
-        <div style={{ display: 'flex', gap: 12, width: '100%', marginTop: 4 }}>
+        <div style={{ display: 'flex', gap: 12, width: '100%', marginTop: 4 }} onKeyDown={handleActionKeyDown}>
           <Button
+            ref={declineButtonRef}
             type="button"
             variant="outline"
             style={{ flex: 1, fontSize: 13, padding: '10px 16px' }}
@@ -61,6 +83,7 @@ export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsent
             No thanks
           </Button>
           <Button
+            ref={acceptButtonRef}
             type="button"
             style={{ flex: 1, fontSize: 13, padding: '10px 16px', fontWeight: 500 }}
             onClick={onAccept}

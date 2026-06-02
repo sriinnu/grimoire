@@ -21,7 +21,8 @@ This note sketches how agents can appear inside a Grimoire project without becom
 | --- | --- | --- |
 | Claude Code | Editing code and explaining changes | Needs explicit write permission |
 | Codex | Repo work, tests, build fixes | Keep task scope visible |
-| Chitragupta | Local project memory and routing | Local intent is not approval |
+| Chitragupta CLI | Route/status disclosure and local chat handoff | Local intent is not approval |
+| Chitragupta MCP | Memory, recall, wiki, graph, ingest, diagnostics, and source-backed writes | Contract-gated; not live in the public demo |
 | Agent Council | Source-safe lane review and synthesis handoff | Does not prove every external agent ran |
 
 ## What to store

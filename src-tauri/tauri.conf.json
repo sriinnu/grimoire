@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Grimoire",
-  "version": "0.1.383",
+  "version": "0.1.390",
   "identifier": "com.sriinnu.grimoire",
   "build": {
     "frontendDist": "../dist",
@@ -66,7 +66,8 @@
       "minimumSystemVersion": "12.0"
     },
     "resources": {
-      "resources/mcp-server/**/*": "mcp-server/"
+      "resources/mcp-server/**/*": "mcp-server/",
+      "../demo-vault-v2/**/*": "starter-vault/"
     },
     "icon": [
       "icons/32x32.png",

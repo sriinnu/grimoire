@@ -92,7 +92,7 @@ function assertLaunchableAppBundle(appPath) {
 
   const executablePath = join(appPath, 'Contents/MacOS', executable)
   assertExists(executablePath, 'App executable')
-  if ((statSync(executablePath).mode & 0o111) === 0) {
+  if (process.platform !== 'win32' && (statSync(executablePath).mode & 0o111) === 0) {
     throw new Error(`${formatPath(executablePath)} is not executable`)
   }
 }

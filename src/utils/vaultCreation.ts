@@ -1,4 +1,5 @@
 import type { VaultStorageProviderId, VaultSyncProviderId } from '@/components/status-bar/types'
+import { localMachineLabel } from './platform'
 
 export type VaultStorageChoiceId =
   | 'local'
@@ -62,7 +63,7 @@ export const VAULT_STORAGE_CHOICES: VaultStorageChoice[] = [
     label: 'Local folder',
     basePath: '~/Grimoire/Vaults',
     storageProvider: 'local-folder',
-    detail: 'On this Mac',
+    detail: `On ${localMachineLabel()}`,
   },
   {
     id: 'icloud',
@@ -204,7 +205,7 @@ export function buildVaultCreationPlan({
     privacyDetail: 'Private lanes stay local until you explicitly export or sync them.',
     storageDetail: isDesktopSync
       ? `${choice.label} is still a local folder. Grimoire stores no cloud credentials.`
-      : 'A normal local folder on this Mac; no account or remote required.',
+      : `A normal local folder on ${localMachineLabel()}; no account or remote required.`,
     syncDetail: initializeGit
       ? 'Git history starts in this vault, but storage still stays under your chosen folder.'
       : 'Git stays off. The vault opens and saves as plain Markdown without a repo.',

@@ -4,8 +4,8 @@ import {
   getAiAgentDefinition,
   getNextAiAgentId,
   isAiAgentInstalled,
-  resolveDefaultAiAgent,
   resolveDefaultAiProvider,
+  resolveUsableDefaultAiAgent,
   supportsAiAgentProviderRoute,
   type AiAgentId,
   type AiAgentsStatus,
@@ -26,8 +26,8 @@ export function useAiAgentPreferences({
   onToast,
 }: UseAiAgentPreferencesArgs) {
   const defaultAiAgent = useMemo(
-    () => resolveDefaultAiAgent(settings.default_ai_agent),
-    [settings.default_ai_agent],
+    () => resolveUsableDefaultAiAgent(settings.default_ai_agent, aiAgentsStatus),
+    [aiAgentsStatus, settings.default_ai_agent],
   )
 
   const defaultAiAgentLabel = getAiAgentDefinition(defaultAiAgent).label

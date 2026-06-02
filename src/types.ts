@@ -144,6 +144,9 @@ export interface SearchResult {
   snippet: string
   score: number
   noteType: string | null
+  fileKind?: VaultEntry['fileKind']
+  vaultPath?: string
+  vaultLabel?: string
 }
 
 export interface SearchResponse {

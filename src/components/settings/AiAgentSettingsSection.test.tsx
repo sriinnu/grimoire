@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../../lib/i18n'
 import { AiAgentSettingsSection } from './AiAgentSettingsSection'
 
@@ -67,9 +67,29 @@ function renderSection(overrides: Partial<AiAgentSettingsProps> = {}) {
   render(<AiAgentSettingsSection {...createProps(overrides)} />)
 }
 
+function setUserAgent(userAgent: string) {
+  Object.defineProperty(window.navigator, 'userAgent', {
+    configurable: true,
+    value: userAgent,
+  })
+}
+
+function setPlatform(platform: string) {
+  Object.defineProperty(window.navigator, 'platform', {
+    configurable: true,
+    value: platform,
+  })
+}
+
 describe('AiAgentSettingsSection', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
+    setPlatform('MacIntel')
+  })
+
   it('separates Chitragupta CLI route truth from MCP memory readiness', () => {
-    renderSection()
+    renderSection({ mcpStatus: 'checking' })
 
     expect(screen.getByTestId('settings-ai-agent-route-note')).toHaveTextContent(
       'Provider resolves from the Chitragupta stream',
@@ -86,6 +106,36 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-agent-chitragupta-transport')).toHaveTextContent(
       'If the MCP transport closes',
     )
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status')).toHaveTextContent(
+      'External MCP registration',
+    )
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-detail')).toHaveTextContent(
+      'Runtime bridge readiness is still verified',
+    )
+  })
+
+  it('lets users connect external MCP clients from the Chitragupta contract card', () => {
+    const onInstallMcp = vi.fn()
+    renderSection({ mcpStatus: 'not_installed', onInstallMcp })
+
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-value')).toHaveTextContent('Not connected')
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-detail')).toHaveTextContent(
+      'Chitragupta CLI chat can still run',
+    )
+
+    fireEvent.click(screen.getByTestId('settings-ai-agent-mcp-runtime-action'))
+
+    expect(onInstallMcp).toHaveBeenCalledOnce()
+  })
+
+  it('shows connected MCP registration without claiming transport is always open', () => {
+    renderSection({ mcpStatus: 'installed', onInstallMcp: vi.fn() })
+
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-value')).toHaveTextContent('Connected')
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-status-detail')).toHaveTextContent(
+      'Runtime bridge readiness is still verified',
+    )
+    expect(screen.getByTestId('settings-ai-agent-mcp-runtime-action')).toHaveTextContent('Manage MCP')
   })
 
   it('keeps route disclosure scoped to Chitragupta', () => {
@@ -114,8 +164,9 @@ describe('AiAgentSettingsSection', () => {
     renderSection()
 
     expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Provider API keys')
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('macOS Keychain')
     expect(screen.getByTestId('settings-ai-provider-key-anthropic')).toHaveTextContent('ANTHROPIC_API_KEY')
-    expect(screen.getByTestId('settings-ai-provider-key-source-anthropic')).toHaveTextContent('Keychain')
+    expect(screen.getByTestId('settings-ai-provider-key-source-anthropic')).toHaveTextContent('macOS Keychain')
     expect(screen.getByTestId('settings-ai-provider-key-source-openai')).toHaveTextContent('Environment')
     expect(screen.getByTestId('settings-ai-provider-key-source-deepseek')).toHaveTextContent('Missing')
     expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
@@ -129,5 +180,46 @@ describe('AiAgentSettingsSection', () => {
       expect(aiProviderKeyMocks.saveProviderApiKey).toHaveBeenCalledWith('deepseek', 'unit-test-provider-token')
     })
     expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
+  })
+
+  it('explains Windows provider keys without enabling unsupported secure storage', () => {
+    setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    setPlatform('Win32')
+
+    renderSection()
+
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent(
+      'On Windows, Grimoire detects provider keys from environment variables.',
+    )
+    expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Windows Credential Manager')
+    expect(screen.getByTestId('settings-ai-provider-keys')).not.toHaveTextContent('macOS Keychain')
+    expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
+    expect(screen.getByTestId('settings-ai-provider-key-save-deepseek')).toBeDisabled()
+  })
+
+  it('localizes Windows provider-key storage limits without macOS-only copy', () => {
+    setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
+    setPlatform('Win32')
+
+    renderSection({ t: createTranslator('de') })
+
+    const providerKeys = screen.getByTestId('settings-ai-provider-keys')
+    expect(providerKeys).toHaveTextContent('Unter Windows erkennt Grimoire Provider-Keys')
+    expect(providerKeys).toHaveTextContent('Windows Credential Manager')
+    expect(providerKeys).not.toHaveTextContent('macOS Keychain')
+    expect(providerKeys).not.toHaveTextContent('Finder')
+  })
+
+  it('names Linux secure-storage support without macOS-only copy', () => {
+    setUserAgent('Mozilla/5.0 (X11; Linux x86_64)')
+    setPlatform('Linux x86_64')
+
+    renderSection()
+
+    const providerKeys = screen.getByTestId('settings-ai-provider-keys')
+    expect(providerKeys).toHaveTextContent('On Linux, Grimoire detects provider keys from environment variables.')
+    expect(providerKeys).toHaveTextContent('Linux Secret Service/keyring')
+    expect(providerKeys).not.toHaveTextContent('macOS Keychain')
+    expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
   })
 })

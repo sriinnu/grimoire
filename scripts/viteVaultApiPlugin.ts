@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import fs from 'fs'
 import path from 'path'
 import type { Plugin } from 'vite'
-import { findMarkdownFiles, parseMarkdownFile } from './viteVaultApiModel'
+import { classifyFileKind, findMarkdownFiles, findVaultFiles, parseMarkdownFile, parseVaultFile } from './viteVaultApiModel'
 
 function sendJson(res: ServerResponse, payload: unknown, statusCode = 200): void {
   res.statusCode = statusCode
@@ -71,7 +71,7 @@ function handleVaultList(url: URL, res: ServerResponse): boolean {
   if (url.pathname !== '/api/vault/list') return false
   const dirPath = readExistingQueryPath(url, res, 'path')
   if (!dirPath) return true
-  const entries = findMarkdownFiles(dirPath).map(parseMarkdownFile).filter(Boolean)
+  const entries = findVaultFiles(dirPath).map(parseVaultFile).filter(Boolean)
   sendJson(res, entries)
   return true
 }
@@ -89,7 +89,7 @@ function handleVaultAllContent(url: URL, res: ServerResponse): boolean {
   const dirPath = readExistingQueryPath(url, res, 'path')
   if (!dirPath) return true
   const contentMap: Record<string, string> = {}
-  for (const filePath of findMarkdownFiles(dirPath)) {
+  for (const filePath of findVaultFiles(dirPath)) {
     try {
       contentMap[filePath] = fs.readFileSync(filePath, 'utf-8')
     } catch {
@@ -104,7 +104,7 @@ function handleVaultEntry(url: URL, res: ServerResponse): boolean {
   if (url.pathname !== '/api/vault/entry') return false
   const filePath = readExistingQueryPath(url, res, 'path')
   if (!filePath) return true
-  sendJson(res, parseMarkdownFile(filePath))
+  sendJson(res, parseVaultFile(filePath))
   return true
 }
 
@@ -117,16 +117,40 @@ function handleVaultSearch(url: URL, res: ServerResponse): boolean {
     sendJson(res, { results: [], elapsed_ms: 0, query, mode })
     return true
   }
+  if (!fs.existsSync(vaultPath)) {
+    sendJson(res, { error: 'Invalid vault path' }, 400)
+    return true
+  }
 
-  const results: { title: string; path: string; snippet: string; score: number; note_type: string | null }[] = []
-  for (const filePath of findMarkdownFiles(vaultPath)) {
-    const entry = parseMarkdownFile(filePath)
+  const results: {
+    title: string
+    path: string
+    snippet: string
+    score: number
+    note_type: string | null
+    file_kind: 'markdown' | 'text' | 'binary'
+  }[] = []
+  for (const filePath of findVaultFiles(vaultPath)) {
+    const entry = parseVaultFile(filePath)
     if (!entry || entry.trashed) continue
     const raw = fs.readFileSync(filePath, 'utf-8')
-    if (entry.title.toLowerCase().includes(query) || raw.toLowerCase().includes(query)) {
-      results.push({ title: entry.title, path: entry.path, snippet: entry.snippet, score: 1.0, note_type: entry.isA })
+    const relativePath = path.relative(vaultPath, filePath).replaceAll(path.sep, '/')
+    const titleMatch = entry.title.toLowerCase().includes(query)
+    const pathMatch = relativePath.toLowerCase().includes(query)
+    const bodyMatch = raw.toLowerCase().includes(query)
+    if (titleMatch || pathMatch || bodyMatch) {
+      const score = (titleMatch ? 10 : 0) + (pathMatch ? 6 : 0) + (bodyMatch ? 1 : 0)
+      results.push({
+        title: entry.title,
+        path: entry.path,
+        snippet: bodyMatch ? entry.snippet : relativePath,
+        score,
+        note_type: entry.isA,
+        file_kind: classifyFileKind(filePath),
+      })
     }
   }
+  results.sort((a, b) => b.score - a.score)
   sendJson(res, { results: results.slice(0, 20), elapsed_ms: 1, query, mode })
   return true
 }

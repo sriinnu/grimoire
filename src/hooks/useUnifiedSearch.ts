@@ -9,11 +9,17 @@ interface SearchResultData {
   snippet: string
   score: number
   note_type: string | null
+  file_kind?: SearchResult['fileKind']
 }
 
 interface SearchResponseData {
   results: SearchResultData[]
   elapsed_ms: number
+}
+
+export interface SearchVaultScope {
+  path: string
+  label?: string
 }
 
 const DEBOUNCE_MS = 300
@@ -24,7 +30,7 @@ function searchCall(args: Record<string, unknown>): Promise<SearchResponseData> 
     : mockInvoke<SearchResponseData>('search_vault', args)
 }
 
-function mapResults(raw: SearchResultData[]): SearchResult[] {
+function mapResults(raw: SearchResultData[], scope: SearchVaultScope): SearchResult[] {
   const seen = new Set<string>()
   return raw
     .map(r => ({
@@ -33,16 +39,54 @@ function mapResults(raw: SearchResultData[]): SearchResult[] {
       snippet: r.snippet,
       score: r.score,
       noteType: r.note_type,
+      fileKind: r.file_kind,
+      vaultPath: scope.path,
+      vaultLabel: scope.label,
     }))
     .filter(r => {
-      if (seen.has(r.path)) return false
+      const key = `${scope.path}:${r.path}`
+      if (seen.has(key)) return false
       if (r.noteType === 'Config') return false
-      seen.add(r.path)
+      seen.add(key)
       return true
     })
 }
 
-export function useUnifiedSearch(vaultPath: string, active: boolean) {
+function normalizeScopes(vaultPath: string, vaultScopes?: SearchVaultScope[]): SearchVaultScope[] {
+  const seen = new Set<string>()
+  const scopes = [
+    { path: vaultPath },
+    ...(vaultScopes ?? []),
+  ].filter((scope) => scope.path.trim().length > 0)
+
+  return scopes.filter((scope) => {
+    if (seen.has(scope.path)) return false
+    seen.add(scope.path)
+    return true
+  })
+}
+
+async function searchScope(scope: SearchVaultScope, query: string) {
+  try {
+    const response = await searchCall({
+      vaultPath: scope.path,
+      query,
+      mode: 'keyword',
+      limit: 20,
+    })
+    return { response, scope }
+  } catch {
+    return null
+  }
+}
+
+export function useUnifiedSearch(
+  vaultPath: string,
+  active: boolean,
+  vaultScopes?: SearchVaultScope[],
+  initialQuery = '',
+  openKey = 0,
+) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -51,8 +95,8 @@ export function useUnifiedSearch(vaultPath: string, active: boolean) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchGenRef = useRef(0)
 
-  const reset = useCallback(() => {
-    setQuery('')
+  const reset = useCallback((nextQuery = '') => {
+    setQuery(nextQuery)
     setResults([])
     setSelectedIndex(0)
     setElapsedMs(null)
@@ -65,26 +109,37 @@ export function useUnifiedSearch(vaultPath: string, active: boolean) {
     searchGenRef.current++
     clearTimeout(debounceRef.current ?? undefined)
     debounceRef.current = null
-    if (active) reset()
-  }, [active, reset])
+    if (active) reset(initialQuery)
+  }, [active, initialQuery, openKey, reset])
 
   const performSearch = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); setElapsedMs(null); setLoading(false); return }
     searchGenRef.current++
     const gen = searchGenRef.current
     setLoading(true)
-    try {
-      const response = await searchCall({ vaultPath, query: q, mode: 'keyword', limit: 20 })
-      if (gen !== searchGenRef.current) return
-      setResults(mapResults(response.results))
-      setElapsedMs(response.elapsed_ms)
-      setSelectedIndex(0)
-    } catch {
-      if (gen !== searchGenRef.current) return
-    } finally {
-      if (gen === searchGenRef.current) setLoading(false)
-    }
-  }, [vaultPath])
+    const scopedResponses = await Promise.all(
+      normalizeScopes(vaultPath, vaultScopes).map((scope) => searchScope(scope, q)),
+    )
+    if (gen !== searchGenRef.current) return
+
+    const successfulResponses = scopedResponses.filter((result): result is {
+      response: SearchResponseData
+      scope: SearchVaultScope
+    } => result !== null)
+
+    const mergedResults = successfulResponses
+      .flatMap(({ response, scope }) => mapResults(response.results, scope))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20)
+
+    const elapsed = successfulResponses
+      .reduce((max, { response }) => Math.max(max, response.elapsed_ms), 0)
+
+    setResults(mergedResults)
+    setElapsedMs(elapsed)
+    setSelectedIndex(0)
+    if (gen === searchGenRef.current) setLoading(false)
+  }, [vaultPath, vaultScopes])
 
   useEffect(() => {
     clearTimeout(debounceRef.current ?? undefined)

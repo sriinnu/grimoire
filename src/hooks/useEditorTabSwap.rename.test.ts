@@ -188,6 +188,39 @@ describe('useEditorTabSwap untitled rename continuity', () => {
     expect(editor.tryParseMarkdownToBlocks).not.toHaveBeenCalled()
   })
 
+  it('does not re-swap after auto-rename when the renamed tab is still behind live body typing', async () => {
+    setupMountedEditorMocks()
+
+    const editor = makeMockEditor('# Fresh Title\n\nBody typed live')
+    const onContentChange = vi.fn()
+    const untitledTab = makeTab('untitled-note-123.md', 'Untitled Note 123', 'Body')
+    const renamedTab = makeTab('fresh-title.md', 'Fresh Title', 'Body')
+
+    const { rerender } = renderHook(
+      ({ tabs, activeTabPath }) => useEditorTabSwap({
+        tabs,
+        activeTabPath,
+        editor: editor as never,
+        onContentChange,
+      }),
+      { initialProps: { tabs: [untitledTab], activeTabPath: untitledTab.entry.path } },
+    )
+
+    await settleRenameHarness(editor)
+
+    rerender({ tabs: [renamedTab], activeTabPath: renamedTab.entry.path })
+    await act(() => new Promise(r => setTimeout(r, 0)))
+
+    expect(editor.replaceBlocks).not.toHaveBeenCalled()
+    expect(editor.tryParseMarkdownToBlocks).not.toHaveBeenCalled()
+
+    rerender({ tabs: [renamedTab], activeTabPath: renamedTab.entry.path })
+    await act(() => new Promise(r => setTimeout(r, 0)))
+
+    expect(editor.replaceBlocks).not.toHaveBeenCalled()
+    expect(editor.tryParseMarkdownToBlocks).not.toHaveBeenCalled()
+  })
+
   it('does not re-swap while local wikilink insertion is ahead of the latest tab props', async () => {
     setupMountedEditorMocks()
 

@@ -2,6 +2,7 @@ import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
 import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
 import type { createTranslator } from '../../lib/i18n'
 import type { AppLocale, UiLanguagePreference } from '../../lib/i18nCore'
+import type { McpStatus } from '../../hooks/useMcpStatus'
 import type { PortabilityExportPreviewState } from '../../lib/exportReviewGate'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
 import type { TranscriptionProviderId } from '../../lib/transcriptionProviders'
@@ -65,6 +66,8 @@ export interface SettingsBodyProps {
   setAiAgentModels: (value: Partial<Record<AiAgentId, string>>) => void
   aiAgentProviders: Partial<Record<AiAgentId, string>>
   setAiAgentProviders: (value: Partial<Record<AiAgentId, string>>) => void
+  mcpStatus?: McpStatus
+  onInstallMcp?: () => void
   releaseChannel: ReleaseChannel
   setReleaseChannel: (value: ReleaseChannel) => void
   themeMode: ThemeMode

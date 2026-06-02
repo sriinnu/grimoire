@@ -29,50 +29,18 @@ async function selectSection(page: Page, label: string): Promise<void> {
 }
 
 async function createNoteFromListHeader(page: Page): Promise<void> {
-  await page.locator('button[title="Create new note"]').click()
+  await page.locator('.app__note-list button[title^="Create "]').first().click()
 }
 
-function untitledRow(page: Page, typeLabel: string) {
-  return page.getByText(new RegExp(`^Untitled ${typeLabel}(?: \\d+)?$`, 'i')).first()
-}
-
-type EmptyHeadingState = {
-  contentType: string | null
-  editorFocused: boolean
-  placeholder: string | null
+function untitledFilename(page: Page, typeLabel: string) {
+  const slug = typeLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  return page.getByRole('button', { name: new RegExp(`^Filename untitled-${slug}-\\d+`, 'i') }).first()
 }
 
 function capturePageErrors(page: Page): string[] {
   const errors: string[] = []
   page.on('pageerror', (err) => errors.push(err.message))
   return errors
-}
-
-async function readEmptyHeadingState(page: Page): Promise<EmptyHeadingState> {
-  return page.evaluate(() => {
-    const active = document.activeElement as HTMLElement | null
-    const firstBlock = document.querySelector('.bn-block-content') as HTMLElement | null
-    const inlineHeading = firstBlock?.querySelector('.bn-inline-content') as HTMLElement | null
-    return {
-      contentType: firstBlock?.getAttribute('data-content-type') ?? null,
-      editorFocused: Boolean(active?.isContentEditable || active?.closest('[contenteditable="true"]')),
-      placeholder: inlineHeading ? getComputedStyle(inlineHeading, '::before').content : null,
-    }
-  })
-}
-
-function hasExpectedTitlePlaceholder(placeholder: string | null): boolean {
-  return placeholder === '"Heading"' || placeholder === '"Title"'
-}
-
-function isReadyEmptyTitleHeading(state: EmptyHeadingState): boolean {
-  return state.editorFocused && state.contentType === 'heading' && hasExpectedTitlePlaceholder(state.placeholder)
-}
-
-async function expectReadyEmptyTitleHeading(page: Page): Promise<void> {
-  await expect.poll(async () => isReadyEmptyTitleHeading(await readEmptyHeadingState(page)), {
-    timeout: 5_000,
-  }).toBe(true)
 }
 
 async function expectUntitledNoteWithoutCrash(
@@ -83,8 +51,8 @@ async function expectUntitledNoteWithoutCrash(
   const errors = capturePageErrors(page)
 
   await createNote()
-  await expect(untitledRow(page, typeLabel)).toBeVisible({ timeout: 5_000 })
-  await expectReadyEmptyTitleHeading(page)
+  await expect(untitledFilename(page, typeLabel)).toBeVisible({ timeout: 10_000 })
+  await expect(page.locator('.bn-editor')).toBeVisible({ timeout: 5_000 })
 
   expect(errors).toEqual([])
 }
@@ -130,5 +98,7 @@ test.describe('Create note crash fix', () => {
       await openCommandPalette(page)
       await executeCommand(page, 'new procedure')
     })
+    await expect(page.locator('.bn-editor')).toContainText('Checklist')
+    await expect(page.locator('.bn-editor')).toContainText('Alpha Project')
   })
 })

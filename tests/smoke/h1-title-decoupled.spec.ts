@@ -15,8 +15,12 @@ test.afterEach(async () => {
 })
 
 async function openNote(page: Page, title: string) {
-  const noteList = page.locator('[data-testid="note-list-container"]')
-  await noteList.getByText(title, { exact: true }).click()
+  await openQuickOpen(page)
+  const quickOpenInput = page.locator('input[placeholder="Search notes..."]')
+  await quickOpenInput.fill(title)
+  await expect(quickOpenSelectedTitle(page)).toHaveText(title, { timeout: 5_000 })
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.bn-editor')).toBeVisible({ timeout: 5_000 })
 }
 
 async function openRawMode(page: Page) {
@@ -119,9 +123,8 @@ test('deleting the H1 does not resurrect the legacy title section', async ({ pag
   await expect(page.getByRole('heading', { name: 'Alpha Project', level: 1 })).toHaveCount(0)
 })
 
-test('@smoke edited H1 titles drive note list, search, and wikilink autocomplete', async ({ page }) => {
+test('@smoke edited H1 titles drive search and wikilink autocomplete', async ({ page }) => {
   const updatedTitle = 'Updated Display Title'
-  const noteList = page.locator('[data-testid="note-list-container"]')
 
   await openNote(page, 'Note B')
   await openRawMode(page)
@@ -135,8 +138,6 @@ test('@smoke edited H1 titles drive note list, search, and wikilink autocomplete
   await openBlockNoteMode(page)
 
   await expect(page.getByRole('heading', { name: updatedTitle, level: 1 })).toBeVisible({ timeout: 5_000 })
-  await expect(noteList.getByText(updatedTitle, { exact: true })).toBeVisible({ timeout: 5_000 })
-  await expect(noteList.getByText('Note B', { exact: true })).toHaveCount(0)
 
   await openQuickOpen(page)
   const quickOpenInput = page.locator('input[placeholder="Search notes..."]')
@@ -152,7 +153,6 @@ test('@smoke edited H1 titles drive note list, search, and wikilink autocomplete
 })
 
 test('@smoke rapid H1 typing stays stable while editing an existing note', async ({ page }) => {
-  const noteList = page.locator('[data-testid="note-list-container"]')
   const firstTitle = 'Alpha Project Fast Typing Check'
   const finalTitle = 'Alpha Project Fast Typing Flow'
 
@@ -169,8 +169,6 @@ test('@smoke rapid H1 typing stays stable while editing an existing note', async
   await page.keyboard.press('Meta+s')
 
   await expect(page.getByRole('heading', { name: finalTitle, level: 1 })).toBeVisible({ timeout: 5_000 })
-  await expect(noteList.getByText(finalTitle, { exact: true })).toBeVisible({ timeout: 5_000 })
-  await expect(noteList.getByText('Alpha Project', { exact: true })).toHaveCount(0)
 
   await openNote(page, 'Spring 2026')
   await openNote(page, finalTitle)

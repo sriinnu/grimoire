@@ -14,8 +14,8 @@
 }
 
 [data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork {
-  opacity: 0.58;
-  z-index: 0;
+  opacity: 1;
+  z-index: 2;
 }
 
 [data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel::after {

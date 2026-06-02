@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { IconProps } from '@phosphor-icons/react'
+import { MagnifyingGlass, type IconProps } from '@phosphor-icons/react'
 import grimoireIcon from '@/assets/app-icon.png'
 import { Button } from '@/components/ui/button'
 import type { SidebarSelection } from '../../types'
@@ -26,6 +26,7 @@ interface SidebarRailProps {
   journalCount: number
   dreamCount: number
   archivedCount: number
+  onOpenSearch?: (initialQuery?: string) => void
 }
 
 interface RailItem {
@@ -105,6 +106,7 @@ export function SidebarRail({
   journalCount,
   dreamCount,
   archivedCount,
+  onOpenSearch,
 }: SidebarRailProps) {
   const items: RailItem[] = [
     {
@@ -172,6 +174,26 @@ export function SidebarRail({
           className="h-8 w-8 rounded-lg object-cover"
         />
       </div>
+      {onOpenSearch && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="mb-3 h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground sidebar-rail__tone"
+          aria-label="Open Spotlight search across open vaults"
+          title="Open Spotlight search across open vaults"
+          data-sidebar-rail-tone="blue"
+          data-testid="sidebar-rail-search"
+          onClick={() => onOpenSearch()}
+        >
+          <span className="sidebar-rail__glyph" data-active="false">
+            <span className="sidebar-rail__signal" />
+            <span className="sidebar-rail__bead sidebar-rail__bead--near" />
+            <span className="sidebar-rail__bead sidebar-rail__bead--far" />
+            <MagnifyingGlass size={21} weight="regular" />
+          </span>
+        </Button>
+      )}
       <nav className="flex flex-1 flex-col items-center gap-2" aria-label="Primary sidebar shortcuts">
         {items.map((item) => (
           <RailButton

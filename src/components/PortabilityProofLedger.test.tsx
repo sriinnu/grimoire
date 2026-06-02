@@ -110,7 +110,7 @@ describe('PortabilityProofLedger', () => {
     expect(row.getAllByText('GRIMOIRE_AZURE_CONTAINER').length).toBeGreaterThanOrEqual(1)
     fireEvent.click(row.getByRole('button', { name: 'Copy dry run command' }))
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(OBJECT_STORAGE_LIVE_PROOF_DRY_RUN_COMMAND))
-    expect(row.getByText('Copied')).toBeInTheDocument()
+    await waitFor(() => expect(row.getByText('Copied')).toBeInTheDocument())
     fireEvent.click(row.getByRole('button', { name: 'Copy live proof command' }))
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(OBJECT_STORAGE_LIVE_PROOF_COMMAND))
     expect(row.queryByText(/provider-proven sync/i)).not.toBeInTheDocument()

@@ -5,14 +5,19 @@ on:
   push:
     tags:
       - 'stable-v*'
+      - 'alpha-v*'
 
 permissions:
   contents: write
+  id-token: write
+  pages: write
 
 jobs:
   macos:
     name: macOS ${{ matrix.arch }}
-    runs-on: macos-latest
+    runs-on: macos-15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       fail-fast: false
       matrix:
@@ -24,15 +29,15 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: pnpm
 
       - name: Setup Rust
@@ -80,6 +85,10 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
+          if [ -z "$APPLE_ID" ] || [ -z "$APPLE_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
+            echo "APPLE_ID, APPLE_PASSWORD, and APPLE_TEAM_ID are required for notarized public release builds."
+            exit 1
+          fi
           if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
             echo "TAURI_SIGNING_PRIVATE_KEY is required so updater artifacts are freshly signed."
             exit 1
@@ -98,13 +107,17 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz.sig
             src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
 
-      - name: Upload Stable Release Assets
-        if: startsWith(github.ref, 'refs/tags/stable-v')
+      - name: Upload Tagged Release Assets
+        if: startsWith(github.ref, 'refs/tags/stable-v') || startsWith(github.ref, 'refs/tags/alpha-v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          PRERELEASE_FLAG=""
+          if [[ "$GITHUB_REF_NAME" == alpha-v* ]]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Grimoire $GITHUB_REF_NAME" || \
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "Grimoire $GITHUB_REF_NAME" $PRERELEASE_FLAG || \
               gh release view "$GITHUB_REF_NAME" >/dev/null
           fi
           gh release upload "$GITHUB_REF_NAME" \
@@ -112,3 +125,39 @@ jobs:
             src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz.sig \
             src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg \
             --clobber
+
+  release-pages:
+    name: Release Pages
+    runs-on: macos-15
+    needs: macos
+    if: startsWith(github.ref, 'refs/tags/stable-v') || startsWith(github.ref, 'refs/tags/alpha-v')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Collect Release Metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .release-pages
+          gh api "repos/${{ github.repository }}/releases" --paginate > .release-pages/releases.json
+
+      - name: Build Release Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/build-release-pages.mjs --releases-json .release-pages/releases.json --output-dir .release-pages/public
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .release-pages/public
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

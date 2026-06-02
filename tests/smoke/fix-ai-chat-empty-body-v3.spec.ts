@@ -4,10 +4,12 @@ test.describe('AI chat empty body fix — no regression', () => {
   test.beforeEach(async ({ page }) => {
     await page.route('**/api/vault/ping', route => route.fulfill({ status: 503 }))
     await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByTestId('vault-dashboard')).toBeVisible({ timeout: 5_000 })
+    await page.getByTestId('sidebar-top-nav').getByText('All Notes', { exact: true }).click()
     await expect(page.locator('[data-testid="note-list-container"]')).toBeVisible({ timeout: 5_000 })
   })
 
-  test('AI panel opens, note is selected, message can be sent and response renders @smoke', async ({ page }) => {
+  test('AI panel opens, note is selected, and browser mode does not send without a provider @smoke', async ({ page }) => {
     // Select a note so the AI panel has context
     const noteItem = page.locator('.app__note-list .cursor-pointer').first()
     await noteItem.click()
@@ -20,16 +22,12 @@ test.describe('AI chat empty body fix — no regression', () => {
     await page.getByRole('button', { name: 'Open the AI panel' }).click()
     await expect(page.getByTestId('ai-panel')).toBeVisible({ timeout: 3000 })
 
-    // Send a message
+    // Browser smoke does not provide the native Claude Code bridge. The panel must
+    // stay honest and disabled instead of attempting an empty provider call.
     const input = page.getByTestId('agent-input')
     await expect(input).toBeVisible()
-    await input.fill('What does this note contain?')
-    await page.getByTestId('agent-send').click()
-
-    // Wait for mock AI response to render (mock returns fixed text after 300ms)
-    await expect(page.getByTestId('ai-message').first()).toBeVisible({ timeout: 5000 })
-
-    // Verify the response text is rendered (mock includes wikilinks)
-    await expect(page.getByTestId('ai-message').first()).not.toBeEmpty()
+    await expect(input).toBeDisabled()
+    await expect(input).toHaveAttribute('placeholder', /Claude Code is not installed/)
+    await expect(page.getByTestId('agent-send')).toBeDisabled()
   })
 })

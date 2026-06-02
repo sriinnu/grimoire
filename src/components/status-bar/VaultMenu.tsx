@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
-import { AlertTriangle, Check, FolderOpen, GitBranch, Plus, Rocket, X } from 'lucide-react'
+import { AlertTriangle, Check, FolderOpen, GitBranch, Loader2, Plus, Rocket, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   STATUS_BAR_POPOVER_BACKGROUND,
@@ -15,6 +15,7 @@ import { useDismissibleLayer } from './useDismissibleLayer'
 interface VaultMenuProps {
   vaults: VaultOption[]
   vaultPath: string
+  openingVault?: VaultOpeningState | null
   onSwitchVault: (path: string) => void
   onOpenLocalFolder?: () => void
   onCreateEmptyVault?: () => void
@@ -22,6 +23,11 @@ interface VaultMenuProps {
   onCloneGettingStarted?: () => void
   onRemoveVault?: (path: string) => void
   compact?: boolean
+}
+
+export interface VaultOpeningState {
+  label: string
+  path: string
 }
 
 interface VaultMenuItemProps {
@@ -49,7 +55,13 @@ interface VaultAction {
   onClick: () => void
 }
 
-function getVaultTriggerClassName(open: boolean, compact: boolean) {
+function getVaultTriggerClassName(open: boolean, compact: boolean, opening: boolean) {
+  if (opening) {
+    return compact
+      ? 'h-6 w-6 rounded-sm bg-[var(--hover)] p-0 text-foreground opacity-80'
+      : 'h-auto gap-1 rounded-sm bg-[var(--hover)] px-1 py-0.5 text-[11px] font-medium text-foreground opacity-80'
+  }
+
   if (compact) {
     return open
       ? 'h-6 w-6 rounded-sm bg-[var(--hover)] p-0 text-foreground hover:bg-[var(--hover)]'
@@ -59,6 +71,16 @@ function getVaultTriggerClassName(open: boolean, compact: boolean) {
   return open
     ? 'h-auto gap-1 rounded-sm bg-[var(--hover)] px-1 py-0.5 text-[11px] font-medium text-foreground hover:bg-[var(--hover)]'
     : 'h-auto gap-1 rounded-sm px-1 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-[var(--hover)] hover:text-foreground'
+}
+
+function getVaultOpeningLabel(openingVault: VaultOpeningState | null | undefined) {
+  if (!openingVault) return null
+  return openingVault.path ? `Opening ${openingVault.label}` : openingVault.label
+}
+
+function getVaultTriggerAriaLabel(openingVault: VaultOpeningState | null | undefined) {
+  if (!openingVault) return 'Switch vault'
+  return openingVault.path ? `Opening vault: ${openingVault.label}` : openingVault.label
 }
 
 function buildVaultActions({
@@ -203,6 +225,7 @@ function runAfterVaultMenuCloses(action: () => void, closeMenu: () => void) {
 export function VaultMenu({
   vaults,
   vaultPath,
+  openingVault = null,
   onSwitchVault,
   onOpenLocalFolder,
   onCreateEmptyVault,
@@ -215,7 +238,8 @@ export function VaultMenu({
   const menuRef = useRef<HTMLDivElement>(null)
   const activeVault = vaults.find((vault) => vault.path === vaultPath)
   const canRemove = !!onRemoveVault && vaults.length > 1
-  const triggerClassName = getVaultTriggerClassName(open, compact)
+  const openingLabel = getVaultOpeningLabel(openingVault)
+  const triggerClassName = getVaultTriggerClassName(open, compact, Boolean(openingVault))
   const triggerSize = compact ? 'icon-xs' : 'xs'
   const activeVaultLabel = activeVault?.label ?? 'Vault'
 
@@ -232,18 +256,20 @@ export function VaultMenu({
 
   return (
     <div ref={menuRef} style={{ position: 'relative' }}>
-      <StatusBarHint copy={{ label: 'Switch vault' }}>
+      <StatusBarHint copy={{ label: getVaultTriggerAriaLabel(openingVault) }}>
         <Button
           type="button"
           variant="ghost"
           size={triggerSize}
           className={triggerClassName}
+          disabled={Boolean(openingVault)}
           onClick={() => setOpen((value) => !value)}
-          aria-label="Switch vault"
+          aria-busy={openingVault ? true : undefined}
+          aria-label={getVaultTriggerAriaLabel(openingVault)}
           data-testid="status-vault-trigger"
         >
-          <FolderOpen size={13} />
-          {compact ? null : <span className="max-w-32 truncate">{activeVaultLabel}</span>}
+          {openingVault ? <Loader2 className="animate-spin" size={13} /> : <FolderOpen size={13} />}
+          {compact ? null : <span className="max-w-32 truncate">{openingLabel ?? activeVaultLabel}</span>}
         </Button>
       </StatusBarHint>
       {open && (

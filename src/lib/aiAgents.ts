@@ -5,6 +5,7 @@ export type AiAgentStatus = 'checking' | 'installed' | 'missing'
 export interface AiAgentAvailability {
   status: AiAgentStatus
   version: string | null
+  detail?: string | null
 }
 
 export interface AiAgentsStatus {
@@ -29,6 +30,8 @@ export interface AiAgentRuntimeRoute {
 
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
 export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Open the native Grimoire app for live AI.'
+export const AI_AGENTS_STATUS_SCAN_FAILED_DETAIL =
+  'Local CLI scan failed. Check again after the native app finishes launching.'
 export const AI_AGENT_CLI_DEFAULT_ROUTE = 'resolved by stream'
 export const CHITRAGUPTA_CLI_MCP_BOUNDARY =
   'Chitragupta chat uses the local CLI route. MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks.'
@@ -67,7 +70,9 @@ export const AI_AGENT_DEFINITIONS: readonly AiAgentDefinition[] = [
   },
 ] as const
 
-export function createAiAgentAvailability(status: AiAgentStatus = 'checking', version: string | null = null): AiAgentAvailability {
+export function createAiAgentAvailability(status: AiAgentStatus = 'checking', version: string | null = null, detail?: string | null): AiAgentAvailability {
+  const trimmedDetail = detail?.trim()
+  if (trimmedDetail) return { status, version, detail: trimmedDetail }
   return { status, version }
 }
 
@@ -95,10 +100,25 @@ export function createBrowserPreviewAiAgentsStatus(): AiAgentsStatus {
   }
 }
 
+export function createScanFailedAiAgentsStatus(): AiAgentsStatus {
+  return {
+    claude_code: createAiAgentAvailability('missing', null, AI_AGENTS_STATUS_SCAN_FAILED_DETAIL),
+    codex: createAiAgentAvailability('missing', null, AI_AGENTS_STATUS_SCAN_FAILED_DETAIL),
+    chitragupta: createAiAgentAvailability('missing', null, AI_AGENTS_STATUS_SCAN_FAILED_DETAIL),
+  }
+}
+
 export function isBrowserPreviewAiAgentsStatus(statuses: AiAgentsStatus): boolean {
   return AI_AGENT_DEFINITIONS.every((definition) => {
     const status = statuses[definition.id]
     return status.status === 'missing' && status.version === BROWSER_PREVIEW_AI_STATUS_REASON
+  })
+}
+
+export function isAiAgentsStatusScanFailed(statuses: AiAgentsStatus): boolean {
+  return AI_AGENT_DEFINITIONS.every((definition) => {
+    const status = statuses[definition.id]
+    return status.status === 'missing' && status.detail === AI_AGENTS_STATUS_SCAN_FAILED_DETAIL
   })
 }
 
@@ -109,6 +129,20 @@ export function normalizeStoredAiAgent(value: string | null | undefined): AiAgen
 
 export function resolveDefaultAiAgent(value: string | null | undefined): AiAgentId {
   return normalizeStoredAiAgent(value) ?? DEFAULT_AI_AGENT
+}
+
+export function resolveUsableDefaultAiAgent(
+  value: string | null | undefined,
+  statuses: AiAgentsStatus,
+): AiAgentId {
+  const storedAgent = normalizeStoredAiAgent(value)
+  if (storedAgent && isAiAgentInstalled(statuses, storedAgent)) return storedAgent
+
+  const fallbackAgent = AI_AGENT_DEFINITIONS.find((definition) => (
+    isAiAgentInstalled(statuses, definition.id)
+  ))
+
+  return fallbackAgent?.id ?? resolveDefaultAiAgent(value)
 }
 
 export function supportsAiAgentProviderRoute(agent: AiAgentId): boolean {
@@ -182,15 +216,15 @@ export function getAiAgentDefinition(agent: AiAgentId): AiAgentDefinition {
   return AI_AGENT_DEFINITIONS.find((definition) => definition.id === agent) ?? AI_AGENT_DEFINITIONS[0]
 }
 
-function normalizeAvailability(agent: { installed?: boolean | null; version?: string | null } | null | undefined): AiAgentAvailability {
+function normalizeAvailability(agent: { installed?: boolean | null; version?: string | null; detail?: string | null } | null | undefined): AiAgentAvailability {
   if (agent?.installed) {
-    return createAiAgentAvailability('installed', agent.version ?? null)
+    return createAiAgentAvailability('installed', agent.version ?? null, agent.detail)
   }
 
-  return createAiAgentAvailability('missing', agent?.version ?? null)
+  return createAiAgentAvailability('missing', agent?.version ?? null, agent?.detail)
 }
 
-export function normalizeAiAgentsStatus(payload: Partial<Record<AiAgentId, { installed?: boolean | null; version?: string | null }>> | null | undefined): AiAgentsStatus {
+export function normalizeAiAgentsStatus(payload: Partial<Record<AiAgentId, { installed?: boolean | null; version?: string | null; detail?: string | null }>> | null | undefined): AiAgentsStatus {
   return {
     claude_code: normalizeAvailability(payload?.claude_code),
     codex: normalizeAvailability(payload?.codex),

@@ -9,8 +9,9 @@ import {
 import { openExternalUrl } from '../utils/url'
 import { isDocumentVisible } from './visibleDocument'
 
-const RELEASE_NOTES_URL = 'https://sriinnu.github.io/grimoire/'
+const RELEASE_NOTES_URL = 'https://github.com/sriinnu/grimoire/releases'
 const CALENDAR_VERSION_PATTERN = /^(\d{4})\.(\d{1,2})\.(\d{1,2})(?:-(alpha|stable)\.(\d+))?$/
+const MISSING_RELEASE_FEED_MESSAGE = 'Public Grimoire updates are not published yet. Run from source for now.'
 
 interface UpdateVersionInfo {
   version: string
@@ -63,12 +64,19 @@ function createVersionInfo(version: string): UpdateVersionInfo {
 
 function buildUpdateCheckErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.trim()) {
+    if (isMissingReleaseFeedError(error.message)) return MISSING_RELEASE_FEED_MESSAGE
     return `Could not check for updates: ${error.message}`
   }
   if (typeof error === 'string' && error.trim()) {
+    if (isMissingReleaseFeedError(error)) return MISSING_RELEASE_FEED_MESSAGE
     return `Could not check for updates: ${error}`
   }
   return 'Could not check for updates'
+}
+
+function isMissingReleaseFeedError(message: string): boolean {
+  const normalized = message.toLowerCase()
+  return normalized.includes('404') || normalized.includes('not found')
 }
 
 function toAvailableStatus(update: AppUpdateMetadata): UpdateStatus {

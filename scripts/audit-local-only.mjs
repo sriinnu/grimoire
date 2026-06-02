@@ -2,21 +2,45 @@
 import { spawnSync } from 'node:child_process'
 import {
   existsSync,
-  mkdirSync,
-  mkdtempSync,
   readFileSync,
-  rmSync,
-  writeFileSync,
 } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url)
 const SCRIPT_DIR = dirname(SCRIPT_PATH)
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 
+export const LOCAL_ONLY_DOCS = [
+  'docs/ACTIVE-WORK.md',
+  'docs/GRIMOIRE-REVIEW-TODO.md',
+  'docs/GRIMOIRE-SPECIALNESS-TODO.md',
+  'docs/LIGHTNESS-AND-MOTION-PLAN.md',
+  'docs/QUICK-CAPTURE-AUTO-PROMOTION.md',
+  'docs/CHITRAGUPTA-GRIMOIRE-INTEGRATION-REQUEST.md',
+  'docs/CHITRAGUPTA-WIRING-NEEDS.md',
+  'docs/KARYA-BOARD-SALVAGE.md',
+]
+
+const ROOT_VAULT_TYPE_STUBS = [
+  'journal.md',
+  'dream.md',
+  'memory.md',
+  'task.md',
+  'note.md',
+  'type.md',
+]
+
+const TRACKED_ENV_FIXTURES = new Set([
+  'src-tauri/fixtures/import-corpora/mixed-markdown-folder/.env',
+  'src-tauri/fixtures/import-corpora/notion-markdown/.env',
+  'src-tauri/fixtures/import-corpora/obsidian-vault/.env',
+])
+
 export const REQUIRED_GITIGNORE_PATTERNS = [
+  '.env',
+  '.env.*',
+  '!.env.example',
   '.grimoire-local/',
   'mockups/',
   'docs/mockups/',
@@ -27,12 +51,14 @@ export const REQUIRED_GITIGNORE_PATTERNS = [
   'docs/*.local.md',
   'docs/**/*.local.md',
   '.codex/',
-  '.claude/settings.local.json',
+  '.claude/',
   '.mcp.json',
   'certs/*.pem',
   '*.key',
   '*.key.pub',
   'src-tauri/gen/apple/assets/mcp-server/',
+  ...ROOT_VAULT_TYPE_STUBS,
+  ...LOCAL_ONLY_DOCS,
 ]
 
 const FORBIDDEN_TRACKED_RULES = [
@@ -43,9 +69,10 @@ const FORBIDDEN_TRACKED_RULES = [
   { label: 'docs/local/', test: (path) => hasPrefix(path, 'docs/local/') },
   { label: 'docs/private/', test: (path) => hasPrefix(path, 'docs/private/') },
   { label: 'docs/*.local.md', test: (path) => path.startsWith('docs/') && path.endsWith('.local.md') },
-  { label: '.codex/', test: (path) => hasPrefix(path, '.codex/') },
-  { label: '.claude/settings.local.json', test: (path) => path === '.claude/settings.local.json' },
-  { label: '.mcp.json', test: (path) => path === '.mcp.json' },
+  { label: '.codex/', test: (path) => hasPathSegment(path, '.codex') },
+  { label: '.claude/', test: (path) => hasPathSegment(path, '.claude') },
+  { label: '.mcp.json', test: (path) => path === '.mcp.json' || path.endsWith('/.mcp.json') },
+  { label: '.env*', test: (path) => isEnvFile(path) && !isAllowedTrackedEnvFile(path) },
   { label: 'certs/*.pem', test: (path) => path.startsWith('certs/') && path.endsWith('.pem') },
   { label: '*.key', test: (path) => path.endsWith('.key') },
   { label: '*.key.pub', test: (path) => path.endsWith('.key.pub') },
@@ -53,6 +80,8 @@ const FORBIDDEN_TRACKED_RULES = [
     label: 'src-tauri/gen/apple/assets/mcp-server/',
     test: (path) => hasPrefix(path, 'src-tauri/gen/apple/assets/mcp-server/'),
   },
+  { label: 'local planning docs', test: (path) => LOCAL_ONLY_DOCS.includes(path) },
+  { label: 'root vault type stub', test: (path) => ROOT_VAULT_TYPE_STUBS.includes(path) },
   { label: 'docs/.DS_Store', test: (path) => path === 'docs/.DS_Store' },
 ]
 
@@ -65,8 +94,28 @@ const STRONG_LOCAL_MARKERS = [
   'no_sync: true',
 ]
 
+const REFERENCE_SCANNED_EXTENSIONS = new Set(['md', 'mdx', 'txt', 'json', 'toml', 'yml', 'yaml'])
+
 function hasPrefix(path, prefix) {
   return path === prefix.slice(0, -1) || path.startsWith(prefix)
+}
+
+function hasPathSegment(path, segment) {
+  return path.split('/').includes(segment)
+}
+
+function basename(path) {
+  return path.split('/').at(-1) ?? path
+}
+
+function isEnvFile(path) {
+  const name = basename(path)
+  return name === '.env' || name.startsWith('.env.')
+}
+
+function isAllowedTrackedEnvFile(path) {
+  const name = basename(path)
+  return path === '.env.example' || name.endsWith('.example') || TRACKED_ENV_FIXTURES.has(path)
 }
 
 function isDocsMockupPath(path) {
@@ -137,6 +186,16 @@ function isDocsTextFile(path) {
   return path.startsWith('docs/') && /\.(md|mdx|txt)$/iu.test(path)
 }
 
+function extension(path) {
+  const name = basename(path)
+  const index = name.lastIndexOf('.')
+  return index > 0 ? name.slice(index + 1).toLowerCase() : ''
+}
+
+function isReferenceScannedFile(path) {
+  return isDocsTextFile(path) || REFERENCE_SCANNED_EXTENSIONS.has(extension(path))
+}
+
 function findForbiddenRule(path) {
   return FORBIDDEN_TRACKED_RULES.find((rule) => rule.test(path))
 }
@@ -167,12 +226,39 @@ function auditCandidateFiles({ files, issues, label, root }) {
       continue
     }
 
+    if (TRACKED_ENV_FIXTURES.has(candidatePath)) {
+      auditSanitizedEnvFixture({ candidatePath, issues, label, root })
+    }
+
+    auditLocalOnlyReferences({ candidatePath, issues, label, root })
+
     if (!isDocsTextFile(candidatePath)) continue
 
     const content = readCandidateText(root, candidatePath)
     const marker = STRONG_LOCAL_MARKERS.find((needle) => content.includes(needle))
     if (marker) {
       issues.push(`${label} docs file contains local-only marker "${marker}": ${candidatePath}`)
+    }
+  }
+}
+
+function auditLocalOnlyReferences({ candidatePath, issues, label, root }) {
+  if (!isReferenceScannedFile(candidatePath)) return
+  const content = readCandidateText(root, candidatePath)
+  const localDoc = LOCAL_ONLY_DOCS.find((path) => content.includes(path))
+  if (!localDoc) return
+  issues.push(`${label} public file references local-only doc ${localDoc}: ${candidatePath}`)
+}
+
+function auditSanitizedEnvFixture({ candidatePath, issues, label, root }) {
+  const content = readCandidateText(root, candidatePath)
+  for (const rawLine of content.split(/\r?\n/u)) {
+    const line = rawLine.trim()
+    if (!line || line.startsWith('#')) continue
+    const match = line.match(/^[A-Z0-9_]+\s*=\s*(.+)$/u)
+    if (!match || match[1].trim() !== 'redacted') {
+      issues.push(`${label} import fixture .env must stay sanitized: ${candidatePath}`)
+      return
     }
   }
 }
@@ -201,93 +287,11 @@ function parseArgs(argv) {
   return config
 }
 
-function writeRequiredGitignore(root, patterns = REQUIRED_GITIGNORE_PATTERNS) {
-  writeFileSync(resolve(root, '.gitignore'), `${patterns.join('\n')}\n`)
-}
-
-function assertIssue(name, result, expectedText) {
-  if (result.issues.some((issue) => issue.includes(expectedText))) return
-  throw new Error(`${name} expected issue containing "${expectedText}", got:\n${result.issues.join('\n')}`)
-}
-
-function assertOk(name, result) {
-  if (result.ok) return
-  throw new Error(`${name} expected ok, got:\n${result.issues.join('\n')}`)
-}
-
-function runSelfTest() {
-  const root = mkdtempSync(join(tmpdir(), 'grimoire-local-audit-'))
-  try {
-    mkdirSync(resolve(root, 'docs'), { recursive: true })
-    writeRequiredGitignore(root)
-    writeFileSync(resolve(root, 'docs/ARCHITECTURE.md'), 'This public doc mentions local-only product policy.\n')
-    assertOk('safe docs', auditLocalOnly(root, {
-      trackedFiles: ['docs/ARCHITECTURE.md'],
-      worktreeFiles: [],
-    }))
-
-    const missingPatterns = REQUIRED_GITIGNORE_PATTERNS.filter((pattern) => pattern !== 'mockups/')
-    writeRequiredGitignore(root, missingPatterns)
-    assertIssue('missing gitignore pattern', auditLocalOnly(root, {
-      trackedFiles: [],
-      worktreeFiles: [],
-    }), 'mockups/')
-
-    writeRequiredGitignore(root)
-    assertIssue('tracked mockup', auditLocalOnly(root, {
-      trackedFiles: ['mockups/wire.png'],
-      worktreeFiles: [],
-    }), 'mockups/')
-    assertIssue('tracked docs mockup', auditLocalOnly(root, {
-      trackedFiles: ['docs/mockups/wire.png'],
-      worktreeFiles: [],
-    }), 'docs/**/mockups/')
-    assertIssue('tracked nested docs mockup', auditLocalOnly(root, {
-      trackedFiles: ['docs/design/mockups/wire.png'],
-      worktreeFiles: [],
-    }), 'docs/**/mockups/')
-    assertIssue('tracked scratch doc', auditLocalOnly(root, {
-      trackedFiles: ['docs/scratch/plan.md'],
-      worktreeFiles: [],
-    }), 'docs/scratch/')
-    assertIssue('tracked local md', auditLocalOnly(root, {
-      trackedFiles: ['docs/plan.local.md'],
-      worktreeFiles: [],
-    }), 'docs/*.local.md')
-    assertIssue('tracked generated MCP server bundle', auditLocalOnly(root, {
-      trackedFiles: ['src-tauri/gen/apple/assets/mcp-server/index.js'],
-      worktreeFiles: [],
-    }), 'src-tauri/gen/apple/assets/mcp-server/')
-
-    writeFileSync(resolve(root, 'docs/private-plan.md'), 'DO NOT COMMIT\n')
-    assertIssue(
-      'strong local marker',
-      auditLocalOnly(root, { trackedFiles: ['docs/private-plan.md'], worktreeFiles: [] }),
-      'DO NOT COMMIT',
-    )
-    assertIssue(
-      'untracked strong local marker',
-      auditLocalOnly(root, { trackedFiles: [], worktreeFiles: ['docs/private-plan.md'] }),
-      'DO NOT COMMIT',
-    )
-
-    writeFileSync(resolve(root, 'docs/deep-private-plan.md'), `${'x'.repeat(9000)}\nDO NOT COMMIT\n`)
-    assertIssue(
-      'deep strong local marker',
-      auditLocalOnly(root, { trackedFiles: ['docs/deep-private-plan.md'], worktreeFiles: [] }),
-      'DO NOT COMMIT',
-    )
-
-    console.log('[local-only-audit] self-test ok')
-  } finally {
-    rmSync(root, { recursive: true, force: true })
-  }
-}
-
-function main() {
+async function main() {
   const config = parseArgs(process.argv.slice(2))
   if (config.selfTest) {
-    runSelfTest()
+    const { runSelfTest } = await import('./audit-local-only-self-test.mjs')
+    runSelfTest({ auditLocalOnly, LOCAL_ONLY_DOCS, REQUIRED_GITIGNORE_PATTERNS })
     return
   }
 
@@ -306,7 +310,7 @@ function main() {
 
 if (process.argv[1] === SCRIPT_PATH) {
   try {
-    main()
+    await main()
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error(`[local-only-audit] ${message}`)

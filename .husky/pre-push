@@ -81,6 +81,36 @@ echo "🔒 Local-only audit..."
 pnpm audit:local-only
 echo "  ✅ Local-only audit OK"
 
+echo ""
+echo "🪟 Rust platform guards..."
+pnpm test:rust-platform-guards
+echo "  ✅ Rust platform guards OK"
+
+echo ""
+echo "📣 Public readiness docs..."
+pnpm test:public-readiness-docs
+echo "  ✅ Public readiness docs OK"
+
+echo ""
+echo "🔗 Public doc links..."
+pnpm test:public-doc-links
+echo "  ✅ Public doc links OK"
+
+echo ""
+echo "🛰️  Release pages..."
+pnpm test:release-pages
+echo "  ✅ Release pages OK"
+
+echo ""
+echo "⚙️  GitHub Actions runtime..."
+pnpm test:github-actions-runtime
+echo "  ✅ GitHub Actions runtime OK"
+
+echo ""
+echo "🧭 Starter vault showcase..."
+pnpm test:starter-vault
+echo "  ✅ Starter vault showcase OK"
+
 # 1. TypeScript + Vite build — catches compile errors fast
 echo ""
 echo "📦 Build..."

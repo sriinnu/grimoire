@@ -8,6 +8,7 @@ import type { GitRemoteStatus, SyncStatus } from '../types'
 import { StatusBarPrimarySection } from './status-bar/StatusBarSections'
 import { StatusBarSecondarySection } from './status-bar/StatusBarSecondarySection'
 import type { VaultOption } from './status-bar/types'
+import type { VaultOpeningState } from './status-bar/VaultMenu'
 
 export type { VaultOption } from './status-bar/types'
 
@@ -92,6 +93,7 @@ interface StatusBarProps {
   modifiedCount?: number
   vaultPath: string
   vaults: VaultOption[]
+  openingVault?: VaultOpeningState | null
   onSwitchVault: (path: string) => void
   onOpenSettings?: () => void
   onOpenLocalFolder?: () => void
@@ -180,6 +182,7 @@ function StatusBarFooter({
   modifiedCount = 0,
   vaultPath,
   vaults,
+  openingVault,
   onSwitchVault,
   onOpenSettings,
   onOpenLocalFolder,
@@ -253,6 +256,7 @@ function StatusBarFooter({
         modifiedCount={modifiedCount}
         vaultPath={vaultPath}
         vaults={vaults}
+        openingVault={openingVault}
         onSwitchVault={onSwitchVault}
         onOpenLocalFolder={onOpenLocalFolder}
         onCreateEmptyVault={onCreateEmptyVault}

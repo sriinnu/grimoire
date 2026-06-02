@@ -329,7 +329,10 @@ function createDeferred<T>() {
 
 async function selectSidebarNav(label: string) {
   const nav = await screen.findByTestId('sidebar-top-nav', {}, { timeout: 5000 })
-  fireEvent.click(within(nav).getByText(label))
+  await act(async () => {
+    fireEvent.click(within(nav).getByText(label))
+    await Promise.resolve()
+  })
 }
 
 function resetMockCommandResults() {
@@ -576,19 +579,18 @@ describe('App', () => {
 
   it('loads and displays vault entries in sidebar', async () => {
     render(<App />)
-    await waitFor(() => {
-      // Entries appear in both Sidebar and NoteList
-      expect(screen.getAllByText('Test Project').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Software Development').length).toBeGreaterThan(0)
-    })
+    await selectSidebarNav('All Notes')
+
+    expect((await screen.findAllByText('Test Project', {}, { timeout: 10000 })).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText('Software Development', {}, { timeout: 10000 })).length).toBeGreaterThan(0)
   })
 
   it('opens to the vault dashboard when no note is selected', async () => {
     render(<App />)
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
-      expect(screen.getByText('Sriinnu, here is the board.')).toBeInTheDocument()
-    })
+      expect(screen.getByText('Your local memory board.')).toBeInTheDocument()
+    }, { timeout: 10000 })
   })
 
   it('routes menu-bar dream capture to the dashboard capture surface', async () => {
@@ -759,6 +761,8 @@ describe('App', () => {
     }
     mockCommandResults.load_vault_list = { vaults: [], active_vault: null, hidden_defaults: [] }
     mockCommandResults.check_vault_exists = (args?: { path?: string }) => args?.path === expectedDefaultVaultPath
+    const saveSettings = vi.fn(() => null)
+    mockCommandResults.save_settings = saveSettings
 
     render(<App />)
 
@@ -766,7 +770,19 @@ describe('App', () => {
       expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
     }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
-    fireEvent.click(screen.getByTestId('telemetry-accept'))
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('telemetry-accept'))
+      await Promise.resolve()
+    })
+
+    expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining({
+      settings: expect.objectContaining({
+        analytics_enabled: false,
+        anonymous_id: expect.any(String),
+        crash_reporting_enabled: true,
+        telemetry_consent: true,
+      }),
+    }))
 
     await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
@@ -1002,7 +1018,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('sidebar-rail')).toBeInTheDocument()
     })
-    expect(screen.queryByText('Markdown agent')).not.toBeInTheDocument()
+    expect(screen.queryByText('Local memory studio')).not.toBeInTheDocument()
     expect(screen.getByLabelText('All Notes')).toBeInTheDocument()
     expect(document.querySelector('.app__sidebar--collapsed')).toBeInTheDocument()
 
@@ -1071,7 +1087,7 @@ describe('App', () => {
 
     render(<App />)
 
-    const sidebar = await screen.findByText('FAVORITES')
+    const sidebar = await screen.findByText('FAVORITES', {}, { timeout: 10000 })
     fireEvent.click(within(sidebar.closest('div')?.parentElement as HTMLElement).getByText('Alpha'))
 
     const noteListContainer = await screen.findByTestId('note-list-container')
@@ -1079,8 +1095,8 @@ describe('App', () => {
       expect(getHeaderForNoteList(noteListContainer)).toHaveTextContent('Alpha')
     })
 
-    expect(screen.getByText('Related to')).toBeInTheDocument()
-    expect(screen.getByText('Beta')).toBeInTheDocument()
+    expect(await screen.findByText('Related to', {}, { timeout: 10000 })).toBeInTheDocument()
+    expect(await screen.findByText('Beta', {}, { timeout: 10000 })).toBeInTheDocument()
   }, 10000)
 
   it('defaults to All Notes when explicit organization is disabled in vault config', async () => {
@@ -1103,8 +1119,9 @@ describe('App', () => {
 
     render(<App />)
 
+    const topNav = await screen.findByTestId('sidebar-top-nav', {}, { timeout: 10000 })
     await waitFor(() => {
-      expect(within(screen.getByTestId('sidebar-top-nav')).queryByText('Inbox')).not.toBeInTheDocument()
+      expect(within(topNav).queryByText('Inbox')).not.toBeInTheDocument()
       expect(screen.getByText('All Notes')).toBeInTheDocument()
     })
   })
@@ -1190,6 +1207,45 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Work Vault')
+    })
+  })
+
+  it('returns to the shell with a toast when a bottom-bar vault switch fails to load', async () => {
+    const switchLoad = createDeferred<typeof mockEntries>()
+    mockCommandResults.load_vault_list = {
+      vaults: [
+        { label: 'Test Vault', path: '/work' },
+        { label: 'Work Vault', path: '/vault-2' },
+      ],
+      active_vault: '/work',
+      hidden_defaults: [],
+    }
+    mockCommandResults.list_vault = (args?: { path?: string }) =>
+      args?.path === '/vault-2' ? switchLoad.promise : mockEntries
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Test Vault')
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
+    fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Switching vault')).toBeInTheDocument()
+      expect(screen.getByText('Opening Work Vault')).toBeInTheDocument()
+    })
+
+    await act(async () => {
+      switchLoad.reject(new Error('cannot read vault'))
+      await expect(switchLoad.promise).rejects.toThrow('cannot read vault')
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Switching vault')).not.toBeInTheDocument()
+      expect(screen.getByTestId('status-vault-trigger')).toBeInTheDocument()
+      expect(screen.getByText('Could not open Work Vault: cannot read vault')).toBeInTheDocument()
     })
   })
 

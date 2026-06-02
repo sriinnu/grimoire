@@ -5,6 +5,8 @@ import {
   type AiAgentId,
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
+import type { TranslationKey } from '../../lib/i18n'
+import type { McpStatus } from '../../hooks/useMcpStatus'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { AiProviderKeysCard } from './AiProviderKeysCard'
@@ -24,6 +26,27 @@ const CHITRAGUPTA_MCP_SURFACE_KEYS = [
   'settings.aiAgents.mcpSurfaceDiagnostics',
   'settings.aiAgents.mcpSurfaceWriteSuggestions',
 ] as const
+
+const MCP_STATUS_COPY_KEYS: Record<McpStatus, { value: TranslationKey; detail: TranslationKey }> = {
+  checking: {
+    value: 'settings.aiAgents.mcpStatusChecking',
+    detail: 'settings.aiAgents.mcpStatusCheckingDetail',
+  },
+  installed: {
+    value: 'settings.aiAgents.mcpStatusInstalled',
+    detail: 'settings.aiAgents.mcpStatusInstalledDetail',
+  },
+  not_installed: {
+    value: 'settings.aiAgents.mcpStatusNotInstalled',
+    detail: 'settings.aiAgents.mcpStatusNotInstalledDetail',
+  },
+}
+
+function mcpStatusToneClass(status: McpStatus): string {
+  if (status === 'installed') return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
+  if (status === 'checking') return 'border-sky-500/30 bg-sky-500/10 text-sky-800 dark:text-sky-200'
+  return 'border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200'
+}
 
 function buildDefaultAiAgentOptions(aiAgentsStatus: AiAgentsStatus, t: SettingsTranslate): Array<{ value: string; label: string }> {
   return AI_AGENT_DEFINITIONS.map((definition) => {
@@ -64,7 +87,17 @@ function renderChitraguptaRouteSummary(provider: string, model: string, t: Setti
   })
 }
 
-function ChitraguptaMcpContractCard({ t }: { t: SettingsTranslate }) {
+function ChitraguptaMcpContractCard({
+  t,
+  mcpStatus,
+  onInstallMcp,
+}: {
+  t: SettingsTranslate
+  mcpStatus?: McpStatus
+  onInstallMcp?: () => void
+}) {
+  const mcpStatusCopy = mcpStatus ? MCP_STATUS_COPY_KEYS[mcpStatus] : null
+
   return (
     <div
       className="settings-material-inner mt-2 rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
@@ -75,6 +108,39 @@ function ChitraguptaMcpContractCard({ t }: { t: SettingsTranslate }) {
       <div className="mt-1" data-testid="settings-ai-agent-chitragupta-transport">
         {t('settings.aiAgents.mcpContractTransport')}
       </div>
+      {mcpStatus && mcpStatusCopy ? (
+        <div
+          className="mt-2 rounded-md border border-border/70 px-2.5 py-2"
+          data-testid="settings-ai-agent-mcp-runtime-status"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="font-medium text-foreground">{t('settings.aiAgents.mcpStatusLabel')}</span>
+            <span
+              className={`rounded-full border px-2 py-0.5 font-medium ${mcpStatusToneClass(mcpStatus)}`}
+              data-testid="settings-ai-agent-mcp-runtime-status-value"
+            >
+              {t(mcpStatusCopy.value)}
+            </span>
+          </div>
+          <div className="mt-1" data-testid="settings-ai-agent-mcp-runtime-status-detail">
+            {t(mcpStatusCopy.detail)}
+          </div>
+          {onInstallMcp ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-2 h-7 px-2 text-[11px]"
+              onClick={onInstallMcp}
+              data-testid="settings-ai-agent-mcp-runtime-action"
+            >
+              {t(mcpStatus === 'not_installed'
+                ? 'settings.aiAgents.mcpStatusConnect'
+                : 'settings.aiAgents.mcpStatusManage')}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
       <div className="mt-2 flex flex-wrap gap-1">
         {CHITRAGUPTA_MCP_SURFACE_KEYS.map((surfaceKey) => (
           <span
@@ -99,6 +165,8 @@ export function AiAgentSettingsSection({
   setAiAgentModels,
   aiAgentProviders,
   setAiAgentProviders,
+  mcpStatus,
+  onInstallMcp,
 }: Pick<SettingsBodyProps,
   | 't'
   | 'aiAgentsStatus'
@@ -108,6 +176,8 @@ export function AiAgentSettingsSection({
   | 'setAiAgentModels'
   | 'aiAgentProviders'
   | 'setAiAgentProviders'
+  | 'mcpStatus'
+  | 'onInstallMcp'
 >) {
   const selectedProvider = aiAgentProviders[defaultAiAgent] ?? ''
   const selectedModel = aiAgentModels[defaultAiAgent] ?? ''
@@ -206,7 +276,7 @@ export function AiAgentSettingsSection({
           <div className="mt-1" data-testid="settings-ai-agent-chitragupta-boundary">
             {t('settings.aiAgents.mcpBoundary')}
           </div>
-          <ChitraguptaMcpContractCard t={t} />
+          <ChitraguptaMcpContractCard t={t} mcpStatus={mcpStatus} onInstallMcp={onInstallMcp} />
         </div>
       ) : null}
     </>
