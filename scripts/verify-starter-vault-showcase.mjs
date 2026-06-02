@@ -172,6 +172,25 @@ function verifyFeatureTour(manifest) {
   }
 }
 
+function verifySidebarSpotlightShowcase() {
+  const featureTour = readText(join(DEMO_VAULT_DIR, 'grimoire-feature-tour.md'))
+  const searchNote = readText(join(DEMO_VAULT_DIR, 'grimoire-search-and-commands.md'))
+  const textFixture = readText(join(DEMO_VAULT_DIR, 'docs/sidebar-spotlight-proof.ts'))
+
+  if (!featureTour.includes('Use Sidebar Spotlight, Quick Open, command palette, note search, and document find.')) {
+    fail('feature tour must advertise Sidebar Spotlight in the Search and commands row')
+  }
+  if (!searchNote.includes('search `spotlightSentinel`')) {
+    fail('Search and Commands note must include a Sidebar Spotlight text-fixture query')
+  }
+  if (!searchNote.includes('file contents, filenames, and paths')) {
+    fail('Search and Commands note must explain the Spotlight project-text search scope')
+  }
+  if (!textFixture.includes('spotlightSentinel')) {
+    fail('Sidebar Spotlight project text fixture must include the sentinel query')
+  }
+}
+
 function verifyWikilinks(root) {
   const files = markdownFiles(root)
   const targets = indexedTargets(files, root)
@@ -235,6 +254,7 @@ try {
   const manifest = readJson(MANIFEST_PATH)
   verifyManifest(manifest)
   verifyFeatureTour(manifest)
+  verifySidebarSpotlightShowcase()
   verifyWikilinks(DEMO_VAULT_DIR)
   if (config.publicClonePath) verifyPublicClone(config.publicClonePath, manifest)
   console.log('[starter-vault-showcase] ok')

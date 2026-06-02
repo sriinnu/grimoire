@@ -34,7 +34,7 @@ This is the launch-day checklist for the demo vault. Each row points to an edita
 | Quick Capture | Capture a note, journal, dream, task, memory, or ask prompt. | [[grimoire-crystallize-example]] |
 | Markdown editor | Edit headings, tasks, links, code, frontmatter, and rich Markdown. | [[grimoire-markdown-learning]] |
 | Properties and types | Inspect type, status, owner, priority, colors, and custom icons. | [[grimoire-properties-and-types]] |
-| Search and commands | Use Quick Open, command palette, note search, and document find. | [[grimoire-search-and-commands]] |
+| Search and commands | Use Sidebar Spotlight, Quick Open, command palette, note search, and document find. | [[grimoire-search-and-commands]] |
 | Wikilinks, backlinks, graph | Follow links, then inspect incoming and outgoing context. | [[grimoire-links-and-backlinks]] |
 | Journal lane | Open a dated local-first daily note. | [[grimoire-journal-demo-2026-05-31]] |
 | Dream lane | Open a dated dream note with symbols and interpretation. | [[grimoire-dream-demo-2026-05-31]] |
