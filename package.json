@@ -42,6 +42,7 @@
     "test:doctor-source": "node scripts/doctor-public-source.mjs --self-test",
     "test:rust-platform-guards": "node scripts/verify-rust-platform-guards.mjs",
     "test:rust-platform-guards:self": "node scripts/verify-rust-platform-guards.mjs --self-test",
+    "test:native-tauri-link": "cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked",
     "test:object-storage-live": "node scripts/run-object-storage-live-proof.mjs --require-enabled",
     "test:release-preflight": "node scripts/release-preflight.mjs --self-test",
     "test:release-artifacts": "node scripts/verify-release-artifacts.mjs --self-test",
