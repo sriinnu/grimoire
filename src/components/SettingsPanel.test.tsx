@@ -180,7 +180,7 @@ describe('SettingsPanel workflow settings', () => {
     expect(within(runway).getByText('Git lane')).toBeInTheDocument()
     expect(within(runway).getByText('No repository metadata required.')).toBeInTheDocument()
     expect(within(runway).getByText('Gated')).toBeInTheDocument()
-    expect(within(runway).getByText('Controls app updates only.')).toBeInTheDocument()
+    expect(within(runway).getByText('Preference only; update checks verify published feeds before offering an install.')).toBeInTheDocument()
   })
 
   it('can turn Git off for the current vault from Settings', () => {

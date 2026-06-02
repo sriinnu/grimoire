@@ -1,5 +1,6 @@
-import { GitBranch, ShieldCheck } from '@phosphor-icons/react'
+import { GitBranch, Monitor, ShieldCheck } from '@phosphor-icons/react'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
+import { desktopPlatformLabel, getDesktopPlatform, type DesktopPlatform } from '../../utils/platform'
 import { LabeledNumberInput, LabeledSelect, SectionHeading, SettingsSwitchRow } from './SettingsControls'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
 
@@ -66,6 +67,13 @@ function syncRunwaySteps({
   ] as const
 }
 
+function sourceProofCopy(platform: DesktopPlatform, t: SettingsTranslate): string {
+  if (platform === 'macos') return t('settings.releaseTruth.sourceMac')
+  if (platform === 'windows') return t('settings.releaseTruth.sourceWindows')
+  if (platform === 'linux') return t('settings.releaseTruth.sourceLinux')
+  return t('settings.releaseTruth.sourceUnknown')
+}
+
 function SyncRunway({
   autoGitEnabled,
   hasGitMetadata,
@@ -92,6 +100,70 @@ function SyncRunway({
           <div className="settings-sync-runway__detail">{step.detail}</div>
         </div>
       ))}
+    </div>
+  )
+}
+
+function ReleaseTruthCard({
+  releaseChannel,
+  t,
+}: {
+  releaseChannel: ReleaseChannel
+  t: SettingsTranslate
+}) {
+  const platform = getDesktopPlatform()
+
+  return (
+    <div
+      className="settings-local-card grid gap-3 rounded-md border p-4"
+      data-testid="settings-release-truth"
+    >
+      <div className="flex items-start gap-3">
+        <div className="settings-local-card__icon mt-0.5 rounded-md border p-2">
+          <Monitor size={17} />
+        </div>
+        <div className="min-w-0 space-y-1">
+          <div className="text-[13px] font-semibold text-foreground">{t('settings.releaseTruth.title')}</div>
+          <div className="text-[11px] leading-relaxed text-muted-foreground">
+            {t('settings.releaseTruth.description')}
+          </div>
+        </div>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <ReleaseTruthMetric
+          label={t('settings.releaseTruth.platformLabel')}
+          value={desktopPlatformLabel(platform)}
+          detail={t('settings.releaseTruth.platformDetail', { platform: desktopPlatformLabel(platform) })}
+        />
+        <ReleaseTruthMetric
+          label={t('settings.releaseTruth.sourceLabel')}
+          value={t('settings.releaseTruth.sourceValue')}
+          detail={sourceProofCopy(platform, t)}
+        />
+        <ReleaseTruthMetric
+          label={t('settings.releaseTruth.packagedLabel')}
+          value={releaseChannel === 'alpha' ? t('settings.releaseAlpha') : t('settings.releaseStable')}
+          detail={t('settings.releaseTruth.packagedDetail')}
+        />
+      </div>
+    </div>
+  )
+}
+
+function ReleaseTruthMetric({
+  detail,
+  label,
+  value,
+}: {
+  detail: string
+  label: string
+  value: string
+}) {
+  return (
+    <div className="settings-material-inner rounded-md border px-2.5 py-2">
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
+      <div className="mt-1 text-[13px] font-semibold text-foreground">{value}</div>
+      <div className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{detail}</div>
     </div>
   )
 }
@@ -145,6 +217,8 @@ export function SyncAndGitSettingsSection({
         releaseChannel={releaseChannel}
         t={t}
       />
+
+      <ReleaseTruthCard releaseChannel={releaseChannel} t={t} />
 
       <div
         className="settings-local-card flex items-start justify-between gap-4 rounded-md border p-4"
