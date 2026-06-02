@@ -21,6 +21,7 @@
   transform-origin: center bottom;
   width: 114%;
   z-index: 4;
+  pointer-events: none;
 }
 
 [data-sidebar-artwork]:not([data-sidebar-artwork="none"]) .app-sidebar-panel .sidebar-artwork__pouch-overlay,
@@ -56,8 +57,10 @@
 }
 
 .sidebar-pouch-overlay__wisp,
+.sidebar-pouch-overlay__funnel,
 .sidebar-pouch-overlay__stream,
-.sidebar-pouch-overlay__lip {
+.sidebar-pouch-overlay__lip,
+.sidebar-pouch-overlay__swallow {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -68,6 +71,21 @@
   opacity: 0.86;
   stroke-dasharray: 60 18;
   stroke-width: 5.4;
+  transform-box: view-box;
+  transform-origin: center bottom;
+}
+
+.sidebar-pouch-overlay__wisp--right {
+  animation-delay: 70ms;
+}
+
+.sidebar-pouch-overlay__funnel {
+  color: color-mix(in srgb, var(--art-aura) 70%, var(--art-memory));
+  opacity: 0.74;
+  stroke-dasharray: 36 20;
+  stroke-width: 3.8;
+  transform-box: view-box;
+  transform-origin: center bottom;
 }
 
 .sidebar-pouch-overlay__stream {
@@ -75,12 +93,23 @@
   opacity: 0.86;
   stroke-dasharray: 18 12;
   stroke-width: 3.3;
+  transform-box: view-box;
+  transform-origin: center bottom;
+}
+
+.sidebar-pouch-overlay__stream--left {
+  animation-delay: 90ms;
 }
 
 .sidebar-pouch-overlay__stream--center {
   color: color-mix(in srgb, var(--art-aura) 72%, var(--art-spark));
   opacity: 0.84;
   stroke-width: 3.8;
+  animation-delay: 140ms;
+}
+
+.sidebar-pouch-overlay__stream--right {
+  animation-delay: 40ms;
 }
 
 .sidebar-pouch-overlay__particle {
@@ -90,6 +119,18 @@
   stroke-width: 1.6;
   transform-box: fill-box;
   transform-origin: center;
+}
+
+.sidebar-pouch-overlay__particle--left {
+  animation-delay: 70ms;
+}
+
+.sidebar-pouch-overlay__particle--center {
+  animation-delay: 130ms;
+}
+
+.sidebar-pouch-overlay__particle--right {
+  animation-delay: 20ms;
 }
 
 .sidebar-pouch-overlay__body {
@@ -110,9 +151,25 @@
   stroke-width: 4;
 }
 
+.sidebar-pouch-overlay__throat {
+  fill: color-mix(in srgb, var(--sidebar) 84%, var(--art-memory));
+  opacity: 0.66;
+  stroke: color-mix(in srgb, var(--art-memory) 40%, transparent);
+  stroke-width: 1.4;
+}
+
 .sidebar-pouch-overlay__cavity {
   opacity: 0.82;
   stroke-width: 2.2;
+}
+
+.sidebar-pouch-overlay__swallow {
+  color: color-mix(in srgb, var(--art-spark) 62%, var(--sidebar));
+  opacity: 0.62;
+  stroke-dasharray: 28 18;
+  stroke-width: 2.4;
+  transform-box: view-box;
+  transform-origin: center bottom;
 }
 
 .sidebar-pouch-overlay__lip {
@@ -140,6 +197,10 @@
     animation: sidebar-cloud-intake 820ms var(--motion-ease-expressive, ease-out) both;
   }
 
+  .app-sidebar-panel .sidebar-pouch-overlay__funnel {
+    animation: sidebar-cloud-funnel 860ms var(--motion-ease-expressive, ease-out) both;
+  }
+
   .app-sidebar-panel .sidebar-pouch-overlay__stream {
     animation: sidebar-cloud-siphon 920ms var(--motion-ease-expressive, ease-out) both;
   }
@@ -148,12 +209,18 @@
     animation: sidebar-cloud-drop 780ms var(--motion-ease-expressive, ease-out) both;
   }
 
+  .app-sidebar-panel .sidebar-pouch-overlay__swallow {
+    animation: sidebar-pouch-swallow 760ms var(--motion-ease-expressive, ease-out) both;
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar-panel .sidebar-artwork__pouch-overlay,
   .app-sidebar-panel .sidebar-pouch-overlay__cloud,
+  .app-sidebar-panel .sidebar-pouch-overlay__funnel,
   .app-sidebar-panel .sidebar-pouch-overlay__particle,
+  .app-sidebar-panel .sidebar-pouch-overlay__swallow,
   .app-sidebar-panel .sidebar-pouch-overlay__stream,
   .app-sidebar-panel .sidebar-pouch-overlay__wisp {
     animation: none;
@@ -190,13 +257,32 @@
   from {
     opacity: 0;
     stroke-dashoffset: 36;
-    transform: translateY(-10px) scaleY(0.84);
+    transform: translateY(-15px) scale(1.08, 0.82);
+  }
+
+  68% {
+    opacity: 0.84;
+    transform: translateY(2px) scale(0.92, 1.04);
   }
 
   to {
-    opacity: 0.68;
+    opacity: 0.7;
     stroke-dashoffset: 0;
-    transform: translateY(0) scaleY(1);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes sidebar-cloud-funnel {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 44;
+    transform: translateY(-11px) scale(1.08, 0.86);
+  }
+
+  to {
+    opacity: 0.74;
+    stroke-dashoffset: 0;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -215,15 +301,34 @@
 @keyframes sidebar-cloud-drop {
   from {
     opacity: 0;
-    transform: translateY(-14px) scale(1.18);
+    transform: translateY(-18px) scale(1.18);
   }
 
   72% {
     opacity: 0.9;
+    transform: translateY(5px) scale(0.84);
+  }
+
+  to {
+    opacity: 0.42;
+    transform: translateY(16px) scale(0.54);
+  }
+}
+
+@keyframes sidebar-pouch-swallow {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 36;
+    transform: translateY(-4px) scale(1.08, 0.86);
+  }
+
+  70% {
+    opacity: 0.68;
   }
 
   to {
     opacity: 0.46;
-    transform: translateY(13px) scale(0.72);
+    stroke-dashoffset: 0;
+    transform: translateY(3px) scale(0.88, 0.82);
   }
 }
