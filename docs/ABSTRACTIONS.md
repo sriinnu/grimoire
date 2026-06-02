@@ -161,6 +161,8 @@ The left sidebar has two app-local presentations:
 
 The compact rail is presentation state, not vault state. It persists to local app storage because it describes this installation's workspace preference, while section/folder/type data still comes from the vault.
 
+Sidebar artwork is ambient state, not navigation. The full column uses a reduced-motion-safe pouch intake motif: knowledge-cloud forms visually settle into a local vault pouch, while the actual navigation remains readable and interactive above it.
+
 ## Frontmatter
 
 Frontmatter is structured metadata. It should stay readable by a human and an AI agent.

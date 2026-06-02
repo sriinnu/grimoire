@@ -1,22 +1,30 @@
 .app-sidebar-panel .sidebar-artwork__pouch-flow,
 [data-sidebar-preset-preview] .sidebar-artwork__pouch-flow {
   color: color-mix(in srgb, var(--art-aura) 72%, var(--art-spark));
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--art-aura) 18%, transparent));
-  opacity: 0.94;
+  filter:
+    drop-shadow(0 10px 18px color-mix(in srgb, var(--art-memory) 18%, transparent))
+    drop-shadow(0 0 14px color-mix(in srgb, var(--art-aura) 24%, transparent));
+  opacity: 1;
   transform-box: fill-box;
   transform-origin: center bottom;
 }
 
 .sidebar-artwork__cloud-puff {
-  fill: color-mix(in srgb, currentColor 20%, var(--sidebar) 80%);
-  opacity: 0.72;
-  stroke: color-mix(in srgb, currentColor 42%, transparent);
+  fill: color-mix(in srgb, currentColor 28%, var(--sidebar) 72%);
+  opacity: 0.82;
+  stroke: color-mix(in srgb, currentColor 56%, transparent);
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.2;
+  stroke-width: 2.6;
+}
+
+.sidebar-artwork__cloud-puff--upper {
+  color: color-mix(in srgb, var(--art-spark) 48%, var(--art-aura));
+  opacity: 0.64;
 }
 
 .sidebar-artwork__cloud-wisp,
+.sidebar-artwork__intake-stream,
 .sidebar-artwork__pouch-throat,
 .sidebar-artwork__pouch-lip {
   fill: none;
@@ -28,13 +36,26 @@
 .sidebar-artwork__cloud-wisp {
   opacity: 0.86;
   stroke-dasharray: 62 18;
-  stroke-width: 4.8;
+  stroke-width: 5.2;
 }
 
 .sidebar-artwork__cloud-wisp--center {
   color: color-mix(in srgb, var(--art-memory) 58%, var(--art-aura));
   opacity: 0.78;
   stroke-width: 4.2;
+}
+
+.sidebar-artwork__intake-stream {
+  color: color-mix(in srgb, var(--art-spark) 58%, var(--art-memory));
+  opacity: 0.62;
+  stroke-dasharray: 18 12;
+  stroke-width: 2.8;
+}
+
+.sidebar-artwork__intake-stream--center {
+  color: color-mix(in srgb, var(--art-aura) 70%, var(--art-spark));
+  opacity: 0.72;
+  stroke-width: 3.4;
 }
 
 .sidebar-artwork__cloud-particle {
@@ -48,16 +69,50 @@
 
 .sidebar-artwork__pouch-shadow {
   fill: color-mix(in srgb, var(--art-memory) 10%, var(--sidebar) 90%);
-  opacity: 0.58;
+  opacity: 0.66;
+}
+
+.sidebar-artwork__pouch-body {
+  fill: color-mix(in srgb, var(--art-memory) 22%, var(--sidebar) 78%);
+  opacity: 0.78;
+  stroke: color-mix(in srgb, var(--art-aura) 50%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
 }
 
 .sidebar-artwork__pouch-mouth {
-  fill: color-mix(in srgb, var(--art-memory) 24%, var(--sidebar) 76%);
-  opacity: 0.9;
+  fill: color-mix(in srgb, var(--art-memory) 30%, var(--sidebar) 70%);
+  opacity: 0.96;
   stroke: color-mix(in srgb, var(--art-spark) 58%, var(--art-aura));
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3.8;
+}
+
+.sidebar-artwork__pouch-cavity {
+  fill: color-mix(in srgb, var(--sidebar) 78%, var(--art-memory));
+  opacity: 0.74;
+  stroke: color-mix(in srgb, var(--art-aura) 52%, transparent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.sidebar-artwork__pouch-drawstring {
+  fill: none;
+  opacity: 0.84;
+  stroke: color-mix(in srgb, var(--art-spark) 62%, var(--art-aura));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.6;
+}
+
+.sidebar-artwork__pouch-knot {
+  fill: color-mix(in srgb, var(--art-spark) 70%, var(--art-aura));
+  opacity: 0.9;
+  stroke: color-mix(in srgb, var(--sidebar) 52%, transparent);
+  stroke-width: 1.4;
 }
 
 .sidebar-artwork__pouch-throat {
@@ -85,6 +140,10 @@
     animation: sidebar-cloud-intake 820ms var(--motion-ease-expressive, ease-out) both;
   }
 
+  .app-sidebar-panel .sidebar-artwork__intake-stream {
+    animation: sidebar-cloud-siphon 920ms var(--motion-ease-expressive, ease-out) both;
+  }
+
   .app-sidebar-panel .sidebar-artwork__cloud-puff {
     animation: sidebar-cloud-soften 720ms var(--motion-ease-expressive, ease-out) both;
   }
@@ -97,6 +156,7 @@
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar-panel .sidebar-artwork__cloud-puff,
   .app-sidebar-panel .sidebar-artwork__cloud-particle,
+  .app-sidebar-panel .sidebar-artwork__intake-stream,
   .app-sidebar-panel .sidebar-artwork__cloud-wisp,
   .app-sidebar-panel .sidebar-artwork__pouch-flow {
     animation: none;
@@ -110,7 +170,7 @@
   }
 
   to {
-    opacity: 0.94;
+    opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
@@ -129,6 +189,20 @@
   }
 }
 
+@keyframes sidebar-cloud-siphon {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 36;
+    transform: translateY(-10px) scaleY(0.84);
+  }
+
+  to {
+    opacity: 0.68;
+    stroke-dashoffset: 0;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
 @keyframes sidebar-cloud-soften {
   from {
     opacity: 0;
@@ -136,7 +210,7 @@
   }
 
   to {
-    opacity: 0.72;
+    opacity: 0.82;
     transform: translateY(0) scale(1);
   }
 }
