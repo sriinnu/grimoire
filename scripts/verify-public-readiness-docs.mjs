@@ -235,6 +235,23 @@ function verifyReleaseWorkflowTruth() {
     'Public Readiness Windows native run row',
   )
   assertContains(
+    'README.md',
+    'the current source tree contains guards for those paths',
+    'durable Windows guard wording in README',
+  )
+  assertContains(
+    'docs/GETTING-STARTED.md',
+    'The current source includes guards for those paths',
+    'durable Windows guard wording in Getting Started',
+  )
+  assertContains(
+    'docs/PUBLIC-READINESS.md',
+    'The current source contains cfg guards for those paths',
+    'durable Windows guard wording in Public Readiness',
+  )
+  assertNotMatch('README.md', /this branch contains those cfg guards/iu, 'branch-specific Windows guard wording')
+  assertNotMatch('docs/GETTING-STARTED.md', /Use the public-readiness branch for those guards/iu, 'branch-specific Windows guard wording')
+  assertContains(
     'docs/PUBLIC-READINESS.md',
     '`pnpm test:rust-platform-guards` to fail if those macOS-only symbols leak outside macOS cfg again',
     'Public Readiness Rust platform guard evidence',
