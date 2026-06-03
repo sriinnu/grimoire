@@ -113,6 +113,31 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
   }, 'Native Tauri Link Smoke')
   assertFixtureBlocker({
     ...ready,
+    ci: {
+      ...ready.ci,
+      jobs: ready.ci.jobs.map((job) => (
+        job.name.includes('macos-15')
+          ? { ...job, steps: job.steps.filter((step) => step.name !== 'Browser Smoke Chromium') }
+          : job
+      )),
+    },
+  }, 'Browser Smoke Chromium')
+  const windowsWithoutBrowserSmoke = findBlockers({
+    ...ready,
+    ci: {
+      ...ready.ci,
+      jobs: ready.ci.jobs.map((job) => (
+        job.name.includes('windows-2025-vs2026')
+          ? { ...job, steps: job.steps.filter((step) => !step.name.startsWith('Browser Smoke')) }
+          : job
+      )),
+    },
+  })
+  if (windowsWithoutBrowserSmoke.blockers.some((blocker) => blocker.includes('Browser Smoke'))) {
+    throw new Error('Windows skipped browser smoke should not block public readiness')
+  }
+  assertFixtureBlocker({
+    ...ready,
     feeds: { ...ready.feeds, stable: { json: { platforms: { 'darwin-aarch64': { signature: 'sig', url: 'url' } } }, status: 200 } },
   }, 'missing required updater payloads')
   assertFixtureBlocker({

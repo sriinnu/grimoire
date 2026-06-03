@@ -19,7 +19,12 @@ export const REQUIRED_TOPICS = [
 
 export const CHANNELS = ['stable', 'alpha']
 export const REQUIRED_CI_RUNNERS = ['macos-15', 'ubuntu-24.04', 'windows-2025-vs2026']
-export const REQUIRED_CI_STEPS = ['Native Tauri Link Smoke']
+export const REQUIRED_CI_STEP_PROOFS = [
+  { runners: REQUIRED_CI_RUNNERS, step: 'Native Tauri Link Smoke' },
+  { runners: ['macos-15'], step: 'Browser Smoke Chromium' },
+  { runners: ['macos-15'], step: 'Browser Smoke WebKit Core' },
+]
+export const REQUIRED_CI_STEPS = REQUIRED_CI_STEP_PROOFS.map((proof) => proof.step)
 export const REQUIRED_UPDATER_PLATFORMS = [
   'darwin-aarch64',
   'darwin-x86_64',
@@ -113,8 +118,8 @@ function hasSuccessfulStep(job, stepName) {
   return steps.some((step) => step.name === stepName && step.conclusion === 'success')
 }
 
-function missingRequiredCiStepRunners(ci, stepName) {
-  return REQUIRED_CI_RUNNERS.filter((runner) => !hasSuccessfulStep(jobForRunner(ci, runner), stepName))
+function missingRequiredCiStepRunners(ci, proof) {
+  return proof.runners.filter((runner) => !hasSuccessfulStep(jobForRunner(ci, runner), proof.step))
 }
 
 function sentence(text) {
@@ -178,10 +183,10 @@ export function findBlockers(state) {
     const successful = successfulCiRunners(state.ci)
     const missing = REQUIRED_CI_RUNNERS.filter((runner) => !successful.has(runner))
     if (missing.length > 0) blockers.push(`Latest CI workflow run ${state.ci.run.id} lacks successful pinned runner jobs: ${missing.join(', ')}.`)
-    for (const step of REQUIRED_CI_STEPS) {
-      const missingStepRunners = missingRequiredCiStepRunners(state.ci, step)
+    for (const proof of REQUIRED_CI_STEP_PROOFS) {
+      const missingStepRunners = missingRequiredCiStepRunners(state.ci, proof)
       if (missingStepRunners.length > 0) {
-        blockers.push(`Latest CI workflow run ${state.ci.run.id} lacks successful "${step}" proof on: ${missingStepRunners.join(', ')}.`)
+        blockers.push(`Latest CI workflow run ${state.ci.run.id} lacks successful "${proof.step}" proof on: ${missingStepRunners.join(', ')}.`)
       }
     }
   }
