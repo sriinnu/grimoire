@@ -15,6 +15,8 @@ local-only audit before publication.
   codebase map.
 - [Source Evaluation Playbook](SOURCE-EVALUATION-PLAYBOOK.md) - safe first-pass
   browser/native source tour and what each lane does or does not prove.
+- [Product Tour](PRODUCT-TOUR.md) - guided starter-vault path through the
+  product's distinctive surfaces and evidence boundaries.
 - [Public Readiness](PUBLIC-READINESS.md) - what is verified, blocked, or still
   needs platform proof before the repository is advertised publicly.
 - [Release Runbook](RELEASE-RUNBOOK.md) - operator checklist for release
