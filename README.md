@@ -101,7 +101,7 @@ git clone https://github.com/sriinnu/grimoire.git
 cd grimoire
 corepack enable
 pnpm install
-pnpm doctor:source
+pnpm doctor:source -- --mode browser
 pnpm dev
 ```
 
@@ -111,12 +111,13 @@ and is the fastest way to inspect UI behavior without opening the Tauri shell.
 To run the native desktop app:
 
 ```bash
+pnpm doctor:source -- --mode native
 pnpm tauri dev
 ```
 
 Native Tauri mode also needs Rust and platform-specific desktop dependencies.
-`pnpm doctor:source` separates browser source readiness from native desktop
-readiness so setup failures are easier to diagnose.
+`pnpm doctor:source` defaults to checking both modes, while `--mode browser`
+checks only the prerequisites needed for `pnpm dev`.
 
 On Windows, the doctor checks for the MSVC Rust host and Microsoft C++ Build
 Tools (`cl.exe`), and it warns when the evergreen WebView2 runtime is not

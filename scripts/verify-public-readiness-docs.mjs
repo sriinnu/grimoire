@@ -46,8 +46,8 @@ function assertMatch(path, pattern, label) {
 
 function verifyBinaryInstallTruth() {
   assertContains('README.md', 'There is no public packaged release yet.')
-  assertContains('README.md', 'pnpm doctor:source')
-  assertContains('docs/GETTING-STARTED.md', 'pnpm doctor:source')
+  assertContains('README.md', 'pnpm doctor:source -- --mode browser')
+  assertContains('docs/GETTING-STARTED.md', 'pnpm doctor:source -- --mode browser')
   assertContains('README.md', 'Public binary installers are not published yet.')
   assertContains('docs/GETTING-STARTED.md', 'Public binary installers are not published')
   assertContains('docs/PUBLIC-READINESS.md', 'Grimoire\'s source repository is public, but the app is not ready for public')
@@ -89,7 +89,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', '| Source setup doctor | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'pnpm 10+, Windows MSVC Rust host, Microsoft C++ Build Tools, Windows WebView2 runtime warnings, and Linux pkg-config checks')
   assertContains('docs/PUBLIC-READINESS.md', 'libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana')
-  assertContains('docs/PUBLIC-READINESS.md', 'the doctor prints `Next actions` for the missing toolchain or platform dependency')
+  assertContains('docs/PUBLIC-READINESS.md', 'mode-scoped `Next actions` for the missing toolchain or platform dependency')
   assertContains('README.md', 'checks for the MSVC Rust host and')
   assertContains('README.md', 'warns when the evergreen WebView2')
   assertContains('README.md', 'needs Node, pnpm 10+, and Git')
