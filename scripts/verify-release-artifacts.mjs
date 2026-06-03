@@ -13,6 +13,7 @@ import { dirname, join, relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { assertAppBundleVersion } from './app-bundle-version.mjs'
+import { assertRequiredAppResources } from './verify-release-artifact-resources.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -193,6 +194,7 @@ export function verifyApp(appPath, options = {}) {
 
   const iconPath = join(resolvedAppPath, 'Contents/Resources/icon.icns')
   assertIconMatchesSource(iconPath, `${formatPath(resolvedAppPath)}`)
+  assertRequiredAppResources(resolvedAppPath)
   assertNoMockFixtures(join(resolvedAppPath, 'Contents/Resources'), `${formatPath(resolvedAppPath)} resources`)
   if (options.expectedVersion) assertAppBundleVersion(resolvedAppPath, options.expectedVersion)
 

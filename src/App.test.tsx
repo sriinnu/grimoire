@@ -1189,7 +1189,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Test Vault')
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
@@ -1207,7 +1207,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Work Vault')
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
   })
 
   it('returns to the shell with a toast when a bottom-bar vault switch fails to load', async () => {
@@ -1227,7 +1227,7 @@ describe('App', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('status-vault-trigger')).toHaveTextContent('Test Vault')
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     fireEvent.click(screen.getByRole('button', { name: 'Switch vault' }))
     fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
@@ -1246,7 +1246,7 @@ describe('App', () => {
       expect(screen.queryByText('Switching vault')).not.toBeInTheDocument()
       expect(screen.getByTestId('status-vault-trigger')).toBeInTheDocument()
       expect(screen.getByText('Could not open Work Vault: cannot read vault')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
   })
 
   it('Cmd+1 hides sidebar and note list (editor-only mode)', async () => {

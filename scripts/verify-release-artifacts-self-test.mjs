@@ -47,6 +47,20 @@ function addExecutableToTestApp(appPath) {
   chmodSync(executablePath, 0o755)
 }
 
+function addRequiredResourcesToTestApp(appPath) {
+  const resources = join(appPath, 'Contents/Resources')
+  const starterVault = join(resources, 'starter-vault')
+  const mcpServer = join(resources, 'mcp-server')
+  mkdirSync(join(starterVault, 'type'), { recursive: true })
+  mkdirSync(mcpServer, { recursive: true })
+  writeFileSync(join(starterVault, '.fixture-manifest.json'), '{"files":[]}')
+  writeFileSync(join(starterVault, 'grimoire-start-here.md'), '# Start here\n')
+  writeFileSync(join(starterVault, 'type/project.md'), '# Project type\n')
+  writeFileSync(join(mcpServer, 'index.js'), 'console.log("mcp")\n')
+  writeFileSync(join(mcpServer, 'ws-bridge.js'), 'console.log("bridge")\n')
+  writeFileSync(join(mcpServer, 'package.json'), '{"name":"grimoire-mcp"}')
+}
+
 function writeCrossPlatformBundle(root) {
   mkdirSync(join(root, 'msi'), { recursive: true })
   mkdirSync(join(root, 'nsis'), { recursive: true })
@@ -77,7 +91,14 @@ export function runReleaseArtifactSelfTest() {
     copySourceIconToApp(appPath)
     writeTestAppInfoPlist(appPath, '9.9.9')
     addExecutableToTestApp(appPath)
+    addRequiredResourcesToTestApp(appPath)
     verifyApp(appPath, { expectedVersion: '9.9.9' })
+
+    const missingResourcesAppPath = join(tempDir, 'MissingResources.app')
+    copySourceIconToApp(missingResourcesAppPath)
+    writeTestAppInfoPlist(missingResourcesAppPath, '9.9.9')
+    addExecutableToTestApp(missingResourcesAppPath)
+    expectFailure('missing packaged resources', () => verifyApp(missingResourcesAppPath))
 
     const webDir = join(tempDir, 'web')
     mkdirSync(webDir, { recursive: true })
@@ -103,6 +124,7 @@ export function runReleaseArtifactSelfTest() {
     copySourceIconToApp(staleVersionAppPath)
     writeTestAppInfoPlist(staleVersionAppPath, '9.9.8')
     addExecutableToTestApp(staleVersionAppPath)
+    addRequiredResourcesToTestApp(staleVersionAppPath)
     expectFailure('a stale app version', () => verifyApp(staleVersionAppPath, { expectedVersion: '9.9.9' }))
 
     const carbonAppPath = join(tempDir, 'Carbon.app')

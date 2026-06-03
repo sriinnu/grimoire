@@ -102,6 +102,9 @@ pnpm release:verify-artifacts
 pnpm audit:public-readiness -- --branch main
 ```
 
+`release:verify-artifacts` rejects app bundles, updater tarballs, and DMGs that
+omit the packaged `starter-vault/` fallback or bundled `mcp-server/` resources.
+
 The public readiness audit must report no blockers before README badges,
 download wording, or update-feed language can move from "not published" to
 "available".
