@@ -88,7 +88,13 @@ launch QA.
 `cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked`
 and is executed on the pinned macOS, Windows, and Linux CI runners so native
 link regressions, including the Windows SQLite import-library failure, cannot
-hide behind browser-only source checks.
+hide behind browser-only source checks. CI also runs
+`pnpm test:native-tauri-startup`, which starts the native source process with
+`cargo run --manifest-path=src-tauri/Cargo.toml --no-default-features --locked`
+and a temporary home directory, then requires the
+native `GRIMOIRE_NATIVE_STARTUP_SMOKE_READY process_entry=true` marker. That is
+hosted source process-entry proof, not Tauri setup, window, or packaged
+installer launch evidence.
 `pnpm doctor:source` also checks Windows native setup for the MSVC Rust host and
 Microsoft C++ Build Tools (`cl.exe`). If either fails, install Rust's stable
 MSVC toolchain and Microsoft's Desktop development with C++ workload before
@@ -139,6 +145,7 @@ pnpm test
 pnpm run test:markdown-editor:js
 pnpm build
 pnpm test:native-tauri-link
+pnpm test:native-tauri-startup
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 

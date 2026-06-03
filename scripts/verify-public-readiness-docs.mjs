@@ -119,7 +119,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'signed 2026-06-02 content refresh `bb9f94c`')
   assertNotMatch('docs/PUBLIC-READINESS.md', /254e687/u, 'the superseded starter-vault head')
   assertNotMatch('docs/PUBLIC-READINESS.md', /b3c9170/u, 'the superseded starter-vault head')
-  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix/native-link proof, required macOS/Windows/Linux updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
+  assertContains('docs/PUBLIC-READINESS.md', 'including signed HEAD proof, clean worktree proof, CI workflow run/head/matrix/native-link/native-startup proof, required macOS/Windows/Linux updater platform payload proof, starter-vault mirror drift, and release-preflight blockers')
   assertContains('scripts/audit-public-readiness.mjs', 'compareStarterMirror')
   assertContains('scripts/audit-public-readiness.mjs', 'readStarterBundleProof')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Packaged starter-vault fallback is not configured')
@@ -187,25 +187,30 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/PUBLIC-READINESS.md', 'hardcoded test counts')
   assertContains('docs/PUBLIC-READINESS.md', 'Rust platform guards')
   assertContains('docs/PUBLIC-READINESS.md', '| Native source link smoke | Verified |')
+  assertContains('docs/PUBLIC-READINESS.md', '| Native source startup smoke | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Browser source smoke | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', 'The public-readiness audit fails if a green CI run lacks either macOS browser smoke step')
   assertContains('docs/PUBLIC-READINESS.md', 'Native Tauri Link Smoke')
+  assertContains('docs/PUBLIC-READINESS.md', 'Native Tauri Startup Smoke')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Browser Smoke Chromium')
   assertContains('scripts/public-readiness-evaluation.mjs', 'Browser Smoke WebKit Core')
+  assertContains('scripts/public-readiness-evaluation.mjs', 'Native Tauri Startup Smoke')
   assertContains('docs/PUBLIC-READINESS.md', 'cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked')
   assertContains('package.json', '"test:native-tauri-link": "cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked"')
+  assertContains('package.json', '"test:native-tauri-startup": "node scripts/run-native-startup-smoke.mjs"')
   assertContains('.github/workflows/ci.yml', 'Native Tauri Link Smoke')
   assertContains('.github/workflows/ci.yml', 'pnpm test:native-tauri-link')
+  assertContains('.github/workflows/ci.yml', 'Native Tauri Startup Smoke')
+  assertContains('.github/workflows/ci.yml', 'pnpm test:native-tauri-startup')
+  assertContains('scripts/run-native-startup-smoke.mjs', 'GRIMOIRE_NATIVE_STARTUP_SMOKE_READY')
+  assertContains('src-tauri/src/native_startup_smoke.rs', 'GRIMOIRE_NATIVE_STARTUP_SMOKE_READY')
   assertContains('.husky/pre-push', 'pnpm test:native-tauri-link')
   assertContains('scripts/public-readiness-evaluation.mjs', 'REQUIRED_CI_STEPS')
   assertContains('docs/PUBLIC-READINESS.md', 'ws_bridge_spawn_failure_keeps_startup_optional')
   assertContains('docs/PUBLIC-READINESS.md', 'Release-mode lookup no longer falls back to the source checkout')
   assertContains('docs/PUBLIC-READINESS.md', 'Node lookup now parses multi-line `where` output')
   assertContains('docs/GETTING-STARTED.md', 'Node.js must be discoverable on `PATH`')
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    'Fresh packaged Windows/Linux/macOS launch evidence is still required before calling the bridge fully verified',
-  )
+  assertContains('docs/PUBLIC-READINESS.md', 'Fresh packaged Windows/Linux/macOS launch evidence is still required before calling the bridge fully verified')
   assertContains('src-tauri/src/lib_tests.rs', 'fn ws_bridge_spawn_failure_keeps_startup_optional()')
   assertContains('scripts/doctor-public-source.mjs', 'printSourceDoctorNextActions')
   assertContains('scripts/doctor-public-source-actions.mjs', 'export function sourceDoctorNextActions')
@@ -274,11 +279,7 @@ function verifyReleaseWorkflowTruth() {
   assertContains('.github/workflows/release.yml', 'runs-on: windows-2025-vs2026', 'pinned Windows release runner')
   assertContains('.github/workflows/release.yml', 'runs-on: ubuntu-24.04', 'pinned Linux release runner')
   assertNotMatch('.github/workflows/release.yml', /\b(?:macos|ubuntu|windows)-latest\b/u, 'moving release runner labels')
-  assertContains(
-    'README.md',
-    'Linux and Windows now have tagged-release workflow jobs, but they are still not public-support claims until signed artifacts, updater feeds, and fresh platform QA',
-    'cross-platform release workflow disclaimer',
-  )
+  assertContains('README.md', 'Linux and Windows now have tagged-release workflow jobs, but they are still not public-support claims until signed artifacts, updater feeds, and fresh platform QA', 'cross-platform release workflow disclaimer')
   assertContains(
     'docs/GETTING-STARTED.md',
     'The current release workflow has macOS, Windows, and Linux jobs, but those\njobs are not public install evidence until signing secrets exist and a tagged\nrelease successfully publishes verified artifacts',
@@ -289,16 +290,8 @@ function verifyReleaseWorkflowTruth() {
     '| OS packaging | Partial | macOS source development is locally verified. The tracked release workflow now has macOS Apple Silicon/Intel, Windows x64, and Linux x64 artifact jobs, and the release verifier recognizes those package families. Linux and Windows are still not public-support claims until a tagged release produces signed artifacts, updater feeds, and fresh platform launch evidence. |',
     'Public Readiness OS packaging row',
   )
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    '[ADR-0104](adr/0104-cross-platform-release-jobs-with-proof-gates.md)',
-    'Public Readiness current release ADR',
-  )
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    '| Windows native run | Needs recheck | Windows `pnpm tauri dev` runs on `main` exposed two source-portability bugs:',
-    'Public Readiness Windows native run row',
-  )
+  assertContains('docs/PUBLIC-READINESS.md', '[ADR-0104](adr/0104-cross-platform-release-jobs-with-proof-gates.md)', 'Public Readiness current release ADR')
+  assertContains('docs/PUBLIC-READINESS.md', '| Windows native run | Needs recheck | Windows `pnpm tauri dev` runs on `main` exposed two source-portability bugs:', 'Public Readiness Windows native run row')
   assertContains(
     'README.md',
     'the current source tree contains guards for those paths',
@@ -331,11 +324,7 @@ function verifyReleaseWorkflowTruth() {
   )
   assertNotMatch('README.md', /this branch contains those cfg guards/iu, 'branch-specific Windows guard wording')
   assertNotMatch('docs/GETTING-STARTED.md', /Use the public-readiness branch for those guards/iu, 'branch-specific Windows guard wording')
-  assertContains(
-    'docs/PUBLIC-READINESS.md',
-    'uses `pnpm test:rust-platform-guards` plus hosted `Native Tauri Link Smoke` to fail if those source/link regressions return',
-    'Public Readiness Rust platform guard evidence',
-  )
+  assertContains('docs/PUBLIC-READINESS.md', 'uses `pnpm test:rust-platform-guards` plus hosted `Native Tauri Link Smoke` and `Native Tauri Startup Smoke` to fail if those source/link/process-entry regressions return', 'Public Readiness Rust platform guard evidence')
   assertContains(
     'docs/GETTING-STARTED.md',
     '`pnpm test:rust-platform-guards` statically guards the known macOS-only',
@@ -346,6 +335,7 @@ function verifyReleaseWorkflowTruth() {
     '`pnpm test:native-tauri-link` runs',
     'Getting Started native link caveat',
   )
+  assertContains('docs/GETTING-STARTED.md', '`pnpm test:native-tauri-startup`', 'Getting Started native startup caveat')
   assertContains(
     'package.json',
     '"test:rust-platform-guards": "node scripts/verify-rust-platform-guards.mjs"',

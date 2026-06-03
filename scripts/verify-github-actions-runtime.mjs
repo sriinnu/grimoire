@@ -22,6 +22,7 @@ const WORKFLOWS = ['.github/workflows/ci.yml', '.github/workflows/release.yml']
 
 const CI_STEP_TIMEOUTS = [
   ['Native Tauri Link Smoke', 25],
+  ['Native Tauri Startup Smoke', 15],
   ['Frontend Tests', 20],
   ['Markdown Editor Parity JS', 10],
   ['Markdown Editor Parity Swift', 10],
@@ -94,6 +95,8 @@ try {
   const ci = readText('.github/workflows/ci.yml')
   assertContains('.github/workflows/ci.yml', ci, 'Native Tauri Link Smoke')
   assertContains('.github/workflows/ci.yml', ci, 'pnpm test:native-tauri-link')
+  assertContains('.github/workflows/ci.yml', ci, 'Native Tauri Startup Smoke')
+  assertContains('.github/workflows/ci.yml', ci, 'pnpm test:native-tauri-startup')
   for (const [stepName, timeoutMinutes] of CI_STEP_TIMEOUTS) {
     assertStepTimeout('.github/workflows/ci.yml', ci, stepName, timeoutMinutes)
   }
