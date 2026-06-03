@@ -239,6 +239,9 @@ function runSelfTest() {
   if (!releaseNextActions(evaluatePreflight(blockedState).blockers).some((action) => action.includes('Set the GitHub repository release secrets'))) {
     throw new Error('blocked fixture should print missing release-secret next actions')
   }
+  if (!releaseNextActions(evaluatePreflight(blockedState).blockers).some((action) => action.includes('pnpm release:secrets'))) {
+    throw new Error('blocked fixture should print release-secret handoff next actions')
+  }
   if (!releaseResultNextActions(evaluatePreflight(blockedState)).some((action) => action.includes('TAURI_SIGNING_PRIVATE_KEY_PASSWORD'))) {
     throw new Error('blocked fixture should print optional updater password warning next actions')
   }

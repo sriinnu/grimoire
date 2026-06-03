@@ -24,6 +24,7 @@ export function releaseNextActions(blockers) {
     if (/Release secrets missing:/u.test(blocker)) {
       const match = blocker.match(RELEASE_SECRET_PATTERN)
       const names = match?.[1] ?? 'the missing release secrets'
+      addUnique(actions, 'Run pnpm release:secrets to print the name-only release-secret handoff before setting values.')
       addUnique(actions, `Set the GitHub repository release secrets: ${names}.`)
     }
     if (/TAURI_SIGNING_PRIVATE_KEY_PASSWORD is absent/u.test(blocker)) {
