@@ -13,6 +13,8 @@ local-only audit before publication.
 
 - [Getting Started](GETTING-STARTED.md) - source setup, native setup, and the
   codebase map.
+- [Source Evaluation Playbook](SOURCE-EVALUATION-PLAYBOOK.md) - safe first-pass
+  browser/native source tour and what each lane does or does not prove.
 - [Public Readiness](PUBLIC-READINESS.md) - what is verified, blocked, or still
   needs platform proof before the repository is advertised publicly.
 - [Release Runbook](RELEASE-RUNBOOK.md) - operator checklist for release
