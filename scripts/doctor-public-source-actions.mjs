@@ -2,20 +2,26 @@ function addUnique(actions, action) {
   if (!actions.includes(action)) actions.push(action)
 }
 
-function failedChecks(result) {
+function checksForMode(result, mode) {
+  const browserChecks = result?.browserChecks ?? []
+  if (mode === 'browser') return browserChecks
   return [
-    ...(result?.browserChecks ?? []),
+    ...browserChecks,
     ...(result?.nativeChecks ?? []),
-  ].filter((check) => !check.ok)
+  ]
+}
+
+function failedChecks(result, mode) {
+  return checksForMode(result, mode).filter((check) => !check.ok)
 }
 
 /**
  * Converts source setup doctor failures into safe setup next actions.
  */
-export function sourceDoctorNextActions(result) {
+export function sourceDoctorNextActions(result, mode = 'all') {
   const actions = []
 
-  for (const check of failedChecks(result)) {
+  for (const check of failedChecks(result, mode)) {
     if (check.title === 'Node.js') {
       addUnique(actions, 'Install Node.js 20 or newer, then rerun pnpm doctor:source.')
     }
@@ -49,8 +55,12 @@ export function sourceDoctorNextActions(result) {
 }
 
 /** Prints source setup next actions when the doctor finds failed checks. */
-export function printSourceDoctorNextActions(result, log = console.log) {
-  const actions = sourceDoctorNextActions(result)
+export function printSourceDoctorNextActions(result, mode = 'all', log = console.log) {
+  if (typeof mode === 'function') {
+    log = mode
+    mode = 'all'
+  }
+  const actions = sourceDoctorNextActions(result, mode)
   if (actions.length === 0) return
 
   log('\nNext actions:')
