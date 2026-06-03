@@ -232,6 +232,8 @@ print secret values.
 - [Docs Index](docs/README.md) - curated public documentation map.
 - [Support](SUPPORT.md) - where to get help, file bugs, request features, and
   avoid confusing source review with release support.
+- [Code of Conduct](CODE_OF_CONDUCT.md) - participation and private-data
+  boundaries for public project spaces.
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map.
 - [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) - safe
   browser/native source tour and public-claim boundaries.
@@ -258,6 +260,8 @@ machine-specific config.
 For non-security help, use [SUPPORT.md](SUPPORT.md). Public issues should not
 include private vault content, credentials, signing keys, personal journals,
 diary entries, dream notes, or private attachments.
+
+Conduct concerns are handled through [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 
