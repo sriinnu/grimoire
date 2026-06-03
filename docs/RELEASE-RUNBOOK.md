@@ -24,12 +24,19 @@ APPLE_PASSWORD
 APPLE_TEAM_ID
 KEYCHAIN_PASSWORD
 TAURI_SIGNING_PRIVATE_KEY
+```
+
+## Optional GitHub Secret
+
+Set this repository secret only when the updater private key is encrypted:
+
+```text
 TAURI_SIGNING_PRIVATE_KEY_PASSWORD
 ```
 
-`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` is required only when the updater private
-key is encrypted, but configuring it is safest unless the key is known to be
-passwordless.
+If the updater private key is known to be passwordless, leave
+`TAURI_SIGNING_PRIVATE_KEY_PASSWORD` unset and record that decision outside the
+repo.
 
 Do not commit test values or fake secret-shaped literals. Use the GitHub web UI
 or `gh secret set` from a trusted local shell so only the secret names appear in
