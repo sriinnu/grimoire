@@ -39,3 +39,25 @@ export function assertReleaseSecretChecklistCoversRequiredSecrets(fail) {
     }
   }
 }
+
+/** Verifies required and optional release-secret setup docs match preflight semantics. */
+export function assertReleaseSecretSetupSectionsMatchPreflight(fail) {
+  const markdown = readRunbook()
+  const match = markdown.match(/## Required GitHub Secrets[\s\S]*?```text\n([\s\S]*?)\n```/u)
+  if (!match) fail('docs/RELEASE-RUNBOOK.md must list required GitHub secrets in a fenced text block')
+
+  const requiredSectionNames = match[1].split('\n').map((name) => name.trim()).filter(Boolean)
+  for (const secret of REQUIRED_RELEASE_SECRETS) {
+    if (!requiredSectionNames.includes(secret)) {
+      fail(`docs/RELEASE-RUNBOOK.md Required GitHub Secrets section must include ${secret}`)
+    }
+  }
+  for (const secret of OPTIONAL_RELEASE_SECRET_ROWS) {
+    if (requiredSectionNames.includes(secret)) {
+      fail(`docs/RELEASE-RUNBOOK.md must not list optional ${secret} as a required GitHub secret`)
+    }
+    if (!markdown.includes(`## Optional GitHub Secret`) || !markdown.includes(`\n${secret}\n`)) {
+      fail(`docs/RELEASE-RUNBOOK.md Optional GitHub Secret section must include ${secret}`)
+    }
+  }
+}
