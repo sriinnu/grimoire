@@ -6,7 +6,7 @@ import {
   REQUIRED_UPDATER_PLATFORMS,
   findBlockers,
 } from './public-readiness-evaluation.mjs'
-import { releaseNextActions } from './release-next-actions.mjs'
+import { releaseNextActions, releaseResultNextActions } from './release-next-actions.mjs'
 
 function readyState() {
   return {
@@ -132,6 +132,9 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
   }
   if (!blockedActions.some((action) => action.includes('stable-vYYYY.M.D'))) {
     throw new Error('blocked fixture should print stable release next actions')
+  }
+  if (!releaseResultNextActions(blockedResult).some((action) => action.includes('TAURI_SIGNING_PRIVATE_KEY_PASSWORD'))) {
+    throw new Error('blocked fixture should print optional updater password warning next actions')
   }
 
   const githubSignature = githubCommitVerificationProof({
