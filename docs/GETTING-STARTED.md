@@ -44,7 +44,7 @@ pnpm install
 Check this machine before spending time debugging setup:
 
 ```bash
-pnpm doctor:source
+pnpm doctor:source -- --mode browser
 ```
 
 The source doctor reports two readiness lanes:
@@ -55,8 +55,10 @@ The source doctor reports two readiness lanes:
   Tauri build expects: WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1,
   libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
-If either lane is blocked, the doctor prints `Next actions` for the missing
+If the selected lane is blocked, the doctor prints `Next actions` for the missing
 toolchain or platform dependency before exiting non-zero.
+Use `pnpm doctor:source` to check both lanes, or run
+`pnpm doctor:source -- --mode native` before launching the desktop shell.
 
 Run browser mock mode:
 
@@ -67,6 +69,7 @@ pnpm dev
 Run the native desktop app:
 
 ```bash
+pnpm doctor:source -- --mode native
 pnpm tauri dev
 ```
 
