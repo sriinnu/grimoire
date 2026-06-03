@@ -55,6 +55,9 @@ The source doctor reports two readiness lanes:
   Tauri build expects: WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK 4.1,
   libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
 
+If either lane is blocked, the doctor prints `Next actions` for the missing
+toolchain or platform dependency before exiting non-zero.
+
 Run browser mock mode:
 
 ```bash
