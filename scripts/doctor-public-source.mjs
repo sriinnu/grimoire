@@ -7,6 +7,7 @@ import {
   printSourceDoctorNextActions,
   sourceDoctorNextActions,
 } from './doctor-public-source-actions.mjs'
+import { doctorModeReady, parseDoctorSourceArgs } from './doctor-public-source-mode.mjs'
 
 const MIN_NODE_MAJOR = 20
 const MIN_PNPM_MAJOR = 10
@@ -22,12 +23,6 @@ const LINUX_NATIVE_PKG_CONFIG_CHECKS = [
   { label: 'librsvg', packages: ['librsvg-2.0'] },
   { label: 'AppIndicator/Ayatana AppIndicator', packages: ['ayatana-appindicator3-0.1', 'appindicator3-0.1'] },
 ]
-
-function parseArgs(argv) {
-  return {
-    selfTest: argv.includes('--self-test'),
-  }
-}
 
 function run(command, args = []) {
   const result = spawnSync(command, args, {
@@ -249,12 +244,14 @@ function runDoctor(context = {}) {
   return { browser, browserChecks, native, nativeChecks }
 }
 
-function printReport(result) {
+function printReport(result, mode = 'all') {
   printGroup('Browser source mode', result.browserChecks)
-  printGroup('Native Tauri mode', result.nativeChecks)
+  if (mode !== 'browser') printGroup('Native Tauri mode', result.nativeChecks)
   console.log(`\nBrowser mode: ${result.browser.ok ? 'ready' : 'blocked'}`)
-  console.log(`Native mode: ${result.native.ok ? 'ready' : 'blocked'}`)
-  printSourceDoctorNextActions(result)
+  if (mode !== 'browser') {
+    console.log(`Native mode: ${doctorModeReady(result, 'native') ? 'ready' : 'blocked'}`)
+  }
+  printSourceDoctorNextActions(result, mode)
 }
 
 function runSelfTest() {
@@ -290,6 +287,19 @@ function runSelfTest() {
     platform: 'darwin',
   })
   if (oldPnpm.browser.ok !== false) throw new Error('pnpm below 10 should block browser source mode')
+
+  const browserOnly = runDoctor({
+    commands: { cargo: null, git: 'git version 2.50.0', pnpm: '10.33.0', rustc: null, 'xcode-select': null },
+    nodeVersion: '20.19.0',
+    packageManager: 'pnpm@10.33.0',
+    platform: 'darwin',
+  })
+  if (!doctorModeReady(browserOnly, 'browser') || doctorModeReady(browserOnly, 'native')) {
+    throw new Error('browser-only fixture should pass browser mode and fail native mode')
+  }
+  if (sourceDoctorNextActions(browserOnly, 'browser').length !== 0) {
+    throw new Error('browser-only next actions should not include native setup work')
+  }
 
   const linuxReady = runDoctor({
     commands: {
@@ -357,6 +367,9 @@ function runSelfTest() {
     throw new Error('passing warning checks should not be reported as warnings')
   }
   if (markerForCheck({ ok: false }) !== 'x') throw new Error('failed checks should render as hard failures')
+  if (parseDoctorSourceArgs(['--', '--mode', 'browser']).mode !== 'browser') {
+    throw new Error('source doctor should parse browser mode')
+  }
   assertNextAction(blocked, 'Run corepack enable, then pnpm install')
   assertNextAction(blocked, 'Install Linux native dependencies from docs/GETTING-STARTED.md')
   assertNextAction(windowsBlocked, 'Install Rust with the stable MSVC toolchain')
@@ -373,11 +386,11 @@ function assertNextAction(result, text) {
   }
 }
 
-const args = parseArgs(process.argv.slice(2))
+const args = parseDoctorSourceArgs(process.argv.slice(2))
 if (args.selfTest) {
   runSelfTest()
 } else {
   const result = runDoctor()
-  printReport(result)
-  if (!result.browser.ok || !result.native.ok) process.exit(1)
+  printReport(result, args.mode)
+  if (!doctorModeReady(result, args.mode)) process.exit(1)
 }
