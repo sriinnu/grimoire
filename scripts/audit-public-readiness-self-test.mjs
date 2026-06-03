@@ -166,6 +166,9 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
   if (!blockedActions.some((action) => action.includes('Set the GitHub repository release secrets'))) {
     throw new Error('blocked fixture should print missing release-secret next actions')
   }
+  if (!blockedActions.some((action) => action.includes('pnpm release:secrets'))) {
+    throw new Error('blocked fixture should print release-secret handoff next actions')
+  }
   if (!blockedActions.some((action) => action.includes('stable-vYYYY.M.D'))) {
     throw new Error('blocked fixture should print stable release next actions')
   }
@@ -175,6 +178,7 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
   assertNextActionFor('Repository is still private.', 'Make the GitHub repository public')
   assertNextActionFor('Repository topics missing: ai-agents, local-first.', 'Add the missing GitHub repository topics')
   assertNextActionFor('Current branch HEAD does not have a good git signature: No signature.', 'Create or merge a signed commit')
+  assertNextActionFor('Release secrets missing: APPLE_CERTIFICATE.', 'pnpm release:secrets')
   assertNextActionFor('Starter vault repository is private.', 'Make the starter vault repository public')
   assertNextActionFor('Starter vault public HEAD could not be resolved.', 'Publish or restore the public starter vault HEAD')
   assertNextActionFor('Packaged starter-vault fallback is not configured in tauri.conf.json.', 'Configure the packaged starter-vault fallback')
