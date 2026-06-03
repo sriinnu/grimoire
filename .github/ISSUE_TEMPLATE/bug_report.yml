@@ -1,0 +1,78 @@
+name: Bug report
+description: Report a reproducible Grimoire issue.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping harden Grimoire.
+
+        Public binary installers and update feeds are not published yet. If you are evaluating from source, use the [Source Evaluation Playbook](https://github.com/sriinnu/grimoire/blob/main/docs/SOURCE-EVALUATION-PLAYBOOK.md) to separate browser mock review from native file-IO, platform launch, packaged resources, and release evidence.
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Paste the Grimoire version, commit SHA, branch name, or release tag you tested.
+      placeholder: main at abc1234, or v2026.x.y
+    validations:
+      required: true
+  - type: dropdown
+    id: lane
+    attributes:
+      label: Evaluation lane
+      description: Which path exposed the issue?
+      options:
+        - Browser source mode (pnpm dev)
+        - Native source mode (pnpm tauri dev)
+        - Packaged app / release artifact
+        - Documentation or setup
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 15.x, Windows 11, Ubuntu 24.04, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include commands and app actions. Prefer the demo vault for source evaluation.
+      placeholder: |
+        1. Run pnpm doctor:source -- --mode browser
+        2. Run pnpm dev
+        3. Open grimoire-start-here
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect Grimoire to do?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Paste relevant command output, screenshots, or screen recordings. Do not include private vault content, credentials, secrets, diary entries, journal entries, dream notes, or personal attachments.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Reporter checks
+      options:
+        - label: I checked the current README status and understand public binary installers/update feeds are not published yet.
+          required: true
+        - label: I have not included private vault content, credentials, secrets, personal journals, diary entries, dream notes, or private attachments.
+          required: true

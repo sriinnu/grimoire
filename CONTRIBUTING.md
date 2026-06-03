@@ -8,8 +8,29 @@ To keep things clean:
 
 - 🐛 Bugs → GitHub Issues
 - 💡 Feature requests / ideas → Canny • <https://grimoire.canny.io/>
+- 🔐 Security issues → private email in [SECURITY.md](SECURITY.md)
 
 If you have a feature idea, please check Canny first and upvote it if it already exists.
+
+## 🧪 Before filing a source bug
+
+Grimoire is public source, but public binary installers and update feeds are not
+published yet. Please check the current status in [README.md](README.md) and use
+the [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) before
+opening a bug from a local run.
+
+When you file a bug, say which lane you tested:
+
+- Browser source mode (`pnpm dev`) for product shape, mock demo-vault content,
+  navigation, editor surfaces, graph/search affordances, and settings copy.
+- Native source mode (`pnpm tauri dev`) for real file IO, folder picking, menus,
+  platform copy, and Tauri behavior.
+- Packaged app / release artifact only when you are testing a tagged public
+  release artifact.
+
+Do not treat browser mock behavior as evidence for native file writes, packaged
+resources, installer launch, updater feeds, or platform support. That distinction
+keeps issues actionable instead of turning every report into archaeology.
 
 ## 📥 Pull requests are welcome
 
@@ -28,6 +49,8 @@ A few things to keep in mind before opening one:
 - Avoid bundling unrelated refactors into the same PR
 - Read [LICENSING.md](LICENSING.md) before submitting code, docs, demo vault content, or assets
 - Sign off commits with `git commit -s` so the Developer Certificate of Origin line is present
+- For source evaluation or release-readiness fixes, include the lane you tested
+  and the public-readiness blocker you changed or preserved
 
 If you want to contribute a feature, the best place to start is here: <https://grimoire.canny.io/>
 
