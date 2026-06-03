@@ -146,6 +146,9 @@ Linux and Windows now have tagged-release workflow jobs, but they are still not 
 
 Full setup notes and Linux package examples are in
 [Getting Started](docs/GETTING-STARTED.md).
+For a guided source evaluation, use the
+[Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) to separate
+browser mock review from native file-IO and platform proof.
 
 ## Starter Vault And Demo
 
@@ -228,6 +231,8 @@ print secret values.
 
 - [Docs Index](docs/README.md) - curated public documentation map.
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map.
+- [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) - safe
+  browser/native source tour and public-claim boundaries.
 - [Public Readiness](docs/PUBLIC-READINESS.md) - current release blockers and
   verification commands
 - [Release Runbook](docs/RELEASE-RUNBOOK.md) - release secrets, signed tags,
