@@ -3,6 +3,10 @@ import { existsSync, readFileSync } from 'node:fs'
 import { platform } from 'node:os'
 import { resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import {
+  printSourceDoctorNextActions,
+  sourceDoctorNextActions,
+} from './doctor-public-source-actions.mjs'
 
 const MIN_NODE_MAJOR = 20
 const MIN_PNPM_MAJOR = 10
@@ -250,6 +254,7 @@ function printReport(result) {
   printGroup('Native Tauri mode', result.nativeChecks)
   console.log(`\nBrowser mode: ${result.browser.ok ? 'ready' : 'blocked'}`)
   console.log(`Native mode: ${result.native.ok ? 'ready' : 'blocked'}`)
+  printSourceDoctorNextActions(result)
 }
 
 function runSelfTest() {
@@ -352,8 +357,20 @@ function runSelfTest() {
     throw new Error('passing warning checks should not be reported as warnings')
   }
   if (markerForCheck({ ok: false }) !== 'x') throw new Error('failed checks should render as hard failures')
+  assertNextAction(blocked, 'Run corepack enable, then pnpm install')
+  assertNextAction(blocked, 'Install Linux native dependencies from docs/GETTING-STARTED.md')
+  assertNextAction(windowsBlocked, 'Install Rust with the stable MSVC toolchain')
+  assertNextAction(windowsBlocked, 'Install Microsoft C++ Build Tools')
+  assertNextAction(windowsBlocked, 'Install or repair the evergreen WebView2 runtime')
 
   console.log('[source-doctor] self-test ok')
+}
+
+function assertNextAction(result, text) {
+  const actions = sourceDoctorNextActions(result)
+  if (!actions.some((action) => action.includes(text))) {
+    throw new Error(`source doctor should print next action containing "${text}"`)
+  }
 }
 
 const args = parseArgs(process.argv.slice(2))
