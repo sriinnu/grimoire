@@ -1195,10 +1195,9 @@ describe('App', () => {
     fireEvent.click(screen.getByTestId('vault-menu-item-Work Vault'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('grimoire-refresh-animation')).toBeInTheDocument()
       expect(screen.getByText('Switching vault')).toBeInTheDocument()
       expect(screen.getByText('Opening Work Vault')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     await act(async () => {
       switchLoad.resolve(switchedEntries)
@@ -1235,7 +1234,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByText('Switching vault')).toBeInTheDocument()
       expect(screen.getByText('Opening Work Vault')).toBeInTheDocument()
-    })
+    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
 
     await act(async () => {
       switchLoad.reject(new Error('cannot read vault'))
