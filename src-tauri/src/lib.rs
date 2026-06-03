@@ -14,6 +14,7 @@ pub mod menu;
 pub mod menu_bar;
 #[cfg(all(desktop, target_os = "macos"))]
 mod menu_bar_window;
+mod native_startup_smoke;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
@@ -370,6 +371,10 @@ fn should_show_window_on_reopen(_has_visible_windows: bool) -> bool {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     apply_linux_appimage_startup_env_overrides();
+    if native_startup_smoke::exit_at_process_entry() {
+        return;
+    }
+
     let builder = tauri::Builder::default();
 
     #[cfg(desktop)]
