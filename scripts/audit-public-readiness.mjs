@@ -236,7 +236,7 @@ function printReport(state, result) {
   }
   console.log('\nBlockers:')
   for (const blocker of result.blockers) console.log(`- ${blocker}`)
-  printReleaseNextActions(result.blockers)
+  printReleaseNextActions(result)
 }
 
 async function main() {

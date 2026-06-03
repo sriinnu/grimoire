@@ -43,9 +43,17 @@ export function releaseNextActions(blockers) {
   return actions
 }
 
-/** Prints next actions when readiness blockers are actionable from the repo. */
-export function printReleaseNextActions(blockers, log = console.log) {
-  const actions = releaseNextActions(blockers)
+/** Converts a readiness/preflight result into safe operator next actions. */
+export function releaseResultNextActions(result) {
+  return releaseNextActions([
+    ...(result?.blockers ?? []),
+    ...(result?.warnings ?? []),
+  ])
+}
+
+/** Prints next actions when readiness findings are actionable from the repo. */
+export function printReleaseNextActions(result, log = console.log) {
+  const actions = Array.isArray(result) ? releaseNextActions(result) : releaseResultNextActions(result)
   if (actions.length === 0) return
 
   log('\nNext actions:')
