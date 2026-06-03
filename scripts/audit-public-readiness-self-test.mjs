@@ -136,6 +136,19 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
   if (!releaseResultNextActions(blockedResult).some((action) => action.includes('TAURI_SIGNING_PRIVATE_KEY_PASSWORD'))) {
     throw new Error('blocked fixture should print optional updater password warning next actions')
   }
+  assertNextActionFor('Repository is still private.', 'Make the GitHub repository public')
+  assertNextActionFor('Repository topics missing: ai-agents, local-first.', 'Add the missing GitHub repository topics')
+  assertNextActionFor('Current branch HEAD does not have a good git signature: No signature.', 'Create or merge a signed commit')
+  assertNextActionFor('Starter vault repository is private.', 'Make the starter vault repository public')
+  assertNextActionFor('Starter vault public HEAD could not be resolved.', 'Publish or restore the public starter vault HEAD')
+  assertNextActionFor('Packaged starter-vault fallback is not configured in tauri.conf.json.', 'Configure the packaged starter-vault fallback')
+  assertNextActionFor('Bundled starter-vault source mirror is missing required demo-vault-v2 files.', 'Restore the bundled starter-vault source mirror')
+  assertNextActionFor('stable release stable-v2026.6.3 is missing complete macOS DMG/updater/signature assets for both architectures.', 'Fix the stable GitHub Release assets')
+  assertNextActionFor('alpha release alpha-v2026.6.3.1 is missing Windows x64 installer/signature assets.', 'Fix the alpha GitHub Release assets')
+  assertNextActionFor('stable update feed does not contain updater platforms.', 'Regenerate the stable and alpha Pages updater feeds')
+  assertNextActionFor('README still advertises a direct Grimoire.app.tar.gz URL.', 'Remove stale direct binary download links from README')
+  assertNextActionFor('Public readiness docs do not clearly say the app is not ready for public release.', 'Update PUBLIC-READINESS.md to match the current audit result')
+  assertNextActionFor('Public readiness docs still say not ready; update them before announcing a public release.', 'Update PUBLIC-READINESS.md to match the current audit result')
 
   const githubSignature = githubCommitVerificationProof({
     commit: { verification: { reason: 'valid', verified: true } },
@@ -157,5 +170,12 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
 function assertFixtureBlocker(state, text) {
   if (!findBlockers(state).blockers.some((blocker) => blocker.includes(text))) {
     throw new Error(`fixture should report ${text}`)
+  }
+}
+
+function assertNextActionFor(blocker, text) {
+  const actions = releaseNextActions([blocker])
+  if (!actions.some((action) => action.includes(text))) {
+    throw new Error(`blocker should print a next action containing "${text}": ${blocker}`)
   }
 }
