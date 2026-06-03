@@ -65,6 +65,11 @@ Please check existing requests before adding a new one.
 Do not open public issues for vulnerabilities. Report security issues privately
 as described in [SECURITY.md](SECURITY.md).
 
+## Conduct
+
+Use [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for participation expectations and
+conduct reporting.
+
 ## What Is Not Supported Yet
 
 Until release blockers are cleared, support cannot treat these as shipped public

@@ -47,6 +47,7 @@ A few things to keep in mind before opening one:
 - Keep PRs small, focused, and easy to review
 - Include a short explanation of the problem and your solution
 - Follow the dev process described in Grimoire’s `AGENTS.md` (tests, code health, etc.)
+- Follow the [Code of Conduct](CODE_OF_CONDUCT.md) in project spaces
 - Avoid bundling unrelated refactors into the same PR
 - Read [LICENSING.md](LICENSING.md) before submitting code, docs, demo vault content, or assets
 - Sign off commits with `git commit -s` so the Developer Certificate of Origin line is present

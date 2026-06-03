@@ -62,6 +62,8 @@ local-only audit before publication.
 
 - [Support](../SUPPORT.md) - public help paths, source evaluation boundaries,
   feature-request routing, and private-data guardrails.
+- [Code of Conduct](../CODE_OF_CONDUCT.md) - participation expectations and
+  private-data boundaries for project spaces.
 - [Contributing](../CONTRIBUTING.md) - contribution workflow and local quality
   expectations.
 - [Security](../SECURITY.md) - private vulnerability reporting.
