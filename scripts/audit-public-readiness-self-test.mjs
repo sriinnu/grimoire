@@ -116,6 +116,17 @@ export function runPublicReadinessAuditSelfTest(githubCommitVerificationProof) {
     ci: {
       ...ready.ci,
       jobs: ready.ci.jobs.map((job) => (
+        job.name.includes('ubuntu-24.04')
+          ? { ...job, steps: job.steps.filter((step) => step.name !== 'Native Tauri Startup Smoke') }
+          : job
+      )),
+    },
+  }, 'Native Tauri Startup Smoke')
+  assertFixtureBlocker({
+    ...ready,
+    ci: {
+      ...ready.ci,
+      jobs: ready.ci.jobs.map((job) => (
         job.name.includes('macos-15')
           ? { ...job, steps: job.steps.filter((step) => step.name !== 'Browser Smoke Chromium') }
           : job

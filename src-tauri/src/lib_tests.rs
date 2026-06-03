@@ -1,4 +1,5 @@
 use super::linux_appimage_startup_env_overrides_with;
+use super::native_startup_smoke;
 use super::should_show_window_on_reopen;
 use super::StartupEnvOverride;
 use super::MACOS_WEBVIEW_RESERVED_COMMAND_SHIFT_KEYS;
@@ -30,6 +31,33 @@ fn ws_bridge_spawn_failure_keeps_startup_optional() {
 
     assert!(!started);
     assert!(slot.lock().unwrap().is_none());
+}
+
+#[test]
+fn native_startup_smoke_accepts_explicit_truthy_values() {
+    for value in ["1", "true", "yes", " TRUE "] {
+        assert!(native_startup_smoke::enabled_with(|_| Some(
+            value.to_string()
+        )));
+    }
+}
+
+#[test]
+fn native_startup_smoke_accepts_explicit_app_argument() {
+    assert!(native_startup_smoke::arg_enabled_with([
+        "grimoire",
+        "--grimoire-native-startup-smoke",
+    ]));
+}
+
+#[test]
+fn native_startup_smoke_ignores_absent_or_ambiguous_values() {
+    assert!(!native_startup_smoke::enabled_with(|_| None));
+    for value in ["", "0", "false", "smoke"] {
+        assert!(!native_startup_smoke::enabled_with(|_| Some(
+            value.to_string()
+        )));
+    }
 }
 
 #[test]

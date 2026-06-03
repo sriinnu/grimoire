@@ -331,8 +331,11 @@ Windows, and Linux jobs run `Native Tauri Link Smoke`, which calls
 `pnpm test:native-tauri-link` after the frontend build. That command runs
 `cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked`
 so native Rust/Tauri link failures, including Windows SQLite import-library
-regressions, fail in hosted CI. This does not prove installer launch; packaged
-launch evidence still belongs to tagged release QA.
+regressions, fail in hosted CI. CI then runs `Native Tauri Startup Smoke`, which
+launches the source-mode Tauri process with `GRIMOIRE_NATIVE_STARTUP_SMOKE=1`
+and requires the `GRIMOIRE_NATIVE_STARTUP_SMOKE_READY process_entry=true` marker
+from the Rust entry point. This does not prove Tauri setup, window launch, or
+installer launch; packaged launch evidence still belongs to tagged release QA.
 
 ## Platform Direction
 

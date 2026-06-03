@@ -76,8 +76,8 @@ Snapshot date: 2026-06-03.
 | Public binary installers | Not published. There is no public packaged release yet. |
 | Update feeds | Not published. Stable and alpha feed URLs return 404 until real release assets are generated and deployed. |
 | Local macOS source/dev | Locally exercised and the active development host. |
-| Windows source/dev | Known cfg and SQLite link failures were fixed in source. Hosted Windows native link smoke builds the Tauri Rust binary, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
-| Linux source/dev | Intended source target with documented Tauri dependencies and hosted native link smoke. Fresh platform launch QA is still required. |
+| Windows source/dev | Known cfg and SQLite link failures were fixed in source. Hosted Windows native link and startup smokes now build the Tauri Rust binary and launch the source-mode process to its Rust entry point, but fresh manual `pnpm tauri dev`, `pnpm tauri build`, and `.exe` launch proof is still required. |
+| Linux source/dev | Intended source target with documented Tauri dependencies and hosted native link plus startup smoke under Xvfb. Fresh platform launch QA is still required. |
 | Hosted CI | Live-audited. Latest `main` CI is green on pinned macOS, Ubuntu, and Windows runners; rerun the public-readiness audit before making public claims. |
 | Release readiness | Cross-platform release jobs are configured, but public release is still blocked by missing release secrets, missing GitHub Releases, missing update feeds, and missing tagged platform launch proof. |
 
@@ -131,9 +131,13 @@ Hosted CI also runs `pnpm test:native-tauri-link`, which executes:
 cargo build --manifest-path=src-tauri/Cargo.toml --no-default-features --locked
 ```
 
-That native link smoke runs on the pinned macOS, Windows, and Linux CI matrix so
-Windows link regressions fail before merge. Fresh Windows native launch evidence
-is still required before this README can call Windows verified.
+It also runs `pnpm test:native-tauri-startup`, which launches the source-mode
+Tauri process with a temporary home directory and waits for the native
+`GRIMOIRE_NATIVE_STARTUP_SMOKE_READY process_entry=true` marker before exiting.
+Those smokes run on the pinned macOS, Windows, and Linux CI matrix so Windows
+link and process-entry regressions fail before merge. Fresh Windows native
+interactive launch evidence is still required before this README can call
+Windows verified.
 
 On Linux, the doctor checks pkg-config visibility for WebKitGTK 4.1, GTK 3, libsoup 3, JavaScriptCoreGTK
 4.1, libxdo/xdo, OpenSSL, librsvg, and AppIndicator/Ayatana.
@@ -203,6 +207,7 @@ pnpm test:public-doc-links
 pnpm test:public-readiness-docs
 pnpm test:rust-platform-guards
 pnpm test:native-tauri-link
+pnpm test:native-tauri-startup
 pnpm test:starter-vault
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
