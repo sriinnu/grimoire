@@ -231,6 +231,7 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/RELEASE-RUNBOOK.md', 'It never prints or stores secret values.')
   assertContains('package.json', '"release:secrets": "node scripts/release-secret-handoff.mjs"')
   assertContains('package.json', '"test:release-secrets": "node scripts/release-secret-handoff.mjs --self-test"')
+  assertContains('.github/workflows/ci.yml', 'pnpm test:release-secrets')
   assertContains('docs/RELEASE-RUNBOOK.md', '## Secret Source Checklist')
   assertContains('docs/RELEASE-RUNBOOK.md', 'Apple Developer export')
   assertContains('docs/RELEASE-RUNBOOK.md', 'App Store Connect app-specific password')
