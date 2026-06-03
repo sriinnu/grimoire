@@ -237,6 +237,8 @@ print secret values.
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map.
 - [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) - safe
   browser/native source tour and public-claim boundaries.
+- [Product Tour](docs/PRODUCT-TOUR.md) - what to try first in the starter vault,
+  why it is distinct, and what each source-mode check actually proves.
 - [Public Readiness](docs/PUBLIC-READINESS.md) - current release blockers and
   verification commands
 - [Release Runbook](docs/RELEASE-RUNBOOK.md) - release secrets, signed tags,

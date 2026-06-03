@@ -8,6 +8,8 @@ to inspect the product shape. Native source mode is the path for file IO,
 folder picking, platform copy, and Tauri behavior. Neither one proves public
 release readiness by itself; the release gates still live in
 [Public Readiness](PUBLIC-READINESS.md) and [Release Runbook](RELEASE-RUNBOOK.md).
+After setup, use the [Product Tour](PRODUCT-TOUR.md) for the shortest path
+through Grimoire's distinctive starter-vault surfaces.
 
 ## What This Proves
 
@@ -57,6 +59,9 @@ Evaluate these surfaces:
 7. Visit local-agent surfaces and confirm Chitragupta MCP memory, recall, wiki,
    graph, ingest, diagnostics, and source-backed write suggestions are not
    described as public-complete.
+
+For a tighter route through those surfaces, follow the
+[Product Tour](PRODUCT-TOUR.md).
 
 Browser mode is good enough for product-shape review. It is not enough to call
 folder IO, packaged resources, update feeds, or platform launch verified.
