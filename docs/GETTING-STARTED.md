@@ -9,6 +9,11 @@ release successfully publishes verified artifacts. Stable and alpha update feeds
 are generated from GitHub Release assets by the release workflow; they are not
 evidence until that workflow has run successfully for a tagged release.
 
+If you are evaluating Grimoire rather than modifying it, start with the
+[Source Evaluation Playbook](SOURCE-EVALUATION-PLAYBOOK.md). It separates the
+fast browser mock tour from native source file-IO checks and public release
+claims.
+
 Before cutting a public release tag, run:
 
 ```bash
