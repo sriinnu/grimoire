@@ -3,7 +3,11 @@ import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { printReleaseNextActions, releaseNextActions } from './release-next-actions.mjs'
+import {
+  printReleaseNextActions,
+  releaseNextActions,
+  releaseResultNextActions,
+} from './release-next-actions.mjs'
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
@@ -235,6 +239,9 @@ function runSelfTest() {
   if (!releaseNextActions(evaluatePreflight(blockedState).blockers).some((action) => action.includes('Set the GitHub repository release secrets'))) {
     throw new Error('blocked fixture should print missing release-secret next actions')
   }
+  if (!releaseResultNextActions(evaluatePreflight(blockedState)).some((action) => action.includes('TAURI_SIGNING_PRIVATE_KEY_PASSWORD'))) {
+    throw new Error('blocked fixture should print optional updater password warning next actions')
+  }
 
   console.log('[release-preflight] self-test ok')
 }
@@ -252,7 +259,7 @@ function printReport(result) {
 
   console.error('Blockers:')
   for (const blocker of result.blockers) console.error(`- ${blocker}`)
-  printReleaseNextActions(result.blockers, console.error)
+  printReleaseNextActions(result, console.error)
   process.exitCode = 1
 }
 
