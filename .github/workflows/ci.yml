@@ -88,17 +88,21 @@ jobs:
         run: pnpm test:native-tauri-link
 
       - name: Frontend Tests
+        timeout-minutes: 20
         run: pnpm test --silent
 
       - name: Markdown Editor Parity JS
+        timeout-minutes: 10
         run: pnpm test:markdown-editor:js
 
       - name: Markdown Editor Parity Swift
         if: runner.os == 'macOS'
+        timeout-minutes: 10
         run: pnpm test:markdown-editor:swift
 
       - name: Install Playwright Browsers
         if: runner.os == 'macOS'
+        timeout-minutes: 10
         run: pnpm exec playwright install chromium webkit
 
       - name: Browser Smoke Chromium
@@ -115,6 +119,7 @@ jobs:
           tests/smoke/example.spec.ts
 
       - name: Rust Lint
+        timeout-minutes: 20
         run: |
           cargo clippy --manifest-path=src-tauri/Cargo.toml -- -D warnings
           cargo fmt --manifest-path=src-tauri/Cargo.toml -- --check
