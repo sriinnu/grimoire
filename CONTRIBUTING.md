@@ -9,6 +9,7 @@ To keep things clean:
 - 🐛 Bugs → GitHub Issues
 - 💡 Feature requests / ideas → Canny • <https://grimoire.canny.io/>
 - 🔐 Security issues → private email in [SECURITY.md](SECURITY.md)
+- 🧭 General support → [SUPPORT.md](SUPPORT.md)
 
 If you have a feature idea, please check Canny first and upvote it if it already exists.
 
