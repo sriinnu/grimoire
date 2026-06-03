@@ -65,6 +65,9 @@ jobs:
       - name: Verify Release Pages Guard
         run: pnpm test:release-pages
 
+      - name: Verify Release Secrets Handoff
+        run: pnpm test:release-secrets
+
       - name: Verify GitHub Actions Runtime Guard
         run: pnpm test:github-actions-runtime
 
