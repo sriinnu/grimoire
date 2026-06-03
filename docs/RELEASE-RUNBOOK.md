@@ -35,6 +35,16 @@ Do not commit test values or fake secret-shaped literals. Use the GitHub web UI
 or `gh secret set` from a trusted local shell so only the secret names appear in
 logs and docs.
 
+To print a name-only handoff for the current repository state, run:
+
+```bash
+pnpm release:secrets
+```
+
+This command reads the checklist below, compares it with the configured GitHub
+secret names when the `gh` token can inspect them, and prints only source and
+handling notes. It never prints or stores secret values.
+
 ## Secret Source Checklist
 
 Collect the secret values from their source systems before running preflight.
@@ -63,6 +73,7 @@ Run these checks before creating any release tag:
 
 ```bash
 pnpm release:preflight
+pnpm release:secrets
 pnpm audit:public-readiness -- --branch main
 node scripts/scan-secrets.mjs --all
 ```
