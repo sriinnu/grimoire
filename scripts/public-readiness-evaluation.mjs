@@ -21,6 +21,7 @@ export const CHANNELS = ['stable', 'alpha']
 export const REQUIRED_CI_RUNNERS = ['macos-15', 'ubuntu-24.04', 'windows-2025-vs2026']
 export const REQUIRED_CI_STEP_PROOFS = [
   { runners: REQUIRED_CI_RUNNERS, step: 'Native Tauri Link Smoke' },
+  { runners: REQUIRED_CI_RUNNERS, step: 'Native Tauri Startup Smoke' },
   { runners: ['macos-15'], step: 'Browser Smoke Chromium' },
   { runners: ['macos-15'], step: 'Browser Smoke WebKit Core' },
 ]
