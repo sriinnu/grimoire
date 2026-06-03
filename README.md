@@ -230,6 +230,8 @@ print secret values.
 ## Documentation
 
 - [Docs Index](docs/README.md) - curated public documentation map.
+- [Support](SUPPORT.md) - where to get help, file bugs, request features, and
+  avoid confusing source review with release support.
 - [Getting Started](docs/GETTING-STARTED.md) - local setup and codebase map.
 - [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) - safe
   browser/native source tour and public-claim boundaries.
@@ -252,6 +254,10 @@ print secret values.
 Report security issues privately as described in [SECURITY.md](SECURITY.md).
 Do not commit API keys, signing keys, certificates, local vault contents, or
 machine-specific config.
+
+For non-security help, use [SUPPORT.md](SUPPORT.md). Public issues should not
+include private vault content, credentials, signing keys, personal journals,
+diary entries, dream notes, or private attachments.
 
 ## License
 

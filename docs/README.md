@@ -60,6 +60,8 @@ local-only audit before publication.
 
 ## Repository Basics
 
+- [Support](../SUPPORT.md) - public help paths, source evaluation boundaries,
+  feature-request routing, and private-data guardrails.
 - [Contributing](../CONTRIBUTING.md) - contribution workflow and local quality
   expectations.
 - [Security](../SECURITY.md) - private vulnerability reporting.
