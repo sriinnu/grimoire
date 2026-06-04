@@ -1,0 +1,85 @@
+name: Source Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  source-release:
+    name: Source Release
+    runs-on: ubuntu-24.04
+    outputs:
+      release-tag: ${{ steps.release.outputs.release-tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Build Source Release Notes
+        id: notes
+        run: |
+          mkdir -p .release
+          RELEASE_TAG="$(node scripts/build-source-release-notes.mjs --output .release/source-release-notes.md)"
+          echo "release-tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Latest Source Release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.notes.outputs.release-tag }}
+        run: |
+          VERSION="$(node -p "JSON.parse(require('fs').readFileSync('package.json','utf8')).version")"
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          TITLE="Grimoire source ${VERSION} (${SHORT_SHA})"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --title "$TITLE" --notes-file .release/source-release-notes.md --latest
+          else
+            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" --title "$TITLE" --notes-file .release/source-release-notes.md --latest
+          fi
+          echo "release-tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+
+  release-pages:
+    name: Release Pages
+    runs-on: macos-15
+    needs: source-release
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Collect Release Metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .release-pages
+          gh api "repos/${{ github.repository }}/releases" --paginate > .release-pages/releases.json
+
+      - name: Build Release Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/build-release-pages.mjs --releases-json .release-pages/releases.json --output-dir .release-pages/public
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .release-pages/public
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
