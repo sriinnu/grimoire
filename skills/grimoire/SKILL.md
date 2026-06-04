@@ -1,9 +1,9 @@
 ---
 name: grimoire
 description: >
-  Chitragupta product skill for Grimoire, the local-first Markdown mind OS
-  where agent workflows, vault memory, journals, dreams, and user-owned context
-  stay inspectable as files.
+  Chitragupta product skill for Grimoire, the local-first Markdown vault app
+  whose notes, journals, projects, graph, Git history, and AI proposals remain
+  inspectable as user-owned files.
 license: AGPL-3.0-or-later
 version: "1.0.0"
 author: grimoire
@@ -12,10 +12,10 @@ source:
   type: manual
 whenToUse:
   - Grimoire asks for source-backed recall, wiki, graph, ingest, diagnostics, or crystallized Markdown proposals.
-  - An agent needs the Grimoire locality rules before reading, exporting, syncing, or summarizing vault context.
-  - A product surface needs to explain vaults, private journals, dreams, or agent-of-agents memory behavior.
+  - An agent needs Grimoire's local-only and review-gated rules before reading, exporting, syncing, or summarizing vault context.
+  - A product surface needs to explain Markdown vaults, journals, dreams, projects, graph context, or readiness-gated AI behavior.
 whenNotToUse:
-  - Do not use for hidden rewrites, silent vault writes, or raw private-note export.
+  - Do not use for hidden rewrites, silent vault writes, unsupported public-release claims, or raw private-note export.
   - Do not use when the request is unrelated to Grimoire or its local Markdown vaults.
 permissions:
   filesystem:
@@ -34,24 +34,33 @@ outputSchema:
 
 # Grimoire Product Skill
 
-Grimoire is a local-first Markdown editor, wiki, graph, journal, dream catcher,
-and agent workbench. Chitragupta may help recall, connect, and synthesize
-context, but the human owns the memory and the visible source of truth stays in
-Markdown files.
+Grimoire is a local-first Markdown vault app for notes, journals, projects,
+graph exploration, Git-backed history, import/export work, and inspectable AI
+surfaces. Chitragupta may help recall, connect, route, diagnose, and synthesize
+context, but the human owns the vault and Markdown remains the visible source of
+truth.
+
+Public binary installers and update feeds are not published yet. Chitragupta MCP
+memory, recall, wiki, graph, ingest, diagnostics, and source-backed write
+suggestions are readiness-gated contract work, not assumed public-complete
+capabilities.
 
 ## Operating Rules
 
 - Private lanes such as journals, diaries, dreams, and local-only vault notes
-  never leave the user's machine unless the user explicitly opts in.
-- Git is optional. A vault can be a plain local folder, iCloud Drive, Google
-  Drive Desktop, S3/Azure-backed working copy, or a Git-backed workspace.
-- Chitragupta may index and recall; it must not silently rewrite notes.
-- Suggested writes must come back as Markdown proposals or diffs for Grimoire
-  to show, review, and accept.
-- Recall answers should cite source notes, source paths, or durable memory ids
-  whenever possible.
+  stay local unless the user explicitly opts into an external handoff.
+- Git is optional. A vault can be a plain local folder, synced desktop folder,
+  object-storage-backed working copy, or Git-backed workspace.
+- Markdown files, frontmatter, wikilinks, folders, attachments, and optional Git
+  history are the durable source of truth.
+- Chitragupta may index, recall, diagnose, and propose; it must not silently
+  rewrite notes.
+- Suggested writes must return as Markdown proposals, patches, or diffs for
+  Grimoire to show, review, and accept.
+- Recall answers should cite source notes, source paths, durable memory ids, or
+  explicit missing-source warnings.
 - Degraded subsystems should return warnings and partial results instead of
-  crashing the Grimoire bridge.
+  crashing the Grimoire bridge or pretending full readiness.
 
 ## Capabilities
 
@@ -65,6 +74,11 @@ Return source-backed context for an active Grimoire note, command, or question.
 - `vaultPath` (string): Active vault root.
 - `activeNotePath` (string): Active Markdown note.
 - `limit` (number, default 10): Maximum result count.
+
+**Output expectations:**
+- answer only from known sources or say what is missing
+- include source paths, durable ids, confidence, and warnings where available
+- preserve partial/degraded status instead of smoothing it into certainty
 
 ### inspect / locality
 
@@ -113,7 +127,7 @@ as structured diagnostics and Markdown-safe suggestions.
 ### Source-backed active-note recall
 
 - **input**: `{"query":"What was I circling around last month?","vaultPath":"/Users/sriinnu/Grimoire","activeNotePath":"Journal/2026-05-22.md","limit":5}`
-- **output**: Return a concise answer with source paths and confidence; never invent invisible memory.
+- **output**: Return a concise answer with source paths, confidence, and warnings; never invent invisible memory.
 
 ### Locality firewall check
 
@@ -127,8 +141,10 @@ as structured diagnostics and Markdown-safe suggestions.
 
 ## Anti-Patterns
 
-- Do not bypass Grimoire's Locality Firewall because a cloud model is available.
+- Do not bypass Grimoire's local-only rules because a cloud model is available.
 - Do not treat Git as required for vault creation, opening, search, or saving.
 - Do not sync or export journals, dreams, private diaries, or local-only files by default.
 - Do not return prose that claims source support without source paths or warnings.
 - Do not mutate frontmatter, backlinks, tasks, or note bodies during ingest.
+- Do not claim Grimoire has public installers, update feeds, or public-complete
+  MCP memory/recall/wiki/graph until readiness proof says so.

@@ -13,6 +13,15 @@ function writeReleaseFixture(releasesPath, sigPath, x64SigPath) {
   const winSigPath = sigPath.replace('Grimoire_aarch64.app.tar.gz.sig', 'Grimoire_x64-setup.exe.sig')
   const linuxSigPath = sigPath.replace('Grimoire_aarch64.app.tar.gz.sig', 'grimoire_amd64.AppImage.sig')
   writeFileSync(releasesPath, JSON.stringify([{
+    assets: [],
+    body: 'Source-only release notes.',
+    draft: false,
+    html_url: 'https://github.com/sriinnu/grimoire/releases/tag/source-v1.2.3-abcdef1',
+    name: 'Grimoire source 1.2.3 (abcdef1)',
+    prerelease: false,
+    published_at: '2026-06-02T00:00:00Z',
+    tag_name: 'source-v1.2.3-abcdef1',
+  }, {
     assets: [
       {
         browser_download_url: 'https://example.com/Grimoire_aarch64.app.tar.gz',
@@ -96,6 +105,10 @@ function assertReleasePageOutput(outputDir) {
   }
   if (!existsSync(join(outputDir, 'alpha/download/index.html'))) {
     throw new Error('self-test did not write alpha fallback page')
+  }
+  const indexPage = readFileSync(join(outputDir, 'index.html'), 'utf8')
+  if (!indexPage.includes('Latest source-evaluation release') || !indexPage.includes('/releases/latest')) {
+    throw new Error('self-test expected source release to be shown separately from stable/alpha feeds')
   }
 }
 
