@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 export const CHANNELS = ['stable', 'alpha']
 const PLATFORM_ORDER = ['darwin-aarch64', 'darwin-x86_64', 'windows-x86_64', 'linux-x86_64']
+const SOURCE_RELEASE_PREFIX = 'source-v'
 
 function normalizeText(value) {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
@@ -39,8 +40,10 @@ function normalizeVersion(release) {
 
 function releaseChannel(release) {
   const tag = normalizeText(release.tag_name) ?? ''
+  if (tag.startsWith(SOURCE_RELEASE_PREFIX)) return 'source'
   if (release.prerelease === true || tag.startsWith('alpha-v')) return 'alpha'
-  return 'stable'
+  if (tag.startsWith('stable-v')) return 'stable'
+  return null
 }
 
 function publicReleases(payload) {
@@ -98,6 +101,10 @@ function releaseAssets(release) {
 
 function findLatestReleaseForChannel(releases, channel) {
   return releases.find((release) => releaseChannel(release) === channel) ?? null
+}
+
+function findLatestSourceRelease(releases) {
+  return releases.find((release) => releaseChannel(release) === 'source') ?? null
 }
 
 async function fetchAssetText(asset, token) {
@@ -266,6 +273,21 @@ function buildDownloadPage(channel, manifest) {
 }
 
 function buildIndexPage(releases, manifests) {
+  const sourceRelease = findLatestSourceRelease(releases)
+  const sourceCard = sourceRelease ? `
+    <section class="card">
+      <h2>Source</h2>
+      <p>Latest source-evaluation release: ${escapeHtml(normalizeText(sourceRelease.name) ?? normalizeText(sourceRelease.tag_name) ?? 'source release')}</p>
+      <p>This is the correct GitHub <code>/releases/latest</code> target while signed installers and updater feeds are not published.</p>
+      <div class="downloads">
+        ${sourceRelease.html_url ? `<a href="${escapeHtml(sourceRelease.html_url)}">GitHub latest source release</a>` : ''}
+      </div>
+    </section>` : `
+    <section class="card">
+      <h2>Source</h2>
+      <p>No source release published yet.</p>
+    </section>`
+
   const cards = CHANNELS.map((channel) => {
     const release = findLatestReleaseForChannel(releases, channel)
     const manifest = manifests[channel]
@@ -284,7 +306,8 @@ function buildIndexPage(releases, manifests) {
 
   return pageShell('Grimoire Releases', `
     <h1>Grimoire releases</h1>
-    <p>Release pages are generated from GitHub Release assets and signed updater metadata.</p>
+    <p>Release pages are generated from GitHub Releases. Source releases are source-evaluation snapshots; stable and alpha feeds require signed updater assets.</p>
+    ${sourceCard}
     ${cards}`)
 }
 
