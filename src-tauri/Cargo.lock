@@ -2377,6 +2377,7 @@ dependencies = [
  "tokio",
  "uuid",
  "walkdir",
+ "window-vibrancy",
  "zip 0.6.6",
 ]
 

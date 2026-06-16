@@ -242,11 +242,51 @@ fn setup_macos_webview_shortcut_prevention(
     Ok(())
 }
 
+/// Apply the platform-native window material so the shell uses real system
+/// materials instead of CSS-faked glass: an `NSVisualEffectView` sidebar
+/// material on macOS and Mica on Windows 11. The webview is transparent, so the
+/// material shows through wherever the renderer leaves a translucent surface
+/// (the sidebar). No-op on Linux or when the platform call fails.
+#[cfg(desktop)]
+fn apply_native_window_material(app: &tauri::App) {
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    {
+        use tauri::Manager;
+        let Some(window) = app.get_webview_window("main") else {
+            return;
+        };
+        #[cfg(target_os = "macos")]
+        {
+            use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
+            if let Err(error) = apply_vibrancy(
+                &window,
+                NSVisualEffectMaterial::Sidebar,
+                Some(NSVisualEffectState::Active),
+                None,
+            ) {
+                log::warn!("macOS window vibrancy unavailable: {error}");
+            }
+        }
+        #[cfg(target_os = "windows")]
+        {
+            // Mica follows the system light/dark theme when the tint is None.
+            if let Err(error) = window_vibrancy::apply_mica(&window, None) {
+                log::warn!("Windows Mica material unavailable: {error}");
+            }
+        }
+    }
+    #[cfg(target_os = "linux")]
+    let _ = app;
+}
+
 fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     setup_common_plugins(app)?;
 
     #[cfg(desktop)]
     setup_desktop_plugins(app)?;
+
+    #[cfg(desktop)]
+    apply_native_window_material(app);
 
     if telemetry::init_sentry_from_settings() {
         log::info!("Sentry initialized (crash reporting enabled)");

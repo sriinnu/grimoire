@@ -117,3 +117,42 @@
   background: var(--grimoire-native-titlebar-material) !important;
   border-bottom-color: var(--grimoire-native-titlebar-border) !important;
 }
+
+/*
+ * Real native window vibrancy reveal.
+ *
+ * The Rust shell makes the window transparent and installs a system material
+ * behind the webview (NSVisualEffectView on macOS, Mica on Windows). For that
+ * material to show, the renderer must leave a translucent surface. We reveal it
+ * in the sidebar only — content panels stay fully opaque and readable — and we
+ * drop the CSS-faked `backdrop-filter` glass since the OS now provides the real
+ * blur. Skipped in the "standard" material mode so that opt-out stays opaque.
+ */
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome) {
+  background: transparent;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome) :is(#root, .app-shell) {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Content panels stay opaque so text remains readable over the material. */
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome)
+  :is(.app__note-list, .app__editor, .app__dashboard) {
+  background: var(--surface-app);
+}
+
+/* Sidebar surfaces become translucent so the system material shows through. */
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome)
+  :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+  background: color-mix(in srgb, var(--surface-sidebar) 55%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
