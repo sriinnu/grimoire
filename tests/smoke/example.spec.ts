@@ -56,9 +56,7 @@ test.describe('Keyboard shortcuts smoke tests', () => {
   test('Cmd+P opens quick open palette @smoke', async ({ page }) => {
     await page.locator('body').click()
     await sendShortcut(page, 'p', ['Control'])
-    await expect(
-      page.locator('input[placeholder="Search notes..."]'),
-    ).toBeVisible()
+    await expect(page.getByTestId('quick-open-input')).toBeVisible()
   })
 
   test('Escape closes command palette after Cmd+K', async ({ page }) => {
