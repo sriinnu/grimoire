@@ -1,5 +1,7 @@
 .vault-dashboard {
   box-sizing: border-box;
+  --vault-dashboard-chrome-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --vault-dashboard-title-font: var(--grimoire-display-font-family, 'New York', 'Iowan Old Style', Georgia, ui-serif, serif);
   --vault-dashboard-content-max: 1480px;
   container-name: vault-dashboard;
   container-type: inline-size;
@@ -8,14 +10,15 @@
   min-width: 0;
   padding: var(--grimoire-density-page-padding, 28px);
   color: var(--foreground);
+  font-family: var(--vault-dashboard-chrome-font);
 }
 
 .vault-dashboard__hero {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin: 0 auto 22px;
+  margin: 0 auto 16px;
   width: 100%;
   max-width: var(--vault-dashboard-content-max);
 }
@@ -32,65 +35,41 @@
   color: var(--muted-foreground);
   font-size: 12px;
   font-weight: 650;
-  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .vault-dashboard h1 {
   margin: 0;
+  font-family: var(--vault-dashboard-title-font);
   font-size: 34px;
   line-height: 1.08;
-  font-weight: 760;
+  font-weight: 620;
   letter-spacing: 0;
+}
+
+.vault-dashboard__subtitle {
+  margin: 7px 0 0;
+  max-width: 420px;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .vault-dashboard h2 {
   margin: 2px 0 0;
+  font-family: var(--vault-dashboard-title-font);
   font-size: 17px;
   line-height: 1.25;
-  font-weight: 680;
+  font-weight: 620;
   letter-spacing: 0;
 }
 
-.vault-dashboard__badges,
 .vault-dashboard__capture-kinds,
 .vault-dashboard__capture-actions,
 .vault-dashboard__stats {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.vault-dashboard__badges {
-  margin-top: 14px;
-}
-
-.vault-dashboard__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 26px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0 10px;
-  background: color-mix(in srgb, var(--background) 82%, transparent);
-  color: var(--muted-foreground);
-  font-size: 12px;
-  font-weight: 620;
-}
-
-.vault-dashboard__badge--green {
-  border-color: color-mix(in srgb, var(--accent-green) 38%, var(--border));
-  color: color-mix(in srgb, var(--accent-green) 72%, var(--foreground));
-}
-
-.vault-dashboard__badge--blue {
-  border-color: color-mix(in srgb, var(--accent-blue) 36%, var(--border));
-  color: color-mix(in srgb, var(--accent-blue) 76%, var(--foreground));
-}
-
-.vault-dashboard__badge--orange {
-  border-color: color-mix(in srgb, var(--accent-orange) 45%, var(--border));
-  color: color-mix(in srgb, var(--accent-orange) 82%, var(--foreground));
 }
 
 .vault-dashboard__grid {
@@ -110,14 +89,28 @@
 
 .vault-dashboard__panel,
 .vault-dashboard__stat {
-  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  border: 1px solid var(--grimoire-native-card-border, color-mix(in srgb, var(--border) 88%, transparent));
   border-radius: 8px;
-  background: color-mix(in srgb, var(--card) 88%, var(--background));
-  box-shadow: 0 18px 44px color-mix(in srgb, #000 9%, transparent);
+  background: var(--grimoire-native-card-material, color-mix(in srgb, var(--card) 88%, var(--background)));
+  box-shadow: var(--grimoire-native-card-shadow, 0 12px 30px color-mix(in srgb, #000 5%, transparent));
 }
 
 .vault-dashboard__panel {
   padding: var(--grimoire-density-panel-padding, 16px);
+}
+
+.vault-dashboard__panel--capture {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: clamp(260px, 36vh, 390px);
+  border-color: var(--grimoire-native-card-border, color-mix(in srgb, var(--border) 32%, transparent));
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-blue, var(--primary)) 11%, transparent) 0, color-mix(in srgb, var(--accent-blue, var(--primary)) 11%, transparent) 1px, transparent 1px),
+    var(--grimoire-native-card-material, linear-gradient(180deg, color-mix(in srgb, var(--background) 96%, var(--card) 4%), color-mix(in srgb, var(--background) 78%, var(--card) 22%))),
+    var(--card);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--foreground) 6%, transparent),
+    var(--grimoire-native-card-shadow, 0 8px 22px color-mix(in srgb, #000 3%, transparent));
 }
 
 .vault-dashboard__panel--capture,
@@ -136,36 +129,88 @@
 
 .vault-dashboard__panel-label {
   color: var(--muted-foreground);
-  font-size: 11px;
-  font-weight: 720;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: 0;
 }
 
 .vault-dashboard__capture-form {
   display: grid;
+  grid-template-rows: minmax(178px, 1fr) auto auto auto auto;
   gap: var(--grimoire-density-row-gap, 8px);
+  min-height: 0;
+}
+
+.vault-dashboard__markdown-tools,
+.vault-dashboard__capture-dates,
+.vault-dashboard__template-picker,
+.vault-dashboard__capture-kinds {
+  transition:
+    max-height var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
+    opacity var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
+    transform var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease);
+}
+
+.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__markdown-tools,
+.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__capture-dates,
+.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__template-picker,
+.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__capture-kinds,
+.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__capture-submit {
+  border-width: 0;
+  max-height: 0;
+  margin-block: 0;
+  overflow: hidden;
+  padding-block: 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  visibility: hidden;
 }
 
 .vault-dashboard__markdown-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: -2px;
+  margin-top: -2px;
 }
 
 .vault-dashboard__markdown-tool {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 7px;
   color: var(--muted-foreground);
 }
 
 .vault-dashboard__textarea {
-  min-height: 118px;
+  min-height: clamp(178px, 24vh, 260px);
+  height: 100%;
+  border-color: transparent;
   resize: vertical;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent calc(1.55em - 1px),
+      color-mix(in srgb, var(--border) 26%, transparent) 1.55em
+    ),
+    color-mix(in srgb, var(--background) 88%, var(--card));
+  background-size: 100% 1.55em;
+  font-size: 15px;
   line-height: var(--editor-line-height, 1.44);
+  padding: 18px 18px 18px 22px;
+  box-shadow: none;
+}
+
+.vault-dashboard__new-page-button {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 64%, transparent);
+  color: var(--muted-foreground);
+}
+
+.vault-dashboard__textarea:focus-visible {
+  border-color: color-mix(in srgb, var(--accent-blue, var(--primary)) 28%, var(--border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-blue, var(--primary)) 18%, transparent);
 }
 
 .vault-dashboard__capture-actions {
@@ -175,7 +220,13 @@
 
 .vault-dashboard__capture-pill {
   min-width: 68px;
+  min-height: 34px;
   border-radius: 999px;
+}
+
+.vault-dashboard__capture-submit {
+  min-height: 40px;
+  border-radius: 8px;
 }
 
 .vault-dashboard__loop-list,
@@ -301,52 +352,4 @@
   color: var(--foreground);
   font-size: 13px;
   font-weight: 640;
-}
-
-@media (max-width: 920px) {
-  .vault-dashboard {
-    padding: 18px;
-  }
-
-  .vault-dashboard__hero {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .vault-dashboard__grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .vault-dashboard__panel--capture,
-  .vault-dashboard__dream-forge,
-  .vault-dashboard__panel--wide,
-  .vault-dashboard__stats {
-    grid-column: auto;
-  }
-
-  .vault-dashboard__stats {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
-  }
-}
-
-@container vault-dashboard (max-width: 860px) {
-  .vault-dashboard__hero {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .vault-dashboard__grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .vault-dashboard__panel--capture,
-  .vault-dashboard__dream-forge,
-  .vault-dashboard__panel--wide,
-  .vault-dashboard__stats {
-    grid-column: auto;
-  }
-
-  .vault-dashboard__stats {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
-  }
 }

@@ -66,12 +66,12 @@ describe('ThemePackSettingsControls', () => {
     fireEvent.change(screen.getByTestId('theme-pack-file-input'), { target: { files: [file] } })
 
     await waitFor(() => {
-      expect(screen.getByTestId('theme-pack-message')).toHaveTextContent('Theme rejected:')
+      expect(screen.getByTestId('theme-pack-message')).toHaveTextContent('Experience pack rejected:')
     })
     expect(window.localStorage.getItem(LOCAL_THEME_PACK_STORAGE_KEY)).toBeNull()
   })
 
-  it('reloads the gitignored local theme pack endpoint from Settings', async () => {
+  it('reloads the gitignored local experience pack endpoint from Settings', async () => {
     const fetchThemePack = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -135,7 +135,7 @@ describe('ThemePackSettingsControls', () => {
   it('renders theme-pack controls through the settings translator', () => {
     renderControls(createTranslator('zh-Hans'))
 
-    expect(screen.getByText('主题包')).toBeInTheDocument()
+    expect(screen.getByText('体验包')).toBeInTheDocument()
     expect(screen.getByText('载入 JSON')).toBeInTheDocument()
     expect(screen.getByText('字体角色')).toBeInTheDocument()
     expect(screen.getByLabelText('标题 字体栈')).toBeInTheDocument()

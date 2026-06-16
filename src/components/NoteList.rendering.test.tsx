@@ -16,7 +16,7 @@ describe('NoteList rendering', () => {
 
   it('shows an empty state when there are no entries', () => {
     renderNoteList({ entries: [] })
-    expect(screen.getByText('No notes found')).toBeInTheDocument()
+    expect(screen.getByText('No pages found')).toBeInTheDocument()
   })
 
   it('renders all entries in the all-notes view', () => {
@@ -110,7 +110,7 @@ describe('NoteList rendering', () => {
     expect(screen.getByText('Journal')).toBeInTheDocument()
     fireEvent.click(screen.getByTitle('Search journal entries'))
     expect(screen.getByPlaceholderText('Search journal entries...')).toBeInTheDocument()
-    fireEvent.click(screen.getByTitle('Create journal entry'))
+    fireEvent.click(screen.getByTitle('Create journal page'))
     expect(onCreateNote).toHaveBeenCalledWith('Journal')
   })
 
@@ -122,13 +122,13 @@ describe('NoteList rendering', () => {
     expect(screen.getByText('Dreams')).toBeInTheDocument()
     fireEvent.click(screen.getByTitle('Search dreams'))
     expect(screen.getByPlaceholderText('Search dreams...')).toBeInTheDocument()
-    fireEvent.click(screen.getByTitle('Create dream entry'))
+    fireEvent.click(screen.getByTitle('Create dream page'))
     expect(onCreateNote).toHaveBeenCalledWith('Dream')
   })
 
   it('creates an untyped note from all notes', () => {
     const { onCreateNote } = renderNoteList()
-    fireEvent.click(screen.getByTitle('Create new note'))
+    fireEvent.click(screen.getByTitle('Create new page'))
     expect(onCreateNote).toHaveBeenCalledWith(undefined)
   })
 
@@ -149,9 +149,9 @@ describe('NoteList rendering', () => {
 
   it('toggles the search input from the header action', () => {
     renderNoteList()
-    expect(screen.queryByPlaceholderText('Search notes...')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByTitle('Search notes'))
-    expect(screen.getByPlaceholderText('Search notes...')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Search pages...')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Search pages'))
+    expect(screen.getByPlaceholderText('Search pages...')).toBeInTheDocument()
   })
 
   it('filters by a case-insensitive search query', async () => {
@@ -219,8 +219,8 @@ describe('NoteList rendering', () => {
 
   it('shows search and create actions in the header instead of a count badge', () => {
     renderNoteList()
-    expect(screen.getByTitle('Search notes')).toBeInTheDocument()
-    expect(screen.getByTitle('Create new note')).toBeInTheDocument()
+    expect(screen.getByTitle('Search pages')).toBeInTheDocument()
+    expect(screen.getByTitle('Create new page')).toBeInTheDocument()
   })
 
   it('uses breadcrumbs-like button styling for note-list header actions', () => {
@@ -232,9 +232,9 @@ describe('NoteList rendering', () => {
 
     const buttons = [
       screen.getByTestId('sort-button-__list__'),
-      screen.getByTitle('Search notes'),
+      screen.getByTitle('Search pages'),
       screen.getByTitle('Customize Inbox columns'),
-      screen.getByTitle('Create new note'),
+      screen.getByTitle('Create new page'),
     ]
 
     for (const button of buttons) {
@@ -254,10 +254,10 @@ describe('NoteList rendering', () => {
         ],
       })
 
-      fireEvent.click(screen.getByTitle('Search notes'))
-      fireEvent.change(screen.getByPlaceholderText('Search notes...'), { target: { value: 'strategy' } })
+      fireEvent.click(screen.getByTitle('Search pages'))
+      fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'strategy' } })
 
-      const searchInput = screen.getByPlaceholderText('Search notes...')
+      const searchInput = screen.getByPlaceholderText('Search pages...')
       expect(searchInput).toHaveClass('pr-8')
       expect(searchInput.parentElement).toHaveClass('relative', 'flex-1')
       expect(screen.getByTestId('note-list-search-loading')).toBeInTheDocument()

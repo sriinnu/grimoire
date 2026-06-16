@@ -1,18 +1,8 @@
-import caveatFontUrl from '../../assets/fonts/Caveat-VariableFont_wght.ttf?url'
 import type { EditorFont, ResolvedAppearance, ThemePreset } from './appearance'
 import { resolveThemePresetDefinition } from '../themes/themeRegistry'
 
 export type FontRole = 'ui' | 'editor' | 'mono' | 'display' | 'label'
 export type FontRoleConfig = Record<FontRole, string>
-export type FontAssetId = 'caveat'
-
-export interface FontAssetDefinition {
-  id: FontAssetId
-  family: string
-  source: string
-  format: string
-  descriptors: FontFaceDescriptors
-}
 
 const FONT_ROLE_NAMES: readonly FontRole[] = ['ui', 'editor', 'mono', 'display', 'label']
 
@@ -33,20 +23,6 @@ const READABLE_SANS_FONT =
 const HUMANIST_SANS_FONT =
   "'Avenir Next', Avenir, 'Gill Sans', 'Trebuchet MS', -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
 const SYSTEM_LABEL_FONT = SYSTEM_UI_FONT
-
-export const FONT_ASSETS: Record<FontAssetId, FontAssetDefinition> = {
-  caveat: {
-    id: 'caveat',
-    family: 'Grimoire Caveat',
-    source: caveatFontUrl,
-    format: 'truetype',
-    descriptors: {
-      display: 'swap',
-      style: 'normal',
-      weight: '400 700',
-    },
-  },
-}
 
 const BASE_FONT_ROLES: FontRoleConfig = {
   ui: SYSTEM_UI_FONT,
@@ -73,8 +49,6 @@ const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = 
   },
 }
 
-const loadedFontAssetIds = new Set<FontAssetId>()
-
 /** Resolves the concrete font stacks for each product surface role. */
 export function resolveFontRoles(appearance: ResolvedAppearance): FontRoleConfig {
   return {
@@ -87,9 +61,9 @@ export function resolveFontRoles(appearance: ResolvedAppearance): FontRoleConfig
 }
 
 /** Returns local font asset IDs needed by the selected appearance. */
-export function resolveFontAssetIds(appearance: ResolvedAppearance): FontAssetId[] {
-  const roles = resolveFontRoles(appearance)
-  return Object.values(roles).some((role) => role.includes('Grimoire Caveat')) ? ['caveat'] : []
+export function resolveFontAssetIds(appearance: ResolvedAppearance): never[] {
+  void appearance
+  return []
 }
 
 /** Applies resolved font roles as CSS variables on the root document element. */
@@ -111,32 +85,7 @@ export async function loadFontAssetsForAppearance(
   documentObject: Document,
   appearance: ResolvedAppearance,
 ): Promise<boolean> {
-  const assetIds = resolveFontAssetIds(appearance)
-  if (assetIds.length === 0) return true
-
-  const results = await Promise.all(
-    assetIds.map((assetId) => loadFontAsset(documentObject, FONT_ASSETS[assetId])),
-  )
-  return results.every(Boolean)
-}
-
-async function loadFontAsset(
-  documentObject: Document,
-  asset: FontAssetDefinition,
-): Promise<boolean> {
-  if (loadedFontAssetIds.has(asset.id)) return true
-  if (typeof FontFace === 'undefined') return false
-
-  try {
-    const fontFace = new FontFace(
-      asset.family,
-      `url("${asset.source}") format("${asset.format}")`,
-      asset.descriptors,
-    )
-    documentObject.fonts.add(await fontFace.load())
-    loadedFontAssetIds.add(asset.id)
-    return true
-  } catch {
-    return false
-  }
+  void documentObject
+  void appearance
+  return true
 }

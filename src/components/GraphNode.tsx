@@ -6,6 +6,7 @@ import {
 } from '../utils/graphDisplay'
 
 interface GraphNodeProps {
+  labelVisible: boolean
   localOnly: boolean
   node: PositionedGraphNode
   onOpenNode: (path: string) => void
@@ -21,6 +22,7 @@ interface BadgePosition {
 
 /** Source-safe graph node with local-only, agent-package, and relationship badges. */
 export function GraphNode({
+  labelVisible,
   localOnly,
   node,
   onOpenNode,
@@ -53,6 +55,7 @@ export function GraphNode({
         }
       }}
       data-testid="graph-node"
+      data-label-visible={labelVisible ? 'true' : 'false'}
       className={cn(
         'grimoire-graph-node cursor-pointer',
         node.active && 'grimoire-graph-node--active',
@@ -93,6 +96,7 @@ export function GraphNode({
         node={node}
         selected={selected}
         typeWidth={typeWidth}
+        visible={labelVisible}
       />
       {node.degree > 0 ? <DegreeBadge count={node.degree} position={degreeBadge} /> : null}
     </g>
@@ -175,16 +179,18 @@ function NodeLabel({
   node,
   selected,
   typeWidth,
+  visible,
 }: {
   label: string
   labelWidth: number
   node: PositionedGraphNode
   selected: boolean
   typeWidth: number
+  visible: boolean
 }) {
   const emphasized = node.active || selected
   return (
-    <>
+    <g className={cn('grimoire-graph-node-label', !visible && 'grimoire-graph-node-label--quiet')}>
       <rect
         className="grimoire-graph-node-title-backdrop"
         x={node.x - labelWidth / 2}
@@ -222,7 +228,7 @@ function NodeLabel({
       >
         {node.type}
       </text>
-    </>
+    </g>
   )
 }
 

@@ -1,10 +1,12 @@
-import { ArrowRight, Brain, Feather, ListChecks, Lock, Sparkles } from 'lucide-react'
+import { ArrowRight, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { AttentionModeSuggestion } from '../../lib/attentionMode'
 import type { CaptureKind } from '../../utils/dashboardCapture'
 import type { DailyBrief, DashboardSummary } from '../../utils/dashboardModel'
 import { flowKindForCaptureKind, type DashboardFlowKind } from './DashboardTodayRunwayModel'
 import './DashboardTodayRunway.css'
+import './DashboardTodayRunwayMotion.css'
+import './DashboardTodayRunwayResponsive.css'
 
 interface DashboardTodayRunwayProps {
   attention: AttentionModeSuggestion
@@ -21,10 +23,10 @@ interface DashboardTodayRunwayProps {
 }
 
 const flowSteps = [
-  { kind: 'note', label: 'Capture', detail: 'Drop the thought.', icon: Feather },
-  { kind: 'journal', label: 'Reflect', detail: 'Tell the truth.', icon: Brain },
-  { kind: 'task', label: 'Organize', detail: 'Pick the next move.', icon: ListChecks },
-  { kind: 'ask', label: 'Crystallize', detail: 'Ask, then review.', icon: Sparkles },
+  { kind: 'note', label: 'Write', detail: 'Let the thought land.' },
+  { kind: 'journal', label: 'Notice', detail: 'Tell the truth.' },
+  { kind: 'revisit', label: 'Gather', detail: 'Carry one page forward.' },
+  { kind: 'ask', label: 'Remember', detail: 'Ask, then decide.' },
 ] as const
 type FlowStepState = 'done' | 'next' | 'open'
 
@@ -33,13 +35,29 @@ function reviewLabel(count: number, lane: string): string {
   return `${count} ${lane} review${count === 1 ? '' : 's'}`
 }
 
+function loopLabel(count: number): string {
+  if (count === 0) return 'Pages clear'
+  return 'Pages to revisit'
+}
+
+function isCalmBriefItem(item: string): boolean {
+  if (/^\d+ pages? waiting$/iu.test(item)) return false
+  if (/^\d+ (notes?|people|projects?|tasks?|events?|checkpoints?)$/iu.test(item)) return false
+  return true
+}
+
+function calmBriefItems(items: string[]): string[] {
+  const quieterItems = items.filter(isCalmBriefItem).slice(0, 3)
+  return quieterItems.length > 0 ? quieterItems : ['Capture freely']
+}
+
 function attentionFlowKind(
   summary: DashboardTodayRunwayProps['summary'],
   captureKind: CaptureKind | null,
 ): DashboardFlowKind | null {
   const captureFlowKind = flowKindForCaptureKind(captureKind)
   if (captureFlowKind) return captureFlowKind
-  if (summary.memoryQueueCount > 0 || summary.mobileReviewCount > 0) return 'task'
+  if (summary.memoryQueueCount > 0 || summary.mobileReviewCount > 0) return 'revisit'
   return null
 }
 
@@ -53,7 +71,7 @@ function nextFlowKind(
     if (attentionKind) return attentionKind
   }
   if (!summary.hasJournalToday) return 'journal'
-  if (summary.openLoopCount > 0 || summary.memoryQueueCount > 0 || summary.mobileReviewCount > 0) return 'task'
+  if (summary.openLoopCount > 0 || summary.memoryQueueCount > 0 || summary.mobileReviewCount > 0) return 'revisit'
   if (summary.crystallizedTodayCount === 0) return 'ask'
   return 'note'
 }
@@ -61,7 +79,7 @@ function nextFlowKind(
 function stepState(kind: DashboardFlowKind, nextKind: DashboardFlowKind, summary: DashboardTodayRunwayProps['summary']): FlowStepState {
   if (kind === 'journal' && summary.hasJournalToday) return 'done'
   if (kind === nextKind) return 'next'
-  if (kind === 'task' && summary.hasJournalToday && summary.memoryQueueCount === 0 && summary.mobileReviewCount === 0) {
+  if (kind === 'revisit' && summary.hasJournalToday && summary.memoryQueueCount === 0 && summary.mobileReviewCount === 0) {
     return 'done'
   }
   if (kind === 'ask' && summary.crystallizedTodayCount > 0) return 'done'
@@ -73,9 +91,9 @@ function nextActionCopy(
   summary: DashboardTodayRunwayProps['summary'],
   actionLabel: string | null,
 ): string {
-  if (nextKind === 'task' && summary.memoryQueueCount > 0) return 'Review memory'
-  if (nextKind === 'task' && summary.mobileReviewCount > 0) return 'Review mobile'
-  if (nextKind === 'task' && actionLabel) return actionLabel
+  if (nextKind === 'revisit' && summary.memoryQueueCount > 0) return 'Review memory'
+  if (nextKind === 'revisit' && summary.mobileReviewCount > 0) return 'Review mobile'
+  if (nextKind === 'revisit' && actionLabel) return actionLabel
   return flowSteps.find(step => step.kind === nextKind)?.label ?? 'Capture'
 }
 
@@ -87,10 +105,10 @@ function stepDetail(
   summary: DashboardTodayRunwayProps['summary'],
   actionLabel: string | null,
 ): string {
-  if (state === 'done') return kind === 'task' ? 'Clear.' : 'Done today.'
+  if (state === 'done') return kind === 'revisit' ? 'Held.' : 'Touched today.'
   if (kind === nextKind && actionLabel) return actionLabel
-  if (kind === 'ask' && summary.crystallizedTodayCount === 0) return 'Review next.'
-  if (kind === 'journal' && !summary.hasJournalToday) return 'Due now.'
+  if (kind === 'ask' && summary.crystallizedTodayCount === 0) return 'Remember next.'
+  if (kind === 'journal' && !summary.hasJournalToday) return 'Open today.'
   return detail
 }
 
@@ -106,25 +124,23 @@ export function DashboardTodayRunway({
   selectedFlowKind,
   summary,
 }: DashboardTodayRunwayProps) {
-  const items = brief.supportingItems.length > 0 ? brief.supportingItems : ['Capture freely']
+  const items = calmBriefItems(brief.supportingItems.length > 0 ? brief.supportingItems : ['Capture freely'])
   const attentionKind = attentionFlowKind(summary, attentionCaptureKind)
   const nextKind = nextFlowKind(summary, canUseAttentionAction, attentionCaptureKind)
   const flowState = flowSteps.map(step => stepState(step.kind, nextKind, summary))
-  const settledCount = flowState.filter(state => state === 'done').length
+  const heldCount = flowState.filter(state => state === 'done').length
   const nextAction = nextActionCopy(nextKind, summary, attention.actionLabel)
-  const progressValue = Math.min(flowSteps.length, Math.max(0, settledCount))
+  const progressValue = Math.min(flowSteps.length, Math.max(0, heldCount))
   const showAction = !!attention.actionLabel && canUseAttentionAction
   const activeFlowKind = selectedFlowKind ?? nextKind
 
-  function runStep(kind: CaptureKind) {
-    const flowKind = flowKindForCaptureKind(kind)
-    if (!flowKind) return
-    onSelectFlowKind(flowKind)
-    if (flowKind === attentionKind && canUseAttentionAction) {
+  function runStep(kind: DashboardFlowKind) {
+    onSelectFlowKind(kind)
+    if (kind === attentionKind && canUseAttentionAction) {
       onAttentionAction()
       return
     }
-    onSeedPrompt(kind)
+    onSeedPrompt(kind === 'revisit' ? 'task' : kind)
   }
 
   return (
@@ -133,24 +149,18 @@ export function DashboardTodayRunway({
       data-testid="dashboard-today-runway"
     >
       <div className="vault-dashboard__today-runway-shell">
-        <div className="vault-dashboard__assistant-lines" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
         <div data-testid="dashboard-assistant-brief" data-private-held={brief.privateHeldCount}>
           <div className="vault-dashboard__assistant-head">
             <div>
               <div className="vault-dashboard__panel-label vault-dashboard__assistant-label">
-                <Sparkles size={13} />
-                Today Runway
+                Today
               </div>
               <h2>{brief.primaryLabel}</h2>
             </div>
             <div className="vault-dashboard__assistant-actions">
               <div className="vault-dashboard__assistant-lock">
                 <Lock size={14} />
-                Local metadata
+                Private
               </div>
               {showAction ? (
                 <Button
@@ -170,26 +180,23 @@ export function DashboardTodayRunway({
             aria-label="One next action"
             data-testid="dashboard-one-next-action"
           >
-            <span>Attention Mode</span>
+            <span>Return</span>
             <strong>{attention.title}</strong>
             <p>{attention.detail}</p>
           </div>
           <div className="vault-dashboard__assistant-items" aria-label="Today brief">
             {items.map((item) => (
-              <span key={item}>
-                <Brain size={13} />
-                {item}
-              </span>
+              <span key={item}>{item}</span>
             ))}
           </div>
         </div>
         <div className="vault-dashboard__flow" data-testid="dashboard-daily-flow">
           <div className="vault-dashboard__flow-copy">
-            <div className="vault-dashboard__panel-label">Daily Flow</div>
-            <h2>Capture, reflect, organize, crystallize.</h2>
-            <div className="vault-dashboard__flow-runway" aria-label="Daily flow runway">
+            <div className="vault-dashboard__panel-label">Today</div>
+            <h2>One page at a time.</h2>
+            <div className="vault-dashboard__flow-runway" aria-label="Daily rhythm rail">
               <span>Next: {nextAction}</span>
-              <strong>{settledCount} of {flowSteps.length} settled</strong>
+              <strong>{heldCount} of {flowSteps.length} held</strong>
             </div>
             <div
               className="vault-dashboard__flow-meter"
@@ -199,17 +206,17 @@ export function DashboardTodayRunway({
             >
               {flowSteps.map(({ kind }) => <span key={kind} data-state={stepState(kind, nextKind, summary)} />)}
             </div>
-            <div className="vault-dashboard__flow-states" aria-label="Daily flow state">
-              <span>{summary.hasJournalToday ? 'Journal touched' : 'Journal due'}</span>
+            <div className="vault-dashboard__flow-states" aria-label="Daily rhythm state">
+              <span>{summary.hasJournalToday ? 'Journal touched' : 'Journal open'}</span>
               <span>{summary.hasDreamToday ? 'Dream caught' : 'Dream open'}</span>
-              <span>{summary.openLoopCount} loops</span>
+              <span>{loopLabel(summary.openLoopCount)}</span>
               <span>{reviewLabel(summary.memoryQueueCount, 'memory')}</span>
               <span>{reviewLabel(summary.mobileReviewCount, 'mobile')}</span>
-              <span>{summary.crystallizedTodayCount > 0 ? 'Crystallized today' : 'Crystallize open'}</span>
+              <span>{summary.crystallizedTodayCount > 0 ? 'Remembered today' : 'Remember next'}</span>
             </div>
           </div>
           <div className="vault-dashboard__flow-steps">
-            {flowSteps.map(({ detail, icon: Icon, kind, label }) => {
+            {flowSteps.map(({ detail, kind, label }) => {
               const state = stepState(kind, nextKind, summary)
               const selected = activeFlowKind === kind
               return (
@@ -224,7 +231,6 @@ export function DashboardTodayRunway({
                   data-selected={selected ? 'true' : 'false'}
                   data-state={state}
                 >
-                  <Icon size={16} />
                   <span>
                     <strong>{label}</strong>
                     <small>{stepDetail(kind, nextKind, state, detail, summary, attention.actionLabel)}</small>

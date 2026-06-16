@@ -102,7 +102,7 @@ export function FavoritesSection({
 
   return (
     <div style={{ padding: '0 6px' }}>
-      <SidebarGroupHeader label="FAVORITES" collapsed={collapsed} onToggle={onToggle} count={favorites.length} />
+      <SidebarGroupHeader label="Favorites" collapsed={collapsed} onToggle={onToggle} count={favorites.length} />
       {!collapsed && favoriteList}
     </div>
   )

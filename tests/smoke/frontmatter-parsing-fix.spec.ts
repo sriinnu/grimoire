@@ -42,7 +42,7 @@ test.describe('Frontmatter parsing: type badge displays correctly', () => {
 
   test('sidebar shows type sections', async ({ page }) => {
     // Sidebar sections are rendered as nav items — look for them in the page
-    await expect(page.locator('text=Projects').first()).toBeVisible({ timeout: 3000 })
-    await expect(page.locator('text=Responsibilities').first()).toBeVisible({ timeout: 3000 })
+    await expect(page.locator('text=Making').first()).toBeVisible({ timeout: 3000 })
+    await expect(page.locator('text=Care').first()).toBeVisible({ timeout: 3000 })
   })
 })

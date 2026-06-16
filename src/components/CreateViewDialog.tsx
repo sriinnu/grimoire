@@ -76,14 +76,15 @@ function CreateViewDialogForm({
       <div className="flex gap-2">
         <div className="w-16 space-y-1.5 relative">
           <label className="text-xs font-medium text-muted-foreground">Icon</label>
-          <button
+          <Button
             type="button"
+            variant="outline"
             className="flex h-9 w-full items-center justify-center rounded-md border border-input bg-background text-xl cursor-pointer hover:bg-accent transition-colors"
             onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             title="Pick icon"
           >
             {icon || <span className="text-sm text-muted-foreground">📋</span>}
-          </button>
+          </Button>
           {showEmojiPicker && (
             <EmojiPicker onSelect={handleSelectEmoji} onClose={handleCloseEmojiPicker} />
           )}
@@ -123,9 +124,9 @@ export function CreateViewDialog({ open, onClose, onCreate, availableFields, edi
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
       <DialogContent showCloseButton={false} className="flex max-h-[80vh] flex-col sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit View' : 'Create View'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Lens' : 'Create Lens'}</DialogTitle>
           <DialogDescription className="sr-only">
-            {isEditing ? 'Update the name, icon, and filters for this saved view.' : 'Create a saved view by choosing a name, icon, and filter rules.'}
+            {isEditing ? 'Update the name, icon, and filters for this lens.' : 'Create a lens by choosing a name, icon, and filter rules.'}
           </DialogDescription>
         </DialogHeader>
         {open && (

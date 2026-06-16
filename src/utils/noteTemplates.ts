@@ -24,7 +24,7 @@ export interface DashboardTemplateOption {
 }
 
 export const JOURNAL_TEMPLATE_OPTIONS: DashboardTemplateOption[] = [
-  { id: 'daily', label: 'Daily', detail: 'Mood, open loops, tomorrow' },
+  { id: 'daily', label: 'Daily', detail: 'Mood, waiting threads, tomorrow' },
   { id: 'evening', label: 'Evening', detail: 'Energy, decisions, release' },
   { id: 'weekly', label: 'Weekly', detail: 'Patterns and next week' },
   { id: 'decision', label: 'Decision', detail: 'Choice with revisit point' },

@@ -22,6 +22,7 @@ class MockWebSocket {
 beforeEach(() => {
   lastWsInstance = null
   visibilityState = 'visible'
+  vi.stubGlobal('__TAURI_INTERNALS__', { invoke: vi.fn() })
   vi.stubGlobal('WebSocket', MockWebSocket)
   vi.spyOn(document, 'visibilityState', 'get').mockImplementation(() => visibilityState)
   vi.useFakeTimers()
@@ -30,6 +31,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers()
   vi.unstubAllGlobals()
+  delete window.__grimoireTest
 })
 
 function sendWsMessage(data: Record<string, unknown>) {
@@ -41,6 +43,24 @@ describe('useAiActivity', () => {
     const { result } = renderHook(() => useAiActivity())
     expect(result.current.highlightElement).toBeNull()
     expect(result.current.highlightPath).toBeNull()
+  })
+
+  it('does not open the bridge socket in plain browser mode', () => {
+    vi.stubGlobal('__TAURI_INTERNALS__', undefined)
+
+    renderHook(() => useAiActivity())
+
+    expect(lastWsInstance).toBeNull()
+  })
+
+  it('allows explicit browser test bridge sessions without Tauri', () => {
+    vi.stubGlobal('__TAURI_INTERNALS__', undefined)
+    window.__grimoireTest = { ...window.__grimoireTest, enableAiActivityBridge: true }
+
+    renderHook(() => useAiActivity())
+
+    expect(lastWsInstance).not.toBeNull()
+    expect(lastWsInstance!.url).toBe('ws://localhost:9711')
   })
 
   it('connects to ws://localhost:9711', () => {

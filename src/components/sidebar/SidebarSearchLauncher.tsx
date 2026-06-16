@@ -18,7 +18,7 @@ function keyboardSeed(event: KeyboardEvent<HTMLInputElement>): string | null {
   return event.key.length === 1 ? event.key : null
 }
 
-/** Opens the open-vault Spotlight search from the left sidebar. */
+/** Opens the notebook Spotlight search from the left sidebar. */
 export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherProps) {
   if (!onOpenSearch) return null
   const searchShortcut = getAppCommandShortcutDisplay(APP_COMMAND_IDS.editFindInVault)
@@ -44,8 +44,8 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
           type="search"
           readOnly
           value=""
-          placeholder="Search open vaults..."
-          className="h-10 cursor-pointer rounded-xl border-border/75 bg-background/75 pl-9 pr-20 text-[12px] font-semibold text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
+          placeholder="Search"
+          className="h-10 cursor-pointer rounded-xl border-border/75 bg-background/75 pl-9 pr-16 text-[12px] font-semibold text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
           onClick={() => onOpenSearch()}
           onKeyDown={(event) => {
             const seed = keyboardSeed(event)
@@ -54,8 +54,8 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
             onOpenSearch(seed)
           }}
           aria-keyshortcuts={ariaSearchShortcut()}
-          aria-label="Search open vaults"
-          title="Search open vaults"
+          aria-label="Search notebook"
+          title="Search notebook"
           data-testid="sidebar-search-input"
         />
       </div>

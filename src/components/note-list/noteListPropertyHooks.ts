@@ -289,7 +289,7 @@ export function useListPropertyPicker({
       noteListProperties: allNotesNoteListProperties,
       defaultDisplay: allNotesState.defaultDisplay,
       onSave: onUpdateAllNotesNoteListProperties,
-      triggerTitle: 'Customize All Notes columns',
+      triggerTitle: 'Customize Pages columns',
     }) ?? buildFilterPropertyPicker({
       scope: 'inbox',
       isActive: isInboxView,

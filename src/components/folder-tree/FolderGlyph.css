@@ -1,24 +1,14 @@
 .folder-glyph {
   --folder-glyph-tone: var(--sidebar-primary);
-  --folder-glyph-bright: var(--sidebar-primary-foreground);
-  --folder-glyph-ink: color-mix(in srgb, var(--folder-glyph-tone) 82%, var(--sidebar-foreground));
-  --folder-glyph-line: color-mix(in srgb, var(--folder-glyph-tone) 36%, var(--sidebar-border));
-  --folder-glyph-secondary: var(--accent-teal);
-  --folder-glyph-soft: color-mix(in srgb, var(--folder-glyph-tone) 14%, transparent);
-  --folder-glyph-warm: var(--accent-yellow);
+  --folder-glyph-ink: color-mix(in srgb, var(--folder-glyph-tone) 76%, var(--sidebar-foreground));
+  --folder-glyph-line: color-mix(in srgb, var(--folder-glyph-tone) 24%, var(--sidebar-border));
+  --folder-glyph-surface: color-mix(in srgb, var(--folder-glyph-tone) 8%, transparent);
   align-items: center;
   aspect-ratio: 1;
-  background:
-    radial-gradient(circle at 30% 20%, color-mix(in srgb, #fff 28%, transparent), transparent 52%),
-    radial-gradient(circle at 18% 88%, color-mix(in srgb, var(--folder-glyph-secondary) 22%, transparent), transparent 50%),
-    radial-gradient(circle at 72% 78%, color-mix(in srgb, var(--folder-glyph-tone) 24%, transparent), transparent 64%),
-    linear-gradient(145deg, color-mix(in srgb, var(--folder-glyph-tone) 20%, transparent), transparent 72%),
-    var(--folder-glyph-soft);
+  background: var(--folder-glyph-surface);
   border: 1px solid var(--folder-glyph-line);
   border-radius: 8px;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff 10%, transparent),
-    0 5px 10px color-mix(in srgb, var(--folder-glyph-tone) 16%, transparent);
+  box-shadow: none;
   color: var(--folder-glyph-ink);
   display: inline-grid;
   flex: 0 0 22px;
@@ -27,363 +17,67 @@
   overflow: hidden;
   position: relative;
   transition:
-    background 160ms ease,
+    background-color 160ms ease,
     border-color 160ms ease,
-    box-shadow 160ms ease,
     color 160ms ease,
     transform 160ms ease;
   width: 22px;
 }
 
-.folder-glyph::before {
-  background:
-    conic-gradient(
-      from 135deg,
-      color-mix(in srgb, var(--folder-glyph-tone) 46%, transparent),
-      color-mix(in srgb, var(--accent-teal) 24%, transparent),
-      color-mix(in srgb, var(--folder-glyph-tone) 18%, transparent),
-      color-mix(in srgb, var(--folder-glyph-tone) 46%, transparent)
-    );
-  border-radius: inherit;
-  content: "";
-  inset: 1px;
-  mask-image: radial-gradient(circle at 50% 50%, transparent 42%, #000 43%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent 42%, #000 43%);
-  opacity: 0.48;
-  position: absolute;
-}
-
-.folder-glyph::after {
-  background: color-mix(in srgb, var(--folder-glyph-tone) 88%, #fff);
-  border-radius: 999px;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--folder-glyph-tone) 36%, transparent);
-  content: "";
-  height: 3px;
-  opacity: 0.72;
-  position: absolute;
-  right: 3px;
-  top: 3px;
-  width: 3px;
-}
-
-.folder-glyph > svg {
-  filter:
-    drop-shadow(0 1px 0 color-mix(in srgb, var(--folder-glyph-bright) 12%, transparent))
-    drop-shadow(0 0 5px color-mix(in srgb, var(--folder-glyph-secondary) 18%, transparent));
+.folder-glyph__icon {
+  filter: none;
   height: 16px;
   position: relative;
   transition: transform 180ms ease;
   width: 16px;
-  z-index: 2;
 }
 
-.folder-glyph__bead,
-.folder-glyph__constellation,
-.folder-glyph__route,
-.folder-glyph__spark,
-.folder-glyph__thread {
-  pointer-events: none;
-  position: absolute;
+.folder-glyph[data-folder-glyph-tone="veda"],
+.folder-glyph[data-folder-glyph-tone="star"],
+.folder-glyph[data-folder-glyph-tone="vault"] {
+  --folder-glyph-tone: var(--accent-yellow);
 }
 
-.folder-glyph__route {
-  background:
-    linear-gradient(90deg, transparent, color-mix(in srgb, var(--folder-glyph-tone) 58%, #fff), transparent),
-    color-mix(in srgb, var(--folder-glyph-tone) 28%, transparent);
-  border-radius: 999px;
-  bottom: 4px;
-  height: 1px;
-  left: 4px;
-  opacity: 0.72;
-  transform: scaleX(0.68);
-  transform-origin: left center;
-  width: 14px;
+.folder-glyph[data-folder-glyph-tone="shaastra"],
+.folder-glyph[data-folder-glyph-tone="rishi"],
+.folder-glyph[data-folder-glyph-tone="agent"],
+.folder-glyph[data-folder-glyph-tone="storage"],
+.folder-glyph[data-folder-glyph-tone="dev"],
+.folder-glyph[data-folder-glyph-tone="data"],
+.folder-glyph[data-folder-glyph-tone="research"],
+.folder-glyph[data-folder-glyph-tone="template"] {
+  --folder-glyph-tone: var(--accent-blue);
 }
 
-.folder-glyph__thread {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--folder-glyph-secondary) 76%, transparent), transparent),
-    color-mix(in srgb, var(--folder-glyph-warm) 22%, transparent);
-  border-radius: 999px;
-  height: 1px;
-  left: 5px;
-  opacity: 0.62;
-  top: 8px;
-  transform: rotate(-32deg) scaleX(0.72);
-  transform-origin: left center;
-  width: 15px;
-  z-index: 1;
-}
-
-.folder-glyph__bead {
-  background: color-mix(in srgb, var(--folder-glyph-secondary) 82%, var(--folder-glyph-bright));
-  border-radius: 999px;
-  box-shadow: 0 0 8px color-mix(in srgb, var(--folder-glyph-secondary) 42%, transparent);
-  height: 2.5px;
-  opacity: 0.8;
-  width: 2.5px;
-  z-index: 1;
-}
-
-.folder-glyph__bead--near {
-  left: 5px;
-  top: 13px;
-}
-
-.folder-glyph__bead--far {
-  background: color-mix(in srgb, var(--folder-glyph-warm) 82%, var(--folder-glyph-bright));
-  bottom: 5px;
-  right: 5px;
-}
-
-.folder-glyph__spark {
-  background: color-mix(in srgb, var(--folder-glyph-warm) 72%, var(--folder-glyph-bright));
-  border-radius: 999px;
-  box-shadow:
-    -5px 8px 0 -1.4px color-mix(in srgb, var(--folder-glyph-secondary) 42%, transparent),
-    0 0 10px color-mix(in srgb, var(--folder-glyph-warm) 44%, transparent);
-  height: 2px;
-  opacity: 0.8;
-  right: 4px;
-  top: 5px;
-  width: 2px;
-}
-
-.folder-glyph__constellation {
-  border-bottom: 1px solid color-mix(in srgb, var(--folder-glyph-secondary) 48%, transparent);
-  border-left: 1px solid color-mix(in srgb, var(--folder-glyph-tone) 42%, transparent);
-  height: 7px;
-  left: 6px;
-  opacity: 0.42;
-  top: 6px;
-  transform: skewX(-18deg) rotate(-8deg);
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-  width: 9px;
-  z-index: 1;
-}
-
-.folder-glyph__constellation::before,
-.folder-glyph__constellation::after {
-  background: color-mix(in srgb, var(--folder-glyph-secondary) 76%, var(--folder-glyph-bright));
-  border-radius: 999px;
-  box-shadow: 0 0 7px color-mix(in srgb, var(--folder-glyph-secondary) 34%, transparent);
-  content: "";
-  height: 2px;
-  position: absolute;
-  width: 2px;
-}
-
-.folder-glyph__constellation::before {
-  left: -1px;
-  top: -1px;
-}
-
-.folder-glyph__constellation::after {
-  background: color-mix(in srgb, var(--folder-glyph-warm) 78%, var(--folder-glyph-bright));
-  bottom: -1px;
-  right: -1px;
-}
-
-.folder-glyph[data-folder-glyph-tone="veda"] {
-  --folder-glyph-tone: var(--art-veda, var(--accent-yellow));
-  --folder-glyph-secondary: var(--art-rishi, var(--accent-purple));
-}
-
-.folder-glyph[data-folder-glyph-tone="shaastra"] {
-  --folder-glyph-tone: var(--art-shastra, var(--accent-blue));
-  --folder-glyph-secondary: var(--accent-blue);
-  --folder-glyph-warm: var(--art-veda, var(--accent-yellow));
-}
-
-.folder-glyph[data-folder-glyph-tone="purana"] {
-  --folder-glyph-tone: var(--art-purana, var(--accent-purple));
-  --folder-glyph-secondary: var(--art-rishi, var(--accent-teal));
-}
-
-.folder-glyph[data-folder-glyph-tone="rishi"] {
-  --folder-glyph-tone: var(--art-rishi, var(--accent-teal));
-  --folder-glyph-secondary: var(--art-spark, var(--accent-yellow));
-}
-
-.folder-glyph[data-folder-glyph-tone="brain"] {
-  --folder-glyph-tone: var(--art-second-brain, var(--accent-purple));
-  --folder-glyph-secondary: var(--art-brain, var(--accent-teal));
-}
-
-.folder-glyph[data-folder-glyph-tone="star"] {
-  --folder-glyph-tone: var(--art-spark, var(--accent-yellow));
-  --folder-glyph-secondary: var(--accent-blue);
-}
-
-.folder-glyph[data-folder-glyph-tone="agent"] {
-  --folder-glyph-tone: var(--accent-teal);
-  --folder-glyph-secondary: var(--art-second-brain, var(--accent-purple));
-  --folder-glyph-warm: var(--art-spark, var(--accent-yellow));
-}
-
-.folder-glyph[data-folder-glyph-tone="storage"] {
-  --folder-glyph-tone: var(--accent-green);
-  --folder-glyph-secondary: var(--accent-blue);
-  --folder-glyph-warm: var(--accent-yellow);
+.folder-glyph[data-folder-glyph-tone="purana"],
+.folder-glyph[data-folder-glyph-tone="brain"],
+.folder-glyph[data-folder-glyph-tone="journal"],
+.folder-glyph[data-folder-glyph-tone="private"] {
+  --folder-glyph-tone: var(--accent-purple);
 }
 
 .folder-glyph[data-folder-glyph-tone="docs"] {
-  --folder-glyph-tone: var(--art-shastra, var(--accent-orange));
-  --folder-glyph-secondary: var(--accent-purple);
-}
-
-.folder-glyph[data-folder-glyph-tone="dev"] {
-  --folder-glyph-tone: var(--accent-blue);
-  --folder-glyph-secondary: var(--accent-teal);
-}
-
-.folder-glyph[data-folder-glyph-tone="data"] {
-  --folder-glyph-tone: var(--accent-green);
-  --folder-glyph-secondary: var(--accent-blue);
-}
-
-.folder-glyph[data-folder-glyph-tone="journal"] {
-  --folder-glyph-tone: var(--accent-purple);
-  --folder-glyph-secondary: var(--art-rishi, var(--accent-teal));
-}
-
-.folder-glyph[data-folder-glyph-tone="vault"] {
-  --folder-glyph-tone: var(--art-veda, var(--accent-yellow));
-  --folder-glyph-secondary: var(--accent-teal);
-  --folder-glyph-warm: var(--art-spark, var(--accent-yellow));
-}
-
-.folder-glyph[data-folder-glyph-tone="private"] {
-  --folder-glyph-tone: var(--accent-purple);
-  --folder-glyph-secondary: var(--art-rishi, var(--accent-teal));
-  --folder-glyph-warm: var(--accent-blue);
-}
-
-.folder-glyph[data-folder-glyph-tone="research"] {
-  --folder-glyph-tone: var(--accent-blue);
-  --folder-glyph-secondary: var(--art-spark, var(--accent-yellow));
-}
-
-.folder-glyph[data-folder-glyph-tone="template"] {
-  --folder-glyph-tone: var(--accent-teal);
-  --folder-glyph-secondary: var(--accent-blue);
-}
-
-.folder-glyph[data-folder-glyph="agent"] .folder-glyph__constellation {
-  border-bottom-color: color-mix(in srgb, var(--folder-glyph-warm) 48%, transparent);
-  transform: skewX(14deg) rotate(10deg);
-}
-
-.folder-glyph[data-folder-glyph="storage"] .folder-glyph__thread {
-  top: 11px;
-  transform: rotate(0deg) scaleX(0.78);
-}
-
-.folder-glyph[data-folder-glyph="star"] .folder-glyph__constellation {
-  border-left-color: color-mix(in srgb, var(--folder-glyph-warm) 54%, transparent);
-  transform: skewX(-10deg) rotate(24deg);
+  --folder-glyph-tone: var(--accent-orange);
 }
 
 .folder-glyph[data-open="true"],
 .folder-glyph[data-selected="true"] {
-  --folder-glyph-soft: color-mix(in srgb, var(--folder-glyph-tone) 22%, transparent);
-  border-color: color-mix(in srgb, var(--folder-glyph-tone) 58%, var(--sidebar-border));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff 12%, transparent),
-    0 7px 14px color-mix(in srgb, var(--folder-glyph-tone) 22%, transparent);
+  --folder-glyph-surface: color-mix(in srgb, var(--folder-glyph-tone) 14%, transparent);
+  border-color: color-mix(in srgb, var(--folder-glyph-tone) 38%, var(--sidebar-border));
   transform: translateY(-0.5px);
 }
 
-.folder-glyph[data-open="true"] .folder-glyph__route,
-.folder-glyph[data-selected="true"] .folder-glyph__route {
-  animation: folder-glyph-route-arrive 420ms ease-out both;
-  transform: scaleX(1);
-}
-
-.folder-glyph[data-open="true"] .folder-glyph__thread,
-.folder-glyph[data-selected="true"] .folder-glyph__thread {
-  opacity: 0.86;
-  transform: rotate(-32deg) scaleX(1);
-}
-
-.folder-glyph[data-folder-glyph="storage"][data-open="true"] .folder-glyph__thread,
-.folder-glyph[data-folder-glyph="storage"][data-selected="true"] .folder-glyph__thread {
-  transform: rotate(0deg) scaleX(1);
-}
-
-.folder-glyph[data-open="true"] .folder-glyph__bead,
-.folder-glyph[data-selected="true"] .folder-glyph__bead {
-  animation: folder-glyph-signal-pop 360ms ease-out both;
-}
-
-.folder-glyph[data-open="true"] .folder-glyph__constellation,
-.folder-glyph[data-selected="true"] .folder-glyph__constellation {
-  opacity: 0.72;
-  transform: skewX(-18deg) rotate(-8deg) scale(1.08);
-}
-
-.folder-glyph[data-folder-glyph="agent"][data-open="true"] .folder-glyph__constellation,
-.folder-glyph[data-folder-glyph="agent"][data-selected="true"] .folder-glyph__constellation {
-  transform: skewX(14deg) rotate(10deg) scale(1.08);
-}
-
-.folder-glyph[data-folder-glyph="star"][data-open="true"] .folder-glyph__constellation,
-.folder-glyph[data-folder-glyph="star"][data-selected="true"] .folder-glyph__constellation {
-  transform: skewX(-10deg) rotate(24deg) scale(1.08);
-}
-
-.folder-glyph[data-open="true"] > svg,
-.folder-glyph[data-selected="true"] > svg {
-  transform: scale(1.04);
+.folder-glyph[data-open="true"] .folder-glyph__icon,
+.folder-glyph[data-selected="true"] .folder-glyph__icon {
+  transform: scale(1.02);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .folder-glyph,
+  .folder-glyph__icon,
   .folder-glyph[data-open="true"],
   .folder-glyph[data-selected="true"] {
     transition-duration: 0ms;
     transform: none;
-  }
-
-  .folder-glyph[data-open="true"] .folder-glyph__route,
-  .folder-glyph[data-selected="true"] .folder-glyph__route,
-  .folder-glyph[data-open="true"] .folder-glyph__bead,
-  .folder-glyph[data-selected="true"] .folder-glyph__bead {
-    animation: none;
-  }
-
-  .folder-glyph__constellation {
-    transition-duration: 0ms;
-  }
-
-  .folder-glyph[data-open="true"] > svg,
-  .folder-glyph[data-selected="true"] > svg {
-    transform: none;
-  }
-}
-
-@keyframes folder-glyph-route-arrive {
-  from {
-    opacity: 0.2;
-    transform: scaleX(0.42);
-  }
-
-  to {
-    opacity: 0.72;
-    transform: scaleX(1);
-  }
-}
-
-@keyframes folder-glyph-signal-pop {
-  from {
-    opacity: 0.24;
-    transform: scale(0.62);
-  }
-
-  to {
-    opacity: 0.8;
-    transform: scale(1);
   }
 }

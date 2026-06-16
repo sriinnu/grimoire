@@ -3,7 +3,7 @@ import type { VaultEntry } from '../../types'
 import { APP_STORAGE_KEYS, LEGACY_APP_STORAGE_KEYS, getAppStorageItem } from '../../constants/appStorage'
 import { buildTypeEntryMap } from '../../utils/typeColors'
 import { countAllNotesByFilter, countByFilter } from '../../utils/noteListHelpers'
-import { buildDynamicSections, sortSections } from '../../utils/sidebarSections'
+import { buildDynamicSections, isNotebookSidebarSectionVisibleByDefault, sortSections } from '../../utils/sidebarSections'
 
 export type SidebarGroupKey = 'favorites' | 'views' | 'sections' | 'folders'
 
@@ -25,7 +25,10 @@ export function useSidebarSections(entries: VaultEntry[]) {
     return sortSections(sections, typeEntryMap)
   }, [entries, typeEntryMap])
   const visibleSections = useMemo(
-    () => allSectionGroups.filter((group) => typeEntryMap[group.type]?.visible !== false),
+    () => allSectionGroups.filter((group) => {
+      const typeEntry = typeEntryMap[group.type]
+      return typeEntry?.visible !== false && isNotebookSidebarSectionVisibleByDefault(group.type, typeEntry)
+    }),
     [allSectionGroups, typeEntryMap],
   )
   const sectionIds = useMemo(() => visibleSections.map((group) => group.type), [visibleSections])

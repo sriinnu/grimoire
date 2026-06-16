@@ -55,7 +55,7 @@ describe('useCommandRegistry lane create command', () => {
     const command = findCommand(result.current, 'create-note')
 
     expect(command).toMatchObject({
-      label: 'Create journal entry',
+      label: 'Create journal page',
       shortcut: formatShortcutDisplay({ display: '⌘N' }),
       keywords: expect.arrayContaining(['journal']),
     })
@@ -73,7 +73,7 @@ describe('useCommandRegistry lane create command', () => {
     })))
     const command = findCommand(result.current, 'create-note')
 
-    expect(command.label).toBe('Create dream entry')
+    expect(command.label).toBe('Create dream page')
     command.execute()
     expect(onCreateNoteOfType).toHaveBeenCalledWith('Dream')
   })

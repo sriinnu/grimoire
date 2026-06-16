@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
 import { CheckCircle2, Circle, ExternalLink, Flag, FolderKanban, Star, Tag, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { clampFixedMenuPosition } from '@/lib/fixedMenuPosition'
 import type { VaultEntry } from '../../types'
 
 type FrontmatterValue = string | number | boolean | string[] | null
@@ -40,16 +41,6 @@ function menuSectionLabel(label: string) {
       {label}
     </div>
   )
-}
-
-function clampMenuPosition(x: number, y: number): { left: number; top: number } {
-  if (typeof window === 'undefined') return { left: x, top: y }
-  const maxLeft = window.innerWidth - MENU_WIDTH - MENU_VIEWPORT_GAP
-  const maxTop = window.innerHeight - MENU_MAX_HEIGHT - MENU_VIEWPORT_GAP
-  return {
-    left: Math.max(MENU_VIEWPORT_GAP, Math.min(x, maxLeft)),
-    top: Math.max(MENU_VIEWPORT_GAP, Math.min(y, maxTop)),
-  }
 }
 
 function splitTagValue(value: string): string[] {
@@ -139,7 +130,6 @@ export function useNoteListContextMenu({
   const handleNoteContextMenu = useCallback((entry: VaultEntry, event: ReactMouseEvent) => {
     if (!enabled || entry.fileKind === 'binary') return
     event.preventDefault()
-    event.stopPropagation()
     setMenu({ x: event.clientX, y: event.clientY, entry })
   }, [enabled])
 
@@ -156,7 +146,11 @@ export function useNoteListContextMenu({
     closeMenu()
     onOpenInNewWindow(entry)
   }, [closeMenu, menu, onOpenInNewWindow])
-  const menuPosition = menu ? clampMenuPosition(menu.x, menu.y) : null
+  const menuPosition = menu ? clampFixedMenuPosition(menu.x, menu.y, {
+    width: MENU_WIDTH,
+    height: MENU_MAX_HEIGHT,
+    gap: MENU_VIEWPORT_GAP,
+  }) : null
   const activeStatus = menu ? statusForEntry(menu.entry) : ''
   const activeColor = menu ? colorForEntry(menu.entry) : ''
   const projectEntry = menu ? isProjectEntry(menu.entry) : false

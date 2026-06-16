@@ -47,7 +47,7 @@ describe('NoteList search keyboard behavior', () => {
       fireEvent.keyDown(window, { key: 'f', code: 'KeyF', metaKey: true })
     })
 
-    const searchInput = screen.getByPlaceholderText('Search notes...')
+    const searchInput = screen.getByPlaceholderText('Search pages...')
     act(() => {
       flushAnimationFrame()
     })
@@ -58,7 +58,7 @@ describe('NoteList search keyboard behavior', () => {
       flushAnimationFrame()
     })
 
-    expect(screen.queryByPlaceholderText('Search notes...')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Search pages...')).not.toBeInTheDocument()
     expect(noteList).toHaveFocus()
   })
 
@@ -70,9 +70,9 @@ describe('NoteList search keyboard behavior', () => {
     ]
 
     renderNoteList({ entries })
-    fireEvent.click(screen.getByTitle('Search notes'))
+    fireEvent.click(screen.getByTitle('Search pages'))
 
-    const searchInput = screen.getByPlaceholderText('Search notes...')
+    const searchInput = screen.getByPlaceholderText('Search pages...')
     fireEvent.change(searchInput, { target: { value: 'Strategy' } })
 
     expect(screen.getByTestId('note-list-search-loading')).toBeInTheDocument()

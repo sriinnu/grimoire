@@ -239,11 +239,6 @@ describe('startup import budget', () => {
     const statusBarSectionImports = runtimeDynamicImports('src/components/status-bar/StatusBarSections.tsx')
 
     expect(startupFiles).not.toEqual(expect.arrayContaining(STATUS_BAR_COLD_FILES))
-    expect(runtimeStaticImports('src/components/status-bar/AiAgentsBadge.tsx')).not.toEqual(expect.arrayContaining([
-      '@/components/ui/action-tooltip',
-      '@/components/ui/dropdown-menu',
-      '@/components/ui/tooltip',
-    ]))
     expect(statusBarSectionImports).toEqual(expect.arrayContaining([
       '../AddRemoteModal',
     ]))

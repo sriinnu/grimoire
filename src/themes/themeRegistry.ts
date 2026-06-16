@@ -24,6 +24,7 @@ export {
   parseThemeDefinition,
   parseThemeDefinitionJson,
   REQUIRED_THEME_TOKEN_KEYS,
+  resolveThemeDefinitionPreferredMode,
   resolveThemeDefinitionMode,
   serializeThemeDefinition,
 } from './themeDefinition'

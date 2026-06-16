@@ -41,7 +41,7 @@ describe('SearchPanel Spotlight project results', () => {
       />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), {
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), {
       target: { value: 'docs/reference' },
     })
 

@@ -7,7 +7,7 @@ use super::starter_bundle;
 pub const GETTING_STARTED_REPO_URL: &str =
     "https://github.com/sriinnu/grimoire-getting-started.git";
 
-/// Default location for the Getting Started vault.
+/// Default location for the Getting Started notebook.
 pub fn default_vault_path() -> Result<PathBuf, String> {
     dirs::document_dir()
         .map(|d| d.join("Getting Started"))
@@ -503,7 +503,7 @@ Use kebab-case: `my-note-title.md`. One note per file.
 Do not modify app configuration files — those are local to each installation.
 "##;
 
-/// Prepare the Getting Started vault by cloning the public starter first, then
+/// Prepare the Getting Started notebook by cloning the public starter first, then
 /// falling back to the packaged starter bundle when cloning is unavailable.
 pub fn create_getting_started_vault(
     target_path: &str,

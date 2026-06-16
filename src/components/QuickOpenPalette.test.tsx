@@ -55,7 +55,7 @@ describe('QuickOpenPalette', () => {
 
   it('shows search input when open', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
-    expect(screen.getByPlaceholderText('Search notes...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search pages...')).toBeInTheDocument()
     expect(screen.getByTestId('quick-open-palette').querySelector('.grimoire-command-surface')).toBeInTheDocument()
   })
 
@@ -74,19 +74,19 @@ describe('QuickOpenPalette', () => {
 
   it('filters entries by fuzzy search', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
-    const input = screen.getByPlaceholderText('Search notes...')
+    const input = screen.getByPlaceholderText('Search pages...')
     fireEvent.change(input, { target: { value: 'alpha' } })
 
     expect(screen.getByText('Alpha Project')).toBeInTheDocument()
     expect(screen.queryByText('Beta Notes')).not.toBeInTheDocument()
   })
 
-  it('shows "No matching notes" when query has no results', () => {
+  it('shows "No matching pages" when query has no results', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
-    const input = screen.getByPlaceholderText('Search notes...')
+    const input = screen.getByPlaceholderText('Search pages...')
     fireEvent.change(input, { target: { value: 'zzzzzzz' } })
 
-    expect(screen.getByText('No matching notes')).toBeInTheDocument()
+    expect(screen.getByText('No matching pages')).toBeInTheDocument()
   })
 
   it('shows type badge for entries with isA', () => {
@@ -106,7 +106,7 @@ describe('QuickOpenPalette', () => {
     })
 
     render(<QuickOpenPalette open={true} entries={[...entries, projectType]} onSelect={onSelect} onClose={onClose} />)
-    fireEvent.change(screen.getByPlaceholderText('Search notes...'), { target: { value: 'alpha' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'alpha' } })
 
     expect(screen.getByTestId('note-search-item-type-icon').tagName.toLowerCase()).toBe('svg')
   })
@@ -165,7 +165,7 @@ describe('QuickOpenPalette', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
 
     // Click the backdrop (outermost div)
-    const backdrop = screen.getByPlaceholderText('Search notes...').closest('.fixed')!
+    const backdrop = screen.getByPlaceholderText('Search pages...').closest('.fixed')!
     fireEvent.click(backdrop)
 
     expect(onClose).toHaveBeenCalled()

@@ -59,8 +59,8 @@ function todayIso(now = new Date()): string {
   return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-')
 }
 
-describe('VaultDashboard Time Loom privacy', () => {
-  it('shows Time Loom as metadata-only timeline without protected labels', async () => {
+describe('VaultDashboard trail privacy', () => {
+  it('shows the trail as metadata-only without protected labels', async () => {
     const now = Math.floor(Date.now() / 1000)
     const yesterday = now - 24 * 60 * 60
     const voice = entry('Transcript - private voice memo', 'Transcript', {
@@ -100,9 +100,9 @@ describe('VaultDashboard Time Loom privacy', () => {
     expect(dailyThread).toHaveTextContent('3 held local')
     expect(dailyThread).not.toHaveTextContent('Secret River Dream')
     expect(panel).toHaveTextContent('3 private')
-    expect(panel).toHaveTextContent('Dream 1')
-    expect(panel).toHaveTextContent('Journal 1')
-    expect(panel).toHaveTextContent('Voice 1')
+    expect(panel).toHaveTextContent('1 dream')
+    expect(panel).toHaveTextContent('1 journal')
+    expect(panel).toHaveTextContent('1 voice capture')
     expect(panel).not.toHaveTextContent('private-voice.webm')
     expect(panel).not.toHaveTextContent('/vault/dreams/secret-river.md')
     expect(panel).not.toHaveTextContent('blocked but private language')
@@ -111,7 +111,7 @@ describe('VaultDashboard Time Loom privacy', () => {
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
   })
 
-  it('shows vault commits in Time Loom without leaking git history details', async () => {
+  it('shows vault saved points in the trail without leaking git history details', async () => {
     render(
       <VaultDashboard
         conflictCount={0}
@@ -128,14 +128,14 @@ describe('VaultDashboard Time Loom privacy', () => {
     )
 
     const panel = await screen.findByTestId('time-loom-panel')
-    expect(panel).toHaveTextContent('1 commit')
-    expect(panel).toHaveTextContent('Commit 1')
+    expect(panel).toHaveTextContent('1 saved point')
+    expect(panel).toHaveTextContent('1 note')
     expect(panel).not.toHaveTextContent('Journal sync with private details')
     expect(panel).not.toHaveTextContent('private-commit-hash')
     expect(panel).not.toHaveTextContent('journal/private-checkin.md')
   })
 
-  it('shows scheduled calendar entries in Time Loom without leaking event details', async () => {
+  it('shows planned calendar entries in the trail without leaking event details', async () => {
     render(
       <VaultDashboard
         conflictCount={0}
@@ -157,8 +157,8 @@ describe('VaultDashboard Time Loom privacy', () => {
     )
 
     const panel = await screen.findByTestId('time-loom-panel')
-    expect(panel).toHaveTextContent('1 scheduled')
-    expect(panel).toHaveTextContent('Calendar 1')
+    expect(panel).toHaveTextContent('1 planned')
+    expect(panel).toHaveTextContent('1 planned mark')
     expect(panel).not.toHaveTextContent('Private Appointment')
     expect(panel).not.toHaveTextContent('/vault/private/calendar/private-appointment.md')
     expect(panel).not.toHaveTextContent('Secret room')

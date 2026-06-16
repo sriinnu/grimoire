@@ -37,7 +37,7 @@ describe('LinuxMenuButton', () => {
   it('dispatches shared menu commands from the Linux menu', async () => {
     render(<LinuxMenuButton />)
 
-    await openSubmenu('Note')
+    await openSubmenu('Page')
     expect(screen.getByText('Ctrl+Shift+L')).toBeInTheDocument()
     fireEvent.click(await screen.findByText('Toggle AI Panel'))
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('trigger_menu_command', { id: 'view-toggle-ai-chat' }))

@@ -1,0 +1,107 @@
+:where([data-theme-preset]) .vault-image-preview-shell {
+  background: var(--grimoire-native-editor-material);
+}
+
+:where([data-theme-preset]) .vault-image-preview-frame {
+  min-width: 0;
+}
+
+:where([data-theme-preset]) [data-testid="vault-image-stage"] {
+  contain: paint;
+  isolation: isolate;
+  min-block-size: min(50vh, 420px);
+  border-color: color-mix(in srgb, var(--primary) 26%, var(--border-default));
+  border-radius: var(--grimoire-shell-radius);
+  background: var(--grimoire-native-image-stage-material);
+  box-shadow: var(--grimoire-native-card-shadow);
+}
+
+:where([data-theme-preset]) .vault-image-preview-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--text-heading) 4%, transparent) 25%,
+      transparent 25% 75%,
+      color-mix(in srgb, var(--text-heading) 4%, transparent) 75%
+    ),
+    linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--text-heading) 4%, transparent) 25%,
+      transparent 25% 75%,
+      color-mix(in srgb, var(--text-heading) 4%, transparent) 75%
+    );
+  background-position: 0 0, 12px 12px;
+  background-size: 24px 24px;
+  opacity: 0.36;
+  pointer-events: none;
+}
+
+:where([data-theme-preset]) [data-testid="vault-image-preview"] {
+  position: relative;
+  z-index: 1;
+  border-radius: calc(var(--grimoire-shell-radius) - 2px);
+  background: color-mix(in srgb, var(--surface-card) 80%, transparent);
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--shadow-elevated, black) 14%, transparent);
+}
+
+:where([data-theme-preset]) [data-testid="vault-image-stage"]:not([data-state="loaded"]) [data-testid="vault-image-preview"] {
+  box-shadow: none;
+}
+
+:where([data-theme-preset]) .vault-image-preview-state {
+  z-index: 2;
+  color: var(--text-secondary);
+}
+
+:where([data-theme-preset]) .vault-image-preview-caption {
+  display: flex;
+  min-width: 0;
+  max-width: min(720px, 80vw);
+  align-items: center;
+  gap: 8px;
+  justify-self: center;
+  color: var(--text-secondary);
+}
+
+:where([data-theme-preset]) .vault-image-preview-caption__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:where([data-theme-preset]) .vault-image-preview-caption__chip {
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--border-default) 76%, transparent);
+  border-radius: 999px;
+  padding: 2px 7px;
+  background: color-mix(in srgb, var(--surface-card) 78%, transparent);
+  color: color-mix(in srgb, var(--text-primary) 82%, var(--text-secondary));
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+:where([data-theme-preset]) .vault-image-preview-caption__chip[data-state="loaded"] {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border-default));
+  color: var(--text-primary);
+}
+
+:where([data-theme-preset]) .vault-image-preview-caption__chip[data-state="error"] {
+  border-color: color-mix(in srgb, var(--destructive) 34%, var(--border-default));
+  color: var(--destructive);
+}
+
+@media (max-width: 720px) {
+  :where([data-theme-preset]) .vault-image-preview-shell {
+    padding: 14px;
+  }
+
+  :where([data-theme-preset]) .vault-image-preview-caption {
+    justify-self: start;
+  }
+}

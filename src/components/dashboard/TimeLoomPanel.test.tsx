@@ -38,7 +38,7 @@ const buckets: TimeLoomSummary['buckets'] = [
 ]
 
 const summary: TimeLoomSummary = {
-  activeSpanLabel: '7 events across 2 active days',
+  activeSpanLabel: '7 marks across 2 days',
   buckets,
   calendarDays: buckets,
   calendarEvents: 1,
@@ -47,8 +47,8 @@ const summary: TimeLoomSummary = {
   memoryReviewEvents: 1,
   mobileEvents: 2,
   patterns: [
-    { label: 'Primary thread', detail: 'Mobile 2 / Calendar 1 / Commit 1', tone: 'steady' },
-    { label: 'Open loops', detail: '1 task due / 1 open marker across 2 active days', tone: 'attention' },
+    { label: 'Primary thread', detail: '2 mobile captures / 1 planned mark / 1 saved point', tone: 'steady' },
+    { label: 'Revisit', detail: '1 upcoming / 1 open marker across 2 days', tone: 'attention' },
     { label: 'Private review', detail: '3 private / 2 mobile / 1 voice', tone: 'private' },
   ],
   protectedEvents: 3,
@@ -72,27 +72,27 @@ describe('TimeLoomPanel', () => {
     expect(screen.getByTestId('personal-calendar')).toHaveAttribute('data-density', 'compact')
     expect(within(map).getByText('Today')).toBeInTheDocument()
     expect(within(map).getByText('Yesterday')).toBeInTheDocument()
-    expect(graph).toHaveAccessibleName('count-only temporal graph; private labels withheld')
+    expect(graph).toHaveAccessibleName('count-only trail graph; private labels withheld')
     expect(within(graph).getByText('Held local')).toBeInTheDocument()
-    expect(within(graph).getByText('2 Mobile')).toBeInTheDocument()
+    expect(within(graph).getByText('2 mobile captures')).toBeInTheDocument()
     expect(within(graph).getByText('2 held')).toBeInTheDocument()
     expect(nodes).toHaveLength(2)
     expect(nodes[0]).toHaveTextContent('4')
-    expect(nodes[0]).toHaveTextContent('Mobile 2 / Dream 1')
+    expect(nodes[0]).toHaveTextContent('2 mobile captures / 1 dream')
     expect(nodes[0]).toHaveTextContent('2 private')
-    expect(nodes[1]).toHaveTextContent('Commit 1 / Calendar 1')
-    expect(panel).toHaveTextContent('Open 1')
+    expect(nodes[1]).toHaveTextContent('1 saved point / 1 planned mark')
+    expect(panel).toHaveTextContent('1 open')
     expect(panel).toHaveTextContent('2 mobile')
     expect(panel).toHaveTextContent('1 memory review')
-    expect(panel).toHaveTextContent('1 task due')
+    expect(panel).toHaveTextContent('1 upcoming')
     expect(panel).toHaveTextContent('mobile captures')
-    expect(panel).toHaveTextContent('memory review flags')
-    expect(panel).toHaveTextContent('due tasks')
-    expect(panel).toHaveTextContent('Crystallized today')
+    expect(panel).toHaveTextContent('memory reviews')
+    expect(panel).toHaveTextContent('upcoming flags')
+    expect(panel).toHaveTextContent('Reviewed today')
     expect(panel).toHaveTextContent('reviewed memory')
     expect(within(patterns).getByText('Primary thread')).toBeInTheDocument()
-    expect(within(patterns).getByText('Mobile 2 / Calendar 1 / Commit 1')).toBeInTheDocument()
-    expect(within(patterns).getByText('Open loops')).toBeInTheDocument()
+    expect(within(patterns).getByText('2 mobile captures / 1 planned mark / 1 saved point')).toBeInTheDocument()
+    expect(within(patterns).getByText('Revisit')).toBeInTheDocument()
     expect(within(patterns).getByText('Private review')).toBeInTheDocument()
     expect(panel).not.toHaveTextContent('secret-river.md')
     expect(panel).not.toHaveTextContent('private-voice.webm')
@@ -127,7 +127,7 @@ describe('TimeLoomPanel', () => {
     expect(onCaptureDream).toHaveBeenCalledWith(expect.any(Date))
   })
 
-  it('feeds the calendar from full calendar days, not only visible timeline rows', () => {
+  it('feeds the calendar from full calendar days, not only visible trail rows', () => {
     render(
       <TimeLoomPanel
         summary={{

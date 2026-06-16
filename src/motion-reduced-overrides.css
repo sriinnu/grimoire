@@ -1,0 +1,16 @@
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    .editor-scroll-area,
+    .editor-agent-composer-wrap,
+    .settings-panel-shell,
+    .editor-navigator-popover-shell,
+    .editor-navigator-hit-overlay,
+    .vault-dashboard__flow-step,
+    .vault-dashboard__flow-meter span
+  ) {
+    animation: none !important;
+    transition: none !important;
+    transition-duration: 0ms !important;
+    transform: none !important;
+  }
+}

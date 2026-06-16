@@ -19,7 +19,7 @@ export function buildGettingStartedVaultPath(parentPath: string): string {
 
 export function labelFromPath(path: string): string {
   const trimmed = path.trim().replace(/[\\/]+$/g, '')
-  return trimmed.split(/[\\/]/).pop() || 'Vault'
+  return trimmed.split(/[\\/]/).pop() || 'Notebook'
 }
 
 export function formatGettingStartedCloneError(err: unknown): string {
@@ -34,7 +34,7 @@ export function formatGettingStartedCloneError(err: unknown): string {
     return message
   }
 
-  return `Could not prepare Getting Started vault: ${firstCloneErrorLine(message)}`
+  return `Could not prepare Getting Started notebook: ${firstCloneErrorLine(message)}`
 }
 
 function firstCloneErrorLine(message: string): string {

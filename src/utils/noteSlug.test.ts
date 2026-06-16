@@ -15,4 +15,11 @@ describe('slugifyNoteStem', () => {
     expect(slugifyNoteStem('+++')).toBe('untitled')
     expect(slugifyNoteStem('！？')).toBe('untitled')
   })
+
+  it('avoids Windows reserved device names for generated note filenames', () => {
+    expect(slugifyNoteStem('CON')).toBe('con-note')
+    expect(slugifyNoteStem('aux')).toBe('aux-note')
+    expect(slugifyNoteStem('LPT1')).toBe('lpt1-note')
+    expect(slugifyNoteStem('COM9')).toBe('com9-note')
+  })
 })

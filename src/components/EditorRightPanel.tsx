@@ -155,6 +155,7 @@ export function EditorRightPanel({
         onCreateMissingType={onCreateMissingType}
         onCreateAndOpenNote={onCreateAndOpenNote}
         onInitializeProperties={onInitializeProperties}
+        onOpenSecondBrain={onToggleAIChat}
         onToggleRawEditor={onToggleRawEditor}
         onReplaceContent={onReplaceContent}
       />

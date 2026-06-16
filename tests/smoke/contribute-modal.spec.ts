@@ -35,10 +35,10 @@ test.describe('Contribute modal', () => {
 
   test('Cmd+K opens Contribute, keyboard actions work, and Escape restores the opener @smoke', async ({ page }) => {
     await openCommandPalette(page)
-    await executeCommand(page, 'Contribute')
+    await executeCommand(page, 'Send feedback')
 
     await expect(page.getByTestId('feedback-dialog')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Contribute to Grimoire' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Send feedback' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Check out Refactoring' })).toBeFocused()
 
     await page.keyboard.press('Enter')

@@ -36,7 +36,7 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
   {
     label: 'File',
     items: [
-      { kind: 'command', label: 'New Note', commandId: APP_COMMAND_IDS.fileNewNote },
+      { kind: 'command', label: 'New Page', commandId: APP_COMMAND_IDS.fileNewNote },
       { kind: 'command', label: 'New Type', commandId: APP_COMMAND_IDS.fileNewType },
       { kind: 'command', label: 'Quick Open', commandId: APP_COMMAND_IDS.fileQuickOpen },
       { kind: 'separator' },
@@ -46,8 +46,8 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
   {
     label: 'Edit',
     items: [
-      { kind: 'command', label: 'Find in Vault', commandId: APP_COMMAND_IDS.editFindInVault },
-      { kind: 'command', label: 'Toggle Note List Search', commandId: 'edit-toggle-note-list-search' },
+      { kind: 'command', label: 'Find in Notebook', commandId: APP_COMMAND_IDS.editFindInVault },
+      { kind: 'command', label: 'Toggle Page Search', commandId: 'edit-toggle-note-list-search' },
       { kind: 'command', label: 'Toggle Diff Mode', commandId: APP_COMMAND_IDS.editToggleDiff },
     ],
   },
@@ -55,7 +55,7 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
     label: 'View',
     items: [
       { kind: 'command', label: 'Editor Only', commandId: APP_COMMAND_IDS.viewEditorOnly },
-      { kind: 'command', label: 'Editor + Notes', commandId: APP_COMMAND_IDS.viewEditorList },
+      { kind: 'command', label: 'Editor + Pages', commandId: APP_COMMAND_IDS.viewEditorList },
       { kind: 'command', label: 'All Panels', commandId: APP_COMMAND_IDS.viewAll },
       { kind: 'separator' },
       { kind: 'command', label: 'Toggle Properties Panel', commandId: APP_COMMAND_IDS.viewToggleProperties },
@@ -70,9 +70,9 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
   {
     label: 'Go',
     items: [
-      { kind: 'command', label: 'All Notes', commandId: APP_COMMAND_IDS.goAllNotes },
+      { kind: 'command', label: 'Pages', commandId: APP_COMMAND_IDS.goAllNotes },
       { kind: 'command', label: 'Archived', commandId: APP_COMMAND_IDS.goArchived },
-      { kind: 'command', label: 'Changes', commandId: APP_COMMAND_IDS.goChanges },
+      { kind: 'command', label: 'Edits', commandId: APP_COMMAND_IDS.goChanges },
       { kind: 'command', label: 'Inbox', commandId: APP_COMMAND_IDS.goInbox },
       { kind: 'separator' },
       { kind: 'command', label: 'Go Back', commandId: APP_COMMAND_IDS.viewGoBack },
@@ -80,12 +80,12 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
     ],
   },
   {
-    label: 'Note',
+    label: 'Page',
     items: [
       { kind: 'command', label: 'Toggle Organized', commandId: APP_COMMAND_IDS.noteToggleOrganized },
-      { kind: 'command', label: 'Archive Note', commandId: APP_COMMAND_IDS.noteArchive },
-      { kind: 'command', label: 'Delete Note', commandId: APP_COMMAND_IDS.noteDelete },
-      { kind: 'command', label: 'Restore Deleted Note', commandId: APP_COMMAND_IDS.noteRestoreDeleted },
+      { kind: 'command', label: 'Archive Page', commandId: APP_COMMAND_IDS.noteArchive },
+      { kind: 'command', label: 'Delete Page', commandId: APP_COMMAND_IDS.noteDelete },
+      { kind: 'command', label: 'Restore Deleted Page', commandId: APP_COMMAND_IDS.noteRestoreDeleted },
       { kind: 'separator' },
       { kind: 'command', label: 'Open in New Window', commandId: APP_COMMAND_IDS.noteOpenInNewWindow },
       { kind: 'separator' },
@@ -95,20 +95,20 @@ const MENU_SECTIONS: ReadonlyArray<MenuSection> = [
     ],
   },
   {
-    label: 'Vault',
+    label: 'Notebook',
     items: [
-      { kind: 'command', label: 'Open Vault…', commandId: APP_COMMAND_IDS.vaultOpen },
-      { kind: 'command', label: 'Remove Vault from List', commandId: APP_COMMAND_IDS.vaultRemove },
+      { kind: 'command', label: 'Open Notebook…', commandId: APP_COMMAND_IDS.vaultOpen },
+      { kind: 'command', label: 'Remove Notebook from List', commandId: APP_COMMAND_IDS.vaultRemove },
       { kind: 'command', label: 'Restore Getting Started', commandId: APP_COMMAND_IDS.vaultRestoreGettingStarted },
       { kind: 'separator' },
-      { kind: 'command', label: 'Add Remote…', commandId: APP_COMMAND_IDS.vaultAddRemote },
+      { kind: 'command', label: 'Add Remote to Notebook…', commandId: APP_COMMAND_IDS.vaultAddRemote },
       { kind: 'command', label: 'Commit & Push', commandId: APP_COMMAND_IDS.vaultCommitPush },
       { kind: 'command', label: 'Pull from Remote', commandId: APP_COMMAND_IDS.vaultPull },
       { kind: 'command', label: 'Resolve Conflicts', commandId: APP_COMMAND_IDS.vaultResolveConflicts },
-      { kind: 'command', label: 'View Pending Changes', commandId: APP_COMMAND_IDS.vaultViewChanges },
+      { kind: 'command', label: 'Review Edits', commandId: APP_COMMAND_IDS.vaultViewChanges },
       { kind: 'separator' },
-      { kind: 'command', label: 'Reload Vault', commandId: APP_COMMAND_IDS.vaultReload },
-      { kind: 'command', label: 'Repair Vault', commandId: APP_COMMAND_IDS.vaultRepair },
+      { kind: 'command', label: 'Reload Notebook', commandId: APP_COMMAND_IDS.vaultReload },
+      { kind: 'command', label: 'Repair Notebook', commandId: APP_COMMAND_IDS.vaultRepair },
       { kind: 'command', label: 'Set Up External AI Tools…', commandId: APP_COMMAND_IDS.vaultInstallMcp },
     ],
   },

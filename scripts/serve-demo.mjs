@@ -70,11 +70,23 @@ const MIME = {
   '.html': 'text/html',
   '.js':   'application/javascript',
   '.css':  'text/css',
+  '.avif': 'image/avif',
+  '.bmp':  'image/bmp',
+  '.gif':  'image/gif',
+  '.jpg':  'image/jpeg',
+  '.jpeg': 'image/jpeg',
   '.svg':  'image/svg+xml',
   '.png':  'image/png',
+  '.tif':  'image/tiff',
+  '.tiff': 'image/tiff',
+  '.webp': 'image/webp',
   '.ico':  'image/x-icon',
   '.woff2':'font/woff2',
   '.json': 'application/json',
+}
+
+function contentTypeForFile(filePath) {
+  return MIME[path.extname(filePath).toLowerCase()] ?? 'application/octet-stream'
 }
 
 function findMarkdownFiles(dir) {
@@ -154,6 +166,23 @@ function serveVaultApi(url, res) {
     return true
   }
 
+  if (params.pathname === '/api/vault/file') {
+    const file = params.searchParams.get('path')
+    const vaultFile = file ? allowedVaultPath(file, 'file') : null
+    if (!vaultFile) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'bad path' }))
+      return true
+    }
+    res.writeHead(200, {
+      'Content-Type': contentTypeForFile(vaultFile),
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    })
+    fs.createReadStream(vaultFile).pipe(res)
+    return true
+  }
+
   if (params.pathname === '/api/vault/content') {
     const file = params.searchParams.get('path')
     const vaultFile = file ? allowedVaultPath(file, 'markdown') : null
@@ -196,8 +225,7 @@ const server = http.createServer((req, res) => {
 
   // Static files
   const filePath = resolveStaticPath(url)
-  const ext = path.extname(filePath)
-  res.writeHead(200, { 'Content-Type': MIME[ext] ?? 'application/octet-stream' })
+  res.writeHead(200, { 'Content-Type': contentTypeForFile(filePath) })
   fs.createReadStream(filePath).pipe(res)
 })
 

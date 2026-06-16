@@ -73,7 +73,7 @@ describe('useGettingStartedClone', () => {
     })
 
     expect(onSuccess).not.toHaveBeenCalled()
-    expect(onError).toHaveBeenCalledWith('Could not prepare Getting Started vault: git clone failed: fatal: unable to access')
+    expect(onError).toHaveBeenCalledWith('Could not prepare Getting Started notebook: git clone failed: fatal: unable to access')
   })
 
   it('surfaces the restart-required message when folder picking is blocked after update install', async () => {

@@ -1,5 +1,5 @@
 import { lazy, Suspense, type RefObject } from 'react'
-import { Bold, Heading2, List, ListChecks, Quote, WandSparkles } from 'lucide-react'
+import { Bold, Heading2, List, ListChecks, PenLine, Quote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import type { DashboardAskContextPreview as DashboardAskContextPreviewModel } from '../../utils/dashboardAskContext'
@@ -13,7 +13,7 @@ const DashboardAskContextPreview = lazy(async () => ({
   default: (await import('./DashboardAskContextPreview')).DashboardAskContextPreview,
 }))
 
-type MarkdownAction = 'bold' | 'bullet' | 'task' | 'heading' | 'quote'
+type MarkdownAction = 'bold' | 'bullet' | 'checklist' | 'heading' | 'quote'
 
 const MARKDOWN_ACTIONS: Array<{
   action: MarkdownAction
@@ -23,7 +23,7 @@ const MARKDOWN_ACTIONS: Array<{
   { action: 'bold', label: 'Bold', Icon: Bold },
   { action: 'heading', label: 'Heading', Icon: Heading2 },
   { action: 'bullet', label: 'Bullet list', Icon: List },
-  { action: 'task', label: 'Task list', Icon: ListChecks },
+  { action: 'checklist', label: 'Checklist', Icon: ListChecks },
   { action: 'quote', label: 'Quote', Icon: Quote },
 ]
 
@@ -77,7 +77,7 @@ function markdownReplacement(action: MarkdownAction, selected: string): string {
   if (action === 'bold') return selected ? `**${selected}**` : '**bold**'
   if (action === 'heading') return prefixLines(selected || 'Heading', '## ')
   if (action === 'bullet') return prefixLines(selected || 'item', '- ')
-  if (action === 'task') return prefixLines(selected || 'next action', '- [ ] ')
+  if (action === 'checklist') return prefixLines(selected || 'carry this', '- [ ] ')
   return prefixLines(selected || 'note', '> ')
 }
 
@@ -118,18 +118,27 @@ export function DashboardQuickCapturePanel({
     <div className="vault-dashboard__panel vault-dashboard__panel--capture">
       <div className="vault-dashboard__panel-head">
         <div>
-          <div className="vault-dashboard__panel-label">Quick Capture</div>
-          <h2>Catch it before it evaporates.</h2>
+          <div className="vault-dashboard__panel-label">Open page</div>
+          <h2>Catch the thought while it is here.</h2>
         </div>
-        <WandSparkles size={18} />
+        <PenLine size={18} />
       </div>
       <form
         className="vault-dashboard__capture-form"
+        data-has-input={input.trim().length > 0 ? 'true' : 'false'}
         onSubmit={(event) => {
           event.preventDefault()
           onSubmit()
         }}
       >
+        <Textarea
+          ref={inputRef}
+          value={input}
+          onChange={(event) => onInputChange(event.target.value)}
+          placeholder={CAPTURE_KIND_CONFIGS.find((item) => item.kind === selectedKind)?.prompt}
+          className="vault-dashboard__textarea"
+          data-testid="dashboard-capture-input"
+        />
         <div className="vault-dashboard__markdown-tools" aria-label="Quick capture Markdown tools">
           {MARKDOWN_ACTIONS.map(({ action, label, Icon }) => (
             <Button
@@ -147,14 +156,6 @@ export function DashboardQuickCapturePanel({
             </Button>
           ))}
         </div>
-        <Textarea
-          ref={inputRef}
-          value={input}
-          onChange={(event) => onInputChange(event.target.value)}
-          placeholder={CAPTURE_KIND_CONFIGS.find((item) => item.kind === selectedKind)?.prompt}
-          className="vault-dashboard__textarea"
-          data-testid="dashboard-capture-input"
-        />
         {showAskContextPreview && askContextPreview ? (
           <Suspense fallback={null}>
             <DashboardAskContextPreview preview={askContextPreview} />
@@ -181,8 +182,13 @@ export function DashboardQuickCapturePanel({
               />
             ))}
           </div>
-          <Button type="submit" disabled={busy} data-testid="dashboard-capture-submit">
-            {busy ? 'Capturing...' : 'Capture'}
+          <Button
+            type="submit"
+            className="vault-dashboard__capture-submit"
+            disabled={busy}
+            data-testid="dashboard-capture-submit"
+          >
+            {busy ? 'Keeping...' : 'Keep'}
           </Button>
         </div>
       </form>

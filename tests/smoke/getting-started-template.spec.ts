@@ -53,18 +53,17 @@ test('Getting Started template shows inline retry on clone failure and opens aft
   await page.getByTestId('welcome-create-vault').click()
 
   await expect(page.getByTestId('welcome-error')).toContainText(
-    'Could not prepare Getting Started vault: git clone failed: fatal: unable to access',
+    'Could not prepare Getting Started notebook: git clone failed: fatal: unable to access',
   )
   await expect(page.getByTestId('welcome-retry-template')).toBeVisible()
 
   await page.getByTestId('welcome-retry-template').click()
 
   await expect(page.getByTestId('welcome-screen')).not.toBeVisible()
-  await expect(page.getByText(`Getting Started vault cloned and opened at ${clonedPath}`)).toBeVisible()
-  await expect(page.getByText('Open native app for live AI')).toBeVisible()
-  await expect(page.getByText('Claude Code')).toBeVisible()
-  await expect(page.getByText('Codex', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Continue in preview' }).click()
+  await expect(page.getByText(`Getting Started notebook cloned and opened at ${clonedPath}`)).toBeVisible()
+  await expect(page.getByText('Notebook preview is ready')).not.toBeVisible()
+  await expect(page.getByText('Claude Code')).not.toBeVisible()
+  await expect(page.getByText('Codex', { exact: true })).not.toBeVisible()
   await expect(page.getByTestId('vault-dashboard')).toBeVisible()
-  await expect(page.getByRole('heading', { name: 'Sriinnu, here is the board.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Getting Started' })).toBeVisible()
 })

@@ -170,7 +170,7 @@ function ProjectScopeTrail({ scopeLabel }: { scopeLabel: string }) {
   if (parts.length === 0) {
     return (
       <span className="project-workspace-chrome__scope-path" title={scopeLabel} aria-label="Project scope">
-        Vault root
+        Notebook root
       </span>
     )
   }

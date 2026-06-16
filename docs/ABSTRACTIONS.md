@@ -32,13 +32,13 @@ It shows:
 - private journal and dream prompts
 - Time Loom activity by local day, type, coarse status, and private counts
 - Daily Thread guidance that turns Time Loom and Dream Forge counts into one local next action
-- one quiet Attention Mode next action
+- one quiet Next page action
 - memory queue status
 - reviewed Crystallize loop status
 - recent vault-context notes
 - locality and sync badges
 
-Dashboard capture writes normal Markdown notes with readable frontmatter. `/ask` routes into the AI panel instead of creating a note and builds a shared ask context package for the dashboard preview, queued AI prompt, Context Capsule, and Agent Council. Exact app-owned Daily Thread Crystallize prompts carry a typed `crystallize-memory` intent so downstream AI surfaces know this is review-before-write Markdown memory work instead of inferring from prose. Recent non-private Markdown references become visible local context and recent dashboard re-entry rows; Dream, Journal, Memory, private-path, and local-only frontmatter references stay in protected review/prompt lanes or withheld counts without showing protected titles or paths. If every recent item is protected, the Recent Notes panel shows only a held-protected count instead of implying the vault is empty. Durable AI output still goes through Crystallize.
+Dashboard capture writes normal Markdown notes with readable frontmatter. `/ask` routes into the AI panel instead of creating a note and builds a shared ask context package for the dashboard preview, queued AI prompt, Context Capsule, and Agent Council. Exact app-owned Daily Thread Crystallize prompts carry a typed `crystallize-memory` intent so downstream AI surfaces know this is review-before-write Markdown memory work instead of inferring from prose. Recent non-private Markdown references become visible local context and recent dashboard re-entry rows; Dream, Journal, Memory, private-path, and local-only frontmatter references stay in protected review/prompt lanes or withheld counts without showing protected titles or paths. If every recent item is protected, the Recent Pages panel shows only a held-protected count instead of implying the vault is empty. Durable AI output still goes through Crystallize.
 
 Provider-bound prompt drafts are a Locality Firewall boundary. Composer sends, dashboard `/ask`, inline wikilink sends, and graph Council handoffs share one sanitizer that withholds protected wikilink labels, keeps public references canonical, and leaves protected context as policy markers instead of provider-bound titles, paths, bodies, or exact protected counts.
 
@@ -60,7 +60,7 @@ Time Loom is the dashboard's temporal graph preview. It groups Markdown activity
 
 Memory Ledger audit pressure also enters Time Loom as metadata only. Expired, expiring, contradicted, stale, or unreviewed Memory notes render as `Memory review` counts; reviewed memories render as `Memory` counts. Time Loom and Daily Thread may show that review pressure exists, but not memory titles, paths, snippets, contradiction labels, source links, provider/device markers, or local-only field values. Dashboard `/ask` plans keep the same Locality Firewall rule, so Daily Thread Crystallize packages can carry public references while protected Memory records stay withheld as policy counts.
 
-Attention Mode is the dashboard's local focus assistant. It picks one next action from vault metadata such as conflicts, memory queue, pending mobile capture review, unresolved open-loop count, active-note drift, recent context-switch drift, journal/dream freshness, pending local changes, reviewed Crystallize memory, and calm recent-thread states that can move into Crystallize review. It is intentionally quiet: no cloud inference, no body analysis, no private title/path prompt stuffing, and no nagging streak system.
+Next page is the dashboard's local focus assistant. It picks one next action from notebook metadata such as conflicts, memory queue, pending mobile capture review, unresolved open-loop count, active-note drift, recent context-switch drift, journal/dream freshness, pending local changes, reviewed Crystallize memory, and calm recent-thread states that can move into review. It is intentionally quiet: no cloud inference, no body analysis, no private title/path prompt stuffing, and no nagging streak system.
 
 Mobile Capture Drafts are the first iPhone/iPad companion contract. A mobile capture is not hidden app state; it becomes a vault-relative Markdown draft with local frontmatter, a shared local `date`, a V1 schema marker, a stable `mobile_capture_id`, review metadata, source device/source kind, and a Files-provider storage hint. Journal, Dream, and Memory captures start in protected lanes (`journals/mobile`, `dreams/mobile`, and `memory/mobile-inbox`) with `egress: blocked` so mobile capture can sync through a user-owned provider folder without becoming agent/export context by default. Draft filenames, H1s, and frontmatter titles use neutral kind/date identifiers until review; private body text stays only in the Markdown body. Voice, camera, transcript, and Pencil assets are modeled as a local attachment manifest: Markdown shows safe filenames and review checkboxes, while full device paths and checksums stay out of the body/frontmatter. Every draft carries a visible review gate (`review_required`, blocked agent/export context, local-until-review sync context, and pending review outcome) plus a Markdown checklist before it can become durable memory or source context. The dashboard review queue uses a small privacy-safe item (`path`, coarse lane, review state, and capture timestamp) instead of carrying full `VaultEntry` titles/snippets/bodies through the queue. Accepted, merged, moved, discarded, or reviewed outcomes graduate out of that queue; blocked outcomes stay visible as a review action without exposing why through private text. The Inspector has the owner-facing Mobile Review action gate for pending or blocked captures; Accept, Merge, Move, Block, and Discard write only Markdown frontmatter review metadata, and do not export, sync, or send agent context. The dashboard only surfaces mobile drafts through counts, review state, a review action, and Time Loom mobile counts; it does not expose mobile draft titles, paths, device/source values, attachment paths, checksums, or bodies.
 
@@ -68,11 +68,11 @@ Mobile Capture Drafts are the first iPhone/iPad companion contract. A mobile cap
 
 A vault template is a creation-time seed for local Markdown Type definitions. It is not a hosted workspace and does not make Git required.
 
-Current templates include Blank, Journal, Dreams, Project, Research, Personal OS, Reading, People, Work Log, and Creative Studio.
+Current templates include Blank, Journal, Dreams, Project, Research, Personal OS, Reading, People, Work Log, and Creative Notebook.
 
 Templates may seed Type notes such as `journal.md`, `dream.md`, `task.md`, or `memory.md`. The files are ordinary Markdown and remain editable by the user.
 
-Create Vault must preview the write before it happens. The creation plan names the selected template, local folder path, storage provider, Git on/off state, and privacy rule. Desktop sync choices such as iCloud Drive and Google Drive Desktop are described as local folders; Grimoire does not store cloud credentials for them.
+Create Notebook must preview the write before it happens. The creation plan names the selected template, local folder path, storage provider, Git on/off state, and privacy rule. Suggested paths are platform-aware: macOS uses its Library/iCloud/CloudStorage folder shapes, Windows uses Documents, iCloudDrive, My Drive, and OneDrive-shaped local paths, and Linux falls back to Documents-scoped local folders. Notebook folder names are portable before disk write: the planner avoids Windows reserved device names, and the native create command rejects reserved final folder names plus trailing dot or space suffixes. Desktop sync choices such as iCloud Drive and Google Drive Desktop are described as local folders; Grimoire does not store cloud credentials for them.
 
 ## Vault Portability
 
@@ -112,6 +112,8 @@ The markdown body is the durable content surface.
 Supported product expectations include headings, lists, code blocks, Spelllinks (`[[note]]` Markdown wikilinks), inline/display math, tables, images, vault attachments, dates, journal blocks, tasks, weather snapshot callouts, canvas/handwriting attachments, and audio transcripts.
 
 Editors may render this richly, but they must preserve markdown intent.
+
+Previewable binary image files are vault files too. Selecting an image attachment opens a contained native preview shell backed by the same vault-scoped file endpoint used for embedded Markdown images, with load/error state visible in the UI and no absolute machine path exposed.
 
 ## Transcript Note
 
@@ -161,7 +163,7 @@ The left sidebar has two app-local presentations:
 
 The compact rail is presentation state, not vault state. It persists to local app storage because it describes this installation's workspace preference, while section/folder/type data still comes from the vault.
 
-Sidebar artwork is ambient state, not navigation. The full column uses a reduced-motion-safe pouch intake motif: knowledge-cloud forms visually settle into a local vault pouch, while the actual navigation remains readable and interactive above it.
+Sidebar artwork is ambient state, not navigation. The full column uses a reduced-motion-safe open-notebook watermark behind the navigation, keeping the primary notebook shell still, readable, and free of decorative intake animation.
 
 ## Frontmatter
 
@@ -298,32 +300,34 @@ Graph-to-agent handoff must pass through the Locality Firewall. Public selected 
 
 ## Appearance
 
-Appearance has three layers:
+Appearance is not a color palette. It is a full experience profile with shell, density, motion, graph/canvas, typography, and writing-surface behavior.
 
-- theme mode: light or dark
-- theme preset: Nocturne Constellation, Daylight Atelier, Living Archive, Nocturne, Retro Terminal
+Appearance has these layers:
+
+- color mode: light or dark
+- experience profile: Morning Notebook and Night Notebook as signature profiles; Graphite Archive, Daylight Notebook, Notebook Map, and Code Notebook as specialist profiles
 - editor font: System, Serif, Mono, Readable, Literary, Compact, Handwritten
 - font roles: UI, editor body, monospace, display headings, sidebar labels
-- local theme pack: a validated JSON override stored in app-local browser storage and never written into the vault
-- theme-pack typography: optional safe CSS font stacks for UI, editor body/list text, monospace/code, display headings, and labels
-- theme-pack density: compact, comfortable, or spacious runtime spacing for panels, dashboard cards, note-list chrome, and workspace rhythm
-- theme-pack motion: calm, standard, or expressive runtime timing for shared motion primitives while preserving reduced-motion overrides
-- theme-pack code blocks: plain, notebook, or terminal treatment shared by editor code blocks and AI Markdown previews
-- theme-pack headings: graph, manuscript, system, or terminal treatment for the live editor heading structure
-- theme-pack metadata strip: badges, quiet, or terminal treatment plus visible metadata-field selection for the editor note strip
-- theme-pack visuals: graph style (`constellation`, `ledger`, `terminal`) and canvas style (`paper`, `blueprint`, `terminal`) for graph maps, handoff HUDs, and Markdown-backed drawing surfaces
-- theme-pack modal and portability surfaces: dialogs, command palette, quick open, global search, sandboxed HTML previews, import/export lanes, Import Autopsy, and object-storage previews share theme-owned material, status, radius, shadow, and density tokens
+- local experience pack: a validated JSON override stored in app-local browser storage and never written into the vault
+- experience-pack typography: optional safe CSS font stacks for UI, editor body/list text, monospace/code, display headings, and labels
+- experience-pack density: compact, comfortable, or spacious runtime spacing for panels, dashboard cards, note-list chrome, and workspace rhythm
+- experience-pack motion: calm, standard, or expressive runtime timing for shared motion primitives while preserving reduced-motion overrides
+- experience-pack code blocks: plain, notebook, or terminal treatment shared by editor code blocks and AI Markdown previews
+- experience-pack headings: graph, manuscript, system, or terminal treatment for the live editor heading structure
+- experience-pack metadata strip: badges, quiet, or terminal treatment plus visible metadata-field selection for the editor note strip
+- experience-pack visuals: graph style (`constellation`, `ledger`, `terminal`) and canvas style (`paper`, `blueprint`, `terminal`) for graph maps, handoff HUDs, and Markdown-backed drawing surfaces
+- experience-pack modal and portability surfaces: dialogs, command palette, quick open, global search, sandboxed HTML previews, import/export lanes, Import Autopsy, and object-storage previews share profile-owned material, status, radius, shadow, and density tokens
 
 Contract:
 
 - TypeScript normalizes supported values.
-- preset metadata lives in `src/themes/presets.json` and must match the supported preset IDs.
-- `fontConfig.ts` maps theme, editor choices, and local theme-pack typography to font roles and bundled font assets.
-- `themeDefinition.ts` maps theme-pack code block treatment, heading style, metadata-strip style/fields, density, motion, and graph/canvas visual styles to root attributes plus CSS variables consumed by editor, dashboard, note-list, AI Markdown, graph, canvas, shared dialog/palette surfaces, sandboxed HTML previews, and shared motion surfaces.
+- profile metadata lives in `src/themes/presets.json` and must match the supported preset IDs.
+- `fontConfig.ts` maps profile, editor choices, and local experience-pack typography to font roles and bundled font assets.
+- `themeDefinition.ts` maps experience-pack code block treatment, heading style, metadata-strip style/fields, density, motion, and graph/canvas visual styles to root attributes plus CSS variables consumed by editor, dashboard, note-list, AI Markdown, graph, canvas, shared dialog/palette surfaces, sandboxed HTML previews, and shared motion surfaces.
 - Rust settings sanitize persisted values.
 - CSS consumes root attributes and semantic variables.
 - localStorage mirrors the values before native settings load to avoid startup flash.
-- Settings can import/export theme-pack JSON locally; dev hot reload watches `.grimoire-local/theme-pack.json`, which is gitignored, and Settings can manually reload that file while tuning a pack.
+- Settings can import/export experience-pack JSON locally; dev hot reload watches `.grimoire-local/theme-pack.json`, which is gitignored, and Settings can manually reload that file while tuning a pack.
 
 New UI must use semantic tokens instead of hardcoded palette choices or raw font stacks.
 

@@ -43,7 +43,7 @@ interface InstallVaultSwitcherMocksOptions {
 function createVaultSwitcherPaths(): VaultSwitcherPaths {
   return {
     gettingStartedPath: '/Users/mock/Documents/Getting Started',
-    localVaultPath: '/Users/mock/Documents/Local Vault',
+    localVaultPath: '/Users/mock/Documents/Local Notebook',
     personalVaultPath: '/Users/mock/Personal',
     workVaultPath: '/Users/mock/Work',
   }
@@ -167,7 +167,7 @@ test('bottom bar vault switching works with keyboard and mouse @smoke', async ({
   const noteList = page.getByTestId('note-list-container')
 
   await expect(trigger).toContainText('Work Vault')
-  await page.getByRole('button', { name: /All Notes/ }).click()
+  await page.getByRole('button', { name: /Pages/ }).click()
   await expect(noteList.getByText('Work Home', { exact: true })).toBeVisible()
 
   await trigger.focus()
@@ -180,7 +180,7 @@ test('bottom bar vault switching works with keyboard and mouse @smoke', async ({
   await page.keyboard.press('Enter')
 
   await expect(trigger).toContainText('Personal Vault')
-  await page.getByRole('button', { name: /All Notes/ }).click()
+  await page.getByRole('button', { name: /Pages/ }).click()
   await expect(noteList.getByText('Personal Home', { exact: true })).toBeVisible()
   await expect(noteList.getByText('Work Home', { exact: true })).toHaveCount(0)
 
@@ -188,12 +188,12 @@ test('bottom bar vault switching works with keyboard and mouse @smoke', async ({
   await page.getByTestId('vault-menu-item-Work Vault').click()
 
   await expect(trigger).toContainText('Work Vault')
-  await page.getByRole('button', { name: /All Notes/ }).click()
+  await page.getByRole('button', { name: /Pages/ }).click()
   await expect(noteList.getByText('Work Home', { exact: true })).toBeVisible()
   await expect(noteList.getByText('Personal Home', { exact: true })).toHaveCount(0)
 })
 
-test('missing Getting Started vault stays hidden while remove actions still work @smoke', async ({ page }) => {
+test('missing Getting Started notebook stays hidden while remove actions still work @smoke', async ({ page }) => {
   await installVaultSwitcherMocks(page, { defaultVaultExists: false })
 
   await page.goto('/', { waitUntil: 'domcontentloaded' })
@@ -233,7 +233,7 @@ test('bottom bar open-local-folder action switches to the picked vault @smoke', 
 
   let promptHandled = false
   page.once('dialog', async (dialog) => {
-    expect(dialog.message()).toContain('Open vault folder')
+    expect(dialog.message()).toContain('Open notebook folder')
     await dialog.accept(initData.paths.localVaultPath)
     promptHandled = true
   })
@@ -248,8 +248,8 @@ test('bottom bar open-local-folder action switches to the picked vault @smoke', 
   await page.getByTestId('vault-menu-open-local').click()
 
   await expect.poll(() => promptHandled).toBe(true)
-  await expect(trigger).toContainText('Local Vault')
-  await page.getByRole('button', { name: /All Notes/ }).click()
+  await expect(trigger).toContainText('Local Notebook')
+  await page.getByRole('button', { name: /Pages/ }).click()
   await expect(noteList.getByText('Local Folder Home', { exact: true })).toBeVisible()
   await expect(noteList.getByText('Work Home', { exact: true })).toHaveCount(0)
 })

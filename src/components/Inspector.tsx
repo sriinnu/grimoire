@@ -47,6 +47,7 @@ interface InspectorProps {
   onCreateMissingType?: (path: string, missingType: string, nextTypeName: string) => Promise<boolean | void>
   onCreateAndOpenNote?: (title: string) => Promise<boolean>
   onInitializeProperties?: (path: string) => void
+  onOpenSecondBrain?: () => void
   onToggleRawEditor?: () => void
   onReplaceContent?: (path: string, content: string) => Promise<void> | void
 }
@@ -197,6 +198,7 @@ function InspectorBody({
   onCreateMissingType,
   onCreateAndOpenNote,
   onInitializeProperties,
+  onOpenSecondBrain,
   onToggleRawEditor,
   onReplaceContent,
 }: Omit<InspectorProps, 'collapsed' | 'onToggle'>) {
@@ -231,6 +233,7 @@ function InspectorBody({
         entry={entry}
         entries={entries}
         content={content}
+        onOpenSecondBrain={onOpenSecondBrain}
         onNavigate={onNavigate}
       />
       <OutlinePanel

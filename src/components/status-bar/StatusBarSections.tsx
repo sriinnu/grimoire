@@ -1,31 +1,37 @@
 import { lazy, Suspense } from 'react'
+import {
+  AlertTriangle,
+  ArrowDown,
+  CheckCircle2,
+  CloudOff,
+  FilePenLine,
+  HardDrive,
+  Loader2,
+  LockKeyhole,
+  RefreshCw,
+  type LucideIcon,
+} from 'lucide-react'
 import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
 import type { VaultAiGuidanceStatus } from '../../lib/vaultAiGuidance'
 import type { ClaudeCodeStatus } from '../../hooks/useClaudeCodeStatus'
 import type { McpStatus } from '../../hooks/useMcpStatus'
 import { useStatusBarAddRemote } from '../../hooks/useStatusBarAddRemote'
 import type { GitRemoteStatus, SyncStatus } from '../../types'
-import { AiAgentsBadge } from './AiAgentsBadge'
-import {
-  ClaudeCodeBadge,
-  CommitButton,
-  ConflictBadge,
-  ChangesBadge,
-  LocalOnlyBadge,
-  McpBadge,
-  NoRemoteBadge,
-  OfflineBadge,
-  PulseBadge,
-  SyncBadge,
-} from './StatusBarBadges'
-import { BuildNumberButton } from './BuildNumberButton'
-import { SpandaRailIntent } from './SpandaRailIntent'
+import { StatusBarAction } from './StatusBarAction'
 import { StatusBarGroup } from './StatusBarGroup'
 import type { VaultOption } from './types'
 import type { VaultOpeningState } from './VaultMenu'
 import { VaultMenu } from './VaultMenu'
 
 const AddRemoteModalSurface = lazy(async () => ({ default: (await import('../AddRemoteModal')).AddRemoteModal }))
+
+function formatLocalEdits(modifiedCount: number) {
+  return modifiedCount === 1 ? 'Edit waiting' : 'Edits waiting'
+}
+
+function formatLocalEditsTooltip(modifiedCount: number) {
+  return modifiedCount === 1 ? 'Review 1 local edit' : `Review ${modifiedCount} local edits`
+}
 
 interface StatusBarPrimarySectionProps {
   modifiedCount: number
@@ -51,8 +57,6 @@ interface StatusBarPrimarySectionProps {
   onTriggerSync?: () => void
   onPullAndPush?: () => void
   onOpenConflictResolver?: () => void
-  buildNumber?: string
-  onCheckForUpdates?: () => void
   onRemoveVault?: (path: string) => void
   mcpStatus?: McpStatus
   onInstallMcp?: () => void
@@ -69,156 +73,211 @@ interface StatusBarPrimarySectionProps {
   compact?: boolean
 }
 
-function StatusBarAiBadge({
-  aiAgentsStatus,
-  vaultAiGuidanceStatus,
-  defaultAiAgent,
-  defaultAiProvider,
-  defaultAiModel,
-  onSetDefaultAiAgent,
-  onRestoreVaultAiGuidance,
-  claudeCodeStatus,
-  claudeCodeVersion,
-  compact,
-}: Pick<
-  StatusBarPrimarySectionProps,
-  | 'aiAgentsStatus'
-  | 'vaultAiGuidanceStatus'
-  | 'defaultAiAgent'
-  | 'defaultAiProvider'
-  | 'defaultAiModel'
-  | 'onSetDefaultAiAgent'
-  | 'onRestoreVaultAiGuidance'
-  | 'claudeCodeStatus'
-  | 'claudeCodeVersion'
-  | 'compact'
->) {
-  if (aiAgentsStatus && defaultAiAgent) {
-    return (
-      <AiAgentsBadge
-        statuses={aiAgentsStatus}
-        guidanceStatus={vaultAiGuidanceStatus}
-        defaultAgent={defaultAiAgent}
-        defaultAgentProvider={defaultAiProvider}
-        defaultAgentModel={defaultAiModel}
-        onSetDefaultAgent={onSetDefaultAiAgent}
-        onRestoreGuidance={onRestoreVaultAiGuidance}
-        compact={compact}
-      />
-    )
-  }
+type NotebookStatusSignalTone = 'danger' | 'success' | 'warning'
 
-  if (!claudeCodeStatus) return null
-
-  return <ClaudeCodeBadge status={claudeCodeStatus} version={claudeCodeVersion} showSeparator={false} compact={compact} />
+interface NotebookStatusSignalProps {
+  icon: LucideIcon
+  label: string
+  testId: string
+  tooltip: string
+  onClick?: () => void
+  spin?: boolean
+  tone?: NotebookStatusSignalTone
 }
 
-function StatusBarWorkflowBadges({
-  modifiedCount,
-  visibleRemoteStatus,
-  onAddRemote,
-  onClickPending,
-  onCommitPush,
-  syncStatus,
-  lastSyncTime,
-  onTriggerSync,
-  onPullAndPush,
-  onOpenConflictResolver,
-  conflictCount,
-  onClickPulse,
-  isGitVault,
-  isOffline,
-  compact,
-}: {
-  modifiedCount: number
-  visibleRemoteStatus: GitRemoteStatus | null
-  onAddRemote: () => void
-  onClickPending?: () => void
-  onCommitPush?: () => void
-  syncStatus: SyncStatus
-  lastSyncTime: number | null
-  onTriggerSync?: () => void
-  onPullAndPush?: () => void
-  onOpenConflictResolver?: () => void
-  conflictCount: number
-  onClickPulse?: () => void
-  isGitVault: boolean
-  isOffline: boolean
-  compact: boolean
-}) {
-  if (!isGitVault) {
+function NotebookStatusSignal({
+  icon: Icon,
+  label,
+  onClick,
+  spin = false,
+  testId,
+  tone,
+  tooltip,
+}: NotebookStatusSignalProps) {
+  const content = (
+    <span className="status-bar-summary-chip" data-status-summary-tone={tone}>
+      <Icon size={12} className={spin ? 'animate-spin' : undefined} />
+      <span>{label}</span>
+    </span>
+  )
+
+  if (onClick) {
     return (
-      <>
-        <OfflineBadge isOffline={isOffline} showSeparator={false} compact={compact} />
-        <LocalOnlyBadge showSeparator={false} compact={compact} />
-        <PulseBadge disabled showSeparator={false} compact={compact} />
-      </>
+      <StatusBarAction
+        className="status-bar-summary-action"
+        copy={{ label: tooltip }}
+        onClick={onClick}
+        testId={testId}
+        tone={tone}
+      >
+        {content}
+      </StatusBarAction>
     )
   }
 
   return (
-    <>
-      <OfflineBadge isOffline={isOffline} showSeparator={false} compact={compact} />
-      <NoRemoteBadge remoteStatus={visibleRemoteStatus} onAddRemote={onAddRemote} showSeparator={false} compact={compact} />
-      <ChangesBadge count={modifiedCount} onClick={onClickPending} showSeparator={false} compact={compact} />
-      <CommitButton onClick={onCommitPush} remoteStatus={visibleRemoteStatus} showSeparator={false} compact={compact} />
-      <SyncBadge
-        status={syncStatus}
-        lastSyncTime={lastSyncTime}
-        remoteStatus={visibleRemoteStatus}
-        onTriggerSync={onTriggerSync}
-        onPullAndPush={onPullAndPush}
-        onOpenConflictResolver={onOpenConflictResolver}
-        compact={compact}
-      />
-      <ConflictBadge count={conflictCount} onClick={onOpenConflictResolver} showSeparator={false} compact={compact} />
-      <PulseBadge onClick={onClickPulse} showSeparator={false} compact={compact} />
-    </>
+    <span
+      aria-label={tooltip}
+      className="status-bar-summary-static"
+      data-status-action-tone={tone}
+      data-testid={testId}
+      title={tooltip}
+    >
+      {content}
+    </span>
   )
 }
 
-function StatusBarAgentBadges({
-  mcpStatus,
-  onInstallMcp,
-  aiAgentsStatus,
-  vaultAiGuidanceStatus,
-  defaultAiAgent,
-  defaultAiProvider,
-  defaultAiModel,
-  onSetDefaultAiAgent,
-  onRestoreVaultAiGuidance,
-  claudeCodeStatus,
-  claudeCodeVersion,
-  compact,
+function getSaveSignal({
+  conflictCount,
+  isOffline,
+  modifiedCount,
+  onClickPending,
+  onOpenConflictResolver,
+  onPullAndPush,
+  onTriggerSync,
+  syncStatus,
 }: Pick<
   StatusBarPrimarySectionProps,
-  | 'mcpStatus'
-  | 'onInstallMcp'
-  | 'aiAgentsStatus'
-  | 'vaultAiGuidanceStatus'
-  | 'defaultAiAgent'
-  | 'defaultAiProvider'
-  | 'defaultAiModel'
-  | 'onSetDefaultAiAgent'
-  | 'onRestoreVaultAiGuidance'
-  | 'claudeCodeStatus'
-  | 'claudeCodeVersion'
-  | 'compact'
->) {
+  | 'conflictCount'
+  | 'isOffline'
+  | 'modifiedCount'
+  | 'onClickPending'
+  | 'onOpenConflictResolver'
+  | 'onPullAndPush'
+  | 'onTriggerSync'
+  | 'syncStatus'
+>): NotebookStatusSignalProps {
+  if (conflictCount > 0 || syncStatus === 'conflict') {
+    return {
+      icon: AlertTriangle,
+      label: conflictCount > 0 ? `${conflictCount} conflicts` : 'Conflicts',
+      onClick: onOpenConflictResolver,
+      testId: 'status-save-signal',
+      tone: 'danger',
+      tooltip: 'Resolve merge conflicts',
+    }
+  }
+
+  if (isOffline) {
+    return {
+      icon: CloudOff,
+      label: 'Offline',
+      testId: 'status-save-signal',
+      tone: 'danger',
+      tooltip: 'This notebook is offline',
+    }
+  }
+
+  if (syncStatus === 'pull_required') {
+    return {
+      icon: ArrowDown,
+      label: 'Pull required',
+      onClick: onPullAndPush,
+      testId: 'status-save-signal',
+      tone: 'warning',
+      tooltip: 'Pull from remote before syncing',
+    }
+  }
+
+  if (syncStatus === 'syncing') {
+    return {
+      icon: Loader2,
+      label: 'Syncing',
+      spin: true,
+      testId: 'status-save-signal',
+      tone: 'warning',
+      tooltip: 'Sync in progress',
+    }
+  }
+
+  if (syncStatus === 'error') {
+    return {
+      icon: RefreshCw,
+      label: 'Sync failed',
+      onClick: onTriggerSync,
+      testId: 'status-save-signal',
+      tone: 'danger',
+      tooltip: 'Retry sync',
+    }
+  }
+
+  if (modifiedCount > 0) {
+    return {
+      icon: FilePenLine,
+      label: formatLocalEdits(modifiedCount),
+      onClick: onClickPending,
+      testId: 'status-save-signal',
+      tone: 'warning',
+      tooltip: formatLocalEditsTooltip(modifiedCount),
+    }
+  }
+
+  return {
+    icon: CheckCircle2,
+    label: 'Saved here',
+    testId: 'status-save-signal',
+    tone: 'success',
+    tooltip: 'Saved in this notebook',
+  }
+}
+
+function NotebookStatusSummary({
+  conflictCount,
+  isGitVault,
+  isOffline,
+  modifiedCount,
+  onAddRemote,
+  onClickPending,
+  onOpenConflictResolver,
+  onPullAndPush,
+  onTriggerSync,
+  syncStatus,
+  visibleRemoteStatus,
+}: {
+  conflictCount: number
+  isGitVault: boolean
+  isOffline: boolean
+  modifiedCount: number
+  onAddRemote: () => void
+  onClickPending?: () => void
+  onOpenConflictResolver?: () => void
+  onPullAndPush?: () => void
+  onTriggerSync?: () => void
+  syncStatus: SyncStatus
+  visibleRemoteStatus: GitRemoteStatus | null
+}) {
+  const saveSignal = getSaveSignal({
+    conflictCount,
+    isOffline,
+    modifiedCount,
+    onClickPending,
+    onOpenConflictResolver,
+    onPullAndPush,
+    onTriggerSync,
+    syncStatus,
+  })
+  const remoteMissing = isGitVault && visibleRemoteStatus?.hasRemote === false
+  const localLabel = isGitVault ? 'Local' : 'Only here'
+  const localTooltip = remoteMissing
+    ? 'Stored on this device. Add a remote only when you choose.'
+    : 'Stored on this device.'
+
   return (
     <>
-      {mcpStatus && <McpBadge status={mcpStatus} onInstall={onInstallMcp} showSeparator={false} compact={compact} />}
-      <StatusBarAiBadge
-        aiAgentsStatus={aiAgentsStatus}
-        vaultAiGuidanceStatus={vaultAiGuidanceStatus}
-        defaultAiAgent={defaultAiAgent}
-        defaultAiProvider={defaultAiProvider}
-        defaultAiModel={defaultAiModel}
-        onSetDefaultAiAgent={onSetDefaultAiAgent}
-        onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
-        claudeCodeStatus={claudeCodeStatus}
-        claudeCodeVersion={claudeCodeVersion}
-        compact={compact}
+      <NotebookStatusSignal
+        icon={HardDrive}
+        label={localLabel}
+        onClick={remoteMissing ? onAddRemote : undefined}
+        testId="status-local-signal"
+        tooltip={localTooltip}
+      />
+      <NotebookStatusSignal {...saveSignal} />
+      <NotebookStatusSignal
+        icon={LockKeyhole}
+        label="Private"
+        testId="status-private-signal"
+        tooltip="Nothing leaves this notebook without your action."
       />
     </>
   )
@@ -238,31 +297,15 @@ export function StatusBarPrimarySection({
   onAddRemote,
   onGitInitialized,
   onClickPending,
-  onClickPulse,
-  onCommitPush,
   isOffline = false,
   isGitVault = true,
   syncStatus,
-  lastSyncTime,
   conflictCount,
   remoteStatus,
   onTriggerSync,
   onPullAndPush,
   onOpenConflictResolver,
-  buildNumber,
-  onCheckForUpdates,
   onRemoveVault,
-  mcpStatus,
-  onInstallMcp,
-  aiAgentsStatus,
-  vaultAiGuidanceStatus,
-  defaultAiAgent,
-  defaultAiProvider,
-  defaultAiModel,
-  onSetDefaultAiAgent,
-  onRestoreVaultAiGuidance,
-  claudeCodeStatus,
-  claudeCodeVersion,
   stacked = false,
   compact = false,
 }: StatusBarPrimarySectionProps) {
@@ -279,7 +322,6 @@ export function StatusBarPrimarySection({
     onAddRemote,
     onGitInitialized,
   })
-  const hasAgentStatus = Boolean(mcpStatus || (aiAgentsStatus && defaultAiAgent) || claudeCodeStatus)
 
   return (
     <div
@@ -308,67 +350,24 @@ export function StatusBarPrimarySection({
           onRemoveVault={onRemoveVault}
           compact={compact}
         />
-        <BuildNumberButton buildNumber={buildNumber} onCheckForUpdates={onCheckForUpdates} compact={compact} />
       </StatusBarGroup>
       <StatusBarGroup compact={compact} grow testId="status-workflow-group">
-        <StatusBarWorkflowBadges
+        <NotebookStatusSummary
+          conflictCount={conflictCount}
+          isGitVault={isGitVault}
+          isOffline={isOffline}
           modifiedCount={modifiedCount}
-          visibleRemoteStatus={visibleRemoteStatus}
           onAddRemote={() => {
             void openAddRemote()
           }}
           onClickPending={onClickPending}
-          onCommitPush={onCommitPush}
-          syncStatus={syncStatus}
-          lastSyncTime={lastSyncTime}
           onTriggerSync={onTriggerSync}
           onPullAndPush={onPullAndPush}
           onOpenConflictResolver={onOpenConflictResolver}
-          conflictCount={conflictCount}
-          onClickPulse={onClickPulse}
-          isGitVault={isGitVault}
-          isOffline={isOffline}
-          compact={compact}
-        />
-      </StatusBarGroup>
-      <StatusBarGroup compact={compact} testId="status-spanda-group">
-        <SpandaRailIntent
-          aiAgentsStatus={aiAgentsStatus}
-          compact={compact}
-          conflictCount={conflictCount}
-          defaultAiAgent={defaultAiAgent}
-          isGitVault={isGitVault}
-          isOffline={isOffline}
-          modifiedCount={modifiedCount}
-          onClickPending={onClickPending}
-          onClickPulse={onClickPulse}
-          onCommitPush={onCommitPush}
-          onOpenConflictResolver={onOpenConflictResolver}
-          onOpenLocalFolder={onOpenLocalFolder}
-          onPullAndPush={onPullAndPush}
-          onTriggerSync={onTriggerSync}
-          remoteStatus={visibleRemoteStatus}
           syncStatus={syncStatus}
+          visibleRemoteStatus={visibleRemoteStatus}
         />
       </StatusBarGroup>
-      {hasAgentStatus && (
-        <StatusBarGroup compact={compact} testId="status-agent-group">
-          <StatusBarAgentBadges
-            mcpStatus={mcpStatus}
-            onInstallMcp={onInstallMcp}
-            aiAgentsStatus={aiAgentsStatus}
-            vaultAiGuidanceStatus={vaultAiGuidanceStatus}
-            defaultAiAgent={defaultAiAgent}
-            defaultAiProvider={defaultAiProvider}
-            defaultAiModel={defaultAiModel}
-            onSetDefaultAiAgent={onSetDefaultAiAgent}
-            onRestoreVaultAiGuidance={onRestoreVaultAiGuidance}
-            claudeCodeStatus={claudeCodeStatus}
-            claudeCodeVersion={claudeCodeVersion}
-            compact={compact}
-          />
-        </StatusBarGroup>
-      )}
       {showAddRemote ? (
         <Suspense fallback={null}>
           <AddRemoteModalSurface

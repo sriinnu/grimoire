@@ -227,7 +227,7 @@ export function countFolderFileScopes(
   }
 }
 
-/** Count All Notes-eligible documents per sub-filter, excluding files under attachments/. */
+/** Count Pages-eligible documents per sub-filter, excluding files under attachments/. */
 export function countAllNotesByFilter(entries: VaultEntry[]): Record<NoteListFilter, number> {
   return countEntriesByArchiveStatus(entries.filter(isAllNotesEntry))
 }

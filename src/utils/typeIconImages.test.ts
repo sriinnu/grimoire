@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { TYPE_ICON_IMAGE_OPTIONS } from './typeIconImages'
 
 describe('TYPE_ICON_IMAGE_OPTIONS', () => {
-  it('ships a broad built-in SVG badge set', () => {
+  it('ships a broad built-in SVG mark set', () => {
     expect(TYPE_ICON_IMAGE_OPTIONS.length).toBeGreaterThanOrEqual(20)
   })
 

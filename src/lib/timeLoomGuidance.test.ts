@@ -30,7 +30,7 @@ const emptyDreamSummary: DreamForgeSummary = {
 }
 
 const summary: TimeLoomSummary = {
-  activeSpanLabel: '5 events today',
+  activeSpanLabel: '5 marks today',
   buckets: [
     {
       dateKey: '2026-05-27',
@@ -70,7 +70,7 @@ const summary: TimeLoomSummary = {
   graph: {
     links: [],
     nodes: [],
-    privacyNote: 'count-only temporal graph; private labels withheld',
+    privacyNote: 'count-only trail graph; private labels withheld',
   },
   memoryReviewEvents: 0,
   mobileEvents: 2,
@@ -111,7 +111,7 @@ describe('buildTimeLoomGuidance', () => {
     expect(payload).not.toContain('private-voice.webm')
   })
 
-  it('opens the dream lane when timeline exists but no dreams are present', () => {
+  it('opens the dream lane when trail exists but no dreams are present', () => {
     const guidance = buildTimeLoomGuidance(
       {
         ...summary,

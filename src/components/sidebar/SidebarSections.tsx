@@ -5,8 +5,8 @@ import type { VaultEntry, SidebarSelection, ViewFile } from '../../types'
 import { PanelLeftClose, SlidersHorizontal } from 'lucide-react'
 import {
   Plus,
+  FunnelSimple,
 } from '@phosphor-icons/react'
-import grimoireIcon from '@/assets/app-icon.png'
 import { Button } from '@/components/ui/button'
 import {
   type SectionGroup, isSelectionActive, SectionContent, VisibilityPopover,
@@ -17,6 +17,9 @@ import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingCo
 import { SidebarGroupHeader } from './SidebarGroupHeader'
 import { SidebarViewItem } from './SidebarViewItem'
 import { countByFilter } from '../../utils/noteListHelpers'
+import { BrandNotebookMark } from './BrandNotebookMark'
+import { BrandWordmark } from './BrandWordmark'
+import { clampFixedMenuPosition } from '../../lib/fixedMenuPosition'
 
 export { SidebarTopNav } from './SidebarTopNav'
 export { FavoritesSection } from './FavoritesSection'
@@ -60,7 +63,7 @@ export function ViewsSection({
 }) {
   return (
     <div className="border-b border-border" style={{ padding: '0 6px' }}>
-      <SidebarGroupHeader label="VIEWS" collapsed={collapsed} onToggle={onToggle}>
+      <SidebarGroupHeader label="Lenses" collapsed={collapsed} onToggle={onToggle}>
         {onCreateView && (
           <Plus
             size={12}
@@ -155,6 +158,7 @@ export function TypesSection({
   isSectionVisible,
   toggleVisibility,
   onCreateNewType,
+  onCreateView,
   customizeRef,
 }: {
   visibleSections: SectionGroup[]
@@ -169,6 +173,7 @@ export function TypesSection({
   isSectionVisible: (type: string) => boolean
   toggleVisibility: (type: string) => void
   onCreateNewType?: () => void
+  onCreateView?: () => void
   customizeRef: RefObject<HTMLDivElement | null>
 }) {
   const staticList = <StaticTypesSectionList visibleSections={visibleSections} sectionProps={sectionProps} />
@@ -186,14 +191,28 @@ export function TypesSection({
   return (
     <div className="border-b border-border">
       <div ref={customizeRef} style={{ position: 'relative', padding: '0 6px' }}>
-        <SidebarGroupHeader label="LISTS" collapsed={collapsed} onToggle={onToggle}>
+        <SidebarGroupHeader label="Places" collapsed={collapsed} onToggle={onToggle} actionsOpen={showCustomize}>
           <div className="flex items-center gap-1.5">
+            {onCreateView && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="h-auto w-auto min-w-0 rounded-none p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+                data-testid="create-view-btn"
+                title="Create lens"
+                aria-label="Create lens"
+                onClick={(event) => { event.stopPropagation(); onCreateView() }}
+              >
+                <FunnelSimple size={12} className="text-muted-foreground hover:text-foreground" />
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
               size="icon-xs"
-              title="Customize sections"
-              aria-label="Customize sections"
+              title="Customize places"
+              aria-label="Customize places"
               className="h-auto w-auto min-w-0 rounded-none p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
               onClick={(event) => { event.stopPropagation(); setShowCustomize((value) => !value) }}
             >
@@ -206,8 +225,8 @@ export function TypesSection({
                 size="icon-xs"
                 className="h-auto w-auto min-w-0 rounded-none p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
                 data-testid="create-type-btn"
-                title="Create new type"
-                aria-label="Create new type"
+                title="Create kind"
+                aria-label="Create kind"
                 onClick={(event) => { event.stopPropagation(); onCreateNewType() }}
               >
                 <Plus size={12} className="text-muted-foreground hover:text-foreground" />
@@ -235,7 +254,7 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
     <div
       className="sidebar-title-bar grid shrink-0 items-center border-b border-border"
       style={{
-        height: 60,
+        height: 'var(--sidebar-title-bar-height, 60px)',
         gridTemplateColumns: 'minmax(0, 1fr) 6px auto',
         padding: '0 8px 0 12px',
         cursor: 'default',
@@ -248,23 +267,13 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
         aria-label="Grimoire"
         data-testid="sidebar-brand"
       >
-        <span className="sidebar-brand-mark grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background shadow-xs">
-          <img
-            src={grimoireIcon}
-            alt="Grimoire icon"
-            className="h-7 w-7 rounded-md object-cover"
-            data-testid="sidebar-brand-icon"
-          />
+        <span className="sidebar-brand-mark grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background">
+          <BrandNotebookMark className="h-7 w-7" testId="sidebar-brand-icon" />
         </span>
         <span className="flex min-w-0 flex-col leading-none" style={{ textAlign: 'left' }}>
-          <span
-            className="sidebar-brand-wordmark truncate"
-            style={{ textAlign: 'left' }}
-          >
-            Grimoire
-          </span>
+          <BrandWordmark testId="sidebar-brand-wordmark" />
           <span className="mt-1 truncate text-[10px] font-medium text-muted-foreground" style={{ textAlign: 'left' }}>
-            Local memory studio
+            Living notebook
           </span>
         </span>
       </div>
@@ -301,20 +310,36 @@ export function ContextMenuOverlay({
 }) {
   if (!pos || !type) return null
 
-  const buttonClass = 'flex w-full items-center gap-2 rounded-sm border-none bg-transparent px-2 py-1.5 text-left text-sm cursor-default transition-colors hover:bg-accent hover:text-accent-foreground'
+  const buttonClass = 'h-auto w-full justify-start rounded-sm px-2 py-1.5 text-left text-sm'
+  const menuPosition = clampFixedMenuPosition(pos.x, pos.y, { width: 196, height: 74 })
 
   return (
     <div
       ref={innerRef}
-      className="fixed z-50 rounded-md border bg-popover p-1 shadow-md"
-      style={{ left: pos.x, top: pos.y, minWidth: 180 }}
+      className="grimoire-context-menu-surface fixed z-50 w-[196px] max-w-[calc(100vw-16px)] rounded-md border bg-popover p-1 shadow-md"
+      style={{ left: menuPosition.left, top: menuPosition.top }}
+      data-testid="sidebar-context-menu"
+      role="menu"
+      aria-label={`${type} place actions`}
     >
-      <button className={buttonClass} onClick={() => onStartRename(type)}>
-        Rename section…
-      </button>
-      <button className={buttonClass} onClick={() => onOpenCustomize(type)}>
-        Customize icon &amp; color…
-      </button>
+      <Button
+        type="button"
+        role="menuitem"
+        variant="ghost"
+        className={buttonClass}
+        onClick={() => onStartRename(type)}
+      >
+        Rename place…
+      </Button>
+      <Button
+        type="button"
+        role="menuitem"
+        variant="ghost"
+        className={buttonClass}
+        onClick={() => onOpenCustomize(type)}
+      >
+        Customize mark &amp; color…
+      </Button>
     </div>
   )
 }

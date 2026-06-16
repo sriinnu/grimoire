@@ -1,13 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Brain,
   CalendarDays,
-  Cloud,
+  FilePlus2,
   Lock,
   NotebookTabs,
-  ShieldCheck,
-  Sparkles,
-  type LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
@@ -22,7 +18,7 @@ import {
 } from '../../utils/dashboardCapture'
 import type { DashboardCaptureTemplateId, DreamTemplateId, JournalTemplateId } from '../../utils/noteTemplates'
 import { buildDashboardSummary } from '../../utils/dashboardModel'
-import { cn } from '../../lib/utils'
+import { formatTypeCount } from '../../utils/notebookCountLabels'
 import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
 import { DashboardInsightPanelsFallback } from './DashboardInsightPanelsFallback'
 import { DashboardTodayRunway } from './DashboardTodayRunway'
@@ -33,7 +29,9 @@ import {
 } from './DashboardTodayRunwayModel'
 import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
+import { notebookTitle } from './vaultDashboardHeaderModel'
 import './VaultDashboardLayout.css'
+import './VaultDashboardResponsive.css'
 import './VaultDashboard.css'
 
 const DashboardInsightPanels = lazy(async () => ({
@@ -52,6 +50,7 @@ interface VaultDashboardProps {
     captureDate?: Date,
     templateId?: DashboardCaptureTemplateId | null,
   ) => Promise<DashboardCaptureResult>
+  /** Create-notebook stays available from notebook menus, not the first writing surface. */
   onOpenCreateVault: () => void
   onOpenNote: (entry: VaultEntry) => void
   onPendingCaptureConsumed?: () => void
@@ -59,41 +58,6 @@ interface VaultDashboardProps {
   pulseCommits?: PulseCommit[]
   syncStatus: SyncStatus
   vaultPath: string
-}
-
-function storageLabel(activeVault?: VaultOption): string {
-  const provider = activeVault?.storageProvider
-  if (provider === 'icloud-drive') return 'Personal Sync'
-  if (provider === 'google-drive-desktop') return 'Personal Sync'
-  if (provider === 'cloud-folder') return 'Personal Sync'
-  if (provider === 's3' || provider === 'azure-blob') return 'Export Allowed'
-  return 'Local'
-}
-
-function syncLabel(syncStatus: SyncStatus, modifiedCount: number, conflictCount: number): string {
-  if (conflictCount > 0 || syncStatus === 'conflict') return 'Conflicts'
-  if (syncStatus === 'syncing') return 'Syncing'
-  if (syncStatus === 'pull_required') return 'Pull Needed'
-  if (syncStatus === 'error') return 'Sync Check'
-  if (modifiedCount > 0) return `${modifiedCount} Pending`
-  return 'Clean'
-}
-
-function DashboardBadge({
-  icon: Icon,
-  label,
-  tone = 'neutral',
-}: {
-  icon: LucideIcon
-  label: string
-  tone?: 'green' | 'blue' | 'orange' | 'neutral'
-}) {
-  return (
-    <span className={cn('vault-dashboard__badge', `vault-dashboard__badge--${tone}`)}>
-      <Icon size={13} />
-      {label}
-    </span>
-  )
 }
 
 function StatTile({ label, value, detail }: { label: string; value: number | string; detail: string }) {
@@ -120,15 +84,21 @@ function PromptButton({
   )
 }
 
+function WaitingBucketRow({ count, label }: { count: number; label: string }) {
+  return (
+    <div className="vault-dashboard__loop-row">
+      <span>{formatTypeCount(label, count)}</span>
+    </div>
+  )
+}
+
 /** First screen for the local-first assistant loop. */
 export function VaultDashboard({
   activeVault,
   conflictCount,
   entries,
-  isGitVault,
   modifiedCount,
   onCapture,
-  onOpenCreateVault,
   onOpenNote,
   onPendingCaptureConsumed,
   pendingCaptureRequest,
@@ -161,6 +131,7 @@ export function VaultDashboard({
     [attentionSuggestion.openEntryPath, entries],
   )
   const activeVaultLabel = activeVault?.label ?? vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Vault'
+  const activeNotebookTitle = notebookTitle(activeVaultLabel)
   const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
   const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)
   const selectedTemplateId: DashboardCaptureTemplateId | null = selectedKind === 'journal'
@@ -261,7 +232,7 @@ export function VaultDashboard({
       return
     }
     if (attentionOpenEntry) {
-      setSelectedFlowKind('task')
+      setSelectedFlowKind('revisit')
       onOpenNote(attentionOpenEntry)
     }
   }
@@ -271,36 +242,27 @@ export function VaultDashboard({
       <section className="vault-dashboard__hero">
         <div className="vault-dashboard__hero-copy">
           <div className="vault-dashboard__eyebrow">
-            <Sparkles size={14} />
-            {activeVaultLabel}
+            <NotebookTabs size={14} />
+            Grimoire
           </div>
-          <h1>Your local memory board.</h1>
-          <div className="vault-dashboard__badges" aria-label="Vault locality">
-            <DashboardBadge icon={Lock} label={storageLabel(activeVault)} tone="green" />
-            <DashboardBadge icon={ShieldCheck} label="Cloud Blocked" tone="blue" />
-            <DashboardBadge icon={Cloud} label={syncLabel(syncStatus, modifiedCount, conflictCount)} tone={conflictCount > 0 ? 'orange' : 'neutral'} />
-            <DashboardBadge icon={Brain} label={isGitVault ? 'Git Optional' : 'No Git Needed'} tone="neutral" />
-          </div>
+          <h1>{activeNotebookTitle}</h1>
+          <p className="vault-dashboard__subtitle">One living notebook, private by default.</p>
         </div>
-        <Button type="button" variant="outline" onClick={onOpenCreateVault} data-testid="dashboard-create-vault">
-          <NotebookTabs size={16} />
-          New Vault
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="vault-dashboard__new-page-button"
+          aria-label="New Page"
+          title="New Page"
+          onClick={() => seedPrompt('note')}
+          data-testid="dashboard-new-page"
+        >
+          <FilePlus2 size={16} />
         </Button>
       </section>
 
       <section className="vault-dashboard__grid">
-        <DashboardTodayRunway
-          attention={attentionSuggestion}
-          attentionCaptureKind={attentionCaptureKind}
-          brief={summary.dailyBrief}
-          canUseAttentionAction={canUseAttentionAction}
-          onAttentionAction={handleAttentionAction}
-          onSelectFlowKind={setSelectedFlowKind}
-          onSeedPrompt={seedPrompt}
-          selectedFlowKind={selectedFlowKind}
-          summary={summary}
-        />
-
         <DashboardQuickCapturePanel
           askContextPreview={askContextPreview}
           busy={busy}
@@ -318,6 +280,18 @@ export function VaultDashboard({
           onSubmit={handleSubmit}
         />
 
+        <DashboardTodayRunway
+          attention={attentionSuggestion}
+          attentionCaptureKind={attentionCaptureKind}
+          brief={summary.dailyBrief}
+          canUseAttentionAction={canUseAttentionAction}
+          onAttentionAction={handleAttentionAction}
+          onSelectFlowKind={setSelectedFlowKind}
+          onSeedPrompt={seedPrompt}
+          selectedFlowKind={selectedFlowKind}
+          summary={summary}
+        />
+
         <Suspense fallback={<DashboardInsightPanelsFallback />}>
           <DashboardInsightPanels
             crystallizedTodayCount={summary.crystallizedTodayCount}
@@ -332,19 +306,16 @@ export function VaultDashboard({
         <div className="vault-dashboard__panel">
           <div className="vault-dashboard__panel-head">
             <div>
-              <div className="vault-dashboard__panel-label">Open Loops</div>
-              <h2>{summary.openLoopCount} active</h2>
+              <div className="vault-dashboard__panel-label">Revisit</div>
+              <h2>{summary.openLoopCount > 0 ? 'Pages to return to.' : 'No loose pages.'}</h2>
             </div>
             <CalendarDays size={18} />
           </div>
           <div className="vault-dashboard__loop-list">
             {summary.openLoopBuckets.length > 0 ? summary.openLoopBuckets.map((bucket) => (
-              <div key={bucket.label} className="vault-dashboard__loop-row">
-                <span>{bucket.label}</span>
-                <strong>{bucket.count}</strong>
-              </div>
+              <WaitingBucketRow key={bucket.label} count={bucket.count} label={bucket.label} />
             )) : (
-              <div className="vault-dashboard__empty">Nothing open.</div>
+              <div className="vault-dashboard__empty">Nothing to revisit.</div>
             )}
           </div>
         </div>
@@ -352,8 +323,8 @@ export function VaultDashboard({
         <div className="vault-dashboard__panel">
           <div className="vault-dashboard__panel-head">
             <div>
-              <div className="vault-dashboard__panel-label">Daily Pulse</div>
-              <h2>Private lanes</h2>
+              <div className="vault-dashboard__panel-label">Private pages</div>
+              <h2>Journal, dream, next.</h2>
             </div>
             <Lock size={18} />
           </div>
@@ -364,14 +335,14 @@ export function VaultDashboard({
             <PromptButton onClick={() => seedPrompt('dream')}>
               {summary.hasDreamToday ? 'Dream captured today' : 'Catch a dream'}
             </PromptButton>
-            <PromptButton onClick={() => seedPrompt('task')}>Name one next action</PromptButton>
+            <PromptButton onClick={() => seedPrompt('task')}>Carry one page forward</PromptButton>
           </div>
         </div>
 
         <div className="vault-dashboard__stats">
-          <StatTile label="Notes" value={summary.activeNotes} detail="active local files" />
+          <StatTile label="Pages" value={summary.activeNotes} detail="active local notes" />
           <StatTile label="Journals" value={summary.journalCount} detail="private by default" />
-          <StatTile label="Dreams" value={summary.dreamCount} detail="local lane" />
+          <StatTile label="Dreams" value={summary.dreamCount} detail="held local" />
           <StatTile label="Memory" value={summary.memoryQueueCount} detail="review queue" />
         </div>
 

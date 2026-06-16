@@ -25,7 +25,7 @@ describe('StatusBar presence tone', () => {
 
     const statusBar = screen.getByTestId('status-bar')
     expect(statusBar).toHaveAttribute('data-status-tone', 'attention')
-    expect(statusBar).toHaveAccessibleName('Grimoire status, 2 pending changes, sync pull required')
+    expect(statusBar).toHaveAccessibleName('Notebook status, edits waiting, needs incoming edits')
   })
 
   it('uses danger tone for offline or conflicted states', () => {
@@ -33,7 +33,7 @@ describe('StatusBar presence tone', () => {
 
     const statusBar = screen.getByTestId('status-bar')
     expect(statusBar).toHaveAttribute('data-status-tone', 'danger')
-    expect(statusBar).toHaveAccessibleName('Grimoire status, offline, 1 conflict, sync conflict')
+    expect(statusBar).toHaveAccessibleName('Notebook status, offline, 1 conflict, conflicted')
   })
 
   it('uses healthy tone when the vault is idle and clean', () => {

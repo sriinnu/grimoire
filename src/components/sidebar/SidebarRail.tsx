@@ -1,16 +1,17 @@
 import type { ComponentType } from 'react'
 import { MagnifyingGlass, type IconProps } from '@phosphor-icons/react'
-import grimoireIcon from '@/assets/app-icon.png'
 import { Button } from '@/components/ui/button'
 import type { SidebarSelection } from '../../types'
 import { cn } from '../../lib/utils'
 import { isSelectionActive } from '../SidebarParts'
+import { BrandNotebookMark } from './BrandNotebookMark'
 import {
   ArchiveGlyphIcon,
-  DashboardGlyphIcon,
   DreamGlyphIcon,
+  GraphGlyphIcon,
   InboxGlyphIcon,
   JournalGlyphIcon,
+  NotebookGlyphIcon,
   NotesGlyphIcon,
   SidebarExpandGlyphIcon,
 } from '../icons/sidebarGlyphIcons'
@@ -27,6 +28,7 @@ interface SidebarRailProps {
   dreamCount: number
   archivedCount: number
   onOpenSearch?: (initialQuery?: string) => void
+  onOpenGraph?: () => void
 }
 
 interface RailItem {
@@ -34,23 +36,6 @@ interface RailItem {
   icon: ComponentType<IconProps>
   selection: SidebarSelection
   tone: 'aura' | 'amber' | 'blue' | 'violet'
-  count?: number
-}
-
-function RailCount({ count, active }: { count?: number; active: boolean }) {
-  if (!count || count < 1) return null
-
-  return (
-    <span
-      className={cn(
-        'absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-semibold leading-none',
-        active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
-      )}
-      data-testid="sidebar-rail-count"
-    >
-      {count > 99 ? '99+' : count}
-    </span>
-  )
 }
 
 function RailButton({
@@ -72,7 +57,7 @@ function RailButton({
       className={cn(
         'relative h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground',
         'sidebar-rail__tone',
-        active && 'bg-primary/10 text-primary shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--primary)_22%,transparent)]',
+        active && 'text-foreground',
       )}
       aria-label={item.label}
       title={item.label}
@@ -82,12 +67,8 @@ function RailButton({
       onClick={() => onSelect(item.selection)}
     >
       <span className="sidebar-rail__glyph" data-active={active ? 'true' : 'false'}>
-        <span className="sidebar-rail__signal" />
-        <span className="sidebar-rail__bead sidebar-rail__bead--near" />
-        <span className="sidebar-rail__bead sidebar-rail__bead--far" />
-        <Icon size={21} weight={active ? 'duotone' : 'regular'} />
+        <Icon size={22} weight={active ? 'duotone' : 'regular'} />
       </span>
-      <RailCount count={item.count} active={active} />
     </Button>
   )
 }
@@ -100,18 +81,13 @@ export function SidebarRail({
   onSelect,
   onExpand,
   showInbox,
-  inboxCount,
-  activeCount,
-  noteCount,
-  journalCount,
-  dreamCount,
-  archivedCount,
   onOpenSearch,
+  onOpenGraph,
 }: SidebarRailProps) {
   const items: RailItem[] = [
     {
-      label: 'Dashboard',
-      icon: DashboardGlyphIcon,
+      label: 'Notebook',
+      icon: NotebookGlyphIcon,
       tone: 'aura',
       selection: { kind: 'dashboard' },
     },
@@ -121,58 +97,43 @@ export function SidebarRail({
           icon: InboxGlyphIcon,
           tone: 'amber' as const,
           selection: { kind: 'filter', filter: 'inbox' } as SidebarSelection,
-          count: inboxCount,
         }]
       : []),
     {
-      label: 'All Notes',
+      label: 'Pages',
       icon: NotesGlyphIcon,
       tone: 'blue',
       selection: { kind: 'filter', filter: 'all' },
-      count: activeCount,
-    },
-    {
-      label: 'Notes',
-      icon: NotesGlyphIcon,
-      tone: 'blue',
-      selection: { kind: 'sectionGroup', type: 'Note' },
-      count: noteCount,
     },
     {
       label: 'Journal',
       icon: JournalGlyphIcon,
       tone: 'aura',
       selection: { kind: 'sectionGroup', type: 'Journal' },
-      count: journalCount,
     },
     {
       label: 'Dreams',
       icon: DreamGlyphIcon,
       tone: 'violet',
       selection: { kind: 'sectionGroup', type: 'Dream' },
-      count: dreamCount,
     },
     {
       label: 'Archive',
       icon: ArchiveGlyphIcon,
       tone: 'violet',
       selection: { kind: 'filter', filter: 'archived' },
-      count: archivedCount,
     },
   ]
 
   return (
     <aside
-      className="app-sidebar-rail flex h-full flex-col items-center border-r border-[var(--sidebar-border)] bg-sidebar px-2 pb-3 pt-[72px] text-sidebar-foreground"
+      className="app-sidebar-rail flex h-full flex-col items-center border-r border-[var(--sidebar-border)] bg-sidebar px-2 pb-3 text-sidebar-foreground"
+      style={{ paddingTop: 'var(--sidebar-rail-safe-top)' }}
       data-testid="sidebar-rail"
       aria-label="Collapsed sidebar"
     >
-      <div className="app-sidebar-rail__mark mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background shadow-xs">
-        <img
-          src={grimoireIcon}
-          alt="Grimoire icon"
-          className="h-8 w-8 rounded-lg object-cover"
-        />
+      <div className="app-sidebar-rail__mark mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background">
+        <BrandNotebookMark className="h-8 w-8" />
       </div>
       {onOpenSearch && (
         <Button
@@ -180,16 +141,13 @@ export function SidebarRail({
           variant="ghost"
           size="icon"
           className="mb-3 h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground sidebar-rail__tone"
-          aria-label="Open Spotlight search across open vaults"
-          title="Open Spotlight search across open vaults"
+          aria-label="Open notebook search"
+          title="Open notebook search"
           data-sidebar-rail-tone="blue"
           data-testid="sidebar-rail-search"
           onClick={() => onOpenSearch()}
         >
           <span className="sidebar-rail__glyph" data-active="false">
-            <span className="sidebar-rail__signal" />
-            <span className="sidebar-rail__bead sidebar-rail__bead--near" />
-            <span className="sidebar-rail__bead sidebar-rail__bead--far" />
             <MagnifyingGlass size={21} weight="regular" />
           </span>
         </Button>
@@ -203,6 +161,24 @@ export function SidebarRail({
             onSelect={onSelect}
           />
         ))}
+        {onOpenGraph && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="relative h-10 w-10 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground sidebar-rail__tone"
+            aria-label="Graph"
+            title="Graph"
+            data-active="false"
+            data-sidebar-rail-tone="blue"
+            data-testid="sidebar-rail-graph"
+            onClick={onOpenGraph}
+          >
+            <span className="sidebar-rail__glyph" data-active="false">
+            <GraphGlyphIcon size={22} weight="regular" />
+            </span>
+          </Button>
+        )}
       </nav>
       {onExpand && (
         <Button
@@ -216,10 +192,7 @@ export function SidebarRail({
           onClick={onExpand}
         >
           <span className="sidebar-rail__glyph" data-active="false">
-            <span className="sidebar-rail__signal" />
-            <span className="sidebar-rail__bead sidebar-rail__bead--near" />
-            <span className="sidebar-rail__bead sidebar-rail__bead--far" />
-            <SidebarExpandGlyphIcon size={21} weight="regular" />
+            <SidebarExpandGlyphIcon size={22} weight="regular" />
           </span>
         </Button>
       )}

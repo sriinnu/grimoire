@@ -31,23 +31,33 @@ describe('buildSettingsCommands', () => {
     })
   })
 
-  it('indexes current theme presets without retired theme keywords', () => {
+  it('indexes current experience profiles without retired theme keywords', () => {
     const commands = buildSettingsCommands({ onOpenSettings: vi.fn() })
     const keywords = commands.find((item) => item.id === 'open-settings')?.keywords ?? []
 
     expect(keywords).toEqual(expect.arrayContaining([
-      'constellation',
+      'map',
+      'experience',
+      'profile',
+      'profiles',
+      'color',
+      'mode',
       'daylight',
-      'atelier',
-      'prabhat',
-      'studio',
+      'notebook',
+      'morning',
       'living',
       'archive',
-      'nocturne',
-      'retro',
+      'night',
+      'code',
       'terminal',
     ]))
     expect(keywords).not.toEqual(expect.arrayContaining([
+      'constellation',
+      'atelier',
+      'studio',
+      'retro',
+      'local',
+      'console',
       '2050',
       'aether',
       'ion',
@@ -146,7 +156,7 @@ describe('buildSettingsCommands', () => {
     const command = commands.find((item) => item.id === 'create-empty-vault')
 
     expect(command).toMatchObject({
-      label: 'Create Empty Vault…',
+      label: 'Create Empty Notebook…',
       enabled: true,
       group: 'Settings',
     })
@@ -165,7 +175,7 @@ describe('buildSettingsCommands', () => {
     const command = commands.find((item) => item.id === 'reveal-vault-in-finder')
 
     expect(command).toMatchObject({
-      label: 'Reveal Vault in Finder',
+      label: 'Reveal Notebook in Finder',
       enabled: true,
       group: 'Settings',
       keywords: expect.arrayContaining(['vault', 'finder', 'local']),

@@ -155,7 +155,7 @@ export const SEMANTIC_TOKEN_ALIASES: Partial<Record<ThemeTokenKey, readonly stri
 }
 
 export const DERIVED_TOKEN_FALLBACKS: Record<(typeof DERIVED_THEME_TOKEN_KEYS)[number], string> = {
-  'accent.green': 'var(--syntax-link)',
+  'accent.green': 'var(--accent-blue)',
   'accent.greenSoft': 'color-mix(in srgb, var(--accent-green) 14%, transparent)',
   'accent.orange': 'var(--sidebar-primary)',
   'accent.orangeSoft': 'color-mix(in srgb, var(--accent-orange) 14%, transparent)',

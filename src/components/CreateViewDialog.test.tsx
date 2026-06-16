@@ -11,13 +11,13 @@ describe('CreateViewDialog', () => {
     availableFields: ['type', 'status', 'title'],
   }
 
-  it('shows "Create View" title in create mode', () => {
+  it('shows "Create Lens" title in create mode', () => {
     render(<CreateViewDialog {...defaultProps} />)
-    expect(screen.getByText('Create View')).toBeInTheDocument()
+    expect(screen.getByText('Create Lens')).toBeInTheDocument()
     expect(screen.getByText('Create')).toBeInTheDocument()
   })
 
-  it('shows "Edit View" title when editingView is provided', () => {
+  it('shows "Edit Lens" title when editingView is provided', () => {
     const editingView: ViewDefinition = {
       name: 'Active Projects',
       icon: '🚀',
@@ -26,7 +26,7 @@ describe('CreateViewDialog', () => {
       filters: { all: [{ field: 'type', op: 'equals', value: 'Project' }] },
     }
     render(<CreateViewDialog {...defaultProps} editingView={editingView} />)
-    expect(screen.getByText('Edit View')).toBeInTheDocument()
+    expect(screen.getByText('Edit Lens')).toBeInTheDocument()
     expect(screen.getByText('Save')).toBeInTheDocument()
   })
 

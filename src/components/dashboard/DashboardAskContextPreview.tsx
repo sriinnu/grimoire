@@ -1,4 +1,4 @@
-import { FileCheck2, ShieldCheck, Sparkles } from 'lucide-react'
+import { FileCheck2, ShieldCheck } from 'lucide-react'
 import type { DashboardAskContextPreview as DashboardAskContextPreviewModel } from '../../utils/dashboardAskContext'
 import './DashboardAskContextPreview.css'
 
@@ -20,8 +20,8 @@ export function DashboardAskContextPreview({ preview }: DashboardAskContextPrevi
     <div className="vault-dashboard__ask-preview" data-testid="dashboard-ask-context-preview">
       <div className="vault-dashboard__ask-preview-head">
         <span>
-          <Sparkles size={13} />
-          Agent Context
+          <FileCheck2 size={13} />
+          Shared context
         </span>
         <span>{visibleLabel}</span>
       </div>
@@ -56,7 +56,7 @@ export function DashboardAskContextPreview({ preview }: DashboardAskContextPrevi
       ) : null}
       <div className="vault-dashboard__ask-preview-rule">
         <ShieldCheck size={13} />
-        {protectedLabel}; {protectedMemoryLabel}. Only listed public references can travel.
+        {protectedLabel}; {protectedMemoryLabel}. Only listed public notes can be sent.
       </div>
     </div>
   )

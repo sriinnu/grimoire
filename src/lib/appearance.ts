@@ -13,10 +13,10 @@ export {
 import { SUPPORTED_THEME_PRESETS } from '../themes/themePresetIds'
 import type { ThemePreset } from '../themes/themePresetIds'
 
-export const DEFAULT_THEME_PRESET = 'constellation'
+export const DEFAULT_THEME_PRESET = 'morning-notebook'
 export const DEFAULT_EDITOR_FONT = 'literary'
 export const DEFAULT_EDITOR_LINE_HEIGHT = 'comfortable'
-export const DEFAULT_NATIVE_SHELL_MATERIAL = 'standard'
+export const DEFAULT_NATIVE_SHELL_MATERIAL = 'unified'
 export const THEME_PRESET_STORAGE_KEY = 'grimoire:theme-preset'
 export const EDITOR_FONT_STORAGE_KEY = 'grimoire:editor-font'
 export const EDITOR_LINE_HEIGHT_STORAGE_KEY = 'grimoire:editor-line-height'
@@ -65,6 +65,12 @@ const LEGACY_EDITOR_FONT_ALIASES: Record<string, EditorFont> = {
   serif: 'literary',
 }
 
+const LEGACY_THEME_PRESET_ALIASES: Record<string, ThemePreset> = {
+  'daylight-atelier': 'daylight-notebook',
+  'prabhat-studio': 'morning-notebook',
+  'retro-terminal': 'code-notebook',
+}
+
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>
 type AppearanceDocument = Pick<Document, 'documentElement'>
 
@@ -89,7 +95,9 @@ function readDocumentThemeMode(root: Element): ThemeDefinitionMode {
 
 /** Returns a supported theme preset or null for untrusted persisted values. */
 export function normalizeThemePreset(value: unknown): ThemePreset | null {
-  return isSupportedValue<ThemePreset>(THEME_PRESETS, value) ? value : null
+  if (isSupportedValue<ThemePreset>(THEME_PRESETS, value)) return value
+  if (typeof value !== 'string') return null
+  return LEGACY_THEME_PRESET_ALIASES[value.trim().toLowerCase()] ?? null
 }
 
 /** Returns a supported editor font or null for untrusted persisted values. */

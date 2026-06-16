@@ -1,11 +1,11 @@
 @media (prefers-contrast: more) {
   :where(
     [data-theme-preset="constellation"],
-    [data-theme-preset="daylight-atelier"],
-    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="daylight-notebook"],
+    [data-theme-preset="morning-notebook"],
     [data-theme-preset="living-archive"],
     [data-theme-preset="nocturne"],
-    [data-theme-preset="retro-terminal"]
+    [data-theme-preset="code-notebook"]
   ) {
     --grimoire-panel-shadow: none;
     --grimoire-card-shadow: none;
@@ -20,11 +20,11 @@
 @media (forced-colors: active) {
   :where(
     [data-theme-preset="constellation"],
-    [data-theme-preset="daylight-atelier"],
-    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="daylight-notebook"],
+    [data-theme-preset="morning-notebook"],
     [data-theme-preset="living-archive"],
     [data-theme-preset="nocturne"],
-    [data-theme-preset="retro-terminal"]
+    [data-theme-preset="code-notebook"]
   ) {
     --surface-app: Canvas;
     --surface-sidebar: Canvas;

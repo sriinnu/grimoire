@@ -56,7 +56,7 @@ function useVaultClonedAction(
 ) {
   return useCallback((path: string, label: string) => {
     addAndSwitch(path, label, { storageProvider: 'local-folder', syncProvider: 'git' })
-    onToastRef.current(`Vault "${label}" cloned and opened`)
+    onToastRef.current(`Notebook "${label}" cloned and opened`)
   }, [addAndSwitch, onToastRef])
 }
 
@@ -194,10 +194,10 @@ function useCreateEmptyVaultAction(
     let targetPath: string | null = request?.targetPath?.trim() ?? null
     try {
       if (!targetPath) {
-        targetPath = await pickFolder('Choose where to create your vault')
+        targetPath = await pickFolder('Choose where to create your notebook')
       }
     } catch (err) {
-      onToastRef.current(formatFolderPickerActionError('Could not choose where to create your vault', err))
+      onToastRef.current(formatFolderPickerActionError('Could not choose where to create your notebook', err))
       return false
     }
 
@@ -217,7 +217,7 @@ function useCreateEmptyVaultAction(
         storageProvider: request?.storageProvider,
         syncProvider: request?.syncProvider ?? (request?.initializeGit ? 'git' : undefined),
       })
-      onToastRef.current(`Vault "${label}" created and opened`)
+      onToastRef.current(`Notebook "${label}" created and opened`)
       return true
     } catch (err) {
       onToastRef.current(formatCreateEmptyVaultError(err))
@@ -256,7 +256,7 @@ function useRemoveVaultAction({
       selectedVaultPath,
       vaultPath,
     })
-    onToastRef.current(`Vault "${getRemovedVaultLabel({ path, defaultVaults, extraVaults })}" removed from list`)
+    onToastRef.current(`Notebook "${getRemovedVaultLabel({ path, defaultVaults, extraVaults })}" removed from list`)
   }, [
     defaultVaults,
     extraVaults,

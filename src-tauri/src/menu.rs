@@ -170,7 +170,7 @@ fn build_file_menu(app: &App) -> MenuResult {
     } else {
         "Quick Open (Ctrl+O)"
     };
-    let new_note = MenuItemBuilder::new("New Note")
+    let new_note = MenuItemBuilder::new("New Page")
         .id(FILE_NEW_NOTE)
         .accelerator("CmdOrCtrl+N")
         .build(app)?;
@@ -212,11 +212,11 @@ fn build_file_menu(app: &App) -> MenuResult {
 }
 
 fn build_edit_menu(app: &App) -> MenuResult {
-    let find_in_vault = MenuItemBuilder::new("Find in Vault")
+    let find_in_vault = MenuItemBuilder::new("Find in Notebook")
         .id(EDIT_FIND_IN_VAULT)
         .accelerator("CmdOrCtrl+Shift+F")
         .build(app)?;
-    let toggle_note_list_search = MenuItemBuilder::new("Toggle Note List Search")
+    let toggle_note_list_search = MenuItemBuilder::new("Toggle Page List Search")
         .id(EDIT_TOGGLE_NOTE_LIST_SEARCH)
         .accelerator("CmdOrCtrl+F")
         .enabled(false)
@@ -246,7 +246,7 @@ fn build_view_menu(app: &App) -> MenuResult {
         .id(VIEW_EDITOR_ONLY)
         .accelerator("CmdOrCtrl+1")
         .build(app)?;
-    let editor_list = MenuItemBuilder::new("Editor + Notes")
+    let editor_list = MenuItemBuilder::new("Editor + Pages")
         .id(VIEW_EDITOR_LIST)
         .accelerator("CmdOrCtrl+2")
         .build(app)?;
@@ -292,13 +292,11 @@ fn build_view_menu(app: &App) -> MenuResult {
 }
 
 fn build_go_menu(app: &App) -> MenuResult {
-    let all_notes = MenuItemBuilder::new("All Notes")
-        .id(GO_ALL_NOTES)
-        .build(app)?;
+    let all_notes = MenuItemBuilder::new("Pages").id(GO_ALL_NOTES).build(app)?;
     let archived = MenuItemBuilder::new("Archived")
         .id(GO_ARCHIVED)
         .build(app)?;
-    let changes = MenuItemBuilder::new("Changes")
+    let changes = MenuItemBuilder::new("Edits")
         .id(GO_CHANGES)
         .enabled(false)
         .build(app)?;
@@ -328,14 +326,14 @@ fn build_note_menu(app: &App) -> MenuResult {
         .id(NOTE_TOGGLE_ORGANIZED)
         .accelerator("CmdOrCtrl+E")
         .build(app)?;
-    let archive_note = MenuItemBuilder::new("Archive Note")
+    let archive_note = MenuItemBuilder::new("Archive Page")
         .id(NOTE_ARCHIVE)
         .build(app)?;
-    let delete_note = MenuItemBuilder::new("Delete Note")
+    let delete_note = MenuItemBuilder::new("Delete Page")
         .id(NOTE_DELETE)
         .accelerator("CmdOrCtrl+Backspace")
         .build(app)?;
-    let restore_deleted_note = MenuItemBuilder::new("Restore Deleted Note")
+    let restore_deleted_note = MenuItemBuilder::new("Restore Deleted Page")
         .id(NOTE_RESTORE_DELETED)
         .enabled(false)
         .build(app)?;
@@ -355,7 +353,7 @@ fn build_note_menu(app: &App) -> MenuResult {
         .id(VIEW_TOGGLE_BACKLINKS)
         .build(app)?;
 
-    Ok(SubmenuBuilder::new(app, "Note")
+    Ok(SubmenuBuilder::new(app, "Page")
         .item(&toggle_organized)
         .item(&archive_note)
         .item(&delete_note)
@@ -370,16 +368,16 @@ fn build_note_menu(app: &App) -> MenuResult {
 }
 
 fn build_vault_menu(app: &App) -> MenuResult {
-    let open_vault = MenuItemBuilder::new("Open Vault…")
+    let open_vault = MenuItemBuilder::new("Open Notebook…")
         .id(VAULT_OPEN)
         .build(app)?;
-    let remove_vault = MenuItemBuilder::new("Remove Vault from List")
+    let remove_vault = MenuItemBuilder::new("Remove Notebook from List")
         .id(VAULT_REMOVE)
         .build(app)?;
-    let restore_getting_started = MenuItemBuilder::new("Restore Getting Started")
+    let restore_getting_started = MenuItemBuilder::new("Restore Getting Started Notebook")
         .id(VAULT_RESTORE_GETTING_STARTED)
         .build(app)?;
-    let add_remote = MenuItemBuilder::new("Add Remote…")
+    let add_remote = MenuItemBuilder::new("Add Remote to Notebook…")
         .id(VAULT_ADD_REMOTE)
         .enabled(false)
         .build(app)?;
@@ -394,21 +392,21 @@ fn build_vault_menu(app: &App) -> MenuResult {
         .id(VAULT_RESOLVE_CONFLICTS)
         .enabled(false)
         .build(app)?;
-    let view_changes = MenuItemBuilder::new("View Pending Changes")
+    let view_changes = MenuItemBuilder::new("Review Edits")
         .id(VAULT_VIEW_CHANGES)
         .enabled(false)
         .build(app)?;
     let install_mcp = MenuItemBuilder::new("Set Up External AI Tools…")
         .id(VAULT_INSTALL_MCP)
         .build(app)?;
-    let reload = MenuItemBuilder::new("Reload Vault")
+    let reload = MenuItemBuilder::new("Reload Notebook")
         .id(VAULT_RELOAD)
         .build(app)?;
-    let repair = MenuItemBuilder::new("Repair Vault")
+    let repair = MenuItemBuilder::new("Repair Notebook")
         .id(VAULT_REPAIR)
         .build(app)?;
 
-    Ok(SubmenuBuilder::new(app, "Vault")
+    Ok(SubmenuBuilder::new(app, "Notebook")
         .item(&open_vault)
         .item(&remove_vault)
         .item(&restore_getting_started)

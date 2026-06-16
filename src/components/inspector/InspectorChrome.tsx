@@ -1,4 +1,5 @@
 import { SlidersHorizontal, X, Sparkle, WarningCircle, PencilSimple } from '@phosphor-icons/react'
+import { Brain } from 'lucide-react'
 import { useDragRegion } from '../../hooks/useDragRegion'
 
 export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
@@ -20,12 +21,17 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
         </button>
       ) : (
         <>
-          <SlidersHorizontal size={16} className="shrink-0 text-muted-foreground" />
-          <span className="flex-1 text-muted-foreground" style={{ fontSize: 13, fontWeight: 600 }}>Properties</span>
+          <span className="inspector-header__brand-icon">
+            <Brain className="size-3.5" aria-hidden="true" />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col leading-tight">
+            <span className="inspector-header__title truncate" data-testid="inspector-header-title">Second Brain</span>
+            <span className="inspector-header__subtitle truncate">Properties</span>
+          </span>
           <button
             className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground"
             onClick={onToggle}
-            title="Close Properties (⌘⇧I)"
+            title="Close Second Brain (⌘⇧I)"
           >
             <X size={16} />
           </button>

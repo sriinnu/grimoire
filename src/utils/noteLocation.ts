@@ -36,10 +36,10 @@ function rootRelativeParentSegments(path: string, vaultPath?: string): string[] 
   return rootIndex >= 0 ? parentSegments.slice(rootIndex + 1) : parentSegments.slice(-2)
 }
 
-/** Returns the vault name displayed when a note sits at the vault root. */
+/** Returns the notebook name displayed when a note sits at the notebook root. */
 export function getVaultDisplayName(vaultPath?: string): string {
-  if (!vaultPath) return 'Vault root'
-  return normalizePath(vaultPath).split('/').filter(Boolean).pop() || 'Local Vault'
+  if (!vaultPath) return 'Notebook root'
+  return normalizePath(vaultPath).split('/').filter(Boolean).pop() || 'Local Notebook'
 }
 
 /** Returns the note's folder/project context for compact note-list cards. */

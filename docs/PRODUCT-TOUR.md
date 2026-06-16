@@ -22,11 +22,11 @@ frontmatter, follow wikilinks, and see the same files on disk.
 | Markdown studio | Open `grimoire-markdown-learning`, switch between rich and raw editing, and inspect headings, tasks, code, math, wikilinks, and frontmatter. | Proves the editor surfaces the durable Markdown contract. Cross-runtime parity is covered by Markdown editor tests, not by visual review alone. |
 | Graph as working memory | Open `grimoire-links-and-backlinks`, follow links to related notes, then inspect the graph/neighborhood view. | Proves linked notes can be explored as context. It does not claim semantic graph suggestions are complete. |
 | Vault workbench | Open `grimoire-properties-and-types`, `grimoire-learning-project`, and `views/active-projects.yml`. | Proves projects, types, properties, saved views, and ordinary files share one vault model. |
-| Sidebar Spotlight | Search for `Time Loom`, `Agent Council`, and `themes`. | Proves source-mode search and command discovery over the demo vault. It does not prove private-vault indexing performance. |
-| Canvas and media | Open `grimoire-canvas-and-attachments` and inspect `attachments/grimoire-reference.png`. | Proves the starter vault carries file-backed attachments. Native drag/drop and packaged resource proof need native/package QA. |
+| Sidebar Spotlight | Search for `Time Loom`, `Agent Council`, and `experience profiles`. | Proves source-mode search and command discovery over the demo vault. It does not prove private-vault indexing performance. |
+| Canvas and media | Open `grimoire-canvas-and-attachments`, inspect its embedded image, then Quick Open `attachments/grimoire-reference.png`. | Proves the starter vault carries file-backed attachments and that selected image files use Grimoire's native preview shell. Native drag/drop and packaged resource proof need native/package QA. |
 | Local agents with boundaries | Open `grimoire-console-and-agents`, `grimoire-agent-council`, and `grimoire-local-agent-map`. | Proves the public tour explains agent lanes and readiness boundaries. Chitragupta MCP memory, recall, wiki, graph, ingest, diagnostics, and source-backed write suggestions remain gated. |
 | Privacy and portability | Open `grimoire-privacy-and-memory` and `grimoire-portability-and-sync`. | Proves the public story is local-first and file-first. It does not prove remote sync providers or release updaters. |
-| Theme studio | Open `grimoire-settings-and-themes`, then inspect Settings. | Proves typography, appearance, provider, and update-copy surfaces are visible. It does not prove every planned theme token is complete. |
+| Experience studio | Open `grimoire-settings-and-themes`, then inspect Settings. | Proves typography, experience profiles, color mode, provider, and update-copy surfaces are visible. It does not prove every planned profile contract is complete. |
 
 ## What To Notice
 

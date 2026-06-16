@@ -29,7 +29,7 @@ export function buildTypeCommands(
 
     if (!['note', 'type'].includes(canonicalType.toLowerCase())) {
       commands.push({
-        id: `new-${slug}`, label: `New ${canonicalType}`, group: 'Note' as const,
+        id: `new-${slug}`, label: `New ${canonicalType}`, group: 'Page' as const,
         keywords: ['new', 'create', canonicalType.toLowerCase()],
         enabled: true, execute: () => onCreateNoteOfType(canonicalType),
       })

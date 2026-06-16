@@ -63,7 +63,7 @@ test('vault loads entries from fixture files @smoke', async ({ page }) => {
 // 2. Archived note hidden from main sidebar
 // ---------------------------------------------------------------------------
 
-test('archived note does not appear in All Notes', async ({ page }) => {
+test('archived note does not appear in Pages', async ({ page }) => {
   const list = noteList(page)
   // "Archived Note" has Archived: Yes — should be hidden from default view
   await expect(list.getByText('Archived Note', { exact: true })).not.toBeVisible()
@@ -76,7 +76,7 @@ test('archived note does not appear in All Notes', async ({ page }) => {
 // 3. Trashed note hidden from note list
 // ---------------------------------------------------------------------------
 
-test('trashed note does not appear in All Notes', async ({ page }) => {
+test('trashed note does not appear in Pages', async ({ page }) => {
   const list = noteList(page)
   // "Trashed Note" has Trashed: true — should be hidden
   await expect(list.getByText('Trashed Note', { exact: true })).not.toBeVisible()

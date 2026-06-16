@@ -23,7 +23,7 @@ interface SearchResultNavigationOptions {
 }
 
 function labelFromVaultPath(path: string): string {
-  return path.split('/').filter(Boolean).pop() || 'Local Vault'
+  return path.split('/').filter(Boolean).pop() || 'Local Notebook'
 }
 
 /** Builds available vault scopes for the sidebar Spotlight search. */

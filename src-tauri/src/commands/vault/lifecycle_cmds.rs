@@ -1,4 +1,5 @@
 use crate::commands::expand_tilde;
+use crate::vault::filename_rules::validate_folder_name;
 use crate::{git, vault};
 use std::path::Path;
 
@@ -31,9 +32,10 @@ fn initialize_empty_vault(
     initialize_git: bool,
     template_kind: Option<&str>,
 ) -> Result<(), String> {
+    validate_new_vault_folder_name(vault_dir)?;
     ensure_directory_is_missing_or_empty(vault_dir)?;
     std::fs::create_dir_all(vault_dir)
-        .map_err(|e| format!("Failed to create vault directory: {}", e))?;
+        .map_err(|e| format!("Failed to create notebook directory: {}", e))?;
 
     vault::seed_config_files(vault_path);
     seed_template_type_definitions(vault_dir, template_kind)?;
@@ -41,6 +43,14 @@ fn initialize_empty_vault(
         git::init_repo(vault_path)?;
     }
     Ok(())
+}
+
+fn validate_new_vault_folder_name(vault_dir: &Path) -> Result<(), String> {
+    let folder_name = vault_dir
+        .file_name()
+        .and_then(|value| value.to_str())
+        .ok_or_else(|| "Invalid folder name".to_string())?;
+    validate_folder_name(folder_name)
 }
 
 fn write_template_type(vault_dir: &Path, file_name: &str, content: &str) -> Result<(), String> {
@@ -145,7 +155,7 @@ fn ensure_directory_is_missing_or_empty(vault_dir: &Path) -> Result<(), String> 
     let metadata = std::fs::metadata(vault_dir)
         .map_err(|e| format!("Failed to inspect target folder: {e}"))?;
     if !metadata.is_dir() {
-        return Err("Choose a folder path for the new vault".to_string());
+        return Err("Choose a folder path for the new notebook".to_string());
     }
 
     let has_entries = std::fs::read_dir(vault_dir)
@@ -153,7 +163,7 @@ fn ensure_directory_is_missing_or_empty(vault_dir: &Path) -> Result<(), String> 
         .next()
         .is_some();
     if has_entries {
-        return Err("Choose an empty folder to create a new vault".to_string());
+        return Err("Choose an empty folder to create a new notebook".to_string());
     }
 
     Ok(())

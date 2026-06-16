@@ -1,79 +1,43 @@
 .folder-item-row {
   --folder-row-tone: var(--sidebar-primary);
-  --folder-row-secondary: var(--accent-teal);
-  --folder-row-selected-bg:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--folder-row-tone) 22%, var(--sidebar-accent, transparent)),
-      color-mix(in srgb, var(--folder-row-secondary) 12%, var(--sidebar-accent, transparent)) 72%
-    );
-  --folder-row-selected-border: color-mix(in srgb, var(--folder-row-tone) 36%, var(--sidebar-border));
-  --folder-row-selected-text: color-mix(in srgb, var(--folder-row-tone) 72%, var(--sidebar-foreground));
+  --folder-row-selected-bg: color-mix(in srgb, var(--folder-row-tone) 12%, var(--sidebar-accent, transparent));
+  --folder-row-selected-border: color-mix(in srgb, var(--folder-row-tone) 30%, var(--sidebar-border));
+  --folder-row-selected-text: color-mix(in srgb, var(--folder-row-tone) 68%, var(--sidebar-foreground));
   border: 1px solid transparent;
 }
 
-.folder-item-row[data-folder-row-tone="veda"] {
-  --folder-row-tone: var(--art-veda, var(--accent-yellow));
-  --folder-row-secondary: var(--art-rishi, var(--accent-purple));
+.folder-item-row[data-folder-row-tone="veda"],
+.folder-item-row[data-folder-row-tone="star"],
+.folder-item-row[data-folder-row-tone="vault"] {
+  --folder-row-tone: var(--accent-yellow);
 }
 
-.folder-item-row[data-folder-row-tone="shaastra"] {
-  --folder-row-tone: var(--art-shastra, var(--accent-blue));
-  --folder-row-secondary: var(--accent-blue);
-}
-
-.folder-item-row[data-folder-row-tone="purana"] {
-  --folder-row-tone: var(--art-purana, var(--accent-purple));
-  --folder-row-secondary: var(--art-rishi, var(--accent-teal));
-}
-
+.folder-item-row[data-folder-row-tone="shaastra"],
 .folder-item-row[data-folder-row-tone="rishi"],
-.folder-item-row[data-folder-row-tone="template"] {
-  --folder-row-tone: var(--art-rishi, var(--accent-teal));
-  --folder-row-secondary: var(--art-spark, var(--accent-yellow));
-}
-
-.folder-item-row[data-folder-row-tone="brain"],
-.folder-item-row[data-folder-row-tone="agent"] {
-  --folder-row-tone: var(--art-second-brain, var(--accent-purple));
-  --folder-row-secondary: var(--art-brain, var(--accent-teal));
-}
-
-.folder-item-row[data-folder-row-tone="star"] {
-  --folder-row-tone: var(--art-spark, var(--accent-yellow));
-  --folder-row-secondary: var(--accent-blue);
-}
-
+.folder-item-row[data-folder-row-tone="agent"],
 .folder-item-row[data-folder-row-tone="storage"],
-.folder-item-row[data-folder-row-tone="data"] {
-  --folder-row-tone: var(--accent-green);
-  --folder-row-secondary: var(--accent-blue);
-}
-
-.folder-item-row[data-folder-row-tone="docs"],
 .folder-item-row[data-folder-row-tone="dev"],
-.folder-item-row[data-folder-row-tone="research"] {
+.folder-item-row[data-folder-row-tone="data"],
+.folder-item-row[data-folder-row-tone="research"],
+.folder-item-row[data-folder-row-tone="template"] {
   --folder-row-tone: var(--accent-blue);
-  --folder-row-secondary: var(--accent-teal);
 }
 
+.folder-item-row[data-folder-row-tone="purana"],
+.folder-item-row[data-folder-row-tone="brain"],
 .folder-item-row[data-folder-row-tone="journal"],
 .folder-item-row[data-folder-row-tone="private"] {
   --folder-row-tone: var(--accent-purple);
-  --folder-row-secondary: var(--art-rishi, var(--accent-teal));
 }
 
-.folder-item-row[data-folder-row-tone="vault"] {
-  --folder-row-tone: var(--art-veda, var(--accent-yellow));
-  --folder-row-secondary: var(--accent-teal);
+.folder-item-row[data-folder-row-tone="docs"] {
+  --folder-row-tone: var(--accent-orange);
 }
 
 .folder-item-row[data-selected="true"] {
   background: var(--folder-row-selected-bg);
   border-color: var(--folder-row-selected-border);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff 10%, transparent),
-    inset 0 -10px 22px color-mix(in srgb, var(--folder-row-tone) 8%, transparent);
+  box-shadow: none;
   color: var(--folder-row-selected-text);
 }
 

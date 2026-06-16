@@ -132,6 +132,53 @@ describe('EditorRightPanel AI chat lifecycle', () => {
     expect(screen.getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
   })
 
+  it('opens the full AI lane from the persistent Second Brain panel', () => {
+    const onToggleAIChat = vi.fn()
+    render(
+      <EditorRightPanel
+        entries={[entry]}
+        gitHistory={[]}
+        inspectorCollapsed={false}
+        inspectorContent="hello"
+        inspectorEntry={entry}
+        inspectorWidth={320}
+        onNavigateWikilink={vi.fn()}
+        onToggleAIChat={onToggleAIChat}
+        onToggleInspector={vi.fn()}
+        onViewCommitDiff={vi.fn()}
+        showAIChat={false}
+        vaultPath="/tmp/vault"
+      />,
+    )
+
+    const secondBrain = screen.getByTestId('second-brain-panel')
+    expect(secondBrain).toHaveTextContent('Second Brain')
+    fireEvent.click(screen.getByRole('button', { name: 'Open Second Brain chat' }))
+
+    expect(onToggleAIChat).toHaveBeenCalledOnce()
+  })
+
+  it('labels the inspector rail as the persistent Second Brain lane', () => {
+    render(
+      <EditorRightPanel
+        entries={[entry]}
+        gitHistory={[]}
+        inspectorCollapsed={false}
+        inspectorContent="hello"
+        inspectorEntry={entry}
+        inspectorWidth={320}
+        onNavigateWikilink={vi.fn()}
+        onToggleInspector={vi.fn()}
+        onViewCommitDiff={vi.fn()}
+        showAIChat={false}
+        vaultPath="/tmp/vault"
+      />,
+    )
+
+    expect(screen.getByTestId('inspector-header-title')).toHaveTextContent('Second Brain')
+    expect(screen.getByText('Properties')).toBeInTheDocument()
+  })
+
   it('passes Chitragupta MCP transport failures into the inspector memory lane', () => {
     render(
       <EditorRightPanel

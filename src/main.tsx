@@ -11,13 +11,12 @@ import './theme-polish.css'
 import './theme-editor-canvas.css'
 import './sidebar-brand.css'
 import './sidebar-appearance.css'
-import './sidebar-artwork-layer.css'
 import './sidebar-glyph-polish.css'
 import './sidebar-glyph-refinement.css'
 import './sidebar-artwork-themes.css'
 import './sidebar-artwork-atlas.css'
 import './sidebar-artwork-polish.css'
-import './sidebar-pouch-effect.css'
+import './motion-reduced-overrides.css'
 import { PlatformChrome } from './components/PlatformChrome'
 import { applyStoredAppearance } from './lib/appearance'
 import { loadFontAssetsForAppearance } from './lib/fontConfig'
@@ -32,8 +31,13 @@ import {
   type AppCommandShortcutEventInit,
   type AppCommandShortcutEventOptions,
 } from './hooks/appCommandCatalog'
-import { shouldUseLinuxWindowChrome, shouldUseMacOverlayChrome } from './utils/platform'
+import {
+  getDesktopPlatform,
+  shouldUseLinuxWindowChrome,
+  shouldUseMacOverlayChrome,
+} from './utils/platform'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { installAppContextMenuGuard } from './lib/nativeContextMenu'
 
 const EDITOR_DROP_SELECTOR = '.editor__blocknote-container'
 
@@ -59,20 +63,24 @@ function preventFileDropNavigation(event: DragEvent): void {
 document.addEventListener('dragover', preventFileDropNavigation, true)
 document.addEventListener('drop', preventFileDropNavigation, true)
 
-// Disable native WebKit context menu in Tauri (WKWebView intercepts right-click
-// at native level before React's synthetic events can call preventDefault).
-// Capture phase fires first → prevents native menu; React bubble phase still fires
-// → our custom context menus (e.g. sidebar right-click) work correctly.
-if ('__TAURI__' in window || '__TAURI_INTERNALS__' in window) {
-  document.addEventListener('contextmenu', (e) => e.preventDefault(), true)
-}
+installAppContextMenuGuard(document)
 
+const desktopPlatform = getDesktopPlatform()
 if (shouldUseLinuxWindowChrome()) {
   document.body.classList.add('linux-chrome')
 }
 
+if (desktopPlatform === 'macos') {
+  document.documentElement.setAttribute('data-platform', 'macos')
+}
+
 if (shouldUseMacOverlayChrome()) {
   document.body.classList.add('macos-overlay-chrome')
+}
+
+if (desktopPlatform === 'windows') {
+  document.documentElement.setAttribute('data-platform', 'windows')
+  document.body.classList.add('windows-chrome')
 }
 
 applyStoredThemeMode(document, window.localStorage)

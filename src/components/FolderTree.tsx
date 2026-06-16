@@ -83,7 +83,7 @@ export const FolderTree = memo(function FolderTree({
 
   return (
     <div className="border-b border-border" style={{ padding: '0 6px' }}>
-      <SidebarGroupHeader label="FOLDERS" collapsed={sectionCollapsed} onToggle={handleToggleSection}>
+      <SidebarGroupHeader label="Folders" collapsed={sectionCollapsed} onToggle={handleToggleSection}>
         {onCreateFolder && (
           <Button
             type="button"

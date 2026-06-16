@@ -63,7 +63,7 @@ function InlineRenameInput({ initialValue, onSubmit, onCancel }: {
       onKeyDown={handleKeyDown}
       onBlur={() => onSubmit(value.trim())}
       onClick={(e) => e.stopPropagation()}
-      aria-label="Section name"
+      aria-label="Place name"
       className="h-auto flex-1 rounded border-primary bg-background px-1 py-px text-[13px] font-medium text-foreground shadow-none"
     />
   )
@@ -157,7 +157,7 @@ function SectionHeaderCountPill({
   isActive: boolean
   sectionColor: string
 }) {
-  if (itemCount <= 0) return null
+  if (!isActive || itemCount <= 0) return null
   return (
     <SidebarCountPill
       count={itemCount}
@@ -189,16 +189,12 @@ function SectionHeader({ label, type, Icon, iconValue, sectionColor, sectionLigh
           data-active={isActive ? 'true' : 'false'}
           style={{ '--sidebar-section-tone': sectionColor } as CSSProperties}
         >
-          <span className="sidebar-section-glyph__aura" />
-          <span className="sidebar-section-glyph__route" />
-          <span className="sidebar-section-glyph__thread" />
-          <span className="sidebar-section-glyph__bead" />
           <TypeIconMark
             className="sidebar-section-glyph__icon"
             color="currentColor"
             fallbackIcon={(props) => <Icon {...props} weight={getSectionHeaderIconWeight(isActive)} />}
             iconValue={iconValue}
-            size={15}
+            size={18}
           />
         </span>
         <SectionHeaderLabel

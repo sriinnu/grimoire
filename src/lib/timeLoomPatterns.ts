@@ -1,3 +1,5 @@
+import { formatTypeCount, pluralizeCount } from '../utils/notebookCountLabels'
+
 /** Source-safe temporal pattern derived only from counted metadata. */
 export interface TimeLoomPattern {
   detail: string
@@ -38,14 +40,14 @@ export function buildTimeLoomPatterns({
   const patterns: TimeLoomPattern[] = []
   const topTypes = rankedTypeTotals(typeTotals).slice(0, 3)
   if (topTypes.length > 0) {
-    patterns.push({ label: 'Primary thread', detail: topTypes.map((type) => `${type.label} ${type.count}`).join(' / '), tone: 'steady' })
+    patterns.push({ label: 'Primary thread', detail: topTypes.map((type) => formatTypeCount(type.label, type.count)).join(' / '), tone: 'steady' })
   }
 
   const openCount = statusTotals.get('Open') ?? 0
   if (openCount > 0) {
-    const taskDetail = taskEvents > 0 ? `${taskEvents} ${taskEvents === 1 ? 'task due' : 'tasks due'}` : null
+    const taskDetail = taskEvents > 0 ? `${taskEvents} due next` : null
     const openDetail = `${openCount} open ${openCount === 1 ? 'marker' : 'markers'} across ${activeDayText(activeDays)}`
-    patterns.push({ label: 'Open loops', detail: [taskDetail, openDetail].filter(isPatternDetail).join(' / '), tone: 'attention' })
+    patterns.push({ label: 'Revisit', detail: [taskDetail, openDetail].filter(isPatternDetail).join(' / '), tone: 'attention' })
   }
 
   const reviewSignals = [
@@ -59,8 +61,8 @@ export function buildTimeLoomPatterns({
   }
 
   const externalSignals = [
-    calendarEvents > 0 ? `${calendarEvents} scheduled` : null,
-    commitEvents > 0 ? `${commitEvents} commit` : null,
+    calendarEvents > 0 ? `${calendarEvents} planned` : null,
+    commitEvents > 0 ? pluralizeCount(commitEvents, 'saved point') : null,
   ].filter(isPatternDetail)
   if (externalSignals.length > 0) {
     patterns.push({ label: 'External rhythm', detail: externalSignals.join(' / '), tone: 'steady' })
@@ -80,7 +82,7 @@ function typeRank(label: string): number {
 }
 
 function activeDayText(count: number): string {
-  return `${count} active ${count === 1 ? 'day' : 'days'}`
+  return `${count} ${count === 1 ? 'day' : 'days'}`
 }
 
 function isPatternDetail(value: string | null): value is string {

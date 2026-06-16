@@ -146,6 +146,27 @@ describe('graphDisplay', () => {
     }
   })
 
+  it('spaces compact neighborhood nodes far enough from the active center', () => {
+    const graph: NoteGraph = {
+      nodes: Array.from({ length: 9 }, (_, index) => ({
+        id: `note-${index}`,
+        path: `note-${index}.md`,
+        title: `Note ${index}`,
+        type: 'Note',
+        degree: index,
+        active: index === 0,
+      })),
+      edges: [],
+    }
+
+    const layout = layoutGraph(graph, [])
+    const ringDistances = layout.nodes.slice(1).map((node) =>
+      Math.hypot(node.x - GRAPH_CENTER_X, node.y - GRAPH_CENTER_Y)
+    )
+
+    expect(Math.min(...ringDistances)).toBeGreaterThanOrEqual(180)
+  })
+
   it('lays out the active node first and applies custom type color', () => {
     const layout = layoutGraph(graphFixture(), [
       entry({ title: 'Project', isA: 'Type', color: 'green' }),

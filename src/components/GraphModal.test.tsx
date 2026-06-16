@@ -72,12 +72,27 @@ describe('GraphModal', () => {
     )
 
     expect(screen.getByTestId('graph-svg')).toBeInTheDocument()
-    expect(screen.getByTestId('graph-dialog-content')).toHaveClass('max-h-[calc(100dvh-2rem)]', 'overflow-hidden')
+    expect(screen.getByRole('heading', { name: 'Second Brain Map' })).toBeInTheDocument()
+    expect(screen.getByTestId('graph-dialog-brain-summary')).toHaveTextContent('2 graph nodes')
+    expect(screen.getByTestId('graph-dialog-brain-summary')).toHaveTextContent('2 source-safe')
+    expect(screen.getByTestId('graph-dialog-content')).toHaveClass(
+      'max-h-[calc(100dvh-2rem)]',
+      'w-[min(1160px,calc(100vw-2rem))]',
+      'sm:max-w-[min(1160px,calc(100vw-2rem))]',
+      'overflow-hidden',
+    )
     expect(screen.getByTestId('graph-right-rail')).toHaveClass('min-h-0', 'overflow-y-auto')
     expect(screen.getByTestId('graph-canvas')).toHaveClass('grimoire-constellation-focus')
+    const secondBrain = screen.getByTestId('graph-agent-command-center')
+    const graphControls = screen.getByTestId('graph-control-panel')
+    expect(secondBrain).toHaveTextContent('Second Brain')
+    expect(screen.getByTestId('graph-working-memory')).toHaveTextContent('2Nodes')
+    expect(screen.getByTestId('graph-working-memory')).toHaveTextContent('1Links')
+    expect(screen.getByTestId('graph-working-memory')).toHaveTextContent('0Held local')
+    expect(Boolean(secondBrain.compareDocumentPosition(graphControls) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true)
     expect(screen.getByRole('button', { name: 'Select Alpha' })).toHaveClass('grimoire-graph-node--active')
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Vault' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Notebook' }))
     fireEvent.click(screen.getByRole('button', { name: 'Select Beta' }))
     const selected = within(screen.getByTestId('graph-selected-node'))
     expect(selected.getByText('Beta')).toBeInTheDocument()
@@ -136,7 +151,7 @@ describe('GraphModal', () => {
 
     expect(svg.querySelectorAll('line.grimoire-graph-edge')).toHaveLength(1)
     expect(screen.getByText('1 relationships')).toBeInTheDocument()
-    expect(screen.getByText('1 Spelllinks')).toBeInTheDocument()
+    expect(screen.getByText('1 note links')).toBeInTheDocument()
   })
 
   it('filters graph edges to incoming backlinks around the active note', () => {
@@ -249,6 +264,7 @@ describe('GraphModal', () => {
 
     const insight = within(screen.getByTestId('graph-insight-panel'))
 
+    expect(screen.getByTestId('graph-dialog-brain-summary')).toHaveTextContent('2 held local')
     expect(insight.getByText('Protected local note')).toBeInTheDocument()
     expect(insight.queryByText('Secret Dream')).not.toBeInTheDocument()
   })

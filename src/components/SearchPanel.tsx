@@ -141,7 +141,7 @@ export function SearchPanel({
         data-testid="search-panel-surface"
         role="dialog"
         aria-modal="true"
-        aria-label="Spotlight search across open vaults"
+        aria-label="Spotlight search across notebooks"
         onClick={e => e.stopPropagation()}
       >
         <SearchInput
@@ -191,7 +191,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             ref={ref}
             className="h-auto flex-1 border-0 bg-transparent px-0 py-0 text-[17px] font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
             type="text"
-            placeholder="Search notes, docs, and project files..."
+            placeholder="Search pages, docs, and project files..."
             value={query}
             onChange={e => onChange(e.target.value)}
             onKeyDown={onKeyDown}
@@ -209,7 +209,7 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           )}
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5 pl-12 text-[10.5px] font-semibold text-muted-foreground">
-          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Open vaults</span>
+          <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Notebooks</span>
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Filenames</span>
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Contents</span>
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Markdown + text</span>
@@ -242,7 +242,7 @@ function SearchContent({
       {!query.trim() && (
         <div className="px-4 py-8 text-center">
           <p className="text-[13px] text-muted-foreground">
-            {vaultCount > 1 ? `Search across ${vaultCount} open vaults` : 'Search across notes, docs, and text files'}
+            {vaultCount > 1 ? `Search across ${vaultCount} notebooks` : 'Search this notebook'}
           </p>
           <p className="mt-1 text-[11px] text-muted-foreground/60">
             Enter to open · Esc to close

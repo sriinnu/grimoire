@@ -39,7 +39,7 @@ function createSettingsNav(t: SettingsBodyProps['t']): SettingsNavItem[] {
 }
 
 function vaultName(vaultPath: string): string {
-  return vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Local Vault'
+  return vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Local Notebook'
 }
 
 function scrollToSettingsSection(sectionId: string, onSectionChange: (sectionId: string) => void) {
@@ -58,7 +58,7 @@ function scrollToSettingsSection(sectionId: string, onSectionChange: (sectionId:
   const top = scrollSurface.scrollTop + targetTop - surfaceTop - 12
   const boundedTop = Math.max(0, top)
   if (typeof scrollSurface.scrollTo === 'function') {
-    scrollSurface.scrollTo({ top: boundedTop, behavior: 'smooth' })
+    scrollSurface.scrollTo({ top: boundedTop, behavior: 'auto' })
     return
   }
   scrollSurface.scrollTop = boundedTop

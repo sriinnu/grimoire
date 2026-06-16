@@ -714,7 +714,7 @@ related_to:
 
 # Grimoire Feature Showcase
 
-This is the shippable project inside the demo vault. It shows Markdown notes, journals, dreams, links, properties, search, canvases, attachments, audio capture, console notes, local agents, privacy boundaries, themes, and portability.
+This is the shippable project inside the demo vault. It shows Markdown notes, journals, dreams, links, properties, search, canvases, attachments, audio capture, console notes, local agents, privacy boundaries, experience profiles, and portability.
 
 ## Start here
 - [[Grimoire Feature Tour]]
@@ -734,7 +734,7 @@ This is the shippable project inside the demo vault. It shows Markdown notes, jo
 - [[Audio Transcription]]
 - [[Privacy and Memory]]
 - [[Portability and Sync]]
-- [[Settings and Themes]]
+- [[Experience Profiles and Settings]]
 `,
   '/Users/mock/Grimoire/grimoire-feature-tour.md': `---
 title: Grimoire Feature Tour
@@ -770,7 +770,7 @@ This is the launch-day checklist for the demo vault. Each row points to an edita
 | Local agents | Track Claude Code, Codex, and Chitragupta lanes with boundaries. | [[Local Agent Map]] |
 | Privacy and memory | Show what can travel and what stays local. | [[Privacy and Memory]] |
 | Portability and sync | Explain Git, export/import, capsules, and object-storage proofs. | [[Portability and Sync]] |
-| Settings and themes | Show typography, themes, providers, API keys, and local preferences. | [[Settings and Themes]] |
+| Experience profiles and settings | Show typography, experience profiles, color mode, providers, API keys, and local preferences. | [[Experience Profiles and Settings]] |
 `,
   '/Users/mock/Grimoire/grimoire-start-here.md': `---
 title: Start Here - Learn Grimoire
@@ -1106,18 +1106,21 @@ locality: local-first
 Grimoire should not trap the user: local Markdown, Git, import, export, portable bundles, capsules, and object-storage readiness all stay visible.
 `,
   '/Users/mock/Grimoire/grimoire-settings-and-themes.md': `---
-title: Settings and Themes
+title: Experience Profiles and Settings
 type: Note
 status: Active
+aliases:
+  - "[[Settings and Themes]]"
+  - "[[Experience Profiles and Settings]]"
 belongs_to:
   - "[[grimoire-learning-project]]"
 ---
 
-# Settings and Themes
+# Experience Profiles and Settings
 
-Try theme presets, typography, provider API key settings, privacy, workflow, sync, and appearance settings.
+Try experience profiles, typography, provider API key settings, privacy, workflow, sync, and appearance settings.
 
-No theme should make the vault unreadable, and no provider key should be written into Markdown.
+No experience profile should make the vault unreadable, and no provider key should be written into Markdown.
 `,
   '/Users/mock/Grimoire/journal.md': `---
 title: Journal

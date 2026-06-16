@@ -58,7 +58,7 @@ The vault contains markdown notes, assets, saved view definitions, type document
 
 Vaults are local-first folders before they are Git repositories. Git-backed vaults enable history, Changes, Pulse, commits, pull/push, and conflict tooling; local-only vaults still open, scan, edit, and save normally. Git is an explicit per-vault capability in the local vault registry: a folder may contain `.git` metadata while Grimoire is still instructed to treat it as local-only, which disables status checks, commits, pulls, pushes, and AutoGit from the app.
 
-New vault creation uses an in-app dialog to choose a local folder, iCloud Drive folder, Google Drive Desktop folder, another synced folder, or a custom filesystem path. The vault registry stores storage provider metadata separately from optional sync provider metadata.
+New vault creation uses an in-app dialog to choose a local folder, iCloud Drive folder, Google Drive Desktop folder, another synced folder, or a custom filesystem path. The dialog's suggested paths are platform-aware so Windows does not inherit macOS Library/CloudStorage defaults, and the target folder segment is kept portable across Windows/macOS/Linux before any disk write. The vault registry stores storage provider metadata separately from optional sync provider metadata.
 
 ### Cache
 
@@ -98,7 +98,7 @@ Store data in the vault when it describes the vault:
 Store data in app settings when it describes this installation:
 
 - window size and placement
-- selected theme mode, theme preset, editor font
+- selected color mode, experience profile, editor font
 - UI language
 - menu bar icon visibility
 - update channel
@@ -111,7 +111,7 @@ Store data in app settings when it describes this installation:
 `src/App.tsx` remains the main orchestrator. It wires hooks and top-level modals, but feature logic should live in smaller modules:
 
 - `hooks/useVaultLoader.ts`: loads entries, modified files, folders, views, history, and cache refreshes.
-- `components/CreateVaultDialog.tsx` and `utils/vaultCreation.ts`: local-first vault creation UI and path planning. The dialog previews template, storage, Git state, privacy, and local folder path before creating anything; desktop sync providers are treated as local folders, not credential-backed cloud accounts.
+- `components/CreateVaultDialog.tsx` and `utils/vaultCreation.ts`: local-first vault creation UI and path planning. The dialog previews template, storage, Git state, privacy, and local folder path before creating anything; path suggestions are platform-aware for macOS, Windows, Linux, and unknown desktop shells; Windows reserved device names are avoided in suggested notebook folders; desktop sync providers are treated as local folders, not credential-backed cloud accounts.
 - `components/dashboard/VaultDashboard.tsx`: default vault assistant board for capture, local-first privacy signals, open loops, Daily Thread guidance, Time Loom, daily prompts, and reviewed Crystallize state.
 - `lib/timeLoom.ts`, `lib/timeLoomPatterns.ts`, `lib/timeLoomGuidance.ts`, `components/dashboard/DailyThreadRail.tsx`, and `components/dashboard/TimeLoomPanel.tsx`: metadata-only temporal graph preview and next-action rail for Markdown activity, Dream Forge rhythm counts, mobile captures, voice notes, commits, scheduled calendar/event frontmatter, and Task/Todo due frontmatter. The builders return counts/date placement/patterns/actions only, never note bodies, protected titles, paths, project labels, raw due-key names, commit messages, device/source values, audio filenames, or provider names. Calm Daily Thread Crystallize actions seed the existing `/ask` and dashboard ask-context preview path with a source-safe, review-before-write memory proposal prompt plus a typed handoff intent instead of writing memory directly.
 - `components/dashboard/DashboardRecentNotesPanel.tsx`: source-safe recent-note re-entry that shows vault-context notes or a protected-held count without exposing private/local-only titles.
@@ -139,6 +139,7 @@ Store data in app settings when it describes this installation:
 - `components/SingleEditorView.tsx`: BlockNote rich editor behavior that imports the reusable slash-command package.
 - `markdown-editor/packages/js`: React/BlockNote package for the slash command catalog, command filtering metadata, date helpers, templates, markdown-safe insertion helpers, and host-schema fallbacks.
 - `components/RawEditorView.tsx`: CodeMirror markdown source mode with raw find/replace and wikilink autocomplete.
+- `components/editor-content/VaultImagePreview.tsx`: selected vault image attachment preview surface. It renders previewable binary image entries through the vault-scoped file endpoint, keeps loading/error state visible, and uses the active experience profile's native material tokens instead of a generic browser image frame.
 - `markdown-editor/packages/swift`: Swift Package Manager library for reusable markdown editor semantics plus `MarkdownEditorUI` native SwiftUI and WebKit support surfaces, with a CLI bridge for Tauri parity work.
 - `utils/markdownSemanticsAdapter.ts`: Tauri adapter facade that mirrors the Swift package semantics.
 - `components/Inspector.tsx`: properties, relationships, instances, and note info.
@@ -156,7 +157,7 @@ Store data in app settings when it describes this installation:
 - `utils/vaultExport.ts` and `utils/portabilityCapsuleImport.ts`: settings-triggered Markdown ZIP/static HTML/JSON capsule/SQLite capsule export target picking, capsule import file picking, native command calls, reviewed capsule previews, and result feedback.
 - `utils/objectStorageSync.ts`, `utils/objectStorageProviderSync.ts`, `utils/objectStorageLivePreflight.ts`, `utils/desktopStorageHealth.ts`, `components/DesktopStorageHealthPanel.tsx`, and `components/ObjectStoragePrototypeActions.tsx`: Settings-triggered storage proof plus local-mirror and provider command helpers. iCloud/GDrive Desktop health checks prove only local path/readability and never read provider credentials. Settings separates S3/Azure local-mirror fixtures from explicit S3/Azure provider push/pull preview/apply lanes. Provider apply uses the exact target args stored with the matching preview signature. Preflights use transient provider scope fields and local machine credential chains, returning only redacted reachability status; Settings preview cards and the Proof Ledger can show latest S3/Azure proof state without exposing bucket names, object keys, credentials, report paths, provider stderr, or local paths. The live proof runner sanitizes report summaries/provider messages before writing JSON so raw command output never becomes portable evidence.
 - `lib/objectStorageAdapterDesign.ts`: design contract for S3/Azure sync adapters. It keeps object storage local-working-copy based, preview/apply only, credential-local, and protected by the same local-only policy as export.
-- `lib/appearance.ts`: theme preset and editor font contract.
+- `lib/appearance.ts`: experience profile and editor font contract.
 - `lib/tauriRuntime.ts`: lazy Tauri API bridge for native commands, channels, and current-window actions. Startup modules should import this bridge instead of statically importing `@tauri-apps/*` packages.
 
 Feature modules should expose small contracts. If a component grows because it is thinking and rendering, split the thinking into `utils/` or a hook.
@@ -255,15 +256,15 @@ The graph does not introduce a second database. If semantic search or embeddings
 
 ## Appearance Runtime
 
-Theme mode, theme preset, and editor font are resolved through `lib/appearance.ts`, mirrored to localStorage for flash-free startup, sanitized in Rust settings, and applied as root attributes:
+Color mode, experience profile, and editor font are resolved through `lib/appearance.ts`, mirrored to localStorage for flash-free startup, sanitized in Rust settings, and applied as root attributes:
 
 - `data-theme`
 - `data-theme-preset`
 - `data-editor-font`
 
-`lib/fontConfig.ts` resolves the font role contract (`ui`, `editor`, `mono`, `display`, `label`) and loads bundled font assets from `assets/fonts` through `FontFace` when needed. Theme preset metadata comes from `src/themes/presets.json`, is validated against `themePresetIds.ts`, and hot-reloads in Vite for Settings previews. Settings can also load a validated local-only theme-pack JSON override; it is stored in browser-local app storage, not in the vault. Theme-pack JSON can include safe typography stacks for headings, body/list text, code, UI, and labels, and those roles override the editor font preset while the local pack is active. It also carries code-block style (`plain`, `notebook`, `terminal`), heading style (`graph`, `manuscript`, `system`, `terminal`), metadata-strip style (`badges`, `quiet`, `terminal`) with visible fields, density (`compact`, `comfortable`, `spacious`), motion (`calm`, `standard`, `expressive`), graph style (`constellation`, `ledger`, `terminal`), and canvas style (`paper`, `blueprint`, `terminal`) profiles that become root attributes and CSS variables for writing surfaces, workspace rhythm, editor headings, note metadata chips, graph maps, Markdown-backed canvas editing, sandboxed HTML previews, dialog/palette materials, portability panels, and shared animation timing. Dev hot reload reads the gitignored `.grimoire-local/theme-pack.json` endpoint, and the Settings panel can manually reload that file while iterating. CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors or direct font-family literals.
+`lib/fontConfig.ts` resolves the font role contract (`ui`, `editor`, `mono`, `display`, `label`) and loads bundled font assets from `assets/fonts` through `FontFace` when needed. Experience profile metadata comes from `src/themes/presets.json`, is validated against `themePresetIds.ts`, and hot-reloads in Vite for Settings previews. Settings can also load a validated local-only experience-pack JSON override; it is stored in browser-local app storage, not in the vault. Experience-pack JSON can include safe typography stacks for headings, body/list text, code, UI, and labels, and those roles override the editor font preset while the local pack is active. It also carries code-block style (`plain`, `notebook`, `terminal`), heading style (`graph`, `manuscript`, `system`, `terminal`), metadata-strip style (`badges`, `quiet`, `terminal`) with visible fields, density (`compact`, `comfortable`, `spacious`), motion (`calm`, `standard`, `expressive`), graph style (`constellation`, `ledger`, `terminal`), and canvas style (`paper`, `blueprint`, `terminal`) profiles that become root attributes and CSS variables for writing surfaces, workspace rhythm, editor headings, note metadata chips, graph maps, Markdown-backed canvas editing, sandboxed HTML previews, dialog/palette materials, portability panels, and shared animation timing. Dev hot reload reads the gitignored `.grimoire-local/theme-pack.json` endpoint, and the Settings panel can manually reload that file while iterating. CSS variables define the semantic contract. New UI should consume semantic tokens, not hardcoded colors or direct font-family literals.
 
-Sidebar artwork and flagship system themes are theme-aware CSS loaded after the base sidebar appearance layer. The flagship presets, including the light-first `Prabhat Studio` candidate, own the whole shell contract: sidebar, collapsed rail, note-list path ribbons, editor canvas, inspector, AI panel, dashboard cards, settings previews, and reduced-motion-safe animation timing.
+Sidebar artwork and flagship system themes are profile-aware CSS loaded after the base sidebar appearance layer. The default Morning Notebook profile (`morning-notebook`) owns the shell contract for a quiet personal notebook: sidebar, collapsed rail, note-list path ribbons, editor canvas, inspector, AI panel, dashboard cards, settings previews, and reduced-motion-safe animation timing. Morning Notebook and Night Notebook are the signature identity profiles; Graphite Archive, Notebook Map, and Code Notebook remain specialist profiles, not the default identity. Notebook Map is the only built-in profile that renders linked concepts as a constellation map; notebook profiles render the same Inspector links as a quiet chip stack.
 
 ## AI And MCP
 

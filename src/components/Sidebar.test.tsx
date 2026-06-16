@@ -239,9 +239,9 @@ describe('Sidebar', () => {
     setPlatform(originalPlatform)
   })
 
-  it('renders top nav items (All Notes)', () => {
+  it('renders the notebook pages lane in the top nav', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
-    expect(screen.getByText('All Notes')).toBeInTheDocument()
+    expect(screen.getByText('Pages')).toBeInTheDocument()
     expect(screen.queryByText('Favorites')).not.toBeInTheDocument()
   })
 
@@ -249,15 +249,19 @@ describe('Sidebar', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
     expect(screen.getByTestId('sidebar-title-bar')).toHaveStyle({ paddingLeft: '12px' })
     expect(screen.getByTestId('sidebar-brand')).toHaveClass('justify-start')
-    expect(screen.getByText('Grimoire')).toBeInTheDocument()
-    expect(screen.getByText('Grimoire')).toHaveClass('sidebar-brand-wordmark')
-    expect(screen.getByText('Grimoire')).toHaveStyle({ textAlign: 'left' })
-    expect(screen.getByAltText('Grimoire icon')).toBeInTheDocument()
-    expect(screen.getByText('Local memory studio')).toBeInTheDocument()
-    expect(screen.getByText('Local memory studio')).toHaveStyle({ textAlign: 'left' })
+    const wordmark = screen.getByTestId('sidebar-brand-wordmark')
+    expect(wordmark).toHaveAccessibleName('Grimoire')
+    expect(wordmark).toHaveClass('sidebar-brand-wordmark')
+    expect(wordmark).toHaveTextContent('Grimoire')
+    expect(wordmark.querySelector('svg')).toBeNull()
+    expect(screen.getByTestId('sidebar-brand-icon')).toHaveAccessibleName('Grimoire notebook mark')
+    expect(screen.queryByAltText('Grimoire icon')).not.toBeInTheDocument()
+    expect(screen.getByText('Living notebook')).toBeInTheDocument()
+    expect(screen.getByText('Living notebook')).toHaveStyle({ textAlign: 'left' })
+    expect(screen.queryByTestId('sidebar-artwork')).not.toBeInTheDocument()
   })
 
-  it('opens vault-wide search from the left sidebar', () => {
+  it('opens notebook search from the left sidebar', () => {
     setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)')
     setPlatform('MacIntel')
 
@@ -265,14 +269,14 @@ describe('Sidebar', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} onOpenSearch={onOpenSearch} />)
 
     const searchInput = screen.getByRole('searchbox', {
-      name: 'Search open vaults',
+      name: 'Search notebook',
     })
 
     expect(screen.getByTestId('sidebar-search-launcher')).toBeInTheDocument()
-    expect(searchInput).toHaveAttribute('placeholder', 'Search open vaults...')
+    expect(searchInput).toHaveAttribute('placeholder', 'Search')
     expect(searchInput).toHaveAttribute(
       'title',
-      'Search open vaults',
+      'Search notebook',
     )
     expect(searchInput).not.toHaveDisplayValue('Cmd F')
 
@@ -282,15 +286,15 @@ describe('Sidebar', () => {
 
   it('renders section group headers only for types present in entries', () => {
     render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-    expect(screen.getByText('Projects')).toBeInTheDocument()
-    expect(screen.getByText('Experiments')).toBeInTheDocument()
-    expect(screen.getByText('Responsibilities')).toBeInTheDocument()
-    expect(screen.getByText('Procedures')).toBeInTheDocument()
+    expect(screen.getByText('Making')).toBeInTheDocument()
+    expect(screen.getByText('Trials')).toBeInTheDocument()
+    expect(screen.getByText('Care')).toBeInTheDocument()
+    expect(screen.getByText('Ways')).toBeInTheDocument()
     expect(screen.getByText('People')).toBeInTheDocument()
-    expect(screen.getByText('Events')).toBeInTheDocument()
-    expect(screen.getByText('Topics')).toBeInTheDocument()
-    // No entries with isA: 'Type' in mockEntries → Types section absent
-    expect(screen.queryByText('Types')).not.toBeInTheDocument()
+    expect(screen.getByText('Moments')).toBeInTheDocument()
+    expect(screen.getByText('Ideas')).toBeInTheDocument()
+    // No entries with isA: 'Type' in mockEntries -> Kinds place absent
+    expect(screen.queryByText('Kinds')).not.toBeInTheDocument()
   })
 
   it('does not show inline entity names — sections are flat rows', () => {
@@ -300,17 +304,19 @@ describe('Sidebar', () => {
     expect(screen.queryByText('Grow Newsletter')).not.toBeInTheDocument()
   })
 
-  it('shows note count chip on type sections', () => {
-    render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-    // Projects section has 1 entry — count chip should be a sibling of the label
-    const projectsHeader = screen.getByText('Projects').closest('[class*="group/section"]')!
+  it('shows note count chip only on the active type section', () => {
+    render(<Sidebar entries={mockEntries} selection={{ kind: 'sectionGroup', type: 'Project' }} onSelect={() => {}} />)
+    const projectsHeader = screen.getByText('Making').closest('[class*="group/section"]')!
     expect(projectsHeader.textContent).toContain('1')
+
+    const peopleHeader = screen.getByText('People').closest('[class*="group/section"]')!
+    expect(peopleHeader.textContent).toBe('People')
   })
 
   it('calls onSelect when clicking a section header', () => {
     const onSelect = vi.fn()
     render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={onSelect} />)
-    fireEvent.click(screen.getByText('Projects'))
+    fireEvent.click(screen.getByText('Making'))
     expect(onSelect).toHaveBeenCalledWith({
       kind: 'sectionGroup',
       type: 'Project',
@@ -320,8 +326,8 @@ describe('Sidebar', () => {
   it('selects on every click — no expand/collapse toggle', () => {
     const onSelect = vi.fn()
     render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={onSelect} />)
-    fireEvent.click(screen.getByText('Projects'))
-    fireEvent.click(screen.getByText('Projects'))
+    fireEvent.click(screen.getByText('Making'))
+    fireEvent.click(screen.getByText('Making'))
     expect(onSelect).toHaveBeenCalledTimes(2)
   })
 
@@ -335,9 +341,9 @@ describe('Sidebar', () => {
     })
   })
 
-  it('renders Topics section header', () => {
+  it('renders Ideas section header', () => {
     render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-    expect(screen.getByText('Topics')).toBeInTheDocument()
+    expect(screen.getByText('Ideas')).toBeInTheDocument()
     // Topic entries are NOT shown inline
     expect(screen.queryByText('Software Development')).not.toBeInTheDocument()
   })
@@ -352,6 +358,24 @@ describe('Sidebar', () => {
     expect(screen.queryByText('Changes')).not.toBeInTheDocument()
     expect(screen.queryByText('Pulse')).not.toBeInTheDocument()
     expect(screen.queryByText('Commit & Push')).not.toBeInTheDocument()
+  })
+
+  it('keeps advanced machinery sections out of the first sidebar by default', () => {
+    const advancedEntries = ['Config', 'Agents', 'Consoles', 'Type'].map((type) => ({
+      ...mockEntries[0],
+      path: `/vault/${type.toLowerCase()}.md`,
+      filename: `${type.toLowerCase()}.md`,
+      title: type,
+      isA: type,
+    }))
+
+    render(<Sidebar entries={[...mockEntries, ...advancedEntries]} selection={defaultSelection} onSelect={() => {}} />)
+
+    expect(screen.queryByText('Config')).not.toBeInTheDocument()
+    expect(screen.queryByText('Agents')).not.toBeInTheDocument()
+    expect(screen.queryByText('Consoles')).not.toBeInTheDocument()
+    expect(screen.queryByText('Kinds')).not.toBeInTheDocument()
+    expect(screen.getByText('Making')).toBeInTheDocument()
   })
 
   describe('dynamic custom type sections', () => {
@@ -485,9 +509,9 @@ describe('Sidebar', () => {
 
     it('shows no sections when entries list is empty', () => {
       render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.queryByText('Projects')).not.toBeInTheDocument()
+      expect(screen.queryByText('Making')).not.toBeInTheDocument()
       expect(screen.queryByText('People')).not.toBeInTheDocument()
-      expect(screen.queryByText('Events')).not.toBeInTheDocument()
+      expect(screen.queryByText('Moments')).not.toBeInTheDocument()
     })
 
     it('does not show built-in types as custom sections', () => {
@@ -518,8 +542,8 @@ describe('Sidebar', () => {
     properties: {},
       }
       render(<Sidebar entries={[...mockEntries, projectTypeEntry]} selection={defaultSelection} onSelect={() => {}} />)
-      // "Projects" should appear once (the built-in section), not twice
-      const projectLabels = screen.getAllByText('Projects')
+      // "Making" should appear once (the built-in Project place), not twice
+      const projectLabels = screen.getAllByText('Making')
       expect(projectLabels.length).toBe(1)
     })
 
@@ -626,7 +650,7 @@ describe('Sidebar', () => {
       render(<Sidebar entries={entries} selection={defaultSelection} onSelect={() => {}} />)
       expect(screen.queryByText('People')).not.toBeInTheDocument()
       // Other sections should still be visible
-      expect(screen.getByText('Projects')).toBeInTheDocument()
+      expect(screen.getByText('Making')).toBeInTheDocument()
     })
 
     it('shows a section when its Type entry has visible: true', () => {
@@ -661,34 +685,34 @@ describe('Sidebar', () => {
       ]
       render(<Sidebar entries={entries} selection={defaultSelection} onSelect={() => {}} />)
       expect(screen.queryByText('People')).not.toBeInTheDocument()
-      expect(screen.queryByText('Events')).not.toBeInTheDocument()
-      expect(screen.getByText('Projects')).toBeInTheDocument()
-      expect(screen.getByText('Topics')).toBeInTheDocument()
+      expect(screen.queryByText('Moments')).not.toBeInTheDocument()
+      expect(screen.getByText('Making')).toBeInTheDocument()
+      expect(screen.getByText('Ideas')).toBeInTheDocument()
     })
 
-    it('does not affect All Notes or other sidebar filters when sections are hidden', () => {
+    it('does not affect Pages or other sidebar filters when sections are hidden', () => {
       const entries: VaultEntry[] = [
         ...mockEntries,
         makeTypeEntry('Project', false),
         makeTypeEntry('Person', false),
       ]
       render(<Sidebar entries={entries} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.getByText('All Notes')).toBeInTheDocument()
+      expect(screen.getByText('Pages')).toBeInTheDocument()
       expect(screen.queryByText('Favorites')).not.toBeInTheDocument()
     })
 
-    it('renders a "Customize sections" button', () => {
+    it('renders a "Customize places" button', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.getByTitle('Customize sections')).toBeInTheDocument()
+      expect(screen.getByTitle('Customize places')).toBeInTheDocument()
     })
 
     it('opens popover with toggle for each section when clicking customize button', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      fireEvent.click(screen.getByTitle('Customize sections'))
-      expect(screen.getByText('Show in sidebar')).toBeInTheDocument()
-      expect(screen.getByLabelText('Toggle Projects')).toBeInTheDocument()
+      fireEvent.click(screen.getByTitle('Customize places'))
+      expect(screen.getByText('Show places')).toBeInTheDocument()
+      expect(screen.getByLabelText('Toggle Making')).toBeInTheDocument()
       expect(screen.getByLabelText('Toggle People')).toBeInTheDocument()
-      expect(screen.getByLabelText('Toggle Topics')).toBeInTheDocument()
+      expect(screen.getByLabelText('Toggle Ideas')).toBeInTheDocument()
     })
 
     it('updates the sidebar type picker when Journal becomes a real type while the app stays open', () => {
@@ -703,7 +727,7 @@ describe('Sidebar', () => {
       ]
       const { rerender } = render(<Sidebar entries={journalEntries} selection={defaultSelection} onSelect={() => {}} />)
 
-      fireEvent.click(screen.getByTitle('Customize sections'))
+      fireEvent.click(screen.getByTitle('Customize places'))
       expect(screen.queryByLabelText('Toggle Journals')).not.toBeInTheDocument()
 
       rerender(
@@ -803,16 +827,16 @@ describe('Sidebar', () => {
       ]
 
       render(<Sidebar entries={entries} selection={defaultSelection} onSelect={() => {}} />)
-      fireEvent.click(screen.getByTitle('Customize sections'))
+      fireEvent.click(screen.getByTitle('Customize places'))
 
-      expect(screen.getByLabelText('Toggle Projects').querySelector('svg')).toHaveStyle({ color: 'var(--accent-green)' })
+      expect(screen.getByLabelText('Toggle Making').querySelector('svg')).toHaveStyle({ color: 'var(--accent-green)' })
       expect(screen.getByLabelText('Toggle Recipes').querySelector('svg')).toHaveStyle({ color: 'var(--accent-orange)' })
     })
 
     it('calls onToggleTypeVisibility when toggling a section in the popover', () => {
       const onToggleTypeVisibility = vi.fn()
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} onToggleTypeVisibility={onToggleTypeVisibility} />)
-      fireEvent.click(screen.getByTitle('Customize sections'))
+      fireEvent.click(screen.getByTitle('Customize places'))
       fireEvent.click(screen.getByLabelText('Toggle People'))
       expect(onToggleTypeVisibility).toHaveBeenCalledWith('Person')
     })
@@ -824,11 +848,11 @@ describe('Sidebar', () => {
           <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />
         </div>
       )
-      fireEvent.click(screen.getByTitle('Customize sections'))
-      expect(screen.getByText('Show in sidebar')).toBeInTheDocument()
+      fireEvent.click(screen.getByTitle('Customize places'))
+      expect(screen.getByText('Show places')).toBeInTheDocument()
 
       fireEvent.mouseDown(screen.getByTestId('outside'))
-      expect(screen.queryByText('Show in sidebar')).not.toBeInTheDocument()
+      expect(screen.queryByText('Show places')).not.toBeInTheDocument()
     })
   })
 
@@ -865,13 +889,13 @@ describe('Sidebar', () => {
     it('sorts sections by order from Type entries', () => {
       render(<Sidebar entries={entriesWithOrder} selection={defaultSelection} onSelect={() => {}} />)
       // Get all section header labels
-      const headers = screen.getAllByText(/^(Topics|People|Projects|Experiments|Responsibilities|Procedures|Events|Types)$/)
+      const headers = screen.getAllByText(/^(Ideas|People|Making|Trials|Care|Ways|Moments|Kinds)$/)
       const labels = headers.map((el) => el.textContent)
 
-      // Topics (order: 0) and People (order: 1) should come before Projects (order: 5)
-      const topicsIdx = labels.indexOf('Topics')
+      // Ideas (order: 0) and People (order: 1) should come before Making (order: 5)
+      const topicsIdx = labels.indexOf('Ideas')
       const peopleIdx = labels.indexOf('People')
-      const projectsIdx = labels.indexOf('Projects')
+      const projectsIdx = labels.indexOf('Making')
 
       expect(topicsIdx).toBeLessThan(projectsIdx)
       expect(peopleIdx).toBeLessThan(projectsIdx)
@@ -885,45 +909,49 @@ describe('Sidebar', () => {
     })
   })
 
-  describe('rename section via context menu', () => {
-    it('shows Rename section option in context menu on right-click', () => {
+  describe('rename place via context menu', () => {
+    it('shows Rename place option in context menu on right-click', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const projectHeader = screen.getByText('Projects').closest('div')!
+      const projectHeader = screen.getByText('Making').closest('div')!
       fireEvent.contextMenu(projectHeader)
-      expect(screen.getByText('Rename section…')).toBeInTheDocument()
+      expect(screen.getByTestId('sidebar-context-menu')).toHaveAttribute('role', 'menu')
+      expect(screen.getByText('Rename place…')).toBeInTheDocument()
+      expect(screen.getByRole('menuitem', { name: 'Rename place…' })).toBeInTheDocument()
     })
 
-    it('shows Customize icon option in context menu on right-click', () => {
+    it('shows Customize mark option in context menu on right-click', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const projectHeader = screen.getByText('Projects').closest('div')!
+      const projectHeader = screen.getByText('Making').closest('div')!
       fireEvent.contextMenu(projectHeader)
-      expect(screen.getByText('Customize icon & color…')).toBeInTheDocument()
+      expect(screen.getByTestId('sidebar-context-menu')).toBeInTheDocument()
+      expect(screen.getByText('Customize mark & color…')).toBeInTheDocument()
+      expect(screen.getByRole('menuitem', { name: 'Customize mark & color…' })).toBeInTheDocument()
     })
 
-    it('shows inline input when Rename section is clicked', () => {
+    it('shows inline input when Rename place is clicked', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const projectHeader = screen.getByText('Projects').closest('div')!
+      const projectHeader = screen.getByText('Making').closest('div')!
       fireEvent.contextMenu(projectHeader)
-      fireEvent.click(screen.getByText('Rename section…'))
-      expect(screen.getByRole('textbox', { name: 'Section name' })).toBeInTheDocument()
+      fireEvent.click(screen.getByText('Rename place…'))
+      expect(screen.getByRole('textbox', { name: 'Place name' })).toBeInTheDocument()
     })
 
     it('inline input is pre-filled with current label', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const projectHeader = screen.getByText('Projects').closest('div')!
+      const projectHeader = screen.getByText('Making').closest('div')!
       fireEvent.contextMenu(projectHeader)
-      fireEvent.click(screen.getByText('Rename section…'))
-      const input = screen.getByRole('textbox', { name: 'Section name' }) as HTMLInputElement
-      expect(input.value).toBe('Projects')
+      fireEvent.click(screen.getByText('Rename place…'))
+      const input = screen.getByRole('textbox', { name: 'Place name' }) as HTMLInputElement
+      expect(input.value).toBe('Making')
     })
 
     it('calls onRenameSection with new name on Enter', () => {
       const onRenameSection = vi.fn()
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} onRenameSection={onRenameSection} />)
-      const projectHeader = screen.getByText('Projects').closest('div')!
+      const projectHeader = screen.getByText('Making').closest('div')!
       fireEvent.contextMenu(projectHeader)
-      fireEvent.click(screen.getByText('Rename section…'))
-      const input = screen.getByRole('textbox', { name: 'Section name' })
+      fireEvent.click(screen.getByText('Rename place…'))
+      const input = screen.getByRole('textbox', { name: 'Place name' })
       fireEvent.change(input, { target: { value: 'My Projects' } })
       fireEvent.keyDown(input, { key: 'Enter' })
       expect(onRenameSection).toHaveBeenCalledWith('Project', 'My Projects')
@@ -932,17 +960,17 @@ describe('Sidebar', () => {
     it('cancels rename on Escape and hides input', () => {
       const onRenameSection = vi.fn()
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} onRenameSection={onRenameSection} />)
-      const projectHeader = screen.getByText('Projects').closest('div')!
+      const projectHeader = screen.getByText('Making').closest('div')!
       fireEvent.contextMenu(projectHeader)
-      fireEvent.click(screen.getByText('Rename section…'))
-      const input = screen.getByRole('textbox', { name: 'Section name' })
+      fireEvent.click(screen.getByText('Rename place…'))
+      const input = screen.getByRole('textbox', { name: 'Place name' })
       fireEvent.keyDown(input, { key: 'Escape' })
       expect(onRenameSection).not.toHaveBeenCalled()
-      expect(screen.queryByRole('textbox', { name: 'Section name' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('textbox', { name: 'Place name' })).not.toBeInTheDocument()
     })
   })
 
-  describe('Note type in sidebar', () => {
+  describe('Note type in Places', () => {
     const noteEntries: VaultEntry[] = [
       ...mockEntries,
       {
@@ -979,57 +1007,67 @@ describe('Sidebar', () => {
       },
     ]
 
-    function queryNotesTypeSection(): HTMLElement | null {
-      return screen.queryAllByText('Notes')
+    const visibleNoteEntries = noteEntries.map((entry) =>
+      entry.title === 'Note' ? { ...entry, visible: true } : entry,
+    )
+
+    function queryLoosePagesPlace(): HTMLElement | null {
+      return screen.queryAllByText('Loose pages')
         .map((label) => label.closest('[class*="group/section"]') as HTMLElement | null)
         .find(Boolean) ?? null
     }
 
-    function getNotesTypeSection(): HTMLElement {
-      const section = queryNotesTypeSection()
-      if (!section) throw new Error('Expected Notes type section')
+    function getLoosePagesPlace(): HTMLElement {
+      const section = queryLoosePagesPlace()
+      if (!section) throw new Error('Expected Loose pages place')
       return section
     }
 
-    it('shows Notes section when Note entries exist', () => {
+    it('hides Loose pages by default because Pages already owns generic notes', () => {
       render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      expect(getNotesTypeSection()).toBeInTheDocument()
+      expect(queryLoosePagesPlace()).not.toBeInTheDocument()
     })
 
-    it('counts only explicit Note entries in the Notes section chip', () => {
-      render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const notesHeader = getNotesTypeSection()
+    it('shows Loose pages when the Note type is explicitly visible', () => {
+      render(<Sidebar entries={visibleNoteEntries} selection={defaultSelection} onSelect={() => {}} />)
+      expect(getLoosePagesPlace()).toBeInTheDocument()
+    })
+
+    it('counts only explicit Note entries in the Loose pages chip', () => {
+      render(<Sidebar entries={visibleNoteEntries} selection={{ kind: 'sectionGroup', type: 'Note' }} onSelect={() => {}} />)
+      const notesHeader = getLoosePagesPlace()
       expect(notesHeader.textContent).toContain('1')
     })
 
-    it('ignores non-markdown Note entries in the Notes section chip', () => {
-      render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const notesHeader = getNotesTypeSection()
+    it('ignores non-markdown Note entries in the Loose pages chip', () => {
+      render(<Sidebar entries={visibleNoteEntries} selection={{ kind: 'sectionGroup', type: 'Note' }} onSelect={() => {}} />)
+      const notesHeader = getLoosePagesPlace()
       expect(notesHeader.textContent).toContain('1')
       expect(notesHeader.textContent).not.toContain('2')
     })
 
-    it('keeps the Notes section count aligned when an entry changes to or from Note', () => {
-      const { rerender } = render(<Sidebar entries={noteEntries} selection={defaultSelection} onSelect={() => {}} />)
-      let notesHeader = getNotesTypeSection()
+    it('keeps the Loose pages count aligned when an entry changes to or from Note', () => {
+      const activeNotesSelection: SidebarSelection = { kind: 'sectionGroup', type: 'Note' }
+      const { rerender } = render(<Sidebar entries={visibleNoteEntries} selection={activeNotesSelection} onSelect={() => {}} />)
+      let notesHeader = getLoosePagesPlace()
       expect(notesHeader.textContent).toContain('1')
 
-      const withoutExplicitNote = noteEntries.map((entry) =>
+      const withoutExplicitNote = visibleNoteEntries.map((entry) =>
         entry.path === '/vault/explicit-note.md' ? { ...entry, isA: null } : entry,
       )
-      rerender(<Sidebar entries={withoutExplicitNote} selection={defaultSelection} onSelect={() => {}} />)
-      notesHeader = getNotesTypeSection()
-      expect(notesHeader.textContent).toBe('Notes')
+      rerender(<Sidebar entries={withoutExplicitNote} selection={activeNotesSelection} onSelect={() => {}} />)
+      notesHeader = getLoosePagesPlace()
+      expect(notesHeader.textContent).toBe('Loose pages')
 
-      const withNewExplicitNote = noteEntries.map((entry) =>
+      const withNewExplicitNote = visibleNoteEntries.map((entry) =>
         entry.path === '/vault/untyped-note.md' ? { ...entry, isA: 'Note' } : entry,
       )
-      rerender(<Sidebar entries={withNewExplicitNote} selection={defaultSelection} onSelect={() => {}} />)
-      notesHeader = getNotesTypeSection()
+      rerender(<Sidebar entries={withNewExplicitNote} selection={activeNotesSelection} onSelect={() => {}} />)
+      notesHeader = getLoosePagesPlace()
       expect(notesHeader.textContent).toContain('2')
     })
 
-    it('does not show Notes section for untyped entries without explicit Note entries', () => {
+    it('does not show Loose pages for untyped entries without explicit Note entries', () => {
       const untypedOnly: VaultEntry[] = [
         {
           path: '/vault/plain.md', filename: 'plain.md', title: 'Plain Note',
@@ -1041,7 +1079,7 @@ describe('Sidebar', () => {
         },
       ]
       render(<Sidebar entries={untypedOnly} selection={defaultSelection} onSelect={() => {}} />)
-      expect(queryNotesTypeSection()).not.toBeInTheDocument()
+      expect(queryLoosePagesPlace()).not.toBeInTheDocument()
     })
   })
 
@@ -1083,22 +1121,22 @@ describe('Sidebar', () => {
     expect(mondaySections).toHaveLength(1)
   })
 
-  it('renders Dashboard before Inbox in the top nav', () => {
+  it('renders Notebook before Inbox in the top nav', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} inboxCount={5} />)
     const topNav = screen.getByTestId('sidebar-top-nav')
     const items = topNav.children
-    expect(items[0].textContent).toContain('Dashboard')
+    expect(items[0].textContent).toContain('Notebook')
     expect(items[1].textContent).toContain('Inbox')
-    expect(items[2].textContent).toContain('All Notes')
-    expect(items[3].textContent).toContain('Notes')
-    expect(items[4].textContent).toContain('Journal')
-    expect(items[5].textContent).toContain('Dreams')
-    expect(items[6].textContent).toContain('Archive')
+    expect(items[2].textContent).toContain('Pages')
+    expect(items[3].textContent).toContain('Journal')
+    expect(items[4].textContent).toContain('Dreams')
+    expect(items[5].textContent).toContain('Archive')
   })
 
-  it('displays inbox count badge', () => {
+  it('keeps Inbox free of a top-nav count badge', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} inboxCount={12} />)
-    expect(screen.getByText('12')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /inbox/i }).textContent).toBe('Inbox')
+    expect(screen.queryByText('12')).not.toBeInTheDocument()
   })
 
   it('calls onSelect with inbox filter when clicking Inbox', () => {
@@ -1112,10 +1150,9 @@ describe('Sidebar', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} showInbox={false} inboxCount={3} />)
     expect(screen.queryByText('Inbox')).not.toBeInTheDocument()
     const topNav = screen.getByTestId('sidebar-top-nav')
-    expect(topNav.children[0].textContent).toContain('Dashboard')
-    expect(topNav.children[1].textContent).toContain('All Notes')
-    expect(topNav.children[2].textContent).toContain('Notes')
-    expect(topNav.children[3].textContent).toContain('Journal')
+    expect(topNav.children[0].textContent).toContain('Notebook')
+    expect(topNav.children[1].textContent).toContain('Pages')
+    expect(topNav.children[2].textContent).toContain('Journal')
   })
 
   it('excludes attachments-folder markdown from top-nav note totals', () => {
@@ -1196,12 +1233,12 @@ describe('Sidebar', () => {
     render(<Sidebar entries={entries} selection={defaultSelection} onSelect={() => {}} />)
 
     const topNav = screen.getByTestId('sidebar-top-nav')
-    expect(within(topNav).getByRole('button', { name: /all notes/i }).textContent).toContain('All Notes1')
-    expect(within(topNav).getByRole('button', { name: /^notes/i }).textContent).toContain('Notes1')
-    expect(within(topNav).getByRole('button', { name: /archive/i }).textContent).toContain('Archive1')
+    expect(within(topNav).getByRole('button', { name: /pages/i }).textContent).toBe('Pages')
+    expect(within(topNav).queryByRole('button', { name: /^notes/i })).not.toBeInTheDocument()
+    expect(within(topNav).getByRole('button', { name: /archive/i }).textContent).toBe('Archive')
   })
 
-  it('adds dedicated local lanes for notes, journals, and dreams', () => {
+  it('adds dedicated local lanes for journals and dreams without duplicating Notes', () => {
     const onSelect = vi.fn()
     const entries: VaultEntry[] = [
       { ...mockEntries[0], path: '/vault/notes/plain.md', title: 'Plain', isA: 'Note' },
@@ -1212,9 +1249,9 @@ describe('Sidebar', () => {
     render(<Sidebar entries={entries} selection={{ kind: 'sectionGroup', type: 'Journal' }} onSelect={onSelect} />)
 
     const topNav = screen.getByTestId('sidebar-top-nav')
-    expect(within(topNav).getByRole('button', { name: /^notes/i }).textContent).toContain('Notes1')
-    expect(within(topNav).getByRole('button', { name: /journal/i }).textContent).toContain('Journal1')
-    expect(within(topNav).getByRole('button', { name: /dreams/i }).textContent).toContain('Dreams1')
+    expect(within(topNav).queryByRole('button', { name: /^notes/i })).not.toBeInTheDocument()
+    expect(within(topNav).getByRole('button', { name: /journal/i }).textContent).toBe('Journal')
+    expect(within(topNav).getByRole('button', { name: /dreams/i }).textContent).toBe('Dreams')
     expect(within(topNav).getByRole('button', { name: /journal/i })).toHaveAttribute('aria-current', 'page')
 
     fireEvent.click(within(topNav).getByRole('button', { name: /dreams/i }))
@@ -1236,7 +1273,7 @@ describe('Sidebar', () => {
     expect(screen.queryByText('Build App')).not.toBeInTheDocument()
   })
 
-  describe('FAVORITES section', () => {
+  describe('Favorites section', () => {
     const favEntry: VaultEntry = {
       path: '/vault/project/fav.md', filename: 'fav.md', title: 'My Favorite Note',
       isA: 'Project', aliases: [], belongsTo: [], relatedTo: [], status: null, owner: null,
@@ -1250,7 +1287,10 @@ describe('Sidebar', () => {
     function getFavoriteAndTypeRows(favoriteTitle = 'My Favorite Note') {
       const favoriteLabel = screen.getByText(favoriteTitle)
       const favoriteRow = favoriteLabel.closest('.cursor-pointer')
-      const typeLabel = screen.getByText('Projects')
+      if (!screen.queryByText('Making')) {
+        fireEvent.click(screen.getByText('Places'))
+      }
+      const typeLabel = screen.getByText('Making')
       const typeRow = typeLabel.closest('.cursor-pointer')
       expect(favoriteRow).not.toBeNull()
       expect(typeRow).not.toBeNull()
@@ -1287,9 +1327,9 @@ describe('Sidebar', () => {
       }
     }
 
-    it('shows FAVORITES section when there are favorites', () => {
+    it('shows Favorites section when there are favorites', () => {
       render(<Sidebar entries={[...mockEntries, favEntry]} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.getByText('FAVORITES')).toBeInTheDocument()
+      expect(screen.getByText('Favorites')).toBeInTheDocument()
       expect(screen.getByText('My Favorite Note')).toBeInTheDocument()
     })
 
@@ -1301,9 +1341,9 @@ describe('Sidebar', () => {
       expect(screen.getByText('[26Q2] Grimoire MVP')).toBeInTheDocument()
     })
 
-    it('hides FAVORITES section when no favorites', () => {
+    it('hides Favorites section when no favorites', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      expect(screen.queryByText('FAVORITES')).not.toBeInTheDocument()
+      expect(screen.queryByText('Favorites')).not.toBeInTheDocument()
     })
 
     it('calls onSelect with favorites filter when clicking a favorite', () => {
@@ -1313,7 +1353,7 @@ describe('Sidebar', () => {
       expect(onSelect).toHaveBeenCalledWith({ kind: 'filter', filter: 'favorites' })
     })
 
-    it('matches the Types row styling and type color for favorites', () => {
+    it('matches the Places row styling and type color for favorites', () => {
       render(<Sidebar entries={[...mockEntries, favEntry]} selection={defaultSelection} onSelect={() => {}} />)
       expectFavoriteRowToMatchTypeRow()
     })
@@ -1321,7 +1361,7 @@ describe('Sidebar', () => {
     it('aligns the favorites header count pill with the shared sidebar count column', () => {
       render(<Sidebar entries={[...mockEntries, favEntry]} selection={defaultSelection} onSelect={() => {}} />)
 
-      const favoritesHeader = screen.getByText('FAVORITES').closest('div') as HTMLElement
+      const favoritesHeader = screen.getByText('Favorites').closest('div') as HTMLElement
       const countChip = within(favoritesHeader).getByTestId('sidebar-count-chip')
 
       expect(favoritesHeader).toHaveStyle({ padding: '8px 8px 8px 16px' })
@@ -1383,11 +1423,14 @@ describe('Sidebar', () => {
   })
 
   describe('group separators', () => {
-    it('LISTS header and its entries share the same border-b container (no separator inside group)', () => {
+    it('Places header and its entries share the same border-b container (no separator inside group)', () => {
       render(<Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} />)
-      const sectionsHeader = screen.getByText('LISTS')
-      const projectsSection = screen.getByText('Projects')
-      // Walk up from LISTS header to find the border-b container
+      const sectionsHeader = screen.getByText('Places')
+      if (!screen.queryByText('Making')) {
+        fireEvent.click(sectionsHeader)
+      }
+      const projectsSection = screen.getByText('Making')
+      // Walk up from Places header to find the border-b container
       const borderContainer = sectionsHeader.closest('.border-b')
       expect(borderContainer).not.toBeNull()
       // The section entry should be inside the same border-b container
@@ -1413,14 +1456,14 @@ describe('Sidebar', () => {
       render(
         <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} views={mockViews} onEditView={() => {}} onDeleteView={() => {}} />
       )
-      expect(screen.getByTitle('Edit view')).toBeInTheDocument()
+      expect(screen.getByTitle('Edit lens')).toBeInTheDocument()
     })
 
     it('does not render edit button when onEditView is not provided', () => {
       render(
         <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} views={mockViews} onDeleteView={() => {}} />
       )
-      expect(screen.queryByTitle('Edit view')).not.toBeInTheDocument()
+      expect(screen.queryByTitle('Edit lens')).not.toBeInTheDocument()
     })
 
     it('calls onEditView with correct filename when clicked', () => {
@@ -1428,16 +1471,27 @@ describe('Sidebar', () => {
       render(
         <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} views={mockViews} onEditView={onEditView} onDeleteView={() => {}} />
       )
-      fireEvent.click(screen.getByTitle('Edit view'))
+      fireEvent.click(screen.getByTitle('Edit lens'))
       expect(onEditView).toHaveBeenCalledWith('active-projects.yml')
+    })
+
+    it('keeps empty saved-view chrome out of the first notebook sidebar', () => {
+      const onCreateView = vi.fn()
+      render(
+        <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} views={[]} onCreateView={onCreateView} />
+      )
+      expect(screen.queryByText('Lenses')).not.toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Create lens' }))
+      expect(onCreateView).toHaveBeenCalledOnce()
     })
   })
 
   describe('create type button', () => {
-    it('renders + button in LISTS header when onCreateNewType is provided', () => {
+    it('renders + button in Places header when onCreateNewType is provided', () => {
       render(
         <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} onCreateNewType={() => {}} />
       )
+      expect(screen.getByText('Places')).toBeInTheDocument()
       expect(screen.getByTestId('create-type-btn')).toBeInTheDocument()
     })
 
@@ -1518,23 +1572,19 @@ describe('Sidebar', () => {
       expect(countChip.className).toContain('text-muted-foreground')
     })
 
-    it('aligns top-nav count pills to the same trailing column as view rows', () => {
+    it('keeps top-nav labels count-free while view rows retain their count chips', () => {
       render(
         <Sidebar entries={mockEntries} selection={defaultSelection} onSelect={() => {}} inboxCount={12} views={mockViews} />
       )
 
       const topNavItem = screen.getByText('Inbox').closest('[class*="cursor-pointer"]') as HTMLElement
-      const topNavCount = within(topNavItem).getByTestId('sidebar-count-chip')
       const viewItem = screen.getByText('Active Projects').closest('[class*="cursor-pointer"]') as HTMLElement
       const viewCount = within(viewItem).getByTestId('view-count-chip')
 
-      expect(topNavItem).toHaveStyle({ padding: '6px 8px 6px 16px' })
+      expect(topNavItem).toHaveStyle({ padding: '6px 16px' })
       expect(viewItem).toHaveStyle({ padding: '6px 8px 6px 16px' })
-      expect(topNavCount).toHaveStyle({
-        background: 'var(--muted)',
-        height: '20px',
-        padding: '0 6px',
-      })
+      expect(within(topNavItem).queryByTestId('sidebar-count-chip')).not.toBeInTheDocument()
+      expect(topNavItem.textContent).toBe('Inbox')
       expect(viewCount).toHaveStyle({
         background: 'var(--muted)',
         height: '20px',
@@ -1604,7 +1654,7 @@ describe('Sidebar', () => {
       expect(countChip.className).toContain('group-hover:opacity-0')
       expect(countChip.className).toContain('group-focus-within:opacity-0')
 
-      const actionButton = within(viewItem).getByTitle('Edit view')
+      const actionButton = within(viewItem).getByTitle('Edit lens')
       const actionContainer = actionButton.parentElement as HTMLElement
       expect(actionContainer.className).toContain('pointer-events-none')
       expect(actionContainer.className).toContain('group-hover:pointer-events-auto')

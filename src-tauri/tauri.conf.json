@@ -1,13 +1,13 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Grimoire",
-  "version": "0.1.390",
+  "version": "0.1.434",
   "identifier": "com.sriinnu.grimoire",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5202",
     "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build && pnpm bundle-mcp"
+    "beforeBuildCommand": "pnpm build && pnpm bundle-mcp && pnpm bundle-starter-vault"
   },
   "app": {
     "withGlobalTauri": true,
@@ -67,7 +67,7 @@
     },
     "resources": {
       "resources/mcp-server/**/*": "mcp-server/",
-      "../demo-vault-v2/**/*": "starter-vault/"
+      "resources/starter-vault": "starter-vault/"
     },
     "icon": [
       "icons/32x32.png",

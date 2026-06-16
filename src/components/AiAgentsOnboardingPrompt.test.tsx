@@ -49,18 +49,18 @@ describe('AiAgentsOnboardingPrompt', () => {
       />,
     )
 
-    expect(screen.getByText('AI CLI routes detected')).toBeInTheDocument()
-    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('2 detected, 1 missing')
+    expect(screen.getByText('Local helpers detected')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('2 detected, 1 unavailable')
     expect(screen.getByTestId('ai-agents-onboarding-scan-receipt')).toHaveTextContent('macOS scan')
     expect(screen.getByTestId('ai-agent-scan-locations')).toHaveTextContent('/Applications')
     expect(screen.getByTestId('ai-agent-next-step')).toHaveTextContent('Continue now')
-    expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Chitragupta 0.1.16 CLI chat route found')
+    expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Chitragupta 0.1.16 local helper route found')
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('MCP memory, recall, wiki, graph, and diagnostics are separate readiness checks')
     expect(screen.getByTestId('ai-agents-onboarding-install-codex')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-continue')).toHaveTextContent('Continue')
   })
 
-  it('shows the missing state when no agents are installed', () => {
+  it('shows the optional-helper state when no agents are installed', () => {
     render(
       <AiAgentsOnboardingPrompt
         statuses={{
@@ -72,11 +72,11 @@ describe('AiAgentsOnboardingPrompt', () => {
       />,
     )
 
-    expect(screen.getByText('No AI agents detected')).toBeInTheDocument()
-    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('0 detected, 3 missing')
+    expect(screen.getByText('Local helpers are optional')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('0 detected, 3 unavailable')
     expect(screen.getByTestId('claude-onboarding-screen')).toBeInTheDocument()
     expect(screen.getByText('Claude Code not detected')).toBeInTheDocument()
-    expect(screen.getByTestId('ai-agent-next-step')).toHaveTextContent('Install one CLI or continue without live AI')
+    expect(screen.getByTestId('ai-agent-next-step')).toHaveTextContent('Install one helper or continue without it')
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Chitragupta CLI was not found in common local paths')
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Install or link the CLI, then choose Check again')
     expect(screen.getByTestId('ai-agents-onboarding-install-claude_code')).toBeInTheDocument()
@@ -139,9 +139,9 @@ describe('AiAgentsOnboardingPrompt', () => {
       />,
     )
 
-    expect(screen.getByText('AI scan needs retry')).toBeInTheDocument()
+    expect(screen.getByText('Local helper check needs retry')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-description')).toHaveTextContent('This is not proof')
-    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('Native CLI scan failed')
+    expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('Native helper scan failed')
     expect(screen.getByTestId('ai-agent-status-claude_code')).toHaveTextContent('Retry needed')
     expect(screen.getByTestId('ai-agent-status-claude_code')).not.toHaveTextContent(/\bMissing\b/)
     expect(screen.getByTestId('ai-agent-status-codex')).toHaveTextContent('Retry needed')
@@ -149,10 +149,10 @@ describe('AiAgentsOnboardingPrompt', () => {
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Retry needed')
     expect(screen.getByTestId('ai-agent-status-chitragupta')).not.toHaveTextContent(/\bMissing\b/)
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Retry the scan before installing or relinking this CLI')
-    expect(screen.getByTestId('ai-agent-next-step')).toHaveTextContent('Retry the scan before treating any CLI as missing')
+    expect(screen.getByTestId('ai-agent-next-step')).toHaveTextContent('Retry the scan before treating any local helper as unavailable')
     expect(screen.queryByTestId('claude-onboarding-screen')).not.toBeInTheDocument()
     expect(screen.queryByTestId('ai-agents-onboarding-install-claude_code')).not.toBeInTheDocument()
-    expect(screen.getByTestId('ai-agents-onboarding-continue')).toHaveTextContent('Continue without live AI')
+    expect(screen.getByTestId('ai-agents-onboarding-continue')).toHaveTextContent('Continue without helpers')
   })
 
   it('shows scan progress while statuses are still checking', () => {
@@ -167,7 +167,7 @@ describe('AiAgentsOnboardingPrompt', () => {
       />,
     )
 
-    expect(screen.getByText('Checking AI agents')).toBeInTheDocument()
+    expect(screen.getByText('Checking local helpers')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-scan-summary')).toHaveTextContent('Scanning PATH')
     expect(screen.getByTestId('ai-agent-status-chitragupta')).toHaveTextContent('Checking')
     expect(screen.getByTestId('ai-agents-onboarding-continue').querySelector('button')).toBeDisabled()
@@ -219,21 +219,24 @@ describe('AiAgentsOnboardingPrompt', () => {
     render(
       <AiAgentsOnboardingPrompt
         statuses={{
-          claude_code: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
-          codex: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
-          chitragupta: { status: 'missing', version: 'Open the native Grimoire app for live AI.' },
+          claude_code: { status: 'missing', version: 'Live local helpers run in the native Grimoire app.' },
+          codex: { status: 'missing', version: 'Live local helpers run in the native Grimoire app.' },
+          chitragupta: { status: 'missing', version: 'Live local helpers run in the native Grimoire app.' },
         }}
         onContinue={vi.fn()}
       />,
     )
 
-    expect(screen.getByText('Open native app for live AI')).toBeInTheDocument()
-    expect(screen.getByText('Continue in preview')).toBeInTheDocument()
-    expect(screen.getByTestId('ai-agents-onboarding-scan-receipt')).toHaveTextContent('Native app scan')
-    expect(screen.getByTestId('ai-agents-onboarding-scan-receipt')).toHaveTextContent('Native app required')
+    expect(screen.getByText('Notebook preview is ready')).toBeInTheDocument()
+    expect(screen.getByText('Open notebook preview')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-description')).toHaveTextContent('Use the notebook here')
+    expect(screen.getByTestId('ai-agents-onboarding-scan-receipt')).toHaveTextContent('Private scan')
+    expect(screen.getByTestId('ai-agents-onboarding-scan-receipt')).toHaveTextContent('Continue to the notebook here')
+    expect(screen.getByTestId('ai-agent-scan-locations')).toHaveTextContent('No private machine paths are inspected')
+    expect(screen.getByTestId('ai-agents-onboarding-preview-boundary')).toHaveTextContent('Your notebook works in preview')
     expect(screen.getByTestId('ai-agent-scan-locations')).not.toHaveTextContent('/Applications')
     expect(screen.queryByTestId('ai-agents-onboarding-install-claude_code')).not.toBeInTheDocument()
-    expect(screen.getByTestId('ai-agent-status-claude_code')).not.toHaveTextContent('Install or link')
+    expect(screen.queryByTestId('ai-agent-status-claude_code')).not.toBeInTheDocument()
   })
 
   it('uses the surrounding surface as a drag region and excludes the card', () => {

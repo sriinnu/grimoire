@@ -19,22 +19,22 @@ describe('EditorNavigatorControls', () => {
 
     expect(screen.getByRole('button', { name: /search this note/i })).toHaveTextContent('Find')
     expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('TOC2')
-    expect(screen.getByRole('button', { name: /spelllinks in this note, 0 links/i })).toHaveTextContent('Links0')
+    expect(screen.getByRole('button', { name: /note links in this note, 0 links/i })).toHaveTextContent('Links0')
   })
 
   it('summarizes headings and links without counting code fences as document navigation', () => {
     render(<EditorNavigatorControls content={`${linkedNote}\n\n\`\`\`\n## Ignored\n[[Hidden]]\n\`\`\``} variant="meta" />)
 
     expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('TOC2')
-    expect(screen.getByRole('button', { name: /spelllinks in this note, 2 links/i })).toHaveTextContent('Links2')
+    expect(screen.getByRole('button', { name: /note links in this note, 2 links/i })).toHaveTextContent('Links2')
   })
 
-  it('opens the note Spelllinks navigator from the editor metadata strip', async () => {
+  it('opens the note links navigator from the editor metadata strip', async () => {
     render(<EditorNavigatorControls content={linkedNote} variant="meta" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /spelllinks in this note/i }))
+    fireEvent.click(screen.getByRole('button', { name: /note links in this note/i }))
 
-    expect(await screen.findByText('2 Spelllinks')).toBeInTheDocument()
+    expect(await screen.findByText('2 note links')).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /Line 9: Core Note/i })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /Line 9: Alpha Project/i })).toBeInTheDocument()
   })

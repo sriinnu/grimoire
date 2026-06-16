@@ -59,15 +59,15 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
   } = config
 
   return [
-    { id: 'search-notes', label: 'Search Notes', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileQuickOpen), keywords: ['find', 'open', 'quick'], enabled: true, execute: onQuickOpen },
-    { id: 'go-dashboard', label: 'Go to Dashboard', group: 'Navigation', keywords: ['home', 'today', 'assistant', 'capture'], enabled: true, execute: () => onSelect({ kind: 'dashboard' }) },
-    { id: 'capture-thought', label: 'Capture Thought', group: 'Capture', keywords: ['note', 'thought', 'quick', 'menu bar'], enabled: !!onCaptureThought, execute: () => onCaptureThought?.() },
-    { id: 'capture-journal', label: 'Journal Entry', group: 'Capture', keywords: ['journal', 'reflect', 'private', 'menu bar'], enabled: !!onCaptureJournal, execute: () => onCaptureJournal?.() },
-    { id: 'capture-dream', label: 'Dream Entry', group: 'Capture', keywords: ['dream', 'private', 'night', 'menu bar'], enabled: !!onCaptureDream, execute: () => onCaptureDream?.() },
-    { id: 'go-all', label: 'Go to All Notes', group: 'Navigation', keywords: ['filter'], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'all' }) },
-    { id: 'go-archived', label: 'Go to Archived', group: 'Navigation', keywords: [], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'archived' }) },
-    { id: 'go-changes', label: 'Go to Changes', group: 'Navigation', keywords: ['git', 'modified', 'pending'], enabled: isGitVault, execute: () => onSelect({ kind: 'filter', filter: 'changes' }) },
-    { id: 'go-pulse', label: 'Go to History', group: 'Navigation', keywords: ['activity', 'history', 'commits', 'git', 'feed'], enabled: isGitVault, execute: () => onSelect({ kind: 'filter', filter: 'pulse' }) },
+    { id: 'search-notes', label: 'Search Pages', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileQuickOpen), keywords: ['find', 'open', 'quick', 'pages', 'notes', 'search pages', 'search notes'], enabled: true, execute: onQuickOpen },
+    { id: 'go-dashboard', label: 'Go to Notebook', group: 'Navigation', keywords: ['home', 'today', 'assistant', 'capture', 'dashboard', 'notebook', 'go dashboard'], enabled: true, execute: () => onSelect({ kind: 'dashboard' }) },
+    { id: 'capture-thought', label: 'Catch a Thought', group: 'Capture', keywords: ['note', 'thought', 'quick', 'menu bar'], enabled: !!onCaptureThought, execute: () => onCaptureThought?.() },
+    { id: 'capture-journal', label: 'Journal Page', group: 'Capture', keywords: ['journal', 'reflect', 'private', 'menu bar'], enabled: !!onCaptureJournal, execute: () => onCaptureJournal?.() },
+    { id: 'capture-dream', label: 'Dream Page', group: 'Capture', keywords: ['dream', 'private', 'night', 'menu bar'], enabled: !!onCaptureDream, execute: () => onCaptureDream?.() },
+    { id: 'go-all', label: 'Go to Pages', group: 'Navigation', keywords: ['filter'], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'all' }) },
+    { id: 'go-archived', label: 'Go to Archive', group: 'Navigation', keywords: ['archived'], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'archived' }) },
+    { id: 'go-changes', label: 'Review Edits', group: 'Navigation', keywords: ['git', 'modified', 'pending', 'changes', 'edits', 'go changes'], enabled: isGitVault, execute: () => onSelect({ kind: 'filter', filter: 'changes' }) },
+    { id: 'go-pulse', label: 'Open History', group: 'Navigation', keywords: ['activity', 'history', 'commits', 'git', 'feed'], enabled: isGitVault, execute: () => onSelect({ kind: 'filter', filter: 'pulse' }) },
     { id: 'go-back', label: 'Go Back', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewGoBack), keywords: ['previous', 'history', 'back'], enabled: !!canGoBack, execute: () => onGoBack?.() },
     { id: 'go-forward', label: 'Go Forward', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewGoForward), keywords: ['next', 'history', 'forward'], enabled: !!canGoForward, execute: () => onGoForward?.() },
   ]

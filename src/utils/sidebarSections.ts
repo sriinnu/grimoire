@@ -11,18 +11,19 @@ import { isLegacyJournalingType } from './legacyTypes'
 import { canonicalizeTypeName } from './vaultTypes'
 import {
   Wrench, Flask, Target, ArrowsClockwise,
-  Users, CalendarBlank, Tag, StackSimple,
+  Users, CalendarBlank, Tag, StackSimple, FileText,
 } from '@phosphor-icons/react'
 
 const BUILT_IN_SECTION_GROUPS: SectionGroup[] = [
-  { label: 'Projects', type: 'Project', Icon: Wrench },
-  { label: 'Experiments', type: 'Experiment', Icon: Flask },
-  { label: 'Responsibilities', type: 'Responsibility', Icon: Target },
-  { label: 'Procedures', type: 'Procedure', Icon: ArrowsClockwise },
+  { label: 'Loose pages', type: 'Note', Icon: FileText },
+  { label: 'Making', type: 'Project', Icon: Wrench },
+  { label: 'Trials', type: 'Experiment', Icon: Flask },
+  { label: 'Care', type: 'Responsibility', Icon: Target },
+  { label: 'Ways', type: 'Procedure', Icon: ArrowsClockwise },
   { label: 'People', type: 'Person', Icon: Users },
-  { label: 'Events', type: 'Event', Icon: CalendarBlank },
-  { label: 'Topics', type: 'Topic', Icon: Tag },
-  { label: 'Types', type: 'Type', Icon: StackSimple },
+  { label: 'Moments', type: 'Event', Icon: CalendarBlank },
+  { label: 'Ideas', type: 'Topic', Icon: Tag },
+  { label: 'Kinds', type: 'Type', Icon: StackSimple },
 ]
 
 /** Metadata lookup for well-known types (icon/label only — NOT used to determine which sections to show) */
@@ -33,6 +34,21 @@ const SEMANTIC_SECTION_LABELS: Record<string, string> = {
   shastras: 'Shaastras',
   vedas: 'Vedas',
 }
+const DEFAULT_HIDDEN_NOTEBOOK_SECTIONS = new Set([
+  'agent',
+  'agents',
+  'config',
+  'console',
+  'consoles',
+  'dream',
+  'dreams',
+  'journal',
+  'journals',
+  'note',
+  'notes',
+  'type',
+  'types',
+])
 
 const isMarkdown = (e: VaultEntry) => e.fileKind === 'markdown' || !e.fileKind
 const isActive = (e: VaultEntry) => !e.archived
@@ -48,6 +64,11 @@ function shouldIncludeTypeDefinition(name: string, entry: VaultEntry): boolean {
 
 function resolveTypeEntry(type: string, typeEntryMap: Record<string, VaultEntry>): VaultEntry | undefined {
   return typeEntryMap[type] ?? typeEntryMap[type.toLowerCase()]
+}
+
+export function isNotebookSidebarSectionVisibleByDefault(type: string, typeEntry?: VaultEntry): boolean {
+  if (typeEntry?.visible === true) return true
+  return !DEFAULT_HIDDEN_NOTEBOOK_SECTIONS.has(type.trim().toLowerCase())
 }
 
 function hasExplicitTypeDefinition(type: string, typeEntryMap: Record<string, VaultEntry>): boolean {

@@ -1,0 +1,18 @@
+@media (prefers-reduced-motion: no-preference) {
+  .vault-dashboard__flow-meter span[data-state="next"] {
+    animation: grimoire-flow-next-arrive 420ms var(--motion-ease-cinematic, ease-out) 1 both;
+  }
+}
+
+@keyframes grimoire-flow-next-arrive {
+  from { opacity: 0.62; transform: scale(0.9); }
+  72% { transform: scale(1.025); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vault-dashboard__flow-step,
+  .vault-dashboard__flow-meter span {
+    transition-duration: 0ms;
+  }
+}

@@ -9,7 +9,7 @@ const EN_COMMAND_TRANSLATIONS = {
   'command.footerSend': '↵ send',
   'command.aiMode': '{agent} mode',
   'command.openSettings': 'Open Settings',
-  'command.openSettings.keywords': 'preferences config appearance theme themes constellation daylight atelier prabhat studio living archive nocturne retro terminal',
+  'command.openSettings.keywords': 'preferences config appearance experience profile profiles color mode theme themes map daylight notebook morning notebook living archive night notebook code notebook terminal',
   'command.openLanguageSettings': 'Open Language Settings',
   'command.openLanguageSettings.keywords': 'language locale i18n internationalization localization chinese english german hindi sanskrit deutsch हिन्दी संस्कृत 中文',
   'command.useSystemLanguage': 'Use System Language',
@@ -17,7 +17,7 @@ const EN_COMMAND_TRANSLATIONS = {
   'command.switchToEnglish': 'Switch Language to English',
   'command.switchToChinese': 'Switch Language to Simplified Chinese',
   'command.openH1Setting': 'Open H1 Auto-Rename Setting',
-  'command.contribute': 'Contribute',
+  'command.contribute': 'Send feedback',
   'command.checkUpdates': 'Check for Updates',
 } as const
 
@@ -32,7 +32,7 @@ const ZH_HANS_COMMAND_TRANSLATIONS: Partial<Record<CommandTranslationKey, string
   'command.footerSend': '↵ 发送',
   'command.aiMode': '{agent} 模式',
   'command.openSettings': '打开设置',
-  'command.openSettings.keywords': '设置 偏好 配置 外观 主题 constellation daylight atelier prabhat studio living archive nocturne retro terminal',
+  'command.openSettings.keywords': '设置 偏好 配置 外观 体验 档案 色彩 模式 主题 map daylight notebook morning notebook living archive night notebook code notebook terminal',
   'command.openLanguageSettings': '打开语言设置',
   'command.openLanguageSettings.keywords': '语言 区域 i18n 国际化 本地化 中文 english german hindi sanskrit deutsch हिन्दी संस्कृत',
   'command.useSystemLanguage': '使用系统语言',
@@ -40,7 +40,7 @@ const ZH_HANS_COMMAND_TRANSLATIONS: Partial<Record<CommandTranslationKey, string
   'command.switchToEnglish': '切换到英文',
   'command.switchToChinese': '切换到简体中文',
   'command.openH1Setting': '打开 H1 自动重命名设置',
-  'command.contribute': '参与贡献',
+  'command.contribute': '发送反馈',
   'command.checkUpdates': '检查更新',
 }
 

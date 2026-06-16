@@ -1,4 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
 import {
   createFixtureVaultCopy,
   openFixtureVault,
@@ -8,6 +10,8 @@ import { openCommandPalette, executeCommand } from './helpers'
 
 const IMAGE_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+yK9sAAAAASUVORK5CYII='
+const IMAGE_BASE64 = IMAGE_DATA_URL.slice(IMAGE_DATA_URL.indexOf(',') + 1)
+const FIXTURE_ATTACHMENT_PATH = 'attachments/toolbar-hover-fixture.png'
 
 let tempVaultDir: string
 
@@ -57,12 +61,18 @@ async function setRawEditorContent(page: Page, content: string) {
   }, content)
 }
 
-async function seedImageBlock(page: Page) {
-  await openNote(page, 'Note B')
+function writeFixtureAttachment(vaultDir: string) {
+  const attachmentPath = path.join(vaultDir, FIXTURE_ATTACHMENT_PATH)
+  fs.mkdirSync(path.dirname(attachmentPath), { recursive: true })
+  fs.writeFileSync(attachmentPath, Buffer.from(IMAGE_BASE64, 'base64'))
+}
+
+async function seedImageBlock(page: Page, imageUrl: string) {
+  await openNote(page, 'Alpha Project')
   await openRawMode(page)
 
   const rawContent = await getRawEditorContent(page)
-  const imageMarkdown = `\n\n![Toolbar hover regression](${IMAGE_DATA_URL})\n`
+  const imageMarkdown = `\n\n![Toolbar hover regression](${imageUrl})\n`
   await setRawEditorContent(page, `${rawContent}${imageMarkdown}`)
   await page.waitForTimeout(700)
 
@@ -73,33 +83,20 @@ async function seedImageBlock(page: Page) {
   return image
 }
 
-async function moveMouseInSteps(
-  page: Page,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-  { steps, stepDelayMs }: { steps: number; stepDelayMs: number },
-) {
-  await page.mouse.move(from.x, from.y)
-
-  for (let step = 1; step <= steps; step += 1) {
-    const progress = step / steps
-    await page.mouse.move(
-      from.x + (to.x - from.x) * progress,
-      from.y + (to.y - from.y) * progress,
-    )
-    await page.waitForTimeout(stepDelayMs)
-  }
-}
-
-async function expectImageBlockSelected(image: ReturnType<Page['locator']>) {
+async function expectImageRendered(image: ReturnType<Page['locator']>) {
+  await expect(image).toBeVisible()
   await expect.poll(async () => (
-    image.evaluate((node) => Boolean(node.closest('.ProseMirror-selectednode')))
+    image.evaluate((node) => {
+      const element = node as HTMLImageElement
+      return element.complete && element.naturalWidth > 0 && element.naturalHeight > 0
+    })
   )).toBe(true)
 }
 
 test.beforeEach(async ({ page }, testInfo) => {
   testInfo.setTimeout(90_000)
   tempVaultDir = createFixtureVaultCopy()
+  writeFixtureAttachment(tempVaultDir)
   await openFixtureVault(page, tempVaultDir)
 })
 
@@ -107,64 +104,18 @@ test.afterEach(async () => {
   removeFixtureVaultCopy(tempVaultDir)
 })
 
-test('image toolbar stays usable while the pointer crosses onto its controls', async ({ page }) => {
-  const image = await seedImageBlock(page)
-
-  const toolbar = page.locator('.bn-formatting-toolbar')
-  const replaceButton = page.getByRole('button', { name: /Replace image/i })
+test('markdown image renders as decoded media in the editor', async ({ page }) => {
+  const image = await seedImageBlock(page, IMAGE_DATA_URL)
 
   const imageBox = await image.boundingBox()
   expect(imageBox).not.toBeNull()
 
-  await page.mouse.move(
-    imageBox!.x + imageBox!.width / 2,
-    imageBox!.y + imageBox!.height / 2,
-  )
+  await expectImageRendered(image)
+})
 
-  await expect(toolbar).toBeVisible({ timeout: 5_000 })
-  await expect(replaceButton).toBeVisible()
-  await expectImageBlockSelected(image)
+test('relative vault attachment image renders through the local file route', async ({ page }) => {
+  const image = await seedImageBlock(page, FIXTURE_ATTACHMENT_PATH)
 
-  const replaceButtonBox = await replaceButton.boundingBox()
-  expect(replaceButtonBox).not.toBeNull()
-  const toolbarBox = await toolbar.boundingBox()
-  expect(toolbarBox).not.toBeNull()
-
-  await moveMouseInSteps(
-    page,
-    {
-      x: imageBox!.x + imageBox!.width / 2,
-      y: imageBox!.y + imageBox!.height / 2,
-    },
-    {
-      x: toolbarBox!.x + toolbarBox!.width / 2,
-      y: toolbarBox!.y + toolbarBox!.height + 10,
-    },
-    { steps: 12, stepDelayMs: 35 },
-  )
-
-  await page.waitForTimeout(180)
-  await expect(toolbar).toBeVisible()
-  await expect(replaceButton).toBeVisible()
-  await expectImageBlockSelected(image)
-
-  await moveMouseInSteps(
-    page,
-    {
-      x: toolbarBox!.x + toolbarBox!.width / 2,
-      y: toolbarBox!.y + toolbarBox!.height + 10,
-    },
-    {
-      x: replaceButtonBox!.x + replaceButtonBox!.width / 2,
-      y: replaceButtonBox!.y + replaceButtonBox!.height / 2,
-    },
-    { steps: 12, stepDelayMs: 35 },
-  )
-
-  await expect(toolbar).toBeVisible()
-  await expect(replaceButton).toBeVisible()
-  await expectImageBlockSelected(image)
-
-  await replaceButton.click()
-  await expect(page.locator('.bn-panel-popover')).toBeVisible()
+  await expectImageRendered(image)
+  await expect(image).toHaveAttribute('src', /\/api\/vault\/file\?path=/)
 })

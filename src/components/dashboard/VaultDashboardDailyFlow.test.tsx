@@ -76,17 +76,25 @@ function renderDashboard(overrides: Partial<ComponentProps<typeof VaultDashboard
   return { memory, onOpenNote }
 }
 
-describe('VaultDashboard daily flow', () => {
-  it('shows a metadata-only assistant brief above the daily flow', () => {
+function getFlowStep(flow: HTMLElement, label: string): HTMLElement {
+  const button = within(flow).getAllByRole('button').find((candidate) => (
+    candidate.querySelector('strong')?.textContent === label
+  ))
+  expect(button).toBeDefined()
+  return button as HTMLElement
+}
+
+describe('VaultDashboard notebook rhythm', () => {
+  it('shows a metadata-only assistant brief above the notebook rhythm', () => {
     const { memory, onOpenNote } = renderDashboard()
     const brief = screen.getByTestId('dashboard-assistant-brief')
 
-    expect(brief).toHaveTextContent('Today Runway')
+    expect(brief).toHaveTextContent('Today')
     expect(brief).toHaveTextContent('Review memory')
-    expect(brief).toHaveTextContent('Journal due')
+    expect(brief).toHaveTextContent('Journal open')
     expect(brief).toHaveTextContent('Dream open')
     expect(brief).toHaveTextContent('1 memory review')
-    expect(screen.getByTestId('dashboard-one-next-action')).toHaveTextContent('1 memory waiting.')
+    expect(screen.getByTestId('dashboard-one-next-action')).toHaveTextContent('1 memory ready for review.')
     expect(Number(brief.dataset.privateHeld)).toBeGreaterThan(0)
     expect(brief).not.toHaveTextContent('Secret River Dream')
     expect(brief).not.toHaveTextContent('Private Memory Ledger')
@@ -101,33 +109,35 @@ describe('VaultDashboard daily flow', () => {
     const flow = screen.getByTestId('dashboard-daily-flow')
     const input = screen.getByTestId('dashboard-capture-input')
 
-    expect(flow).toHaveTextContent('Capture, reflect, organize, crystallize.')
+    expect(flow).toHaveTextContent('One page at a time.')
     expect(flow).toHaveTextContent('Next: Review memory')
-    expect(flow).toHaveTextContent('0 of 4 settled')
+    expect(flow).toHaveTextContent('0 of 4 held')
     expect(screen.getByTestId('dashboard-daily-flow-meter')).toHaveAttribute('data-progress', '0')
     expect(flow).toHaveTextContent('Dream open')
     expect(flow).toHaveTextContent('1 memory review')
     expect(flow).toHaveTextContent('mobile clear')
-    expect(flow).toHaveTextContent('Crystallize open')
+    expect(flow).toHaveTextContent('Pages to revisit')
+    expect(flow).toHaveTextContent('Remember next')
+    expect(flow).not.toHaveTextContent('3 pages waiting')
     expect(flow).not.toHaveTextContent('Secret River Dream')
     expect(flow).not.toHaveTextContent('Private Memory Ledger')
-    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('data-state', 'next')
-    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Gather/ })).toHaveAttribute('data-state', 'next')
+    expect(within(flow).getByRole('button', { name: /Gather/ })).toHaveAttribute('aria-current', 'step')
 
-    fireEvent.click(within(flow).getByRole('button', { name: /Reflect/ }))
+    fireEvent.click(within(flow).getByRole('button', { name: /Notice/ }))
     expect(input).toHaveValue('/journal ')
-    expect(within(flow).getByRole('button', { name: /Reflect/ })).toHaveAttribute('aria-current', 'step')
-    expect(within(flow).getByRole('button', { name: /Reflect/ })).toHaveAttribute('data-selected', 'true')
-    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('data-selected', 'false')
+    expect(within(flow).getByRole('button', { name: /Notice/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Notice/ })).toHaveAttribute('data-selected', 'true')
+    expect(within(flow).getByRole('button', { name: /Gather/ })).toHaveAttribute('data-selected', 'false')
 
     fireEvent.change(input, { target: { value: '' } })
-    fireEvent.click(within(flow).getByRole('button', { name: /Crystallize/ }))
+    fireEvent.click(getFlowStep(flow, 'Remember'))
     expect(input).toHaveValue('/ask ')
     expect(await screen.findByTestId('dashboard-ask-context-preview')).toHaveTextContent(
-      'Only listed public references can travel.',
+      'Only listed public notes can be sent.',
     )
 
-    fireEvent.click(within(flow).getByRole('button', { name: /Organize/ }))
+    fireEvent.click(within(flow).getByRole('button', { name: /Gather/ }))
     expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ path: memory.path }))
   })
 
@@ -135,9 +145,11 @@ describe('VaultDashboard daily flow', () => {
     renderDashboard({ entries: [entry('Reference Note', 'Note')] })
     const flow = screen.getByTestId('dashboard-daily-flow')
 
-    expect(flow).toHaveTextContent('Next: Reflect')
+    expect(flow).toHaveTextContent('Next: Notice')
     expect(flow).toHaveTextContent('memory clear')
     expect(flow).toHaveTextContent('mobile clear')
+    expect(flow).toHaveTextContent('Pages to revisit')
+    expect(flow).not.toHaveTextContent('1 page waiting')
     expect(flow).not.toHaveTextContent('0 memory reviews')
     expect(flow).not.toHaveTextContent('0 mobile reviews')
   })
@@ -147,16 +159,17 @@ describe('VaultDashboard daily flow', () => {
     const flow = screen.getByTestId('dashboard-daily-flow')
     const input = screen.getByTestId('dashboard-capture-input')
 
-    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Gather/ })).toHaveAttribute('aria-current', 'step')
 
     fireEvent.change(input, { target: { value: '/note hello what are we doing today' } })
-    expect(within(flow).getByRole('button', { name: /Capture/ })).toHaveAttribute('aria-current', 'step')
-    expect(within(flow).getByRole('button', { name: /Capture/ })).toHaveAttribute('data-selected', 'true')
-    expect(within(flow).getByRole('button', { name: /Organize/ })).toHaveAttribute('data-selected', 'false')
+    expect(within(flow).getByRole('button', { name: /Write/ })).toHaveAttribute('aria-current', 'step')
+    expect(within(flow).getByRole('button', { name: /Write/ })).toHaveAttribute('data-selected', 'true')
+    expect(within(flow).getByRole('button', { name: /Gather/ })).toHaveAttribute('data-selected', 'false')
 
     fireEvent.change(input, { target: { value: '/ask crystallize this' } })
-    expect(within(flow).getByRole('button', { name: /Crystallize/ })).toHaveAttribute('aria-current', 'step')
-    expect(within(flow).getByRole('button', { name: /Crystallize/ })).toHaveAttribute('data-selected', 'true')
+    const reviewStep = getFlowStep(flow, 'Remember')
+    expect(reviewStep).toHaveAttribute('aria-current', 'step')
+    expect(reviewStep).toHaveAttribute('data-selected', 'true')
   })
 
   it('lists every public note that can travel in the ask preview', async () => {
@@ -165,17 +178,17 @@ describe('VaultDashboard daily flow', () => {
     ))
     renderDashboard({ entries: publicNotes })
 
-    fireEvent.click(within(screen.getByTestId('dashboard-daily-flow')).getByRole('button', { name: /Crystallize/ }))
+    fireEvent.click(within(screen.getByTestId('dashboard-daily-flow')).getByRole('button', { name: /Remember/ }))
     const preview = await screen.findByTestId('dashboard-ask-context-preview')
 
     for (const note of publicNotes) {
       expect(preview).toHaveTextContent(note.title)
     }
     expect(preview).not.toHaveTextContent('+2')
-    expect(preview).toHaveTextContent('Only listed public references can travel.')
+    expect(preview).toHaveTextContent('Only listed public notes can be sent.')
   })
 
-  it('seeds a source-safe Crystallize prompt from Attention Mode when the board is calm', () => {
+  it('seeds a source-safe Crystallize prompt from Return when the notebook is calm', () => {
     renderDashboard({
       entries: [
         entry('Journal today', 'Journal'),
@@ -183,12 +196,12 @@ describe('VaultDashboard daily flow', () => {
         entry('Latest Thread', 'Note'),
       ],
     })
-    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    const panel = screen.getByText('Return').closest('.vault-dashboard__panel') as HTMLElement
 
     expect(panel).toHaveTextContent('Crystallize')
     fireEvent.click(within(panel).getByRole('button', { name: 'Crystallize' }))
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue(
-      '/ask Crystallize the latest thread into reviewed Markdown memory.',
+      '/ask Crystallize the latest page into reviewed Markdown memory.',
     )
   })
 
@@ -214,7 +227,7 @@ describe('VaultDashboard daily flow', () => {
     const preview = await screen.findByTestId('dashboard-ask-context-preview')
     expect(preview).toHaveTextContent('Daily Thread Crystallize')
     expect(preview).toHaveTextContent('Review-before-write Markdown memory; public references only.')
-    expect(preview).toHaveTextContent('Only listed public references can travel.')
+    expect(preview).toHaveTextContent('Only listed public notes can be sent.')
   })
 
   it('seeds a local capture from the assistant brief action', () => {
@@ -281,7 +294,7 @@ describe('VaultDashboard daily flow', () => {
     expect(onPendingCaptureConsumed).toHaveBeenCalledTimes(2)
   })
 
-  it('routes pending mobile capture review through Attention Mode without naming it in the rail', () => {
+  it('routes pending mobile capture review through Return without naming it in the rail', () => {
     const mobileDraft = entry('Private iPhone Journal', 'Journal', {
       path: '/vault/journals/mobile/private-iphone-journal.md',
       snippet: 'private mobile body extract',
@@ -289,7 +302,7 @@ describe('VaultDashboard daily flow', () => {
     })
     const { onOpenNote } = renderDashboard({ entries: [mobileDraft] })
     const flow = screen.getByTestId('dashboard-daily-flow')
-    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    const panel = screen.getByText('Return').closest('.vault-dashboard__panel') as HTMLElement
 
     expect(flow).toHaveTextContent('1 mobile review')
     expect(flow).not.toHaveTextContent('Private iPhone Journal')
@@ -298,7 +311,7 @@ describe('VaultDashboard daily flow', () => {
     expect(panel).not.toHaveTextContent('/vault/journals/mobile')
     expect(panel).not.toHaveTextContent('private mobile body extract')
 
-    fireEvent.click(within(flow).getByRole('button', { name: /Organize/ }))
+    fireEvent.click(within(flow).getByRole('button', { name: /Gather/ }))
     expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ path: mobileDraft.path }))
   })
 
@@ -316,13 +329,13 @@ describe('VaultDashboard daily flow', () => {
       ],
     })
     const flow = screen.getByTestId('dashboard-daily-flow')
-    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    const panel = screen.getByText('Return').closest('.vault-dashboard__panel') as HTMLElement
 
-    expect(flow).toHaveTextContent('3 of 4 settled')
+    expect(flow).toHaveTextContent('3 of 4 held')
     expect(screen.getByTestId('dashboard-daily-flow-meter')).toHaveAttribute('data-progress', '3')
-    expect(flow).toHaveTextContent('Crystallized today')
-    expect(within(flow).getByRole('button', { name: /Crystallize/ })).toHaveTextContent('Done today.')
-    expect(panel).toHaveTextContent('Loop closed')
+    expect(flow).toHaveTextContent('Remembered today')
+    expect(within(flow).getByRole('button', { name: /Remember/ })).toHaveTextContent('Touched today.')
+    expect(panel).toHaveTextContent('Memory landed')
     expect(panel).toHaveTextContent('1 reviewed Markdown memory landed today.')
   })
 })

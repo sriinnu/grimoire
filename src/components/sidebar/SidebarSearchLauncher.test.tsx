@@ -10,20 +10,20 @@ describe('SidebarSearchLauncher', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('opens Spotlight-style search for open vault docs and text files', () => {
+  it('opens notebook search from the sidebar', () => {
     const onOpenSearch = vi.fn()
     render(<SidebarSearchLauncher onOpenSearch={onOpenSearch} />)
 
     const input = screen.getByRole('searchbox', {
-      name: 'Search open vaults',
+      name: 'Search notebook',
     })
 
     const shortcut = getAppCommandShortcutDisplay(APP_COMMAND_IDS.editFindInVault)
 
-    expect(input).toHaveAttribute('placeholder', 'Search open vaults...')
+    expect(input).toHaveAttribute('placeholder', 'Search')
     expect(input).toHaveAttribute(
       'title',
-      'Search open vaults',
+      'Search notebook',
     )
     expect(input).toHaveAttribute('aria-keyshortcuts')
     expect(screen.getByTestId('sidebar-search-shortcut')).toHaveTextContent(shortcut ?? '')

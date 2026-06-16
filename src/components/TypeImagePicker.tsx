@@ -19,7 +19,7 @@ function readIconFile(file: File): Promise<string> {
   })
 }
 
-/** Built-in image badge and upload picker for type icons. */
+/** Built-in image mark and upload picker for type icons. */
 export function TypeImagePicker({ selectedIcon, onSelectIcon }: TypeImagePickerProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -32,7 +32,7 @@ export function TypeImagePicker({ selectedIcon, onSelectIcon }: TypeImagePickerP
   return (
     <div className="space-y-2">
       <div
-        aria-label="Built-in type image badges"
+        aria-label="Built-in type image marks"
         className="grid max-h-28 grid-cols-7 gap-1.5 overflow-y-auto pr-1"
       >
         {TYPE_ICON_IMAGE_OPTIONS.map((option) => (

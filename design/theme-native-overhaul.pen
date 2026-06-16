@@ -1,0 +1,76 @@
+{
+  "version": "2.9",
+  "children": [
+    {
+      "type": "frame",
+      "id": "native_shell_overhaul",
+      "name": "Native Shell Theme Overhaul",
+      "theme": { "Mode": "Light" },
+      "width": 1440,
+      "height": 900,
+      "fill": "#101113",
+      "layout": "vertical",
+      "gap": 16,
+      "padding": 40,
+      "children": [
+        {
+          "type": "text",
+          "id": "native_shell_title",
+          "fill": "#f5f7fb",
+          "content": "Native Shell Theme Overhaul",
+          "fontFamily": "Inter",
+          "fontSize": 32,
+          "fontWeight": "700"
+        },
+        {
+          "type": "text",
+          "id": "native_shell_summary",
+          "fill": "#b7c2cf",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Working concept: design/grimoire-native-shell-concept.png. Theme means complete app UX: neutral graphite shell, non-green dark mode, strong native sidebars, visible context menus, real rendered images, second-brain graph/agent surface, and create-vault action visible without scrolling.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "text",
+          "id": "native_shell_tokens",
+          "fill": "#dbe4ef",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Tokens: app #101113, sidebar #0d0e10, panel #151719, card #1b1d20, editor #121416, text #e9ecef, muted #aeb4bc, border #30343a, accent #86aee8. No green/teal shell cast and no navy wash; green stays only as tiny status semantics.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "500"
+        },
+        {
+          "type": "text",
+          "id": "native_shell_controls",
+          "fill": "#dbe4ef",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "Interaction rules: sidebar glyphs use optically strong 18px icons with framed active state; note right-click menus use native popover material and readable danger rows; create-vault footer stays pinned; graph/agent cards stay visible as the second-brain lane; editor image blocks render actual media thumbnails.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "500"
+        },
+        {
+          "type": "text",
+          "id": "native_theme_atlas",
+          "fill": "#dbe4ef",
+          "textGrowth": "fixed-width",
+          "width": "fill_container",
+          "content": "All-theme atlas: design/grimoire-theme-atlas.png. Presets are complete UX personalities: Constellation is graph-first dark map; Daylight is white paper plus graphite app rail; Morning is airy light local notebook; Graphite Archive is spacious stacked paper; Nocturne is native graphite dark with blue-steel actions; Code Notebook is compact terminal density with amber command surfaces.",
+          "lineHeight": 1.5,
+          "fontFamily": "Inter",
+          "fontSize": 14,
+          "fontWeight": "500"
+        }
+      ]
+    }
+  ]
+}

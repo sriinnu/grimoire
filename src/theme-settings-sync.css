@@ -1,10 +1,10 @@
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway {
   display: grid;
   gap: 0.5rem;
@@ -13,11 +13,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__step {
   border: 1px solid var(--grimoire-hairline);
   border-radius: 0.625rem;
@@ -32,55 +32,55 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__step[data-sync-runway-tone="local"] {
   --settings-sync-runway-tone: var(--grimoire-private-local-accent);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__step[data-sync-runway-tone="ready"] {
   --settings-sync-runway-tone: var(--accent-green);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__step[data-sync-runway-tone="gated"] {
   --settings-sync-runway-tone: var(--accent-orange);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__step[data-sync-runway-tone="watch"] {
   --settings-sync-runway-tone: var(--accent-blue);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__state {
   color: color-mix(in srgb, var(--settings-sync-runway-tone, var(--primary)) 76%, var(--text-primary));
   font-size: 0.6875rem;
@@ -91,11 +91,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__label {
   color: var(--text-primary);
   font-size: 0.8125rem;
@@ -105,11 +105,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-sync-runway__detail {
   color: var(--text-secondary);
   font-size: 0.6875rem;
@@ -120,11 +120,11 @@
 @media (max-width: 760px) {
   :is(
     [data-theme-preset="constellation"],
-    [data-theme-preset="daylight-atelier"],
-    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="daylight-notebook"],
+    [data-theme-preset="morning-notebook"],
     [data-theme-preset="living-archive"],
     [data-theme-preset="nocturne"],
-    [data-theme-preset="retro-terminal"]
+    [data-theme-preset="code-notebook"]
   ) .settings-sync-runway {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

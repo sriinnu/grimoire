@@ -1,5 +1,5 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Cloud, FileText, FolderOpen, GitBranch, HardDrive, ShieldCheck, Sparkles } from 'lucide-react'
+import { Cloud, FileText, FolderOpen, GitBranch, HardDrive, ShieldCheck } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
+import { resolveThemePreset, type ThemePreset } from '@/lib/appearance'
 import {
   buildVaultTargetPath,
   buildVaultCreationPlan,
@@ -26,8 +27,10 @@ import {
 } from '@/utils/vaultCreation'
 import { isTauri } from '@/mock-tauri'
 import { pickFolder } from '@/utils/vault-dialog'
+import { CreateVaultExperienceProfilePicker } from './CreateVaultExperienceProfile'
 
 interface CreateVaultDialogProps {
+  initialThemePreset?: ThemePreset | null
   open: boolean
   onClose: () => void
   onCreate: (request: CreateEmptyVaultRequest) => Promise<boolean> | boolean
@@ -42,6 +45,23 @@ const VAULT_PROMISES = [
   { label: 'Git optional', detail: 'History can stay off', icon: GitBranch },
 ]
 
+function extractFolderNameFromSelection(selectedPath: string): string {
+  const decodedPath = (() => {
+    try {
+      return decodeURIComponent(selectedPath)
+    } catch {
+      return selectedPath
+    }
+  })()
+  const normalizedPath = decodedPath
+    .replace(/\\/gu, '/')
+    .replace(/\/+/gu, '/')
+    .replace(/^file:\/\//u, '')
+    .replace(/^\/+/, '')
+
+  return normalizedPath.split('/').filter(Boolean).pop() ?? DEFAULT_VAULT_NAME
+}
+
 function choiceIcon(choiceId: VaultStorageChoiceId) {
   if (choiceId === 'local') return <HardDrive className="size-4" />
   if (CLOUD_CHOICE_IDS.has(choiceId)) return <Cloud className="size-4" />
@@ -52,10 +72,11 @@ function shouldUpdateSuggestedPath(pathDirty: boolean, targetPath: string, previ
   return !pathDirty || !targetPath.trim() || targetPath === previousSuggestion
 }
 
-/** Dialog for creating local-first vaults in local or cloud-synced folders. */
-export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialogProps) {
+/** Dialog for creating local-first notebooks in local or cloud-synced folders. */
+export function CreateVaultDialog({ initialThemePreset, open, onClose, onCreate }: CreateVaultDialogProps) {
   const [vaultName, setVaultName] = useState(DEFAULT_VAULT_NAME)
   const [templateKind, setTemplateKind] = useState<VaultTemplateKindId>('blank')
+  const [experienceProfile, setExperienceProfile] = useState<ThemePreset>(() => resolveThemePreset(initialThemePreset))
   const [storageChoice, setStorageChoice] = useState<VaultStorageChoiceId>('local')
   const [targetPath, setTargetPath] = useState(() => buildVaultTargetPath('local', DEFAULT_VAULT_NAME))
   const [pathDirty, setPathDirty] = useState(false)
@@ -71,13 +92,16 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     initializeGit,
     targetPath,
     templateKind,
-  }), [initializeGit, storageChoice, targetPath, templateKind])
+    themePreset: experienceProfile,
+  }), [experienceProfile, initializeGit, storageChoice, targetPath, templateKind])
   const canSubmit = submitState === 'idle' && targetPath.trim().length > 0 && vaultName.trim().length > 0
 
   const resetState = useCallback(() => {
     const defaultPath = buildVaultTargetPath('local', DEFAULT_VAULT_NAME)
+    const defaultExperienceProfile = resolveThemePreset(initialThemePreset)
     setVaultName(DEFAULT_VAULT_NAME)
     setTemplateKind('blank')
+    setExperienceProfile(defaultExperienceProfile)
     setStorageChoice('local')
     setTargetPath(defaultPath)
     setPathDirty(false)
@@ -85,7 +109,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     setSubmitState('idle')
     setError(null)
     previousSuggestionRef.current = defaultPath
-  }, [])
+  }, [initialThemePreset])
 
   useEffect(() => {
     if (open) resetState()
@@ -137,11 +161,11 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     setError(null)
 
     try {
-      const selected = await pickFolder('Choose empty folder for the new vault')
+      const selected = await pickFolder('Choose empty folder for the new notebook')
       if (!selected) return
 
       setTargetPath(selected)
-      setVaultName(sanitizeVaultFolderName(selected.split('/').filter(Boolean).pop() ?? DEFAULT_VAULT_NAME))
+      setVaultName(sanitizeVaultFolderName(extractFolderNameFromSelection(selected)))
       setPathDirty(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -156,7 +180,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     event.preventDefault()
     const path = targetPath.trim()
     if (!path) {
-      setError('Choose a vault path')
+      setError('Choose a notebook path')
       return
     }
 
@@ -169,6 +193,7 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
         syncProvider: initializeGit ? 'git' : 'none',
         initializeGit,
         templateKind,
+        themePreset: experienceProfile,
       })
       if (ok) {
         resetState()
@@ -179,168 +204,183 @@ export function CreateVaultDialog({ open, onClose, onCreate }: CreateVaultDialog
     } finally {
       setSubmitState('idle')
     }
-  }, [initializeGit, onClose, onCreate, resetState, selectedChoice.storageProvider, targetPath, templateKind])
+  }, [experienceProfile, initializeGit, onClose, onCreate, resetState, selectedChoice.storageProvider, targetPath, templateKind])
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[560px]" data-testid="create-vault-dialog">
-        <DialogHeader>
-          <DialogTitle>Create Vault</DialogTitle>
+      <DialogContent
+        className="grid max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 sm:max-w-[560px]"
+        data-testid="create-vault-dialog"
+      >
+        <DialogHeader className="px-6 pt-6 pr-12 pb-4">
+          <DialogTitle>Create Notebook</DialogTitle>
           <DialogDescription>
-            Make a private Markdown space. Sync is only the folder you choose.
+            Make a private Markdown notebook. It stays in the folder you choose.
           </DialogDescription>
         </DialogHeader>
 
-        <form className="grid gap-4" onSubmit={handleSubmit}>
-          <div className="grid gap-2 rounded-md border border-border bg-muted/30 p-3" data-testid="create-vault-local-contract">
-            <div className="text-xs font-medium text-muted-foreground">Local-first contract</div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {VAULT_PROMISES.map(({ detail, icon: Icon, label }) => (
-                <div key={label} className="min-w-0 rounded-md border border-border/70 bg-background/70 px-3 py-2">
-                  <div className="flex items-center gap-2 text-sm font-medium">
-                    <Icon className="size-4 text-muted-foreground" />
-                    <span className="truncate">{label}</span>
+        <form className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto] overflow-hidden" onSubmit={handleSubmit}>
+          <div className="grid min-h-0 gap-4 overflow-y-auto px-6 pt-2 pb-4" data-testid="create-vault-scroll-body">
+            <div className="grid gap-2 rounded-md border border-border bg-muted/30 p-3" data-testid="create-vault-local-contract">
+              <div className="text-xs font-medium text-muted-foreground">Local-first contract</div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {VAULT_PROMISES.map(({ detail, icon: Icon, label }) => (
+                  <div key={label} className="min-w-0 rounded-md border border-border/70 bg-background/70 px-3 py-2">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Icon className="size-4 text-muted-foreground" />
+                      <span className="truncate">{label}</span>
+                    </div>
+                    <div className="mt-1 truncate text-xs text-muted-foreground">{detail}</div>
                   </div>
-                  <div className="mt-1 truncate text-xs text-muted-foreground">{detail}</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="grid gap-2">
-            <div className="text-xs font-medium text-muted-foreground">Vault template</div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {VAULT_TEMPLATE_KINDS.map((kind) => {
-                const selected = kind.id === templateKind
-                return (
-                  <Button
-                    key={kind.id}
-                    type="button"
-                    variant={selected ? 'default' : 'outline'}
-                    className="h-auto justify-start gap-3 rounded-md px-3 py-2 text-left"
-                    onClick={() => handleTemplateKindChange(kind.id)}
-                    data-testid={`create-vault-template-${kind.id}`}
-                  >
-                    <Sparkles className="size-4" />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">{kind.label}</span>
-                      <span className="block truncate text-xs opacity-75">{kind.detail}</span>
-                    </span>
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-name">Name</label>
-            <Input
-              id="create-vault-name"
-              value={vaultName}
-              onChange={handleVaultNameChange}
-              data-testid="create-vault-name"
-              autoFocus
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <div className="text-xs font-medium text-muted-foreground">Vault home</div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {VAULT_STORAGE_CHOICES.map((choice) => {
-                const selected = choice.id === storageChoice
-                return (
-                  <Button
-                    key={choice.id}
-                    type="button"
-                    variant={selected ? 'default' : 'outline'}
-                    className="h-auto justify-start gap-3 rounded-md px-3 py-2 text-left"
-                    onClick={() => handleStorageChoiceChange(choice.id)}
-                    data-testid={`create-vault-storage-${choice.id}`}
-                  >
-                    {choiceIcon(choice.id)}
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium">{choice.label}</span>
-                      <span className="block truncate text-xs opacity-75">{choice.detail}</span>
-                    </span>
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-path">Markdown folder</label>
-            <div className="flex gap-2">
+            <div className="grid gap-2">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-name">Name</label>
               <Input
-                id="create-vault-path"
-                value={targetPath}
-                onChange={handleTargetPathChange}
-                data-testid="create-vault-path"
+                id="create-vault-name"
+                value={vaultName}
+                onChange={handleVaultNameChange}
+                data-testid="create-vault-name"
+                autoFocus
               />
-              {nativeFolderPickerAvailable && (
-                <Button type="button" variant="outline" onClick={handleChooseFolder} disabled={submitState === 'creating'}>
-                  <FolderOpen className="size-4" />
-                  Choose
-                </Button>
-              )}
             </div>
-          </div>
 
-          <div className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
-            <Checkbox
-              checked={initializeGit}
-              onCheckedChange={(checked) => setInitializeGit(checked === true)}
-              data-testid="create-vault-git"
-              aria-label="Initialize Git history"
-            />
-            <div className="min-w-0">
+            <div className="grid gap-2">
+              <div className="text-xs font-medium text-muted-foreground">Notebook template</div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {VAULT_TEMPLATE_KINDS.map((kind) => {
+                  const selected = kind.id === templateKind
+                  return (
+                    <Button
+                      key={kind.id}
+                      type="button"
+                      variant={selected ? 'default' : 'outline'}
+                      className="h-auto justify-start gap-3 rounded-md px-3 py-2 text-left"
+                      onClick={() => handleTemplateKindChange(kind.id)}
+                      data-testid={`create-vault-template-${kind.id}`}
+                    >
+                      <FileText className="size-4" />
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium">{kind.label}</span>
+                        <span className="block truncate text-xs opacity-75">{kind.detail}</span>
+                      </span>
+                    </Button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <CreateVaultExperienceProfilePicker value={experienceProfile} onChange={setExperienceProfile} />
+
+            <div className="grid gap-2">
+              <div className="text-xs font-medium text-muted-foreground">Notebook home</div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {VAULT_STORAGE_CHOICES.map((choice) => {
+                  const selected = choice.id === storageChoice
+                  return (
+                    <Button
+                      key={choice.id}
+                      type="button"
+                      variant={selected ? 'default' : 'outline'}
+                      className="h-auto justify-start gap-3 rounded-md px-3 py-2 text-left"
+                      onClick={() => handleStorageChoiceChange(choice.id)}
+                      data-testid={`create-vault-storage-${choice.id}`}
+                    >
+                      {choiceIcon(choice.id)}
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-medium">{choice.label}</span>
+                        <span className="block truncate text-xs opacity-75">{choice.detail}</span>
+                      </span>
+                    </Button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="create-vault-path">Markdown folder</label>
+              <div className="flex gap-2">
+                <Input
+                  id="create-vault-path"
+                  value={targetPath}
+                  onChange={handleTargetPathChange}
+                  data-testid="create-vault-path"
+                />
+                {nativeFolderPickerAvailable && (
+                  <Button type="button" variant="outline" onClick={handleChooseFolder} disabled={submitState === 'creating'}>
+                    <FolderOpen className="size-4" />
+                    Choose
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
+              <Checkbox
+                checked={initializeGit}
+                onCheckedChange={(checked) => setInitializeGit(checked === true)}
+                data-testid="create-vault-git"
+                aria-label="Initialize Git history"
+              />
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <GitBranch className="size-4 text-muted-foreground" />
+                  Initialize Git history
+                </div>
+                <div className="text-xs text-muted-foreground">Off by default. Local-only notebooks work without Git.</div>
+              </div>
+            </div>
+
+            <div className="grid gap-2 rounded-md border border-border bg-muted/20 px-3 py-2" data-testid="create-vault-plan">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <GitBranch className="size-4 text-muted-foreground" />
-                Initialize Git history
+                <ShieldCheck className="size-4 text-muted-foreground" />
+                Creation plan
               </div>
-              <div className="text-xs text-muted-foreground">Off by default. Local-only vaults work without Git.</div>
-            </div>
-          </div>
-
-          <div className="grid gap-2 rounded-md border border-border bg-muted/20 px-3 py-2" data-testid="create-vault-plan">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              <ShieldCheck className="size-4 text-muted-foreground" />
-              Creation plan
-            </div>
-            <div className="grid gap-1 text-xs text-muted-foreground">
-              <div>
-                <span className="font-medium text-foreground">Template:</span> {creationPlan.templateLabel}
-              </div>
-              <div>
-                <span className="font-medium text-foreground">Storage:</span> {creationPlan.storageDetail}
-              </div>
-              <div>
-                <span className="font-medium text-foreground">History:</span> {creationPlan.syncDetail}
-              </div>
-              <div>
-                <span className="font-medium text-foreground">Privacy:</span> {creationPlan.privacyDetail}
-              </div>
-              <div className="truncate">
-                <span className="font-medium text-foreground">Path:</span> {creationPlan.targetPath}
+              <div className="grid gap-1 text-xs text-muted-foreground">
+                <div>
+                  <span className="font-medium text-foreground">Template:</span> {creationPlan.templateLabel}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Experience:</span> {creationPlan.experienceLabel}. {creationPlan.experienceDetail}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Storage:</span> {creationPlan.storageDetail}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">History:</span> {creationPlan.syncDetail}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Privacy:</span> {creationPlan.privacyDetail}
+                </div>
+                <div className="truncate">
+                  <span className="font-medium text-foreground">Path:</span> {creationPlan.targetPath}
+                </div>
               </div>
             </div>
           </div>
 
-          {error && (
-            <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
-              {error}
-            </div>
-          )}
+          <div
+            className="sticky bottom-0 z-10 shrink-0 border-t border-border bg-background/95 px-6 py-4"
+            data-testid="create-vault-action-footer"
+          >
+            {error && (
+              <div className="mb-3 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+                {error}
+              </div>
+            )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={submitState === 'creating'}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!canSubmit} data-testid="create-vault-submit">
-              <Sparkles className="size-4" />
-              {submitState === 'creating' ? 'Creating...' : 'Create Vault'}
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel} disabled={submitState === 'creating'}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!canSubmit} data-testid="create-vault-submit">
+                <FileText className="size-4" />
+                {submitState === 'creating' ? 'Creating...' : 'Create Notebook'}
+              </Button>
+            </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

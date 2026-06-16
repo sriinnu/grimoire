@@ -60,7 +60,7 @@ describe('VaultDashboard privacy boundaries', () => {
       />,
     )
 
-    const recentPanel = screen.getByText('Recent Notes').closest('.vault-dashboard__panel') as HTMLElement
+    const recentPanel = screen.getByText('Recent Pages').closest('.vault-dashboard__panel') as HTMLElement
     expect(recentPanel).toHaveTextContent('Public Project')
     expect(recentPanel).not.toHaveTextContent('Secret River Dream')
     expect(recentPanel).not.toHaveTextContent('Private Plan')
@@ -85,7 +85,7 @@ describe('VaultDashboard privacy boundaries', () => {
       />,
     )
 
-    const recentPanel = screen.getByText('Recent Notes').closest('.vault-dashboard__panel') as HTMLElement
+    const recentPanel = screen.getByText('Recent Pages').closest('.vault-dashboard__panel') as HTMLElement
     expect(recentPanel).toHaveTextContent('2 protected recent notes held in private lanes.')
     expect(recentPanel).not.toHaveTextContent('Create the first note.')
     expect(recentPanel).not.toHaveTextContent('Secret River Dream')

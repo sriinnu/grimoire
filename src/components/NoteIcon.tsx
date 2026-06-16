@@ -11,7 +11,7 @@ interface NoteIconProps {
 export function NoteIcon({ icon, editable = true }: NoteIconProps) {
   const hasIcon = resolveNoteIcon(icon).kind !== 'none'
 
-  // Listen for command palette "Set Note Icon" event
+  // Listen for command palette "Set Page Icon" event.
   useEffect(() => {
     if (!editable) return
     const handler = () => focusNoteIconPropertyEditor()

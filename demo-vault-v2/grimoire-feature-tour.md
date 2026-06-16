@@ -47,7 +47,7 @@ This is the launch-day checklist for the demo vault. Each row points to an edita
 | Local agents | Track Claude Code, Codex, and Chitragupta lanes with boundaries. | [[grimoire-local-agent-map]] |
 | Privacy and memory | Show what can travel and what stays local. | [[grimoire-privacy-and-memory]] |
 | Portability and sync | Explain Git, export/import, capsules, and object-storage proofs. | [[grimoire-portability-and-sync]] |
-| Settings and themes | Show typography, themes, providers, API keys, and local preferences. | [[grimoire-settings-and-themes]] |
+| Experience profiles and settings | Show typography, experience profiles, color mode, providers, API keys, and local preferences. | [[grimoire-settings-and-themes]] |
 
 ## Launch rule
 

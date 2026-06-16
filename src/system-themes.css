@@ -14,79 +14,86 @@
 @import './theme-ai-brief.css';
 @import './theme-memory-ledger.css';
 @import './native-shell-material.css';
+@import './theme-native-overhaul.css';
+@import './theme-native-media.css';
 @import './theme-accessibility.css';
 
 [data-theme-preset-preview="constellation"] {
   --surface-editor: #07111a;
-  --foreground: #e8fbff;
-  --muted-foreground: #91a7b7;
-  --border: #203141;
+  --foreground: #e8f0ff;
+  --muted-foreground: #a2b3c6;
+  --border: #26364a;
+  --primary: #78a6ff;
 }
 
-[data-theme-preset-preview="daylight-atelier"] {
-  --surface-editor: #fffefb;
-  --foreground: #233038;
-  --muted-foreground: #5c6d73;
-  --border: #c8dce1;
-  --primary: #377484;
+[data-theme-preset-preview="daylight-notebook"] {
+  --surface-editor: #fffdf8;
+  --foreground: #26313a;
+  --muted-foreground: #606f7c;
+  --border: #d7dee7;
+  --primary: #2f668e;
 }
 
-[data-theme-preset-preview="daylight-atelier"][data-theme-preview="dark"] {
-  --surface-editor: #0f1c22;
-  --foreground: #e6f3f2;
-  --muted-foreground: #9ebabe;
-  --border: #2d4147;
-  --primary: #8ddbe4;
+[data-theme-preset-preview="daylight-notebook"][data-theme-preview="dark"] {
+  --surface-editor: #13171c;
+  --foreground: #e8eaed;
+  --muted-foreground: #adb4bd;
+  --border: #30363d;
+  --primary: #aab6c5;
 }
 
-[data-theme-preset-preview="prabhat-studio"] {
-  --surface-editor: #fbfffd;
-  --foreground: #243238;
-  --muted-foreground: #62747a;
-  --border: #c9dad5;
-  --primary: #286f84;
+[data-theme-preset-preview="morning-notebook"] {
+  --surface-editor: #fdfdff;
+  --foreground: #24313a;
+  --muted-foreground: #607080;
+  --border: #d9dee7;
+  --primary: #2f668e;
 }
 
-[data-theme-preset-preview="prabhat-studio"][data-theme-preview="dark"] {
-  --surface-editor: #111a1d;
-  --foreground: #e7f3f0;
-  --muted-foreground: #abc3c0;
-  --border: #2d4243;
-  --primary: #88d8d2;
+[data-theme-preset-preview="morning-notebook"][data-theme-preview="dark"] {
+  --surface-editor: #13171c;
+  --foreground: #e8eaed;
+  --muted-foreground: #adb4bd;
+  --border: #30363d;
+  --primary: #aab6c5;
 }
 
 [data-theme-preset-preview="living-archive"] {
-  --surface-editor: #fff7e8;
-  --foreground: #2d3428;
-  --muted-foreground: #6c6e58;
-  --border: #dbc99d;
+  --surface-editor: #fbfcfd;
+  --foreground: #27313a;
+  --muted-foreground: #5f6e7a;
+  --border: #d7dde5;
+  --primary: #557a95;
 }
 
 [data-theme-preset-preview="living-archive"][data-theme-preview="dark"] {
-  --surface-editor: #182017;
-  --foreground: #efe6cc;
-  --muted-foreground: #c5b88f;
-  --border: #3a472e;
+  --surface-editor: #191d22;
+  --foreground: #e1e7ec;
+  --muted-foreground: #a8b4bd;
+  --border: #3a3f46;
+  --primary: #9abbd0;
 }
 
 [data-theme-preset-preview="nocturne"] {
-  --surface-editor: #141513;
-  --foreground: #eef3ea;
-  --muted-foreground: #b6c2b7;
-  --border: #2b3129;
+  --surface-editor: #121416;
+  --foreground: #e9ecef;
+  --muted-foreground: #aeb4bc;
+  --border: #30343a;
+  --primary: #86aee8;
 }
 
 [data-theme-preset-preview="nocturne"][data-theme-preview="light"] {
-  --surface-editor: #ffffff;
-  --foreground: #202723;
-  --muted-foreground: #63716a;
-  --border: #d9e5dd;
+  --surface-editor: #fdfdff;
+  --foreground: #24313a;
+  --muted-foreground: #607080;
+  --border: #d9dee7;
+  --primary: #2f668e;
 }
 
-[data-theme-preset-preview="retro-terminal"] {
-  --surface-editor: #070907;
-  --foreground: #dcf8cf;
-  --muted-foreground: #8daa80;
-  --border: #26341f;
-  --primary: #9bff7a;
+[data-theme-preset-preview="code-notebook"] {
+  --surface-editor: #0a0c11;
+  --foreground: #e7ebf2;
+  --muted-foreground: #aab2bf;
+  --border: #303641;
+  --primary: #8fa8ff;
 }

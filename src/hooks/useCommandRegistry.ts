@@ -156,16 +156,18 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     [onCreateNote, onCreateNoteOfType, selectedSectionType],
   )
   const createNoteLabel = useMemo(
-    () => selection ? resolveCreateNoteActionLabel(selection, locale) : 'New Note',
+    () => selection?.kind === 'sectionGroup' ? resolveCreateNoteActionLabel(selection, locale) : 'New Page',
     [locale, selection],
   )
   const createNoteKeywords = useMemo(
-    () => selectedSectionType ? ['new', 'create', 'add', selectedSectionType.toLowerCase()] : undefined,
+    () => selectedSectionType
+      ? ['new', 'create', 'add', 'page', 'note', 'new page', 'new note', selectedSectionType.toLowerCase()]
+      : undefined,
     [selectedSectionType],
   )
   const noteListColumnsLabel = config.noteListColumnsLabel ?? (
     selection?.kind === 'filter' && selection.filter === 'all'
-      ? 'Customize All Notes columns'
+      ? 'Customize Pages columns'
       : 'Customize Inbox columns'
   )
 

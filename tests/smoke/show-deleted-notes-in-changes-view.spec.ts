@@ -3,7 +3,7 @@ import { openCommandPalette, executeCommand } from './helpers'
 
 async function navigateToChanges(page: import('@playwright/test').Page) {
   await openCommandPalette(page)
-  await executeCommand(page, 'Go to Changes')
+  await executeCommand(page, 'Review Edits')
   await page.waitForTimeout(500)
 }
 

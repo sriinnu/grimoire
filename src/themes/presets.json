@@ -3,54 +3,57 @@
     "schemaVersion": 1,
     "id": "constellation",
     "family": "research",
-    "label": "Nocturne Constellation",
-    "description": "Agent graph, luminous memory, calm local-first command.",
-    "swatches": ["#F6FAFB", "#071119", "#54E1D2"],
+    "label": "Notebook Map",
+    "description": "Dark map for seeing how your notes connect. Private notes stay withheld by default.",
+    "swatches": ["#F6FAFB","#071119","#78A6FF"],
+    "preferredMode": "dark",
     "modes": {
-      "dark": { "tokens": { "accent.hover": "#8be1ff", "accent.primary": "#65d6ff", "accent.soft": "rgba(101, 214, 255, 0.13)", "border.default": "#203141", "border.strong": "#33536a", "border.subtle": "#182633", "sidebar.accent": "rgba(84, 225, 210, 0.13)", "sidebar.accentForeground": "#f0fdff", "sidebar.border": "rgba(129, 221, 236, 0.18)", "sidebar.foreground": "#e8fbff", "sidebar.primary": "#54e1d2", "sidebar.primaryForeground": "#061217", "state.hover": "#142433", "state.hoverSubtle": "#0f1c29", "state.selected": "#113b46", "surface.app": "#060b12", "surface.card": "#0d1a27", "surface.editor": "#07111a", "surface.input": "#0a1520", "surface.panel": "#09131d", "surface.popover": "#101f2d", "surface.sidebar": "#040a11", "syntax.heading": "#8be1ff", "syntax.link": "#5eead4", "text.heading": "#f4fbff", "text.primary": "#dcecf7", "text.secondary": "#91a7b7" } }
+      "dark": { "tokens": { "accent.hover": "#9fc0ff", "accent.primary": "#78a6ff", "accent.soft": "rgba(120, 166, 255, 0.14)", "border.default": "#26364a", "border.strong": "#3c5672", "border.subtle": "#182633", "sidebar.accent": "rgba(120, 166, 255, 0.14)", "sidebar.accentForeground": "#f0f6ff", "sidebar.border": "rgba(156, 184, 223, 0.2)", "sidebar.foreground": "#e8f0ff", "sidebar.primary": "#9cb8df", "sidebar.primaryForeground": "#061217", "state.hover": "#142433", "state.hoverSubtle": "#0f1c29", "state.selected": "#172b45", "surface.app": "#060b12", "surface.card": "#0d1a27", "surface.editor": "#07111a", "surface.input": "#0a1520", "surface.panel": "#09131d", "surface.popover": "#101f2d", "surface.sidebar": "#040a11", "syntax.heading": "#b6ceff", "syntax.link": "#9fc0ff", "text.heading": "#f6f9ff", "text.primary": "#e1ebf8", "text.secondary": "#a2b3c6" } }
     },
     "editor": { "maxWidth": 820, "lineHeight": 1.58, "headingStyle": "graph", "codeBlockStyle": "notebook" },
     "typography": { "ui": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "label": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
-    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.24 },
-    "metadataStrip": { "style": "badges", "visibleFields": ["type", "status", "owner", "modified", "locality"] },
+    "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.24 },
+    "metadataStrip": { "style": "badges", "visibleFields": ["type","status","owner","modified","locality"] },
     "density": { "scale": "comfortable" },
-    "motion": { "profile": "expressive" },
+    "motion": { "profile": "standard" },
     "visuals": { "graphStyle": "constellation", "canvasStyle": "blueprint" }
   },
   {
     "schemaVersion": 1,
-    "id": "daylight-atelier",
+    "id": "daylight-notebook",
     "family": "research",
-    "label": "Daylight Atelier",
-    "description": "Bright studio panels, ink-clean writing, coral and mint signal.",
-    "swatches": ["#FFFEFB", "#263F49", "#FF9A7A"],
+    "label": "Daylight Notebook",
+    "description": "Bright notebook panels, clean ink, graphite rails, and blue-ink actions.",
+    "swatches": ["#FFFDF8","#2F3742","#2F668E"],
+    "preferredMode": "light",
     "modes": {
-      "light": { "tokens": { "accent.hover": "#2d6270", "accent.primary": "#377484", "accent.soft": "rgba(55, 116, 132, 0.13)", "border.default": "#c8dce1", "border.strong": "#93b7c0", "border.subtle": "#dfebee", "sidebar.accent": "rgba(255, 154, 122, 0.14)", "sidebar.accentForeground": "#fff4ed", "sidebar.border": "rgba(218, 236, 238, 0.22)", "sidebar.foreground": "#f2fbfa", "sidebar.primary": "#ff9a7a", "sidebar.primaryForeground": "#23313a", "state.hover": "#e3f0ef", "state.hoverSubtle": "#f1f7f6", "state.selected": "#d7ece9", "surface.app": "#edf5f4", "surface.card": "#ffffff", "surface.editor": "#fffefb", "surface.input": "#ffffff", "surface.panel": "#f8fbfa", "surface.popover": "#ffffff", "surface.sidebar": "#263f49", "syntax.heading": "#286c7a", "syntax.link": "#377484", "text.heading": "#17292f", "text.primary": "#233038", "text.secondary": "#5c6d73" } },
-      "dark": { "tokens": { "accent.hover": "#b0eff3", "accent.primary": "#8ddbe4", "accent.soft": "rgba(141, 219, 228, 0.14)", "border.default": "#2d4147", "border.strong": "#466873", "border.subtle": "#22343a", "sidebar.accent": "rgba(255, 154, 122, 0.14)", "sidebar.accentForeground": "#fff0ea", "sidebar.border": "rgba(141, 219, 228, 0.17)", "sidebar.foreground": "#eaf9f8", "sidebar.primary": "#ff9a7a", "sidebar.primaryForeground": "#111c22", "state.hover": "#162a31", "state.hoverSubtle": "#102229", "state.selected": "#1d4952", "surface.app": "#0c171c", "surface.card": "#15272e", "surface.editor": "#0f1c22", "surface.input": "#12242b", "surface.panel": "#112127", "surface.popover": "#172b33", "surface.sidebar": "#071217", "syntax.heading": "#b0eff3", "syntax.link": "#8ddbe4", "text.heading": "#f4fbfb", "text.primary": "#e6f3f2", "text.secondary": "#9ebabe" } }
+      "light": { "tokens": { "accent.hover": "#24597f", "accent.primary": "#2f668e", "accent.soft": "rgba(47, 102, 142, 0.12)", "border.default": "#d7dee7", "border.strong": "#a8b5c3", "border.subtle": "#e7ebf1", "sidebar.accent": "rgba(47, 102, 142, 0.13)", "sidebar.accentForeground": "#f4f6f8", "sidebar.border": "rgba(235, 239, 244, 0.18)", "sidebar.foreground": "#f4f6f8", "sidebar.primary": "#2f668e", "sidebar.primaryForeground": "#fffdfb", "state.hover": "#eef2f6", "state.hoverSubtle": "#f8f9fb", "state.selected": "#e5edf6", "surface.app": "#f6f7f9", "surface.card": "#ffffff", "surface.editor": "#fffdf8", "surface.input": "#ffffff", "surface.panel": "#fbfcfe", "surface.popover": "#ffffff", "surface.sidebar": "#2f3742", "syntax.heading": "#2b5d86", "syntax.link": "#2f668e", "text.heading": "#17252f", "text.primary": "#26313a", "text.secondary": "#606f7c" } },
+      "dark": { "tokens": { "accent.hover": "#bfd2e4", "accent.primary": "#8ea8c0", "accent.soft": "rgba(142, 168, 192, 0.12)", "border.default": "#363c44", "border.strong": "#505862", "border.subtle": "#292f36", "sidebar.accent": "rgba(142, 168, 192, 0.1)", "sidebar.accentForeground": "#f4f7fa", "sidebar.border": "rgba(190, 199, 209, 0.14)", "sidebar.foreground": "#edf1f5", "sidebar.primary": "#9db4c9", "sidebar.primaryForeground": "#0e1114", "state.hover": "#22272d", "state.hoverSubtle": "#1a1f24", "state.selected": "#2b333d", "surface.app": "#121417", "surface.card": "#1c2025", "surface.editor": "#15191d", "surface.input": "#181c21", "surface.panel": "#171b20", "surface.popover": "#20252b", "surface.sidebar": "#111417", "syntax.heading": "#d9e4ef", "syntax.link": "#b8cade", "text.heading": "#f8fafc", "text.primary": "#e9edf1", "text.secondary": "#adb5be" } }
     },
     "editor": { "maxWidth": 820, "lineHeight": 1.58, "headingStyle": "system", "codeBlockStyle": "plain" },
     "typography": { "ui": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "label": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
-    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.16 },
-    "metadataStrip": { "style": "badges", "visibleFields": ["type", "status", "modified", "locality"] },
+    "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.16 },
+    "metadataStrip": { "style": "badges", "visibleFields": ["type","status","modified","locality"] },
     "density": { "scale": "comfortable" },
     "motion": { "profile": "standard" },
     "visuals": { "graphStyle": "ledger", "canvasStyle": "paper" }
   },
   {
     "schemaVersion": 1,
-    "id": "prabhat-studio",
+    "id": "morning-notebook",
     "family": "research",
-    "label": "Prabhat Studio",
-    "description": "A bright dawn workspace: pearl panels, calm ink, saffron and lotus signal.",
-    "swatches": ["#FBFFFD", "#EAF3F0", "#C25E4A"],
+    "label": "Morning Notebook",
+    "description": "A bright personal notebook: white paper, graphite ink, blue mark, and restrained blue-ink actions.",
+    "swatches": ["#FCFDFF","#EEF2F6","#2F668E"],
+    "preferredMode": "light",
     "modes": {
-      "light": { "tokens": { "accent.hover": "#1f5f72", "accent.primary": "#286f84", "accent.soft": "rgba(40, 111, 132, 0.12)", "border.default": "#c9dad5", "border.strong": "#92b0a8", "border.subtle": "#e0ebe7", "sidebar.accent": "rgba(183, 85, 66, 0.13)", "sidebar.accentForeground": "#21323a", "sidebar.border": "#d3e2de", "sidebar.foreground": "#243238", "sidebar.primary": "#b75542", "sidebar.primaryForeground": "#ffffff", "state.hover": "#e7f1ee", "state.hoverSubtle": "#f1f7f5", "state.selected": "#dbecea", "surface.app": "#f4faf7", "surface.card": "#ffffff", "surface.editor": "#fbfffd", "surface.input": "#ffffff", "surface.panel": "#f8fcfa", "surface.popover": "#ffffff", "surface.sidebar": "#eaf3f0", "syntax.heading": "#2b6d5e", "syntax.link": "#286f84", "text.heading": "#172529", "text.primary": "#243238", "text.secondary": "#62747a" } },
-      "dark": { "tokens": { "accent.hover": "#aaf2eb", "accent.primary": "#88d8d2", "accent.soft": "rgba(136, 216, 210, 0.14)", "border.default": "#2d4243", "border.strong": "#4e7370", "border.subtle": "#203234", "sidebar.accent": "rgba(242, 160, 111, 0.13)", "sidebar.accentForeground": "#fff0e8", "sidebar.border": "rgba(136, 216, 210, 0.16)", "sidebar.foreground": "#eaf4f1", "sidebar.primary": "#f2a06f", "sidebar.primaryForeground": "#141918", "state.hover": "#1a2d2f", "state.hoverSubtle": "#132527", "state.selected": "#254c4e", "surface.app": "#101718", "surface.card": "#18272a", "surface.editor": "#111a1d", "surface.input": "#142326", "surface.panel": "#142022", "surface.popover": "#1b2c2f", "surface.sidebar": "#0d1517", "syntax.heading": "#aaf2eb", "syntax.link": "#88d8d2", "text.heading": "#f5fbf8", "text.primary": "#e7f3f0", "text.secondary": "#abc3c0" } }
+      "light": { "tokens": { "accent.hover": "#24597f", "accent.primary": "#2f668e", "accent.soft": "rgba(47, 102, 142, 0.12)", "border.default": "#d9dee7", "border.strong": "#aeb9c8", "border.subtle": "#e9edf3", "sidebar.accent": "rgba(47, 102, 142, 0.13)", "sidebar.accentForeground": "#24313a", "sidebar.border": "#dce2ea", "sidebar.foreground": "#24313a", "sidebar.primary": "#2f668e", "sidebar.primaryForeground": "#ffffff", "state.hover": "#f1f4f8", "state.hoverSubtle": "#f8f9fb", "state.selected": "#e6eef7", "surface.app": "#f8f9fb", "surface.card": "#ffffff", "surface.editor": "#fdfdff", "surface.input": "#ffffff", "surface.panel": "#fcfdff", "surface.popover": "#ffffff", "surface.sidebar": "#f1f3f6", "syntax.heading": "#2b5d86", "syntax.link": "#2f668e", "text.heading": "#17252f", "text.primary": "#24313a", "text.secondary": "#607080" } },
+      "dark": { "tokens": { "accent.hover": "#abc8eb", "accent.primary": "#7ea8d8", "accent.soft": "rgba(126, 168, 216, 0.14)", "border.default": "#323b46", "border.strong": "#4d5d70", "border.subtle": "#252d36", "sidebar.accent": "rgba(126, 168, 216, 0.11)", "sidebar.accentForeground": "#f3f8fd", "sidebar.border": "rgba(171, 200, 235, 0.14)", "sidebar.foreground": "#ebf1f8", "sidebar.primary": "#8eb7e5", "sidebar.primaryForeground": "#0d1116", "state.hover": "#1f2630", "state.hoverSubtle": "#171d24", "state.selected": "#243548", "surface.app": "#0f1318", "surface.card": "#1a2027", "surface.editor": "#131920", "surface.input": "#161d25", "surface.panel": "#151b22", "surface.popover": "#1f2630", "surface.sidebar": "#0c1014", "syntax.heading": "#d6e9ff", "syntax.link": "#a8ceff", "text.heading": "#f5f8fc", "text.primary": "#e6edf5", "text.secondary": "#a8b6c4" } }
     },
     "editor": { "maxWidth": 820, "lineHeight": 1.6, "headingStyle": "system", "codeBlockStyle": "notebook" },
     "typography": { "ui": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "label": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
-    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.18 },
-    "metadataStrip": { "style": "badges", "visibleFields": ["type", "status", "modified", "locality"] },
+    "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.18 },
+    "metadataStrip": { "style": "badges", "visibleFields": ["type","status","modified","locality"] },
     "density": { "scale": "comfortable" },
     "motion": { "profile": "standard" },
     "visuals": { "graphStyle": "ledger", "canvasStyle": "paper" }
@@ -59,17 +62,18 @@
     "schemaVersion": 1,
     "id": "living-archive",
     "family": "archive",
-    "label": "Living Archive",
-    "description": "Parchment, forest ink, journal and dream-library warmth.",
-    "swatches": ["#FAF4E6", "#203121", "#C8A454"],
+    "label": "Graphite Archive",
+    "description": "Cool paper, graphite rail, muted blue marks, and clean notebook actions.",
+    "swatches": ["#F7F8FA","#374151","#6E8FA8"],
+    "preferredMode": "light",
     "modes": {
-      "light": { "tokens": { "accent.hover": "#315e61", "accent.primary": "#3e7274", "accent.soft": "rgba(62, 114, 116, 0.12)", "border.default": "#dbc99d", "border.strong": "#bda15d", "border.subtle": "#eadcbb", "sidebar.accent": "rgba(245, 213, 146, 0.13)", "sidebar.accentForeground": "#fff5d8", "sidebar.border": "rgba(245, 213, 146, 0.23)", "sidebar.foreground": "#f9ecce", "sidebar.primary": "#c8a454", "sidebar.primaryForeground": "#1a2419", "state.hover": "#efe2c1", "state.hoverSubtle": "#f6ecd4", "state.selected": "#e7d9ad", "surface.app": "#f1ead6", "surface.card": "#fff9ed", "surface.editor": "#fff7e8", "surface.input": "#fffaf1", "surface.panel": "#fbf5e7", "surface.popover": "#fff9ed", "surface.sidebar": "#203121", "syntax.heading": "#497344", "syntax.link": "#3e7274", "text.heading": "#283b27", "text.primary": "#2d3428", "text.secondary": "#6c6e58" } },
-      "dark": { "tokens": { "accent.hover": "#aad3d1", "accent.primary": "#8cbfc0", "accent.soft": "rgba(140, 191, 192, 0.13)", "border.default": "#3a472e", "border.strong": "#6b7941", "border.subtle": "#2f3b27", "sidebar.accent": "rgba(221, 185, 92, 0.13)", "sidebar.accentForeground": "#fff3d0", "sidebar.border": "rgba(221, 185, 92, 0.2)", "sidebar.foreground": "#f9ecce", "sidebar.primary": "#ddb95c", "sidebar.primaryForeground": "#152015", "state.hover": "#293423", "state.hoverSubtle": "#202a1e", "state.selected": "#3b4227", "surface.app": "#171d17", "surface.card": "#263024", "surface.editor": "#182017", "surface.input": "#1a2319", "surface.panel": "#1e271d", "surface.popover": "#283324", "surface.sidebar": "#111a12", "syntax.heading": "#ddb95c", "syntax.link": "#8cbfc0", "text.heading": "#f6d889", "text.primary": "#efe6cc", "text.secondary": "#c5b88f" } }
+      "light": { "tokens": { "accent.hover": "#3f6380", "accent.primary": "#557a95", "accent.soft": "rgba(85, 122, 149, 0.12)", "border.default": "#d7dde5", "border.strong": "#9eacbb", "border.subtle": "#e8ecf2", "sidebar.accent": "rgba(142, 177, 201, 0.16)", "sidebar.accentForeground": "#f8fbfd", "sidebar.border": "rgba(215, 221, 229, 0.22)", "sidebar.foreground": "#f2f5f7", "sidebar.primary": "#8eb1c9", "sidebar.primaryForeground": "#101820", "state.hover": "#eef2f6", "state.hoverSubtle": "#f8f9fb", "state.selected": "#dfe8f0", "surface.app": "#f5f6f8", "surface.card": "#ffffff", "surface.editor": "#fbfcfd", "surface.input": "#ffffff", "surface.panel": "#f9fafb", "surface.popover": "#ffffff", "surface.sidebar": "#374151", "syntax.heading": "#3f6380", "syntax.link": "#4f738d", "text.heading": "#1e2933", "text.primary": "#26313a", "text.secondary": "#5f6e7a" } },
+      "dark": { "tokens": { "accent.hover": "#dfcfaa", "accent.primary": "#c6b488", "accent.soft": "rgba(198, 180, 136, 0.14)", "border.default": "#3a3834", "border.strong": "#5c5750", "border.subtle": "#292723", "sidebar.accent": "rgba(198, 180, 136, 0.12)", "sidebar.accentForeground": "#fbf6eb", "sidebar.border": "rgba(209, 194, 163, 0.15)", "sidebar.foreground": "#f0ebe2", "sidebar.primary": "#d3c090", "sidebar.primaryForeground": "#17130d", "state.hover": "#232427", "state.hoverSubtle": "#1a1b1d", "state.selected": "#2d3035", "surface.app": "#121315", "surface.card": "#1d1f23", "surface.editor": "#16181b", "surface.input": "#1a1c20", "surface.panel": "#181a1d", "surface.popover": "#21242a", "surface.sidebar": "#101114", "syntax.heading": "#eadcbc", "syntax.link": "#d6c08d", "text.heading": "#fbf6ed", "text.primary": "#ede7dc", "text.secondary": "#b7ae9f" } }
     },
     "editor": { "maxWidth": 820, "lineHeight": 1.62, "headingStyle": "manuscript", "codeBlockStyle": "notebook" },
     "typography": { "ui": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "label": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
-    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.2 },
-    "metadataStrip": { "style": "quiet", "visibleFields": ["type", "modified", "locality"] },
+    "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.2 },
+    "metadataStrip": { "style": "quiet", "visibleFields": ["type","modified","locality"] },
     "density": { "scale": "spacious" },
     "motion": { "profile": "calm" },
     "visuals": { "graphStyle": "ledger", "canvasStyle": "paper" }
@@ -78,37 +82,39 @@
     "schemaVersion": 1,
     "id": "nocturne",
     "family": "nocturne",
-    "label": "Nocturne",
-    "description": "Dark desk, quiet focus, luminous links.",
-    "swatches": ["#141513", "#20251F", "#8FD6B8"],
+    "label": "Night Notebook",
+    "description": "Dark native notebook: graphite shell, cool panels, blue-steel actions, and quiet notebook motion.",
+    "swatches": ["#0F141B","#1B2430","#6FA8FF"],
+    "preferredMode": "dark",
     "modes": {
-      "light": { "tokens": { "accent.hover": "#176d59", "accent.primary": "#21806a", "accent.soft": "rgba(33, 128, 106, 0.1)", "border.default": "#d9e5dd", "border.strong": "#c4d3ca", "border.subtle": "#e6eee9", "sidebar.accent": "#e2ece6", "sidebar.accentForeground": "#202723", "sidebar.border": "#d9e5dd", "sidebar.foreground": "#202723", "sidebar.primary": "#21806a", "sidebar.primaryForeground": "#ffffff", "state.hover": "#e2ece6", "state.hoverSubtle": "#f0f5f2", "state.selected": "#ddf1e8", "surface.app": "#f7faf8", "surface.card": "#ffffff", "surface.editor": "#ffffff", "surface.input": "#ffffff", "surface.panel": "#ffffff", "surface.popover": "#ffffff", "surface.sidebar": "#eaf1ec", "syntax.heading": "#21806a", "syntax.link": "#21806a", "text.heading": "#111a15", "text.primary": "#202723", "text.secondary": "#63716a" } },
-      "dark": { "tokens": { "accent.hover": "#ace5cf", "accent.primary": "#8fd6b8", "accent.soft": "rgba(143, 214, 184, 0.14)", "border.default": "#2b3129", "border.strong": "#3d473a", "border.subtle": "#21261f", "sidebar.accent": "#22271f", "sidebar.accentForeground": "#eef3ea", "sidebar.border": "#2b3129", "sidebar.foreground": "#eef3ea", "sidebar.primary": "#8fd6b8", "sidebar.primaryForeground": "#141513", "state.hover": "#22271f", "state.hoverSubtle": "#1b2019", "state.selected": "#214739", "surface.app": "#141513", "surface.card": "#1b1d19", "surface.editor": "#141513", "surface.input": "#141513", "surface.panel": "#1b1d19", "surface.popover": "#242820", "surface.sidebar": "#0f100e", "syntax.heading": "#9fe0c7", "syntax.link": "#9fe0c7", "text.heading": "#fafcf7", "text.primary": "#eef3ea", "text.secondary": "#b6c2b7" } }
+      "light": { "tokens": { "accent.hover": "#24597f", "accent.primary": "#2f668e", "accent.soft": "rgba(47, 102, 142, 0.12)", "border.default": "#d9dee7", "border.strong": "#aeb9c8", "border.subtle": "#e9edf3", "sidebar.accent": "rgba(47, 102, 142, 0.13)", "sidebar.accentForeground": "#24313a", "sidebar.border": "#dce2ea", "sidebar.foreground": "#24313a", "sidebar.primary": "#2f668e", "sidebar.primaryForeground": "#fdfdff", "state.hover": "#f1f4f8", "state.hoverSubtle": "#f8f9fb", "state.selected": "#e6eef7", "surface.app": "#f8f9fb", "surface.card": "#ffffff", "surface.editor": "#fdfdff", "surface.input": "#ffffff", "surface.panel": "#fcfdff", "surface.popover": "#ffffff", "surface.sidebar": "#eef2f6", "syntax.heading": "#2b5d86", "syntax.link": "#2f668e", "text.heading": "#17252f", "text.primary": "#24313a", "text.secondary": "#607080" } },
+      "dark": { "tokens": { "accent.hover": "#a9c6f4", "accent.primary": "#86aee8", "accent.soft": "rgba(134, 174, 232, 0.15)", "border.default": "#30343a", "border.strong": "#565d67", "border.subtle": "#24282d", "sidebar.accent": "rgba(134, 174, 232, 0.14)", "sidebar.accentForeground": "#f4f7fb", "sidebar.border": "rgba(170, 186, 211, 0.17)", "sidebar.foreground": "#eceff3", "sidebar.primary": "#9bb8e2", "sidebar.primaryForeground": "#0b0d10", "state.hover": "#20242a", "state.hoverSubtle": "#171a1e", "state.selected": "#29313c", "surface.app": "#101113", "surface.card": "#1b1d20", "surface.editor": "#121416", "surface.input": "#181b1f", "surface.panel": "#151719", "surface.popover": "#202328", "surface.sidebar": "#0d0e10", "syntax.heading": "#d6e4fb", "syntax.link": "#a9c6f4", "text.heading": "#f7f8fa", "text.primary": "#e9ecef", "text.secondary": "#aeb4bc" } }
     },
     "editor": { "maxWidth": 800, "lineHeight": 1.6, "headingStyle": "system", "codeBlockStyle": "plain" },
     "typography": { "ui": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "label": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
-    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.16 },
-    "metadataStrip": { "style": "quiet", "visibleFields": ["type", "modified", "locality"] },
+    "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.16 },
+    "metadataStrip": { "style": "quiet", "visibleFields": ["type","modified","locality"] },
     "density": { "scale": "comfortable" },
     "motion": { "profile": "calm" },
-    "visuals": { "graphStyle": "constellation", "canvasStyle": "blueprint" }
+    "visuals": { "graphStyle": "ledger", "canvasStyle": "paper" }
   },
   {
     "schemaVersion": 1,
-    "id": "retro-terminal",
+    "id": "code-notebook",
     "family": "research",
-    "label": "Retro Terminal",
-    "description": "Private CLI cockpit: phosphor text, amber actions, local machine soul.",
-    "swatches": ["#070806", "#12170E", "#9BFF7A"],
+    "label": "Code Notebook",
+    "description": "Graphite terminal notebook for code notes, logs, and terminal snippets.",
+    "swatches": ["#080A0F","#171B22","#E0A449"],
+    "preferredMode": "dark",
     "modes": {
-      "dark": { "tokens": { "accent.hover": "#c1ff9d", "accent.primary": "#9bff7a", "accent.soft": "rgba(155, 255, 122, 0.14)", "border.default": "#26341f", "border.strong": "#3f5b32", "border.subtle": "#1b2717", "sidebar.accent": "rgba(155, 255, 122, 0.13)", "sidebar.accentForeground": "#f5ffe7", "sidebar.border": "rgba(155, 255, 122, 0.18)", "sidebar.foreground": "#eaffdf", "sidebar.primary": "#9bff7a", "sidebar.primaryForeground": "#071006", "state.hover": "#152012", "state.hoverSubtle": "#0f170d", "state.selected": "#243619", "surface.app": "#060806", "surface.card": "#10170d", "surface.editor": "#070907", "surface.input": "#090d08", "surface.panel": "#0c110b", "surface.popover": "#131c10", "surface.sidebar": "#080b07", "syntax.heading": "#c1ff9d", "syntax.link": "#62f2b6", "text.heading": "#f2ffe8", "text.primary": "#dcf8cf", "text.secondary": "#8daa80" } }
+      "dark": { "tokens": { "accent.hover": "#f0bc6a", "accent.primary": "#e0a449", "accent.soft": "rgba(224, 164, 73, 0.15)", "border.default": "#3b352a", "border.strong": "#675943", "border.subtle": "#262118", "sidebar.accent": "rgba(224, 164, 73, 0.13)", "sidebar.accentForeground": "#fff6e6", "sidebar.border": "rgba(224, 164, 73, 0.16)", "sidebar.foreground": "#f1e7d7", "sidebar.primary": "#eab462", "sidebar.primaryForeground": "#14100a", "state.hover": "#1b1b20", "state.hoverSubtle": "#131318", "state.selected": "#26232a", "surface.app": "#090a0f", "surface.card": "#15171d", "surface.editor": "#0b0c12", "surface.input": "#0f1116", "surface.panel": "#101218", "surface.popover": "#1a1c23", "surface.sidebar": "#090a0e", "syntax.heading": "#ffd8a1", "syntax.link": "#f0bc6a", "text.heading": "#fff8ed", "text.primary": "#f0e7d9", "text.secondary": "#bba994" } }
     },
     "editor": { "maxWidth": 820, "lineHeight": 1.55, "headingStyle": "terminal", "codeBlockStyle": "terminal" },
-    "typography": { "ui": "'SF Pro Rounded', 'SF Pro Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif", "editor": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "label": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace" },
-    "sidebar": { "artwork": "grimoire-sigil", "artworkOpacity": 0.14 },
-    "metadataStrip": { "style": "terminal", "visibleFields": ["type", "status", "modified", "locality"] },
+    "typography": { "ui": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "label": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
+    "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.14 },
+    "metadataStrip": { "style": "terminal", "visibleFields": ["type","status","modified","locality"] },
     "density": { "scale": "compact" },
-    "motion": { "profile": "expressive" },
+    "motion": { "profile": "calm" },
     "visuals": { "graphStyle": "terminal", "canvasStyle": "terminal" }
   }
 ]

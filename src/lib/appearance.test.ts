@@ -45,10 +45,14 @@ function makeStorage(initial: Record<string, string> = {}): Storage {
 describe('appearance', () => {
   it('normalizes only supported appearance values', () => {
     expect(normalizeThemePreset('constellation')).toBe('constellation')
-    expect(normalizeThemePreset('daylight-atelier')).toBe('daylight-atelier')
+    expect(normalizeThemePreset('daylight-notebook')).toBe('daylight-notebook')
+    expect(normalizeThemePreset('morning-notebook')).toBe('morning-notebook')
     expect(normalizeThemePreset('living-archive')).toBe('living-archive')
     expect(normalizeThemePreset('nocturne')).toBe('nocturne')
-    expect(normalizeThemePreset('retro-terminal')).toBe('retro-terminal')
+    expect(normalizeThemePreset('code-notebook')).toBe('code-notebook')
+    expect(normalizeThemePreset('daylight-atelier')).toBe('daylight-notebook')
+    expect(normalizeThemePreset('prabhat-studio')).toBe('morning-notebook')
+    expect(normalizeThemePreset('retro-terminal')).toBe('code-notebook')
     expect(normalizeThemePreset('research-cockpit')).toBeNull()
     expect(normalizeThemePreset('manuscript')).toBeNull()
     expect(normalizeThemePreset('classic')).toBeNull()
@@ -89,16 +93,16 @@ describe('appearance', () => {
   it('reads and writes mirrored startup appearance', () => {
     const storage = makeStorage()
 
-    writeStoredThemePreset(storage, 'retro-terminal')
+    writeStoredThemePreset(storage, 'code-notebook')
     writeStoredEditorFont(storage, 'mono')
     writeStoredEditorLineHeight(storage, 'compact')
     writeStoredNativeShellMaterial(storage, 'glass-preview')
 
-    expect(readStoredThemePreset(storage)).toBe('retro-terminal')
+    expect(readStoredThemePreset(storage)).toBe('code-notebook')
     expect(readStoredEditorFont(storage)).toBe('mono')
     expect(readStoredEditorLineHeight(storage)).toBe('compact')
     expect(readStoredNativeShellMaterial(storage)).toBe('glass-preview')
-    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'retro-terminal')
+    expect(storage.setItem).toHaveBeenCalledWith(THEME_PRESET_STORAGE_KEY, 'code-notebook')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_FONT_STORAGE_KEY, 'mono')
     expect(storage.setItem).toHaveBeenCalledWith(EDITOR_LINE_HEIGHT_STORAGE_KEY, 'compact')
     expect(storage.setItem).toHaveBeenCalledWith(NATIVE_SHELL_MATERIAL_STORAGE_KEY, 'glass-preview')
@@ -123,19 +127,20 @@ describe('appearance', () => {
     expect(document.documentElement).toHaveAttribute('data-theme-heading', 'graph')
     expect(document.documentElement).toHaveAttribute('data-theme-metadata-fields', 'type status owner modified locality')
     expect(document.documentElement).toHaveAttribute('data-theme-metadata-strip', 'badges')
-    expect(document.documentElement).toHaveAttribute('data-theme-motion', 'expressive')
-    expect(document.documentElement).toHaveAttribute('data-sidebar-artwork', 'grimoire-sigil')
+    expect(document.documentElement).toHaveAttribute('data-theme-motion', 'standard')
+    expect(document.documentElement).toHaveAttribute('data-sidebar-artwork', 'notebook-mark')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
     expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#07111a')
     expect(document.documentElement.style.getPropertyValue('--editor-line-height')).toBe('1.34')
     expect(document.documentElement.style.getPropertyValue('--background')).toBe('#07111a')
+    expect(document.documentElement.style.getPropertyValue('--primary-foreground')).toBe('#061217')
     expect(document.documentElement.style.getPropertyValue('--grimoire-code-block-radius')).toBe('8px')
     expect(document.documentElement.style.getPropertyValue('--grimoire-graph-bg')).toContain('radial-gradient')
     expect(document.documentElement.style.getPropertyValue('--grimoire-canvas-stage-bg')).toContain('var(--primary)')
     expect(document.documentElement.style.getPropertyValue('--sidebar-artwork-opacity')).toBe('0.24')
-    expect(document.documentElement.style.getPropertyValue('--motion-duration-panel')).toBe('340ms')
+    expect(document.documentElement.style.getPropertyValue('--motion-duration-panel')).toBe('260ms')
   })
 
   it('bootstraps stored appearance choices', () => {
@@ -156,6 +161,20 @@ describe('appearance', () => {
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
+  })
+
+  it('migrates legacy mirrored theme preset ids during startup', () => {
+    const storage = makeStorage({
+      [THEME_PRESET_STORAGE_KEY]: 'prabhat-studio',
+      [EDITOR_FONT_STORAGE_KEY]: 'readable',
+    })
+
+    expect(applyStoredAppearance(document, storage)).toMatchObject({
+      themePreset: 'morning-notebook',
+      editorFont: 'readable',
+    })
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
+    expect(document.documentElement).toHaveAttribute('data-theme-definition-id', 'morning-notebook')
   })
 
   it('bootstraps a local-only theme pack override over the saved preset', () => {

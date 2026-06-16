@@ -196,7 +196,7 @@ export function EditorNavigatorPopover({ content, mode, onModeChange }: EditorNa
       ) : (
         <>
           <div className="editor-navigator__summary">
-            {links.length > 0 ? `${links.length} Spelllinks` : 'No Spelllinks yet'}
+            {links.length > 0 ? `${links.length} note links` : 'No note links yet'}
           </div>
           <div className="editor-navigator__list">
             {links.map((link) => (

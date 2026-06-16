@@ -61,6 +61,38 @@ export function GraphInsightPanel({
 
   return (
     <div className="space-y-3">
+      <GraphAgentCommandCenter
+        agentGraphContext={agentGraphContext}
+        selectedLocalOnly={selectedLocalOnly}
+      >
+        <GraphAgentPackagePanel agentGraphContext={agentGraphContext} />
+
+        <GraphAgentRunway
+          agentGraphContext={agentGraphContext}
+          defaultAiAgent={defaultAiAgent}
+          defaultAiModel={defaultAiModel}
+          defaultAiProvider={defaultAiProvider}
+          aiAgentsStatus={aiAgentsStatus}
+          selectedLocalOnly={selectedLocalOnly}
+        />
+
+        <GraphAgentCouncilPanel
+          agentGraphContext={agentGraphContext}
+          aiAgentsStatus={aiAgentsStatus}
+          selectedLocalOnly={selectedLocalOnly}
+        />
+      </GraphAgentCommandCenter>
+
+      <SelectedNodePanel
+        agentGraphContext={agentGraphContext}
+        aiAgentsStatus={aiAgentsStatus}
+        defaultAiAgent={defaultAiAgent}
+        entry={selectedEntry}
+        node={selectedNode}
+        onAskCouncil={onAskCouncil}
+        onOpenNode={onOpenNode}
+      />
+
       <section className="rounded-md border border-border bg-background/80 p-3" data-testid="graph-insight-panel">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
           <Network className="size-3.5" />
@@ -86,38 +118,6 @@ export function GraphInsightPanel({
           </div>
         ) : null}
       </section>
-
-      <SelectedNodePanel
-        agentGraphContext={agentGraphContext}
-        aiAgentsStatus={aiAgentsStatus}
-        defaultAiAgent={defaultAiAgent}
-        entry={selectedEntry}
-        node={selectedNode}
-        onAskCouncil={onAskCouncil}
-        onOpenNode={onOpenNode}
-      />
-
-      <GraphAgentCommandCenter
-        agentGraphContext={agentGraphContext}
-        selectedLocalOnly={selectedLocalOnly}
-      >
-        <GraphAgentRunway
-          agentGraphContext={agentGraphContext}
-          defaultAiAgent={defaultAiAgent}
-          defaultAiModel={defaultAiModel}
-          defaultAiProvider={defaultAiProvider}
-          aiAgentsStatus={aiAgentsStatus}
-          selectedLocalOnly={selectedLocalOnly}
-        />
-
-        <GraphAgentCouncilPanel
-          agentGraphContext={agentGraphContext}
-          aiAgentsStatus={aiAgentsStatus}
-          selectedLocalOnly={selectedLocalOnly}
-        />
-
-        <GraphAgentPackagePanel agentGraphContext={agentGraphContext} />
-      </GraphAgentCommandCenter>
     </div>
   )
 }

@@ -31,6 +31,65 @@
   --ai-reference-pill-bg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 12%, var(--surface-card));
   --ai-reference-pill-border: color-mix(in srgb, var(--reference-type-color, var(--primary)) 24%, var(--border-default));
   --ai-reference-pill-fg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 72%, var(--text-primary));
+  --grimoire-context-menu-item-radius: calc(var(--grimoire-shell-radius) - 2px);
+  --grimoire-context-menu-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-popover) 98%, var(--surface-card)), var(--surface-popover));
+  --grimoire-context-menu-padding: 6px;
+  --grimoire-context-menu-radius: var(--grimoire-shell-radius);
+  --grimoire-context-menu-shadow: var(--grimoire-dialog-shadow);
+  --grimoire-editor-page-border: color-mix(in srgb, var(--border-default) 52%, transparent);
+  --grimoire-hover-transform: translateY(var(--motion-hover-lift-distance, 0));
+  --grimoire-note-card-shape: var(--grimoire-shell-radius);
+  --grimoire-right-brain-material: linear-gradient(180deg, color-mix(in srgb, var(--primary) 6%, transparent), transparent 16rem), var(--surface-panel);
+}
+
+[data-theme-preset="morning-notebook"] {
+  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 16rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-panel)), var(--surface-app));
+  --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 17rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 90%, var(--surface-panel)), var(--surface-app));
+  --grimoire-status-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 96%, var(--surface-panel)), var(--surface-sidebar));
+}
+
+[data-theme-density="compact"] {
+  --grimoire-context-menu-padding: 4px;
+  --grimoire-context-menu-radius: 6px;
+  --grimoire-note-card-shape: 6px;
+  --grimoire-shell-radius: 6px;
+}
+
+[data-theme-density="spacious"] {
+  --grimoire-context-menu-padding: 8px;
+  --grimoire-context-menu-radius: 10px;
+  --grimoire-note-card-shape: 10px;
+  --grimoire-shell-radius: 10px;
+}
+
+[data-theme-motion="calm"] {
+  --grimoire-card-shadow: none;
+  --grimoire-context-menu-shadow: 0 14px 34px color-mix(in srgb, var(--shadow-dialog) 62%, transparent);
+  --grimoire-hover-transform: translateY(0);
+  --grimoire-panel-shadow: none;
+}
+
+[data-theme-motion="expressive"] {
+  --grimoire-card-shadow: 0 16px 42px color-mix(in srgb, var(--primary) 10%, transparent);
+  --grimoire-context-menu-shadow: 0 22px 60px color-mix(in srgb, var(--primary) 14%, transparent);
+  --grimoire-panel-shadow: 0 22px 58px color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+[data-theme-graph="constellation"] {
+  --grimoire-right-brain-material: radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 18rem), var(--surface-panel);
+}
+
+[data-theme-graph="terminal"] {
+  --grimoire-right-brain-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 82%, black), var(--surface-panel));
+}
+
+[data-theme-canvas="blueprint"] {
+  --grimoire-editor-page-border: color-mix(in srgb, var(--primary) 26%, var(--border-default));
+}
+
+[data-theme-code-block="terminal"] {
+  --grimoire-editor-page-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 84%, black), var(--surface-editor));
+  --grimoire-editor-page-border: color-mix(in srgb, var(--primary) 30%, var(--border-default));
 }
 
 :is([data-theme-preset]) :is(.note-list-panel, .inspector-panel, .ai-panel) {
@@ -62,6 +121,26 @@
 
 :is([data-theme-preset]) .grimoire-dialog-content {
   padding: var(--grimoire-density-panel-padding, 16px);
+}
+
+:is([data-theme-preset]) .grimoire-context-menu-surface {
+  background: var(--grimoire-context-menu-material) !important;
+  border-color: var(--grimoire-hairline) !important;
+  border-radius: var(--grimoire-context-menu-radius) !important;
+  box-shadow: var(--grimoire-context-menu-shadow) !important;
+  color: var(--text-primary) !important;
+  padding: var(--grimoire-context-menu-padding) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+:is([data-theme-preset]) .grimoire-context-menu-surface :is(button, [role="menuitem"], [data-slot="context-menu-item"], [data-slot="context-menu-sub-trigger"]) {
+  border-radius: var(--grimoire-context-menu-item-radius) !important;
+  color: var(--text-primary) !important;
+}
+
+:is([data-theme-preset]) .grimoire-context-menu-surface :is(button:hover, button:focus-visible, [role="menuitem"]:hover, [role="menuitem"]:focus-visible, [data-slot="context-menu-item"]:hover, [data-slot="context-menu-sub-trigger"]:hover) {
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-card)) !important;
 }
 
 :is([data-theme-preset]) :is(.grimoire-portability-card, .grimoire-portability-action-deck, .grimoire-import-autopsy) {
@@ -227,6 +306,7 @@
 :is([data-theme-preset]) :is(.settings-theme-preset-card, .settings-appearance-preview) {
   background: var(--grimoire-card-material);
   border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-note-card-shape);
   color: var(--text-primary);
 }
 
@@ -240,12 +320,207 @@
   border-color: var(--primary);
 }
 
+:is([data-theme-preset]) .settings-theme-preset-card__traits {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
+:is([data-theme-preset]) .settings-theme-preset-card__trait {
+  align-items: center;
+  background: color-mix(in srgb, var(--surface-input) 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--grimoire-hairline));
+  border-radius: calc(var(--grimoire-note-card-shape) - 2px);
+  color: color-mix(in srgb, var(--text-primary) 84%, var(--primary));
+  display: flex;
+  font-size: 10px;
+  font-weight: 650;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 6px;
+}
+
+:is([data-theme-preset]) .settings-theme-preset-card__trait svg {
+  color: color-mix(in srgb, var(--primary) 72%, var(--text-primary));
+  flex: 0 0 auto;
+}
+
+:is([data-theme-preset]) .settings-theme-preset-card__trait span {
+  min-width: 0;
+  white-space: nowrap;
+}
+
 :is([data-theme-preset]) .settings-appearance-preview {
   padding: 14px;
 }
 
+:is([data-theme-preset]) .settings-appearance-preview__chrome {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 42px minmax(0, 1fr) 56px;
+  min-height: 82px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview[data-density-preview="compact"] .settings-appearance-preview__chrome {
+  gap: 6px;
+  grid-template-columns: 34px minmax(0, 1fr) 48px;
+  min-height: 70px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview[data-density-preview="spacious"] .settings-appearance-preview__chrome {
+  gap: 10px;
+  grid-template-columns: 50px minmax(0, 1fr) 64px;
+  min-height: 92px;
+}
+
+:is([data-theme-preset]) :is(.settings-appearance-preview__rail, .settings-appearance-preview__page, .settings-appearance-preview__brain) {
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: calc(var(--grimoire-note-card-shape) - 1px);
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__rail {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 88%, var(--surface-panel)), var(--surface-sidebar));
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__rail span {
+  background: color-mix(in srgb, var(--sidebar-primary) 54%, var(--sidebar-foreground));
+  border-radius: 999px;
+  min-height: 7px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__page {
+  background: var(--grimoire-editor-page-material);
+  border-color: var(--grimoire-editor-page-border);
+  display: grid;
+  gap: 7px;
+  padding: 11px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__page > span {
+  background: color-mix(in srgb, var(--text-primary) 28%, transparent);
+  border-radius: 999px;
+  height: 5px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__page > span:first-child {
+  background: color-mix(in srgb, var(--primary) 48%, var(--text-heading));
+  height: 8px;
+  width: 72%;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__code-lines {
+  background: var(--grimoire-code-block-bg);
+  border: 1px solid var(--grimoire-code-block-border);
+  border-radius: var(--grimoire-code-block-radius);
+  box-shadow: var(--grimoire-code-block-shadow);
+  display: grid;
+  gap: 5px;
+  padding: 7px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__code-lines span {
+  background: color-mix(in srgb, var(--primary) 36%, var(--text-secondary));
+  border-radius: 999px;
+  height: 4px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__code-lines span:last-child {
+  width: 64%;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain {
+  background: var(--grimoire-graph-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 7%, transparent);
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain span {
+  background: color-mix(in srgb, var(--primary) 76%, var(--surface-card));
+  border: 1px solid color-mix(in srgb, var(--text-heading) 28%, transparent);
+  border-radius: 999px;
+  height: 9px;
+  position: absolute;
+  width: 9px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain span:nth-child(1) {
+  left: 11px;
+  top: 14px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain span:nth-child(2) {
+  right: 12px;
+  top: 28px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain span:nth-child(3) {
+  bottom: 14px;
+  left: 22px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain::before,
+:is([data-theme-preset]) .settings-appearance-preview__brain::after {
+  background: color-mix(in srgb, var(--primary) 36%, var(--border-strong));
+  content: "";
+  height: 1px;
+  left: 16px;
+  position: absolute;
+  top: 25px;
+  transform-origin: left center;
+  width: 34px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain::before {
+  transform: rotate(22deg);
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__brain::after {
+  top: 45px;
+  transform: rotate(-20deg);
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__facets {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  margin-top: 10px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__facet {
+  align-items: center;
+  background: color-mix(in srgb, var(--surface-input) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--grimoire-hairline));
+  border-radius: calc(var(--grimoire-note-card-shape) - 2px);
+  color: var(--text-secondary);
+  display: grid;
+  font-size: 10px;
+  gap: 2px 5px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 5px 6px;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__facet svg {
+  color: color-mix(in srgb, var(--primary) 72%, var(--text-primary));
+  grid-row: span 2;
+}
+
+:is([data-theme-preset]) .settings-appearance-preview__facet strong {
+  color: var(--text-primary);
+  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 :is([data-theme-preset]) .settings-appearance-preview__sample {
   color: var(--foreground);
+  margin-top: 12px;
 }
 
 :is([data-theme-preset]) .settings-appearance-preview__body {
@@ -280,9 +555,20 @@
   background: var(--grimoire-editor-material);
 }
 
-:is([data-theme-preset]) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel, .vault-dashboard__stat) {
+:is([data-theme-preset]) .graph-canvas-shell {
+  background: var(--grimoire-graph-bg);
+  box-shadow: var(--grimoire-graph-shadow);
+}
+
+:is([data-theme-preset]) :is(.editor-content-wrapper, .note-list-panel [data-note-path], .constellation-insights, .inspector-card, .vault-dashboard__panel:not(.vault-dashboard__panel--capture):not(.vault-dashboard__assistant-brief), .vault-dashboard__stat) {
   background: var(--grimoire-card-material);
   border-color: var(--grimoire-hairline);
+  border-radius: var(--grimoire-note-card-shape);
+}
+
+:is([data-theme-preset]) .editor-content-wrapper {
+  background: var(--grimoire-editor-page-material);
+  border-color: var(--grimoire-editor-page-border);
 }
 
 :is([data-theme-preset]) :is([data-testid="theme-pack-settings"], [data-testid="locality-firewall-card"]) {
@@ -306,6 +592,7 @@
   --grimoire-signal-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
   --grimoire-signal-border: color-mix(in srgb, var(--primary) 34%, var(--border-default));
   --grimoire-signal-text: color-mix(in srgb, var(--primary) 26%, var(--text-primary));
+  background: var(--grimoire-right-brain-material);
 }
 
 :is([data-theme-preset]) .ai-panel :is(.border-b, .border-t, [data-testid="context-bar"]) {
@@ -332,7 +619,7 @@
   padding: 14px;
 }
 
-:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node {
+:is([data-theme-preset]) .inspector-panel .linked-concept-map__node {
   appearance: none;
   cursor: pointer;
   font: inherit;
@@ -344,7 +631,7 @@
     transform 160ms ease;
 }
 
-:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node:hover:not(:disabled) {
+:is([data-theme-preset]) .inspector-panel .linked-concept-map__node:hover:not(:disabled) {
   border-color: color-mix(in srgb, var(--primary) 54%, var(--grimoire-hairline));
   background: color-mix(in srgb, var(--primary) 14%, var(--surface-card));
   box-shadow:
@@ -352,7 +639,7 @@
     0 10px 24px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
-:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node[data-concept-state="matched"] {
+:is([data-theme-preset]) .inspector-panel .linked-concept-map__node[data-concept-state="matched"] {
   border-color: color-mix(in srgb, var(--primary) 42%, var(--grimoire-hairline));
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, transparent), transparent 62%),
@@ -360,7 +647,22 @@
   color: color-mix(in srgb, var(--primary) 24%, var(--text-primary));
 }
 
-:is([data-theme-preset]) .inspector-panel .constellation-concept-map__node:disabled {
+:is([data-theme-preset]) .inspector-panel .linked-concept-map__node:disabled {
   cursor: default;
   opacity: 0.72;
+}
+
+:is([data-theme-preset]) .inspector-panel .linked-concept-map__node[data-concept-state="active"] {
+  border-color: color-mix(in srgb, var(--primary) 62%, var(--grimoire-hairline));
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 72%),
+    color-mix(in srgb, var(--surface-card) 82%, var(--primary) 10%);
+  color: var(--text-heading);
+  opacity: 1;
+}
+
+:is([data-theme-preset]) .inspector-panel .linked-concept-map__node[data-concept-state="nearby"] {
+  border-color: color-mix(in srgb, var(--border-default) 74%, var(--primary) 18%);
+  background: color-mix(in srgb, var(--surface-card) 90%, var(--primary) 4%);
+  color: var(--text-primary);
 }

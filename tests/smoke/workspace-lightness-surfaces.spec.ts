@@ -6,7 +6,7 @@ const NOTE_SWITCH_TIMEOUT_MS = 5_000
 async function openAllNotes(page: Page): Promise<void> {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.getByTestId('sidebar-top-nav')).toBeVisible({ timeout: 10_000 })
-  await page.getByText('All Notes', { exact: true }).first().click()
+  await page.getByText('Pages', { exact: true }).first().click()
   await expect(page.getByTestId('note-list-container')).toBeVisible({ timeout: 10_000 })
 }
 

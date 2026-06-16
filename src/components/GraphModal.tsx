@@ -121,6 +121,7 @@ function GraphModalContent({
     [entries, packageRootEntry, renderGraph],
   )
   const stats = edgeStats(typedGraph)
+  const heldFromAgents = agentGraphContext.omitted.protectedNodes + agentGraphContext.omitted.protectedEdges
 
   const toggleType = (type: string) => {
     setHiddenTypes((current) => {
@@ -170,15 +171,22 @@ function GraphModalContent({
   return (
     <>
       <DialogContent
-        className="grimoire-panel-reveal max-h-[calc(100dvh-2rem)] max-w-[min(1160px,calc(100vw-2rem))] grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden"
+        className="grimoire-panel-reveal max-h-[calc(100dvh-2rem)] w-[min(1160px,calc(100vw-2rem))] max-w-[min(1160px,calc(100vw-2rem))] grid-rows-[auto_minmax(0,1fr)_auto] gap-4 overflow-hidden sm:max-w-[min(1160px,calc(100vw-2rem))]"
         data-testid="graph-dialog-content"
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Graph size={18} />
-            Knowledge graph
-          </DialogTitle>
-          <DialogDescription className="sr-only">Vault relationships and Spelllinks.</DialogDescription>
+          <div className="graph-dialog-title-row">
+            <DialogTitle className="flex min-w-0 items-center gap-2">
+              <Graph size={18} />
+              <span className="truncate">Second Brain Map</span>
+            </DialogTitle>
+            <div className="graph-dialog-brain-summary" data-testid="graph-dialog-brain-summary">
+              <span>{layout.nodes.length} graph nodes</span>
+              <span>{agentGraphContext.nodes.length} source-safe</span>
+              {heldFromAgents > 0 ? <span>{heldFromAgents} held local</span> : null}
+            </div>
+          </div>
+          <DialogDescription className="sr-only">Notebook relationships and note links.</DialogDescription>
         </DialogHeader>
 
         <div className="grid min-h-0 gap-3 overflow-hidden lg:grid-cols-[1fr_300px]">
@@ -206,20 +214,6 @@ function GraphModalContent({
           </div>
 
           <div className="min-h-0 space-y-3 overflow-y-auto pr-1" data-testid="graph-right-rail">
-            <GraphControlPanel
-              activePath={activePath}
-              scope={effectiveScope}
-              onScopeChange={setScope}
-              edgeFilter={edgeFilter}
-              onEdgeFilterChange={setEdgeFilter}
-              shownNodes={displayGraph.nodes.length}
-              totalMatches={visibleGraph.nodes.length}
-              shownEdges={renderGraph.edges.length}
-              stats={stats}
-              typeStats={typeStats}
-              hiddenTypes={hiddenTypes}
-              onToggleType={toggleType}
-            />
             <GraphInsightPanel
               activeEntry={activeEntry}
               agentGraphContext={agentGraphContext}
@@ -233,6 +227,20 @@ function GraphModalContent({
               selectedNode={selectedNode}
               onAskCouncil={prepareCouncilAboutSelection}
               onOpenNode={openNode}
+            />
+            <GraphControlPanel
+              activePath={activePath}
+              scope={effectiveScope}
+              onScopeChange={setScope}
+              edgeFilter={edgeFilter}
+              onEdgeFilterChange={setEdgeFilter}
+              shownNodes={displayGraph.nodes.length}
+              totalMatches={visibleGraph.nodes.length}
+              shownEdges={renderGraph.edges.length}
+              stats={stats}
+              typeStats={typeStats}
+              hiddenTypes={hiddenTypes}
+              onToggleType={toggleType}
             />
           </div>
         </div>
