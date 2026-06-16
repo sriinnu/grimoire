@@ -1,0 +1,33 @@
+# Normalize line endings to LF on checkout for all text files. GitHub's
+# Windows runners default to core.autocrlf=true, which would otherwise check
+# source out with CRLF and break content tests that assert exact LF newlines
+# (e.g. src/appScrollbarCss.test.ts, src/nativeShellMaterialCss.test.ts).
+* text=auto eol=lf
+
+# Windows-specific scripts must keep CRLF to run correctly.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets: never apply end-of-line conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.webp binary
+*.avif binary
+*.svg text eol=lf
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.wasm binary
+*.node binary
+*.mp3 binary
+*.mp4 binary
+*.wav binary
