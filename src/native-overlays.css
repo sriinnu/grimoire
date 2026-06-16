@@ -1,0 +1,72 @@
+/*
+ * Native overlay materials.
+ *
+ * Dialogs, the command palette, and menus were flat opaque web-modals. Native
+ * apps (macOS sheets/Spotlight, Windows 11 acrylic/flyouts) blur the content
+ * behind a modal and render floating surfaces as translucent frosted material.
+ * This makes Grimoire's overlays feel like system surfaces instead of web ones.
+ *
+ * Tuning is per-platform via the [data-platform] attribute set on <html>.
+ * Surface opacity stays high by default so text never loses contrast; the exact
+ * blur/opacity is a calibration knob, not a correctness one.
+ */
+
+:root {
+  --grimoire-overlay-backdrop-blur: 14px;
+  --grimoire-overlay-surface-blur: 22px;
+  --grimoire-overlay-surface-opacity: 92%;
+}
+
+/* macOS: lighter, more translucent — closer to vibrancy. */
+:root[data-platform="macos"] {
+  --grimoire-overlay-backdrop-blur: 20px;
+  --grimoire-overlay-surface-blur: 30px;
+  --grimoire-overlay-surface-opacity: 82%;
+}
+
+/* Windows 11: a touch more opaque, Mica/acrylic-like. */
+:root[data-platform="windows"] {
+  --grimoire-overlay-backdrop-blur: 12px;
+  --grimoire-overlay-surface-blur: 24px;
+  --grimoire-overlay-surface-opacity: 88%;
+}
+
+/* Backdrop shared by dialogs and the command palette: dim AND blur the app
+   behind the modal, the way a native sheet does. */
+.grimoire-dialog-overlay {
+  backdrop-filter: blur(var(--grimoire-overlay-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--grimoire-overlay-backdrop-blur));
+}
+
+/* Floating surfaces become frosted translucent material. */
+.grimoire-dialog-content,
+.grimoire-command-surface,
+.grimoire-context-menu-surface {
+  background: color-mix(
+    in srgb,
+    var(--surface-card) var(--grimoire-overlay-surface-opacity),
+    transparent
+  ) !important;
+  backdrop-filter: blur(var(--grimoire-overlay-surface-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--grimoire-overlay-surface-blur)) saturate(140%);
+}
+
+/* Text selection picks up the theme accent instead of the browser blue. */
+::selection {
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+/* Respect users who reduce transparency/motion — fall back to solid surfaces. */
+@media (prefers-reduced-transparency: reduce) {
+  .grimoire-dialog-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .grimoire-dialog-content,
+  .grimoire-command-surface,
+  .grimoire-context-menu-surface {
+    background: var(--surface-card) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
