@@ -21,19 +21,19 @@ type: Journal
 }
 
 async function openSidebarVisibilityPopover(page: Page): Promise<void> {
-  const customizeButton = page.getByRole('button', { name: 'Customize sections' })
+  const customizeButton = page.getByRole('button', { name: 'Customize places' })
   await customizeButton.focus()
   await expect(customizeButton).toBeFocused()
   await page.keyboard.press('Enter')
-  await expect(page.getByText('Show in sidebar', { exact: true })).toBeVisible()
+  await expect(page.getByText('Show places', { exact: true })).toBeVisible()
 }
 
 async function closeSidebarVisibilityPopover(page: Page): Promise<void> {
-  const customizeButton = page.getByRole('button', { name: 'Customize sections' })
+  const customizeButton = page.getByRole('button', { name: 'Customize places' })
   await customizeButton.focus()
   await expect(customizeButton).toBeFocused()
   await page.keyboard.press('Enter')
-  await expect(page.getByText('Show in sidebar', { exact: true })).toHaveCount(0)
+  await expect(page.getByText('Show places', { exact: true })).toHaveCount(0)
 }
 
 async function createTypeFromKeyboard(page: Page, typeName: string): Promise<void> {

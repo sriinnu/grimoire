@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { invoke } from '../lib/tauriRuntime'
+import { invoke, isTauriRuntimeAvailable } from '../lib/tauriRuntime'
 
 const MAIN_WINDOW_MIN_HEIGHT = 400
 const EDITOR_ONLY_MAIN_WINDOW_MIN_WIDTH = 480
@@ -39,6 +39,7 @@ type MainWindowSizeConstraintsOptions = MainWindowPaneVisibility & {
 export async function applyMainWindowSizeConstraints(
   minWidth: number,
 ): Promise<void> {
+  if (!isTauriRuntimeAvailable()) return
   await invoke('update_current_window_min_size', {
     minWidth,
     minHeight: MAIN_WINDOW_MIN_HEIGHT,

@@ -160,8 +160,8 @@ export function EditorNavigatorControls({
             variant="ghost"
             size={variant === 'meta' ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
-            title="Spelllinks in this note"
-            aria-label={`Spelllinks in this note, ${countLabel(summary.linkCount, 'link')}`}
+            title="Note links in this note"
+            aria-label={`Note links in this note, ${countLabel(summary.linkCount, 'link')}`}
             onClick={() => openNavigator('links')}
           >
             <Link2 className="size-4" />

@@ -37,25 +37,35 @@ function isMockOnlyVaultPath(vaultPath: string): boolean {
   return vaultPath.startsWith('/Users/mock/')
 }
 
+function pathRequest(args: Record<string, unknown>, endpoint: string): VaultApiRequest | null {
+  const filePath = args.path as string | undefined
+  if (!filePath || isMockOnlyVaultPath(filePath)) return null
+  return { url: `${endpoint}?path=${encodeURIComponent(filePath)}` }
+}
+
 const VAULT_API_COMMANDS: Record<string, (args: Record<string, unknown>) => VaultApiRequest | null> = {
   list_vault: (args) => {
     if (args.path) lastVaultPath = args.path as string
-    return args.path ? { url: `/api/vault/list?path=${encodeURIComponent(args.path as string)}` } : null
+    const vaultPath = args.path as string | undefined
+    if (!vaultPath || isMockOnlyVaultPath(vaultPath)) return null
+    return { url: `/api/vault/list?path=${encodeURIComponent(vaultPath)}` }
   },
   reload_vault: (args) => {
     if (args.path) lastVaultPath = args.path as string
-    return args.path ? { url: `/api/vault/list?path=${encodeURIComponent(args.path as string)}&reload=1` } : null
+    const vaultPath = args.path as string | undefined
+    if (!vaultPath || isMockOnlyVaultPath(vaultPath)) return null
+    return { url: `/api/vault/list?path=${encodeURIComponent(vaultPath)}&reload=1` }
   },
   reload_vault_entry: (args) =>
-    args.path ? { url: `/api/vault/entry?path=${encodeURIComponent(args.path as string)}` } : null,
+    pathRequest(args, '/api/vault/entry'),
   get_note_content: (args) =>
-    args.path ? { url: `/api/vault/content?path=${encodeURIComponent(args.path as string)}` } : null,
+    pathRequest(args, '/api/vault/content'),
   get_all_content: (args) =>
-    args.path ? { url: `/api/vault/all-content?path=${encodeURIComponent(args.path as string)}` } : null,
+    pathRequest(args, '/api/vault/all-content'),
   save_note_content: (args) =>
-    args.path ? { url: '/api/vault/save', method: 'POST', body: { path: args.path, content: args.content } } : null,
+    args.path && !isMockOnlyVaultPath(args.path as string) ? { url: '/api/vault/save', method: 'POST', body: { path: args.path, content: args.content } } : null,
   save_canvas_preview: (args) =>
-    args.path ? { url: '/api/vault/save-binary', method: 'POST', body: { path: args.path, data: args.data } } : null,
+    args.path && !isMockOnlyVaultPath(args.path as string) ? { url: '/api/vault/save-binary', method: 'POST', body: { path: args.path, data: args.data } } : null,
   rename_note: (args) =>
     args.old_path ? { url: '/api/vault/rename', method: 'POST', body: { vault_path: args.vault_path, old_path: args.old_path, new_title: args.new_title } } : null,
   rename_note_filename: (args) =>
@@ -79,7 +89,7 @@ const VAULT_API_COMMANDS: Record<string, (args: Record<string, unknown>) => Vaul
       },
     } : null,
   delete_note: (args) =>
-    args.path ? { url: '/api/vault/delete', method: 'POST', body: { path: args.path } } : null,
+    args.path && !isMockOnlyVaultPath(args.path as string) ? { url: '/api/vault/delete', method: 'POST', body: { path: args.path } } : null,
   search_vault: (args) => {
     const q = args.query as string
     const vaultPath = (args.vaultPath ?? args.vault_path ?? lastVaultPath) as string | null

@@ -1,25 +1,30 @@
-.vault-dashboard__assistant-brief {
+.vault-dashboard__panel.vault-dashboard__assistant-brief {
   position: relative;
   isolation: isolate;
   grid-column: 1 / -1;
   container-type: inline-size;
   overflow: hidden;
+  border-color: var(--grimoire-native-card-border, color-mix(in srgb, var(--border) 34%, transparent));
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--card) 88%, var(--primary) 7%), color-mix(in srgb, var(--background) 90%, var(--accent-blue, var(--primary)) 5%)),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card, var(--card)) 72%, transparent), color-mix(in srgb, var(--surface-panel, var(--background)) 72%, transparent)),
+    var(--grimoire-native-card-material, linear-gradient(180deg, color-mix(in srgb, var(--card) 74%, transparent), color-mix(in srgb, var(--background) 86%, var(--card) 14%))),
     var(--card);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--foreground) 5%, transparent),
+    var(--grimoire-native-card-shadow, 0 10px 26px color-mix(in srgb, var(--foreground) 4%, transparent));
 }
 
 .vault-dashboard__flow {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(260px, 0.92fr) minmax(420px, 1.4fr);
-  gap: 14px;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(420px, 1.5fr);
+  gap: 12px;
   min-width: 0;
-  border: 1px solid var(--grimoire-hairline, color-mix(in srgb, var(--accent-blue) 24%, var(--border)));
+  border: 1px solid color-mix(in srgb, var(--border) 34%, transparent);
   border-radius: var(--grimoire-surface-radius, 8px);
-  padding: 14px;
-  background: var(--grimoire-rail-material, linear-gradient(135deg, color-mix(in srgb, var(--card) 82%, var(--accent-blue) 10%), color-mix(in srgb, var(--card) 90%, var(--background))));
-  box-shadow: var(--grimoire-surface-shadow, 0 18px 44px color-mix(in srgb, var(--foreground) 8%, transparent));
+  padding: 12px;
+  background: color-mix(in srgb, var(--background) 72%, transparent);
+  box-shadow: none;
 }
 
 .vault-dashboard__flow-copy {
@@ -39,12 +44,10 @@
 .vault-dashboard__flow-runway {
   align-items: center;
   justify-content: space-between;
-  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
   border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
   padding: 8px 10px;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 64%),
-    color-mix(in srgb, var(--background) 72%, transparent);
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 52%, transparent);
 }
 
 .vault-dashboard__flow-runway span,
@@ -61,7 +64,6 @@
 .vault-dashboard__flow-runway strong {
   color: var(--muted-foreground);
   font-size: 11px;
-  text-transform: uppercase;
 }
 
 .vault-dashboard__flow-meter {
@@ -99,7 +101,7 @@
   width: var(--flow-progress);
   max-width: calc(100% - 28px);
   min-width: 0;
-  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 72%, var(--foreground)));
+  background: var(--accent-blue, var(--primary));
 }
 
 .vault-dashboard__flow-meter span {
@@ -114,13 +116,13 @@
 }
 
 .vault-dashboard__flow-meter span[data-state="done"] {
-  border-color: color-mix(in srgb, var(--grimoire-success, var(--primary)) 52%, var(--grimoire-hairline, var(--border)));
-  background: color-mix(in srgb, var(--grimoire-success, var(--primary)) 54%, var(--surface-card, var(--card)));
+  border-color: color-mix(in srgb, var(--accent-blue, var(--primary)) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent-blue, var(--primary)) 8%, var(--surface-card, var(--background)));
 }
 
 .vault-dashboard__flow-meter span[data-state="next"] {
-  border-color: color-mix(in srgb, var(--primary) 64%, var(--grimoire-hairline, var(--border)));
-  background: var(--primary);
+  border-color: var(--accent-blue, var(--primary));
+  background: var(--accent-blue, var(--primary));
 }
 
 .vault-dashboard__flow-states span {
@@ -135,71 +137,78 @@
 
 .vault-dashboard__flow-steps {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(118px, 1fr));
+  gap: 0;
   min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 44%, transparent);
+  border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--surface-card, var(--card)) 54%, transparent);
 }
 
 .vault-dashboard__flow-step {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
   height: auto;
-  min-height: 76px;
+  min-height: 66px;
   justify-content: start;
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
-  padding: 10px;
-  background: var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 64%, transparent));
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+  border-radius: 0;
+  padding: 9px 10px;
+  background: transparent;
   color: var(--foreground);
   text-align: left;
   transition:
-    border-color var(--motion-duration-control, 160ms) ease,
-    background var(--motion-duration-control, 160ms) ease,
-    box-shadow var(--motion-duration-control, 160ms) ease,
-    transform var(--motion-duration-control, 160ms) ease;
+    border-color var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
+    background var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
+    box-shadow var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
+    transform var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease);
+}
+
+.vault-dashboard__flow-step:last-child {
+  border-right: 0;
 }
 
 .vault-dashboard__flow-step[data-state="done"] {
-  border-color: color-mix(in srgb, var(--grimoire-success, var(--primary)) 42%, var(--border));
-  background: color-mix(in srgb, var(--grimoire-success, var(--primary)) 12%, var(--background));
+  background: color-mix(in srgb, var(--accent-blue, var(--primary)) 4%, transparent);
 }
 
 .vault-dashboard__flow-step[data-state="next"] {
-  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 70%),
-    var(--grimoire-rail-card-material, color-mix(in srgb, var(--background) 74%, transparent));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 8%, transparent);
+  background: color-mix(in srgb, var(--accent-blue, var(--primary)) 5%, transparent);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent-blue, var(--primary)) 18%, transparent);
 }
 
 .vault-dashboard__flow-step[data-selected="true"] {
-  border-color: color-mix(in srgb, var(--primary) 84%, var(--foreground) 10%);
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 27%, transparent), transparent 64%),
-    color-mix(in srgb, var(--surface-card, var(--card)) 86%, var(--primary) 12%);
-  box-shadow:
-    inset 0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent),
-    0 15px 34px color-mix(in srgb, var(--primary) 18%, transparent);
-  transform: translateY(-1px);
+  background: var(--state-selected, color-mix(in srgb, var(--accent-blue, var(--primary)) 14%, var(--background)));
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--accent-blue, var(--primary)) 44%, transparent);
+  transform: none;
 }
 
 .vault-dashboard__flow-step:hover,
 .vault-dashboard__flow-step:focus-visible {
-  border-color: color-mix(in srgb, var(--primary) 54%, var(--border));
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent),
-    0 10px 24px color-mix(in srgb, var(--foreground) 8%, transparent);
-}
-
-.vault-dashboard__flow-step[data-selected="true"] svg {
-  color: var(--primary);
+  background: color-mix(in srgb, var(--accent-blue, var(--primary)) 7%, transparent);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent-blue, var(--primary)) 24%, transparent);
 }
 
 .vault-dashboard__flow-step span {
+  position: relative;
   display: grid;
   gap: 2px;
   min-width: 0;
+  padding-left: 12px;
+}
+
+.vault-dashboard__flow-step span::before {
+  position: absolute;
+  top: 0.48em;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 44%, transparent);
+  content: "";
 }
 
 .vault-dashboard__flow-step strong,
@@ -291,14 +300,14 @@
   display: grid;
   gap: 4px;
   margin: 0;
-  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--border) 44%, transparent);
   border-radius: calc(var(--grimoire-surface-radius, 8px) - 2px);
   padding: 10px 12px;
   overflow: hidden;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 72%),
-    color-mix(in srgb, var(--surface-card, var(--card)) 78%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 7%, transparent);
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-blue, var(--primary)) 7%, transparent), transparent 74%),
+    color-mix(in srgb, var(--surface-card, var(--card)) 58%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 5%, transparent);
 }
 
 .vault-dashboard__assistant-focus span,
@@ -314,7 +323,6 @@
   font-size: 11px;
   font-weight: 760;
   letter-spacing: 0;
-  text-transform: uppercase;
 }
 
 .vault-dashboard__assistant-focus strong {
@@ -348,82 +356,4 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 6%, transparent);
-}
-
-.vault-dashboard__assistant-lines {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.vault-dashboard__assistant-lines span {
-  position: absolute;
-  right: -34px;
-  width: 220px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 26%, transparent), transparent);
-  opacity: 0.68;
-  transform: rotate(-24deg);
-}
-
-.vault-dashboard__assistant-lines span:nth-child(1) { top: 22px; }
-.vault-dashboard__assistant-lines span:nth-child(2) { top: 58px; right: 34px; opacity: 0.42; }
-.vault-dashboard__assistant-lines span:nth-child(3) { right: 118px; bottom: 24px; opacity: 0.32; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .vault-dashboard__assistant-brief {
-    animation: grimoire-assistant-brief-arrive var(--motion-duration-panel, 260ms) var(--motion-ease-cinematic, ease-out) 1 both;
-  }
-
-  .vault-dashboard__flow-meter span[data-state="next"] {
-    animation: grimoire-flow-next-arrive var(--motion-duration-cinematic, 720ms) var(--motion-ease-cinematic, ease-out) 1 both;
-  }
-}
-
-@media (max-width: 920px) {
-  .vault-dashboard__flow {
-    grid-column: auto;
-    grid-template-columns: 1fr;
-  }
-
-  .vault-dashboard__flow-steps {
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
-  }
-}
-
-@container (max-width: 840px) {
-  .vault-dashboard__today-runway .vault-dashboard__flow {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .vault-dashboard__flow-steps {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
-  }
-}
-
-@media (max-width: 560px) {
-  .vault-dashboard__assistant-head {
-    flex-direction: column;
-  }
-
-  .vault-dashboard__assistant-actions {
-    justify-content: flex-start;
-  }
-
-  .vault-dashboard__assistant-lock {
-    white-space: normal;
-  }
-}
-
-@keyframes grimoire-assistant-brief-arrive {
-  from { opacity: 0; transform: translateY(var(--motion-distance-panel-y, 6px)); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes grimoire-flow-next-arrive {
-  from { opacity: 0.56; transform: scale(0.72); }
-  72% { transform: scale(1.18); }
-  to { opacity: 1; transform: scale(1); }
 }

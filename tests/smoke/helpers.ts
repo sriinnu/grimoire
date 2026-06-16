@@ -1,6 +1,7 @@
 import { type Page, expect } from '@playwright/test'
 
 const COMMAND_INPUT = 'input[placeholder="Type a command..."]'
+const COMMAND_SURFACE = '[data-testid="command-palette-surface"]'
 
 export async function openCommandPalette(page: Page): Promise<void> {
   await page.locator('body').click()
@@ -36,7 +37,7 @@ export async function findCommand(
   name: string,
 ): Promise<boolean> {
   await page.locator(COMMAND_INPUT).fill(name)
-  const match = page.locator('[data-selected="true"]').first()
+  const match = page.locator(COMMAND_SURFACE).locator('[data-selected="true"]').first()
   try {
     await match.waitFor({ timeout: 2_000 })
     const text = await match.textContent()
@@ -51,7 +52,7 @@ export async function executeCommand(
   name: string,
 ): Promise<void> {
   await page.locator(COMMAND_INPUT).fill(name)
-  const match = page.locator('[data-selected="true"]').first()
+  const match = page.locator(COMMAND_SURFACE).locator('[data-selected="true"]').first()
   await expect(match).toContainText(name, { ignoreCase: true, timeout: 2_000 })
   await page.keyboard.press('Enter')
 }

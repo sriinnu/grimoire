@@ -157,7 +157,7 @@ export function AiChatComposerInput({
           onHover={setSuggestionIndex}
           onSelect={selectSuggestion}
           typeEntryMap={typeEntryMap}
-          emptyLabel="No matching notes"
+          emptyLabel="No matching pages"
         />
       )}
     </div>

@@ -75,7 +75,7 @@ export function buildAiAgentCommands({
   const commands: CommandAction[] = [
     {
       id: 'open-ai-agents',
-      label: 'Open AI Agents',
+      label: 'Open Local AI',
       group: 'Settings',
       keywords: ['ai', 'agent', 'agents', 'assistant', 'claude', 'codex', 'settings'],
       enabled: !!onOpenAiAgents,

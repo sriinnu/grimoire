@@ -28,9 +28,9 @@ describe('FolderTree', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('renders FOLDERS header and top-level folders', () => {
+  it('renders Folders header and top-level folders', () => {
     render(<FolderTree folders={mockFolders} selection={defaultSelection} onSelect={vi.fn()} />)
-    expect(screen.getByText('FOLDERS')).toBeInTheDocument()
+    expect(screen.getByText('Folders')).toBeInTheDocument()
     expect(screen.getByText('projects')).toBeInTheDocument()
     expect(screen.getByText('areas')).toBeInTheDocument()
     expect(screen.getByText('journal')).toBeInTheDocument()
@@ -77,10 +77,10 @@ describe('FolderTree', () => {
     vi.useRealTimers()
   })
 
-  it('collapses section when clicking the FOLDERS header', () => {
+  it('collapses section when clicking the Folders header', () => {
     render(<FolderTree folders={mockFolders} selection={defaultSelection} onSelect={vi.fn()} />)
     expect(screen.getByText('projects')).toBeInTheDocument()
-    fireEvent.click(screen.getByText('FOLDERS'))
+    fireEvent.click(screen.getByText('Folders'))
     expect(screen.queryByText('projects')).not.toBeInTheDocument()
   })
 
@@ -97,7 +97,7 @@ describe('FolderTree', () => {
     const rowChrome = screen.getByTestId('folder-row:journal').parentElement
     expect(rowChrome).toHaveAttribute('data-selected', 'true')
     expect(rowChrome).toHaveAttribute('data-folder-row-tone', 'journal')
-    expect(rowChrome).toHaveAttribute('data-folder-row-motif', 'private')
+    expect(rowChrome).not.toHaveAttribute('data-folder-row-motif')
   })
 
   it('opens the create-folder input from the header action', () => {
@@ -229,7 +229,8 @@ describe('FolderTree', () => {
       />,
     )
     fireEvent.contextMenu(screen.getByText('projects'))
-    expect(screen.getByTestId('folder-context-menu')).toBeInTheDocument()
+    expect(screen.getByTestId('folder-context-menu')).toHaveAttribute('role', 'menu')
+    expect(screen.getByRole('menuitem', { name: 'Rename folder…' })).toBeInTheDocument()
     fireEvent.click(screen.getByTestId('delete-folder-menu-item'))
     expect(onDeleteFolder).toHaveBeenCalledWith('projects')
   })

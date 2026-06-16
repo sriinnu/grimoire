@@ -83,7 +83,7 @@ describe('SearchPanel', () => {
     render(
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
-    expect(screen.getByPlaceholderText('Search notes, docs, and project files...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search pages, docs, and project files...')).toBeInTheDocument()
     expect(screen.getByTestId('search-panel-surface')).toHaveClass('grimoire-command-surface')
   })
 
@@ -91,7 +91,7 @@ describe('SearchPanel', () => {
     render(
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
-    expect(screen.getByText('Search across notes, docs, and text files')).toBeInTheDocument()
+    expect(screen.getByText('Search this notebook')).toBeInTheDocument()
     expect(screen.getByText('Enter to open · Esc to close')).toBeInTheDocument()
   })
 
@@ -108,7 +108,7 @@ describe('SearchPanel', () => {
     render(
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={onClose} />,
     )
-    const overlay = screen.getByPlaceholderText('Search notes, docs, and project files...').closest('.fixed')!
+    const overlay = screen.getByPlaceholderText('Search pages, docs, and project files...').closest('.fixed')!
     fireEvent.click(overlay)
     expect(onClose).toHaveBeenCalled()
   })
@@ -134,7 +134,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    const input = screen.getByPlaceholderText('Search notes, docs, and project files...')
+    const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
     fireEvent.change(input, { target: { value: 'api design' } })
 
     await waitFor(() => {
@@ -171,7 +171,7 @@ describe('SearchPanel', () => {
       />,
     )
 
-    expect(screen.getByPlaceholderText('Search notes, docs, and project files...')).toHaveValue('roadmap')
+    expect(screen.getByPlaceholderText('Search pages, docs, and project files...')).toHaveValue('roadmap')
 
     await waitFor(() => {
       expect(mockInvokeFn).toHaveBeenCalledWith('search_vault', expect.objectContaining({
@@ -216,7 +216,7 @@ describe('SearchPanel', () => {
       />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), {
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), {
       target: { value: 'roadmap' },
     })
 
@@ -250,7 +250,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    const input = screen.getByPlaceholderText('Search notes, docs, and project files...')
+    const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
     fireEvent.change(input, { target: { value: 'api' } })
 
     await waitFor(() => {
@@ -267,7 +267,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    const input = screen.getByPlaceholderText('Search notes, docs, and project files...')
+    const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
     fireEvent.change(input, { target: { value: 'xyznonexistent' } })
 
     await waitFor(() => {
@@ -288,7 +288,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    const input = screen.getByPlaceholderText('Search notes, docs, and project files...')
+    const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
     fireEvent.change(input, { target: { value: 'test' } })
 
     await waitFor(() => {
@@ -319,7 +319,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={onSelectNote} onClose={onClose} />,
     )
 
-    const input = screen.getByPlaceholderText('Search notes, docs, and project files...')
+    const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
     fireEvent.change(input, { target: { value: 'api' } })
 
     await waitFor(() => {
@@ -348,7 +348,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'test' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'test' } })
 
     await waitFor(() => {
       expect(screen.getByText(/1 result/)).toBeInTheDocument()
@@ -368,7 +368,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'api' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
 
     await waitFor(() => {
       expect(screen.getByText('Essay')).toBeInTheDocument()
@@ -387,7 +387,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'api' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
 
     await waitFor(() => {
       expect(screen.getByText(/1,247 words/)).toBeInTheDocument()
@@ -410,7 +410,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={noLinksEntries} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'api' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
 
     await waitFor(() => {
       expect(screen.getByText(/1,247 words/)).toBeInTheDocument()
@@ -428,7 +428,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'test' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'test' } })
 
     // Spinner appears when search starts (after debounce)
     await waitFor(() => {
@@ -464,7 +464,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    const input = screen.getByPlaceholderText('Search notes, docs, and project files...')
+    const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
     // Type first query, then immediately change to second (within debounce)
     fireEvent.change(input, { target: { value: 'first' } })
     fireEvent.change(input, { target: { value: 'second' } })
@@ -489,7 +489,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'api' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
 
     await waitFor(() => {
       const titles = screen.getAllByText('How to Design AI-first APIs')
@@ -511,7 +511,7 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    fireEvent.change(screen.getByPlaceholderText('Search notes, docs, and project files...'), { target: { value: 'slow query' } })
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'slow query' } })
 
     // Wait for keyword search to start
     await waitFor(() => {
@@ -536,6 +536,6 @@ describe('SearchPanel', () => {
 
     // Should NOT show the stale result — panel was reset
     expect(screen.queryByText('Stale Result')).not.toBeInTheDocument()
-    expect(screen.getByText('Search across notes, docs, and text files')).toBeInTheDocument()
+    expect(screen.getByText('Search this notebook')).toBeInTheDocument()
   })
 })

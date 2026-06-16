@@ -86,10 +86,10 @@ describe('NoteSearchList', () => {
         selectedIndex={0}
         getItemKey={() => ''}
         onItemClick={onItemClick}
-        emptyMessage="No matching notes"
+        emptyMessage="No matching pages"
       />,
     )
-    expect(screen.getByText('No matching notes')).toBeInTheDocument()
+    expect(screen.getByText('No matching pages')).toBeInTheDocument()
   })
 
   it('shows default empty message', () => {

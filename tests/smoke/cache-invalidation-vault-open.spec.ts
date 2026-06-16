@@ -19,11 +19,11 @@ test.describe('Cache invalidation on vault open', () => {
     await expect(noteListContainer).toBeVisible({ timeout: 5_000 })
   })
 
-  test('Reload Vault command is available in command palette', async ({
+  test('Reload Notebook command is available in command palette', async ({
     page,
   }) => {
     await openCommandPalette(page)
-    const found = await findCommand(page, 'Reload Vault')
+    const found = await findCommand(page, 'Reload Notebook')
     expect(found).toBe(true)
   })
 })

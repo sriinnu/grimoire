@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, Lock, MoonStar, NotebookPen, Sparkles } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Lock, MoonStar, NotebookPen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
@@ -25,6 +25,7 @@ import {
   type PersonalCalendarDay,
   type PersonalCalendarLane,
 } from './personalCalendarModel'
+import { formatCalendarCount } from '../../utils/notebookCountLabels'
 import './PersonalCalendar.css'
 
 interface PersonalCalendarProps {
@@ -106,7 +107,7 @@ export function PersonalCalendar({
     >
       <div className="personal-calendar__header">
         <div>
-          <div className="personal-calendar__eyebrow"><CalendarDays size={13} /> Personal Calendar</div>
+          <div className="personal-calendar__eyebrow"><CalendarDays size={13} /> Calendar</div>
           <h3>{personalCalendarMonthLabel(activeMonth)}</h3>
         </div>
         <div className="personal-calendar__nav" aria-label="Calendar month navigation">
@@ -302,7 +303,7 @@ function SelectedDayAgenda({
       <div className="personal-calendar__agenda-list" aria-label="Selected day counts">
         {counts.length > 0 ? counts.map((count) => (
           <span key={`${count.label}-${count.count}`}>
-            {count.label} <strong>{count.count}</strong>
+            {formatCalendarCount(count.label, count.count)}
           </span>
         )) : <span>{lane === 'all' ? 'Nothing logged yet.' : `No ${laneLabel.toLowerCase()} entries on this day.`}</span>}
       </div>
@@ -313,7 +314,7 @@ function SelectedDayAgenda({
         <Button type="button" variant="outline" size="sm" onClick={() => onCaptureDream?.(date)}>
           <MoonStar size={14} /> Dream
         </Button>
-        <span><Sparkles size={13} /> Date-safe capture</span>
+        <span><NotebookPen size={13} /> Date-safe capture</span>
       </div>
     </div>
   )

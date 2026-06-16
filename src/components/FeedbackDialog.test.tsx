@@ -33,7 +33,7 @@ describe('FeedbackDialog', () => {
   it('renders the contribution paths when open', () => {
     render(<FeedbackDialog open={true} onClose={vi.fn()} buildNumber="b281" releaseChannel="alpha" />)
     expect(screen.getByTestId('feedback-dialog')).toBeInTheDocument()
-    expect(screen.getByText('Contribute to Grimoire')).toBeInTheDocument()
+    expect(screen.getByText('Send feedback')).toBeInTheDocument()
     expect(screen.getByText('Pick the path that fits what you want to do! Any type of help is appreciated')).toBeInTheDocument()
     expect(screen.getByText('Sponsor / Support')).toBeInTheDocument()
     expect(screen.getByText('Feature requests')).toBeInTheDocument()

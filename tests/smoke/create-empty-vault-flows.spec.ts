@@ -35,14 +35,68 @@ interface EntryOptions {
   snippet?: string
 }
 
+test.use({ viewport: { width: 1365, height: 768 } })
+
 function untitledNoteRow(page: Page) {
   return page.getByText(/^Untitled Note(?: \d+)?$/i).first()
+}
+
+async function expectCreateButtonInsideViewport(page: Page) {
+  const button = page.getByTestId('create-vault-submit')
+  const box = await button.boundingBox()
+  const viewport = page.viewportSize()
+  expect(box).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  if (!box || !viewport) return
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height + 1)
+}
+
+async function expectCreateFooterInsideViewport(page: Page) {
+  const footer = page.getByTestId('create-vault-action-footer')
+  const button = page.getByTestId('create-vault-submit')
+  const footerBox = await footer.boundingBox()
+  const buttonBox = await button.boundingBox()
+  const viewport = page.viewportSize()
+  expect(footerBox).not.toBeNull()
+  expect(buttonBox).not.toBeNull()
+  expect(viewport).not.toBeNull()
+  if (!footerBox || !buttonBox || !viewport) return
+  expect(footerBox.y).toBeGreaterThanOrEqual(0)
+  expect(footerBox.y + footerBox.height).toBeLessThanOrEqual(viewport.height + 1)
+  expect(buttonBox.y).toBeGreaterThanOrEqual(footerBox.y)
+  expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual(footerBox.y + footerBox.height + 1)
+}
+
+async function expectCreateDialogChromeReadable(page: Page) {
+  const body = page.getByTestId('create-vault-scroll-body')
+  const contract = page.getByTestId('create-vault-local-contract')
+  const bodyBox = await body.boundingBox()
+  const contractBox = await contract.boundingBox()
+  expect(bodyBox).not.toBeNull()
+  expect(contractBox).not.toBeNull()
+  if (!bodyBox || !contractBox) return
+  expect(contractBox.y - bodyBox.y).toBeGreaterThanOrEqual(4)
 }
 
 async function expectFreshVaultSeedEntries(page: Page) {
   await expect(page.getByText('AGENTS.md — Grimoire Vault', { exact: true })).toBeVisible()
   await expect(page.getByText('CLAUDE.md', { exact: true })).toBeVisible()
   await expect(page.getByText('Config', { exact: true })).toHaveCount(0)
+}
+
+async function submitCreateVaultDialog(page: Page, targetPath: string) {
+  await expect(page.getByTestId('create-vault-dialog')).toBeVisible()
+  await expect(page.getByTestId('create-vault-action-footer')).toBeVisible()
+  await expect(page.getByTestId('create-vault-submit')).toBeVisible()
+  await page.getByTestId('create-vault-scroll-body').evaluate((element) => {
+    element.scrollTop = 0
+  })
+  await expectCreateDialogChromeReadable(page)
+  await expectCreateFooterInsideViewport(page)
+  await expectCreateButtonInsideViewport(page)
+  await page.getByTestId('create-vault-path').fill(targetPath)
+  await page.getByTestId('create-vault-submit').click()
+  await expect(page.getByTestId('create-vault-dialog')).toBeHidden({ timeout: 5_000 })
 }
 
 async function installEmptyVaultMocks(
@@ -98,6 +152,13 @@ async function installEmptyVaultMocks(
     let savedVaults = mockConfig.initialVaults.map(({ label, path }) => ({ label, path }))
     let activeVault = mockConfig.activeVault
     let hiddenDefaults: string[] = []
+    let savedSettings: Record<string, unknown> = {
+      editor_font: null,
+      editor_line_height: null,
+      native_shell_material: null,
+      theme_mode: null,
+      theme_preset: null,
+    }
 
     const entriesByVault = Object.fromEntries(
       mockConfig.initialVaults.map((vault) => [
@@ -147,6 +208,12 @@ async function installEmptyVaultMocks(
         ref.check_vault_exists = (args: { path?: string }) =>
           savedVaults.some((vault) => vault.path === args.path)
           || args.path === mockConfig.createdVaultPath
+        ref.get_settings = () => savedSettings
+        ref.save_settings = (args: { settings: Record<string, unknown> }) => {
+          savedSettings = { ...args.settings }
+          ;(window as Window & { __lastSavedSettings?: Record<string, unknown> }).__lastSavedSettings = savedSettings
+          return null
+        }
         ref.create_empty_vault = (args: { targetPath?: string | null }) => {
           if (args.targetPath !== mockConfig.createdVaultPath) {
             throw new Error(`Unexpected empty vault target: ${args.targetPath}`)
@@ -170,6 +237,52 @@ async function installEmptyVaultMocks(
   }, config)
 }
 
+test.describe('short viewport create notebook dialog', () => {
+  test.use({ viewport: { width: 900, height: 520 } })
+
+  test('keeps the create action visible while the setup body scrolls', async ({ page }) => {
+    await installEmptyVaultMocks(page, {
+      createdVaultPath: '/Users/mock/Library/Mobile Documents/com~apple~CloudDocs/Grimoire/Journal',
+      initialVaults: [],
+      activeVault: null,
+    })
+
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    await page.getByTestId('welcome-create-new').click()
+    await expect(page.getByTestId('create-vault-dialog')).toBeVisible()
+    await expect(page.getByTestId('create-vault-experience-section')).toBeVisible()
+    await expect(page.getByTestId('create-vault-experience-preview')).toHaveAttribute(
+      'data-theme-preset-preview',
+      'morning-notebook',
+    )
+
+    await page.getByTestId('create-vault-template-journal').click()
+    await page.getByTestId('create-vault-storage-icloud').click()
+    await page.getByTestId('create-vault-experience-nocturne').click()
+    await expect(page.getByTestId('create-vault-experience-preview')).toHaveAttribute(
+      'data-theme-preset-preview',
+      'nocturne',
+    )
+    await expect(page.getByTestId('create-vault-plan')).toContainText('Night Notebook')
+    await expectCreateFooterInsideViewport(page)
+    await expectCreateButtonInsideViewport(page)
+
+    const body = page.getByTestId('create-vault-scroll-body')
+    const beforeScroll = await body.evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    }))
+    expect(beforeScroll.scrollHeight).toBeGreaterThan(beforeScroll.clientHeight)
+
+    await body.evaluate((element) => {
+      element.scrollTop = element.scrollHeight
+    })
+    expect(await body.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+    await expectCreateFooterInsideViewport(page)
+    await expectCreateButtonInsideViewport(page)
+  })
+})
+
 test('keyboard onboarding can create an empty vault and the first note', async ({ page }) => {
   await installEmptyVaultMocks(page, {
     createdVaultPath: '/Users/mock/Documents/Fresh Vault',
@@ -180,14 +293,24 @@ test('keyboard onboarding can create an empty vault and the first note', async (
   await page.goto('/', { waitUntil: 'domcontentloaded' })
 
   await expect(page.getByTestId('welcome-screen')).toBeVisible()
-  await expect(page.getByTestId('welcome-create-new')).toContainText('Create empty vault')
+  await expect(page.getByTestId('welcome-create-new')).toContainText('Create empty notebook')
   await expect(page.getByTestId('welcome-create-vault')).toBeFocused()
 
   await page.keyboard.press('Tab')
   await expect(page.getByTestId('welcome-create-new')).toBeFocused()
   await page.keyboard.press('Enter')
 
-  await expect(page.getByTestId('note-list-container')).toBeVisible({ timeout: 5_000 })
+  await expect(page.getByTestId('create-vault-experience-preview')).toHaveAttribute(
+    'data-theme-preset-preview',
+    'morning-notebook',
+  )
+  await page.getByTestId('create-vault-experience-code-notebook').click()
+  await expect(page.getByTestId('create-vault-plan')).toContainText('Code Notebook')
+  await submitCreateVaultDialog(page, '/Users/mock/Documents/Fresh Vault')
+  await expect.poll(() => page.evaluate(() => (
+    (window as Window & { __lastSavedSettings?: Record<string, unknown> }).__lastSavedSettings?.theme_preset
+  ))).toBe('code-notebook')
+  await expect(page.getByTestId('status-vault-trigger')).toContainText('Fresh Vault', { timeout: 5_000 })
   await expectFreshVaultSeedEntries(page)
   await sendShortcut(page, 'n', ['Control'])
   await expect(untitledNoteRow(page)).toBeVisible({ timeout: 5_000 })
@@ -202,11 +325,10 @@ test('command palette and bottom bar expose empty-vault creation from the active
 
   await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-  await expect(page.getByTestId('note-list-container')).toBeVisible({ timeout: 5_000 })
   await expect(page.getByTestId('status-vault-trigger')).toContainText('Work Vault')
 
   await openCommandPalette(page)
-  expect(await findCommand(page, 'Create Empty Vault')).toBe(true)
+  expect(await findCommand(page, 'Create Empty Notebook')).toBe(true)
   await page.keyboard.press('Escape')
 
   const trigger = page.getByTestId('status-vault-trigger')
@@ -219,6 +341,7 @@ test('command palette and bottom bar expose empty-vault creation from the active
   await expect(createEmptyItem).toBeFocused()
   await page.keyboard.press('Enter')
 
+  await submitCreateVaultDialog(page, '/Users/mock/Documents/Client Vault')
   await expect(trigger).toContainText('Client Vault')
   await expectFreshVaultSeedEntries(page)
   await sendShortcut(page, 'n', ['Control'])

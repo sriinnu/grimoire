@@ -18,7 +18,7 @@ function strokeWidthFor(weight: IconProps['weight']): number {
 
 function domainFolderIconStyle(color: IconProps['color'], mirrored: IconProps['mirrored']): DomainFolderIconStyle {
   return {
-    '--domain-folder-aura': 'color-mix(in srgb, var(--accent-teal, currentColor) 76%, currentColor)',
+    '--domain-folder-aura': 'color-mix(in srgb, var(--accent-blue, currentColor) 72%, currentColor)',
     '--domain-folder-bright': 'color-mix(in srgb, var(--sidebar-primary-foreground, currentColor) 72%, currentColor)',
     '--domain-folder-fill': 'color-mix(in srgb, currentColor 13%, transparent)',
     '--domain-folder-memory': 'color-mix(in srgb, var(--accent-purple, currentColor) 68%, currentColor)',

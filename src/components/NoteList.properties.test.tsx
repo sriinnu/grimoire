@@ -33,7 +33,7 @@ describe('NoteList list properties', () => {
       allNotesNoteListProperties: null,
     })
 
-    expect(await screen.findByTitle('Customize All Notes columns')).toBeInTheDocument()
+    expect(await screen.findByTitle('Customize Pages columns')).toBeInTheDocument()
     expect(screen.getByText('High')).toBeInTheDocument()
     expect(screen.queryByText('Sriinu')).not.toBeInTheDocument()
   })

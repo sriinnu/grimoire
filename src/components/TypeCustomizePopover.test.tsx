@@ -140,10 +140,10 @@ describe('TypeCustomizePopover', () => {
     expect(onChangeIcon).toHaveBeenCalledWith('wrench')
   })
 
-  it('calls onChangeIcon when an image badge is clicked', async () => {
+  it('calls onChangeIcon when an image mark is clicked', async () => {
     await renderPopover()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Spelllink badge' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Link mark' }))
     expect(onChangeIcon).toHaveBeenCalledWith(expect.stringMatching(/^data:image\/svg\+xml/))
   })
 

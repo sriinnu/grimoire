@@ -37,17 +37,17 @@ describe('EditorAgentComposerBar', () => {
 
     expect(screen.getByRole('button', { name: /search this note/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /table of contents/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /spelllinks in this note/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /note links in this note/i })).toBeInTheDocument()
     expect(container.querySelector('.editor-agent-composer__ai-tools')).not.toBeInTheDocument()
   })
 
-  it('shows outgoing Spelllinks from the composer tools', async () => {
+  it('shows outgoing note links from the composer tools', async () => {
     render(<EditorAgentComposerBar content={linkedContent} onOpen={vi.fn()} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /spelllinks in this note/i }))
+    fireEvent.click(screen.getByRole('button', { name: /note links in this note/i }))
     const navigator = await navigatorPanel()
 
-    expect(navigator.getByText('2 Spelllinks')).toBeInTheDocument()
+    expect(navigator.getByText('2 note links')).toBeInTheDocument()
     expect(navigator.getByRole('button', { name: /Dream Ledger/i })).toBeInTheDocument()
     expect(navigator.getByRole('button', { name: /Morning Ritual/i })).toBeInTheDocument()
   })

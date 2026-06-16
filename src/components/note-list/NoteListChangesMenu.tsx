@@ -16,6 +16,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { clampFixedMenuPosition } from '@/lib/fixedMenuPosition'
 
 interface ChangesContextMenuParams {
   isChangesView: boolean
@@ -26,14 +27,6 @@ interface ChangesContextMenuParams {
 const CHANGES_MENU_WIDTH = 184
 const CHANGES_MENU_HEIGHT = 48
 const MENU_VIEWPORT_GAP = 8
-
-function clampMenuPosition(x: number, y: number): { left: number; top: number } {
-  if (typeof window === 'undefined') return { left: x, top: y }
-  return {
-    left: Math.max(MENU_VIEWPORT_GAP, Math.min(x, window.innerWidth - CHANGES_MENU_WIDTH - MENU_VIEWPORT_GAP)),
-    top: Math.max(MENU_VIEWPORT_GAP, Math.min(y, window.innerHeight - CHANGES_MENU_HEIGHT - MENU_VIEWPORT_GAP)),
-  }
-}
 
 export function useChangesContextMenu({
   isChangesView,
@@ -67,7 +60,6 @@ export function useChangesContextMenu({
 
   const handleNoteContextMenu = useCallback((entry: VaultEntry, event: ReactMouseEvent) => {
     event.preventDefault()
-    event.stopPropagation()
     openContextMenuForEntry(entry, { x: event.clientX, y: event.clientY })
   }, [openContextMenuForEntry])
 
@@ -90,7 +82,11 @@ export function useChangesContextMenu({
 
   const menuActionTarget = ctxMenu ? resolveActionTarget(ctxMenu.entry) : null
   const menuActionLabel = menuActionTarget?.action === 'restore' ? 'Restore note' : 'Discard changes'
-  const menuPosition = ctxMenu ? clampMenuPosition(ctxMenu.x, ctxMenu.y) : null
+  const menuPosition = ctxMenu ? clampFixedMenuPosition(ctxMenu.x, ctxMenu.y, {
+    width: CHANGES_MENU_WIDTH,
+    height: CHANGES_MENU_HEIGHT,
+    gap: MENU_VIEWPORT_GAP,
+  }) : null
   const MenuIcon = menuActionTarget?.action === 'restore' ? RotateCcw : Trash2
 
   const contextMenuNode = ctxMenu ? (

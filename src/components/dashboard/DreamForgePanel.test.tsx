@@ -63,7 +63,7 @@ describe('DreamForgePanel', () => {
     const timeline = screen.getByTestId('dream-forge-timeline')
     expect(timeline).toHaveAccessibleName('Private dream timeline')
     const manifest = screen.getByTestId('dream-forge-private-manifest')
-    expect(manifest).toHaveAccessibleName('Dream Forge local-only manifest')
+    expect(manifest).toHaveAccessibleName('Dream Review local-only manifest')
     for (const text of ['Local', 'Frontmatter', 'Blocked', 'Explicit', '4 records', '4 signals', '4 held']) {
       expect(manifest).toHaveTextContent(text)
     }

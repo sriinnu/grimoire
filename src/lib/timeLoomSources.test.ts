@@ -151,7 +151,7 @@ describe('buildTimeLoomSummary source lanes', () => {
 
     expect(summary.mobileEvents).toBe(1)
     expect(summary.buckets.map((bucket) => bucket.dateKey)).toEqual(['2026-05-21'])
-    expect(summary.activeSpanLabel).toBe('1 event on May 21')
+    expect(summary.activeSpanLabel).toBe('1 mark on May 21')
     expect(payload).not.toContain('Private imported phone note')
     expect(payload).not.toContain('private-imported-phone-note')
     expect(payload).not.toContain('iphone')
@@ -191,8 +191,8 @@ describe('buildTimeLoomSummary source lanes', () => {
     const payload = JSON.stringify(summary)
 
     expect(summary.patterns).toEqual([
-      { label: 'Primary thread', detail: 'Mobile 1 / Calendar 1 / Voice 1', tone: 'steady' },
-      { label: 'Open loops', detail: '1 open marker across 1 active day', tone: 'attention' },
+      { label: 'Primary thread', detail: '1 mobile capture / 1 planned mark / 1 voice capture', tone: 'steady' },
+      { label: 'Revisit', detail: '1 open marker across 1 day', tone: 'attention' },
       { label: 'Private review', detail: '2 private / 1 mobile / 1 voice', tone: 'private' },
     ])
     expect(payload).not.toContain('Private iPhone dream')
@@ -203,7 +203,7 @@ describe('buildTimeLoomSummary source lanes', () => {
     expect(payload).not.toContain('iphone')
   })
 
-  it('places task due frontmatter on the task date without leaking task text', () => {
+  it('places due-next frontmatter on the task date without leaking task text', () => {
     const now = new Date(2026, 4, 23, 12)
     const importedAt = Date.UTC(2026, 4, 23, 11) / 1000
     const summary = buildTimeLoomSummary([
@@ -237,8 +237,8 @@ describe('buildTimeLoomSummary source lanes', () => {
     expect(summary.buckets[0].typeCounts).toEqual([{ label: 'Task', count: 1 }])
     expect(summary.buckets[1].typeCounts).toEqual([{ label: 'Task', count: 1 }])
     expect(summary.patterns).toContainEqual({
-      label: 'Open loops',
-      detail: '2 tasks due / 2 open markers across 2 active days',
+      label: 'Revisit',
+      detail: '2 due next / 2 open markers across 2 days',
       tone: 'attention',
     })
     expect(payload).not.toContain('Secret bill follow-up')
@@ -247,7 +247,7 @@ describe('buildTimeLoomSummary source lanes', () => {
     expect(payload).not.toContain('deadline')
   })
 
-  it('folds vault commits into metadata-only timeline counts', () => {
+  it('folds vault commits into metadata-only trail counts', () => {
     const now = new Date(2026, 4, 23, 12)
     const summary = buildTimeLoomSummary([
       entry({ title: 'Public Note', isA: 'Note' }),

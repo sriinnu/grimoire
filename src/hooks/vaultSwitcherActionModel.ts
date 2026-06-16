@@ -31,7 +31,7 @@ export interface RegisteredVaultSelection {
   nextSelectedVaultPath: string
 }
 
-/** Inputs required to restore the default Getting Started vault. */
+/** Inputs required to restore the default Getting Started notebook. */
 export interface RestoreGettingStartedOptions {
   defaultPath: string
   onToastRef: MutableRefObject<(msg: string) => void>
@@ -66,7 +66,7 @@ interface RemoveVaultStateOptions extends RemainingVaultOptions {
   vaultPath: string
 }
 
-/** Formats native fallback failures for restoring the Getting Started vault. */
+/** Formats native fallback failures for restoring the Getting Started notebook. */
 export function formatGettingStartedRestoreError(err: unknown): string {
   const message =
     typeof err === 'string'
@@ -75,10 +75,10 @@ export function formatGettingStartedRestoreError(err: unknown): string {
         ? err.message
         : `${err}`
 
-  return `Could not prepare Getting Started vault: ${message}`
+  return `Could not prepare Getting Started notebook: ${message}`
 }
 
-/** Formats native empty-vault creation failures for user-facing toasts. */
+/** Formats native empty-notebook creation failures for user-facing toasts. */
 export function formatCreateEmptyVaultError(err: unknown): string {
   const message =
     typeof err === 'string'
@@ -91,7 +91,7 @@ export function formatCreateEmptyVaultError(err: unknown): string {
     return message
   }
 
-  return `Could not create empty vault: ${message}`
+  return `Could not create empty notebook: ${message}`
 }
 
 /** Ensures the default vault exists, creating it through native code when needed. */
@@ -102,7 +102,7 @@ export async function ensureGettingStartedVaultReady(path: string): Promise<void
   }
 }
 
-/** Restores the Getting Started vault and switches to it when native prep succeeds. */
+/** Restores the Getting Started notebook and switches to it when native prep succeeds. */
 export async function restoreGettingStartedVault({
   defaultPath,
   onToastRef,
@@ -111,7 +111,7 @@ export async function restoreGettingStartedVault({
   switchVault,
 }: RestoreGettingStartedOptions) {
   if (!defaultPath) {
-    onToastRef.current('Could not resolve the Getting Started vault path')
+    onToastRef.current('Could not resolve the Getting Started notebook path')
     return
   }
 
@@ -120,7 +120,7 @@ export async function restoreGettingStartedVault({
     setDefaultAvailable(true)
     setHiddenDefaults(previousHidden => previousHidden.filter(path => path !== defaultPath))
     switchVault(defaultPath)
-    onToastRef.current('Getting Started vault ready')
+    onToastRef.current('Getting Started notebook ready')
   } catch (err) {
     onToastRef.current(formatGettingStartedRestoreError(err))
   }

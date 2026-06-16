@@ -56,9 +56,7 @@ async function installPersistentViewMocks(page: Page) {
 }
 
 async function openCreateViewDialog(page: Page) {
-  const viewsHeader = page.locator('button:has(span:text("VIEWS"))')
-  await viewsHeader.waitFor({ timeout: 10_000 })
-  await viewsHeader.locator('svg').last().click({ force: true })
+  await page.getByRole('button', { name: 'Create lens' }).click()
   await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10_000 })
 }
 
@@ -92,8 +90,8 @@ test('view row hover swaps the note count with edit/delete actions', async ({ pa
 
   await expect.poll(() => opacityOf(countChip)).toBeLessThan(0.1)
   await expect.poll(() => opacityOf(actionStrip)).toBeGreaterThan(0.9)
-  await expect(viewRow.getByTitle('Edit view')).toBeVisible()
-  await expect(viewRow.getByTitle('Delete view')).toBeVisible()
+  await expect(viewRow.getByTitle('Edit lens')).toBeVisible()
+  await expect(viewRow.getByTitle('Delete lens')).toBeVisible()
 
   await page.getByTestId('sidebar-top-nav').hover()
 

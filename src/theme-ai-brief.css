@@ -1,10 +1,10 @@
 :where(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) {
   --grimoire-ai-brief-material:
     linear-gradient(135deg, color-mix(in srgb, var(--grimoire-signal-accent) 8%, transparent), transparent 58%),
@@ -13,11 +13,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__inner {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-ai-brief-material);
@@ -26,11 +26,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__runway-step {
   border-color: color-mix(in srgb, var(--grimoire-hairline) 82%, transparent);
   background: color-mix(in srgb, var(--surface-input) 64%, transparent);
@@ -39,11 +39,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__runway-step[data-state="active"] {
   border-color: color-mix(in srgb, var(--grimoire-signal-accent) 38%, var(--grimoire-hairline));
   background: color-mix(in srgb, var(--grimoire-signal-accent) 13%, transparent);
@@ -52,19 +52,19 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__context-strip,
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__memory-strip {
   border-color: var(--grimoire-signal-border);
   background:
@@ -74,19 +74,19 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__context-strip [data-metric],
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__memory-strip [data-metric] {
   border-color: color-mix(in srgb, var(--grimoire-signal-border) 42%, var(--grimoire-hairline));
   background: color-mix(in srgb, var(--surface-input) 58%, transparent);
@@ -94,11 +94,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief__context-strip[data-locality="protected-local"] {
   border-color: color-mix(in srgb, var(--grimoire-private-local-accent) 30%, var(--grimoire-hairline));
   background:
@@ -108,11 +108,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .grimoire-ai-brief[data-locality="protected-local"] .grimoire-ai-brief__inner {
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--grimoire-private-local-accent) 10%, transparent), transparent 62%),

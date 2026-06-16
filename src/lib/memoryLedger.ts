@@ -126,7 +126,7 @@ export function buildMemoryLedgerDisplayState(record: MemoryLedgerRecord, now = 
     handoffTone: handoffTone(record.handoff),
     receiptLabel: crystallizeReceiptLabel(record.crystallizeReceipt),
     receiptTone: record.crystallizeReceipt ? 'verified' : 'neutral',
-    loopLabel: record.crystallizeLoop ? 'Loop closed' : null,
+    loopLabel: record.crystallizeLoop ? 'Thread settled' : null,
     reviewLogLabel: latestReviewLogLabel(record.reviewLog),
   }
 }

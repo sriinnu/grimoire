@@ -82,7 +82,7 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
         .id(TRAY_OPEN_GRIMOIRE)
         .build(app_handle)
         .map_err(|error| error.to_string())?;
-    let new_note = MenuItemBuilder::new("New Note")
+    let new_note = MenuItemBuilder::new("New Page")
         .id(FILE_NEW_NOTE)
         .build(app_handle)
         .map_err(|error| error.to_string())?;
@@ -114,7 +114,7 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
         .id(APP_SETTINGS)
         .build(app_handle)
         .map_err(|error| error.to_string())?;
-    let reload = MenuItemBuilder::new("Reload Vault")
+    let reload = MenuItemBuilder::new("Reload Notebook")
         .id(VAULT_RELOAD)
         .build(app_handle)
         .map_err(|error| error.to_string())?;

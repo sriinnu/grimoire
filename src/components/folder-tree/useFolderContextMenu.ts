@@ -36,7 +36,6 @@ export function useFolderContextMenu({
 
   const handleOpenMenu = useCallback((node: FolderNode, event: ReactMouseEvent<HTMLDivElement>) => {
     event.preventDefault()
-    event.stopPropagation()
     setContextMenu({
       path: node.path,
       x: event.clientX,

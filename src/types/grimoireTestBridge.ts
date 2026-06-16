@@ -7,6 +7,7 @@ export interface GrimoireTestBridge {
   activeTabPath?: string | null
   dispatchAppCommand?: (id: string) => void
   dispatchShortcutEvent?: (init: AppCommandShortcutEventInit) => void
+  enableAiActivityBridge?: boolean
   dispatchBrowserMenuCommand?: (id: string) => void
   triggerMenuCommand?: (id: string) => Promise<unknown>
   triggerShortcutCommand?: (id: string, options?: AppCommandShortcutEventOptions) => void

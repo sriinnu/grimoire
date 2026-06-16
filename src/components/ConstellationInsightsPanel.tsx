@@ -1,7 +1,8 @@
-import { Clock3, Network, Sparkles } from 'lucide-react'
+import { Brain, Clock3, MessageCircle, Network, ShieldCheck } from 'lucide-react'
 import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { resolveEntry, wikilinkDisplay, wikilinkTarget } from '../utils/wikilink'
+import { Button } from './ui/button'
 
 function stripWiki(value: string): string {
   return value.replace(/^\[\[|\]\]$/gu, '')
@@ -41,7 +42,7 @@ function getKeyPoints(entry: VaultEntry, content: string | null): string[] {
 interface LinkedConcept {
   label: string
   target: VaultEntry | null
-  tone: 'matched' | 'unresolved'
+  tone: 'active' | 'matched' | 'nearby' | 'unresolved'
 }
 
 function getLinkedConcepts(entry: VaultEntry, entries: VaultEntry[]): LinkedConcept[] {
@@ -51,14 +52,27 @@ function getLinkedConcepts(entry: VaultEntry, entries: VaultEntry[]): LinkedConc
     ...(entry.outgoingLinks ?? []),
   ].filter(Boolean))].slice(0, 6)
 
-  return refs.map((ref) => {
-    const target = resolveEntry(entries, wikilinkTarget(ref)) ?? null
-    return {
-      label: target?.title ?? wikilinkDisplay(ref),
-      target,
-      tone: target ? 'matched' : 'unresolved',
-    }
-  })
+  if (refs.length > 0) {
+    return refs.map((ref) => {
+      const target = resolveEntry(entries, wikilinkTarget(ref)) ?? null
+      return {
+        label: target?.title ?? wikilinkDisplay(ref),
+        target,
+        tone: target ? 'matched' : 'unresolved',
+      }
+    })
+  }
+
+  const localNoteCount = entries.filter((candidate) => !candidate.archived).length
+
+  const fallbackNodes: LinkedConcept[] = [
+    { label: entry.title, target: entry, tone: 'active' },
+    { label: `${localNoteCount} local notes`, target: null, tone: 'nearby' },
+    { label: 'Memory lane', target: null, tone: 'nearby' },
+    { label: 'Relationship scan', target: null, tone: 'nearby' },
+  ]
+
+  return fallbackNodes.slice(0, 6)
 }
 
 function modifiedLabel(entry: VaultEntry): string {
@@ -70,18 +84,18 @@ function ConceptMap({ concepts, onNavigate }: { concepts: LinkedConcept[]; onNav
   const nodes = concepts.slice(0, 6)
 
   return (
-    <div className="constellation-concept-map" aria-label="Linked concept map">
-      <span className="constellation-concept-map__core"><Network className="size-4" /></span>
+    <div className="linked-concept-map" aria-label="Linked concept map">
+      <span className="linked-concept-map__core"><Network className="size-4" /></span>
       {nodes.map((concept, index) => (
         <button
           type="button"
-          aria-label={concept.target ? `Open linked concept ${concept.label}` : `Unresolved linked concept ${concept.label}`}
-          className={`constellation-concept-map__node constellation-concept-map__node--${index + 1}`}
+          aria-label={conceptAriaLabel(concept)}
+          className={`linked-concept-map__node linked-concept-map__node--${index + 1}`}
           key={`${concept.label}-${index}`}
           data-concept-state={concept.tone}
-          disabled={!concept.target}
+          disabled={!concept.target || concept.tone === 'active'}
           onClick={() => {
-            if (concept.target) onNavigate(concept.target.title)
+            if (concept.target && concept.tone !== 'active') onNavigate(concept.target.title)
           }}
         >
           {concept.label}
@@ -91,29 +105,60 @@ function ConceptMap({ concepts, onNavigate }: { concepts: LinkedConcept[]; onNav
   )
 }
 
+function conceptAriaLabel(concept: LinkedConcept): string {
+  if (concept.tone === 'active') return `Current graph node ${concept.label}`
+  if (concept.tone === 'nearby' && concept.target) return `Open nearby graph node ${concept.label}`
+  if (concept.tone === 'nearby') return `Local graph node ${concept.label}`
+  if (concept.target) return `Open linked concept ${concept.label}`
+  return `Unresolved linked concept ${concept.label}`
+}
+
 /** Local, inspectable insight layer for the right-side panel. */
 export function ConstellationInsightsPanel({
   entry,
   entries,
   content,
+  onOpenSecondBrain,
   onNavigate,
 }: {
   entry: VaultEntry
   entries: VaultEntry[]
   content: string | null
+  onOpenSecondBrain?: () => void
   onNavigate: (target: string) => void
 }) {
   const keyPoints = getKeyPoints(entry, content)
   const linkedConcepts = getLinkedConcepts(entry, entries)
 
   return (
-    <section className="constellation-insights" aria-label="AI Insights">
-      <header className="constellation-insights__header">
-        <Sparkles className="size-4" />
-        <span>AI Insights</span>
+    <section className="constellation-insights" aria-label="Second Brain" data-testid="second-brain-panel">
+      <header className="constellation-insights__header flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <Brain className="size-4" />
+            <span>Second Brain</span>
+          </div>
+          <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+            <ShieldCheck className="size-3" />
+            <span className="truncate">Local context</span>
+          </div>
+        </div>
+        {onOpenSecondBrain ? (
+          <Button
+            aria-label="Open Second Brain chat"
+            className="second-brain-panel__ask shrink-0"
+            onClick={onOpenSecondBrain}
+            size="xs"
+            type="button"
+            variant="secondary"
+          >
+            <MessageCircle className="size-3" />
+            Ask
+          </Button>
+        ) : null}
       </header>
       <div className="constellation-insights__section">
-        <h3>Summary</h3>
+        <h3>Signal</h3>
         <p>{firstSentences(content)}</p>
       </div>
       {keyPoints.length > 0 ? (
@@ -124,12 +169,10 @@ export function ConstellationInsightsPanel({
           </ul>
         </div>
       ) : null}
-      {linkedConcepts.length > 0 ? (
-        <div className="constellation-insights__section">
-          <h3>Linked Concepts</h3>
-          <ConceptMap concepts={linkedConcepts} onNavigate={onNavigate} />
-        </div>
-      ) : null}
+      <div className="constellation-insights__section">
+        <h3>Graph Nodes</h3>
+        <ConceptMap concepts={linkedConcepts} onNavigate={onNavigate} />
+      </div>
       <div className="constellation-insights__section constellation-insights__activity">
         <h3>Activity</h3>
         <p><Clock3 className="size-3.5" /> You edited this note {modifiedLabel(entry)}.</p>

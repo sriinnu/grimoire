@@ -59,7 +59,7 @@ describe('GraphModal Agent Council handoff', () => {
 
     render(<GraphModal open={true} entries={[alpha, beta, delta]} activePath={alpha.path} onOpenNote={vi.fn()} onClose={onClose} />)
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Vault' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Notebook' }))
     expect(screen.getByRole('button', { name: 'Select Delta' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Select Beta' }))
     const manifest = within(screen.getByTestId('graph-package-manifest'))
@@ -108,6 +108,8 @@ describe('GraphModal Agent Council handoff', () => {
     expect(screen.getByTestId('graph-canvas-selected-summary')).toHaveTextContent('Selected Alpha')
     expect(commandCenter.getByText('Ready for review')).toBeInTheDocument()
     expect(commandCenter.getByText(/source labels and 1 links can be reviewed/)).toBeInTheDocument()
+    expect(commandCenter.getByTestId('graph-working-memory')).toHaveTextContent('2Nodes')
+    expect(commandCenter.getByTestId('graph-working-memory')).toHaveTextContent('1Links')
     expect(runway.getByText('2 notes / 1 link.')).toBeInTheDocument()
     expect(runway.getByText('Codex / Claude Code')).toBeInTheDocument()
     expect(runway.getByText('provider: google · model: gemini-2.5-pro')).toBeInTheDocument()
@@ -242,7 +244,7 @@ describe('GraphModal Agent Council handoff', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('radio', { name: 'Vault' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Notebook' }))
     fireEvent.click(within(screen.getByTestId('graph-selected-node')).getByRole('button', { name: 'Ask Council' }))
     const review = screen.getByTestId('graph-council-review-dialog')
     expect(review).toHaveTextContent('Hub')

@@ -80,8 +80,23 @@
     padding-top: var(--sidebar-title-bar-padding-top) !important;
   }
 
+  body.windows-chrome {
+    --sidebar-title-bar-height: 60px;
+    --sidebar-title-bar-padding-top: 0px;
+    --sidebar-rail-safe-top: var(--sidebar-title-bar-height, 60px);
+  }
+
+  body.windows-chrome .sidebar-title-bar {
+    height: var(--sidebar-title-bar-height) !important;
+    padding-top: var(--sidebar-title-bar-padding-top) !important;
+  }
+
   body.macos-overlay-chrome .app-sidebar-rail {
     padding-top: var(--macos-overlay-rail-safe-top) !important;
+  }
+
+  body.windows-chrome .app-sidebar-rail {
+    padding-top: var(--sidebar-rail-safe-top) !important;
   }
 
   html,

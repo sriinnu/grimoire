@@ -141,6 +141,27 @@ interface StatusBarFooterProps extends StatusBarProps {
 
 type StatusBarTone = 'healthy' | 'attention' | 'danger' | 'neutral'
 
+function describeUnknownSyncState(syncStatus: string) {
+  return syncStatus.replace(/_/g, ' ')
+}
+
+function describeSyncState(syncStatus: SyncStatus) {
+  switch (syncStatus) {
+    case 'idle':
+      return null
+    case 'pull_required':
+      return 'needs incoming edits'
+    case 'syncing':
+      return 'syncing'
+    case 'error':
+      return 'sync failed'
+    case 'conflict':
+      return 'conflicted'
+    default:
+      return describeUnknownSyncState(syncStatus)
+  }
+}
+
 function getStatusBarTone({
   conflictCount,
   isOffline,
@@ -169,11 +190,12 @@ function getStatusBarLabel({
   modifiedCount: number
   syncStatus: SyncStatus
 }) {
-  const parts = ['Grimoire status']
+  const parts = ['Notebook status']
+  const syncDescription = describeSyncState(syncStatus)
   if (isOffline) parts.push('offline')
-  if (modifiedCount > 0) parts.push(`${modifiedCount} pending change${modifiedCount > 1 ? 's' : ''}`)
+  if (modifiedCount > 0) parts.push('edits waiting')
   if (conflictCount > 0) parts.push(`${conflictCount} conflict${conflictCount > 1 ? 's' : ''}`)
-  parts.push(`sync ${syncStatus.replace(/_/g, ' ')}`)
+  if (syncDescription) parts.push(syncDescription)
   return parts.join(', ')
 }
 
@@ -275,8 +297,6 @@ function StatusBarFooter({
         onTriggerSync={onTriggerSync}
         onPullAndPush={onPullAndPush}
         onOpenConflictResolver={onOpenConflictResolver}
-        buildNumber={buildNumber}
-        onCheckForUpdates={onCheckForUpdates}
         onRemoveVault={onRemoveVault}
         mcpStatus={mcpStatus}
         onInstallMcp={onInstallMcp}
@@ -293,11 +313,24 @@ function StatusBarFooter({
         compact={compact}
       />
       <StatusBarSecondarySection
+        buildNumber={buildNumber}
+        conflictCount={conflictCount}
+        isGitVault={isGitVault}
+        modifiedCount={modifiedCount}
         noteCount={noteCount}
+        remoteStatus={remoteStatus}
+        syncStatus={syncStatus}
         zoomLevel={zoomLevel}
         themeMode={themeMode}
+        onCheckForUpdates={onCheckForUpdates}
+        onClickPending={onClickPending}
+        onClickPulse={onClickPulse}
+        onCommitPush={onCommitPush}
+        onOpenConflictResolver={onOpenConflictResolver}
         onZoomReset={onZoomReset}
+        onPullAndPush={onPullAndPush}
         onToggleThemeMode={onToggleThemeMode}
+        onTriggerSync={onTriggerSync}
         onOpenFeedback={onOpenFeedback}
         onOpenSettings={onOpenSettings}
         stacked={stacked}
@@ -307,7 +340,7 @@ function StatusBarFooter({
   )
 }
 
-/** Renders the persistent bottom command and system-status strip. */
+/** Renders the quiet notebook footer for local state and overflow controls. */
 export function StatusBar(props: StatusBarProps) {
   useStatusBarTicker()
   const { compact, stacked } = useStatusBarLayout()

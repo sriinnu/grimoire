@@ -21,4 +21,11 @@ describe('app scrollbar styling', () => {
     expect(scrollAreaSource).toContain('"h-1.5 flex-col border-t border-t-transparent"')
     expect(scrollAreaSource).toContain('bg-border/75 hover:bg-border')
   })
+
+  it('collapses desktop chrome instead of squeezing the notebook at narrow widths', () => {
+    expect(appCss).toContain('@media (max-width: 720px)')
+    expect(appCss).toContain('.app__sidebar {\n    display: none;')
+    expect(appCss).toContain('.app__note-list,\n  .app__editor,\n  .app__dashboard')
+    expect(appCss).toContain('min-width: 0')
+  })
 })

@@ -112,7 +112,7 @@ export function InlineWikilinkSuggestionList({
   onSelect,
   typeEntryMap,
   variant = 'floating',
-  emptyLabel = 'No matching notes',
+  emptyLabel = 'No matching pages',
 }: {
   suggestions: InlineWikilinkSuggestion[]
   selectedIndex: number

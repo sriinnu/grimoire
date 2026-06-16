@@ -29,7 +29,7 @@ export interface AiAgentRuntimeRoute {
 }
 
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
-export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Open the native Grimoire app for live AI.'
+export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Live local helpers run in the native Grimoire app.'
 export const AI_AGENTS_STATUS_SCAN_FAILED_DETAIL =
   'Local CLI scan failed. Check again after the native app finishes launching.'
 export const AI_AGENT_CLI_DEFAULT_ROUTE = 'resolved by stream'

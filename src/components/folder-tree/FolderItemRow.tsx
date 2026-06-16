@@ -57,7 +57,6 @@ export function FolderItemRow({
           ? 'text-primary'
           : 'text-foreground hover:bg-accent',
       )}
-      data-folder-row-motif={glyphModel.motif}
       data-folder-row-tone={glyphModel.tone}
       data-selected={isSelected ? 'true' : 'false'}
       style={{ paddingLeft: depthIndent, borderRadius: 4 }}

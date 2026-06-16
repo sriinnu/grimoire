@@ -109,15 +109,19 @@ function githubVerifiedHeadProof(repoName, branch) {
 function readStarterBundleProof() {
   const config = JSON.parse(readFileSync(resolve('src-tauri/tauri.conf.json'), 'utf8'))
   const resources = config.bundle?.resources ?? {}
+  const beforeBuildCommand = String(config.build?.beforeBuildCommand ?? '')
   const configured = Object.entries(resources).some(([source, destination]) => (
-    String(source).includes('../demo-vault-v2/**/*')
+    String(source) === 'resources/starter-vault'
     && String(destination) === 'starter-vault/'
-  ))
+  )) && beforeBuildCommand.includes('pnpm bundle-starter-vault')
 
   return {
     configured,
     sourceExists: existsSync(resolve('demo-vault-v2/.fixture-manifest.json'))
-      && existsSync(resolve('demo-vault-v2/grimoire-start-here.md')),
+      && existsSync(resolve('demo-vault-v2/grimoire-start-here.md'))
+      && existsSync(resolve('demo-vault-v2/type/project.md'))
+      && existsSync(resolve('demo-vault-v2/views/active-projects.yml'))
+      && existsSync(resolve('demo-vault-v2/attachments/grimoire-reference.png')),
   }
 }
 

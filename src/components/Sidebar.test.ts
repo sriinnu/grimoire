@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { buildSectionGroup, buildDynamicSections, collectActiveTypes } from '../utils/sidebarSections'
+import {
+  buildSectionGroup,
+  buildDynamicSections,
+  collectActiveTypes,
+  isNotebookSidebarSectionVisibleByDefault,
+} from '../utils/sidebarSections'
 import { resolveIcon } from '../utils/iconRegistry'
 import { VedasIcon } from './icons/grimoireKnowledgeIcons'
 import type { VaultEntry } from '../types'
@@ -15,6 +20,15 @@ const baseEntry: VaultEntry = {
 }
 
 describe('buildSectionGroup', () => {
+  it('uses notebook-place labels for built-in work types', () => {
+    expect(buildSectionGroup('Project', {}).label).toBe('Making')
+    expect(buildSectionGroup('Experiment', {}).label).toBe('Trials')
+    expect(buildSectionGroup('Responsibility', {}).label).toBe('Care')
+    expect(buildSectionGroup('Procedure', {}).label).toBe('Ways')
+    expect(buildSectionGroup('Event', {}).label).toBe('Moments')
+    expect(buildSectionGroup('Topic', {}).label).toBe('Ideas')
+  })
+
   it('uses type entry icon/color/sidebarLabel for custom type', () => {
     const typeEntryMap: Record<string, VaultEntry> = {
       Config: { ...baseEntry, title: 'Config', isA: 'Type', icon: 'gear-six', color: 'blue', sidebarLabel: 'Config' },
@@ -148,6 +162,23 @@ describe('buildDynamicSections', () => {
     const sections = buildDynamicSections(entries, typeEntryMap)
 
     expect(sections.filter((section) => section.type === 'Journal')).toHaveLength(1)
+  })
+})
+
+describe('isNotebookSidebarSectionVisibleByDefault', () => {
+  it('keeps advanced machinery out of the first sidebar by default', () => {
+    expect(isNotebookSidebarSectionVisibleByDefault('Config')).toBe(false)
+    expect(isNotebookSidebarSectionVisibleByDefault('Agents')).toBe(false)
+    expect(isNotebookSidebarSectionVisibleByDefault('Consoles')).toBe(false)
+    expect(isNotebookSidebarSectionVisibleByDefault('Dream')).toBe(false)
+    expect(isNotebookSidebarSectionVisibleByDefault('Journal')).toBe(false)
+    expect(isNotebookSidebarSectionVisibleByDefault('Note')).toBe(false)
+    expect(isNotebookSidebarSectionVisibleByDefault('Type')).toBe(false)
+  })
+
+  it('allows explicitly visible advanced sections', () => {
+    expect(isNotebookSidebarSectionVisibleByDefault('Config', { ...baseEntry, visible: true })).toBe(true)
+    expect(isNotebookSidebarSectionVisibleByDefault('Note', { ...baseEntry, visible: true })).toBe(true)
   })
 })
 

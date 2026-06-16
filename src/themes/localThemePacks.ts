@@ -102,7 +102,7 @@ export async function refreshDevelopmentThemePack(
     const message = error instanceof Error ? error.message : 'Could not load local theme endpoint.'
     return { status: 'invalid', errors: [message] }
   }
-  if (response.status === 404) {
+  if (response.status === 204 || response.status === 404) {
     clearStoredLocalThemeDefinition(storage)
     return { status: 'missing' }
   }

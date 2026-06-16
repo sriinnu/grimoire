@@ -3,10 +3,11 @@ import type { SidebarSelection } from '../../types'
 import { isSelectionActive, NavItem } from '../SidebarParts'
 import {
   ArchiveGlyphIcon,
-  DashboardGlyphIcon,
   DreamGlyphIcon,
+  GraphGlyphIcon,
   InboxGlyphIcon,
   JournalGlyphIcon,
+  NotebookGlyphIcon,
   NotesGlyphIcon,
 } from '../icons/sidebarGlyphIcons'
 
@@ -22,6 +23,7 @@ interface SidebarTopNavProps {
   journalCount: number
   dreamCount: number
   archivedCount: number
+  onOpenGraph?: () => void
 }
 
 function ToneNavItem({
@@ -47,18 +49,12 @@ function ToneNavItem({
 export function SidebarTopNav({
   selection,
   onSelect,
+  onOpenGraph,
   showInbox,
-  inboxCount,
-  activeCount,
-  noteCount,
-  journalCount,
-  dreamCount,
-  archivedCount,
 }: SidebarTopNavProps) {
   const dashboardActive = isSelectionActive(selection, { kind: 'dashboard' })
   const inboxActive = isSelectionActive(selection, { kind: 'filter', filter: 'inbox' })
-  const allNotesActive = isSelectionActive(selection, { kind: 'filter', filter: 'all' })
-  const notesActive = isSelectionActive(selection, { kind: 'sectionGroup', type: 'Note' })
+  const pagesActive = isSelectionActive(selection, { kind: 'filter', filter: 'all' })
   const journalActive = isSelectionActive(selection, { kind: 'sectionGroup', type: 'Journal' })
   const dreamsActive = isSelectionActive(selection, { kind: 'sectionGroup', type: 'Dream' })
   const archiveActive = isSelectionActive(selection, { kind: 'filter', filter: 'archived' })
@@ -67,10 +63,9 @@ export function SidebarTopNav({
     <div className="border-b border-border" data-testid="sidebar-top-nav" style={{ padding: '4px 6px' }}>
       <ToneNavItem active={dashboardActive} tone="aura">
         <NavItem
-          icon={DashboardGlyphIcon}
-          label="Dashboard"
+          icon={NotebookGlyphIcon}
+          label="Notebook"
           isActive={dashboardActive}
-          activeClassName="bg-primary/10 text-primary"
           onClick={() => onSelect({ kind: 'dashboard' })}
         />
       </ToneNavItem>
@@ -79,48 +74,34 @@ export function SidebarTopNav({
           <NavItem
             icon={InboxGlyphIcon}
             label="Inbox"
-            count={inboxCount}
             isActive={inboxActive}
-            badgeClassName="text-muted-foreground"
-            badgeStyle={{ background: 'var(--muted)' }}
-            activeBadgeClassName="bg-primary text-primary-foreground"
             onClick={() => onSelect({ kind: 'filter', filter: 'inbox' })}
           />
         </ToneNavItem>
       )}
-      <ToneNavItem active={allNotesActive} tone="blue">
+      <ToneNavItem active={pagesActive} tone="blue">
         <NavItem
           icon={NotesGlyphIcon}
-          label="All Notes"
-          count={activeCount}
-          isActive={allNotesActive}
-          badgeClassName="text-muted-foreground"
-          badgeStyle={{ background: 'var(--muted)' }}
-          activeBadgeClassName="bg-primary text-primary-foreground"
+          label="Pages"
+          isActive={pagesActive}
           onClick={() => onSelect({ kind: 'filter', filter: 'all' })}
         />
       </ToneNavItem>
-      <ToneNavItem active={notesActive} tone="blue">
-        <NavItem
-          icon={NotesGlyphIcon}
-          label="Notes"
-          count={noteCount}
-          isActive={notesActive}
-          badgeClassName="text-muted-foreground"
-          badgeStyle={{ background: 'var(--muted)' }}
-          activeBadgeClassName="bg-primary text-primary-foreground"
-          onClick={() => onSelect({ kind: 'sectionGroup', type: 'Note' })}
-        />
-      </ToneNavItem>
+      {onOpenGraph && (
+        <ToneNavItem active={false} tone="blue">
+          <NavItem
+            icon={GraphGlyphIcon}
+            label="Graph"
+            isActive={false}
+            onClick={onOpenGraph}
+          />
+        </ToneNavItem>
+      )}
       <ToneNavItem active={journalActive} tone="aura">
         <NavItem
           icon={JournalGlyphIcon}
           label="Journal"
-          count={journalCount}
           isActive={journalActive}
-          badgeClassName="text-muted-foreground"
-          badgeStyle={{ background: 'var(--muted)' }}
-          activeBadgeClassName="bg-primary text-primary-foreground"
           onClick={() => onSelect({ kind: 'sectionGroup', type: 'Journal' })}
         />
       </ToneNavItem>
@@ -128,11 +109,7 @@ export function SidebarTopNav({
         <NavItem
           icon={DreamGlyphIcon}
           label="Dreams"
-          count={dreamCount}
           isActive={dreamsActive}
-          badgeClassName="text-muted-foreground"
-          badgeStyle={{ background: 'var(--muted)' }}
-          activeBadgeClassName="bg-primary text-primary-foreground"
           onClick={() => onSelect({ kind: 'sectionGroup', type: 'Dream' })}
         />
       </ToneNavItem>
@@ -140,11 +117,7 @@ export function SidebarTopNav({
         <NavItem
           icon={ArchiveGlyphIcon}
           label="Archive"
-          count={archivedCount}
           isActive={archiveActive}
-          badgeClassName="text-muted-foreground"
-          badgeStyle={{ background: 'var(--muted)' }}
-          activeBadgeClassName="bg-primary text-primary-foreground"
           onClick={() => onSelect({ kind: 'filter', filter: 'archived' })}
         />
       </ToneNavItem>

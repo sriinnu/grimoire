@@ -1,15 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  FONT_ASSETS,
   applyFontRolesToDocument,
   resolveFontAssetIds,
   resolveFontRoles,
 } from './fontConfig'
-import { THEME_PRESET_CATALOG } from '../themes/themeRegistry'
 
 describe('fontConfig', () => {
-  it('keeps the bundled Caveat asset available without loading it for curated defaults', () => {
+  it('does not ship handwritten font assets for curated defaults', () => {
     const roles = resolveFontRoles({
       themePreset: 'living-archive',
       editorFont: 'system',
@@ -17,17 +15,13 @@ describe('fontConfig', () => {
 
     expect(roles.display).toContain("'Literata'")
     expect(resolveFontAssetIds({
-      themePreset: 'retro-terminal',
+      themePreset: 'code-notebook',
       editorFont: 'system',
     })).toEqual([])
     expect(resolveFontAssetIds({
       themePreset: 'living-archive',
       editorFont: 'literary',
-      themeDefinition: {
-        ...THEME_PRESET_CATALOG[0],
-        typography: { display: "'Grimoire Caveat', cursive" },
-      },
-    })).toEqual(['caveat'])
+    })).toEqual([])
   })
 
   it('keeps editor font preference separate from display font', () => {
@@ -42,11 +36,11 @@ describe('fontConfig', () => {
 
   it('uses built-in theme-pack typography roles before user editor overrides', () => {
     const daylightRoles = resolveFontRoles({
-      themePreset: 'daylight-atelier',
+      themePreset: 'daylight-notebook',
       editorFont: 'system',
     })
     const retroRoles = resolveFontRoles({
-      themePreset: 'retro-terminal',
+      themePreset: 'code-notebook',
       editorFont: 'mono',
     })
 
@@ -89,17 +83,11 @@ describe('fontConfig', () => {
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toMatch(/^'Grimoire Berkeley Mono'/)
   })
 
-  it('points the Caveat asset at the local bundled font file', () => {
-    expect(FONT_ASSETS.caveat.family).toBe('Grimoire Caveat')
-    expect(FONT_ASSETS.caveat.source).toContain('Caveat-VariableFont_wght.ttf')
-  })
-
-  it('declares Caveat through CSS so Tauri and web load the same bundled file', () => {
+  it('does not declare the old handwritten Caveat face', () => {
     const css = readFileSync(`${process.cwd()}/src/fonts.css`, 'utf8')
 
-    expect(css).toContain("@font-face")
-    expect(css).toContain("font-family: 'Grimoire Caveat'")
-    expect(css).toContain("../assets/fonts/Caveat-VariableFont_wght.ttf")
+    expect(css).not.toContain('Grimoire Caveat')
+    expect(css).not.toContain('Caveat-VariableFont_wght.ttf')
   })
 
   it('declares Berkeley Mono as a local-only app mono face', () => {

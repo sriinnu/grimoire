@@ -66,8 +66,13 @@ pub(super) fn title_to_slug(title: &str) -> String {
         .filter(|s| !s.is_empty())
         .collect::<Vec<&str>>()
         .join("-");
-    if slug.is_empty() {
+    let slug = if slug.is_empty() {
         "untitled".to_string()
+    } else {
+        slug
+    };
+    if validate_filename_stem(&slug).is_err() {
+        format!("{slug}-note")
     } else {
         slug
     }
@@ -684,6 +689,37 @@ mod tests {
     fn test_title_to_slug_falls_back_to_untitled_for_symbol_only_titles() {
         assert_eq!(title_to_slug("！？"), "untitled");
         assert_eq!(title_to_slug("---"), "untitled");
+    }
+
+    #[test]
+    fn test_title_to_slug_avoids_windows_reserved_device_names() {
+        assert_eq!(title_to_slug("CON"), "con-note");
+        assert_eq!(title_to_slug("aux"), "aux-note");
+        assert_eq!(title_to_slug("LPT1"), "lpt1-note");
+    }
+
+    #[test]
+    fn test_rename_note_avoids_windows_reserved_device_filename() {
+        let dir = TempDir::new().unwrap();
+        let vault = dir.path();
+        create_test_file(
+            vault,
+            "untitled-note-1700000000.md",
+            "---\ntype: Note\n---\n# Untitled Note\n",
+        );
+
+        let old_path = vault.join("untitled-note-1700000000.md");
+        let result = rename_note(RenameNoteRequest {
+            vault_path: vault.to_str().unwrap(),
+            old_path: old_path.to_str().unwrap(),
+            new_title: "CON",
+            old_title_hint: None,
+        })
+        .unwrap();
+
+        assert!(result.new_path.ends_with("con-note.md"));
+        assert!(Path::new(&result.new_path).exists());
+        assert!(!old_path.exists());
     }
 
     #[test]

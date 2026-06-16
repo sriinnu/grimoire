@@ -6,8 +6,8 @@ const STARTER_RESOURCE_DIR: &str = "starter-vault";
 const STARTER_MANIFEST: &str = ".fixture-manifest.json";
 const STARTER_ENTRY_NOTE: &str = "grimoire-start-here.md";
 
-/// Copy the bundled Getting Started vault into `target_path` and initialize it
-/// as a local-only Git vault.
+/// Copy the bundled Getting Started notebook into `target_path` and initialize it
+/// as a local-only Git notebook.
 pub(crate) fn copy_bundled_starter_vault(
     target_path: &Path,
     resource_dir: Option<&Path>,
@@ -41,7 +41,7 @@ fn find_bundled_starter_vault(resource_dir: Option<&Path>) -> Result<PathBuf, St
     bundled_starter_candidates(resource_dir)
         .into_iter()
         .find(|candidate| is_valid_starter_bundle(candidate))
-        .ok_or_else(|| "Bundled Getting Started vault was not found".to_string())
+        .ok_or_else(|| "Bundled Getting Started notebook was not found".to_string())
 }
 
 fn is_valid_starter_bundle(path: &Path) -> bool {

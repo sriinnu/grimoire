@@ -51,7 +51,7 @@ describe('CloneVaultModal', () => {
       target: { value: 'https://gitlab.com/user/my-vault.git' },
     })
 
-    expect(screen.getByTestId('clone-vault-path')).toHaveValue('~/Vaults/my-vault')
+    expect(screen.getByTestId('clone-vault-path')).toHaveValue('~/Notebooks/my-vault')
   })
 
   it('calls clone_git_repo and reports the cloned vault on submit', async () => {
@@ -65,11 +65,11 @@ describe('CloneVaultModal', () => {
     await waitFor(() => {
       expect(mockInvokeFn).toHaveBeenCalledWith('clone_git_repo', {
         url: 'git@github.com:user/my-vault.git',
-        localPath: '~/Vaults/my-vault',
+        localPath: '~/Notebooks/my-vault',
       })
     })
 
-    expect(onVaultCloned).toHaveBeenCalledWith('~/Vaults/my-vault', 'my-vault')
+    expect(onVaultCloned).toHaveBeenCalledWith('~/Notebooks/my-vault', 'my-vault')
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -82,7 +82,7 @@ describe('CloneVaultModal', () => {
       target: { value: 'https://example.com/user/private-vault.git' },
     })
     fireEvent.change(screen.getByTestId('clone-vault-path'), {
-      target: { value: '~/Vaults/private-vault' },
+      target: { value: '~/Notebooks/private-vault' },
     })
     fireEvent.click(screen.getByTestId('clone-vault-submit'))
 
@@ -110,7 +110,7 @@ describe('CloneVaultModal', () => {
     resolveClone?.('Cloned successfully')
 
     await waitFor(() => {
-      expect(onVaultCloned).toHaveBeenCalledWith('~/Vaults/my-vault', 'my-vault')
+      expect(onVaultCloned).toHaveBeenCalledWith('~/Notebooks/my-vault', 'my-vault')
     })
   })
 
@@ -141,7 +141,7 @@ describe('CloneVaultModal', () => {
     resolveClone?.('Cloned successfully')
 
     await waitFor(() => {
-      expect(onVaultCloned).toHaveBeenCalledWith('~/Vaults/my-vault', 'my-vault')
+      expect(onVaultCloned).toHaveBeenCalledWith('~/Notebooks/my-vault', 'my-vault')
     })
   })
 })

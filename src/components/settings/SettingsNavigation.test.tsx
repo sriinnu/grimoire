@@ -6,15 +6,15 @@ import type { SettingsBodyProps } from './settingsTypes'
 
 const labels: Record<string, string> = {
   'settings.title': 'Settings',
-  'settings.vault.title': 'Current vault',
-  'settings.vault.noVault': 'No vault selected',
+  'settings.vault.title': 'Current notebook',
+  'settings.vault.noVault': 'No notebook selected',
   'settings.vault.state.localFiles': 'Local files',
   'settings.vault.state.localGit': 'Local files + Git',
   'settings.sync.title': 'Sync & Updates',
   'settings.portability.title': 'Portability',
   'settings.appearance.title': 'Appearance',
   'settings.workflow.title': 'Workflow',
-  'settings.aiAgents.title': 'AI Agents',
+  'settings.aiAgents.title': 'Local AI',
   'settings.language.title': 'Language',
   'settings.native.title': 'Native',
   'settings.privacy.title': 'Privacy',

@@ -111,7 +111,7 @@ export function WelcomeScreen({
             label="Get started with a template"
             description={presentation.templateDescription}
             loadingLabel="Preparing starter…"
-            loadingDescription="Preparing the Getting Started vault"
+            loadingDescription="Preparing the Getting Started notebook"
             onClick={onCreateVault}
             disabled={busy}
             loading={creatingAction === 'template'}
@@ -123,9 +123,9 @@ export function WelcomeScreen({
           <WelcomeOptionButton
             icon={<Plus size={18} style={{ color: 'var(--accent-blue)' }} />}
             iconBg="var(--accent-blue-light)"
-            label="Create empty vault"
+            label="Create empty notebook"
             description={presentation.emptyVaultDescription}
-            loadingLabel="Creating vault…"
+            loadingLabel="Creating notebook…"
             loadingDescription="Preparing Grimoire defaults in the selected folder"
             onClick={onCreateEmptyVault}
             disabled={busy}
@@ -148,7 +148,7 @@ export function WelcomeScreen({
 
         {creatingAction === 'template' && (
           <p style={STATUS_STYLE} data-testid="welcome-status" role="status" aria-live="polite">
-            Preparing the Getting Started vault…
+            Preparing the Getting Started notebook…
           </p>
         )}
 

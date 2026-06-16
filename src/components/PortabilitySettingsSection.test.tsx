@@ -234,7 +234,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Apply Azure local-mirror pull')).toBeInTheDocument()
     expect(screen.getAllByText(/Proof preview available; provider sync not proven/)).toHaveLength(2)
     expect(screen.getAllByText('proof preview').length).toBeGreaterThanOrEqual(2)
-    expect(screen.getByText(/Current vault is inside iCloud Drive/)).toBeInTheDocument()
+    expect(screen.getByText(/Current notebook is inside iCloud Drive/)).toBeInTheDocument()
     expect(screen.getByText(/Local folder detected; provider sync not proven/)).toBeInTheDocument()
     expect(screen.getAllByText('folder proof only').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText(/Grimoire only edits the local files/)).toBeInTheDocument()

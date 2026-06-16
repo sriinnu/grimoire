@@ -51,7 +51,7 @@ test('vault guidance restore command recovers missing managed guidance', async (
 
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.getByTestId('welcome-screen')).toBeVisible()
-  await page.getByRole('button', { name: /Open existing vault/i }).click()
+  await page.getByRole('button', { name: /Open notebook folder/i }).click()
   await expect(page.getByText('Claude Code not detected')).toBeVisible()
   await page.getByRole('button', { name: 'Continue' }).click()
   await expect(page.getByTestId('note-list-container')).toBeVisible({ timeout: 5_000 })

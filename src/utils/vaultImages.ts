@@ -4,6 +4,7 @@ import { isTauri } from '../mock-tauri'
 const ASSET_URL_PREFIX = 'asset://localhost/'
 const HTTP_ASSET_URL_PREFIX = 'http://asset.localhost/'
 const ASSET_URL_PREFIXES = [ASSET_URL_PREFIX, HTTP_ASSET_URL_PREFIX]
+const DEV_VAULT_FILE_ENDPOINT = '/api/vault/file'
 const ATTACHMENTS_SEGMENT = '/attachments/'
 const RELATIVE_ATTACHMENTS_PREFIX = 'attachments/'
 
@@ -20,13 +21,23 @@ function assetUrl(path: AbsolutePath): MarkdownImageUrl {
   return convertFileSrc(path)
 }
 
+function devVaultFileUrl(path: AbsolutePath): MarkdownImageUrl {
+  return `${DEV_VAULT_FILE_ENDPOINT}?path=${encodeURIComponent(path)}`
+}
+
+function displayUrl(path: AbsolutePath): MarkdownImageUrl {
+  return isTauri() ? assetUrl(path) : devVaultFileUrl(path)
+}
+
 /** Resolve a vault file path to a displayable image URL without inlining SVG/XML. */
 export function resolveVaultImageSrc(path: AbsolutePath): MarkdownImageUrl {
-  return isTauri() ? assetUrl(path) : path
+  return displayUrl(path)
 }
 
 function vaultAttachmentPath(vaultPath: VaultPath, attachmentPath: AttachmentPath): AbsolutePath {
-  return `${vaultPath}/${attachmentPath}`
+  const cleanVaultPath = vaultPath.replace(/\/+$/u, '')
+  const cleanAttachmentPath = attachmentPath.replace(/^\/+/u, '')
+  return `${cleanVaultPath}/${cleanAttachmentPath}`
 }
 
 function extractAttachmentPath(absolutePath: AbsolutePath): AttachmentPath | null {
@@ -50,8 +61,26 @@ function isAssetUrl(url: MarkdownImageUrl): boolean {
   return assetUrlPrefix(url) !== null
 }
 
-function isCurrentVaultAsset(url: MarkdownImageUrl, vaultPath: VaultPath): boolean {
-  const absolutePath = decodeAssetPath(url)
+function decodeDevVaultFilePath(url: MarkdownImageUrl): AbsolutePath {
+  try {
+    const parsed = new URL(url, 'http://grimoire.local')
+    if (parsed.pathname !== DEV_VAULT_FILE_ENDPOINT) return ''
+    return parsed.searchParams.get('path') ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function isDevVaultFileUrl(url: MarkdownImageUrl): boolean {
+  return decodeDevVaultFilePath(url) !== ''
+}
+
+function decodeDisplayPath(url: MarkdownImageUrl): AbsolutePath {
+  if (isAssetUrl(url)) return decodeAssetPath(url)
+  return decodeDevVaultFilePath(url)
+}
+
+function isCurrentVaultPath(absolutePath: AbsolutePath, vaultPath: VaultPath): boolean {
   return absolutePath === vaultPath || absolutePath.startsWith(`${vaultPath}/`)
 }
 
@@ -66,19 +95,27 @@ function rewriteMarkdownImages(
 }
 
 export function resolveImageUrls(markdown: Markdown, vaultPath: VaultPath): Markdown {
-  if (!isTauri() || !vaultPath) return markdown
+  if (!vaultPath) return markdown
 
   return rewriteMarkdownImages(markdown, (url) => {
     if (url.startsWith(RELATIVE_ATTACHMENTS_PREFIX)) {
-      return assetUrl(vaultAttachmentPath(vaultPath, url))
+      return displayUrl(vaultAttachmentPath(vaultPath, url))
     }
 
-    if (!isAssetUrl(url) || isCurrentVaultAsset(url, vaultPath)) {
+    const absolutePath = decodeDisplayPath(url)
+    if (!absolutePath) {
       return null
     }
 
-    const attachmentPath = extractAttachmentPath(decodeAssetPath(url))
-    return attachmentPath ? assetUrl(vaultAttachmentPath(vaultPath, attachmentPath)) : null
+    if (isCurrentVaultPath(absolutePath, vaultPath)) {
+      if ((isTauri() && isAssetUrl(url)) || (!isTauri() && isDevVaultFileUrl(url))) {
+        return null
+      }
+      return displayUrl(absolutePath)
+    }
+
+    const attachmentPath = extractAttachmentPath(absolutePath)
+    return attachmentPath ? displayUrl(vaultAttachmentPath(vaultPath, attachmentPath)) : null
   })
 }
 
@@ -88,9 +125,8 @@ export function portableImageUrls(markdown: Markdown, vaultPath: VaultPath): Mar
   const attachmentsPrefix = `${vaultPath}/${RELATIVE_ATTACHMENTS_PREFIX}`
 
   return rewriteMarkdownImages(markdown, (url) => {
-    if (!isAssetUrl(url)) return null
-
-    const absolutePath = decodeAssetPath(url)
+    const absolutePath = decodeDisplayPath(url)
+    if (!absolutePath) return null
     if (!absolutePath.startsWith(attachmentsPrefix)) return null
 
     return `${RELATIVE_ATTACHMENTS_PREFIX}${absolutePath.slice(attachmentsPrefix.length)}`

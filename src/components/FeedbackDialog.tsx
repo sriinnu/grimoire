@@ -437,7 +437,7 @@ export function FeedbackDialog({
         <DialogHeader className="space-y-2">
           <DialogTitle className="flex items-center gap-2">
             <Megaphone size={18} weight="duotone" />
-            Contribute to Grimoire
+            Send feedback
           </DialogTitle>
           <DialogDescription>
             Pick the path that fits what you want to do! Any type of help is appreciated

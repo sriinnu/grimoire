@@ -69,7 +69,7 @@ describe('buildVaultSlashMenuItems', () => {
       query: 'alpha',
     })
 
-    expect(items[0]).toMatchObject({ title: 'Link: Alpha Project', group: 'Vault' })
+    expect(items[0]).toMatchObject({ title: 'Link: Alpha Project', group: 'Notebook' })
     items[0].onItemClick()
     expect(insertWikilink).toHaveBeenCalledWith('Alpha Project')
   })
@@ -121,8 +121,8 @@ describe('buildVaultSlashMenuItems', () => {
       query: 'new research thread',
     })
 
-    expect(items.map(item => item.title)).toContain('Create Note: new research thread')
-    items.find(item => item.title === 'Create Note: new research thread')?.onItemClick()
+    expect(items.map(item => item.title)).toContain('Create Page: new research thread')
+    items.find(item => item.title === 'Create Page: new research thread')?.onItemClick()
     expect(onCreateAndOpenNote).toHaveBeenCalledWith('new research thread')
   })
 

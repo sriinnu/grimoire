@@ -17,7 +17,7 @@ export interface TimeLoomStatusCount {
   count: number
 }
 
-/** One local-day bucket for the Time Loom dashboard. */
+/** One local-day bucket for the notebook trail. */
 export interface TimeLoomBucket {
   dateKey: string
   label: string
@@ -27,7 +27,7 @@ export interface TimeLoomBucket {
   typeCounts: TimeLoomTypeCount[]
 }
 
-/** Metadata-only temporal summary for the dashboard. */
+/** Metadata-only temporal summary for the notebook trail. */
 export interface TimeLoomSummary {
   buckets: TimeLoomBucket[]
   calendarDays: TimeLoomBucket[]
@@ -44,7 +44,7 @@ export interface TimeLoomSummary {
   activeSpanLabel: string
 }
 
-/** Optional sources that can contribute metadata-only events to Time Loom. */
+/** Optional sources that can contribute metadata-only marks to the trail. */
 export interface TimeLoomSources {
   commits?: PulseCommit[]
 }
@@ -80,7 +80,7 @@ const STATUS_ORDER: TimeLoomStatusCount['label'][] = ['Open', 'Done', 'Unmarked'
 const SAFE_PROTECTED_TYPE_LABELS = new Set(['Calendar', 'Voice', 'Mobile', 'Commit', 'Dream', 'Journal', 'Memory', 'Memory review'])
 const TYPE_ORDER = ['Mobile', 'Memory review', 'Calendar', 'Voice', 'Commit', 'Dream', 'Journal', 'Private', 'Task', 'Meeting', 'Memory', 'Note']
 
-/** Builds a local temporal graph preview without reading note bodies or returning titles. */
+/** Builds a local day trail without reading note bodies or returning titles. */
 export function buildTimeLoomSummary(
   entries: VaultEntry[],
   now: Date = new Date(),
@@ -362,17 +362,17 @@ function incrementSummaryTotals(
 }
 
 function spanLabel(buckets: TimeLoomBucket[]): string {
-  if (buckets.length === 0) return 'Quiet timeline'
+  if (buckets.length === 0) return 'Quiet trail'
   if (buckets.length === 1) {
     const bucket = buckets[0]
     return `${bucket.total} ${pluralize(bucket.total)} ${bucket.label === 'Today' ? 'today' : `on ${bucket.label}`}`
   }
   const eventCount = buckets.reduce((sum, bucket) => sum + bucket.total, 0)
-  return `${eventCount} ${pluralize(eventCount)} across ${buckets.length} active days`
+  return `${eventCount} ${pluralize(eventCount)} across ${buckets.length} days`
 }
 
 function pluralize(count: number): string {
-  return count === 1 ? 'event' : 'events'
+  return count === 1 ? 'mark' : 'marks'
 }
 
 function labelForDate(date: Date, now: Date): string {

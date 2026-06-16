@@ -342,7 +342,7 @@ function healthForProvider(
   }
   if (provider.id === 'local-folder') {
     return normalizedPath
-      ? { state: 'active', message: 'Current vault is a normal local folder.' }
+      ? { state: 'active', message: 'Current notebook is a normal local folder.' }
       : { state: 'not_selected', message: provider.userAction }
   }
   if (provider.id === 'git') {
@@ -352,7 +352,7 @@ function healthForProvider(
     return cloudFolderHealth(
       normalizedPath,
       isICloudDrivePath,
-      'Current vault is inside iCloud Drive.',
+      'Current notebook is inside iCloud Drive.',
       provider.userAction,
     )
   }
@@ -360,7 +360,7 @@ function healthForProvider(
     return cloudFolderHealth(
       normalizedPath,
       isGoogleDrivePath,
-      'Current vault is inside Google Drive Desktop.',
+      'Current notebook is inside Google Drive Desktop.',
       provider.userAction,
     )
   }

@@ -50,9 +50,9 @@ export function CreateNoteDialog({ open, onClose, onCreate, defaultType, customT
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
       <DialogContent showCloseButton={false} className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>Create New Note</DialogTitle>
+          <DialogTitle>Create New Page</DialogTitle>
           <DialogDescription className="sr-only">
-            Enter a title and choose a type for the new note.
+            Enter a title and choose a type for the new page.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -62,7 +62,7 @@ export function CreateNoteDialog({ open, onClose, onCreate, defaultType, customT
             </label>
             <Input
               ref={inputRef}
-              placeholder="Enter note title..."
+              placeholder="Enter page title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />

@@ -6,7 +6,7 @@ import { Button } from './ui/button'
 const EDGE_FILTERS: ReadonlyArray<{ value: GraphEdgeFilter; label: string }> = [
   { value: 'all', label: 'All' },
   { value: 'relationship', label: 'Relations' },
-  { value: 'body-link', label: 'Spelllinks' },
+  { value: 'body-link', label: 'Note links' },
   { value: 'incoming', label: 'Incoming' },
   { value: 'outgoing', label: 'Outgoing' },
 ]
@@ -57,7 +57,7 @@ export function GraphControlPanel({
           Nearby
         </SegmentButton>
         <SegmentButton selected={scope === 'vault'} onClick={() => onScopeChange('vault')}>
-          Vault
+          Notebook
         </SegmentButton>
       </RadioControlGroup>
 
@@ -90,7 +90,7 @@ export function GraphControlPanel({
 
       <div className="mt-4 space-y-2 text-xs text-muted-foreground">
         <LegendSwatch color="var(--primary)" label={`${stats.relationships} relationships`} />
-        <LegendSwatch color="var(--muted-foreground)" dashed={true} label={`${stats.wikilinks} Spelllinks`} />
+        <LegendSwatch color="var(--muted-foreground)" dashed={true} label={`${stats.wikilinks} note links`} />
       </div>
     </div>
   )

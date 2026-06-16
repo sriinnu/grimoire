@@ -39,7 +39,7 @@ export function buildTimeLoomGuidance(
     sourceLane('mobile', 'Mobile', summary.mobileEvents, 'capture inbox'),
     sourceLane('voice', 'Voice', summary.voiceEvents, 'local transcripts'),
     sourceLane('calendar', 'Calendar', summary.calendarEvents, 'scheduled frontmatter'),
-    sourceLane('commit', 'Commits', summary.commitEvents, 'history counts'),
+    sourceLane('commit', 'Saved points', summary.commitEvents, 'notebook saves'),
     sourceLane('private', 'Held local', summary.protectedEvents, 'titles withheld', 'private'),
   ]
 
@@ -70,8 +70,8 @@ export function buildTimeLoomGuidance(
     return {
       actionKind: 'journal',
       actionLabel: 'Journal',
-      nextDetail: [taskText, openText, 'pick one and close the loop'].filter(Boolean).join(' / '),
-      nextLabel: 'Close one open loop',
+      nextDetail: [taskText, openText, 'pick one thread and finish it'].filter(Boolean).join(' / '),
+      nextLabel: 'Choose one thread',
       sourceLanes,
     }
   }
@@ -100,7 +100,7 @@ export function buildTimeLoomGuidance(
   return {
     actionKind: 'journal',
     actionLabel: 'Journal',
-    nextDetail: 'The loop is closed; capture the next honest signal.',
+    nextDetail: 'The thread is settled; capture the next honest signal.',
     nextLabel: 'Keep the thread warm',
     sourceLanes,
   }

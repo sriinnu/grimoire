@@ -1,12 +1,18 @@
-import type { ReactNode } from 'react'
-import { Check, Moon, Palette, Sun, TextAa } from '@phosphor-icons/react'
+import { useEffect, type CSSProperties, type ReactNode } from 'react'
+import { Moon, Palette, Sun, TextAa } from '@phosphor-icons/react'
 import type { EditorFont, EditorLineHeight, ThemePreset } from '../lib/appearance'
-import { resolveFontRoles } from '../lib/fontConfig'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
+import {
+  resolveThemeDefinitionMode,
+  resolveThemeDefinitionPreferredMode,
+  resolveThemePresetDefinition,
+} from '../themes/themeRegistry'
+import { AppearanceProfileCard } from './AppearanceProfileCard'
+import { AppearanceProfilePreview } from './AppearanceProfilePreview'
 import { SidebarAppearancePreview } from './SidebarAppearancePreview'
 import { ThemePackSettingsControls } from './ThemePackSettingsControls'
-import { buildPresetGroups, type PresetOption } from './appearanceSettingsOptions'
+import { buildPresetGroups } from './appearanceSettingsOptions'
 import { SectionHeading } from './settings/SettingsControls'
 import { Button } from './ui/button'
 import {
@@ -54,6 +60,22 @@ export function AppearanceSettingsSection({
   setEditorLineHeight,
 }: AppearanceSettingsSectionProps) {
   const presetGroups = buildPresetGroups(t)
+  const selectedThemeDefinition = resolveThemePresetDefinition(themePreset)
+  const resolvedThemeMode = resolveThemeDefinitionMode(selectedThemeDefinition, themeMode)
+  const availableThemeModes = {
+    dark: Boolean(selectedThemeDefinition.modes.dark),
+    light: Boolean(selectedThemeDefinition.modes.light),
+  }
+
+  useEffect(() => {
+    if (resolvedThemeMode !== themeMode) setThemeMode(resolvedThemeMode)
+  }, [resolvedThemeMode, setThemeMode, themeMode])
+
+  const handleThemePresetSelect = (value: ThemePreset) => {
+    setThemePreset(value)
+    const nextMode = resolveThemeDefinitionPreferredMode(resolveThemePresetDefinition(value))
+    if (nextMode !== themeMode) setThemeMode(nextMode)
+  }
 
   return (
     <>
@@ -62,7 +84,15 @@ export function AppearanceSettingsSection({
         description={t('settings.appearance.description')}
       />
 
-      <ThemeModeControl value={themeMode} onChange={setThemeMode} t={t} />
+      <div className="space-y-2">
+        <ControlLabel icon={<Sun size={14} />} label={t('settings.theme.label')} />
+        <ThemeModeControl
+          availableModes={availableThemeModes}
+          value={resolvedThemeMode}
+          onChange={setThemeMode}
+          t={t}
+        />
+      </div>
 
       <div className="space-y-2">
         <ControlLabel icon={<Palette size={14} />} label={t('settings.themePreset.label')} />
@@ -86,14 +116,14 @@ export function AppearanceSettingsSection({
               </div>
               <div
                 className="grid gap-2"
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}
               >
                 {group.options.map((preset) => (
-                  <ThemePresetCard
+                  <AppearanceProfileCard
                     key={preset.value}
                     option={preset}
                     selected={themePreset === preset.value}
-                    onSelect={setThemePreset}
+                    onSelect={handleThemePresetSelect}
                   />
                 ))}
               </div>
@@ -104,7 +134,7 @@ export function AppearanceSettingsSection({
 
       <ThemePackSettingsControls t={t} themePreset={themePreset} />
 
-      <SidebarAppearancePreview t={t} themeMode={themeMode} themePreset={themePreset} />
+      <SidebarAppearancePreview t={t} themeMode={resolvedThemeMode} themePreset={themePreset} />
 
       <div className="space-y-2">
         <ControlLabel icon={<TextAa size={14} />} label={t('settings.editorFont.label')} />
@@ -145,9 +175,9 @@ export function AppearanceSettingsSection({
         </Select>
       </div>
 
-      <AppearancePreview
+      <AppearanceProfilePreview
         t={t}
-        themeMode={themeMode}
+        themeMode={resolvedThemeMode}
         themePreset={themePreset}
         editorFont={editorFont}
         editorLineHeight={editorLineHeight}
@@ -166,10 +196,12 @@ function ControlLabel({ icon, label }: { icon: ReactNode; label: string }) {
 }
 
 function ThemeModeControl({
+  availableModes,
   value,
   onChange,
   t,
 }: {
+  availableModes: Record<ThemeMode, boolean>
   value: ThemeMode
   onChange: (value: ThemeMode) => void
   t: Translate
@@ -181,10 +213,22 @@ function ThemeModeControl({
       aria-label={t('settings.theme.label')}
       data-testid="settings-theme-mode"
     >
-      <ThemeModeButton label={t('settings.theme.light')} selected={value === 'light'} value="light" onSelect={onChange}>
+      <ThemeModeButton
+        disabled={!availableModes.light}
+        label={t('settings.theme.light')}
+        selected={value === 'light'}
+        value="light"
+        onSelect={onChange}
+      >
         <Sun size={14} />
       </ThemeModeButton>
-      <ThemeModeButton label={t('settings.theme.dark')} selected={value === 'dark'} value="dark" onSelect={onChange}>
+      <ThemeModeButton
+        disabled={!availableModes.dark}
+        label={t('settings.theme.dark')}
+        selected={value === 'dark'}
+        value="dark"
+        onSelect={onChange}
+      >
         <Moon size={14} />
       </ThemeModeButton>
     </div>
@@ -193,17 +237,34 @@ function ThemeModeControl({
 
 function ThemeModeButton({
   children,
+  disabled = false,
   label,
   selected,
   value,
   onSelect,
 }: {
   children: ReactNode
+  disabled?: boolean
   label: string
   selected: boolean
   value: ThemeMode
   onSelect: (value: ThemeMode) => void
 }) {
+  const buttonStyle: CSSProperties | undefined = selected
+    ? {
+        background: 'var(--grimoire-settings-active-material, var(--surface-panel))',
+        borderColor: 'color-mix(in srgb, var(--primary) 36%, var(--grimoire-hairline))',
+        color: 'var(--text-primary)',
+      }
+    : disabled
+      ? {
+          background: 'transparent',
+          borderColor: 'transparent',
+          color: 'var(--muted-foreground)',
+          opacity: 0.45,
+        }
+      : undefined
+
   return (
     <Button
       type="button"
@@ -213,101 +274,19 @@ function ThemeModeButton({
       aria-checked={selected}
       aria-label={label}
       data-testid={`settings-theme-${value}`}
+      disabled={disabled}
+      style={buttonStyle}
       className={
         selected
           ? 'settings-theme-mode-button h-7 flex-1 border text-foreground shadow-xs'
-          : 'h-7 flex-1 text-muted-foreground hover:text-foreground'
+          : disabled
+            ? 'h-7 flex-1 text-muted-foreground opacity-45'
+            : 'h-7 flex-1 text-muted-foreground hover:text-foreground'
       }
       onClick={() => onSelect(value)}
     >
       {children}
       {label}
     </Button>
-  )
-}
-
-function ThemePresetCard({
-  option,
-  selected,
-  onSelect,
-}: {
-  option: PresetOption
-  selected: boolean
-  onSelect: (value: ThemePreset) => void
-}) {
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      role="radio"
-      aria-checked={selected}
-      data-testid={`settings-theme-preset-${option.value}`}
-      data-group={option.group}
-      data-selected={selected ? 'true' : 'false'}
-      className={
-        selected
-          ? 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left shadow-xs'
-          : 'settings-theme-preset-card h-auto min-w-0 justify-start whitespace-normal rounded-md border p-3 text-left'
-      }
-      onClick={() => onSelect(option.value)}
-    >
-      <span className="flex min-w-0 w-full flex-col gap-2">
-        <span className="flex items-center justify-between gap-2">
-          <span className="flex min-w-0 items-center gap-1.5 break-words" style={{ fontSize: 12, fontWeight: 600 }}>
-            {option.label}
-          </span>
-          {selected ? <Check size={14} weight="bold" /> : null}
-        </span>
-        <span className="flex gap-1">
-          {option.swatches.map((swatch) => (
-            <span
-              key={swatch}
-              className="h-4 flex-1 rounded-sm border border-border"
-              style={{ background: swatch }}
-            />
-          ))}
-        </span>
-        <span className="min-w-0 break-words" style={{ color: 'var(--muted-foreground)', fontSize: 11, lineHeight: 1.35 }}>
-          {option.description}
-        </span>
-      </span>
-    </Button>
-  )
-}
-
-function AppearancePreview({
-  t,
-  themeMode,
-  themePreset,
-  editorFont,
-  editorLineHeight,
-}: {
-  t: Translate
-  themeMode: ThemeMode
-  themePreset: ThemePreset
-  editorFont: EditorFont
-  editorLineHeight: EditorLineHeight
-}) {
-  const fontRoles = resolveFontRoles({ themePreset, editorFont })
-  const previewLineHeight = editorLineHeight === 'compact'
-    ? 1.34
-    : editorLineHeight === 'spacious' ? 1.58 : 1.44
-
-  return (
-    <div
-      className="settings-appearance-preview rounded-md border border-border"
-      data-testid="settings-appearance-preview"
-      data-theme-preview={themeMode}
-      data-theme-preset-preview={themePreset}
-    >
-      <div className="settings-appearance-preview__sample" style={{ fontFamily: fontRoles.editor }}>
-        <div style={{ fontFamily: fontRoles.display, fontSize: 19, fontWeight: 650, lineHeight: 1.2 }}>
-          {t('settings.appearance.previewTitle')}
-        </div>
-        <div className="settings-appearance-preview__body" style={{ lineHeight: previewLineHeight }}>
-          {t('settings.appearance.previewBody')}
-        </div>
-      </div>
-    </div>
   )
 }

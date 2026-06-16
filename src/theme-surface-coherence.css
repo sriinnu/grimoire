@@ -54,6 +54,32 @@
   box-shadow: var(--grimoire-surface-shadow);
 }
 
+:is([data-theme-preset]) .graph-dialog-title-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+:is([data-theme-preset]) .graph-dialog-brain-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+:is([data-theme-preset]) .graph-dialog-brain-summary span {
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--grimoire-graph-inner-material);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 :is([data-theme-preset]) :is(.grimoire-graph-filter-shell, .graph-surface-inner, [data-testid="graph-control-panel"] [role="radiogroup"]) {
   border-color: var(--grimoire-hairline);
   border-radius: calc(var(--grimoire-surface-radius) - 2px);
@@ -166,6 +192,15 @@
 }
 
 @media (max-width: 720px) {
+  :is([data-theme-preset]) .graph-dialog-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  :is([data-theme-preset]) .graph-dialog-brain-summary {
+    justify-content: flex-start;
+  }
+
   :is([data-theme-preset]) :is(.app__dashboard, .vault-dashboard, .grimoire-dialog-content) {
     background: var(--grimoire-mobile-material);
   }

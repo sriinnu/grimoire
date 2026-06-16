@@ -76,7 +76,7 @@ describe('useOpenLocalFolderAction', () => {
         syncProvider: 'none',
       },
     )
-    expect(onToast).toHaveBeenCalledWith('Vault "my-vault" opened')
+    expect(onToast).toHaveBeenCalledWith('Notebook "my-vault" opened')
   })
 
   it('allows another folder picker attempt after a cancellation', async () => {
@@ -120,7 +120,7 @@ describe('useOpenLocalFolderAction', () => {
     })
 
     expect(pickFolderMock).toHaveBeenCalledTimes(2)
-    expect(onToast).toHaveBeenCalledWith('Could not open vault folder: dialog failed')
+    expect(onToast).toHaveBeenCalledWith('Could not open notebook folder: dialog failed')
     expect(registerVaultSelection).toHaveBeenCalledTimes(1)
   })
 })

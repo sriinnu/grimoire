@@ -1,5 +1,5 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   applyMainWindowSizeConstraints,
   getMainWindowMinWidth,
@@ -73,6 +73,11 @@ describe('useMainWindowSizeConstraints', () => {
   beforeEach(() => {
     invoke.mockReset()
     invoke.mockResolvedValue()
+    vi.stubGlobal('__TAURI_INTERNALS__', { invoke: vi.fn() })
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
   const invokeCases = [
@@ -114,6 +119,20 @@ describe('useMainWindowSizeConstraints', () => {
       sidebarVisible: false,
       noteListVisible: false,
       inspectorCollapsed: true,
+    }))
+
+    await Promise.resolve()
+
+    expect(invoke).not.toHaveBeenCalled()
+  })
+
+  it('skips native window calls in browser-only renders', async () => {
+    vi.stubGlobal('__TAURI_INTERNALS__', undefined)
+
+    renderHook(() => useMainWindowSizeConstraints({
+      sidebarVisible: true,
+      noteListVisible: true,
+      inspectorCollapsed: false,
     }))
 
     await Promise.resolve()

@@ -63,9 +63,11 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    expect(screen.getByText('Your local memory board.')).toBeInTheDocument()
-    expect(screen.getByText('Personal Sync')).toBeInTheDocument()
-    expect(screen.getByText('Cloud Blocked')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Dreams' })).toBeInTheDocument()
+    expect(screen.getByText('One living notebook, private by default.')).toBeInTheDocument()
+    expect(screen.queryByText('Personal Sync')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Vault locality')).not.toBeInTheDocument()
+    expect(screen.queryByText('Plain Markdown')).not.toBeInTheDocument()
     const fallback = screen.getByTestId('dashboard-insights-fallback')
     expect(fallback).toHaveAttribute('data-locality', 'local-only')
     expect(fallback).toHaveTextContent('Egress blocked')
@@ -75,6 +77,48 @@ describe('VaultDashboard', () => {
     fireEvent.click(screen.getByTestId('dashboard-capture-submit'))
 
     await waitFor(() => expect(onCapture).toHaveBeenCalledWith('/ask summarize today', 'ask', expect.any(Date), null))
+  })
+
+  it('normalizes fixture vault names into notebook titles on the dashboard', () => {
+    render(
+      <VaultDashboard
+        activeVault={{ label: 'demo-vault-v2', path: '/vault', storageProvider: 'local', syncProvider: 'none' }}
+        conflictCount={0}
+        entries={[]}
+        isGitVault
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Today in Grimoire' })).toBeInTheDocument()
+    expect(screen.queryByText('Demo Vault V2')).not.toBeInTheDocument()
+  })
+
+  it('keeps the dashboard hero focused on creating a page, not another notebook', () => {
+    const onOpenCreateVault = vi.fn()
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={onOpenCreateVault}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: 'New Notebook' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'New Page' }))
+    expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/note ')
+    expect(onOpenCreateVault).not.toHaveBeenCalled()
   })
 
   it('passes day-before-yesterday date intent into local journal capture', async () => {
@@ -155,7 +199,7 @@ describe('VaultDashboard', () => {
     expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ title: 'A recent note' }))
   })
 
-  it('shows Dream Forge as a local-only private pattern surface', async () => {
+  it('shows Dream Review as a local-only private pattern surface', async () => {
     const dream = {
       ...entry('River Door', 'Dream'),
       properties: { symbols: ['river', 'door'], emotional_weather: 'awe' },
@@ -179,10 +223,10 @@ describe('VaultDashboard', () => {
     const panel = await screen.findByTestId('dream-forge-panel')
     for (const [name, value] of [['data-locality', 'local-only'], ['data-private-surface', 'dream-forge']]) expect(panel).toHaveAttribute(name, value)
     const contract = within(panel).getByTestId('dream-forge-privacy-contract')
-    expect(contract).toHaveAccessibleName('Dream Forge private lens contract')
+    expect(contract).toHaveAccessibleName('Dream Review private lens contract')
     for (const text of ['Records', '2', '1 dream / 1 journal', 'Held local', 'Signals']) expect(contract).toHaveTextContent(text)
     expect(contract).not.toHaveTextContent(/River Door|\/vault\//)
-    for (const text of ['Dream Forge', 'Local only', '2 protected', 'Egress blocked', '4 signal labels held']) expect(panel).toHaveTextContent(text)
+    for (const text of ['Dream Review', 'Local only', '2 protected', 'Egress blocked', '4 signal labels held']) expect(panel).toHaveTextContent(text)
     expect(within(panel).getByTestId('dream-forge-private-map')).toBeInTheDocument()
     expect(within(panel).getByTestId('dream-forge-privacy-gate')).toHaveTextContent('Bodies held')
     const rhythm = within(panel).getByTestId('dream-forge-rhythm')
@@ -196,7 +240,7 @@ describe('VaultDashboard', () => {
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/dream ')
   })
 
-  it('shows Attention Mode as a quiet local next action', () => {
+  it('shows Return as a quiet local next action', () => {
     render(
       <VaultDashboard
         conflictCount={0}
@@ -211,8 +255,8 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
-    expect(panel).toHaveTextContent('Attention Mode')
+    const panel = screen.getByText('Return').closest('.vault-dashboard__panel') as HTMLElement
+    expect(panel).toHaveTextContent('Return')
     expect(panel).toHaveTextContent('Journal')
     expect(panel).toHaveTextContent('No journal today')
 
@@ -220,7 +264,7 @@ describe('VaultDashboard', () => {
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/journal ')
   })
 
-  it('opens memory review items from Attention Mode instead of adding more capture', () => {
+  it('opens memory review items from Return instead of adding more capture', () => {
     const onOpenNote = vi.fn()
     const memory = entry('Agent memory', 'Memory', { status: 'Review' })
 
@@ -238,13 +282,13 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    const panel = screen.getByText('Return').closest('.vault-dashboard__panel') as HTMLElement
     expect(panel).toHaveTextContent('Review memory')
     fireEvent.click(within(panel).getByRole('button', { name: 'Review' }))
     expect(onOpenNote).toHaveBeenCalledWith(expect.objectContaining({ title: 'Agent memory' }))
   })
 
-  it('captures a local defer-sync reason from Attention Mode', () => {
+  it('captures a local defer-sync reason from Return', () => {
     const today = todayIso()
 
     render(
@@ -261,7 +305,7 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = screen.getByText('Attention Mode').closest('.vault-dashboard__panel') as HTMLElement
+    const panel = screen.getByText('Return').closest('.vault-dashboard__panel') as HTMLElement
     expect(panel).toHaveTextContent('Defer sync')
     fireEvent.click(within(panel).getByRole('button', { name: 'Capture reason' }))
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue('/memory ')
@@ -290,7 +334,7 @@ describe('VaultDashboard', () => {
     fireEvent.click(screen.getByTestId('dashboard-capture-kind-ask'))
 
     const preview = await screen.findByTestId('dashboard-ask-context-preview')
-    expect(preview).toHaveTextContent('Agent Context')
+    expect(preview).toHaveTextContent('Shared context')
     expect(preview).toHaveTextContent('1 public note')
     expect(preview).toHaveTextContent('Public Project')
     expect(preview).toHaveTextContent('2 protected notes withheld')

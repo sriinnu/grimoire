@@ -26,4 +26,6 @@ pub use scan_cmds::*;
 pub use view_cmds::*;
 
 #[cfg(test)]
+mod lifecycle_tests;
+#[cfg(test)]
 mod tests;

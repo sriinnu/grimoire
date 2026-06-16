@@ -141,9 +141,9 @@ test.describe('Fresh-install regression: search and command palette', () => {
     await expect(searchInput).toBeVisible({ timeout: 2000 })
   })
 
-  test('Cmd+K command palette includes Repair Vault', async ({ page }) => {
+  test('Cmd+K command palette includes Repair Notebook', async ({ page }) => {
     await openCommandPalette(page)
-    const found = await findCommand(page, 'Repair Vault')
+    const found = await findCommand(page, 'Repair Notebook')
     expect(found).toBe(true)
   })
 })

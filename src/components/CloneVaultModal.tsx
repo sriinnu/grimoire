@@ -53,12 +53,12 @@ function repoNameFromUrl(request: Pick<CloneRequest, 'url'>): string {
 
 function suggestedPathFromUrl(request: Pick<CloneRequest, 'url'>): string {
   const repoName = repoNameFromUrl(request)
-  return repoName ? `~/Vaults/${repoName}` : ''
+  return repoName ? `~/Notebooks/${repoName}` : ''
 }
 
 function labelFromPath(request: Pick<CloneRequest, 'localPath'>): string {
   const trimmed = request.localPath.trim().replace(/\/+$/g, '')
-  return trimmed.split('/').pop() || 'Vault'
+  return trimmed.split('/').pop() || 'Notebook'
 }
 
 function shouldSyncSuggestedPath(localPath: string, pathDirty: boolean, previousSuggestedPath: string): boolean {
@@ -207,7 +207,7 @@ export function CloneVaultModal({ open, onClose, onVaultCloned }: CloneVaultModa
             <label className="text-xs font-medium text-foreground" htmlFor="clone-vault-path">Clone to</label>
             <Input
               id="clone-vault-path"
-              placeholder="~/Vaults/my-vault"
+              placeholder="~/Notebooks/my-vault"
               value={localPath}
               disabled={isCloning}
               onChange={handleLocalPathChange}
@@ -217,7 +217,7 @@ export function CloneVaultModal({ open, onClose, onVaultCloned }: CloneVaultModa
 
           <p className="text-xs text-muted-foreground">
             {isCloning
-              ? 'Cloning repository… Grimoire will open the vault when git finishes.'
+              ? 'Cloning repository… Grimoire will open the notebook when git finishes.'
               : 'SSH keys, the git credential manager, `gh auth`, and other system git auth methods all work.'}
           </p>
 

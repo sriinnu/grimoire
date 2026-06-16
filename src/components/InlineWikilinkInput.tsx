@@ -118,7 +118,7 @@ export function InlineWikilinkInput({
   dataTestId = 'agent-input',
   editorClassName,
   suggestionListVariant = 'floating',
-  suggestionEmptyLabel = 'No matching notes',
+  suggestionEmptyLabel = 'No matching pages',
   paletteHeader,
   paletteEmptyState,
   paletteFooter,

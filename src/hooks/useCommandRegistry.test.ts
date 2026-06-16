@@ -120,13 +120,13 @@ describe('useCommandRegistry', () => {
     expect(findCommand(result.current, 'resolve-conflicts')!.enabled).toBe(true)
   })
 
-  it('includes set-note-icon command in Note group', () => {
+  it('includes set-note-icon command in Page group', () => {
     const config = makeConfig({ onSetNoteIcon: vi.fn() })
     const { result } = renderHook(() => useCommandRegistry(config))
     const cmd = findCommand(result.current, 'set-note-icon')
     expect(cmd).toBeDefined()
-    expect(cmd!.group).toBe('Note')
-    expect(cmd!.label).toBe('Set Note Icon')
+    expect(cmd!.group).toBe('Page')
+    expect(cmd!.label).toBe('Set Page Icon')
   })
 
   it('set-note-icon is enabled when active note and callback exist', () => {
@@ -156,7 +156,7 @@ describe('useCommandRegistry', () => {
     const { result } = renderHook(() => useCommandRegistry(config))
     const cmd = findCommand(result.current, 'transcribe-audio')
     expect(cmd).toMatchObject({
-      group: 'Note',
+      group: 'Page',
       label: 'Transcribe Audio...',
       enabled: true,
     })
@@ -170,7 +170,7 @@ describe('useCommandRegistry', () => {
     const { result } = renderHook(() => useCommandRegistry(config))
     const cmd = findCommand(result.current, 'record-audio')
     expect(cmd).toMatchObject({
-      group: 'Note',
+      group: 'Page',
       label: 'Record Audio...',
       enabled: true,
     })
@@ -217,7 +217,7 @@ describe('useCommandRegistry', () => {
 
     const cmd = findCommand(result.current, 'insert-weather-snapshot')
     expect(cmd).toBeDefined()
-    expect(cmd!.group).toBe('Note')
+    expect(cmd!.group).toBe('Page')
     expect(cmd!.enabled).toBe(true)
 
     cmd!.execute()
@@ -227,7 +227,7 @@ describe('useCommandRegistry', () => {
     expect(findCommand(result.current, 'insert-weather-snapshot')!.enabled).toBe(false)
   })
 
-  it('includes Change Note Type when the active note can be retargeted', () => {
+  it('includes Change Page Type when the active note can be retargeted', () => {
     const onChangeNoteType = vi.fn()
     const config = makeConfig({ onChangeNoteType })
     const { result } = renderHook(() => useCommandRegistry(config))
@@ -240,7 +240,7 @@ describe('useCommandRegistry', () => {
     expect(onChangeNoteType).toHaveBeenCalledOnce()
   })
 
-  it('enables Move Note to Folder only when another folder destination exists', () => {
+  it('enables Move Page to Folder only when another folder destination exists', () => {
     const onMoveNoteToFolder = vi.fn()
     const { result, rerender } = renderHook(
       (props) => useCommandRegistry(props),
@@ -295,7 +295,7 @@ describe('useCommandRegistry', () => {
     expect(onCustomizeNoteListColumns).toHaveBeenCalled()
   })
 
-  it('includes Customize All Notes columns in the all-notes view', () => {
+  it('includes Customize Pages columns in the all-notes view', () => {
     const config = makeConfig({
       selection: { kind: 'filter', filter: 'all' },
       onCustomizeNoteListColumns: vi.fn(),
@@ -305,7 +305,7 @@ describe('useCommandRegistry', () => {
     const cmd = findCommand(result.current, 'customize-note-list-columns')
     expect(cmd).toBeDefined()
     expect(cmd!.enabled).toBe(true)
-    expect(cmd!.label).toBe('Customize All Notes columns')
+    expect(cmd!.label).toBe('Customize Pages columns')
   })
 
   it('disables note-list column customization outside supported views', () => {
@@ -428,13 +428,13 @@ describe('useCommandRegistry', () => {
     expect(findCommand(result.current, 'open-daily-note')).toBeUndefined()
   })
 
-  it('includes Contribute in the Settings group when available', () => {
+  it('includes Send feedback in the Settings group when available', () => {
     const onOpenFeedback = vi.fn()
     const config = makeConfig({ onOpenFeedback })
     const { result } = renderHook(() => useCommandRegistry(config))
     const cmd = findCommand(result.current, 'open-contribute')
     expect(cmd).toBeDefined()
-    expect(cmd!.label).toBe('Contribute')
+    expect(cmd!.label).toBe('Send feedback')
     expect(cmd!.group).toBe('Settings')
     expect(cmd!.enabled).toBe(true)
 
@@ -442,7 +442,7 @@ describe('useCommandRegistry', () => {
     expect(onOpenFeedback).toHaveBeenCalledOnce()
   })
 
-  it('keeps a single canonical New Note command when generic note types are present', () => {
+  it('keeps a single canonical New Page command when generic note types are present', () => {
     const config = makeConfig({
       entries: [
         { path: '/type-note.md', title: 'Note', isA: 'Type' },
@@ -451,7 +451,7 @@ describe('useCommandRegistry', () => {
     })
     const { result } = renderHook(() => useCommandRegistry(config))
 
-    const newNoteCommands = result.current.filter(command => command.label.toLowerCase() === 'new note')
+    const newNoteCommands = result.current.filter(command => command.label.toLowerCase() === 'new page')
 
     expect(newNoteCommands).toHaveLength(1)
     expect(newNoteCommands[0]).toMatchObject({
@@ -478,7 +478,7 @@ describe('useCommandRegistry', () => {
     expect(newTypeCommands).toHaveLength(1)
     expect(newTypeCommands[0]).toMatchObject({
       id: 'create-type',
-      group: 'Note',
+      group: 'Page',
     })
     expect(findCommand(result.current, 'list-type')).toMatchObject({
       label: 'List Types',
@@ -586,8 +586,8 @@ describe('extractVaultTypes', () => {
 
 describe('groupSortKey', () => {
   it('returns correct order for groups', () => {
-    expect(groupSortKey('Navigation')).toBeLessThan(groupSortKey('Note'))
-    expect(groupSortKey('Note')).toBeLessThan(groupSortKey('Git'))
+    expect(groupSortKey('Navigation')).toBeLessThan(groupSortKey('Page'))
+    expect(groupSortKey('Page')).toBeLessThan(groupSortKey('Git'))
     expect(groupSortKey('Git')).toBeLessThan(groupSortKey('View'))
   })
 })
@@ -658,7 +658,7 @@ describe('reload-vault command', () => {
     const cmd = findCommand(result.current, 'reload-vault')
     expect(cmd).toBeDefined()
     expect(cmd!.group).toBe('Settings')
-    expect(cmd!.label).toBe('Reload Vault')
+    expect(cmd!.label).toBe('Reload Notebook')
   })
 
   it('is enabled when onReloadVault is provided', () => {

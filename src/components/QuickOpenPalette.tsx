@@ -65,7 +65,7 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
           data-testid="quick-open-input"
           className="border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
           type="text"
-          placeholder="Search notes..."
+          placeholder="Search pages..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -78,7 +78,7 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
             onClose()
           }}
           onItemHover={(i) => setSelectedIndex(i)}
-          emptyMessage="No matching notes"
+          emptyMessage="No matching pages"
           className="flex-1 overflow-y-auto"
         />
       </div>

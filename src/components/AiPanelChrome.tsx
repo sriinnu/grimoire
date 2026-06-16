@@ -60,7 +60,7 @@ function getComposerPlaceholder(
   hasContext: boolean,
 ): string {
   if (!agentReady) {
-    return `${agentLabel} is not installed. Open AI Agents in Settings.`
+    return `${agentLabel} is not installed. Open Local AI in Settings.`
   }
 
   if (legacyCopy) {

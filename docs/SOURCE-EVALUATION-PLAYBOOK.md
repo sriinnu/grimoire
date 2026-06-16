@@ -50,7 +50,7 @@ handlers and the managed demo vault; it should not read a private local vault.
 Evaluate these surfaces:
 
 1. Open `grimoire-start-here` and `grimoire-feature-tour`.
-2. Use Sidebar Spotlight for `Time Loom`, `Agent Council`, and `themes`.
+2. Use Sidebar Spotlight for `Time Loom`, `Agent Council`, and `experience profiles`.
 3. Open `grimoire-markdown-learning` and inspect rich/raw editor behavior.
 4. Follow wikilinks from `grimoire-links-and-backlinks`.
 5. Open the graph from a linked note and compare incoming/outgoing context.

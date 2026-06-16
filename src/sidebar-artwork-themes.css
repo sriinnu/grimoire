@@ -1,371 +1,119 @@
-.app-sidebar-panel,
 [data-sidebar-preset-preview] {
   --art-accent: var(--accent-blue);
-  --art-aura: color-mix(in srgb, var(--accent-teal) 46%, var(--art-accent));
-  --art-core: color-mix(in srgb, var(--art-accent) 30%, transparent);
-  --art-fill: color-mix(in srgb, var(--art-accent) 28%, var(--sidebar) 72%);
-  --art-gate: color-mix(in srgb, var(--art-accent) 42%, var(--sidebar-foreground));
-  --art-glow: color-mix(in srgb, var(--art-accent) 14%, transparent);
-  --art-ink: color-mix(in srgb, var(--sidebar-foreground) 66%, var(--art-accent));
-  --art-memory: color-mix(in srgb, var(--accent-purple) 68%, var(--art-accent));
-  --art-node: color-mix(in srgb, var(--art-accent) 32%, var(--sidebar) 68%);
-  --art-node-warm: color-mix(in srgb, var(--accent-yellow) 74%, var(--art-accent));
-  --art-page: color-mix(in srgb, var(--sidebar-foreground) 22%, var(--sidebar) 78%);
-  --art-panel: color-mix(in srgb, var(--surface-editor) 14%, transparent);
-  --art-presence: clamp(0.46, calc(var(--sidebar-artwork-opacity, 0.28) * 2.35), 0.74);
-  --art-route: color-mix(in srgb, var(--art-accent) 72%, var(--sidebar-foreground));
-  --art-shield: color-mix(in srgb, var(--art-accent) 20%, var(--sidebar) 80%);
-  --art-spark: color-mix(in srgb, var(--accent-yellow) 82%, var(--sidebar-foreground));
-  --art-line: color-mix(in srgb, var(--sidebar-foreground) 22%, transparent);
-  --art-veda: color-mix(in srgb, var(--accent-yellow) 70%, var(--art-accent));
-  --art-shastra: color-mix(in srgb, var(--accent-purple) 54%, var(--art-aura));
-  --art-brain: color-mix(in srgb, var(--accent-teal) 58%, var(--art-accent));
-  --art-purana: color-mix(in srgb, var(--accent-yellow) 46%, var(--sidebar-foreground));
-  --art-rishi: color-mix(in srgb, var(--accent-purple) 48%, var(--art-spark));
-  --art-second-brain: color-mix(in srgb, var(--accent-blue) 54%, var(--art-brain));
+  --art-aura: color-mix(in srgb, var(--accent-blue) 24%, var(--art-accent));
+  --art-context: color-mix(in srgb, var(--accent-blue) 46%, var(--sidebar-foreground));
+  --art-ink: color-mix(in srgb, var(--sidebar-foreground) 72%, var(--art-accent));
+  --art-line: color-mix(in srgb, var(--sidebar-foreground) 20%, transparent);
+  --art-mark: color-mix(in srgb, var(--art-accent) 66%, var(--sidebar-foreground));
+  --art-memory: color-mix(in srgb, var(--accent-purple) 46%, var(--art-accent));
+  --art-page: color-mix(in srgb, var(--sidebar-foreground) 16%, var(--sidebar) 84%);
+  --art-panel: color-mix(in srgb, var(--surface-editor) 10%, transparent);
+  --art-presence: clamp(0.16, calc(var(--sidebar-artwork-opacity, 0.18) * 1.15), 0.28);
+  --art-thread: color-mix(in srgb, var(--accent-blue) 42%, var(--sidebar-foreground));
 }
 
-.app-sidebar-panel > .sidebar-artwork {
+[data-sidebar-preset-preview] .sidebar-artwork {
   background:
-    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--art-spark) 22%, transparent), transparent 24%),
-    radial-gradient(ellipse at 51% 62%, color-mix(in srgb, var(--art-aura) 28%, transparent), transparent 58%),
-    linear-gradient(180deg, transparent 0%, var(--art-panel) 52%, color-mix(in srgb, var(--sidebar) 94%, transparent) 100%);
+    radial-gradient(ellipse at 50% 68%, color-mix(in srgb, var(--art-aura) 7%, transparent), transparent 58%),
+    linear-gradient(180deg, transparent 0%, var(--art-panel) 64%, color-mix(in srgb, var(--sidebar) 96%, transparent) 100%);
   border: 0;
   isolation: isolate;
   mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 28%, #000 100%);
 }
 
-.app-sidebar-panel > .sidebar-artwork::before,
-.app-sidebar-panel > .sidebar-artwork::after {
+[data-sidebar-preset-preview] .sidebar-artwork::before,
+[data-sidebar-preset-preview] .sidebar-artwork::after {
   content: "";
   pointer-events: none;
   position: absolute;
   z-index: 1;
 }
 
-.app-sidebar-panel > .sidebar-artwork::before {
-  background:
-    radial-gradient(circle at 18% 36%, var(--art-spark) 0 2px, transparent 3px),
-    radial-gradient(circle at 24% 58%, var(--art-line) 0 2px, transparent 3px),
-    radial-gradient(circle at 74% 45%, var(--art-line) 0 2px, transparent 3px),
-    radial-gradient(circle at 82% 30%, var(--art-aura) 0 2px, transparent 3px);
-  inset: 22px 24px 18px;
-  opacity: 0.3;
+[data-sidebar-preset-preview] .sidebar-artwork::before {
+  inset: auto 36px 44px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--art-line), transparent);
+  opacity: 0.18;
 }
 
-.app-sidebar-panel > .sidebar-artwork::after {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 0%, transparent), var(--sidebar)),
-    radial-gradient(ellipse at 50% 100%, var(--art-glow), transparent 68%);
-  bottom: 0;
-  height: 48px;
-  left: 0;
-  opacity: 0.92;
+[data-sidebar-preset-preview] .sidebar-artwork::after {
   right: 0;
+  bottom: 0;
+  left: 0;
+  height: 48px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sidebar) 0%, transparent), var(--sidebar));
+  opacity: 0.92;
 }
 
-.app-sidebar-panel .sidebar-artwork__glyph,
 [data-sidebar-preset-preview] .sidebar-artwork__glyph {
+  position: absolute;
+  z-index: 2;
   color: var(--art-ink);
-  filter:
-    drop-shadow(0 14px 22px color-mix(in srgb, var(--art-accent) 22%, transparent))
-    drop-shadow(0 0 18px color-mix(in srgb, var(--art-spark) 18%, transparent));
+  filter: none;
   mix-blend-mode: normal;
   opacity: var(--art-presence);
-  position: absolute;
   transform: translateY(4px) scale(0.98);
   transform-origin: center bottom;
-  z-index: 2;
 }
 
-[data-theme="dark"] .app-sidebar-panel .sidebar-artwork__glyph,
 [data-theme-preview="dark"] .sidebar-artwork__glyph {
   mix-blend-mode: normal;
   opacity: var(--art-presence);
 }
 
-.sidebar-artwork__constellation,
-.sidebar-artwork__aurora,
-.sidebar-artwork__gate,
-.sidebar-artwork__memory-line,
-.sidebar-artwork__orbit,
-.sidebar-artwork__palm-leaf,
-.sidebar-artwork__purana-scroll,
-.sidebar-artwork__rishi-aura,
-.sidebar-artwork__rishi-seat,
-.sidebar-artwork__route,
-.sidebar-artwork__root,
-.sidebar-artwork__ribbon,
-.sidebar-artwork__second-brain,
-.sidebar-artwork__thin,
-.sidebar-artwork__brain-loop,
-.sidebar-artwork__spark,
-.sidebar-artwork__spine {
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sidebar-artwork__gate,
-.sidebar-artwork__route {
-  stroke-width: 5.2;
-}
-
-.sidebar-artwork__ribbon {
-  stroke-width: 6.4;
-}
-
-.sidebar-artwork__constellation,
-.sidebar-artwork__aurora,
-.sidebar-artwork__brain-loop,
-.sidebar-artwork__memory-line,
-.sidebar-artwork__orbit,
-.sidebar-artwork__palm-leaf,
-.sidebar-artwork__purana-scroll,
-.sidebar-artwork__rishi-aura,
-.sidebar-artwork__rishi-seat,
-.sidebar-artwork__second-brain,
-.sidebar-artwork__thin,
-.sidebar-artwork__spark {
-  stroke-width: 3;
-}
-
-.sidebar-artwork__wash,
-.sidebar-artwork__brain-node,
-.sidebar-artwork__node,
-.sidebar-artwork__core-glow,
-.sidebar-artwork__halo,
-.sidebar-artwork__local-dot,
-.sidebar-artwork__page,
-.sidebar-artwork__rishi-head,
-.sidebar-artwork__root {
-  fill: var(--art-fill);
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sidebar-artwork__wash {
-  opacity: 0.44;
-  stroke-width: 3;
-}
-
-.sidebar-artwork__node {
-  fill: var(--art-node);
-  stroke-width: 4;
-}
-
-.sidebar-artwork__node--small {
-  fill: var(--art-node-warm);
-}
-
-.sidebar-artwork__node--quiet {
-  fill: color-mix(in srgb, var(--art-accent) 16%, transparent);
-  opacity: 0.72;
-  stroke-width: 3;
-}
-
-.sidebar-artwork__halo {
-  fill: var(--art-glow);
-  opacity: 0.76;
-  stroke-width: 3;
-}
-
-.sidebar-artwork__aurora {
-  color: var(--art-aura);
-  opacity: 0.76;
-  stroke-width: 7;
-}
-
-.sidebar-artwork__ribbon--veda {
-  color: var(--art-veda);
-  opacity: 0.72;
-}
-
-.sidebar-artwork__ribbon--shastra {
-  color: var(--art-shastra);
-  opacity: 0.58;
-}
-
-.sidebar-artwork__palm-leaf--veda {
-  color: var(--art-veda);
-  opacity: 0.8;
-}
-
-.sidebar-artwork__palm-leaf--shastra {
-  color: var(--art-shastra);
-  opacity: 0.66;
-}
-
-.sidebar-artwork__purana-scroll {
-  color: var(--art-purana);
-  opacity: 0.62;
-}
-
-.sidebar-artwork__core-glow {
-  fill: var(--art-core);
-  opacity: 0.78;
-  stroke: none;
-}
-
-.sidebar-artwork__local-dot {
-  fill: var(--art-spark);
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--art-spark) 34%, transparent));
-  stroke: var(--art-aura);
-  stroke-width: 2.4;
-}
-
-.sidebar-artwork__scripture-bind,
-.sidebar-artwork__rishi-head {
-  fill: var(--art-spark);
-  stroke: var(--art-rishi);
-  stroke-width: 2;
-}
-
-.sidebar-artwork__page {
-  fill: var(--art-page);
-  stroke-width: 4.2;
-}
-
-.sidebar-artwork__page--right {
-  fill: color-mix(in srgb, var(--art-page) 70%, var(--art-accent) 30%);
-}
-
-.sidebar-artwork__gate {
-  color: var(--art-gate);
-  opacity: 0.44;
-}
-
-.sidebar-artwork__orbit {
-  opacity: 0.5;
-}
-
-.sidebar-artwork__constellation {
-  opacity: 0.48;
-}
-
-.sidebar-artwork__route {
-  color: var(--art-route);
-  opacity: 0.8;
-}
-
-.sidebar-artwork__spark {
-  color: var(--art-spark);
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--art-spark) 24%, transparent));
-  opacity: 0.88;
-}
-
-.sidebar-artwork__spine {
-  opacity: 0.76;
-  stroke-width: 3.6;
-}
-
-.sidebar-artwork__memory-line {
-  color: var(--art-memory);
-  opacity: 0.84;
-}
-
-.sidebar-artwork__brain-loop {
-  color: var(--art-brain);
-  opacity: 0.72;
-}
-
-.sidebar-artwork__second-brain {
-  color: var(--art-second-brain);
-  opacity: 0.72;
-}
-
-.sidebar-artwork__rishi-aura,
-.sidebar-artwork__rishi-seat {
-  color: var(--art-rishi);
-  opacity: 0.68;
-}
-
-.sidebar-artwork__brain-node {
-  fill: var(--art-spark);
-  stroke: var(--art-brain);
-  stroke-width: 1.8;
-}
-
-.sidebar-artwork__root {
-  fill: var(--art-shield);
-  opacity: 0.82;
-  stroke-width: 3.4;
-}
-
-[data-theme-preset="nocturne"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="nocturne"] .sidebar-artwork {
-  --art-accent: #8fd6b8;
-  --art-aura: color-mix(in srgb, #65d6ff 42%, #8fd6b8);
-  --art-glow: color-mix(in srgb, #8fd6b8 20%, transparent);
-  --art-page: color-mix(in srgb, var(--surface-sidebar) 74%, #8fd6b8 26%);
-  --art-presence: 0.62;
+  --art-accent: #aeb8c4;
+  --art-aura: color-mix(in srgb, #aeb8c4 18%, transparent);
+  --art-page: color-mix(in srgb, var(--surface-sidebar) 88%, #aeb8c4 12%);
+  --art-presence: 0.26;
 }
 
-[data-theme-preset="retro-terminal"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork {
-  --art-accent: #9bff7a;
-  --art-aura: color-mix(in srgb, #62f2b6 45%, #9bff7a);
-  --art-fill: transparent;
-  --art-glow: transparent;
+[data-sidebar-preset-preview="code-notebook"] .sidebar-artwork {
+  --art-accent: #d8b957;
+  --art-aura: transparent;
   --art-page: transparent;
-  --art-presence: 0.42;
-  --art-shield: color-mix(in srgb, #9bff7a 11%, transparent);
+  --art-presence: 0.2;
 }
 
-[data-theme-preset="daylight-atelier"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="daylight-atelier"] .sidebar-artwork {
-  --art-accent: #ff9a7a;
-  --art-aura: color-mix(in srgb, #8ddbe4 42%, #ff9a7a);
-  --art-glow: color-mix(in srgb, #ff9a7a 18%, transparent);
-  --art-page: color-mix(in srgb, #f7efe1 76%, #ff9a7a 24%);
-  --art-presence: 0.5;
+[data-sidebar-preset-preview="daylight-notebook"] .sidebar-artwork {
+  --art-accent: #2f668e;
+  --art-aura: color-mix(in srgb, #8fcfed 28%, #2f668e);
+  --art-page: color-mix(in srgb, #f7efe1 92%, #8fcfed 8%);
+  --art-presence: 0.22;
 }
 
-[data-theme-preset="prabhat-studio"] .app-sidebar-panel > .sidebar-artwork,
-[data-sidebar-preset-preview="prabhat-studio"] .sidebar-artwork {
-  --art-accent: #b75542;
-  --art-aura: color-mix(in srgb, #88d8d2 48%, #f2a06f);
-  --art-glow: color-mix(in srgb, #b75542 14%, transparent);
-  --art-page: color-mix(in srgb, #fbfffd 72%, #88d8d2 28%);
-  --art-presence: 0.5;
+[data-sidebar-preset-preview="morning-notebook"] .sidebar-artwork {
+  --art-accent: #2f6f9e;
+  --art-aura: color-mix(in srgb, #8fcfed 28%, #2f6f9e);
+  --art-page: color-mix(in srgb, #fdfdff 92%, #8fcfed 8%);
+  --art-presence: 0.2;
 }
 
-[data-theme-preset="living-archive"] .app-sidebar-panel > .sidebar-artwork,
 [data-sidebar-preset-preview="living-archive"] .sidebar-artwork {
-  --art-accent: #c8a454;
-  --art-aura: color-mix(in srgb, #8cbfc0 42%, #c8a454);
-  --art-fill: color-mix(in srgb, #c8a454 18%, var(--surface-sidebar) 82%);
-  --art-page: color-mix(in srgb, #f2ddb2 22%, var(--surface-sidebar) 78%);
-  --art-presence: 0.56;
-  --art-shield: color-mix(in srgb, #c8a454 19%, var(--surface-sidebar) 81%);
-}
-
-[data-theme-preset="retro-terminal"] .sidebar-artwork__glyph,
-[data-sidebar-preset-preview="retro-terminal"] .sidebar-artwork__glyph {
-  filter: none;
-  opacity: var(--art-presence);
+  --art-accent: #a88642;
+  --art-aura: color-mix(in srgb, #8cbfc0 24%, #a88642);
+  --art-page: color-mix(in srgb, #f2ddb2 18%, var(--surface-sidebar) 82%);
+  --art-presence: 0.24;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .app-sidebar-panel .sidebar-artwork__glyph--vault-atlas {
-    animation: sidebar-atlas-arrive 520ms var(--motion-ease-expressive, ease-out) both;
+  [data-sidebar-preset-preview] .sidebar-artwork__glyph--notebook-thread {
+    animation: sidebar-notebook-thread-arrive 240ms var(--motion-ease-standard, ease-out) both;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-sidebar-panel .sidebar-artwork__glyph--vault-atlas {
+  [data-sidebar-preset-preview] .sidebar-artwork__glyph--notebook-thread {
     animation: none;
     transform: translateY(4px) scale(0.98);
   }
 }
 
-@keyframes sidebar-atlas-arrive {
+@keyframes sidebar-notebook-thread-arrive {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.98);
+    transform: translateY(7px) scale(0.98);
   }
 
   to {
@@ -375,13 +123,13 @@
 }
 
 @media (max-height: 760px) {
-  .app-sidebar-panel > .sidebar-artwork {
+  [data-sidebar-preset-preview] .sidebar-artwork {
     height: 80px;
     margin: 0;
     min-height: 80px;
   }
 
-  .app-sidebar-panel .sidebar-artwork__glyph {
+  [data-sidebar-preset-preview] .sidebar-artwork__glyph {
     transform: translateY(8px) scale(1);
   }
 }

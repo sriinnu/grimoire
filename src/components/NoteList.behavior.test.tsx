@@ -72,8 +72,8 @@ describe('NoteList virtualized datasets', () => {
       ]
 
       renderNoteList({ entries })
-      fireEvent.click(screen.getByTitle('Search notes'))
-      fireEvent.change(screen.getByPlaceholderText('Search notes...'), { target: { value: 'Strategy' } })
+      fireEvent.click(screen.getByTitle('Search pages'))
+      fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'Strategy' } })
 
       await act(async () => {
         vi.advanceTimersByTime(200)
@@ -310,7 +310,7 @@ describe('NoteList filter pills', () => {
       noteListFilter: 'archived',
     })
 
-    expect(screen.getByText('No archived notes')).toBeInTheDocument()
+    expect(screen.getByText('No archived pages')).toBeInTheDocument()
   })
 
   it('defaults folder views to markdown and lets users reveal other files', async () => {

@@ -7,7 +7,7 @@ describe('GrimoireRefreshAnimation', () => {
     render(<GrimoireRefreshAnimation />)
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading…')
-    expect(screen.getByText('Opening the vault')).toBeInTheDocument()
+    expect(screen.getByText('Opening the notebook')).toBeInTheDocument()
     expect(screen.getByTestId('grimoire-refresh-animation')).toBeInTheDocument()
   })
 })

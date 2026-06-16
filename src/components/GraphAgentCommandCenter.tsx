@@ -24,7 +24,7 @@ export function GraphAgentCommandCenter({
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             <Sparkles className="size-3.5" />
-            Agent command center
+            Second Brain
           </div>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
             {commandCenterCopy(agentGraphContext, selectedLocalOnly, held)}
@@ -34,10 +34,32 @@ export function GraphAgentCommandCenter({
           {commandCenterLabel(state)}
         </span>
       </div>
+      <div className="graph-agent-command-center__memory" data-testid="graph-working-memory">
+        <MemoryMetric label="Nodes" value={`${agentGraphContext.nodes.length}`} />
+        <MemoryMetric label="Links" value={`${agentGraphContext.edges.length}`} />
+        <MemoryMetric label="Held local" value={`${held}`} state={held > 0 ? 'guarded' : state} />
+      </div>
       <div className="graph-agent-command-center__stack">
         {children}
       </div>
     </div>
+  )
+}
+
+function MemoryMetric({
+  label,
+  state,
+  value,
+}: {
+  label: string
+  state?: GraphAgentLaneState
+  value: string
+}) {
+  return (
+    <span className="graph-agent-command-center__memory-metric" data-state={state}>
+      <strong>{value}</strong>
+      <em>{label}</em>
+    </span>
   )
 }
 

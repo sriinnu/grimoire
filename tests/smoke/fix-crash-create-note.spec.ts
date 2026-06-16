@@ -68,7 +68,7 @@ test.describe('Create note crash fix', () => {
 
   test('clicking + next to a type section creates a note without crashing @smoke', async ({ page }) => {
     await openTestVault(page)
-    await selectSection(page, 'Projects')
+    await selectSection(page, 'Making')
     await expectUntitledNoteWithoutCrash(page, 'project', async () => {
       await createNoteFromListHeader(page)
     })
@@ -85,7 +85,7 @@ test.describe('Create note crash fix', () => {
 
   test('creating note for custom type does not crash', async ({ page }) => {
     await openTestVault(page)
-    await selectSection(page, 'Events')
+    await selectSection(page, 'Moments')
     await expectUntitledNoteWithoutCrash(page, 'event', async () => {
       await createNoteFromListHeader(page)
     })

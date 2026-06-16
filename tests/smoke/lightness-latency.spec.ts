@@ -106,7 +106,7 @@ async function measureResponsiveUntil(
 async function openAllNotes(page: Page) {
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await expect(page.getByTestId('sidebar-top-nav')).toBeVisible({ timeout: 10_000 })
-  await page.getByText('All Notes', { exact: true }).first().click()
+  await page.getByText('Pages', { exact: true }).first().click()
   await expect(page.getByTestId('note-list-container')).toBeVisible({ timeout: 10_000 })
 }
 

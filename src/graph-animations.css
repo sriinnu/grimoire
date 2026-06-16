@@ -255,6 +255,23 @@
   opacity: 0.28;
 }
 
+.grimoire-graph-node-label {
+  opacity: 1;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.grimoire-graph-node-label--quiet {
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+}
+
+.grimoire-graph-node:hover .grimoire-graph-node-label--quiet,
+.grimoire-graph-node:focus-visible .grimoire-graph-node-label--quiet {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .grimoire-graph-node-type-pill {
   fill: var(--grimoire-graph-type-bg, color-mix(in srgb, var(--node-fill) 52%, var(--surface-editor)));
   stroke: color-mix(in srgb, var(--node-color) 28%, transparent);
@@ -268,7 +285,7 @@
 }
 
 .grimoire-graph-node-core {
-  filter: drop-shadow(0 9px 16px color-mix(in srgb, var(--node-color) 18%, transparent));
+  filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--node-color) 25%, transparent));
 }
 
 .grimoire-graph-node-degree-badge circle {

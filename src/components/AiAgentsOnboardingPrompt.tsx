@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bot, CheckCircle2, Compass, Loader2, RotateCcw, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, BookOpen, Bot, CheckCircle2, Compass, Loader2, RotateCcw, ShieldCheck } from 'lucide-react'
 import {
   AI_AGENT_DEFINITIONS,
   AI_AGENTS_STATUS_SCAN_FAILED_DETAIL,
@@ -29,54 +29,54 @@ function getPromptCopy(statuses: AiAgentsStatus) {
   if (isAiAgentsStatusChecking(statuses)) {
     return {
       accentClassName: 'bg-muted text-muted-foreground',
-      description: 'Checking which AI agents are available on this machine.',
+      description: 'Checking optional local helpers. The notebook itself stays available.',
       icon: <Loader2 className="size-7 animate-spin" />,
-      title: 'Checking AI agents',
+      title: 'Checking local helpers',
     }
   }
 
   if (isBrowserPreviewAiAgentsStatus(statuses)) {
     return {
       accentClassName: 'bg-muted text-muted-foreground',
-      description: 'Browser preview cannot launch local CLI agents. Open the native Grimoire app for live Claude, Codex, and Chitragupta.',
-      icon: <Bot className="size-7" />,
-      title: 'Open native app for live AI',
+      description: 'Use the notebook here. Live local helpers stay in the native Grimoire app, so private machine checks do not run in the browser.',
+      icon: <BookOpen className="size-7" />,
+      title: 'Notebook preview is ready',
     }
   }
 
   if (isAiAgentsStatusScanFailed(statuses)) {
     return {
       accentClassName: 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]',
-      description: 'The native CLI check did not finish cleanly. This is not proof that Claude, Codex, or Chitragupta are missing.',
+      description: 'The native helper check did not finish cleanly. This is not proof that a local route is missing.',
       icon: <Bot className="size-7" />,
-      title: 'AI scan needs retry',
+      title: 'Local helper check needs retry',
     }
   }
 
   if (!hasAnyInstalledAiAgent(statuses)) {
     return {
       accentClassName: 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]',
-      description: 'Grimoire works best with a local CLI AI agent installed.',
+      description: 'Your notebook works on its own. Add a local helper only when you want one.',
       icon: <Bot className="size-7" />,
-      title: 'No AI agents detected',
+      title: 'Local helpers are optional',
     }
   }
 
   return {
     accentClassName: 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]',
-    description: 'At least one local CLI route is available. Missing agents can be installed later.',
+    description: 'At least one local helper route is available. Other helpers can be linked later.',
     icon: <CheckCircle2 className="size-7" />,
-    title: 'AI CLI routes detected',
+    title: 'Local helpers detected',
   }
 }
 
 function scanSummary(statuses: AiAgentsStatus): string {
-  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Browser preview cannot inspect local CLI paths.'
-  if (isAiAgentsStatusScanFailed(statuses)) return 'Native CLI scan failed before agent availability could be verified. Choose Check again after Grimoire finishes launching.'
+  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Preview mode skips local helper scans so private machine paths stay out of the browser.'
+  if (isAiAgentsStatusScanFailed(statuses)) return 'Native helper scan failed before availability could be verified. Choose Check again after Grimoire finishes launching.'
   if (isAiAgentsStatusChecking(statuses)) return 'Scanning PATH, login shell, Homebrew, npm/pnpm, nvm/fnm, Volta, and common app launcher paths.'
   const installed = AI_AGENT_DEFINITIONS.filter((definition) => statuses[definition.id].status === 'installed').length
   const missing = AI_AGENT_DEFINITIONS.length - installed
-  return `${installed} detected, ${missing} missing after scanning local CLI paths.`
+  return `${installed} detected, ${missing} unavailable after scanning local helper paths.`
 }
 
 function scanLocations(platform: DesktopPlatform): string {
@@ -94,17 +94,17 @@ function scanLocations(platform: DesktopPlatform): string {
 
 function scanLocationsForStatus(statuses: AiAgentsStatus, platform: DesktopPlatform): string {
   if (isBrowserPreviewAiAgentsStatus(statuses)) {
-    return 'Open the native desktop app to inspect PATH, shell, package-manager shims, version-manager bins, and app launcher paths.'
+    return 'No private machine paths are inspected in browser preview. The native app can connect local helpers later.'
   }
   return scanLocations(platform)
 }
 
 function nextStepCopy(statuses: AiAgentsStatus): string {
-  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Open the native desktop app when you want live local agents.'
-  if (isAiAgentsStatusChecking(statuses)) return 'Wait for the scan to finish before installing or changing agent settings.'
-  if (isAiAgentsStatusScanFailed(statuses)) return 'Retry the scan before treating any CLI as missing.'
-  if (hasAnyInstalledAiAgent(statuses)) return 'Continue now; missing agents stay optional and can be linked later.'
-  return 'Install one CLI or continue without live AI. Notes, search, and local vault work still run.'
+  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Continue to the notebook here; open the desktop app when you want live local helpers.'
+  if (isAiAgentsStatusChecking(statuses)) return 'Wait for the scan to finish before installing or changing helper settings.'
+  if (isAiAgentsStatusScanFailed(statuses)) return 'Retry the scan before treating any local helper as unavailable.'
+  if (hasAnyInstalledAiAgent(statuses)) return 'Continue now; unavailable helpers stay optional and can be linked later.'
+  return 'Install one helper or continue without it. Notes, search, and local notebook work still run.'
 }
 
 function installedCount(statuses: AiAgentsStatus): number {
@@ -125,15 +125,14 @@ function statusBadgeLabel(status: AiAgentAvailability): string {
   if (status.status === 'installed') return 'Installed'
   if (status.status === 'checking') return 'Checking'
   if (isRetryNeededAgentStatus(status)) return 'Retry needed'
-  return 'Missing'
+  return 'Unavailable'
 }
 
 function agentStatusDetail(definition: AiAgentDefinition, status: AiAgentAvailability): string {
   if (status.status === 'checking') return 'Scanning local CLI paths.'
   if (status.status === 'installed') {
     const version = status.version ? ` ${status.version}` : ''
-    if (definition.id === 'chitragupta') return `Chitragupta${version} CLI chat route found.`
-    return `${definition.label}${version} CLI route found.`
+    return `${definition.label}${version} local helper route found.`
   }
   return status.detail ?? status.version ?? `${definition.label} CLI was not found in common local paths.`
 }
@@ -147,10 +146,24 @@ function agentSecondaryDetail(definition: AiAgentDefinition, status: AiAgentAvai
 }
 
 function continueLabel(statuses: AiAgentsStatus): string {
-  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Continue in preview'
+  if (isBrowserPreviewAiAgentsStatus(statuses)) return 'Open notebook preview'
   if (hasAnyInstalledAiAgent(statuses)) return 'Continue'
-  if (isAiAgentsStatusScanFailed(statuses)) return 'Continue without live AI'
+  if (isAiAgentsStatusScanFailed(statuses)) return 'Continue without helpers'
   return 'Continue without it'
+}
+
+function BrowserPreviewBoundary() {
+  return (
+    <div
+      className="rounded-lg border border-border bg-muted/15 px-4 py-3 text-left"
+      data-testid="ai-agents-onboarding-preview-boundary"
+    >
+      <div className="text-sm font-medium text-foreground">Your notebook works in preview.</div>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">
+        The browser does not launch local helpers or inspect private machine paths.
+      </p>
+    </div>
+  )
 }
 
 function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
@@ -204,7 +217,7 @@ function ScanReceipt({ statuses }: { statuses: AiAgentsStatus }) {
       <div className="space-y-1">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
           <Compass className="size-3.5" />
-          {browserPreview ? 'Native app scan' : `${platformLabel} scan`}
+          {browserPreview ? 'Private scan' : `${platformLabel} scan`}
         </div>
         <p className="text-xs leading-5 text-muted-foreground" data-testid="ai-agent-scan-locations">
           {scanLocationsForStatus(statuses, platform)}
@@ -216,7 +229,7 @@ function ScanReceipt({ statuses }: { statuses: AiAgentsStatus }) {
           Result
         </div>
         <p className="text-xs leading-5 text-muted-foreground">
-          {browserPreview ? 'Native app required.' : checking ? 'Scanning now.' : scanFailed ? 'Scan retry needed.' : `${detected} chat route${detected === 1 ? '' : 's'} detected.`}
+          {browserPreview ? 'Notebook preview ready.' : checking ? 'Scanning now.' : scanFailed ? 'Scan retry needed.' : `${detected} helper route${detected === 1 ? '' : 's'} detected.`}
         </p>
       </div>
       <div className="space-y-1">
@@ -271,7 +284,9 @@ export function AiAgentsOnboardingPrompt({
             className="rounded-lg border border-border bg-muted/15 px-4 py-3 text-left"
             data-testid="ai-agents-onboarding-scan-summary"
           >
-            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Native CLI scan</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              {isBrowserPreview ? 'Preview boundary' : 'Native helper scan'}
+            </div>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">{scanSummary(statuses)}</p>
           </div>
           <ScanReceipt statuses={statuses} />
@@ -286,7 +301,7 @@ export function AiAgentsOnboardingPrompt({
               </p>
             </div>
           ) : null}
-          <AgentStatusList statuses={statuses} />
+          {isBrowserPreview ? <BrowserPreviewBoundary /> : <AgentStatusList statuses={statuses} />}
         </CardContent>
 
         <CardFooter className="flex-wrap justify-center gap-3">

@@ -9,155 +9,33 @@
 .sidebar-rail__tone .sidebar-rail__glyph,
 .sidebar-section-glyph {
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, currentColor 10%, transparent),
-    inset 0 -8px 14px color-mix(in srgb, currentColor 8%, transparent),
-    0 4px 10px color-mix(in srgb, currentColor 12%, transparent);
+    inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent),
+    0 0 0 1px color-mix(in srgb, currentColor 6%, transparent);
 }
 
 .sidebar-top-nav__tone .sidebar-nav-glyph::before,
 .sidebar-rail__tone .sidebar-rail__glyph::before,
 .sidebar-section-glyph::before {
-  opacity: 0.42;
+  opacity: 0.32;
 }
 
 .sidebar-top-nav__tone .sidebar-nav-glyph__icon,
 .sidebar-rail__tone .sidebar-rail__glyph > svg,
 .sidebar-section-glyph__icon {
-  filter:
-    drop-shadow(0 1px 0 color-mix(in srgb, var(--sidebar-primary-foreground) 10%, transparent))
-    drop-shadow(0 0 6px color-mix(in srgb, currentColor 16%, transparent));
-  transition: transform 180ms ease;
+  filter: none;
+  transition: color 180ms ease;
 }
 
 .sidebar-top-nav__tone[data-active="true"] .sidebar-nav-glyph__icon,
 .sidebar-rail__tone[data-active="true"] .sidebar-rail__glyph > svg,
 .sidebar-section-glyph[data-active="true"] .sidebar-section-glyph__icon {
-  transform: scale(1.05);
+  transform: none;
 }
 
 .sidebar-nav-glyph--emoji > span {
-  filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 18%, transparent));
+  filter: none;
   position: relative;
   z-index: 1;
-}
-
-.sidebar-nav-glyph__halo,
-.sidebar-nav-glyph__bead,
-.sidebar-nav-glyph__route,
-.sidebar-rail__bead,
-.sidebar-rail__signal,
-.sidebar-section-glyph__aura,
-.sidebar-section-glyph__bead,
-.sidebar-section-glyph__route,
-.sidebar-section-glyph__thread {
-  pointer-events: none;
-  position: absolute;
-}
-
-.sidebar-nav-glyph__halo,
-.sidebar-section-glyph__aura {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, currentColor 18%, transparent), transparent 58%),
-    radial-gradient(circle at 70% 32%, color-mix(in srgb, var(--accent-teal) 16%, transparent), transparent 46%);
-  border-radius: inherit;
-  inset: 2px;
-  opacity: 0.62;
-  z-index: 0;
-}
-
-.sidebar-nav-glyph__route,
-.sidebar-rail__signal,
-.sidebar-section-glyph__route {
-  background:
-    linear-gradient(90deg, transparent, color-mix(in srgb, currentColor 72%, var(--sidebar-primary-foreground)), transparent),
-    color-mix(in srgb, currentColor 24%, transparent);
-  border-radius: 999px;
-  bottom: 4px;
-  height: 1px;
-  left: 4px;
-  opacity: 0.62;
-  transform: scaleX(0.58);
-  transform-origin: left center;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-  width: calc(100% - 8px);
-  z-index: 1;
-}
-
-.sidebar-nav-glyph__bead,
-.sidebar-rail__bead {
-  background: color-mix(in srgb, currentColor 76%, var(--sidebar-primary-foreground));
-  border-radius: 999px;
-  box-shadow: 0 0 8px color-mix(in srgb, currentColor 34%, transparent);
-  height: 2px;
-  opacity: 0.66;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-  width: 2px;
-  z-index: 1;
-}
-
-.sidebar-nav-glyph__bead--near,
-.sidebar-rail__bead--near {
-  left: 5px;
-  top: 5px;
-}
-
-.sidebar-nav-glyph__bead--far,
-.sidebar-rail__bead--far {
-  background: color-mix(in srgb, var(--accent-yellow) 74%, currentColor);
-  bottom: 5px;
-  right: 5px;
-}
-
-.sidebar-section-glyph__thread {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, currentColor 66%, transparent), transparent),
-    color-mix(in srgb, var(--accent-yellow) 18%, transparent);
-  border-radius: 999px;
-  height: 1px;
-  left: 5px;
-  opacity: 0.52;
-  top: 8px;
-  transform: rotate(-29deg) scaleX(0.66);
-  transform-origin: left center;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
-  width: 14px;
-  z-index: 1;
-}
-
-.sidebar-section-glyph__bead {
-  background: color-mix(in srgb, currentColor 78%, var(--sidebar-primary-foreground));
-  border-radius: 999px;
-  box-shadow: 0 0 8px color-mix(in srgb, currentColor 36%, transparent);
-  height: 2px;
-  opacity: 0.74;
-  right: 4px;
-  top: 4px;
-  width: 2px;
-  z-index: 1;
-}
-
-.sidebar-top-nav__tone[data-active="true"] .sidebar-nav-glyph__route,
-.sidebar-rail__tone[data-active="true"] .sidebar-rail__signal,
-.sidebar-section-glyph[data-active="true"] .sidebar-section-glyph__route {
-  opacity: 0.86;
-  transform: scaleX(1);
-}
-
-.sidebar-top-nav__tone[data-active="true"] .sidebar-nav-glyph__bead,
-.sidebar-rail__tone[data-active="true"] .sidebar-rail__bead {
-  opacity: 0.92;
-  transform: scale(1.18);
-}
-
-.sidebar-section-glyph[data-active="true"] .sidebar-section-glyph__thread {
-  opacity: 0.82;
-  transform: rotate(-29deg) scaleX(1);
 }
 
 .sidebar-rail__tone .sidebar-rail__glyph > svg,
@@ -181,17 +59,8 @@
   .sidebar-section-glyph__icon,
   .sidebar-top-nav__tone[data-active="true"] .sidebar-nav-glyph__icon,
   .sidebar-rail__tone[data-active="true"] .sidebar-rail__glyph > svg,
-  .sidebar-section-glyph[data-active="true"] .sidebar-section-glyph__icon,
-  .sidebar-nav-glyph__bead,
-  .sidebar-rail__bead {
+  .sidebar-section-glyph[data-active="true"] .sidebar-section-glyph__icon {
     transform: none;
-    transition-duration: 0ms;
-  }
-
-  .sidebar-nav-glyph__route,
-  .sidebar-rail__signal,
-  .sidebar-section-glyph__route,
-  .sidebar-section-glyph__thread {
     transition-duration: 0ms;
   }
 }

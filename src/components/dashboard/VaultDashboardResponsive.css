@@ -1,0 +1,128 @@
+@media (max-width: 920px) {
+  .vault-dashboard {
+    padding: 18px;
+  }
+
+  .vault-dashboard__hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vault-dashboard__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vault-dashboard__panel--capture,
+  .vault-dashboard__dream-forge,
+  .vault-dashboard__panel--wide,
+  .vault-dashboard__stats {
+    grid-column: auto;
+  }
+
+  .vault-dashboard__stats {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  }
+}
+
+@container vault-dashboard (max-width: 860px) {
+  .vault-dashboard__hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .vault-dashboard__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vault-dashboard__panel--capture,
+  .vault-dashboard__dream-forge,
+  .vault-dashboard__panel--wide,
+  .vault-dashboard__stats {
+    grid-column: auto;
+  }
+
+  .vault-dashboard__stats {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
+  }
+
+  .vault-dashboard__markdown-tool,
+  .vault-dashboard__capture-pill,
+  .vault-dashboard__capture-submit,
+  .vault-dashboard__panel-action,
+  .vault-dashboard__prompt-button,
+  .vault-dashboard__recent {
+    min-height: 44px;
+  }
+
+  .vault-dashboard__markdown-tool {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@container vault-dashboard (max-width: 520px) {
+  .vault-dashboard {
+    padding: 14px 18px 88px;
+  }
+
+  .vault-dashboard__hero {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .vault-dashboard__eyebrow {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .vault-dashboard h1 {
+    font-size: 26px;
+  }
+
+  .vault-dashboard__subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+
+  .vault-dashboard__hero > .btn,
+  .vault-dashboard__hero > button {
+    min-height: 44px;
+    padding-inline: 10px;
+  }
+
+  .vault-dashboard__panel--capture {
+    padding: 12px;
+  }
+
+  .vault-dashboard__panel--capture .vault-dashboard__panel-head {
+    margin-bottom: 8px;
+  }
+
+  .vault-dashboard__panel--capture h2 {
+    font-size: 16px;
+  }
+
+  .vault-dashboard__textarea {
+    min-height: 154px;
+  }
+
+  .vault-dashboard__markdown-tool {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .vault-dashboard__capture-dates {
+    padding: 5px;
+  }
+
+  .vault-dashboard__capture-pill {
+    min-width: 0;
+    min-height: 44px;
+    padding-inline: 12px;
+  }
+
+  .vault-dashboard__capture-submit {
+    min-height: 44px;
+  }
+}

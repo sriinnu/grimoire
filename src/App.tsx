@@ -40,7 +40,7 @@ import { useTelemetry } from './hooks/useTelemetry'
 import { useMcpStatus } from './hooks/useMcpStatus'
 import { useAiAgentsOnboarding } from './hooks/useAiAgentsOnboarding'
 import { useAiAgentsStatus } from './hooks/useAiAgentsStatus'
-import { hasAnyInstalledAiAgent, isAiAgentsStatusChecking } from './lib/aiAgents'
+import { hasAnyInstalledAiAgent, isAiAgentsStatusChecking, isBrowserPreviewAiAgentsStatus } from './lib/aiAgents'
 import { useVaultAiGuidanceStatus } from './hooks/useVaultAiGuidanceStatus'
 import { useAutoGit } from './hooks/useAutoGit'
 import { useVaultLoader } from './hooks/useVaultLoader'
@@ -115,6 +115,10 @@ import { normalizeReleaseChannel } from './lib/releaseChannel'
 import {
   buildVaultAiGuidanceRefreshKey,
 } from './lib/vaultAiGuidance'
+import {
+  resolveThemeDefinitionPreferredMode,
+  resolveThemePresetDefinition,
+} from './themes/themeRegistry'
 import { extractDeletedContentFromDiff } from './components/note-list/noteListUtils'
 import { hasNoteIconValue } from './utils/noteIcon'
 import { filenameStemToTitle } from './utils/noteTitle'
@@ -163,7 +167,7 @@ function shouldPreferOnboardingVaultPath(
 }
 
 function labelFromVaultPath(path: string): string {
-  return path.split('/').filter(Boolean).pop() || 'Local Vault'
+  return path.split('/').filter(Boolean).pop() || 'Local Notebook'
 }
 
 interface VaultSwitchTransition {
@@ -338,6 +342,7 @@ function App() {
     syncVaultSelection,
     switchVault,
   } = vaultSwitcher
+  const { settings, loaded: settingsLoaded, saveSettings } = useSettings()
 
   const rememberVaultChoice = useCallback((vaultPath: string) => {
     if (!vaultPath) return
@@ -347,19 +352,19 @@ function App() {
       return
     }
 
-    const label = vaultPath.split('/').filter(Boolean).pop() || 'Local Vault'
+    const label = vaultPath.split('/').filter(Boolean).pop() || 'Local Notebook'
     syncVaultSelection(vaultPath, label)
   }, [allVaults, switchVault, syncVaultSelection])
 
   const handleGettingStartedVaultReady = useCallback((vaultPath: string) => {
     rememberVaultChoice(vaultPath)
-    setToastMessage(`Getting Started vault cloned and opened at ${vaultPath}`)
+    setToastMessage(`Getting Started notebook cloned and opened at ${vaultPath}`)
   }, [rememberVaultChoice])
 
   const handleOnboardingVaultReady = useCallback((vaultPath: string, source: 'template' | 'empty' | 'existing') => {
     rememberVaultChoice(vaultPath)
     if (source === 'template') {
-      setToastMessage(`Getting Started vault cloned and opened at ${vaultPath}`)
+      setToastMessage(`Getting Started notebook cloned and opened at ${vaultPath}`)
     }
   }, [rememberVaultChoice])
   const cloneGettingStartedVault = useGettingStartedClone({
@@ -374,12 +379,21 @@ function App() {
   const openCreateVaultDialog = useCallback(() => setShowCreateVaultDialog(true), [])
   const closeCreateVaultDialog = useCallback(() => setShowCreateVaultDialog(false), [])
   const handleCreateVaultFromDialog = useCallback(async (request: CreateEmptyVaultRequest) => {
-    if (!noteWindowParams && (onboarding.state.status === 'welcome' || onboarding.state.status === 'vault-missing')) {
-      return onboarding.handleCreateEmptyVault(request)
+    const created = !noteWindowParams && (onboarding.state.status === 'welcome' || onboarding.state.status === 'vault-missing')
+      ? await onboarding.handleCreateEmptyVault(request)
+      : await vaultSwitcher.handleCreateEmptyVault(request)
+
+    if (created && request.themePreset) {
+      const definition = resolveThemePresetDefinition(request.themePreset)
+      void saveSettings({
+        ...settings,
+        theme_mode: resolveThemeDefinitionPreferredMode(definition),
+        theme_preset: request.themePreset,
+      })
     }
 
-    return vaultSwitcher.handleCreateEmptyVault(request)
-  }, [noteWindowParams, onboarding, vaultSwitcher])
+    return created
+  }, [noteWindowParams, onboarding, saveSettings, settings, vaultSwitcher])
   const aiAgentsStatus = useAiAgentsStatus()
   const aiAgentsOnboarding = useAiAgentsOnboarding(onboarding.state.status === 'ready' && !noteWindowParams)
 
@@ -537,7 +551,6 @@ function App() {
       explicitOrganization: enabled,
     })
   }, [updateConfig, vaultConfig.inbox?.noteListProperties])
-  const { settings, loaded: settingsLoaded, saveSettings } = useSettings()
   const systemLocale = useMemo(
     () => resolveEffectiveLocale(SYSTEM_UI_LANGUAGE, getBrowserLanguagePreferences()),
     [],
@@ -1493,7 +1506,7 @@ function App() {
     }
 
     return effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'all'
-      ? 'Customize All Notes columns'
+      ? 'Customize Pages columns'
       : 'Customize Inbox columns'
   }, [effectiveSelection, vault.views])
   const activeNoteModified = useMemo(
@@ -1730,12 +1743,14 @@ function App() {
         onOpenCreateVaultDialog={openCreateVaultDialog}
         onCloseCreateVaultDialog={closeCreateVaultDialog}
         onCreateVaultFromDialog={handleCreateVaultFromDialog}
+        initialThemePreset={settings.theme_preset}
       />
     )
   }
 
   const shouldBlockForAiAgentSetup = aiAgentsOnboarding.showPrompt
     && !isAiAgentsStatusChecking(aiAgentsStatus)
+    && !isBrowserPreviewAiAgentsStatus(aiAgentsStatus)
     && !hasAnyInstalledAiAgent(aiAgentsStatus)
 
   if (
@@ -1761,8 +1776,8 @@ function App() {
     return (
       <>
         <LoadingView
-          detail={isFailedSwitch ? vault.loadError ?? 'The vault did not open cleanly' : `Opening ${vaultSwitchTarget.label}`}
-          label={isFailedSwitch ? 'Could not open vault' : 'Switching vault'}
+          detail={isFailedSwitch ? vault.loadError ?? 'The notebook did not open cleanly' : `Opening ${vaultSwitchTarget.label}`}
+          label={isFailedSwitch ? 'Could not open notebook' : 'Switching notebook'}
         />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
       </>
@@ -1779,7 +1794,7 @@ function App() {
                 className={`app__sidebar${sidebarColumnCollapsed ? ' app__sidebar--collapsed' : ''}`}
                 style={{ width: sidebarColumnCollapsed ? 68 : layout.sidebarWidth }}
               >
-                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSetSelection} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} />
+                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSetSelection} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
               </div>
               {!sidebarColumnCollapsed && <ResizeHandle onResize={layout.handleSidebarResize} />}
             </>
@@ -1907,7 +1922,12 @@ function App() {
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <AudioRecordingDialog open={showAudioRecordingDialog} vaultPath={resolvedPath} onClose={closeAudioRecordingDialog} onRecordingSaved={audioTranscription.transcribeRecordedAudio} />
         <CreateTypeDialog open={dialogs.showCreateTypeDialog} onClose={dialogs.closeCreateType} onCreate={handleCreateType} />
-        <CreateVaultDialog open={showCreateVaultDialog} onClose={closeCreateVaultDialog} onCreate={handleCreateVaultFromDialog} />
+        <CreateVaultDialog
+          initialThemePreset={settings.theme_preset}
+          open={showCreateVaultDialog}
+          onClose={closeCreateVaultDialog}
+          onCreate={handleCreateVaultFromDialog}
+        />
         <NoteRetargetingDialogs
           dialogState={noteRetargetingUi.dialogState}
           dialogEntry={noteRetargetingUi.dialogEntry}
@@ -1995,6 +2015,7 @@ function WelcomeView({
   onboarding,
   isOffline,
   createVaultDialogOpen,
+  initialThemePreset,
   onOpenCreateVaultDialog,
   onCloseCreateVaultDialog,
   onCreateVaultFromDialog,
@@ -2002,6 +2023,7 @@ function WelcomeView({
   onboarding: OnboardingState
   isOffline: boolean
   createVaultDialogOpen: boolean
+  initialThemePreset: CreateEmptyVaultRequest['themePreset'] | null | undefined
   onOpenCreateVaultDialog: () => void
   onCloseCreateVaultDialog: () => void
   onCreateVaultFromDialog: (request: CreateEmptyVaultRequest) => Promise<boolean> | boolean
@@ -2023,6 +2045,7 @@ function WelcomeView({
         canRetryTemplate={onboarding.canRetryTemplate}
       />
       <CreateVaultDialog
+        initialThemePreset={initialThemePreset}
         open={createVaultDialogOpen}
         onClose={onCloseCreateVaultDialog}
         onCreate={onCreateVaultFromDialog}
@@ -2046,7 +2069,7 @@ function AiAgentsOnboardingView({
 }
 
 /** Loading spinner view - extracted from main App component */
-function LoadingView({ detail = 'Opening the vault', label = 'Loading…' }: { detail?: string; label?: string }) {
+function LoadingView({ detail = 'Opening the notebook', label = 'Loading…' }: { detail?: string; label?: string }) {
   return (
     <div className="app-shell">
       <GrimoireRefreshAnimation detail={detail} label={label} />

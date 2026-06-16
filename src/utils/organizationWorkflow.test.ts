@@ -21,11 +21,11 @@ describe('organizationWorkflow', () => {
     expect(getDefaultSelectionForOrganization(true)).toEqual(INBOX_SELECTION)
   })
 
-  it('defaults to All Notes when explicit organization is disabled', () => {
+  it('defaults to Pages when explicit organization is disabled', () => {
     expect(getDefaultSelectionForOrganization(false)).toEqual(ALL_NOTES_SELECTION)
   })
 
-  it('replaces Inbox selection with All Notes when the workflow is disabled', () => {
+  it('replaces Inbox selection with Pages when the workflow is disabled', () => {
     expect(sanitizeSelectionForOrganization(INBOX_SELECTION, false)).toEqual(ALL_NOTES_SELECTION)
   })
 

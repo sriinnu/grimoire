@@ -1,5 +1,4 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { STATUS_BAR_FOREGROUND } from './styles'
 
 interface StatusBarGroupProps {
   children: ReactNode
@@ -11,21 +10,21 @@ interface StatusBarGroupProps {
 function getStatusBarGroupStyle(compact: boolean, grow: boolean): CSSProperties {
   return {
     alignItems: 'center',
-    background: 'var(--status-bar-control-material, color-mix(in srgb, var(--background) 8%, transparent))',
-    border: '1px solid var(--status-bar-control-border, color-mix(in srgb, var(--border) 46%, transparent))',
+    background: 'transparent',
+    border: '1px solid transparent',
     borderRadius: 7,
-    boxShadow: `var(--status-bar-group-shadow, inset 0 1px 0 color-mix(in srgb, ${STATUS_BAR_FOREGROUND} 5%, transparent))`,
+    boxShadow: 'none',
     display: 'flex',
     flex: grow ? '1 1 auto' : '0 0 auto',
     gap: compact ? 4 : 6,
     minHeight: 22,
     minWidth: 0,
     overflow: 'visible',
-    padding: compact ? '0 2px' : '0 4px',
+    padding: compact ? '0 1px' : '0 2px',
   }
 }
 
-/** Groups related status bar controls into a compact, scannable rail segment. */
+/** Groups related bottom-bar controls without drawing heavy rail chrome. */
 export function StatusBarGroup({
   children,
   compact = false,

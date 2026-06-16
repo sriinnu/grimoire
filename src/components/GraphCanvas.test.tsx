@@ -76,6 +76,8 @@ describe('GraphCanvas', () => {
       />,
     )
 
+    expect(screen.getByRole('button', { name: 'Select Beta' })).toHaveAttribute('data-label-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Select Secret Dream local-only visible here, withheld from agents' })).toHaveAttribute('data-label-visible', 'true')
     expect(screen.getByTestId('graph-canvas-legend')).toHaveTextContent('Source-safe node')
     expect(screen.getByTestId('graph-canvas-legend')).toHaveTextContent('Agent package')
     expect(screen.getByTestId('graph-canvas-legend')).toHaveTextContent('Local-only visible')
@@ -196,5 +198,48 @@ describe('GraphCanvas', () => {
     expect(screen.getByTestId('graph-agent-orbit').querySelector('[data-agent="claude_code"]')).toHaveAttribute('data-state', 'waiting')
     expect(screen.getByTestId('graph-agent-orbit').querySelector('[data-agent="claude_code"]')).toHaveAttribute('data-label', 'Checking')
     expect(screen.getByTestId('graph-agent-orbit').querySelector('[data-agent="claude_code"]')).toHaveAttribute('data-availability', 'checking')
+  })
+
+  it('quietens low-value labels in dense maps while keeping nodes selectable', () => {
+    const active = node({ active: true, path: '/vault/active.md', title: 'Active', x: 220, y: 220 })
+    const sourceSafe = node({ path: '/vault/source.md', title: 'Source Safe', x: 260, y: 240 })
+    const connector = node({ degree: 14, path: '/vault/connector.md', title: 'Connector', x: 300, y: 260 })
+    const quiet = node({ degree: 1, path: '/vault/quiet.md', title: 'Quiet', x: 340, y: 280 })
+    const filler = Array.from({ length: 37 }, (_, index) => node({
+      degree: 1,
+      path: `/vault/filler-${index}.md`,
+      title: `Filler ${index}`,
+      x: 360 + index,
+      y: 300 + index,
+    }))
+    const layout: GraphLayout = { nodes: [active, sourceSafe, connector, quiet, ...filler], edges: [] }
+    const agentGraphContext: AgentGraphContext = {
+      edges: [],
+      nodes: [
+        { active: true, degree: 1, path: active.path, title: active.title, type: 'Note' },
+        { active: false, degree: 1, path: sourceSafe.path, title: sourceSafe.title, type: 'Note' },
+      ],
+      omitted: { protectedEdges: 0, protectedNodes: 0, truncatedEdges: 0, truncatedNodes: 0 },
+      state: 'ready',
+      totals: { visibleEdges: 0, visibleNodes: 2 },
+    }
+
+    render(
+      <GraphCanvas
+        agentGraphContext={agentGraphContext}
+        layout={layout}
+        localOnlyNodeIds={new Set()}
+        nodeById={new Map(layout.nodes.map((item) => [item.id, item]))}
+        selectedNodeId={active.path}
+        onOpenNode={vi.fn()}
+        onSelectNode={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Select Active' })).toHaveAttribute('data-label-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Select Source Safe' })).toHaveAttribute('data-label-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Select Connector' })).toHaveAttribute('data-label-visible', 'true')
+    expect(screen.getByRole('button', { name: 'Select Quiet' })).toHaveAttribute('data-label-visible', 'false')
+    expect(screen.getAllByTestId('graph-node')).toHaveLength(layout.nodes.length)
   })
 })

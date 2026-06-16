@@ -8,6 +8,7 @@ import {
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { getDisplayDate } from './noteListHelpers'
 import { sortByModified } from './noteListSorting'
+import { formatTypeCount, pluralizeCount } from './notebookCountLabels'
 
 export interface OpenLoopBucket {
   label: string
@@ -169,10 +170,6 @@ function isVaultContextEntry(entry: VaultEntry): boolean {
   return !resolveEntryLocalityPolicy(entry).localOnly
 }
 
-function pluralize(count: number, singular: string, plural = `${singular}s`): string {
-  return `${count} ${count === 1 ? singular : plural}`
-}
-
 function buildDailyBrief(input: {
   crystallizedTodayCount: number
   hasDreamToday: boolean
@@ -184,23 +181,23 @@ function buildDailyBrief(input: {
   recentProtectedCount: number
 }): DailyBrief {
   const items = new Set<string>()
-  if (!input.hasJournalToday) items.add('Journal due')
+  if (!input.hasJournalToday) items.add('Journal open')
   if (!input.hasDreamToday) items.add('Dream open')
-  if (input.openLoopCount > 0) items.add(pluralize(input.openLoopCount, 'open loop'))
-  if (input.memoryQueueCount > 0) items.add(pluralize(input.memoryQueueCount, 'memory review'))
-  if (input.mobileReviewCount > 0) items.add(pluralize(input.mobileReviewCount, 'mobile review'))
+  if (input.memoryQueueCount > 0) items.add(pluralizeCount(input.memoryQueueCount, 'memory review'))
+  if (input.mobileReviewCount > 0) items.add(pluralizeCount(input.mobileReviewCount, 'mobile review'))
+  if (input.openLoopCount > 0) items.add('Pages to revisit')
   for (const bucket of input.openLoopBuckets.slice(0, 2)) {
-    items.add(`${bucket.count} ${bucket.label}`)
+    items.add(formatTypeCount(bucket.label, bucket.count))
   }
   if (input.recentProtectedCount > 0) items.add(`${input.recentProtectedCount} private recent held`)
-  items.add(input.crystallizedTodayCount > 0 ? 'Memory landed' : 'Crystallize open')
+  items.add(input.crystallizedTodayCount > 0 ? 'Memory landed' : 'Remember next')
 
   const primaryLabel =
     input.memoryQueueCount > 0 ? 'Review memory'
       : input.mobileReviewCount > 0 ? 'Review mobile'
         : !input.hasJournalToday ? 'Journal check-in'
           : !input.hasDreamToday ? 'Catch a dream'
-            : input.openLoopCount > 0 ? 'Pick one loop'
+            : input.openLoopCount > 0 ? 'One page today'
               : input.crystallizedTodayCount === 0 ? 'Crystallize'
                 : 'Capture freely'
 

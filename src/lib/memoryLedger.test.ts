@@ -158,7 +158,7 @@ describe('memoryLedger', () => {
       contradictionLabels: ['Old Plan'],
       receiptLabel: 'Receipt crys-5678abcd',
       receiptTone: 'verified',
-      loopLabel: 'Loop closed',
+      loopLabel: 'Thread settled',
       reviewLogLabel: '2026-05-24T12:00:00.000Z v4; confidence=0.92',
     })
   })
@@ -175,7 +175,7 @@ describe('memoryLedger', () => {
     expect(buildMemoryLedgerDisplayState(record)).toMatchObject({
       receiptLabel: 'Receipt recorded',
       receiptTone: 'verified',
-      loopLabel: 'Loop closed',
+      loopLabel: 'Thread settled',
     })
   })
 

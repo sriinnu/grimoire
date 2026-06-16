@@ -14,6 +14,10 @@ interface FixturePageArgs {
   page: Page
 }
 
+interface OpenFixtureVaultOptions {
+  readyNoteTitle?: string | null
+}
+
 interface CopyDirArgs {
   src: string
   dest: string
@@ -56,23 +60,32 @@ export function removeFixtureVaultCopy(tempVaultDir: string | null | undefined):
   removeFixtureVaultDirectory({ tempVaultDir })
 }
 
-async function waitForFixtureVaultReady({ page }: FixturePageArgs): Promise<void> {
+async function waitForFixtureVaultReady(
+  { page }: FixturePageArgs,
+  options: OpenFixtureVaultOptions = {},
+): Promise<void> {
+  const readyNoteTitle = options.readyNoteTitle === undefined ? 'Alpha Project' : options.readyNoteTitle
   await page.goto('/', { waitUntil: 'domcontentloaded' })
   await page.waitForFunction(() => Boolean(window.__mockHandlers?.list_vault))
   await expect(page.getByTestId('vault-dashboard')).toBeVisible({ timeout: FIXTURE_VAULT_READY_TIMEOUT })
-  await page.getByTestId('sidebar-top-nav').getByText('All Notes', { exact: true }).click()
+  await page.getByTestId('sidebar-top-nav').getByText('Pages', { exact: true }).click()
   await page.locator('[data-testid="note-list-container"]').waitFor({ timeout: FIXTURE_VAULT_READY_TIMEOUT })
-  await expect(page.getByText('Alpha Project', { exact: true }).first()).toBeVisible({
-    timeout: FIXTURE_VAULT_READY_TIMEOUT,
-  })
+  if (readyNoteTitle === null) {
+    await expect(page.locator('[data-note-path]').first()).toBeVisible({ timeout: FIXTURE_VAULT_READY_TIMEOUT })
+  } else {
+    await expect(page.getByText(readyNoteTitle, { exact: true }).first()).toBeVisible({
+      timeout: FIXTURE_VAULT_READY_TIMEOUT,
+    })
+  }
 }
 
 export async function openFixtureVault(
   page: Page,
   vaultPath: string,
+  options: OpenFixtureVaultOptions = {},
 ): Promise<void> {
   await installFixtureVaultInitScript({ page, vaultPath })
-  await waitForFixtureVaultReady({ page })
+  await waitForFixtureVaultReady({ page }, options)
 }
 
 async function installFixtureVaultDesktopBridge({ page }: FixturePageArgs): Promise<void> {

@@ -16,7 +16,7 @@ describe('useSettingsAppearancePreview', () => {
     const { unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'retro-terminal',
+        themePreset: 'code-notebook',
         editorFont: 'literary',
         editorLineHeight: 'compact',
         nativeShellMaterial: 'glass-preview',
@@ -31,7 +31,7 @@ describe('useSettingsAppearancePreview', () => {
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'retro-terminal')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'code-notebook')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')

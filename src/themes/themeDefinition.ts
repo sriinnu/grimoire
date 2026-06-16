@@ -27,6 +27,7 @@ import {
   type ThemeMotionProfile,
   type ThemeVisualDefinition,
 } from './themeRuntimeProfiles'
+import { readablePrimaryForeground } from './themeContrast'
 
 /** Theme modes that can be expressed by a validated preset definition. */
 export type ThemeDefinitionMode = 'light' | 'dark'
@@ -43,7 +44,7 @@ export interface ThemeEditorDefinition {
 
 /** Sidebar artwork metadata imported from a theme definition. */
 export interface ThemeSidebarDefinition {
-  artwork: 'grimoire-sigil' | 'none'
+  artwork: 'notebook-mark' | 'none'
   artworkOpacity: number
 }
 
@@ -75,6 +76,7 @@ export interface ThemeDefinition {
   label: string
   metadataStrip: ThemeMetadataStripDefinition
   modes: Partial<Record<ThemeDefinitionMode, { tokens: ThemeTokenMap }>>
+  preferredMode: ThemeDefinitionMode
   schemaVersion: 1
   sidebar: ThemeSidebarDefinition
   swatches: [string, string, string]
@@ -93,8 +95,8 @@ type RawRecord = Record<string, unknown>
 
 const FAMILIES = new Set<ThemeDefinition['family']>(['archive', 'manuscript', 'nocturne', 'research'])
 const HEADING_STYLES = new Set<ThemeEditorDefinition['headingStyle']>(['graph', 'manuscript', 'system', 'terminal'])
-const SIDEBAR_ARTWORK = new Set<ThemeSidebarDefinition['artwork']>(['grimoire-sigil', 'none'])
-const LEGACY_SIDEBAR_ARTWORK = new Set(['agent-graph', 'archive', 'desk', 'manuscript', 'terminal'])
+const SIDEBAR_ARTWORK = new Set<ThemeSidebarDefinition['artwork']>(['notebook-mark', 'none'])
+const LEGACY_SIDEBAR_ARTWORK = new Set(['agent-graph', 'archive', 'desk', 'grimoire-sigil', 'manuscript', 'terminal'])
 const METADATA_STYLES = new Set<ThemeMetadataStripDefinition['style']>(['badges', 'quiet', 'terminal'])
 const MODES: readonly ThemeDefinitionMode[] = ['light', 'dark']
 const TYPOGRAPHY_ROLES = new Set<ThemeTypographyRole>(['ui', 'editor', 'mono', 'display', 'label'])
@@ -157,12 +159,12 @@ function readSidebarArtwork(record: RawRecord, errors: string[]): ThemeSidebarDe
   const value = record.artwork
   if (typeof value !== 'string') {
     errors.push('sidebar.artwork is not supported.')
-    return 'grimoire-sigil'
+    return 'notebook-mark'
   }
   if (SIDEBAR_ARTWORK.has(value as ThemeSidebarDefinition['artwork'])) return value as ThemeSidebarDefinition['artwork']
-  if (LEGACY_SIDEBAR_ARTWORK.has(value)) return 'grimoire-sigil'
+  if (LEGACY_SIDEBAR_ARTWORK.has(value)) return 'notebook-mark'
   errors.push('sidebar.artwork is not supported.')
-  return 'grimoire-sigil'
+  return 'notebook-mark'
 }
 
 function readStringArray(record: RawRecord, key: string, path: string, errors: string[]): string[] {
@@ -229,6 +231,30 @@ function normalizeModes(raw: RawRecord, errors: string[]): ThemeDefinition['mode
   return modes
 }
 
+function fallbackPreferredMode(
+  family: ThemeDefinition['family'],
+  modes: ThemeDefinition['modes'],
+): ThemeDefinitionMode {
+  if (!modes.light) return 'dark'
+  if (!modes.dark) return 'light'
+  return family === 'nocturne' ? 'dark' : 'light'
+}
+
+function normalizePreferredMode(
+  raw: RawRecord,
+  family: ThemeDefinition['family'],
+  modes: ThemeDefinition['modes'],
+  errors: string[],
+): ThemeDefinitionMode {
+  if (raw.preferredMode === undefined) return fallbackPreferredMode(family, modes)
+  const preferredMode = readEnum(raw, 'preferredMode', new Set(MODES), 'theme', errors)
+  if (!modes[preferredMode]) {
+    errors.push(`theme.preferredMode "${preferredMode}" must have a matching mode definition.`)
+    return fallbackPreferredMode(family, modes)
+  }
+  return preferredMode
+}
+
 function normalizeTypography(value: unknown, errors: string[]): ThemeTypographyDefinition {
   if (value === undefined) return {}
   const raw = asRecord(value, 'typography', errors)
@@ -280,6 +306,7 @@ export function parseThemeDefinition(value: unknown): ThemeDefinitionParseResult
   const sidebar = asRecord(raw.sidebar, 'sidebar', errors)
   const metadataStrip = asRecord(raw.metadataStrip, 'metadataStrip', errors)
   const modes = normalizeModes(asRecord(raw.modes, 'modes', errors), errors)
+  const family = readEnum(raw, 'family', FAMILIES, 'theme', errors)
   const schemaVersion = raw.schemaVersion
 
   if (schemaVersion !== 1) errors.push('theme.schemaVersion must be 1.')
@@ -288,10 +315,11 @@ export function parseThemeDefinition(value: unknown): ThemeDefinitionParseResult
     id,
     label: readString(raw, 'label', 'theme', errors),
     description: readString(raw, 'description', 'theme', errors),
-    family: readEnum(raw, 'family', FAMILIES, 'theme', errors),
+    family,
     schemaVersion: 1,
     swatches: normalizeSwatches(raw.swatches, id, errors),
     modes,
+    preferredMode: normalizePreferredMode(raw, family, modes, errors),
     editor: {
       codeBlockStyle: readOptionalEnum(editor, 'codeBlockStyle', CODE_BLOCK_STYLES, 'notebook', 'editor', errors),
       headingStyle: readEnum(editor, 'headingStyle', HEADING_STYLES, 'editor', errors),
@@ -336,6 +364,11 @@ export function resolveThemeDefinitionMode(
 ): ThemeDefinitionMode {
   if (definition.modes[requestedMode]) return requestedMode
   return definition.modes.dark ? 'dark' : 'light'
+}
+
+/** Returns the mode a preset should use when the user selects it from the picker. */
+export function resolveThemeDefinitionPreferredMode(definition: ThemeDefinition): ThemeDefinitionMode {
+  return resolveThemeDefinitionMode(definition, definition.preferredMode)
 }
 
 /** Applies a validated theme definition as live CSS custom properties. */
@@ -386,4 +419,5 @@ export function applyThemeDefinitionToRoot(
       root.style.setProperty(alias, value)
     }
   }
+  root.style.setProperty('--primary-foreground', readablePrimaryForeground(tokens['accent.primary']))
 }
