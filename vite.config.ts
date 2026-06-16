@@ -86,6 +86,11 @@ function localThemePackPlugin(): Plugin {
 
 // https://vite.dev/config/
 export default defineConfig(({ command }) => ({
+  // Asset base path. Defaults to "/" for the Tauri app and local dev; the
+  // GitHub Pages browser-demo build sets GRIMOIRE_BASE_PATH=/grimoire/ so assets
+  // resolve under the project-pages subpath.
+  base: process.env.GRIMOIRE_BASE_PATH || '/',
+
   plugins: [react(), tailwindcss(), vaultApiPlugin(), mcpBridgeInfoPlugin(), localThemePackPlugin()],
 
   resolve: {
