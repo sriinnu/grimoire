@@ -88,7 +88,7 @@ cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
 See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for the full workflow and
-[AGENTS.md](AGENTS.md) for contributor conventions.
+[CONTRIBUTING](.github/CONTRIBUTING.md) for contributor conventions.
 
 ## Docs
 
@@ -99,10 +99,11 @@ See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for the full workflow and
 
 ## Security
 
-Report security issues privately as described in [SECURITY.md](SECURITY.md). Do
-not commit API keys, signing keys, certificates, or private vault contents. For
-other help see [SUPPORT.md](SUPPORT.md); conduct concerns go through
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Report security issues privately as described in
+[SECURITY.md](.github/SECURITY.md). Do not commit API keys, signing keys,
+certificates, or private vault contents. For other help see
+[SUPPORT.md](.github/SUPPORT.md); conduct concerns go through the
+[Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
 ## License
 

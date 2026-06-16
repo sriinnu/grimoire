@@ -10,10 +10,12 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 const DEFAULT_ROOTS = [
   '.github/pull_request_template.md',
-  'CONTRIBUTING.md',
+  '.github/CODE_OF_CONDUCT.md',
+  '.github/CONTRIBUTING.md',
+  '.github/SECURITY.md',
+  '.github/SUPPORT.md',
   'LICENSING.md',
   'README.md',
-  'SECURITY.md',
   'TRADEMARKS.md',
   'certs/README.md',
   'docs',

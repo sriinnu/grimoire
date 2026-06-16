@@ -80,11 +80,6 @@ function verifyBinaryInstallTruth() {
   assertContains('docs/README.md', '[Public Readiness](PUBLIC-READINESS.md)')
   assertContains('docs/README.md', '[Release Runbook](RELEASE-RUNBOOK.md)')
   assertContains('docs/GETTING-STARTED.md', '[RELEASE-RUNBOOK.md](RELEASE-RUNBOOK.md)')
-  assertTrimmedEquals(
-    'CLAUDE.md',
-    '@AGENTS.md\n\nThis file is a Claude Code compatibility shim. Keep shared agent instructions in `AGENTS.md`.',
-    'a short Claude Code compatibility shim',
-  )
   assertContains('docs/PUBLIC-READINESS.md', '| CI runner images | Ready |')
   assertContains('docs/PUBLIC-READINESS.md', '`macos-15`, `ubuntu-24.04`, and `windows-2025-vs2026`')
   assertContains('README.md', 'https://img.shields.io/badge/source-public-blue')
@@ -150,8 +145,8 @@ function verifyBinaryInstallTruth() {
   assertContains('scripts/release-next-actions.mjs', 'Set the GitHub repository release secrets')
   assertContains('scripts/audit-public-readiness.mjs', 'printReleaseNextActions')
   assertContains('scripts/release-preflight.mjs', 'printReleaseNextActions')
-  assertContains('docs/README.md', '[Contributing](../CONTRIBUTING.md)')
-  assertContains('docs/README.md', '[Security](../SECURITY.md)')
+  assertContains('docs/README.md', '[Contributing](../.github/CONTRIBUTING.md)')
+  assertContains('docs/README.md', '[Security](../.github/SECURITY.md)')
   assertContains('docs/README.md', '[Licensing](../LICENSING.md)')
   assertContains('docs/PUBLIC-READINESS.md', '| Public doc links | Verified |')
   assertContains('docs/PUBLIC-READINESS.md', '| Signed branch HEAD | Verified |')

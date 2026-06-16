@@ -42,11 +42,11 @@ participation when behavior makes the project less safe or less useful.
 
 ## Reporting
 
-For conduct concerns, email **sriinnu@proton.me** with the subject line
-**`[Grimoire Conduct]`**.
+For conduct concerns, report privately to the maintainers through GitHub's
+[private reporting](https://github.com/sriinnu/grimoire/security/advisories/new)
+channel. Do not post details publicly.
 
-For security vulnerabilities, follow [SECURITY.md](SECURITY.md) instead and use
-the subject line **`[Grimoire Security]`**.
+For security vulnerabilities, follow [SECURITY.md](SECURITY.md) instead.
 
 Reports should include:
 

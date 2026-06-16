@@ -62,13 +62,12 @@ local-only audit before publication.
 
 ## Repository Basics
 
-- [Support](../SUPPORT.md) - public help paths, source evaluation boundaries,
-  feature-request routing, and private-data guardrails.
-- [Code of Conduct](../CODE_OF_CONDUCT.md) - participation expectations and
-  private-data boundaries for project spaces.
-- [Contributing](../CONTRIBUTING.md) - contribution workflow and local quality
-  expectations.
-- [Security](../SECURITY.md) - private vulnerability reporting.
+- [Support](../.github/SUPPORT.md) - public help paths, source evaluation
+  boundaries, feature-request routing, and private-data guardrails.
+- [Code of Conduct](../.github/CODE_OF_CONDUCT.md) - participation expectations
+  and private-data boundaries for project spaces.
+- [Contributing](../.github/CONTRIBUTING.md) - contribution workflow and local
+  quality expectations.
+- [Security](../.github/SECURITY.md) - private vulnerability reporting.
 - [Licensing](../LICENSING.md) - source, vault, brand, and asset licensing.
 - [Trademarks](../TRADEMARKS.md) - Grimoire name, logo, and brand policy.
-- [Enhancements](../ENHANCEMENTS.md) - roadmap and research tracks.

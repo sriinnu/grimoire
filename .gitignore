@@ -126,3 +126,10 @@ docs/**/*.local.md
 # Local development TLS certs (machine-specific; regenerate or copy locally)
 certs/*.pem
 !certs/README.md
+
+# Untracked from the public repo (kept locally): Claude-specific shim,
+# internal roadmap, and Chitragupta vertical skill descriptor.
+/CLAUDE.md
+/ENHANCEMENTS.md
+/SKILL.md
+/AGENTS.md
