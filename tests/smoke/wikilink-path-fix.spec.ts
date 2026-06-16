@@ -34,7 +34,7 @@ async function insertWikilink(page: Page) {
 async function openNote(page: Page, title: string) {
   await page.locator('body').click()
   await sendShortcut(page, 'p', ['Control'])
-  const quickOpenInput = page.locator('input[placeholder="Search notes..."]')
+  const quickOpenInput = page.getByTestId('quick-open-input')
   await expect(quickOpenInput).toBeVisible({ timeout: 5_000 })
   await quickOpenInput.fill(title)
   const selectedResult = page.getByTestId('quick-open-palette').locator('[class*="bg-accent"]').first()

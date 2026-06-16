@@ -86,6 +86,14 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # The native smokes below run a bare `cargo build`, which does not invoke
+      # the Tauri `beforeBuildCommand`. tauri.conf.json declares
+      # `resources/starter-vault` as a required bundle resource, and that
+      # directory is generated (gitignored) rather than tracked, so a cold CI
+      # checkout must materialize it before the build script validates resources.
+      - name: Bundle Native Resources
+        run: pnpm bundle-starter-vault
+
       - name: Native Tauri Link Smoke
         timeout-minutes: 25
         run: pnpm test:native-tauri-link
