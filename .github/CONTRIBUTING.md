@@ -15,10 +15,10 @@ If you have a feature idea, please check Canny first and upvote it if it already
 
 ## 🧪 Before filing a source bug
 
-Grimoire is public source, but public binary installers and update feeds are not
-published yet. Please check the current status in [README.md](../README.md) and use
-the [Source Evaluation Playbook](../docs/SOURCE-EVALUATION-PLAYBOOK.md) before
-opening a bug from a local run.
+Grimoire is public source, but prebuilt installers are not published yet. Please
+check the current status in [README.md](../README.md) before opening a bug from a
+local run, and note whether you tested browser mode (mock handlers) or native
+mode (real file IO).
 
 When you file a bug, say which lane you tested:
 

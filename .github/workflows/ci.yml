@@ -71,9 +71,6 @@ jobs:
       - name: Verify GitHub Actions Runtime Guard
         run: pnpm test:github-actions-runtime
 
-      - name: Verify Public Readiness Docs
-        run: pnpm test:public-readiness-docs
-
       - name: Verify Public Doc Links
         run: pnpm test:public-doc-links
 

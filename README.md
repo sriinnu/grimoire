@@ -4,8 +4,6 @@ Grimoire is a desktop app for Markdown vaults — folders of Markdown files with
 YAML frontmatter, stored on disk. It reads and writes those files directly, so
 the same vault also opens in another editor or under Git.
 
-Created and maintained by [Srinivas Pendela](https://x.com/sriinnu).
-
 ## Features
 
 - Open any folder of Markdown as a vault; create, edit, rename, archive, trash,

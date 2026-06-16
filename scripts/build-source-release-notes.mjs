@@ -80,8 +80,7 @@ Use \`pnpm doctor:source -- --mode native\` and \`pnpm tauri dev\` when you need
 
 - Version: \`${version}\`
 - Commit: \`${sha}\`${sourceUrl ? `\n- Source: ${sourceUrl}` : ''}
-${runUrl ? `- Workflow run: ${runUrl}\n` : ''}- Public readiness: see \`docs/PUBLIC-READINESS.md\`
-- Release runbook: see \`docs/RELEASE-RUNBOOK.md\`
+${runUrl ? `- Workflow run: ${runUrl}\n` : ''}- Release runbook: see \`docs/RELEASE-RUNBOOK.md\`
 `
 }
 
