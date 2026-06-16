@@ -92,10 +92,8 @@ See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for the full workflow and
 
 ## Docs
 
-- [Getting Started](docs/GETTING-STARTED.md) — setup and codebase map
-- [Architecture](docs/ARCHITECTURE.md) — runtime shape and data flow
-- [Abstractions](docs/ABSTRACTIONS.md) — core modules and contracts
-- [Docs index](docs/README.md) — everything else
+Documentation lives in the [`docs/`](docs/) folder — architecture, setup,
+abstractions, and the decision records.
 
 ## Security
 
