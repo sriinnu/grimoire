@@ -16,7 +16,7 @@ We currently support security fixes for:
 
 ## Reporting a vulnerability
 
-Please email **removed** with the subject line **`[Grimoire Security]`**.
+Use GitHub's [private vulnerability reporting](https://github.com/sriinnu/grimoire/security/advisories/new) to open a confidential report. It goes straight to the maintainers and is never publicly visible.
 
 Include as much of the following as you can:
 

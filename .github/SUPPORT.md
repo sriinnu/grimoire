@@ -15,11 +15,11 @@ bug reports, and private security reporting.
 | Private vault recovery | Not supported through public issues. Keep private vault content out of GitHub. |
 
 Before asking for help, check the current release truth in
-[README.md](README.md) and [Public Readiness](docs/PUBLIC-READINESS.md).
+[README.md](../README.md) and [Public Readiness](../docs/PUBLIC-READINESS.md).
 
 ## Getting Help From Source
 
-Use the [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) first.
+Use the [Source Evaluation Playbook](../docs/SOURCE-EVALUATION-PLAYBOOK.md) first.
 It separates browser source review from native file IO, packaged resources,
 installer launch, updater feeds, and platform proof.
 

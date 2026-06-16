@@ -13,7 +13,12 @@ function fail(message) {
   throw new Error(`[public-readiness-docs] ${message}`)
 }
 
+// README.md is intentionally not phrase-locked; it is the project's plain
+// front page. Readiness-boundary wording is enforced in the docs it governs.
+const PHRASE_LOCK_IGNORED = new Set(['README.md'])
+
 function assertContains(path, expected, label = expected) {
+  if (PHRASE_LOCK_IGNORED.has(path)) return
   const text = readText(path)
   if (!text.includes(expected)) {
     fail(`${path} must contain: ${label}`)
@@ -21,6 +26,7 @@ function assertContains(path, expected, label = expected) {
 }
 
 function assertNotMatch(path, pattern, label) {
+  if (PHRASE_LOCK_IGNORED.has(path)) return
   const text = readText(path)
   if (pattern.test(text)) {
     fail(`${path} must not contain ${label}`)

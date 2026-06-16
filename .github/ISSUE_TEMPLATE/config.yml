@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: Support and source evaluation help
-    url: https://github.com/sriinnu/grimoire/blob/main/SUPPORT.md
+    url: https://github.com/sriinnu/grimoire/blob/main/.github/SUPPORT.md
     about: Start here for setup help, source evaluation boundaries, and private-data guardrails.
   - name: Feature requests and ideas
     url: https://grimoire.canny.io/
     about: Please use Canny for product ideas, roadmap requests, and feature voting.
   - name: Security vulnerability
-    url: mailto:removed?subject=%5BGrimoire%20Security%5D
+    url: https://github.com/sriinnu/grimoire/security/advisories/new
     about: Please report security issues privately instead of opening a public GitHub issue.

@@ -8,7 +8,7 @@ To keep things clean:
 
 - 🐛 Bugs → GitHub Issues
 - 💡 Feature requests / ideas → Canny • <https://grimoire.canny.io/>
-- 🔐 Security issues → private email in [SECURITY.md](SECURITY.md)
+- 🔐 Security issues → private report (see [SECURITY.md](SECURITY.md))
 - 🧭 General support → [SUPPORT.md](SUPPORT.md)
 
 If you have a feature idea, please check Canny first and upvote it if it already exists.
@@ -16,8 +16,8 @@ If you have a feature idea, please check Canny first and upvote it if it already
 ## 🧪 Before filing a source bug
 
 Grimoire is public source, but public binary installers and update feeds are not
-published yet. Please check the current status in [README.md](README.md) and use
-the [Source Evaluation Playbook](docs/SOURCE-EVALUATION-PLAYBOOK.md) before
+published yet. Please check the current status in [README.md](../README.md) and use
+the [Source Evaluation Playbook](../docs/SOURCE-EVALUATION-PLAYBOOK.md) before
 opening a bug from a local run.
 
 When you file a bug, say which lane you tested:
@@ -46,10 +46,10 @@ A few things to keep in mind before opening one:
   - Requests marked **planned** are usually great contribution targets
 - Keep PRs small, focused, and easy to review
 - Include a short explanation of the problem and your solution
-- Follow the dev process described in Grimoire’s `AGENTS.md` (tests, code health, etc.)
+- Run the checks before pushing: `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm build`
 - Follow the [Code of Conduct](CODE_OF_CONDUCT.md) in project spaces
 - Avoid bundling unrelated refactors into the same PR
-- Read [LICENSING.md](LICENSING.md) before submitting code, docs, demo vault content, or assets
+- Read [LICENSING.md](../LICENSING.md) before submitting code, docs, demo vault content, or assets
 - Sign off commits with `git commit -s` so the Developer Certificate of Origin line is present
 - For source evaluation or release-readiness fixes, include the lane you tested
   and the public-readiness blocker you changed or preserved
