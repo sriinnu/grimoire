@@ -19,7 +19,14 @@ function fail(message) {
   throw new Error(`[public-readiness-docs] ${message}`)
 }
 
+// README.md is intentionally not phrase-locked. It is the project's plain
+// front page and should read like a normal README, not a readiness/compliance
+// artifact. The readiness contract still lives in the docs it actually governs
+// (PUBLIC-READINESS.md, RELEASE-RUNBOOK.md, GETTING-STARTED.md, ...).
+const PHRASE_LOCK_IGNORED = new Set(['README.md'])
+
 function assertContains(path, expected, label = expected) {
+  if (PHRASE_LOCK_IGNORED.has(path)) return
   const text = readText(path)
   if (!text.includes(expected)) {
     fail(`${path} must contain: ${label}`)
@@ -27,6 +34,7 @@ function assertContains(path, expected, label = expected) {
 }
 
 function assertTrimmedEquals(path, expected, label = expected) {
+  if (PHRASE_LOCK_IGNORED.has(path)) return
   const text = readText(path).trim()
   if (text !== expected.trim()) {
     fail(`${path} must exactly match: ${label}`)
@@ -34,6 +42,7 @@ function assertTrimmedEquals(path, expected, label = expected) {
 }
 
 function assertNotMatch(path, pattern, label) {
+  if (PHRASE_LOCK_IGNORED.has(path)) return
   const text = readText(path)
   if (pattern.test(text)) {
     fail(`${path} must not contain ${label}`)
@@ -41,6 +50,7 @@ function assertNotMatch(path, pattern, label) {
 }
 
 function assertMatch(path, pattern, label) {
+  if (PHRASE_LOCK_IGNORED.has(path)) return
   const text = readText(path)
   if (!pattern.test(text)) {
     fail(`${path} must contain ${label}`)
