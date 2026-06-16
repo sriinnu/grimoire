@@ -1,0 +1,42 @@
+@media (max-width: 920px) {
+  .vault-dashboard__flow {
+    grid-column: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .vault-dashboard__flow-steps {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+}
+
+@container (max-width: 840px) {
+  .vault-dashboard__today-runway .vault-dashboard__flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vault-dashboard__flow-steps {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
+  }
+
+  .vault-dashboard__assistant-lock,
+  .vault-dashboard__assistant-action,
+  .vault-dashboard__assistant-items span,
+  .vault-dashboard__flow-states span,
+  .vault-dashboard__flow-step {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 560px) {
+  .vault-dashboard__assistant-head {
+    flex-direction: column;
+  }
+
+  .vault-dashboard__assistant-actions {
+    justify-content: flex-start;
+  }
+
+  .vault-dashboard__assistant-lock {
+    white-space: normal;
+  }
+}

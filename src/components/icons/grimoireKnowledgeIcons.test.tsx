@@ -30,6 +30,8 @@ describe('grimoire knowledge icons', () => {
     expect(svg).toHaveAttribute('height', '32')
     expect(svg).toHaveAttribute('stroke-width', '2.15')
     expect(svg.style.getPropertyValue('--knowledge-icon-primary')).toBe('#123456')
+    expect(svg.style.getPropertyValue('--knowledge-icon-accent')).toContain('var(--accent-blue')
+    expect(svg.style.getPropertyValue('--knowledge-icon-accent')).not.toContain('accent-teal')
     expect(svg.querySelector('[stroke="var(--knowledge-icon-accent)"], [fill="var(--knowledge-icon-accent)"]')).not.toBeNull()
   })
 })

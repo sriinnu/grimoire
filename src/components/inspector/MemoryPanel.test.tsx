@@ -52,7 +52,7 @@ describe('MemoryPanel', () => {
     expect(record).toHaveClass('grimoire-memory-trace')
     expect(record).toHaveTextContent('Test Project Memory')
     expect(record).toHaveTextContent('Receipt crys-panel1234')
-    expect(record).toHaveTextContent('Loop closed')
+    expect(record).toHaveTextContent('Thread settled')
     expect(screen.getByTestId('memory-ledger-review-log')).toHaveTextContent('Latest review: 2026-05-22T10:00:00.000Z v1')
 
     const evidence = screen.getByTestId('memory-ledger-evidence-strip')

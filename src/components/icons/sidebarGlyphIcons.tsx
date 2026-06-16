@@ -9,22 +9,22 @@ type SidebarGlyphProps = IconProps & {
 }
 
 function strokeWidthFor(weight: IconProps['weight']): number {
-  if (weight === 'thin') return 1.1
-  if (weight === 'light') return 1.3
-  if (weight === 'bold' || weight === 'fill') return 2.15
-  if (weight === 'duotone') return 1.95
-  return 1.65
+  if (weight === 'thin') return 1.55
+  if (weight === 'light') return 1.75
+  if (weight === 'bold' || weight === 'fill') return 2.45
+  if (weight === 'duotone') return 2.3
+  return 2.05
 }
 
 function sidebarGlyphStyle(color: IconProps['color'], mirrored: IconProps['mirrored']): SidebarGlyphStyle {
   return {
-    '--sidebar-glyph-aura': 'color-mix(in srgb, var(--accent-teal, currentColor) 72%, currentColor)',
-    '--sidebar-glyph-bright': 'color-mix(in srgb, var(--sidebar-primary-foreground, #fff) 72%, currentColor)',
-    '--sidebar-glyph-fill': 'color-mix(in srgb, currentColor 14%, transparent)',
+    '--sidebar-glyph-aura': 'color-mix(in srgb, var(--accent-blue, currentColor) 72%, currentColor)',
+    '--sidebar-glyph-bright': 'color-mix(in srgb, var(--sidebar-foreground, currentColor) 92%, currentColor)',
+    '--sidebar-glyph-fill': 'color-mix(in srgb, currentColor 26%, transparent)',
     '--sidebar-glyph-primary': color ?? 'currentColor',
-    '--sidebar-glyph-route': 'color-mix(in srgb, var(--accent-blue, currentColor) 76%, currentColor)',
-    '--sidebar-glyph-shadow': 'color-mix(in srgb, currentColor 20%, transparent)',
-    '--sidebar-glyph-soft': 'color-mix(in srgb, currentColor 9%, transparent)',
+    '--sidebar-glyph-route': 'color-mix(in srgb, var(--accent-blue, currentColor) 80%, currentColor)',
+    '--sidebar-glyph-shadow': 'color-mix(in srgb, currentColor 30%, transparent)',
+    '--sidebar-glyph-soft': 'color-mix(in srgb, currentColor 18%, transparent)',
     '--sidebar-glyph-warm': 'color-mix(in srgb, var(--accent-yellow, currentColor) 78%, currentColor)',
     color: color ?? 'currentColor',
     transform: mirrored ? 'scaleX(-1)' : undefined,
@@ -63,16 +63,17 @@ function SidebarGlyphFrame({
   )
 }
 
-/** Dashboard glyph: a north-star plus orbit for the daily cockpit. */
-export function DashboardGlyphIcon(props: IconProps) {
+/** Notebook glyph: one open page pair for the primary notebook surface. */
+export function NotebookGlyphIcon(props: IconProps) {
   return (
-    <SidebarGlyphFrame {...props} name="dashboard">
-      <path d="M5.2 17.9c3.7 2.2 8.7 2.1 12.9-.4M5.8 6.7c3.5-2.5 8.4-2.8 12.4-.8" stroke="var(--sidebar-glyph-aura)" />
-      <path d="m12 3.2 1.9 5 5.2.5-4 3.4 1.2 5.3-4.3-2.9-4.3 2.9 1.2-5.3-4-3.4 5.2-.5z" fill="var(--sidebar-glyph-fill)" />
-      <path d="m12 3.2 1.9 5 5.2.5-4 3.4 1.2 5.3-4.3-2.9-4.3 2.9 1.2-5.3-4-3.4 5.2-.5z" stroke="var(--sidebar-glyph-warm)" />
-      <path d="M12 8.7v5.8M9.4 11.6h5.2" stroke="var(--sidebar-glyph-bright)" />
-      <circle cx="19" cy="5.8" fill="var(--sidebar-glyph-aura)" r="1" stroke="none" />
-      <circle cx="5.2" cy="16.8" fill="var(--sidebar-glyph-route)" r="0.9" stroke="none" />
+    <SidebarGlyphFrame {...props} name="notebook">
+      <path d="M4.5 6.3c3.1-1.1 5.6-.6 7.5 1.4v11.1c-2-1.4-4.5-1.7-7.5-.8z" fill="var(--sidebar-glyph-fill)" />
+      <path d="M19.5 6.3c-3.1-1.1-5.6-.6-7.5 1.4v11.1c2-1.4 4.5-1.7 7.5-.8z" fill="var(--sidebar-glyph-soft)" />
+      <path d="M4.5 6.3c3.1-1.1 5.6-.6 7.5 1.4v11.1c-2-1.4-4.5-1.7-7.5-.8zM19.5 6.3c-3.1-1.1-5.6-.6-7.5 1.4v11.1c2-1.4 4.5-1.7 7.5-.8z" />
+      <path d="M12 7.5v11.3" stroke="var(--sidebar-glyph-warm)" />
+      <path d="M7.3 9.8h2.6M7.2 12.4h2.8M14.1 9.8h2.7M14 12.4h2.6" stroke="var(--sidebar-glyph-aura)" />
+      <path d="M7.4 15.6c2-.6 3.5-.1 4.6 1.4 1.1-1.5 2.6-2 4.6-1.4" stroke="var(--sidebar-glyph-route)" />
+      <circle cx="12" cy="17" fill="var(--sidebar-glyph-bright)" r="0.75" stroke="none" />
     </SidebarGlyphFrame>
   )
 }
@@ -102,6 +103,24 @@ export function NotesGlyphIcon(props: IconProps) {
       <path d="M12 7.1v12.1" stroke="var(--sidebar-glyph-warm)" />
       <path d="M7.6 16.1c2.1-.7 3.6-.2 4.4 1.4.8-1.6 2.3-2.1 4.4-1.4" stroke="var(--sidebar-glyph-route)" />
       <circle cx="12" cy="17.5" fill="var(--sidebar-glyph-bright)" r="0.8" stroke="none" />
+    </SidebarGlyphFrame>
+  )
+}
+
+/** Graph glyph: linked notebook nodes feeding the source-safe agent package. */
+export function GraphGlyphIcon(props: IconProps) {
+  return (
+    <SidebarGlyphFrame {...props} name="graph">
+      <path d="M6.3 8.5 12 5.3l5.7 3.2v6.8L12 18.7l-5.7-3.4z" fill="var(--sidebar-glyph-fill)" />
+      <path d="M8.1 9.7 12 7.6l3.9 2.1M8.1 14.3l3.9 2.1 3.9-2.1" stroke="var(--sidebar-glyph-aura)" />
+      <path d="M12 7.6v8.8M8.1 9.7v4.6M15.9 9.7v4.6" stroke="var(--sidebar-glyph-route)" />
+      <circle cx="12" cy="5.3" fill="var(--sidebar-glyph-bright)" r="1.45" />
+      <circle cx="6.3" cy="8.5" fill="var(--sidebar-glyph-soft)" r="1.35" />
+      <circle cx="17.7" cy="8.5" fill="var(--sidebar-glyph-soft)" r="1.35" />
+      <circle cx="6.3" cy="15.3" fill="var(--sidebar-glyph-soft)" r="1.35" />
+      <circle cx="17.7" cy="15.3" fill="var(--sidebar-glyph-soft)" r="1.35" />
+      <circle cx="12" cy="18.7" fill="var(--sidebar-glyph-warm)" r="1.45" />
+      <path d="M17.7 8.5c1.4.8 2.2 2 2.4 3.5-.2 1.5-1 2.7-2.4 3.5" stroke="var(--sidebar-glyph-warm)" />
     </SidebarGlyphFrame>
   )
 }

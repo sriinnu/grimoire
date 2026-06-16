@@ -1,55 +1,55 @@
-/* Screenshot-inspired polish: living archive surfaces, denser cards, calmer inspector. */
+/* Graphite Archive polish: cool paper surfaces, graphite rails, calmer inspector. */
 [data-theme-preset="living-archive"] {
-  --grimoire-brand-emerald: #244d5a;
-  --grimoire-brand-emerald-2: #18343e;
-  --grimoire-brand-gold: #c69a48;
-  --grimoire-parchment: #fbf4e5;
-  --grimoire-parchment-2: #f4ead5;
-  --grimoire-ink: #27383a;
+  --grimoire-brand-slate: #3a424b;
+  --grimoire-brand-slate-2: #252b32;
+  --grimoire-brand-accent: #557a95;
+  --grimoire-page-tint: #eef3f7;
+  --grimoire-page-tint-2: #fbfcfd;
+  --grimoire-ink: #27313a;
   --grimoire-hand-font: var(--grimoire-display-font-family);
   --grimoire-label-font: var(--grimoire-label-font-family);
   --grimoire-document-canvas: var(--surface-editor);
   --grimoire-document-edge: color-mix(in srgb, var(--border-default) 42%, transparent);
-  --grimoire-document-glow: rgba(198, 154, 72, 0.08);
+  --grimoire-document-glow: rgba(85, 122, 149, 0.08);
   --grimoire-document-page: var(--surface-editor);
   --grimoire-document-scroll-start: var(--surface-editor);
   --grimoire-document-sheen: color-mix(in srgb, var(--surface-card) 30%, transparent);
   --grimoire-panel-gradient: linear-gradient(180deg, var(--surface-panel), var(--surface-panel));
   --grimoire-panel-material: var(--grimoire-panel-gradient), var(--surface-panel);
   --grimoire-card-mix: transparent;
-  --grimoire-card-shadow: rgba(77, 57, 22, 0.07);
-  --grimoire-hairline: color-mix(in srgb, var(--border-default) 80%, var(--grimoire-brand-gold));
+  --grimoire-card-shadow: rgba(31, 41, 55, 0.07);
+  --grimoire-hairline: color-mix(in srgb, var(--border-default) 82%, var(--grimoire-brand-accent));
   --grimoire-card-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--grimoire-card-mix)), color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)));
-  --grimoire-dialog-material: radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--grimoire-brand-gold) 13%, transparent), transparent 18rem), var(--grimoire-panel-gradient), var(--surface-panel);
+  --grimoire-dialog-material: radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--grimoire-brand-accent) 11%, transparent), transparent 18rem), var(--grimoire-panel-gradient), var(--surface-panel);
   --grimoire-dialog-shadow: 0 18px 52px color-mix(in srgb, var(--text-primary) 16%, transparent);
   --grimoire-settings-main-material: radial-gradient(circle at 12% 0%, var(--grimoire-document-glow), transparent 21rem), linear-gradient(180deg, var(--grimoire-document-scroll-start), var(--grimoire-document-canvas));
 }
 
 [data-theme-preset="living-archive"][data-theme="light"] {
-  --surface-app: #f3ead7;
-  --surface-sidebar: var(--grimoire-brand-emerald);
-  --surface-panel: #fbf5e8;
-  --surface-card: #fffaf0;
-  --surface-popover: #fffaf0;
-  --surface-input: #fffaf0;
-  --surface-editor: #fff8eb;
+  --surface-app: #f5f6f8;
+  --surface-sidebar: var(--grimoire-brand-slate);
+  --surface-panel: #f9fafb;
+  --surface-card: #ffffff;
+  --surface-popover: #ffffff;
+  --surface-input: #ffffff;
+  --surface-editor: #fbfcfd;
   --text-primary: var(--grimoire-ink);
-  --text-secondary: #6f765f;
-  --text-heading: #244d5a;
-  --border-default: #dfcfaa;
-  --border-subtle: #eadcbd;
-  --border-strong: #cbb57c;
-  --state-hover: #efe2c3;
-  --state-hover-subtle: #f7edd5;
-  --state-selected: #e8d9af;
-  --state-selected-strong: #dbc07b;
-  --accent-blue: #2f6f7c;
-  --accent-blue-bg: rgba(47, 111, 124, 0.13);
-  --accent-blue-hover: #245b66;
-  --accent-blue-light: rgba(47, 111, 124, 0.11);
-  --accent-yellow: var(--grimoire-brand-gold);
-  --syntax-heading: #2f6f7c;
-  --syntax-link: #2f6f7c;
+  --text-secondary: #5f6e7a;
+  --text-heading: #1e2933;
+  --border-default: #d7dde5;
+  --border-subtle: #e8ecf2;
+  --border-strong: #9eacbb;
+  --state-hover: #eef2f6;
+  --state-hover-subtle: #f8f9fb;
+  --state-selected: #dfe8f0;
+  --state-selected-strong: #c4d3df;
+  --accent-blue: var(--grimoire-brand-accent);
+  --accent-blue-bg: rgba(85, 122, 149, 0.13);
+  --accent-blue-hover: #3f6380;
+  --accent-blue-light: rgba(85, 122, 149, 0.11);
+  --accent-yellow: #8f6f38;
+  --syntax-heading: #3f6380;
+  --syntax-link: #4f738d;
   --background: var(--surface-app);
   --foreground: var(--text-primary);
   --card: var(--surface-card);
@@ -63,51 +63,51 @@
   --border: var(--border-default);
   --input: var(--border-default);
   --primary: var(--accent-blue);
-  --primary-foreground: #fff8eb;
+  --primary-foreground: #ffffff;
   --secondary: var(--surface-card);
   --secondary-foreground: var(--text-primary);
   --ring: var(--accent-blue);
-  --sidebar-foreground: #fbf0d7;
-  --sidebar-primary: var(--grimoire-brand-gold);
-  --sidebar-primary-foreground: #152f36;
-  --sidebar-accent: rgba(245, 216, 150, 0.13);
-  --sidebar-accent-foreground: #fff7df;
-  --sidebar-border: rgba(238, 211, 145, 0.22);
-  --grimoire-document-canvas: var(--grimoire-parchment-2);
-  --grimoire-document-edge: rgba(203, 181, 124, 0.24);
-  --grimoire-document-scroll-start: #efe4ca;
-  --grimoire-document-page: #eee4ce;
-  --grimoire-document-sheen: rgba(255, 250, 240, 0.32);
-  --grimoire-panel-gradient: linear-gradient(180deg, rgba(255, 250, 240, 0.94), rgba(245, 234, 208, 0.96));
+  --sidebar-foreground: #f2f5f7;
+  --sidebar-primary: #8eb1c9;
+  --sidebar-primary-foreground: #101820;
+  --sidebar-accent: rgba(142, 177, 201, 0.16);
+  --sidebar-accent-foreground: #f8fbfd;
+  --sidebar-border: rgba(215, 221, 229, 0.22);
+  --grimoire-document-canvas: var(--grimoire-page-tint);
+  --grimoire-document-edge: rgba(142, 158, 174, 0.24);
+  --grimoire-document-scroll-start: #f1f5f8;
+  --grimoire-document-page: var(--grimoire-page-tint-2);
+  --grimoire-document-sheen: rgba(255, 255, 255, 0.34);
+  --grimoire-panel-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(242, 246, 249, 0.96));
   --grimoire-card-mix: white;
-  --grimoire-card-shadow: rgba(77, 57, 22, 0.07);
+  --grimoire-card-shadow: rgba(31, 41, 55, 0.07);
 }
 
 [data-theme-preset="living-archive"][data-theme="dark"] {
-  --surface-sidebar: #10242b;
-  --surface-app: #141b1d;
-  --surface-panel: #1a2528;
-  --surface-card: #203037;
-  --surface-popover: #203037;
-  --surface-input: #203037;
-  --surface-editor: #162125;
-  --text-primary: #ebe1ce;
-  --text-secondary: #b8ad94;
-  --text-heading: #f4d98d;
-  --border-default: #34464b;
-  --border-subtle: #26363a;
-  --border-strong: #665236;
-  --state-hover: #26383d;
-  --state-hover-subtle: #1f3035;
-  --state-selected: #30464d;
-  --state-selected-strong: #6f5731;
-  --accent-blue: #d2a85a;
-  --accent-blue-bg: rgba(210, 168, 90, 0.14);
-  --accent-blue-hover: #e9c576;
-  --accent-blue-light: rgba(210, 168, 90, 0.12);
-  --accent-yellow: #d2a85a;
-  --syntax-heading: #f0cd79;
-  --syntax-link: #9cd6d6;
+  --surface-sidebar: #171b20;
+  --surface-app: #151719;
+  --surface-panel: #1e2227;
+  --surface-card: #262b31;
+  --surface-popover: #262b31;
+  --surface-input: #242930;
+  --surface-editor: #191d22;
+  --text-primary: #e1e7ec;
+  --text-secondary: #a8b4bd;
+  --text-heading: #f3f6f8;
+  --border-default: #3a3f46;
+  --border-subtle: #292e34;
+  --border-strong: #526170;
+  --state-hover: #2a2f35;
+  --state-hover-subtle: #20252b;
+  --state-selected: #343a42;
+  --state-selected-strong: #526170;
+  --accent-blue: #9abbd0;
+  --accent-blue-bg: rgba(154, 187, 208, 0.14);
+  --accent-blue-hover: #c4deeb;
+  --accent-blue-light: rgba(154, 187, 208, 0.12);
+  --accent-yellow: #d3b56f;
+  --syntax-heading: #c4deeb;
+  --syntax-link: #9abbd0;
   --background: var(--surface-app);
   --foreground: var(--text-primary);
   --card: var(--surface-card);
@@ -121,43 +121,43 @@
   --border: var(--border-default);
   --input: var(--border-default);
   --primary: var(--accent-blue);
-  --primary-foreground: #10242b;
+  --primary-foreground: #0f1418;
   --secondary: var(--surface-card);
   --secondary-foreground: var(--text-primary);
   --ring: var(--accent-blue);
-  --sidebar-foreground: #f6e8c8;
-  --sidebar-primary: #d2a85a;
-  --sidebar-primary-foreground: #11282e;
-  --sidebar-accent: rgba(210, 168, 90, 0.14);
-  --sidebar-accent-foreground: #fff1cf;
-  --sidebar-border: rgba(210, 168, 90, 0.18);
-  --grimoire-document-canvas: #121c1f;
-  --grimoire-document-edge: rgba(210, 168, 90, 0.18);
-  --grimoire-document-scroll-start: #182327;
-  --grimoire-document-page: #162125;
-  --grimoire-document-sheen: rgba(244, 217, 141, 0.08);
-  --grimoire-panel-gradient: linear-gradient(180deg, rgba(31, 45, 49, 0.96), rgba(22, 31, 34, 0.98));
-  --grimoire-card-mix: #0c1517;
+  --sidebar-foreground: #e5edf3;
+  --sidebar-primary: #9abbd0;
+  --sidebar-primary-foreground: #0f1418;
+  --sidebar-accent: rgba(154, 187, 208, 0.14);
+  --sidebar-accent-foreground: #f1f7fb;
+  --sidebar-border: rgba(154, 187, 208, 0.18);
+  --grimoire-document-canvas: #191d22;
+  --grimoire-document-edge: rgba(154, 187, 208, 0.18);
+  --grimoire-document-scroll-start: #1e2227;
+  --grimoire-document-page: #191d22;
+  --grimoire-document-sheen: rgba(154, 187, 208, 0.08);
+  --grimoire-panel-gradient: linear-gradient(180deg, rgba(38, 43, 49, 0.96), rgba(25, 29, 34, 0.98));
+  --grimoire-card-mix: #101419;
   --grimoire-card-shadow: rgba(0, 0, 0, 0.22);
 }
 
 [data-theme-preset="living-archive"] .app-shell {
   background:
-    radial-gradient(circle at 42% 0%, rgba(198, 154, 72, 0.14), transparent 28rem),
+    radial-gradient(circle at 42% 0%, rgba(85, 122, 149, 0.12), transparent 28rem),
     var(--surface-app);
 }
 
 [data-theme-preset="living-archive"] .app-sidebar-panel {
   --foreground: var(--sidebar-foreground);
-  --muted-foreground: rgba(251, 240, 215, 0.68);
+  --muted-foreground: rgba(226, 234, 240, 0.68);
   --border: var(--sidebar-border);
   --accent: var(--sidebar-accent);
   --accent-foreground: var(--sidebar-accent-foreground);
-  --muted: rgba(255, 245, 219, 0.1);
+  --muted: rgba(226, 234, 240, 0.1);
   --primary: var(--sidebar-primary);
   --primary-foreground: var(--sidebar-primary-foreground);
   background:
-    linear-gradient(180deg, rgba(255, 245, 219, 0.06), transparent 16rem),
+    linear-gradient(180deg, rgba(226, 234, 240, 0.06), transparent 16rem),
     var(--surface-sidebar);
 }
 
@@ -166,26 +166,22 @@
 }
 
 [data-theme-preset="living-archive"] .sidebar-brand-mark {
-  border-color: rgba(244, 216, 150, 0.34);
-  background: rgba(255, 246, 223, 0.1);
-  box-shadow: 0 8px 24px rgba(5, 24, 18, 0.26);
+  border-color: color-mix(in srgb, var(--sidebar-primary) 30%, var(--sidebar-border));
+  background: color-mix(in srgb, var(--surface-card) 78%, var(--sidebar-primary) 9%);
+  box-shadow: none;
 }
 
 [data-theme-preset="living-archive"] .sidebar-brand-wordmark {
   color: var(--sidebar-foreground);
-  font-size: 21px;
-  font-weight: 760;
-  line-height: 0.94;
 }
 
 [data-theme-preset="living-archive"] .font-mono-overline,
 [data-theme-preset="living-archive"] .sidebar-title-bar + .app-sidebar-nav button span.text-\[10px\] {
-  color: color-mix(in srgb, currentColor 84%, var(--grimoire-brand-gold));
+  color: color-mix(in srgb, currentColor 86%, var(--grimoire-brand-accent));
   font-family: var(--grimoire-label-font);
   font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  font-weight: 620;
+  letter-spacing: 0;
 }
 
 [data-theme-preset="living-archive"] .note-list-panel {
@@ -207,7 +203,7 @@
 }
 
 [data-theme-preset="living-archive"] .note-list-panel [data-note-path] [data-testid="type-icon"] {
-  color: var(--grimoire-brand-gold) !important;
+  color: var(--grimoire-brand-accent) !important;
 }
 
 [data-theme-preset="living-archive"] :is(.inspector-panel, .ai-panel) {
@@ -241,7 +237,7 @@
 }
 
 [data-theme-preset="living-archive"] .breadcrumb-bar {
-  border-bottom-color: color-mix(in srgb, var(--border-default) 86%, var(--grimoire-brand-gold));
+  border-bottom-color: color-mix(in srgb, var(--border-default) 86%, var(--grimoire-brand-accent));
   background:
     var(--grimoire-panel-gradient),
     var(--surface-panel);
@@ -253,7 +249,7 @@
 }
 
 [data-theme-preset="living-archive"] .editor-meta-pill {
-  border-color: color-mix(in srgb, var(--border-default) 88%, var(--grimoire-brand-gold));
+  border-color: color-mix(in srgb, var(--border-default) 88%, var(--grimoire-brand-accent));
   background: color-mix(in srgb, var(--surface-card) 90%, var(--grimoire-document-canvas));
   box-shadow: 0 4px 12px var(--grimoire-card-shadow);
 }
@@ -285,20 +281,20 @@
 [data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"]:not([data-level]) .bn-inline-content,
 [data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="1"] .bn-inline-content,
 [data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="2"] .bn-inline-content {
-  font-family: var(--grimoire-hand-font) !important;
-  font-style: italic !important;
-  font-weight: 600 !important;
+  font-family: var(--grimoire-display-font-family) !important;
+  font-style: normal !important;
+  font-weight: 650 !important;
 }
 
 [data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"]:not([data-level]) .bn-inline-content,
 [data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="1"] .bn-inline-content {
-  font-size: 44px !important;
-  line-height: 1.12 !important;
+  font-size: 36px !important;
+  line-height: 1.16 !important;
 }
 
 [data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="2"] .bn-inline-content {
-  font-size: 34px !important;
-  line-height: 1.18 !important;
+  font-size: 28px !important;
+  line-height: 1.22 !important;
 }
 
 [data-theme-preset="living-archive"] .editor__blocknote-container .bn-block-outer:has(> .bn-block > [data-content-type="heading"][data-level="3"]) .bn-inline-content,
@@ -320,8 +316,9 @@
 }
 
 [data-theme-preset-preview="living-archive"] {
-  --surface-editor: #fff8eb;
-  --foreground: #27383a;
-  --muted-foreground: #6f765f;
-  --border: #dfcfaa;
+  --surface-editor: #fbfcfd;
+  --foreground: #27313a;
+  --muted-foreground: #5f6e7a;
+  --border: #d7dde5;
+  --primary: #557a95;
 }

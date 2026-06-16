@@ -99,7 +99,7 @@ function buildRecentNoteItems(
       title: `Link: ${entry.title}`,
       subtext: entry.isA ? `Insert [[${entry.title}]] from ${entry.isA}.` : `Insert [[${entry.title}]].`,
       aliases: ['recent note', 'wikilink', entry.title, entry.filename, ...entry.aliases],
-      group: 'Vault',
+      group: 'Notebook',
       icon: createElement(FileText, { size: 18 }),
       onItemClick: () => insertWikilink(entry.title),
     }))
@@ -118,7 +118,7 @@ function buildTemplateItems(
       title: `Template: ${entry.title}`,
       subtext: `Insert the ${entry.title} type template.`,
       aliases: ['template', 'type template', entry.title, entry.filename],
-      group: 'Vault',
+      group: 'Notebook',
       icon: createElement(LayoutTemplate, { size: 18 }),
       onItemClick: () => insertTemplateMarkdown(editor, entry.template ?? ''),
     }))
@@ -136,7 +136,7 @@ function buildTagItems(
       title: `Tag: ${item.title}`,
       subtext: item.noteType ? `Insert ${item.title} (${item.noteType}).` : `Insert ${item.title}.`,
       aliases: ['tag', 'collection', item.entryTitle ?? item.title],
-      group: 'Vault',
+      group: 'Notebook',
       icon: createElement(Hash, { size: 18 }),
       onItemClick: item.onItemClick,
     }))
@@ -153,10 +153,10 @@ function buildCreateNoteItem(
 
   return [{
     key: `vault_create_note_${title}`,
-    title: `Create Note: ${title}`,
-    subtext: 'Create and open a new vault note.',
-    aliases: ['create note', 'new note', 'wikilink', title],
-    group: 'Vault',
+    title: `Create Page: ${title}`,
+    subtext: 'Create and open a new notebook page.',
+    aliases: ['create page', 'new page', 'create note', 'new note', 'wikilink', title],
+    group: 'Notebook',
     icon: createElement(FilePlus2, { size: 18 }),
     onItemClick: () => { void onCreateAndOpenNote(title) },
   }]
@@ -175,7 +175,7 @@ function buildCreateTagItems(
       title: `Create Tag: ${item.title}`,
       subtext: 'Insert a new Mem-style collection tag.',
       aliases: ['create tag', 'new tag', 'collection', item.entryTitle ?? item.title],
-      group: 'Vault',
+      group: 'Notebook',
       icon: createElement(Hash, { size: 18 }),
       onItemClick: item.onItemClick,
     }))

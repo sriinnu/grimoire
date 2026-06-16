@@ -49,6 +49,10 @@ function runAllowFailure(command, args) {
   })
 }
 
+function shouldSkipRunningAppInspection() {
+  return hasArg('--skip-running-check') || hasArg('--skip-system-actions')
+}
+
 function packageVersion() {
   return JSON.parse(readFileSync(PACKAGE_JSON, 'utf8')).version
 }
@@ -94,6 +98,10 @@ function runningInstalledAppProcesses(appPath = APPLICATIONS_APP_PATH) {
     maxBuffer: 8 * 1024 * 1024,
   })
   if (result.error || result.status !== 0) {
+    if (shouldSkipRunningAppInspection()) {
+      console.warn('Could not inspect running Grimoire processes; skipping safety wait')
+      return []
+    }
     throw new Error('Could not inspect running Grimoire processes before install')
   }
 
@@ -153,8 +161,10 @@ function installBuiltApp({
   assertNoDuplicateGrimoireApps(applicationsDir)
 
   if (!skipSystemActions) {
-    quitRunningApp()
-    waitForInstalledAppToExit(applicationsAppPath)
+    if (!shouldSkipRunningAppInspection()) {
+      quitRunningApp()
+      waitForInstalledAppToExit(applicationsAppPath)
+    }
   }
 
   rmSync(applicationsAppPath, { recursive: true, force: true })

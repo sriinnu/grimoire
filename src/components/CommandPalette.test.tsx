@@ -57,11 +57,11 @@ const makeCommand = (overrides: Partial<CommandAction> = {}): CommandAction => (
 })
 
 const commands: CommandAction[] = [
-  makeCommand({ id: 'search-notes', label: 'Search Notes', group: 'Navigation', shortcut: '⌘P', keywords: ['find'] }),
-  makeCommand({ id: 'create-note', label: 'New Note', group: 'Note', shortcut: '⌘N' }),
+  makeCommand({ id: 'search-notes', label: 'Search Pages', group: 'Navigation', shortcut: '⌘P', keywords: ['find'] }),
+  makeCommand({ id: 'create-note', label: 'New Page', group: 'Page', shortcut: '⌘N', keywords: ['note'] }),
   makeCommand({ id: 'commit-push', label: 'Commit & Push', group: 'Git', keywords: ['git', 'sync'] }),
   makeCommand({ id: 'open-settings', label: 'Open Settings', group: 'Settings', shortcut: '⌘,' }),
-  makeCommand({ id: 'disabled-cmd', label: 'Disabled Command', group: 'Note', enabled: false }),
+  makeCommand({ id: 'disabled-cmd', label: 'Disabled Command', group: 'Page', enabled: false }),
 ]
 
 const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
@@ -197,8 +197,8 @@ describe('CommandPalette', () => {
 
   it('shows all enabled commands grouped by category', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
-    expect(screen.getByText('Search Notes')).toBeInTheDocument()
-    expect(screen.getByText('New Note')).toBeInTheDocument()
+    expect(screen.getByText('Search Pages')).toBeInTheDocument()
+    expect(screen.getByText('New Page')).toBeInTheDocument()
     expect(screen.getByText('Commit & Push')).toBeInTheDocument()
     expect(screen.getByText('Open Settings')).toBeInTheDocument()
     // Disabled command should not appear
@@ -208,7 +208,7 @@ describe('CommandPalette', () => {
   it('shows group labels', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
     expect(screen.getByText('Navigation')).toBeInTheDocument()
-    expect(screen.getByText('Note')).toBeInTheDocument()
+    expect(screen.getByText('Page')).toBeInTheDocument()
     expect(screen.getByText('Git')).toBeInTheDocument()
     expect(screen.getByText('Settings')).toBeInTheDocument()
   })
@@ -226,7 +226,7 @@ describe('CommandPalette', () => {
     fireEvent.change(input, { target: { value: 'commit' } })
 
     expect(screen.getByText('Commit & Push')).toBeInTheDocument()
-    expect(screen.queryByText('Search Notes')).not.toBeInTheDocument()
+    expect(screen.queryByText('Search Pages')).not.toBeInTheDocument()
   })
 
   it('matches by keyword', () => {
@@ -234,7 +234,7 @@ describe('CommandPalette', () => {
     const input = screen.getByPlaceholderText('Type a command...')
     fireEvent.change(input, { target: { value: 'find' } })
 
-    expect(screen.getByText('Search Notes')).toBeInTheDocument()
+    expect(screen.getByText('Search Pages')).toBeInTheDocument()
   })
 
   it('shows "No matching commands" when no results', () => {
@@ -264,7 +264,7 @@ describe('CommandPalette', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
     fireEvent.keyDown(window, { key: 'Enter' })
 
-    // First enabled command (Search Notes) should execute
+    // First enabled command (Search Pages) should execute
     expect(commands[0].execute).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
@@ -275,7 +275,7 @@ describe('CommandPalette', () => {
     fireEvent.keyDown(window, { key: 'ArrowDown' })
     fireEvent.keyDown(window, { key: 'Enter' })
 
-    // Second enabled command (New Note) should execute
+    // Second enabled command (New Page) should execute
     expect(commands[1].execute).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
@@ -283,8 +283,8 @@ describe('CommandPalette', () => {
   it('keeps a short query keyboard-selectable after ArrowDown and Enter', () => {
     const changeNoteType = makeCommand({
       id: 'change-note-type',
-      label: 'Change Note Type…',
-      group: 'Note',
+      label: 'Change Page Type…',
+      group: 'Page',
     })
 
     render(
@@ -301,7 +301,7 @@ describe('CommandPalette', () => {
     fireEvent.change(screen.getByPlaceholderText('Type a command...'), { target: { value: 'ch' } })
     fireEvent.keyDown(window, { key: 'ArrowDown' })
 
-    const selectedRow = screen.getByText('Change Note Type…').closest('[data-selected]')
+    const selectedRow = screen.getByText('Change Page Type…').closest('[data-selected]')
     expect(selectedRow).toHaveAttribute('data-selected', 'true')
 
     fireEvent.keyDown(window, { key: 'Enter' })
@@ -361,7 +361,7 @@ describe('CommandPalette', () => {
 
     expect(screen.getByTestId('command-palette-ai-input')).toBeInTheDocument()
     expect(screen.getAllByText('Ask Claude Code').length).toBeGreaterThan(0)
-    expect(screen.queryByText('Search Notes')).not.toBeInTheDocument()
+    expect(screen.queryByText('Search Pages')).not.toBeInTheDocument()
   })
 
   it('inserts Tauri native folder drops into the command query input', async () => {
@@ -415,7 +415,7 @@ describe('CommandPalette', () => {
     const input = screen.getByPlaceholderText('Type a command...') as HTMLInputElement
     expect(screen.queryByTestId('command-palette-ai-input')).toBeNull()
     expect(input.value).toBe('new')
-    expect(screen.getByText('New Note')).toBeInTheDocument()
+    expect(screen.getByText('New Page')).toBeInTheDocument()
   })
 
   it('queues a stripped AI prompt and closes on Enter in AI mode', () => {
@@ -445,9 +445,9 @@ describe('CommandPalette', () => {
 
   describe('relevance ranking', () => {
     const relevanceCommands: CommandAction[] = [
-      makeCommand({ id: 'create-note', label: 'New Note', group: 'Note' }),
+      makeCommand({ id: 'create-note', label: 'New Page', group: 'Page', keywords: ['note', 'new note'] }),
       makeCommand({ id: 'toggle-raw', label: 'Toggle Raw Editor', group: 'View' }),
-      makeCommand({ id: 'search-notes', label: 'Search Notes', group: 'Navigation' }),
+      makeCommand({ id: 'search-notes', label: 'Search Pages', group: 'Navigation' }),
     ]
 
     function getVisibleLabels() {
@@ -467,12 +467,12 @@ describe('CommandPalette', () => {
       expect(labels).toEqual(['Toggle Raw Editor'])
     })
 
-    it('ranks "New Note" first for query "new note"', () => {
+    it('ranks "New Page" first for query "new note"', () => {
       render(<CommandPalette open={true} commands={relevanceCommands} onClose={onClose} />)
       fireEvent.change(screen.getByPlaceholderText('Type a command...'), { target: { value: 'new note' } })
 
       const labels = getVisibleLabels()
-      expect(labels[0]).toBe('New Note')
+      expect(labels[0]).toBe('New Page')
     })
 
     it('preserves default section order with empty query', () => {
@@ -486,8 +486,8 @@ describe('CommandPalette', () => {
           !!el.textContent,
       ).map(el => el.textContent)
 
-      // Default order: Navigation < Note < View
-      expect(groupHeaders).toEqual(['Navigation', 'Note', 'View'])
+      // Default order: Navigation < Page < View
+      expect(groupHeaders).toEqual(['Navigation', 'Page', 'View'])
     })
   })
 })

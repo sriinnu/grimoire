@@ -102,7 +102,7 @@ test('telemetry consent still leaves the welcome wizard fully keyboard navigable
 
   let dialogHandled = false
   page.once('dialog', async (dialog) => {
-    expect(dialog.message()).toContain('Open vault folder')
+    expect(dialog.message()).toContain('Open notebook folder')
     await dialog.dismiss()
     dialogHandled = true
   })

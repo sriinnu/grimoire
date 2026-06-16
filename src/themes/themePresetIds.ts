@@ -1,10 +1,10 @@
 export const SUPPORTED_THEME_PRESETS = [
   'constellation',
-  'daylight-atelier',
-  'prabhat-studio',
+  'daylight-notebook',
+  'morning-notebook',
   'living-archive',
   'nocturne',
-  'retro-terminal',
+  'code-notebook',
 ] as const
 
 export type ThemePreset = typeof SUPPORTED_THEME_PRESETS[number]

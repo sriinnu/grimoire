@@ -1,10 +1,10 @@
 :where(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) {
   --grimoire-memory-ledger-material:
     linear-gradient(135deg, color-mix(in srgb, var(--grimoire-signal-accent) 7%, transparent), transparent 58%),

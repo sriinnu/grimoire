@@ -1,15 +1,8 @@
 import { test, expect, type Page } from '@playwright/test'
 
 async function openCreateViewDialog(page: Page) {
-  // The VIEWS header has a small + icon. Find the header button containing "VIEWS" text
-  // and the + SVG icon next to it
-  const viewsHeader = page.locator('button:has(span:text("VIEWS"))')
-  await viewsHeader.waitFor({ timeout: 5000 })
-  // The Plus icon is rendered as an SVG inside the same container
-  // Click the SVG child of the VIEWS button container (the + icon)
-  const plusSvg = viewsHeader.locator('svg').last()
-  await plusSvg.click({ force: true })
-  await expect(page.locator('text=Create View')).toBeVisible({ timeout: 5000 })
+  await page.getByRole('button', { name: 'Create lens' }).click()
+  await expect(page.getByRole('dialog')).toContainText('Create Lens', { timeout: 5000 })
 }
 
 test.describe('Filter value input', () => {
@@ -33,9 +26,9 @@ test.describe('Filter value input', () => {
     await openCreateViewDialog(page)
     const dialog = page.getByRole('dialog')
 
-    const fieldSelect = dialog.locator('button:has-text("type")').first()
-    await fieldSelect.click()
-    await page.locator('[role="option"]:has-text("title")').click()
+    const fieldCombobox = dialog.getByTestId('filter-field-combobox-input')
+    await fieldCombobox.click()
+    await dialog.getByTestId('filter-field-option-title').click()
 
     const valueInput = dialog.getByTestId('filter-value-input')
     await valueInput.fill('[[un')

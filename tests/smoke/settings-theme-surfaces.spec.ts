@@ -1,5 +1,9 @@
 import { test, expect, type Page } from '@playwright/test'
 import { executeCommand, openCommandPalette } from './helpers'
+import {
+  EXPERIENCE_PROFILE_CONTRACTS,
+  type ExperienceProfileContract,
+} from './settingsExperienceProfileContracts'
 
 type SettingsSurfaceState = {
   panelBackground: string
@@ -19,6 +23,26 @@ type TypographyRoleState = {
   editor: string
   label: string
   mono: string
+}
+
+type ExperienceProfileState = {
+  canvas: string | null
+  codeBlock: string | null
+  definitionId: string | null
+  density: string | null
+  editorLineHeight: string
+  editorMaxWidth: string
+  graph: string | null
+  heading: string | null
+  id: string | null
+  metadataFields: string | null
+  metadataStrip: string | null
+  mode: string | null
+  motion: string | null
+  primary: string
+  surfaceApp: string
+  surfaceEditor: string
+  surfaceSidebar: string
 }
 
 async function openSettings(page: Page) {
@@ -69,6 +93,15 @@ function expectVisibleCardMaterial(state: SettingsSurfaceState): void {
   expect(hasBackgroundImage || hasBackgroundColor).toBe(true)
 }
 
+function expectRenderedDarkSurfaceNeutral(value: string, label: string): void {
+  const match = value.match(/^#(?<red>[0-9a-f]{2})(?<green>[0-9a-f]{2})(?<blue>[0-9a-f]{2})$/iu)
+  expect(match?.groups, label).toBeDefined()
+  const red = Number.parseInt(match!.groups!.red, 16)
+  const green = Number.parseInt(match!.groups!.green, 16)
+  const blue = Number.parseInt(match!.groups!.blue, 16)
+  expect(blue >= green, `${label} rendered rgb(${red}, ${green}, ${blue}) should stay graphite, not greenish`).toBe(true)
+}
+
 async function captureTypographyRoleState(page: Page): Promise<TypographyRoleState> {
   return page.evaluate(() => {
     const style = getComputedStyle(document.documentElement)
@@ -79,6 +112,78 @@ async function captureTypographyRoleState(page: Page): Promise<TypographyRoleSta
       mono: style.getPropertyValue('--grimoire-mono-font-family'),
     }
   })
+}
+
+async function captureExperienceProfileState(page: Page): Promise<ExperienceProfileState> {
+  return page.evaluate(() => {
+    const root = document.documentElement
+    const style = getComputedStyle(root)
+    const readCssVariable = (name: string) => style.getPropertyValue(name).trim()
+
+    return {
+      canvas: root.getAttribute('data-theme-canvas'),
+      codeBlock: root.getAttribute('data-theme-code-block'),
+      definitionId: root.getAttribute('data-theme-definition-id'),
+      density: root.getAttribute('data-theme-density'),
+      editorLineHeight: readCssVariable('--editor-line-height'),
+      editorMaxWidth: readCssVariable('--editor-max-width'),
+      graph: root.getAttribute('data-theme-graph'),
+      heading: root.getAttribute('data-theme-heading'),
+      id: root.getAttribute('data-theme-preset'),
+      metadataFields: root.getAttribute('data-theme-metadata-fields'),
+      metadataStrip: root.getAttribute('data-theme-metadata-strip'),
+      mode: root.getAttribute('data-theme-definition-mode'),
+      motion: root.getAttribute('data-theme-motion'),
+      primary: readCssVariable('--primary'),
+      surfaceApp: readCssVariable('--surface-app'),
+      surfaceEditor: readCssVariable('--surface-editor'),
+      surfaceSidebar: readCssVariable('--surface-sidebar'),
+    }
+  })
+}
+
+async function expectExperienceProfileContract(page: Page, contract: ExperienceProfileContract): Promise<ExperienceProfileState> {
+  await expect.poll(async () => captureExperienceProfileState(page)).toMatchObject({
+    canvas: contract.canvas,
+    codeBlock: contract.codeBlock,
+    definitionId: contract.id,
+    density: contract.density,
+    editorMaxWidth: contract.editorMaxWidth,
+    graph: contract.graph,
+    heading: contract.heading,
+    id: contract.id,
+    metadataFields: contract.metadataFields,
+    metadataStrip: contract.metadataStrip,
+    mode: contract.mode,
+    motion: contract.motion,
+  })
+
+  const state = await captureExperienceProfileState(page)
+  expect(state.editorLineHeight).not.toHaveLength(0)
+  expect(state.primary).not.toHaveLength(0)
+  expect(state.surfaceApp).not.toHaveLength(0)
+  expect(state.surfaceEditor).not.toHaveLength(0)
+  expect(state.surfaceSidebar).not.toHaveLength(0)
+  expect(state.surfaceApp).not.toBe(state.surfaceEditor)
+  expect(state.surfaceSidebar).not.toBe(state.surfaceEditor)
+  if (contract.mode === 'dark') {
+    expectRenderedDarkSurfaceNeutral(state.surfaceApp, `${contract.id} app surface`)
+    expectRenderedDarkSurfaceNeutral(state.surfaceSidebar, `${contract.id} sidebar surface`)
+    expectRenderedDarkSurfaceNeutral(state.surfaceEditor, `${contract.id} editor surface`)
+  }
+
+  const traitList = page.getByTestId(`settings-theme-preset-${contract.id}-traits`)
+  for (const label of contract.traitLabels) {
+    await expect(traitList).toContainText(label)
+  }
+  await expect(page.getByTestId(`settings-theme-preset-${contract.id}`)).toHaveAttribute('data-shell', contract.shell)
+  await expect(page.getByTestId(`settings-theme-preset-${contract.id}`)).toHaveAttribute('data-writing', contract.writing)
+  await expect(traitList.getByLabel(`Shell: ${contract.shellLabel}`)).toBeVisible()
+  await expect(traitList.getByLabel(`Writing: ${contract.writingLabel}`)).toBeVisible()
+  await expect(page.getByTestId('settings-appearance-preview')).toHaveAttribute('data-shell-preview', contract.shell)
+  await expect(page.getByTestId('settings-appearance-preview')).toHaveAttribute('data-writing-preview', contract.writing)
+
+  return state
 }
 
 async function selectThemePreset(page: Page, preset: string): Promise<void> {
@@ -92,19 +197,21 @@ async function selectThemePreset(page: Page, preset: string): Promise<void> {
   await expect(page.locator('html')).toHaveAttribute('data-theme-preset', preset)
 }
 
-test.describe('Settings theme surface screenshots', () => {
+test.describe('Settings experience profile surface screenshots', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 980 })
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.getByTestId('sidebar-top-nav')).toBeVisible({ timeout: 10_000 })
   })
 
-  test('Settings shell, rail, main surface, and private cards follow selected themes', async ({ page }, testInfo) => {
+  test('Settings shell, rail, main surface, and private cards follow selected experience profiles', async ({ page }, testInfo) => {
     const panel = await openSettings(page)
     const states: SettingsSurfaceState[] = []
+    const profileTokenSignatures = new Set<string>()
 
-    for (const preset of ['nocturne', 'living-archive', 'daylight-atelier', 'prabhat-studio', 'retro-terminal']) {
-      await selectThemePreset(page, preset)
+    for (const contract of EXPERIENCE_PROFILE_CONTRACTS) {
+      await selectThemePreset(page, contract.id)
+      const profileState = await expectExperienceProfileContract(page, contract)
       const appearanceState = await captureSettingsSurfaceState(page, 'theme-pack-settings')
       expect(appearanceState.panelBackground).not.toBe('none')
       expect(appearanceState.railBackground).not.toBe('none')
@@ -114,8 +221,15 @@ test.describe('Settings theme surface screenshots', () => {
       expect(appearanceState.railRight).toBeLessThanOrEqual(appearanceState.mainLeft + 1)
       expect(appearanceState.overflowX).toBeLessThanOrEqual(1)
       states.push(appearanceState)
+      profileTokenSignatures.add([
+        profileState.mode,
+        profileState.surfaceApp,
+        profileState.surfaceSidebar,
+        profileState.surfaceEditor,
+        profileState.primary,
+      ].join('|'))
 
-      await testInfo.attach(`settings-${preset}-appearance`, {
+      await testInfo.attach(`settings-${contract.id}-appearance`, {
         body: await panel.screenshot(),
         contentType: 'image/png',
       })
@@ -130,6 +244,7 @@ test.describe('Settings theme surface screenshots', () => {
     })
 
     expect(new Set(states.map((state) => state.mainBackground)).size).toBeGreaterThan(1)
+    expect(profileTokenSignatures.size).toBe(EXPERIENCE_PROFILE_CONTRACTS.length)
   })
 
   test('iPad Settings keeps a theme-owned section rail when the desktop rail collapses', async ({ page }, testInfo) => {
@@ -168,7 +283,7 @@ test.describe('Settings theme surface screenshots', () => {
     await page.getByTestId('theme-pack-apply-typography').click()
 
     await expect(page.getByTestId('theme-pack-contract-summary')).toContainText(
-      'Fonts display, editor, mono, label',
+      'Fonts ui, editor, mono, display, label',
     )
     await expect.poll(async () => (await captureTypographyRoleState(page)).display).toContain('Grimoire Heading Test')
     await expect.poll(async () => (await captureTypographyRoleState(page)).editor).toContain('Grimoire Body Test')

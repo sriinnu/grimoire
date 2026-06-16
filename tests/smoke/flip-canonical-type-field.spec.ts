@@ -22,12 +22,12 @@ test.describe('Canonical type field', () => {
   test('sidebar shows type sections parsed from type: field', async ({ page }) => {
     // The sidebar groups notes by type — this confirms the type: field is parsed correctly
     // by the mock layer (which mirrors what the Rust parser does with serde rename)
-    const projectSection = page.getByText('Project').first()
+    const projectSection = page.getByText('Making').first()
     await expect(projectSection).toBeVisible({ timeout: 5000 })
 
     // Also verify Note and Person sections exist (these use type: in mock data)
-    const noteSection = page.getByText('Note').first()
-    await expect(noteSection).toBeVisible({ timeout: 5000 })
+    const peopleSection = page.getByText('People').first()
+    await expect(peopleSection).toBeVisible({ timeout: 5000 })
   })
 
   test('theme notes display correctly with type: Theme', async ({ page }) => {

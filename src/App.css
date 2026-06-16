@@ -8,7 +8,10 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px var(--border-primary);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 94%, var(--surface-panel)), var(--surface-app));
+  border: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  border-radius: var(--grimoire-shell-radius);
+  box-shadow: var(--grimoire-panel-shadow);
 }
 
 .app-shell * {
@@ -134,4 +137,20 @@
   min-height: 0;
   overflow: auto;
   background: var(--grimoire-dashboard-material, linear-gradient(180deg, color-mix(in srgb, var(--background) 92%, var(--primary) 8%), var(--background) 42%));
+}
+
+@media (max-width: 720px) {
+  .app {
+    min-width: 0;
+  }
+
+  .app__sidebar {
+    display: none;
+  }
+
+  .app__note-list,
+  .app__editor,
+  .app__dashboard {
+    min-width: 0;
+  }
 }

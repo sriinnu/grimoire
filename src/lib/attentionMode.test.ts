@@ -44,10 +44,10 @@ describe('buildAttentionModeSuggestion', () => {
       syncStatus: 'idle',
     })
 
-    expect(suggestion.title).toBe('Close thread')
+    expect(suggestion.title).toBe('Carry one page')
     expect(suggestion.captureKind).toBe('task')
-    expect(suggestion.actionLabel).toBe('Task')
-    expect(suggestion.detail).toContain('9 Project')
+    expect(suggestion.actionLabel).toBe('Carry forward')
+    expect(suggestion.detail).toBe('Choose one unfinished page; write what it needs next.')
   })
 
   it('turns too many active notes into one focus capture', () => {
@@ -61,7 +61,7 @@ describe('buildAttentionModeSuggestion', () => {
     expect(suggestion.title).toBe('Choose focus')
     expect(suggestion.captureKind).toBe('task')
     expect(suggestion.actionLabel).toBe('Name focus')
-    expect(suggestion.detail).toContain('7 active notes')
+    expect(suggestion.detail).toContain('7 active pages')
   })
 
   it('turns repeated context switching into one quiet focus capture', () => {
@@ -72,10 +72,10 @@ describe('buildAttentionModeSuggestion', () => {
       syncStatus: 'idle',
     })
 
-    expect(suggestion.title).toBe('Settle thread')
+    expect(suggestion.title).toBe('Choose one page')
     expect(suggestion.captureKind).toBe('task')
     expect(suggestion.actionLabel).toBe('Name focus')
-    expect(suggestion.detail).toBe('4 recent context switches. Pick one lane before adding more.')
+    expect(suggestion.detail).toBe('4 recent context switches. Return to one page before adding more.')
   })
 
   it('keeps unresolved open loops ahead of context-switch drift', () => {
@@ -90,8 +90,8 @@ describe('buildAttentionModeSuggestion', () => {
       syncStatus: 'idle',
     })
 
-    expect(suggestion.title).toBe('Close thread')
-    expect(suggestion.detail).toContain('9 Task')
+    expect(suggestion.title).toBe('Carry one page')
+    expect(suggestion.detail).toBe('Choose one unfinished page; write what it needs next.')
   })
 
   it('keeps memory review ahead of active-note drift', () => {
@@ -126,7 +126,7 @@ describe('buildAttentionModeSuggestion', () => {
     expect(suggestion.title).toBe('Review mobile')
     expect(suggestion.captureKind).toBeNull()
     expect(suggestion.openEntryPath).toBe('/vault/journals/mobile/check-in.md')
-    expect(suggestion.detail).toBe('2 mobile captures waiting.')
+    expect(suggestion.detail).toBe('2 mobile captures ready for review.')
   })
 
   it('names blocked mobile capture review without exposing capture metadata', () => {
@@ -210,7 +210,7 @@ describe('buildAttentionModeSuggestion', () => {
     expect(suggestion.actionLabel).toBe('Capture reason')
   })
 
-  it('turns a calm recent thread toward Crystallize review', () => {
+  it('turns a calm recent page toward Crystallize review', () => {
     const suggestion = buildAttentionModeSuggestion({
       conflictCount: 0,
       modifiedCount: 0,
@@ -223,7 +223,7 @@ describe('buildAttentionModeSuggestion', () => {
     expect(suggestion.title).toBe('Crystallize')
     expect(suggestion.captureKind).toBe('ask')
     expect(suggestion.actionLabel).toBe('Crystallize')
-    expect(suggestion.promptSeed).toBe('/ask Crystallize the latest thread into reviewed Markdown memory.')
+    expect(suggestion.promptSeed).toBe('/ask Crystallize the latest page into reviewed Markdown memory.')
   })
 
   it('does not keep asking for Crystallize after reviewed memory landed today', () => {
@@ -237,9 +237,9 @@ describe('buildAttentionModeSuggestion', () => {
       syncStatus: 'idle',
     })
 
-    expect(suggestion.title).toBe('Loop closed')
+    expect(suggestion.title).toBe('Memory landed')
     expect(suggestion.captureKind).toBe('note')
-    expect(suggestion.actionLabel).toBe('Note')
+    expect(suggestion.actionLabel).toBe('Page')
     expect(suggestion.detail).toBe('1 reviewed Markdown memory landed today.')
   })
 })

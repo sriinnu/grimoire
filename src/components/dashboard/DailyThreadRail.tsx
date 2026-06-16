@@ -1,4 +1,4 @@
-import { ArrowRight, BrainCircuit, CalendarClock, GitCommitHorizontal, Lock, Mic, MoonStar, NotebookPen, Smartphone } from 'lucide-react'
+import { ArrowRight, BookOpenCheck, BrainCircuit, CalendarClock, Lock, Mic, MoonStar, NotebookPen, Smartphone } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { TimeLoomGuidance, TimeLoomSourceLane } from '../../lib/timeLoomGuidance'
@@ -12,7 +12,7 @@ interface DailyThreadRailProps {
 
 const laneIcons = {
   calendar: CalendarClock,
-  commit: GitCommitHorizontal,
+  commit: BookOpenCheck,
   dream: MoonStar,
   journal: NotebookPen,
   memory: BrainCircuit,

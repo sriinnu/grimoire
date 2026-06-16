@@ -56,7 +56,7 @@ describe('buildTimeLoomSummary', () => {
     expect(summary.mobileEvents).toBe(0)
     expect(summary.memoryReviewEvents).toBe(0)
     expect(summary.taskEvents).toBe(0)
-    expect(summary.activeSpanLabel).toBe('4 events across 2 active days')
+    expect(summary.activeSpanLabel).toBe('4 marks across 2 days')
     expect(summary.buckets.map((bucket) => bucket.label)).toEqual(['Today', 'Yesterday'])
     expect(summary.buckets[0]).toMatchObject({
       total: 3,
@@ -84,12 +84,12 @@ describe('buildTimeLoomSummary', () => {
       privacy: 'held-local',
       to: 'lane:held-local',
     }))
-    expect(summary.graph.privacyNote).toBe('count-only temporal graph; private labels withheld')
+    expect(summary.graph.privacyNote).toBe('count-only trail graph; private labels withheld')
     expect(JSON.stringify(summary)).not.toContain('River Dream')
     expect(JSON.stringify(summary)).not.toContain('/vault/dreams/river.md')
   })
 
-  it('keeps full calendar days while limiting dashboard timeline buckets', () => {
+  it('keeps full calendar days while limiting notebook trail buckets', () => {
     const now = new Date(2026, 4, 23, 12)
     const localNoon = (day: number) => new Date(2026, 4, day, 12).getTime() / 1000
     const summary = buildTimeLoomSummary([

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { StatusBar, type VaultOption } from './StatusBar'
@@ -31,18 +31,13 @@ function renderStatusBarRoute() {
   )
 }
 
-describe('StatusBar AI route disclosure', () => {
-  it('passes the selected AI route into the bottom-bar agent menu', () => {
+describe('StatusBar AI controls', () => {
+  it('keeps route disclosure out of the status bar and keeps the bar focused on notebook state', () => {
     renderStatusBarRoute()
 
-    const trigger = screen.getByTestId('status-ai-agents')
-    act(() => {
-      trigger.focus()
-      fireEvent.keyDown(trigger, { key: 'ArrowDown' })
-    })
-
-    expect(screen.getByTestId('status-ai-agents-route-truth')).toHaveTextContent(
-      'Route: provider: ollama · model: qwen3:8b',
-    )
+    expect(screen.queryByTestId('status-ai-agents')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('status-ai-agents-route-truth')).not.toBeInTheDocument()
+    expect(screen.getByTestId('status-bar')).toHaveAccessibleName('Notebook status')
+    expect(screen.getByTestId('status-save-signal')).toBeInTheDocument()
   })
 })

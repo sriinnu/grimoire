@@ -4,6 +4,10 @@
   padding-bottom: var(--editor-composer-clearance);
 }
 
+:is([data-theme-preset]) :is(.editor, .editor-scroll-area) {
+  background: var(--grimoire-native-editor-material, var(--grimoire-editor-material));
+}
+
 :is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor-content-wrapper {
   flex: 0 0 auto;
   min-height: 100%;

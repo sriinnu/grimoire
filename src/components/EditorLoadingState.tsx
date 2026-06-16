@@ -53,14 +53,12 @@ export function EditorLoadingState({
           <path className="editor-loading__line editor-loading__line--two" d="M50 84 C62 80 71 81 80 86" />
           <path className="editor-loading__line editor-loading__line--three" d="M101 72 C111 67 121 66 132 70" />
           <path className="editor-loading__line editor-loading__line--four" d="M101 86 C110 81 120 80 132 84" />
+          <path className="editor-loading__margin-mark" d="M90 58 L90 121" />
+          <path className="editor-loading__thread editor-loading__thread--left" d="M49 104 C61 99 72 100 82 105" />
+          <path className="editor-loading__thread editor-loading__thread--right" d="M99 105 C110 100 121 99 133 104" />
+          <circle className="editor-loading__page-dot editor-loading__page-dot--left" cx="73" cy="105" r="2.2" />
+          <circle className="editor-loading__page-dot editor-loading__page-dot--right" cx="115" cy="105" r="2.2" />
         </g>
-        <g className="editor-loading__wand">
-          <path d="M117 38 L135 20" />
-          <path className="editor-loading__wand-tip" d="M134 18 L137 25 L144 26 L138 30 L139 37 L134 32 L127 35 L130 28 L125 23 L132 23 Z" />
-        </g>
-        <circle className="editor-loading__spark editor-loading__spark--one" cx="45" cy="42" r="3.5" />
-        <circle className="editor-loading__spark editor-loading__spark--two" cx="142" cy="54" r="4" />
-        <circle className="editor-loading__spark editor-loading__spark--three" cx="70" cy="31" r="2.8" />
       </svg>
       <div className="editor-loading__copy">
         <div className="editor-loading__label">{label}</div>

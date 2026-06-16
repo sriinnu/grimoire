@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { AlertTriangle, Check, FolderOpen, GitBranch, Loader2, Plus, Rocket, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import {
   STATUS_BAR_POPOVER_BACKGROUND,
   STATUS_BAR_POPOVER_FOREGROUND,
@@ -75,12 +76,14 @@ function getVaultTriggerClassName(open: boolean, compact: boolean, opening: bool
 
 function getVaultOpeningLabel(openingVault: VaultOpeningState | null | undefined) {
   if (!openingVault) return null
-  return openingVault.path ? `Opening ${openingVault.label}` : openingVault.label
+  const label = getNotebookVaultDisplayName(openingVault)
+  return openingVault.path ? `Opening ${label}` : label
 }
 
 function getVaultTriggerAriaLabel(openingVault: VaultOpeningState | null | undefined) {
-  if (!openingVault) return 'Switch vault'
-  return openingVault.path ? `Opening vault: ${openingVault.label}` : openingVault.label
+  if (!openingVault) return 'Switch notebook'
+  const label = getNotebookVaultDisplayName(openingVault)
+  return openingVault.path ? `Opening notebook: ${label}` : label
 }
 
 function buildVaultActions({
@@ -95,7 +98,7 @@ function buildVaultActions({
     items.push({
       key: 'create-empty',
       icon: <Plus size={12} />,
-      label: 'Create empty vault',
+      label: 'Create empty notebook',
       testId: 'vault-menu-create-empty',
       accent: true,
       onClick: onCreateEmptyVault,
@@ -106,7 +109,7 @@ function buildVaultActions({
     items.push({
       key: 'open-local',
       icon: <FolderOpen size={12} />,
-      label: 'Open local folder',
+      label: 'Open notebook folder',
       testId: 'vault-menu-open-local',
       onClick: onOpenLocalFolder,
     })
@@ -126,7 +129,7 @@ function buildVaultActions({
     items.push({
       key: 'clone-getting-started',
       icon: <Rocket size={12} />,
-      label: 'Clone Getting Started Vault',
+      label: 'Clone Getting Started Notebook',
       testId: 'vault-menu-clone-getting-started',
       accent: true,
       onClick: onCloneGettingStarted,
@@ -144,7 +147,8 @@ function VaultMenuIcon({ isActive, unavailable }: { isActive: boolean; unavailab
 
 function VaultMenuItem({ vault, isActive, canRemove, onSelect, onRemove }: VaultMenuItemProps) {
   const unavailable = vault.available === false
-  const removeLabel = `Remove ${vault.label} from list`
+  const displayLabel = getNotebookVaultDisplayName(vault)
+  const removeLabel = `Remove ${displayLabel} from list`
   const itemClassName = [
     'w-full justify-start rounded-sm px-2 py-1 text-xs font-normal',
     canRemove ? 'pr-7' : '',
@@ -162,7 +166,7 @@ function VaultMenuItem({ vault, isActive, canRemove, onSelect, onRemove }: Vault
         disabled={unavailable}
         onClick={onSelect}
         aria-current={isActive ? 'true' : undefined}
-        title={unavailable ? `Vault not found: ${vault.path}` : vault.path}
+        title={unavailable ? `Notebook not found: ${vault.path}` : vault.path}
         data-testid={`vault-menu-item-${vault.label}`}
         className={itemClassName}
         style={{
@@ -173,7 +177,7 @@ function VaultMenuItem({ vault, isActive, canRemove, onSelect, onRemove }: Vault
       >
         <span className="flex min-w-0 items-center gap-1.5">
           <VaultMenuIcon isActive={isActive} unavailable={unavailable} />
-          <span className="truncate">{vault.label}</span>
+          <span className="truncate">{displayLabel}</span>
         </span>
       </Button>
       {canRemove && onRemove && (
@@ -241,7 +245,7 @@ export function VaultMenu({
   const openingLabel = getVaultOpeningLabel(openingVault)
   const triggerClassName = getVaultTriggerClassName(open, compact, Boolean(openingVault))
   const triggerSize = compact ? 'icon-xs' : 'xs'
-  const activeVaultLabel = activeVault?.label ?? 'Vault'
+  const activeVaultLabel = activeVault ? getNotebookVaultDisplayName(activeVault) : 'Notebook'
 
   useDismissibleLayer(open, menuRef, () => setOpen(false))
 

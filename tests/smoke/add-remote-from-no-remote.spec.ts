@@ -113,7 +113,7 @@ async function openAddRemoteFromStatusChip(page: Page): Promise<void> {
 
 async function connectRemoteFromCommandPalette(page: Page, remoteUrl: string): Promise<void> {
   await openCommandPalette(page)
-  await executeCommand(page, 'Add Remote to Current Vault')
+  await executeCommand(page, 'Add Remote to Notebook')
 
   await expect(page.getByTestId('add-remote-modal')).toBeVisible()
   await expect(page.getByTestId('add-remote-url')).toBeFocused()

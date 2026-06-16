@@ -19,12 +19,18 @@ function httpAssetUrl(path: string): string {
   return `http://asset.localhost/${encodeURIComponent(path)}`
 }
 
+function devVaultFileUrl(path: string): string {
+  return `/api/vault/file?path=${encodeURIComponent(path)}`
+}
+
 describe('resolveImageUrls', () => {
-  it('is a no-op outside Tauri', () => {
+  it('converts relative attachment paths to dev vault file URLs outside Tauri', () => {
     tauriMode = false
     const markdown = '![alt](attachments/file.png)'
 
-    expect(resolveImageUrls(markdown, '/vault')).toBe(markdown)
+    expect(resolveImageUrls(markdown, '/vault')).toBe(
+      `![alt](${devVaultFileUrl('/vault/attachments/file.png')})`,
+    )
   })
 
   it('is a no-op when vaultPath is empty', () => {
@@ -49,6 +55,16 @@ describe('resolveImageUrls', () => {
     const markdown = `![alt](${url})`
 
     expect(resolveImageUrls(markdown, '/vault')).toBe(markdown)
+  })
+
+  it('converts asset URLs to dev file URLs outside Tauri', () => {
+    tauriMode = false
+    const url = assetUrl('/vault/attachments/file.png')
+    const markdown = `![alt](${url})`
+
+    expect(resolveImageUrls(markdown, '/vault')).toBe(
+      `![alt](${devVaultFileUrl('/vault/attachments/file.png')})`,
+    )
   })
 
   it('rewrites legacy asset URLs from a different vault', () => {
@@ -125,6 +141,15 @@ describe('portableImageUrls', () => {
     )
   })
 
+  it('converts dev vault file URLs to relative paths', () => {
+    const url = devVaultFileUrl('/vault/attachments/browser.png')
+    const markdown = `![screenshot](${url})`
+
+    expect(portableImageUrls(markdown, '/vault')).toBe(
+      '![screenshot](attachments/browser.png)',
+    )
+  })
+
   it('is a no-op when vaultPath is empty', () => {
     const url = assetUrl('/vault/attachments/file.png')
     const markdown = `![alt](${url})`
@@ -170,13 +195,22 @@ describe('resolveImageUrls / portableImageUrls round-trip', () => {
 
     expect(portableImageUrls(resolveImageUrls(markdown, '/vault'), '/vault')).toBe(markdown)
   })
+
+  it('keeps browser-resolved attachment markdown stable', () => {
+    tauriMode = false
+    const markdown = '![shot](attachments/file.png)'
+
+    expect(portableImageUrls(resolveImageUrls(markdown, '/vault'), '/vault')).toBe(markdown)
+  })
 })
 
 describe('resolveVaultImageSrc', () => {
-  it('returns a plain file path outside Tauri', () => {
+  it('returns a dev vault file URL outside Tauri', () => {
     tauriMode = false
 
-    expect(resolveVaultImageSrc('/vault/attachments/logo.svg')).toBe('/vault/attachments/logo.svg')
+    expect(resolveVaultImageSrc('/vault/attachments/logo.svg')).toBe(
+      devVaultFileUrl('/vault/attachments/logo.svg'),
+    )
   })
 
   it('returns an asset URL inside Tauri', () => {

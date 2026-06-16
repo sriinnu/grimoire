@@ -1,156 +1,23 @@
 .app-sidebar-panel,
 .app-sidebar-rail,
 [data-sidebar-preset-preview] {
-  --sidebar-glyph-cel-light: color-mix(in srgb, #fff 18%, transparent);
-  --sidebar-glyph-cel-shade: color-mix(in srgb, #000 18%, transparent);
+  --sidebar-glyph-line: color-mix(in srgb, var(--sidebar-foreground) 30%, transparent);
+  --sidebar-glyph-surface: color-mix(in srgb, var(--sidebar-foreground) 10%, transparent);
 }
 
 .sidebar-top-nav__tone .sidebar-nav-glyph,
 .sidebar-rail__tone .sidebar-rail__glyph,
 .sidebar-section-glyph,
 .folder-glyph {
-  background-blend-mode: screen, screen, normal, normal, normal;
-}
-
-.sidebar-top-nav__tone .sidebar-nav-glyph::after,
-.sidebar-rail__tone .sidebar-rail__glyph::after,
-.sidebar-section-glyph::after,
-.folder-glyph__cel-glint {
-  background:
-    linear-gradient(135deg, var(--sidebar-glyph-cel-light), transparent 42%),
-    color-mix(in srgb, currentColor 78%, #fff);
-  border-radius: 999px 999px 999px 3px;
-  box-shadow:
-    0 0 8px color-mix(in srgb, currentColor 34%, transparent),
-    0 1px 0 color-mix(in srgb, #fff 18%, transparent);
-  height: 4px;
-  opacity: 0.78;
-  width: 4px;
-}
-
-.folder-glyph__cel-glint {
-  pointer-events: none;
-  position: absolute;
-  right: 3px;
-  top: 3px;
-  z-index: 3;
+  background-blend-mode: normal;
 }
 
 .folder-glyph {
-  border-radius: 7px 9px 8px 10px;
-}
-
-.folder-glyph:not([data-folder-glyph-motif="folder"]) {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--folder-glyph-tone) 34%, transparent), transparent 44%),
-    linear-gradient(320deg, color-mix(in srgb, var(--folder-glyph-secondary) 20%, transparent), transparent 50%),
-    radial-gradient(ellipse at 70% 78%, color-mix(in srgb, var(--folder-glyph-warm) 20%, transparent), transparent 58%),
-    linear-gradient(180deg, var(--sidebar-glyph-cel-light), transparent 48%),
-    var(--folder-glyph-soft);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent),
-    inset 0 -10px 16px color-mix(in srgb, var(--folder-glyph-tone) 11%, transparent),
-    0 5px 13px color-mix(in srgb, var(--folder-glyph-tone) 21%, transparent);
-  filter: saturate(1.08);
-}
-
-.folder-glyph:not([data-folder-glyph-motif="folder"])::before {
-  mask-image: conic-gradient(from 32deg, #000 0 17%, transparent 17% 27%, #000 27% 62%, transparent 62% 73%, #000 73% 100%);
-  -webkit-mask-image: conic-gradient(from 32deg, #000 0 17%, transparent 17% 27%, #000 27% 62%, transparent 62% 73%, #000 73% 100%);
-  opacity: 0.7;
-}
-
-.folder-glyph[data-folder-glyph-motif="folder"] {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--sidebar-foreground) 8%, transparent), transparent 58%),
-    linear-gradient(180deg, var(--sidebar-glyph-cel-light), transparent 52%),
-    color-mix(in srgb, var(--sidebar-foreground) 6%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 13%, transparent),
-    0 3px 8px color-mix(in srgb, var(--sidebar-foreground) 8%, transparent);
-}
-
-.folder-glyph[data-folder-glyph-motif="knowledge"] {
-  border-radius: 6px 10px 7px 10px;
-}
-
-.folder-glyph[data-folder-glyph-motif="knowledge"] .folder-glyph__constellation {
-  border-bottom-color: color-mix(in srgb, var(--folder-glyph-warm) 58%, transparent);
-  border-left-color: transparent;
-  height: 5px;
-  opacity: 0.36;
-  transform: rotate(0deg) scaleX(1.1);
-}
-
-.folder-glyph[data-folder-glyph-motif="knowledge"] .folder-glyph__route {
-  background:
-    linear-gradient(90deg, transparent, color-mix(in srgb, var(--folder-glyph-warm) 68%, #fff), transparent),
-    color-mix(in srgb, var(--folder-glyph-tone) 26%, transparent);
-  bottom: 5px;
-  transform: scaleX(0.82);
-}
-
-.folder-glyph[data-folder-glyph-motif="mind"] {
-  border-radius: 10px 7px 10px 7px;
-}
-
-.folder-glyph[data-folder-glyph-motif="mind"] .folder-glyph__constellation {
-  border-radius: 999px 999px 3px 999px;
-  opacity: 0.62;
-  transform: rotate(16deg) scale(0.96);
-}
-
-.folder-glyph[data-folder-glyph-motif="mind"] .folder-glyph__thread {
-  top: 11px;
-  transform: rotate(18deg) scaleX(0.78);
-}
-
-.folder-glyph[data-folder-glyph-motif="private"] {
-  border-radius: 10px;
-}
-
-.folder-glyph[data-folder-glyph-motif="private"] .folder-glyph__constellation {
-  border-bottom-color: color-mix(in srgb, var(--folder-glyph-tone) 48%, transparent);
-  border-left-color: color-mix(in srgb, var(--folder-glyph-warm) 42%, transparent);
-  border-radius: 3px;
-  height: 6px;
-  opacity: 0.34;
-  transform: rotate(0deg) scale(0.82);
-  width: 6px;
-}
-
-.folder-glyph[data-folder-glyph-motif="route"] {
-  border-radius: 7px;
-}
-
-.folder-glyph[data-folder-glyph-motif="route"] .folder-glyph__thread {
-  top: 11px;
-  transform: rotate(0deg) scaleX(0.88);
-}
-
-.folder-glyph[data-folder-glyph-motif="route"] .folder-glyph__spark {
-  right: 4px;
-  top: 10px;
-}
-
-.folder-glyph[data-folder-glyph-motif="sky"] {
-  border-radius: 11px 7px 11px 7px;
-}
-
-.folder-glyph[data-folder-glyph="star"] {
-  background:
-    radial-gradient(circle at 48% 42%, color-mix(in srgb, var(--folder-glyph-warm) 28%, transparent), transparent 30%),
-    conic-gradient(from 18deg, color-mix(in srgb, var(--folder-glyph-warm) 28%, transparent), transparent 18% 44%, color-mix(in srgb, var(--folder-glyph-secondary) 18%, transparent), transparent 70%),
-    linear-gradient(155deg, var(--sidebar-glyph-cel-light), transparent 44%),
-    var(--folder-glyph-soft);
-}
-
-.folder-glyph[data-folder-glyph="star"] .folder-glyph__spark {
-  box-shadow:
-    -5px 8px 0 -1.2px color-mix(in srgb, var(--folder-glyph-secondary) 46%, transparent),
-    4px 5px 0 -1.3px color-mix(in srgb, var(--folder-glyph-warm) 38%, transparent),
-    0 0 12px color-mix(in srgb, var(--folder-glyph-warm) 54%, transparent);
-  opacity: 0.95;
+  background: var(--sidebar-glyph-surface);
+  border-color: color-mix(in srgb, var(--folder-glyph-tone) 32%, var(--sidebar-glyph-line));
+  border-radius: 8px;
+  box-shadow: none;
+  filter: none;
 }
 
 .folder-item-row {
@@ -158,92 +25,34 @@
 }
 
 .folder-item-row::before {
-  background:
-    linear-gradient(180deg, transparent, color-mix(in srgb, var(--folder-row-tone) 88%, var(--folder-row-secondary)), transparent),
-    var(--folder-row-tone);
+  background: var(--folder-row-tone);
   border-radius: 999px;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--folder-row-tone) 24%, transparent);
+  box-shadow: none;
   content: "";
   inset: 6px auto 6px 2px;
   opacity: 0;
   position: absolute;
   transition:
-    opacity 160ms ease,
-    width 160ms ease;
+    opacity 160ms var(--motion-ease-standard, ease),
+    width 160ms var(--motion-ease-standard, ease);
   width: 2px;
 }
 
-.folder-item-row[data-folder-row-motif="knowledge"]::after {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--folder-row-tone) 54%, transparent), color-mix(in srgb, var(--folder-row-secondary) 62%, transparent), transparent),
-    color-mix(in srgb, var(--folder-row-tone) 14%, transparent);
-}
-
-.folder-item-row[data-folder-row-motif="mind"]::after {
-  background:
-    radial-gradient(circle at 28% 50%, color-mix(in srgb, var(--folder-row-secondary) 80%, transparent) 0 2px, transparent 2.5px),
-    linear-gradient(90deg, color-mix(in srgb, var(--folder-row-tone) 42%, transparent), color-mix(in srgb, var(--folder-row-secondary) 42%, transparent), transparent);
-}
-
-.folder-item-row[data-folder-row-motif="private"]::after {
-  opacity: 0;
-  right: 58%;
-}
-
 .folder-item-row::after {
-  background:
-    linear-gradient(90deg, transparent, color-mix(in srgb, var(--folder-row-secondary) 60%, transparent), transparent),
-    color-mix(in srgb, var(--folder-row-tone) 18%, transparent);
-  border-radius: 999px;
-  bottom: 5px;
-  content: "";
-  height: 1px;
-  left: 36px;
-  opacity: 0;
-  pointer-events: none;
-  position: absolute;
-  right: 14px;
-  transform: scaleX(0.72);
-  transform-origin: left center;
-  transition:
-    opacity 160ms ease,
-    transform 160ms ease;
+  display: none;
 }
 
 .folder-item-row:hover::before {
-  opacity: 0.38;
+  opacity: 0.28;
 }
 
 .folder-item-row[data-selected="true"]::before {
-  opacity: 0.9;
-  width: 3px;
-}
-
-.folder-item-row[data-selected="true"]::after {
   opacity: 0.72;
-  transform: scaleX(1);
-}
-
-.folder-item-row[data-selected="true"] {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--folder-row-tone) 18%, transparent), transparent 64%),
-    linear-gradient(135deg, color-mix(in srgb, var(--folder-row-secondary) 10%, transparent), transparent 62%),
-    var(--folder-row-selected-bg);
-}
-
-.folder-item-row[data-folder-row-motif="folder"][data-selected="true"] {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--sidebar-foreground) 9%, transparent), transparent 70%),
-    color-mix(in srgb, var(--sidebar-accent) 72%, transparent);
+  width: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .folder-item-row::before {
     transition-duration: 0ms;
-  }
-
-  .folder-item-row::after {
-    transition-duration: 0ms;
-    transform: none;
   }
 }

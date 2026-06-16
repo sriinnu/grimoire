@@ -1,114 +1,96 @@
-.sidebar-artwork__atlas-frame,
-.sidebar-artwork__atlas-ridge,
-.sidebar-artwork__compass,
-.sidebar-artwork__spark-crown,
-.sidebar-artwork__route-beam,
-.sidebar-artwork__vault-arch {
+.sidebar-artwork__page,
+.sidebar-artwork__page-thread,
+.sidebar-artwork__context-loop,
+.sidebar-artwork__memory-line,
+.sidebar-artwork__note-rule,
+.sidebar-artwork__spine {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.sidebar-artwork__atlas-frame,
-.sidebar-artwork__atlas-ridge,
-.sidebar-artwork__vault-arch {
-  stroke-width: 4.8;
+.sidebar-artwork__page {
+  fill: var(--art-page);
+  stroke-width: 4.2;
 }
 
-.sidebar-artwork__atlas-frame {
-  color: color-mix(in srgb, var(--art-gate) 76%, var(--art-aura));
-  opacity: 0.32;
+.sidebar-artwork__page--right {
+  fill: color-mix(in srgb, var(--art-page) 78%, var(--art-accent) 22%);
 }
 
-.sidebar-artwork__atlas-ridge {
-  color: color-mix(in srgb, var(--art-purana) 70%, var(--art-aura));
-  opacity: 0.5;
+.sidebar-artwork__page-shadow {
+  fill: color-mix(in srgb, var(--art-ink) 12%, transparent);
+  opacity: 0.44;
 }
 
-.sidebar-artwork__vault-arch {
-  color: color-mix(in srgb, var(--art-gate) 72%, var(--art-spark));
-  opacity: 0.56;
-  stroke-width: 5.2;
-}
-
-.sidebar-artwork__atlas-shadow {
-  fill: color-mix(in srgb, var(--art-gate) 16%, transparent);
-  opacity: 0.78;
-}
-
-.sidebar-artwork__living-crest {
-  fill: color-mix(in srgb, var(--art-memory) 18%, var(--sidebar) 82%);
-  opacity: 0.82;
-  stroke: color-mix(in srgb, var(--art-spark) 54%, var(--art-memory));
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.6;
-}
-
-.sidebar-artwork__compass {
-  color: var(--art-spark);
-  opacity: 0.5;
-  stroke-width: 2.4;
-}
-
-.sidebar-artwork__spark-crown {
-  color: color-mix(in srgb, var(--art-spark) 76%, var(--art-aura));
+.sidebar-artwork__spine {
+  color: color-mix(in srgb, var(--art-ink) 72%, var(--art-accent));
   opacity: 0.54;
-  stroke-width: 3.2;
+  stroke-width: 3.8;
 }
 
-.sidebar-artwork__route-bloom {
-  color: var(--art-route);
-  opacity: 0.72;
+.sidebar-artwork__note-rule {
+  color: color-mix(in srgb, var(--art-ink) 58%, var(--sidebar));
+  opacity: 0.3;
+  stroke-width: 3;
 }
 
-.sidebar-artwork__route-beam {
-  color: color-mix(in srgb, var(--art-route) 76%, var(--art-aura));
-  opacity: 0.62;
-  stroke-width: 3.6;
+.sidebar-artwork__page-thread {
+  stroke-width: 5.6;
 }
 
-.sidebar-artwork__route-beam--lower {
-  color: color-mix(in srgb, var(--art-memory) 72%, var(--art-spark));
-  opacity: 0.58;
+.sidebar-artwork__page-thread--primary {
+  color: color-mix(in srgb, var(--art-thread) 76%, var(--art-ink));
+  opacity: 0.42;
 }
 
-.sidebar-artwork__route-node {
-  fill: color-mix(in srgb, var(--art-route) 50%, var(--sidebar) 50%);
-  stroke: color-mix(in srgb, var(--art-route) 72%, var(--sidebar-foreground));
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
+.sidebar-artwork__page-thread--secondary {
+  color: color-mix(in srgb, var(--art-context) 58%, var(--art-ink));
+  opacity: 0.26;
 }
 
-.sidebar-artwork__route-node--warm {
-  fill: var(--art-spark);
-  stroke: var(--art-memory);
+.sidebar-artwork__memory-line,
+.sidebar-artwork__context-loop {
+  stroke-width: 3;
 }
 
-.sidebar-artwork--compact .sidebar-artwork__constellation,
-  .sidebar-artwork--compact .sidebar-artwork__node--quiet,
-  .sidebar-artwork--compact .sidebar-artwork__palm-leaf,
-  .sidebar-artwork--compact .sidebar-artwork__purana-scroll,
-  .sidebar-artwork--compact .sidebar-artwork__route-bloom,
-  .sidebar-artwork--compact .sidebar-artwork__signal,
-  .sidebar-artwork--compact .sidebar-artwork__spark-crown,
-  .sidebar-artwork--compact .sidebar-artwork__thin,
-  .sidebar-artwork--compact .sidebar-artwork__token {
+.sidebar-artwork__memory-line {
+  color: var(--art-memory);
+  opacity: 0.34;
+}
+
+.sidebar-artwork__context-loop {
+  color: var(--art-context);
+  opacity: 0.38;
+}
+
+.sidebar-artwork__thought-node,
+.sidebar-artwork__local-dot {
+  fill: var(--art-mark);
+  stroke: color-mix(in srgb, var(--art-context) 62%, var(--sidebar));
+}
+
+.sidebar-artwork__thought-node {
+  opacity: 0.64;
+  stroke-width: 1.8;
+}
+
+.sidebar-artwork__local-dot {
+  opacity: 0.78;
+  stroke-width: 2.2;
+}
+
+.sidebar-artwork--compact .sidebar-artwork__note-rule,
+.sidebar-artwork--compact .sidebar-artwork__page-thread--secondary,
+.sidebar-artwork--compact .sidebar-artwork__memory-line {
   display: none;
 }
 
 @media (max-height: 760px) {
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__constellation,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__node--quiet,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__palm-leaf,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__purana-scroll,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__route-bloom,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__signal,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__spark-crown,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__thin,
-  .app-sidebar-panel > .sidebar-artwork .sidebar-artwork__token {
+  [data-sidebar-preset-preview] .sidebar-artwork .sidebar-artwork__note-rule,
+  [data-sidebar-preset-preview] .sidebar-artwork .sidebar-artwork__page-thread--secondary,
+  [data-sidebar-preset-preview] .sidebar-artwork .sidebar-artwork__memory-line {
     display: none;
   }
 }

@@ -113,7 +113,6 @@ export function useSidebarTypeInteractions({
 
   const handleContextMenu = useCallback((event: React.MouseEvent, type: string) => {
     event.preventDefault()
-    event.stopPropagation()
     state.setContextMenuPos({ x: event.clientX, y: event.clientY })
     state.setContextMenuType(type)
   }, [state])

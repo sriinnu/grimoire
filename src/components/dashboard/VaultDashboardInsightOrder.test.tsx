@@ -41,7 +41,30 @@ function entry(title: string, type = 'Note'): VaultEntry {
 }
 
 describe('VaultDashboard insight order', () => {
-  it('puts the date-oriented Time Loom directly after quick capture and before summary panels', async () => {
+  it('opens the notebook body before the runway so writing is the first dashboard surface', () => {
+    render(
+      <VaultDashboard
+        conflictCount={0}
+        entries={[entry('Daily Journal', 'Journal')]}
+        isGitVault={false}
+        modifiedCount={0}
+        onCapture={vi.fn()}
+        onOpenCreateVault={vi.fn()}
+        onOpenNote={vi.fn()}
+        syncStatus="idle"
+        vaultPath="/vault"
+      />,
+    )
+
+    const quickCapture = screen
+      .getByRole('heading', { name: 'Catch the thought while it is here.' })
+      .closest('.vault-dashboard__panel') as HTMLElement
+    const todayRunway = screen.getByTestId('dashboard-today-runway')
+
+    expect(quickCapture.compareDocumentPosition(todayRunway) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('puts the date-oriented timeline directly after quick capture and before summary panels', async () => {
     render(
       <VaultDashboard
         conflictCount={0}
@@ -56,14 +79,16 @@ describe('VaultDashboard insight order', () => {
       />,
     )
 
-    const quickCapture = screen.getByText('Quick Capture').closest('.vault-dashboard__panel') as HTMLElement
+    const quickCapture = screen
+      .getByRole('heading', { name: 'Catch the thought while it is here.' })
+      .closest('.vault-dashboard__panel') as HTMLElement
     const timeLoom = await screen.findByTestId('time-loom-panel')
     const dailyThread = await screen.findByTestId('daily-thread-rail')
-    const openLoops = screen.getByText('Open Loops').closest('.vault-dashboard__panel') as HTMLElement
+    const revisitPanel = screen.getByRole('heading', { name: 'Pages to return to.' }).closest('.vault-dashboard__panel') as HTMLElement
 
     expect(timeLoom).toHaveClass('vault-dashboard__time-loom')
     expect(quickCapture.compareDocumentPosition(timeLoom) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(timeLoom.compareDocumentPosition(dailyThread) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(timeLoom.compareDocumentPosition(openLoops) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(timeLoom.compareDocumentPosition(revisitPanel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

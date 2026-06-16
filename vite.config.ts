@@ -72,7 +72,7 @@ function localThemePackPlugin(): Plugin {
         if (req.method !== 'GET' || req.url !== '/api/theme-pack/local') return next()
         fs.readFile(localThemePackPath, 'utf8', (error, content) => {
           if (error) {
-            res.statusCode = error.code === 'ENOENT' ? 404 : 500
+            res.statusCode = error.code === 'ENOENT' ? 204 : 500
             res.end('')
             return
           }

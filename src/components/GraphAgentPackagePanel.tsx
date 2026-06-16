@@ -1,7 +1,7 @@
 import { GitBranch, ShieldCheck, Sparkles } from 'lucide-react'
 import type React from 'react'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
-import { buildSourceLabelMap, buildSourceLabels } from '../utils/sourceLabels'
+import { buildSourceLabelMap } from '../utils/sourceLabels'
 
 interface GraphAgentPackagePanelProps {
   agentGraphContext: AgentGraphContext
@@ -9,13 +9,18 @@ interface GraphAgentPackagePanelProps {
 
 type PackageBadgeState = 'blocked' | 'guarded' | 'ready' | 'waiting'
 
+interface ManifestItem {
+  id: string
+  label: string
+}
+
 /** Source-safe graph package manifest shown before any Agent Council handoff. */
 export function GraphAgentPackagePanel({ agentGraphContext }: GraphAgentPackagePanelProps) {
   const omitted = agentGraphContext.omitted
   const held = omitted.protectedNodes + omitted.protectedEdges
   const trimmed = omitted.truncatedNodes + omitted.truncatedEdges
-  const labels = sourceLabels(agentGraphContext)
-  const edges = edgeLabels(agentGraphContext)
+  const labels = sourceLabelItems(agentGraphContext)
+  const edges = edgeLabelItems(agentGraphContext)
   const state = packageState(agentGraphContext)
 
   return (
@@ -75,18 +80,25 @@ function packageState(context: AgentGraphContext): PackageBadgeState {
   return 'ready'
 }
 
-function sourceLabels(context: AgentGraphContext): string[] {
-  if (context.state !== 'ready') return []
-  return buildSourceLabels(context.nodes).slice(0, 4)
-}
-
-function edgeLabels(context: AgentGraphContext): string[] {
+function sourceLabelItems(context: AgentGraphContext): ManifestItem[] {
   if (context.state !== 'ready') return []
   const labelsByPath = buildSourceLabelMap(context.nodes)
-  return context.edges.slice(0, 3).map((edge) => {
+  return context.nodes.slice(0, 4).map((node) => ({
+    id: `source:${node.path}`,
+    label: labelsByPath.get(node.path) ?? node.title,
+  }))
+}
+
+function edgeLabelItems(context: AgentGraphContext): ManifestItem[] {
+  if (context.state !== 'ready') return []
+  const labelsByPath = buildSourceLabelMap(context.nodes)
+  return context.edges.slice(0, 3).map((edge, index) => {
     const sourceLabel = labelsByPath.get(edge.sourcePath) ?? edge.sourceTitle
     const targetLabel = labelsByPath.get(edge.targetPath) ?? edge.targetTitle
-    return `${sourceLabel} -> ${targetLabel}`
+    return {
+      id: `edge:${edge.sourcePath}->${edge.targetPath}:${edge.kind}:${edge.label}:${index}`,
+      label: `${sourceLabel} -> ${targetLabel}`,
+    }
   })
 }
 
@@ -117,7 +129,7 @@ function ManifestList({
   title,
 }: {
   emptyLabel: string
-  items: string[]
+  items: ManifestItem[]
   state: PackageBadgeState
   title: string
 }) {
@@ -129,8 +141,8 @@ function ManifestList({
       </div>
       <div className="mt-1 flex flex-wrap gap-1">
         {items.length > 0 ? items.map((item) => (
-          <span key={item} className="graph-agent-chip max-w-full rounded-full border border-border px-2 py-0.5 text-[10px] text-foreground" data-state={state}>
-            <span className="block max-w-[180px] truncate">{item}</span>
+          <span key={item.id} className="graph-agent-chip max-w-full rounded-full border border-border px-2 py-0.5 text-[10px] text-foreground" data-state={state}>
+            <span className="block max-w-[180px] truncate">{item.label}</span>
           </span>
         )) : (
           <span className="text-[11px] text-muted-foreground">{emptyLabel}</span>

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 import { GraphAgentPackagePanel } from './GraphAgentPackagePanel'
 
@@ -74,5 +74,43 @@ describe('GraphAgentPackagePanel', () => {
     expect(manifest).toHaveTextContent('Index - projects/index.md')
     expect(manifest).toHaveTextContent('Index - archive/index.md')
     expect(manifest).toHaveTextContent('Index - projects/index.md -> Index - archive/index.md')
+  })
+
+  it('keeps duplicate visible edge labels on stable React keys', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    render(<GraphAgentPackagePanel agentGraphContext={{
+      edges: [
+        {
+          kind: 'body-link',
+          label: 'Wikilink',
+          sourcePath: '/vault/build-grimoire-app.md',
+          sourceTitle: 'Build Grimoire App',
+          targetPath: '/vault/software-development.md',
+          targetTitle: 'Software Development',
+        },
+        {
+          kind: 'frontmatter',
+          label: 'belongs_to',
+          sourcePath: '/vault/build-grimoire-app.md',
+          sourceTitle: 'Build Grimoire App',
+          targetPath: '/vault/software-development.md',
+          targetTitle: 'Software Development',
+        },
+      ],
+      nodes: [
+        { active: true, degree: 2, path: '/vault/build-grimoire-app.md', title: 'Build Grimoire App', type: 'Project' },
+        { active: false, degree: 2, path: '/vault/software-development.md', title: 'Software Development', type: 'Area' },
+      ],
+      omitted: { protectedEdges: 0, protectedNodes: 0, truncatedEdges: 0, truncatedNodes: 0 },
+      state: 'ready',
+      totals: { visibleEdges: 2, visibleNodes: 2 },
+    }} />)
+
+    const duplicateKeyWarning = consoleError.mock.calls.some((call) =>
+      call.some((value) => String(value).includes('same key'))
+    )
+    expect(duplicateKeyWarning).toBe(false)
+    consoleError.mockRestore()
   })
 })

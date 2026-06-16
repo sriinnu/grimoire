@@ -17,7 +17,6 @@ import {
   TypesSection,
   ViewsSection,
 } from './sidebar/SidebarSections'
-import { SidebarArtwork } from './sidebar/SidebarArtwork'
 import { SidebarRail } from './sidebar/SidebarRail'
 import { SidebarSearchLauncher } from './sidebar/SidebarSearchLauncher'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
@@ -53,6 +52,7 @@ interface SidebarProps {
   onCollapse?: () => void
   onExpand?: () => void
   onOpenSearch?: (initialQuery?: string) => void
+  onOpenGraph?: () => void
 }
 
 export const Sidebar = memo(function Sidebar({
@@ -83,6 +83,7 @@ export const Sidebar = memo(function Sidebar({
   onCollapse,
   onExpand,
   onOpenSearch,
+  onOpenGraph,
   onCreateNewType,
 }: SidebarProps) {
   const { typeEntryMap, allSectionGroups, visibleSections, sectionIds } = useSidebarSections(entries)
@@ -112,7 +113,7 @@ export const Sidebar = memo(function Sidebar({
   }
 
   const hasFavorites = entries.some((entry) => entry.favorite && !entry.archived)
-  const hasViews = views.length > 0 || !!onCreateView
+  const hasViews = views.length > 0
 
   if (collapsed) {
     return (
@@ -128,6 +129,7 @@ export const Sidebar = memo(function Sidebar({
         dreamCount={dreamCount}
         archivedCount={archivedCount}
         onOpenSearch={onOpenSearch}
+        onOpenGraph={onOpenGraph}
       />
     )
   }
@@ -147,6 +149,7 @@ export const Sidebar = memo(function Sidebar({
           journalCount={journalCount}
           dreamCount={dreamCount}
           archivedCount={archivedCount}
+          onOpenGraph={onOpenGraph}
         />
         {hasFavorites && (
           <div className="border-b border-border">
@@ -186,6 +189,7 @@ export const Sidebar = memo(function Sidebar({
           setShowCustomize={typeInteractions.setShowCustomize}
           isSectionVisible={isSectionVisible}
           toggleVisibility={toggleVisibility}
+          onCreateView={hasViews ? undefined : onCreateView}
           onCreateNewType={onCreateNewType}
           customizeRef={typeInteractions.customizeRef}
         />
@@ -203,7 +207,6 @@ export const Sidebar = memo(function Sidebar({
           onToggle={() => toggleGroup('folders')}
         />
       </nav>
-      <SidebarArtwork />
       <ContextMenuOverlay
         pos={typeInteractions.contextMenuPos}
         type={typeInteractions.contextMenuType}

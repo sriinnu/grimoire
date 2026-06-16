@@ -5,7 +5,7 @@ test.describe('AI chat empty body fix — no regression', () => {
     await page.route('**/api/vault/ping', route => route.fulfill({ status: 503 }))
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.getByTestId('vault-dashboard')).toBeVisible({ timeout: 5_000 })
-    await page.getByTestId('sidebar-top-nav').getByText('All Notes', { exact: true }).click()
+    await page.getByTestId('sidebar-top-nav').getByText('Pages', { exact: true }).click()
     await expect(page.locator('[data-testid="note-list-container"]')).toBeVisible({ timeout: 5_000 })
   })
 

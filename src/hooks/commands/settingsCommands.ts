@@ -138,11 +138,11 @@ function buildVaultSettingsCommands({
   onRevealVaultInFinder,
 }: Pick<SettingsCommandsConfig, 'vaultCount' | 'isGettingStartedHidden' | 'onOpenVault' | 'onCreateEmptyVault' | 'onRemoveActiveVault' | 'onRestoreGettingStarted' | 'onRevealVaultInFinder'>): CommandAction[] {
   return [
-    { id: 'create-empty-vault', label: 'Create Empty Vault…', group: 'Settings', keywords: ['vault', 'create', 'new', 'empty', 'folder'], enabled: !!onCreateEmptyVault, execute: () => onCreateEmptyVault?.() },
-    { id: 'open-vault', label: 'Open Vault…', group: 'Settings', keywords: ['vault', 'folder', 'switch', 'open', 'workspace'], enabled: true, execute: () => onOpenVault?.() },
-    { id: 'reveal-vault-in-finder', label: 'Reveal Vault in Finder', group: 'Settings', keywords: ['vault', 'finder', 'reveal', 'folder', 'local', 'files'], enabled: !!onRevealVaultInFinder, execute: () => onRevealVaultInFinder?.() },
-    { id: 'remove-vault', label: 'Remove Vault from List', group: 'Settings', keywords: ['vault', 'remove', 'disconnect', 'hide'], enabled: (vaultCount ?? 0) > 1 && !!onRemoveActiveVault, execute: () => onRemoveActiveVault?.() },
-    { id: 'restore-getting-started', label: 'Restore Getting Started Vault', group: 'Settings', keywords: ['vault', 'restore', 'demo', 'getting started', 'reset'], enabled: !!isGettingStartedHidden && !!onRestoreGettingStarted, execute: () => onRestoreGettingStarted?.() },
+    { id: 'create-empty-vault', label: 'Create Empty Notebook…', group: 'Settings', keywords: ['notebook', 'vault', 'create', 'new', 'empty', 'folder', 'create empty notebook', 'create empty vault'], enabled: !!onCreateEmptyVault, execute: () => onCreateEmptyVault?.() },
+    { id: 'open-vault', label: 'Open Notebook…', group: 'Settings', keywords: ['notebook', 'vault', 'folder', 'switch', 'open', 'workspace', 'open vault'], enabled: true, execute: () => onOpenVault?.() },
+    { id: 'reveal-vault-in-finder', label: 'Reveal Notebook in Finder', group: 'Settings', keywords: ['notebook', 'vault', 'finder', 'reveal', 'folder', 'local', 'files', 'reveal vault'], enabled: !!onRevealVaultInFinder, execute: () => onRevealVaultInFinder?.() },
+    { id: 'remove-vault', label: 'Remove Notebook from List', group: 'Settings', keywords: ['notebook', 'vault', 'remove', 'disconnect', 'hide', 'remove vault'], enabled: (vaultCount ?? 0) > 1 && !!onRemoveActiveVault, execute: () => onRemoveActiveVault?.() },
+    { id: 'restore-getting-started', label: 'Restore Getting Started Notebook', group: 'Settings', keywords: ['notebook', 'vault', 'restore', 'demo', 'getting started', 'reset', 'restore getting started vault'], enabled: !!isGettingStartedHidden && !!onRestoreGettingStarted, execute: () => onRestoreGettingStarted?.() },
   ]
 }
 
@@ -161,8 +161,8 @@ function buildMaintenanceCommands({
       enabled: true,
       execute: () => onInstallMcp?.(),
     },
-    { id: 'reload-vault', label: 'Reload Vault', group: 'Settings', keywords: ['reload', 'refresh', 'rescan', 'sync', 'filesystem', 'cache'], enabled: !!onReloadVault, execute: () => onReloadVault?.() },
-    { id: 'repair-vault', label: 'Repair Vault', group: 'Settings', keywords: ['repair', 'fix', 'restore', 'config', 'agents', 'themes', 'missing', 'reset', 'flatten', 'structure'], enabled: !!onRepairVault, execute: () => onRepairVault?.() },
+    { id: 'reload-vault', label: 'Reload Notebook', group: 'Settings', keywords: ['reload', 'refresh', 'rescan', 'sync', 'filesystem', 'cache', 'vault'], enabled: !!onReloadVault, execute: () => onReloadVault?.() },
+    { id: 'repair-vault', label: 'Repair Notebook', group: 'Settings', keywords: ['repair', 'fix', 'restore', 'config', 'agents', 'themes', 'missing', 'reset', 'flatten', 'structure', 'vault'], enabled: !!onRepairVault, execute: () => onRepairVault?.() },
   ]
 }
 

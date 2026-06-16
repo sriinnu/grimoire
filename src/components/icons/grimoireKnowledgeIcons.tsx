@@ -17,7 +17,7 @@ function strokeWidthFor(weight: IconProps['weight']): number {
 
 function knowledgeIconStyle(color: IconProps['color'], mirrored: IconProps['mirrored']): KnowledgeIconStyle {
   return {
-    '--knowledge-icon-accent': 'color-mix(in srgb, var(--accent-teal, currentColor) 76%, currentColor)',
+    '--knowledge-icon-accent': 'color-mix(in srgb, var(--accent-blue, currentColor) 72%, currentColor)',
     '--knowledge-icon-fill': 'color-mix(in srgb, currentColor 13%, transparent)',
     '--knowledge-icon-memory': 'color-mix(in srgb, var(--accent-purple, currentColor) 74%, currentColor)',
     '--knowledge-icon-primary': color ?? 'currentColor',

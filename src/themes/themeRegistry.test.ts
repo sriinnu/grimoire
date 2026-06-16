@@ -4,6 +4,7 @@ import {
   THEME_PRESET_CATALOG,
   type ThemeTokenMap,
   parseThemeDefinitionJson,
+  resolveThemeDefinitionPreferredMode,
   resolveThemeDefinitionMode,
   serializeThemeDefinition,
 } from './themeRegistry'
@@ -47,6 +48,37 @@ function contrastRatio(foreground: string, background: string): number | null {
   return (lighter + 0.05) / (darker + 0.05)
 }
 
+function hueDegrees(color: RgbColor): number {
+  const [red, green, blue] = color
+  const max = Math.max(red, green, blue)
+  const min = Math.min(red, green, blue)
+  const delta = max - min
+
+  if (delta === 0) return 0
+  if (max === red) return ((green - blue) / delta + (green < blue ? 6 : 0)) * 60
+  if (max === green) return ((blue - red) / delta + 2) * 60
+  return ((red - green) / delta + 4) * 60
+}
+
+function expectNotGreenishAccent(value: string, label: string): void {
+  const color = parseHexColor(value)
+  expect(color, label).not.toBeNull()
+  const hue = hueDegrees(color!)
+
+  expect(hue < 95 || hue > 185, label).toBe(true)
+}
+
+function expectBlueNeutralDarkSurface(value: string, label: string): void {
+  const color = parseHexColor(value)
+  expect(color, label).not.toBeNull()
+  const [red, green, blue] = color!.map((channel) => Math.round(channel * 255))
+
+  expect(
+    blue >= green,
+    `${label} should not lean olive or moss; rgb(${red}, ${green}, ${blue})`,
+  ).toBe(true)
+}
+
 describe('theme registry', () => {
   it('loads plug-in preset metadata in the supported preset order', () => {
     expect(THEME_PRESET_CATALOG.map((preset) => preset.id)).toEqual([
@@ -57,7 +89,7 @@ describe('theme registry', () => {
   it('ships only Grimoire-native themes in the settings catalog', () => {
     const presetIds = THEME_PRESET_CATALOG.map((preset) => preset.id)
 
-    expect(presetIds).toContain('retro-terminal')
+    expect(presetIds).toContain('code-notebook')
     expect(presetIds).not.toContain('classic')
     expect(presetIds).not.toContain('aether')
     expect(presetIds).not.toContain('ion')
@@ -72,7 +104,7 @@ describe('theme registry', () => {
       expect(preset.schemaVersion).toBe(1)
       expect(preset.editor.maxWidth).toBeGreaterThanOrEqual(760)
       expect(['plain', 'notebook', 'terminal']).toContain(preset.editor.codeBlockStyle)
-      expect(preset.sidebar.artwork).toBe('grimoire-sigil')
+      expect(preset.sidebar.artwork).toBe('notebook-mark')
       expect(preset.metadataStrip.visibleFields.length).toBeGreaterThan(0)
       for (const role of ['ui', 'editor', 'mono', 'display', 'label'] as const) {
         expect(preset.typography[role], `${preset.id} ${role} typography`).toBeTruthy()
@@ -82,12 +114,82 @@ describe('theme registry', () => {
       expect(['constellation', 'ledger', 'terminal']).toContain(preset.visuals.graphStyle)
       expect(['paper', 'blueprint', 'terminal']).toContain(preset.visuals.canvasStyle)
       expect(preset.modes.light || preset.modes.dark).toBeDefined()
+      expect(['light', 'dark']).toContain(preset.preferredMode)
+      expect(preset.modes[preset.preferredMode], `${preset.id} preferred mode`).toBeDefined()
 
       for (const mode of [preset.modes.light, preset.modes.dark]) {
         if (!mode) continue
         for (const token of REQUIRED_THEME_TOKEN_KEYS) {
           expect(mode.tokens[token].trim()).not.toBe('')
         }
+      }
+    }
+  })
+
+  it('ships complete UX theme profiles instead of recolored copies', () => {
+    const signatures = new Set<string>()
+
+    for (const preset of THEME_PRESET_CATALOG) {
+      signatures.add([
+        preset.editor.headingStyle,
+        preset.editor.codeBlockStyle,
+        preset.metadataStrip.style,
+        preset.density.scale,
+        preset.motion.profile,
+        preset.visuals.graphStyle,
+        preset.visuals.canvasStyle,
+      ].join('|'))
+    }
+
+    expect(signatures.size).toBe(THEME_PRESET_CATALOG.length)
+  })
+
+  it('uses each preset preferred mode as part of the UX theme contract', () => {
+    const preferredModes = Object.fromEntries(
+      THEME_PRESET_CATALOG.map((preset) => [preset.id, resolveThemeDefinitionPreferredMode(preset)]),
+    )
+
+    expect(preferredModes).toMatchObject({
+      constellation: 'dark',
+      'code-notebook': 'dark',
+      'daylight-notebook': 'light',
+      'living-archive': 'light',
+      'morning-notebook': 'light',
+      nocturne: 'dark',
+    })
+  })
+
+  it('keeps dark visible theme accents out of the green teal hue band', () => {
+    for (const preset of THEME_PRESET_CATALOG) {
+      const dark = preset.modes.dark
+      if (!dark) continue
+
+      for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
+        expectNotGreenishAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
+      }
+    }
+  })
+
+  it('keeps dark theme surfaces graphite blue-neutral instead of greenish', () => {
+    const surfaceTokens = [
+      'surface.app',
+      'surface.sidebar',
+      'surface.panel',
+      'surface.card',
+      'surface.popover',
+      'surface.input',
+      'surface.editor',
+      'state.hover',
+      'state.hoverSubtle',
+      'state.selected',
+    ] as const
+
+    for (const preset of THEME_PRESET_CATALOG) {
+      const dark = preset.modes.dark
+      if (!dark) continue
+
+      for (const token of surfaceTokens) {
+        expectBlueNeutralDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
@@ -101,12 +203,14 @@ describe('theme registry', () => {
     delete (legacy as Partial<typeof legacy>).density
     delete (legacy as Partial<typeof legacy>).motion
     delete (legacy as Partial<typeof legacy>).visuals
+    delete (legacy as Partial<typeof legacy>).preferredMode
 
     const parsed = parseThemeDefinitionJson(JSON.stringify(legacy))
 
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
       expect(parsed.definition.modes.dark!.tokens['accent.red']).toBe('var(--accent-orange)')
+      expect(parsed.definition.modes.dark!.tokens['accent.green']).toBe('var(--accent-blue)')
       expect(parsed.definition.modes.dark!.tokens['accent.greenSoft']).toContain('var(--accent-green)')
       expect(parsed.definition.modes.dark!.tokens['text.faint']).toContain('var(--text-secondary)')
       expect(parsed.definition.editor.codeBlockStyle).toBe('notebook')
@@ -114,6 +218,7 @@ describe('theme registry', () => {
       expect(parsed.definition.motion.profile).toBe('standard')
       expect(parsed.definition.visuals.graphStyle).toBe('constellation')
       expect(parsed.definition.visuals.canvasStyle).toBe('paper')
+      expect(parsed.definition.preferredMode).toBe('dark')
     }
   })
 
@@ -226,6 +331,18 @@ describe('theme registry', () => {
       expect(parsed.errors.join('\n')).toContain('motion.profile')
       expect(parsed.errors.join('\n')).toContain('visuals.graphStyle')
       expect(parsed.errors.join('\n')).toContain('visuals.canvasStyle')
+    }
+  })
+
+  it('fails closed when imported theme preferred mode is impossible', () => {
+    const unsafe = JSON.parse(serializeThemeDefinition(THEME_PRESET_CATALOG[0])) as typeof THEME_PRESET_CATALOG[number]
+    unsafe.preferredMode = 'light'
+
+    const parsed = parseThemeDefinitionJson(JSON.stringify(unsafe))
+
+    expect(parsed.ok).toBe(false)
+    if (!parsed.ok) {
+      expect(parsed.errors.join('\n')).toContain('theme.preferredMode "light"')
     }
   })
 })

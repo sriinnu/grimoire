@@ -31,8 +31,8 @@ describe('WelcomeScreen', () => {
     it('renders welcome title and subtitle', () => {
       render(<WelcomeScreen {...defaultProps} />)
       expect(screen.getByText('Welcome to Grimoire')).toBeInTheDocument()
-      expect(screen.getByText('Plain Markdown vaults. Local by default. Git optional.')).toBeInTheDocument()
-      expect(screen.getByText('Create a local Markdown folder with Grimoire defaults. No Git required.')).toBeInTheDocument()
+      expect(screen.getByText('One plain Markdown notebook. Local by default. Git optional.')).toBeInTheDocument()
+      expect(screen.getByText('Create a local Markdown notebook with Grimoire defaults. No Git required.')).toBeInTheDocument()
       expect(screen.getByText(/Git stays optional/)).toBeInTheDocument()
     })
 
@@ -59,14 +59,14 @@ describe('WelcomeScreen', () => {
 
     it('shows the simplified template option description', () => {
       render(<WelcomeScreen {...defaultProps} />)
-      expect(screen.getByText(/Download the Getting Started vault/)).toBeInTheDocument()
+      expect(screen.getByText(/Download the Getting Started notebook/)).toBeInTheDocument()
       expect(screen.queryByText(/~\/Documents\/Grimoire/)).not.toBeInTheDocument()
     })
 
     it('keeps the bundled template option available when offline', () => {
       render(<WelcomeScreen {...defaultProps} isOffline={true} />)
       expect(screen.getByTestId('welcome-create-vault')).toBeEnabled()
-      expect(screen.getByText(/Uses the bundled Getting Started vault while offline/)).toBeInTheDocument()
+      expect(screen.getByText(/Uses the bundled Getting Started notebook while offline/)).toBeInTheDocument()
     })
 
     it('calls onCreateEmptyVault when create empty button is clicked', () => {
@@ -137,7 +137,7 @@ describe('WelcomeScreen', () => {
 
     it('shows loading text on create-new button while creating an empty vault', () => {
       render(<WelcomeScreen {...defaultProps} creatingAction="empty" />)
-      expect(screen.getByTestId('welcome-create-new')).toHaveTextContent(/Creating vault/)
+      expect(screen.getByTestId('welcome-create-new')).toHaveTextContent(/Creating notebook/)
     })
 
     it('shows error message when error is set', () => {
@@ -156,7 +156,7 @@ describe('WelcomeScreen', () => {
       render(
         <WelcomeScreen
           {...defaultProps}
-          error="Could not prepare Getting Started vault: git clone failed"
+          error="Could not prepare Getting Started notebook: git clone failed"
           canRetryTemplate={true}
           onRetryCreateVault={onRetryCreateVault}
         />,
@@ -181,7 +181,7 @@ describe('WelcomeScreen', () => {
 
     it('renders vault not found title', () => {
       render(<WelcomeScreen {...missingProps} />)
-      expect(screen.getByText('Vault not found')).toBeInTheDocument()
+      expect(screen.getByText('Notebook not found')).toBeInTheDocument()
       expect(screen.getByText(/could not be found on disk/)).toBeInTheDocument()
     })
 
@@ -190,7 +190,7 @@ describe('WelcomeScreen', () => {
       expect(screen.queryByText('~/Grimoire')).not.toBeInTheDocument()
     })
 
-    it('shows "Choose a different folder" instead of "Open existing vault"', () => {
+    it('shows "Choose a different folder" instead of "Open notebook folder"', () => {
       render(<WelcomeScreen {...missingProps} />)
       expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Choose a different folder')
     })

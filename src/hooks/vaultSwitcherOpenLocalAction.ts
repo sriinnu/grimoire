@@ -10,7 +10,7 @@ type RegisterVaultSelection = (
   options?: RegisterVaultSelectionOptions,
 ) => Promise<void>
 
-/** Opens a picked local folder only after it is verified and persisted as a vault. */
+/** Opens a picked local folder only after it is verified and persisted as a notebook. */
 export function useOpenLocalFolderAction(
   registerVaultSelection: RegisterVaultSelection,
   onToastRef: MutableRefObject<(msg: string) => void>,
@@ -26,9 +26,9 @@ export function useOpenLocalFolderAction(
     const openLocalFolderPromise = (async () => {
       let path: string | null
       try {
-        path = await pickFolder('Open vault folder')
+        path = await pickFolder('Open notebook folder')
       } catch (err) {
-        onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
+        onToastRef.current(formatFolderPickerActionError('Could not open notebook folder', err))
         return
       }
 
@@ -41,9 +41,9 @@ export function useOpenLocalFolderAction(
           storageProvider: 'local-folder',
           syncProvider: 'none',
         })
-        onToastRef.current(`Vault "${label}" opened`)
+        onToastRef.current(`Notebook "${label}" opened`)
       } catch (err) {
-        onToastRef.current(formatFolderPickerActionError('Could not open vault folder', err))
+        onToastRef.current(formatFolderPickerActionError('Could not open notebook folder', err))
       }
     })()
 

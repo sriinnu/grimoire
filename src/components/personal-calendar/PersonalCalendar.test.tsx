@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { installAppContextMenuGuard } from '../../lib/nativeContextMenu'
 import { PersonalCalendar } from './PersonalCalendar'
 import type { PersonalCalendarDay } from './personalCalendarModel'
 
@@ -76,6 +77,19 @@ describe('PersonalCalendar', () => {
     expect(onCaptureDream).toHaveBeenCalledWith(new Date(2026, 4, 29))
   })
 
+  it('opens the Radix context menu while the app shell guard is installed', () => {
+    const cleanup = installAppContextMenuGuard(document)
+    try {
+      render(<PersonalCalendar days={days} initialDate={new Date(2026, 4, 29)} today={pinnedToday} />)
+
+      fireEvent.contextMenu(screen.getByRole('gridcell', { name: /Today, 3 local signals/ }))
+
+      expect(screen.getByTestId('personal-calendar-context-menu')).toBeInTheDocument()
+    } finally {
+      cleanup()
+    }
+  })
+
   it('lets the context menu switch calendar lanes without leaking private details', () => {
     render(<PersonalCalendar days={days} initialDate={new Date(2026, 4, 29)} today={pinnedToday} />)
 
@@ -87,8 +101,8 @@ describe('PersonalCalendar', () => {
     expect(agenda).toHaveAttribute('data-lane', 'private')
     expect(agenda).toHaveTextContent('2 private signals')
     expect(agenda).toHaveTextContent('2 held local')
-    expect(agenda).not.toHaveTextContent('Journal 1')
-    expect(agenda).not.toHaveTextContent('Dream 1')
+    expect(agenda).not.toHaveTextContent('1 journal')
+    expect(agenda).not.toHaveTextContent('1 dream')
   })
 
   it('lets dashboard hosts request a compact calendar rhythm', () => {
@@ -114,9 +128,9 @@ describe('PersonalCalendar', () => {
     const agenda = screen.getByTestId('personal-calendar-agenda')
     expect(agenda).toHaveAttribute('data-lane', 'dream')
     expect(agenda).toHaveTextContent('1 dream signal')
-    expect(agenda).toHaveTextContent('Dream 1')
-    expect(agenda).not.toHaveTextContent('Journal 1')
-    expect(agenda).not.toHaveTextContent('Open 1')
+    expect(agenda).toHaveTextContent('1 dream')
+    expect(agenda).not.toHaveTextContent('1 journal')
+    expect(agenda).not.toHaveTextContent('1 open')
     expect(agenda).not.toHaveTextContent('2 held local')
   })
 

@@ -68,6 +68,7 @@ describe('theme settings CSS', () => {
     }
     expect(settingsCss).toContain('.settings-panel-header')
     expect(settingsCss).toContain('.settings-panel-footer')
+    expect(settingsCss).toContain('transition-property: border-color, box-shadow, opacity, transform !important')
     expect(settingsCss).toContain('.settings-control-row')
     expect(settingsCss).toContain('.settings-local-card')
     expect(settingsCss).toContain('.settings-material-card')
@@ -83,6 +84,10 @@ describe('theme settings CSS', () => {
     expect(settingsCss).toContain('.settings-theme-mode-button')
     expect(settingsCss).toContain('.settings-navigation-rail')
     expect(settingsCss).toContain('.settings-main-surface')
+    expect(coherenceCss).toContain('.settings-theme-preset-card__trait span')
+    expect(coherenceCss).toContain('grid-template-columns: repeat(auto-fit, minmax(112px, 1fr))')
+    expect(coherenceCss).toContain('white-space: nowrap')
+    expect(coherenceCss).not.toContain('settings-theme-preset-card__trait span {\n  min-width: 0;\n  overflow: hidden;')
     expect(settingsCss).toContain('padding: 22px clamp(18px, 3vw, 32px) 26px')
     expect(settingsCss).toContain('.settings-content-stack')
     expect(settingsCss).toContain('width: min(100%, 880px)')

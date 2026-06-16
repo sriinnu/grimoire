@@ -1,10 +1,10 @@
 :where(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) {
   --grimoire-settings-rail-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 94%, var(--surface-card)), color-mix(in srgb, var(--surface-panel) 88%, var(--surface-app)));
   --grimoire-settings-mobile-rail-material: linear-gradient(135deg, color-mix(in srgb, var(--surface-panel) 88%, var(--surface-card)), color-mix(in srgb, var(--surface-panel) 92%, var(--surface-app)));
@@ -21,11 +21,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) :is(.settings-panel-header, .settings-panel-footer) {
   border-color: var(--grimoire-hairline);
   color: var(--text-primary);
@@ -33,44 +33,55 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-panel-header {
   background: var(--grimoire-settings-header-material);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-panel-footer {
   background: var(--grimoire-settings-footer-material);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
+) :is(.settings-panel-shell, .settings-panel-shell *) {
+  transition-property: border-color, box-shadow, opacity, transform !important;
+}
+
+:is(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="code-notebook"]
 ) .settings-panel-footer__shortcut {
   color: var(--text-secondary);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-navigation-rail {
   background: var(--grimoire-settings-rail-material);
   border-right-color: var(--grimoire-hairline);
@@ -78,44 +89,44 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-main-surface {
   background: var(--grimoire-settings-main-material);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-vault-summary {
   border-color: var(--grimoire-settings-section-divider);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-section-divider {
   background: var(--grimoire-settings-section-divider);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-vault-state-pill {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-control-material);
@@ -124,11 +135,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-navigation-item {
   border-color: transparent;
   background: transparent;
@@ -137,11 +148,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-navigation-item:is(:hover, :focus-visible) {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-hover-material);
@@ -150,11 +161,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-navigation-item[aria-current="page"] {
   border-color: color-mix(in srgb, var(--primary) 34%, var(--grimoire-hairline));
   background: var(--grimoire-settings-active-material);
@@ -163,22 +174,22 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-mobile-navigation {
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 92%, transparent), transparent);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-mobile-navigation__rail {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-mobile-rail-material);
@@ -186,11 +197,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) :is(.settings-section [data-slot="input"], .settings-section [data-slot="select-trigger"]) {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-control-material);
@@ -200,11 +211,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) :is(.settings-control-row, .settings-local-card) {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-control-row-material);
@@ -214,11 +225,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-material-card {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-control-row-material);
@@ -228,11 +239,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-material-inner {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-control-material);
@@ -240,11 +251,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-material-chip {
   border-color: color-mix(in srgb, var(--primary) 18%, var(--grimoire-hairline));
   background: color-mix(in srgb, var(--primary) 8%, var(--grimoire-settings-control-material));
@@ -252,11 +263,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-theme-mode-button {
   border-color: color-mix(in srgb, var(--primary) 28%, var(--grimoire-hairline));
   background: var(--grimoire-settings-control-material);
@@ -264,22 +275,22 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-local-card {
   background: var(--grimoire-settings-local-card-material);
 }
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) .settings-local-card__icon {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-settings-control-material);
@@ -329,11 +340,11 @@
 
 :is(
   [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-atelier"],
-  [data-theme-preset="prabhat-studio"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
   [data-theme-preset="living-archive"],
   [data-theme-preset="nocturne"],
-  [data-theme-preset="retro-terminal"]
+  [data-theme-preset="code-notebook"]
 ) :is(.settings-section [data-slot="input"], .settings-section [data-slot="select-trigger"]):focus-visible {
   border-color: color-mix(in srgb, var(--primary) 58%, var(--grimoire-hairline));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
@@ -342,11 +353,11 @@
 @media (prefers-reduced-motion: no-preference) {
   :is(
     [data-theme-preset="constellation"],
-    [data-theme-preset="daylight-atelier"],
-    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="daylight-notebook"],
+    [data-theme-preset="morning-notebook"],
     [data-theme-preset="living-archive"],
     [data-theme-preset="nocturne"],
-    [data-theme-preset="retro-terminal"]
+    [data-theme-preset="code-notebook"]
   ) .settings-navigation-item {
     transition:
       transform 160ms ease,
@@ -356,22 +367,22 @@
 
   :is(
     [data-theme-preset="constellation"],
-    [data-theme-preset="daylight-atelier"],
-    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="daylight-notebook"],
+    [data-theme-preset="morning-notebook"],
     [data-theme-preset="living-archive"],
     [data-theme-preset="nocturne"],
-    [data-theme-preset="retro-terminal"]
+    [data-theme-preset="code-notebook"]
   ) .settings-navigation-rail .settings-navigation-item:is(:hover, :focus-visible) {
     transform: translateX(1px);
   }
 
   :is(
     [data-theme-preset="constellation"],
-    [data-theme-preset="daylight-atelier"],
-    [data-theme-preset="prabhat-studio"],
+    [data-theme-preset="daylight-notebook"],
+    [data-theme-preset="morning-notebook"],
     [data-theme-preset="living-archive"],
     [data-theme-preset="nocturne"],
-    [data-theme-preset="retro-terminal"]
+    [data-theme-preset="code-notebook"]
   ) .settings-mobile-navigation .settings-navigation-item:is(:hover, :focus-visible) {
     transform: translateY(-1px);
   }

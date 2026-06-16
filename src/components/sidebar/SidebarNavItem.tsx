@@ -21,7 +21,7 @@ function getNavItemPadding(compact: boolean | undefined, hasCount: boolean) {
 }
 
 function getNavItemIconSize(compact?: boolean) {
-  return compact ? 15 : 17
+  return compact ? 18 : 20
 }
 
 function getNavItemTextClass(compact?: boolean) {
@@ -62,20 +62,12 @@ function SidebarNavIcon({
   if (emoji) {
     return (
       <span className={glyphClassName} data-active={isActive ? 'true' : 'false'}>
-        <span className="sidebar-nav-glyph__halo" />
-        <span className="sidebar-nav-glyph__route" />
-        <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--near" />
-        <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--far" />
         <span style={{ fontSize: iconSize, lineHeight: 1, width: iconSize, textAlign: 'center' }}>{emoji}</span>
       </span>
     )
   }
   return (
     <span className={glyphClassName} data-active={isActive ? 'true' : 'false'}>
-      <span className="sidebar-nav-glyph__halo" />
-      <span className="sidebar-nav-glyph__route" />
-      <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--near" />
-      <span className="sidebar-nav-glyph__bead sidebar-nav-glyph__bead--far" />
       <Icon className="sidebar-nav-glyph__icon" size={iconSize} weight={isActive ? 'duotone' : 'regular'} />
     </span>
   )
@@ -214,7 +206,7 @@ function ClickableNavItem({
   )
 }
 
-export function NavItem({ icon: Icon, emoji, label, count, isActive, activeClassName = 'bg-primary/10 text-primary', badgeClassName, badgeStyle, activeBadgeClassName, activeBadgeStyle, onClick, disabled, disabledTooltip, compact }: {
+export function NavItem({ icon: Icon, emoji, label, count, isActive, activeClassName = 'text-foreground', badgeClassName, badgeStyle, activeBadgeClassName, activeBadgeStyle, onClick, disabled, disabledTooltip, compact }: {
   icon: ComponentType<IconProps>
   emoji?: string | null
   label: string

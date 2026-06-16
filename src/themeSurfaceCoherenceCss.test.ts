@@ -62,6 +62,8 @@ describe('theme surface coherence CSS', () => {
     expect(surfaceCss).toContain('[data-testid="graph-control-panel"]')
     expect(surfaceCss).toContain('[data-testid="graph-agent-runway"]')
     expect(surfaceCss).toContain('[data-testid="graph-agent-handoff"]')
+    expect(surfaceCss).toContain('.graph-dialog-title-row')
+    expect(surfaceCss).toContain('.graph-dialog-brain-summary')
     expect(surfaceCss).toContain('.graph-surface-inner')
     expect(surfaceCss).toContain('.graph-agent-card')
     expect(surfaceCss).toContain('.graph-agent-chip')

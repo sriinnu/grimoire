@@ -5,6 +5,8 @@ const REQUIRED_APP_RESOURCE_FILES = [
   { label: 'starter vault manifest', path: 'starter-vault/.fixture-manifest.json' },
   { label: 'starter vault entry note', path: 'starter-vault/grimoire-start-here.md' },
   { label: 'starter vault type fixture', path: 'starter-vault/type/project.md' },
+  { label: 'starter vault saved view fixture', path: 'starter-vault/views/active-projects.yml' },
+  { label: 'starter vault attachment fixture', path: 'starter-vault/attachments/grimoire-reference.png' },
   { label: 'MCP server entrypoint', path: 'mcp-server/index.js' },
   { label: 'MCP WebSocket bridge', path: 'mcp-server/ws-bridge.js' },
   { label: 'MCP package manifest', path: 'mcp-server/package.json' },

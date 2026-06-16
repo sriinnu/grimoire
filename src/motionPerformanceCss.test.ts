@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest'
 
 const PRODUCT_MOTION_FILES = [
   'src/motion.css',
+  'src/motion-reduced-overrides.css',
   'src/motion-memory.css',
   'src/motion-agent-council.css',
   'src/theme-flagship-shared.css',
   'src/graph-animations.css',
   'src/sidebar-artwork-themes.css',
   'src/sidebar-artwork-polish.css',
-  'src/sidebar-pouch-effect.css',
   'src/sidebar-glyph-polish.css',
   'src/sidebar-glyph-refinement.css',
   'src/components/folder-tree/FolderGlyph.css',

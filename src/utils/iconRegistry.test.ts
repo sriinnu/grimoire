@@ -1,7 +1,27 @@
 import { describe, it, expect } from 'vitest'
 import { resolveIcon } from './iconRegistry'
 import { ICON_OPTIONS } from './iconOptions'
-import { Calendar, CookingPot, FileText, GearSix, Leaf, Megaphone, Sparkle, User } from '@phosphor-icons/react'
+import {
+  Books,
+  Briefcase,
+  Calendar,
+  ChartLineUp,
+  ClockCountdown,
+  CookingPot,
+  FileText,
+  Folders,
+  GearSix,
+  Leaf,
+  ListChecks,
+  Megaphone,
+  Moon,
+  Notebook,
+  Note,
+  Robot,
+  Sparkle,
+  Terminal,
+  User,
+} from '@phosphor-icons/react'
 import {
   BrainIcon,
   GrimoireStarIcon,
@@ -35,6 +55,20 @@ describe('resolveIcon', () => {
     expect(resolveIcon('megaphone')).toBe(Megaphone)
     expect(resolveIcon('sparkles')).toBe(Sparkle)
     expect(resolveIcon('user')).toBe(User)
+  })
+
+  it('resolves starter vault section icons synchronously instead of deferred blanks', () => {
+    expect(resolveIcon('note')).toBe(Note)
+    expect(resolveIcon('notebook')).toBe(Notebook)
+    expect(resolveIcon('books')).toBe(Books)
+    expect(resolveIcon('folders')).toBe(Folders)
+    expect(resolveIcon('briefcase')).toBe(Briefcase)
+    expect(resolveIcon('checklist')).toBe(ListChecks)
+    expect(resolveIcon('bot')).toBe(Robot)
+    expect(resolveIcon('terminal')).toBe(Terminal)
+    expect(resolveIcon('chart-line-up')).toBe(ChartLineUp)
+    expect(resolveIcon('clock-countdown')).toBe(ClockCountdown)
+    expect(resolveIcon('moon')).toBe(Moon)
   })
 
   it('resolves Grimoire-native knowledge icons from saved frontmatter names', () => {

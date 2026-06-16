@@ -159,7 +159,7 @@ describe('SettingsPanel appearance and agent settings', () => {
       autogit_inactive_threshold_seconds: 30,
       release_channel: null,
       theme_mode: 'light',
-      theme_preset: 'constellation',
+      theme_preset: 'morning-notebook',
       editor_font: 'literary',
       editor_line_height: 'comfortable',
       menu_bar_icon_enabled: false,
@@ -305,12 +305,12 @@ describe('SettingsPanel appearance and agent settings', () => {
     }))
   })
 
-  it('saves the selected theme preset, editor font, and editor line height', () => {
+  it('saves the selected experience profile, editor font, and editor line height', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-retro-terminal'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-code-notebook'))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Readable Sans' }))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-line-height'), { button: 0, pointerType: 'mouse' })
@@ -318,13 +318,14 @@ describe('SettingsPanel appearance and agent settings', () => {
     fireEvent.click(screen.getByTestId('settings-save'))
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'retro-terminal',
+      theme_preset: 'code-notebook',
+      theme_mode: 'dark',
       editor_font: 'readable',
       editor_line_height: 'spacious',
     }))
   })
 
-  it('saves the nocturne theme preset', () => {
+  it('saves the nocturne experience profile', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
@@ -337,17 +338,19 @@ describe('SettingsPanel appearance and agent settings', () => {
     }))
   })
 
-  it('renders the curated personal theme preset set', () => {
+  it('renders the curated personal experience profile set', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
+    expect(screen.getByText('Experience profile')).toBeInTheDocument()
+    expect(screen.queryByText('Theme preset')).not.toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-daylight-atelier')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-prabhat-studio')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-daylight-notebook')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-morning-notebook')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-living-archive')).toBeInTheDocument()
     expect(screen.getByTestId('settings-theme-preset-nocturne')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-retro-terminal')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-preset-code-notebook')).toBeInTheDocument()
     expect(screen.queryByTestId('settings-theme-preset-research-cockpit')).not.toBeInTheDocument()
     expect(screen.queryByTestId('settings-theme-preset-manuscript')).not.toBeInTheDocument()
     expect(screen.queryByTestId('settings-theme-preset-aether')).not.toBeInTheDocument()
@@ -372,6 +375,10 @@ describe('SettingsPanel appearance and agent settings', () => {
       'data-theme-preset-preview',
       'nocturne',
     )
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-density-preview', 'comfortable')
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-motion-preview', 'calm')
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-graph-preview', 'ledger')
+    expect(screen.getByTestId('settings-theme-preset-nocturne-traits')).toHaveTextContent('Calm')
     expect(screen.getByTestId('settings-editor-font')).toHaveAttribute('data-value', 'readable')
     expect(screen.getByTestId('settings-editor-line-height')).toHaveAttribute('data-value', 'compact')
   })

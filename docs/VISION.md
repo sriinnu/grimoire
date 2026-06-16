@@ -102,7 +102,7 @@ Personal operating system:
 
 ## Near-Term Direction
 
-1. Finish the core app polish: themes, typography, graph UX, editor find/replace, image previews, file actions, and Apple-native text behavior.
+1. Finish the core app polish: experience profiles, typography, graph UX, editor find/replace, image previews, file actions, and Apple-native text behavior.
 2. Build Grimoire's journal layer: daily notes, templates, weather snapshots, mood/time context, timeline, and review surfaces.
 3. Make the graph useful enough to navigate large vaults: filters, clusters, type coloring, local/global views, minimap, and semantic suggestions.
 4. Harden the editor contract: raw/rich parity, math while typing, IME, native shortcuts, and safe markdown serialization.

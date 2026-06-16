@@ -65,7 +65,7 @@ describe('GraphModal agent package state', () => {
 
     fireEvent.change(screen.getByTestId('graph-filter'), { target: { value: 'zzzz' } })
 
-    expect(screen.getByText('No matching notes')).toBeInTheDocument()
+    expect(screen.getByText('No matching pages')).toBeInTheDocument()
     expect(screen.getByTestId('graph-agent-runway').querySelectorAll('.graph-agent-card[data-state="waiting"]')).toHaveLength(5)
     expect(within(screen.getByTestId('graph-agent-handoff')).getByText('No package')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Ask Council' })).not.toBeInTheDocument()

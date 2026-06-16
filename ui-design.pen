@@ -3,10 +3,10 @@
   "children": [
     {
       "type": "frame",
-      "id": "sidebar_pouch_effect",
+      "id": "sidebar_notebook_watermark",
       "x": 0,
       "y": -1460,
-      "name": "Sidebar Pouch Intake",
+      "name": "Sidebar Notebook Watermark",
       "theme": {
         "Mode": "Light"
       },
@@ -19,20 +19,20 @@
       "children": [
         {
           "type": "text",
-          "id": "sidebar_pouch_title",
+          "id": "sidebar_notebook_watermark_title",
           "fill": "$--foreground",
-          "content": "Sidebar Pouch Intake",
+          "content": "Sidebar Notebook Watermark",
           "fontFamily": "Inter",
           "fontSize": 28,
           "fontWeight": "700"
         },
         {
           "type": "text",
-          "id": "sidebar_pouch_body",
+          "id": "sidebar_notebook_watermark_body",
           "fill": "$--muted-foreground",
           "textGrowth": "fixed-width",
           "width": "fill_container",
-          "content": "The left sidebar keeps its ambient Grimoire sigil, then layers a foreground pouch mouth and cloud-wisp paths that visually pull captured fragments into the vault. Motion is finite, compositor-scoped, and disabled under reduced-motion.",
+          "content": "The left sidebar keeps one quiet open-notebook watermark behind navigation. The primary notebook shell stays still, readable, and free of decorative intake animation.",
           "lineHeight": 1.5,
           "fontFamily": "Inter",
           "fontSize": 14,
@@ -2906,7 +2906,7 @@
                           "iconFontName": "cardholder"
                         },
                         "gzPe9": {
-                          "content": "All Notes",
+                          "content": "Pages",
                           "x": 26
                         },
                         "v96mi": {
@@ -3051,7 +3051,7 @@
                               "fill": "$--accent-red"
                             },
                             "TB6OW": {
-                              "content": "Projects",
+                              "content": "Making",
                               "x": 26
                             },
                             "SWlrA": {
@@ -3186,7 +3186,7 @@
                               "fill": "$--accent-purple"
                             },
                             "TB6OW": {
-                              "content": "Responsibilities",
+                              "content": "Care",
                               "x": 26
                             },
                             "SWlrA": {
@@ -3242,7 +3242,7 @@
                               "fill": "$--accent-purple"
                             },
                             "TB6OW": {
-                              "content": "Procedures",
+                              "content": "Ways",
                               "x": 26
                             },
                             "SWlrA": {
@@ -3354,7 +3354,7 @@
                               "fill": "$--accent-yellow"
                             },
                             "TB6OW": {
-                              "content": "Events",
+                              "content": "Moments",
                               "x": 26
                             },
                             "SWlrA": {
@@ -3410,7 +3410,7 @@
                               "fill": "$--accent-green"
                             },
                             "TB6OW": {
-                              "content": "Topics",
+                              "content": "Ideas",
                               "x": 26
                             },
                             "SWlrA": {
@@ -3466,7 +3466,7 @@
                               "fill": "$--accent-green"
                             },
                             "TB6OW": {
-                              "content": "Notes",
+                              "content": "Loose pages",
                               "x": 26
                             },
                             "SWlrA": {
@@ -3924,7 +3924,7 @@
                               "y": 9.5
                             },
                             "xr1Bv": {
-                              "content": "Events"
+                              "content": "Moments"
                             },
                             "Yh4xV": {
                               "content": "2",
@@ -8431,7 +8431,7 @@
               "id": "TB6OW",
               "name": "ssLabel",
               "fill": "$--foreground",
-              "content": "Projects",
+              "content": "Making",
               "fontFamily": "Inter",
               "fontSize": 13,
               "fontWeight": "500"
@@ -8930,7 +8930,7 @@
                   "iconFontName": "cardholder"
                 },
                 "gzPe9": {
-                  "content": "All Notes",
+                  "content": "Pages",
                   "x": 26
                 },
                 "v96mi": {
@@ -9075,7 +9075,7 @@
                       "fill": "$--accent-red"
                     },
                     "TB6OW": {
-                      "content": "Projects",
+                      "content": "Making",
                       "x": 26
                     },
                     "SWlrA": {
@@ -9210,7 +9210,7 @@
                       "fill": "$--accent-purple"
                     },
                     "TB6OW": {
-                      "content": "Responsibilities",
+                      "content": "Care",
                       "x": 26
                     },
                     "SWlrA": {
@@ -9266,7 +9266,7 @@
                       "fill": "$--accent-purple"
                     },
                     "TB6OW": {
-                      "content": "Procedures",
+                      "content": "Ways",
                       "x": 26
                     },
                     "SWlrA": {
@@ -9378,7 +9378,7 @@
                       "fill": "$--accent-yellow"
                     },
                     "TB6OW": {
-                      "content": "Events",
+                      "content": "Moments",
                       "x": 26
                     },
                     "SWlrA": {
@@ -9434,7 +9434,7 @@
                       "fill": "$--accent-green"
                     },
                     "TB6OW": {
-                      "content": "Topics",
+                      "content": "Ideas",
                       "x": 26
                     },
                     "SWlrA": {
@@ -9490,7 +9490,7 @@
                       "fill": "$--accent-green"
                     },
                     "TB6OW": {
-                      "content": "Notes",
+                      "content": "Loose pages",
                       "x": 26
                     },
                     "SWlrA": {
@@ -9942,7 +9942,7 @@
                       "y": 9.5
                     },
                     "xr1Bv": {
-                      "content": "Events"
+                      "content": "Moments"
                     },
                     "Yh4xV": {
                       "content": "2",
@@ -11472,7 +11472,7 @@
                           "iconFontName": "cardholder"
                         },
                         "gzPe9": {
-                          "content": "All Notes",
+                          "content": "Pages",
                           "x": 26
                         },
                         "v96mi": {
@@ -11682,7 +11682,7 @@
                                   "iconFontName": "wrench"
                                 },
                                 "TB6OW": {
-                                  "content": "Projects",
+                                  "content": "Making",
                                   "x": 26
                                 },
                                 "SWlrA": {
@@ -11744,7 +11744,7 @@
                                   "iconFontName": "tag"
                                 },
                                 "TB6OW": {
-                                  "content": "Topics",
+                                  "content": "Ideas",
                                   "x": 26
                                 },
                                 "SWlrA": {
@@ -11775,7 +11775,7 @@
                                   "iconFontName": "leaf"
                                 },
                                 "TB6OW": {
-                                  "content": "Notes",
+                                  "content": "Loose pages",
                                   "x": 26
                                 },
                                 "SWlrA": {
@@ -12554,7 +12554,7 @@
                               "y": 9.5
                             },
                             "xr1Bv": {
-                              "content": "Events"
+                              "content": "Moments"
                             },
                             "Yh4xV": {
                               "content": "2",
@@ -14208,19 +14208,19 @@
       "type": "color",
       "value": [
         {
-          "value": "#0F7B6C"
+          "value": "#4F8F83"
         },
         {
-          "value": "#4caf50",
+          "value": "#86C5AA",
           "theme": {
             "Mode": "Dark"
           }
         },
         {
-          "value": "#00B38B"
+          "value": "#4F8F83"
         },
         {
-          "value": "#00B38B",
+          "value": "#86C5AA",
           "theme": {
             "Mode": "Dark"
           }
@@ -14734,10 +14734,10 @@
       "type": "color",
       "value": [
         {
-          "value": "#00B38B14"
+          "value": "#4F8F8314"
         },
         {
-          "value": "#00B38B20",
+          "value": "#86C5AA20",
           "theme": {
             "Mode": "Dark"
           }

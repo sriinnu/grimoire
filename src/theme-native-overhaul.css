@@ -1,0 +1,395 @@
+:where([data-theme-preset]) {
+  --grimoire-native-frame-material:
+    radial-gradient(circle at 22% 0%, color-mix(in srgb, var(--primary) 4%, transparent), transparent 22rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 94%, var(--surface-panel)), var(--surface-app));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 86%, var(--surface-panel) 14%), var(--surface-sidebar));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 90%, var(--surface-card)), color-mix(in srgb, var(--surface-panel) 96%, var(--surface-app)));
+  --grimoire-native-card-border: color-mix(in srgb, var(--border-default) 82%, transparent);
+  --grimoire-native-card-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
+  --grimoire-native-card-shadow:
+    0 16px 36px color-mix(in srgb, var(--shadow-elevated, black) 9%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 5%, transparent);
+  --grimoire-native-control-material: color-mix(in srgb, var(--surface-card) 74%, transparent);
+  --grimoire-native-control-border: color-mix(in srgb, var(--border-default) 72%, transparent);
+  --grimoire-native-editor-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 3%, transparent), transparent 18rem),
+    var(--surface-editor);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 82%, var(--surface-editor)), var(--surface-editor));
+  --grimoire-native-menu-shadow:
+    0 22px 58px color-mix(in srgb, var(--shadow-dialog, black) 62%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 7%, transparent);
+}
+
+:root[data-theme-preset="constellation"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
+  --grimoire-native-frame-material:
+    radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 24rem),
+    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--accent-purple) 12%, transparent), transparent 20rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 94%, #000), var(--surface-app));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 76%, var(--primary) 6%), var(--surface-sidebar));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 74%, var(--primary) 5%), color-mix(in srgb, var(--surface-panel) 94%, #000));
+  --grimoire-native-card-material:
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 18rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
+  --grimoire-native-card-shadow: 0 18px 48px color-mix(in srgb, #000 28%, transparent);
+  --grimoire-native-editor-material:
+    radial-gradient(circle at 78% 0%, color-mix(in srgb, var(--primary) 11%, transparent), transparent 22rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 88%, #000), var(--surface-editor));
+  --grimoire-native-menu-shadow: 0 26px 62px color-mix(in srgb, #000 42%, transparent);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface-card)), var(--surface-editor));
+  --grimoire-graph-material:
+    radial-gradient(circle at 52% 28%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 18rem),
+    var(--grimoire-graph-bg);
+}
+
+:root[data-theme-preset="daylight-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
+  --grimoire-native-frame-material:
+    linear-gradient(90deg, color-mix(in srgb, var(--surface-sidebar) 18%, transparent), transparent 22rem),
+    linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-panel) 82%, var(--surface-editor)));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 92%, #000), var(--surface-sidebar));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)), var(--surface-panel));
+  --grimoire-native-card-material:
+    linear-gradient(180deg, var(--surface-card), color-mix(in srgb, var(--surface-card) 88%, var(--surface-editor)));
+  --grimoire-native-card-shadow:
+    0 12px 28px color-mix(in srgb, var(--surface-sidebar) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 70%, transparent);
+  --grimoire-native-editor-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 94%, var(--primary) 3%), var(--surface-editor));
+  --grimoire-native-menu-shadow: 0 18px 42px color-mix(in srgb, var(--surface-sidebar) 22%, transparent);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-editor) 88%, var(--primary) 4%), var(--surface-card));
+}
+
+:root[data-theme-preset="morning-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
+  --grimoire-native-frame-material:
+    radial-gradient(circle at 78% -10%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 22rem),
+    linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-editor) 80%, var(--surface-panel)));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 96%, white), var(--surface-sidebar));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 86%, transparent), color-mix(in srgb, var(--surface-panel) 92%, white));
+  --grimoire-native-card-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 96%, var(--surface-editor)), var(--surface-card));
+  --grimoire-native-card-shadow:
+    0 14px 34px color-mix(in srgb, var(--text-heading) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, white 78%, transparent);
+  --grimoire-native-editor-material:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 4%, transparent), transparent 18rem),
+    linear-gradient(180deg, var(--surface-editor), color-mix(in srgb, var(--surface-editor) 94%, var(--surface-panel)));
+  --grimoire-native-menu-shadow: 0 14px 30px color-mix(in srgb, var(--text-heading) 10%, transparent);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-editor) 94%, var(--primary) 3%), var(--surface-card));
+}
+
+:root[data-theme-preset="living-archive"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
+  --grimoire-native-frame-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-sidebar) 4%), var(--surface-app));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 90%, var(--surface-panel) 10%), var(--surface-sidebar));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel)), var(--surface-panel));
+  --grimoire-native-card-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 90%, var(--surface-editor)), color-mix(in srgb, var(--surface-card) 76%, var(--surface-panel)));
+  --grimoire-native-card-shadow:
+    0 1px 0 color-mix(in srgb, var(--border-strong) 38%, transparent),
+    0 18px 38px color-mix(in srgb, #000 9%, transparent);
+  --grimoire-native-editor-material:
+    radial-gradient(circle at 50% 2rem, color-mix(in srgb, var(--primary) 7%, transparent), transparent 24rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 96%, var(--surface-panel)), var(--surface-editor));
+  --grimoire-native-menu-shadow: 0 18px 40px color-mix(in srgb, #000 18%, transparent);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-sidebar) 6%), var(--surface-editor));
+}
+
+:root[data-theme-preset="nocturne"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
+  --grimoire-native-frame-material:
+    radial-gradient(circle at 80% -10%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 24rem),
+    linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-panel) 72%, var(--surface-app)));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, #151719 82%, var(--surface-sidebar) 18%), color-mix(in srgb, #0b0d10 88%, var(--surface-sidebar) 12%));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 86%, var(--primary) 3%), color-mix(in srgb, var(--surface-panel) 92%, #000));
+  --grimoire-native-card-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
+  --grimoire-native-card-shadow:
+    0 18px 42px color-mix(in srgb, #000 26%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 5%, transparent);
+  --grimoire-native-editor-material:
+    radial-gradient(circle at 76% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 24rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 90%, #000), var(--surface-editor));
+  --grimoire-native-menu-shadow: 0 22px 58px color-mix(in srgb, #000 42%, transparent);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, var(--primary) 4%), var(--surface-editor));
+}
+
+:root[data-theme-preset="code-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
+  --grimoire-native-frame-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 82%, #000), var(--surface-app));
+  --grimoire-native-sidebar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 76%, #000), var(--surface-sidebar));
+  --grimoire-native-toolbar-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 82%, #000), var(--surface-panel));
+  --grimoire-native-card-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 84%, #000), color-mix(in srgb, var(--surface-panel) 88%, #000));
+  --grimoire-native-card-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
+  --grimoire-native-editor-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 76%, #000), var(--surface-editor));
+  --grimoire-native-menu-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 22%, transparent);
+  --grimoire-native-image-stage-material:
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--surface-input)), var(--surface-editor));
+  --grimoire-graph-material:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 82%, #000), var(--surface-editor));
+}
+
+:where([data-theme-preset]) .app-shell {
+  background: var(--grimoire-native-frame-material);
+  border-color: color-mix(in srgb, var(--border-subtle) 84%, transparent);
+}
+
+:where([data-theme-preset]) .app {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--surface-sidebar) 82%, transparent), transparent 21rem),
+    var(--grimoire-native-frame-material);
+}
+
+:where([data-theme-preset]) :is(.app-sidebar-panel, .app-sidebar-rail) {
+  background: var(--grimoire-native-sidebar-material);
+  box-shadow:
+    inset -1px 0 0 color-mix(in srgb, var(--sidebar-border) 88%, transparent),
+    inset 1px 0 0 color-mix(in srgb, var(--sidebar-foreground) 5%, transparent);
+}
+
+:where([data-theme-preset]) .app-sidebar-panel :is(.border-b, .border-t) {
+  border-color: color-mix(in srgb, var(--sidebar-border) 86%, transparent);
+}
+
+:where([data-theme-preset]) .sidebar-title-bar {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--sidebar-foreground) 4%, transparent), transparent);
+}
+
+:where([data-theme-preset]) [data-testid="sidebar-search-launcher"] {
+  border-color: color-mix(in srgb, var(--sidebar-border) 86%, transparent);
+}
+
+:where([data-theme-preset]) [data-testid="sidebar-search-input"] {
+  background: color-mix(in srgb, var(--surface-sidebar) 80%, var(--sidebar-foreground) 6%);
+  border-color: color-mix(in srgb, var(--sidebar-border) 88%, transparent);
+  color: var(--sidebar-foreground);
+}
+
+:where([data-theme-preset]) [data-testid="sidebar-search-input"]::placeholder {
+  color: color-mix(in srgb, var(--sidebar-foreground) 72%, transparent);
+}
+
+:where([data-theme-preset]) [data-testid="sidebar-search-launcher"] svg,
+:where([data-theme-preset]) [data-testid="sidebar-search-shortcut"] {
+  color: color-mix(in srgb, var(--sidebar-foreground) 76%, transparent);
+}
+
+:where([data-theme-preset]) [data-testid="sidebar-search-shortcut"] {
+  background: color-mix(in srgb, var(--surface-sidebar) 72%, var(--sidebar-foreground) 8%);
+  border-color: color-mix(in srgb, var(--sidebar-border) 90%, transparent);
+}
+
+:where([data-theme-preset]) :is(.sidebar-top-nav__tone .sidebar-nav-glyph, .sidebar-rail__tone .sidebar-rail__glyph, .sidebar-section-glyph) {
+  background: transparent;
+  border-color: transparent;
+  color: color-mix(in srgb, var(--sidebar-foreground) 94%, var(--sidebar-primary));
+  box-shadow: none;
+}
+
+:where([data-theme-preset]) :is(.sidebar-top-nav__tone .sidebar-nav-glyph__icon, .sidebar-rail__tone .sidebar-rail__glyph > svg, .sidebar-section-glyph__icon) {
+  color: color-mix(in srgb, var(--sidebar-foreground) 96%, var(--sidebar-primary));
+  opacity: 1;
+}
+
+:where([data-theme-preset]) :is(.sidebar-top-nav__tone:hover .sidebar-nav-glyph, .sidebar-rail__tone:hover .sidebar-rail__glyph, .sidebar-section-glyph:hover) {
+  background: color-mix(in srgb, var(--sidebar-primary) 10%, transparent);
+  border-color: transparent;
+  color: color-mix(in srgb, var(--sidebar-foreground) 98%, var(--sidebar-primary));
+}
+
+:where([data-theme-preset]) .sidebar-top-nav__tone[data-active="true"] > :is(button, div),
+:where([data-theme-preset]) .sidebar-rail__tone[data-active="true"] {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--sidebar-primary) 17%, transparent), transparent 72%),
+    color-mix(in srgb, var(--sidebar-foreground) 9%, var(--surface-sidebar));
+  border-color: color-mix(in srgb, var(--sidebar-primary) 30%, var(--sidebar-border));
+}
+
+:where([data-theme-preset]) .sidebar-top-nav__tone[data-active="true"] .sidebar-nav-glyph,
+:where([data-theme-preset]) .sidebar-rail__tone[data-active="true"] .sidebar-rail__glyph,
+:where([data-theme-preset]) .sidebar-section-glyph[data-active="true"] {
+  background: color-mix(in srgb, var(--sidebar-primary) 14%, transparent);
+  border-color: transparent;
+  color: color-mix(in srgb, var(--sidebar-foreground) 98%, var(--sidebar-primary));
+}
+
+:where([data-theme-preset]) .sidebar-top-nav__tone[data-active="true"] .sidebar-nav-glyph__icon,
+:where([data-theme-preset]) .sidebar-rail__tone[data-active="true"] .sidebar-rail__glyph > svg,
+:where([data-theme-preset]) .sidebar-section-glyph[data-active="true"] .sidebar-section-glyph__icon {
+  color: var(--sidebar-foreground);
+}
+
+:where([data-theme-preset]) :is(.note-list-chrome-row, .note-list-search-row, .breadcrumb-bar, .inspector-header) {
+  background: var(--grimoire-native-toolbar-material);
+  border-color: color-mix(in srgb, var(--border-default) 68%, transparent);
+}
+
+:where([data-theme-preset]) .inspector-header__brand-icon {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border-default));
+  border-radius: 7px;
+  background:
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 72%),
+    color-mix(in srgb, var(--surface-card) 72%, transparent);
+  color: var(--primary);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 10%, transparent),
+    0 6px 16px color-mix(in srgb, var(--shadow-elevated, black) 10%, transparent);
+}
+
+:where([data-theme-preset]) .inspector-header__title {
+  color: var(--text-heading);
+  font-size: 13px;
+  font-weight: 680;
+}
+
+:where([data-theme-preset]) .inspector-header__subtitle {
+  color: color-mix(in srgb, var(--text-secondary) 84%, transparent);
+  font-size: 10px;
+  font-weight: 620;
+  letter-spacing: 0.02em;
+}
+
+:where([data-theme-preset]) :is(.editor, .editor-scroll-area) {
+  background: var(--grimoire-native-editor-material);
+}
+
+:where([data-theme-preset]) .app__dashboard {
+  background:
+    radial-gradient(circle at 78% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 24rem),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 92%, var(--surface-panel)), var(--surface-app));
+}
+
+:where([data-theme-preset]) .vault-dashboard {
+  padding-block: max(22px, var(--grimoire-density-page-padding, 28px));
+}
+
+:where([data-theme-preset]) .vault-dashboard__hero {
+  align-items: flex-end;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-default) 56%, transparent);
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+}
+
+:where([data-theme-preset]) .vault-dashboard h1 {
+  color: var(--text-heading);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--surface-card) 52%, transparent);
+}
+
+:where([data-theme-preset]) :is(.vault-dashboard__panel, .vault-dashboard__stat, .note-list-panel [data-note-path], .editor-content-wrapper, .inspector-card, .constellation-insights) {
+  border-color: var(--grimoire-native-card-border);
+  background: var(--grimoire-native-card-material);
+  box-shadow: var(--grimoire-native-card-shadow);
+}
+
+:where([data-theme-preset]) .inspector-panel .constellation-insights {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--grimoire-native-card-border));
+  background:
+    radial-gradient(circle at 86% 0%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 13rem),
+    color-mix(in srgb, var(--surface-card) 96%, var(--surface-panel));
+  color: var(--text-primary);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 8%, transparent),
+    0 16px 34px color-mix(in srgb, var(--shadow-elevated, black) 14%, transparent);
+}
+
+:where([data-theme-preset]) .inspector-panel .constellation-insights__header,
+:where([data-theme-preset]) .inspector-panel .constellation-insights h3 {
+  color: var(--text-heading);
+}
+
+:where([data-theme-preset]) .inspector-panel .constellation-insights :is(p, li) {
+  color: var(--text-primary);
+}
+
+:where([data-theme-preset]) .inspector-panel .second-brain-panel__ask {
+  border: 1px solid color-mix(in srgb, var(--primary) 34%, var(--grimoire-native-control-border));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-card));
+  color: var(--text-heading);
+}
+
+:where([data-theme-preset]) .vault-dashboard__panel--capture {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--primary) 6%, transparent) 0 1px, transparent 1px),
+    var(--grimoire-native-card-material);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 7%, transparent),
+    0 18px 44px color-mix(in srgb, var(--shadow-elevated, black) 8%, transparent);
+}
+
+:where([data-theme-preset]) .vault-dashboard__textarea {
+  border: 1px solid color-mix(in srgb, var(--border-default) 54%, transparent);
+  border-radius: calc(var(--grimoire-shell-radius) - 2px);
+  background:
+    linear-gradient(
+      to bottom,
+      transparent calc(1.55em - 1px),
+      color-mix(in srgb, var(--border-default) 21%, transparent) 1.55em
+    ),
+    color-mix(in srgb, var(--surface-editor) 88%, var(--surface-card));
+}
+
+:where([data-theme-preset]) .grimoire-context-menu-surface {
+  border: 1px solid color-mix(in srgb, var(--border-default) 72%, transparent) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-popover) 99%, var(--surface-card)), var(--surface-popover)) !important;
+  box-shadow: var(--grimoire-native-menu-shadow) !important;
+  color: var(--text-primary) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:where([data-theme-preset]) .grimoire-context-menu-surface :is(button, [role="menuitem"]) {
+  color: var(--text-primary) !important;
+}
+
+:where([data-theme-preset]) .grimoire-context-menu-surface :is(button:disabled, [aria-disabled="true"]) {
+  color: color-mix(in srgb, var(--text-secondary) 78%, transparent) !important;
+  opacity: 0.72 !important;
+}
+
+:where([data-theme-preset]) :is([data-testid="graph-agent-handoff"], [data-testid="graph-agent-council"], [data-testid="graph-agent-runway"], .graph-canvas-shell) {
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 18rem),
+    var(--grimoire-graph-material);
+}
+
+:where([data-theme-preset]) [data-testid="create-vault-action-footer"] {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 72%, transparent), var(--surface-panel)) !important;
+  border-top-color: color-mix(in srgb, var(--border-default) 80%, transparent) !important;
+  box-shadow: 0 -14px 30px color-mix(in srgb, var(--surface-app) 78%, transparent);
+}
+
+:where([data-theme-preset]) [data-testid="create-vault-submit"] {
+  min-width: 96px;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 24%, transparent);
+}

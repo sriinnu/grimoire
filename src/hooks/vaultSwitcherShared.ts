@@ -1,6 +1,7 @@
 import type { VaultOption } from '../components/StatusBar'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
+import { getNotebookVaultDisplayName } from '../utils/vaultDisplayName'
 import { loadVaultList } from '../utils/vaultListStore'
 
 export const GETTING_STARTED_LABEL = 'Getting Started'
@@ -17,7 +18,8 @@ export const DEFAULT_VAULTS: VaultOption[] = [
 
 /** Returns the display label Grimoire uses when a folder has no saved vault name. */
 export function labelFromPath(path: string): string {
-  return path.split(/[\\/]/u).pop() || 'Local Vault'
+  if (!path.trim()) return 'Local Notebook'
+  return getNotebookVaultDisplayName({ path })
 }
 
 /** Invokes Tauri in-app and mock Tauri in browser tests. */

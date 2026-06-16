@@ -269,7 +269,7 @@ describe('useVaultSwitcher', () => {
     })
   })
 
-  it('registers the canonical Getting Started vault without persisting a duplicate entry', async () => {
+  it('registers the canonical Getting Started notebook without persisting a duplicate entry', async () => {
     setMockInvokeBehavior({
       checkVaultExists: ({ path }) => path === expectedDefaultVaultPath,
     })
@@ -452,7 +452,7 @@ describe('useVaultSwitcher', () => {
       hidden_defaults: [],
     })
     expect(onVaultOpening).toHaveBeenCalledWith({ label: 'my-vault', path: pickedVaultPath })
-    expect(onToast).toHaveBeenCalledWith('Vault "my-vault" opened')
+    expect(onToast).toHaveBeenCalledWith('Notebook "my-vault" opened')
   })
 
   it('does not switch to a picked folder that fails vault availability checks', async () => {
@@ -474,7 +474,7 @@ describe('useVaultSwitcher', () => {
     expect(mockVaultListStore.active_vault).toBeNull()
     expect(onVaultOpening).not.toHaveBeenCalled()
     expect(onSwitch).not.toHaveBeenCalled()
-    expect(onToast).toHaveBeenCalledWith('Could not open vault folder: Selected folder is not available')
+    expect(onToast).toHaveBeenCalledWith('Could not open notebook folder: Selected folder is not available')
   })
 
   it('shows a clear toast when folder picking is blocked until restart', async () => {
@@ -506,7 +506,7 @@ describe('useVaultSwitcher', () => {
     expect(mockInvokeFn).toHaveBeenCalledWith('create_empty_vault', { targetPath: createdVaultPath })
     expect(result.current.vaultPath).toBe(createdVaultPath)
     expect(result.current.allVaults.some(v => v.path === createdVaultPath)).toBe(true)
-    expect(onToast).toHaveBeenCalledWith('Vault "new-vault" created and opened')
+    expect(onToast).toHaveBeenCalledWith('Notebook "new-vault" created and opened')
   })
 
   it('creates an empty vault from an explicit modal request without prompting', async () => {
@@ -543,7 +543,7 @@ describe('useVaultSwitcher', () => {
     const { pickFolder } = await import('../utils/vault-dialog')
     vi.mocked(pickFolder).mockResolvedValue(busyFolderPath)
     setMockInvokeBehavior({
-      createEmptyVault: () => Promise.reject('Choose an empty folder to create a new vault'),
+      createEmptyVault: () => Promise.reject('Choose an empty folder to create a new notebook'),
     })
 
     const { result } = await renderLoadedVaultSwitcher()
@@ -553,7 +553,7 @@ describe('useVaultSwitcher', () => {
     })
 
     expect(result.current.vaultPath).toBe(expectedDefaultVaultPath)
-    expect(onToast).toHaveBeenCalledWith('Choose an empty folder to create a new vault')
+    expect(onToast).toHaveBeenCalledWith('Choose an empty folder to create a new notebook')
   })
 
   describe('removeVault', () => {
@@ -574,7 +574,7 @@ describe('useVaultSwitcher', () => {
       })
 
       expect(result.current.allVaults.some(v => v.path === '/work/vault')).toBe(false)
-      expect(onToast).toHaveBeenCalledWith('Vault "Work" removed from list')
+      expect(onToast).toHaveBeenCalledWith('Notebook "Work" removed from list')
     })
 
     it('hides a default vault instead of deleting it', async () => {
@@ -626,7 +626,7 @@ describe('useVaultSwitcher', () => {
         result.current.removeVault('/docs/vault')
       })
 
-      expect(onToast).toHaveBeenCalledWith('Vault "Docs" removed from list')
+      expect(onToast).toHaveBeenCalledWith('Notebook "Docs" removed from list')
     })
 
     it('persists hidden_defaults when removing a default vault', async () => {
@@ -653,7 +653,7 @@ describe('useVaultSwitcher', () => {
   })
 
   describe('restoreGettingStarted', () => {
-    it('un-hides the Getting Started vault', async () => {
+    it('un-hides the Getting Started notebook', async () => {
       setWorkVaultWithHiddenGettingStarted()
 
       const { result } = renderHook(() => useVaultSwitcher({ onSwitch, onToast }))
@@ -669,7 +669,7 @@ describe('useVaultSwitcher', () => {
       expect(result.current.allVaults.some(v => v.path === expectedDefaultVaultPath)).toBe(true)
     })
 
-    it('switches to the Getting Started vault after restoring', async () => {
+    it('switches to the Getting Started notebook after restoring', async () => {
       setWorkVaultWithHiddenGettingStarted()
 
       const { result } = renderHook(() => useVaultSwitcher({ onSwitch, onToast }))
@@ -680,7 +680,7 @@ describe('useVaultSwitcher', () => {
       })
 
       expect(result.current.vaultPath).toBe(expectedDefaultVaultPath)
-      expect(onToast).toHaveBeenCalledWith('Getting Started vault ready')
+      expect(onToast).toHaveBeenCalledWith('Getting Started notebook ready')
     })
 
     it('attempts to create vault on disk if it does not exist', async () => {
@@ -715,7 +715,7 @@ describe('useVaultSwitcher', () => {
 
       expect(result.current.vaultPath).toBe('/work/vault')
       expect(result.current.isGettingStartedHidden).toBe(true)
-      expect(onToast).toHaveBeenCalledWith('Could not prepare Getting Started vault: git clone failed: fatal: unable to access')
+      expect(onToast).toHaveBeenCalledWith('Could not prepare Getting Started notebook: git clone failed: fatal: unable to access')
     })
   })
 

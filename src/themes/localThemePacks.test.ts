@@ -76,6 +76,16 @@ describe('local theme packs', () => {
     expect(readStoredLocalThemeDefinition(storage)).toBeNull()
   })
 
+  it('treats an empty dev theme response as a missing local file', async () => {
+    const storage = makeStorage({ [LOCAL_THEME_PACK_STORAGE_KEY]: serializeThemeDefinition(THEME_PRESET_CATALOG[0]) })
+    const fetchThemePack = vi.fn().mockResolvedValue({ ok: true, status: 204 })
+
+    const result = await refreshDevelopmentThemePack(storage, fetchThemePack)
+
+    expect(result.status).toBe('missing')
+    expect(storage.removeItem).toHaveBeenCalledWith(LOCAL_THEME_PACK_STORAGE_KEY)
+  })
+
   it('reports dev hot-reload fetch failures as invalid instead of throwing', async () => {
     const storage = makeStorage()
     const fetchThemePack = vi.fn().mockRejectedValue(new Error('offline'))

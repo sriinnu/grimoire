@@ -46,7 +46,7 @@ export function buildAttentionModeSuggestion({
     return {
       actionLabel: memoryEntry ? 'Review' : null,
       captureKind: null,
-      detail: `${summary.memoryQueueCount} memory waiting.`,
+      detail: `${summary.memoryQueueCount} memory ready for review.`,
       openEntryPath: memoryEntry?.path ?? null,
       title: 'Review memory',
     }
@@ -60,7 +60,7 @@ export function buildAttentionModeSuggestion({
       captureKind: null,
       detail: blockedReview
         ? `${summary.mobileReviewCount} mobile capture${summary.mobileReviewCount === 1 ? '' : 's'} blocked until review.`
-        : `${summary.mobileReviewCount} mobile capture${summary.mobileReviewCount === 1 ? '' : 's'} waiting.`,
+        : `${summary.mobileReviewCount} mobile capture${summary.mobileReviewCount === 1 ? '' : 's'} ready for review.`,
       openEntryPath: mobileEntry?.path ?? null,
       title: blockedReview ? 'Unblock mobile' : 'Review mobile',
     }
@@ -68,11 +68,11 @@ export function buildAttentionModeSuggestion({
 
   if (summary.openLoopCount >= OPEN_LOOP_DRIFT_THRESHOLD) {
     return {
-      actionLabel: 'Task',
+      actionLabel: 'Carry forward',
       captureKind: 'task',
-      detail: `${summary.openLoopCount} open, led by ${topBucketReason(summary)}.`,
+      detail: 'Choose one unfinished page; write what it needs next.',
       openEntryPath: null,
-      title: 'Close thread',
+      title: 'Carry one page',
     }
   }
 
@@ -80,9 +80,9 @@ export function buildAttentionModeSuggestion({
     return {
       actionLabel: 'Name focus',
       captureKind: 'task',
-      detail: `${summary.contextSwitchCount} recent context switches. Pick one lane before adding more.`,
+      detail: `${summary.contextSwitchCount} recent context switches. Return to one page before adding more.`,
       openEntryPath: null,
-      title: 'Settle thread',
+      title: 'Choose one page',
     }
   }
 
@@ -90,7 +90,7 @@ export function buildAttentionModeSuggestion({
     return {
       actionLabel: 'Name focus',
       captureKind: 'task',
-      detail: `${summary.activeNotes} active notes. Choose one thread to carry forward.`,
+      detail: `${summary.activeNotes} active pages. Choose one page to carry forward.`,
       openEntryPath: null,
       title: 'Choose focus',
     }
@@ -128,11 +128,11 @@ export function buildAttentionModeSuggestion({
 
   if (summary.crystallizedTodayCount > 0) {
     return {
-      actionLabel: 'Note',
+      actionLabel: 'Page',
       captureKind: 'note',
       detail: `${summary.crystallizedTodayCount} reviewed Markdown memor${summary.crystallizedTodayCount === 1 ? 'y' : 'ies'} landed today.`,
       openEntryPath: null,
-      title: 'Loop closed',
+      title: 'Memory landed',
     }
   }
 
@@ -141,23 +141,18 @@ export function buildAttentionModeSuggestion({
     return {
       actionLabel: 'Crystallize',
       captureKind: 'ask',
-      detail: 'Turn the latest thread into reviewed Markdown memory.',
+      detail: 'Turn the latest page into reviewed Markdown memory.',
       openEntryPath: null,
-      promptSeed: '/ask Crystallize the latest thread into reviewed Markdown memory.',
+      promptSeed: '/ask Crystallize the latest page into reviewed Markdown memory.',
       title: 'Crystallize',
     }
   }
 
   return {
-    actionLabel: 'Note',
+    actionLabel: 'Page',
     captureKind: 'note',
-    detail: 'Board quiet.',
+    detail: 'Capture freely.',
     openEntryPath: null,
-    title: 'Board light',
+    title: 'Notebook quiet',
   }
-}
-
-function topBucketReason(summary: DashboardSummary): string {
-  const bucket = summary.openLoopBuckets[0]
-  return bucket ? `${bucket.count} ${bucket.label}` : 'mixed work'
 }

@@ -104,4 +104,34 @@ describe('tryVaultApi', () => {
     })).resolves.toBeUndefined()
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it('skips the vault API for mock-only vault loads', async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      throw new Error(`Unexpected fetch: ${String(input)}`)
+    })
+    globalThis.fetch = fetchMock as typeof fetch
+
+    const { tryVaultApi } = await import('./vault-api')
+
+    await expect(tryVaultApi('list_vault', { path: '/Users/mock/demo-vault-v2' })).resolves.toBeUndefined()
+    await expect(tryVaultApi('reload_vault', { path: '/Users/mock/demo-vault-v2' })).resolves.toBeUndefined()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('skips the vault API for mock-only note paths', async () => {
+    const fetchMock = vi.fn(async (input: string | URL) => {
+      throw new Error(`Unexpected fetch: ${String(input)}`)
+    })
+    globalThis.fetch = fetchMock as typeof fetch
+
+    const { tryVaultApi } = await import('./vault-api')
+
+    await expect(tryVaultApi('reload_vault_entry', { path: '/Users/mock/Grimoire/alpha.md' })).resolves.toBeUndefined()
+    await expect(tryVaultApi('get_note_content', { path: '/Users/mock/Grimoire/alpha.md' })).resolves.toBeUndefined()
+    await expect(tryVaultApi('get_all_content', { path: '/Users/mock/Grimoire' })).resolves.toBeUndefined()
+    await expect(tryVaultApi('save_note_content', { path: '/Users/mock/Grimoire/alpha.md', content: '# Alpha' })).resolves.toBeUndefined()
+    await expect(tryVaultApi('save_canvas_preview', { path: '/Users/mock/Grimoire/alpha.png', data: '' })).resolves.toBeUndefined()
+    await expect(tryVaultApi('delete_note', { path: '/Users/mock/Grimoire/alpha.md' })).resolves.toBeUndefined()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
 })

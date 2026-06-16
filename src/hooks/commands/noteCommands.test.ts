@@ -25,9 +25,9 @@ describe('buildNoteCommands', () => {
     const command = commands.find((item) => item.id === 'reveal-note-in-finder')
 
     expect(command).toMatchObject({
-      label: 'Reveal Note in Finder',
+      label: 'Reveal Page in Finder',
       enabled: true,
-      group: 'Note',
+      group: 'Page',
       keywords: expect.arrayContaining(['finder', 'local', 'markdown']),
     })
 
@@ -58,9 +58,9 @@ describe('buildNoteCommands', () => {
     const command = commands.find((item) => item.id === 'preview-note-with-quick-look')
 
     expect(command).toMatchObject({
-      label: 'Preview Note with Quick Look',
+      label: 'Preview Page with Quick Look',
       enabled: true,
-      group: 'Note',
+      group: 'Page',
       keywords: expect.arrayContaining(['quicklook', 'preview', 'native']),
     })
 

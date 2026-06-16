@@ -79,16 +79,16 @@ describe('SettingsPanel sidebar appearance', () => {
     )
   })
 
-  it('updates the left-sidebar preview when a theme preset is selected', () => {
+  it('updates the left-sidebar preview when an experience profile is selected', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-retro-terminal'))
+    fireEvent.click(screen.getByTestId('settings-theme-preset-code-notebook'))
 
     expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
       'data-sidebar-preset-preview',
-      'retro-terminal',
+      'code-notebook',
     )
   })
 
@@ -105,7 +105,7 @@ describe('SettingsPanel sidebar appearance', () => {
     expect(screen.getByTestId('settings-sidebar-artwork-preview')).toBeInTheDocument()
   })
 
-  it('updates the left-sidebar preview from a local theme pack override', () => {
+  it('updates the left-sidebar preview from a local experience pack override', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
     )

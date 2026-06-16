@@ -1,4 +1,5 @@
 import type { TimeLoomBucket } from './timeLoom'
+import { formatTypeCount, formatTypeLabel } from '../utils/notebookCountLabels'
 
 export type TimeLoomGraphPrivacy = 'held-local' | 'safe'
 export type TimeLoomGraphTone = 'capture' | 'day' | 'external' | 'memory' | 'private' | 'work'
@@ -29,7 +30,7 @@ export interface TimeLoomGraph {
 const MAX_LANE_NODES = 6
 const PRIVATE_LANE_ID = 'lane:held-local'
 
-/** Builds a count-only graph from already-sanitized Time Loom buckets. */
+/** Builds a count-only graph from already-sanitized trail buckets. */
 export function buildTimeLoomGraph(buckets: TimeLoomBucket[]): TimeLoomGraph {
   const nodes: TimeLoomGraphNode[] = []
   const links: TimeLoomGraphLink[] = []
@@ -54,7 +55,7 @@ export function buildTimeLoomGraph(buckets: TimeLoomBucket[]): TimeLoomGraph {
     nodes.push({
       count: laneTotals.get(label) ?? 0,
       id: laneId(label),
-      label,
+      label: formatTypeLabel(label, laneTotals.get(label) ?? 0),
       privacy: 'safe',
       tone: toneForLane(label),
     })
@@ -78,7 +79,7 @@ export function buildTimeLoomGraph(buckets: TimeLoomBucket[]): TimeLoomGraph {
         count: typeCount.count,
         from: dayId,
         id: `${dayId}->${laneId(typeCount.label)}`,
-        label: `${typeCount.count} ${typeCount.label}`,
+        label: formatTypeCount(typeCount.label, typeCount.count),
         privacy: 'safe',
         to: laneId(typeCount.label),
       })
@@ -98,7 +99,7 @@ export function buildTimeLoomGraph(buckets: TimeLoomBucket[]): TimeLoomGraph {
   return {
     links,
     nodes,
-    privacyNote: 'count-only temporal graph; private labels withheld',
+    privacyNote: 'count-only trail graph; private labels withheld',
   }
 }
 

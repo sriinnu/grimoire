@@ -44,7 +44,7 @@
 }
 
 [data-theme-preset="constellation"] .sidebar-title-bar {
-  height: 72px !important;
+  height: var(--sidebar-title-bar-height) !important;
   border-bottom-color: color-mix(in srgb, var(--sidebar-border) 86%, transparent);
 }
 
@@ -284,7 +284,7 @@
   gap: 6px;
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map {
+[data-theme-preset="constellation"] .linked-concept-map {
   position: relative;
   min-height: 154px;
   overflow: hidden;
@@ -295,15 +295,15 @@
     linear-gradient(135deg, color-mix(in srgb, var(--sidebar-primary) 7%, transparent), color-mix(in srgb, var(--accent-purple) 4%, transparent));
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map::before,
-[data-theme-preset="constellation"] .constellation-concept-map::after {
+[data-theme-preset="constellation"] .linked-concept-map::before,
+[data-theme-preset="constellation"] .linked-concept-map::after {
   position: absolute;
   inset: 24px 20px;
   pointer-events: none;
   content: "";
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map::before {
+[data-theme-preset="constellation"] .linked-concept-map::before {
   background:
     linear-gradient(28deg, transparent 0 48%, color-mix(in srgb, var(--sidebar-primary) 36%, transparent) 48.5% 49.5%, transparent 50%),
     linear-gradient(150deg, transparent 0 48%, color-mix(in srgb, var(--accent-purple) 30%, transparent) 48.5% 49.5%, transparent 50%),
@@ -311,14 +311,14 @@
   opacity: 0.8;
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map::after {
+[data-theme-preset="constellation"] .linked-concept-map::after {
   border: 1px solid color-mix(in srgb, var(--sidebar-primary) 9%, transparent);
   border-radius: 999px;
   opacity: 0.75;
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map__core,
-[data-theme-preset="constellation"] .constellation-concept-map__node {
+[data-theme-preset="constellation"] .linked-concept-map__core,
+[data-theme-preset="constellation"] .linked-concept-map__node {
   position: absolute;
   z-index: 1;
   display: inline-flex;
@@ -330,7 +330,7 @@
   color: color-mix(in srgb, var(--sidebar-foreground) 86%, transparent);
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map__core {
+[data-theme-preset="constellation"] .linked-concept-map__core {
   top: 50%;
   left: 50%;
   width: 34px;
@@ -340,7 +340,7 @@
   transform: translate(-50%, -50%);
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map__node {
+[data-theme-preset="constellation"] .linked-concept-map__node {
   max-width: 92px;
   min-height: 22px;
   border-radius: 999px;
@@ -350,9 +350,9 @@
   text-align: center;
 }
 
-[data-theme-preset="constellation"] .constellation-concept-map__node--1 { top: 16px; left: 50%; transform: translateX(-50%); }
-[data-theme-preset="constellation"] .constellation-concept-map__node--2 { top: 48px; right: 10px; }
-[data-theme-preset="constellation"] .constellation-concept-map__node--3 { right: 20px; bottom: 20px; }
-[data-theme-preset="constellation"] .constellation-concept-map__node--4 { bottom: 12px; left: 50%; transform: translateX(-50%); }
-[data-theme-preset="constellation"] .constellation-concept-map__node--5 { bottom: 32px; left: 8px; }
-[data-theme-preset="constellation"] .constellation-concept-map__node--6 { top: 46px; left: 8px; }
+[data-theme-preset="constellation"] .linked-concept-map__node--1 { top: 16px; left: 50%; transform: translateX(-50%); }
+[data-theme-preset="constellation"] .linked-concept-map__node--2 { top: 48px; right: 10px; }
+[data-theme-preset="constellation"] .linked-concept-map__node--3 { right: 20px; bottom: 20px; }
+[data-theme-preset="constellation"] .linked-concept-map__node--4 { bottom: 12px; left: 50%; transform: translateX(-50%); }
+[data-theme-preset="constellation"] .linked-concept-map__node--5 { bottom: 32px; left: 8px; }
+[data-theme-preset="constellation"] .linked-concept-map__node--6 { top: 46px; left: 8px; }

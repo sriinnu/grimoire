@@ -116,9 +116,9 @@ export function renderBookNoteList({
 
 /** Enters a NoteList search query and waits for the debounce spinner to settle. */
 export async function searchNoteList(query: string) {
-  const searchInput = screen.queryByPlaceholderText('Search notes...')
-  if (!searchInput) fireEvent.click(screen.getByTitle('Search notes'))
-  fireEvent.change(screen.getByPlaceholderText('Search notes...'), { target: { value: query } })
+  const searchInput = screen.queryByPlaceholderText('Search pages...')
+  if (!searchInput) fireEvent.click(screen.getByTitle('Search pages'))
+  fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: query } })
   await waitFor(() => {
     expect(screen.getByTestId('note-list-search-loading')).toBeInTheDocument()
   })
@@ -134,5 +134,5 @@ export async function expectOnlySearchMatch(title: string, matchingQuery: string
 
   await searchNoteList(hiddenQuery)
   expect(screen.queryByText(title)).not.toBeInTheDocument()
-  expect(screen.getByText('No matching notes')).toBeInTheDocument()
+  expect(screen.getByText('No matching pages')).toBeInTheDocument()
 }

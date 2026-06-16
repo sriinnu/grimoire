@@ -54,7 +54,7 @@ export function VisibilityPopover({ sections, isSectionVisible, onToggle }: {
       className="border border-border bg-popover text-popover-foreground"
       style={{ position: 'absolute', top: '100%', left: 6, right: 6, zIndex: 50, borderRadius: 8, padding: '8px 0', boxShadow: '0 4px 12px var(--shadow-dialog)' }}
     >
-      <div className="text-[12px] font-semibold text-muted-foreground" style={{ padding: '0 12px 4px' }}>Show in sidebar</div>
+      <div className="text-[12px] font-semibold text-muted-foreground" style={{ padding: '0 12px 4px' }}>Show places</div>
       {sections.map((group) => (
         <VisibilityPopoverItem
           key={group.type}

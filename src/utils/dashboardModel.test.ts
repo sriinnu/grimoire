@@ -336,11 +336,11 @@ describe('buildDashboardSummary', () => {
 
     expect(summary.dailyBrief.primaryLabel).toBe('Review memory')
     expect(summary.dailyBrief.supportingItems).toEqual(expect.arrayContaining([
-      'Journal due',
+      'Journal open',
       'Dream open',
-      '4 open loops',
       '1 memory review',
       '1 mobile review',
+      'Pages to revisit',
     ]))
     expect(summary.dailyBrief.privateHeldCount).toBeGreaterThan(0)
     expect(payload).not.toContain('Secret River Dream')

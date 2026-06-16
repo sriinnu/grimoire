@@ -39,7 +39,7 @@ export function DashboardRecentNotesPanel({
     <div className="vault-dashboard__panel vault-dashboard__panel--wide">
       <div className="vault-dashboard__panel-head">
         <div>
-          <div className="vault-dashboard__panel-label">Recent Notes</div>
+          <div className="vault-dashboard__panel-label">Recent Pages</div>
           <h2>Pick up the thread.</h2>
         </div>
         <NotebookTabs size={18} />

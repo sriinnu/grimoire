@@ -1,8 +1,8 @@
 .editor-loading {
-  --editor-loading-accent: var(--grimoire-brand-gold, #c69a48);
-  --editor-loading-page-top: color-mix(in srgb, var(--surface-editor, #fff8eb) 94%, white);
-  --editor-loading-page-bottom: color-mix(in srgb, var(--surface-editor, #fff8eb) 80%, var(--editor-loading-accent));
-  --editor-loading-glow-core: color-mix(in srgb, var(--editor-loading-accent) 38%, transparent);
+  --editor-loading-accent: var(--accent-blue, #2f668e);
+  --editor-loading-page-top: color-mix(in srgb, var(--surface-editor, #fbfcfd) 94%, white);
+  --editor-loading-page-bottom: color-mix(in srgb, var(--surface-editor, #fbfcfd) 80%, var(--editor-loading-accent));
+  --editor-loading-glow-core: color-mix(in srgb, var(--editor-loading-accent) 26%, transparent);
   --editor-loading-ink: color-mix(in srgb, var(--foreground) 54%, transparent);
   --editor-loading-shadow: color-mix(in srgb, #000 76%, var(--editor-loading-accent));
   --editor-loading-spring: cubic-bezier(0.18, 0.92, 0.26, 1.16);
@@ -69,24 +69,25 @@
   stroke-dashoffset: 0;
 }
 
-.editor-loading__wand {
+.editor-loading__margin-mark {
   fill: none;
-  stroke: color-mix(in srgb, var(--editor-loading-accent) 82%, white);
+  stroke: color-mix(in srgb, var(--editor-loading-accent) 48%, transparent);
   stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 3;
+  stroke-width: 1.2;
+}
+
+.editor-loading__thread {
+  fill: none;
+  stroke: color-mix(in srgb, var(--editor-loading-accent) 72%, var(--foreground));
+  stroke-linecap: round;
+  stroke-width: 2.4;
   transform-box: fill-box;
-  transform-origin: 132px 27px;
+  transform-origin: center;
 }
 
-.editor-loading__wand-tip {
-  fill: color-mix(in srgb, var(--editor-loading-accent) 88%, white);
-  stroke-width: 1.8;
-}
-
-.editor-loading__spark {
+.editor-loading__page-dot {
   fill: var(--editor-loading-accent);
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--editor-loading-accent) 76%, transparent));
+  opacity: 0.72;
   transform-box: fill-box;
   transform-origin: center;
 }
@@ -128,7 +129,8 @@
 @media (hover: none), (pointer: coarse), (max-width: 760px) {
   .editor-loading__book,
   .editor-loading__shadow,
-  .editor-loading__spark {
+  .editor-loading__thread,
+  .editor-loading__page-dot {
     filter: none;
   }
 }

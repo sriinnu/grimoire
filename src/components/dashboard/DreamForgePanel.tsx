@@ -1,4 +1,4 @@
-import { CloudOff, EyeOff, Lock, MoonStar, ShieldCheck, Sparkles } from 'lucide-react'
+import { CloudOff, EyeOff, Lock, MoonStar, ShieldCheck } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -38,7 +38,7 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
     >
       <div className="vault-dashboard__panel-head">
         <div>
-          <div className="vault-dashboard__panel-label">Dream Forge</div>
+          <div className="vault-dashboard__panel-label">Dream Review</div>
           <h2>{summary.dreamCount > 0 ? 'Private pattern scan' : 'Start the dream lane'}</h2>
         </div>
         <MoonStar size={18} />
@@ -68,7 +68,7 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
       <div
         className="vault-dashboard__dream-contract"
         data-testid="dream-forge-privacy-contract"
-        aria-label="Dream Forge private lens contract"
+        aria-label="Dream Review private lens contract"
       >
         <div className="vault-dashboard__dream-contract-orb" aria-hidden="true">
           <MoonStar size={18} />
@@ -80,7 +80,7 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
       <div
         className="vault-dashboard__dream-manifest"
         data-testid="dream-forge-private-manifest"
-        aria-label="Dream Forge local-only manifest"
+        aria-label="Dream Review local-only manifest"
       >
         <DreamContractMetric label="Lens" value="Local" detail={`${summary.manifest.recordCount} records`} compact />
         <DreamContractMetric label="Read" value="Frontmatter" detail={`${summary.manifest.signalCount} signals`} compact />
@@ -89,7 +89,7 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
       </div>
       <div className="vault-dashboard__dream-field" data-testid="dream-forge-private-map" aria-label="Private dream signal map">
         <MoonStar className="vault-dashboard__dream-field-core" size={22} aria-hidden="true" />
-        {(privateMapSignals.length > 0 ? privateMapSignals : ['Quiet', 'Waiting', 'Local']).map((label, index) => (
+        {(privateMapSignals.length > 0 ? privateMapSignals : ['Quiet', 'Open', 'Local']).map((label, index) => (
           <span key={`${label}-${index}`} className={`vault-dashboard__dream-field-signal vault-dashboard__dream-field-signal--${index + 1}`}>
             {label}
           </span>
@@ -127,7 +127,7 @@ export function DreamForgePanel({ privacyReport, summary, onCaptureDream }: Drea
         onClick={onCaptureDream}
         data-testid="dream-forge-capture"
       >
-        <Sparkles className="size-4" />
+        <MoonStar className="size-4" />
         Catch a dream
       </Button>
     </div>

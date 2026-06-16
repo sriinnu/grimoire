@@ -160,6 +160,12 @@ describe('resolveNewNote', () => {
     expect(content).not.toContain('status:')
   })
 
+  it('avoids Windows reserved device filenames when resolving a new note', () => {
+    const { entry } = resolveNewNote({ title: 'CON', type: 'Note', vaultPath: '/vault' })
+    expect(entry.path).toBe('/vault/con-note.md')
+    expect(entry.filename).toBe('con-note.md')
+  })
+
   it('omits status for Topic type', () => {
     const { entry } = resolveNewNote({ title: 'ML', type: 'Topic', vaultPath: '/vault' })
     expect(entry.status).toBeNull()

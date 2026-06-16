@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { isTauriRuntimeAvailable } from '../lib/tauriRuntime'
 
 export type HighlightElement = 'editor' | 'tab' | 'properties' | 'notelist' | null
 
@@ -21,6 +22,11 @@ const MAX_RECONNECT_DELAY_MS = 30_000
 
 function isUiBridgeVisible(): boolean {
   return typeof document === 'undefined' || document.visibilityState !== 'hidden'
+}
+
+function isUiBridgeRuntimeAvailable(): boolean {
+  return isTauriRuntimeAvailable()
+    || (typeof window !== 'undefined' && window.__grimoireTest?.enableAiActivityBridge === true)
 }
 
 function nextReconnectDelay(delayMs: number): number {
@@ -93,13 +99,13 @@ export function useAiActivity(callbacks?: AiActivityCallbacks): AiActivity {
 
     function scheduleReconnect() {
       clearReconnectTimer()
-      if (!mounted || !isUiBridgeVisible()) return
+      if (!mounted || !isUiBridgeVisible() || !isUiBridgeRuntimeAvailable()) return
       reconnectTimer = setTimeout(connect, reconnectDelayMs)
       reconnectDelayMs = nextReconnectDelay(reconnectDelayMs)
     }
 
     function connect() {
-      if (!mounted || !isUiBridgeVisible() || typeof WebSocket === 'undefined') return
+      if (!mounted || !isUiBridgeVisible() || !isUiBridgeRuntimeAvailable() || typeof WebSocket === 'undefined') return
       if (ws) return
       try {
         clearReconnectTimer()

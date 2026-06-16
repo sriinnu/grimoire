@@ -23,17 +23,17 @@ export interface CaptureKindConfig {
   label: string
   slash: string
   typeName: string | null
-  locality: 'Local' | 'Agent chat'
+  locality: 'Local' | 'Local AI' | 'Agent chat'
   prompt: string
 }
 
 export const CAPTURE_KIND_CONFIGS: CaptureKindConfig[] = [
-  { kind: 'note', label: 'Note', slash: '/note', typeName: 'Note', locality: 'Local', prompt: '/note Capture a thought...' },
-  { kind: 'journal', label: 'Journal', slash: '/journal', typeName: 'Journal', locality: 'Local', prompt: '/journal What is alive in you today?' },
-  { kind: 'dream', label: 'Dream', slash: '/dream', typeName: 'Dream', locality: 'Local', prompt: '/dream What did you see, feel, or remember?' },
-  { kind: 'task', label: 'Task', slash: '/task', typeName: 'Task', locality: 'Local', prompt: '/task What open loop needs a next action?' },
-  { kind: 'memory', label: 'Memory', slash: '/memory', typeName: 'Memory', locality: 'Local', prompt: '/memory What should Grimoire remember?' },
-  { kind: 'ask', label: 'Ask', slash: '/ask', typeName: null, locality: 'Agent chat', prompt: '/ask Ask the agent council...' },
+  { kind: 'note', label: 'Note', slash: '/note', typeName: 'Note', locality: 'Local', prompt: 'Start with one thought...' },
+  { kind: 'journal', label: 'Journal', slash: '/journal', typeName: 'Journal', locality: 'Local', prompt: 'What is alive in you today?' },
+  { kind: 'dream', label: 'Dream', slash: '/dream', typeName: 'Dream', locality: 'Local', prompt: 'What did you see, feel, or remember?' },
+  { kind: 'task', label: 'Next', slash: '/task', typeName: 'Task', locality: 'Local', prompt: 'What should be carried forward?' },
+  { kind: 'memory', label: 'Memory', slash: '/memory', typeName: 'Memory', locality: 'Local', prompt: 'What should Grimoire remember?' },
+  { kind: 'ask', label: 'Ask', slash: '/ask', typeName: null, locality: 'Local AI', prompt: 'Ask Grimoire...' },
 ]
 
 interface ResolveDashboardCaptureParams {

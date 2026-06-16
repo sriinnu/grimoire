@@ -2,6 +2,16 @@ type TauriCoreModule = typeof import('@tauri-apps/api/core')
 type TauriWindowModule = typeof import('@tauri-apps/api/window')
 type InvokeArgs = Parameters<TauriCoreModule['invoke']>[1]
 
+interface TauriRuntimeGlobal {
+  __TAURI_INTERNALS__?: { invoke?: unknown }
+}
+
+/** Returns true only when this webview is running inside the Tauri host. */
+export function isTauriRuntimeAvailable(): boolean {
+  const runtime = (globalThis as TauriRuntimeGlobal).__TAURI_INTERNALS__
+  return typeof runtime === 'object' && runtime !== null && typeof runtime.invoke === 'function'
+}
+
 /**
  * Invokes a Tauri command without pulling the Tauri API package into startup.
  */

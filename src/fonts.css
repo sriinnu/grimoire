@@ -1,13 +1,4 @@
 @font-face {
-  font-family: 'Grimoire Caveat';
-  src: url('../assets/fonts/Caveat-VariableFont_wght.ttf') format('truetype');
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  font-synthesis: none;
-}
-
-@font-face {
   font-family: 'Grimoire Berkeley Mono';
   src:
     local('TX-02 Berkeley Mono'),

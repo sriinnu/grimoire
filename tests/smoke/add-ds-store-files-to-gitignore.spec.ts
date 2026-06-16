@@ -7,9 +7,9 @@ test.describe('DS_Store gitignore for new vaults', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('Repair Vault command is available in the command palette', async ({ page }) => {
+  test('Repair Notebook command is available in the command palette', async ({ page }) => {
     await openCommandPalette(page)
-    const found = await findCommand(page, 'Repair Vault')
+    const found = await findCommand(page, 'Repair Notebook')
     expect(found).toBe(true)
   })
 })

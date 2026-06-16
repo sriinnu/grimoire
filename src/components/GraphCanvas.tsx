@@ -137,6 +137,12 @@ export function GraphCanvas({
           <GraphNode
             key={node.id}
             localOnly={localOnlyNodeIds.has(node.id)}
+            labelVisible={shouldShowNodeLabel({
+              node,
+              selected: node.id === selectedNodeId,
+              sourceSafe: sourceSafeNodePaths.has(node.path),
+              totalNodes: layout.nodes.length,
+            })}
             node={node}
             selected={node.id === selectedNodeId}
             sourceSafe={sourceSafeNodePaths.has(node.path)}
@@ -146,7 +152,7 @@ export function GraphCanvas({
         ))}
         {layout.nodes.length === 0 ? (
           <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y} textAnchor="middle" fill="var(--muted-foreground)" fontSize="18">
-            No matching notes
+            No matching pages
           </text>
         ) : null}
       </svg>
@@ -218,6 +224,24 @@ function graphPackageLabel(state: AgentGraphContext['state']): string {
   if (state === 'protected-active') return 'Agent package blocked'
   if (state === 'empty') return 'No agent package'
   return 'Source-safe package'
+}
+
+function shouldShowNodeLabel({
+  node,
+  selected,
+  sourceSafe,
+  totalNodes,
+}: {
+  node: PositionedGraphNode
+  selected: boolean
+  sourceSafe: boolean
+  totalNodes: number
+}): boolean {
+  if (node.active || selected) return true
+  if (totalNodes <= 18) return true
+  if (sourceSafe) return true
+  if (totalNodes <= 36) return node.neighborhood && node.degree >= 3
+  return node.degree >= 10
 }
 
 function GraphEdge({

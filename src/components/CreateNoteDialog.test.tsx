@@ -19,7 +19,7 @@ describe('CreateNoteDialog', () => {
 
   it('shows title input and type buttons when open', () => {
     render(<CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} />)
-    expect(screen.getByPlaceholderText('Enter note title...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Enter page title...')).toBeInTheDocument()
     expect(screen.getByText('Note')).toBeInTheDocument()
     expect(screen.getByText('Project')).toBeInTheDocument()
     expect(screen.getByText('Topic')).toBeInTheDocument()
@@ -32,14 +32,14 @@ describe('CreateNoteDialog', () => {
 
   it('enables Create button when title is entered', () => {
     render(<CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} />)
-    const input = screen.getByPlaceholderText('Enter note title...')
+    const input = screen.getByPlaceholderText('Enter page title...')
     fireEvent.change(input, { target: { value: 'My Note' } })
     expect(screen.getByText('Create')).not.toBeDisabled()
   })
 
   it('calls onCreate with trimmed title and selected type', () => {
     render(<CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} />)
-    const input = screen.getByPlaceholderText('Enter note title...')
+    const input = screen.getByPlaceholderText('Enter page title...')
     fireEvent.change(input, { target: { value: '  My Project  ' } })
 
     // Select Project type
@@ -54,7 +54,7 @@ describe('CreateNoteDialog', () => {
 
   it('calls onCreate on form submit (Enter key)', () => {
     render(<CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} />)
-    const input = screen.getByPlaceholderText('Enter note title...')
+    const input = screen.getByPlaceholderText('Enter page title...')
     fireEvent.change(input, { target: { value: 'Test' } })
     fireEvent.submit(input.closest('form')!)
 
@@ -63,7 +63,7 @@ describe('CreateNoteDialog', () => {
 
   it('does not submit when title is whitespace', () => {
     render(<CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} />)
-    const input = screen.getByPlaceholderText('Enter note title...')
+    const input = screen.getByPlaceholderText('Enter page title...')
     fireEvent.change(input, { target: { value: '   ' } })
     fireEvent.submit(input.closest('form')!)
 
@@ -78,7 +78,7 @@ describe('CreateNoteDialog', () => {
 
   it('uses defaultType when provided', () => {
     render(<CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} defaultType="Project" />)
-    const input = screen.getByPlaceholderText('Enter note title...')
+    const input = screen.getByPlaceholderText('Enter page title...')
     fireEvent.change(input, { target: { value: 'New Project' } })
     fireEvent.submit(input.closest('form')!)
 
@@ -97,7 +97,7 @@ describe('CreateNoteDialog', () => {
     render(
       <CreateNoteDialog open={true} onClose={onClose} onCreate={onCreate} customTypes={['Recipe']} />
     )
-    const input = screen.getByPlaceholderText('Enter note title...')
+    const input = screen.getByPlaceholderText('Enter page title...')
     fireEvent.change(input, { target: { value: 'Pasta Recipe' } })
     fireEvent.click(screen.getByText('Recipe'))
     fireEvent.submit(input.closest('form')!)

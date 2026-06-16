@@ -31,7 +31,7 @@ related_to:
 
 # Grimoire Feature Showcase
 
-This is the shippable project inside the demo vault. It shows how Grimoire holds a real working system: Markdown notes, journals, dreams, links, properties, search, command flows, canvases, attachments, audio capture, console notes, local agents, privacy boundaries, themes, and portability.
+This is the shippable project inside the demo vault. It shows how Grimoire holds a real working system: Markdown notes, journals, dreams, links, properties, search, command flows, canvases, attachments, audio capture, console notes, local agents, privacy boundaries, experience profiles, and portability.
 
 ## Start here
 
@@ -53,7 +53,7 @@ Open [[grimoire-start-here]] first, then keep [[grimoire-feature-tour]] beside i
 - [[grimoire-audio-transcription]] for audio import, recording, transcript, and clean-note flow.
 - [[grimoire-privacy-and-memory]] for Locality Firewall, Memory, and safe agent context.
 - [[grimoire-portability-and-sync]] for Git, export/import, and object-storage readiness.
-- [[grimoire-settings-and-themes]] for themes, typography, providers, and API key settings.
+- [[grimoire-settings-and-themes]] for experience profiles, color mode, typography, providers, and API key settings.
 
 ## Why it exists
 

@@ -1,7 +1,13 @@
 .sidebar-brand-mark,
 .app-sidebar-rail__mark {
+  --brand-mark-cover: color-mix(in srgb, var(--surface-card) 90%, var(--sidebar-primary) 10%);
+  --brand-mark-dot: color-mix(in srgb, var(--sidebar-primary) 68%, var(--sidebar-foreground));
+  --brand-mark-ink: color-mix(in srgb, var(--sidebar-foreground) 74%, transparent);
+  --brand-mark-page: color-mix(in srgb, var(--surface-card) 96%, var(--sidebar-primary) 4%);
+  --brand-mark-rule: color-mix(in srgb, var(--sidebar-foreground) 34%, transparent);
   position: relative;
   overflow: hidden;
+  box-shadow: none;
 }
 
 .sidebar-brand-mark::before,
@@ -9,37 +15,103 @@
   content: "";
   position: absolute;
   inset: -20%;
-  background:
-    radial-gradient(circle at 28% 22%, color-mix(in srgb, var(--sidebar-primary) 34%, transparent), transparent 34%),
-    linear-gradient(135deg, color-mix(in srgb, var(--accent-purple) 14%, transparent), transparent 58%);
-  opacity: 0.72;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--sidebar-primary) 7%, transparent);
+  opacity: 1;
 }
 
-.sidebar-brand-mark > img,
-.app-sidebar-rail__mark > img {
+.sidebar-brand-notebook-mark {
   position: relative;
   z-index: 1;
+  color: var(--sidebar-foreground, var(--foreground));
+  display: block;
+}
+
+.sidebar-brand-notebook-mark__cover {
+  fill: var(--brand-mark-cover);
+  stroke: color-mix(in srgb, var(--brand-mark-ink) 62%, transparent);
+  stroke-width: 1.35;
+}
+
+.sidebar-brand-notebook-mark__page {
+  fill: var(--brand-mark-page);
+  stroke: color-mix(in srgb, var(--brand-mark-ink) 54%, transparent);
+  stroke-linejoin: round;
+  stroke-width: 0.95;
+}
+
+.sidebar-brand-notebook-mark__spine,
+.sidebar-brand-notebook-mark__rule {
+  fill: none;
+  stroke: var(--brand-mark-rule);
+  stroke-linecap: round;
+  stroke-width: 1.05;
+}
+
+.sidebar-brand-notebook-mark__dot {
+  fill: var(--brand-mark-dot);
 }
 
 .sidebar-brand-wordmark {
   color: var(--sidebar-foreground, var(--foreground));
   display: block;
   font-family: var(--grimoire-wordmark-font-family);
-  font-feature-settings: "kern" 1, "liga" 1, "dlig" 1, "swsh" 1;
-  font-size: 21px;
-  font-style: italic;
-  font-variant-ligatures: discretionary-ligatures;
-  font-weight: 760;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  height: 23px;
   letter-spacing: 0;
-  line-height: 0.94;
-  max-width: 100%;
-  text-rendering: geometricPrecision;
-  text-shadow: 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+  line-height: 0.96;
+  max-width: min(138px, 100%);
+  overflow: visible;
+  position: relative;
+  text-wrap: nowrap;
+  text-rendering: optimizeLegibility;
+  white-space: nowrap;
+  width: 138px;
 }
 
-.sidebar-brand-wordmark::first-letter {
-  color: color-mix(in srgb, var(--sidebar-primary) 76%, var(--sidebar-foreground));
-  font-size: 1.18em;
-  font-style: normal;
-  font-weight: 820;
+.sidebar-brand-wordmark__text {
+  align-items: baseline;
+  display: inline-flex;
+  transform: translateY(1px) rotate(-0.3deg);
+}
+
+.sidebar-brand-wordmark__letter {
+  display: inline-block;
+  transform: translateY(var(--wordmark-y, 0)) rotate(var(--wordmark-rotate, 0deg));
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="0"] {
+  --wordmark-rotate: -1.2deg;
+  --wordmark-y: 0.02em;
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="1"] {
+  --wordmark-rotate: 0.8deg;
+  --wordmark-y: -0.03em;
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="2"],
+.sidebar-brand-wordmark__letter[data-letter-index="5"] {
+  --wordmark-rotate: -0.5deg;
+  --wordmark-y: 0.04em;
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="3"] {
+  --wordmark-rotate: 0.6deg;
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="4"] {
+  --wordmark-rotate: -0.3deg;
+  --wordmark-y: -0.02em;
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="6"] {
+  --wordmark-rotate: 0.7deg;
+}
+
+.sidebar-brand-wordmark__letter[data-letter-index="7"] {
+  --wordmark-rotate: -0.9deg;
+  --wordmark-y: 0.01em;
 }

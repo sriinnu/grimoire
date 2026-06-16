@@ -9,7 +9,7 @@ describe('getNoteLocationLabel', () => {
   })
 
   it('falls back to root for top-level vault notes', () => {
-    expect(getNoteLocationLabel('/Users/srinivas/Grimoire/todo.md')).toBe('Vault root')
+    expect(getNoteLocationLabel('/Users/srinivas/Grimoire/todo.md')).toBe('Notebook root')
   })
 
   it('uses the active vault path when a vault name is custom', () => {

@@ -54,7 +54,7 @@ describe('status bar theme CSS', () => {
   })
 
   it('keeps semantic status tones theme-owned after generic button color resets', () => {
-    const genericResetIndex = css.indexOf('[data-testid="status-mcp"]')
+    const genericResetIndex = css.indexOf('[data-testid="status-conflict-count"]')
     const groupedResetIndex = css.indexOf(':is(button:not([data-status-action-tone]), [role="button"]:not([data-status-action-tone]))')
     expect(genericResetIndex).toBeGreaterThanOrEqual(0)
     expect(groupedResetIndex).toBeGreaterThan(genericResetIndex)
@@ -94,8 +94,18 @@ describe('status bar theme CSS', () => {
     expect(css).toContain(':root,\n[data-theme="light"],\n[data-theme="dark"],')
     expect(css).toContain('--status-bar-hairline: var(--grimoire-hairline')
     expect(css).toContain('--status-bar-material: var(--grimoire-status-material')
-    expect(css).toContain('[data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"]) :is(button, [role="button"])')
-    expect(css).toContain('.status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-spanda-group"], [data-testid="status-agent-group"], [data-testid="status-utility-group"])')
+    expect(css).toContain('[data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-utility-group"]) :is(button, [role="button"])')
+    expect(css).toContain('.status-bar :is([data-testid="status-workspace-group"], [data-testid="status-workflow-group"], [data-testid="status-utility-group"])')
+    expect(css).toContain('background: transparent !important')
+    expect(css).toContain('box-shadow: none !important')
+    expect(css).toContain('.status-bar-summary-chip[data-status-summary-tone="success"]')
+    expect(css).toContain('.status-bar-summary-chip[data-status-summary-tone="warning"]')
+    expect(css).toContain('.status-bar-summary-chip[data-status-summary-tone="danger"]')
+    expect(css).toContain('@media (max-width: 560px)')
+    expect(css).toContain('.status-bar [data-testid="status-private-signal"]')
+    expect(css).toContain('display: none !important')
+    expect(css).toContain('.status-bar-overflow-menu')
+    expect(css).toContain('--color-popover: var(--status-bar-popover-bg)')
   })
 
   it('keeps popover muted text separate from the footer rail muted token', () => {

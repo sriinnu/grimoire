@@ -100,7 +100,7 @@ describe('EditorNavigatorPopover', () => {
       </>,
     )
 
-    expect(screen.getByText('2 Spelllinks')).toBeInTheDocument()
+    expect(screen.getByText('2 note links')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /Core Memory/i }))
 
     expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' })

@@ -67,13 +67,13 @@ export function getWelcomeScreenPresentation(
       heroBackground: 'transparent',
       heroIcon: <img src={grimoireIcon} alt="Grimoire icon" style={BRAND_ICON_STYLE} />,
       openFolderDescription: 'Point to any local, iCloud Drive, or Google Drive folder. Git stays optional.',
-      openFolderLabel: 'Open existing vault',
-      subtitle: 'Plain Markdown vaults. Local by default. Git optional.',
+      openFolderLabel: 'Open notebook folder',
+      subtitle: 'One plain Markdown notebook. Local by default. Git optional.',
       templateDescription: isOffline
-        ? `Uses the bundled Getting Started vault while offline. Suggested path: ${defaultVaultPath}`
-        : 'Download the Getting Started vault, with a bundled fallback if the network is unavailable.',
+        ? `Uses the bundled Getting Started notebook while offline. Suggested path: ${defaultVaultPath}`
+        : 'Download the Getting Started notebook, with a bundled fallback if the network is unavailable.',
       title: 'Welcome to Grimoire',
-      emptyVaultDescription: 'Create a local Markdown folder with Grimoire defaults. No Git required.',
+      emptyVaultDescription: 'Create a local Markdown notebook with Grimoire defaults. No Git required.',
     }
   }
 
@@ -82,11 +82,11 @@ export function getWelcomeScreenPresentation(
     heroIcon: <AlertTriangle size={28} style={{ color: 'var(--accent-orange)' }} />,
     openFolderDescription: 'Point to another local or cloud-synced folder you control.',
     openFolderLabel: 'Choose a different folder',
-    subtitle: 'The vault folder could not be found on disk.\nIt may have been moved or deleted.',
+    subtitle: 'The notebook folder could not be found on disk.\nIt may have been moved or deleted.',
     templateDescription: isOffline
-      ? `Uses the bundled Getting Started vault while offline. Suggested path: ${defaultVaultPath}`
-      : 'Download the Getting Started vault, with a bundled fallback if the network is unavailable.',
-    title: 'Vault not found',
-    emptyVaultDescription: 'Create a replacement local Markdown vault. No Git required.',
+      ? `Uses the bundled Getting Started notebook while offline. Suggested path: ${defaultVaultPath}`
+      : 'Download the Getting Started notebook, with a bundled fallback if the network is unavailable.',
+    title: 'Notebook not found',
+    emptyVaultDescription: 'Create a replacement local Markdown notebook. No Git required.',
   }
 }

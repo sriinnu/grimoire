@@ -91,7 +91,7 @@ describe('filterEntries', () => {
     expect(result.map((entry) => entry.title)).toEqual(['Archived'])
   })
 
-  it('excludes attachments-folder markdown from the All Notes view', () => {
+  it('excludes attachments-folder markdown from the Pages view', () => {
     const entries = [
       makeEntry({ path: '/vault/note/real-note.md', title: 'Real Note', isA: 'Note' }),
       makeEntry({ path: '/vault/attachments/reference.md', title: 'Attachment Markdown', isA: 'Note' }),
@@ -166,7 +166,7 @@ describe('countAllByFilter', () => {
 })
 
 describe('countAllNotesByFilter', () => {
-  it('excludes attachments-folder files from All Notes totals', () => {
+  it('excludes attachments-folder files from Pages totals', () => {
     const entries = [
       makeEntry({ path: '/vault/note/real-note.md', isA: 'Note' }),
       makeEntry({ path: '/vault/attachments/reference.md', isA: 'Note' }),

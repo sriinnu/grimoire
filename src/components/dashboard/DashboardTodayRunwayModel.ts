@@ -3,16 +3,16 @@ import {
   type CaptureKind,
 } from '../../utils/dashboardCapture'
 
-export const DASHBOARD_FLOW_KINDS = ['note', 'journal', 'task', 'ask'] as const
+export const DASHBOARD_FLOW_KINDS = ['note', 'journal', 'revisit', 'ask'] as const
 
 /** Dashboard Daily Flow step identifiers used by the runway selection model. */
 export type DashboardFlowKind = typeof DASHBOARD_FLOW_KINDS[number]
 
-/** Maps capture lanes onto the smaller four-step Daily Flow ritual. */
+/** Maps capture lanes onto the four-step Daily Flow ritual. */
 export function flowKindForCaptureKind(captureKind: CaptureKind | null): DashboardFlowKind | null {
   if (captureKind === 'ask') return 'ask'
   if (captureKind === 'journal' || captureKind === 'dream') return 'journal'
-  if (captureKind === 'task' || captureKind === 'memory') return 'task'
+  if (captureKind === 'task' || captureKind === 'memory') return 'revisit'
   if (captureKind === 'note') return 'note'
   return null
 }

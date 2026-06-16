@@ -5,8 +5,8 @@ test('clicking + in type section creates note with that type', async ({ page }) 
   await page.goto('/')
   await page.waitForTimeout(2000)
 
-  // Click on "Projects" in the sidebar to select that type section
-  const projectsItem = page.locator('[data-testid="sidebar-section-Projects"]').or(page.locator('.app__sidebar').locator('text=Projects').first())
+  // Click on "Making" in the sidebar to select the Project place.
+  const projectsItem = page.locator('.app__sidebar').locator('text=Making').first()
   await projectsItem.click()
   await page.waitForTimeout(1000)
 
@@ -27,12 +27,12 @@ test('clicking + in type section creates note with that type', async ({ page }) 
   expect(content).toContain('type: Project')
 })
 
-test('clicking + in All Notes creates generic note', async ({ page }) => {
+test('clicking + in Pages creates generic note', async ({ page }) => {
   await page.goto('/')
   await page.waitForTimeout(2000)
 
-  // Click on "All Notes" in sidebar
-  await page.locator('text=All Notes').first().click()
+  // Click on "Pages" in sidebar
+  await page.locator('text=Pages').first().click()
   await page.waitForTimeout(500)
 
   // Click the "+" button

@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 export const COLUMN_MIN_WIDTHS = {
   sidebar: 180,
   noteList: 220,
-  editor: 800,
+  editor: 560,
   inspector: 240,
 } as const
 
@@ -18,7 +18,6 @@ const COLUMN_DEFAULT_WIDTHS = {
   noteList: 450,
   inspector: 280,
 } as const
-const OUTER_RESIZE_HANDLES_WIDTH = 8
 const FULL_LAYOUT_RESIZE_HANDLES_WIDTH = 12
 
 interface LayoutPanelOptions {
@@ -44,7 +43,19 @@ function getViewportWidth(options?: LayoutPanelOptions): number | null {
 }
 
 function fitCollapsedNavigationColumns(viewportWidth: number): Pick<InitialLayout, 'sidebarWidth' | 'noteListWidth'> {
-  const navigationBudget = viewportWidth - COLUMN_MIN_WIDTHS.editor - OUTER_RESIZE_HANDLES_WIDTH
+  const navigationBudget = viewportWidth - COLUMN_MIN_WIDTHS.editor - FULL_LAYOUT_RESIZE_HANDLES_WIDTH
+  return fitNavigationColumns(navigationBudget)
+}
+
+function fitVisibleNavigationColumns(viewportWidth: number): Pick<InitialLayout, 'sidebarWidth' | 'noteListWidth'> {
+  const navigationBudget = viewportWidth
+    - COLUMN_MIN_WIDTHS.editor
+    - COLUMN_DEFAULT_WIDTHS.inspector
+    - FULL_LAYOUT_RESIZE_HANDLES_WIDTH
+  return fitNavigationColumns(navigationBudget)
+}
+
+function fitNavigationColumns(navigationBudget: number): Pick<InitialLayout, 'sidebarWidth' | 'noteListWidth'> {
   const defaultNavigationWidth = COLUMN_DEFAULT_WIDTHS.sidebar + COLUMN_DEFAULT_WIDTHS.noteList
   const minimumNavigationWidth = COLUMN_MIN_WIDTHS.sidebar + COLUMN_MIN_WIDTHS.noteList
 
@@ -68,20 +79,19 @@ function fitCollapsedNavigationColumns(viewportWidth: number): Pick<InitialLayou
 
 function resolveInitialLayout(options?: LayoutPanelOptions): InitialLayout {
   const viewportWidth = getViewportWidth(options)
-  const fullDefaultWidth = COLUMN_DEFAULT_WIDTHS.sidebar
-    + COLUMN_DEFAULT_WIDTHS.noteList
+  const compactInspectorWidth = COLUMN_MIN_WIDTHS.sidebar
+    + COLUMN_MIN_WIDTHS.noteList
     + COLUMN_DEFAULT_WIDTHS.inspector
     + COLUMN_MIN_WIDTHS.editor
     + FULL_LAYOUT_RESIZE_HANDLES_WIDTH
   const inspectorCollapsed = options?.initialInspectorCollapsed ?? (
-    viewportWidth !== null && viewportWidth < fullDefaultWidth
+    viewportWidth !== null && viewportWidth < compactInspectorWidth
   )
-  const navigationWidths = inspectorCollapsed && viewportWidth !== null
-    ? fitCollapsedNavigationColumns(viewportWidth)
-    : {
-        sidebarWidth: COLUMN_DEFAULT_WIDTHS.sidebar,
-        noteListWidth: COLUMN_DEFAULT_WIDTHS.noteList,
-      }
+  const navigationWidths = viewportWidth === null
+    ? { sidebarWidth: COLUMN_DEFAULT_WIDTHS.sidebar, noteListWidth: COLUMN_DEFAULT_WIDTHS.noteList }
+    : inspectorCollapsed
+      ? fitCollapsedNavigationColumns(viewportWidth)
+      : fitVisibleNavigationColumns(viewportWidth)
 
   return {
     ...navigationWidths,

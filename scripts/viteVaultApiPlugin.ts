@@ -2,7 +2,27 @@ import type { IncomingMessage, ServerResponse } from 'http'
 import fs from 'fs'
 import path from 'path'
 import type { Plugin } from 'vite'
-import { classifyFileKind, findMarkdownFiles, findVaultFiles, parseMarkdownFile, parseVaultFile } from './viteVaultApiModel'
+import {
+  classifyFileKind,
+  findMarkdownFiles,
+  findVaultFiles,
+  parseMarkdownFile,
+  parseVaultFile,
+} from './viteVaultApiModel'
+import { findVaultEntryFiles, parseVaultEntryFile } from './viteVaultApiEntryModel'
+
+const IMAGE_MIME_TYPES: Record<string, string> = {
+  '.avif': 'image/avif',
+  '.bmp': 'image/bmp',
+  '.gif': 'image/gif',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.svg': 'image/svg+xml',
+  '.tif': 'image/tiff',
+  '.tiff': 'image/tiff',
+  '.webp': 'image/webp',
+}
 
 function sendJson(res: ServerResponse, payload: unknown, statusCode = 200): void {
   res.statusCode = statusCode
@@ -17,6 +37,10 @@ function readExistingQueryPath(url: URL, res: ServerResponse, key: string): stri
     return null
   }
   return filePath
+}
+
+function vaultFileMimeType(filePath: string): string {
+  return IMAGE_MIME_TYPES[path.extname(filePath).toLowerCase()] ?? 'application/octet-stream'
 }
 
 function updateTitleWikilinks(vaultPath: string, oldTitle: string, _newTitle: string, excludePath: string): number {
@@ -71,8 +95,25 @@ function handleVaultList(url: URL, res: ServerResponse): boolean {
   if (url.pathname !== '/api/vault/list') return false
   const dirPath = readExistingQueryPath(url, res, 'path')
   if (!dirPath) return true
-  const entries = findVaultFiles(dirPath).map(parseVaultFile).filter(Boolean)
+  const entries = findVaultEntryFiles(dirPath).map(parseVaultEntryFile).filter(Boolean)
   sendJson(res, entries)
+  return true
+}
+
+function handleVaultFile(url: URL, res: ServerResponse): boolean {
+  if (url.pathname !== '/api/vault/file') return false
+  const filePath = readExistingQueryPath(url, res, 'path')
+  if (!filePath) return true
+  if (!fs.statSync(filePath).isFile()) {
+    sendJson(res, { error: 'Path is not a file' }, 400)
+    return true
+  }
+
+  res.statusCode = 200
+  res.setHeader('Content-Type', vaultFileMimeType(filePath))
+  res.setHeader('Cache-Control', 'no-store')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  fs.createReadStream(filePath).pipe(res)
   return true
 }
 
@@ -104,7 +145,7 @@ function handleVaultEntry(url: URL, res: ServerResponse): boolean {
   if (url.pathname !== '/api/vault/entry') return false
   const filePath = readExistingQueryPath(url, res, 'path')
   if (!filePath) return true
-  sendJson(res, parseVaultFile(filePath))
+  sendJson(res, parseVaultEntryFile(filePath))
   return true
 }
 
@@ -281,6 +322,7 @@ async function handleVaultApiRequest(req: IncomingMessage, res: ServerResponse):
   const handlers = [
     () => Promise.resolve(handleVaultPing(url, res)),
     () => Promise.resolve(handleVaultList(url, res)),
+    () => Promise.resolve(handleVaultFile(url, res)),
     () => Promise.resolve(handleVaultContent(url, res)),
     () => Promise.resolve(handleVaultAllContent(url, res)),
     () => Promise.resolve(handleVaultEntry(url, res)),

@@ -68,7 +68,7 @@ describe('agent council theme CSS', () => {
     expect(coherenceCss).toContain('--muted: color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel))')
   })
 
-  it('lets Living Archive feed its parchment panel gradient into shared panel material', () => {
+  it('lets Graphite Archive feed its panel material into shared panel material', () => {
     expect(polishCss).toContain('--grimoire-panel-material: var(--grimoire-panel-gradient), var(--surface-panel)')
   })
 })

@@ -1,13 +1,21 @@
 import type { ThemePreset } from '../lib/appearance'
 import type { createTranslator, TranslationKey } from '../lib/i18n'
+import type { ThemeEditorDefinition } from '../themes/themeDefinition'
 import {
   PRESET_SWATCHES,
+  type ThemeCanvasStyle,
+  type ThemeCodeBlockStyle,
+  type ThemeDensityScale,
+  type ThemeGraphStyle,
+  type ThemeMotionProfile,
   type ThemePresetCatalogEntry,
   THEME_PRESET_CATALOG,
 } from '../themes/themeRegistry'
 
 type Translate = ReturnType<typeof createTranslator>
-export type ThemePresetGroupId = 'signature' | 'studio' | 'lab'
+export type ThemePresetGroupId = 'signature' | 'paper' | 'specialist'
+export type ProfileShellStyle = 'archive' | 'map' | 'notebook' | 'terminal'
+export type ProfileWritingStyle = ThemeEditorDefinition['headingStyle']
 
 /** Localized appearance preset option rendered by the settings picker. */
 export interface PresetOption {
@@ -16,6 +24,13 @@ export interface PresetOption {
   description: string
   swatches: [string, string, string]
   group: ThemePresetGroupId
+  densityScale: ThemeDensityScale
+  motionProfile: ThemeMotionProfile
+  graphStyle: ThemeGraphStyle
+  canvasStyle: ThemeCanvasStyle
+  codeBlockStyle: ThemeCodeBlockStyle
+  shellStyle: ProfileShellStyle
+  writingStyle: ProfileWritingStyle
 }
 
 export interface PresetOptionGroup {
@@ -31,13 +46,13 @@ const PRESET_TRANSLATION_KEYS: Partial<Record<ThemePreset, [TranslationKey, Tran
     'settings.themePreset.constellation',
     'settings.themePreset.constellationDescription',
   ],
-  'daylight-atelier': [
-    'settings.themePreset.daylightAtelier',
-    'settings.themePreset.daylightAtelierDescription',
+  'daylight-notebook': [
+    'settings.themePreset.daylightNotebook',
+    'settings.themePreset.daylightNotebookDescription',
   ],
-  'prabhat-studio': [
-    'settings.themePreset.prabhatStudio',
-    'settings.themePreset.prabhatStudioDescription',
+  'morning-notebook': [
+    'settings.themePreset.morningNotebook',
+    'settings.themePreset.morningNotebookDescription',
   ],
   'living-archive': [
     'settings.themePreset.livingArchive',
@@ -47,9 +62,9 @@ const PRESET_TRANSLATION_KEYS: Partial<Record<ThemePreset, [TranslationKey, Tran
     'settings.themePreset.nocturne',
     'settings.themePreset.nocturneDescription',
   ],
-  'retro-terminal': [
-    'settings.themePreset.retroTerminal',
-    'settings.themePreset.retroTerminalDescription',
+  'code-notebook': [
+    'settings.themePreset.codeNotebook',
+    'settings.themePreset.codeNotebookDescription',
   ],
 }
 
@@ -61,23 +76,23 @@ const PRESET_GROUPS: readonly {
   {
     id: 'signature',
     labelKey: 'settings.themePreset.group.signature',
-    presetIds: ['living-archive', 'nocturne', 'constellation'],
+    presetIds: ['morning-notebook', 'nocturne'],
   },
   {
-    id: 'studio',
-    labelKey: 'settings.themePreset.group.studio',
-    presetIds: ['daylight-atelier', 'prabhat-studio'],
+    id: 'paper',
+    labelKey: 'settings.themePreset.group.paper',
+    presetIds: ['daylight-notebook', 'living-archive'],
   },
   {
-    id: 'lab',
-    labelKey: 'settings.themePreset.group.lab',
-    presetIds: ['retro-terminal'],
+    id: 'specialist',
+    labelKey: 'settings.themePreset.group.specialist',
+    presetIds: ['constellation', 'code-notebook'],
   },
 ]
 
 function groupForPreset(preset: ThemePreset): ThemePresetGroupId {
   const group = PRESET_GROUPS.find((candidate) => candidate.presetIds.includes(preset))
-  return group?.id ?? 'lab'
+  return group?.id ?? 'specialist'
 }
 
 function localizePreset(t: Translate, preset: ThemePresetCatalogEntry) {
@@ -94,6 +109,19 @@ function localizePreset(t: Translate, preset: ThemePresetCatalogEntry) {
   }
 }
 
+export function resolveProfileShellStyle(preset: ThemePresetCatalogEntry): ProfileShellStyle {
+  if (
+    preset.editor.headingStyle === 'terminal'
+    || preset.metadataStrip.style === 'terminal'
+    || preset.visuals.canvasStyle === 'terminal'
+  ) {
+    return 'terminal'
+  }
+  if (preset.visuals.graphStyle === 'constellation') return 'map'
+  if (preset.family === 'archive') return 'archive'
+  return 'notebook'
+}
+
 /** Builds localized appearance preset options for settings controls. */
 export function buildPresetOptions(t: Translate): PresetOption[] {
   return THEME_PRESET_CATALOG.map((preset) => {
@@ -104,6 +132,13 @@ export function buildPresetOptions(t: Translate): PresetOption[] {
       description: copy.description,
       swatches: preset.swatches,
       group: groupForPreset(preset.id),
+      densityScale: preset.density.scale,
+      motionProfile: preset.motion.profile,
+      graphStyle: preset.visuals.graphStyle,
+      canvasStyle: preset.visuals.canvasStyle,
+      codeBlockStyle: preset.editor.codeBlockStyle,
+      shellStyle: resolveProfileShellStyle(preset),
+      writingStyle: preset.editor.headingStyle,
     }
   })
 }

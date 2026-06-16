@@ -162,6 +162,41 @@ describe('Inspector', () => {
     expect(onNavigate).toHaveBeenCalledWith('Software Development')
   })
 
+  it('keeps the Second Brain lane visible and opens the AI chat surface', () => {
+    const onOpenSecondBrain = vi.fn()
+    renderSelectedInspector({ onOpenSecondBrain })
+
+    const panel = screen.getByTestId('second-brain-panel')
+    expect(within(panel).getByText('Second Brain')).toBeInTheDocument()
+    expect(within(panel).getByText('Local context')).toBeInTheDocument()
+    expect(within(panel).getByRole('heading', { name: 'Signal' })).toBeInTheDocument()
+
+    fireEvent.click(within(panel).getByRole('button', { name: 'Open Second Brain chat' }))
+
+    expect(onOpenSecondBrain).toHaveBeenCalledOnce()
+  })
+
+  it('keeps graph nodes visible for notes without explicit relationships', () => {
+    renderSelectedInspector({
+      entry: { ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] },
+      entries: [
+        { ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] },
+        referrerEntry,
+      ],
+    })
+
+    const panel = screen.getByTestId('second-brain-panel')
+    expect(within(panel).getByRole('heading', { name: 'Graph Nodes' })).toBeInTheDocument()
+    expect(within(panel).getByRole('button', { name: 'Current graph node Test Project' })).toHaveAttribute(
+      'data-concept-state',
+      'active',
+    )
+    expect(within(panel).getByRole('button', { name: 'Local graph node 2 local notes' })).toHaveAttribute(
+      'data-concept-state',
+      'nearby',
+    )
+  })
+
   it('applies Living Frontmatter suggestions through frontmatter updates', () => {
     const onUpdateFrontmatter = vi.fn()
     renderSelectedInspector({

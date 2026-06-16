@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 
-interface VaultEntry {
+export interface VaultEntry {
   path: string
   filename: string
   title: string
@@ -35,7 +35,7 @@ interface VaultEntry {
   outgoingLinks: string[]
   properties: Record<string, string | number | boolean | null>
   hasH1: boolean
-  fileKind: 'markdown' | 'text'
+  fileKind: 'markdown' | 'text' | 'binary'
 }
 
 const SCAN_EXCLUDED_DIRS = new Set([
@@ -347,7 +347,7 @@ export function classifyFileKind(filePath: string): 'markdown' | 'text' | 'binar
   return TEXT_FILENAMES.has(filename) ? 'text' : 'binary'
 }
 
-function shouldEnterDir(name: string): boolean {
+export function shouldEnterDir(name: string): boolean {
   const lower = name.toLowerCase()
   return !name.startsWith('.') && !SCAN_EXCLUDED_DIRS.has(lower)
 }
