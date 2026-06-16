@@ -87,11 +87,6 @@ pnpm test:rust-platform-guards
 echo "  ✅ Rust platform guards OK"
 
 echo ""
-echo "📣 Public readiness docs..."
-pnpm test:public-readiness-docs
-echo "  ✅ Public readiness docs OK"
-
-echo ""
 echo "🔗 Public doc links..."
 pnpm test:public-doc-links
 echo "  ✅ Public doc links OK"

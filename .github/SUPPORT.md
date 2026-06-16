@@ -14,14 +14,13 @@ bug reports, and private security reporting.
 | Stable and alpha update feeds | Not published yet. |
 | Private vault recovery | Not supported through public issues. Keep private vault content out of GitHub. |
 
-Before asking for help, check the current release truth in
-[README.md](../README.md) and [Public Readiness](../docs/PUBLIC-READINESS.md).
+Before asking for help, check the current status in [README.md](../README.md).
 
 ## Getting Help From Source
 
-Use the [Source Evaluation Playbook](../docs/SOURCE-EVALUATION-PLAYBOOK.md) first.
-It separates browser source review from native file IO, packaged resources,
-installer launch, updater feeds, and platform proof.
+When running from source, browser mode (`pnpm dev`) uses mock handlers and does
+not touch real files; native mode (`pnpm tauri dev`) exercises the real
+filesystem, menus, and platform behavior.
 
 For setup problems, include:
 

@@ -1,32 +1,19 @@
 # Grimoire Documentation
 
-This directory contains public project documentation: architecture, setup,
-product direction, platform boundaries, release truth, and architecture
-decisions.
+Architecture, setup, product direction, and decision records.
 
-Local working notes are kept out of Git. Files such as active work checkpoints,
-review scratchpads, mockups, and private integration planning notes may exist on
-a developer machine, but they are ignored by `.gitignore` and blocked by the
-local-only audit before publication.
+Local working notes are kept out of Git — active-work checkpoints, scratchpads,
+mockups, and private planning notes live only on a developer's machine
+(`.gitignore`d and blocked by the local-only audit).
 
 ## Start Here
 
 - [Getting Started](GETTING-STARTED.md) - source setup, native setup, and the
   codebase map.
-- [Source Evaluation Playbook](SOURCE-EVALUATION-PLAYBOOK.md) - safe first-pass
-  browser/native source tour and what each lane does or does not prove.
-- [Product Tour](PRODUCT-TOUR.md) - guided starter-vault path through the
-  product's distinctive surfaces and evidence boundaries.
-- [Public Readiness](PUBLIC-READINESS.md) - what is verified, blocked, or still
-  needs platform proof before the repository is advertised publicly.
-- [Release Runbook](RELEASE-RUNBOOK.md) - operator checklist for release
-  preflight, required secret names, tags, and post-release verification.
 - [Architecture](ARCHITECTURE.md) - runtime shape, platform boundaries, and data
   flow.
 - [Abstractions](ABSTRACTIONS.md) - durable concepts and module contracts.
 - [Vision](VISION.md) - product direction and long-term shape.
-- [Differentiation](GRIMOIRE-DIFFERENTIATION.md) - how Grimoire stays distinct
-  from adjacent tools.
 
 ## Product Contracts
 
@@ -41,13 +28,10 @@ local-only audit before publication.
 
 ## Starter And Demo Vaults
 
-- [Public Readiness](PUBLIC-READINESS.md) - includes the starter-vault
-  verification commands and the current public-release blockers.
-- `demo-vault-v2/` - tracked local mirror of the public Getting Started starter
-  vault for tests, browser mock review, and native QA.
+- `demo-vault-v2/` - tracked mirror of the Getting Started starter vault, used
+  for tests, browser review, and native QA.
 - `pnpm test:starter-vault` - validates the feature-tour manifest, scenario
-  files, and internal wikilinks. It is structural proof, not a claim that every
-  advertised app surface is feature-complete.
+  files, and internal wikilinks.
 
 ## Design Direction
 
@@ -58,12 +42,14 @@ local-only audit before publication.
 
 ## Architecture Decisions
 
-- [ADR Index](adr/README.md) - historical architecture decisions.
+- [ADR Index](adr/README.md) - architecture decisions.
+- [Release Runbook](RELEASE-RUNBOOK.md) - operator checklist for when releases
+  are cut.
 
 ## Repository Basics
 
-- [Support](../.github/SUPPORT.md) - public help paths, source evaluation
-  boundaries, feature-request routing, and private-data guardrails.
+- [Support](../.github/SUPPORT.md) - help paths, feature-request routing, and
+  private-data guardrails.
 - [Code of Conduct](../.github/CODE_OF_CONDUCT.md) - participation expectations
   and private-data boundaries for project spaces.
 - [Contributing](../.github/CONTRIBUTING.md) - contribution workflow and local

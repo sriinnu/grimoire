@@ -7,7 +7,7 @@ body:
       value: |
         Thanks for helping harden Grimoire.
 
-        Public binary installers and update feeds are not published yet. If you are evaluating from source, use the [Source Evaluation Playbook](https://github.com/sriinnu/grimoire/blob/main/docs/SOURCE-EVALUATION-PLAYBOOK.md) to separate browser mock review from native file-IO, platform launch, packaged resources, and release evidence.
+        Prebuilt installers are not published yet. If you are evaluating from source, note that browser mode (`pnpm dev`) uses mock handlers with no real file IO, while native mode (`pnpm tauri dev`) exercises the real filesystem.
   - type: input
     id: version
     attributes:

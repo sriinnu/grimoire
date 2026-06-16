@@ -72,9 +72,6 @@ export function releaseNextActions(blockers) {
     if (/README still advertises a direct Grimoire\.app\.tar\.gz URL/u.test(blocker)) {
       addUnique(actions, 'Remove stale direct binary download links from README until the release workflow publishes verified assets.')
     }
-    if (/Public readiness docs (do not clearly say|still say not ready)/u.test(blocker)) {
-      addUnique(actions, 'Update PUBLIC-READINESS.md to match the current audit result before changing public install copy.')
-    }
   }
 
   return actions
