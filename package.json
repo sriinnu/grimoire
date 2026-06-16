@@ -154,5 +154,29 @@
     "@blocknote/react@0.46.2": "patches/@blocknote__react@0.46.2.patch",
     "@tiptap/extension-link@3.19.0": "patches/@tiptap__extension-link@3.19.0.patch",
     "prosemirror-tables@1.8.5": "patches/prosemirror-tables@1.8.5.patch"
+  },
+  "pnpm": {
+    "overrides": {
+      "@babel/core": ">=7.29.6",
+      "@hono/node-server": ">=1.19.13",
+      "@opentelemetry/core": ">=2.8.0",
+      "dompurify": ">=3.4.9",
+      "esbuild": ">=0.28.1",
+      "express-rate-limit": ">=8.2.2",
+      "fast-uri": ">=3.1.2",
+      "hono": ">=4.12.25",
+      "ip-address": ">=10.1.1",
+      "js-yaml": ">=4.2.0",
+      "markdown-it": ">=14.2.0",
+      "path-to-regexp": ">=8.4.0",
+      "picomatch": ">=4.0.4",
+      "postcss": ">=8.5.10",
+      "protobufjs": ">=7.6.3",
+      "qs": ">=6.15.2",
+      "rollup": ">=4.59.0",
+      "uuid": ">=11.1.1",
+      "vite": ">=7.3.5 <8",
+      "ws": ">=8.21.0"
+    }
   }
 }
