@@ -147,9 +147,20 @@
   background: var(--surface-app);
 }
 
-/* Sidebar surfaces become translucent so the system material shows through. */
+/* Sidebar surfaces become translucent so the system material shows through.
+   macOS leans more translucent so the NSVisualEffectView reads like a native
+   Finder/Mail sidebar; Windows stays a touch more opaque for Mica. */
 :root:not([data-native-shell-material="standard"])[data-native-shell-material]
-  :is(body.macos-overlay-chrome, body.windows-chrome)
+  body.macos-overlay-chrome
+  :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+  background: color-mix(in srgb, var(--surface-sidebar) 35%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  body.windows-chrome
   :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
   background: color-mix(in srgb, var(--surface-sidebar) 55%, transparent) !important;
   backdrop-filter: none !important;
