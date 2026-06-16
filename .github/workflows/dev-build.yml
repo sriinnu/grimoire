@@ -1,0 +1,74 @@
+name: Dev Build
+
+# On-demand unsigned installers for checking the app on macOS and Windows.
+# Unlike release.yml, this needs no signing secrets: it disables updater
+# artifacts (createUpdaterArtifacts) so `tauri build` doesn't require the Tauri
+# signing key, and it skips Apple notarization. The resulting installers are
+# unsigned — fine for local testing (macOS: right-click → Open the first time).
+# Dispatch it against any branch to check that branch's build.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS (Apple Silicon, unsigned)
+    runs-on: macos-15
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build (unsigned, no updater artifacts)
+        run: pnpm tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: grimoire-macos-unsigned
+          path: src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+
+  windows:
+    name: Windows x64 (unsigned)
+    runs-on: windows-2025-vs2026
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build (unsigned, no updater artifacts)
+        shell: bash
+        run: pnpm tauri build --config '{"bundle":{"createUpdaterArtifacts":false}}'
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: grimoire-windows-unsigned
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: error
