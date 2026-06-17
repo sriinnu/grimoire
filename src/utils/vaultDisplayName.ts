@@ -71,9 +71,20 @@ export function formatVaultPathForDisplay(
   return stripped
 }
 
-/** Returns the product-facing notebook name for vault chrome. */
+/** True when a label is actually a filesystem path (so it must not be shown raw). */
+function looksLikePath(value: string): boolean {
+  return /[\\/]/u.test(value) || /^[a-z]:$/iu.test(value)
+}
+
+/**
+ * Returns the product-facing notebook name for vault chrome. A label that is
+ * really a path (some vaults register their full canonical path as the label)
+ * is ignored in favour of the path's basename, so chrome never prints
+ * `\\?\C:\Users\…` as a title.
+ */
 export function getNotebookVaultDisplayName(vault: VaultDisplayNameInput): string {
-  const label = vault.label?.trim() ?? ''
+  const rawLabel = vault.label?.trim() ?? ''
+  const label = looksLikePath(rawLabel) ? '' : rawLabel
   const basename = basenameFromPath(vault.path?.trim() ?? '')
   if (label && isStarterNotebookName(label)) return 'Notebook'
   if (basename && isStarterNotebookName(basename)) return 'Notebook'

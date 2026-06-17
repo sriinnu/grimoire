@@ -12,7 +12,7 @@ import type { IconProps } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, type ComponentType } from 'react'
 import { cn } from '../../lib/utils'
 import { formatVaultPathForDisplay } from '../../utils/vaultDisplayName'
-import { getDesktopPlatform } from '../../utils/platform'
+import { desktopPlatformLabel, getDesktopPlatform } from '../../utils/platform'
 import { useHomeDir } from '../../hooks/useHomeDir'
 import { Button } from '../ui/button'
 import type { SettingsBodyProps } from './settingsTypes'
@@ -36,7 +36,7 @@ function createSettingsNav(t: SettingsBodyProps['t']): SettingsNavItem[] {
     { id: 'settings-workflow', label: t('settings.workflow.title'), icon: GearSix },
     { id: 'settings-agents', label: t('settings.aiAgents.title'), icon: Robot },
     { id: 'settings-language', label: t('settings.language.title'), icon: Translate },
-    { id: 'settings-native', label: t('settings.native.title'), icon: AppWindow },
+    { id: 'settings-native', label: t('settings.native.title', { platform: desktopPlatformLabel() }), icon: AppWindow },
     { id: 'settings-privacy', label: t('settings.privacy.title'), icon: ShieldCheck },
   ]
 }

@@ -30,6 +30,7 @@ import {
 import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
 import { notebookTitle } from './vaultDashboardHeaderModel'
+import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import './VaultDashboardLayout.css'
 import './VaultDashboardResponsive.css'
 import './VaultDashboard.css'
@@ -130,7 +131,7 @@ export function VaultDashboard({
       : null,
     [attentionSuggestion.openEntryPath, entries],
   )
-  const activeVaultLabel = activeVault?.label ?? vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Vault'
+  const activeVaultLabel = getNotebookVaultDisplayName({ label: activeVault?.label, path: vaultPath })
   const activeNotebookTitle = notebookTitle(activeVaultLabel)
   const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
   const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)

@@ -52,4 +52,14 @@ describe('getNotebookVaultDisplayName', () => {
     expect(getNotebookVaultDisplayName({ label: 'Sriinnu', path: '/Users/sri/Grimoire' })).toBe('Sriinnu')
     expect(getNotebookVaultDisplayName({ path: '/Users/sri/Research' })).toBe('Research')
   })
+
+  it('falls back to the basename when the label is actually a path', () => {
+    // Some vaults register their full canonical path as the label.
+    expect(
+      getNotebookVaultDisplayName({ label: '\\\\?\\C:\\Users\\sri\\Desktop\\pavani', path: 'C:\\Users\\sri\\Desktop\\pavani' }),
+    ).toBe('pavani')
+    expect(
+      getNotebookVaultDisplayName({ label: '/Users/sri/Notebooks/Field', path: '/Users/sri/Notebooks/Field' }),
+    ).toBe('Field')
+  })
 })

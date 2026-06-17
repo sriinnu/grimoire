@@ -188,7 +188,8 @@ describe('SettingsPanel appearance and agent settings', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    expect(screen.getByText('Native Windows')).toBeInTheDocument()
+    // Both the nav rail item and the section heading now interpolate the platform.
+    expect(screen.getAllByText('Native Windows').length).toBeGreaterThan(0)
     expect(screen.getByRole('switch', { name: 'Windows tray integration not available yet' })).toBeDisabled()
     expect(screen.getByTestId('settings-menu-bar-icon-enabled')).toHaveTextContent(
       'This control stays off until Grimoire ships native quick actions for Windows.',
