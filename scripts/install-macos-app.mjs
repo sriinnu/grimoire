@@ -174,7 +174,19 @@ function installBuiltApp({
   assertSingletonInstall(applicationsDir)
 
   if (!skipSystemActions) {
-    run('codesign', ['--force', '--deep', '--sign', '-', applicationsAppPath])
+    // Stamping LaunchServices metadata above rewrites Info.plist, which voids any
+    // signature from the build — so re-sign here. APPLE_SIGNING_IDENTITY lets the
+    // installed app carry a real Developer ID; default is ad-hoc ('-') so a plain
+    // `pnpm macos:install-app` keeps working without a certificate.
+    const signingIdentity = process.env.APPLE_SIGNING_IDENTITY?.trim() || '-'
+    const signArgs = ['--force', '--deep', '--sign', signingIdentity]
+    if (signingIdentity !== '-') {
+      // Hardened runtime + secure timestamp, so the Developer ID signature is
+      // notarization-ready, not just locally valid.
+      signArgs.push('--options', 'runtime', '--timestamp', '--entitlements', 'src-tauri/entitlements.plist')
+    }
+    signArgs.push(applicationsAppPath)
+    run('codesign', signArgs)
     run('node', [
       'scripts/verify-release-artifacts.mjs',
       '--app',
