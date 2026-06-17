@@ -1,9 +1,11 @@
-import { render, screen } from '@testing-library/react'
-import type { PropsWithChildren, ReactNode } from 'react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import type { MouseEventHandler, PropsWithChildren, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
 
 let capturedMenuPosition: string | undefined
+const updateBlock = vi.fn()
+const focusedBlock = { type: 'paragraph', props: {}, content: [] }
 
 vi.mock('@blocknote/react', () => ({
   AddBlockButton: () => <button type="button">Add block</button>,
@@ -14,14 +16,38 @@ vi.mock('@blocknote/react', () => ({
   SideMenu: ({ children }: PropsWithChildren) => <div data-testid="side-menu">{children}</div>,
   TableColumnHeaderItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
   TableRowHeaderItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
+  useBlockNoteEditor: () => ({
+    schema: {
+      blockSpecs: {
+        paragraph: {},
+        heading: {},
+        bulletListItem: {},
+        numberedListItem: {},
+        checkListItem: {},
+        quote: {},
+        codeBlock: {},
+      },
+    },
+    updateBlock,
+  }),
   useComponentsContext: () => ({
     Generic: {
       Menu: {
-        Root: ({ children, position }: PropsWithChildren<{ position?: string }>) => {
-          capturedMenuPosition = position
+        Root: ({ children, position, sub }: PropsWithChildren<{ position?: string; sub?: boolean }>) => {
+          if (!sub) capturedMenuPosition = position
           return <div data-testid="drag-menu-root">{children}</div>
         },
         Trigger: ({ children }: PropsWithChildren) => <div>{children}</div>,
+        Dropdown: ({ children }: PropsWithChildren) => <div>{children}</div>,
+        Item: ({
+          children,
+          onClick,
+          checked,
+        }: PropsWithChildren<{ onClick?: MouseEventHandler; checked?: boolean }>) => (
+          <button type="button" onClick={onClick} aria-pressed={checked}>
+            {children}
+          </button>
+        ),
       },
     },
     SideMenu: {
@@ -40,6 +66,17 @@ vi.mock('@blocknote/react', () => ({
     side_menu: {
       drag_handle_label: 'Open block menu',
     },
+    slash_menu: {
+      paragraph: { title: 'Paragraph' },
+      heading: { title: 'Heading 1' },
+      heading_2: { title: 'Heading 2' },
+      heading_3: { title: 'Heading 3' },
+      bullet_list: { title: 'Bullet List' },
+      numbered_list: { title: 'Numbered List' },
+      check_list: { title: 'Check List' },
+      quote: { title: 'Quote' },
+      code_block: { title: 'Code Block' },
+    },
   }),
   useExtension: () => ({
     blockDragEnd: vi.fn(),
@@ -47,7 +84,7 @@ vi.mock('@blocknote/react', () => ({
     freezeMenu: vi.fn(),
     unfreezeMenu: vi.fn(),
   }),
-  useExtensionState: () => ({ type: 'paragraph', content: [] }),
+  useExtensionState: () => focusedBlock,
 }))
 
 vi.mock('@blocknote/core/extensions', () => ({
@@ -67,5 +104,26 @@ describe('GrimoireSideMenu', () => {
     expect(screen.getByText('Header row')).toBeInTheDocument()
     expect(screen.getByText('Header column')).toBeInTheDocument()
     expect(screen.queryByText('Colors')).not.toBeInTheDocument()
+  })
+
+  it('offers turn-into conversions for the focused block', () => {
+    render(<GrimoireSideMenu />)
+
+    expect(screen.getByText('Turn into')).toBeInTheDocument()
+    for (const label of ['Paragraph', 'Heading 1', 'Bullet List', 'Quote', 'Code Block']) {
+      expect(screen.getByText(label)).toBeInTheDocument()
+    }
+  })
+
+  it('converts the focused block when a turn-into target is chosen', () => {
+    updateBlock.mockClear()
+    render(<GrimoireSideMenu />)
+
+    fireEvent.click(screen.getByText('Heading 1'))
+
+    expect(updateBlock).toHaveBeenCalledWith(focusedBlock, {
+      type: 'heading',
+      props: { level: 1 },
+    })
   })
 })
