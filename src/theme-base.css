@@ -44,10 +44,46 @@
   --grimoire-portability-rail-material: color-mix(in srgb, var(--surface-card) 62%, var(--surface-panel));
   --grimoire-portability-warn-fg: var(--feedback-warning-text);
   --grimoire-portability-safe-fg: var(--feedback-success-text);
+
+  /* Type scale — one ladder for the whole app so hierarchy is intentional, not
+     ad-hoc per component. Sizes are namespaced --font-size-* to avoid colliding
+     with the --text-* colour tokens. Display/title lean on the serif face. */
+  --font-size-display: 30px;
+  --font-size-title: 22px;
+  --font-size-heading: 17px;
+  --font-size-subheading: 15px;
+  --font-size-body: 14px;
+  --font-size-secondary: 13px;
+  --font-size-caption: 12px;
+  --font-size-overline: 11px;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --tracking-tight: -0.012em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.02em;
+  --tracking-caps: 0.06em;
+
+  /* Elevation ladder — composable, warm-neutral shadows. Replaces ad-hoc
+     per-component box-shadows so surfaces share a consistent sense of depth. */
+  --elevation-1: 0 1px 2px color-mix(in srgb, #000 8%, transparent);
+  --elevation-2: 0 2px 6px color-mix(in srgb, #000 10%, transparent);
+  --elevation-3: 0 6px 18px color-mix(in srgb, #000 12%, transparent);
+  --elevation-4: 0 14px 34px color-mix(in srgb, #000 15%, transparent);
+  --elevation-5: 0 24px 56px color-mix(in srgb, #000 20%, transparent);
+
   font-family: var(--grimoire-ui-font-family);
-  line-height: 1.5;
-  font-weight: 400;
-  font-size: 14px;
+  line-height: var(--leading-normal);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -221,6 +257,12 @@
 :root.dark,
 [data-theme="dark"] {
   color-scheme: dark;
+  /* Deeper, higher-opacity shadows so elevation still reads on dark surfaces. */
+  --elevation-1: 0 1px 2px color-mix(in srgb, #000 28%, transparent);
+  --elevation-2: 0 2px 8px color-mix(in srgb, #000 34%, transparent);
+  --elevation-3: 0 8px 22px color-mix(in srgb, #000 40%, transparent);
+  --elevation-4: 0 16px 40px color-mix(in srgb, #000 48%, transparent);
+  --elevation-5: 0 26px 64px color-mix(in srgb, #000 56%, transparent);
   --surface-app: #101113;
   --surface-sidebar: #0d0e10;
   --surface-panel: #151719;
