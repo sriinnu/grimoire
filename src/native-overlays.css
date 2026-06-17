@@ -31,6 +31,16 @@
   --grimoire-overlay-surface-opacity: 88%;
 }
 
+/* Text legibility per platform. `-webkit-font-smoothing: antialiased` is a
+   macOS idiom that thins/washes text on Windows and Linux ("hardly visible").
+   Off macOS, fall back to the OS's native subpixel rendering so chrome text is
+   crisp and readable. */
+:root[data-platform="windows"],
+:root[data-platform="linux"] {
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
 /* Backdrop shared by dialogs and the command palette: dim AND blur the app
    behind the modal, the way a native sheet does. */
 .grimoire-dialog-overlay {

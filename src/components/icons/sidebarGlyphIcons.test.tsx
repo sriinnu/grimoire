@@ -30,7 +30,7 @@ describe('sidebar glyph icons', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true')
     expect(svg).toHaveAttribute('data-sidebar-glyph', name)
     expect(svg).toHaveAttribute('height', '30')
-    expect(svg).toHaveAttribute('stroke-width', '2.3')
+    expect(svg).toHaveAttribute('stroke-width', '1.85')
     expect(svg.style.getPropertyValue('--sidebar-glyph-primary')).toBe('#234567')
     expect(svg.style.getPropertyValue('--sidebar-glyph-aura')).toContain('var(--accent-blue')
     expect(svg.style.getPropertyValue('--sidebar-glyph-aura')).not.toContain('accent-teal')

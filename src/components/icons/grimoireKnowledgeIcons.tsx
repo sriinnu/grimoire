@@ -9,10 +9,10 @@ type KnowledgeIconProps = IconProps & {
 }
 
 function strokeWidthFor(weight: IconProps['weight']): number {
-  if (weight === 'thin') return 1.15
-  if (weight === 'light') return 1.35
-  if (weight === 'bold') return 2.15
-  return 1.75
+  if (weight === 'thin') return 1.05
+  if (weight === 'light') return 1.2
+  if (weight === 'bold') return 1.9
+  return 1.5
 }
 
 function knowledgeIconStyle(color: IconProps['color'], mirrored: IconProps['mirrored']): KnowledgeIconStyle {
