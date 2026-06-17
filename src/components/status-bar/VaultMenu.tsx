@@ -4,6 +4,8 @@ import { flushSync } from 'react-dom'
 import { AlertTriangle, Check, FolderOpen, GitBranch, Loader2, Plus, Rocket, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { formatVaultPathForDisplay, getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
+import { getDesktopPlatform } from '../../utils/platform'
+import { useHomeDir } from '../../hooks/useHomeDir'
 import {
   STATUS_BAR_POPOVER_BACKGROUND,
   STATUS_BAR_POPOVER_FOREGROUND,
@@ -148,6 +150,8 @@ function VaultMenuIcon({ isActive, unavailable }: { isActive: boolean; unavailab
 function VaultMenuItem({ vault, isActive, canRemove, onSelect, onRemove }: VaultMenuItemProps) {
   const unavailable = vault.available === false
   const displayLabel = getNotebookVaultDisplayName(vault)
+  const homeDir = useHomeDir()
+  const displayPath = formatVaultPathForDisplay(vault.path, { homeDir, platform: getDesktopPlatform() })
   const removeLabel = `Remove ${displayLabel} from list`
   const itemClassName = [
     'w-full justify-start rounded-sm px-2 py-1 text-xs font-normal',
@@ -166,11 +170,7 @@ function VaultMenuItem({ vault, isActive, canRemove, onSelect, onRemove }: Vault
         disabled={unavailable}
         onClick={onSelect}
         aria-current={isActive ? 'true' : undefined}
-        title={
-          unavailable
-            ? `Notebook not found: ${formatVaultPathForDisplay(vault.path)}`
-            : formatVaultPathForDisplay(vault.path)
-        }
+        title={unavailable ? `Notebook not found: ${displayPath}` : displayPath}
         data-testid={`vault-menu-item-${vault.label}`}
         className={itemClassName}
         style={{

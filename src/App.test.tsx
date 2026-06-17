@@ -48,6 +48,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 vi.mock('./lib/tauriRuntime', () => ({
   invoke: tauriInvokeMock,
   isTauriRuntimeAvailable: tauriRuntimeAvailableMock,
+  getHomeDir: vi.fn(async () => null),
   createTauriChannel: vi.fn(async () => ({ onmessage: null })),
   getCurrentTauriWindow: vi.fn(async () => ({
     startDragging: vi.fn(async () => {}),

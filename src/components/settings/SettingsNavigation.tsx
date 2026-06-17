@@ -12,6 +12,8 @@ import type { IconProps } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, type ComponentType } from 'react'
 import { cn } from '../../lib/utils'
 import { formatVaultPathForDisplay } from '../../utils/vaultDisplayName'
+import { getDesktopPlatform } from '../../utils/platform'
+import { useHomeDir } from '../../hooks/useHomeDir'
 import { Button } from '../ui/button'
 import type { SettingsBodyProps } from './settingsTypes'
 
@@ -68,6 +70,8 @@ function scrollToSettingsSection(sectionId: string, onSectionChange: (sectionId:
 /** Renders the desktop Settings sidebar rail with vault-local status context. */
 export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, onSectionChange }: SettingsNavigationProps) {
   const navItems = useMemo(() => createSettingsNav(t), [t])
+  const homeDir = useHomeDir()
+  const displayPath = formatVaultPathForDisplay(vaultPath, { homeDir, platform: getDesktopPlatform() })
 
   return (
     <aside
@@ -81,7 +85,7 @@ export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, 
           </div>
           <div className="mt-2 truncate text-sm font-semibold text-foreground">{vaultName(vaultPath)}</div>
           <div className="mt-1 truncate text-[11px] text-muted-foreground">
-            {formatVaultPathForDisplay(vaultPath) || t('settings.vault.noVault')}
+            {displayPath || t('settings.vault.noVault')}
           </div>
           <div className="settings-vault-state-pill mt-3 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]">
             <ShieldCheck size={12} />
