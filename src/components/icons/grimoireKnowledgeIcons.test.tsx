@@ -34,4 +34,21 @@ describe('grimoire knowledge icons', () => {
     expect(svg.style.getPropertyValue('--knowledge-icon-accent')).not.toContain('accent-teal')
     expect(svg.querySelector('[stroke="var(--knowledge-icon-accent)"], [fill="var(--knowledge-icon-accent)"]')).not.toBeNull()
   })
+
+  // Pin every stroke branch so a typo in any weight value is caught.
+  const STROKE_WIDTHS = [
+    ['thin', '1.05'],
+    ['light', '1.2'],
+    ['regular', '1.5'],
+    ['bold', '1.9'],
+  ] as const
+  it.each(STROKE_WIDTHS)('uses stroke-width %s → %s', (weight, expected) => {
+    render(<BrainIcon data-testid="knowledge-icon" weight={weight} />)
+    expect(screen.getByTestId('knowledge-icon')).toHaveAttribute('stroke-width', expected)
+  })
+
+  it('defaults to the regular stroke when no weight is given', () => {
+    render(<BrainIcon data-testid="knowledge-icon" />)
+    expect(screen.getByTestId('knowledge-icon')).toHaveAttribute('stroke-width', '1.5')
+  })
 })

@@ -43,4 +43,24 @@ describe('sidebar glyph icons', () => {
     expect(svg.querySelector('[stroke="var(--sidebar-glyph-aura)"], [fill="var(--sidebar-glyph-aura)"]')).not.toBeNull()
     expect(svg.querySelector('[stroke="var(--sidebar-glyph-route)"], [fill="var(--sidebar-glyph-route)"]')).not.toBeNull()
   })
+
+  // Pin every weight so a typo in any stroke branch is caught (the rail uses
+  // regular, duotone, and fill in production).
+  const STROKE_WIDTHS = [
+    ['thin', '1.3'],
+    ['light', '1.5'],
+    ['regular', '1.6'],
+    ['bold', '2.1'],
+    ['fill', '2.1'],
+    ['duotone', '1.85'],
+  ] as const
+  it.each(STROKE_WIDTHS)('uses stroke-width %s → %s', (weight, expected) => {
+    render(<NotebookGlyphIcon data-testid="sidebar-glyph" weight={weight} />)
+    expect(screen.getByTestId('sidebar-glyph')).toHaveAttribute('stroke-width', expected)
+  })
+
+  it('defaults to the regular stroke when no weight is given', () => {
+    render(<NotebookGlyphIcon data-testid="sidebar-glyph" />)
+    expect(screen.getByTestId('sidebar-glyph')).toHaveAttribute('stroke-width', '1.6')
+  })
 })

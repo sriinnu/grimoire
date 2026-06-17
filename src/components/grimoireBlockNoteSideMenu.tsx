@@ -31,15 +31,30 @@ import {
 
 /**
  * A single "Turn into" target: the localized label, its glyph, and the
- * `updateBlock` payload that converts the focused block into this type. `update`
- * is typed as `PartialBlock` (default-schema) so the literals below are checked
- * against BlockNote's real block configs — no casts, no widening.
+ * `updateBlock` payload. `update` is typed as `PartialBlock` for shape — the
+ * default-schema union is loose, so this checks structure, not exhaustiveness;
+ * the literal types below are kept correct by hand.
  */
 type TurnIntoOption = {
   label: string
   icon: LucideIcon
   update: PartialBlock
 }
+
+/**
+ * Block types that can be safely converted *from*. Restricted to text-bearing
+ * blocks so we never offer turning a table or math block into a heading — their
+ * content models don't map and conversion would silently drop content.
+ */
+const TURN_INTO_SOURCES = new Set([
+  'paragraph',
+  'heading',
+  'bulletListItem',
+  'numberedListItem',
+  'checkListItem',
+  'quote',
+  'codeBlock',
+])
 
 /** Builds the turn-into targets in Notion/Obsidian order, labelled from the active dictionary. */
 function turnIntoOptions(dict: ReturnType<typeof useDictionary>): TurnIntoOption[] {
@@ -83,6 +98,7 @@ function GrimoireTurnIntoItem() {
   })
 
   if (!Components || !block) return null
+  if (!TURN_INTO_SOURCES.has(block.type)) return null
 
   const options = turnIntoOptions(dict).filter(
     (option) => typeof option.update.type === 'string' && option.update.type in editor.schema.blockSpecs,

@@ -1,11 +1,35 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { MouseEventHandler, PropsWithChildren, ReactNode } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
+
+const ALL_BLOCK_SPECS = {
+  paragraph: {},
+  heading: {},
+  bulletListItem: {},
+  numberedListItem: {},
+  checkListItem: {},
+  quote: {},
+  codeBlock: {},
+}
 
 let capturedMenuPosition: string | undefined
 const updateBlock = vi.fn()
-const focusedBlock = { type: 'paragraph', props: {}, content: [] }
+// Mutable so tests can vary the focused block and the editor schema; the mock
+// arrows read these bindings at render time.
+let focusedBlock: { type: string; props?: Record<string, unknown>; content?: unknown[] } = {
+  type: 'paragraph',
+  props: {},
+  content: [],
+}
+let editorBlockSpecs: Record<string, unknown> = { ...ALL_BLOCK_SPECS }
+
+beforeEach(() => {
+  capturedMenuPosition = undefined
+  updateBlock.mockClear()
+  focusedBlock = { type: 'paragraph', props: {}, content: [] }
+  editorBlockSpecs = { ...ALL_BLOCK_SPECS }
+})
 
 vi.mock('@blocknote/react', () => ({
   AddBlockButton: () => <button type="button">Add block</button>,
@@ -17,17 +41,7 @@ vi.mock('@blocknote/react', () => ({
   TableColumnHeaderItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
   TableRowHeaderItem: ({ children }: PropsWithChildren) => <div>{children}</div>,
   useBlockNoteEditor: () => ({
-    schema: {
-      blockSpecs: {
-        paragraph: {},
-        heading: {},
-        bulletListItem: {},
-        numberedListItem: {},
-        checkListItem: {},
-        quote: {},
-        codeBlock: {},
-      },
-    },
+    schema: { blockSpecs: editorBlockSpecs },
     updateBlock,
   }),
   useComponentsContext: () => ({
@@ -116,7 +130,6 @@ describe('GrimoireSideMenu', () => {
   })
 
   it('converts the focused block when a turn-into target is chosen', () => {
-    updateBlock.mockClear()
     render(<GrimoireSideMenu />)
 
     fireEvent.click(screen.getByText('Heading 1'))
@@ -125,5 +138,36 @@ describe('GrimoireSideMenu', () => {
       type: 'heading',
       props: { level: 1 },
     })
+  })
+
+  it('marks the focused block type as the checked turn-into option', () => {
+    render(<GrimoireSideMenu />)
+
+    expect(screen.getByText('Paragraph').closest('button')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Heading 1').closest('button')).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('omits turn-into targets absent from the editor schema', () => {
+    editorBlockSpecs = {
+      paragraph: {},
+      heading: {},
+      bulletListItem: {},
+      numberedListItem: {},
+      checkListItem: {},
+      quote: {},
+    }
+    render(<GrimoireSideMenu />)
+
+    expect(screen.getByText('Paragraph')).toBeInTheDocument()
+    expect(screen.queryByText('Code Block')).not.toBeInTheDocument()
+  })
+
+  it('hides Turn into for blocks whose content cannot be converted', () => {
+    focusedBlock = { type: 'table', props: {} }
+    render(<GrimoireSideMenu />)
+
+    expect(screen.queryByText('Turn into')).not.toBeInTheDocument()
+    // The other drag-handle items still render.
+    expect(screen.getByText('Delete')).toBeInTheDocument()
   })
 })
