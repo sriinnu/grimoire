@@ -11,6 +11,7 @@ import {
 import type { IconProps } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, type ComponentType } from 'react'
 import { cn } from '../../lib/utils'
+import { formatVaultPathForDisplay } from '../../utils/vaultDisplayName'
 import { Button } from '../ui/button'
 import type { SettingsBodyProps } from './settingsTypes'
 
@@ -80,7 +81,7 @@ export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, 
           </div>
           <div className="mt-2 truncate text-sm font-semibold text-foreground">{vaultName(vaultPath)}</div>
           <div className="mt-1 truncate text-[11px] text-muted-foreground">
-            {vaultPath || t('settings.vault.noVault')}
+            {formatVaultPathForDisplay(vaultPath) || t('settings.vault.noVault')}
           </div>
           <div className="settings-vault-state-pill mt-3 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]">
             <ShieldCheck size={12} />

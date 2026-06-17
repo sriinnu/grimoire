@@ -17,6 +17,18 @@ function isStarterNotebookName(value: string): boolean {
   return STARTER_NOTEBOOK_NAMES.has(normalizeNotebookName(value))
 }
 
+/**
+ * Strips Windows extended-length path prefixes (`\\?\` and `\\?\UNC\`) so vault
+ * paths display as clean native Windows paths (`C:\Users\…`) instead of the raw
+ * canonicalized form. No-op for POSIX paths.
+ */
+export function formatVaultPathForDisplay(path: string | null | undefined): string {
+  if (!path) return ''
+  if (path.startsWith('\\\\?\\UNC\\')) return `\\\\${path.slice(8)}`
+  if (path.startsWith('\\\\?\\')) return path.slice(4)
+  return path
+}
+
 /** Returns the product-facing notebook name for vault chrome. */
 export function getNotebookVaultDisplayName(vault: VaultDisplayNameInput): string {
   const label = vault.label?.trim() ?? ''

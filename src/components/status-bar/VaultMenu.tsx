@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { AlertTriangle, Check, FolderOpen, GitBranch, Loader2, Plus, Rocket, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
+import { formatVaultPathForDisplay, getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import {
   STATUS_BAR_POPOVER_BACKGROUND,
   STATUS_BAR_POPOVER_FOREGROUND,
@@ -166,7 +166,11 @@ function VaultMenuItem({ vault, isActive, canRemove, onSelect, onRemove }: Vault
         disabled={unavailable}
         onClick={onSelect}
         aria-current={isActive ? 'true' : undefined}
-        title={unavailable ? `Notebook not found: ${vault.path}` : vault.path}
+        title={
+          unavailable
+            ? `Notebook not found: ${formatVaultPathForDisplay(vault.path)}`
+            : formatVaultPathForDisplay(vault.path)
+        }
         data-testid={`vault-menu-item-${vault.label}`}
         className={itemClassName}
         style={{
