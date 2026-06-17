@@ -4,6 +4,7 @@
 @import "./graph-animations.css";
 @import "./graph-agent-readiness.css";
 @import "./ai-markdown.css";
+@import "./component-craft.css";
 
 @theme inline {
   --color-background: var(--background);
