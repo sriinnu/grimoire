@@ -42,12 +42,10 @@ const EDITOR_FONT_ROLES: Record<EditorFont, Pick<FontRoleConfig, 'editor'>> = {
   mono: { editor: SYSTEM_MONO_FONT },
 }
 
-const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = {
-  'living-archive': {
-    display: BOOK_SERIF_FONT,
-    label: SYSTEM_LABEL_FONT,
-  },
-}
+// Per-preset font-role overrides. Warm Paper carries its display/editor serif
+// in presets.json typography; platform-aware serif tuning lives in CSS
+// ([data-platform]). Kept as a typed hook for future built-in presets.
+const THEME_FONT_ROLES: Partial<Record<ThemePreset, Partial<FontRoleConfig>>> = {}
 
 /** Resolves the concrete font stacks for each product surface role. */
 export function resolveFontRoles(appearance: ResolvedAppearance): FontRoleConfig {

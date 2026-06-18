@@ -68,14 +68,16 @@ function expectNotGreenishAccent(value: string, label: string): void {
   expect(hue < 95 || hue > 185, label).toBe(true)
 }
 
-function expectBlueNeutralDarkSurface(value: string, label: string): void {
+function expectWarmDarkSurface(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const [red, green, blue] = color!.map((channel) => Math.round(channel * 255))
 
+  // Warm candlelit parchment surfaces lean amber: red is the dominant channel
+  // and blue never out-warms it. A blue-leaning value would be the old graphite.
   expect(
-    blue >= green,
-    `${label} should not lean olive or moss; rgb(${red}, ${green}, ${blue})`,
+    red >= green && green >= blue,
+    `${label} should lean warm amber, not cool graphite; rgb(${red}, ${green}, ${blue})`,
   ).toBe(true)
 }
 
@@ -86,14 +88,17 @@ describe('theme registry', () => {
     ])
   })
 
-  it('ships only Grimoire-native themes in the settings catalog', () => {
+  it('ships only the single warm-paper theme in the settings catalog', () => {
     const presetIds = THEME_PRESET_CATALOG.map((preset) => preset.id)
 
-    expect(presetIds).toContain('code-notebook')
-    expect(presetIds).not.toContain('classic')
-    expect(presetIds).not.toContain('aether')
-    expect(presetIds).not.toContain('ion')
-    expect(presetIds).not.toContain('moss')
+    expect(presetIds).toEqual(['morning-notebook'])
+    expect(presetIds).toContain('morning-notebook')
+    // The multi-preset era is gone: none of the retired presets survive.
+    expect(presetIds).not.toContain('constellation')
+    expect(presetIds).not.toContain('daylight-notebook')
+    expect(presetIds).not.toContain('living-archive')
+    expect(presetIds).not.toContain('nocturne')
+    expect(presetIds).not.toContain('code-notebook')
   })
 
   it('keeps every JSON preset self-contained for hot reload previews', () => {
@@ -149,13 +154,8 @@ describe('theme registry', () => {
       THEME_PRESET_CATALOG.map((preset) => [preset.id, resolveThemeDefinitionPreferredMode(preset)]),
     )
 
-    expect(preferredModes).toMatchObject({
-      constellation: 'dark',
-      'code-notebook': 'dark',
-      'daylight-notebook': 'light',
-      'living-archive': 'light',
+    expect(preferredModes).toEqual({
       'morning-notebook': 'light',
-      nocturne: 'dark',
     })
   })
 
@@ -170,7 +170,7 @@ describe('theme registry', () => {
     }
   })
 
-  it('keeps dark theme surfaces graphite blue-neutral instead of greenish', () => {
+  it('keeps dark theme surfaces warm candlelit amber instead of cool graphite', () => {
     const surfaceTokens = [
       'surface.app',
       'surface.sidebar',
@@ -189,7 +189,7 @@ describe('theme registry', () => {
       if (!dark) continue
 
       for (const token of surfaceTokens) {
-        expectBlueNeutralDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectWarmDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
@@ -218,7 +218,8 @@ describe('theme registry', () => {
       expect(parsed.definition.motion.profile).toBe('standard')
       expect(parsed.definition.visuals.graphStyle).toBe('constellation')
       expect(parsed.definition.visuals.canvasStyle).toBe('paper')
-      expect(parsed.definition.preferredMode).toBe('dark')
+      // Warm Paper keeps both modes, so the research-family fallback prefers light.
+      expect(parsed.definition.preferredMode).toBe('light')
     }
   })
 
@@ -244,7 +245,9 @@ describe('theme registry', () => {
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
       expect(parsed.definition.id).toBe(THEME_PRESET_CATALOG[0].id)
-      expect(resolveThemeDefinitionMode(parsed.definition, 'light')).toBe('dark')
+      // Warm Paper carries both modes, so a requested mode resolves to itself.
+      expect(resolveThemeDefinitionMode(parsed.definition, 'light')).toBe('light')
+      expect(resolveThemeDefinitionMode(parsed.definition, 'dark')).toBe('dark')
     }
   })
 
@@ -336,6 +339,8 @@ describe('theme registry', () => {
 
   it('fails closed when imported theme preferred mode is impossible', () => {
     const unsafe = JSON.parse(serializeThemeDefinition(THEME_PRESET_CATALOG[0])) as typeof THEME_PRESET_CATALOG[number]
+    // Strip the light mode but keep pointing the preferred mode at it: impossible.
+    delete unsafe.modes.light
     unsafe.preferredMode = 'light'
 
     const parsed = parseThemeDefinitionJson(JSON.stringify(unsafe))

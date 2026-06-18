@@ -110,30 +110,30 @@ describe('CreateVaultDialog', () => {
     })
   })
 
-  it('sends the selected experience profile with the create request', async () => {
+  it('sends the warm-paper experience profile and coerces unknown presets', async () => {
     const onCreate = vi.fn().mockResolvedValue(true)
 
-    render(<CreateVaultDialog initialThemePreset="nocturne" open={true} onClose={vi.fn()} onCreate={onCreate} />)
+    // Any removed/unknown preset normalizes back to the single shipped warm-paper theme.
+    render(<CreateVaultDialog initialThemePreset={'nocturne' as never} open={true} onClose={vi.fn()} onCreate={onCreate} />)
 
     expect(screen.getByTestId('create-vault-experience-preview')).toHaveAttribute(
       'data-theme-preset-preview',
-      'nocturne',
+      'morning-notebook',
     )
-    expect(screen.getByTestId('create-vault-experience-nocturne')).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Night Notebook')
+    expect(screen.getByTestId('create-vault-experience-morning-notebook')).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Warm Paper')
 
-    fireEvent.click(screen.getByTestId('create-vault-experience-code-notebook'))
+    fireEvent.click(screen.getByTestId('create-vault-experience-morning-notebook'))
     expect(screen.getByTestId('create-vault-experience-preview')).toHaveAttribute(
       'data-theme-preset-preview',
-      'code-notebook',
+      'morning-notebook',
     )
-    expect(screen.getByTestId('create-vault-experience-code-notebook')).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Code Notebook')
+    expect(screen.getByTestId('create-vault-experience-morning-notebook')).toHaveAttribute('aria-checked', 'true')
     fireEvent.click(screen.getByTestId('create-vault-submit'))
 
     await waitFor(() => {
       expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({
-        themePreset: 'code-notebook',
+        themePreset: 'morning-notebook',
       }))
     })
   })

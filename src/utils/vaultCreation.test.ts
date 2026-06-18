@@ -56,7 +56,7 @@ describe('vaultCreation', () => {
       templateKind: 'dreams',
     })).toMatchObject({
       experienceDetail: 'Paper canvas, Ledger graph, comfortable density.',
-      experienceLabel: 'Morning Notebook',
+      experienceLabel: 'Warm Paper',
       storageDetail: 'Google Drive is still a local folder. Grimoire stores no cloud credentials.',
       syncDetail: 'Git stays off. The vault opens and saves as plain Markdown without a repo.',
       templateLabel: 'Dreams',
@@ -68,7 +68,7 @@ describe('vaultCreation', () => {
       platform: 'windows',
       targetPath: '~/Grimoire/Notebooks/Work',
       templateKind: 'work-log',
-      themePreset: 'code-notebook',
+      themePreset: 'morning-notebook',
     }).syncDetail).toContain('Git history starts')
     expect(buildVaultCreationPlan({
       choiceId: 'local',
@@ -76,7 +76,7 @@ describe('vaultCreation', () => {
       platform: 'windows',
       targetPath: '~/Grimoire/Notebooks/Work',
       templateKind: 'work-log',
-      themePreset: 'code-notebook',
-    }).experienceDetail).toBe('Terminal canvas, Terminal graph, compact density.')
+      themePreset: 'morning-notebook',
+    }).experienceDetail).toBe('Paper canvas, Ledger graph, comfortable density.')
   })
 })

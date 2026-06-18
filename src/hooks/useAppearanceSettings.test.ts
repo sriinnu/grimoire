@@ -42,7 +42,7 @@ describe('useAppearanceSettings', () => {
   it('waits until settings have loaded', () => {
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'nocturne',
+      themePreset: 'morning-notebook',
       editorFont: 'mono',
       loaded: false,
     }))
@@ -54,7 +54,7 @@ describe('useAppearanceSettings', () => {
   it('applies and mirrors loaded appearance settings', () => {
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'living-archive',
+      themePreset: 'morning-notebook',
       editorFont: 'literary',
       editorLineHeight: 'compact',
       nativeShellMaterial: 'glass-preview',
@@ -62,18 +62,18 @@ describe('useAppearanceSettings', () => {
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')
-    expect(window.localStorage.getItem(THEME_PRESET_STORAGE_KEY)).toBe('living-archive')
+    expect(window.localStorage.getItem(THEME_PRESET_STORAGE_KEY)).toBe('morning-notebook')
     expect(window.localStorage.getItem(EDITOR_FONT_STORAGE_KEY)).toBe('literary')
     expect(window.localStorage.getItem(EDITOR_LINE_HEIGHT_STORAGE_KEY)).toBe('compact')
     expect(window.localStorage.getItem(NATIVE_SHELL_MATERIAL_STORAGE_KEY)).toBe('glass-preview')
   })
 
   it('uses mirrored appearance when persisted settings are empty', () => {
-    window.localStorage.setItem(THEME_PRESET_STORAGE_KEY, 'nocturne')
+    window.localStorage.setItem(THEME_PRESET_STORAGE_KEY, 'morning-notebook')
     window.localStorage.setItem(EDITOR_FONT_STORAGE_KEY, 'readable')
     window.localStorage.setItem(EDITOR_LINE_HEIGHT_STORAGE_KEY, 'spacious')
     window.localStorage.setItem(NATIVE_SHELL_MATERIAL_STORAGE_KEY, 'unified')
@@ -87,7 +87,7 @@ describe('useAppearanceSettings', () => {
       loaded: true,
     }))
 
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'readable')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
@@ -97,7 +97,7 @@ describe('useAppearanceSettings', () => {
     const { rerender } = renderHook(
       ({ themeMode }) => useAppearanceSettings({
         themeMode,
-        themePreset: 'nocturne',
+        themePreset: 'morning-notebook',
         editorFont: 'system',
         loaded: true,
       }),
@@ -105,18 +105,18 @@ describe('useAppearanceSettings', () => {
     )
 
     expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'light')
-    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#f8f9fb')
+    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#f1e9d8')
 
     rerender({ themeMode: 'dark' })
 
     expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'dark')
-    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#101113')
+    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#16130d')
   })
 
   it('applies local-only theme pack changes without changing the saved preset', () => {
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'nocturne',
+      themePreset: 'morning-notebook',
       editorFont: 'system',
       loaded: true,
     }))
@@ -124,7 +124,7 @@ describe('useAppearanceSettings', () => {
     writeStoredLocalThemeDefinition(window.localStorage, THEME_PRESET_CATALOG[0])
     emitLocalThemePackChange()
 
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'nocturne')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
     expect(document.documentElement).toHaveAttribute('data-theme-definition-id', THEME_PRESET_CATALOG[0].id)
   })
 
@@ -139,7 +139,7 @@ describe('useAppearanceSettings', () => {
 
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'nocturne',
+      themePreset: 'morning-notebook',
       editorFont: 'system',
       loaded: true,
     }))
@@ -170,7 +170,7 @@ describe('useAppearanceSettings', () => {
 
     renderHook(() => useAppearanceSettings({
       themeMode: 'dark',
-      themePreset: 'nocturne',
+      themePreset: 'morning-notebook',
       editorFont: 'mono',
       loaded: true,
     }))

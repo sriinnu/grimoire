@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../lib/i18n'
 import { AppearanceSettingsSection } from './AppearanceSettingsSection'
@@ -22,16 +22,16 @@ describe('AppearanceSettingsSection', () => {
     installPointerCapturePolyfill()
   })
 
-  it('renders curated preset groups without changing preset selection behavior', () => {
-    const setThemePreset = vi.fn()
+  it('renders the single warm-paper theme with a light/dark mode toggle', () => {
+    const setThemeMode = vi.fn()
 
     render(
       <AppearanceSettingsSection
         t={t}
         themeMode="dark"
-        setThemeMode={vi.fn()}
-        themePreset="nocturne"
-        setThemePreset={setThemePreset}
+        setThemeMode={setThemeMode}
+        themePreset="morning-notebook"
+        setThemePreset={vi.fn()}
         editorFont="system"
         setEditorFont={vi.fn()}
         editorLineHeight="comfortable"
@@ -39,34 +39,37 @@ describe('AppearanceSettingsSection', () => {
       />,
     )
 
-    const signature = screen.getByTestId('settings-theme-preset-group-signature')
-    const paper = screen.getByTestId('settings-theme-preset-group-paper')
-    const specialist = screen.getByTestId('settings-theme-preset-group-specialist')
+    // The multi-card preset picker is gone; the light/dark toggle is the primary theme control.
+    const mode = screen.getByTestId('settings-theme-mode')
+    expect(within(mode).getByTestId('settings-theme-light')).toBeInTheDocument()
+    expect(within(mode).getByTestId('settings-theme-dark')).toBeInTheDocument()
 
-    expect(within(signature).getByTestId('settings-theme-preset-morning-notebook')).toBeInTheDocument()
-    expect(within(signature).getByTestId('settings-theme-preset-nocturne')).toHaveAttribute('aria-checked', 'true')
-    expect(within(paper).getByTestId('settings-theme-preset-daylight-notebook')).toBeInTheDocument()
-    expect(within(paper).getByTestId('settings-theme-preset-living-archive')).toBeInTheDocument()
-    expect(within(specialist).getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
-    expect(within(specialist).getByTestId('settings-theme-preset-code-notebook')).toBeInTheDocument()
-    expect(within(specialist).getByTestId('settings-theme-preset-constellation')).toHaveAttribute('data-graph', 'constellation')
-    expect(within(specialist).getByTestId('settings-theme-preset-constellation')).toHaveAttribute('data-canvas', 'blueprint')
-    expect(within(specialist).getByTestId('settings-theme-preset-constellation')).toHaveAttribute('data-shell', 'map')
-    expect(within(specialist).getByTestId('settings-theme-preset-constellation')).toHaveAttribute('data-writing', 'graph')
-    expect(within(specialist).getByTestId('settings-theme-preset-code-notebook')).toHaveAttribute('data-density', 'compact')
-    expect(within(specialist).getByTestId('settings-theme-preset-code-notebook')).toHaveAttribute('data-code-block', 'terminal')
-    expect(within(specialist).getByTestId('settings-theme-preset-code-notebook')).toHaveAttribute('data-shell', 'terminal')
-    expect(within(specialist).getByTestId('settings-theme-preset-code-notebook')).toHaveAttribute('data-writing', 'terminal')
-    expect(within(screen.getByTestId('settings-theme-preset-code-notebook-traits')).getByText('Compact')).toBeInTheDocument()
-    expect(within(screen.getByTestId('settings-theme-preset-code-notebook-traits')).getByLabelText('Shell: Terminal')).toBeInTheDocument()
-    expect(within(screen.getByTestId('settings-theme-preset-code-notebook-traits')).getByLabelText('Writing: Terminal')).toBeInTheDocument()
-    expect(within(screen.getByTestId('settings-theme-preset-code-notebook-traits')).getByLabelText('Code: Terminal')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-motion-preview', 'calm')
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-graph-preview', 'ledger')
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-shell-preview', 'notebook')
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-writing-preview', 'system')
+    // Warm Paper ships both modes, so neither toggle button is disabled.
+    expect(within(mode).getByTestId('settings-theme-light')).not.toBeDisabled()
+    expect(within(mode).getByTestId('settings-theme-dark')).not.toBeDisabled()
+
+    // Dark mode is the active selection here.
+    expect(within(mode).getByTestId('settings-theme-dark')).toHaveAttribute('aria-checked', 'true')
+    expect(within(mode).getByTestId('settings-theme-light')).toHaveAttribute('aria-checked', 'false')
+
+    // No removed preset cards survive the collapse.
+    expect(screen.queryByTestId('settings-theme-preset-nocturne')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-constellation')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-code-notebook')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-theme-preset-group-specialist')).not.toBeInTheDocument()
+
+    // The preview reflects the warm-paper (morning-notebook) identity in dark mode.
+    const preview = screen.getByTestId('settings-appearance-preview')
+    expect(preview).toHaveAttribute('data-theme-preview', 'dark')
+    expect(preview).toHaveAttribute('data-theme-preset-preview', 'morning-notebook')
+    expect(preview).toHaveAttribute('data-motion-preview', 'standard')
+    expect(preview).toHaveAttribute('data-graph-preview', 'ledger')
+    expect(preview).toHaveAttribute('data-canvas-preview', 'paper')
+    expect(preview).toHaveAttribute('data-shell-preview', 'notebook')
+    expect(preview).toHaveAttribute('data-writing-preview', 'system')
     expect(screen.getByLabelText('Experience profile traits')).toBeInTheDocument()
 
+    // The curated editor-font catalog is unchanged: serif + sans + mono, no legacy aliases.
     fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
     expect(screen.getByRole('option', { name: 'Book Serif' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Editorial Serif' })).toBeInTheDocument()
@@ -78,36 +81,10 @@ describe('AppearanceSettingsSection', () => {
     expect(screen.queryByRole('option', { name: 'Handwritten' })).not.toBeInTheDocument()
     expect(screen.queryByRole('option', { name: 'Compact' })).not.toBeInTheDocument()
 
-    fireEvent.click(within(specialist).getByTestId('settings-theme-preset-code-notebook'))
-
-    expect(setThemePreset).toHaveBeenCalledWith('code-notebook')
     expect(screen.getByTestId('settings-editor-line-height')).toHaveAttribute('data-value', 'comfortable')
   })
 
-  it('moves dark-only presets to dark mode instead of showing a fake light surface', async () => {
-    const setThemeMode = vi.fn()
-
-    render(
-      <AppearanceSettingsSection
-        t={t}
-        themeMode="light"
-        setThemeMode={setThemeMode}
-        themePreset="code-notebook"
-        setThemePreset={vi.fn()}
-        editorFont="mono"
-        setEditorFont={vi.fn()}
-        editorLineHeight="compact"
-        setEditorLineHeight={vi.fn()}
-      />,
-    )
-
-    expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('radio', { name: 'Light' })).toBeDisabled()
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-theme-preview', 'dark')
-    await waitFor(() => expect(setThemeMode).toHaveBeenCalledWith('dark'))
-  })
-
-  it('uses a preset preferred mode when changing UX themes', () => {
+  it('switches between warm-paper light and dark via the mode toggle', () => {
     const setThemeMode = vi.fn()
 
     render(
@@ -117,15 +94,22 @@ describe('AppearanceSettingsSection', () => {
         setThemeMode={setThemeMode}
         themePreset="morning-notebook"
         setThemePreset={vi.fn()}
-        editorFont="literary"
+        editorFont="mono"
         setEditorFont={vi.fn()}
-        editorLineHeight="comfortable"
+        editorLineHeight="compact"
         setEditorLineHeight={vi.fn()}
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-nocturne'))
+    const mode = screen.getByTestId('settings-theme-mode')
 
+    // Light is the active selection; the preview renders the parchment surface.
+    expect(within(mode).getByTestId('settings-theme-light')).toHaveAttribute('aria-checked', 'true')
+    expect(within(mode).getByTestId('settings-theme-dark')).toHaveAttribute('aria-checked', 'false')
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-theme-preview', 'light')
+
+    // Picking the candlelit (dark) mode drives the theme mode without any preset change.
+    fireEvent.click(within(mode).getByTestId('settings-theme-dark'))
     expect(setThemeMode).toHaveBeenCalledWith('dark')
   })
 })

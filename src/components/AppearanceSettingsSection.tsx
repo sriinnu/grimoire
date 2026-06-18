@@ -1,18 +1,15 @@
 import { useEffect, type CSSProperties, type ReactNode } from 'react'
-import { Moon, Palette, Sun, TextAa } from '@phosphor-icons/react'
+import { Moon, Sun, TextAa } from '@phosphor-icons/react'
 import type { EditorFont, EditorLineHeight, ThemePreset } from '../lib/appearance'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
 import {
   resolveThemeDefinitionMode,
-  resolveThemeDefinitionPreferredMode,
   resolveThemePresetDefinition,
 } from '../themes/themeRegistry'
-import { AppearanceProfileCard } from './AppearanceProfileCard'
 import { AppearanceProfilePreview } from './AppearanceProfilePreview'
 import { SidebarAppearancePreview } from './SidebarAppearancePreview'
 import { ThemePackSettingsControls } from './ThemePackSettingsControls'
-import { buildPresetGroups } from './appearanceSettingsOptions'
 import { SectionHeading } from './settings/SettingsControls'
 import { Button } from './ui/button'
 import {
@@ -53,13 +50,11 @@ export function AppearanceSettingsSection({
   themeMode,
   setThemeMode,
   themePreset,
-  setThemePreset,
   editorFont,
   setEditorFont,
   editorLineHeight,
   setEditorLineHeight,
 }: AppearanceSettingsSectionProps) {
-  const presetGroups = buildPresetGroups(t)
   const selectedThemeDefinition = resolveThemePresetDefinition(themePreset)
   const resolvedThemeMode = resolveThemeDefinitionMode(selectedThemeDefinition, themeMode)
   const availableThemeModes = {
@@ -70,12 +65,6 @@ export function AppearanceSettingsSection({
   useEffect(() => {
     if (resolvedThemeMode !== themeMode) setThemeMode(resolvedThemeMode)
   }, [resolvedThemeMode, setThemeMode, themeMode])
-
-  const handleThemePresetSelect = (value: ThemePreset) => {
-    setThemePreset(value)
-    const nextMode = resolveThemeDefinitionPreferredMode(resolveThemePresetDefinition(value))
-    if (nextMode !== themeMode) setThemeMode(nextMode)
-  }
 
   return (
     <>
@@ -92,44 +81,6 @@ export function AppearanceSettingsSection({
           onChange={setThemeMode}
           t={t}
         />
-      </div>
-
-      <div className="space-y-2">
-        <ControlLabel icon={<Palette size={14} />} label={t('settings.themePreset.label')} />
-        <div
-          className="space-y-3"
-          role="radiogroup"
-          aria-label={t('settings.themePreset.label')}
-        >
-          {presetGroups.map((group) => (
-            <div key={group.id} className="space-y-1.5" data-testid={`settings-theme-preset-group-${group.id}`}>
-              <div
-                style={{
-                  color: 'var(--muted-foreground)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  letterSpacing: 0,
-                  textTransform: 'uppercase',
-                }}
-              >
-                {group.label}
-              </div>
-              <div
-                className="grid gap-2"
-                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}
-              >
-                {group.options.map((preset) => (
-                  <AppearanceProfileCard
-                    key={preset.value}
-                    option={preset}
-                    selected={themePreset === preset.value}
-                    onSelect={handleThemePresetSelect}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       <ThemePackSettingsControls t={t} themePreset={themePreset} />

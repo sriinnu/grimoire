@@ -59,7 +59,9 @@ describe('SettingsPanel sidebar appearance', () => {
     installPointerCapturePolyfill()
   })
 
-  it('renders the selected theme as a left-sidebar preview', () => {
+  it('renders the warm-paper sidebar preview in its light parchment mode', () => {
+    // Grimoire now ships a single theme: warm paper. Any persisted preset value —
+    // including legacy ids like "nocturne" — collapses to morning-notebook.
     render(
       <SettingsPanel
         open={true}
@@ -69,34 +71,37 @@ describe('SettingsPanel sidebar appearance', () => {
       />
     )
 
-    expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
-      'data-sidebar-preset-preview',
-      'nocturne',
-    )
-    expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
-      'data-theme-preview',
-      'light',
-    )
+    const preview = screen.getByTestId('settings-sidebar-preview')
+    expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
+    expect(preview).toHaveAttribute('data-theme-definition-preview', 'morning-notebook')
+    expect(preview).toHaveAttribute('data-theme-preview', 'light')
+    // Light mode paints the warm parchment sidebar surface, not a blue-neutral one.
+    expect(preview).toHaveStyle({ background: '#e9dec9' })
   })
 
-  it('updates the left-sidebar preview when an experience profile is selected', () => {
+  it('repaints the warm-paper preview when the dark candlelit mode is selected', () => {
+    // The preset picker is gone; the light/dark toggle is the primary theme control.
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-code-notebook'))
+    const preview = screen.getByTestId('settings-sidebar-preview')
+    expect(preview).toHaveAttribute('data-theme-preview', 'light')
+    expect(preview).toHaveStyle({ background: '#e9dec9' })
 
-    expect(screen.getByTestId('settings-sidebar-preview')).toHaveAttribute(
-      'data-sidebar-preset-preview',
-      'code-notebook',
-    )
+    fireEvent.click(screen.getByTestId('settings-theme-dark'))
+
+    // Same single warm-paper preset, now in its candlelit dark mode.
+    expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
+    expect(preview).toHaveAttribute('data-theme-preview', 'dark')
+    expect(preview).toHaveStyle({ background: '#120f09' })
   })
 
   it('includes the same artwork rail used by the live sidebar preview', () => {
     render(
       <SettingsPanel
         open={true}
-        settings={{ ...emptySettings, theme_preset: 'living-archive' }}
+        settings={{ ...emptySettings, theme_preset: 'morning-notebook' }}
         onSave={vi.fn()}
         onClose={vi.fn()}
       />
