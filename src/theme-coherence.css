@@ -1,5 +1,12 @@
 :where([data-theme-preset]) {
   --grimoire-hairline: color-mix(in srgb, var(--border-default) 76%, transparent);
+  /* Paper grain — a whisper of crosshatched fiber, ink-toned so it adapts to
+     light parchment and candlelit dark alike. Layered onto the big reading
+     surfaces so the warm paper feels like a real sheet, not a flat fill. Kept
+     near-2% so it never competes with text. */
+  --grimoire-paper-grain:
+    repeating-linear-gradient(63deg, color-mix(in srgb, var(--text-primary) 3%, transparent), color-mix(in srgb, var(--text-primary) 3%, transparent) 0.5px, transparent 0.5px, transparent 3px),
+    repeating-linear-gradient(151deg, color-mix(in srgb, var(--text-primary) 2.2%, transparent), color-mix(in srgb, var(--text-primary) 2.2%, transparent) 0.5px, transparent 0.5px, transparent 4px);
   --grimoire-panel-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 18%, var(--surface-panel)), var(--surface-panel));
   --grimoire-toolbar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 30%, var(--surface-panel)), var(--surface-panel));
   --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 18rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 92%, var(--surface-panel)), var(--surface-app));
@@ -43,8 +50,9 @@
 }
 
 [data-theme-preset="morning-notebook"] {
-  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 16rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-panel)), var(--surface-app));
-  --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 17rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 90%, var(--surface-panel)), var(--surface-app));
+  --grimoire-editor-material: var(--grimoire-paper-grain), linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, transparent), transparent 18rem), var(--surface-editor);
+  --grimoire-dashboard-material: var(--grimoire-paper-grain), radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 16rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-panel)), var(--surface-app));
+  --grimoire-settings-main-material: var(--grimoire-paper-grain), radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 17rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 90%, var(--surface-panel)), var(--surface-app));
   --grimoire-status-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 96%, var(--surface-panel)), var(--surface-sidebar));
 }
 

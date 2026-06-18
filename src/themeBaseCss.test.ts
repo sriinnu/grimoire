@@ -38,34 +38,33 @@ function hueDegrees(hex: string): number {
   return ((red - green) / delta + 4) * 60
 }
 
-function rgbChannelSpread(hex: string): number {
-  const channels = hexToRgb(hex)
-  return Math.max(...channels) - Math.min(...channels)
-}
-
 describe('base theme CSS', () => {
   const css = readText(`${process.cwd()}/src/theme-base.css`)
   const darkBody = getRuleBody(css, ':root.dark,\n[data-theme="dark"]')
 
-  it('keeps the dark fallback shell graphite instead of sepia or green', () => {
+  it('keeps the dark fallback shell warm candlelit instead of cold graphite', () => {
+    // Warm Paper is the only identity, so even the base fallback must read warm:
+    // red leads blue on every shell surface (candlelit, not blue-grey graphite).
     for (const token of ['--surface-app', '--surface-sidebar', '--surface-panel', '--surface-editor'] as const) {
-      expect(rgbChannelSpread(getDeclaration(darkBody, token)), token).toBeLessThanOrEqual(8)
+      const [red, , blue] = hexToRgb(getDeclaration(darkBody, token))
+      expect(red, token).toBeGreaterThan(blue)
     }
 
-    expect(getDeclaration(darkBody, '--surface-app')).toBe('#101113')
-    expect(getDeclaration(darkBody, '--surface-sidebar')).toBe('#0d0e10')
-    expect(getDeclaration(darkBody, '--surface-panel')).toBe('#151719')
-    expect(getDeclaration(darkBody, '--surface-editor')).toBe('#121416')
-    expect(css).not.toContain('--surface-sidebar: #191814')
+    expect(getDeclaration(darkBody, '--surface-app')).toBe('#16130d')
+    expect(getDeclaration(darkBody, '--surface-sidebar')).toBe('#120f09')
+    expect(getDeclaration(darkBody, '--surface-panel')).toBe('#1d1810')
+    expect(getDeclaration(darkBody, '--surface-editor')).toBe('#17130c')
+    // The old cold-graphite fallback must not survive anywhere.
+    expect(css).not.toContain('#101113')
   })
 
-  it('uses blue-steel as the fallback dark action tone', () => {
+  it('uses antique brass as the fallback dark action tone', () => {
     for (const token of ['--accent-blue', '--accent-blue-hover', '--syntax-link'] as const) {
       const hue = hueDegrees(getDeclaration(darkBody, token))
-      expect(hue < 95 || hue > 185, token).toBe(true)
+      expect(hue >= 20 && hue <= 70, token).toBe(true)
     }
 
-    expect(getDeclaration(darkBody, '--accent-blue')).toBe('#86aee8')
-    expect(getDeclaration(darkBody, '--syntax-link')).toBe('#a9c6f4')
+    expect(getDeclaration(darkBody, '--accent-blue')).toBe('#d6ab62')
+    expect(getDeclaration(darkBody, '--syntax-link')).toBe('#d6ab62')
   })
 })
