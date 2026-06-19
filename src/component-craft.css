@@ -15,7 +15,7 @@
   [data-slot="tabs-trigger"],
   [data-slot="badge"] {
     transition:
-      transform var(--motion-duration-control) var(--motion-ease-standard),
+      transform var(--motion-duration-control) var(--motion-ease-spring),
       box-shadow var(--motion-duration-control) var(--motion-ease-standard),
       background-color var(--motion-duration-control) var(--motion-ease-standard),
       border-color var(--motion-duration-control) var(--motion-ease-standard),
@@ -37,9 +37,9 @@
   }
 }
 
-/* Press settles the button back onto the page. */
+/* Press settles the button back and squashes a hair — anticipation/weight. */
 [data-slot="button"]:is([data-variant="default"], [data-variant="secondary"], [data-variant="destructive"], [data-variant="outline"]):active:not(:disabled) {
-  transform: translateY(0);
+  transform: translateY(0) scale(var(--motion-press-scale));
   box-shadow: var(--elevation-1);
 }
 
