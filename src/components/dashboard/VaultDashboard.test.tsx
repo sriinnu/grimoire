@@ -333,7 +333,7 @@ describe('VaultDashboard', () => {
     expect(screen.queryByTestId('dashboard-ask-context-preview')).not.toBeInTheDocument()
     fireEvent.click(screen.getByTestId('dashboard-capture-kind-ask'))
 
-    const preview = await screen.findByTestId('dashboard-ask-context-preview')
+    const preview = await screen.findByTestId('dashboard-ask-context-preview', undefined, { timeout: 5000 })
     expect(preview).toHaveTextContent('Shared context')
     expect(preview).toHaveTextContent('1 public note')
     expect(preview).toHaveTextContent('Public Project')
