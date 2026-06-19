@@ -263,7 +263,7 @@ export function VaultDashboard({
         </Button>
       </section>
 
-      <section className="vault-dashboard__grid">
+      <section className="vault-dashboard__grid grimoire-cascade">
         <DashboardQuickCapturePanel
           askContextPreview={askContextPreview}
           busy={busy}
