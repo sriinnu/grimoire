@@ -41,7 +41,7 @@ describe('native shell material CSS', () => {
     expect(css).not.toMatch(/private|setVibrancy|transparent-titlebar/iu)
   })
 
-  it('keeps dark native chrome graphite instead of washing the shell with the accent color', () => {
+  it('keeps dark native chrome navy instead of washing the shell with the accent color', () => {
     expect(css).toContain(':root[data-theme="dark"][data-native-shell-material="unified"]')
     expect(css).toContain(':root[data-theme="dark"][data-native-shell-material="glass-preview"]')
     expect(css).toContain('--grimoire-native-shell-sheen: color-mix(in srgb, var(--text-secondary) 7%, transparent)')
@@ -49,7 +49,7 @@ describe('native shell material CSS', () => {
     expect(css).not.toContain('var(--sidebar-primary) 28%')
   })
 
-  it('keeps light content titlebars separate from graphite sidebar material', () => {
+  it('keeps light content titlebars separate from navy sidebar material', () => {
     const unified = getRuleBody(':root[data-native-shell-material="unified"]')
     const glassPreview = getRuleBody(':root[data-native-shell-material="glass-preview"]')
     const darkOverride = getRuleBody(':root[data-theme="dark"][data-native-shell-material="unified"],\n:root[data-theme="dark"][data-native-shell-material="glass-preview"]')
@@ -64,6 +64,6 @@ describe('native shell material CSS', () => {
     expect(glassPreview).toContain('var(--surface-app)')
     expect(glassPreview.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).not.toContain('var(--surface-sidebar)')
 
-    expect(darkOverride.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).toContain('#171a1f')
+    expect(darkOverride.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).toContain('#10161d')
   })
 })

@@ -60,24 +60,25 @@ function hueDegrees(color: RgbColor): number {
   return ((red - green) / delta + 4) * 60
 }
 
-function expectNotGreenishAccent(value: string, label: string): void {
+function expectTealAccent(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const hue = hueDegrees(color!)
 
-  expect(hue < 95 || hue > 185, label).toBe(true)
+  // Midnight Aurora's accent IS teal: the hue must sit in the teal band.
+  expect(hue >= 150 && hue <= 195, `${label} should be aurora teal; hue ${hue}`).toBe(true)
 }
 
-function expectWarmDarkSurface(value: string, label: string): void {
+function expectCoolDarkSurface(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const [red, green, blue] = color!.map((channel) => Math.round(channel * 255))
 
-  // Warm candlelit parchment surfaces lean amber: red is the dominant channel
-  // and blue never out-warms it. A blue-leaning value would be the old graphite.
+  // Midnight Aurora surfaces lean cool navy: blue is the dominant channel
+  // and red never out-cools it. A red-leaning value would be the old parchment.
   expect(
-    red >= green && green >= blue,
-    `${label} should lean warm amber, not cool graphite; rgb(${red}, ${green}, ${blue})`,
+    blue >= green && green >= red,
+    `${label} should lean cool navy, not warm parchment; rgb(${red}, ${green}, ${blue})`,
   ).toBe(true)
 }
 
@@ -88,7 +89,7 @@ describe('theme registry', () => {
     ])
   })
 
-  it('ships only the single warm-paper theme in the settings catalog', () => {
+  it('ships only the single Midnight Aurora theme in the settings catalog', () => {
     const presetIds = THEME_PRESET_CATALOG.map((preset) => preset.id)
 
     expect(presetIds).toEqual(['morning-notebook'])
@@ -159,18 +160,18 @@ describe('theme registry', () => {
     })
   })
 
-  it('keeps dark visible theme accents out of the green teal hue band', () => {
+  it('keeps dark visible theme accents in the aurora teal hue band', () => {
     for (const preset of THEME_PRESET_CATALOG) {
       const dark = preset.modes.dark
       if (!dark) continue
 
       for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
-        expectNotGreenishAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectTealAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
 
-  it('keeps dark theme surfaces warm candlelit amber instead of cool graphite', () => {
+  it('keeps dark theme surfaces cool navy instead of warm parchment', () => {
     const surfaceTokens = [
       'surface.app',
       'surface.sidebar',
@@ -189,7 +190,7 @@ describe('theme registry', () => {
       if (!dark) continue
 
       for (const token of surfaceTokens) {
-        expectWarmDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectCoolDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
@@ -218,7 +219,7 @@ describe('theme registry', () => {
       expect(parsed.definition.motion.profile).toBe('standard')
       expect(parsed.definition.visuals.graphStyle).toBe('constellation')
       expect(parsed.definition.visuals.canvasStyle).toBe('paper')
-      // Warm Paper keeps both modes, so the research-family fallback prefers light.
+      // Midnight Aurora keeps both modes, so the research-family fallback prefers light.
       expect(parsed.definition.preferredMode).toBe('light')
     }
   })
@@ -245,7 +246,7 @@ describe('theme registry', () => {
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
       expect(parsed.definition.id).toBe(THEME_PRESET_CATALOG[0].id)
-      // Warm Paper carries both modes, so a requested mode resolves to itself.
+      // Midnight Aurora carries both modes, so a requested mode resolves to itself.
       expect(resolveThemeDefinitionMode(parsed.definition, 'light')).toBe('light')
       expect(resolveThemeDefinitionMode(parsed.definition, 'dark')).toBe('dark')
     }

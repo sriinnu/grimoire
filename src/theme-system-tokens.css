@@ -140,86 +140,86 @@
   --sidebar-border: rgba(182, 194, 208, 0.16);
 }
 
-/* Warm Paper Grimoire — the default identity. Aged-paper surfaces, ink-brown
-   text, an antique-brass accent. Tokens flow to every surface (editor, sidebar,
-   panels, cards, dialogs), so the theme runs through the whole app, not a
-   wrapper. --primary/--ring derive from --accent-blue, so the brass reaches
+/* Midnight Aurora — the default identity. Airy off-white surfaces by day, deep
+   navy-black with a teal glow by night. Tokens flow to every surface (editor,
+   sidebar, panels, cards, dialogs), so the theme runs through the whole app,
+   not a wrapper. --primary/--ring derive from --accent-blue, so the teal reaches
    buttons, focus rings, and selection too. */
 [data-theme-preset="morning-notebook"][data-theme="light"] {
   color-scheme: light;
-  --surface-app: #f1e9d8;
-  --surface-sidebar: #e9dec9;
-  --surface-panel: #f8f1e3;
-  --surface-card: #fdf8ed;
-  --surface-popover: #fdf8ed;
-  --surface-input: #fdfaf1;
-  --surface-editor: #fbf5e8;
-  --text-primary: #3b3026;
-  --text-secondary: #786a54;
-  --text-heading: #2a2017;
-  --border-default: #ddcfb3;
-  --border-subtle: #ebe1cc;
-  --border-strong: #c2b08c;
-  --state-hover: #efe5d1;
-  --state-hover-subtle: #f6efe0;
-  --state-selected: #f0e0bd;
-  --accent-blue: #8f5e22;
-  --accent-blue-hover: #784d18;
-  --accent-blue-light: rgba(143, 94, 34, 0.13);
-  --primary-foreground: #fdf8ee;
+  --surface-app: #f7f9fb;
+  --surface-sidebar: #eef2f6;
+  --surface-panel: #fbfdfe;
+  --surface-card: #ffffff;
+  --surface-popover: #ffffff;
+  --surface-input: #ffffff;
+  --surface-editor: #fcfdfe;
+  --text-primary: #1f2933;
+  --text-secondary: #5b6b7a;
+  --text-heading: #0f1822;
+  --border-default: #dbe3ea;
+  --border-subtle: #eef2f6;
+  --border-strong: #c2cdd8;
+  --state-hover: #eef3f7;
+  --state-hover-subtle: #f3f7fa;
+  --state-selected: #dcf5ef;
+  --accent-blue: #0c7d72;
+  --accent-blue-hover: #0a665d;
+  --accent-blue-light: rgba(12, 125, 114, 0.12);
+  --primary-foreground: #ffffff;
   --accent-green: var(--accent-blue);
-  --accent-orange: #bd5f33;
-  --accent-purple: #7c5ea2;
-  --accent-yellow: #9a7820;
-  --state-focus-ring: #8f5e22;
-  --border-focus: #8f5e22;
-  --syntax-heading: #7d4f1d;
-  --syntax-link: #8f5e22;
-  --sidebar-foreground: #3b3026;
-  --sidebar-primary: #8f5e22;
-  --sidebar-primary-foreground: #fdf8ee;
-  --sidebar-accent: rgba(143, 94, 34, 0.15);
-  --sidebar-accent-foreground: #3b3026;
-  --sidebar-border: #ddcfb3;
+  --accent-orange: #c2603a;
+  --accent-purple: #7c5ed6;
+  --accent-yellow: #b58a2e;
+  --state-focus-ring: #0c7d72;
+  --border-focus: #0c7d72;
+  --syntax-heading: #0a665d;
+  --syntax-link: #0c7d72;
+  --sidebar-foreground: #1f2933;
+  --sidebar-primary: #0c7d72;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(12, 125, 114, 0.13);
+  --sidebar-accent-foreground: #1f2933;
+  --sidebar-border: #e3e9ef;
 }
 
-/* Candlelit grimoire — warm near-black with parchment text and a brass glow. */
+/* Aurora night — deep navy-black with cool white text and a teal glow. */
 [data-theme-preset="morning-notebook"][data-theme="dark"] {
   color-scheme: dark;
-  --surface-app: #16130d;
-  --surface-sidebar: #120f09;
-  --surface-panel: #1d1810;
-  --surface-card: #241e15;
-  --surface-popover: #292117;
-  --surface-input: #1b160e;
-  --surface-editor: #17130c;
-  --text-primary: #ece2d1;
-  --text-secondary: #b2a285;
-  --text-heading: #f6efdf;
-  --border-default: #3a3327;
-  --border-subtle: #29241b;
-  --border-strong: #5b4f3b;
-  --state-hover: #241e15;
-  --state-hover-subtle: #1b160e;
-  --state-selected: #322815;
-  --accent-blue: #d6ab62;
-  --accent-blue-hover: #e6bf79;
-  --accent-blue-light: rgba(214, 171, 98, 0.16);
-  --primary-foreground: #16130d;
+  --surface-app: #0b1015;
+  --surface-sidebar: #080c10;
+  --surface-panel: #10161d;
+  --surface-card: #141c25;
+  --surface-popover: #161f29;
+  --surface-input: #0e141b;
+  --surface-editor: #0a0f14;
+  --text-primary: #e9eef2;
+  --text-secondary: #9aa7b4;
+  --text-heading: #f2f6f9;
+  --border-default: #233040;
+  --border-subtle: #161f29;
+  --border-strong: #34465a;
+  --state-hover: #141c25;
+  --state-hover-subtle: #10161d;
+  --state-selected: #15303a;
+  --accent-blue: #5ee0c8;
+  --accent-blue-hover: #7eead7;
+  --accent-blue-light: rgba(94, 224, 200, 0.16);
+  --primary-foreground: #06201b;
   --accent-green: var(--accent-blue);
-  --accent-orange: #e1925b;
-  --accent-purple: #c2a7e6;
+  --accent-orange: #f0a868;
+  --accent-purple: #b69cff;
   --accent-yellow: #e8c46a;
-  --state-focus-ring: #d6ab62;
-  --border-focus: #d6ab62;
-  --syntax-heading: #e6bf79;
-  --syntax-link: #d6ab62;
-  --sidebar-foreground: #ece2d1;
-  --sidebar-primary: #d6ab62;
-  --sidebar-primary-foreground: #16130d;
-  --sidebar-accent: rgba(214, 171, 98, 0.14);
-  --sidebar-accent-foreground: #f6efdf;
-  --sidebar-border: rgba(214, 171, 98, 0.16);
+  --state-focus-ring: #5ee0c8;
+  --border-focus: #5ee0c8;
+  --syntax-heading: #7eead7;
+  --syntax-link: #5ee0c8;
+  --sidebar-foreground: #e9eef2;
+  --sidebar-primary: #5ee0c8;
+  --sidebar-primary-foreground: #06201b;
+  --sidebar-accent: rgba(94, 224, 200, 0.14);
+  --sidebar-accent-foreground: #f2f6f9;
+  --sidebar-border: rgba(94, 224, 200, 0.16);
 }
 
 [data-theme-preset="living-archive"][data-theme="light"] {

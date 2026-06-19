@@ -105,12 +105,12 @@ describe('useAppearanceSettings', () => {
     )
 
     expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'light')
-    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#f1e9d8')
+    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#f7f9fb')
 
     rerender({ themeMode: 'dark' })
 
     expect(document.documentElement).toHaveAttribute('data-theme-definition-mode', 'dark')
-    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#16130d')
+    expect(document.documentElement.style.getPropertyValue('--surface-app')).toBe('#0b1015')
   })
 
   it('applies local-only theme pack changes without changing the saved preset', () => {

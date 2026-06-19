@@ -42,29 +42,29 @@ describe('base theme CSS', () => {
   const css = readText(`${process.cwd()}/src/theme-base.css`)
   const darkBody = getRuleBody(css, ':root.dark,\n[data-theme="dark"]')
 
-  it('keeps the dark fallback shell warm candlelit instead of cold graphite', () => {
-    // Warm Paper is the only identity, so even the base fallback must read warm:
-    // red leads blue on every shell surface (candlelit, not blue-grey graphite).
+  it('keeps the dark fallback shell cold navy instead of warm candlelit', () => {
+    // Midnight Aurora is the only identity, so even the base fallback must read cool:
+    // blue leads red on every shell surface (deep navy, not candlelit amber).
     for (const token of ['--surface-app', '--surface-sidebar', '--surface-panel', '--surface-editor'] as const) {
       const [red, , blue] = hexToRgb(getDeclaration(darkBody, token))
-      expect(red, token).toBeGreaterThan(blue)
+      expect(blue, token).toBeGreaterThan(red)
     }
 
-    expect(getDeclaration(darkBody, '--surface-app')).toBe('#16130d')
-    expect(getDeclaration(darkBody, '--surface-sidebar')).toBe('#120f09')
-    expect(getDeclaration(darkBody, '--surface-panel')).toBe('#1d1810')
-    expect(getDeclaration(darkBody, '--surface-editor')).toBe('#17130c')
-    // The old cold-graphite fallback must not survive anywhere.
-    expect(css).not.toContain('#101113')
+    expect(getDeclaration(darkBody, '--surface-app')).toBe('#0b1015')
+    expect(getDeclaration(darkBody, '--surface-sidebar')).toBe('#080c10')
+    expect(getDeclaration(darkBody, '--surface-panel')).toBe('#10161d')
+    expect(getDeclaration(darkBody, '--surface-editor')).toBe('#0a0f14')
+    // The old warm-candlelit fallback must not survive anywhere.
+    expect(css).not.toContain('#16130d')
   })
 
-  it('uses antique brass as the fallback dark action tone', () => {
+  it('uses aurora teal as the fallback dark action tone', () => {
     for (const token of ['--accent-blue', '--accent-blue-hover', '--syntax-link'] as const) {
       const hue = hueDegrees(getDeclaration(darkBody, token))
-      expect(hue >= 20 && hue <= 70, token).toBe(true)
+      expect(hue >= 150 && hue <= 195, token).toBe(true)
     }
 
-    expect(getDeclaration(darkBody, '--accent-blue')).toBe('#d6ab62')
-    expect(getDeclaration(darkBody, '--syntax-link')).toBe('#d6ab62')
+    expect(getDeclaration(darkBody, '--accent-blue')).toBe('#5ee0c8')
+    expect(getDeclaration(darkBody, '--syntax-link')).toBe('#5ee0c8')
   })
 })

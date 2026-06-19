@@ -56,7 +56,7 @@ describe('vaultCreation', () => {
       templateKind: 'dreams',
     })).toMatchObject({
       experienceDetail: 'Paper canvas, Ledger graph, comfortable density.',
-      experienceLabel: 'Warm Paper',
+      experienceLabel: 'Midnight Aurora',
       storageDetail: 'Google Drive is still a local folder. Grimoire stores no cloud credentials.',
       syncDetail: 'Git stays off. The vault opens and saves as plain Markdown without a repo.',
       templateLabel: 'Dreams',

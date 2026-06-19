@@ -106,7 +106,7 @@ describe('appearance', () => {
   })
 
   it('applies appearance attributes to the root document', () => {
-    // data-theme=dark selects the candlelit-parchment mode of the warm-paper preset.
+    // data-theme=dark selects the midnight-navy mode of the aurora preset.
     document.documentElement.setAttribute('data-theme', 'dark')
     applyAppearanceToDocument(document, {
       themePreset: 'morning-notebook',
@@ -130,19 +130,19 @@ describe('appearance', () => {
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
-    // Candlelit warm-paper surfaces — no blue-steel anywhere.
-    expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#17130c')
-    expect(document.documentElement.style.getPropertyValue('--background')).toBe('#17130c')
+    // Midnight-navy aurora surfaces — cool deep navy, no warm parchment anywhere.
+    expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#0a0f14')
+    expect(document.documentElement.style.getPropertyValue('--background')).toBe('#0a0f14')
     expect(document.documentElement.style.getPropertyValue('--editor-line-height')).toBe('1.34')
-    // Brass accent (#d6ab62) is light enough that filled controls take dark ink.
-    expect(document.documentElement.style.getPropertyValue('--accent-blue')).toBe('#d6ab62')
-    expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#d6ab62')
+    // Aurora teal accent (#5ee0c8) is bright enough that filled controls take dark ink.
+    expect(document.documentElement.style.getPropertyValue('--accent-blue')).toBe('#5ee0c8')
+    expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#5ee0c8')
     expect(document.documentElement.style.getPropertyValue('--primary-foreground')).toBe('#061217')
     expect(document.documentElement.style.getPropertyValue('--grimoire-code-block-radius')).toBe('8px')
     // Ledger graph uses a flat linear wash, not the old constellation radial glow.
     expect(document.documentElement.style.getPropertyValue('--grimoire-graph-bg')).toContain('linear-gradient')
     expect(document.documentElement.style.getPropertyValue('--grimoire-canvas-stage-bg')).toBe('var(--surface-editor)')
-    expect(document.documentElement.style.getPropertyValue('--sidebar-artwork-opacity')).toBe('0.18')
+    expect(document.documentElement.style.getPropertyValue('--sidebar-artwork-opacity')).toBe('0.16')
     expect(document.documentElement.style.getPropertyValue('--motion-duration-panel')).toBe('260ms')
   })
 

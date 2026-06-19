@@ -139,29 +139,29 @@ describe('native theme overhaul CSS', () => {
     )
   })
 
-  it('keeps the warm-paper dark mode candlelit with brass accents instead of cold blue or green', () => {
-    const warmPaper = resolveThemePresetDefinition('morning-notebook')
-    const dark = warmPaper.modes.dark?.tokens
+  it('keeps the midnight-aurora dark mode cool navy with teal accents instead of warm amber or brass', () => {
+    const aurora = resolveThemePresetDefinition('morning-notebook')
+    const dark = aurora.modes.dark?.tokens
     expect(dark).toBeDefined()
 
-    expect(dark!['surface.app']).toBe('#16130d')
-    expect(dark!['surface.sidebar']).toBe('#120f09')
-    expect(dark!['surface.panel']).toBe('#1d1810')
-    expect(dark!['surface.editor']).toBe('#17130c')
-    expect(dark!['accent.primary']).toBe('#d6ab62')
+    expect(dark!['surface.app']).toBe('#0b1015')
+    expect(dark!['surface.sidebar']).toBe('#080c10')
+    expect(dark!['surface.panel']).toBe('#10161d')
+    expect(dark!['surface.editor']).toBe('#0a0f14')
+    expect(dark!['accent.primary']).toBe('#5ee0c8')
 
-    // Brass accents must sit in the warm amber band (~30-55deg), never blue/green.
+    // Teal accents must sit in the cyan-green band (~150-195deg), never amber/brass.
     for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
       const hue = hueDegrees(dark![token])
-      expect(hue > 20 && hue < 70, token).toBe(true)
+      expect(hue > 150 && hue < 195, token).toBe(true)
     }
 
-    // Candlelit surfaces are warm-toned: red channel leads, blue trails — not neutral graphite.
+    // Aurora surfaces are cool-toned: blue channel leads, red trails — not warm candlelit.
     for (const token of ['surface.app', 'surface.sidebar', 'surface.panel', 'surface.editor'] as const) {
       const [red, , blue] = hexToRgb(dark![token])
-      expect(red, `${token} should be warm (red leads blue)`).toBeGreaterThan(blue)
+      expect(blue, `${token} should be cool (blue leads red)`).toBeGreaterThan(red)
       const hue = hueDegrees(dark![token])
-      expect(hue < 70 || hue > 330, `${token} should stay in the warm amber band`).toBe(true)
+      expect(hue > 180 && hue < 260, `${token} should stay in the cool navy band`).toBe(true)
     }
   })
 })

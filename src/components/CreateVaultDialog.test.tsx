@@ -110,10 +110,10 @@ describe('CreateVaultDialog', () => {
     })
   })
 
-  it('sends the warm-paper experience profile and coerces unknown presets', async () => {
+  it('sends the aurora experience profile and coerces unknown presets', async () => {
     const onCreate = vi.fn().mockResolvedValue(true)
 
-    // Any removed/unknown preset normalizes back to the single shipped warm-paper theme.
+    // Any removed/unknown preset normalizes back to the single shipped Midnight Aurora theme.
     render(<CreateVaultDialog initialThemePreset={'nocturne' as never} open={true} onClose={vi.fn()} onCreate={onCreate} />)
 
     expect(screen.getByTestId('create-vault-experience-preview')).toHaveAttribute(
@@ -121,7 +121,7 @@ describe('CreateVaultDialog', () => {
       'morning-notebook',
     )
     expect(screen.getByTestId('create-vault-experience-morning-notebook')).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Warm Paper')
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Midnight Aurora')
 
     fireEvent.click(screen.getByTestId('create-vault-experience-morning-notebook'))
     expect(screen.getByTestId('create-vault-experience-preview')).toHaveAttribute(

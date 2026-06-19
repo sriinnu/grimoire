@@ -13,7 +13,9 @@ describe('fontConfig', () => {
       editorFont: 'system',
     })
 
-    expect(roles.display).toContain("'Literata'")
+    expect(roles.display).toContain("'Inter Display'")
+    expect(roles.display).toContain("'Inter'")
+    expect(roles.display).toContain("'SF Pro Display'")
     expect(resolveFontAssetIds({
       themePreset: 'morning-notebook',
       editorFont: 'system',
@@ -30,7 +32,8 @@ describe('fontConfig', () => {
       editorFont: 'readable',
     })
 
-    expect(roles.display).toContain("'Literata'")
+    expect(roles.display).toContain("'Inter Display'")
+    expect(roles.display).toContain("'SF Pro Display'")
     expect(roles.editor).toContain('Atkinson Hyperlegible')
   })
 
@@ -44,7 +47,8 @@ describe('fontConfig', () => {
       editorFont: 'mono',
     })
 
-    expect(displayRoles.display).toContain("'Literata'")
+    expect(displayRoles.display).toContain("'Inter Display'")
+    expect(displayRoles.display).toContain("'SF Pro Display'")
     expect(displayRoles.label).toContain('SF Pro')
     expect(monoRoles.ui).toContain('SF Pro')
     expect(monoRoles.editor).toContain('Berkeley Mono')
@@ -77,7 +81,8 @@ describe('fontConfig', () => {
       editorFont: 'mono',
     })
 
-    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Literata'")
+    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Inter Display'")
+    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'SF Pro Display'")
     expect(document.documentElement.style.getPropertyValue('--grimoire-editor-font-family')).toContain('TX-02 Berkeley Mono')
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toContain('TX-02 Berkeley Mono')
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toMatch(/^'Grimoire Berkeley Mono'/)

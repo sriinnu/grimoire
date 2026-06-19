@@ -22,18 +22,18 @@ describe('buildPresetOptions', () => {
     const jsonMorning = THEME_PRESET_CATALOG.find((preset) => preset.id === 'morning-notebook')
 
     expect(morning?.swatches).toEqual(jsonMorning?.swatches)
-    // Warm-paper identity: parchment surface, sidebar, and brass accent.
-    expect(morning?.swatches).toEqual(['#FBF5E8', '#E9DEC9', '#8F5E22'])
+    // Midnight Aurora identity: deep navy surface, navy card, and teal accent.
+    expect(morning?.swatches).toEqual(['#0B1015', '#141C25', '#5EE0C8'])
   })
 
-  it('exposes a single signature group containing only warm paper', () => {
+  it('exposes a single signature group containing only Midnight Aurora', () => {
     const groups = buildPresetGroups(createTranslator('en'))
 
     expect(groups.map((group) => group.id)).toEqual(['signature'])
     expect(groups[0].options.map((option) => option.value)).toEqual(['morning-notebook'])
   })
 
-  it('models the warm-paper profile as a notebook shell with system writing', () => {
+  it('models the Midnight Aurora profile as a notebook shell with system writing', () => {
     const options = buildPresetOptions(createTranslator('en'))
 
     expect(options).toHaveLength(1)

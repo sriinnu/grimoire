@@ -59,8 +59,8 @@ describe('SettingsPanel sidebar appearance', () => {
     installPointerCapturePolyfill()
   })
 
-  it('renders the warm-paper sidebar preview in its light parchment mode', () => {
-    // Grimoire now ships a single theme: warm paper. Any persisted preset value —
+  it('renders the aurora sidebar preview in its light mode', () => {
+    // Grimoire now ships a single theme: midnight aurora. Any persisted preset value —
     // including legacy ids like "nocturne" — collapses to morning-notebook.
     render(
       <SettingsPanel
@@ -75,11 +75,11 @@ describe('SettingsPanel sidebar appearance', () => {
     expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-definition-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-preview', 'light')
-    // Light mode paints the warm parchment sidebar surface, not a blue-neutral one.
-    expect(preview).toHaveStyle({ background: '#e9dec9' })
+    // Light mode paints the cool aurora sidebar surface.
+    expect(preview).toHaveStyle({ background: '#eef2f6' })
   })
 
-  it('repaints the warm-paper preview when the dark candlelit mode is selected', () => {
+  it('repaints the aurora preview when the dark mode is selected', () => {
     // The preset picker is gone; the light/dark toggle is the primary theme control.
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
@@ -87,14 +87,14 @@ describe('SettingsPanel sidebar appearance', () => {
 
     const preview = screen.getByTestId('settings-sidebar-preview')
     expect(preview).toHaveAttribute('data-theme-preview', 'light')
-    expect(preview).toHaveStyle({ background: '#e9dec9' })
+    expect(preview).toHaveStyle({ background: '#eef2f6' })
 
     fireEvent.click(screen.getByTestId('settings-theme-dark'))
 
-    // Same single warm-paper preset, now in its candlelit dark mode.
+    // Same single aurora preset, now in its dark navy mode.
     expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-preview', 'dark')
-    expect(preview).toHaveStyle({ background: '#120f09' })
+    expect(preview).toHaveStyle({ background: '#080c10' })
   })
 
   it('includes the same artwork rail used by the live sidebar preview', () => {
