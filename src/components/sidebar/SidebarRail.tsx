@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import type { SidebarSelection } from '../../types'
 import { cn } from '../../lib/utils'
 import { isSelectionActive } from '../SidebarParts'
-import { BrandNotebookMark } from './BrandNotebookMark'
+import grimoireLogo from '@/assets/app-icon.png'
 import {
   ArchiveGlyphIcon,
   DreamGlyphIcon,
@@ -132,8 +132,8 @@ export function SidebarRail({
       data-testid="sidebar-rail"
       aria-label="Collapsed sidebar"
     >
-      <div className="app-sidebar-rail__mark mb-5 grid h-10 w-10 place-items-center rounded-xl border border-border bg-background">
-        <BrandNotebookMark className="h-8 w-8" />
+      <div className="app-sidebar-rail__mark mb-5 grid h-10 w-10 place-items-center overflow-hidden rounded-xl">
+        <img src={grimoireLogo} alt="Grimoire" className="h-full w-full object-cover" draggable={false} />
       </div>
       {onOpenSearch && (
         <Button

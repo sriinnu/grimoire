@@ -254,7 +254,7 @@ describe('Sidebar', () => {
     expect(wordmark).toHaveClass('sidebar-brand-wordmark')
     expect(wordmark).toHaveTextContent('Grimoire')
     expect(wordmark.querySelector('svg')).toBeNull()
-    expect(screen.getByTestId('sidebar-brand-icon')).toHaveAccessibleName('Grimoire notebook mark')
+    expect(screen.getByTestId('sidebar-brand-icon')).toHaveAccessibleName('Grimoire')
     expect(screen.queryByAltText('Grimoire icon')).not.toBeInTheDocument()
     expect(screen.getByText('Living notebook')).toBeInTheDocument()
     expect(screen.getByText('Living notebook')).toHaveStyle({ textAlign: 'left' })

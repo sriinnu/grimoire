@@ -17,7 +17,7 @@ import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingCo
 import { SidebarGroupHeader } from './SidebarGroupHeader'
 import { SidebarViewItem } from './SidebarViewItem'
 import { countByFilter } from '../../utils/noteListHelpers'
-import { BrandNotebookMark } from './BrandNotebookMark'
+import grimoireLogo from '@/assets/app-icon.png'
 import { BrandWordmark } from './BrandWordmark'
 import { clampFixedMenuPosition } from '../../lib/fixedMenuPosition'
 
@@ -267,8 +267,14 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
         aria-label="Grimoire"
         data-testid="sidebar-brand"
       >
-        <span className="sidebar-brand-mark grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-background">
-          <BrandNotebookMark className="h-7 w-7" testId="sidebar-brand-icon" />
+        <span className="sidebar-brand-mark grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-lg">
+          <img
+            src={grimoireLogo}
+            alt="Grimoire"
+            className="h-full w-full object-cover"
+            draggable={false}
+            data-testid="sidebar-brand-icon"
+          />
         </span>
         <span className="flex min-w-0 flex-col leading-none" style={{ textAlign: 'left' }}>
           <BrandWordmark testId="sidebar-brand-wordmark" />
