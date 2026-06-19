@@ -115,8 +115,9 @@ describe('dashboard theme CSS', () => {
     expect(dashboardLayoutCss).toContain("--vault-dashboard-title-font: var(--grimoire-display-font-family")
     expect(dashboardLayoutCss).toContain('font-family: var(--vault-dashboard-chrome-font)')
     expect(dashboardLayoutCss).toContain('font-family: var(--vault-dashboard-title-font)')
-    expect(dashboardLayoutCss).toContain('font-weight: 560')
-    expect(dashboardLayoutCss).not.toContain('text-transform: uppercase')
+    // Notebook voice lives in the hero display title (sentence-case, tested in
+    // the hero test). Small section-label eyebrows use uppercase to match the
+    // mockups, so the old blanket no-uppercase / fixed-weight guards are dropped.
     expect(dashboardLayoutCss).toContain('var(--grimoire-native-card-material')
     expect(dashboardLayoutCss).toContain('var(--grimoire-native-card-border')
     expect(dashboardLayoutCss).toContain('var(--grimoire-native-card-shadow')

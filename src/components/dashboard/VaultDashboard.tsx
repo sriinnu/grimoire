@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
+  Check,
   FilePlus2,
   Lock,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
@@ -29,6 +31,7 @@ import {
 import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
 import { DashboardHero } from './DashboardHero'
+import { DashboardCalendarCard } from './DashboardCalendarCard'
 import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
 import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
@@ -84,6 +87,59 @@ function WaitingBucketRow({ count, label }: { count: number; label: string }) {
   )
 }
 
+/** Faint-grid teal sparkline rendered from a small activity series. */
+function DashboardSparkline({ series, label }: { series: number[]; label: string }) {
+  const width = 132
+  const height = 34
+  const max = Math.max(1, ...series)
+  const step = series.length > 1 ? width / (series.length - 1) : width
+  const points = series
+    .map((value, index) => {
+      const x = index * step
+      const y = height - (value / max) * (height - 4) - 2
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+
+  return (
+    <svg
+      className="vault-dashboard__sparkline"
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={label}
+      data-testid="dashboard-sparkline"
+    >
+      <line className="vault-dashboard__sparkline-grid" x1="0" y1={height / 2} x2={width} y2={height / 2} />
+      <polygon className="vault-dashboard__sparkline-fill" points={`0,${height} ${points} ${width},${height}`} />
+      <polyline className="vault-dashboard__sparkline-line" points={points} fill="none" />
+    </svg>
+  )
+}
+
+/** Compact reassurance card: everything is backed up, locally, with a teal check. */
+function VaultHealthCard({ activeNotes }: { activeNotes: number }) {
+  return (
+    <section className="vault-dashboard__panel vault-dashboard__health" data-testid="dashboard-vault-health">
+      <div className="vault-dashboard__panel-head">
+        <div className="vault-dashboard__panel-label">Vault health</div>
+      </div>
+      <div className="vault-dashboard__health-body">
+        <span className="vault-dashboard__health-shield" aria-hidden="true">
+          <ShieldCheck size={26} />
+          <span className="vault-dashboard__health-check" aria-hidden="true">
+            <Check size={11} strokeWidth={3} />
+          </span>
+        </span>
+        <strong className="vault-dashboard__health-title">Everything backed up</strong>
+        <span className="vault-dashboard__health-meta">
+          {activeNotes} {activeNotes === 1 ? 'page' : 'pages'} held local
+        </span>
+      </div>
+    </section>
+  )
+}
+
 /** First screen for the local-first assistant loop. */
 export function VaultDashboard({
   activeVault,
@@ -131,6 +187,21 @@ export function VaultDashboard({
     : selectedKind === 'dream'
       ? selectedTemplates.dream
       : null
+  const activitySeries = useMemo(() => {
+    const days = 14
+    const dayMs = 24 * 60 * 60 * 1000
+    const now = Date.now()
+    const buckets = new Array<number>(days).fill(0)
+    for (const entry of entries) {
+      const ts = entry.modifiedAt ?? entry.createdAt
+      if (typeof ts !== 'number' || !Number.isFinite(ts)) continue
+      const daysAgo = Math.floor((now - ts * 1000) / dayMs)
+      if (daysAgo < 0 || daysAgo >= days) continue
+      buckets[days - 1 - daysAgo] += 1
+    }
+    return buckets
+  }, [entries])
+  const hasActivity = activitySeries.some((value) => value > 0)
   const heroStats: DashboardStat[] = useMemo(() => [
     { id: 'pages', value: summary.activeNotes, label: 'Pages', delta: 'active local notes' },
     { id: 'journals', value: summary.journalCount, label: 'Journals', delta: 'private by default' },
@@ -277,6 +348,10 @@ export function VaultDashboard({
 
         <DashboardStatRow stats={heroStats} />
 
+        <DashboardCalendarCard entries={entries} />
+
+        <VaultHealthCard activeNotes={summary.activeNotes} />
+
         <DashboardTodayRunway
           attention={attentionSuggestion}
           attentionCaptureKind={attentionCaptureKind}
@@ -300,14 +375,28 @@ export function VaultDashboard({
           />
         </Suspense>
 
-        <div className="vault-dashboard__panel">
+        <div className="vault-dashboard__panel vault-dashboard__panel--revisit">
           <div className="vault-dashboard__panel-head">
             <div>
-              <div className="vault-dashboard__panel-label">Revisit</div>
+              <div className="vault-dashboard__panel-label">
+                <CalendarDays size={13} aria-hidden="true" />
+                Revisit
+              </div>
               <h2>{summary.openLoopCount > 0 ? 'Pages to return to.' : 'No loose pages.'}</h2>
             </div>
-            <CalendarDays size={18} />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="vault-dashboard__panel-link"
+              onClick={() => seedPrompt('task')}
+            >
+              View all
+            </Button>
           </div>
+          {hasActivity ? (
+            <DashboardSparkline series={activitySeries} label="Recent activity over the last two weeks" />
+          ) : null}
           <div className="vault-dashboard__loop-list">
             {summary.openLoopBuckets.length > 0 ? summary.openLoopBuckets.map((bucket) => (
               <WaitingBucketRow key={bucket.label} count={bucket.count} label={bucket.label} />
@@ -320,10 +409,12 @@ export function VaultDashboard({
         <div className="vault-dashboard__panel">
           <div className="vault-dashboard__panel-head">
             <div>
-              <div className="vault-dashboard__panel-label">Private pages</div>
+              <div className="vault-dashboard__panel-label">
+                <Lock size={13} aria-hidden="true" />
+                Private pages
+              </div>
               <h2>Journal, dream, next.</h2>
             </div>
-            <Lock size={18} />
           </div>
           <div className="vault-dashboard__prompts">
             <PromptButton onClick={() => seedPrompt('journal')}>

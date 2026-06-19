@@ -9,7 +9,9 @@
 
   .vault-dashboard__panel--capture,
   .vault-dashboard__dream-forge,
-  .vault-dashboard__panel--wide {
+  .vault-dashboard__panel--wide,
+  .dashboard-calendar,
+  .vault-dashboard__health {
     grid-column: auto;
   }
 }
@@ -21,7 +23,9 @@
 
   .vault-dashboard__panel--capture,
   .vault-dashboard__dream-forge,
-  .vault-dashboard__panel--wide {
+  .vault-dashboard__panel--wide,
+  .dashboard-calendar,
+  .vault-dashboard__health {
     grid-column: auto;
   }
 

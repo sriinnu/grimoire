@@ -39,10 +39,12 @@ export function DashboardRecentNotesPanel({
     <div className="vault-dashboard__panel vault-dashboard__panel--wide">
       <div className="vault-dashboard__panel-head">
         <div>
-          <div className="vault-dashboard__panel-label">Recent Pages</div>
+          <div className="vault-dashboard__panel-label">
+            <NotebookTabs size={13} aria-hidden="true" />
+            Recent Pages
+          </div>
           <h2>Pick up the thread.</h2>
         </div>
-        <NotebookTabs size={18} />
       </div>
       <div className="vault-dashboard__recent-list">
         {entries.length > 0 ? entries.map((entry) => (
