@@ -145,11 +145,11 @@
   --surface-dialog: #ffffff;
   --surface-editor: #fcfdfe;
   --surface-overlay: rgba(15, 24, 34, 0.32);
-  --text-primary: #1f2933;
-  --text-secondary: #5b6b7a;
-  --text-tertiary: #6b7a89;
-  --text-muted: #8a97a4;
-  --text-faint: #aab4be;
+  --text-primary: #18222d;
+  --text-secondary: #4a5764;
+  --text-tertiary: #5a6772;
+  --text-muted: #66737f;
+  --text-faint: #8b97a2;
   --text-heading: #0f1822;
   --text-inverse: #ffffff;
   --border-default: #dbe3ea;
@@ -184,7 +184,7 @@
   --accent-teal-light: rgba(12, 125, 114, 0.12);
   --accent-pink: #c2497e;
   --accent-pink-light: rgba(194, 73, 126, 0.12);
-  --accent-gray: #6b7a89;
+  --accent-gray: #5a6772;
   --accent-gray-light: rgba(107, 122, 137, 0.12);
   --feedback-info-text: var(--accent-blue);
   --feedback-info-bg: var(--accent-blue-light);
@@ -199,7 +199,7 @@
   --syntax-link: #0c7d72;
   --syntax-monospace: #c2603a;
   --syntax-monospace-bg: rgba(12, 125, 114, 0.1);
-  --syntax-muted: #6b7a89;
+  --syntax-muted: #5a6772;
   --syntax-frontmatter-key: #c2603a;
   --syntax-frontmatter-value: #2f9e6b;
   --syntax-highlight-comment: #6a737d;

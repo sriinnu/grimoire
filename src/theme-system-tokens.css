@@ -154,8 +154,8 @@
   --surface-popover: #ffffff;
   --surface-input: #ffffff;
   --surface-editor: #fcfdfe;
-  --text-primary: #1f2933;
-  --text-secondary: #5b6b7a;
+  --text-primary: #18222d;
+  --text-secondary: #4a5764;
   --text-heading: #0f1822;
   --border-default: #dbe3ea;
   --border-subtle: #eef2f6;
@@ -175,11 +175,11 @@
   --border-focus: #0c7d72;
   --syntax-heading: #0a665d;
   --syntax-link: #0c7d72;
-  --sidebar-foreground: #1f2933;
+  --sidebar-foreground: #18222d;
   --sidebar-primary: #0c7d72;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: rgba(12, 125, 114, 0.13);
-  --sidebar-accent-foreground: #1f2933;
+  --sidebar-accent-foreground: #18222d;
   --sidebar-border: #e3e9ef;
 }
 
