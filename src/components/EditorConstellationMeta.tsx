@@ -110,6 +110,12 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
         </span>
       ) : null}
       <EditorNavigatorControls content={content} enableFindShortcut variant="meta" />
+      <span className="editor-meta-strip__spacer" aria-hidden="true" />
+      {typeof entry.wordCount === 'number' ? (
+        <span className="editor-meta-strip__wordcount" data-testid="editor-meta-wordcount">
+          {entry.wordCount.toLocaleString()} {entry.wordCount === 1 ? 'word' : 'words'}
+        </span>
+      ) : null}
     </div>
   )
 }

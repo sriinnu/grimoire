@@ -124,7 +124,8 @@ describe('system theme CSS', () => {
     const strongBody = getRuleBody(editorMetaCss, '.editor-meta-pill__value,\n.editor-meta-pill strong')
 
     expect(body).toContain('display: flex')
-    expect(body).toContain('flex-wrap: wrap')
+    // Single cool-hairline meta row now (word count pinned right), not wrapping.
+    expect(body).toContain('flex-wrap: nowrap')
     expect(body).toContain('overflow-x: auto')
     expect(pillBody).toContain('display: inline-flex')
     expect(pillBody).toContain('min-width: 0')

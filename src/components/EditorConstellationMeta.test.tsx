@@ -40,6 +40,30 @@ describe('EditorConstellationMeta', () => {
     expect(editorMetaCss).toContain('max-width: min(12rem, 44vw)')
   })
 
+  it('pins a low-contrast word count at the right end of the strip', () => {
+    render(
+      <EditorConstellationMeta
+        content="# Long note"
+        entry={makeEntry({ isA: 'Project', wordCount: 1234 })}
+      />,
+    )
+
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('1,234 words')
+    expect(editorMetaCss).toContain('.editor-meta-strip__wordcount')
+    expect(editorMetaCss).toContain('.editor-meta-strip__spacer')
+  })
+
+  it('singularises the word count for a one-word note', () => {
+    render(
+      <EditorConstellationMeta
+        content="word"
+        entry={makeEntry({ isA: 'Project', wordCount: 1 })}
+      />,
+    )
+
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('1 word')
+  })
+
   it('honors theme-pack metadata field visibility', () => {
     document.documentElement.setAttribute('data-theme-metadata-fields', 'type modified locality')
 

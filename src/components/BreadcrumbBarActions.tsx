@@ -99,7 +99,7 @@ function RawToggleButton({
   return (
     <ToggleIconAction
       active={!!rawMode}
-      activeClassName="text-foreground"
+      activeClassName="text-primary"
       activeLabel="Return to the editor"
       inactiveLabel="Open the raw editor"
       onClick={onToggleRaw}
@@ -128,7 +128,7 @@ function NoteLayoutAction({
           : 'Switch to left-aligned note layout',
       }}
       onClick={onToggleNoteLayout}
-      className={cn(isLeftAligned ? 'text-foreground' : 'hover:text-foreground')}
+      className={cn(isLeftAligned ? 'text-primary' : 'hover:text-foreground')}
     >
       {isLeftAligned
         ? <TextAlignLeft size={16} className={BREADCRUMB_ICON_CLASS} />
@@ -209,7 +209,7 @@ function DiffAction({
     <IconActionButton
       copy={copy}
       onClick={onToggleDiff}
-      className={cn(diffMode ? 'text-foreground' : 'hover:text-foreground')}
+      className={cn(diffMode ? 'text-primary' : 'hover:text-foreground')}
     >
       <GitBranch size={16} className={BREADCRUMB_ICON_CLASS} />
     </IconActionButton>

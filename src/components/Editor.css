@@ -48,6 +48,13 @@
   background: transparent;
 }
 
+/* Editor canvas: a cool hairline left-seam gives the writing surface a
+   floating-paper read between the note-list rail and the AI panel. Surface
+   tone + hairline only — no drop shadows between panes. */
+.editor-canvas {
+  border-left: 1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-subtle)) 70%, transparent);
+}
+
 /* Scroll area wrapping title + editor — single scroll context for alignment */
 .editor-scroll-area {
   flex: 1;
