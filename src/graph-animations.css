@@ -206,6 +206,11 @@
   transition: opacity 160ms ease, stroke-width 160ms ease;
 }
 
+/* Every relationship edge glows like a live synapse. */
+.grimoire-graph-edge--relationship {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--grimoire-graph-edge-relationship, var(--primary)) 32%, transparent));
+}
+
 .grimoire-graph-edge--source-safe {
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--primary) 16%, transparent));
 }
@@ -216,6 +221,11 @@
 
 .grimoire-graph-edge--local {
   filter: none;
+}
+
+/* Node cores glow softly, like lit neurons. */
+.grimoire-graph-node-core {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--node-color, var(--primary)) 34%, transparent));
 }
 
 .grimoire-graph-node {
