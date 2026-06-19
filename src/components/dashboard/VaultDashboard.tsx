@@ -3,7 +3,6 @@ import {
   CalendarDays,
   FilePlus2,
   Lock,
-  NotebookTabs,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
@@ -29,6 +28,8 @@ import {
 } from './DashboardTodayRunwayModel'
 import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
+import { DashboardHero } from './DashboardHero'
+import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
 import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import './VaultDashboardLayout.css'
@@ -59,16 +60,6 @@ interface VaultDashboardProps {
   pulseCommits?: PulseCommit[]
   syncStatus: SyncStatus
   vaultPath: string
-}
-
-function StatTile({ label, value, detail }: { label: string; value: number | string; detail: string }) {
-  return (
-    <div className="vault-dashboard__stat">
-      <div className="vault-dashboard__stat-value">{value}</div>
-      <div className="vault-dashboard__stat-label">{label}</div>
-      <div className="vault-dashboard__stat-detail">{detail}</div>
-    </div>
-  )
 }
 
 function PromptButton({
@@ -140,6 +131,12 @@ export function VaultDashboard({
     : selectedKind === 'dream'
       ? selectedTemplates.dream
       : null
+  const heroStats: DashboardStat[] = useMemo(() => [
+    { id: 'pages', value: summary.activeNotes, label: 'Pages', delta: 'active local notes' },
+    { id: 'journals', value: summary.journalCount, label: 'Journals', delta: 'private by default' },
+    { id: 'dreams', value: summary.dreamCount, label: 'Dreams', delta: 'held local' },
+    { id: 'memory', value: summary.memoryQueueCount, label: 'Memory', delta: 'review queue' },
+  ], [summary.activeNotes, summary.journalCount, summary.dreamCount, summary.memoryQueueCount])
 
   useEffect(() => {
     if (!showAskContextPreview) {
@@ -240,46 +237,45 @@ export function VaultDashboard({
 
   return (
     <main className="vault-dashboard" data-testid="vault-dashboard">
-      <section className="vault-dashboard__hero">
-        <div className="vault-dashboard__hero-copy">
-          <div className="vault-dashboard__eyebrow">
-            <NotebookTabs size={14} />
-            Grimoire
-          </div>
-          <h1>{activeNotebookTitle}</h1>
-          <p className="vault-dashboard__subtitle">One living notebook, private by default.</p>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="vault-dashboard__new-page-button"
-          aria-label="New Page"
-          title="New Page"
-          onClick={() => seedPrompt('note')}
-          data-testid="dashboard-new-page"
-        >
-          <FilePlus2 size={16} />
-        </Button>
-      </section>
-
       <section className="vault-dashboard__grid grimoire-cascade">
-        <DashboardQuickCapturePanel
-          askContextPreview={askContextPreview}
-          busy={busy}
-          captureDateOffset={captureDateOffset}
-          captureDateOverride={captureDateOverride}
-          input={input}
-          inputRef={inputRef}
-          selectedKind={selectedKind}
-          selectedTemplateId={selectedTemplateId}
-          showAskContextPreview={showAskContextPreview}
-          onInputChange={updateCaptureInput}
-          onSelectDateOffset={selectCaptureDateOffset}
-          onSelectKind={selectCaptureKind}
-          onSelectTemplate={selectTemplate}
-          onSubmit={handleSubmit}
-        />
+        <DashboardHero
+          eyebrowLabel="Grimoire"
+          title={activeNotebookTitle}
+          tagline="One living notebook. Capture, connect, and remember — private by default."
+          action={(
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="vault-dashboard__new-page-button"
+              aria-label="New Page"
+              title="New Page"
+              onClick={() => seedPrompt('note')}
+              data-testid="dashboard-new-page"
+            >
+              <FilePlus2 size={16} />
+            </Button>
+          )}
+        >
+          <DashboardQuickCapturePanel
+            askContextPreview={askContextPreview}
+            busy={busy}
+            captureDateOffset={captureDateOffset}
+            captureDateOverride={captureDateOverride}
+            input={input}
+            inputRef={inputRef}
+            selectedKind={selectedKind}
+            selectedTemplateId={selectedTemplateId}
+            showAskContextPreview={showAskContextPreview}
+            onInputChange={updateCaptureInput}
+            onSelectDateOffset={selectCaptureDateOffset}
+            onSelectKind={selectCaptureKind}
+            onSelectTemplate={selectTemplate}
+            onSubmit={handleSubmit}
+          />
+        </DashboardHero>
+
+        <DashboardStatRow stats={heroStats} />
 
         <DashboardTodayRunway
           attention={attentionSuggestion}
@@ -338,13 +334,6 @@ export function VaultDashboard({
             </PromptButton>
             <PromptButton onClick={() => seedPrompt('task')}>Carry one page forward</PromptButton>
           </div>
-        </div>
-
-        <div className="vault-dashboard__stats">
-          <StatTile label="Pages" value={summary.activeNotes} detail="active local notes" />
-          <StatTile label="Journals" value={summary.journalCount} detail="private by default" />
-          <StatTile label="Dreams" value={summary.dreamCount} detail="held local" />
-          <StatTile label="Memory" value={summary.memoryQueueCount} detail="review queue" />
         </div>
 
         <DashboardRecentNotesPanel

@@ -612,7 +612,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Test Notebook' })).toBeInTheDocument()
-      expect(screen.getByText('One living notebook, private by default.')).toBeInTheDocument()
+      expect(screen.getByText('One living notebook. Capture, connect, and remember — private by default.')).toBeInTheDocument()
     }, { timeout: 10000 })
   }, 15000)
 
