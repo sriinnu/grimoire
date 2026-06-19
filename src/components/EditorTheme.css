@@ -92,7 +92,9 @@
 }
 
 .editor__blocknote-container .bn-editor ::selection {
-  background: var(--colors-selection);
+  /* Was var(--colors-selection) — an undefined token, so editor selection fell
+     back to a dull default. Pick up the aurora accent like the rest of the app. */
+  background: color-mix(in srgb, var(--primary) 28%, transparent);
 }
 
 /* Keep BlockNote toolbar/menu icons at a stable size.
