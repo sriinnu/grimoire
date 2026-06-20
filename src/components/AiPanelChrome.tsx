@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Link, Robot } from '@phosphor-icons/react'
-import { Plus, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react'
+import { SendHorizontal, X } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { AiMessage } from './AiMessage'
 import { AiChatComposerInput } from './AiChatComposerInput'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
@@ -89,7 +89,7 @@ function AiPanelEmptyState({
         className="flex flex-col items-center justify-center text-center text-muted-foreground"
         style={{ paddingTop: 40 }}
       >
-        <Robot size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+        <Glyph name="chitragupta" size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
         <p style={{ fontSize: 14, margin: '0 0 4px' }}>
           {agentLabel} is not available on this machine
         </p>
@@ -105,7 +105,7 @@ function AiPanelEmptyState({
       className="flex flex-col items-center justify-center text-center text-muted-foreground"
       style={{ paddingTop: 40 }}
     >
-      <Robot size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+      <Glyph name="chitragupta" size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
       <p style={{ fontSize: 14, margin: '0 0 4px' }}>
         {hasContext
           ? legacyCopy ? 'Ask about this note and its linked context' : `Ask ${agentLabel} about this note and its linked context`
@@ -159,7 +159,7 @@ export function AiPanelHeader({
           border: '1px solid color-mix(in srgb, var(--primary) 28%, transparent)',
         }}
       >
-        <Sparkles className="size-4" style={{ color: 'var(--primary)' }} />
+        <Glyph name="sparkle" size={16} style={{ color: 'var(--primary)' }} />
         <span
           className="ai-panel-header__status absolute"
           data-agent-ready={agentReady || undefined}
@@ -202,7 +202,7 @@ export function AiPanelHeader({
         title={crystallizeBlockedReason ?? 'Crystallize latest AI response'}
         data-testid="ai-crystallize"
       >
-        <Sparkles className="size-4" />
+        <Glyph name="sparkle" size={16} />
       </Button>
       <Button
         type="button"
@@ -213,7 +213,7 @@ export function AiPanelHeader({
         aria-label="New AI chat"
         title="New AI chat"
       >
-        <Plus className="size-4" />
+        <Glyph name="add" size={16} />
       </Button>
       <Button
         type="button"
@@ -275,11 +275,11 @@ export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBa
       style={{ padding: '6px 12px', gap: 6, fontSize: 12 }}
       data-testid="context-bar"
     >
-      <Link size={12} className="shrink-0" />
+      <Glyph name="link" size={12} className="shrink-0" />
       <span className="truncate" style={{ fontWeight: 500 }}>{visibleTitle}</span>
       {policy.localOnly ? (
         <Badge variant="outline" className="h-7 rounded-md px-2.5 text-[13px]">
-          <ShieldCheck className="size-4" />
+          <Glyph name="shield" size={16} />
           Protected
         </Badge>
       ) : null}

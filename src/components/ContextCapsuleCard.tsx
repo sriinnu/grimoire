@@ -1,5 +1,5 @@
-import { FileSearch, FileStack, Network, PackageCheck, ShieldCheck } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Glyph } from './glyphs/Glyph'
 import type { ContextCapsulePreview } from '../lib/contextCapsule'
 import type { AiAgentId } from '../lib/aiAgents'
 import { localityEgressLanes } from '../lib/localityPolicy'
@@ -41,7 +41,7 @@ export function ContextCapsuleCard({
       <div className="grimoire-context-capsule rounded-xl border border-border bg-muted/25 p-3.5">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
-            <PackageCheck className="size-4 shrink-0 text-muted-foreground" />
+            <Glyph name="sourceSafe" size={16} className="shrink-0 text-muted-foreground" />
             <span>Context Capsule</span>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -68,7 +68,7 @@ export function ContextCapsuleCard({
             onClick={onReviewPackage}
             data-testid="context-capsule-review"
           >
-            <FileSearch className="size-4" />
+            <Glyph name="insight" size={16} />
             Review capsule package
           </Button>
         ) : null}
@@ -141,13 +141,13 @@ export function ContextCapsuleCard({
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
-          <CapsuleBadge icon={<ShieldCheck className="size-4" />} label={preview.rules[1]} />
-          <CapsuleBadge icon={<Network className="size-4" />} label={`${preview.projectMap.graphNodes} graph notes`} />
-          <CapsuleBadge icon={<Network className="size-4" />} label={`${preview.projectMap.graphEdges} graph edges`} />
+          <CapsuleBadge icon={<Glyph name="shield" size={16} />} label={preview.rules[1]} />
+          <CapsuleBadge icon={<Glyph name="graph" size={16} />} label={`${preview.projectMap.graphNodes} graph notes`} />
+          <CapsuleBadge icon={<Glyph name="graph" size={16} />} label={`${preview.projectMap.graphEdges} graph edges`} />
           {preview.projectMap.graphOmitted > 0 ? (
-            <CapsuleBadge icon={<ShieldCheck className="size-4" />} label={`${preview.projectMap.graphOmitted} graph held`} />
+            <CapsuleBadge icon={<Glyph name="shield" size={16} />} label={`${preview.projectMap.graphOmitted} graph held`} />
           ) : null}
-          <CapsuleBadge icon={<FileStack className="size-4" />} label={preview.rules[2]} />
+          <CapsuleBadge icon={<Glyph name="contextPacket" size={16} />} label={preview.rules[2]} />
         </div>
 
         {preview.includedNotes.length > 0 ? (

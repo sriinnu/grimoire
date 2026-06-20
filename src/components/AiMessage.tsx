@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
-import { CaretRight, CaretDown, Brain, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { CaretRight, CaretDown, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { AiActionCard, type AiActionStatus } from './AiActionCard'
 import { AI_AGENT_CLI_DEFAULT_ROUTE, getAiAgentDefinition, type AiAgentRuntimeRoute } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
@@ -116,7 +117,7 @@ function ReasoningBlock({ text, expanded, onToggle }: {
         onClick={onToggle}
         data-testid="reasoning-toggle"
       >
-        <Brain size={14} />
+        <Glyph name="brain" size={14} />
         <span>Reasoning</span>
         {expanded ? <CaretDown size={12} /> : <CaretRight size={12} />}
       </button>

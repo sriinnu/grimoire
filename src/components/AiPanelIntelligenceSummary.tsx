@@ -1,6 +1,7 @@
-import { ChevronDown, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
 import type { ContextCapsuleState } from '../lib/contextCapsule'
+import { Glyph } from './glyphs/Glyph'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 
@@ -55,7 +56,7 @@ export function AiPanelIntelligenceSummary({
         <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
-              <Sparkles className="size-4 shrink-0 text-[var(--grimoire-signal-accent)]" />
+              <Glyph name="sparkle" size={16} className="size-4 shrink-0 text-[var(--grimoire-signal-accent)]" />
               <span>Assistant brief</span>
             </div>
             <p className="mt-2 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
@@ -150,7 +151,7 @@ export function AiPanelIntelligenceSummary({
 function BriefBadge({ label }: { label: string }) {
   return (
     <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[12px]">
-      <ShieldCheck className="size-4" />
+      <Glyph name="shield" size={16} className="size-4" />
       {label}
     </Badge>
   )

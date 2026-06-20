@@ -1,6 +1,6 @@
-import { CheckCircle2, FileClock, ShieldCheck, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
+import { Glyph } from './glyphs/Glyph'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 
@@ -35,7 +35,7 @@ export function AiCrystallizeLoopCard({
       <div className="rounded-xl border border-border bg-muted/30 p-3.5">
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
-            <Sparkles className="size-4 shrink-0 text-muted-foreground" />
+            <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
             <span>Crystallize Memory</span>
           </div>
           <Button
@@ -66,12 +66,12 @@ export function AiCrystallizeLoopCard({
           ))}
         </ol>
         <div className="mt-3 flex flex-wrap gap-2">
-          <LoopBadge icon={<FileClock className="size-4" />} label={hasContext ? 'Context ready' : 'No context'} />
+          <LoopBadge icon={<Glyph name="memoryCue" size={16} />} label={hasContext ? 'Context ready' : 'No context'} />
           <LoopBadge
-            icon={<ShieldCheck className="size-4" />}
+            icon={<Glyph name="shield" size={16} />}
             label={activeContextProtected ? 'Local-only gate' : linkedCount > 0 ? `${linkedCount} linked` : 'Council brief'}
           />
-          <LoopBadge icon={<CheckCircle2 className="size-4" />} label={reviewState} />
+          <LoopBadge icon={<Glyph name="reviewed" size={16} />} label={reviewState} />
         </div>
         {proposalSummary && canCrystallize ? (
           <div
@@ -80,24 +80,24 @@ export function AiCrystallizeLoopCard({
           >
             <div className="font-medium text-foreground">Review packet</div>
             <div className="flex flex-wrap gap-2">
-              <LoopBadge icon={<FileClock className="size-4" />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
-              <LoopBadge icon={<Sparkles className="size-4" />} label={activeNoteLabel(proposalSummary)} />
-              <LoopBadge icon={<ShieldCheck className="size-4" />} label={writeContractLabel(proposalSummary)} />
-              <LoopBadge icon={<Sparkles className="size-4" />} label={proposalSummary.loopReceipt} />
-              <LoopBadge icon={<ShieldCheck className="size-4" />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
+              <LoopBadge icon={<Glyph name="memoryCue" size={16} />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
+              <LoopBadge icon={<Glyph name="sparkle" size={16} />} label={activeNoteLabel(proposalSummary)} />
+              <LoopBadge icon={<Glyph name="shield" size={16} />} label={writeContractLabel(proposalSummary)} />
+              <LoopBadge icon={<Glyph name="sparkle" size={16} />} label={proposalSummary.loopReceipt} />
+              <LoopBadge icon={<Glyph name="shield" size={16} />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
               <LoopBadge
-                icon={<CheckCircle2 className="size-4" />}
+                icon={<Glyph name="reviewed" size={16} />}
                 label={reviewCount(proposalSummary.ledgerFieldCount, 'ledger field')}
               />
-              <LoopBadge icon={<FileClock className="size-4" />} label={`review by ${proposalSummary.expiresAt}`} />
+              <LoopBadge icon={<Glyph name="memoryCue" size={16} />} label={`review by ${proposalSummary.expiresAt}`} />
               <LoopBadge
-                icon={<ShieldCheck className="size-4" />}
+                icon={<Glyph name="shield" size={16} />}
                 label={reviewCount(proposalSummary.contradictionCount, 'contradiction')}
               />
               {proposalSummary.taskCount > 0 ? (
-                <LoopBadge icon={<CheckCircle2 className="size-4" />} label={reviewCount(proposalSummary.taskCount, 'task hunk')} />
+                <LoopBadge icon={<Glyph name="reviewed" size={16} />} label={reviewCount(proposalSummary.taskCount, 'task hunk')} />
               ) : null}
-              <LoopBadge icon={<Sparkles className="size-4" />} label={proposalSummary.targetFolder} />
+              <LoopBadge icon={<Glyph name="sparkle" size={16} />} label={proposalSummary.targetFolder} />
             </div>
           </div>
         ) : null}
