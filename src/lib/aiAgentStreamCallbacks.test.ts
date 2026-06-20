@@ -221,7 +221,8 @@ describe('aiAgentStreamCallbacks', () => {
         actions: [],
         isStreaming: false,
         reasoningDone: true,
-        response: 'Claude Code finished without returning a reply.',
+        response:
+          'No answer was returned. The route resolved but the provider streamed no reply — check that the selected model and provider are configured and reachable.',
       },
     ])
   })

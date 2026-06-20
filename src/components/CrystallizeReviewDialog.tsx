@@ -55,7 +55,7 @@ export function CrystallizeReviewDialog({
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[640px]"
+        className="flex max-h-[85dvh] flex-col overflow-y-hidden sm:max-w-[640px]"
         data-testid="crystallize-review-dialog"
       >
         {open ? (
@@ -104,8 +104,8 @@ function CrystallizeReviewBody({
   }
 
   return (
-    <div className={cn('grid gap-4', showAcceptMoment && 'grimoire-crystallize-accept')}>
-      <DialogHeader>
+    <div className={cn('flex min-h-0 flex-1 flex-col gap-4', showAcceptMoment && 'grimoire-crystallize-accept')}>
+      <DialogHeader className="shrink-0">
         <DialogTitle className="flex items-center gap-2">
           <Sparkles className="size-4" />
           Crystallize
@@ -115,7 +115,7 @@ function CrystallizeReviewBody({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid gap-3">
+      <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto pr-0.5">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="rounded-md">Local Markdown</Badge>
           <Badge variant="outline" className="rounded-md">No Git required</Badge>
@@ -207,7 +207,7 @@ function CrystallizeReviewBody({
         {error ? <div className="text-sm font-medium text-destructive">{error}</div> : null}
       </div>
 
-      <DialogFooter>
+      <DialogFooter className="shrink-0 border-t border-border/60 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
         <Button
           type="button"

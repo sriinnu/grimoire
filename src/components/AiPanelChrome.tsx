@@ -90,10 +90,10 @@ function AiPanelEmptyState({
         style={{ paddingTop: 40 }}
       >
         <Robot size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
-        <p style={{ fontSize: 13, margin: '0 0 4px' }}>
+        <p style={{ fontSize: 14, margin: '0 0 4px' }}>
           {agentLabel} is not available on this machine
         </p>
-        <p style={{ fontSize: 11, margin: 0, opacity: 0.6 }}>
+        <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>
           Install it or switch the default AI agent in Settings
         </p>
       </div>
@@ -106,13 +106,13 @@ function AiPanelEmptyState({
       style={{ paddingTop: 40 }}
     >
       <Robot size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
-      <p style={{ fontSize: 13, margin: '0 0 4px' }}>
+      <p style={{ fontSize: 14, margin: '0 0 4px' }}>
         {hasContext
           ? legacyCopy ? 'Ask about this note and its linked context' : `Ask ${agentLabel} about this note and its linked context`
           : legacyCopy ? 'Open a note, then ask the AI about it' : `Open a note, then ask ${agentLabel} about it`
         }
       </p>
-      <p style={{ fontSize: 11, margin: 0, opacity: 0.6 }}>
+      <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>
         {hasContext
           ? 'Summarize, find connections, expand ideas'
           : 'The AI will use the active note as context'
@@ -159,7 +159,7 @@ export function AiPanelHeader({
           border: '1px solid color-mix(in srgb, var(--primary) 28%, transparent)',
         }}
       >
-        <Sparkles className="size-3.5" style={{ color: 'var(--primary)' }} />
+        <Sparkles className="size-4" style={{ color: 'var(--primary)' }} />
         <span
           className="ai-panel-header__status absolute"
           data-agent-ready={agentReady || undefined}
@@ -178,14 +178,14 @@ export function AiPanelHeader({
       <div className="flex flex-1 flex-col overflow-hidden" style={{ gap: 1 }}>
         <span
           className="truncate"
-          style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}
+          style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}
         >
           {title}
         </span>
         {subLine && (
           <span
             className="truncate"
-            style={{ fontSize: 11, lineHeight: 1.3, color: 'var(--text-muted)' }}
+            style={{ fontSize: 12, lineHeight: 1.3, color: 'var(--text-muted)' }}
           >
             {`${agentLabel} · ${subLine}`}
           </span>
@@ -202,7 +202,7 @@ export function AiPanelHeader({
         title={crystallizeBlockedReason ?? 'Crystallize latest AI response'}
         data-testid="ai-crystallize"
       >
-        <Sparkles className="size-3.5" />
+        <Sparkles className="size-4" />
       </Button>
       <Button
         type="button"
@@ -213,7 +213,7 @@ export function AiPanelHeader({
         aria-label="New AI chat"
         title="New AI chat"
       >
-        <Plus className="size-3.5" />
+        <Plus className="size-4" />
       </Button>
       <Button
         type="button"
@@ -224,7 +224,7 @@ export function AiPanelHeader({
         aria-label="Close AI panel"
         title="Close AI panel"
       >
-        <X className="size-3.5" />
+        <X className="size-4" />
       </Button>
     </div>
   )
@@ -251,7 +251,7 @@ export function AiPanelBrief({
       style={{
         margin: 0,
         padding: conversationActive ? '6px 12px' : '8px 12px 10px',
-        fontSize: 12,
+        fontSize: 13,
         lineHeight: 1.4,
         color: 'var(--text-muted)',
         whiteSpace: conversationActive ? 'nowrap' : 'normal',
@@ -272,14 +272,14 @@ export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBa
   return (
     <div
       className="flex shrink-0 items-center border-b border-border text-muted-foreground"
-      style={{ padding: '6px 12px', gap: 6, fontSize: 11 }}
+      style={{ padding: '6px 12px', gap: 6, fontSize: 12 }}
       data-testid="context-bar"
     >
       <Link size={12} className="shrink-0" />
       <span className="truncate" style={{ fontWeight: 500 }}>{visibleTitle}</span>
       {policy.localOnly ? (
-        <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[10px]">
-          <ShieldCheck className="size-3" />
+        <Badge variant="outline" className="h-7 rounded-md px-2.5 text-[13px]">
+          <ShieldCheck className="size-4" />
           Protected
         </Badge>
       ) : null}
@@ -360,7 +360,7 @@ export function AiPanelComposer({
         borderTop: '1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-default)) 80%, transparent)',
       }}
     >
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-2.5">
         <div className="flex-1">
           <AiChatComposerInput
             entries={entries}

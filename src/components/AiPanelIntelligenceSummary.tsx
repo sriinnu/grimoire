@@ -47,18 +47,18 @@ export function AiPanelIntelligenceSummary({
 
   return (
     <section
-      className="grimoire-ai-brief border-b border-border px-3 py-2"
+      className="grimoire-ai-brief border-b border-border px-4 py-3"
       data-locality={activeContextProtected ? 'protected-local' : 'source-safe'}
       data-testid="ai-intelligence-summary"
     >
-      <div className="grimoire-ai-brief__inner rounded-md border border-border bg-muted/25 p-2">
-        <div className="flex items-start justify-between gap-2">
+      <div className="grimoire-ai-brief__inner rounded-xl border border-border bg-muted/25 p-3.5">
+        <div className="flex items-start justify-between gap-2.5">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
-              <Sparkles className="size-3.5 shrink-0 text-[var(--grimoire-signal-accent)]" />
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-foreground">
+              <Sparkles className="size-4 shrink-0 text-[var(--grimoire-signal-accent)]" />
               <span>Assistant brief</span>
             </div>
-            <p className="mt-1 line-clamp-2 text-[10px] leading-snug text-muted-foreground">
+            <p className="mt-2 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
               {summaryCopy({ activeContextProtected, heldCount, routeReady, sourceCount })}
             </p>
           </div>
@@ -66,20 +66,20 @@ export function AiPanelIntelligenceSummary({
             type="button"
             variant="outline"
             size="xs"
-            className="h-6 shrink-0 px-1.5 text-[10px]"
+            className="h-7 shrink-0 px-2.5 text-[13px]"
             aria-expanded={expanded}
             onClick={onToggle}
             data-testid="ai-intelligence-toggle"
           >
-            {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+            {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
             Details
           </Button>
         </div>
-        <div className="mt-2 grid grid-cols-5 gap-1" data-testid="ai-crystallize-runway">
+        <div className="mt-3 grid grid-cols-5 gap-2" data-testid="ai-crystallize-runway">
           {runway.map((step) => (
             <span
               key={step.label}
-              className="grimoire-ai-brief__runway-step rounded border px-1 py-1 text-center text-[9px] leading-tight"
+              className="grimoire-ai-brief__runway-step rounded-lg border px-2 py-2 text-center text-[12px] leading-tight"
               data-state={step.active ? 'active' : 'pending'}
             >
               {step.label}
@@ -88,17 +88,17 @@ export function AiPanelIntelligenceSummary({
         </div>
         {contextPackageSummary ? (
           <div
-            className="grimoire-ai-brief__context-strip mt-2 rounded-md border px-2 py-1.5"
+            className="grimoire-ai-brief__context-strip mt-3 rounded-xl border px-3 py-2.5"
             data-locality={contextPackageSummary.state === 'protected' ? 'protected-local' : 'source-safe'}
             data-testid="ai-brief-context-packet"
           >
-            <div className="flex min-w-0 items-center justify-between gap-2">
-              <span className="text-[10px] font-semibold text-foreground">Context packet</span>
-              <span className="min-w-0 truncate font-mono text-[9px] text-muted-foreground">
+            <div className="flex min-w-0 items-center justify-between gap-2.5">
+              <span className="text-[13px] font-semibold text-foreground">Context packet</span>
+              <span className="min-w-0 truncate font-mono text-[12px] text-muted-foreground">
                 {contextPackageSummary.receipt}
               </span>
             </div>
-            <div className="mt-1 grid grid-cols-3 gap-1">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               <BriefPacketMetric label="Sources" value={countLabel(sourceCount, 'source')} />
               <BriefPacketMetric label="Held" value={countLabel(heldCount, 'item')} />
               <BriefPacketMetric label="Route" value={contextRouteLabel(contextPackageSummary.state)} />
@@ -107,23 +107,23 @@ export function AiPanelIntelligenceSummary({
         ) : null}
         {canCrystallize && proposalSummary ? (
           <div
-            className="grimoire-ai-brief__memory-strip mt-2 rounded-md border px-2 py-1.5"
+            className="grimoire-ai-brief__memory-strip mt-3 rounded-xl border px-3 py-2.5"
             data-testid="ai-brief-crystallize-packet"
           >
-            <div className="flex min-w-0 items-center justify-between gap-2">
-              <span className="text-[10px] font-semibold text-foreground">Memory packet</span>
-              <span className="min-w-0 truncate font-mono text-[9px] text-muted-foreground">
+            <div className="flex min-w-0 items-center justify-between gap-2.5">
+              <span className="text-[13px] font-semibold text-foreground">Memory packet</span>
+              <span className="min-w-0 truncate font-mono text-[12px] text-muted-foreground">
                 {proposalSummary.loopReceipt}
               </span>
             </div>
-            <div className="mt-1 grid grid-cols-3 gap-1">
+            <div className="mt-2 grid grid-cols-3 gap-2">
               <BriefPacketMetric label="Review" value={countLabel(proposalSummary.hunkCount, 'hunk')} />
               <BriefPacketMetric label="Sources" value={countLabel(proposalSummary.sourceCount, 'source')} />
               <BriefPacketMetric label="Lands" value={proposalSummary.targetFolder || 'vault root'} />
             </div>
           </div>
         ) : null}
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           <BriefBadge label={localityLabel} />
           <BriefBadge label={countLabel(sourceCount, 'source')} />
           <BriefBadge label={`${graphNodeCount} graph`} />
@@ -134,7 +134,7 @@ export function AiPanelIntelligenceSummary({
             type="button"
             variant={canCrystallize ? 'default' : 'outline'}
             size="xs"
-            className="ml-auto h-5 px-1.5 text-[9px]"
+            className="ml-auto h-7 px-2.5 text-[12px]"
             disabled={!canCrystallize}
             onClick={onCrystallize}
             data-testid="ai-brief-crystallize"
@@ -149,8 +149,8 @@ export function AiPanelIntelligenceSummary({
 
 function BriefBadge({ label }: { label: string }) {
   return (
-    <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[9px]">
-      <ShieldCheck className="size-3" />
+    <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[12px]">
+      <ShieldCheck className="size-4" />
       {label}
     </Badge>
   )
@@ -158,9 +158,9 @@ function BriefBadge({ label }: { label: string }) {
 
 function BriefPacketMetric({ label, value }: { label: string; value: string }) {
   return (
-    <span className="min-w-0 rounded border px-1.5 py-1" data-metric={label.toLowerCase()}>
-      <span className="block text-[8px] uppercase text-muted-foreground">{label}</span>
-      <span className="block truncate text-[9px] font-medium text-foreground">{value}</span>
+    <span className="min-w-0 rounded-lg border px-2.5 py-2" data-metric={label.toLowerCase()}>
+      <span className="block text-[11px] uppercase text-muted-foreground">{label}</span>
+      <span className="block truncate text-[13px] font-medium text-foreground">{value}</span>
     </span>
   )
 }

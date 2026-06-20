@@ -37,24 +37,24 @@ export function ContextCapsuleCard({
   const egressLanes = localityEgressLanes(preview.state === 'protected')
 
   return (
-    <section className="border-b border-border px-3 py-2" data-testid="context-capsule-card">
-      <div className="grimoire-context-capsule rounded-md border border-border bg-muted/25 p-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
-            <PackageCheck className="size-3.5 shrink-0 text-muted-foreground" />
+    <section className="border-b border-border px-4 py-3" data-testid="context-capsule-card">
+      <div className="grimoire-context-capsule rounded-xl border border-border bg-muted/25 p-3.5">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
+            <PackageCheck className="size-4 shrink-0 text-muted-foreground" />
             <span>Context Capsule</span>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-2">
             {reviewReceipt ? (
               <Badge
                 variant="outline"
-                className="h-5 rounded-md px-1.5 font-mono text-[9px]"
+                className="h-7 rounded-xl px-2.5 font-mono text-[12px]"
                 data-testid="context-capsule-receipt"
               >
                 {reviewReceipt}
               </Badge>
             ) : null}
-            <Badge variant={preview.state === 'protected' ? 'secondary' : 'outline'} className="h-5 rounded-md px-1.5 text-[10px]">
+            <Badge variant={preview.state === 'protected' ? 'secondary' : 'outline'} className="h-7 rounded-xl px-2.5 text-[13px]">
               {stateLabel}
             </Badge>
           </div>
@@ -64,11 +64,11 @@ export function ContextCapsuleCard({
             type="button"
             variant="outline"
             size="xs"
-            className="mt-2 w-full justify-start"
+            className="mt-3 w-full justify-start"
             onClick={onReviewPackage}
             data-testid="context-capsule-review"
           >
-            <FileSearch className="size-3" />
+            <FileSearch className="size-4" />
             Review capsule package
           </Button>
         ) : null}
@@ -76,7 +76,7 @@ export function ContextCapsuleCard({
         {defaultAiAgent ? (
           <AgentRouteDisclosure
             agent={defaultAiAgent}
-            className="mt-2"
+            className="mt-3"
             contextProtected={preview.state === 'protected'}
             model={defaultAiModel}
             provider={defaultAiProvider}
@@ -85,7 +85,7 @@ export function ContextCapsuleCard({
 
         {preview.handoffIntent ? (
           <div
-            className="mt-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] px-2 py-1.5 text-[10px] leading-snug text-[var(--grimoire-signal-text)]"
+            className="mt-3 rounded-xl border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] px-3 py-2.5 text-[13px] leading-snug text-[var(--grimoire-signal-text)]"
             data-testid="context-capsule-intent"
           >
             <span className="font-semibold">{preview.handoffIntent}</span>
@@ -94,66 +94,66 @@ export function ContextCapsuleCard({
         ) : null}
 
         <div
-          className="grimoire-context-capsule__route mt-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] p-2"
+          className="grimoire-context-capsule__route mt-3 rounded-xl border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] p-3.5"
           data-locality={preview.state === 'protected' ? 'protected-local' : 'source-safe'}
           data-testid="context-capsule-route"
         >
-          <div className="flex items-center justify-between gap-2 text-[10px] font-medium text-[var(--grimoire-signal-text)]">
+          <div className="flex items-center justify-between gap-2.5 text-[13px] font-medium text-[var(--grimoire-signal-text)]">
             <span>Package route</span>
             <span>{preview.state === 'protected' ? 'No handoff' : 'Review first'}</span>
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
+          <div className="mt-3 grid grid-cols-2 gap-2">
             {route.map((step) => (
               <div
                 key={step.id}
-                className="grimoire-context-capsule__step rounded-md border border-border bg-background/55 px-1.5 py-1.5"
+                className="grimoire-context-capsule__step rounded-xl border border-border bg-background/55 px-2.5 py-2.5"
                 data-status={step.status}
               >
-                <div className="flex items-center gap-1 text-[9px] font-medium text-foreground">
-                  <span className={`size-1.5 rounded-full ${routeDotClass(step.status)}`} />
+                <div className="flex items-center gap-2 text-[12px] font-medium text-foreground">
+                  <span className={`size-2 rounded-full ${routeDotClass(step.status)}`} />
                   <span className="truncate">{step.label}</span>
                 </div>
-                <div className="mt-0.5 line-clamp-2 text-[8px] leading-snug text-muted-foreground">
+                <div className="mt-2 line-clamp-2 text-[12px] leading-snug text-muted-foreground">
                   {step.detail}
                 </div>
               </div>
             ))}
           </div>
-          <div className="mt-2 grid gap-1" data-testid="context-capsule-egress">
+          <div className="mt-3 grid gap-2" data-testid="context-capsule-egress">
             {egressLanes.map((lane) => (
               <div
                 key={lane.id}
-                className="grimoire-context-capsule__step flex min-w-0 items-center justify-between gap-2 rounded-md border border-border bg-background/55 px-1.5 py-1"
+                className="grimoire-context-capsule__step flex min-w-0 items-center justify-between gap-2.5 rounded-xl border border-border bg-background/55 px-2.5 py-2"
                 data-egress-state={lane.stateKey}
               >
-                <span className="truncate text-[9px] font-medium text-foreground">{lane.label}</span>
-                <span className="shrink-0 text-[8px] text-muted-foreground">{lane.state}</span>
+                <span className="truncate text-[12px] font-medium text-foreground">{lane.label}</span>
+                <span className="shrink-0 text-[12px] text-muted-foreground">{lane.state}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-2 grid grid-cols-2 gap-1.5">
+        <div className="mt-3 grid grid-cols-2 gap-2">
           <CapsuleStat label="Notes" value={preview.counts.selectedNotes} />
           <CapsuleStat label="Linked" value={preview.counts.linkedNotes} />
           <CapsuleStat label="List" value={preview.counts.noteListItems} />
           <CapsuleStat label="Held" value={heldLocalCount} />
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-1">
-          <CapsuleBadge icon={<ShieldCheck className="size-3" />} label={preview.rules[1]} />
-          <CapsuleBadge icon={<Network className="size-3" />} label={`${preview.projectMap.graphNodes} graph notes`} />
-          <CapsuleBadge icon={<Network className="size-3" />} label={`${preview.projectMap.graphEdges} graph edges`} />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <CapsuleBadge icon={<ShieldCheck className="size-4" />} label={preview.rules[1]} />
+          <CapsuleBadge icon={<Network className="size-4" />} label={`${preview.projectMap.graphNodes} graph notes`} />
+          <CapsuleBadge icon={<Network className="size-4" />} label={`${preview.projectMap.graphEdges} graph edges`} />
           {preview.projectMap.graphOmitted > 0 ? (
-            <CapsuleBadge icon={<ShieldCheck className="size-3" />} label={`${preview.projectMap.graphOmitted} graph held`} />
+            <CapsuleBadge icon={<ShieldCheck className="size-4" />} label={`${preview.projectMap.graphOmitted} graph held`} />
           ) : null}
-          <CapsuleBadge icon={<FileStack className="size-3" />} label={preview.rules[2]} />
+          <CapsuleBadge icon={<FileStack className="size-4" />} label={preview.rules[2]} />
         </div>
 
         {preview.includedNotes.length > 0 ? (
-          <div className="mt-2 flex flex-wrap gap-1" data-testid="context-capsule-included">
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="context-capsule-included">
             {preview.includedNotes.slice(0, 3).map((note) => (
-              <Badge key={note.path} variant="secondary" className="max-w-full rounded-md text-[10px]">
+              <Badge key={note.path} variant="secondary" className="max-w-full rounded-xl text-[13px]">
                 <span className="truncate">{note.title}</span>
               </Badge>
             ))}
@@ -161,9 +161,9 @@ export function ContextCapsuleCard({
         ) : null}
 
         {preview.exclusions.length > 0 ? (
-          <div className="mt-2 grid gap-1" data-testid="context-capsule-exclusions">
+          <div className="mt-3 grid gap-2" data-testid="context-capsule-exclusions">
             {preview.exclusions.slice(0, 3).map((item) => (
-              <div key={item.label} className="flex min-w-0 items-center justify-between gap-2 text-[10px] text-muted-foreground">
+              <div key={item.label} className="flex min-w-0 items-center justify-between gap-2.5 text-[13px] text-muted-foreground">
                 <span className="truncate">{item.label}</span>
                 <span className="shrink-0">{item.reason}</span>
               </div>
@@ -241,18 +241,18 @@ function countLabel(count: number, singular: string): string {
 function CapsuleStat({ label, value }: { label: string; value: number }) {
   return (
     <div
-      className="grimoire-context-capsule__stat rounded-md bg-background/60 px-2 py-1"
+      className="grimoire-context-capsule__stat rounded-xl bg-background/60 px-3 py-2"
       data-testid={`context-capsule-stat-${label.toLowerCase()}`}
     >
-      <div className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
-      <div className="text-[12px] font-medium text-foreground">{value}</div>
+      <div className="text-[11px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
+      <div className="text-[22px] font-semibold text-foreground">{value}</div>
     </div>
   )
 }
 
 function CapsuleBadge({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <Badge variant="outline" className="h-5 max-w-full rounded-md px-1.5 text-[9px]">
+    <Badge variant="outline" className="h-7 max-w-full rounded-xl px-2.5 text-[12px]">
       {icon}
       <span className="truncate">{label}</span>
     </Badge>
