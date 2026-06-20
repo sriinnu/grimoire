@@ -23,7 +23,7 @@ describe('buildPresetOptions', () => {
 
     expect(morning?.swatches).toEqual(jsonMorning?.swatches)
     // Midnight Aurora identity: deep navy surface, navy card, and teal accent.
-    expect(morning?.swatches).toEqual(['#0B1015', '#141C25', '#5EE0C8'])
+    expect(morning?.swatches).toEqual(['#FBFAF7', '#0D1C23', '#26D6C9'])
   })
 
   it('exposes a single signature group containing only Midnight Aurora', () => {

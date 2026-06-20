@@ -76,7 +76,7 @@ describe('SettingsPanel sidebar appearance', () => {
     expect(preview).toHaveAttribute('data-theme-definition-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-preview', 'light')
     // Light mode paints the cool aurora sidebar surface.
-    expect(preview).toHaveStyle({ background: '#eef2f6' })
+    expect(preview).toHaveStyle({ background: '#f6f2ea' })
   })
 
   it('repaints the aurora preview when the dark mode is selected', () => {
@@ -87,14 +87,14 @@ describe('SettingsPanel sidebar appearance', () => {
 
     const preview = screen.getByTestId('settings-sidebar-preview')
     expect(preview).toHaveAttribute('data-theme-preview', 'light')
-    expect(preview).toHaveStyle({ background: '#eef2f6' })
+    expect(preview).toHaveStyle({ background: '#f6f2ea' })
 
     fireEvent.click(screen.getByTestId('settings-theme-dark'))
 
     // Same single aurora preset, now in its dark navy mode.
     expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-preview', 'dark')
-    expect(preview).toHaveStyle({ background: '#080c10' })
+    expect(preview).toHaveStyle({ background: '#081a21' })
   })
 
   it('includes the same artwork rail used by the live sidebar preview', () => {

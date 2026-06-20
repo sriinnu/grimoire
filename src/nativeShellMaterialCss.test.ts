@@ -64,6 +64,6 @@ describe('native shell material CSS', () => {
     expect(glassPreview).toContain('var(--surface-app)')
     expect(glassPreview.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).not.toContain('var(--surface-sidebar)')
 
-    expect(darkOverride.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).toContain('#10161d')
+    expect(darkOverride.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).toContain('#122832')
   })
 })

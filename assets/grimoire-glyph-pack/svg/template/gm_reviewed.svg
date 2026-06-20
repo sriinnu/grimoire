@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Reviewed</title>
+  <desc>Grimoire glyph: Reviewed</desc>
+  <circle cx="32" cy="32" r="17" stroke="#22C55E" fill="none" stroke-width="2.2" />
+  <polyline points="22,33 29,40 43,24" stroke="#22C55E" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8" />
+</svg>

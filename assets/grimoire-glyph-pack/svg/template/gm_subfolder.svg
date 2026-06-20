@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Subfolder</title>
+  <desc>Grimoire glyph: Subfolder</desc>
+  <path d="M12 23h16l5 6h19v19H12z" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="16" y1="31" x2="48" y2="31" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.7" />
+  <circle cx="45" cy="22" r="3" stroke="#0B1F2A" fill="none" stroke-width="1.7" />
+</svg>

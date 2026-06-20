@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>File</title>
+  <desc>Grimoire glyph: File</desc>
+  <path d="M20 10h18l10 10v34H20z" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M38 10v11h10" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="26" y1="30" x2="43" y2="30" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.8" />
+  <line x1="26" y1="37" x2="43" y2="37" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.8" />
+  <line x1="26" y1="44" x2="36" y2="44" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.8" />
+</svg>

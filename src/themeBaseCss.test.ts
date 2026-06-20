@@ -50,10 +50,10 @@ describe('base theme CSS', () => {
       expect(blue, token).toBeGreaterThan(red)
     }
 
-    expect(getDeclaration(darkBody, '--surface-app')).toBe('#0b1015')
-    expect(getDeclaration(darkBody, '--surface-sidebar')).toBe('#080c10')
-    expect(getDeclaration(darkBody, '--surface-panel')).toBe('#10161d')
-    expect(getDeclaration(darkBody, '--surface-editor')).toBe('#0a0f14')
+    expect(getDeclaration(darkBody, '--surface-app')).toBe('#071217')
+    expect(getDeclaration(darkBody, '--surface-sidebar')).toBe('#081a21')
+    expect(getDeclaration(darkBody, '--surface-panel')).toBe('#0a1a21')
+    expect(getDeclaration(darkBody, '--surface-editor')).toBe('#050d12')
     // The old warm-candlelit fallback must not survive anywhere.
     expect(css).not.toContain('#16130d')
   })
@@ -64,7 +64,7 @@ describe('base theme CSS', () => {
       expect(hue >= 150 && hue <= 195, token).toBe(true)
     }
 
-    expect(getDeclaration(darkBody, '--accent-blue')).toBe('#5ee0c8')
-    expect(getDeclaration(darkBody, '--syntax-link')).toBe('#5ee0c8')
+    expect(getDeclaration(darkBody, '--accent-blue')).toBe('#26d6c9')
+    expect(getDeclaration(darkBody, '--syntax-link')).toBe('#26d6c9')
   })
 })

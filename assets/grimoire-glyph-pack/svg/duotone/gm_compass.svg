@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Compass</title>
+  <desc>Grimoire glyph: Compass</desc>
+  <circle cx="32" cy="32" r="18" stroke="#0B1F2A" fill="none" stroke-width="2.2" />
+  <polygon points="32,17 38,34 32,47 26,30" stroke="#D99A29" fill="#D99A2922" stroke-linejoin="round" stroke-width="2" />
+</svg>

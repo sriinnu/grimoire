@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Model</title>
+  <desc>Grimoire glyph: Model</desc>
+  <polygon points="32,10 48,19 48,45 32,54 16,45 16,19" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <polyline points="16,19 32,29 48,19" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="1.8" />
+  <line x1="32" y1="29" x2="32" y2="54" stroke="#0B1F2A" stroke-width="1.8" />
+</svg>

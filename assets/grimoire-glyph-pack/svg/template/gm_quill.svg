@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Quill</title>
+  <desc>Grimoire glyph: Quill</desc>
+  <path d="M14 50c17-4 31-18 38-38-19 6-34 20-38 38z" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M20 44c8-11 17-19 28-27" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2" />
+  <path d="M29 29h10M25 36h9M36 22h7" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="1.5" />
+</svg>

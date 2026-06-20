@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Warning</title>
+  <desc>Grimoire glyph: Warning</desc>
+  <polygon points="32,13 52,48 12,48" stroke="#F97316" fill="#F9731615" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="32" y1="25" x2="32" y2="36" stroke="#F97316" stroke-linecap="round" stroke-width="2.4" />
+  <circle cx="32" cy="43" r="2" fill="#F97316" />
+</svg>

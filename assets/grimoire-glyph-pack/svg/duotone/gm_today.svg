@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Today</title>
+  <desc>Grimoire glyph: Today</desc>
+  <rect x="14" y="17" width="36" height="33" rx="4" ry="4" stroke="#0B1F2A" fill="none" stroke-width="2.2" />
+  <line x1="14" y1="27" x2="50" y2="27" stroke="#F97316" stroke-width="2" />
+  <line x1="23" y1="12" x2="23" y2="21" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2.2" />
+  <line x1="41" y1="12" x2="41" y2="21" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2.2" />
+  <circle cx="25" cy="36" r="2" fill="#F97316" />
+  <circle cx="32" cy="36" r="2" fill="#F97316" />
+  <circle cx="39" cy="36" r="2" fill="#F97316" />
+  <text x="32" y="43" fill="#F97316" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700">17</text>
+</svg>

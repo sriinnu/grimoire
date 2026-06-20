@@ -41,13 +41,13 @@
   --grimoire-native-shell-sheen: color-mix(in srgb, var(--text-secondary) 7%, transparent);
   --grimoire-native-titlebar-material: linear-gradient(
     180deg,
-    color-mix(in srgb, #10161d 88%, var(--surface-sidebar) 12%),
-    color-mix(in srgb, #0b1015 78%, var(--surface-app) 22%)
+    color-mix(in srgb, #122832 88%, var(--surface-sidebar) 12%),
+    color-mix(in srgb, #071217 78%, var(--surface-app) 22%)
   );
   --grimoire-native-sidebar-material: linear-gradient(
     180deg,
-    color-mix(in srgb, #0c1219 82%, var(--surface-sidebar) 18%),
-    color-mix(in srgb, #080c10 86%, var(--surface-sidebar) 14%)
+    color-mix(in srgb, #0a1a21 82%, var(--surface-sidebar) 18%),
+    color-mix(in srgb, #081a21 86%, var(--surface-sidebar) 14%)
   );
   --grimoire-native-titlebar-border: color-mix(in srgb, var(--border-default) 64%, transparent);
 }

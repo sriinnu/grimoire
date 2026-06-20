@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Lotus</title>
+  <desc>Grimoire glyph: Lotus</desc>
+  <path d="M32 48c-9-4-12-12-8-22 5 3 8 9 8 22z" stroke="#0B1F2A" fill="none" stroke-width="2" />
+  <path d="M32 48c9-4 12-12 8-22-5 3-8 9-8 22z" stroke="#0B1F2A" fill="none" stroke-width="2" />
+  <path d="M32 48c-5-8-5-18 0-29 5 11 5 21 0 29z" stroke="#0B1F2A" fill="none" stroke-width="2" />
+  <path d="M14 43c6 7 13 9 18 5M50 43c-6 7-13 9-18 5" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2" />
+</svg>

@@ -144,11 +144,11 @@ describe('native theme overhaul CSS', () => {
     const dark = aurora.modes.dark?.tokens
     expect(dark).toBeDefined()
 
-    expect(dark!['surface.app']).toBe('#0b1015')
-    expect(dark!['surface.sidebar']).toBe('#080c10')
-    expect(dark!['surface.panel']).toBe('#10161d')
-    expect(dark!['surface.editor']).toBe('#0a0f14')
-    expect(dark!['accent.primary']).toBe('#5ee0c8')
+    expect(dark!['surface.app']).toBe('#071217')
+    expect(dark!['surface.sidebar']).toBe('#081a21')
+    expect(dark!['surface.panel']).toBe('#0a1a21')
+    expect(dark!['surface.editor']).toBe('#050d12')
+    expect(dark!['accent.primary']).toBe('#26d6c9')
 
     // Teal accents must sit in the cyan-green band (~150-195deg), never amber/brass.
     for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {

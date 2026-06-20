@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Link</title>
+  <desc>Grimoire glyph: Link</desc>
+  <path d="M27 24l-4 0c-6 0-10 4-10 9s4 9 10 9h7" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2.2" />
+  <path d="M37 24h4c6 0 10 4 10 9s-4 9-10 9h-7" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2.2" />
+  <line x1="26" y1="33" x2="38" y2="33" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2.6" />
+</svg>
