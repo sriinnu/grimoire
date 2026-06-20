@@ -72,12 +72,13 @@
   height: var(--sidebar-title-bar-height, 92px);
   pointer-events: none;
   background: var(--grimoire-native-titlebar-material);
-  /* Seamless top — no hard hairline under the title bar; a faint inset light
-     catch reads as a soft material edge, modern and unstacked. */
+  /* Truly seamless top — no hairline, no inset light catch. The OS titlebar
+     separator is killed in Rust (setTitlebarSeparatorStyle = .none); this band
+     just carries the material with zero drawn edge. */
   border-bottom: none;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent);
+  box-shadow: none;
   content: "";
 }
 
@@ -92,7 +93,7 @@
   border-bottom: none;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+  box-shadow: none;
   content: "";
 }
 

@@ -53,7 +53,10 @@
   gap: var(--grimoire-block-side-control-gap) !important;
 }
 
-.editor__blocknote-container .bn-side-menu button {
+/* Size ONLY the two side controls (＋ and the drag grip). The drag-handle menu
+   and its "Turn into" submenu render *inside* .bn-side-menu, so we must exclude
+   their menu-item buttons — otherwise they get crushed into 22px icon squares. */
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *) {
   flex: 0 0 var(--grimoire-block-side-control-size) !important;
   width: var(--grimoire-block-side-control-size) !important;
   height: var(--grimoire-block-side-control-size) !important;
@@ -63,16 +66,64 @@
   transition: background var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease), color var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease) !important;
 }
 
-.editor__blocknote-container .bn-side-menu button:hover {
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *):hover {
   background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
   color: var(--primary) !important;
 }
 
-.editor__blocknote-container .bn-side-menu .bn-drag-handle-menu {
-  min-width: 132px;
-  border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 88%, transparent);
-  background: color-mix(in srgb, var(--surface-popover, var(--background)) 96%, transparent);
-  box-shadow: 0 16px 34px color-mix(in srgb, #000 22%, transparent);
+/* --- Drag-handle menu + "Turn into" submenu — a solid native popover. --- */
+.editor__blocknote-container .bn-side-menu :is(.bn-drag-handle-menu, .bn-menu-dropdown) {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: stretch !important;
+  gap: 2px;
+  min-width: 188px;
+  width: max-content !important;
+  max-width: 280px;
+  max-height: none !important;
+  padding: 6px !important;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border-default, var(--border)) 80%, transparent);
+  /* Fully opaque — the body text must never bleed through the menu. */
+  background: var(--surface-popover) !important;
+  box-shadow:
+    0 18px 44px color-mix(in srgb, #000 34%, transparent),
+    0 2px 8px color-mix(in srgb, #000 22%, transparent);
+  color: var(--text-primary);
+  overflow: visible !important;
+  z-index: calc(var(--bn-ui-base-z-index, 1000) + 40);
+}
+
+.editor__blocknote-container .bn-side-menu :is(.bn-menu-item, [role="menuitem"]) {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 30px !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text-secondary) !important;
+  background: transparent !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.editor__blocknote-container .bn-side-menu :is(.bn-menu-item, [role="menuitem"]):is(:hover, [data-hovered], [data-highlighted], [data-state="open"]) {
+  background: color-mix(in srgb, var(--primary) 14%, transparent) !important;
+  color: var(--primary) !important;
+}
+
+.editor__blocknote-container .bn-side-menu :is(.bn-menu-item, [role="menuitem"]) svg {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
 }
 
 .editor__blocknote-container .bn-suggestion-menu {

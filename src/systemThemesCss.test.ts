@@ -146,7 +146,18 @@ describe('system theme CSS', () => {
   })
   it('keeps BlockNote floating side controls compact and below the editor top edge', () => {
     const body = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu')
-    const buttonBody = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu button')
+    const buttonBody = getRuleBody(
+      editorThemeCss,
+      '.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *)',
+    )
+    // The drag-handle menu + "Turn into" submenu render INSIDE .bn-side-menu, so
+    // the control-sizing rule must exclude their items (or they shrink to icons).
+    const menuItemBody = getRuleBody(
+      editorThemeCss,
+      '.editor__blocknote-container .bn-side-menu :is(.bn-menu-item, [role="menuitem"])',
+    )
+    expect(menuItemBody).toContain('width: 100% !important')
+    expect(menuItemBody).toContain('height: auto !important')
     const groupBody = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root)')
 
     expect(body).toContain('flex-direction: row !important')

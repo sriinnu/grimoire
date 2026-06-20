@@ -266,6 +266,25 @@ fn apply_native_window_material(app: &tauri::App) {
             ) {
                 log::warn!("macOS window vibrancy unavailable: {error}");
             }
+
+            // Kill the OS-drawn titlebar separator. With `titleBarStyle: Overlay`
+            // macOS defaults to `.automatic`, which paints a 1px hairline under
+            // the title bar as soon as content sits beneath it. That line reads
+            // as a dated stacked edge; we want the content to flow seamlessly
+            // under the traffic lights. `.none` removes it entirely. Runs on the
+            // main thread during setup, which AppKit requires.
+            use objc2_app_kit::{NSTitlebarSeparatorStyle, NSWindow};
+            match window.ns_window() {
+                Ok(ns_window_ptr) => {
+                    // SAFETY: Tauri hands back a valid, retained NSWindow pointer
+                    // for the macOS window; we only borrow it for this one call.
+                    let ns_window: &NSWindow = unsafe { &*ns_window_ptr.cast::<NSWindow>() };
+                    ns_window.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
+                }
+                Err(error) => {
+                    log::warn!("macOS titlebar separator unavailable: {error}");
+                }
+            }
         }
         #[cfg(target_os = "windows")]
         {
