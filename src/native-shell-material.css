@@ -11,6 +11,16 @@ body.windows-chrome .app-shell {
   border-radius: 0 !important;
 }
 
+/* Seamless top in the native window: the header rows that sit under the title
+   bar never draw a divider line, in any shell material or theme. In dark mode
+   that border (--border, a teal-navy) otherwise reads as a full-width top edge. */
+body.macos-overlay-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-bar, .inspector-header),
+body.windows-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-bar, .inspector-header) {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+  box-shadow: none !important;
+}
+
 :root:not([data-native-shell-material="standard"])[data-native-shell-material] {
   --grimoire-workspace-texture: none;
   --grimoire-shell-radius: 0px;

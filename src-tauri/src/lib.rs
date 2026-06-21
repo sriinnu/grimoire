@@ -257,15 +257,10 @@ fn apply_native_window_material(app: &tauri::App) {
         };
         #[cfg(target_os = "macos")]
         {
-            use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial, NSVisualEffectState};
-            if let Err(error) = apply_vibrancy(
-                &window,
-                NSVisualEffectMaterial::Sidebar,
-                Some(NSVisualEffectState::Active),
-                None,
-            ) {
-                log::warn!("macOS window vibrancy unavailable: {error}");
-            }
+            // The window is opaque (transparent: false), so we do NOT install an
+            // NSVisualEffectView — a vibrancy layer over an opaque window only
+            // paints a faint material strip in the title-bar region, which reads
+            // as a top border. Opaque shell, no vibrancy, no strip.
 
             // Kill the OS-drawn titlebar separator. With `titleBarStyle: Overlay`
             // macOS defaults to `.automatic`, which paints a 1px hairline under
