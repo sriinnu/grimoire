@@ -9,7 +9,9 @@
   width: 100%;
   margin: 16px auto 0;
   padding: 0 var(--editor-padding-horizontal, 40px) 10px;
-  border-bottom: 1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-subtle)) 64%, transparent);
+  /* Seamless top — separation from the document comes from whitespace, not a
+     drawn divider line. */
+  border-bottom: 1px solid transparent;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-gutter: stable;

@@ -29,7 +29,8 @@
 }
 
 .breadcrumb-bar[data-title-hidden] {
-  border-bottom-color: var(--border);
+  /* Seamless top — no divider under the breadcrumb/toolbar row. */
+  border-bottom-color: transparent;
 }
 
 .breadcrumb-bar__title {

@@ -144,7 +144,7 @@ export function AiPanelHeader({
         height: 52,
         padding: '0 12px',
         gap: 9,
-        borderBottom: '1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-default)) 80%, transparent)',
+        borderBottom: '1px solid transparent',
       }}
       data-testid="ai-panel-header"
     >
@@ -257,7 +257,7 @@ export function AiPanelBrief({
         whiteSpace: conversationActive ? 'nowrap' : 'normal',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        borderBottom: '1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-subtle)) 60%, transparent)',
+        borderBottom: '1px solid transparent',
       }}
     >
       {brief}
