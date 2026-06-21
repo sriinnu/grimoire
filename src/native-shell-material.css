@@ -3,6 +3,14 @@
   --grimoire-native-titlebar-border: transparent;
 }
 
+/* The native window is opaque and macOS rounds its own corners. The app-shell
+   must therefore fill edge-to-edge — any shell radius here only reveals the
+   window backdrop at the corners, and any inset leaves a strip at the top. */
+body.macos-overlay-chrome .app-shell,
+body.windows-chrome .app-shell {
+  border-radius: 0 !important;
+}
+
 :root:not([data-native-shell-material="standard"])[data-native-shell-material] {
   --grimoire-workspace-texture: none;
   --grimoire-shell-radius: 0px;
