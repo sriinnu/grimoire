@@ -150,6 +150,26 @@ declare global {
 
 const DEFAULT_SELECTION: SidebarSelection = DASHBOARD_SELECTION
 
+/** Stable identity for a primary screen; null for note/neighborhood (entity) focus. */
+function selectionScreenKey(selection: SidebarSelection): string | null {
+  switch (selection.kind) {
+    case 'entity':
+      return null
+    case 'filter':
+      return `filter:${selection.filter}`
+    case 'view':
+      return `view:${selection.filename}`
+    case 'folder':
+      return `folder:${selection.path}`
+    case 'sectionGroup':
+      return `type:${selection.type}`
+    case 'dashboard':
+      return 'dashboard'
+    default:
+      return 'screen'
+  }
+}
+
 function getNextVisibleInboxEntry(entries: VaultEntry[], currentPath: string): VaultEntry | null {
   const currentIndex = entries.findIndex((entry) => entry.path === currentPath)
   if (currentIndex < 0) return null
@@ -702,6 +722,22 @@ function App() {
   useEffect(() => {
     noteWindowActionsRef.current = { handleSelectNote, openTabWithContent }
   }, [handleSelectNote, openTabWithContent])
+  // Switching primary screens from the sidebar (Pages → Dreams → Journal → …)
+  // should not leave the previously opened document in the editor. A genuine
+  // change to a different screen closes open tabs; re-selecting the current
+  // screen and neighborhood/entity focus leave the editor untouched. Note opens
+  // go through onSelectNote, not this handler, so they are unaffected.
+  const handleSidebarSelect = useCallback(
+    (sel: SidebarSelection, options?: { preserveNeighborhoodHistory?: boolean }) => {
+      const nextKey = selectionScreenKey(sel)
+      const currentKey = selectionScreenKey(selectionRef.current)
+      handleSetSelection(sel, options)
+      if (nextKey !== null && nextKey !== currentKey) {
+        closeAllTabs()
+      }
+    },
+    [handleSetSelection, closeAllTabs],
+  )
   const handleDashboardCaptureCreated = useCallback((entry: VaultEntry) => {
     const typeName = entry.isA
     handleSetSelection(typeName && typeName !== 'Note'
@@ -1794,7 +1830,7 @@ function App() {
                 className={`app__sidebar${sidebarColumnCollapsed ? ' app__sidebar--collapsed' : ''}`}
                 style={{ width: sidebarColumnCollapsed ? 68 : layout.sidebarWidth }}
               >
-                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSetSelection} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
+                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSidebarSelect} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
               </div>
               {!sidebarColumnCollapsed && <ResizeHandle onResize={layout.handleSidebarResize} />}
             </>
