@@ -664,8 +664,8 @@ describe('App', () => {
     const { container } = render(<App />)
     await selectSidebarNav('Pages')
     await waitFor(() => {
-      const shortcutHint = Array.from(container.querySelectorAll('span.text-xs.text-muted-foreground'))
-        .find((element) => element.textContent === `${quickOpenHint} to search · ${newNoteHint} to create`)
+      const shortcutHint = Array.from(container.querySelectorAll('.editor-empty-state__detail'))
+        .find((element) => element.textContent?.includes(`${quickOpenHint} to search`) && element.textContent?.includes(`${newNoteHint} to create`))
 
       expect(shortcutHint).toBeInTheDocument()
     })
