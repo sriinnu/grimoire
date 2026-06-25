@@ -1,6 +1,6 @@
-import { SlidersHorizontal, X, Sparkle, WarningCircle, PencilSimple } from '@phosphor-icons/react'
-import { Brain } from 'lucide-react'
+import { SlidersHorizontal, X, PencilSimple } from '@phosphor-icons/react'
 import { useDragRegion } from '../../hooks/useDragRegion'
+import { Glyph } from '@/components/glyphs/Glyph'
 
 export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
   const { onMouseDown } = useDragRegion()
@@ -22,7 +22,7 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
       ) : (
         <>
           <span className="inspector-header__brand-icon">
-            <Brain className="size-3.5" aria-hidden="true" />
+            <Glyph name="brain" size={14} />
           </span>
           <span className="flex min-w-0 flex-1 flex-col leading-tight">
             <span className="inspector-header__title truncate" data-testid="inspector-header-title">Second Brain</span>
@@ -42,13 +42,18 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
 }
 
 export function EmptyInspector() {
-  return <div><p className="m-0 text-[13px] text-muted-foreground">No note selected</p></div>
+  return (
+    <div className="flex flex-col items-center gap-4 py-12">
+      <Glyph name="compass" size={48} className="text-muted-foreground/40" />
+      <p className="m-0 text-[13px] text-muted-foreground">No note selected</p>
+    </div>
+  )
 }
 
 export function InitializePropertiesPrompt({ onClick }: { onClick: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-4 py-6">
-      <Sparkle size={24} className="text-muted-foreground" />
+      <Glyph name="sparkle" size={24} className="text-muted-foreground" />
       <p className="m-0 text-center text-[13px] text-muted-foreground">This note has no properties yet</p>
       <button
         className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"
@@ -63,7 +68,7 @@ export function InitializePropertiesPrompt({ onClick }: { onClick: () => void })
 export function InvalidFrontmatterNotice({ onFix }: { onFix: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-destructive/40 bg-destructive/5 px-4 py-6">
-      <WarningCircle size={24} className="text-destructive" />
+      <Glyph name="warning" size={24} className="text-destructive" />
       <p className="m-0 text-center text-[13px] text-muted-foreground">Invalid properties</p>
       <button
         className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"

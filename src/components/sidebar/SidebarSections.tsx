@@ -72,21 +72,23 @@ export function ViewsSection({
           />
         )}
       </SidebarGroupHeader>
-      {!collapsed && (
-        <div style={{ paddingBottom: 4 }}>
-          {views.map((view) => (
-            <SidebarViewItem
-              key={view.filename}
-              view={view}
-              isActive={isSelectionActive(selection, { kind: 'view', filename: view.filename })}
-              onSelect={() => onSelect({ kind: 'view', filename: view.filename })}
-              onEditView={onEditView}
-              onDeleteView={onDeleteView}
-              entries={entries}
-            />
-          ))}
+      <div className="sidebar-section-content" data-collapsed={collapsed || undefined}>
+        <div>
+          <div style={{ paddingBottom: 4 }}>
+            {views.map((view) => (
+              <SidebarViewItem
+                key={view.filename}
+                view={view}
+                isActive={isSelectionActive(selection, { kind: 'view', filename: view.filename })}
+                onSelect={() => onSelect({ kind: 'view', filename: view.filename })}
+                onEditView={onEditView}
+                onDeleteView={onDeleteView}
+                entries={entries}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -242,7 +244,11 @@ export function TypesSection({
           />
         )}
       </div>
-      {!collapsed && sectionList}
+      <div className="sidebar-section-content" data-collapsed={collapsed || undefined}>
+        <div>
+          {sectionList}
+        </div>
+      </div>
     </div>
   )
 }

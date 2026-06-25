@@ -212,3 +212,45 @@ body.window-inactive .inspector-header {
     transform: none;
   }
 }
+
+/* ---- 12. Ambient: sidebar gradient breathe on Constellation theme ---- */
+
+@keyframes grimoire-sidebar-breathe {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 0.84; }
+}
+
+[data-theme-preset="constellation"] .app-sidebar-panel::before {
+  animation: grimoire-sidebar-breathe 4.2s var(--motion-ease-cinematic) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme-preset="constellation"] .app-sidebar-panel::before {
+    animation: none;
+  }
+}
+
+/* ---- 13. Ambient: status bar tone line subtle pulse ---- */
+
+@keyframes grimoire-status-tone-pulse {
+  0%, 100% { opacity: 0.64; }
+  50% { opacity: 0.82; }
+}
+
+[data-theme-preset] .status-bar {
+  animation: grimoire-status-tone-pulse 3.6s var(--motion-ease-cinematic) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme-preset] .status-bar {
+    animation: none;
+  }
+}
+
+/* ---- 14. Note item hover lift — all themes ---- */
+
+[data-theme-preset] .note-list-panel [data-note-path]:not([data-selected="true"]):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 8%, transparent);
+  transition: transform 160ms var(--motion-ease-standard), box-shadow 160ms var(--motion-ease-standard);
+}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Graph, MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass } from '@phosphor-icons/react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import { buildNoteGraph, filterGraphByQuery } from '../utils/noteGraph'
 import {
@@ -177,7 +178,7 @@ function GraphModalContent({
         <DialogHeader>
           <div className="graph-dialog-title-row">
             <DialogTitle className="flex min-w-0 items-center gap-2">
-              <Graph size={18} />
+              <Glyph name="graph" size={18} />
               <span className="truncate">Second Brain Map</span>
             </DialogTitle>
             <div className="graph-dialog-brain-summary" data-testid="graph-dialog-brain-summary">

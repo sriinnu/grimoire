@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Brain, CircleAlert, Network, ShieldCheck, Sparkles, Terminal, Workflow } from 'lucide-react'
+import { CircleAlert } from 'lucide-react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import { useMemo } from 'react'
 import type { MarkdownDocumentSemantics } from '@grimoire/markdown-editor'
 import type { VaultEntry } from '../../types'
@@ -100,7 +101,7 @@ function RuntimeDiagnosticStrip({
       data-testid="memory-chitragupta-runtime"
     >
       <div className="mb-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-        <Terminal className="size-3" />
+        <Glyph name="code" size={12} className="size-3" />
         Chitragupta runtime
       </div>
       <div className="grid gap-1">
@@ -193,7 +194,7 @@ export function MemoryPanel({
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <h4 className="font-mono-overline flex items-center gap-1 text-muted-foreground">
-          <Brain className="size-3" />
+          <Glyph name="brain" size={12} className="size-3" />
           Memory
         </h4>
         <Badge variant={displayPolicy.localOnly ? 'outline' : 'secondary'} className="h-5 rounded-md px-1.5 text-[10px]">
@@ -206,7 +207,7 @@ export function MemoryPanel({
       <div className="grimoire-memory-locality-note mb-2 rounded-md border px-2 py-2">
         <div className="flex items-start gap-2 text-[12px]">
           {displayPolicy.localOnly
-            ? <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
+            ? <Glyph name="shield" size={12} className="size-3" />
             : <CircleAlert className="mt-0.5 size-3.5 shrink-0" />}
           <span>
             {localityDetail}
@@ -223,26 +224,26 @@ export function MemoryPanel({
 
       <div className="grimoire-memory-orchestration mb-2 grid gap-1">
         <div className="mb-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Workflow className="size-3" />
+          <Glyph name="graph" size={12} className="size-3" />
           Ledger
         </div>
         <OrchestrationRow
-          icon={<ShieldCheck className="size-3" />}
+          icon={<Glyph name="shield" size={12} className="size-3" />}
           label="Policy"
           value={displayPolicy.reason}
         />
         <OrchestrationRow
-          icon={<Brain className="size-3" />}
+          icon={<Glyph name="brain" size={12} className="size-3" />}
           label="Memory"
           value={memoryState}
         />
         <OrchestrationRow
-          icon={<Network className="size-3" />}
+          icon={<Glyph name="graph" size={12} className="size-3" />}
           label="Chitragupta"
           value={contractState}
         />
         <OrchestrationRow
-          icon={<Sparkles className="size-3" />}
+          icon={<Glyph name="sparkle" size={12} className="size-3" />}
           label="Records"
           value={ledgerState}
         />
@@ -271,7 +272,7 @@ export function MemoryPanel({
       {context.relatedTitles.length > 0 && (
         <div className="mb-2">
           <div className="mb-1 flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Network className="size-3" />
+            <Glyph name="graph" size={12} className="size-3" />
             Related context
           </div>
           <div className="flex flex-wrap gap-1">

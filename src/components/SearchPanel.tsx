@@ -10,6 +10,7 @@ import { getTypeIcon } from './note-item/typeIcon'
 import { NoteTitleIcon } from './NoteTitleIcon'
 import { Input } from './ui/input'
 import type { SearchVaultScope } from '../hooks/useUnifiedSearch'
+import { Glyph } from '@/components/glyphs/Glyph'
 
 interface SearchPanelProps {
   open: boolean
@@ -240,7 +241,8 @@ function SearchContent({
   return (
     <div className="flex-1 overflow-y-auto">
       {!query.trim() && (
-        <div className="px-4 py-8 text-center">
+        <div className="flex flex-col items-center px-4 py-8 text-center">
+          <Glyph name="search" size={36} className="text-muted-foreground/30 mb-3" />
           <p className="text-[13px] text-muted-foreground">
             {vaultCount > 1 ? `Search across ${vaultCount} notebooks` : 'Search this notebook'}
           </p>
@@ -254,13 +256,15 @@ function SearchContent({
       )}
 
       {query.trim() && results.length === 0 && loading && (
-        <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">
+        <div className="flex flex-col items-center px-4 py-8 text-center text-[13px] text-muted-foreground">
+          <Glyph name="sparkle" size={36} className="text-muted-foreground/30 mb-3 animate-pulse" />
           Searching...
         </div>
       )}
 
       {query.trim() && results.length === 0 && !loading && (
-        <div className="px-4 py-8 text-center">
+        <div className="flex flex-col items-center px-4 py-8 text-center">
+          <Glyph name="file" size={36} className="text-muted-foreground/30 mb-3" />
           <p className="text-[13px] text-muted-foreground">No results found</p>
         </div>
       )}
