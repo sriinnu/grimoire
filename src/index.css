@@ -70,6 +70,24 @@
     padding-top: 32px;
   }
 
+  /*
+   * macOS overlay-chrome traffic-light safe areas.
+   *
+   * With `titleBarStyle: Overlay` and `hiddenTitle: true`, the native traffic
+   * lights (close / minimise / zoom) float in the top‑left corner of the
+   * window. The sidebar title bar needs vertical clearance so the glyph and
+   * vault name sit below the lights; the sidebar rail needs top padding so
+   * its topmost icon isn't hidden behind them.
+   *
+   * Values (pixels, measured against macOS Sequoia at default resolution):
+   *   32 px  – padding‑top of the sidebar title bar (clears the traffic‑light row)
+   *   92 px  – total height of the sidebar title bar
+   *   88 px  – safe‑top for the sidebar rail (1‑px overlap so the title‑bar
+   *            shadow doesn't clip the rail icon)
+   *
+   * These are static; macOS may adjust traffic‑light spacing in future releases.
+   * If the lights shift, bump these values and verify with a retina screenshot.
+   */
   body.macos-overlay-chrome {
     --macos-overlay-rail-safe-top: 88px;
     --sidebar-title-bar-height: 92px;

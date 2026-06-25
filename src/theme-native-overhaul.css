@@ -10,8 +10,7 @@
   --grimoire-native-card-material:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
   --grimoire-native-card-shadow:
-    0 16px 36px color-mix(in srgb, var(--shadow-elevated, black) 9%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 5%, transparent);
+    0 16px 36px color-mix(in srgb, var(--shadow-elevated, black) 9%, transparent);
   --grimoire-native-control-material: color-mix(in srgb, var(--surface-card) 74%, transparent);
   --grimoire-native-control-border: color-mix(in srgb, var(--border-default) 72%, transparent);
   --grimoire-native-editor-material:
@@ -59,8 +58,7 @@
   --grimoire-native-card-material:
     linear-gradient(180deg, var(--surface-card), color-mix(in srgb, var(--surface-card) 88%, var(--surface-editor)));
   --grimoire-native-card-shadow:
-    0 12px 28px color-mix(in srgb, var(--surface-sidebar) 12%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 70%, transparent);
+    0 12px 28px color-mix(in srgb, var(--surface-sidebar) 12%, transparent);
   --grimoire-native-editor-material:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 94%, var(--primary) 3%), var(--surface-editor));
   --grimoire-native-menu-shadow: 0 18px 42px color-mix(in srgb, var(--surface-sidebar) 22%, transparent);
@@ -79,8 +77,7 @@
   --grimoire-native-card-material:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 96%, var(--surface-editor)), var(--surface-card));
   --grimoire-native-card-shadow:
-    0 14px 34px color-mix(in srgb, var(--text-heading) 10%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 78%, transparent);
+    0 14px 34px color-mix(in srgb, var(--text-heading) 10%, transparent);
   --grimoire-native-editor-material:
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 4%, transparent), transparent 18rem),
     linear-gradient(180deg, var(--surface-editor), color-mix(in srgb, var(--surface-editor) 94%, var(--surface-panel)));
@@ -99,7 +96,6 @@
   --grimoire-native-card-material:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 90%, var(--surface-editor)), color-mix(in srgb, var(--surface-card) 76%, var(--surface-panel)));
   --grimoire-native-card-shadow:
-    0 1px 0 color-mix(in srgb, var(--border-strong) 38%, transparent),
     0 18px 38px color-mix(in srgb, #000 9%, transparent);
   --grimoire-native-editor-material:
     radial-gradient(circle at 50% 2rem, color-mix(in srgb, var(--primary) 7%, transparent), transparent 24rem),
@@ -120,8 +116,7 @@
   --grimoire-native-card-material:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
   --grimoire-native-card-shadow:
-    0 18px 42px color-mix(in srgb, #000 26%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 5%, transparent);
+    0 18px 42px color-mix(in srgb, #000 26%, transparent);
   --grimoire-native-editor-material:
     radial-gradient(circle at 76% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 24rem),
     linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 90%, #000), var(--surface-editor));
@@ -314,7 +309,6 @@
     color-mix(in srgb, var(--surface-card) 96%, var(--surface-panel));
   color: var(--text-primary);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--text-heading) 8%, transparent),
     0 16px 34px color-mix(in srgb, var(--shadow-elevated, black) 14%, transparent);
 }
 

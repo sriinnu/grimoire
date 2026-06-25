@@ -257,10 +257,19 @@ fn apply_native_window_material(app: &tauri::App) {
         };
         #[cfg(target_os = "macos")]
         {
-            // The window is opaque (transparent: false), so we do NOT install an
-            // NSVisualEffectView — a vibrancy layer over an opaque window only
-            // paints a faint material strip in the title-bar region, which reads
-            // as a top border. Opaque shell, no vibrancy, no strip.
+            // With `transparent: true`, the webview background is clear wherever
+            // the renderer leaves a translucent surface (the sidebar). Install a
+            // real NSVisualEffectView behind the webview so Finder-style vibrancy
+            // shows the desktop through the sidebar — not just a CSS blur of the
+            // app's own content. The CSS in native-shell-material.css controls how
+            // much translucency each surface gets (35% for sidebar, fully opaque
+            // for content panels). In "standard" material mode the sidebar stays
+            // fully opaque, so the vibrancy layer is simply not visible.
+            if let Err(error) =
+                window_vibrancy::apply_vibrancy(&window, window_vibrancy::NSVisualEffectMaterial::Sidebar, None, None)
+            {
+                log::warn!("NSVisualEffectView vibrancy unavailable: {error}");
+            }
 
             // Kill the OS-drawn titlebar separator. With `titleBarStyle: Overlay`
             // macOS defaults to `.automatic`, which paints a 1px hairline under

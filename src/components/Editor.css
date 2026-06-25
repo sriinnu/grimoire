@@ -63,6 +63,31 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  /* Subtle page-edge glow — light catching the top of the writing surface.
+     Positioned via a ::before pseudo-element so it scrolls with content. */
+  position: relative;
+  isolation: isolate;
+}
+
+.editor-scroll-area::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    /* Top edge — soft light wash */
+    radial-gradient(
+      ellipse 90% 14rem at 50% 0%,
+      color-mix(in srgb, var(--primary) 4%, transparent) 0%,
+      transparent 100%
+    ),
+    /* Bottom edge — subtle shadow fade */
+    radial-gradient(
+      ellipse 90% 10rem at 50% 100%,
+      color-mix(in srgb, var(--foreground) 2%, transparent) 0%,
+      transparent 100%
+    );
 }
 
 /* BlockNote container */

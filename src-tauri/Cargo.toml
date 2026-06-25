@@ -1,6 +1,6 @@
 [package]
 name = "grimoire"
-version = "0.1.434"
+version = "0.1.435"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
 license = "AGPL-3.0-or-later"

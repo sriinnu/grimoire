@@ -659,6 +659,23 @@ function App() {
     return () => window.removeEventListener('focus', handleFocus)
   }, [isGitVault, resolvedPath])
 
+  // macOS window focus/blur → dim the sidebar and titlebar when inactive
+  useEffect(() => {
+    if (!isTauri()) return
+    let unlisten: (() => void) | undefined
+    let cancelled = false
+    import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
+      if (cancelled) return
+      getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+        document.body.classList.toggle('window-inactive', !focused)
+      }).then(fn => { unlisten = fn })
+    })
+    return () => {
+      cancelled = true
+      unlisten?.()
+    }
+  }, [])
+
   const handleUpdateWikilinks = useCallback(async () => {
     if (!isTauri()) return
     try {

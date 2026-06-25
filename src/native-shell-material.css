@@ -186,3 +186,29 @@ body.windows-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-b
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
 }
+
+/* ---- Reduced-transparency fallback ---- */
+
+@media (prefers-reduced-transparency: reduce) {
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    :is(body.macos-overlay-chrome, body.windows-chrome) {
+    background: var(--surface-app);
+  }
+
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    :is(body.macos-overlay-chrome, body.windows-chrome)
+    :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+    background: var(--surface-sidebar) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    body.macos-overlay-chrome .app-shell::before,
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    body.windows-chrome .app-shell::before {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

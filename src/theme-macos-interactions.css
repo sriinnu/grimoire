@@ -1,0 +1,214 @@
+/* ==============================================
+   theme-macos-interactions.css
+   macOS-native micro-interactions that make the app
+   feel tactile — press feedback, elastic scroll,
+   refined focus rings, and native selection colours.
+   ============================================== */
+
+/* ---- 1. Press feedback — scale-down on :active ---- */
+
+:where([data-theme-preset]) button:active:not(:disabled),
+:where([data-theme-preset]) [role="button"]:active:not([aria-disabled="true"]),
+:where([data-theme-preset]) [data-slot="button"]:active:not(:disabled) {
+  transform: scale(0.97);
+  transition: transform 80ms var(--motion-ease-standard, ease) !important;
+}
+
+/* Note list items — subtle press */
+:where([data-theme-preset]) .note-list-panel [data-note-path]:active:not([data-selected="true"]) {
+  transform: scale(0.985);
+  transition: transform 80ms var(--motion-ease-standard, ease) !important;
+}
+
+/* Sidebar nav — press feedback */
+:where([data-theme-preset]) :is(.sidebar-top-nav__tone, .sidebar-rail__tone):active :is(.sidebar-nav-glyph, .sidebar-rail__glyph) {
+  transform: scale(0.92);
+  transition: transform 60ms var(--motion-ease-standard, ease) !important;
+}
+
+/* ---- 2. Elastic / rubber-band overscroll (macOS native feel) ---- */
+
+/* Only on macOS — preserves contain behaviour on other platforms */
+@supports (overflow: overlay) or (-webkit-overflow-scrolling: touch) {
+  :where([data-theme-preset]) .editor-scroll-area {
+    overscroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :where([data-theme-preset]) .inspector-body {
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :where([data-theme-preset]) .note-list-panel [data-testid="note-list-container"] {
+    overscroll-behavior-y: auto;
+  }
+
+  /* Keep contain on horizontal filter shelves to prevent sideways bounce */
+  :where([data-theme-preset]) :is(.note-list-filter-shelf, .project-workspace-chrome__metrics, .project-workspace-chrome__docs-scroll) {
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
+  }
+}
+
+/* ---- 3. macOS-style focus rings — thinner, accent-coloured ---- */
+
+:where([data-theme-preset]) :focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 58%, var(--accent-blue, #4a9eff));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Buttons and interactive controls get a tighter ring */
+:where([data-theme-preset]) :is(button, [role="button"], [data-slot="button"], input, select, textarea):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 62%, var(--accent-blue, #4a9eff));
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+/* Kill the default heavy ring on the note list container — it gets focus but shouldn't show */
+:where([data-theme-preset]) [data-testid="note-list-container"]:focus-visible {
+  outline: none;
+}
+
+/* ---- 4. Native-feeling text selection ---- */
+
+:where([data-theme-preset]) ::selection {
+  background: color-mix(in srgb, var(--primary) 42%, var(--accent-blue, #4a9eff));
+  color: var(--primary-foreground, white);
+}
+
+:where([data-theme-preset]) .editor__blocknote-container ::selection {
+  background: color-mix(in srgb, var(--primary) 38%, var(--accent-blue, #4a9eff));
+}
+
+/* ---- 5. Dialog entrance/exit animations (macOS sheet-style) ---- */
+
+@keyframes grimoire-dialog-enter {
+  0%   { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes grimoire-dialog-exit {
+  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+}
+
+@keyframes grimoire-overlay-enter {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes grimoire-overlay-exit {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+:where([data-theme-preset]) .grimoire-dialog-content[data-state="open"] {
+  animation: grimoire-dialog-enter 200ms var(--motion-ease-expressive, ease-out) both;
+}
+
+:where([data-theme-preset]) .grimoire-dialog-content[data-state="closed"] {
+  animation: grimoire-dialog-exit 160ms var(--motion-ease-standard, ease-in) both;
+}
+
+:where([data-theme-preset]) .grimoire-dialog-overlay[data-state="open"] {
+  animation: grimoire-overlay-enter 180ms var(--motion-ease-standard, ease-out) both;
+}
+
+:where([data-theme-preset]) .grimoire-dialog-overlay[data-state="closed"] {
+  animation: grimoire-overlay-exit 140ms var(--motion-ease-standard, ease-in) both;
+}
+
+/* ---- 6. Thin macOS-style scrollbars ---- */
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body) {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--foreground) 18%, transparent) transparent;
+}
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body)::-webkit-scrollbar {
+  width: 5px;
+  background: transparent;
+}
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body)::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--foreground) 18%, transparent);
+  border-radius: 999px;
+}
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body)::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--foreground) 32%, transparent);
+}
+
+/* ---- 7. Breadcrumb bar actions — hover feedback ---- */
+
+:where([data-theme-preset]) .breadcrumb-bar__actions [data-slot='button']:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
+  border-radius: 5px !important;
+}
+
+/* ---- 8. Switch and checkbox — press-scale feedback ---- */
+
+:where([data-theme-preset]) [data-slot="switch"]:active {
+  transform: scale(0.94);
+  transition: transform 80ms var(--motion-ease-standard, ease);
+}
+
+:where([data-theme-preset]) [data-slot="checkbox"]:active {
+  transform: scale(0.92);
+  transition: transform 80ms var(--motion-ease-standard, ease);
+}
+
+/* ---- 9. Scrollbar thumb — smooth colour transition ---- */
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body)::-webkit-scrollbar-thumb {
+  transition: background 180ms var(--motion-ease-standard, ease);
+}
+
+/* ---- 10. Window inactive — dim sidebar and titlebar when not key ---- */
+
+body.window-inactive {
+  /* Slightly dim the sidebar material */
+  --surface-sidebar-dim: color-mix(in srgb, var(--surface-sidebar) 84%, var(--surface-app));
+}
+
+body.window-inactive :is(.app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+  filter: brightness(0.88);
+  transition: filter 300ms var(--motion-ease-standard, ease);
+}
+
+body.window-inactive .breadcrumb-bar {
+  filter: brightness(0.92);
+  transition: filter 300ms var(--motion-ease-standard, ease);
+}
+
+body.window-inactive .note-list-top-chrome {
+  filter: brightness(0.92);
+  transition: filter 300ms var(--motion-ease-standard, ease);
+}
+
+body.window-inactive .inspector-header {
+  filter: brightness(0.88);
+  transition: filter 300ms var(--motion-ease-standard, ease);
+}
+
+/* ---- 11. Smooth momentum scrolling on scroll containers ---- */
+
+:where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body, .note-list-panel) {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-theme-preset]) :is(.editor-scroll-area, .inspector-body, .note-list-panel) {
+    scroll-behavior: auto;
+  }
+
+  :where([data-theme-preset]) :is(button, [role="button"], [data-slot="button"]):active {
+    transform: none;
+  }
+}

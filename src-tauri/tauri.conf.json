@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Grimoire",
-  "version": "0.1.434",
+  "version": "0.1.435",
   "identifier": "com.sriinnu.grimoire",
   "build": {
     "frontendDist": "../dist",
@@ -27,7 +27,7 @@
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "backgroundColor": "#071217",
-        "transparent": false,
+        "transparent": true,
         "contentProtected": false,
         "shadow": true,
         "dragDropEnabled": true

@@ -16,6 +16,8 @@
 @import './native-shell-material.css';
 @import './native-overlays.css';
 @import './theme-native-overhaul.css';
+@import './theme-color-accents.css';
+@import './theme-macos-interactions.css';
 @import './theme-native-media.css';
 @import './theme-accessibility.css';
 
