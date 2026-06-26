@@ -143,7 +143,7 @@ fn build_menu(app_handle: &AppHandle) -> Result<Menu<tauri::Wry>, String> {
 }
 
 fn grimoire_menu_bar_icon_as_template() -> bool {
-    true
+    false
 }
 
 /// Apply the saved menu bar icon preference to the native tray icon.
@@ -248,8 +248,8 @@ mod tests {
     }
 
     #[test]
-    fn grimoire_menu_bar_icon_uses_template_asset_for_dark_menu_bar() {
+    fn grimoire_menu_bar_icon_uses_full_color_logo() {
         assert!(GRIMOIRE_MENU_BAR_ICON_PNG.starts_with(b"\x89PNG\r\n\x1a\n"));
-        assert!(grimoire_menu_bar_icon_as_template());
+        assert!(!grimoire_menu_bar_icon_as_template());
     }
 }
