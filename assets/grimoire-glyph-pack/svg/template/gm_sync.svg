@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Sync</title>
+  <desc>Grimoire glyph: Sync</desc>
+  <path d="M20 24c5-8 17-10 25-2l4 4" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2.2" />
+  <polyline points="49,18 49,26 41,26" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M44 40c-5 8-17 10-25 2l-4-4" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2.2" />
+  <polyline points="15,46 15,38 23,38" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+</svg>

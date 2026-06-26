@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Prism</title>
+  <desc>Grimoire glyph: Prism</desc>
+  <polygon points="32,10 52,50 12,50" stroke="#0B1F2A" fill="#D99A2916" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M32 10v40M18 40h28" stroke="#D99A29" fill="none" stroke-width="1.8" />
+  <line x1="52" y1="36" x2="58" y2="33" stroke="#F43F5E" stroke-linecap="round" stroke-width="1.8" />
+  <line x1="52" y1="41" x2="59" y2="41" stroke="#4A90E2" stroke-linecap="round" stroke-width="1.8" />
+  <line x1="52" y1="46" x2="58" y2="50" stroke="#22C55E" stroke-linecap="round" stroke-width="1.8" />
+</svg>

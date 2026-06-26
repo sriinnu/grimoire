@@ -2,6 +2,7 @@
 import path from 'path'
 import fs from 'fs'
 import os from 'os'
+import { execSync } from 'child_process'
 import { defineConfig, type Plugin, type ServerOptions } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -16,6 +17,29 @@ const devServerWatchIgnored = [
   '**/dist/**',
   '**/src-tauri/target/**',
 ]
+
+// Build stamp baked into the bundle so the running app can state exactly which
+// frontend it is — version alone repeats across local builds, so we add the
+// build time and the short git SHA to make every build uniquely identifiable.
+function resolveGitSha(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', {
+      cwd: __dirname,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).toString().trim()
+  } catch {
+    return 'nogit'
+  }
+}
+const appBuildVersion: string = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf8')).version
+  } catch {
+    return '0.0.0'
+  }
+})()
+const appBuildTime = new Date().toISOString()
+const appBuildSha = resolveGitSha()
 
 const devHttpsCertPath = path.resolve(__dirname, 'certs/localhost+2.pem')
 const devHttpsKeyPath = path.resolve(__dirname, 'certs/localhost+2-key.pem')
@@ -106,6 +130,9 @@ export default defineConfig(({ command }) => ({
   // CI must resolve the default vault path at runtime via the backend to avoid
   // baking the CI runner's absolute path into the distributed bundle.
   define: {
+    __APP_VERSION__: JSON.stringify(appBuildVersion),
+    __BUILD_TIME__: JSON.stringify(appBuildTime),
+    __GIT_SHA__: JSON.stringify(appBuildSha),
     ...(command !== 'serve' || process.env.CI || (process.env.TAURI_PLATFORM && !process.env.TAURI_DEBUG)
       ? {}
       : { __DEMO_VAULT_PATH__: JSON.stringify(path.resolve(__dirname, 'demo-vault-v2')) }),

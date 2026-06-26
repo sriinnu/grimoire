@@ -188,7 +188,8 @@ describe('SettingsPanel appearance and agent settings', () => {
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    expect(screen.getByText('Native Windows')).toBeInTheDocument()
+    // Both the nav rail item and the section heading now interpolate the platform.
+    expect(screen.getAllByText('Native Windows').length).toBeGreaterThan(0)
     expect(screen.getByRole('switch', { name: 'Windows tray integration not available yet' })).toBeDisabled()
     expect(screen.getByTestId('settings-menu-bar-icon-enabled')).toHaveTextContent(
       'This control stays off until Grimoire ships native quick actions for Windows.',
@@ -305,67 +306,57 @@ describe('SettingsPanel appearance and agent settings', () => {
     }))
   })
 
-  it('saves the selected experience profile, editor font, and editor line height', () => {
+  it('saves the warm-paper preset along with the editor font and line height', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-code-notebook'))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-font'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Readable Sans' }))
     fireEvent.pointerDown(screen.getByTestId('settings-editor-line-height'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Spacious' }))
     fireEvent.click(screen.getByTestId('settings-save'))
 
+    // Grimoire now ships exactly one preset; the warm-paper light mode stays the
+    // default while the editor typography choices are persisted as selected.
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'code-notebook',
-      theme_mode: 'dark',
+      theme_preset: 'morning-notebook',
+      theme_mode: 'light',
       editor_font: 'readable',
       editor_line_height: 'spacious',
     }))
   })
 
-  it('saves the nocturne experience profile', () => {
+  it('exposes the light/dark mode toggle as the only appearance theme control', () => {
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
     )
 
-    fireEvent.click(screen.getByTestId('settings-theme-preset-nocturne'))
-    fireEvent.click(screen.getByTestId('settings-save'))
+    // The multi-card preset picker is gone — light/dark is the primary control.
+    expect(screen.getByTestId('settings-theme-mode')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-light')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-theme-dark')).toBeInTheDocument()
 
-    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-      theme_preset: 'nocturne',
-    }))
-  })
-
-  it('renders the curated personal experience profile set', () => {
-    render(
-      <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-    )
-
-    expect(screen.getByText('Experience profile')).toBeInTheDocument()
+    // None of the curated preset cards survive the single-theme collapse.
+    expect(screen.queryByText('Experience profile')).not.toBeInTheDocument()
     expect(screen.queryByText('Theme preset')).not.toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-constellation')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-daylight-notebook')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-morning-notebook')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-living-archive')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-nocturne')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-theme-preset-code-notebook')).toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-research-cockpit')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-manuscript')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-aether')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-ion')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-moss')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-retro')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-aurora')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('settings-theme-preset-future')).not.toBeInTheDocument()
+    for (const preset of [
+      'morning-notebook',
+      'constellation',
+      'daylight-notebook',
+      'living-archive',
+      'nocturne',
+      'code-notebook',
+    ]) {
+      expect(screen.queryByTestId(`settings-theme-preset-${preset}`)).not.toBeInTheDocument()
+    }
   })
 
-  it('renders the appearance preview with the selected preset', () => {
+  it('renders the appearance preview using the warm-paper preset', () => {
     render(
       <SettingsPanel
         open={true}
-        settings={{ ...emptySettings, theme_preset: 'nocturne', editor_font: 'readable', editor_line_height: 'compact' }}
+        settings={{ ...emptySettings, editor_font: 'readable', editor_line_height: 'compact' }}
         onSave={onSave}
         onClose={onClose}
       />
@@ -373,12 +364,12 @@ describe('SettingsPanel appearance and agent settings', () => {
 
     expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute(
       'data-theme-preset-preview',
-      'nocturne',
+      'morning-notebook',
     )
     expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-density-preview', 'comfortable')
-    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-motion-preview', 'calm')
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-motion-preview', 'standard')
     expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-graph-preview', 'ledger')
-    expect(screen.getByTestId('settings-theme-preset-nocturne-traits')).toHaveTextContent('Calm')
+    expect(screen.getByTestId('settings-appearance-preview')).toHaveAttribute('data-canvas-preview', 'paper')
     expect(screen.getByTestId('settings-editor-font')).toHaveAttribute('data-value', 'readable')
     expect(screen.getByTestId('settings-editor-line-height')).toHaveAttribute('data-value', 'compact')
   })

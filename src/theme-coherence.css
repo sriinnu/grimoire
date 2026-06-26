@@ -43,8 +43,8 @@
 }
 
 [data-theme-preset="morning-notebook"] {
-  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 16rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-panel)), var(--surface-app));
-  --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 5%, transparent), transparent 17rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 90%, var(--surface-panel)), var(--surface-app));
+  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 6%, transparent), transparent 16rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-panel)), var(--surface-app));
+  --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 6%, transparent), transparent 17rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 90%, var(--surface-panel)), var(--surface-app));
   --grimoire-status-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 96%, var(--surface-panel)), var(--surface-sidebar));
 }
 

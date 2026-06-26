@@ -1,7 +1,20 @@
 import { TrashSimple } from '@phosphor-icons/react'
+import { Glyph } from '@/components/glyphs/Glyph'
 
 export function EmptyMessage({ text }: { text: string }) {
-  return <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">{text}</div>
+  const lower = text.toLowerCase()
+  const glyphName =
+    lower.includes('archived') ? 'archive' as const
+    : lower.includes('changes') ? 'gitHistory' as const
+    : lower.includes('inbox') ? 'inbox' as const
+    : 'notebook' as const
+
+  return (
+    <div className="flex flex-col items-center px-4 py-8 text-center text-[13px] text-muted-foreground">
+      <Glyph name={glyphName} size={40} className="text-muted-foreground/30 mb-3" />
+      {text}
+    </div>
+  )
 }
 
 export function DeletedNotesBanner({ count }: { count: number }) {

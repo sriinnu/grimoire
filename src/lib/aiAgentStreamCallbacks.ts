@@ -21,10 +21,11 @@ export interface StreamMutationContext {
   fileCallbacksRef: MutableRefObject<AgentFileCallbacks | undefined>
 }
 
-const EMPTY_CLAUDE_RESPONSE = 'Claude Code finished without returning a reply.'
+const EMPTY_RESPONSE_MESSAGE =
+  'No answer was returned. The route resolved but the provider streamed no reply — check that the selected model and provider are configured and reachable.'
 
 function finalResponseText(response: string): string {
-  return response.trim() ? response : EMPTY_CLAUDE_RESPONSE
+  return response.trim() ? response : EMPTY_RESPONSE_MESSAGE
 }
 
 export function createStreamCallbacks(context: StreamMutationContext) {

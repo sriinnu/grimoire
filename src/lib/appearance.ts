@@ -65,10 +65,13 @@ const LEGACY_EDITOR_FONT_ALIASES: Record<string, EditorFont> = {
   serif: 'literary',
 }
 
+// Named legacy aliases now resolve to the single warm-paper identity. Retired
+// preset ids (nocturne, code-notebook, …) are intentionally absent: they
+// normalize to null so untrusted persisted values fall back via resolveThemePreset.
 const LEGACY_THEME_PRESET_ALIASES: Record<string, ThemePreset> = {
-  'daylight-atelier': 'daylight-notebook',
+  'daylight-atelier': 'morning-notebook',
   'prabhat-studio': 'morning-notebook',
-  'retro-terminal': 'code-notebook',
+  'retro-terminal': 'morning-notebook',
 }
 
 type AppearanceStorage = Pick<Storage, 'getItem' | 'setItem'>

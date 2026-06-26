@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Numbered List</title>
+  <desc>Grimoire glyph: Numbered List</desc>
+  <text x="16" y="25" fill="#384C60" text-anchor="middle" font-family="Inter,Arial" font-size="10" font-weight="700">1</text>
+  <line x1="24" y1="22" x2="48" y2="22" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2" />
+  <text x="16" y="35" fill="#384C60" text-anchor="middle" font-family="Inter,Arial" font-size="10" font-weight="700">2</text>
+  <line x1="24" y1="32" x2="48" y2="32" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2" />
+  <text x="16" y="45" fill="#384C60" text-anchor="middle" font-family="Inter,Arial" font-size="10" font-weight="700">3</text>
+  <line x1="24" y1="42" x2="48" y2="42" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2" />
+</svg>

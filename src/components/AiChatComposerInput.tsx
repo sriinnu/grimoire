@@ -134,7 +134,11 @@ export function AiChatComposerInput({
       <Textarea
         ref={setInputRef}
         aria-label="AI prompt"
-        className="max-h-36 min-h-[72px] resize-none rounded-lg px-[10px] py-[8px] text-[13px] leading-[1.45]"
+        className="ai-composer-input max-h-36 min-h-[72px] resize-none rounded-[10px] px-[10px] py-[8px] text-[14px] leading-[1.45]"
+        style={{
+          background: 'color-mix(in srgb, var(--surface-card) 96%, var(--background))',
+          borderColor: 'color-mix(in srgb, var(--grimoire-hairline, var(--border-default)) 90%, transparent)',
+        }}
         data-testid="agent-input"
         disabled={disabled}
         onChange={(event) => {

@@ -69,43 +69,43 @@ export function AgentCouncilMap({
 
   return (
     <section
-      className="grimoire-agent-council__map grimoire-control-entrance mb-2 rounded-md border border-border bg-background/60 p-2"
+      className="grimoire-agent-council__map grimoire-control-entrance mb-3 rounded-xl border border-border bg-background/60 p-3.5"
       data-locality={activeContextProtected ? 'protected-local' : 'source-safe'}
       data-testid="agent-council-map"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-foreground">
-          <Network className="size-3.5 shrink-0 text-[var(--grimoire-signal-accent)]" />
+        <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-foreground">
+          <Network className="size-4 shrink-0 text-[var(--grimoire-signal-accent)]" />
           <span className="truncate">Council map</span>
         </div>
-        <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-          <ShieldCheck className="size-3" />
+        <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+          <ShieldCheck className="size-4" />
           <span>{activeContextProtected ? 'Local hold' : 'Source-safe'}</span>
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-4 gap-1" data-testid="agent-council-map-metrics">
+      <div className="mt-3 grid grid-cols-4 gap-2" data-testid="agent-council-map-metrics">
         {metrics.map((metric) => (
-          <div key={metric.label} className="grimoire-agent-council__map-metric rounded-md border border-border px-1.5 py-1">
-            <div className="text-[11px] font-semibold text-foreground">{metric.value}</div>
-            <div className="truncate text-[8px] uppercase text-muted-foreground">{metric.label}</div>
+          <div key={metric.label} className="grimoire-agent-council__map-metric rounded-xl border border-border px-2.5 py-2">
+            <div className="text-[22px] font-semibold text-foreground">{metric.value}</div>
+            <div className="truncate text-[11px] uppercase text-muted-foreground">{metric.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-4 gap-1.5" data-testid="agent-council-map-steps">
+      <div className="mt-3 grid grid-cols-4 gap-2" data-testid="agent-council-map-steps">
         {steps.map((step, index) => (
           <div
             key={step.id}
-            className="grimoire-agent-council__map-step rounded-md border border-border px-1.5 py-1.5"
+            className="grimoire-agent-council__map-step rounded-xl border border-border px-2.5 py-2.5"
             data-status={step.status}
             style={{ '--motion-stagger-delay': `${index * 34}ms` } as CSSProperties}
           >
-            <div className="flex items-center gap-1 text-[9px] font-medium text-foreground">
-              <span className={`size-1.5 rounded-full ${stepDotClass(step.status)}`} />
+            <div className="flex items-center gap-2 text-[12px] font-medium text-foreground">
+              <span className={`size-2 rounded-full ${stepDotClass(step.status)}`} />
               <span className="truncate">{step.label}</span>
             </div>
-            <div className="mt-0.5 line-clamp-2 text-[8px] leading-snug text-muted-foreground">
+            <div className="mt-2 line-clamp-2 text-[12px] leading-snug text-muted-foreground">
               {step.detail}
             </div>
           </div>
@@ -113,7 +113,7 @@ export function AgentCouncilMap({
       </div>
 
       <div
-        className="grimoire-agent-council__friction-rail mt-2 grid grid-cols-3 gap-1.5"
+        className="grimoire-agent-council__friction-rail mt-3 grid grid-cols-3 gap-2"
         data-conflict-count={oneAnswer.conflictCount}
         data-testid="agent-council-friction-rail"
         aria-label="Agent Council friction to answer"
@@ -121,37 +121,37 @@ export function AgentCouncilMap({
         {frictionMoments.map((moment, index) => (
           <div
             key={moment.id}
-            className="grimoire-agent-council__friction-step rounded-md border border-border px-1.5 py-1.5"
+            className="grimoire-agent-council__friction-step rounded-xl border border-border px-2.5 py-2.5"
             data-state={moment.status}
             style={{ '--motion-stagger-delay': `${(index + 4) * 34}ms` } as CSSProperties}
           >
-            <div className="flex items-center gap-1 text-[9px] font-medium text-foreground">
-              <span className={`size-1.5 rounded-full ${frictionDotClass(moment.status)}`} />
+            <div className="flex items-center gap-2 text-[12px] font-medium text-foreground">
+              <span className={`size-2 rounded-full ${frictionDotClass(moment.status)}`} />
               <span className="truncate">{moment.label}</span>
             </div>
-            <div className="mt-0.5 line-clamp-2 text-[8px] leading-snug text-muted-foreground">
+            <div className="mt-2 line-clamp-2 text-[12px] leading-snug text-muted-foreground">
               {moment.detail}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-1.5" data-testid="agent-council-map-lanes">
+      <div className="mt-3 grid grid-cols-2 gap-2" data-testid="agent-council-map-lanes">
         {members.slice(0, 8).map((member) => (
           <div
             key={member.id}
-            className="grimoire-agent-council__map-lane flex min-w-0 items-center gap-1.5 rounded-md border border-border px-1.5 py-1"
+            className="grimoire-agent-council__map-lane flex min-w-0 items-center gap-2 rounded-xl border border-border px-2.5 py-2"
             data-active={member.active ? 'true' : 'false'}
             data-health={member.health}
           >
-            <span className={`size-1.5 shrink-0 rounded-full ${healthDotClass(member.health)}`} />
-            <span className="min-w-0 flex-1 truncate text-[9px] text-foreground">{member.label}</span>
+            <span className={`size-2 shrink-0 rounded-full ${healthDotClass(member.health)}`} />
+            <span className="min-w-0 flex-1 truncate text-[12px] text-foreground">{member.label}</span>
           </div>
         ))}
       </div>
       <ReadinessRail lanes={readiness} summary={readinessSummary} />
 
-      <p className="mt-2 line-clamp-2 text-[9px] leading-snug text-muted-foreground">
+      <p className="mt-3 line-clamp-2 text-[12px] leading-snug text-muted-foreground">
         {brief.synthesis}
       </p>
     </section>
@@ -175,20 +175,20 @@ function ReadinessRail({
   ].filter(Boolean).join(' · ')
 
   return (
-    <div className="grimoire-agent-council__readiness mt-2 rounded-md border border-border px-1.5 py-1.5" data-testid="agent-council-readiness-rail">
+    <div className="grimoire-agent-council__readiness mt-3 rounded-xl border border-border px-2.5 py-2.5" data-testid="agent-council-readiness-rail">
       <div className="flex items-center justify-between gap-2 px-0.5">
-        <span className="text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Live readiness</span>
-        <span className="truncate text-[9px] text-muted-foreground">{summaryText}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Live readiness</span>
+        <span className="truncate text-[12px] text-muted-foreground">{summaryText}</span>
       </div>
-      <div className="mt-1 grid grid-cols-2 gap-1">
+      <div className="mt-2 grid grid-cols-2 gap-2">
         {lanes.slice(0, 8).map((lane) => (
-          <div key={lane.id} className="grimoire-agent-council__readiness-lane rounded-md border px-1.5 py-1" data-state={lane.state}>
-            <div className="flex min-w-0 items-center gap-1 text-[9px]">
-              <span className={`size-1.5 shrink-0 rounded-full ${readinessDotClass(lane.state)}`} />
+          <div key={lane.id} className="grimoire-agent-council__readiness-lane rounded-xl border px-2.5 py-2" data-state={lane.state}>
+            <div className="flex min-w-0 items-center gap-2 text-[12px]">
+              <span className={`size-2 shrink-0 rounded-full ${readinessDotClass(lane.state)}`} />
               <strong className="min-w-0 flex-1 truncate font-semibold text-foreground">{lane.label}</strong>
               <em className="shrink-0 not-italic text-muted-foreground">{lane.status}</em>
             </div>
-            <div className="mt-0.5 line-clamp-1 text-[8px] leading-snug text-muted-foreground">{lane.detail}</div>
+            <div className="mt-2 line-clamp-1 text-[12px] leading-snug text-muted-foreground">{lane.detail}</div>
           </div>
         ))}
       </div>

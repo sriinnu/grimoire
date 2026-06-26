@@ -326,3 +326,19 @@
     inset -1px 0 0 color-mix(in srgb, var(--sidebar-border) 88%, transparent),
     inset 1px 0 0 color-mix(in srgb, var(--sidebar-foreground) 5%, transparent);
 }
+
+/* ---- Sidebar section accordion ---- */
+
+.sidebar-section-content {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--motion-duration-panel, 260ms) var(--motion-ease-standard);
+}
+
+.sidebar-section-content[data-collapsed="true"] {
+  grid-template-rows: 0fr;
+}
+
+.sidebar-section-content > * {
+  overflow: hidden;
+}

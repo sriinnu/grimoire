@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
-import { MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { Loader2 } from 'lucide-react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import type { VaultEntry } from '../../types'
 import type { SortOption, SortDirection } from '../../utils/noteListSorting'
 import { Button } from '@/components/ui/button'
@@ -61,7 +61,7 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
             />
           )}
           <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={searchActionLabel} aria-label={searchActionLabel}>
-            <MagnifyingGlass size={16} />
+            <Glyph name="search" size={16} />
           </Button>
           {propertyPicker && (
             <Suspense fallback={null}>
@@ -69,7 +69,7 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
             </Suspense>
           )}
           <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={createNoteLabel} aria-label={createNoteLabel}>
-            <Plus size={16} />
+            <Glyph name="add" size={16} />
           </Button>
         </div>
       </div>

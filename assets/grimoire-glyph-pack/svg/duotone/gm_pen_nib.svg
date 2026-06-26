@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Pen Nib</title>
+  <desc>Grimoire glyph: Pen Nib</desc>
+  <path d="M32 10l18 18-9 26H23l-9-26z" stroke="#0B1F2A" fill="#D99A2916" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="32" y1="10" x2="32" y2="34" stroke="#D99A29" stroke-width="2" />
+  <circle cx="32" cy="36" r="4" stroke="#D99A29" fill="none" stroke-width="2" />
+  <path d="M23 54l9-18 9 18" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+</svg>

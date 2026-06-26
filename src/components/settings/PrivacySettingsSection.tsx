@@ -5,7 +5,7 @@ import {
   type TranscriptionProviderId,
 } from '../../lib/transcriptionProviders'
 import { getTranscriptionReadiness, type TranscriptionReadiness } from '../../utils/transcriptionReadiness'
-import { LabeledSelect, SectionHeading, SettingsSwitchRow, TelemetryToggle } from './SettingsControls'
+import { LabeledSelect, SectionHeading, SettingsSwitchRow } from './SettingsControls'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
 
 type PrivacyRunwayTone = 'local' | 'cloud' | 'diagnostic'
@@ -18,18 +18,12 @@ interface PrivacyRunwayStep {
 }
 
 function buildPrivacyRunwaySteps({
-  analytics,
   cloudTranscriptionEnabled,
-  crashReporting,
   t,
 }: {
-  analytics: boolean
   cloudTranscriptionEnabled: boolean
-  crashReporting: boolean
   t: SettingsTranslate
 }): PrivacyRunwayStep[] {
-  const telemetryEnabled = crashReporting || analytics
-
   return [
     {
       detail: t('settings.privacy.runway.localDetail'),
@@ -45,31 +39,19 @@ function buildPrivacyRunwaySteps({
         : t('settings.privacy.runway.cloudBlocked'),
       tone: cloudTranscriptionEnabled ? 'cloud' : 'local',
     },
-    {
-      detail: t('settings.privacy.runway.diagnosticsDetail'),
-      label: t('settings.privacy.runway.diagnostics'),
-      state: telemetryEnabled
-        ? t('settings.privacy.runway.telemetryOptIn')
-        : t('settings.git.status.off'),
-      tone: telemetryEnabled ? 'diagnostic' : 'local',
-    },
   ]
 }
 
 function PrivacyRunway({
-  analytics,
   cloudTranscriptionEnabled,
-  crashReporting,
   t,
 }: {
-  analytics: boolean
   cloudTranscriptionEnabled: boolean
-  crashReporting: boolean
   t: SettingsTranslate
 }) {
   return (
     <div className="settings-privacy-runway" data-testid="settings-privacy-runway">
-      {buildPrivacyRunwaySteps({ analytics, cloudTranscriptionEnabled, crashReporting, t }).map((step) => (
+      {buildPrivacyRunwaySteps({ cloudTranscriptionEnabled, t }).map((step) => (
         <div
           className="settings-privacy-runway__step rounded-md border px-3 py-2.5"
           data-privacy-runway-tone={step.tone}
@@ -120,13 +102,9 @@ function TranscriptionReadinessCard({
   )
 }
 
-/** Renders privacy and telemetry preferences. */
+/** Renders the local-first privacy story and the one explicit cloud opt-in. */
 export function PrivacySettingsSection({
   t,
-  crashReporting,
-  setCrashReporting,
-  analytics,
-  setAnalytics,
   transcriptionProvider,
   setTranscriptionProvider,
   cloudTranscriptionEnabled,
@@ -134,10 +112,6 @@ export function PrivacySettingsSection({
 }: Pick<
   SettingsBodyProps,
   | 't'
-  | 'crashReporting'
-  | 'setCrashReporting'
-  | 'analytics'
-  | 'setAnalytics'
   | 'transcriptionProvider'
   | 'setTranscriptionProvider'
   | 'cloudTranscriptionEnabled'
@@ -180,10 +154,17 @@ export function PrivacySettingsSection({
         description={t('settings.privacy.description')}
       />
 
+      <div
+        className="settings-material-card rounded-md border px-3.5 py-3 leading-relaxed"
+        data-testid="settings-privacy-local-note"
+        data-privacy-runway-tone="local"
+      >
+        <div className="text-[13px] font-semibold text-foreground">{t('settings.privacy.localOnly')}</div>
+        <div className="mt-1 text-[12px] text-muted-foreground">{t('settings.privacy.localOnlyDescription')}</div>
+      </div>
+
       <PrivacyRunway
-        analytics={analytics}
         cloudTranscriptionEnabled={cloudTranscriptionEnabled}
-        crashReporting={crashReporting}
         t={t}
       />
 
@@ -208,21 +189,6 @@ export function PrivacySettingsSection({
         readiness={readiness}
         t={t}
         transcriptionProvider={transcriptionProvider}
-      />
-
-      <TelemetryToggle
-        label={t('settings.privacy.crashReporting')}
-        description={t('settings.privacy.crashReportingDescription')}
-        checked={crashReporting}
-        onChange={setCrashReporting}
-        testId="settings-crash-reporting"
-      />
-      <TelemetryToggle
-        label={t('settings.privacy.analytics')}
-        description={t('settings.privacy.analyticsDescription')}
-        checked={analytics}
-        onChange={setAnalytics}
-        testId="settings-analytics"
       />
     </>
   )

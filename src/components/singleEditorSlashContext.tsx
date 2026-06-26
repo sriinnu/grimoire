@@ -1,5 +1,6 @@
 import { createElement } from 'react'
-import { FilePlus2, FileText, Hash, LayoutTemplate } from 'lucide-react'
+import { FilePlus2, LayoutTemplate } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type { GrimoireSlashMenuItem } from '@grimoire/markdown-editor/react'
 import type { useCreateBlockNote } from '@blocknote/react'
 import type { VaultEntry } from '../types'
@@ -100,7 +101,7 @@ function buildRecentNoteItems(
       subtext: entry.isA ? `Insert [[${entry.title}]] from ${entry.isA}.` : `Insert [[${entry.title}]].`,
       aliases: ['recent note', 'wikilink', entry.title, entry.filename, ...entry.aliases],
       group: 'Notebook',
-      icon: createElement(FileText, { size: 18 }),
+      icon: createElement(Glyph, { name: 'file', size: 18 }),
       onItemClick: () => insertWikilink(entry.title),
     }))
 }
@@ -137,7 +138,7 @@ function buildTagItems(
       subtext: item.noteType ? `Insert ${item.title} (${item.noteType}).` : `Insert ${item.title}.`,
       aliases: ['tag', 'collection', item.entryTitle ?? item.title],
       group: 'Notebook',
-      icon: createElement(Hash, { size: 18 }),
+      icon: createElement(Glyph, { name: 'tag', size: 18 }),
       onItemClick: item.onItemClick,
     }))
 }
@@ -176,7 +177,7 @@ function buildCreateTagItems(
       subtext: 'Insert a new Mem-style collection tag.',
       aliases: ['create tag', 'new tag', 'collection', item.entryTitle ?? item.title],
       group: 'Notebook',
-      icon: createElement(Hash, { size: 18 }),
+      icon: createElement(Glyph, { name: 'tag', size: 18 }),
       onItemClick: item.onItemClick,
     }))
 }

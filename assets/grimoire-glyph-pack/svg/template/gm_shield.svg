@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Shield</title>
+  <desc>Grimoire glyph: Shield</desc>
+  <path d="M32 10l18 7v13c0 12-8 20-18 24-10-4-18-12-18-24V17z" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <polyline points="24,32 30,38 42,24" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.8" />
+</svg>

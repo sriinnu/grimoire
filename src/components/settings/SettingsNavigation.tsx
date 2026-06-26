@@ -1,23 +1,16 @@
-import {
-  AppWindow,
-  Cloud,
-  GearSix,
-  GitBranch,
-  PaintBrush,
-  Robot,
-  ShieldCheck,
-  Translate,
-} from '@phosphor-icons/react'
-import type { IconProps } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, type ComponentType } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { cn } from '../../lib/utils'
+import { formatVaultPathForDisplay } from '../../utils/vaultDisplayName'
+import { desktopPlatformLabel, getDesktopPlatform } from '../../utils/platform'
+import { useHomeDir } from '../../hooks/useHomeDir'
 import { Button } from '../ui/button'
+import { Glyph, type GlyphName } from '../glyphs/Glyph'
 import type { SettingsBodyProps } from './settingsTypes'
 
 type SettingsNavItem = {
   id: string
   label: string
-  icon: ComponentType<IconProps>
+  glyph: GlyphName
 }
 
 interface SettingsNavigationProps extends Pick<SettingsBodyProps, 't' | 'vaultPath' | 'isGitVault'> {
@@ -27,14 +20,14 @@ interface SettingsNavigationProps extends Pick<SettingsBodyProps, 't' | 'vaultPa
 
 function createSettingsNav(t: SettingsBodyProps['t']): SettingsNavItem[] {
   return [
-    { id: 'settings-portability', label: t('settings.portability.title'), icon: Cloud },
-    { id: 'settings-sync', label: t('settings.sync.title'), icon: GitBranch },
-    { id: 'settings-appearance', label: t('settings.appearance.title'), icon: PaintBrush },
-    { id: 'settings-workflow', label: t('settings.workflow.title'), icon: GearSix },
-    { id: 'settings-agents', label: t('settings.aiAgents.title'), icon: Robot },
-    { id: 'settings-language', label: t('settings.language.title'), icon: Translate },
-    { id: 'settings-native', label: t('settings.native.title'), icon: AppWindow },
-    { id: 'settings-privacy', label: t('settings.privacy.title'), icon: ShieldCheck },
+    { id: 'settings-portability', label: t('settings.portability.title'), glyph: 'cloudVault' },
+    { id: 'settings-sync', label: t('settings.sync.title'), glyph: 'gitHistory' },
+    { id: 'settings-appearance', label: t('settings.appearance.title'), glyph: 'prism' },
+    { id: 'settings-workflow', label: t('settings.workflow.title'), glyph: 'settings' },
+    { id: 'settings-agents', label: t('settings.aiAgents.title'), glyph: 'aiAgent' },
+    { id: 'settings-language', label: t('settings.language.title'), glyph: 'sparkle' },
+    { id: 'settings-native', label: t('settings.native.title', { platform: desktopPlatformLabel() }), glyph: 'topbar' },
+    { id: 'settings-privacy', label: t('settings.privacy.title'), glyph: 'shield' },
   ]
 }
 
@@ -67,6 +60,8 @@ function scrollToSettingsSection(sectionId: string, onSectionChange: (sectionId:
 /** Renders the desktop Settings sidebar rail with vault-local status context. */
 export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, onSectionChange }: SettingsNavigationProps) {
   const navItems = useMemo(() => createSettingsNav(t), [t])
+  const homeDir = useHomeDir()
+  const displayPath = formatVaultPathForDisplay(vaultPath, { homeDir, platform: getDesktopPlatform() })
 
   return (
     <aside
@@ -80,17 +75,16 @@ export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, 
           </div>
           <div className="mt-2 truncate text-sm font-semibold text-foreground">{vaultName(vaultPath)}</div>
           <div className="mt-1 truncate text-[11px] text-muted-foreground">
-            {vaultPath || t('settings.vault.noVault')}
+            {displayPath || t('settings.vault.noVault')}
           </div>
           <div className="settings-vault-state-pill mt-3 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]">
-            <ShieldCheck size={12} />
+            <Glyph name="shield" size={12} />
             {isGitVault ? t('settings.vault.state.localGit') : t('settings.vault.state.localFiles')}
           </div>
         </div>
 
         <nav className="mt-4 flex flex-col gap-1" aria-label={t('settings.title')}>
           {navItems.map((item) => {
-            const Icon = item.icon
             const isActive = activeSectionId === item.id
             return (
               <Button
@@ -108,7 +102,7 @@ export function SettingsNavigation({ t, vaultPath, isGitVault, activeSectionId, 
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                <Icon size={15} />
+                <Glyph name={item.glyph} size={15} />
                 <span className="truncate">{item.label}</span>
               </Button>
             )
@@ -136,7 +130,6 @@ export function SettingsMobileNavigation({ t, activeSectionId, onSectionChange }
     >
       <div className="settings-mobile-navigation__rail flex gap-1 overflow-x-auto rounded-md border p-1 shadow-xs">
         {navItems.map((item) => {
-          const Icon = item.icon
           const isActive = activeSectionId === item.id
           return (
             <Button
@@ -155,7 +148,7 @@ export function SettingsMobileNavigation({ t, activeSectionId, onSectionChange }
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              <Icon size={15} />
+              <Glyph name={item.glyph} size={15} />
               <span>{item.label}</span>
             </Button>
           )

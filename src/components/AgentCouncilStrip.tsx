@@ -1,4 +1,4 @@
-import { Brain, Search, ShieldCheck, Sparkles } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { type CSSProperties, useMemo, useState } from 'react'
 import {
   buildAgentCouncilBrief,
@@ -85,21 +85,21 @@ export function AgentCouncilStrip({
   }), [activeContextProtected, brief, members, passBrief, redTeamReview, workflow])
 
   return (
-    <section className="grimoire-agent-council border-b border-border px-3 py-2" data-testid="agent-council">
-      <div className="mb-1.5 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
-          <Sparkles className="size-3.5 shrink-0 text-muted-foreground" />
+    <section className="grimoire-agent-council border-b border-border px-4 py-3" data-testid="agent-council">
+      <div className="mb-2 flex items-center justify-between gap-2.5">
+        <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
+          <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
           <span>Agent Council</span>
         </div>
-        <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[10px]">
-          <ShieldCheck className="size-3" />
+        <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[13px]">
+          <Glyph name="shield" size={16} />
           {activeContextProtected ? 'Protected context' : 'Source-safe'}
         </Badge>
       </div>
       <CouncilPassBrief brief={passBrief} onReviewSynthesis={() => setSynthesisOpen(true)} />
       <AgentRouteDisclosure
         agent={activeAgent}
-        className="mb-2"
+        className="mb-3"
         contextProtected={activeContextProtected}
         model={defaultAiModel}
         provider={defaultAiProvider}
@@ -111,25 +111,25 @@ export function AgentCouncilStrip({
         oneAnswer={synthesisPacket.oneAnswer}
       />
       <CouncilOneAnswer oneAnswer={synthesisPacket.oneAnswer} />
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+      <div className="flex gap-2 overflow-x-auto pb-0.5">
         {members.map((member, index) => (
           <div
             key={member.id}
-            className="grimoire-agent-council__member grimoire-control-entrance min-w-[154px] rounded-md border border-border bg-muted/30 px-2 py-1.5"
+            className="grimoire-agent-council__member grimoire-control-entrance min-w-[190px] rounded-xl border border-border bg-muted/30 px-3 py-2.5"
             data-testid="agent-council-member"
             style={{ '--motion-stagger-delay': `${index * 28}ms` } as CSSProperties}
           >
-            <div className="flex min-w-0 items-center gap-1.5">
-              <span className={`size-1.5 shrink-0 rounded-full ${healthDotClass(member.health)}`} />
-              <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className={`size-2 shrink-0 rounded-full ${healthDotClass(member.health)}`} />
+              <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
                 {member.label}
               </span>
-              {member.active ? <Brain className="size-3 shrink-0 text-muted-foreground" /> : null}
+              {member.active ? <Glyph name="brain" size={16} className="shrink-0 text-muted-foreground" /> : null}
             </div>
-            <div className="mt-1 line-clamp-2 text-[10px] leading-snug text-muted-foreground">
+            <div className="mt-2 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
               {member.stance}
             </div>
-            <div className="mt-1 line-clamp-2 text-[10px] leading-snug text-foreground">
+            <div className="mt-2 line-clamp-2 text-[13px] leading-snug text-foreground">
               {member.contribution}
             </div>
             {member.claims[0] ? <ClaimMeta claim={member.claims[0]} /> : null}
@@ -139,7 +139,7 @@ export function AgentCouncilStrip({
               memberLabel={member.label}
               onOpenSource={onOpenSource}
             />
-            <div className="mt-1 flex flex-wrap gap-1">
+            <div className="mt-2 flex flex-wrap gap-2">
               {visibleSources(member.sources).map((source) => (
                 <SourceBadge
                   key={`${member.id}:${source.kind}:${source.label}`}
@@ -148,22 +148,22 @@ export function AgentCouncilStrip({
                 />
               ))}
             </div>
-            <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Search className="size-3 shrink-0" />
+            <div className="mt-2 flex items-center gap-2 text-[13px] text-muted-foreground">
+              <Glyph name="search" size={16} className="shrink-0" />
               <span className="truncate">{member.permission}</span>
             </div>
           </div>
         ))}
       </div>
       <div
-        className="grimoire-agent-council__brief mt-2 rounded-md border border-border bg-background/60 px-2 py-1.5"
+        className="grimoire-agent-council__brief mt-3 rounded-xl border border-border bg-background/60 px-3 py-2.5"
         data-testid="agent-council-brief"
       >
-        <div className="flex items-center gap-1.5 text-[10px] font-medium text-foreground">
-          <Sparkles className="size-3 text-muted-foreground" />
+        <div className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+          <Glyph name="sparkle" size={16} className="text-muted-foreground" />
           <span>Synthesis</span>
         </div>
-        <p className="mt-0.5 line-clamp-2 text-[10px] leading-snug text-muted-foreground">{brief.synthesis}</p>
+        <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-muted-foreground">{brief.synthesis}</p>
       </div>
       <CouncilWorkflow steps={workflow} />
       <AgentCouncilSynthesisDialog
@@ -198,33 +198,33 @@ function priorityRank(kind: AgentCouncilSource['kind'], priority: AgentCouncilSo
 function CouncilOneAnswer({ oneAnswer }: { oneAnswer: AgentCouncilOneAnswer }) {
   return (
     <div
-      className="grimoire-agent-council__answer grimoire-control-entrance mb-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] px-2 py-1.5"
+      className="grimoire-agent-council__answer grimoire-control-entrance mb-3 rounded-xl border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] px-3 py-2.5"
       data-answer-state={answerState(oneAnswer)}
       data-confidence={oneAnswer.confidence}
       data-conflicts={oneAnswer.conflictCount > 0 ? 'true' : 'false'}
       data-testid="agent-council-one-answer"
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-[var(--grimoire-signal-text)]">
-          <Sparkles className="size-3 shrink-0" />
+      <div className="flex items-center justify-between gap-2.5">
+        <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-[var(--grimoire-signal-text)]">
+          <Glyph name="sparkle" size={16} className="shrink-0" />
           <span className="truncate">{oneAnswer.title}</span>
         </div>
-        <Badge variant="outline" className="shrink-0 rounded-md px-1 text-[9px]">
+        <Badge variant="outline" className="shrink-0 rounded-lg px-2 text-[12px]">
           {oneAnswer.confidence}
         </Badge>
       </div>
-      <p className="mt-1 text-[10px] leading-snug text-[var(--grimoire-signal-text)]">
+      <p className="mt-2 text-[13px] leading-snug text-[var(--grimoire-signal-text)]">
         {oneAnswer.answer}
       </p>
-      <div className="mt-1 flex flex-wrap gap-1">
-        <Badge variant="secondary" className="rounded-md px-1 text-[9px]">
+      <div className="mt-2 flex flex-wrap gap-2">
+        <Badge variant="secondary" className="rounded-lg px-2 text-[12px]">
           {countLabel(oneAnswer.sourceCount, 'source')}
         </Badge>
-        <Badge variant="outline" className="rounded-md px-1 text-[9px]">
+        <Badge variant="outline" className="rounded-lg px-2 text-[12px]">
           {countLabel(oneAnswer.conflictCount, 'friction')}
         </Badge>
       </div>
-      <div className="mt-1 text-[9px] leading-snug text-muted-foreground">
+      <div className="mt-2 text-[12px] leading-snug text-muted-foreground">
         {oneAnswer.nextStep}
       </div>
     </div>
@@ -234,17 +234,17 @@ function CouncilOneAnswer({ oneAnswer }: { oneAnswer: AgentCouncilOneAnswer }) {
 function ClaimMeta({ claim }: { claim: AgentCouncilClaim }) {
   return (
     <div
-      className="mt-1 flex flex-wrap gap-1 text-[9px] text-muted-foreground"
+      className="mt-2 flex flex-wrap gap-2 text-[12px] text-muted-foreground"
       data-testid="agent-council-claim"
     >
-      <Badge variant="outline" className="rounded-md px-1 text-[9px]">
+      <Badge variant="outline" className="rounded-lg px-2 text-[12px]">
         {claimConfidenceLabel(claim.confidence)}
       </Badge>
-      <Badge variant="outline" className="rounded-md px-1 text-[9px]">
+      <Badge variant="outline" className="rounded-lg px-2 text-[12px]">
         {countLabel(claim.sourceLabels.length, 'source')}
       </Badge>
       {claim.conflictsWith.length > 0 ? (
-        <Badge variant="outline" className={`rounded-md px-1 text-[9px] ${sourceBadgeClass('memory-conflict')}`}>
+        <Badge variant="outline" className={`rounded-lg px-2 text-[12px] ${sourceBadgeClass('memory-conflict')}`}>
           {countLabel(claim.conflictsWith.length, 'conflict')}
         </Badge>
       ) : null}
@@ -275,26 +275,26 @@ function CouncilPassBrief({
 }) {
   return (
     <div
-      className="grimoire-agent-council__pass mb-2 rounded-md border border-border bg-background/60 px-2 py-1.5"
+      className="grimoire-agent-council__pass mb-3 rounded-xl border border-border bg-background/60 px-3 py-2.5"
       data-testid="agent-council-pass"
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5 text-[10px] font-medium text-foreground">
-          <Sparkles className="size-3 shrink-0 text-muted-foreground" />
+      <div className="flex items-center justify-between gap-2.5">
+        <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
+          <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
           <span className="truncate">{brief.title}</span>
         </div>
         <Button
           type="button"
           variant="outline"
           size="xs"
-          className="h-5 shrink-0 px-1 text-[9px]"
+          className="h-7 shrink-0 px-2 text-[12px]"
           onClick={onReviewSynthesis}
           data-testid="agent-council-review-synthesis"
         >
           Review synthesis
         </Button>
       </div>
-      <div className="mt-1 grid gap-1 text-[9px] leading-snug text-muted-foreground">
+      <div className="mt-2 grid gap-2 text-[12px] leading-snug text-muted-foreground">
         <span>{brief.scope}</span>
         <span>{brief.deliverable}</span>
         <span>{brief.safety}</span>
@@ -306,20 +306,20 @@ function CouncilPassBrief({
 function CouncilWorkflow({ steps }: { steps: AgentCouncilWorkflowStep[] }) {
   return (
     <div
-      className="grimoire-agent-council__workflow mt-2 grid grid-cols-2 gap-1.5"
+      className="grimoire-agent-council__workflow mt-3 grid grid-cols-2 gap-2"
       data-testid="agent-council-workflow"
     >
       {steps.map((step) => (
         <div
           key={step.id}
-          className="rounded-md border border-border bg-background/45 px-2 py-1.5"
+          className="rounded-xl border border-border bg-background/45 px-3 py-2.5"
           data-status={step.status}
         >
-          <div className="flex items-center gap-1.5 text-[10px] font-medium text-foreground">
-            <span className={`size-1.5 rounded-full ${workflowDotClass(step.status)}`} />
+          <div className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+            <span className={`size-2 rounded-full ${workflowDotClass(step.status)}`} />
             <span>{step.label}</span>
           </div>
-          <div className="mt-0.5 line-clamp-2 text-[9px] leading-snug text-muted-foreground">
+          <div className="mt-1 line-clamp-2 text-[12px] leading-snug text-muted-foreground">
             {step.detail}
           </div>
         </div>
@@ -343,7 +343,7 @@ function SourceBadge({
         type="button"
         variant="outline"
         size="xs"
-        className={`h-5 max-w-full px-1 text-[9px] ${sourceBadgeClass(source.kind)}`}
+        className={`h-7 max-w-full px-2 text-[12px] ${sourceBadgeClass(source.kind)}`}
         aria-label={`Open ${source.label} source`}
         onClick={() => onOpenSource(navigationTarget)}
         data-source-kind={source.kind}
@@ -356,7 +356,7 @@ function SourceBadge({
   return (
     <Badge
       variant="outline"
-      className={`max-w-full rounded-md px-1 text-[9px] ${sourceBadgeClass(source.kind)}`}
+      className={`max-w-full rounded-lg px-2 text-[12px] ${sourceBadgeClass(source.kind)}`}
       data-source-kind={source.kind}
     >
       <span className="truncate">{source.label}</span>

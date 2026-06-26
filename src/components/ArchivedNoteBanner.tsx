@@ -1,4 +1,5 @@
-import { Archive, ArrowUUpLeft } from '@phosphor-icons/react'
+import { ArrowUUpLeft } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 
 interface ArchivedNoteBannerProps {
   onUnarchive: () => void
@@ -20,7 +21,7 @@ export function ArchivedNoteBanner({ onUnarchive }: ArchivedNoteBannerProps) {
         flexShrink: 0,
       }}
     >
-      <Archive size={13} weight="bold" />
+      <Glyph name="archive" size={13} />
       <span>Archived</span>
       <button
         data-testid="unarchive-btn"

@@ -3,6 +3,24 @@
   --grimoire-native-titlebar-border: transparent;
 }
 
+/* The native window is opaque and macOS rounds its own corners. The app-shell
+   must therefore fill edge-to-edge — any shell radius here only reveals the
+   window backdrop at the corners, and any inset leaves a strip at the top. */
+body.macos-overlay-chrome .app-shell,
+body.windows-chrome .app-shell {
+  border-radius: 0 !important;
+}
+
+/* Seamless top in the native window: the header rows that sit under the title
+   bar never draw a divider line, in any shell material or theme. In dark mode
+   that border (--border, a teal-navy) otherwise reads as a full-width top edge. */
+body.macos-overlay-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-bar, .inspector-header),
+body.windows-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-bar, .inspector-header) {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+  box-shadow: none !important;
+}
+
 :root:not([data-native-shell-material="standard"])[data-native-shell-material] {
   --grimoire-workspace-texture: none;
   --grimoire-shell-radius: 0px;
@@ -41,13 +59,13 @@
   --grimoire-native-shell-sheen: color-mix(in srgb, var(--text-secondary) 7%, transparent);
   --grimoire-native-titlebar-material: linear-gradient(
     180deg,
-    color-mix(in srgb, #171a1f 88%, var(--surface-sidebar) 12%),
-    color-mix(in srgb, #111417 78%, var(--surface-app) 22%)
+    color-mix(in srgb, #122832 88%, var(--surface-sidebar) 12%),
+    color-mix(in srgb, #071217 78%, var(--surface-app) 22%)
   );
   --grimoire-native-sidebar-material: linear-gradient(
     180deg,
-    color-mix(in srgb, #15181d 82%, var(--surface-sidebar) 18%),
-    color-mix(in srgb, #0f1115 86%, var(--surface-sidebar) 14%)
+    color-mix(in srgb, #0a1a21 82%, var(--surface-sidebar) 18%),
+    color-mix(in srgb, #081a21 86%, var(--surface-sidebar) 14%)
   );
   --grimoire-native-titlebar-border: color-mix(in srgb, var(--border-default) 64%, transparent);
 }
@@ -72,12 +90,13 @@
   height: var(--sidebar-title-bar-height, 92px);
   pointer-events: none;
   background: var(--grimoire-native-titlebar-material);
-  border-bottom: 1px solid var(--grimoire-native-titlebar-border);
+  /* Truly seamless top — no hairline, no inset light catch. The OS titlebar
+     separator is killed in Rust (setTitlebarSeparatorStyle = .none); this band
+     just carries the material with zero drawn edge. */
+  border-bottom: none;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent),
-    0 10px 30px color-mix(in srgb, #000 18%, transparent);
+  box-shadow: none;
   content: "";
 }
 
@@ -88,12 +107,11 @@
   height: var(--sidebar-title-bar-height, 60px);
   pointer-events: none;
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 94%, transparent), var(--grimoire-native-titlebar-material));
-  border-bottom: 1px solid var(--grimoire-native-titlebar-border);
+  /* Seamless top — see macOS note above. */
+  border-bottom: none;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent),
-    0 8px 24px color-mix(in srgb, #000 16%, transparent);
+  box-shadow: none;
   content: "";
 }
 
@@ -115,5 +133,82 @@
 :root:not([data-native-shell-material="standard"])[data-native-shell-material] body.macos-overlay-chrome :is(.note-list-chrome-row, .breadcrumb-bar, .inspector-header),
 :root:not([data-native-shell-material="standard"])[data-native-shell-material] body.windows-chrome :is(.note-list-chrome-row, .breadcrumb-bar, .inspector-header) {
   background: var(--grimoire-native-titlebar-material) !important;
-  border-bottom-color: var(--grimoire-native-titlebar-border) !important;
+  /* Chrome rows ride the same material seamlessly — no stacked divider line. */
+  border-bottom-color: transparent !important;
+}
+
+/*
+ * Real native window vibrancy reveal.
+ *
+ * The Rust shell makes the window transparent and installs a system material
+ * behind the webview (NSVisualEffectView on macOS, Mica on Windows). For that
+ * material to show, the renderer must leave a translucent surface. We reveal it
+ * in the sidebar only — content panels stay fully opaque and readable — and we
+ * drop the CSS-faked `backdrop-filter` glass since the OS now provides the real
+ * blur. Skipped in the "standard" material mode so that opt-out stays opaque.
+ */
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome) {
+  background: transparent;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome) :is(#root, .app-shell) {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Content panels stay opaque so text remains readable over the material. */
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  :is(body.macos-overlay-chrome, body.windows-chrome)
+  :is(.app__note-list, .app__editor, .app__dashboard) {
+  background: var(--surface-app);
+}
+
+/* Sidebar surfaces become translucent so the system material shows through.
+   macOS leans more translucent so the NSVisualEffectView reads like a native
+   Finder/Mail sidebar; Windows stays a touch more opaque for Mica. */
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  body.macos-overlay-chrome
+  :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+  background: color-mix(in srgb, var(--surface-sidebar) 35%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+:root:not([data-native-shell-material="standard"])[data-native-shell-material]
+  body.windows-chrome
+  :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+  background: color-mix(in srgb, var(--surface-sidebar) 55%, transparent) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* ---- Reduced-transparency fallback ---- */
+
+@media (prefers-reduced-transparency: reduce) {
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    :is(body.macos-overlay-chrome, body.windows-chrome) {
+    background: var(--surface-app);
+  }
+
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    :is(body.macos-overlay-chrome, body.windows-chrome)
+    :is(.app__sidebar, .app-sidebar-panel, .app-sidebar-rail, .sidebar-title-bar) {
+    background: var(--surface-sidebar) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    body.macos-overlay-chrome .app-shell::before,
+  :root:not([data-native-shell-material="standard"])[data-native-shell-material]
+    body.windows-chrome .app-shell::before {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
 }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Fullscreen</title>
+  <desc>Grimoire glyph: Fullscreen</desc>
+  <polyline points="22,12 12,12 12,22" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="12" y1="12" x2="26" y2="26" stroke="#0B1F2A" stroke-width="2.2" />
+  <polyline points="42,12 52,12 52,22" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="52" y1="12" x2="38" y2="26" stroke="#0B1F2A" stroke-width="2.2" />
+  <polyline points="12,42 12,52 22,52" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="12" y1="52" x2="26" y2="38" stroke="#0B1F2A" stroke-width="2.2" />
+  <polyline points="52,42 52,52 42,52" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="52" y1="52" x2="38" y2="38" stroke="#0B1F2A" stroke-width="2.2" />
+</svg>

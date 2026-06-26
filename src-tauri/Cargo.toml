@@ -1,6 +1,6 @@
 [package]
 name = "grimoire"
-version = "0.1.434"
+version = "0.1.442"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
 license = "AGPL-3.0-or-later"
@@ -32,6 +32,8 @@ regex = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
 sha2 = "0.10"
 dirs = "5"
+# Native window materials: NSVisualEffectView vibrancy on macOS, Mica on Windows.
+window-vibrancy = "0.6"
 aws-config = "1"
 aws-sdk-s3 = "1"
 tauri-plugin-dialog = "2.7.1"

@@ -242,11 +242,74 @@ fn setup_macos_webview_shortcut_prevention(
     Ok(())
 }
 
+/// Apply the platform-native window material so the shell uses real system
+/// materials instead of CSS-faked glass: an `NSVisualEffectView` sidebar
+/// material on macOS and Mica on Windows 11. The webview is transparent, so the
+/// material shows through wherever the renderer leaves a translucent surface
+/// (the sidebar). No-op on Linux or when the platform call fails.
+#[cfg(desktop)]
+fn apply_native_window_material(app: &tauri::App) {
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    {
+        use tauri::Manager;
+        let Some(window) = app.get_webview_window("main") else {
+            return;
+        };
+        #[cfg(target_os = "macos")]
+        {
+            // With `transparent: true`, the webview background is clear wherever
+            // the renderer leaves a translucent surface (the sidebar). Install a
+            // real NSVisualEffectView behind the webview so Finder-style vibrancy
+            // shows the desktop through the sidebar — not just a CSS blur of the
+            // app's own content. The CSS in native-shell-material.css controls how
+            // much translucency each surface gets (35% for sidebar, fully opaque
+            // for content panels). In "standard" material mode the sidebar stays
+            // fully opaque, so the vibrancy layer is simply not visible.
+            if let Err(error) =
+                window_vibrancy::apply_vibrancy(&window, window_vibrancy::NSVisualEffectMaterial::Sidebar, None, None)
+            {
+                log::warn!("NSVisualEffectView vibrancy unavailable: {error}");
+            }
+
+            // Kill the OS-drawn titlebar separator. With `titleBarStyle: Overlay`
+            // macOS defaults to `.automatic`, which paints a 1px hairline under
+            // the title bar as soon as content sits beneath it. That line reads
+            // as a dated stacked edge; we want the content to flow seamlessly
+            // under the traffic lights. `.none` removes it entirely. Runs on the
+            // main thread during setup, which AppKit requires.
+            use objc2_app_kit::{NSTitlebarSeparatorStyle, NSWindow};
+            match window.ns_window() {
+                Ok(ns_window_ptr) => {
+                    // SAFETY: Tauri hands back a valid, retained NSWindow pointer
+                    // for the macOS window; we only borrow it for this one call.
+                    let ns_window: &NSWindow = unsafe { &*ns_window_ptr.cast::<NSWindow>() };
+                    ns_window.setTitlebarSeparatorStyle(NSTitlebarSeparatorStyle::None);
+                }
+                Err(error) => {
+                    log::warn!("macOS titlebar separator unavailable: {error}");
+                }
+            }
+        }
+        #[cfg(target_os = "windows")]
+        {
+            // Mica follows the system light/dark theme when the tint is None.
+            if let Err(error) = window_vibrancy::apply_mica(&window, None) {
+                log::warn!("Windows Mica material unavailable: {error}");
+            }
+        }
+    }
+    #[cfg(target_os = "linux")]
+    let _ = app;
+}
+
 fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     setup_common_plugins(app)?;
 
     #[cfg(desktop)]
     setup_desktop_plugins(app)?;
+
+    #[cfg(desktop)]
+    apply_native_window_material(app);
 
     if telemetry::init_sentry_from_settings() {
         log::info!("Sentry initialized (crash reporting enabled)");

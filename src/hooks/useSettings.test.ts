@@ -104,7 +104,7 @@ function changedSettings(): Settings {
     anonymous_id: null,
     release_channel: null,
     theme_mode: null,
-    theme_preset: 'living-archive',
+    theme_preset: 'morning-notebook',
     editor_font: 'literary',
     editor_line_height: 'compact',
     ui_language: 'zh-Hans',

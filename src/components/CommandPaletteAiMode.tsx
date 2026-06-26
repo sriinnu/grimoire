@@ -1,4 +1,4 @@
-import { Sparkle } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import type { NoteReference } from '../utils/ai-context'
 import { InlineWikilinkInput } from './InlineWikilinkInput'
@@ -44,7 +44,7 @@ export function CommandPaletteAiMode({
       suggestionListVariant="palette"
       paletteHeader={(
         <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-          <Sparkle size={12} weight="fill" />
+          <Glyph name="sparkle" size={12} />
           <span>Ask {aiAgentLabel}</span>
         </div>
       )}

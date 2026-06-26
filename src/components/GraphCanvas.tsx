@@ -102,7 +102,7 @@ export function GraphCanvas({
       >
         <defs>
           <pattern id="graph-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.5" />
+            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.12" />
           </pattern>
         </defs>
         <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="transparent" />
@@ -260,8 +260,17 @@ function GraphEdge({
   target: PositionedGraphNode
 }) {
   const relationship = edge.kind === 'relationship'
+  // Synaptic curve: bow the edge perpendicular to its midpoint so connections
+  // read like dendrites/axons, not a wiring diagram. One consistent rotational
+  // direction gives the whole map an organic, neural swirl.
+  const dx = target.x - source.x
+  const dy = target.y - source.y
+  const len = Math.hypot(dx, dy) || 1
+  const bow = Math.min(len * 0.16, 60)
+  const cx = (source.x + target.x) / 2 - (dy / len) * bow
+  const cy = (source.y + target.y) / 2 + (dx / len) * bow
   return (
-    <line
+    <path
       className={cn(
         'grimoire-graph-edge',
         relationship && 'grimoire-graph-edge--relationship',
@@ -269,10 +278,8 @@ function GraphEdge({
         selected && 'grimoire-graph-edge--selected',
         sourceSafe && 'grimoire-graph-edge--source-safe',
       )}
-      x1={source.x}
-      y1={source.y}
-      x2={target.x}
-      y2={target.y}
+      d={`M ${source.x} ${source.y} Q ${cx} ${cy} ${target.x} ${target.y}`}
+      fill="none"
       stroke={localOnly
         ? 'var(--grimoire-graph-edge-local, var(--destructive))'
         : relationship

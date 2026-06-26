@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Add</title>
+  <desc>Grimoire glyph: Add</desc>
+  <circle cx="32" cy="32" r="19" stroke="#0B1F2A" fill="#4A90E216" stroke-width="2.2" />
+  <line x1="32" y1="22" x2="32" y2="42" stroke="#4A90E2" stroke-linecap="round" stroke-width="2.8" />
+  <line x1="22" y1="32" x2="42" y2="32" stroke="#4A90E2" stroke-linecap="round" stroke-width="2.8" />
+</svg>

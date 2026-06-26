@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import {
+  AiPanelBrief,
   AiPanelComposer,
   AiPanelContextBar,
   AiPanelHeader,
@@ -246,8 +247,8 @@ export function AiPanelView({
         style={{
           outline: 'none',
           borderLeft: isActive
-            ? '2px solid var(--grimoire-signal-accent, var(--accent-blue))'
-            : '1px solid var(--border)',
+            ? '2px solid var(--primary)'
+            : '1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-default)) 85%, transparent)',
           transition: 'border-color 0.3s ease',
         }}
         data-testid="ai-panel"
@@ -266,7 +267,15 @@ export function AiPanelView({
           onNewChat={handlePanelNewChat}
         />
         {activeEntry && (
-          <AiPanelContextBar activeEntry={activeEntry} linkedCount={linkedEntries.length} />
+          <>
+            <AiPanelBrief
+              agentLabel={agentLabel}
+              activeEntry={activeEntry}
+              linkedCount={linkedEntries.length}
+              conversationActive={agent.messages.length > 0 || isActive}
+            />
+            <AiPanelContextBar activeEntry={activeEntry} linkedCount={linkedEntries.length} />
+          </>
         )}
         <AiPanelIntelligenceRail
           activeEntry={activeEntry}

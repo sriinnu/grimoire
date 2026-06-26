@@ -1,4 +1,5 @@
-import { FileCheck2, ShieldCheck } from 'lucide-react'
+import { FileCheck2 } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import {
   Dialog,
   DialogContent,
@@ -46,7 +47,7 @@ export function RedTeamPlanDialog({ open, plan, onClose }: RedTeamPlanDialogProp
               No write
             </Badge>
             <Badge variant="outline" className="rounded-md">
-              <ShieldCheck className="size-3" />
+              <Glyph name="shield" size={12} />
               {plan.protectedContext ? 'Protected local context' : 'Source-safe'}
             </Badge>
           </div>

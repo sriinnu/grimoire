@@ -23,11 +23,6 @@ function hueDegrees(hex: string): number {
   return ((red - green) / delta + 4) * 60
 }
 
-function rgbChannelSpread(hex: string): number {
-  const channels = hexToRgb(hex)
-  return Math.max(...channels) - Math.min(...channels)
-}
-
 function getRuleBody(source: string, selector: string): string {
   const ruleStart = source.indexOf(`${selector} {`)
   expect(ruleStart).toBeGreaterThanOrEqual(0)
@@ -144,24 +139,29 @@ describe('native theme overhaul CSS', () => {
     )
   })
 
-  it('keeps Nocturne dark graphite with blue-steel accents instead of green or navy wash', () => {
-    const nocturne = resolveThemePresetDefinition('nocturne')
-    const dark = nocturne.modes.dark?.tokens
+  it('keeps the midnight-aurora dark mode cool navy with teal accents instead of warm amber or brass', () => {
+    const aurora = resolveThemePresetDefinition('morning-notebook')
+    const dark = aurora.modes.dark?.tokens
     expect(dark).toBeDefined()
 
-    expect(dark!['surface.app']).toBe('#101113')
-    expect(dark!['surface.sidebar']).toBe('#0d0e10')
-    expect(dark!['surface.panel']).toBe('#151719')
-    expect(dark!['accent.primary']).toBe('#86aee8')
-    expect(systemThemesCss).toContain('--primary: #86aee8')
+    expect(dark!['surface.app']).toBe('#071217')
+    expect(dark!['surface.sidebar']).toBe('#081a21')
+    expect(dark!['surface.panel']).toBe('#0a1a21')
+    expect(dark!['surface.editor']).toBe('#050d12')
+    expect(dark!['accent.primary']).toBe('#26d6c9')
 
+    // Teal accents must sit in the cyan-green band (~150-195deg), never amber/brass.
     for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
       const hue = hueDegrees(dark![token])
-      expect(hue < 95 || hue > 185, token).toBe(true)
+      expect(hue > 150 && hue < 195, token).toBe(true)
     }
 
+    // Aurora surfaces are cool-toned: blue channel leads, red trails — not warm candlelit.
     for (const token of ['surface.app', 'surface.sidebar', 'surface.panel', 'surface.editor'] as const) {
-      expect(rgbChannelSpread(dark![token]), `${token} should stay neutral graphite`).toBeLessThanOrEqual(8)
+      const [red, , blue] = hexToRgb(dark![token])
+      expect(blue, `${token} should be cool (blue leads red)`).toBeGreaterThan(red)
+      const hue = hueDegrees(dark![token])
+      expect(hue > 180 && hue < 260, `${token} should stay in the cool navy band`).toBe(true)
     }
   })
 })

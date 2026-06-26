@@ -245,7 +245,7 @@ export function EditorContentLayout(model: EditorContentModel) {
     noteLayout,
   } = model
   const rootClassName = cn(
-    'flex flex-1 flex-col min-w-0 min-h-0',
+    'editor-canvas flex flex-1 flex-col min-w-0 min-h-0',
     noteLayout === 'left' ? 'editor-content-layout--left' : 'editor-content-layout--centered',
   )
 

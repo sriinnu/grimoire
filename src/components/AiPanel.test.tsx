@@ -207,6 +207,50 @@ describe('AiPanel', () => {
     expect(screen.getByText('Ask about this note and its linked context')).toBeTruthy()
   })
 
+  it('shows an assistant brief summarising the active note for legacy AI chat', () => {
+    const linked = makeEntry({ path: '/vault/linked.md', title: 'Linked Note' })
+    const entry = makeEntry({ title: 'My Note', outgoingLinks: ['Linked Note'] })
+    render(
+      <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry, linked]} />,
+    )
+
+    const brief = screen.getByTestId('ai-panel-brief')
+    expect(brief).toHaveTextContent('My Note')
+    expect(brief).toHaveTextContent('1 linked note')
+    expect(brief).not.toHaveAttribute('data-collapsed')
+  })
+
+  it('collapses the assistant brief once a conversation is active', () => {
+    const entry = makeEntry({ title: 'My Note' })
+    mockMessages = [{
+      userMessage: 'hi',
+      actions: [],
+      response: 'hello',
+      id: 'msg-brief-collapse',
+    }]
+    render(
+      <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />,
+    )
+
+    expect(screen.getByTestId('ai-panel-brief')).toHaveAttribute('data-collapsed', 'true')
+  })
+
+  it('redacts the assistant brief title for local-only notes', () => {
+    const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
+    render(
+      <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />,
+    )
+
+    const brief = screen.getByTestId('ai-panel-brief')
+    expect(brief).toHaveTextContent('a local-only note')
+    expect(brief).not.toHaveTextContent('Hidden Dream')
+  })
+
+  it('does not show the assistant brief when there is no active entry', () => {
+    render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
+    expect(screen.queryByTestId('ai-panel-brief')).toBeNull()
+  })
+
   it('shows context bar with active entry title', () => {
     const entry = makeEntry({ title: 'My Note' })
     render(

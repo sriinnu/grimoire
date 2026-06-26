@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Open Book</title>
+  <desc>Grimoire glyph: Open Book</desc>
+  <path d="M16 16h14c4 0 6 2 6 6v30c0-3-2-5-6-5H16z" stroke="#0B1F2A" fill="#D99A2916" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M48 16H34c-4 0-6 2-6 6v30c0-3 2-5 6-5h14z" stroke="#0B1F2A" fill="#D99A2916" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="32" y1="20" x2="32" y2="50" stroke="#D99A29" stroke-linecap="round" stroke-width="1.8" />
+  <line x1="20" y1="25" x2="28" y2="25" stroke="#D99A29" stroke-linecap="round" stroke-width="1.5" />
+  <line x1="36" y1="25" x2="44" y2="25" stroke="#D99A29" stroke-linecap="round" stroke-width="1.5" />
+</svg>

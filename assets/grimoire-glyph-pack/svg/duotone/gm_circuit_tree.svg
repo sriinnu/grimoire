@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Circuit Tree</title>
+  <desc>Grimoire glyph: Circuit Tree</desc>
+  <path d="M32 52V29" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="3" />
+  <path d="M32 34c-7 0-14-7-17-14M32 31c7 0 14-7 17-14M32 27V12M32 40c-8 0-13 4-18 9M32 40c8 0 13 4 18 9" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <circle cx="32" cy="12" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+  <circle cx="15" cy="20" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+  <circle cx="49" cy="17" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+  <circle cx="14" cy="49" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+  <circle cx="50" cy="49" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+  <circle cx="24" cy="27" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+  <circle cx="40" cy="27" r="4" stroke="#D99A29" fill="#D99A2922" stroke-width="2" />
+</svg>

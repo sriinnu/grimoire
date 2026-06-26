@@ -49,6 +49,17 @@ function runAllowFailure(command, args) {
   })
 }
 
+const LSREGISTER =
+  '/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister'
+
+function refreshLaunchServices(applicationsAppPath, sourceAppPath) {
+  // Keep the dock / Launchpad / Spotlight clean across rebuilds: register the
+  // freshly installed app and unregister the build-bundle copy so macOS never
+  // shows a stale or duplicate Grimoire. Best-effort — never fails the install.
+  runAllowFailure(LSREGISTER, ['-f', resolve(applicationsAppPath)])
+  runAllowFailure(LSREGISTER, ['-u', resolve(sourceAppPath)])
+}
+
 function shouldSkipRunningAppInspection() {
   return hasArg('--skip-running-check') || hasArg('--skip-system-actions')
 }
@@ -174,13 +185,26 @@ function installBuiltApp({
   assertSingletonInstall(applicationsDir)
 
   if (!skipSystemActions) {
-    run('codesign', ['--force', '--deep', '--sign', '-', applicationsAppPath])
+    // Stamping LaunchServices metadata above rewrites Info.plist, which voids any
+    // signature from the build — so re-sign here. APPLE_SIGNING_IDENTITY lets the
+    // installed app carry a real Developer ID; default is ad-hoc ('-') so a plain
+    // `pnpm macos:install-app` keeps working without a certificate.
+    const signingIdentity = process.env.APPLE_SIGNING_IDENTITY?.trim() || '-'
+    const signArgs = ['--force', '--deep', '--sign', signingIdentity]
+    if (signingIdentity !== '-') {
+      // Hardened runtime + secure timestamp, so the Developer ID signature is
+      // notarization-ready, not just locally valid.
+      signArgs.push('--options', 'runtime', '--timestamp', '--entitlements', 'src-tauri/entitlements.plist')
+    }
+    signArgs.push(applicationsAppPath)
+    run('codesign', signArgs)
     run('node', [
       'scripts/verify-release-artifacts.mjs',
       '--app',
       applicationsAppPath,
       '--require-codesign',
     ])
+    refreshLaunchServices(applicationsAppPath, sourceAppPath)
   }
 
   verifyInstalledVersion(applicationsAppPath, expectedVersion)

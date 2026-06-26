@@ -13,48 +13,6 @@
   font-family: var(--vault-dashboard-chrome-font);
 }
 
-.vault-dashboard__hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin: 0 auto 16px;
-  width: 100%;
-  max-width: var(--vault-dashboard-content-max);
-}
-
-.vault-dashboard__hero-copy {
-  min-width: 0;
-}
-
-.vault-dashboard__eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 8px;
-  color: var(--muted-foreground);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0;
-}
-
-.vault-dashboard h1 {
-  margin: 0;
-  font-family: var(--vault-dashboard-title-font);
-  font-size: 34px;
-  line-height: 1.08;
-  font-weight: 620;
-  letter-spacing: 0;
-}
-
-.vault-dashboard__subtitle {
-  margin: 7px 0 0;
-  max-width: 420px;
-  color: var(--muted-foreground);
-  font-size: 14px;
-  line-height: 1.35;
-}
-
 .vault-dashboard h2 {
   margin: 2px 0 0;
   font-family: var(--vault-dashboard-title-font);
@@ -65,8 +23,7 @@
 }
 
 .vault-dashboard__capture-kinds,
-.vault-dashboard__capture-actions,
-.vault-dashboard__stats {
+.vault-dashboard__capture-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -82,13 +39,11 @@
 }
 
 .vault-dashboard__grid > *,
-.vault-dashboard__panel,
-.vault-dashboard__stat {
+.vault-dashboard__panel {
   min-width: 0;
 }
 
-.vault-dashboard__panel,
-.vault-dashboard__stat {
+.vault-dashboard__panel {
   border: 1px solid var(--grimoire-native-card-border, color-mix(in srgb, var(--border) 88%, transparent));
   border-radius: 8px;
   background: var(--grimoire-native-card-material, color-mix(in srgb, var(--card) 88%, var(--background)));
@@ -114,8 +69,7 @@
 }
 
 .vault-dashboard__panel--capture,
-.vault-dashboard__panel--wide,
-.vault-dashboard__stats {
+.vault-dashboard__panel--wide {
   grid-column: 1 / -1;
 }
 
@@ -128,10 +82,112 @@
 }
 
 .vault-dashboard__panel-label {
-  color: var(--muted-foreground);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 11px;
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vault-dashboard__panel-label svg {
+  flex: none;
+  color: color-mix(in srgb, var(--primary) 70%, var(--text-muted, var(--muted-foreground)));
+}
+
+.vault-dashboard__panel-link {
+  height: 28px;
+  border-radius: 7px;
+  padding-inline: 10px;
   font-size: 12px;
-  font-weight: 560;
-  letter-spacing: 0;
+  font-weight: 600;
+  color: var(--text-secondary, var(--muted-foreground));
+}
+
+.vault-dashboard__panel-link:hover {
+  background: var(--state-hover);
+  color: var(--primary);
+}
+
+.vault-dashboard__sparkline {
+  width: 100%;
+  height: 38px;
+  margin-bottom: 10px;
+  overflow: visible;
+}
+
+.vault-dashboard__sparkline-grid {
+  stroke: var(--grimoire-hairline);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.vault-dashboard__sparkline-fill {
+  fill: color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.vault-dashboard__sparkline-line {
+  stroke: var(--primary);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.vault-dashboard__health {
+  grid-column: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.vault-dashboard__health-body {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  padding: 10px 0 4px;
+  text-align: center;
+}
+
+.vault-dashboard__health-shield {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+.vault-dashboard__health-check {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--surface-card, var(--background));
+  box-shadow: 0 0 0 2px var(--surface-card, var(--card));
+}
+
+.vault-dashboard__health-title {
+  font-size: 14px;
+  font-weight: 660;
+  color: var(--text-heading, var(--foreground));
+}
+
+.vault-dashboard__health-meta {
+  font-size: 12px;
+  color: var(--text-muted, var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
 }
 
 .vault-dashboard__capture-form {
@@ -143,8 +199,7 @@
 
 .vault-dashboard__markdown-tools,
 .vault-dashboard__capture-dates,
-.vault-dashboard__template-picker,
-.vault-dashboard__capture-kinds {
+.vault-dashboard__template-picker {
   transition:
     max-height var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
     opacity var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease),
@@ -153,9 +208,7 @@
 
 .vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__markdown-tools,
 .vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__capture-dates,
-.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__template-picker,
-.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__capture-kinds,
-.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__capture-submit {
+.vault-dashboard__capture-form:not(:focus-within):not([data-has-input="true"]) .vault-dashboard__template-picker {
   border-width: 0;
   max-height: 0;
   margin-block: 0;
@@ -268,30 +321,6 @@
   text-align: left;
 }
 
-.vault-dashboard__stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr));
-}
-
-.vault-dashboard__stat {
-  min-height: 108px;
-  padding: calc(var(--grimoire-density-panel-padding, 16px) - 2px);
-}
-
-.vault-dashboard__stat-value {
-  font-size: 28px;
-  line-height: 1;
-  font-weight: 760;
-  font-variant-numeric: tabular-nums;
-}
-
-.vault-dashboard__stat-label {
-  margin-top: 10px;
-  font-size: 13px;
-  font-weight: 670;
-}
-
-.vault-dashboard__stat-detail,
 .vault-dashboard__recent-meta,
 .vault-dashboard__empty {
   color: var(--muted-foreground);

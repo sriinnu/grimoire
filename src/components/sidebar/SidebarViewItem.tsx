@@ -33,7 +33,7 @@ export function SidebarViewItem({
   return (
     <div className="group relative">
       <div
-        className={`flex cursor-pointer select-none items-center gap-2 rounded transition-colors ${isActive ? 'text-foreground shadow-[inset_2px_0_0_color-mix(in_srgb,var(--sidebar-foreground)_28%,transparent)]' : 'text-foreground hover:bg-accent'}`}
+        className={`flex cursor-pointer select-none items-center gap-2 rounded transition-colors ${isActive ? 'text-foreground bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] shadow-[inset_2px_0_0_var(--primary)]' : 'text-foreground hover:bg-[color-mix(in_srgb,var(--primary)_7%,transparent)]'}`}
         style={{ padding: showCount ? SIDEBAR_ITEM_PADDING.withCount : SIDEBAR_ITEM_PADDING.regular, borderRadius: 4 }}
         onClick={onSelect}
       >

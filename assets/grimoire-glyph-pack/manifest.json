@@ -1,0 +1,1032 @@
+{
+  "name": "Grimoire Glyph Pack",
+  "version": "1.0.0",
+  "count": 167,
+  "formats": [
+    "SVG template",
+    "SVG duotone",
+    "PDF vector template",
+    "PNG @1x/@2x/@3x template",
+    "PNG @1x/@2x/@3x duotone",
+    "Xcode xcassets",
+    "SwiftUI registry"
+  ],
+  "icons": [
+    {
+      "name": "gm_home",
+      "label": "Home",
+      "category": "navigation",
+      "kind": "home"
+    },
+    {
+      "name": "gm_notebook",
+      "label": "Notebook",
+      "category": "navigation",
+      "kind": "notebook"
+    },
+    {
+      "name": "gm_inbox",
+      "label": "Inbox",
+      "category": "navigation",
+      "kind": "inbox"
+    },
+    {
+      "name": "gm_pages",
+      "label": "Pages",
+      "category": "navigation",
+      "kind": "pages"
+    },
+    {
+      "name": "gm_graph",
+      "label": "Graph",
+      "category": "navigation",
+      "kind": "graph"
+    },
+    {
+      "name": "gm_journal",
+      "label": "Journal",
+      "category": "navigation",
+      "kind": "journal"
+    },
+    {
+      "name": "gm_dreams",
+      "label": "Dreams",
+      "category": "navigation",
+      "kind": "dreams"
+    },
+    {
+      "name": "gm_archive",
+      "label": "Archive",
+      "category": "navigation",
+      "kind": "archive"
+    },
+    {
+      "name": "gm_search",
+      "label": "Search",
+      "category": "navigation",
+      "kind": "search"
+    },
+    {
+      "name": "gm_settings",
+      "label": "Settings",
+      "category": "navigation",
+      "kind": "settings"
+    },
+    {
+      "name": "gm_spaces",
+      "label": "Spaces",
+      "category": "navigation",
+      "kind": "cluster"
+    },
+    {
+      "name": "gm_folder",
+      "label": "Folder",
+      "category": "navigation",
+      "kind": "folder"
+    },
+    {
+      "name": "gm_add",
+      "label": "Add",
+      "category": "actions",
+      "kind": "add"
+    },
+    {
+      "name": "gm_new_note",
+      "label": "New Note",
+      "category": "actions",
+      "kind": "new_note"
+    },
+    {
+      "name": "gm_edit",
+      "label": "Edit",
+      "category": "actions",
+      "kind": "edit"
+    },
+    {
+      "name": "gm_delete",
+      "label": "Delete",
+      "category": "actions",
+      "kind": "delete"
+    },
+    {
+      "name": "gm_archive_box",
+      "label": "Archive Box",
+      "category": "actions",
+      "kind": "archive"
+    },
+    {
+      "name": "gm_pin",
+      "label": "Pin",
+      "category": "actions",
+      "kind": "pin"
+    },
+    {
+      "name": "gm_share",
+      "label": "Share",
+      "category": "actions",
+      "kind": "share"
+    },
+    {
+      "name": "gm_export",
+      "label": "Export",
+      "category": "actions",
+      "kind": "export"
+    },
+    {
+      "name": "gm_import",
+      "label": "Import",
+      "category": "actions",
+      "kind": "import"
+    },
+    {
+      "name": "gm_more",
+      "label": "More",
+      "category": "actions",
+      "kind": "more"
+    },
+    {
+      "name": "gm_quick_capture",
+      "label": "Quick Capture",
+      "category": "actions",
+      "kind": "sparkle"
+    },
+    {
+      "name": "gm_upload",
+      "label": "Upload",
+      "category": "actions",
+      "kind": "export"
+    },
+    {
+      "name": "gm_download",
+      "label": "Download",
+      "category": "actions",
+      "kind": "import"
+    },
+    {
+      "name": "gm_duplicate",
+      "label": "Duplicate",
+      "category": "actions",
+      "kind": "duplicate"
+    },
+    {
+      "name": "gm_rename",
+      "label": "Rename",
+      "category": "actions",
+      "kind": "rename"
+    },
+    {
+      "name": "gm_move",
+      "label": "Move",
+      "category": "actions",
+      "kind": "move"
+    },
+    {
+      "name": "gm_refresh",
+      "label": "Refresh",
+      "category": "actions",
+      "kind": "repeat"
+    },
+    {
+      "name": "gm_bold",
+      "label": "Bold",
+      "category": "editor",
+      "kind": "bold"
+    },
+    {
+      "name": "gm_italic",
+      "label": "Italic",
+      "category": "editor",
+      "kind": "italic"
+    },
+    {
+      "name": "gm_strike",
+      "label": "Strike",
+      "category": "editor",
+      "kind": "strike"
+    },
+    {
+      "name": "gm_code",
+      "label": "Code",
+      "category": "editor",
+      "kind": "code"
+    },
+    {
+      "name": "gm_quote",
+      "label": "Quote",
+      "category": "editor",
+      "kind": "quote"
+    },
+    {
+      "name": "gm_list",
+      "label": "List",
+      "category": "editor",
+      "kind": "list"
+    },
+    {
+      "name": "gm_numbered_list",
+      "label": "Numbered List",
+      "category": "editor",
+      "kind": "numbered_list"
+    },
+    {
+      "name": "gm_task",
+      "label": "Task",
+      "category": "editor",
+      "kind": "task"
+    },
+    {
+      "name": "gm_link",
+      "label": "Link",
+      "category": "editor",
+      "kind": "link"
+    },
+    {
+      "name": "gm_image",
+      "label": "Image",
+      "category": "editor",
+      "kind": "image"
+    },
+    {
+      "name": "gm_table",
+      "label": "Table",
+      "category": "editor",
+      "kind": "table"
+    },
+    {
+      "name": "gm_divider",
+      "label": "Divider",
+      "category": "editor",
+      "kind": "divider"
+    },
+    {
+      "name": "gm_heading",
+      "label": "Heading",
+      "category": "editor",
+      "kind": "heading"
+    },
+    {
+      "name": "gm_code_block",
+      "label": "Code Block",
+      "category": "editor",
+      "kind": "code_block"
+    },
+    {
+      "name": "gm_markdown",
+      "label": "Markdown",
+      "category": "editor",
+      "kind": "markdown"
+    },
+    {
+      "name": "gm_yaml",
+      "label": "YAML Frontmatter",
+      "category": "editor",
+      "kind": "yaml"
+    },
+    {
+      "name": "gm_template",
+      "label": "Template",
+      "category": "editor",
+      "kind": "template"
+    },
+    {
+      "name": "gm_math",
+      "label": "Math",
+      "category": "editor",
+      "kind": "code"
+    },
+    {
+      "name": "gm_note",
+      "label": "Note",
+      "category": "note_file",
+      "kind": "note"
+    },
+    {
+      "name": "gm_file",
+      "label": "File",
+      "category": "note_file",
+      "kind": "file"
+    },
+    {
+      "name": "gm_folder_file",
+      "label": "Folder",
+      "category": "note_file",
+      "kind": "folder"
+    },
+    {
+      "name": "gm_subfolder",
+      "label": "Subfolder",
+      "category": "note_file",
+      "kind": "subfolder"
+    },
+    {
+      "name": "gm_frontmatter",
+      "label": "Frontmatter",
+      "category": "note_file",
+      "kind": "yaml"
+    },
+    {
+      "name": "gm_collection",
+      "label": "Collection",
+      "category": "note_file",
+      "kind": "folder"
+    },
+    {
+      "name": "gm_bookmark",
+      "label": "Bookmark",
+      "category": "note_file",
+      "kind": "saved"
+    },
+    {
+      "name": "gm_saved_view",
+      "label": "Saved View",
+      "category": "note_file",
+      "kind": "saved"
+    },
+    {
+      "name": "gm_node",
+      "label": "Node",
+      "category": "graph_relationships",
+      "kind": "node"
+    },
+    {
+      "name": "gm_linked_node",
+      "label": "Linked Node",
+      "category": "graph_relationships",
+      "kind": "linked_node"
+    },
+    {
+      "name": "gm_tag",
+      "label": "Tag",
+      "category": "graph_relationships",
+      "kind": "tag"
+    },
+    {
+      "name": "gm_backlink",
+      "label": "Backlink",
+      "category": "graph_relationships",
+      "kind": "backlink"
+    },
+    {
+      "name": "gm_unlinked",
+      "label": "Unlinked",
+      "category": "graph_relationships",
+      "kind": "unlinked"
+    },
+    {
+      "name": "gm_expand",
+      "label": "Expand",
+      "category": "graph_relationships",
+      "kind": "expand"
+    },
+    {
+      "name": "gm_collapse",
+      "label": "Collapse",
+      "category": "graph_relationships",
+      "kind": "expand"
+    },
+    {
+      "name": "gm_cluster",
+      "label": "Cluster",
+      "category": "graph_relationships",
+      "kind": "cluster"
+    },
+    {
+      "name": "gm_focus",
+      "label": "Focus",
+      "category": "graph_relationships",
+      "kind": "focus"
+    },
+    {
+      "name": "gm_orbit",
+      "label": "Orbit",
+      "category": "graph_relationships",
+      "kind": "orbit"
+    },
+    {
+      "name": "gm_filter",
+      "label": "Filter",
+      "category": "graph_relationships",
+      "kind": "filter"
+    },
+    {
+      "name": "gm_layout",
+      "label": "Layout",
+      "category": "graph_relationships",
+      "kind": "layout"
+    },
+    {
+      "name": "gm_relation",
+      "label": "Relation",
+      "category": "graph_relationships",
+      "kind": "share"
+    },
+    {
+      "name": "gm_route",
+      "label": "Route",
+      "category": "graph_relationships",
+      "kind": "route"
+    },
+    {
+      "name": "gm_source_safe",
+      "label": "Source Safe",
+      "category": "graph_relationships",
+      "kind": "shield"
+    },
+    {
+      "name": "gm_local_vault",
+      "label": "Local Vault",
+      "category": "vault_security",
+      "kind": "local_vault"
+    },
+    {
+      "name": "gm_private_vault",
+      "label": "Private Vault",
+      "category": "vault_security",
+      "kind": "private_vault"
+    },
+    {
+      "name": "gm_cloud_vault",
+      "label": "Cloud Vault",
+      "category": "vault_security",
+      "kind": "cloud_vault"
+    },
+    {
+      "name": "gm_lock",
+      "label": "Lock",
+      "category": "vault_security",
+      "kind": "lock"
+    },
+    {
+      "name": "gm_unlock",
+      "label": "Unlock",
+      "category": "vault_security",
+      "kind": "unlock"
+    },
+    {
+      "name": "gm_shield",
+      "label": "Shield",
+      "category": "vault_security",
+      "kind": "shield"
+    },
+    {
+      "name": "gm_key",
+      "label": "Key",
+      "category": "vault_security",
+      "kind": "key"
+    },
+    {
+      "name": "gm_fingerprint",
+      "label": "Fingerprint",
+      "category": "vault_security",
+      "kind": "fingerprint"
+    },
+    {
+      "name": "gm_eye",
+      "label": "Eye",
+      "category": "vault_security",
+      "kind": "eye"
+    },
+    {
+      "name": "gm_eye_off",
+      "label": "Eye Off",
+      "category": "vault_security",
+      "kind": "eye_off"
+    },
+    {
+      "name": "gm_permissions",
+      "label": "Permissions",
+      "category": "vault_security",
+      "kind": "cluster"
+    },
+    {
+      "name": "gm_audit_log",
+      "label": "Audit Log",
+      "category": "vault_security",
+      "kind": "note"
+    },
+    {
+      "name": "gm_firewall",
+      "label": "Firewall",
+      "category": "vault_security",
+      "kind": "shield"
+    },
+    {
+      "name": "gm_backup",
+      "label": "Backup",
+      "category": "vault_security",
+      "kind": "cloud_vault"
+    },
+    {
+      "name": "gm_git_history",
+      "label": "Git History",
+      "category": "vault_security",
+      "kind": "history"
+    },
+    {
+      "name": "gm_calendar",
+      "label": "Calendar",
+      "category": "calendar_time",
+      "kind": "calendar"
+    },
+    {
+      "name": "gm_today",
+      "label": "Today",
+      "category": "calendar_time",
+      "kind": "today"
+    },
+    {
+      "name": "gm_next",
+      "label": "Next",
+      "category": "calendar_time",
+      "kind": "next"
+    },
+    {
+      "name": "gm_previous",
+      "label": "Previous",
+      "category": "calendar_time",
+      "kind": "previous"
+    },
+    {
+      "name": "gm_date",
+      "label": "Date",
+      "category": "calendar_time",
+      "kind": "date"
+    },
+    {
+      "name": "gm_clock",
+      "label": "Clock",
+      "category": "calendar_time",
+      "kind": "clock"
+    },
+    {
+      "name": "gm_reminder",
+      "label": "Reminder",
+      "category": "calendar_time",
+      "kind": "reminder"
+    },
+    {
+      "name": "gm_repeat",
+      "label": "Repeat",
+      "category": "calendar_time",
+      "kind": "repeat"
+    },
+    {
+      "name": "gm_schedule",
+      "label": "Schedule",
+      "category": "calendar_time",
+      "kind": "schedule"
+    },
+    {
+      "name": "gm_streak",
+      "label": "Streak",
+      "category": "calendar_time",
+      "kind": "streak"
+    },
+    {
+      "name": "gm_timeline",
+      "label": "Timeline",
+      "category": "calendar_time",
+      "kind": "timeline"
+    },
+    {
+      "name": "gm_duration",
+      "label": "Duration",
+      "category": "calendar_time",
+      "kind": "duration"
+    },
+    {
+      "name": "gm_moon",
+      "label": "Moon",
+      "category": "calendar_time",
+      "kind": "dreams"
+    },
+    {
+      "name": "gm_sun",
+      "label": "Sun",
+      "category": "calendar_time",
+      "kind": "focus_mode"
+    },
+    {
+      "name": "gm_sleep",
+      "label": "Sleep",
+      "category": "calendar_time",
+      "kind": "dream_cloud"
+    },
+    {
+      "name": "gm_command",
+      "label": "Command",
+      "category": "search_filter",
+      "kind": "terminal"
+    },
+    {
+      "name": "gm_clear",
+      "label": "Clear",
+      "category": "search_filter",
+      "kind": "error"
+    },
+    {
+      "name": "gm_advanced_filter",
+      "label": "Advanced Filter",
+      "category": "search_filter",
+      "kind": "advanced_filter"
+    },
+    {
+      "name": "gm_sort",
+      "label": "Sort",
+      "category": "search_filter",
+      "kind": "sort"
+    },
+    {
+      "name": "gm_sort_asc",
+      "label": "Sort Asc",
+      "category": "search_filter",
+      "kind": "sort"
+    },
+    {
+      "name": "gm_sort_desc",
+      "label": "Sort Desc",
+      "category": "search_filter",
+      "kind": "sort"
+    },
+    {
+      "name": "gm_group",
+      "label": "Group",
+      "category": "search_filter",
+      "kind": "group"
+    },
+    {
+      "name": "gm_ungroup",
+      "label": "Ungroup",
+      "category": "search_filter",
+      "kind": "layout"
+    },
+    {
+      "name": "gm_recent",
+      "label": "Recent",
+      "category": "search_filter",
+      "kind": "clock"
+    },
+    {
+      "name": "gm_history",
+      "label": "History",
+      "category": "search_filter",
+      "kind": "history"
+    },
+    {
+      "name": "gm_ai_agent",
+      "label": "AI Agent",
+      "category": "ai_assistants",
+      "kind": "ai_agent"
+    },
+    {
+      "name": "gm_chitragupta",
+      "label": "Chitragupta",
+      "category": "ai_assistants",
+      "kind": "chitragupta"
+    },
+    {
+      "name": "gm_claude",
+      "label": "Claude",
+      "category": "ai_assistants",
+      "kind": "claude"
+    },
+    {
+      "name": "gm_codex",
+      "label": "Codex",
+      "category": "ai_assistants",
+      "kind": "codex"
+    },
+    {
+      "name": "gm_assistant",
+      "label": "Assistant",
+      "category": "ai_assistants",
+      "kind": "assistant"
+    },
+    {
+      "name": "gm_ask",
+      "label": "Ask",
+      "category": "ai_assistants",
+      "kind": "ask"
+    },
+    {
+      "name": "gm_sparkle",
+      "label": "Sparkle",
+      "category": "ai_assistants",
+      "kind": "sparkle"
+    },
+    {
+      "name": "gm_brain",
+      "label": "Brain",
+      "category": "ai_assistants",
+      "kind": "brain"
+    },
+    {
+      "name": "gm_terminal",
+      "label": "Terminal",
+      "category": "ai_assistants",
+      "kind": "terminal"
+    },
+    {
+      "name": "gm_model",
+      "label": "Model",
+      "category": "ai_assistants",
+      "kind": "model"
+    },
+    {
+      "name": "gm_context_packet",
+      "label": "Context Packet",
+      "category": "ai_assistants",
+      "kind": "note"
+    },
+    {
+      "name": "gm_memory_cue",
+      "label": "Memory Cue",
+      "category": "ai_assistants",
+      "kind": "sparkle"
+    },
+    {
+      "name": "gm_second_brain",
+      "label": "Second Brain",
+      "category": "ai_assistants",
+      "kind": "brain"
+    },
+    {
+      "name": "gm_insight",
+      "label": "Insight",
+      "category": "ai_assistants",
+      "kind": "sparkle"
+    },
+    {
+      "name": "gm_grid_view",
+      "label": "Grid View",
+      "category": "views_layout",
+      "kind": "grid_view"
+    },
+    {
+      "name": "gm_list_view",
+      "label": "List View",
+      "category": "views_layout",
+      "kind": "list_view"
+    },
+    {
+      "name": "gm_board_view",
+      "label": "Board View",
+      "category": "views_layout",
+      "kind": "board_view"
+    },
+    {
+      "name": "gm_split_view",
+      "label": "Split View",
+      "category": "views_layout",
+      "kind": "split_view"
+    },
+    {
+      "name": "gm_panel_left",
+      "label": "Panel Left",
+      "category": "views_layout",
+      "kind": "panel_left"
+    },
+    {
+      "name": "gm_panel_right",
+      "label": "Panel Right",
+      "category": "views_layout",
+      "kind": "panel_right"
+    },
+    {
+      "name": "gm_topbar",
+      "label": "Topbar",
+      "category": "views_layout",
+      "kind": "topbar"
+    },
+    {
+      "name": "gm_sidebar",
+      "label": "Sidebar",
+      "category": "views_layout",
+      "kind": "sidebar"
+    },
+    {
+      "name": "gm_fullscreen",
+      "label": "Fullscreen",
+      "category": "views_layout",
+      "kind": "fullscreen"
+    },
+    {
+      "name": "gm_focus_mode",
+      "label": "Focus Mode",
+      "category": "views_layout",
+      "kind": "focus_mode"
+    },
+    {
+      "name": "gm_active",
+      "label": "Active",
+      "category": "status_indicators",
+      "kind": "active"
+    },
+    {
+      "name": "gm_saved",
+      "label": "Saved",
+      "category": "status_indicators",
+      "kind": "saved"
+    },
+    {
+      "name": "gm_unsaved",
+      "label": "Unsaved",
+      "category": "status_indicators",
+      "kind": "unsaved"
+    },
+    {
+      "name": "gm_sync",
+      "label": "Sync",
+      "category": "status_indicators",
+      "kind": "sync"
+    },
+    {
+      "name": "gm_syncing",
+      "label": "Syncing",
+      "category": "status_indicators",
+      "kind": "syncing"
+    },
+    {
+      "name": "gm_error",
+      "label": "Error",
+      "category": "status_indicators",
+      "kind": "error"
+    },
+    {
+      "name": "gm_warning",
+      "label": "Warning",
+      "category": "status_indicators",
+      "kind": "warning"
+    },
+    {
+      "name": "gm_info",
+      "label": "Info",
+      "category": "status_indicators",
+      "kind": "info"
+    },
+    {
+      "name": "gm_success",
+      "label": "Success",
+      "category": "status_indicators",
+      "kind": "success"
+    },
+    {
+      "name": "gm_loading",
+      "label": "Loading",
+      "category": "status_indicators",
+      "kind": "loading"
+    },
+    {
+      "name": "gm_locked",
+      "label": "Locked",
+      "category": "status_indicators",
+      "kind": "lock"
+    },
+    {
+      "name": "gm_starred",
+      "label": "Starred",
+      "category": "status_indicators",
+      "kind": "starred"
+    },
+    {
+      "name": "gm_reviewed",
+      "label": "Reviewed",
+      "category": "status_indicators",
+      "kind": "success"
+    },
+    {
+      "name": "gm_quill",
+      "label": "Quill",
+      "category": "decorative",
+      "kind": "quill"
+    },
+    {
+      "name": "gm_pen_nib",
+      "label": "Pen Nib",
+      "category": "decorative",
+      "kind": "pen_nib"
+    },
+    {
+      "name": "gm_inkwell",
+      "label": "Inkwell",
+      "category": "decorative",
+      "kind": "inkwell"
+    },
+    {
+      "name": "gm_open_book",
+      "label": "Open Book",
+      "category": "decorative",
+      "kind": "open_book"
+    },
+    {
+      "name": "gm_closed_book",
+      "label": "Closed Book",
+      "category": "decorative",
+      "kind": "closed_book"
+    },
+    {
+      "name": "gm_constellation",
+      "label": "Constellation",
+      "category": "decorative",
+      "kind": "constellation"
+    },
+    {
+      "name": "gm_laurel",
+      "label": "Laurel",
+      "category": "decorative",
+      "kind": "laurel"
+    },
+    {
+      "name": "gm_compass",
+      "label": "Compass",
+      "category": "decorative",
+      "kind": "compass"
+    },
+    {
+      "name": "gm_lantern",
+      "label": "Lantern",
+      "category": "decorative",
+      "kind": "lantern"
+    },
+    {
+      "name": "gm_crystal",
+      "label": "Crystal",
+      "category": "decorative",
+      "kind": "crystal"
+    },
+    {
+      "name": "gm_mountain",
+      "label": "Mountain",
+      "category": "decorative",
+      "kind": "mountain"
+    },
+    {
+      "name": "gm_lotus",
+      "label": "Lotus",
+      "category": "decorative",
+      "kind": "lotus"
+    },
+    {
+      "name": "gm_seed",
+      "label": "Seed",
+      "category": "decorative",
+      "kind": "seed"
+    },
+    {
+      "name": "gm_feather",
+      "label": "Feather",
+      "category": "decorative",
+      "kind": "feather"
+    },
+    {
+      "name": "gm_wax_seal",
+      "label": "Wax Seal",
+      "category": "decorative",
+      "kind": "wax_seal"
+    },
+    {
+      "name": "gm_circuit_tree",
+      "label": "Circuit Tree",
+      "category": "decorative",
+      "kind": "circuit_tree"
+    },
+    {
+      "name": "gm_dream_cloud",
+      "label": "Dream Cloud",
+      "category": "decorative",
+      "kind": "dream_cloud"
+    },
+    {
+      "name": "gm_archive_vault",
+      "label": "Archive Vault",
+      "category": "decorative",
+      "kind": "archive_vault"
+    },
+    {
+      "name": "gm_scroll",
+      "label": "Scroll",
+      "category": "decorative",
+      "kind": "scroll"
+    },
+    {
+      "name": "gm_prism",
+      "label": "Prism",
+      "category": "decorative",
+      "kind": "prism"
+    }
+  ],
+  "palette": {
+    "navigation": "#15B8A6",
+    "actions": "#4A90E2",
+    "editor": "#384C60",
+    "note_file": "#F59E0B",
+    "graph_relationships": "#8B5CF6",
+    "vault_security": "#22C55E",
+    "calendar_time": "#F97316",
+    "search_filter": "#06B6D4",
+    "ai_assistants": "#C084FC",
+    "views_layout": "#4A90E2",
+    "status_indicators": "#22C55E",
+    "decorative": "#D99A29"
+  }
+}

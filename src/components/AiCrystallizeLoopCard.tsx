@@ -1,6 +1,6 @@
-import { CheckCircle2, FileClock, ShieldCheck, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
+import { Glyph } from './glyphs/Glyph'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 
@@ -31,11 +31,11 @@ export function AiCrystallizeLoopCard({
   const trail = buildLoopTrail({ activeContextProtected, canCrystallize, hasContext, hasLatestResponse })
 
   return (
-    <section className="border-b border-border px-3 py-2" data-testid="crystallize-loop-card">
-      <div className="rounded-md border border-border bg-muted/30 p-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-foreground">
-            <Sparkles className="size-3.5 shrink-0 text-muted-foreground" />
+    <section className="border-b border-border px-4 py-3" data-testid="crystallize-loop-card">
+      <div className="rounded-xl border border-border bg-muted/30 p-3.5">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
+            <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
             <span>Crystallize Memory</span>
           </div>
           <Button
@@ -49,13 +49,13 @@ export function AiCrystallizeLoopCard({
             {canCrystallize ? 'Review memory' : reviewState}
           </Button>
         </div>
-        <p className="mt-1 text-[10px] leading-snug text-muted-foreground">{status}</p>
-        <ol className="mt-2 grid grid-cols-4 gap-1" aria-label="Crystallize loop" data-testid="crystallize-loop-trail">
+        <p className="mt-2 text-[13px] leading-snug text-muted-foreground">{status}</p>
+        <ol className="mt-3 grid grid-cols-4 gap-2" aria-label="Crystallize loop" data-testid="crystallize-loop-trail">
           {trail.map((step) => (
             <li
               key={step.label}
               className={[
-                'min-w-0 rounded border px-1.5 py-1 text-center text-[9px] leading-tight',
+                'min-w-0 rounded-lg border px-2.5 py-2 text-center text-[12px] leading-tight',
                 step.active
                   ? 'border-primary/30 bg-primary/10 text-foreground'
                   : 'border-border bg-background/50 text-muted-foreground',
@@ -65,39 +65,39 @@ export function AiCrystallizeLoopCard({
             </li>
           ))}
         </ol>
-        <div className="mt-2 flex flex-wrap gap-1">
-          <LoopBadge icon={<FileClock className="size-3" />} label={hasContext ? 'Context ready' : 'No context'} />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <LoopBadge icon={<Glyph name="memoryCue" size={16} />} label={hasContext ? 'Context ready' : 'No context'} />
           <LoopBadge
-            icon={<ShieldCheck className="size-3" />}
+            icon={<Glyph name="shield" size={16} />}
             label={activeContextProtected ? 'Local-only gate' : linkedCount > 0 ? `${linkedCount} linked` : 'Council brief'}
           />
-          <LoopBadge icon={<CheckCircle2 className="size-3" />} label={reviewState} />
+          <LoopBadge icon={<Glyph name="reviewed" size={16} />} label={reviewState} />
         </div>
         {proposalSummary && canCrystallize ? (
           <div
-            className="mt-2 grid gap-1 rounded-md border border-border bg-background/45 px-2 py-1.5 text-[9px] leading-tight text-muted-foreground"
+            className="mt-3 grid gap-2 rounded-xl border border-border bg-background/45 px-3 py-2.5 text-[12px] leading-tight text-muted-foreground"
             data-testid="crystallize-review-packet"
           >
             <div className="font-medium text-foreground">Review packet</div>
-            <div className="flex flex-wrap gap-1">
-              <LoopBadge icon={<FileClock className="size-3" />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
-              <LoopBadge icon={<Sparkles className="size-3" />} label={activeNoteLabel(proposalSummary)} />
-              <LoopBadge icon={<ShieldCheck className="size-3" />} label={writeContractLabel(proposalSummary)} />
-              <LoopBadge icon={<Sparkles className="size-3" />} label={proposalSummary.loopReceipt} />
-              <LoopBadge icon={<ShieldCheck className="size-3" />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
+            <div className="flex flex-wrap gap-2">
+              <LoopBadge icon={<Glyph name="memoryCue" size={16} />} label={reviewCount(proposalSummary.hunkCount, 'hunk')} />
+              <LoopBadge icon={<Glyph name="sparkle" size={16} />} label={activeNoteLabel(proposalSummary)} />
+              <LoopBadge icon={<Glyph name="shield" size={16} />} label={writeContractLabel(proposalSummary)} />
+              <LoopBadge icon={<Glyph name="sparkle" size={16} />} label={proposalSummary.loopReceipt} />
+              <LoopBadge icon={<Glyph name="shield" size={16} />} label={reviewCount(proposalSummary.sourceCount, 'source')} />
               <LoopBadge
-                icon={<CheckCircle2 className="size-3" />}
+                icon={<Glyph name="reviewed" size={16} />}
                 label={reviewCount(proposalSummary.ledgerFieldCount, 'ledger field')}
               />
-              <LoopBadge icon={<FileClock className="size-3" />} label={`review by ${proposalSummary.expiresAt}`} />
+              <LoopBadge icon={<Glyph name="memoryCue" size={16} />} label={`review by ${proposalSummary.expiresAt}`} />
               <LoopBadge
-                icon={<ShieldCheck className="size-3" />}
+                icon={<Glyph name="shield" size={16} />}
                 label={reviewCount(proposalSummary.contradictionCount, 'contradiction')}
               />
               {proposalSummary.taskCount > 0 ? (
-                <LoopBadge icon={<CheckCircle2 className="size-3" />} label={reviewCount(proposalSummary.taskCount, 'task hunk')} />
+                <LoopBadge icon={<Glyph name="reviewed" size={16} />} label={reviewCount(proposalSummary.taskCount, 'task hunk')} />
               ) : null}
-              <LoopBadge icon={<Sparkles className="size-3" />} label={proposalSummary.targetFolder} />
+              <LoopBadge icon={<Glyph name="sparkle" size={16} />} label={proposalSummary.targetFolder} />
             </div>
           </div>
         ) : null}
@@ -125,7 +125,7 @@ function buildLoopTrail({
 
 function LoopBadge({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[9px]">
+    <Badge variant="outline" className="h-7 rounded-md px-2.5 text-[12px]">
       {icon}
       {label}
     </Badge>

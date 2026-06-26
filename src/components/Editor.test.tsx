@@ -255,9 +255,9 @@ describe('Editor', () => {
     const quickOpenHint = formatShortcutDisplay({ display: '⌘P / ⌘O' })
     const newNoteHint = formatShortcutDisplay({ display: '⌘N' })
     const { container } = renderEditor()
-    expect(screen.getByText('Select a note to start editing')).toBeInTheDocument()
-    const shortcutHint = Array.from(container.querySelectorAll('span.text-xs.text-muted-foreground'))
-      .find((element) => element.textContent === `${quickOpenHint} to search · ${newNoteHint} to create`)
+    expect(screen.getByText('Ready to write')).toBeInTheDocument()
+    const shortcutHint = Array.from(container.querySelectorAll('.editor-empty-state__detail'))
+      .find((element) => element.textContent?.includes(`${quickOpenHint} to search`) && element.textContent?.includes(`${newNoteHint} to create`))
 
     expect(shortcutHint).toBeInTheDocument()
   })
