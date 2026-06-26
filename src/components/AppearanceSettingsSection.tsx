@@ -1,5 +1,6 @@
 import { useEffect, type CSSProperties, type ReactNode } from 'react'
-import { Moon, Sun, TextAa } from '@phosphor-icons/react'
+import { TextAa } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { EditorFont, EditorLineHeight, ThemePreset } from '../lib/appearance'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
@@ -74,7 +75,7 @@ export function AppearanceSettingsSection({
       />
 
       <div className="space-y-2">
-        <ControlLabel icon={<Sun size={14} />} label={t('settings.theme.label')} />
+        <ControlLabel icon={<Glyph name="sun" size={14} />} label={t('settings.theme.label')} />
         <ThemeModeControl
           availableModes={availableThemeModes}
           value={resolvedThemeMode}
@@ -171,7 +172,7 @@ function ThemeModeControl({
         value="light"
         onSelect={onChange}
       >
-        <Sun size={14} />
+        <Glyph name="sun" size={14} />
       </ThemeModeButton>
       <ThemeModeButton
         disabled={!availableModes.dark}
@@ -180,7 +181,7 @@ function ThemeModeControl({
         value="dark"
         onSelect={onChange}
       >
-        <Moon size={14} />
+        <Glyph name="moon" size={14} />
       </ThemeModeButton>
     </div>
   )

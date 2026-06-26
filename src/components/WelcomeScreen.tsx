@@ -1,4 +1,5 @@
-import { FolderOpen, Plus, Rocket } from 'lucide-react'
+import { Rocket } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { OnboardingShell } from './OnboardingShell'
 import { Button } from '@/components/ui/button'
 import type { WelcomeScreenProps } from './welcome/WelcomeScreenTypes'
@@ -121,7 +122,7 @@ export function WelcomeScreen({
           />
 
           <WelcomeOptionButton
-            icon={<Plus size={18} style={{ color: 'var(--accent-blue)' }} />}
+            icon={<Glyph name="add" size={18} style={{ color: 'var(--accent-blue)' }} />}
             iconBg="var(--accent-blue-light)"
             label="Create empty notebook"
             description={presentation.emptyVaultDescription}
@@ -135,7 +136,7 @@ export function WelcomeScreen({
           />
 
           <WelcomeOptionButton
-            icon={<FolderOpen size={18} style={{ color: 'var(--accent-green)' }} />}
+            icon={<Glyph name="folder" size={18} style={{ color: 'var(--accent-green)' }} />}
             iconBg="var(--accent-green-light)"
             label={presentation.openFolderLabel}
             description={presentation.openFolderDescription}

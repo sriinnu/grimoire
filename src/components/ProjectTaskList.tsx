@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, ListChecks } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { Button } from '@/components/ui/button'
 import { resolveProjectIssueEntry } from '../project-intelligence/sourceTaskEntries'
 import { canMarkSourceTaskDone, projectIssueKey } from '../project-intelligence/sourceTaskUpdates'
@@ -33,7 +33,7 @@ export function ProjectTaskList({
   return (
     <div className="mt-2 rounded-md border border-border bg-background px-2 py-2" data-testid="project-task-list">
       <div className="mb-1.5 flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-        <ListChecks className="size-3.5" />
+        <Glyph name="task" size={14} />
         <span>{issues.length} project tasks</span>
       </div>
       <div className="grid gap-1">
@@ -56,7 +56,7 @@ export function ProjectTaskList({
                 disabled={!entry}
                 onClick={() => entry && onSelectNote(entry)}
               >
-                <AlertCircle className={`size-3 shrink-0 ${issueTone(issue)}`} />
+                <Glyph name="warning" size={12} className={`shrink-0 ${issueTone(issue)}`} />
                 <span className="min-w-0 flex-1 truncate text-left">{issue.title}</span>
                 <span className="shrink-0 text-muted-foreground">L{issue.sourceLine}</span>
                 <span className="shrink-0 text-muted-foreground">{issue.type}</span>
@@ -73,7 +73,7 @@ export function ProjectTaskList({
                   if (canResolve) void onResolveIssue?.(issue)
                 }}
               >
-                <CheckCircle2 className="size-3.5" />
+                <Glyph name="task" size={14} />
               </Button>
             </div>
           )

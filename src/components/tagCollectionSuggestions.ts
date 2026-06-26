@@ -1,6 +1,11 @@
-import { Hash } from 'lucide-react'
+import type { SVGAttributes } from 'react'
 import type { VaultEntry } from '../types'
 import type { WikilinkSuggestionItem } from './WikilinkSuggestionMenu'
+import { Glyph } from './glyphs/Glyph'
+
+const TagIcon = (props: SVGAttributes<SVGSVGElement>) => (
+  <Glyph name="tag" size={typeof props.width === 'number' ? props.width : undefined} className={props.className} style={props.style} />
+)
 
 const TAG_KEYS = new Set(['tag', 'tags', 'keyword', 'keywords', 'category', 'categories', 'label', 'labels'])
 const BODY_TAG_RE = /(?:^|\s)#([A-Za-z0-9][A-Za-z0-9_/-]*)/g
@@ -78,7 +83,7 @@ export function buildTagCollectionSuggestionItems(
     .map(({ tag, count }) => ({
       title: `#${tag}`,
       noteType: count === 1 ? 'Tag' : `${count} notes`,
-      TypeIcon: Hash,
+      TypeIcon: TagIcon,
       aliases: [tag],
       entryTitle: tag,
       path: tag,
@@ -92,7 +97,7 @@ export function buildTagCollectionSuggestionItems(
     candidates.unshift({
       title: `#${normalizedQuery}`,
       noteType: 'New tag',
-      TypeIcon: Hash,
+      TypeIcon: TagIcon,
       aliases: [normalizedQuery],
       entryTitle: normalizedQuery,
       path: normalizedQuery,

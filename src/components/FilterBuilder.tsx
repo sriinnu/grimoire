@@ -1,4 +1,5 @@
-import { Plus, X, WarningCircle } from '@phosphor-icons/react'
+import { X } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -101,12 +102,13 @@ function TextValueInput({ value, onChange, regexEnabled, regexSupported, invalid
           aria-invalid={invalidRegex || undefined}
         />
         {invalidRegex && (
-          <WarningCircle
-            size={14}
-            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-destructive"
-            data-testid="filter-regex-invalid"
-            aria-hidden="true"
-          />
+          <span data-testid="filter-regex-invalid">
+            <Glyph
+              name="warning"
+              size={14}
+              className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-destructive"
+            />
+          </span>
         )}
       </div>
       {regexSupported && (
@@ -266,10 +268,10 @@ function FilterGroupView({ group, fields, depth, onChange, onRemove }: {
       </div>
       <div className="flex gap-2 mt-2">
         <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={addCondition}>
-          <Plus size={12} className="mr-1" /> Add filter
+          <Glyph name="add" size={12} className="mr-1" /> Add filter
         </Button>
         <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={addGroup}>
-          <Plus size={12} className="mr-1" /> Add group
+          <Glyph name="add" size={12} className="mr-1" /> Add group
         </Button>
       </div>
     </div>

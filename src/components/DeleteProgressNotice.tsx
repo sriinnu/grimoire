@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { cn } from '@/lib/utils'
 
 interface DeleteProgressNoticeProps {
@@ -24,7 +24,7 @@ export const DeleteProgressNotice = memo(function DeleteProgressNotice({
       )}
       data-testid="delete-progress-notice"
     >
-      <Loader2 size={14} className="animate-spin text-muted-foreground" />
+      <Glyph name="loading" size={14} className="animate-spin text-muted-foreground" />
       <span>{`Deleting ${describeNotes(count)}...`}</span>
     </div>
   )
