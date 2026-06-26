@@ -77,9 +77,13 @@
   animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-expressive) both;
 }
 
-.grimoire-settings-stage,
 .grimoire-inspector-stage {
   animation: grimoire-panel-reveal var(--motion-duration-panel) var(--motion-ease-standard) both;
+}
+
+/* Settings stage only fades in — centering transform must not be clobbered by animation fill */
+.grimoire-settings-stage {
+  animation: grimoire-settings-arrive var(--motion-duration-panel) var(--motion-ease-standard) both;
 }
 
 .grimoire-page-arrive {
@@ -153,6 +157,16 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes grimoire-settings-arrive {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }
 
