@@ -1,10 +1,11 @@
 import { createElement } from 'react'
+import type { SVGAttributes } from 'react'
 import type { VaultEntry } from '../types'
 import type { WikilinkSuggestionItem } from './WikilinkSuggestionMenu'
 import { Glyph } from './glyphs/Glyph'
 
-function TagIcon(props: Record<string, unknown>) {
-  return createElement(Glyph, { name: 'tag', ...props })
+function TagIcon(props: SVGAttributes<SVGSVGElement>) {
+  return createElement(Glyph, { name: 'tag' as const, size: typeof props.width === 'number' ? props.width : undefined, className: props.className, style: props.style })
 }
 TagIcon.displayName = 'TagIcon(glyph-tag)'
 
