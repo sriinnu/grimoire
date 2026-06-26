@@ -1,4 +1,4 @@
-import { DownloadSimple } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
 import { Button } from './ui/button'
@@ -64,7 +64,7 @@ export function PortabilityImportButton({
 }: PortabilityImportButtonProps) {
   return (
     <PortabilityActionButton
-      icon={<DownloadSimple size={14} />}
+      icon={<Glyph name="download" size={14} />}
       label={label}
       testId={testId}
       busy={busy}

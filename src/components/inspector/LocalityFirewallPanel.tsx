@@ -1,4 +1,4 @@
-import { Bot, CloudOff, GitBranch, ShieldAlert } from 'lucide-react'
+import { CloudOff, ShieldAlert } from 'lucide-react'
 import { Glyph } from '@/components/glyphs/Glyph'
 import type { ReactNode } from 'react'
 import type { VaultEntry } from '../../types'
@@ -71,7 +71,7 @@ function FirewallLaneRow({ lane }: { lane: LocalityEgressLane }) {
 }
 
 function laneIcon(id: LocalityEgressLane['id']): ReactNode {
-  if (id === 'agents') return <Bot className="size-3" />
+  if (id === 'agents') return <Glyph name="aiAgent" size={12} />
   if (id === 'export-sync') return <CloudOff className="size-3" />
-  return <GitBranch className="size-3" />
+  return <Glyph name="gitHistory" size={12} />
 }

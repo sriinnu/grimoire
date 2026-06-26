@@ -1,4 +1,3 @@
-import { AlertTriangle, Link2, Tags } from 'lucide-react'
 import { Glyph } from '@/components/glyphs/Glyph'
 import { useMemo, type ReactNode } from 'react'
 import type { VaultEntry } from '../../types'
@@ -152,9 +151,9 @@ function sourceLabel(source: LivingFrontmatterHintSource): string {
 }
 
 function iconForHint(hint: LivingFrontmatterHint): ReactNode {
-  if (hint.kind === 'relationship-hint') return <Link2 className="size-3" />
-  if (hint.kind === 'duplicate-concept') return <Tags className="size-3" />
-  if (hint.severity === 'warn') return <AlertTriangle className="size-3" />
+  if (hint.kind === 'relationship-hint') return <Glyph name="link" size={12} />
+  if (hint.kind === 'duplicate-concept') return <Glyph name="tag" size={12} />
+  if (hint.severity === 'warn') return <Glyph name="warning" size={12} />
   return <Glyph name="insight" size={12} className="size-3" />
 }
 

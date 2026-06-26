@@ -1,4 +1,4 @@
-import { Plus } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { useMemo, useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { VaultEntry } from '../types'
@@ -88,7 +88,7 @@ function AddPropertyButton({ onClick, disabled }: { onClick: () => void; disable
           className={PROPERTY_PANEL_LABEL_ICON_SLOT_CLASS_NAME}
           data-testid="add-property-icon-slot"
         >
-          <Plus className="size-3.5" aria-hidden="true" />
+          <Glyph name="add" size={14} aria-hidden="true" />
         </span>
         <span className="min-w-0 truncate">Add property</span>
       </span>

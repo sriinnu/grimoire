@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Clock, GitBranch, UserRound } from 'lucide-react'
+import { UserRound } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
@@ -99,13 +100,13 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
       ) : null}
       {visibleFields.has('modified') && modified ? (
         <span className="editor-meta-pill editor-meta-pill--icon" data-field="modified">
-          <Clock className="size-3.5" />
+          <Glyph name="clock" size={14} />
           <strong className="editor-meta-pill__value">{modified}</strong>
         </span>
       ) : null}
       {visibleFields.has('locality') ? (
         <span className="editor-meta-pill editor-meta-pill--icon editor-meta-pill--source" data-field="locality">
-          <GitBranch className="size-3.5" />
+          <Glyph name="gitHistory" size={14} />
           <strong className="editor-meta-pill__value">local markdown</strong>
         </span>
       ) : null}

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { Link2, ListTree, Search } from 'lucide-react'
+import { ListTree } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { Button } from './ui/button'
 import { Popover, PopoverAnchor, PopoverContent } from './ui/popover'
 import { cn } from '../lib/utils'
@@ -135,7 +136,7 @@ export function EditorNavigatorControls({
             aria-label="Search this note"
             onClick={() => openNavigator('search')}
           >
-            <Search className="size-4" />
+            <Glyph name="search" size={16} />
             {variant === 'meta' ? <span>Find</span> : null}
           </Button>
           <Button
@@ -164,7 +165,7 @@ export function EditorNavigatorControls({
             aria-label={`Note links in this note, ${countLabel(summary.linkCount, 'link')}`}
             onClick={() => openNavigator('links')}
           >
-            <Link2 className="size-4" />
+            <Glyph name="link" size={16} />
             {variant === 'meta' ? <span>Links</span> : null}
             {variant === 'meta' ? (
               <span className="editor-navigator-controls__count" data-empty={summary.linkCount === 0 ? 'true' : 'false'}>

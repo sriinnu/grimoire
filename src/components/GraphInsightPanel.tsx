@@ -1,6 +1,7 @@
-import { Bot, BrainCircuit, Code2, GitBranch, Network, Search, Sparkles } from 'lucide-react'
+import { BrainCircuit, Network } from 'lucide-react'
 import type React from 'react'
 import { useMemo } from 'react'
+import { Glyph } from './glyphs/Glyph'
 import { cn } from '@/lib/utils'
 import {
   GRAPH_AGENT_LANES,
@@ -123,11 +124,11 @@ export function GraphInsightPanel({
 }
 
 const GRAPH_AGENT_ICONS: Record<GraphAgentLane['id'], React.ReactNode> = {
-  claude_code: <Bot className="size-3.5" />,
+  claude_code: <Glyph name="aiAgent" size={14} />,
   chitragupta: <BrainCircuit className="size-3.5" />,
-  codex: <Code2 className="size-3.5" />,
+  codex: <Glyph name="code" size={14} />,
   graph: <Network className="size-3.5" />,
-  search: <Search className="size-3.5" />,
+  search: <Glyph name="search" size={14} />,
 }
 
 function GraphAgentCouncilPanel({
@@ -154,7 +155,7 @@ function GraphAgentCouncilPanel({
   return (
     <section className="graph-agent-surface rounded-md border border-border p-3" data-testid="graph-agent-council">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        <Sparkles className="size-3.5" />
+        <Glyph name="sparkle" size={14} />
         Council lanes
       </div>
       <div className="mt-3 space-y-1.5">
@@ -223,7 +224,7 @@ function SelectedNodePanel({
   return (
     <section className="rounded-md border border-border bg-background/80 p-3" data-testid="graph-selected-node">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        <GitBranch className="size-3.5" />
+        <Glyph name="gitHistory" size={14} />
         Selected node
       </div>
       <div className="graph-surface-inner mt-3 rounded-md border border-border bg-muted/35 px-2.5 py-2">
