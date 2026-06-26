@@ -234,7 +234,8 @@ function SettingsPanelInner({
       <DialogContent
         ref={panelRef}
         showCloseButton={false}
-        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] max-w-none flex-col gap-0 overflow-hidden rounded-lg border p-0 sm:max-w-none top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] max-w-none flex-col gap-0 overflow-hidden rounded-lg border p-0 sm:max-w-none"
+        style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
         onKeyDown={handleKeyDown}
         data-testid="settings-panel"
       >
