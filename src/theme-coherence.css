@@ -104,6 +104,11 @@
   border-radius: var(--grimoire-shell-radius);
   box-shadow: var(--grimoire-dialog-shadow);
   color: var(--text-primary);
+  /* Force center regardless of twMerge/Radix animation transforms */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
 }
 
 :is([data-theme-preset]) .grimoire-dialog-overlay {
