@@ -234,7 +234,7 @@ function SettingsPanelInner({
       <DialogContent
         ref={panelRef}
         showCloseButton={false}
-        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] max-w-none flex-col gap-0 overflow-hidden rounded-lg border p-0 sm:max-w-none"
+        className="settings-panel-shell grimoire-settings-stage flex max-h-[86vh] w-[min(940px,calc(100vw-32px))] max-w-none flex-col gap-0 overflow-hidden rounded-lg border p-0 sm:max-w-none [animation:none] data-[state=open]:[animation:none]"
         onKeyDown={handleKeyDown}
         data-testid="settings-panel"
       >
