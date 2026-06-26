@@ -1,4 +1,5 @@
-import { GitBranch, Monitor, ShieldCheck } from '@phosphor-icons/react'
+import { Monitor } from '@phosphor-icons/react'
+import { Glyph } from '../glyphs/Glyph'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
 import { desktopPlatformLabel, getDesktopPlatform, type DesktopPlatform } from '../../utils/platform'
 import { LabeledNumberInput, LabeledSelect, SectionHeading, SettingsSwitchRow } from './SettingsControls'
@@ -226,7 +227,7 @@ export function SyncAndGitSettingsSection({
       >
         <div className="flex gap-3">
           <div className="settings-local-card__icon mt-0.5 rounded-md border p-2">
-            {isGitVault ? <GitBranch size={17} /> : <ShieldCheck size={17} />}
+            {isGitVault ? <Glyph name="gitHistory" size={17} /> : <Glyph name="shield" size={17} />}
           </div>
           <div className="space-y-1">
             <div className="text-[13px] font-semibold text-foreground">{t('settings.git.title')}</div>

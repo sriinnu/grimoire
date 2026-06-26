@@ -1,4 +1,5 @@
-import { AlertTriangle, FileCheck2, ListChecks, ShieldCheck, Swords } from 'lucide-react'
+import { FileCheck2, Swords } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import type { RedTeamPlanReview, RedTeamSeverity } from '../lib/redTeamPlan'
@@ -42,15 +43,15 @@ export function RedTeamPlanCard({ review, onReviewPlan }: RedTeamPlanCardProps) 
         ) : null}
         <div className="mt-3 flex flex-wrap gap-2">
           <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[12px]">
-            <ListChecks className="size-4" />
+            <Glyph name="task" size={16} />
             {review.counts.openTasks} open
           </Badge>
           <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[12px]">
-            <ShieldCheck className="size-4" />
+            <Glyph name="shield" size={16} />
             {review.protectedContext ? 'Protected' : 'Source-safe'}
           </Badge>
           <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[12px]">
-            <AlertTriangle className="size-4" />
+            <Glyph name="warning" size={16} />
             {riskCount} risks
           </Badge>
         </div>

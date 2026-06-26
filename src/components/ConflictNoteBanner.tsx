@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 
 interface ConflictNoteBannerProps {
   onKeepMine: () => void
@@ -21,7 +21,7 @@ export function ConflictNoteBanner({ onKeepMine, onKeepTheirs }: ConflictNoteBan
         flexShrink: 0,
       }}
     >
-      <AlertTriangle size={13} />
+      <Glyph name="warning" size={13} />
       <span>This note has a merge conflict</span>
       <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
         <button

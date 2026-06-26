@@ -1,4 +1,4 @@
-import { Archive, Cloud, DownloadSimple, FolderOpen, UploadSimple } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { ReactNode } from 'react'
 import { hasReviewedImportPreview, importRequiresReview } from '../lib/importReviewGate'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
@@ -20,37 +20,37 @@ export function buildPortabilityActionLanes(t: PortabilityActionDeckTranslate): 
       id: 'markdown',
       label: t('settings.portability.actionLaneMarkdown'),
       description: t('settings.portability.actionLaneMarkdownDescription'),
-      icon: <FolderOpen size={14} />,
+      icon: <Glyph name="folder" size={14} />,
     },
     {
       id: 'apps',
       label: t('settings.portability.actionLaneApps'),
       description: t('settings.portability.actionLaneAppsDescription'),
-      icon: <DownloadSimple size={14} />,
+      icon: <Glyph name="download" size={14} />,
     },
     {
       id: 'journals',
       label: t('settings.portability.actionLaneJournals'),
       description: t('settings.portability.actionLaneJournalsDescription'),
-      icon: <DownloadSimple size={14} />,
+      icon: <Glyph name="download" size={14} />,
     },
     {
       id: 'capsules',
       label: t('settings.portability.actionLaneCapsules'),
       description: t('settings.portability.actionLaneCapsulesDescription'),
-      icon: <Archive size={14} />,
+      icon: <Glyph name="archive" size={14} />,
     },
     {
       id: 'export',
       label: t('settings.portability.actionLaneExport'),
       description: t('settings.portability.actionLaneExportDescription'),
-      icon: <UploadSimple size={14} />,
+      icon: <Glyph name="upload" size={14} />,
     },
     {
       id: 'storage',
       label: t('settings.portability.actionLaneStorage'),
       description: t('settings.portability.actionLaneStorageDescription'),
-      icon: <Cloud size={14} />,
+      icon: <Glyph name="cloudVault" size={14} />,
     },
   ]
 }

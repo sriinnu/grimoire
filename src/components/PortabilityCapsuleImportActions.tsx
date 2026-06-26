@@ -1,4 +1,4 @@
-import { Archive } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { hasReviewedImportPreview, importRequiresReview } from '../lib/importReviewGate'
 import type { ImportAutopsyPreviewState } from '../lib/vaultPortability'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
@@ -85,7 +85,7 @@ interface CapsuleButtonProps {
 function CapsuleButton({ label, testId, actionId, busyAction, importPreview, vaultReady, onClick, t }: CapsuleButtonProps) {
   return (
     <PortabilityActionButton
-      icon={<Archive size={14} />}
+      icon={<Glyph name="archive" size={14} />}
       label={label}
       testId={testId}
       busy={busyAction === actionId}

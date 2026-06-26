@@ -1,4 +1,5 @@
-import { Cloud, Database, FileText, LockKey } from '@phosphor-icons/react'
+import { Database, LockKey } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
 
@@ -18,7 +19,7 @@ interface PortabilityLocalContractProps {
 export function PortabilityLocalContract({ t }: PortabilityLocalContractProps) {
   const items: ContractItem[] = [
     {
-      icon: <FileText size={15} />,
+      icon: <Glyph name="file" size={15} />,
       id: 'markdown',
       label: t('settings.portability.localContractMarkdown'),
     },
@@ -28,7 +29,7 @@ export function PortabilityLocalContract({ t }: PortabilityLocalContractProps) {
       label: t('settings.portability.localContractPrivate'),
     },
     {
-      icon: <Cloud size={15} />,
+      icon: <Glyph name="cloudVault" size={15} />,
       id: 'desktop',
       label: t('settings.portability.localContractDesktop'),
     },

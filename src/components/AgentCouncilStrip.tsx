@@ -1,4 +1,4 @@
-import { Brain, Search, ShieldCheck, Sparkles } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { type CSSProperties, useMemo, useState } from 'react'
 import {
   buildAgentCouncilBrief,
@@ -88,11 +88,11 @@ export function AgentCouncilStrip({
     <section className="grimoire-agent-council border-b border-border px-4 py-3" data-testid="agent-council">
       <div className="mb-2 flex items-center justify-between gap-2.5">
         <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
-          <Sparkles className="size-4 shrink-0 text-muted-foreground" />
+          <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
           <span>Agent Council</span>
         </div>
         <Badge variant="outline" className="h-7 rounded-xl px-2.5 text-[13px]">
-          <ShieldCheck className="size-4" />
+          <Glyph name="shield" size={16} />
           {activeContextProtected ? 'Protected context' : 'Source-safe'}
         </Badge>
       </div>
@@ -124,7 +124,7 @@ export function AgentCouncilStrip({
               <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
                 {member.label}
               </span>
-              {member.active ? <Brain className="size-4 shrink-0 text-muted-foreground" /> : null}
+              {member.active ? <Glyph name="brain" size={16} className="shrink-0 text-muted-foreground" /> : null}
             </div>
             <div className="mt-2 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
               {member.stance}
@@ -149,7 +149,7 @@ export function AgentCouncilStrip({
               ))}
             </div>
             <div className="mt-2 flex items-center gap-2 text-[13px] text-muted-foreground">
-              <Search className="size-4 shrink-0" />
+              <Glyph name="search" size={16} className="shrink-0" />
               <span className="truncate">{member.permission}</span>
             </div>
           </div>
@@ -160,7 +160,7 @@ export function AgentCouncilStrip({
         data-testid="agent-council-brief"
       >
         <div className="flex items-center gap-2 text-[13px] font-medium text-foreground">
-          <Sparkles className="size-4 text-muted-foreground" />
+          <Glyph name="sparkle" size={16} className="text-muted-foreground" />
           <span>Synthesis</span>
         </div>
         <p className="mt-1 line-clamp-2 text-[13px] leading-snug text-muted-foreground">{brief.synthesis}</p>
@@ -206,7 +206,7 @@ function CouncilOneAnswer({ oneAnswer }: { oneAnswer: AgentCouncilOneAnswer }) {
     >
       <div className="flex items-center justify-between gap-2.5">
         <div className="flex min-w-0 items-center gap-2 text-[13px] font-semibold text-[var(--grimoire-signal-text)]">
-          <Sparkles className="size-4 shrink-0" />
+          <Glyph name="sparkle" size={16} className="shrink-0" />
           <span className="truncate">{oneAnswer.title}</span>
         </div>
         <Badge variant="outline" className="shrink-0 rounded-lg px-2 text-[12px]">
@@ -280,7 +280,7 @@ function CouncilPassBrief({
     >
       <div className="flex items-center justify-between gap-2.5">
         <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
-          <Sparkles className="size-4 shrink-0 text-muted-foreground" />
+          <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
           <span className="truncate">{brief.title}</span>
         </div>
         <Button

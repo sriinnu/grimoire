@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GitBranch } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { OnboardingShell } from './OnboardingShell'
 
 interface GitRequiredModalProps {
@@ -29,7 +29,7 @@ export function GitRequiredModal({ onCreateRepo, onChooseVault }: GitRequiredMod
       testId="git-required-shell"
     >
       <div className="flex flex-col items-center gap-5 rounded-xl border border-border bg-background p-8 shadow-lg">
-        <GitBranch size={36} className="text-muted-foreground" />
+        <Glyph name="gitHistory" size={36} className="text-muted-foreground" />
         <h2 className="m-0 text-lg font-semibold text-foreground">Git repository required</h2>
         <p className="m-0 text-center text-[13px] leading-relaxed text-muted-foreground">
           Grimoire uses a git repository to track changes, detect moved files, and keep your vault safe.

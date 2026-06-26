@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { ArrowsClockwise, DownloadSimple, FileCode, Trash, UploadSimple } from '@phosphor-icons/react'
+import { Trash } from '@phosphor-icons/react'
 import type { ThemePreset } from '../lib/appearance'
+import { Glyph } from './glyphs/Glyph'
 import {
   parseThemeDefinitionJson,
   resolveThemePresetDefinition,
@@ -185,7 +186,7 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-            <FileCode size={14} />
+            <Glyph name="code" size={14} />
             {t('settings.themePack.title')}
           </div>
           <div className="mt-1 text-[11px] leading-5 text-muted-foreground" data-testid="theme-pack-message">
@@ -201,11 +202,11 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
 
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={handleLoadClick} data-testid="theme-pack-load">
-          <UploadSimple size={14} />
+          <Glyph name="upload" size={14} />
           {t('settings.themePack.loadJson')}
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={handleExport} data-testid="theme-pack-export">
-          <DownloadSimple size={14} />
+          <Glyph name="download" size={14} />
           {t('settings.themePack.exportJson')}
         </Button>
         {showDevReload ? (
@@ -217,7 +218,7 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
             onClick={() => { void handleReloadLocalJson() }}
             data-testid="theme-pack-reload-local"
           >
-            <ArrowsClockwise size={14} />
+            <Glyph name="repeat" size={14} />
             {refreshing ? t('settings.themePack.reloading') : t('settings.themePack.reloadLocal')}
           </Button>
         ) : null}

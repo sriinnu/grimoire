@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import {
   Dialog,
   DialogContent,
@@ -107,7 +107,7 @@ function CrystallizeReviewBody({
     <div className={cn('flex min-h-0 flex-1 flex-col gap-4', showAcceptMoment && 'grimoire-crystallize-accept')}>
       <DialogHeader className="shrink-0">
         <DialogTitle className="flex items-center gap-2">
-          <Sparkles className="size-4" />
+          <Glyph name="sparkle" size={16} />
           Crystallize
         </DialogTitle>
         <DialogDescription>
@@ -215,7 +215,7 @@ function CrystallizeReviewBody({
           disabled={!canApply}
           data-testid="crystallize-apply"
         >
-          <Sparkles className="size-4" />
+          <Glyph name="sparkle" size={16} />
           {showAcceptMoment ? 'Writing...' : activeNoteTarget ? 'Apply Crystallize' : 'Create Memory Note'}
         </Button>
       </DialogFooter>
