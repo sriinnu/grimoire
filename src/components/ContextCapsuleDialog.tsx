@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ClipboardCheck, Copy, PackageCheck, ShieldCheck } from 'lucide-react'
+import { ClipboardCheck, Copy, PackageCheck, Pin, RefreshCw, ShieldCheck, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,12 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import type { ContextCapsulePackagePreview } from '../lib/contextCapsule'
+import type {
+  ContextCapsuleNote,
+  ContextCapsulePackagePreview,
+  ContextCapsulePreview,
+} from '../lib/contextCapsule'
+import { buildContextManifestFromCapsule, contextCapsuleSourceId } from '../lib/contextManifest'
 import type { AiAgentId } from '../lib/aiAgents'
 import { AgentRouteDisclosure } from './AgentRouteDisclosure'
 import { AgentPreflightGate } from './AgentPreflightGate'
@@ -22,6 +27,7 @@ interface ContextCapsuleDialogProps {
   defaultAiProvider?: string | null
   open: boolean
   packagePreview: ContextCapsulePackagePreview
+  preview: ContextCapsulePreview
   onClose: () => void
 }
 
@@ -33,6 +39,13 @@ interface CopyStateSnapshot {
   state: CopyState
 }
 
+interface ManifestReviewSnapshot {
+  createdAt: string
+  excludedSourceIds: string[]
+  pinnedSourceIds: string[]
+  revision: number
+}
+
 /** Read-only review dialog for a local context capsule package. */
 export function ContextCapsuleDialog({
   defaultAiAgent,
@@ -40,6 +53,7 @@ export function ContextCapsuleDialog({
   defaultAiProvider,
   open,
   packagePreview,
+  preview,
   onClose,
 }: ContextCapsuleDialogProps) {
   const [copySnapshot, setCopySnapshot] = useState<CopyStateSnapshot>(() => ({
@@ -51,6 +65,56 @@ export function ContextCapsuleDialog({
     copySnapshot.markdown === packagePreview.markdown && copySnapshot.open === open ? copySnapshot.state : 'idle'
   const setCurrentCopyState = (state: CopyState) => {
     setCopySnapshot({ markdown: packagePreview.markdown, open, state })
+  }
+  const [storedManifestReview, setStoredManifestReview] = useState<ManifestReviewSnapshot>(() => (
+    newManifestReview()
+  ))
+  const manifestReview = storedManifestReview
+  const manifest = buildContextManifestFromCapsule({
+    preview,
+    manifestId: `${packagePreview.reviewReceipt}:context:${manifestReview.revision}`,
+    requestId: `context-review:${packagePreview.reviewReceipt}`,
+    createdAt: manifestReview.createdAt,
+    pinnedSourceIds: new Set(manifestReview.pinnedSourceIds),
+    excludedSourceIds: new Set(manifestReview.excludedSourceIds),
+  })
+
+  function updateManifestReview(update: (current: ManifestReviewSnapshot) => ManifestReviewSnapshot) {
+    setStoredManifestReview(update)
+  }
+
+  function togglePinned(sourceId: string) {
+    updateManifestReview((current) => {
+      const pinned = new Set(current.pinnedSourceIds)
+      const excluded = new Set(current.excludedSourceIds)
+      if (pinned.has(sourceId)) pinned.delete(sourceId)
+      else {
+        pinned.add(sourceId)
+        excluded.delete(sourceId)
+      }
+      return { ...current, pinnedSourceIds: [...pinned], excludedSourceIds: [...excluded] }
+    })
+  }
+
+  function toggleExcluded(sourceId: string) {
+    updateManifestReview((current) => {
+      const excluded = new Set(current.excludedSourceIds)
+      const pinned = new Set(current.pinnedSourceIds)
+      if (excluded.has(sourceId)) excluded.delete(sourceId)
+      else {
+        excluded.add(sourceId)
+        pinned.delete(sourceId)
+      }
+      return { ...current, excludedSourceIds: [...excluded], pinnedSourceIds: [...pinned] }
+    })
+  }
+
+  function rebuildManifest() {
+    updateManifestReview((current) => ({
+      ...current,
+      createdAt: new Date().toISOString(),
+      revision: current.revision + 1,
+    }))
   }
 
   async function copyMarkdownPackage() {
@@ -132,17 +196,53 @@ export function ContextCapsuleDialog({
             />
             <ManifestMetric
               label="Sources"
-              value={String(packagePreview.preflight.sourceCount)}
+              value={String(manifest.recalled.length + manifest.code.length + manifest.pinned.length)}
             />
             <ManifestMetric
-              label="Held"
-              value={String(packagePreview.preflight.heldLocalCount)}
+              label="Pinned"
+              value={String(manifest.pinned.length)}
             />
             <ManifestMetric
-              label="Trimmed"
-              value={String(packagePreview.preflight.trimmedCount)}
+              label="Excluded"
+              value={String(manifest.excluded.length)}
             />
           </div>
+
+          {preview.includedNotes.length > 0 ? (
+            <div className="grid gap-1.5" data-testid="context-manifest-sources">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-foreground">Context sources</span>
+                <Button type="button" size="sm" variant="ghost" onClick={rebuildManifest}>
+                  <RefreshCw className="size-3.5" />
+                  Rebuild
+                </Button>
+              </div>
+              <div className="grid max-h-36 gap-1 overflow-auto rounded-md border border-border p-1">
+                {preview.includedNotes.map((note) => (
+                  <ManifestSourceRow
+                    key={contextCapsuleSourceId(note)}
+                    excluded={manifestReview.excludedSourceIds.includes(contextCapsuleSourceId(note))}
+                    note={note}
+                    pinned={manifestReview.pinnedSourceIds.includes(contextCapsuleSourceId(note))}
+                    onToggleExcluded={toggleExcluded}
+                    onTogglePinned={togglePinned}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <details className="min-h-0 overflow-auto rounded-md border border-border px-2 py-1.5">
+            <summary className="cursor-pointer text-xs font-medium text-foreground">
+              Structured Context Manifest
+            </summary>
+            <pre
+              className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap break-all text-[10px] text-muted-foreground"
+              data-testid="context-manifest-json"
+            >
+              {JSON.stringify(manifest, null, 2)}
+            </pre>
+          </details>
 
           <Textarea
             readOnly
@@ -179,6 +279,59 @@ export function ContextCapsuleDialog({
       </DialogContent>
     </Dialog>
   )
+}
+
+function ManifestSourceRow({
+  excluded,
+  note,
+  pinned,
+  onToggleExcluded,
+  onTogglePinned,
+}: {
+  excluded: boolean
+  note: ContextCapsuleNote
+  pinned: boolean
+  onToggleExcluded: (sourceId: string) => void
+  onTogglePinned: (sourceId: string) => void
+}) {
+  const sourceId = contextCapsuleSourceId(note)
+  return (
+    <div className="flex min-w-0 items-center gap-2 rounded-sm px-2 py-1 hover:bg-muted/50">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-xs text-foreground">{note.title}</div>
+        <div className="truncate text-[10px] text-muted-foreground">{note.kind} · {note.path}</div>
+      </div>
+      <Button
+        type="button"
+        size="icon-sm"
+        variant={pinned ? 'secondary' : 'ghost'}
+        aria-label={`${pinned ? 'Unpin' : 'Pin'} ${note.title}`}
+        aria-pressed={pinned}
+        onClick={() => onTogglePinned(sourceId)}
+      >
+        <Pin className="size-3.5" />
+      </Button>
+      <Button
+        type="button"
+        size="icon-sm"
+        variant={excluded ? 'destructive' : 'ghost'}
+        aria-label={`${excluded ? 'Include' : 'Exclude'} ${note.title}`}
+        aria-pressed={excluded}
+        onClick={() => onToggleExcluded(sourceId)}
+      >
+        <X className="size-3.5" />
+      </Button>
+    </div>
+  )
+}
+
+function newManifestReview(): ManifestReviewSnapshot {
+  return {
+    createdAt: new Date().toISOString(),
+    excludedSourceIds: [],
+    pinnedSourceIds: [],
+    revision: 1,
+  }
 }
 
 function copyButtonLabel(state: CopyState): string {

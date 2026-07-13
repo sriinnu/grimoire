@@ -112,6 +112,20 @@ jobs:
         timeout-minutes: 10
         run: pnpm test:markdown-editor:swift
 
+      - name: Product Contract Parity JS
+        timeout-minutes: 10
+        run: pnpm test:product-contracts:js
+
+      - name: Product Contract Parity Swift
+        if: runner.os == 'macOS'
+        timeout-minutes: 10
+        run: pnpm test:product-contracts:swift
+
+      - name: Native Apple Shell Build
+        if: runner.os == 'macOS'
+        timeout-minutes: 15
+        run: pnpm test:native-apple-build
+
       - name: Install Playwright Browsers
         if: runner.os == 'macOS'
         timeout-minutes: 10

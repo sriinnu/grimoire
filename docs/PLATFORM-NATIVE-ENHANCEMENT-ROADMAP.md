@@ -1,13 +1,13 @@
 # Platform-Native Enhancement Roadmap
 
-This roadmap keeps the product direction clear: Grimoire should have Bear-grade markdown writing, Mem-grade capture and recall, Obsidian-grade graph/wiki workflows, and a Tauri-first editor product with native support only where the platform truly matters.
+This roadmap keeps the product direction clear: Grimoire should have Bear-grade markdown writing, Mem-grade capture and recall, Obsidian-grade graph/wiki workflows, and native Apple clients over a reusable product kernel without abandoning the proven Tauri app before parity.
 
 ## Current / Prototype / Target
 
 | Area | Shipping today | Prototype now | Target |
 |---|---|---|---|
-| Main app | Tauri + React + Rust | Shared markdown adapter and reusable editor package | One excellent editor across desktop targets, with mobile feasibility through Tauri first |
-| Apple support | Tauri macOS build | Swift package plus SwiftUI/WebKit host prototypes | Native Apple integrations only where they beat Tauri clearly |
+| Main app | Tauri + React + Rust | Shared product contracts and reusable editor packages | Platform clients over one UI-neutral Rust kernel |
+| Apple support | Tauri macOS build | Swift package plus SwiftUI/WebKit host prototype | Native SwiftUI/AppKit macOS client after explicit feature parity |
 | Markdown core | Tauri utilities + Swift package | CLI bridge and fixtures | Shared semantic contract with parity gates |
 | Slash commands | `@grimoire/markdown-editor` package: BlockNote defaults plus Grimoire dates, note mentions, collections/tags, tasks, wikilinks, tables, callouts, math, Mermaid, calendars, templates, knowledge graph, wiki, cleanup, summary, action, and related-context commands | Contract in `MARKDOWN-SEMANTICS-CONTRACT.md` | Package-first command brain with interactive date/table controls and AI-backed transforms |
 | Memory UX | Search, backlinks, graph, agents | Roadmap | Fast capture, related context, deep recall, cleanup, and chat over notes |
@@ -52,15 +52,15 @@ Goal: the editor becomes a memory surface, not only a text box.
 
 Mem references worth matching in spirit: voice mode, cleanup, chat, Heads Up related context, Deep Search, collections, templates, and instant capture. See Mem's official help center.
 
-## Phase 4: Native Support Without Splitting The Product
+## Phase 4: Native Apple Client Without Splitting Product Truth
 
 Goal: keep one serious editor product while using native code for the few places where it actually matters.
 
-- Tauri + React: primary editor, graph/wiki, slash command, memory, AI, and settings surfaces.
-- Rust: filesystem, Git, search/cache, packaging, and secure command boundary.
-- SwiftUI/AppKit/UIKit/WebKit: share sheets, QuickLook, document providers, widgets, Shortcuts, App Store packaging, and targeted native editor experiments.
+- Tauri + React: Windows/Linux client and shipping macOS fallback until parity.
+- Rust product kernel: filesystem, Git, search/cache, context/events, privacy, recovery, and secure service boundaries.
+- SwiftUI/AppKit/UIKit/WebKit: native Apple shell, forms, inspectors, window behavior, platform integrations, and focused rich-editor hosting during migration.
 - Shared: markdown fixtures, vault model, command concepts, AI write-audit rules, and packaging identity.
-- Not duplicated: the full editor roadmap unless a named WebView/native text limitation forces it.
+- Not duplicated: vault, Git, privacy, context, event, and persistence behavior.
 
 ## Definition Of Done
 

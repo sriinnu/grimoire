@@ -145,6 +145,40 @@ else
   echo "⏭️  MarkdownEditor parity — skipped (no editor semantics changes)"
 fi
 
+# 3b. Shared product contracts must agree across Rust, TypeScript, and Swift.
+PRODUCT_CONTRACTS_CHANGED=true
+if [ -n "$PUSH_TARGET" ]; then
+  if ! echo "$CHANGED" | grep -qE '^(contracts/|packages/product-contracts/|src/lib/contextManifest(\.test)?\.ts|src-tauri/crates/grimoire-core/)'; then
+    PRODUCT_CONTRACTS_CHANGED=false
+  fi
+fi
+if [ "$PRODUCT_CONTRACTS_CHANGED" = true ]; then
+  echo ""
+  echo "🧭 Product contract parity..."
+  pnpm run test:product-contracts
+  echo "  ✅ Product contract parity OK"
+else
+  echo ""
+  echo "⏭️  Product contract parity — skipped (no contract changes)"
+fi
+
+# 3c. The native Apple shell must continue consuming shared packages.
+APPLE_SHELL_CHANGED=true
+if [ -n "$PUSH_TARGET" ]; then
+  if ! echo "$CHANGED" | grep -qE '^(apps/apple/|packages/product-contracts/|markdown-editor/packages/swift/)'; then
+    APPLE_SHELL_CHANGED=false
+  fi
+fi
+if [ "$APPLE_SHELL_CHANGED" = true ]; then
+  echo ""
+  echo "🍎 Native Apple shell build..."
+  pnpm run test:native-apple-build
+  echo "  ✅ Native Apple shell build OK"
+else
+  echo ""
+  echo "⏭️  Native Apple shell build — skipped (no Apple/package changes)"
+fi
+
 # 4. Rust lint (skipped when src-tauri/ untouched)
 echo ""
 RUST_CHANGED=true

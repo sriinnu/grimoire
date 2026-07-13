@@ -122,6 +122,7 @@ export default defineConfig(({ command }) => ({
       '@grimoire/markdown-editor/math': path.resolve(__dirname, './markdown-editor/packages/js/src/mathTypes.ts'),
       '@grimoire/markdown-editor/react': path.resolve(__dirname, './markdown-editor/packages/js/src/react/index.ts'),
       '@grimoire/markdown-editor': path.resolve(__dirname, './markdown-editor/packages/js/src'),
+      '@grimoire/product-contracts': path.resolve(__dirname, './packages/product-contracts/src'),
       '@': path.resolve(__dirname, './src'),
     },
   },
@@ -175,6 +176,7 @@ export default defineConfig(({ command }) => ({
     include: [
       'src/**/*.{test,spec}.{ts,tsx}',
       'markdown-editor/packages/js/src/**/*.{test,spec}.{ts,tsx}',
+      'packages/product-contracts/src/**/*.{test,spec}.{ts,tsx}',
     ],
     coverage: {
       provider: 'v8',
@@ -182,10 +184,15 @@ export default defineConfig(({ command }) => ({
       // Keep coverage temp files off the mounted workspace to avoid flaky
       // read-after-write races when Vitest re-reads its own coverage shards.
       reportsDirectory: vitestCoverageDirectory,
-      include: ['src/**/*.{ts,tsx}', 'markdown-editor/packages/js/src/**/*.{ts,tsx}'],
+      include: [
+        'src/**/*.{ts,tsx}',
+        'markdown-editor/packages/js/src/**/*.{ts,tsx}',
+        'packages/product-contracts/src/**/*.{ts,tsx}',
+      ],
       exclude: [
         'src/**/*.{test,spec}.{ts,tsx}',
         'markdown-editor/packages/js/src/**/*.{test,spec}.{ts,tsx}',
+        'packages/product-contracts/src/**/*.{test,spec}.{ts,tsx}',
         'src/test/**',
         'src/mock-tauri.ts',
         'src/main.tsx',

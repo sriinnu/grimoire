@@ -2,7 +2,7 @@
 
 This is the native SwiftUI shell for macOS and iOS.
 
-It is intentionally separate from the Tauri app. The Apple shell imports `MarkdownEditor` for durable markdown behavior, then builds platform-native UX around it.
+It is intentionally separate from the Tauri app. The Apple shell imports `MarkdownEditor` for durable markdown behavior and `GrimoireProductContracts` for versioned product-kernel messages, then builds platform-native UX around them.
 
 ## Tooling
 
@@ -33,6 +33,7 @@ For local archive or TestFlight/App Store work, set signing in Xcode or an untra
 Shared:
 
 - markdown/frontmatter semantics from `MarkdownEditor`
+- Context Manifest and durable event contracts from `GrimoireProductContracts`
 - generated app icon source from `app-icon.png`
 - vault compatibility and portable document behavior
 - parity fixtures that Tauri also runs

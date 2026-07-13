@@ -2,8 +2,9 @@
 type: ADR
 id: "0085"
 title: "Markdown editor package boundary"
-status: active
+status: superseded
 date: 2026-04-30
+superseded_by: "0106"
 ---
 
 ## Context

@@ -90,6 +90,9 @@ importers:
       '@grimoire/markdown-editor':
         specifier: workspace:*
         version: link:markdown-editor/packages/js
+      '@grimoire/product-contracts':
+        specifier: workspace:*
+        version: link:packages/product-contracts
       '@lezer/highlight':
         specifier: ^1.2.3
         version: 1.2.3
@@ -365,6 +368,12 @@ importers:
       ws:
         specifier: '>=8.21.0'
         version: 8.21.0
+
+  packages/product-contracts:
+    devDependencies:
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
 packages:
 
