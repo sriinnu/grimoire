@@ -17,6 +17,13 @@ import type { RunCouncilAgent } from './agentCouncilRun'
 /** Drives one agent's stream, invoking the supplied callbacks as events arrive. */
 export type AgentStreamDriver = (callbacks: AgentStreamCallbacks) => void | Promise<void>
 
+/** Options for {@link collectAgentStream}. */
+export interface CollectAgentStreamOptions {
+  /** Called on every text delta with the answer accumulated so far — for live
+   *  per-agent UI while the council streams. */
+  onProgress?: (fullText: string) => void
+}
+
 /**
  * Runs a streaming agent driver and resolves with the accumulated answer text
  * once it completes. The first `onError` rejects (and wins over a trailing
@@ -24,7 +31,10 @@ export type AgentStreamDriver = (callbacks: AgentStreamCallbacks) => void | Prom
  * whose Promise rejects also rejects. Thinking and tool-call callbacks are
  * ignored — only `onText` contributes to the answer.
  */
-export function collectAgentStream(drive: AgentStreamDriver): Promise<string> {
+export function collectAgentStream(
+  drive: AgentStreamDriver,
+  options?: CollectAgentStreamOptions,
+): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     let answer = ''
     let settled = false
@@ -44,6 +54,7 @@ export function collectAgentStream(drive: AgentStreamDriver): Promise<string> {
     const callbacks: AgentStreamCallbacks = {
       onText: (text) => {
         answer += text
+        options?.onProgress?.(answer)
       },
       onThinking: () => {},
       onToolStart: () => {},
