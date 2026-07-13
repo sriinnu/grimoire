@@ -186,11 +186,13 @@ export function AiPanelIntelligenceRail({
         onClose={() => setRedTeamPlanOpen(false)}
       />
       <ContextCapsuleDialog
+        key={contextCapsulePackage.reviewReceipt}
         defaultAiAgent={defaultAiAgent}
         defaultAiModel={defaultAiModel}
         defaultAiProvider={defaultAiProvider}
         open={contextCapsuleOpen}
         packagePreview={contextCapsulePackage}
+        preview={contextCapsule}
         onClose={() => setContextCapsuleOpen(false)}
       />
     </>

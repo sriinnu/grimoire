@@ -2,8 +2,9 @@
 type: ADR
 id: "0088"
 title: "Tauri-first editor product with Swift as Apple support layer"
-status: active
+status: superseded
 date: 2026-05-01
+superseded_by: "0105"
 supersedes:
   - "0086"
   - "0087"

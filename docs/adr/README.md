@@ -81,7 +81,7 @@ proposed → active → superseded
 | [0023](0023-repair-vault-auto-bootstrap.md) | Repair Vault auto-bootstrap pattern | active |
 | [0024](0024-cache-outside-vault.md) | Vault cache stored outside vault directory | active |
 | [0025](0025-type-field-canonical.md) | type: as canonical field (replacing Is A:) | active |
-| [0026](0026-props-down-no-global-state.md) | Props-down callbacks-up (no global state) | active |
+| [0026](0026-props-down-no-global-state.md) | Props-down callbacks-up (no global state) | amended by [0106](0106-reusable-product-kernel-package-layers.md) |
 | [0027](0027-dual-ai-architecture.md) | Dual AI architecture (API chat + CLI agent) | superseded |
 | [0028](0028-cli-agent-only-no-api-key.md) | CLI agent only — no direct Anthropic API key | active |
 | [0029](0029-domain-command-builder-pattern.md) | Domain command builder pattern for useCommandRegistry | active |
@@ -140,10 +140,10 @@ proposed → active → superseded
 | [0082](0082-markdown-durable-math-notes.md) | Markdown-durable math in notes | active |
 | [0083](0083-dual-architecture-macos-release-artifacts.md) | Dual-architecture macOS release artifacts | superseded -> [0100](0100-public-release-packaging-truth.md) |
 | [0084](0084-app-localization-foundation.md) | App-owned localization foundation | active |
-| [0085](0085-markdown-editor-package-boundary.md) | Markdown editor package boundary | active |
+| [0085](0085-markdown-editor-package-boundary.md) | Markdown editor package boundary | superseded -> [0106](0106-reusable-product-kernel-package-layers.md) |
 | [0086](0086-platform-native-app-shells.md) | Platform-native app shells over shared vault semantics | superseded → [0088](0088-tauri-first-editor-product.md) |
 | [0087](0087-editor-engine-roles-by-platform.md) | Editor engine roles by platform | superseded → [0088](0088-tauri-first-editor-product.md) |
-| [0088](0088-tauri-first-editor-product.md) | Tauri-first editor product with Swift as Apple support layer | active |
+| [0088](0088-tauri-first-editor-product.md) | Tauri-first editor product with Swift as Apple support layer | superseded -> [0105](0105-native-apple-shell-over-shared-product-kernel.md) |
 | [0089](0089-project-intelligence-import-from-karya-board.md) | Project intelligence import from Karya Board | active |
 | [0090](0090-markdown-durable-canvas-attachments.md) | Markdown-durable canvas attachments | active |
 | [0091](0091-vault-portability-import-export-storage.md) | Vault portability import export and storage providers | active |
@@ -160,3 +160,5 @@ proposed → active → superseded
 | [0102](0102-sidebar-spotlight-search-over-open-vault-text.md) | Sidebar Spotlight search over open vault text | active |
 | [0103](0103-bundled-starter-vault-fallback.md) | Bundled Getting Started vault fallback | active |
 | [0104](0104-cross-platform-release-jobs-with-proof-gates.md) | Cross-platform release jobs with proof gates | active |
+| [0105](0105-native-apple-shell-over-shared-product-kernel.md) | Native Apple shell over a shared product kernel | active |
+| [0106](0106-reusable-product-kernel-package-layers.md) | Reusable product kernel package layers | active |

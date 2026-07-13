@@ -36,7 +36,7 @@ mockups, and private planning notes live only on a developer's machine
 ## Design Direction
 
 - [Platform Native Enhancement Roadmap](PLATFORM-NATIVE-ENHANCEMENT-ROADMAP.md)
-  - Tauri-first editor direction and native platform boundaries.
+  - native Apple client direction, Tauri transition, and platform boundaries.
 - [Cinematic Motion Direction](CINEMATIC-MOTION-DIRECTION.md) - motion and
   interaction direction for the app shell.
 

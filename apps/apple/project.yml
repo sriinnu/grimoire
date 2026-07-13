@@ -9,6 +9,8 @@ options:
 packages:
   MarkdownEditor:
     path: ../../markdown-editor/packages/swift
+  GrimoireProductContracts:
+    path: ../../packages/product-contracts
 
 targets:
   Grimoire:
@@ -23,6 +25,8 @@ targets:
         product: MarkdownEditor
       - package: MarkdownEditor
         product: MarkdownEditorUI
+      - package: GrimoireProductContracts
+        product: GrimoireProductContracts
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sriinnu.grimoire
@@ -47,6 +51,8 @@ targets:
         product: MarkdownEditor
       - package: MarkdownEditor
         product: MarkdownEditorUI
+      - package: GrimoireProductContracts
+        product: GrimoireProductContracts
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.sriinnu.grimoire

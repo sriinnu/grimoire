@@ -11,6 +11,7 @@
       "@grimoire/markdown-editor/math": ["./markdown-editor/packages/js/src/mathTypes.ts"],
       "@grimoire/markdown-editor/react": ["./markdown-editor/packages/js/src/react/index.ts"],
       "@grimoire/markdown-editor/*": ["./markdown-editor/packages/js/src/*"],
+      "@grimoire/product-contracts": ["./packages/product-contracts/src/index.ts"],
       "@/*": ["./src/*"]
     }
   }

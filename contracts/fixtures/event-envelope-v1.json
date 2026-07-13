@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "grimoire.event-envelope.v1",
+  "eventId": "event-fixture-1",
+  "sequence": 1,
+  "occurredAt": "2026-07-13T00:00:00Z",
+  "producer": "grimoire-core",
+  "correlationId": "request-fixture-1",
+  "sensitivity": "internal",
+  "payload": {
+    "type": "context.assembled",
+    "manifestId": "ctx-fixture-1"
+  }
+}

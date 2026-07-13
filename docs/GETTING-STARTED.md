@@ -175,7 +175,8 @@ pnpm playwright:regression
 
 ```text
 src/
-  App.tsx                         app orchestrator
+  App.tsx                         minimal app entry point
+  AppRuntime.tsx                  React client composition root
   components/
     Editor.tsx                    editor shell
     SingleEditorView.tsx          rich BlockNote editor
@@ -268,7 +269,9 @@ Editor:
 - slash menu package: `markdown-editor/packages/js`
 - baseline package consumer: `markdown-editor/apps/baseline-web`
 - compatibility re-export: `src/components/grimoireEditorFormattingConfig.ts`
-- Swift support package: `markdown-editor/packages/swift`
+- Swift editor packages: `markdown-editor/packages/swift`
+- product contracts (TypeScript + Swift): `packages/product-contracts`
+- shared Rust product kernel: `src-tauri/crates/grimoire-core`
 
 Commands:
 

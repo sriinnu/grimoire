@@ -13,7 +13,7 @@ Grimoire has six user-facing workspaces:
 1. **Dashboard**: the default assistant board for quick capture, open loops, Daily Thread guidance, Time Loom, private journal/dream prompts, memory queue, reviewed Crystallize loop state, recent vault-context notes, and visible local-first status.
 2. **Navigation**: sidebar filters, folders, types, favorites, archive, inbox, and changes.
 3. **Selection**: note lists, saved views, search, Pulse history, and Neighborhood relationship browsing.
-4. **Editing**: Tauri rich/raw markdown editing as the primary product surface, SwiftUI/WebKit support surfaces where Apple-native integration is worth it, diff mode, Spelllinks (`[[note]]` wikilinks), math, code blocks, and frontmatter.
+4. **Editing**: shared Markdown semantics and product-kernel services presented through the current Tauri rich/raw editor and the native Apple client as it reaches capability parity, including diff mode, Spelllinks (`[[note]]` wikilinks), math, code blocks, and frontmatter.
 5. **Context**: Inspector, backlinks, relationship panels, instances, note metadata, Git history, graph, and weather snapshots.
 6. **Agents**: local CLI agents through Claude Code / Codex adapters and MCP vault tooling.
 
@@ -21,7 +21,7 @@ Grimoire has six user-facing workspaces:
 flowchart LR
     Vault["Markdown vault\n.md + YAML + assets"]
     Cache["Disposable cache\nfast startup index"]
-    App["Tauri React app\nSwift support surfaces"]
+    App["Platform clients\nTauri + native Apple"]
     Rust["Rust commands\nfilesystem, git, settings"]
     Agents["Local agents\nClaude Code, Codex, MCP"]
     External["Explicit services\nGit remotes, Open-Meteo"]
@@ -40,15 +40,15 @@ flowchart LR
 
 | Layer | Current implementation | Owns | Must not own |
 |---|---|---|---|
-| App shell | Tauri v2 | windows, menus, app packaging, IPC bridge, first mobile feasibility path | vault data model |
-| Frontend | React 19 + TypeScript | orchestration, editor UI, graph UI, settings panels | direct filesystem writes |
-| Apple support | SwiftUI/AppKit/UIKit/WebKit | packaging support, native bridges, parity prototypes, platform-only integrations | a second default editor product |
-| Backend | Rust | filesystem, frontmatter writes, Git, settings, native windows | presentation state |
+| App shells | Tauri v2 + SwiftUI/AppKit/UIKit | platform presentation, windows, menus, native controls, app packaging | vault data model or duplicated security rules |
+| Tauri frontend | React 19 + TypeScript | Windows/Linux presentation and current shipping editor, graph, and settings surfaces | direct filesystem writes |
+| Apple frontend | SwiftUI/AppKit/UIKit/WebKit | native macOS/iOS presentation, forms, inspectors, platform behavior, and focused web-editor hosting where needed | reimplementing product-kernel behavior |
+| Product kernel | Rust `grimoire-core` + Tauri adapters (incremental extraction) | versioned context/events today; filesystem, frontmatter writes, Git, search, privacy, and recovery as they are extracted | presentation state |
 | Editor core | MarkdownEditor Swift package + `@grimoire/markdown-editor` + Tauri adapters | shared markdown semantics, slash-command primitives, and platform adapters | app-only vault workflows |
 | Editor engines | BlockNote, CodeMirror, SwiftUI/WebKit support surfaces | rich editing, raw markdown editing, and native bridge experiments | permanent document format |
 | Agent layer | CLI adapters + MCP | local agent sessions and vault tools | hidden cloud storage |
 
-The app is intentionally polyglot where a language is the right tool. Tauri owns the primary product surface. Rust keeps filesystem and packaging boundaries. TypeScript keeps the editor, graph, and AI workflow composition. Swift stays available for Apple-native support work without becoming a duplicate editor roadmap.
+The app is intentionally polyglot where a language is the right tool. Rust owns UI-neutral product behavior. TypeScript and Swift compose platform clients over versioned contracts. The current Tauri macOS app remains available until the native client proves capability and artifact parity.
 
 ## Source Of Truth
 
@@ -108,7 +108,7 @@ Store data in app settings when it describes this installation:
 
 ## Frontend Composition
 
-`src/App.tsx` remains the main orchestrator. It wires hooks and top-level modals, but feature logic should live in smaller modules:
+`src/App.tsx` is the minimal entry point. `src/AppRuntime.tsx` composes the current React client from bounded hooks and surfaces; reusable product behavior belongs in `grimoire-core` or an editor package rather than either app-shell file:
 
 - `hooks/useVaultLoader.ts`: loads entries, modified files, folders, views, history, and cache refreshes.
 - `components/CreateVaultDialog.tsx` and `utils/vaultCreation.ts`: local-first vault creation UI and path planning. The dialog previews template, storage, Git state, privacy, and local folder path before creating anything; path suggestions are platform-aware for macOS, Windows, Linux, and unknown desktop shells; Windows reserved device names are avoided in suggested notebook folders; desktop sync providers are treated as local folders, not credential-backed cloud accounts.
@@ -340,14 +340,14 @@ installer launch; packaged launch evidence still belongs to tagged release QA.
 
 ## Platform Direction
 
-The app is Tauri-first for the editor product surface. Swift remains a support layer for Apple-native integrations and a fallback if a named WebView limitation blocks product quality.
+Apple platforms move toward native SwiftUI/AppKit/UIKit clients over the shared product kernel. Tauri remains the Windows/Linux client and the shipping macOS fallback until native capability parity is proven.
 
-- Tauri + React owns the main editor, graph/wiki, slash command, AI workflow, and settings surfaces.
-- SwiftUI/AppKit/UIKit/WebKit can host share sheets, document providers, QuickLook, widgets, Shortcuts, App Store packaging, and targeted native editor experiments.
-- Native find/replace, undo, IME, or text bindings can justify Swift work only when the Tauri editor cannot meet the requirement.
+- Native Apple controls own shell navigation, toolbars, inspectors, forms, menus, sheets, focus, windows, and platform integrations.
+- A focused WebKit editor surface may reuse the packaged rich editor while native editor parity is incomplete; the whole window must not collapse back into a web app.
+- Tauri and Apple clients consume shared Rust services and versioned wire contracts instead of duplicating vault, Git, privacy, context, or durable-event rules.
 - Platform-specific polish must not create platform-specific vault semantics.
 
-This is not a "two full apps by default" product. The rule is simple: ship one excellent editor first; use native code where it materially improves the product.
+The native client does not replace the shipping Tauri macOS artifact merely because it builds or looks polished. Release ownership changes only after an explicit parity matrix and installed-app proof pass.
 
 ## Quality Gates
 

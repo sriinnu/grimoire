@@ -2,6 +2,7 @@ pub mod ai_agents;
 pub mod ai_provider_keys;
 pub mod app_updater;
 pub mod claude_cli;
+pub use grimoire_core as product_core;
 mod commands;
 pub mod frontmatter;
 pub mod git;

@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "grimoire.context-manifest.v1",
+  "id": "ctx-fixture-1",
+  "requestId": "request-fixture-1",
+  "createdAt": "2026-07-13T00:00:00Z",
+  "intent": "explain",
+  "live": {
+    "activeFile": "Welcome.md",
+    "openFiles": [],
+    "gitDiffs": [],
+    "terminalErrors": []
+  },
+  "recalled": [],
+  "code": [
+    {
+      "id": "source-fixture-1",
+      "kind": "active-file",
+      "uri": "vault:///Welcome.md",
+      "score": 1.0,
+      "tokenCount": 12,
+      "selectedBecause": ["active file"],
+      "retrievalChannels": ["live"],
+      "scope": "vault",
+      "confidence": 1.0,
+      "permission": "allowed"
+    }
+  ],
+  "pinned": [],
+  "excluded": [],
+  "budget": {
+    "maximumTokens": 1000,
+    "usedTokens": 12,
+    "remainingTokens": 988,
+    "compactedTokens": 0
+  },
+  "warnings": {
+    "stale": [],
+    "contradictions": [],
+    "weakEvidence": [],
+    "policyBlocks": []
+  },
+  "provenance": [
+    {
+      "kind": "active-file",
+      "uri": "vault:///Welcome.md"
+    }
+  ]
+}

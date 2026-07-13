@@ -27,7 +27,7 @@ If it cannot answer one, it should probably be still.
 
 ## Motion Tokens
 
-Use tokens instead of one-off timings. React/Tauri owns the CSS token names first; SwiftUI can map them to native timing/easing names later.
+Use tokens instead of one-off timings. React/Tauri currently defines the CSS token vocabulary; native Apple surfaces map the same intent to platform timing and spring APIs without treating CSS values as their runtime authority.
 
 Implemented in `src/motion.css`:
 

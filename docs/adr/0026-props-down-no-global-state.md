@@ -2,8 +2,10 @@
 type: ADR
 id: "0026"
 title: "Props-down callbacks-up (no global state management)"
-status: active
+status: amended
 date: 2026-02-15
+amended_by:
+  - "0106"
 ---
 
 ## Context
@@ -12,7 +14,7 @@ React apps commonly adopt global state management libraries (Redux, Zustand, Jot
 
 ## Decision
 
-**No global state management (no Redux, no Context for data). `App.tsx` owns the state and passes it down as props. Child-to-parent communication uses callback props (`onSelectNote`, `onCloseTab`, etc.). Local state uses `useState`/`useReducer`.**
+**No global state management (no Redux, no Context for data). The React composition root owns client state and passes it down as props. Child-to-parent communication uses callback props (`onSelectNote`, `onCloseTab`, etc.). Local state uses `useState`/`useReducer`. Reusable product state and behavior must move into explicit product-kernel contracts rather than a React-global store.**
 
 ## Options considered
 
@@ -22,9 +24,9 @@ React apps commonly adopt global state management libraries (Redux, Zustand, Jot
 
 ## Consequences
 
-- `App.tsx` is the state orchestrator — it holds vault entries, active note, sidebar selection, and all top-level state.
+- `AppRuntime.tsx` is the current React composition root; `App.tsx` remains a minimal entry point.
 - Components receive data and callbacks as props — no `useContext` for data access.
-- Hooks (`useVaultLoader`, `useNoteActions`, `useTabManagement`, etc.) encapsulate state logic but return values consumed by `App.tsx`.
+- Hooks (`useVaultLoader`, `useNoteActions`, `useTabManagement`, etc.) encapsulate client state logic but return values consumed by the composition root.
 - Prop drilling is mitigated by composing hooks and keeping the component tree shallow.
 - Components are easy to test in isolation (just pass props).
 - Re-evaluation trigger: if the component tree deepens significantly or cross-cutting state becomes unmanageable with props.

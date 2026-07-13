@@ -51,6 +51,7 @@ src-tauri/gen/schemas/
 
 # Local SwiftPM build output
 markdown-editor/packages/swift/.build/
+packages/product-contracts/.build/
 
 # Python cache
 __pycache__/
