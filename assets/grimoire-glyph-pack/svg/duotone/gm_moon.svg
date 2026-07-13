@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Moon</title>
+  <desc>Grimoire glyph: Moon</desc>
+  <path d="M42 14c-3 7-1 16 6 22-10 3-22-2-26-13-2-6-1-12 3-17-8 3-14 11-14 21 0 13 10 24 24 24 9 0 18-5 22-13-9 2-18-2-22-10-3-7 0-13 7-14z" stroke="#0B1F2A" fill="#F9731622" stroke-linejoin="round" stroke-width="2.2" />
+  <circle cx="46" cy="18" r="1.7" fill="#F97316" />
+  <circle cx="52" cy="28" r="1.4" fill="#F97316" />
+</svg>

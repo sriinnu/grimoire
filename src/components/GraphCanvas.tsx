@@ -1,3 +1,4 @@
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import { cn } from '@/lib/utils'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 import type { AiAgentsStatus } from '../lib/aiAgents'
@@ -31,6 +32,14 @@ interface GraphCanvasProps {
   localOnlyNodeIds: ReadonlySet<string>
   nodeById: Map<string, PositionedGraphNode>
   selectedNodeId: string | null
+  highlightedNodeId?: string | null
+  hot?: boolean
+  viewportTransform?: string
+  bindSvg?: (el: SVGSVGElement | null) => void
+  onNodePointerDown?: (node: PositionedGraphNode, event: ReactPointerEvent) => void
+  onBackgroundPointerDown?: (event: ReactPointerEvent) => void
+  onCanvasPointerMove?: (event: ReactPointerEvent) => void
+  onResetView?: () => void
   onOpenNode: (path: string) => void
   onSelectNode: (node: PositionedGraphNode) => void
 }
@@ -43,6 +52,14 @@ export function GraphCanvas({
   localOnlyNodeIds,
   nodeById,
   selectedNodeId,
+  highlightedNodeId,
+  hot,
+  viewportTransform,
+  bindSvg,
+  onNodePointerDown,
+  onBackgroundPointerDown,
+  onCanvasPointerMove,
+  onResetView,
   onOpenNode,
   onSelectNode,
 }: GraphCanvasProps) {
@@ -94,67 +111,78 @@ export function GraphCanvas({
         </div>
       </div>
       <svg
+        ref={bindSvg}
         viewBox={`0 0 ${GRAPH_VIEWBOX_WIDTH} ${GRAPH_VIEWBOX_HEIGHT}`}
         className="block h-[min(60vh,640px)] w-full"
+        style={{ touchAction: 'none' }}
         role="img"
         aria-label="Vault relationship graph"
         data-testid="graph-svg"
+        onPointerDown={onBackgroundPointerDown}
+        onPointerMove={onCanvasPointerMove}
+        onDoubleClick={onResetView}
       >
         <defs>
           <pattern id="graph-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.5" />
+            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.12" />
           </pattern>
         </defs>
+        {/* Grid backdrop stays fixed; only the interactive layer pans/zooms. */}
         <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="transparent" />
         <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="url(#graph-grid)" />
-        <GraphCanvasPackageTethers
-          localOnlyNodeIds={localOnlyNodeIds}
-          nodeById={nodeById}
-          selectedNode={selectedNode}
-          sourceSafeNodeIds={sourceSafeNodePaths}
-        />
-        <GraphAgentOrbit
-          agentStates={agentStates}
-          selectedNode={selectedNode}
-        />
-        {layout.edges.map((edge) => {
-          const source = nodeById.get(edge.source)
-          const target = nodeById.get(edge.target)
-          if (!source || !target) return null
-          return (
-            <GraphEdge
-              key={edge.id}
-              edge={edge}
-              localOnly={localOnlyNodeIds.has(edge.source) || localOnlyNodeIds.has(edge.target)}
-              selected={Boolean(selectedNode && (edge.source === selectedNode.id || edge.target === selectedNode.id))}
-              source={source}
-              sourceSafe={sourceSafeEdgeIds.has(noteEdgeKey(edge))}
-              target={target}
-            />
-          )
-        })}
-        {layout.nodes.map((node) => (
-          <GraphNode
-            key={node.id}
-            localOnly={localOnlyNodeIds.has(node.id)}
-            labelVisible={shouldShowNodeLabel({
-              node,
-              selected: node.id === selectedNodeId,
-              sourceSafe: sourceSafeNodePaths.has(node.path),
-              totalNodes: layout.nodes.length,
-            })}
-            node={node}
-            selected={node.id === selectedNodeId}
-            sourceSafe={sourceSafeNodePaths.has(node.path)}
-            onOpenNode={onOpenNode}
-            onSelectNode={onSelectNode}
+        <g transform={viewportTransform} data-testid="graph-viewport">
+          <GraphCanvasPackageTethers
+            localOnlyNodeIds={localOnlyNodeIds}
+            nodeById={nodeById}
+            selectedNode={selectedNode}
+            sourceSafeNodeIds={sourceSafeNodePaths}
           />
-        ))}
-        {layout.nodes.length === 0 ? (
-          <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y} textAnchor="middle" fill="var(--muted-foreground)" fontSize="18">
-            No matching pages
-          </text>
-        ) : null}
+          <GraphAgentOrbit
+            agentStates={agentStates}
+            selectedNode={selectedNode}
+          />
+          {layout.edges.map((edge) => {
+            const source = nodeById.get(edge.source)
+            const target = nodeById.get(edge.target)
+            if (!source || !target) return null
+            return (
+              <GraphEdge
+                key={edge.id}
+                edge={edge}
+                localOnly={localOnlyNodeIds.has(edge.source) || localOnlyNodeIds.has(edge.target)}
+                selected={Boolean(selectedNode && (edge.source === selectedNode.id || edge.target === selectedNode.id))}
+                source={source}
+                sourceSafe={sourceSafeEdgeIds.has(noteEdgeKey(edge))}
+                target={target}
+              />
+            )
+          })}
+          {layout.nodes.map((node) => (
+            <GraphNode
+              key={node.id}
+              localOnly={localOnlyNodeIds.has(node.id)}
+              labelVisible={!hot && shouldShowNodeLabel({
+                node,
+                selected: node.id === selectedNodeId,
+                sourceSafe: sourceSafeNodePaths.has(node.path),
+                totalNodes: layout.nodes.length,
+              })}
+              node={node}
+              selected={node.id === selectedNodeId}
+              highlighted={highlightedNodeId === node.id}
+              focusDimmed={highlightedNodeId != null && highlightedNodeId !== node.id}
+              sourceSafe={sourceSafeNodePaths.has(node.path)}
+              onNodePointerDown={onNodePointerDown}
+              onOpenNode={onOpenNode}
+              onSelectNode={onSelectNode}
+            />
+          ))}
+          {layout.nodes.length === 0 ? (
+            <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y} textAnchor="middle" fill="var(--muted-foreground)" fontSize="18">
+              No matching pages
+            </text>
+          ) : null}
+        </g>
       </svg>
       <div className="graph-canvas-legend" data-testid="graph-canvas-legend">
         <LegendItem tone="safe" label="Source-safe node" />
@@ -260,8 +288,17 @@ function GraphEdge({
   target: PositionedGraphNode
 }) {
   const relationship = edge.kind === 'relationship'
+  // Synaptic curve: bow the edge perpendicular to its midpoint so connections
+  // read like dendrites/axons, not a wiring diagram. One consistent rotational
+  // direction gives the whole map an organic, neural swirl.
+  const dx = target.x - source.x
+  const dy = target.y - source.y
+  const len = Math.hypot(dx, dy) || 1
+  const bow = Math.min(len * 0.16, 60)
+  const cx = (source.x + target.x) / 2 - (dy / len) * bow
+  const cy = (source.y + target.y) / 2 + (dx / len) * bow
   return (
-    <line
+    <path
       className={cn(
         'grimoire-graph-edge',
         relationship && 'grimoire-graph-edge--relationship',
@@ -269,10 +306,9 @@ function GraphEdge({
         selected && 'grimoire-graph-edge--selected',
         sourceSafe && 'grimoire-graph-edge--source-safe',
       )}
-      x1={source.x}
-      y1={source.y}
-      x2={target.x}
-      y2={target.y}
+      d={`M ${source.x} ${source.y} Q ${cx} ${cy} ${target.x} ${target.y}`}
+      fill="none"
+      vectorEffect="non-scaling-stroke"
       stroke={localOnly
         ? 'var(--grimoire-graph-edge-local, var(--destructive))'
         : relationship

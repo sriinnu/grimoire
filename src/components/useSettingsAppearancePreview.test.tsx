@@ -16,14 +16,14 @@ describe('useSettingsAppearancePreview', () => {
     const { unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'code-notebook',
+        themePreset: 'morning-notebook',
         editorFont: 'literary',
         editorLineHeight: 'compact',
         nativeShellMaterial: 'glass-preview',
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'living-archive',
+        themePreset: 'morning-notebook',
         editorFont: 'system',
         editorLineHeight: 'spacious',
         nativeShellMaterial: 'unified',
@@ -31,7 +31,7 @@ describe('useSettingsAppearancePreview', () => {
     }))
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'code-notebook')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')
@@ -39,7 +39,7 @@ describe('useSettingsAppearancePreview', () => {
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'light')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'system')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
@@ -49,14 +49,14 @@ describe('useSettingsAppearancePreview', () => {
     const { result, unmount } = renderHook(() => useSettingsAppearancePreview({
       draft: {
         themeMode: 'dark',
-        themePreset: 'living-archive',
+        themePreset: 'morning-notebook',
         editorFont: 'literary',
         editorLineHeight: 'spacious',
         nativeShellMaterial: 'glass-preview',
       },
       saved: {
         themeMode: 'light',
-        themePreset: 'nocturne',
+        themePreset: 'morning-notebook',
         editorFont: 'system',
         editorLineHeight: 'comfortable',
         nativeShellMaterial: 'unified',
@@ -67,7 +67,7 @@ describe('useSettingsAppearancePreview', () => {
     unmount()
 
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'living-archive')
+    expect(document.documentElement).toHaveAttribute('data-theme-preset', 'morning-notebook')
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'spacious')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'glass-preview')

@@ -1,5 +1,5 @@
-import { ShieldCheck } from '@phosphor-icons/react'
 import { useCallback, useRef, type KeyboardEvent } from 'react'
+import { Glyph } from './glyphs/Glyph'
 import { OnboardingShell } from './OnboardingShell'
 import { Button } from './ui/button'
 
@@ -43,7 +43,7 @@ export function TelemetryConsentDialog({ onAccept, onDecline }: TelemetryConsent
       testId="telemetry-consent-shell"
     >
       <>
-        <ShieldCheck size={40} weight="duotone" style={{ color: 'var(--primary)' }} />
+        <Glyph name="shield" size={40} style={{ color: 'var(--primary)' }} />
 
         <div style={{ textAlign: 'center' }}>
           <h2 style={{ fontSize: 18, fontWeight: 600, color: 'var(--foreground)', margin: 0 }}>

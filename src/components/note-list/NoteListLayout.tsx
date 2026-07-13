@@ -150,7 +150,7 @@ function NoteListBody({
   return (
     <div
       ref={noteListContainerRef}
-      className="relative flex flex-1 flex-col overflow-hidden outline-none"
+      className="relative flex flex-1 flex-col overflow-hidden outline-none grimoire-cascade"
       style={{ minHeight: 0 }}
       tabIndex={0}
       onBlur={handleNoteListBlur}

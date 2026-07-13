@@ -9,11 +9,11 @@ type SidebarGlyphProps = IconProps & {
 }
 
 function strokeWidthFor(weight: IconProps['weight']): number {
-  if (weight === 'thin') return 1.55
-  if (weight === 'light') return 1.75
-  if (weight === 'bold' || weight === 'fill') return 2.45
-  if (weight === 'duotone') return 2.3
-  return 2.05
+  if (weight === 'thin') return 1.3
+  if (weight === 'light') return 1.5
+  if (weight === 'bold' || weight === 'fill') return 2.1
+  if (weight === 'duotone') return 1.85
+  return 1.6
 }
 
 function sidebarGlyphStyle(color: IconProps['color'], mirrored: IconProps['mirrored']): SidebarGlyphStyle {

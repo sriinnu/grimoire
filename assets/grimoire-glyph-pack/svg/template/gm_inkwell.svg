@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Inkwell</title>
+  <desc>Grimoire glyph: Inkwell</desc>
+  <ellipse cx="32" cy="24" rx="12" ry="5" stroke="#0B1F2A" fill="none" stroke-width="2" />
+  <path d="M20 24l-4 23h32l-4-23" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <ellipse cx="32" cy="47" rx="16" ry="5" stroke="#0B1F2A" fill="none" stroke-width="1.8" />
+  <circle cx="32" cy="24" r="5" fill="#0B1F2A" />
+</svg>

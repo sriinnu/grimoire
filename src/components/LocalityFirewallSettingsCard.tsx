@@ -1,4 +1,5 @@
-import { LockKey, ShieldCheck } from '@phosphor-icons/react'
+import { LockKey } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import { summarizeVaultLocality } from '../lib/localityPolicy'
 import { Badge } from './ui/badge'
@@ -15,7 +16,7 @@ export function LocalityFirewallSettingsCard({ entries }: LocalityFirewallSettin
   return (
     <div className="settings-material-card rounded-md border p-3" data-testid="locality-firewall-card">
       <div className="mb-2 flex items-start gap-2">
-        <span className="mt-0.5 text-muted-foreground"><ShieldCheck size={15} /></span>
+        <span className="mt-0.5 text-muted-foreground"><Glyph name="shield" size={15} /></span>
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-foreground">Locality Firewall</span>
           <span className="block text-[11px] leading-snug text-muted-foreground">

@@ -1,5 +1,5 @@
 import { useState, type ReactNode, type RefObject } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Glyph } from '../glyphs/Glyph'
 import { Button } from '@/components/ui/button'
 import {
   OPTION_BTN_STYLE,
@@ -59,7 +59,7 @@ export function WelcomeOptionButton({
       ref={buttonRef}
     >
       <div style={{ ...OPTION_ICON_STYLE, background: iconBg }}>
-        {loading ? <Loader2 size={18} className="animate-spin" style={{ color: 'var(--muted-foreground)' }} /> : icon}
+        {loading ? <Glyph name="loading" size={18} className="animate-spin" style={{ color: 'var(--muted-foreground)' }} /> : icon}
       </div>
       <div>
         <p style={OPTION_LABEL_STYLE}>{loading ? (loadingLabel ?? label) : label}</p>

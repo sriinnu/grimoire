@@ -1,5 +1,5 @@
 import type { VaultEntry } from '../../types'
-import { Info } from '@phosphor-icons/react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import { countWords } from '../../utils/wikilinks'
 
 function formatDate(timestamp: number | null): string {
@@ -30,7 +30,7 @@ export function NoteInfoPanel({ entry, content }: { entry: VaultEntry; content: 
   return (
     <div>
       <h4 className="font-mono-overline mb-2 flex items-center gap-1 text-muted-foreground">
-        <Info size={12} className="shrink-0" />
+        <Glyph name="compass" size={12} />
         Info
       </h4>
       <div className="flex flex-col gap-1.5">

@@ -1,5 +1,6 @@
 import { FilterPills } from './FilterPills'
 import { FileScopePills } from './FileScopePills'
+import { Glyph } from '@/components/glyphs/Glyph'
 import type { NoteFileScope, NoteListFilter } from '../../utils/noteListHelpers'
 
 interface NoteListFilterRailProps {
@@ -36,7 +37,7 @@ export function NoteListFilterRail({
       <div className="note-list-filter-shelf">
         {showFileScopePills && (
           <div className="note-list-filter-group" data-testid="note-list-file-scope-group">
-            <span className="note-list-filter-group__label">Files</span>
+            <span className="note-list-filter-group__label"><Glyph name="folderFile" size={11} className="inline-block align-middle mr-0.5 -mt-px" />Files</span>
             <FileScopePills
               active={fileScope}
               counts={fileScopeCounts}
@@ -46,7 +47,7 @@ export function NoteListFilterRail({
         )}
         {showFilterPills && (
           <div className="note-list-filter-group" data-testid="note-list-state-filter-group">
-            <span className="note-list-filter-group__label">Archive</span>
+            <span className="note-list-filter-group__label"><Glyph name="archive" size={11} className="inline-block align-middle mr-0.5 -mt-px" />Archive</span>
             <FilterPills
               active={noteListFilter}
               counts={filterCounts}

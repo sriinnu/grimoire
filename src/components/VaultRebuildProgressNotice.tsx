@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { cn } from '@/lib/utils'
 import type { VaultRebuildProgressState } from '../hooks/useVaultRebuildProgress'
 import { Button } from './ui/button'
@@ -38,7 +38,7 @@ export const VaultRebuildProgressNotice = memo(function VaultRebuildProgressNoti
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <Loader2 size={14} className="shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
+          <Glyph name="loading" size={14} className="shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none" />
           <span className="truncate">{describeProgress(progress)}</span>
         </div>
         <Button

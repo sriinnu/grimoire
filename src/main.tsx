@@ -70,8 +70,11 @@ if (shouldUseLinuxWindowChrome()) {
   document.body.classList.add('linux-chrome')
 }
 
-if (desktopPlatform === 'macos') {
-  document.documentElement.setAttribute('data-platform', 'macos')
+// Expose the OS to CSS so platform-specific rules (font smoothing, native
+// overlays) can target it. Set for every known desktop platform — Linux must
+// be tagged too, or its font-smoothing fallback in native-overlays.css is dead.
+if (desktopPlatform !== 'unknown') {
+  document.documentElement.setAttribute('data-platform', desktopPlatform)
 }
 
 if (shouldUseMacOverlayChrome()) {
@@ -79,7 +82,6 @@ if (shouldUseMacOverlayChrome()) {
 }
 
 if (desktopPlatform === 'windows') {
-  document.documentElement.setAttribute('data-platform', 'windows')
   document.body.classList.add('windows-chrome')
 }
 

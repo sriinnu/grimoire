@@ -95,14 +95,20 @@
 }
 
 .note-list-segment-pill:hover {
-  background: color-mix(in srgb, var(--muted) 72%, transparent);
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
   color: var(--foreground);
 }
 
+/* Active pill carries the aurora accent — colourful, not a grey chip. */
 .note-list-segment-pill[aria-selected="true"] {
-  border-color: color-mix(in srgb, var(--foreground) 22%, var(--border));
-  background: var(--note-list-chrome-active);
-  color: var(--foreground);
+  border-color: color-mix(in srgb, var(--primary) 46%, transparent);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  color: var(--primary);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.note-list-segment-pill[aria-selected="true"] svg {
+  color: var(--primary);
 }
 
 .note-list-segment-pill__count {
@@ -112,7 +118,7 @@
 }
 
 .note-list-segment-pill[aria-selected="true"] .note-list-segment-pill__count {
-  color: var(--foreground);
+  color: var(--primary);
 }
 
 @container (max-width: 320px) {

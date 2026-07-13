@@ -428,6 +428,8 @@ fn build_window_menu(app: &App) -> MenuResult {
         .minimize()
         .maximize()
         .separator()
+        .fullscreen()
+        .separator()
         .close_window()
         .build()?)
 }

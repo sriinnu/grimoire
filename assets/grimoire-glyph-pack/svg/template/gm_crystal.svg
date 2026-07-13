@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Crystal</title>
+  <desc>Grimoire glyph: Crystal</desc>
+  <polygon points="32,9 47,24 40,50 24,50 17,24" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <polyline points="17,24 32,31 47,24" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="1.8" />
+  <line x1="32" y1="31" x2="32" y2="50" stroke="#0B1F2A" stroke-width="1.8" />
+</svg>

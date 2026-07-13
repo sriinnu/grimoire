@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Journal</title>
+  <desc>Grimoire glyph: Journal</desc>
+  <rect x="18" y="12" width="30" height="40" rx="4" ry="4" stroke="#0B1F2A" fill="#15B8A616" stroke-width="2.2" />
+  <line x1="25" y1="12" x2="25" y2="52" stroke="#15B8A6" stroke-width="1.8" />
+  <line x1="31" y1="24" x2="42" y2="24" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.6" />
+  <line x1="31" y1="31" x2="42" y2="31" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.6" />
+  <line x1="31" y1="38" x2="38" y2="38" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.6" />
+</svg>

@@ -1,4 +1,4 @@
-import { UploadSimple } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { hasReviewedExportPreview, exportRequiresReview, type PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
 import { PortabilityActionButton } from './PortabilityActionButton'
@@ -108,7 +108,7 @@ interface ExportButtonProps {
 function ExportButton({ label, testId, actionId, busyAction, exportPreview, vaultReady, onClick, t }: ExportButtonProps) {
   return (
     <PortabilityActionButton
-      icon={<UploadSimple size={14} />}
+      icon={<Glyph name="upload" size={14} />}
       label={label}
       testId={testId}
       busy={busyAction === actionId}

@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ActionTooltip } from '@/components/ui/action-tooltip'
-import { ArrowsClockwise } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import { NoteTitleIcon } from './NoteTitleIcon'
 import type { BreadcrumbBarProps } from './breadcrumbBarTypes'
@@ -101,7 +101,7 @@ function SyncFilenameButton({
         data-testid="breadcrumb-sync-button"
         aria-label="Rename the file to match the title"
       >
-        <ArrowsClockwise size={14} />
+        <Glyph name="repeat" size={14} />
       </Button>
     </ActionTooltip>
   )

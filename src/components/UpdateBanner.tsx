@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
-import { Download, ExternalLink, RefreshCw, X } from 'lucide-react'
+import { ExternalLink, X } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type { UpdateStatus, UpdateActions } from '../hooks/useUpdater'
 import { restartApp } from '../hooks/useUpdater'
 import { Button } from './ui/button'
@@ -65,7 +66,7 @@ const readyIconStyle = {
 function renderAvailableContent(status: Extract<VisibleUpdateStatus, { state: 'available' }>, actions: UpdateActions) {
   return (
     <>
-      <Download size={14} style={iconStyle} />
+      <Glyph name="download" size={14} style={iconStyle} />
       <span>
         <strong>Grimoire {status.displayVersion}</strong> is available
       </span>
@@ -106,7 +107,7 @@ function renderAvailableContent(status: Extract<VisibleUpdateStatus, { state: 'a
 function renderDownloadingContent(status: Extract<VisibleUpdateStatus, { state: 'downloading' }>) {
   return (
     <>
-      <RefreshCw size={14} className="update-download-spinner" style={iconStyle} />
+      <Glyph name="refresh" size={14} className="update-download-spinner" style={iconStyle} />
       <span>Downloading Grimoire {status.displayVersion}...</span>
       <div style={progressTrackStyle}>
         <div
@@ -128,7 +129,7 @@ function renderDownloadingContent(status: Extract<VisibleUpdateStatus, { state: 
 function renderReadyContent(status: Extract<VisibleUpdateStatus, { state: 'ready' }>) {
   return (
     <>
-      <RefreshCw size={14} style={readyIconStyle} />
+      <Glyph name="refresh" size={14} style={readyIconStyle} />
       <span>
         <strong>Grimoire {status.displayVersion}</strong> is ready - restart to apply
       </span>

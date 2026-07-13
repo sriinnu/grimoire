@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type React from 'react'
 import type { GraphAgentLaneState } from '../lib/graphAgentLanes'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
@@ -23,7 +23,7 @@ export function GraphAgentCommandCenter({
       <div className="graph-agent-command-center__header">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-            <Sparkles className="size-3.5" />
+            <Glyph name="sparkle" size={14} />
             Second Brain
           </div>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">

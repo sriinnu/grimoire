@@ -1,5 +1,5 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Cloud, FileText, FolderOpen, GitBranch, HardDrive, ShieldCheck } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import {
   Dialog,
   DialogContent,
@@ -39,10 +39,14 @@ interface CreateVaultDialogProps {
 type SubmitState = 'idle' | 'creating'
 
 const CLOUD_CHOICE_IDS = new Set<VaultStorageChoiceId>(['icloud', 'google-drive', 'synced-folder'])
+const ShieldIcon = (props: { className?: string }) => <Glyph name="shield" className={props.className} />
+const FileIcon = (props: { className?: string }) => <Glyph name="file" className={props.className} />
+const GitIcon = (props: { className?: string }) => <Glyph name="gitHistory" className={props.className} />
+
 const VAULT_PROMISES = [
-  { label: 'Plain Markdown', detail: 'Readable outside Grimoire', icon: FileText },
-  { label: 'Private by default', detail: 'Journals and dreams stay local', icon: ShieldCheck },
-  { label: 'Git optional', detail: 'History can stay off', icon: GitBranch },
+  { label: 'Plain Markdown', detail: 'Readable outside Grimoire', icon: FileIcon },
+  { label: 'Private by default', detail: 'Journals and dreams stay local', icon: ShieldIcon },
+  { label: 'Git optional', detail: 'History can stay off', icon: GitIcon },
 ]
 
 function extractFolderNameFromSelection(selectedPath: string): string {
@@ -63,9 +67,9 @@ function extractFolderNameFromSelection(selectedPath: string): string {
 }
 
 function choiceIcon(choiceId: VaultStorageChoiceId) {
-  if (choiceId === 'local') return <HardDrive className="size-4" />
-  if (CLOUD_CHOICE_IDS.has(choiceId)) return <Cloud className="size-4" />
-  return <FolderOpen className="size-4" />
+  if (choiceId === 'local') return <Glyph name="localVault" className="size-4" />
+  if (CLOUD_CHOICE_IDS.has(choiceId)) return <Glyph name="cloudVault" className="size-4" />
+  return <Glyph name="folder" />
 }
 
 function shouldUpdateSuggestedPath(pathDirty: boolean, targetPath: string, previousSuggestion: string): boolean {
@@ -261,7 +265,7 @@ export function CreateVaultDialog({ initialThemePreset, open, onClose, onCreate 
                       onClick={() => handleTemplateKindChange(kind.id)}
                       data-testid={`create-vault-template-${kind.id}`}
                     >
-                      <FileText className="size-4" />
+                      <Glyph name="file" className="size-4" />
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium">{kind.label}</span>
                         <span className="block truncate text-xs opacity-75">{kind.detail}</span>
@@ -310,7 +314,7 @@ export function CreateVaultDialog({ initialThemePreset, open, onClose, onCreate 
                 />
                 {nativeFolderPickerAvailable && (
                   <Button type="button" variant="outline" onClick={handleChooseFolder} disabled={submitState === 'creating'}>
-                    <FolderOpen className="size-4" />
+                    <Glyph name="folder" className="size-4" />
                     Choose
                   </Button>
                 )}
@@ -326,7 +330,7 @@ export function CreateVaultDialog({ initialThemePreset, open, onClose, onCreate 
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <GitBranch className="size-4 text-muted-foreground" />
+                  <Glyph name="gitHistory" className="size-4 text-muted-foreground" />
                   Initialize Git history
                 </div>
                 <div className="text-xs text-muted-foreground">Off by default. Local-only notebooks work without Git.</div>
@@ -335,7 +339,7 @@ export function CreateVaultDialog({ initialThemePreset, open, onClose, onCreate 
 
             <div className="grid gap-2 rounded-md border border-border bg-muted/20 px-3 py-2" data-testid="create-vault-plan">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <ShieldCheck className="size-4 text-muted-foreground" />
+                <Glyph name="shield" size={16} className="text-muted-foreground" />
                 Creation plan
               </div>
               <div className="grid gap-1 text-xs text-muted-foreground">
@@ -376,7 +380,7 @@ export function CreateVaultDialog({ initialThemePreset, open, onClose, onCreate 
                 Cancel
               </Button>
               <Button type="submit" disabled={!canSubmit} data-testid="create-vault-submit">
-                <FileText className="size-4" />
+                <Glyph name="file" className="size-4" />
                 {submitState === 'creating' ? 'Creating...' : 'Create Notebook'}
               </Button>
             </DialogFooter>

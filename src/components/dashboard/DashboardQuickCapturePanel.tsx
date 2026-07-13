@@ -115,11 +115,11 @@ export function DashboardQuickCapturePanel({
   }
 
   return (
-    <div className="vault-dashboard__panel vault-dashboard__panel--capture">
+    <div className="vault-dashboard__panel vault-dashboard__panel--capture dashboard-capture-card">
       <div className="vault-dashboard__panel-head">
         <div>
-          <div className="vault-dashboard__panel-label">Open page</div>
-          <h2>Catch the thought while it is here.</h2>
+          <div className="vault-dashboard__panel-label">Capture a thought</div>
+          <h2>Catch it while it is here.</h2>
         </div>
         <PenLine size={18} />
       </div>
@@ -188,7 +188,7 @@ export function DashboardQuickCapturePanel({
             disabled={busy}
             data-testid="dashboard-capture-submit"
           >
-            {busy ? 'Keeping...' : 'Keep'}
+            {busy ? 'Capturing...' : 'Capture'}
           </Button>
         </div>
       </form>

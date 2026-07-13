@@ -252,7 +252,7 @@ owner: Sriinnu
     expect(within(panel).getByText('Blocked')).toBeInTheDocument()
     expect(within(panel).getByTestId('memory-chitragupta-runtime')).toHaveTextContent('CLI installed')
     expect(within(panel).getByTestId('memory-chitragupta-runtime')).toHaveTextContent('MCP contract unverified')
-    expect(within(panel).getByText('Test Project Memory')).toBeInTheDocument()
+    expect(within(panel).getAllByText('Test Project Memory')).toHaveLength(2)
     expect(within(panel).getByText('Remember the project launch constraints.')).toBeInTheDocument()
   })
 

@@ -32,7 +32,7 @@ describe('ThemePackSettingsControls', () => {
   })
 
   function renderControls(localeT = t) {
-    return render(<ThemePackSettingsControls t={localeT} themePreset="nocturne" />)
+    return render(<ThemePackSettingsControls t={localeT} themePreset="morning-notebook" />)
   }
 
   it('imports a validated local theme JSON file into app-local storage', async () => {

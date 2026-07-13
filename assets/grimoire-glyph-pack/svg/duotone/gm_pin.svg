@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Pin</title>
+  <desc>Grimoire glyph: Pin</desc>
+  <path d="M24 14l26 26-8 2-9 9-6-14-14-6 9-9z" stroke="#0B1F2A" fill="#4A90E216" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="21" y1="43" x2="13" y2="51" stroke="#4A90E2" stroke-linecap="round" stroke-width="2.2" />
+</svg>

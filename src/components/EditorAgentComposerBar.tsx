@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { Button } from './ui/button'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
 
@@ -23,7 +23,7 @@ export function EditorAgentComposerBar({
           onClick={onOpen}
           aria-label="Ask Grimoire about this note"
         >
-          <Sparkles className="editor-agent-composer__mark" />
+          <Glyph name="sparkle" className="editor-agent-composer__mark" />
           <span className="editor-agent-composer__placeholder">Ask Grimoire anything...</span>
         </Button>
         <EditorNavigatorControls content={content} variant="composer" />

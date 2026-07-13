@@ -35,32 +35,32 @@ export function AgentRouteDisclosure({
   return (
     <div
       className={cn(
-        'grimoire-agent-route flex min-w-0 flex-wrap items-center gap-1.5 rounded-md border border-border bg-background/55 px-2 py-1.5 text-[10px] text-muted-foreground',
+        'grimoire-agent-route flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-border bg-background/55 px-3 py-2.5 text-[13px] text-muted-foreground',
         className,
       )}
       data-agent-route={agent}
       data-locality={contextProtected ? 'protected-local' : 'source-safe'}
       data-testid="agent-route-disclosure"
     >
-      <span className="flex min-w-0 items-center gap-1.5 font-medium text-foreground">
-        <Workflow className="size-3 shrink-0 text-[var(--grimoire-signal-accent)]" />
+      <span className="flex min-w-0 items-center gap-2 font-medium text-foreground">
+        <Workflow className="size-4 shrink-0 text-[var(--grimoire-signal-accent)]" />
         <span className="truncate">Route</span>
       </span>
-      <Badge variant="outline" className="grimoire-agent-route__chip h-5 shrink-0 rounded-md px-1.5 text-[9px]">
+      <Badge variant="outline" className="grimoire-agent-route__chip h-7 shrink-0 rounded-xl px-2.5 text-[12px]">
         {agentLabel}
       </Badge>
       <span className="min-w-0 flex-1 truncate">{routeLabel ?? 'CLI default route'}</span>
       <Badge
         variant="outline"
-        className="grimoire-agent-route__chip h-5 shrink-0 rounded-md px-1.5 text-[9px]"
+        className="grimoire-agent-route__chip h-7 shrink-0 rounded-xl px-2.5 text-[12px]"
       >
-        <ShieldCheck className="size-3" />
+        <ShieldCheck className="size-4" />
         {localityLabel}
       </Badge>
       {availability ? (
         <Badge
           variant="outline"
-          className="grimoire-agent-route__chip h-5 shrink-0 rounded-md px-1.5 text-[9px]"
+          className="grimoire-agent-route__chip h-7 shrink-0 rounded-xl px-2.5 text-[12px]"
         >
           {routeStatusLabel(availability)}
         </Badge>

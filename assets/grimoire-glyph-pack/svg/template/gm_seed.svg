@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Seed</title>
+  <desc>Grimoire glyph: Seed</desc>
+  <path d="M32 51c-9-8-14-18-12-26 2-8 10-11 12-11s10 3 12 11c2 8-3 18-12 26z" stroke="#0B1F2A" fill="none" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M32 51c0-14 4-23 11-30" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2" />
+  <path d="M32 34c-5-5-8-9-10-14" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="1.8" />
+</svg>

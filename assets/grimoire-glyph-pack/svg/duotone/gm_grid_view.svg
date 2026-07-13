@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Grid View</title>
+  <desc>Grimoire glyph: Grid View</desc>
+  <rect x="14" y="14" width="14" height="14" rx="3" stroke="#0B1F2A" fill="#4A90E216" stroke-width="2" />
+  <rect x="36" y="14" width="14" height="14" rx="3" stroke="#4A90E2" fill="#4A90E216" stroke-width="2" />
+  <rect x="14" y="36" width="14" height="14" rx="3" stroke="#4A90E2" fill="#4A90E216" stroke-width="2" />
+  <rect x="36" y="36" width="14" height="14" rx="3" stroke="#0B1F2A" fill="#4A90E216" stroke-width="2" />
+</svg>

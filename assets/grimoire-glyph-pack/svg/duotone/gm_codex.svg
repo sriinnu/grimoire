@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Codex</title>
+  <desc>Grimoire glyph: Codex</desc>
+  <polyline points="25,22 15,32 25,42" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" />
+  <polyline points="39,22 49,32 39,42" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" />
+  <line x1="35" y1="18" x2="29" y2="46" stroke="#C084FC" stroke-linecap="round" stroke-width="2.2" />
+</svg>

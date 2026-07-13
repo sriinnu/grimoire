@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, FileText, Check, Loader2 } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type { ConflictFileState } from '../hooks/useConflictResolver'
 import { cn } from '@/lib/utils'
 
@@ -65,7 +65,7 @@ function ResolutionLabel({ resolution }: { resolution: ConflictFileState['resolu
   if (!resolution) return null
   return (
     <span className="flex items-center gap-1 text-xs text-[var(--feedback-success-text)]">
-      <Check size={12} />{RESOLUTION_LABELS[resolution]}
+      <Glyph name="reviewed" size={12} />{RESOLUTION_LABELS[resolution]}
     </span>
   )
 }
@@ -105,13 +105,13 @@ function ConflictFileRow({
       data-testid={`conflict-file-${state.file}`}
     >
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        <FileText size={14} className="shrink-0 text-muted-foreground" />
+        <Glyph name="file" size={14} className="shrink-0 text-muted-foreground" />
         <span className="text-sm truncate" title={state.file}>{fileName(state.file)}</span>
         <ResolutionLabel resolution={state.resolution} />
       </div>
       <div className="flex items-center gap-1 shrink-0">
         {state.resolving ? (
-          <Loader2 size={14} className="animate-spin text-muted-foreground" />
+          <Glyph name="loading" size={14} className="animate-spin text-muted-foreground" />
         ) : (
           <>
             <Button
@@ -262,7 +262,7 @@ function ConflictDialogHeader({ fileCount }: { fileCount: number }) {
   return (
     <DialogHeader>
       <div className="flex items-center gap-2">
-        <AlertTriangle size={18} className="text-[var(--accent-orange)]" />
+        <Glyph name="warning" size={18} className="text-[var(--accent-orange)]" />
         <DialogTitle>Resolve Merge Conflicts</DialogTitle>
       </div>
       <DialogDescription>
@@ -309,7 +309,7 @@ function CommitButtonContent({ committing }: { committing: boolean }) {
   if (!committing) return 'Commit & continue'
   return (
     <>
-      <Loader2 size={14} className="animate-spin mr-1" />Committing…
+      <Glyph name="loading" size={14} className="animate-spin mr-1" />Committing…
     </>
   )
 }

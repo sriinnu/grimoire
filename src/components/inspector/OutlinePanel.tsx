@@ -1,4 +1,5 @@
-import { Check, FileText, ListTree, PencilLine } from 'lucide-react'
+import { Check, FileText, PencilLine } from 'lucide-react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import {
   upsertMarkdownToc,
   type MarkdownDocumentSemantics,
@@ -74,7 +75,7 @@ export function OutlinePanel({
     <section className="inspector-card">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h4 className="font-mono-overline flex items-center gap-1 text-muted-foreground">
-          <ListTree className="size-3" />
+          <Glyph name="list" size={12} className="size-3" />
           Outline
         </h4>
         {onToggleRawEditor && (
@@ -88,7 +89,7 @@ export function OutlinePanel({
               disabled={!onReplaceContent}
               onClick={() => void insertToc()}
             >
-              <ListTree className="size-3" />
+              <Glyph name="list" size={12} className="size-3" />
             </Button>
             <Button
               type="button"

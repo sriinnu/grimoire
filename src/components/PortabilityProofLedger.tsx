@@ -1,5 +1,6 @@
-import { CloudCheck, Database, FileArrowDown, ShieldCheck, TerminalWindow } from '@phosphor-icons/react'
+import { CloudCheck, Database } from '@phosphor-icons/react'
 import { ClipboardCheck, Copy } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
@@ -28,11 +29,11 @@ import {
 } from './PortabilityProofLedgerDisplay'
 
 const PROOF_ROW_ICONS: Record<PortabilityProofRow['id'], ReactNode> = {
-  imports: <FileArrowDown size={15} />,
-  exports: <ShieldCheck size={15} />,
+  imports: <Glyph name="download" size={15} />,
+  exports: <Glyph name="shield" size={15} />,
   'desktop-sync': <CloudCheck size={15} />,
   'object-storage': <Database size={15} />,
-  'provider-proof-runner': <TerminalWindow size={15} />,
+  'provider-proof-runner': <Glyph name="terminal" size={15} />,
 }
 
 type Translate = ReturnType<typeof createTranslator>
@@ -73,7 +74,7 @@ export function PortabilityProofLedger({
       data-testid="portability-proof-ledger"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <span className="mt-0.5 text-muted-foreground"><ShieldCheck size={15} /></span>
+        <span className="mt-0.5 text-muted-foreground"><Glyph name="shield" size={15} /></span>
         <span className="min-w-0">
           <span className="block text-xs font-semibold text-foreground">{t('settings.portability.proofLedgerTitle')}</span>
           <span className="block text-[11px] leading-snug text-muted-foreground">

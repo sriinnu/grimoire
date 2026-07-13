@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
-import { CaretRight, CaretDown, Brain, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { CaretRight, CaretDown, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { AiActionCard, type AiActionStatus } from './AiActionCard'
 import { AI_AGENT_CLI_DEFAULT_ROUTE, getAiAgentDefinition, type AiAgentRuntimeRoute } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
@@ -45,7 +46,7 @@ function ReferencePill({ reference, onClick }: {
     color: 'var(--ai-reference-pill-fg, var(--reference-type-color))',
     borderRadius: 9999,
     padding: '1px 8px',
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: 500,
     fontFamily: 'inherit',
     lineHeight: 1.4,
@@ -80,12 +81,12 @@ function UserBubble({ content, references, onOpenNote }: {
           borderRadius: '12px 12px 2px 12px',
           maxWidth: '85%',
           padding: '8px 12px',
-          fontSize: 13,
+          fontSize: 14,
           lineHeight: 1.5,
         }}
       >
         {references && references.length > 0 && (
-          <div className="flex flex-wrap gap-1" style={{ marginBottom: 4 }}>
+          <div className="flex flex-wrap gap-2" style={{ marginBottom: 4 }}>
             {references.map(ref => (
               <ReferencePill key={ref.path} reference={ref} onClick={onOpenNote} />
             ))}
@@ -111,12 +112,12 @@ function ReasoningBlock({ text, expanded, onToggle }: {
   return (
     <div style={{ marginBottom: 8 }}>
       <button
-        className="flex items-center gap-1.5 w-full border-none bg-transparent cursor-pointer p-0 text-muted-foreground hover:text-foreground transition-colors"
-        style={{ fontSize: 12, padding: '4px 0' }}
+        className="flex items-center gap-2 w-full border-none bg-transparent cursor-pointer p-0 text-muted-foreground hover:text-foreground transition-colors"
+        style={{ fontSize: 13, padding: '4px 0' }}
         onClick={onToggle}
         data-testid="reasoning-toggle"
       >
-        <Brain size={14} />
+        <Glyph name="brain" size={14} />
         <span>Reasoning</span>
         {expanded ? <CaretDown size={12} /> : <CaretRight size={12} />}
       </button>
@@ -124,7 +125,7 @@ function ReasoningBlock({ text, expanded, onToggle }: {
         <div
           ref={contentRef}
           className="text-muted-foreground"
-          style={{ fontSize: 12, lineHeight: 1.5, padding: '4px 0 4px 20px', maxHeight: 200, overflowY: 'auto' }}
+          style={{ fontSize: 13, lineHeight: 1.5, padding: '4px 0 4px 20px', maxHeight: 200, overflowY: 'auto' }}
           data-testid="reasoning-content"
         >
           {text}
@@ -179,7 +180,7 @@ function RouteDisclosureChip({ route }: { route: RouteDisclosure | AiAgentRuntim
 
   return (
     <div
-      className="inline-flex max-w-full items-center rounded-full border border-border bg-muted/45 px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+      className="inline-flex max-w-full items-center rounded-full border border-border bg-muted/45 px-2.5 py-2 text-[13px] font-medium text-muted-foreground"
       data-testid="ai-route-disclosure"
       title={detail}
       style={{ marginBottom: 8 }}
@@ -196,7 +197,7 @@ function ActionCardsList({ actions, onOpenNote, expandedIds, onToggleExpand }: {
   onToggleExpand: (toolId: string) => void
 }) {
   return (
-    <div className="flex flex-col gap-1" style={{ marginBottom: 8 }}>
+    <div className="flex flex-col gap-2" style={{ marginBottom: 8 }}>
       {actions.map((action) => (
         <AiActionCard
           key={action.toolId}
@@ -222,8 +223,8 @@ function ResponseBlock({ text, onNavigateWikilink }: { text: string; onNavigateW
         <MarkdownContentSurface content={text} onWikilinkClick={onNavigateWikilink} />
       </Suspense>
       <button
-        className="flex items-center gap-1 border-none bg-transparent p-0 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
-        style={{ fontSize: 11, marginTop: 4 }}
+        className="flex items-center gap-2 border-none bg-transparent p-0 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+        style={{ fontSize: 12, marginTop: 4 }}
         data-testid="undo-button"
       >
         <ArrowCounterClockwise size={12} />
@@ -238,7 +239,7 @@ function ResponsePlainTextFallback({ text }: { text: string }) {
     <div
       className="whitespace-pre-wrap"
       data-testid="markdown-content-fallback"
-      style={{ color: 'var(--ai-message-assistant-fg, var(--foreground))', fontSize: 13, lineHeight: 1.55 }}
+      style={{ color: 'var(--ai-message-assistant-fg, var(--foreground))', fontSize: 14, lineHeight: 1.55 }}
     >
       {text}
     </div>
@@ -247,8 +248,8 @@ function ResponsePlainTextFallback({ text }: { text: string }) {
 
 function StreamingIndicator() {
   return (
-    <div className="flex items-center gap-2 text-muted-foreground" style={{ fontSize: 12, padding: '4px 0' }}>
-      <div className="flex gap-1">
+    <div className="flex items-center gap-2.5 text-muted-foreground" style={{ fontSize: 13, padding: '4px 0' }}>
+      <div className="flex gap-2">
         <span className="typing-dot" />
         <span className="typing-dot" style={{ animationDelay: '0.2s' }} />
         <span className="typing-dot" style={{ animationDelay: '0.4s' }} />
@@ -259,7 +260,7 @@ function StreamingIndicator() {
 
 function QueuedIndicator() {
   return (
-    <div className="text-muted-foreground" style={{ fontSize: 12, padding: '2px 0 4px' }}>
+    <div className="text-muted-foreground" style={{ fontSize: 13, padding: '2px 0 4px' }}>
       Queued
     </div>
   )

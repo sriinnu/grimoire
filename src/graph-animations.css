@@ -206,6 +206,11 @@
   transition: opacity 160ms ease, stroke-width 160ms ease;
 }
 
+/* Every relationship edge glows like a live synapse. */
+.grimoire-graph-edge--relationship {
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--grimoire-graph-edge-relationship, var(--primary)) 32%, transparent));
+}
+
 .grimoire-graph-edge--source-safe {
   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--primary) 16%, transparent));
 }
@@ -218,6 +223,11 @@
   filter: none;
 }
 
+/* Node cores glow softly, like lit neurons. */
+.grimoire-graph-node-core {
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--node-color, var(--primary)) 34%, transparent));
+}
+
 .grimoire-graph-node {
   transition: opacity 160ms ease, transform 160ms ease;
   transform-box: fill-box;
@@ -227,6 +237,17 @@
 .grimoire-graph-node:hover {
   opacity: 1;
   transform: scale(1.035);
+}
+
+/* Focus spotlight — hovering a connection in the side panel lights one node and
+   dims the rest. Attribute-driven so position stays owned by the physics engine. */
+.grimoire-graph-node[data-focus-dim='true'] {
+  opacity: 0.28;
+}
+
+.grimoire-graph-node--highlighted {
+  opacity: 1;
+  transform: scale(1.08);
 }
 
 .grimoire-graph-node-halo {

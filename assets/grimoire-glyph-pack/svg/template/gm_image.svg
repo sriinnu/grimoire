@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Image</title>
+  <desc>Grimoire glyph: Image</desc>
+  <rect x="14" y="16" width="36" height="32" rx="5" ry="5" stroke="#0B1F2A" fill="none" stroke-width="2.2" />
+  <circle cx="40" cy="25" r="3.5" stroke="#0B1F2A" fill="none" stroke-width="1.8" />
+  <path d="M18 43l10-12 8 8 5-5 7 9" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+</svg>

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ComponentType, type MouseEvent, type ReactNode, type SVGAttributes } from 'react'
-import { Link } from '@phosphor-icons/react'
+import { Glyph } from '../glyphs/Glyph'
 import { cn } from '@/lib/utils'
 import type { VaultEntry } from '../../types'
 import { resolveNoteIcon } from '../../utils/noteIcon'
@@ -75,7 +75,7 @@ function PropertyChipIcon({
   const [imageFailed, setImageFailed] = useState(false)
 
   if (tone === 'url') {
-    return <Link aria-hidden="true" width={11} height={11} className="shrink-0" />
+    return <Glyph name="link" size={11} className="shrink-0" aria-hidden="true" />
   }
 
   const noteIconElement = renderResolvedNoteIcon(noteIcon, imageFailed, () => setImageFailed(true))

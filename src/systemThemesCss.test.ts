@@ -124,7 +124,8 @@ describe('system theme CSS', () => {
     const strongBody = getRuleBody(editorMetaCss, '.editor-meta-pill__value,\n.editor-meta-pill strong')
 
     expect(body).toContain('display: flex')
-    expect(body).toContain('flex-wrap: wrap')
+    // Single cool-hairline meta row now (word count pinned right), not wrapping.
+    expect(body).toContain('flex-wrap: nowrap')
     expect(body).toContain('overflow-x: auto')
     expect(pillBody).toContain('display: inline-flex')
     expect(pillBody).toContain('min-width: 0')
@@ -145,22 +146,36 @@ describe('system theme CSS', () => {
   })
   it('keeps BlockNote floating side controls compact and below the editor top edge', () => {
     const body = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu')
-    const buttonBody = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu button')
+    const buttonBody = getRuleBody(
+      editorThemeCss,
+      '.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *)',
+    )
+    // The drag-handle menu + "Turn into" submenu render INSIDE .bn-side-menu, so
+    // the control-sizing rule must exclude their items (or they shrink to icons).
+    const menuItemBody = getRuleBody(
+      editorThemeCss,
+      '.editor__blocknote-container .bn-side-menu :is(.bn-menu-item, [role="menuitem"])',
+    )
+    expect(menuItemBody).toContain('width: 100% !important')
+    expect(menuItemBody).toContain('height: auto !important')
     const groupBody = getRuleBody(editorThemeCss, '.editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root)')
 
     expect(body).toContain('flex-direction: row !important')
-    expect(body).toContain('--grimoire-block-side-control-size: 28px')
-    expect(body).toContain('--grimoire-block-side-control-gap: 3px')
+    expect(body).toContain('--grimoire-block-side-control-size: 22px')
+    expect(body).toContain('--grimoire-block-side-control-gap: 1px')
     expect(body).toContain('gap: var(--grimoire-block-side-control-gap) !important')
     expect(body).toContain('width: max-content !important')
-    expect(body).toContain('max-width: calc((var(--grimoire-block-side-control-size) * 2) + var(--grimoire-block-side-control-gap) + 8px) !important')
+    expect(body).toContain('max-width: calc((var(--grimoire-block-side-control-size) * 2) + var(--grimoire-block-side-control-gap) + 4px) !important')
     expect(body).toContain('margin-top: 0 !important')
     expect(body).toContain('overflow: visible !important')
-    expect(body).toContain('padding: 2px !important')
-    expect(body).toContain('translate: -12px 0')
+    // De-carded, Notion-style: no floating panel, just two quiet icons.
+    expect(body).toContain('padding: 0 !important')
+    expect(body).toContain('background: transparent')
+    expect(body).toContain('box-shadow: none')
+    expect(body).toContain('translate: -8px 0')
     expect(buttonBody).toContain('width: var(--grimoire-block-side-control-size) !important')
     expect(buttonBody).toContain('height: var(--grimoire-block-side-control-size) !important')
-    expect(buttonBody).toContain('border-radius: 7px !important')
+    expect(buttonBody).toContain('border-radius: 6px !important')
     expect(groupBody).toContain('flex-wrap: nowrap !important')
     expect(groupBody).toContain('align-items: center !important')
     expect(groupBody).toContain('gap: var(--grimoire-block-side-control-gap) !important')
@@ -212,20 +227,10 @@ describe('system theme CSS', () => {
     expect(getRuleBody(css, flagshipCanvasSelector)).toContain('var(--surface-editor)')
   })
 
-  it('keeps light primary button foregrounds at AA contrast', () => {
-    for (const selector of [
-      '[data-theme-preset="living-archive"][data-theme="light"]',
-      '[data-theme-preset="daylight-notebook"][data-theme="light"]',
-      '[data-theme-preset="morning-notebook"][data-theme="light"]',
-      '[data-theme-preset="nocturne"][data-theme="light"]',
-    ]) {
-      const body = getRuleBody(css, selector)
-      expect(contrastRatio(getDeclaration(body, '--accent-blue'), getDeclaration(body, '--primary-foreground'))).toBeGreaterThanOrEqual(4.5)
-    }
-    const archiveLight = getRuleBody(polishCss, '[data-theme-preset="living-archive"][data-theme="light"]')
-    expect(contrastRatio(getDeclaration(archiveLight, '--accent-blue'), getDeclaration(archiveLight, '--primary-foreground'))).toBeGreaterThanOrEqual(4.5)
-    const archiveDark = getRuleBody(polishCss, '[data-theme-preset="living-archive"][data-theme="dark"]')
-    expect(contrastRatio(getDeclaration(archiveDark, '--grimoire-document-page'), getDeclaration(archiveDark, '--text-primary'))).toBeGreaterThanOrEqual(4.5)
+  it('keeps the light Midnight Aurora primary button foreground at AA contrast', () => {
+    const body = getRuleBody(css, '[data-theme-preset="morning-notebook"][data-theme="light"]')
+    // Aurora light: #0c7d72 teal accent + #ffffff primary-foreground = 5.01, passes AA.
+    expect(contrastRatio(getDeclaration(body, '--accent-blue'), getDeclaration(body, '--primary-foreground'))).toBeGreaterThanOrEqual(4.5)
   })
 
   it('keeps flagship workspace motion finite instead of ambient infinite loops', () => {

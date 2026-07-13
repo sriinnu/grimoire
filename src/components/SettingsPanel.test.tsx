@@ -300,17 +300,19 @@ describe('SettingsPanel workflow settings', () => {
     expect(screen.getByText(/to save/)).toBeInTheDocument()
   })
 
-  describe('Privacy & Telemetry section', () => {
-    it('renders crash reporting and analytics toggles', () => {
+  describe('Privacy section', () => {
+    it('leads with a local-only note and no telemetry toggles', () => {
       render(
         <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
       )
+      expect(screen.getByTestId('settings-privacy-local-note')).toBeInTheDocument()
       expect(screen.getByTestId('settings-cloud-transcription')).toBeInTheDocument()
-      expect(screen.getByTestId('settings-crash-reporting')).toBeInTheDocument()
-      expect(screen.getByTestId('settings-analytics')).toBeInTheDocument()
+      // Telemetry was removed entirely — nothing leaves the device.
+      expect(screen.queryByTestId('settings-crash-reporting')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('settings-analytics')).not.toBeInTheDocument()
     })
 
-    it('shows a local-first privacy runway before cloud and telemetry controls', () => {
+    it('shows a local-first privacy runway with no diagnostics step', () => {
       render(
         <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
       )
@@ -319,24 +321,21 @@ describe('SettingsPanel workflow settings', () => {
       expect(within(runway).getByText('Private by default')).toBeInTheDocument()
       expect(within(runway).getByText('Private capture')).toBeInTheDocument()
       expect(within(runway).getByText('Cloud blocked')).toBeInTheDocument()
-      expect(within(runway).getByText('Local only')).toBeInTheDocument()
-      expect(within(runway).getByText(/never include vault content/i)).toBeInTheDocument()
+      // No telemetry/diagnostics opt-in copy anywhere.
+      expect(within(runway).queryByText('Anonymous opt-in')).not.toBeInTheDocument()
     })
 
-    it('updates the privacy runway when cloud or diagnostics are enabled', () => {
-      const privacyEnabled: Settings = {
+    it('reflects cloud transcription allowed in the runway when enabled', () => {
+      const cloudEnabled: Settings = {
         ...emptySettings,
-        analytics_enabled: true,
         cloud_transcription_enabled: true,
-        crash_reporting_enabled: false,
       }
       render(
-        <SettingsPanel open={true} settings={privacyEnabled} onSave={onSave} onClose={onClose} />
+        <SettingsPanel open={true} settings={cloudEnabled} onSave={onSave} onClose={onClose} />
       )
 
       const runway = screen.getByTestId('settings-privacy-runway')
       expect(within(runway).getByText('Cloud allowed')).toBeInTheDocument()
-      expect(within(runway).getByText('Anonymous opt-in')).toBeInTheDocument()
     })
 
     it('keeps cloud transcription off until explicitly enabled', () => {
@@ -353,39 +352,6 @@ describe('SettingsPanel workflow settings', () => {
       expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
         cloud_transcription_enabled: true,
         transcription_provider: 'local_whisper',
-      }))
-    })
-
-    it('toggles reflect initial settings state', () => {
-      const withTelemetry: Settings = {
-        ...emptySettings,
-        telemetry_consent: true,
-        crash_reporting_enabled: true,
-        analytics_enabled: false,
-        anonymous_id: 'test-uuid',
-      }
-      render(
-        <SettingsPanel open={true} settings={withTelemetry} onSave={onSave} onClose={onClose} />
-      )
-
-      const crashCheckbox = within(screen.getByTestId('settings-crash-reporting')).getByRole('checkbox')
-      const analyticsCheckbox = within(screen.getByTestId('settings-analytics')).getByRole('checkbox')
-
-      expect(crashCheckbox).toHaveAttribute('aria-checked', 'true')
-      expect(analyticsCheckbox).toHaveAttribute('aria-checked', 'false')
-    })
-
-    it('saves telemetry settings when toggled and saved', () => {
-      render(
-        <SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />
-      )
-
-      fireEvent.click(within(screen.getByTestId('settings-crash-reporting')).getByRole('checkbox'))
-      fireEvent.click(screen.getByTestId('settings-save'))
-
-      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-        crash_reporting_enabled: true,
-        analytics_enabled: false,
       }))
     })
   })

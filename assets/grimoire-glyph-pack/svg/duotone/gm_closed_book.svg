@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Closed Book</title>
+  <desc>Grimoire glyph: Closed Book</desc>
+  <rect x="19" y="12" width="28" height="40" rx="4" stroke="#0B1F2A" fill="#D99A2916" stroke-width="2.2" />
+  <line x1="25" y1="12" x2="25" y2="52" stroke="#D99A29" stroke-width="2" />
+  <line x1="31" y1="24" x2="41" y2="24" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.7" />
+</svg>

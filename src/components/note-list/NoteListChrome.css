@@ -19,6 +19,11 @@
   z-index: 1;
 }
 
+/* Rows warm with the aurora accent on hover — colour, not a grey wash. */
+.note-list-panel [data-note-path]:hover:not([data-selected="true"]) {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
 .note-content-stack {
   --note-title-icon-size: 18px;
   --note-title-icon-gap: 8px;

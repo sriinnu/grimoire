@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Scroll</title>
+  <desc>Grimoire glyph: Scroll</desc>
+  <path d="M20 16h26c-4 1-6 5-6 9v23H18c4-1 6-5 6-9V20c0-2-2-4-4-4z" stroke="#0B1F2A" fill="#D99A2916" stroke-linejoin="round" stroke-width="2.2" />
+  <path d="M20 16c-5 0-7 3-7 7 0 4 3 6 7 6h4" stroke="#D99A29" fill="none" stroke-width="2" />
+  <line x1="29" y1="28" x2="40" y2="28" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.6" />
+  <line x1="29" y1="35" x2="40" y2="35" stroke="#0B1F2A" stroke-linecap="round" stroke-width="1.6" />
+</svg>

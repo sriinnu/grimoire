@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
+  Check,
   FilePlus2,
   Lock,
-  NotebookTabs,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { PulseCommit, SyncStatus, VaultEntry } from '../../types'
@@ -29,7 +30,11 @@ import {
 } from './DashboardTodayRunwayModel'
 import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
+import { DashboardHero } from './DashboardHero'
+import { DashboardCalendarCard } from './DashboardCalendarCard'
+import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
+import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import './VaultDashboardLayout.css'
 import './VaultDashboardResponsive.css'
 import './VaultDashboard.css'
@@ -60,16 +65,6 @@ interface VaultDashboardProps {
   vaultPath: string
 }
 
-function StatTile({ label, value, detail }: { label: string; value: number | string; detail: string }) {
-  return (
-    <div className="vault-dashboard__stat">
-      <div className="vault-dashboard__stat-value">{value}</div>
-      <div className="vault-dashboard__stat-label">{label}</div>
-      <div className="vault-dashboard__stat-detail">{detail}</div>
-    </div>
-  )
-}
-
 function PromptButton({
   children,
   onClick,
@@ -89,6 +84,59 @@ function WaitingBucketRow({ count, label }: { count: number; label: string }) {
     <div className="vault-dashboard__loop-row">
       <span>{formatTypeCount(label, count)}</span>
     </div>
+  )
+}
+
+/** Faint-grid teal sparkline rendered from a small activity series. */
+function DashboardSparkline({ series, label }: { series: number[]; label: string }) {
+  const width = 132
+  const height = 34
+  const max = Math.max(1, ...series)
+  const step = series.length > 1 ? width / (series.length - 1) : width
+  const points = series
+    .map((value, index) => {
+      const x = index * step
+      const y = height - (value / max) * (height - 4) - 2
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+
+  return (
+    <svg
+      className="vault-dashboard__sparkline"
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      role="img"
+      aria-label={label}
+      data-testid="dashboard-sparkline"
+    >
+      <line className="vault-dashboard__sparkline-grid" x1="0" y1={height / 2} x2={width} y2={height / 2} />
+      <polygon className="vault-dashboard__sparkline-fill" points={`0,${height} ${points} ${width},${height}`} />
+      <polyline className="vault-dashboard__sparkline-line" points={points} fill="none" />
+    </svg>
+  )
+}
+
+/** Compact reassurance card: everything is backed up, locally, with a teal check. */
+function VaultHealthCard({ activeNotes }: { activeNotes: number }) {
+  return (
+    <section className="vault-dashboard__panel vault-dashboard__health" data-testid="dashboard-vault-health">
+      <div className="vault-dashboard__panel-head">
+        <div className="vault-dashboard__panel-label">Vault health</div>
+      </div>
+      <div className="vault-dashboard__health-body">
+        <span className="vault-dashboard__health-shield" aria-hidden="true">
+          <ShieldCheck size={26} />
+          <span className="vault-dashboard__health-check" aria-hidden="true">
+            <Check size={11} strokeWidth={3} />
+          </span>
+        </span>
+        <strong className="vault-dashboard__health-title">Everything backed up</strong>
+        <span className="vault-dashboard__health-meta">
+          {activeNotes} {activeNotes === 1 ? 'page' : 'pages'} held local
+        </span>
+      </div>
+    </section>
   )
 }
 
@@ -130,7 +178,7 @@ export function VaultDashboard({
       : null,
     [attentionSuggestion.openEntryPath, entries],
   )
-  const activeVaultLabel = activeVault?.label ?? vaultPath.split(/[\\/]/u).filter(Boolean).pop() ?? 'Vault'
+  const activeVaultLabel = getNotebookVaultDisplayName({ label: activeVault?.label, path: vaultPath })
   const activeNotebookTitle = notebookTitle(activeVaultLabel)
   const showAskContextPreview = selectedKind === 'ask' || /^\s*\/ask\b/i.test(input)
   const canUseAttentionAction = !!attentionSuggestion.actionLabel && (!!attentionCaptureKind || !!attentionOpenEntry)
@@ -139,6 +187,27 @@ export function VaultDashboard({
     : selectedKind === 'dream'
       ? selectedTemplates.dream
       : null
+  const activitySeries = useMemo(() => {
+    const days = 14
+    const dayMs = 24 * 60 * 60 * 1000
+    const now = Date.now()
+    const buckets = new Array<number>(days).fill(0)
+    for (const entry of entries) {
+      const ts = entry.modifiedAt ?? entry.createdAt
+      if (typeof ts !== 'number' || !Number.isFinite(ts)) continue
+      const daysAgo = Math.floor((now - ts * 1000) / dayMs)
+      if (daysAgo < 0 || daysAgo >= days) continue
+      buckets[days - 1 - daysAgo] += 1
+    }
+    return buckets
+  }, [entries])
+  const hasActivity = activitySeries.some((value) => value > 0)
+  const heroStats: DashboardStat[] = useMemo(() => [
+    { id: 'pages', value: summary.activeNotes, label: 'Pages', delta: 'active local notes' },
+    { id: 'journals', value: summary.journalCount, label: 'Journals', delta: 'private by default' },
+    { id: 'dreams', value: summary.dreamCount, label: 'Dreams', delta: 'held local' },
+    { id: 'memory', value: summary.memoryQueueCount, label: 'Memory', delta: 'review queue' },
+  ], [summary.activeNotes, summary.journalCount, summary.dreamCount, summary.memoryQueueCount])
 
   useEffect(() => {
     if (!showAskContextPreview) {
@@ -239,46 +308,49 @@ export function VaultDashboard({
 
   return (
     <main className="vault-dashboard" data-testid="vault-dashboard">
-      <section className="vault-dashboard__hero">
-        <div className="vault-dashboard__hero-copy">
-          <div className="vault-dashboard__eyebrow">
-            <NotebookTabs size={14} />
-            Grimoire
-          </div>
-          <h1>{activeNotebookTitle}</h1>
-          <p className="vault-dashboard__subtitle">One living notebook, private by default.</p>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="vault-dashboard__new-page-button"
-          aria-label="New Page"
-          title="New Page"
-          onClick={() => seedPrompt('note')}
-          data-testid="dashboard-new-page"
+      <section className="vault-dashboard__grid grimoire-cascade">
+        <DashboardHero
+          eyebrowLabel="Grimoire"
+          title={activeNotebookTitle}
+          tagline="One living notebook. Capture, connect, and remember — private by default."
+          action={(
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="vault-dashboard__new-page-button"
+              aria-label="New Page"
+              title="New Page"
+              onClick={() => seedPrompt('note')}
+              data-testid="dashboard-new-page"
+            >
+              <FilePlus2 size={16} />
+            </Button>
+          )}
         >
-          <FilePlus2 size={16} />
-        </Button>
-      </section>
+          <DashboardQuickCapturePanel
+            askContextPreview={askContextPreview}
+            busy={busy}
+            captureDateOffset={captureDateOffset}
+            captureDateOverride={captureDateOverride}
+            input={input}
+            inputRef={inputRef}
+            selectedKind={selectedKind}
+            selectedTemplateId={selectedTemplateId}
+            showAskContextPreview={showAskContextPreview}
+            onInputChange={updateCaptureInput}
+            onSelectDateOffset={selectCaptureDateOffset}
+            onSelectKind={selectCaptureKind}
+            onSelectTemplate={selectTemplate}
+            onSubmit={handleSubmit}
+          />
+        </DashboardHero>
 
-      <section className="vault-dashboard__grid">
-        <DashboardQuickCapturePanel
-          askContextPreview={askContextPreview}
-          busy={busy}
-          captureDateOffset={captureDateOffset}
-          captureDateOverride={captureDateOverride}
-          input={input}
-          inputRef={inputRef}
-          selectedKind={selectedKind}
-          selectedTemplateId={selectedTemplateId}
-          showAskContextPreview={showAskContextPreview}
-          onInputChange={updateCaptureInput}
-          onSelectDateOffset={selectCaptureDateOffset}
-          onSelectKind={selectCaptureKind}
-          onSelectTemplate={selectTemplate}
-          onSubmit={handleSubmit}
-        />
+        <DashboardStatRow stats={heroStats} />
+
+        <DashboardCalendarCard entries={entries} />
+
+        <VaultHealthCard activeNotes={summary.activeNotes} />
 
         <DashboardTodayRunway
           attention={attentionSuggestion}
@@ -303,14 +375,28 @@ export function VaultDashboard({
           />
         </Suspense>
 
-        <div className="vault-dashboard__panel">
+        <div className="vault-dashboard__panel vault-dashboard__panel--revisit">
           <div className="vault-dashboard__panel-head">
             <div>
-              <div className="vault-dashboard__panel-label">Revisit</div>
+              <div className="vault-dashboard__panel-label">
+                <CalendarDays size={13} aria-hidden="true" />
+                Revisit
+              </div>
               <h2>{summary.openLoopCount > 0 ? 'Pages to return to.' : 'No loose pages.'}</h2>
             </div>
-            <CalendarDays size={18} />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="vault-dashboard__panel-link"
+              onClick={() => seedPrompt('task')}
+            >
+              View all
+            </Button>
           </div>
+          {hasActivity ? (
+            <DashboardSparkline series={activitySeries} label="Recent activity over the last two weeks" />
+          ) : null}
           <div className="vault-dashboard__loop-list">
             {summary.openLoopBuckets.length > 0 ? summary.openLoopBuckets.map((bucket) => (
               <WaitingBucketRow key={bucket.label} count={bucket.count} label={bucket.label} />
@@ -323,10 +409,12 @@ export function VaultDashboard({
         <div className="vault-dashboard__panel">
           <div className="vault-dashboard__panel-head">
             <div>
-              <div className="vault-dashboard__panel-label">Private pages</div>
+              <div className="vault-dashboard__panel-label">
+                <Lock size={13} aria-hidden="true" />
+                Private pages
+              </div>
               <h2>Journal, dream, next.</h2>
             </div>
-            <Lock size={18} />
           </div>
           <div className="vault-dashboard__prompts">
             <PromptButton onClick={() => seedPrompt('journal')}>
@@ -337,13 +425,6 @@ export function VaultDashboard({
             </PromptButton>
             <PromptButton onClick={() => seedPrompt('task')}>Carry one page forward</PromptButton>
           </div>
-        </div>
-
-        <div className="vault-dashboard__stats">
-          <StatTile label="Pages" value={summary.activeNotes} detail="active local notes" />
-          <StatTile label="Journals" value={summary.journalCount} detail="private by default" />
-          <StatTile label="Dreams" value={summary.dreamCount} detail="held local" />
-          <StatTile label="Memory" value={summary.memoryQueueCount} detail="review queue" />
         </div>
 
         <DashboardRecentNotesPanel

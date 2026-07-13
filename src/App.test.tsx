@@ -48,6 +48,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 vi.mock('./lib/tauriRuntime', () => ({
   invoke: tauriInvokeMock,
   isTauriRuntimeAvailable: tauriRuntimeAvailableMock,
+  getHomeDir: vi.fn(async () => null),
   createTauriChannel: vi.fn(async () => ({ onmessage: null })),
   getCurrentTauriWindow: vi.fn(async () => ({
     startDragging: vi.fn(async () => {}),
@@ -611,7 +612,7 @@ describe('App', () => {
     await waitFor(() => {
       expect(screen.getByTestId('vault-dashboard')).toBeInTheDocument()
       expect(screen.getByRole('heading', { level: 1, name: 'Test Notebook' })).toBeInTheDocument()
-      expect(screen.getByText('One living notebook, private by default.')).toBeInTheDocument()
+      expect(screen.getByText('One living notebook. Capture, connect, and remember — private by default.')).toBeInTheDocument()
     }, { timeout: 10000 })
   }, 15000)
 
@@ -663,8 +664,8 @@ describe('App', () => {
     const { container } = render(<App />)
     await selectSidebarNav('Pages')
     await waitFor(() => {
-      const shortcutHint = Array.from(container.querySelectorAll('span.text-xs.text-muted-foreground'))
-        .find((element) => element.textContent === `${quickOpenHint} to search · ${newNoteHint} to create`)
+      const shortcutHint = Array.from(container.querySelectorAll('.editor-empty-state__detail'))
+        .find((element) => element.textContent?.includes(`${quickOpenHint} to search`) && element.textContent?.includes(`${newNoteHint} to create`))
 
       expect(shortcutHint).toBeInTheDocument()
     })

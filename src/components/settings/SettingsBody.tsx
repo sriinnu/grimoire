@@ -119,7 +119,7 @@ export function SettingsBody(props: SettingsBodyProps) {
       />
       <div
         ref={mainSurfaceRef}
-        className="settings-main-surface min-w-0 flex-1 overflow-auto px-4 py-3 md:px-6"
+        className="settings-main-surface min-w-0 flex-1 overflow-auto"
         data-testid="settings-main-surface"
         onScroll={handleMainSurfaceScroll}
       >

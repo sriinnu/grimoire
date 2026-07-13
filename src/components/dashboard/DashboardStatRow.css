@@ -1,0 +1,47 @@
+.dashboard-stat-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--grimoire-density-card-gap, 14px);
+}
+
+.dashboard-stat {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 116px;
+  padding: clamp(16px, 1.6vw, 20px);
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: var(--grimoire-shell-radius, 8px);
+  background: var(--grimoire-card-material, var(--surface-card));
+  box-shadow: var(--elevation-1);
+}
+
+.dashboard-stat__value {
+  font-size: var(--font-size-stat, 42px);
+  line-height: 1;
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.dashboard-stat__label {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 640;
+  color: var(--text-secondary);
+}
+
+.dashboard-stat__delta {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+@container vault-dashboard (max-width: 720px) {
+  .dashboard-stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

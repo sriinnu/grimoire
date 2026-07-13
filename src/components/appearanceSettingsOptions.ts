@@ -42,29 +42,9 @@ export interface PresetOptionGroup {
 export { PRESET_SWATCHES }
 
 const PRESET_TRANSLATION_KEYS: Partial<Record<ThemePreset, [TranslationKey, TranslationKey]>> = {
-  constellation: [
-    'settings.themePreset.constellation',
-    'settings.themePreset.constellationDescription',
-  ],
-  'daylight-notebook': [
-    'settings.themePreset.daylightNotebook',
-    'settings.themePreset.daylightNotebookDescription',
-  ],
   'morning-notebook': [
     'settings.themePreset.morningNotebook',
     'settings.themePreset.morningNotebookDescription',
-  ],
-  'living-archive': [
-    'settings.themePreset.livingArchive',
-    'settings.themePreset.livingArchiveDescription',
-  ],
-  nocturne: [
-    'settings.themePreset.nocturne',
-    'settings.themePreset.nocturneDescription',
-  ],
-  'code-notebook': [
-    'settings.themePreset.codeNotebook',
-    'settings.themePreset.codeNotebookDescription',
   ],
 }
 
@@ -76,17 +56,7 @@ const PRESET_GROUPS: readonly {
   {
     id: 'signature',
     labelKey: 'settings.themePreset.group.signature',
-    presetIds: ['morning-notebook', 'nocturne'],
-  },
-  {
-    id: 'paper',
-    labelKey: 'settings.themePreset.group.paper',
-    presetIds: ['daylight-notebook', 'living-archive'],
-  },
-  {
-    id: 'specialist',
-    labelKey: 'settings.themePreset.group.specialist',
-    presetIds: ['constellation', 'code-notebook'],
+    presetIds: ['morning-notebook'],
   },
 ]
 

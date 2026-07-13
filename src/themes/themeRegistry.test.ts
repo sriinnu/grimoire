@@ -60,22 +60,25 @@ function hueDegrees(color: RgbColor): number {
   return ((red - green) / delta + 4) * 60
 }
 
-function expectNotGreenishAccent(value: string, label: string): void {
+function expectTealAccent(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const hue = hueDegrees(color!)
 
-  expect(hue < 95 || hue > 185, label).toBe(true)
+  // Midnight Aurora's accent IS teal: the hue must sit in the teal band.
+  expect(hue >= 150 && hue <= 195, `${label} should be aurora teal; hue ${hue}`).toBe(true)
 }
 
-function expectBlueNeutralDarkSurface(value: string, label: string): void {
+function expectCoolDarkSurface(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const [red, green, blue] = color!.map((channel) => Math.round(channel * 255))
 
+  // Midnight Aurora surfaces lean cool navy: blue is the dominant channel
+  // and red never out-cools it. A red-leaning value would be the old parchment.
   expect(
-    blue >= green,
-    `${label} should not lean olive or moss; rgb(${red}, ${green}, ${blue})`,
+    blue >= green && green >= red,
+    `${label} should lean cool navy, not warm parchment; rgb(${red}, ${green}, ${blue})`,
   ).toBe(true)
 }
 
@@ -86,14 +89,17 @@ describe('theme registry', () => {
     ])
   })
 
-  it('ships only Grimoire-native themes in the settings catalog', () => {
+  it('ships only the single Midnight Aurora theme in the settings catalog', () => {
     const presetIds = THEME_PRESET_CATALOG.map((preset) => preset.id)
 
-    expect(presetIds).toContain('code-notebook')
-    expect(presetIds).not.toContain('classic')
-    expect(presetIds).not.toContain('aether')
-    expect(presetIds).not.toContain('ion')
-    expect(presetIds).not.toContain('moss')
+    expect(presetIds).toEqual(['morning-notebook'])
+    expect(presetIds).toContain('morning-notebook')
+    // The multi-preset era is gone: none of the retired presets survive.
+    expect(presetIds).not.toContain('constellation')
+    expect(presetIds).not.toContain('daylight-notebook')
+    expect(presetIds).not.toContain('living-archive')
+    expect(presetIds).not.toContain('nocturne')
+    expect(presetIds).not.toContain('code-notebook')
   })
 
   it('keeps every JSON preset self-contained for hot reload previews', () => {
@@ -149,28 +155,23 @@ describe('theme registry', () => {
       THEME_PRESET_CATALOG.map((preset) => [preset.id, resolveThemeDefinitionPreferredMode(preset)]),
     )
 
-    expect(preferredModes).toMatchObject({
-      constellation: 'dark',
-      'code-notebook': 'dark',
-      'daylight-notebook': 'light',
-      'living-archive': 'light',
+    expect(preferredModes).toEqual({
       'morning-notebook': 'light',
-      nocturne: 'dark',
     })
   })
 
-  it('keeps dark visible theme accents out of the green teal hue band', () => {
+  it('keeps dark visible theme accents in the aurora teal hue band', () => {
     for (const preset of THEME_PRESET_CATALOG) {
       const dark = preset.modes.dark
       if (!dark) continue
 
       for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
-        expectNotGreenishAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectTealAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
 
-  it('keeps dark theme surfaces graphite blue-neutral instead of greenish', () => {
+  it('keeps dark theme surfaces cool navy instead of warm parchment', () => {
     const surfaceTokens = [
       'surface.app',
       'surface.sidebar',
@@ -189,7 +190,7 @@ describe('theme registry', () => {
       if (!dark) continue
 
       for (const token of surfaceTokens) {
-        expectBlueNeutralDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectCoolDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
@@ -218,7 +219,8 @@ describe('theme registry', () => {
       expect(parsed.definition.motion.profile).toBe('standard')
       expect(parsed.definition.visuals.graphStyle).toBe('constellation')
       expect(parsed.definition.visuals.canvasStyle).toBe('paper')
-      expect(parsed.definition.preferredMode).toBe('dark')
+      // Midnight Aurora keeps both modes, so the research-family fallback prefers light.
+      expect(parsed.definition.preferredMode).toBe('light')
     }
   })
 
@@ -244,7 +246,9 @@ describe('theme registry', () => {
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
       expect(parsed.definition.id).toBe(THEME_PRESET_CATALOG[0].id)
-      expect(resolveThemeDefinitionMode(parsed.definition, 'light')).toBe('dark')
+      // Midnight Aurora carries both modes, so a requested mode resolves to itself.
+      expect(resolveThemeDefinitionMode(parsed.definition, 'light')).toBe('light')
+      expect(resolveThemeDefinitionMode(parsed.definition, 'dark')).toBe('dark')
     }
   })
 
@@ -336,6 +340,8 @@ describe('theme registry', () => {
 
   it('fails closed when imported theme preferred mode is impossible', () => {
     const unsafe = JSON.parse(serializeThemeDefinition(THEME_PRESET_CATALOG[0])) as typeof THEME_PRESET_CATALOG[number]
+    // Strip the light mode but keep pointing the preferred mode at it: impossible.
+    delete unsafe.modes.light
     unsafe.preferredMode = 'light'
 
     const parsed = parseThemeDefinitionJson(JSON.stringify(unsafe))

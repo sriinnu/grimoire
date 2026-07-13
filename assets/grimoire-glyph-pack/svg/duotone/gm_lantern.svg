@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Lantern</title>
+  <desc>Grimoire glyph: Lantern</desc>
+  <path d="M24 19c0-6 16-6 16 0" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2" />
+  <rect x="20" y="22" width="24" height="26" rx="5" stroke="#0B1F2A" fill="#D99A2916" stroke-width="2.2" />
+  <path d="M26 48l-4 6M38 48l4 6" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2" />
+  <path d="M29 38c-2-4 1-8 3-11 2 3 5 7 3 11-1 3-5 3-6 0z" stroke="#D99A29" fill="#D99A2922" stroke-width="1.8" stroke-linejoin="round" />
+</svg>

@@ -1,4 +1,5 @@
-import { Bot, CloudOff, GitBranch, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { CloudOff, ShieldAlert } from 'lucide-react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import type { ReactNode } from 'react'
 import type { VaultEntry } from '../../types'
 import {
@@ -15,7 +16,6 @@ interface LocalityFirewallPanelProps {
 /** Shows the active note's egress policy before agents, export, sync, or Git flows touch it. */
 export function LocalityFirewallPanel({ entry }: LocalityFirewallPanelProps) {
   const policy = resolveEntryLocalityPolicy(entry)
-  const Icon = policy.localOnly ? ShieldAlert : ShieldCheck
   const badge = policy.localOnly ? 'Protected local' : 'Vault context'
   const description = policy.localOnly
     ? 'No title, path, body, or frontmatter leaves through agent, export, sync, or Git flows by default.'
@@ -30,7 +30,7 @@ export function LocalityFirewallPanel({ entry }: LocalityFirewallPanelProps) {
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <h4 className="font-mono-overline flex items-center gap-1 text-muted-foreground">
-          <Icon className="size-3" />
+          {policy.localOnly ? <ShieldAlert className="size-3" /> : <Glyph name="shield" size={12} className="size-3" />}
           Firewall
         </h4>
         <Badge variant={policy.localOnly ? 'outline' : 'secondary'} className="h-5 rounded-md px-1.5 text-[10px]">
@@ -71,7 +71,7 @@ function FirewallLaneRow({ lane }: { lane: LocalityEgressLane }) {
 }
 
 function laneIcon(id: LocalityEgressLane['id']): ReactNode {
-  if (id === 'agents') return <Bot className="size-3" />
+  if (id === 'agents') return <Glyph name="aiAgent" size={12} />
   if (id === 'export-sync') return <CloudOff className="size-3" />
-  return <GitBranch className="size-3" />
+  return <Glyph name="gitHistory" size={12} />
 }

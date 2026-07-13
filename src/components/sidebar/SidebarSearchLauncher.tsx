@@ -1,5 +1,5 @@
-import { Search } from 'lucide-react'
 import type { KeyboardEvent } from 'react'
+import { Glyph } from '../glyphs/Glyph'
 import { Input } from '@/components/ui/input'
 import { APP_COMMAND_IDS, getAppCommandShortcutDisplay } from '../../hooks/appCommandCatalog'
 import { isMac } from '../../utils/platform'
@@ -26,10 +26,10 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
   return (
     <div className="border-b border-border px-2.5 py-2" data-testid="sidebar-search-launcher">
       <div className="relative">
-        <Search
-          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground"
+        <Glyph
+          name="search"
           size={15}
-          strokeWidth={2.3}
+          className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground"
           aria-hidden="true"
         />
         {searchShortcut && (

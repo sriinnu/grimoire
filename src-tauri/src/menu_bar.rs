@@ -248,7 +248,7 @@ mod tests {
     }
 
     #[test]
-    fn grimoire_menu_bar_icon_uses_explicit_non_template_asset() {
+    fn grimoire_menu_bar_icon_uses_full_color_logo() {
         assert!(GRIMOIRE_MENU_BAR_ICON_PNG.starts_with(b"\x89PNG\r\n\x1a\n"));
         assert!(!grimoire_menu_bar_icon_as_template());
     }

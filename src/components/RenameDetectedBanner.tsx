@@ -1,4 +1,4 @@
-import { ArrowsClockwise } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 
 export interface DetectedRename {
   old_path: string
@@ -17,7 +17,7 @@ export function RenameDetectedBanner({ renames, onUpdate, onDismiss }: RenameDet
   const count = renames.length
   return (
     <div className="flex items-center gap-3 border-b border-border bg-accent/50 px-4 py-2 text-[13px]">
-      <ArrowsClockwise size={16} className="shrink-0 text-accent-foreground" />
+      <Glyph name="repeat" size={16} className="shrink-0 text-accent-foreground" />
       <span className="flex-1 text-foreground">
         {count} file{count !== 1 ? 's' : ''} renamed outside Grimoire. Update wikilinks?
       </span>

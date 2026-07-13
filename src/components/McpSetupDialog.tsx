@@ -1,4 +1,4 @@
-import { ShieldCheck } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -59,7 +59,7 @@ export function McpSetupDialog({
       <DialogContent showCloseButton={false} className="sm:max-w-[520px]" data-testid="mcp-setup-dialog">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck size={18} />
+            <Glyph name="shield" size={18} />
             {copy.title}
           </DialogTitle>
           <DialogDescription>{copy.description}</DialogDescription>

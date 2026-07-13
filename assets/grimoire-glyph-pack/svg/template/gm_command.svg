@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Command</title>
+  <desc>Grimoire glyph: Command</desc>
+  <rect x="13" y="16" width="38" height="32" rx="5" ry="5" stroke="#0B1F2A" fill="none" stroke-width="2.2" />
+  <polyline points="22,27 29,32 22,37" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" />
+  <line x1="33" y1="38" x2="43" y2="38" stroke="#0B1F2A" stroke-linecap="round" stroke-width="2.2" />
+</svg>

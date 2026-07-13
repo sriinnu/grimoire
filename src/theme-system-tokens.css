@@ -140,76 +140,86 @@
   --sidebar-border: rgba(182, 194, 208, 0.16);
 }
 
+/* Midnight Aurora — the default identity. Airy off-white surfaces by day, deep
+   navy-black with a teal glow by night. Tokens flow to every surface (editor,
+   sidebar, panels, cards, dialogs), so the theme runs through the whole app,
+   not a wrapper. --primary/--ring derive from --accent-blue, so the teal reaches
+   buttons, focus rings, and selection too. */
 [data-theme-preset="morning-notebook"][data-theme="light"] {
   color-scheme: light;
-  --surface-app: #f8f9fb;
-  --surface-sidebar: #f1f3f6;
-  --surface-panel: #fcfdff;
+  --surface-app: #fbfaf7;
+  --surface-sidebar: #f6f2ea;
+  --surface-panel: #f7f3ec;
   --surface-card: #ffffff;
   --surface-popover: #ffffff;
   --surface-input: #ffffff;
-  --surface-editor: #fdfdff;
-  --text-primary: #24313a;
-  --text-secondary: #607080;
-  --text-heading: #17252f;
-  --border-default: #d9dee7;
-  --border-subtle: #e9edf3;
-  --border-strong: #aeb9c8;
-  --state-hover: #f1f4f8;
-  --state-hover-subtle: #f8f9fb;
-  --state-selected: #e6eef7;
-  --accent-blue: #2f668e;
-  --accent-blue-hover: #24597f;
-  --accent-blue-light: rgba(47, 102, 142, 0.12);
+  --surface-editor: #fffdfc;
+  --text-primary: #17242f;
+  --text-secondary: #516270;
+  --text-heading: #112030;
+  --border-default: #e7e2da;
+  --border-subtle: #ece8e1;
+  --border-strong: #d8d1c7;
+  --state-hover: #f1ece3;
+  --state-hover-subtle: #f6f2ea;
+  --state-selected: #ddf4f1;
+  --accent-blue: #0e7c78;
+  --accent-blue-hover: #0b6660;
+  --accent-blue-light: rgba(14, 124, 120, 0.12);
   --primary-foreground: #ffffff;
   --accent-green: var(--accent-blue);
-  --accent-orange: #c85f4a;
-  --accent-purple: #665cc5;
-  --accent-yellow: #9d7a25;
-  --syntax-heading: #2b5d86;
-  --syntax-link: #2f668e;
-  --sidebar-foreground: #24313a;
-  --sidebar-primary: #2f668e;
+  --accent-orange: #cf6a45;
+  --accent-purple: #7667d8;
+  --accent-yellow: #a07b1c;
+  --state-focus-ring: #0e7c78;
+  --border-focus: #0e7c78;
+  --syntax-heading: #0b6660;
+  --syntax-link: #0e7c78;
+  --sidebar-foreground: #2c3742;
+  --sidebar-primary: #0e7c78;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(47, 102, 142, 0.13);
-  --sidebar-accent-foreground: #24313a;
-  --sidebar-border: #dce2ea;
+  --sidebar-accent: rgba(14, 124, 120, 0.13);
+  --sidebar-accent-foreground: #17242f;
+  --sidebar-border: #e3ddd2;
 }
 
+/* Nocturne Aurora — deep ink with warm off-white text, teal glow, iris accent. */
 [data-theme-preset="morning-notebook"][data-theme="dark"] {
   color-scheme: dark;
-  --surface-app: #111316;
-  --surface-sidebar: #0f1114;
-  --surface-panel: #171a1f;
-  --surface-card: #1d2228;
-  --surface-popover: #20252c;
-  --surface-input: #171c22;
-  --surface-editor: #13171c;
-  --text-primary: #e8eaed;
-  --text-secondary: #adb4bd;
-  --text-heading: #f8fafc;
-  --border-default: #30363d;
-  --border-subtle: #242a31;
-  --border-strong: #4b5563;
-  --state-hover: #20242a;
-  --state-hover-subtle: #181c21;
-  --state-selected: #2a3038;
-  --accent-blue: #aab6c5;
-  --accent-blue-hover: #d0d7df;
-  --accent-blue-light: rgba(170, 182, 197, 0.14);
-  --primary-foreground: #0d1116;
+  --surface-app: #071217;
+  --surface-sidebar: #081a21;
+  --surface-panel: #0a1a21;
+  --surface-card: #0d1c23;
+  --surface-popover: #122832;
+  --surface-input: #0c1a20;
+  --surface-editor: #050d12;
+  --text-primary: #f5f2ea;
+  --text-secondary: #b7c8cc;
+  --text-heading: #f7f4ec;
+  --border-default: #1e3a43;
+  --border-subtle: #16323b;
+  --border-strong: #315c65;
+  --state-hover: #0e2129;
+  --state-hover-subtle: #0b1a21;
+  --state-selected: #123e42;
+  --accent-blue: #26d6c9;
+  --accent-blue-hover: #5fe3d2;
+  --accent-blue-light: rgba(38, 214, 201, 0.16);
+  --primary-foreground: #04201d;
   --accent-green: var(--accent-blue);
-  --accent-orange: #f2a06f;
-  --accent-purple: #b8a7ff;
-  --accent-yellow: #e8c86f;
-  --syntax-heading: #d0d7df;
-  --syntax-link: #aab6c5;
-  --sidebar-foreground: #eaedf1;
-  --sidebar-primary: #b6c2d0;
-  --sidebar-primary-foreground: #0d1116;
-  --sidebar-accent: rgba(182, 194, 208, 0.12);
-  --sidebar-accent-foreground: #f2f4f7;
-  --sidebar-border: rgba(182, 194, 208, 0.16);
+  --accent-orange: #ff8b70;
+  --accent-purple: #9b87ff;
+  --accent-yellow: #f6b64b;
+  --state-focus-ring: #26d6c9;
+  --border-focus: #26d6c9;
+  --syntax-heading: #5fe3d2;
+  --syntax-link: #26d6c9;
+  --sidebar-foreground: #cbd8d8;
+  --sidebar-primary: #26d6c9;
+  --sidebar-primary-foreground: #04201d;
+  --sidebar-accent: rgba(38, 214, 201, 0.14);
+  --sidebar-accent-foreground: #f5f2ea;
+  --sidebar-border: rgba(38, 214, 201, 0.16);
 }
 
 [data-theme-preset="living-archive"][data-theme="light"] {

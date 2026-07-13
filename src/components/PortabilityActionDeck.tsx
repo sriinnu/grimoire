@@ -1,4 +1,4 @@
-import { ShieldCheck } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { AppImportAutopsyActions } from './AppImportAutopsyActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
@@ -163,7 +163,7 @@ export function PortabilityActionDeck({
             className="grimoire-portability-review-gate flex items-start gap-2 rounded-md border border-border px-2.5 py-2 text-[11px] leading-snug text-muted-foreground"
             data-testid="settings-portability-preview-gate"
           >
-            <ShieldCheck className="mt-0.5 shrink-0" size={14} />
+            <Glyph name="shield" size={14} className="mt-0.5 shrink-0" />
             <span>{t('settings.portability.reviewGate')}</span>
           </div>
         ) : null}

@@ -1,4 +1,4 @@
-import { Brain, Cloud, DownloadSimple, FolderOpen, GitBranch, UploadSimple } from '@phosphor-icons/react'
+import { Glyph } from './glyphs/Glyph'
 import type { ReactNode } from 'react'
 import type { createTranslator } from '../lib/i18n'
 import type { DesktopStorageHealthReport } from '../utils/desktopStorageHealth'
@@ -54,26 +54,26 @@ function buildPortabilityGroups(t: Translate, vaultPath: string): PortabilityGro
     {
       title: t('settings.portability.import'),
       description: t('settings.portability.importDescription'),
-      icon: <DownloadSimple size={15} />,
+      icon: <Glyph name="download" size={15} />,
       items: listVaultImportSources(),
     },
     {
       title: t('settings.portability.export'),
       description: t('settings.portability.exportDescription'),
-      icon: <UploadSimple size={15} />,
+      icon: <Glyph name="upload" size={15} />,
       items: listVaultExportTargets(),
     },
     {
       title: t('settings.portability.storage'),
       description: t('settings.portability.storageDescription'),
-      icon: <Cloud size={15} />,
+      icon: <Glyph name="cloudVault" size={15} />,
       items: listVaultStorageProviders(),
       storageHealth: getVaultStorageHealth(vaultPath),
     },
     {
       title: t('settings.portability.brain'),
       description: t('settings.portability.brainDescription'),
-      icon: <Brain size={15} />,
+      icon: <Glyph name="brain" size={15} />,
       items: [
         { id: 'journal', label: t('settings.portability.brainJournalCapture'), status: 'ready' },
         { id: 'agent-briefs', label: t('settings.portability.brainAgentBriefs'), status: 'ready' },
@@ -145,8 +145,8 @@ function StorageHealthRows({ health, t }: { health: readonly VaultStorageHealth[
 }
 
 function renderItemIcon(id: string): ReactNode {
-  if (id === 'git' || id === 'git-remote') return <GitBranch size={12} />
-  if (id.includes('folder') || id.includes('drive')) return <FolderOpen size={12} />
+  if (id === 'git' || id === 'git-remote') return <Glyph name="gitHistory" size={12} />
+  if (id.includes('folder') || id.includes('drive')) return <Glyph name="folder" size={12} />
   return null
 }
 

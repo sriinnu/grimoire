@@ -36,3 +36,23 @@ export async function getCurrentTauriWindow(): Promise<ReturnType<TauriWindowMod
   const { getCurrentWindow } = await import('@tauri-apps/api/window')
   return getCurrentWindow()
 }
+
+let homeDirCache: Promise<string | null> | undefined
+
+/**
+ * Resolves the user's home directory once, lazily, for native path display
+ * (collapsing `/Users/me/…` to `~/…`). Returns null outside Tauri or on error,
+ * so callers degrade to the absolute path. Cached after the first call.
+ */
+export function getHomeDir(): Promise<string | null> {
+  if (homeDirCache) return homeDirCache
+  if (!isTauriRuntimeAvailable()) {
+    homeDirCache = Promise.resolve(null)
+    return homeDirCache
+  }
+  homeDirCache = import('@tauri-apps/api/path')
+    .then(({ homeDir }) => homeDir())
+    .then((dir) => dir.replace(/[\\/]+$/u, ''))
+    .catch(() => null)
+  return homeDirCache
+}

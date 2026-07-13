@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Laurel</title>
+  <desc>Grimoire glyph: Laurel</desc>
+  <path d="M20 50c-3-15 2-28 13-38M44 50c3-15-2-28-13-38" stroke="#0B1F2A" fill="none" stroke-linecap="round" stroke-width="2" />
+  <ellipse cx="22" cy="43" rx="5" ry="2.5" stroke="#0B1F2A" fill="none" stroke-width="1.5" transform="rotate(-35 22 43)" />
+  <ellipse cx="24" cy="38" rx="5" ry="2.5" stroke="#0B1F2A" fill="none" stroke-width="1.5" transform="rotate(-27 24 38)" />
+  <ellipse cx="26" cy="33" rx="5" ry="2.5" stroke="#0B1F2A" fill="none" stroke-width="1.5" transform="rotate(-19 26 33)" />
+  <ellipse cx="28" cy="28" rx="5" ry="2.5" stroke="#0B1F2A" fill="none" stroke-width="1.5" transform="rotate(-11 28 28)" />
+  <ellipse cx="30" cy="23" rx="5" ry="2.5" stroke="#0B1F2A" fill="none" stroke-width="1.5" transform="rotate(-3 30 23)" />
+</svg>

@@ -145,11 +145,11 @@ describe('GraphModal', () => {
 
     const svg = screen.getByTestId('graph-svg')
 
-    expect(svg.querySelectorAll('line.grimoire-graph-edge')).toHaveLength(2)
+    expect(svg.querySelectorAll('path.grimoire-graph-edge')).toHaveLength(2)
 
     fireEvent.click(screen.getByRole('radio', { name: 'Relations' }))
 
-    expect(svg.querySelectorAll('line.grimoire-graph-edge')).toHaveLength(1)
+    expect(svg.querySelectorAll('path.grimoire-graph-edge')).toHaveLength(1)
     expect(screen.getByText('1 relationships')).toBeInTheDocument()
     expect(screen.getByText('1 note links')).toBeInTheDocument()
   })
@@ -173,7 +173,7 @@ describe('GraphModal', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: 'Incoming' }))
 
-    expect(svg.querySelectorAll('line.grimoire-graph-edge')).toHaveLength(1)
+    expect(svg.querySelectorAll('path.grimoire-graph-edge')).toHaveLength(1)
   })
 
   it('toggles graph nodes by type from the legend', () => {

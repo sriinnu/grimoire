@@ -1,4 +1,4 @@
-import { AlertTriangle, Lightbulb, Link2, Tags } from 'lucide-react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import { useMemo, type ReactNode } from 'react'
 import type { VaultEntry } from '../../types'
 import type { ParsedFrontmatter } from '../../utils/frontmatter'
@@ -48,7 +48,7 @@ export function LivingFrontmatterPanel({
     <section className="inspector-card" data-testid="living-frontmatter-panel" aria-label="Living Frontmatter">
       <div className="mb-2 flex items-center justify-between gap-2">
         <h4 className="font-mono-overline flex items-center gap-1 text-muted-foreground">
-          <Lightbulb className="size-3" />
+          <Glyph name="insight" size={12} className="size-3" />
           Living Frontmatter
         </h4>
         <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[10px]">
@@ -151,10 +151,10 @@ function sourceLabel(source: LivingFrontmatterHintSource): string {
 }
 
 function iconForHint(hint: LivingFrontmatterHint): ReactNode {
-  if (hint.kind === 'relationship-hint') return <Link2 className="size-3" />
-  if (hint.kind === 'duplicate-concept') return <Tags className="size-3" />
-  if (hint.severity === 'warn') return <AlertTriangle className="size-3" />
-  return <Lightbulb className="size-3" />
+  if (hint.kind === 'relationship-hint') return <Glyph name="link" size={12} />
+  if (hint.kind === 'duplicate-concept') return <Glyph name="tag" size={12} />
+  if (hint.severity === 'warn') return <Glyph name="warning" size={12} />
+  return <Glyph name="insight" size={12} className="size-3" />
 }
 
 function canApplyHint(

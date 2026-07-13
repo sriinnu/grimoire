@@ -1,4 +1,4 @@
-import { ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Glyph } from '@/components/glyphs/Glyph'
 import type { GitCommit } from '../../types'
 
 function formatRelativeDate(timestamp: number): string {
@@ -17,7 +17,7 @@ export function GitHistoryPanel({ commits, onViewCommitDiff }: { commits: GitCom
   return (
     <div>
       <h4 className="font-mono-overline mb-2 flex items-center gap-1 text-muted-foreground">
-        <ArrowCounterClockwise size={12} className="shrink-0" />
+        <Glyph name="history" size={12} />
         History
       </h4>
       <div className="flex flex-col gap-2.5">

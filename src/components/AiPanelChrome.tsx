@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { Link, Robot } from '@phosphor-icons/react'
-import { Plus, SendHorizontal, ShieldCheck, Sparkles, X } from 'lucide-react'
+import { SendHorizontal, X } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import { AiMessage } from './AiMessage'
 import { AiChatComposerInput } from './AiChatComposerInput'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
@@ -26,6 +26,13 @@ interface AiPanelHeaderProps {
 interface AiPanelContextBarProps {
   activeEntry: VaultEntry
   linkedCount: number
+}
+
+interface AiPanelBriefProps {
+  agentLabel: string
+  activeEntry: VaultEntry
+  linkedCount: number
+  conversationActive: boolean
 }
 
 interface AiPanelMessageHistoryProps {
@@ -82,11 +89,11 @@ function AiPanelEmptyState({
         className="flex flex-col items-center justify-center text-center text-muted-foreground"
         style={{ paddingTop: 40 }}
       >
-        <Robot size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
-        <p style={{ fontSize: 13, margin: '0 0 4px' }}>
+        <Glyph name="chitragupta" size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+        <p style={{ fontSize: 14, margin: '0 0 4px' }}>
           {agentLabel} is not available on this machine
         </p>
-        <p style={{ fontSize: 11, margin: 0, opacity: 0.6 }}>
+        <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>
           Install it or switch the default AI agent in Settings
         </p>
       </div>
@@ -98,14 +105,14 @@ function AiPanelEmptyState({
       className="flex flex-col items-center justify-center text-center text-muted-foreground"
       style={{ paddingTop: 40 }}
     >
-      <Robot size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
-      <p style={{ fontSize: 13, margin: '0 0 4px' }}>
+      <Glyph name="chitragupta" size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
+      <p style={{ fontSize: 14, margin: '0 0 4px' }}>
         {hasContext
           ? legacyCopy ? 'Ask about this note and its linked context' : `Ask ${agentLabel} about this note and its linked context`
           : legacyCopy ? 'Open a note, then ask the AI about it' : `Open a note, then ask ${agentLabel} about it`
         }
       </p>
-      <p style={{ fontSize: 11, margin: 0, opacity: 0.6 }}>
+      <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>
         {hasContext
           ? 'Summarize, find connections, expand ideas'
           : 'The AI will use the active note as context'
@@ -126,21 +133,61 @@ export function AiPanelHeader({
   onCrystallize,
   onNewChat,
 }: AiPanelHeaderProps) {
+  const title = legacyCopy ? 'AI Chat' : agentLabel
+  const subLine = legacyCopy
+    ? null
+    : [agentRouteLabel, agentReady ? null : 'not installed'].filter(Boolean).join(' · ') || null
   return (
     <div
-      className="flex shrink-0 items-center border-b border-border"
-      style={{ height: 52, padding: '0 12px', gap: 8 }}
+      className="ai-panel-header flex shrink-0 items-center"
+      style={{
+        height: 52,
+        padding: '0 12px',
+        gap: 9,
+        borderBottom: '1px solid transparent',
+      }}
+      data-testid="ai-panel-header"
     >
-      <Robot size={16} className="shrink-0 text-muted-foreground" />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <span className="text-muted-foreground" style={{ fontSize: 13, fontWeight: 600 }}>
-          {legacyCopy ? 'AI Chat' : 'AI Agent'}
+      <span
+        className="ai-panel-header__glyph relative flex shrink-0 items-center justify-center"
+        aria-hidden="true"
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 8,
+          background: 'color-mix(in srgb, var(--primary) 14%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--primary) 28%, transparent)',
+        }}
+      >
+        <Glyph name="sparkle" size={16} style={{ color: 'var(--primary)' }} />
+        <span
+          className="ai-panel-header__status absolute"
+          data-agent-ready={agentReady || undefined}
+          title={agentReady ? `${agentLabel} ready` : `${agentLabel} not installed`}
+          style={{
+            right: -2,
+            bottom: -2,
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: agentReady ? 'var(--primary)' : 'var(--accent-yellow, #d8a23a)',
+            boxShadow: '0 0 0 2px var(--surface-panel, var(--background))',
+          }}
+        />
+      </span>
+      <div className="flex flex-1 flex-col overflow-hidden" style={{ gap: 1 }}>
+        <span
+          className="truncate"
+          style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}
+        >
+          {title}
         </span>
-        {!legacyCopy && (
-          <span className="truncate text-[11px] text-muted-foreground">
-            {agentLabel}
-            {agentRouteLabel ? ` · ${agentRouteLabel}` : ''}
-            {!agentReady ? ' · not installed' : ''}
+        {subLine && (
+          <span
+            className="truncate"
+            style={{ fontSize: 12, lineHeight: 1.3, color: 'var(--text-muted)' }}
+          >
+            {`${agentLabel} · ${subLine}`}
           </span>
         )}
       </div>
@@ -148,38 +195,73 @@ export function AiPanelHeader({
         type="button"
         variant="ghost"
         size="icon-xs"
-        className="shrink-0"
+        className="shrink-0 text-muted-foreground hover:text-foreground"
         disabled={!canCrystallize}
         onClick={onCrystallize}
         aria-label="Crystallize latest AI response"
         title={crystallizeBlockedReason ?? 'Crystallize latest AI response'}
         data-testid="ai-crystallize"
       >
-        <Sparkles className="size-3.5" />
+        <Glyph name="sparkle" size={16} />
       </Button>
       <Button
         type="button"
         variant="ghost"
         size="icon-xs"
-        className="shrink-0"
+        className="shrink-0 text-muted-foreground hover:text-foreground"
         onClick={onNewChat}
         aria-label="New AI chat"
         title="New AI chat"
       >
-        <Plus className="size-3.5" />
+        <Glyph name="add" size={16} />
       </Button>
       <Button
         type="button"
         variant="ghost"
         size="icon-xs"
-        className="shrink-0"
+        className="shrink-0 text-muted-foreground hover:text-foreground"
         onClick={onClose}
         aria-label="Close AI panel"
         title="Close AI panel"
       >
-        <X className="size-3.5" />
+        <X className="size-4" />
       </Button>
     </div>
+  )
+}
+
+export function AiPanelBrief({
+  agentLabel,
+  activeEntry,
+  linkedCount,
+  conversationActive,
+}: AiPanelBriefProps) {
+  const policy = resolveEntryLocalityPolicy(activeEntry)
+  const visibleTitle = policy.localOnly ? 'a local-only note' : activeEntry.title
+  const linkedClause = !policy.localOnly && linkedCount > 0
+    ? ` and its ${linkedCount} linked ${linkedCount === 1 ? 'note' : 'notes'}`
+    : ''
+  const brief = `${agentLabel} can see ${visibleTitle}${linkedClause} for this turn.`
+
+  return (
+    <p
+      className="ai-panel-brief shrink-0 truncate"
+      data-testid="ai-panel-brief"
+      data-collapsed={conversationActive || undefined}
+      style={{
+        margin: 0,
+        padding: conversationActive ? '6px 12px' : '8px 12px 10px',
+        fontSize: 13,
+        lineHeight: 1.4,
+        color: 'var(--text-muted)',
+        whiteSpace: conversationActive ? 'nowrap' : 'normal',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        borderBottom: '1px solid transparent',
+      }}
+    >
+      {brief}
+    </p>
   )
 }
 
@@ -190,14 +272,14 @@ export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBa
   return (
     <div
       className="flex shrink-0 items-center border-b border-border text-muted-foreground"
-      style={{ padding: '6px 12px', gap: 6, fontSize: 11 }}
+      style={{ padding: '6px 12px', gap: 6, fontSize: 12 }}
       data-testid="context-bar"
     >
-      <Link size={12} className="shrink-0" />
+      <Glyph name="link" size={12} className="shrink-0" />
       <span className="truncate" style={{ fontWeight: 500 }}>{visibleTitle}</span>
       {policy.localOnly ? (
-        <Badge variant="outline" className="h-5 rounded-md px-1.5 text-[10px]">
-          <ShieldCheck className="size-3" />
+        <Badge variant="outline" className="h-7 rounded-md px-2.5 text-[13px]">
+          <Glyph name="shield" size={16} />
           Protected
         </Badge>
       ) : null}
@@ -272,10 +354,13 @@ export function AiPanelComposer({
 
   return (
     <div
-      className="flex shrink-0 flex-col border-t border-border"
-      style={{ padding: '8px 12px' }}
+      className="ai-panel-composer flex shrink-0 flex-col"
+      style={{
+        padding: '8px 12px',
+        borderTop: '1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-default)) 80%, transparent)',
+      }}
     >
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-2.5">
         <div className="flex-1">
           <AiChatComposerInput
             entries={entries}

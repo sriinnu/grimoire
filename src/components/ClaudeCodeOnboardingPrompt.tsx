@@ -1,4 +1,5 @@
-import { ArrowUpRight, Bot, CheckCircle2, Loader2 } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type { ClaudeCodeStatus } from '../hooks/useClaudeCodeStatus'
 import { openExternalUrl } from '../utils/url'
 import { Button } from './ui/button'
@@ -16,7 +17,7 @@ function getPromptCopy(status: ClaudeCodeStatus) {
     return {
       accentClassName: 'bg-[var(--feedback-success-bg)] text-[var(--feedback-success-text)]',
       description: "Grimoire's AI features are ready to use.",
-      icon: <CheckCircle2 className="size-7" />,
+      icon: <Glyph name="task" size={28} />,
       title: 'Claude Code detected',
     }
   }
@@ -25,7 +26,7 @@ function getPromptCopy(status: ClaudeCodeStatus) {
     return {
       accentClassName: 'bg-[var(--feedback-warning-bg)] text-[var(--feedback-warning-text)]',
       description: 'Grimoire works best with an AI coding agent installed.',
-      icon: <Bot className="size-7" />,
+      icon: <Glyph name="aiAgent" size={28} />,
       title: 'Claude Code not detected',
     }
   }
@@ -33,7 +34,7 @@ function getPromptCopy(status: ClaudeCodeStatus) {
   return {
     accentClassName: 'bg-muted text-muted-foreground',
     description: 'Checking whether Claude Code is available on this machine.',
-    icon: <Loader2 className="size-7 animate-spin" />,
+    icon: <Glyph name="loading" size={28} className="animate-spin" />,
     title: 'Checking for Claude Code',
   }
 }

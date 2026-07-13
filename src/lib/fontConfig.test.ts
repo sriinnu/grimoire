@@ -9,75 +9,80 @@ import {
 describe('fontConfig', () => {
   it('does not ship handwritten font assets for curated defaults', () => {
     const roles = resolveFontRoles({
-      themePreset: 'living-archive',
+      themePreset: 'morning-notebook',
       editorFont: 'system',
     })
 
-    expect(roles.display).toContain("'Literata'")
+    expect(roles.display).toContain("'Inter Display'")
+    expect(roles.display).toContain("'Inter'")
+    expect(roles.display).toContain("'SF Pro Display'")
     expect(resolveFontAssetIds({
-      themePreset: 'code-notebook',
+      themePreset: 'morning-notebook',
       editorFont: 'system',
     })).toEqual([])
     expect(resolveFontAssetIds({
-      themePreset: 'living-archive',
+      themePreset: 'morning-notebook',
       editorFont: 'literary',
     })).toEqual([])
   })
 
   it('keeps editor font preference separate from display font', () => {
     const roles = resolveFontRoles({
-      themePreset: 'living-archive',
+      themePreset: 'morning-notebook',
       editorFont: 'readable',
     })
 
-    expect(roles.display).toContain("'Literata'")
+    expect(roles.display).toContain("'Inter Display'")
+    expect(roles.display).toContain("'SF Pro Display'")
     expect(roles.editor).toContain('Atkinson Hyperlegible')
   })
 
   it('uses built-in theme-pack typography roles before user editor overrides', () => {
-    const daylightRoles = resolveFontRoles({
-      themePreset: 'daylight-notebook',
+    const displayRoles = resolveFontRoles({
+      themePreset: 'morning-notebook',
       editorFont: 'system',
     })
-    const retroRoles = resolveFontRoles({
-      themePreset: 'code-notebook',
+    const monoRoles = resolveFontRoles({
+      themePreset: 'morning-notebook',
       editorFont: 'mono',
     })
 
-    expect(daylightRoles.display).toContain('New York')
-    expect(daylightRoles.label).toContain('SF Pro')
-    expect(retroRoles.ui).toContain('SF Pro')
-    expect(retroRoles.editor).toContain('Berkeley Mono')
-    expect(retroRoles.editor).toMatch(/^'Grimoire Berkeley Mono'/)
-    expect(retroRoles.editor).toContain('TX-02 Berkeley Mono')
-    expect(retroRoles.editor).toContain('SF Mono')
-    expect(retroRoles.mono).toContain('Berkeley Mono')
-    expect(retroRoles.mono).toMatch(/^'Grimoire Berkeley Mono'/)
-    expect(retroRoles.mono).toContain('SF Mono')
+    expect(displayRoles.display).toContain("'Inter Display'")
+    expect(displayRoles.display).toContain("'SF Pro Display'")
+    expect(displayRoles.label).toContain('SF Pro')
+    expect(monoRoles.ui).toContain('SF Pro')
+    expect(monoRoles.editor).toContain('Berkeley Mono')
+    expect(monoRoles.editor).toMatch(/^'Grimoire Berkeley Mono'/)
+    expect(monoRoles.editor).toContain('TX-02 Berkeley Mono')
+    expect(monoRoles.editor).toContain('SF Mono')
+    expect(monoRoles.mono).toContain('Berkeley Mono')
+    expect(monoRoles.mono).toMatch(/^'Grimoire Berkeley Mono'/)
+    expect(monoRoles.mono).toContain('SF Mono')
   })
 
   it('curates editor choices to book, editorial, manuscript, sans, and mono stacks', () => {
     const roles = resolveFontRoles({
-      themePreset: 'living-archive',
+      themePreset: 'morning-notebook',
       editorFont: 'literary',
     })
 
     expect(roles.editor).toContain("'Literata'")
-    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'system' }).editor).toContain('SF Pro')
-    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'readable' }).editor).toContain('Atkinson Hyperlegible')
-    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'humanist' }).editor).toContain('Avenir Next')
-    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'editorial' }).editor).toContain('New York')
-    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'manuscript' }).editor).toContain('Palatino')
-    expect(resolveFontRoles({ themePreset: 'living-archive', editorFont: 'mono' }).editor).toContain('Berkeley Mono')
+    expect(resolveFontRoles({ themePreset: 'morning-notebook', editorFont: 'system' }).editor).toContain('SF Pro')
+    expect(resolveFontRoles({ themePreset: 'morning-notebook', editorFont: 'readable' }).editor).toContain('Atkinson Hyperlegible')
+    expect(resolveFontRoles({ themePreset: 'morning-notebook', editorFont: 'humanist' }).editor).toContain('Avenir Next')
+    expect(resolveFontRoles({ themePreset: 'morning-notebook', editorFont: 'editorial' }).editor).toContain('New York')
+    expect(resolveFontRoles({ themePreset: 'morning-notebook', editorFont: 'manuscript' }).editor).toContain('Palatino')
+    expect(resolveFontRoles({ themePreset: 'morning-notebook', editorFont: 'mono' }).editor).toContain('Berkeley Mono')
   })
 
   it('applies resolved font roles as root CSS variables', () => {
     applyFontRolesToDocument(document, {
-      themePreset: 'living-archive',
+      themePreset: 'morning-notebook',
       editorFont: 'mono',
     })
 
-    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Literata'")
+    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'Inter Display'")
+    expect(document.documentElement.style.getPropertyValue('--grimoire-display-font-family')).toContain("'SF Pro Display'")
     expect(document.documentElement.style.getPropertyValue('--grimoire-editor-font-family')).toContain('TX-02 Berkeley Mono')
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toContain('TX-02 Berkeley Mono')
     expect(document.documentElement.style.getPropertyValue('--grimoire-mono-font-family')).toMatch(/^'Grimoire Berkeley Mono'/)

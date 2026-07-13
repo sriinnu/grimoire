@@ -57,7 +57,7 @@ describe('VaultDashboard insight order', () => {
     )
 
     const quickCapture = screen
-      .getByRole('heading', { name: 'Catch the thought while it is here.' })
+      .getByRole('heading', { name: 'Catch it while it is here.' })
       .closest('.vault-dashboard__panel') as HTMLElement
     const todayRunway = screen.getByTestId('dashboard-today-runway')
 
@@ -80,7 +80,7 @@ describe('VaultDashboard insight order', () => {
     )
 
     const quickCapture = screen
-      .getByRole('heading', { name: 'Catch the thought while it is here.' })
+      .getByRole('heading', { name: 'Catch it while it is here.' })
       .closest('.vault-dashboard__panel') as HTMLElement
     const timeLoom = await screen.findByTestId('time-loom-panel')
     const dailyThread = await screen.findByTestId('daily-thread-rail')

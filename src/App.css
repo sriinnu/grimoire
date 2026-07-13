@@ -9,7 +9,9 @@
   width: 100%;
   overflow: hidden;
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 94%, var(--surface-panel)), var(--surface-app));
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 72%, transparent);
+  /* No drawn window frame — the OS frames the window and the panel-shadow gives
+     the edge. A 1px border here only stacked a dated outline under the title bar. */
+  border: none;
   border-radius: var(--grimoire-shell-radius);
   box-shadow: var(--grimoire-panel-shadow);
 }

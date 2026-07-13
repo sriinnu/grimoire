@@ -1,4 +1,4 @@
-import { GitBranch, ShieldCheck, Sparkles } from 'lucide-react'
+import { Glyph } from './glyphs/Glyph'
 import type React from 'react'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 import { buildSourceLabelMap } from '../utils/sourceLabels'
@@ -26,7 +26,7 @@ export function GraphAgentPackagePanel({ agentGraphContext }: GraphAgentPackageP
   return (
     <section className="graph-agent-surface graph-agent-package grimoire-panel-reveal rounded-md border border-border p-3" data-state={state} data-testid="graph-agent-handoff">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        <Sparkles className="size-3.5" />
+        <Glyph name="sparkle" size={14} />
         Agent package
       </div>
       <div className="graph-agent-package__envelope mt-3 grid gap-2 rounded-md border px-2.5 py-2" data-testid="graph-agent-package-envelope">
@@ -37,7 +37,7 @@ export function GraphAgentPackagePanel({ agentGraphContext }: GraphAgentPackageP
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
         <PackageBadge
-          icon={<ShieldCheck className="size-3" />}
+          icon={<Glyph name="shield" size={12} />}
           label={handoffLabel(agentGraphContext)}
           state={state}
         />
@@ -136,7 +136,7 @@ function ManifestList({
   return (
     <div className="graph-agent-card rounded-md border border-border px-2.5 py-2" data-state={state}>
       <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-        <GitBranch className="size-3" />
+        <Glyph name="gitHistory" size={12} />
         {title}
       </div>
       <div className="mt-1 flex flex-wrap gap-1">

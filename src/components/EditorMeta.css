@@ -1,18 +1,35 @@
 .editor-meta-strip {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  align-content: flex-start;
-  gap: 8px;
+  align-content: center;
+  gap: 7px;
   max-width: var(--editor-max-width, 760px);
   min-width: 0;
   width: 100%;
-  margin: 18px auto 0;
-  padding: 0 var(--editor-padding-horizontal, 40px);
+  margin: 16px auto 0;
+  padding: 0 var(--editor-padding-horizontal, 40px) 10px;
+  /* Seamless top — separation from the document comes from whitespace, not a
+     drawn divider line. */
+  border-bottom: 1px solid transparent;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
+}
+
+.editor-meta-strip__spacer {
+  flex: 1 1 auto;
+  min-width: 8px;
+}
+
+.editor-meta-strip__wordcount {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .editor-content-layout--left .editor-meta-strip {
@@ -24,16 +41,16 @@
   display: inline-flex;
   flex: 0 1 auto;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   min-width: 0;
-  min-height: 29px;
+  min-height: 26px;
   max-width: min(18rem, 100%);
-  padding: 0 9px;
-  border: 1px solid var(--border-default);
+  padding: 0 8px;
+  border: 1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-subtle)) 56%, transparent);
   border-radius: 6px;
-  background: var(--surface-card);
-  color: var(--text-secondary);
-  font-size: 12px;
+  background: color-mix(in srgb, var(--surface-card) 70%, transparent);
+  color: var(--text-muted);
+  font-size: 11.5px;
   line-height: 1;
   white-space: nowrap;
 }
@@ -41,9 +58,10 @@
 .editor-meta-pill__label,
 .editor-meta-pill > span {
   flex: 0 0 auto;
-  color: var(--text-secondary);
-  font-size: 11px;
-  font-weight: 650;
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .editor-meta-pill__value,
@@ -52,9 +70,26 @@
   min-width: 0;
   max-width: min(12rem, 44vw);
   overflow: hidden;
-  color: var(--text-primary);
-  font-weight: 650;
+  color: var(--text-secondary);
+  font-weight: 600;
   text-overflow: ellipsis;
+}
+
+.editor-meta-pill[data-tone="active"] {
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+}
+
+.editor-meta-pill[data-tone="active"] .editor-meta-pill__value {
+  color: color-mix(in srgb, var(--primary) 78%, var(--text-primary));
+}
+
+.editor-meta-pill[data-tone="high"] {
+  border-color: color-mix(in srgb, var(--accent-yellow, #d8a23a) 38%, transparent);
+}
+
+.editor-meta-pill[data-tone="high"] .editor-meta-pill__value {
+  color: color-mix(in srgb, var(--accent-yellow, #d8a23a) 70%, var(--text-primary));
 }
 
 .editor-meta-pill--source .editor-meta-pill__value {
