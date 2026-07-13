@@ -265,9 +265,12 @@ fn apply_native_window_material(app: &tauri::App) {
             // much translucency each surface gets (35% for sidebar, fully opaque
             // for content panels). In "standard" material mode the sidebar stays
             // fully opaque, so the vibrancy layer is simply not visible.
-            if let Err(error) =
-                window_vibrancy::apply_vibrancy(&window, window_vibrancy::NSVisualEffectMaterial::Sidebar, None, None)
-            {
+            if let Err(error) = window_vibrancy::apply_vibrancy(
+                &window,
+                window_vibrancy::NSVisualEffectMaterial::Sidebar,
+                None,
+                None,
+            ) {
                 log::warn!("NSVisualEffectView vibrancy unavailable: {error}");
             }
 
