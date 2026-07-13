@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "dev:https": "node scripts/dev-https.mjs",
-    "build": "pnpm --filter @grimoire/markdown-editor build && tsc -b && vite build && node scripts/report-build-budget.mjs",
+    "build": "pnpm check:app-loc && pnpm --filter @grimoire/markdown-editor build && tsc -b && vite build && node scripts/report-build-budget.mjs",
     "build:markdown-editor": "pnpm --filter @grimoire/markdown-editor build",
     "build:markdown-editor-baseline": "pnpm --filter @grimoire/markdown-editor-baseline build",
     "dev:markdown-editor-baseline": "pnpm --filter @grimoire/markdown-editor-baseline dev",
@@ -32,6 +32,7 @@
     "audit:local-only": "node scripts/audit-local-only.mjs",
     "audit:secrets": "node scripts/scan-secrets.mjs",
     "lint": "eslint .",
+    "check:app-loc": "node scripts/verify-app-module-loc.mjs",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:https": "tauri dev --config '{\"build\":{\"devUrl\":\"https://localhost:5202\",\"beforeDevCommand\":\"pnpm dev:https\"}}'",
