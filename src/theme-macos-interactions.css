@@ -84,14 +84,18 @@
 
 /* ---- 5. Dialog entrance/exit animations (macOS sheet-style) ---- */
 
+/* Centering lives on the `translate` property (Tailwind v4 `translate-x/y-[-50%]`).
+   These keyframes must only animate `transform` (scale + a small lift) — re-applying
+   translate(-50%, -50%) here stacks with the `translate` property and shoves the dialog
+   into the top-left corner. */
 @keyframes grimoire-dialog-enter {
-  0%   { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  0%   { opacity: 0; transform: translateY(8px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes grimoire-dialog-exit {
-  0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(8px) scale(0.96); }
 }
 
 @keyframes grimoire-overlay-enter {

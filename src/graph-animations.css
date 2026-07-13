@@ -239,6 +239,17 @@
   transform: scale(1.035);
 }
 
+/* Focus spotlight — hovering a connection in the side panel lights one node and
+   dims the rest. Attribute-driven so position stays owned by the physics engine. */
+.grimoire-graph-node[data-focus-dim='true'] {
+  opacity: 0.28;
+}
+
+.grimoire-graph-node--highlighted {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
 .grimoire-graph-node-halo {
   fill: var(--node-color);
   opacity: 0.16;

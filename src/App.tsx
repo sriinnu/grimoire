@@ -666,9 +666,13 @@ function App() {
     let cancelled = false
     import('@tauri-apps/api/window').then(({ getCurrentWindow }) => {
       if (cancelled) return
-      getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+      const currentWindow = getCurrentWindow()
+      if (typeof currentWindow.onFocusChanged !== 'function') return
+      currentWindow.onFocusChanged(({ payload: focused }) => {
         document.body.classList.toggle('window-inactive', !focused)
       }).then(fn => { unlisten = fn })
+    }).catch(() => {
+      // Window focus styling is optional polish; unsupported runtimes stay usable.
     })
     return () => {
       cancelled = true

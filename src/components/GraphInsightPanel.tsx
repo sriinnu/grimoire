@@ -13,6 +13,7 @@ import {
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { AgentGraphContext } from '../utils/agentGraphContext'
 import type { PositionedGraphNode } from '../utils/graphDisplay'
+import type { NoteGraphEdge } from '../utils/noteGraph'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import type { VaultEntry } from '../types'
 import { Button } from './ui/button'
@@ -29,9 +30,11 @@ interface GraphInsightPanelProps {
   aiAgentsStatus?: AiAgentsStatus
   entries: VaultEntry[]
   nodes: PositionedGraphNode[]
+  edges?: NoteGraphEdge[]
   selectedEntry: VaultEntry | null
   selectedNode: PositionedGraphNode | null
   onAskCouncil: () => void
+  onHighlightNode?: (id: string | null) => void
   onOpenNode: (path: string) => void
 }
 
@@ -45,12 +48,15 @@ export function GraphInsightPanel({
   aiAgentsStatus,
   entries,
   nodes,
+  edges,
   selectedEntry,
   selectedNode,
   onAskCouncil,
+  onHighlightNode,
   onOpenNode,
 }: GraphInsightPanelProps) {
   const entryByPath = useMemo(() => new Map(entries.map((entry) => [entry.path, entry])), [entries])
+  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes])
   const activeNode = nodes.find((node) => node.active) ?? null
   const selectedLocalOnly = selectedEntry ? resolveEntryLocalityPolicy(selectedEntry).localOnly : false
   const connectors = useMemo(() => (
@@ -59,6 +65,24 @@ export function GraphInsightPanel({
       .sort((left, right) => right.degree - left.degree || left.title.localeCompare(right.title))
       .slice(0, 3)
   ), [nodes])
+  const connections = useMemo<Connection[]>(() => {
+    if (!selectedNode || !edges) return []
+    const seen = new Set<string>()
+    const rows: Connection[] = []
+    for (const edge of edges) {
+      const isOut = edge.source === selectedNode.id
+      const isIn = edge.target === selectedNode.id
+      if (!isOut && !isIn) continue
+      const otherId = isOut ? edge.target : edge.source
+      if (seen.has(otherId)) continue
+      const node = nodeById.get(otherId)
+      if (!node) continue
+      seen.add(otherId)
+      const localOnly = resolveEntryLocalityPolicy(entryByPath.get(node.path) ?? fallbackEntry(node)).localOnly
+      rows.push({ node, direction: isOut ? 'outgoing' : 'incoming', kind: edge.kind, label: edge.label, localOnly })
+    }
+    return rows.sort((a, b) => b.node.degree - a.node.degree || a.node.title.localeCompare(b.node.title))
+  }, [edges, entryByPath, nodeById, selectedNode])
 
   return (
     <div className="space-y-3">
@@ -103,7 +127,23 @@ export function GraphInsightPanel({
           <InsightMetric label="Focus" value={activeNode?.title ?? activeEntry?.title ?? 'Vault map'} />
           <InsightMetric label="Visible" value={`${nodes.length} notes`} />
         </div>
-        {connectors.length > 0 ? (
+        {selectedNode && connections.length > 0 ? (
+          <div className="mt-3 space-y-2" data-testid="graph-connections">
+            <div className="text-xs font-medium text-muted-foreground">
+              {connections.length} connection{connections.length === 1 ? '' : 's'}
+            </div>
+            <div className="space-y-1">
+              {connections.slice(0, 8).map((connection) => (
+                <ConnectionRow
+                  key={`${connection.direction}:${connection.node.id}`}
+                  connection={connection}
+                  onOpen={() => onOpenNode(connection.node.path)}
+                  onHover={(hovering) => onHighlightNode?.(hovering ? connection.node.id : null)}
+                />
+              ))}
+            </div>
+          </div>
+        ) : connectors.length > 0 ? (
           <div className="mt-3 space-y-2">
             <div className="text-xs font-medium text-muted-foreground">Strong connectors</div>
             <div className="space-y-1">
@@ -351,6 +391,53 @@ function InsightMetric({ label, value }: { label: string; value: string }) {
       <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
       <div className="mt-1 truncate text-sm font-semibold text-foreground">{value}</div>
     </div>
+  )
+}
+
+interface Connection {
+  node: PositionedGraphNode
+  direction: 'incoming' | 'outgoing'
+  kind: NoteGraphEdge['kind']
+  label: string
+  localOnly: boolean
+}
+
+function ConnectionRow({
+  connection,
+  onOpen,
+  onHover,
+}: {
+  connection: Connection
+  onOpen: () => void
+  onHover: (hovering: boolean) => void
+}) {
+  const { node, direction, kind, label, localOnly } = connection
+  const arrow = direction === 'outgoing' ? '→' : '←'
+  // Never surface a local-only note's title — it is withheld from agents and here.
+  const title = localOnly ? 'Protected local note' : node.title
+  const relation = localOnly
+    ? 'local-only'
+    : kind === 'relationship' ? (label || 'relationship') : 'links here'
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-auto w-full justify-start gap-2 rounded-md px-2 py-1.5 text-left"
+      onClick={onOpen}
+      onPointerEnter={() => onHover(true)}
+      onPointerLeave={() => onHover(false)}
+      onFocus={() => onHover(true)}
+      onBlur={() => onHover(false)}
+      data-testid="graph-connection-row"
+    >
+      <span className="shrink-0 text-sm text-muted-foreground" aria-hidden="true">{arrow}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-semibold text-foreground">{title}</span>
+        <span className="block truncate text-[11px] text-muted-foreground">{direction} · {relation}</span>
+      </span>
+    </Button>
   )
 }
 

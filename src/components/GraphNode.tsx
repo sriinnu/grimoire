@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { cn } from '@/lib/utils'
 import {
   truncateGraphLabel,
@@ -9,6 +9,9 @@ interface GraphNodeProps {
   labelVisible: boolean
   localOnly: boolean
   node: PositionedGraphNode
+  highlighted?: boolean
+  focusDimmed?: boolean
+  onNodePointerDown?: (node: PositionedGraphNode, event: ReactPointerEvent) => void
   onOpenNode: (path: string) => void
   onSelectNode: (node: PositionedGraphNode) => void
   selected: boolean
@@ -25,6 +28,9 @@ export function GraphNode({
   labelVisible,
   localOnly,
   node,
+  highlighted,
+  focusDimmed,
+  onNodePointerDown,
   onOpenNode,
   onSelectNode,
   selected,
@@ -46,8 +52,9 @@ export function GraphNode({
       tabIndex={0}
       aria-label={nodeAriaLabel(node.title, localOnly)}
       aria-pressed={selected}
+      onPointerDown={(event) => onNodePointerDown?.(node, event)}
       onClick={() => onSelectNode(node)}
-      onDoubleClick={() => onOpenNode(node.path)}
+      onDoubleClick={(event) => { event.stopPropagation(); onOpenNode(node.path) }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault()
@@ -56,12 +63,15 @@ export function GraphNode({
       }}
       data-testid="graph-node"
       data-label-visible={labelVisible ? 'true' : 'false'}
+      data-highlighted={highlighted ? 'true' : undefined}
+      data-focus-dim={focusDimmed ? 'true' : undefined}
       className={cn(
         'grimoire-graph-node cursor-pointer',
         node.active && 'grimoire-graph-node--active',
         localOnly && 'grimoire-graph-node--local',
         selected && 'grimoire-graph-node--selected',
         sourceSafe && 'grimoire-graph-node--source-safe',
+        highlighted && 'grimoire-graph-node--highlighted',
         dimmed && 'opacity-70',
       )}
       style={style}

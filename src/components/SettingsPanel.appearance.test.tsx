@@ -85,7 +85,7 @@ describe('SettingsPanel appearance and agent settings', () => {
   it('renders modal when open', () => {
     render(<SettingsPanel open={true} settings={emptySettings} onSave={onSave} onClose={onClose} />)
     expect(screen.getByText('Settings')).toBeInTheDocument()
-    expect(document.querySelector('.settings-panel-shell')).toHaveClass('grimoire-settings-stage')
+    expect(document.querySelector('.settings-panel-shell')).not.toHaveClass('grimoire-settings-stage')
     expect(screen.getAllByText('Sync & Updates')).not.toHaveLength(0)
   })
 

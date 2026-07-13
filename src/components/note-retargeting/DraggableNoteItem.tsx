@@ -59,7 +59,9 @@ export function DraggableNoteItem({ notePath, noteTitle, children }: DraggableNo
 
     // Let the browser measure the rendered chip before capturing it.
     requestAnimationFrame(() => {
-      event.dataTransfer.setDragImage(container, 12, 12)
+      if (typeof event.dataTransfer.setDragImage === 'function') {
+        event.dataTransfer.setDragImage(container, 12, 12)
+      }
       // Clean up after the browser has captured the image.
       requestAnimationFrame(() => {
         root.unmount()

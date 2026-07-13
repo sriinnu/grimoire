@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 import { Glyph } from '@/components/glyphs/Glyph'
 import type { VaultEntry } from '../types'
@@ -15,6 +15,7 @@ import {
   type GraphScope,
 } from '../utils/graphDisplay'
 import { Button } from './ui/button'
+import { useForceSimulation } from '../hooks/useForceSimulation'
 import { GraphCanvas } from './GraphCanvas'
 import { GraphControlPanel } from './GraphControlPanel'
 import { GraphInsightPanel } from './GraphInsightPanel'
@@ -94,6 +95,7 @@ function GraphModalContent({
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(() => new Set())
   const [councilDraft, setCouncilDraft] = useState<GraphCouncilReviewDraft | null>(null)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null)
   const graph = useMemo(() => buildNoteGraph(entries, activePath), [activePath, entries])
   const effectiveScope = activePath ? scope : 'vault'
   const scopedGraph = useMemo(() => scopeGraph(graph, effectiveScope), [effectiveScope, graph])
@@ -103,7 +105,9 @@ function GraphModalContent({
   const typedGraph = useMemo(() => filterGraphByNodeTypes(displayGraph, hiddenTypes), [displayGraph, hiddenTypes])
   const renderGraph = useMemo(() => filterGraphEdges(typedGraph, edgeFilter), [typedGraph, edgeFilter])
   const layout = useMemo(() => layoutGraph(renderGraph, entries), [entries, renderGraph])
-  const nodeById = useMemo(() => new Map(layout.nodes.map((node) => [node.id, node])), [layout.nodes])
+  const pinnedId = useMemo(() => layout.nodes.find((node) => node.active)?.id ?? null, [layout.nodes])
+  const sim = useForceSimulation(layout, { pinnedId })
+  const nodeById = sim.nodeById
   const entryByPath = useMemo(() => new Map(entries.map((entry) => [entry.path, entry])), [entries])
   const localOnlyNodeIds = useMemo(() => new Set(
     entries
@@ -111,10 +115,14 @@ function GraphModalContent({
       .map((entry) => entry.path),
   ), [entries])
   const selectedNode = (selectedNodeId ? nodeById.get(selectedNodeId) : null)
-    ?? layout.nodes.find((node) => node.active)
-    ?? layout.nodes[0]
+    ?? sim.nodes.find((node) => node.active)
+    ?? sim.nodes[0]
     ?? null
   const selectedEntry = selectedNode ? entryByPath.get(selectedNode.path) ?? null : null
+
+  // Let the newly focused neighborhood breathe when the selection changes.
+  const focusSim = sim.focus
+  useEffect(() => { focusSim() }, [selectedNodeId, focusSim])
   const activeEntry = activePath ? entryByPath.get(activePath) ?? null : null
   const packageRootEntry = layout.nodes.length > 0 ? (selectedEntry ?? activeEntry) : null
   const agentGraphContext = useMemo(
@@ -205,10 +213,18 @@ function GraphModalContent({
             <GraphCanvas
               agentGraphContext={agentGraphContext}
               aiAgentsStatus={aiAgentsStatus}
-              layout={layout}
+              layout={{ nodes: sim.nodes, edges: layout.edges }}
               localOnlyNodeIds={localOnlyNodeIds}
               nodeById={nodeById}
               selectedNodeId={selectedNode?.id ?? null}
+              highlightedNodeId={highlightedNodeId}
+              hot={sim.hot}
+              viewportTransform={sim.viewportTransform}
+              bindSvg={sim.bindSvg}
+              onNodePointerDown={sim.onNodePointerDown}
+              onBackgroundPointerDown={sim.onBackgroundPointerDown}
+              onCanvasPointerMove={sim.onCanvasPointerMove}
+              onResetView={sim.resetView}
               onOpenNode={openNode}
               onSelectNode={(node) => setSelectedNodeId(node.id)}
             />
@@ -224,9 +240,11 @@ function GraphModalContent({
               defaultAiProvider={defaultAiProvider}
               entries={entries}
               nodes={layout.nodes}
+              edges={layout.edges}
               selectedEntry={selectedEntry}
               selectedNode={selectedNode}
               onAskCouncil={prepareCouncilAboutSelection}
+              onHighlightNode={setHighlightedNodeId}
               onOpenNode={openNode}
             />
             <GraphControlPanel
