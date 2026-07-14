@@ -23,14 +23,14 @@ Grimoire remains a personal notebook first: journal, diary, notes, dreams, memor
 | Signature notebook theme | Proven experience profiles | Platform presentation | Morning/Night Notebook native slice | Memorable identity in light/dark, native controls, contrast and reduced-motion proof |
 | Home dashboard and calm notebook entry | Proven | React workflows | Not wired | Today view opens without requiring a project or code repository |
 | Quick capture for note, journal, dream, task, and memory | Proven | Markdown capture contracts | Not wired | Native capture is fast, typed, reviewable, and works without Git or AI |
-| Journal and diary workflows | Proven | Markdown types plus dashboard | Preview documents only | Daily navigation, prompts, private defaults, weather and attachment support |
-| Dream Forge and private reflection | Proven | Metadata-safe TypeScript derivation | Preview documents only | Local-only summaries, symbols, emotional weather, people, and privacy proof |
+| Journal and diary workflows | Proven | Markdown types plus dashboard | Native slice | Vault-backed journal navigation and private-default creation exist; daily prompts, weather, and attachments remain |
+| Dream Forge and private reflection | Proven | Metadata-safe TypeScript derivation | Native slice | Vault-backed private Dream collection exists; symbols, emotional weather, people, and privacy proof remain |
 | Daily Thread, Time Loom, and open loops | Proven | Metadata-safe TypeScript derivation | Not wired | Calm daily guidance from real vault metadata without body leakage |
 | Practice and spiritual records | Proven Markdown workflows | Markdown contracts | Not wired | Sessions, japa, pranayama, panchanga, and prescriptions stay portable |
 | Mobile capture review | Proven contract and dashboard queue | Shared fixture seed | Not wired | iPhone/iPad drafts remain blocked until explicit accept, merge, move, or discard |
-| Vault registry and vault switching | Proven | Tauri Rust | Not wired | Open, create, remember, switch, and recover vaults |
-| Vault scan and incremental reload | Proven | Tauri Rust | Not wired | Large-vault scan, targeted reload, cancellation, recovery |
-| Note read, create, save, rename, move, delete | Proven | Tauri Rust | Preview data only | Markdown round-trip without loss; undo and failure feedback |
+| Vault registry and vault switching | Proven | Tauri Rust | Native slice | Open and restore one local vault work; create, registry switching, bookmarks, and recovery remain |
+| Vault scan and incremental reload | Proven | `grimoire-core` | Native slice | Deterministic confined scan works; large-vault budgets, targeted reload, cancellation, and recovery remain |
+| Note read, create, save, rename, move, delete | Proven | `grimoire-core` plus Tauri Rust | Native slice | Atomic UTF-8 read/create/autosave work; rename, move, delete, undo, and broader failure recovery remain |
 | Folder create, rename, delete | Proven | Tauri Rust | Not wired | Native commands plus safe filesystem validation |
 | Frontmatter read and write | Proven | Tauri Rust plus Markdown packages | Package only | Typed native form editing and exact Markdown preservation |
 | Rich Markdown editing | Proven | JS editor package | WebKit support surface | Editing, selection, undo, clipboard, find, tables, code, math |

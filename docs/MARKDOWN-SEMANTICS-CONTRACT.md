@@ -10,7 +10,7 @@ Markdown is the durable document format for every Grimoire shell. SwiftUI, Tauri
 | Tauri raw editor                 | Shipping         | CodeMirror source editing, app-local TypeScript markdown adapter                            |
 | `markdown-editor/packages/js`    | Shipping package | React/BlockNote slash menu catalog and markdown-safe insertion helpers                      |
 | `markdown-editor/packages/swift` | Shipping package | Swift package for Apple-native markdown semantics, native SwiftUI editor, and WebKit bridge |
-| Apple SwiftUI apps               | Prototype        | Native shell importing `MarkdownEditor`; editor UX still thin                               |
+| Apple SwiftUI apps               | Native slice     | Vault-backed shell importing `MarkdownEditor`; read/create/autosave are real, rich-editor parity remains |
 | Journal or other future apps     | Target           | Reuse this contract without inheriting Grimoire vault UI                                    |
 
 ## Semantic Rules

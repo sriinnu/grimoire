@@ -1,3 +1,4 @@
+import Foundation
 import GrimoireProductContracts
 import Testing
 @testable import Grimoire
@@ -43,4 +44,39 @@ import Testing
 
     #expect(!model.manifestNeedsRebuild)
     #expect(model.manifestRevision == previousRevision + 1)
+}
+
+@MainActor
+@Test func libraryNavigationScopesPagesWithoutDuplicatingVaultTruth() {
+    let model = GrimoireWorkspaceModel()
+
+    model.selectDestination(.journal)
+    #expect(model.filteredDocuments.map(\.id) == ["daily-thread", "journal-entry"])
+
+    model.selectFolder("Dreams")
+    #expect(model.filteredDocuments.map(\.id) == ["dream-entry"])
+    #expect(model.selectedDocumentID == "dream-entry")
+
+    model.selectDestination(.pages)
+    #expect(model.filteredDocuments.count == WorkspaceDocument.previewDocuments.count)
+}
+
+@Test func rustVaultBridgeScansReadsCreatesAndSaves() async throws {
+    let root = FileManager.default.temporaryDirectory
+        .appendingPathComponent("grimoire-vault-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    try "---\ntitle: Private Morning\ntype: Journal\nlocality: local-only\n---\n# Morning\n"
+        .write(to: root.appendingPathComponent("Morning.md"), atomically: true, encoding: .utf8)
+
+    let service = MacVaultService()
+    let documents = try await service.scan(rootPath: root.path)
+    #expect(documents.count == 1)
+    #expect(documents[0].title == "Private Morning")
+    #expect(documents[0].collection == "journal")
+    #expect(documents[0].isLocalOnly)
+
+    try await service.create(rootPath: root.path, path: "Notes/New.md", content: "# New\n")
+    try await service.save(rootPath: root.path, path: "Notes/New.md", content: "# Updated\n")
+    #expect(try await service.read(rootPath: root.path, path: "Notes/New.md") == "# Updated\n")
 }

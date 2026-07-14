@@ -4,95 +4,152 @@ struct MacWorkspaceSidebar: View {
     @ObservedObject var model: GrimoireWorkspaceModel
 
     var body: some View {
-        List(selection: $model.selectedDocumentID) {
-            ForEach(WorkspaceCollection.allCases) { collection in
-                let documents = model.filteredDocuments.filter { $0.collection == collection }
-                if !documents.isEmpty {
-                    Section(collection.title) {
-                        ForEach(documents) { document in
-                            documentRow(document)
-                        }
-                    }
+        List {
+            Section {
+                ForEach(WorkspaceDestination.allCases) { destination in
+                    destinationRow(destination)
                 }
             }
 
-            Section("Workspace Intelligence") {
-                LabeledContent {
-                    Text("r\(model.manifestRevision)")
-                        .foregroundStyle(.secondary)
+            Section("Places") {
+                Button {
+                    model.selectDestination(.pages)
                 } label: {
-                    Label("Context Manifest", systemImage: "list.bullet.rectangle")
+                    Label {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(model.vaultName)
+                                .lineLimit(1)
+                            Text(model.activeVaultPath == nil ? "Preview library" : "Local Markdown vault")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "internaldrive")
+                            .foregroundStyle(MacNotebookTheme.tealAccent)
+                    }
                 }
+                .buttonStyle(.plain)
+            }
 
-                LabeledContent {
-                    Text("On")
-                        .foregroundStyle(.green)
-                } label: {
-                    Label("Locality Firewall", systemImage: "lock.shield")
+            if !model.folderNames.isEmpty {
+                Section("Folders") {
+                    ForEach(model.folderNames, id: \.self) { folder in
+                        folderRow(folder)
+                    }
                 }
             }
         }
         .listStyle(.sidebar)
-        .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search workspace")
-        .navigationTitle("Grimoire")
+        .navigationTitle("Library")
         .safeAreaInset(edge: .top, spacing: 0) {
-            workspaceHeader
+            brandHeader
         }
     }
 
-    private func documentRow(_ document: WorkspaceDocument) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(document.title)
-                    .lineLimit(1)
-                Text(document.path)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+    private func destinationRow(_ destination: WorkspaceDestination) -> some View {
+        Button {
+            model.selectDestination(destination)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: destination.systemImage)
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(MacNotebookTheme.destinationColor(destination))
+                    .frame(width: 19)
+
+                Text(destination.title)
+
+                Spacer(minLength: 0)
+
+                let count = documentCount(for: destination)
+                if count > 0 {
+                    Text("\(count)")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
-        } icon: {
-            Image(systemName: document.systemImage)
-                .foregroundStyle(
-                    document.isLocalOnly
-                        ? Color.orange
-                        : MacNotebookTheme.collectionColor(document.collection)
-                )
+            .contentShape(Rectangle())
         }
-        .tag(document.id)
-        .help(document.isLocalOnly ? "Local-only note" : document.path)
+        .buttonStyle(.plain)
+        .listRowBackground(
+            model.selectedFolder == nil && model.selectedDestination == destination
+                ? MacNotebookTheme.accent.opacity(0.15)
+                : Color.clear
+        )
     }
 
-    private var workspaceHeader: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "books.vertical.fill")
-                .font(.title3)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(MacNotebookTheme.accent)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Preview Notebook")
-                    .font(.headline)
-                Text("Local on this Mac")
-                    .font(.caption)
+    private func folderRow(_ folder: String) -> some View {
+        Button {
+            model.selectFolder(folder)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "folder")
+                    .foregroundStyle(MacNotebookTheme.folderColor(folder))
+                    .frame(width: 19)
+                Text(folder)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Text("\(model.documents.filter { $0.folderName == folder }.count)")
+                    .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
-
-            Spacer(minLength: 0)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background {
-            ZStack {
-                Rectangle().fill(.bar)
-                LinearGradient(
-                    colors: [
-                        MacNotebookTheme.accent.opacity(0.13),
-                        MacNotebookTheme.warmAccent.opacity(0.08),
-                    ],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
+        .buttonStyle(.plain)
+        .listRowBackground(
+            model.selectedFolder == folder ? MacNotebookTheme.accent.opacity(0.15) : Color.clear
+        )
+    }
+
+    private var brandHeader: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 9)
+                        .fill(MacNotebookTheme.brandGradient)
+                    Image(systemName: "book.pages.fill")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                }
+                .frame(width: 34, height: 34)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Grimoire")
+                        .font(.title3.weight(.bold))
+                    Text("Living notebook")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
+
+            HStack(spacing: 7) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Search your library", text: $model.searchText)
+                    .textFieldStyle(.plain)
+                Text("⌘F")
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 7)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 9))
+        }
+        .padding(12)
+        .background(.bar)
+    }
+
+    private func documentCount(for destination: WorkspaceDestination) -> Int {
+        switch destination {
+        case .notebook, .pages, .graph:
+            model.documents.count
+        case .inbox:
+            model.documents.filter { $0.path.localizedCaseInsensitiveContains("Inbox/") }.count
+        case .journal:
+            model.documents.filter { $0.collection == .today || $0.collection == .journal }.count
+        case .dreams:
+            model.documents.filter { $0.collection == .dreams }.count
+        case .archive:
+            model.documents.filter { $0.path.localizedCaseInsensitiveContains("Archive/") }.count
         }
     }
 }

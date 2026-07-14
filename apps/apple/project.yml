@@ -16,6 +16,13 @@ targets:
   Grimoire:
     type: application
     platform: macOS
+    preBuildScripts:
+      - name: Build Grimoire Vault Core
+        script: |
+          set -euo pipefail
+          cd "$SRCROOT/../.."
+          cargo build --manifest-path src-tauri/Cargo.toml -p grimoire-core --locked
+        basedOnDependencyAnalysis: false
     sources:
       - path: Sources/Shared
       - path: Sources/macOS
@@ -37,6 +44,10 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+        LIBRARY_SEARCH_PATHS: "$(inherited) $(SRCROOT)/../../src-tauri/target/debug"
+        OTHER_LDFLAGS: "$(inherited) -lgrimoire_core"
+        SWIFT_OBJC_BRIDGING_HEADER: Support/GrimoireVaultCore.h
 
   Grimoire-iOS:
     type: application

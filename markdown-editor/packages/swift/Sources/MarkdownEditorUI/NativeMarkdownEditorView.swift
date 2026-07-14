@@ -18,24 +18,29 @@ public struct NativeMarkdownEditorStyle {
 public struct NativeMarkdownEditorView: View {
     @Binding private var markdown: String
     private let title: String
+    private let showsHeader: Bool
     private let showsStats: Bool
     private let style: NativeMarkdownEditorStyle
 
     public init(
         markdown: Binding<String>,
         title: String = "Markdown",
+        showsHeader: Bool = true,
         showsStats: Bool = true,
         style: NativeMarkdownEditorStyle = .system
     ) {
         self._markdown = markdown
         self.title = title
+        self.showsHeader = showsHeader
         self.showsStats = showsStats
         self.style = style
     }
 
     public var body: some View {
         VStack(spacing: 0) {
-            header
+            if showsHeader {
+                header
+            }
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $markdown)
                     .font(style.textFont)

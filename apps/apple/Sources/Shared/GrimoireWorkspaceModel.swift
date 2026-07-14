@@ -9,6 +9,8 @@ struct WorkspaceDocument: Identifiable, Equatable {
     let systemImage: String
     let collection: WorkspaceCollection
     let isLocalOnly: Bool
+    var modifiedAt: UInt64? = nil
+    var fileSize: UInt64 = 0
     var markdown: String
 }
 
@@ -39,11 +41,16 @@ final class GrimoireWorkspaceModel: ObservableObject {
         didSet {
             if oldValue != selectedDocumentID {
                 manifestNeedsRebuild = true
+                if activeVaultPath != nil {
+                    Task { await loadSelectedDocument() }
+                }
             }
         }
     }
 
     @Published var searchText = ""
+    @Published var selectedDestination: WorkspaceDestination = .pages
+    @Published var selectedFolder: String?
     @Published var intent: ContextIntentV1 = .explain {
         didSet {
             if oldValue != intent {
@@ -64,9 +71,22 @@ final class GrimoireWorkspaceModel: ObservableObject {
     @Published private(set) var manifestRevision = 1
     @Published private(set) var manifestCreatedAt = Date()
     @Published private(set) var manifestNeedsRebuild = false
+    @Published private(set) var activeVaultPath: String?
+    @Published private(set) var vaultName = "Preview Notebook"
+    @Published private(set) var vaultActivity = "Preview data"
+    @Published private(set) var vaultError: String?
+    @Published private(set) var isLoadingDocument = false
 
-    init(documents: [WorkspaceDocument] = WorkspaceDocument.previewDocuments) {
+    private let vaultService: (any GrimoireVaultServing)?
+    private var loadedDocumentIDs: Set<String> = []
+    private var saveTask: Task<Void, Never>?
+
+    init(
+        documents: [WorkspaceDocument] = WorkspaceDocument.previewDocuments,
+        vaultService: (any GrimoireVaultServing)? = nil
+    ) {
         self.documents = documents
+        self.vaultService = vaultService
         selectedDocumentID = documents.first?.id
         pinnedSourceIDs = ["context-manifest"]
         excludedSourceIDs = Set(documents.filter(\.isLocalOnly).map(\.id))
@@ -74,12 +94,47 @@ final class GrimoireWorkspaceModel: ObservableObject {
 
     var filteredDocuments: [WorkspaceDocument] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return documents }
-        return documents.filter {
+        let scoped = destinationDocuments
+        guard !query.isEmpty else { return scoped }
+        return scoped.filter {
             $0.title.localizedStandardContains(query)
                 || $0.path.localizedStandardContains(query)
                 || $0.markdown.localizedStandardContains(query)
         }
+    }
+
+    var destinationDocuments: [WorkspaceDocument] {
+        if let selectedFolder {
+            return documents.filter { $0.folderName == selectedFolder }
+        }
+        switch selectedDestination {
+        case .notebook, .pages, .graph:
+            return documents
+        case .inbox:
+            return documents.filter { $0.path.localizedCaseInsensitiveContains("Inbox/") }
+        case .journal:
+            return documents.filter { $0.collection == .today || $0.collection == .journal }
+        case .dreams:
+            return documents.filter { $0.collection == .dreams }
+        case .archive:
+            return documents.filter { $0.path.localizedCaseInsensitiveContains("Archive/") }
+        }
+    }
+
+    var folderNames: [String] {
+        Array(Set(documents.compactMap(\.folderName))).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
+
+    func selectDestination(_ destination: WorkspaceDestination) {
+        selectedDestination = destination
+        selectedFolder = nil
+        selectFirstVisibleDocument()
+    }
+
+    func selectFolder(_ folder: String) {
+        selectedFolder = folder
+        selectedDestination = .pages
+        selectFirstVisibleDocument()
     }
 
     var activeDocument: WorkspaceDocument? {
@@ -145,8 +200,56 @@ final class GrimoireWorkspaceModel: ObservableObject {
                 }
                 self.documents[index].markdown = markdown
                 self.manifestNeedsRebuild = true
+                self.scheduleSave(documentID: documentID, content: markdown)
             }
         )
+    }
+
+    @discardableResult
+    func openVault(path: String) async -> Bool {
+        guard let vaultService else {
+            vaultError = "This client has no vault service."
+            return false
+        }
+        vaultError = nil
+        vaultActivity = "Scanning vault…"
+        do {
+            let descriptors = try await vaultService.scan(rootPath: path)
+            saveTask?.cancel()
+            loadedDocumentIDs.removeAll()
+            documents = descriptors.map(WorkspaceDocument.init(descriptor:))
+            activeVaultPath = path
+            vaultName = URL(fileURLWithPath: path).lastPathComponent
+            pinnedSourceIDs = []
+            excludedSourceIDs = Set(documents.filter(\.isLocalOnly).map(\.id))
+            selectedDocumentID = documents.first?.id
+            selectedDestination = .pages
+            selectedFolder = nil
+            vaultActivity = documents.isEmpty ? "Empty vault" : "Vault ready"
+            rebuildManifest()
+            return true
+        } catch {
+            vaultError = error.localizedDescription
+            vaultActivity = "Vault unavailable"
+            return false
+        }
+    }
+
+    func createNote(path: String, content: String) async -> Bool {
+        guard let vaultService, let activeVaultPath else { return false }
+        do {
+            try await vaultService.create(rootPath: activeVaultPath, path: path, content: content)
+            guard await openVault(path: activeVaultPath) else { return false }
+            selectedDocumentID = path
+            return true
+        } catch {
+            vaultError = error.localizedDescription
+            return false
+        }
+    }
+
+    func clearVaultError() {
+        vaultError = nil
     }
 
     func togglePin(_ documentID: WorkspaceDocument.ID) {
@@ -175,6 +278,57 @@ final class GrimoireWorkspaceModel: ObservableObject {
         manifestRevision += 1
         manifestCreatedAt = Date()
         manifestNeedsRebuild = false
+    }
+
+    private func loadSelectedDocument() async {
+        guard
+            let documentID = selectedDocumentID,
+            !loadedDocumentIDs.contains(documentID),
+            let document = documents.first(where: { $0.id == documentID }),
+            let vaultService,
+            let activeVaultPath
+        else { return }
+        isLoadingDocument = true
+        vaultActivity = "Opening \(document.title)…"
+        defer { isLoadingDocument = false }
+        do {
+            let content = try await vaultService.read(rootPath: activeVaultPath, path: document.path)
+            guard let index = documents.firstIndex(where: { $0.id == documentID }) else { return }
+            documents[index].markdown = content
+            loadedDocumentIDs.insert(documentID)
+            vaultActivity = "Saved locally"
+        } catch {
+            vaultError = error.localizedDescription
+            vaultActivity = "Could not open note"
+        }
+    }
+
+    private func scheduleSave(documentID: String, content: String) {
+        guard
+            loadedDocumentIDs.contains(documentID),
+            let document = documents.first(where: { $0.id == documentID }),
+            let vaultService,
+            let activeVaultPath
+        else { return }
+        saveTask?.cancel()
+        vaultActivity = "Saving…"
+        saveTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .milliseconds(450))
+                try Task.checkCancellation()
+                try await vaultService.save(
+                    rootPath: activeVaultPath,
+                    path: document.path,
+                    content: content
+                )
+                self?.vaultActivity = "Saved locally"
+            } catch is CancellationError {
+                return
+            } catch {
+                self?.vaultError = error.localizedDescription
+                self?.vaultActivity = "Save failed"
+            }
+        }
     }
 
     private func contextItem(
@@ -211,99 +365,9 @@ final class GrimoireWorkspaceModel: ObservableObject {
     private func estimatedTokens(in content: String) -> UInt32 {
         UInt32(max(1, content.utf8.count / 4))
     }
-}
 
-private extension WorkspaceDocument {
-    static let previewDocuments: [WorkspaceDocument] = [
-        WorkspaceDocument(
-            id: "daily-thread",
-            title: "Daily Thread",
-            path: "Journal/2026-07-14.md",
-            systemImage: "sun.max",
-            collection: .today,
-            isLocalOnly: true,
-            markdown: """
-            ---
-            title: Daily Thread
-            type: Journal
-            locality: local-only
-            ---
-            # Tuesday, 14 July
-
-            A quiet place for the day: what matters, what moved, and what can wait.
-            """
-        ),
-        WorkspaceDocument(
-            id: "welcome",
-            title: "Welcome",
-            path: "Welcome.md",
-            systemImage: "doc.text",
-            collection: .notes,
-            isLocalOnly: false,
-            markdown: """
-            ---
-            title: Welcome
-            type: Note
-            ---
-            # Welcome
-
-            Grimoire is a local-first notebook for notes, journals, diaries, projects, knowledge, code, and inspectable agent work.
-
-            Open the Context Inspector to see exactly what would accompany a request.
-            """
-        ),
-        WorkspaceDocument(
-            id: "context-manifest",
-            title: "Context Manifest",
-            path: "Specs/Context Manifest.md",
-            systemImage: "checklist",
-            collection: .projects,
-            isLocalOnly: false,
-            markdown: """
-            # Context Manifest
-
-            Every model request carries a bounded, reviewable manifest of selected, pinned, and excluded sources.
-
-            - Provenance remains visible
-            - Local-only sources stay local
-            - Rebuilds create a new revision
-            """
-        ),
-        WorkspaceDocument(
-            id: "journal-entry",
-            title: "Evening Pages",
-            path: "Journal/Evening Pages.md",
-            systemImage: "book.closed",
-            collection: .journal,
-            isLocalOnly: true,
-            markdown: """
-            ---
-            title: Evening Pages
-            type: Journal
-            locality: local-only
-            ---
-            # Evening Pages
-
-            A private diary entry stays on this Mac unless its owner explicitly changes that boundary.
-            """
-        ),
-        WorkspaceDocument(
-            id: "dream-entry",
-            title: "River and Door",
-            path: "Dreams/River and Door.md",
-            systemImage: "moon.stars",
-            collection: .dreams,
-            isLocalOnly: true,
-            markdown: """
-            ---
-            title: River and Door
-            type: Dream
-            locality: local-only
-            ---
-            # River and Door
-
-            Dream notes are private by default and participate only in local, metadata-safe reflection.
-            """
-        ),
-    ]
+    private func selectFirstVisibleDocument() {
+        guard !destinationDocuments.contains(where: { $0.id == selectedDocumentID }) else { return }
+        selectedDocumentID = destinationDocuments.first?.id
+    }
 }

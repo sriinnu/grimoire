@@ -4,7 +4,9 @@ This is the native SwiftUI shell for macOS and iOS.
 
 It is intentionally separate from the Tauri app. The Apple shell imports `MarkdownEditor` for durable markdown behavior and `GrimoireProductContracts` for versioned product-kernel messages, then builds platform-native UX around them.
 
-The macOS target currently contains the first native Workspace and Context Inspector slice. Its documents are preview data until the Wave 2 vault service boundary is connected. Track replacement of the full Tauri product in [`docs/NATIVE-APPLE-CAPABILITY-PARITY.md`](../../docs/NATIVE-APPLE-CAPABILITY-PARITY.md).
+The macOS target now contains the first vault-backed native notebook slice. It opens and remembers a local Markdown vault, scans pages through the reusable Rust kernel, reads selected pages on demand, creates portable notes, and autosaves edits atomically. Preview documents remain only as a no-vault welcome state. Track replacement of the full Tauri product in [`docs/NATIVE-APPLE-CAPABILITY-PARITY.md`](../../docs/NATIVE-APPLE-CAPABILITY-PARITY.md).
+
+The native information architecture follows the shipping Grimoire product grammar: Library, Pages, the active artifact, and Second Brain. SwiftUI/AppKit owns the presentation; it must not flatten the living notebook into a generic file editor or expose implementation-first diagnostics as the primary experience.
 
 The signature native appearance is Morning Notebook in light mode and Night Notebook in dark mode. Both keep SwiftUI/AppKit controls, accessibility behavior, and system appearance while applying Grimoire's warm paper, indigo, and saffron identity.
 
@@ -12,6 +14,7 @@ The signature native appearance is Morning Notebook in light mode and Night Note
 
 - XcodeGen 2.44.1 or newer
 - Xcode with macOS 14 / iOS 17 SDKs
+- Rust and Cargo for the macOS vault-kernel bridge
 
 ## Generate
 
@@ -40,6 +43,7 @@ Shared:
 - Context Manifest and durable event contracts from `GrimoireProductContracts`
 - generated app icon source from `app-icon.png`
 - vault compatibility and portable document behavior
+- safe vault-root confinement and atomic Markdown read/create/save behavior from `grimoire-core`
 - parity fixtures that Tauri also runs
 
 Not shared:

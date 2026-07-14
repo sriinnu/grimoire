@@ -7,25 +7,36 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		091FDAD32F081016EF26B633 /* WorkspaceNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53357C44746F34021F61D105 /* WorkspaceNavigation.swift */; };
 		1017CA1D06A35884E29B14D6 /* MarkdownEditor in Frameworks */ = {isa = PBXBuildFile; productRef = ACA50019022706A5E4864349 /* MarkdownEditor */; };
+		102379917992FC0E072A4D94 /* WorkspaceDocumentVaultMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0DA9C105A8811654F22980 /* WorkspaceDocumentVaultMapping.swift */; };
+		19AED429D943C93B52F859C1 /* WorkspacePreviewDocuments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DB676DB429E3DC9125F3AF /* WorkspacePreviewDocuments.swift */; };
+		4E39826C9A6B0DDCA201A4C2 /* MacNewNoteSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142315ABF89E0C9910FC3C06 /* MacNewNoteSheet.swift */; };
 		500278AC770BF2FFF0EF2357 /* GrimoireWorkspaceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */; };
 		5850B02064DB46BD6B4CBF92 /* GrimoireRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */; };
+		611085071DCED9B58F17090C /* GrimoireVaultService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C42BD67D2571E70249870D /* GrimoireVaultService.swift */; };
 		67068215906EB30D81195453 /* GrimoireDocumentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */; };
 		6E08A92E409FD3060D73FF3D /* MacWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7563E9E18AEEDD5B30C76249 /* MacWorkspaceView.swift */; };
 		736F29C5769E33A4DBA6CEDD /* GrimoireRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */; };
+		767200D5620DF6E3EED164F9 /* MacVaultService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EB041501E9C500BA81847F /* MacVaultService.swift */; };
 		7B102A4BD23F6F83B19B8C66 /* MarkdownEditorUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9C796F9D3EF326A64A1D4D10 /* MarkdownEditorUI */; };
 		7B36A404D9C4F5DB19FC7FA4 /* GrimoireDocumentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */; };
 		7DB1E94F14B70BB6991495AA /* MarkdownEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 0E4AC7DA34E4DC5678298629 /* MarkdownEditor */; };
 		8CC942FA0A4170755A10F090 /* MacNativeMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */; };
 		9290EDDDA015DC8469F37A8D /* MacEditorWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */; };
+		A0B538CCDBE32353D82244EC /* MacPageList.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B76D261E2777CD3F0C4278 /* MacPageList.swift */; };
 		A2F493B61DC63C6AB87C8E82 /* MacWorkspaceSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155754323936FEBBC6A9C770 /* MacWorkspaceSidebar.swift */; };
 		AEAFF3DD7AAAE511D53BBD18 /* GrimoireWorkspaceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */; };
+		AEDDEA5E8221AAD5632BFFDF /* GrimoireVaultService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4C42BD67D2571E70249870D /* GrimoireVaultService.swift */; };
 		B4ACBC68706CDE9ECCF655D4 /* GrimoireProductContracts in Frameworks */ = {isa = PBXBuildFile; productRef = 10729073694254F9B7930EC1 /* GrimoireProductContracts */; };
 		BD48F4487E31E9F5F43495BE /* GrimoireIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738200D07FF1C234DFCE049A /* GrimoireIOSApp.swift */; };
 		BDF81227A0118A792A486E45 /* GrimoireProductContracts in Frameworks */ = {isa = PBXBuildFile; productRef = 29D4091711E973810A31602B /* GrimoireProductContracts */; };
+		C2404C2A7A20E8E55A789D48 /* WorkspacePreviewDocuments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DB676DB429E3DC9125F3AF /* WorkspacePreviewDocuments.swift */; };
+		CCF45F6D8293D4F807378A66 /* WorkspaceDocumentVaultMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0DA9C105A8811654F22980 /* WorkspaceDocumentVaultMapping.swift */; };
 		CD20D936D61774C7DC6BB05E /* GrimoireMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */; };
 		D273A35E55FAB8DA878831B2 /* MacContextInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */; };
 		D9F77D763BF78EC044291E45 /* MacNotebookTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BF546386080ED672C62270 /* MacNotebookTheme.swift */; };
+		DBC2D516FD5118D9ADEAD832 /* WorkspaceNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53357C44746F34021F61D105 /* WorkspaceNavigation.swift */; };
 		E18EA4BA0DE467B00EEA12E5 /* GrimoireWorkspaceModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A502D3E84A1D440C216EF27A /* GrimoireWorkspaceModelTests.swift */; };
 		E517DBA82153425FE1848062 /* MarkdownEditorUI in Frameworks */ = {isa = PBXBuildFile; productRef = A8917BAEFF5A713D93222F7F /* MarkdownEditorUI */; };
 		E6A8C8770230BB2408B9DC6E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C88B60C2E294E6006CF7641C /* Assets.xcassets */; };
@@ -44,22 +55,29 @@
 
 /* Begin PBXFileReference section */
 		0538B36E2E874361D2118DB5 /* Grimoire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Grimoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		142315ABF89E0C9910FC3C06 /* MacNewNoteSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNewNoteSheet.swift; sourceTree = "<group>"; };
 		155754323936FEBBC6A9C770 /* MacWorkspaceSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacWorkspaceSidebar.swift; sourceTree = "<group>"; };
 		29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireRootView.swift; sourceTree = "<group>"; };
+		3D0DA9C105A8811654F22980 /* WorkspaceDocumentVaultMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceDocumentVaultMapping.swift; sourceTree = "<group>"; };
+		53357C44746F34021F61D105 /* WorkspaceNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceNavigation.swift; sourceTree = "<group>"; };
 		738200D07FF1C234DFCE049A /* GrimoireIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireIOSApp.swift; sourceTree = "<group>"; };
 		73B0BF9AC12C5E5F374E01EB /* Grimoire.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Grimoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7563E9E18AEEDD5B30C76249 /* MacWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacWorkspaceView.swift; sourceTree = "<group>"; };
 		76BF546386080ED672C62270 /* MacNotebookTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNotebookTheme.swift; sourceTree = "<group>"; };
 		778C26C4861A70A7D7C8CBC0 /* GrimoireTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GrimoireTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7CE1183F7DFE54CCDBB9C64F /* product-contracts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "product-contracts"; path = "../../packages/product-contracts"; sourceTree = SOURCE_ROOT; };
+		84DB676DB429E3DC9125F3AF /* WorkspacePreviewDocuments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspacePreviewDocuments.swift; sourceTree = "<group>"; };
 		8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireWorkspaceModel.swift; sourceTree = "<group>"; };
 		A502D3E84A1D440C216EF27A /* GrimoireWorkspaceModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireWorkspaceModelTests.swift; sourceTree = "<group>"; };
 		B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireMacApp.swift; sourceTree = "<group>"; };
 		B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNativeMaterial.swift; sourceTree = "<group>"; };
+		C4C42BD67D2571E70249870D /* GrimoireVaultService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireVaultService.swift; sourceTree = "<group>"; };
+		C7B76D261E2777CD3F0C4278 /* MacPageList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacPageList.swift; sourceTree = "<group>"; };
 		C88B60C2E294E6006CF7641C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireDocumentModel.swift; sourceTree = "<group>"; };
 		ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacContextInspector.swift; sourceTree = "<group>"; };
 		F3A787710AEFADD5F20D811D /* swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift; path = "../../markdown-editor/packages/swift"; sourceTree = SOURCE_ROOT; };
+		F5EB041501E9C500BA81847F /* MacVaultService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacVaultService.swift; sourceTree = "<group>"; };
 		FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacEditorWorkspace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -102,7 +120,10 @@
 				ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */,
 				FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */,
 				B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */,
+				142315ABF89E0C9910FC3C06 /* MacNewNoteSheet.swift */,
 				76BF546386080ED672C62270 /* MacNotebookTheme.swift */,
+				C7B76D261E2777CD3F0C4278 /* MacPageList.swift */,
+				F5EB041501E9C500BA81847F /* MacVaultService.swift */,
 				155754323936FEBBC6A9C770 /* MacWorkspaceSidebar.swift */,
 				7563E9E18AEEDD5B30C76249 /* MacWorkspaceView.swift */,
 			);
@@ -154,7 +175,11 @@
 			children = (
 				D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */,
 				29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */,
+				C4C42BD67D2571E70249870D /* GrimoireVaultService.swift */,
 				8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */,
+				3D0DA9C105A8811654F22980 /* WorkspaceDocumentVaultMapping.swift */,
+				53357C44746F34021F61D105 /* WorkspaceNavigation.swift */,
+				84DB676DB429E3DC9125F3AF /* WorkspacePreviewDocuments.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -200,6 +225,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B555B5DCFC5A40DDE30E8D8E /* Build configuration list for PBXNativeTarget "Grimoire" */;
 			buildPhases = (
+				58A8493599744314058E8803 /* Build Grimoire Vault Core */,
 				600306DAB86517449BEA1B41 /* Sources */,
 				0601FFC2D37C8EFD32B03788 /* Resources */,
 				EA191DE78C94040B8D6F988B /* Frameworks */,
@@ -295,6 +321,28 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		58A8493599744314058E8803 /* Build Grimoire Vault Core */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Build Grimoire Vault Core";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\ncd \"$SRCROOT/../..\"\ncargo build --manifest-path src-tauri/Cargo.toml -p grimoire-core --locked\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		600306DAB86517449BEA1B41 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -303,13 +351,20 @@
 				67068215906EB30D81195453 /* GrimoireDocumentModel.swift in Sources */,
 				CD20D936D61774C7DC6BB05E /* GrimoireMacApp.swift in Sources */,
 				736F29C5769E33A4DBA6CEDD /* GrimoireRootView.swift in Sources */,
+				AEDDEA5E8221AAD5632BFFDF /* GrimoireVaultService.swift in Sources */,
 				500278AC770BF2FFF0EF2357 /* GrimoireWorkspaceModel.swift in Sources */,
 				D273A35E55FAB8DA878831B2 /* MacContextInspector.swift in Sources */,
 				9290EDDDA015DC8469F37A8D /* MacEditorWorkspace.swift in Sources */,
 				8CC942FA0A4170755A10F090 /* MacNativeMaterial.swift in Sources */,
+				4E39826C9A6B0DDCA201A4C2 /* MacNewNoteSheet.swift in Sources */,
 				D9F77D763BF78EC044291E45 /* MacNotebookTheme.swift in Sources */,
+				A0B538CCDBE32353D82244EC /* MacPageList.swift in Sources */,
+				767200D5620DF6E3EED164F9 /* MacVaultService.swift in Sources */,
 				A2F493B61DC63C6AB87C8E82 /* MacWorkspaceSidebar.swift in Sources */,
 				6E08A92E409FD3060D73FF3D /* MacWorkspaceView.swift in Sources */,
+				CCF45F6D8293D4F807378A66 /* WorkspaceDocumentVaultMapping.swift in Sources */,
+				DBC2D516FD5118D9ADEAD832 /* WorkspaceNavigation.swift in Sources */,
+				19AED429D943C93B52F859C1 /* WorkspacePreviewDocuments.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,7 +375,11 @@
 				7B36A404D9C4F5DB19FC7FA4 /* GrimoireDocumentModel.swift in Sources */,
 				BD48F4487E31E9F5F43495BE /* GrimoireIOSApp.swift in Sources */,
 				5850B02064DB46BD6B4CBF92 /* GrimoireRootView.swift in Sources */,
+				611085071DCED9B58F17090C /* GrimoireVaultService.swift in Sources */,
 				AEAFF3DD7AAAE511D53BBD18 /* GrimoireWorkspaceModel.swift in Sources */,
+				102379917992FC0E072A4D94 /* WorkspaceDocumentVaultMapping.swift in Sources */,
+				091FDAD32F081016EF26B633 /* WorkspaceNavigation.swift in Sources */,
+				C2404C2A7A20E8E55A789D48 /* WorkspacePreviewDocuments.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,15 +491,19 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../../src-tauri/target/debug";
 				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = "$(inherited) -lgrimoire_core";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire;
 				PRODUCT_NAME = Grimoire;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Support/GrimoireVaultCore.h;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
@@ -508,15 +571,19 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited) $(SRCROOT)/../../src-tauri/target/debug";
 				MARKETING_VERSION = 0.1.0;
+				OTHER_LDFLAGS = "$(inherited) -lgrimoire_core";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire;
 				PRODUCT_NAME = Grimoire;
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = Support/GrimoireVaultCore.h;
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
