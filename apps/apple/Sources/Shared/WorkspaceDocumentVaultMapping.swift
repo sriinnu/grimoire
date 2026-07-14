@@ -1,6 +1,10 @@
 import Foundation
 
 extension WorkspaceDocument {
+    var dashboardTypeName: String {
+        typeName == "Note" && collection != .notes ? collection.defaultTypeName : typeName
+    }
+
     init(descriptor: VaultDocumentDescriptor) {
         let collection = WorkspaceCollection(rawValue: descriptor.collection) ?? .notes
         self.init(
@@ -10,6 +14,7 @@ extension WorkspaceDocument {
             systemImage: collection.systemImage,
             collection: collection,
             isLocalOnly: descriptor.isLocalOnly,
+            typeName: descriptor.noteType ?? collection.defaultTypeName,
             modifiedAt: descriptor.modifiedAt,
             fileSize: descriptor.fileSize,
             markdown: ""
@@ -53,6 +58,15 @@ extension WorkspaceDocument {
 }
 
 extension WorkspaceCollection {
+    var defaultTypeName: String {
+        switch self {
+        case .today, .journal: "Journal"
+        case .dreams: "Dream"
+        case .projects: "Project"
+        case .notes: "Note"
+        }
+    }
+
     var systemImage: String {
         switch self {
         case .today: "sun.max"

@@ -5,6 +5,15 @@ enum MacNotebookTheme {
     static let warmAccent = Color(red: 0.88, green: 0.53, blue: 0.24)
     static let tealAccent = Color(red: 0.24, green: 0.58, blue: 0.58)
     static let roseAccent = Color(red: 0.72, green: 0.38, blue: 0.48)
+    static let ink = Color(red: 0.08, green: 0.14, blue: 0.20)
+    static let mutedInk = Color(red: 0.33, green: 0.41, blue: 0.48)
+    static let notebookCanvas = Color(red: 0.965, green: 0.955, blue: 0.925)
+    static let capturePaper = Color(red: 0.992, green: 0.988, blue: 0.978)
+    static let heroGradient = LinearGradient(
+        colors: [.white, Color(red: 0.91, green: 0.97, blue: 0.96)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
     static let brandGradient = LinearGradient(
         colors: [Color(red: 0.12, green: 0.20, blue: 0.19), accent],
         startPoint: .topLeading,

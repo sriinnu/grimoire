@@ -22,6 +22,7 @@ pub struct VaultRoot {
 pub struct VaultDocumentV1 {
     pub path: String,
     pub title: String,
+    pub note_type: Option<String>,
     pub collection: String,
     pub is_local_only: bool,
     pub modified_at: Option<u64>,
@@ -131,12 +132,14 @@ impl VaultRoot {
         let note_type = metadata
             .as_ref()
             .and_then(|value| yaml_string(value, "type"));
+        let collection = collection_for(&relative_path, note_type.as_deref()).to_string();
         let (modified_at, _, file_size) = read_file_metadata(path)?;
 
         Ok(VaultDocumentV1 {
             path: relative_path.clone(),
             title,
-            collection: collection_for(&relative_path, note_type.as_deref()).to_string(),
+            note_type,
+            collection,
             is_local_only: is_local_only_export_file(&self.canonical, path),
             modified_at,
             file_size,
@@ -272,6 +275,7 @@ mod tests {
             .find(|document| document.path == "Journal/Today.md")
             .unwrap();
         assert_eq!(journal.title, "Morning");
+        assert_eq!(journal.note_type.as_deref(), Some("Journal"));
         assert_eq!(journal.collection, "journal");
         assert!(journal.is_local_only);
 

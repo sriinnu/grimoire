@@ -3,6 +3,7 @@ import Foundation
 struct VaultDocumentDescriptor: Sendable, Equatable {
     let path: String
     let title: String
+    let noteType: String?
     let collection: String
     let isLocalOnly: Bool
     let modifiedAt: UInt64?

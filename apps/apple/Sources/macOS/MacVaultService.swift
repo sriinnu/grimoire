@@ -10,6 +10,7 @@ actor MacVaultService: GrimoireVaultServing {
             VaultDocumentDescriptor(
                 path: $0.path,
                 title: $0.title,
+                noteType: $0.noteType,
                 collection: $0.collection,
                 isLocalOnly: $0.isLocalOnly,
                 modifiedAt: $0.modifiedAt,
@@ -89,6 +90,7 @@ private struct VaultBridgeSnapshot: Decodable {
 private struct VaultBridgeDocument: Decodable {
     let path: String
     let title: String
+    let noteType: String?
     let collection: String
     let isLocalOnly: Bool
     let modifiedAt: UInt64?

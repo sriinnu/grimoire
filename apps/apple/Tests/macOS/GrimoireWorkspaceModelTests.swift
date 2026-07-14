@@ -61,6 +61,30 @@ import Testing
     #expect(model.filteredDocuments.count == WorkspaceDocument.previewDocuments.count)
 }
 
+@Test func notebookCapturePlanCreatesPrivateJournalWithCollisionSafePath() throws {
+    let date = try #require(ISO8601DateFormatter().date(from: "2026-07-14T08:00:00Z"))
+    let plan = try #require(
+        NotebookCapturePlan.make(
+            body: "A quiet morning.",
+            kind: .journal,
+            existingPaths: ["Journal/journal-2026-07-14-a-quiet-morning.md"],
+            now: date
+        )
+    )
+
+    #expect(plan.path == "Journal/journal-2026-07-14-a-quiet-morning-2.md")
+    #expect(plan.content.contains("type: Journal"))
+    #expect(plan.content.contains("locality: local"))
+    #expect(plan.content.contains("egress: blocked"))
+    #expect(plan.content.contains("## Check-in"))
+}
+
+@Test func notebookCapturePlanAllowsEmptyDreamButNotEmptyNote() throws {
+    let dream = NotebookCapturePlan.make(body: "", kind: .dream, existingPaths: [])
+    #expect(dream?.content.contains("## Symbols") == true)
+    #expect(NotebookCapturePlan.make(body: "", kind: .note, existingPaths: []) == nil)
+}
+
 @Test func rustVaultBridgeScansReadsCreatesAndSaves() async throws {
     let root = FileManager.default.temporaryDirectory
         .appendingPathComponent("grimoire-vault-\(UUID().uuidString)")
@@ -73,6 +97,7 @@ import Testing
     let documents = try await service.scan(rootPath: root.path)
     #expect(documents.count == 1)
     #expect(documents[0].title == "Private Morning")
+    #expect(documents[0].noteType == "Journal")
     #expect(documents[0].collection == "journal")
     #expect(documents[0].isLocalOnly)
 

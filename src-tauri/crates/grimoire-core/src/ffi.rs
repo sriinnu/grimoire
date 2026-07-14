@@ -2,6 +2,12 @@ use crate::vault_service::execute_vault_request_v1;
 use std::ffi::{c_char, CStr, CString};
 
 #[no_mangle]
+/// Executes a versioned vault request and returns an owned JSON response.
+///
+/// # Safety
+/// `request` must be either null or a valid, NUL-terminated UTF-8 C string for
+/// the duration of this call. The returned pointer must be released exactly once
+/// with [`grimoire_string_free`].
 pub unsafe extern "C" fn grimoire_vault_execute_v1(request: *const c_char) -> *mut c_char {
     let response = if request.is_null() {
         r#"{"version":1,"ok":false,"error":"Vault request was null"}"#.to_string()
@@ -20,6 +26,11 @@ pub unsafe extern "C" fn grimoire_vault_execute_v1(request: *const c_char) -> *m
 }
 
 #[no_mangle]
+/// Releases a response allocated by [`grimoire_vault_execute_v1`].
+///
+/// # Safety
+/// `value` must be either null or a pointer returned by
+/// [`grimoire_vault_execute_v1`] that has not already been freed.
 pub unsafe extern "C" fn grimoire_string_free(value: *mut c_char) {
     if !value.is_null() {
         // SAFETY: The pointer must have been returned by grimoire_vault_execute_v1 once.

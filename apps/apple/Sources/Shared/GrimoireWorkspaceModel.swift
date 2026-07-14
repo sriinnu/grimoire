@@ -9,6 +9,7 @@ struct WorkspaceDocument: Identifiable, Equatable {
     let systemImage: String
     let collection: WorkspaceCollection
     let isLocalOnly: Bool
+    var typeName: String = "Note"
     var modifiedAt: UInt64? = nil
     var fileSize: UInt64 = 0
     var markdown: String
@@ -223,7 +224,7 @@ final class GrimoireWorkspaceModel: ObservableObject {
             pinnedSourceIDs = []
             excludedSourceIDs = Set(documents.filter(\.isLocalOnly).map(\.id))
             selectedDocumentID = documents.first?.id
-            selectedDestination = .pages
+            selectedDestination = .notebook
             selectedFolder = nil
             vaultActivity = documents.isEmpty ? "Empty vault" : "Vault ready"
             rebuildManifest()
@@ -238,9 +239,11 @@ final class GrimoireWorkspaceModel: ObservableObject {
     func createNote(path: String, content: String) async -> Bool {
         guard let vaultService, let activeVaultPath else { return false }
         do {
+            let destination = selectedDestination
             try await vaultService.create(rootPath: activeVaultPath, path: path, content: content)
             guard await openVault(path: activeVaultPath) else { return false }
             selectedDocumentID = path
+            selectedDestination = destination
             return true
         } catch {
             vaultError = error.localizedDescription

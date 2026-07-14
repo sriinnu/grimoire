@@ -15,6 +15,45 @@ struct MacWorkspaceView: View {
     }
 
     var body: some View {
+        workspace
+            .preferredColorScheme(.light)
+            .tint(MacNotebookTheme.accent)
+            .background {
+                MacNotebookTheme.windowBackdrop(for: colorScheme)
+                    .ignoresSafeArea()
+            }
+            .frame(minWidth: 1_180, minHeight: 720)
+            .task {
+                guard let path = UserDefaults.standard.string(forKey: "activeVaultPath") else { return }
+                _ = await model.openVault(path: path)
+            }
+            .sheet(isPresented: $newNotePresented) {
+                MacNewNoteSheet(model: model)
+            }
+            .alert(
+                "Vault Error",
+                isPresented: Binding(
+                    get: { model.vaultError != nil },
+                    set: { if !$0 { model.clearVaultError() } }
+                )
+            ) {
+                Button("OK") { model.clearVaultError() }
+            } message: {
+                Text(model.vaultError ?? "The vault operation failed.")
+            }
+    }
+
+    @ViewBuilder
+    private var workspace: some View {
+        if model.selectedDestination == .notebook, model.selectedFolder == nil {
+            NavigationSplitView(columnVisibility: $columnVisibility) {
+                MacWorkspaceSidebar(model: model)
+                    .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 280)
+            } detail: {
+                MacNotebookDashboard(model: model, onOpenVault: chooseVault)
+                    .navigationTitle("Notebook")
+            }
+        } else {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             MacWorkspaceSidebar(model: model)
                 .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 280)
@@ -67,29 +106,6 @@ struct MacWorkspaceView: View {
                 .help(inspectorPresented ? "Hide Second Brain" : "Show Second Brain")
             }
         }
-        .tint(MacNotebookTheme.accent)
-        .background {
-            MacNotebookTheme.windowBackdrop(for: colorScheme)
-                .ignoresSafeArea()
-        }
-        .frame(minWidth: 1_180, minHeight: 720)
-        .task {
-            guard let path = UserDefaults.standard.string(forKey: "activeVaultPath") else { return }
-            _ = await model.openVault(path: path)
-        }
-        .sheet(isPresented: $newNotePresented) {
-            MacNewNoteSheet(model: model)
-        }
-        .alert(
-            "Vault Error",
-            isPresented: Binding(
-                get: { model.vaultError != nil },
-                set: { if !$0 { model.clearVaultError() } }
-            )
-        ) {
-            Button("OK") { model.clearVaultError() }
-        } message: {
-            Text(model.vaultError ?? "The vault operation failed.")
         }
     }
 
