@@ -126,6 +126,16 @@ jobs:
         timeout-minutes: 15
         run: pnpm test:native-apple-build
 
+      - name: Native Apple Shell Tests
+        if: runner.os == 'macOS'
+        timeout-minutes: 15
+        run: pnpm test:native-apple-unit
+
+      - name: Native iOS Compile Guard
+        if: runner.os == 'macOS'
+        timeout-minutes: 15
+        run: pnpm test:native-ios-build
+
       - name: Install Playwright Browsers
         if: runner.os == 'macOS'
         timeout-minutes: 10

@@ -1,19 +1,36 @@
 import MarkdownEditor
 import SwiftUI
 
+public struct NativeMarkdownEditorStyle {
+    public let background: Color
+    public let textFont: Font
+
+    public init(background: Color, textFont: Font = .system(.body, design: .serif)) {
+        self.background = background
+        self.textFont = textFont
+    }
+
+    public static var system: NativeMarkdownEditorStyle {
+        NativeMarkdownEditorStyle(background: .markdownEditorBackground)
+    }
+}
+
 public struct NativeMarkdownEditorView: View {
     @Binding private var markdown: String
     private let title: String
     private let showsStats: Bool
+    private let style: NativeMarkdownEditorStyle
 
     public init(
         markdown: Binding<String>,
         title: String = "Markdown",
-        showsStats: Bool = true
+        showsStats: Bool = true,
+        style: NativeMarkdownEditorStyle = .system
     ) {
         self._markdown = markdown
         self.title = title
         self.showsStats = showsStats
+        self.style = style
     }
 
     public var body: some View {
@@ -21,7 +38,7 @@ public struct NativeMarkdownEditorView: View {
             header
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $markdown)
-                    .font(.system(.body, design: .serif))
+                    .font(style.textFont)
                     .markdownInputBehavior()
                     .scrollContentBackgroundIfAvailable(.hidden)
                     .padding()
@@ -33,7 +50,7 @@ public struct NativeMarkdownEditorView: View {
                 }
             }
         }
-        .background(Color.markdownEditorBackground)
+        .background(style.background)
     }
 
     private var header: some View {

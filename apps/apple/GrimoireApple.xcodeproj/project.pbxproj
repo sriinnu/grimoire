@@ -8,31 +8,59 @@
 
 /* Begin PBXBuildFile section */
 		1017CA1D06A35884E29B14D6 /* MarkdownEditor in Frameworks */ = {isa = PBXBuildFile; productRef = ACA50019022706A5E4864349 /* MarkdownEditor */; };
+		500278AC770BF2FFF0EF2357 /* GrimoireWorkspaceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */; };
 		5850B02064DB46BD6B4CBF92 /* GrimoireRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */; };
 		67068215906EB30D81195453 /* GrimoireDocumentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */; };
+		6E08A92E409FD3060D73FF3D /* MacWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7563E9E18AEEDD5B30C76249 /* MacWorkspaceView.swift */; };
 		736F29C5769E33A4DBA6CEDD /* GrimoireRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */; };
 		7B102A4BD23F6F83B19B8C66 /* MarkdownEditorUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9C796F9D3EF326A64A1D4D10 /* MarkdownEditorUI */; };
 		7B36A404D9C4F5DB19FC7FA4 /* GrimoireDocumentModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */; };
 		7DB1E94F14B70BB6991495AA /* MarkdownEditor in Frameworks */ = {isa = PBXBuildFile; productRef = 0E4AC7DA34E4DC5678298629 /* MarkdownEditor */; };
+		8CC942FA0A4170755A10F090 /* MacNativeMaterial.swift in Sources */ = {isa = PBXBuildFile; fileRef = B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */; };
+		9290EDDDA015DC8469F37A8D /* MacEditorWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */; };
+		A2F493B61DC63C6AB87C8E82 /* MacWorkspaceSidebar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 155754323936FEBBC6A9C770 /* MacWorkspaceSidebar.swift */; };
+		AEAFF3DD7AAAE511D53BBD18 /* GrimoireWorkspaceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */; };
 		B4ACBC68706CDE9ECCF655D4 /* GrimoireProductContracts in Frameworks */ = {isa = PBXBuildFile; productRef = 10729073694254F9B7930EC1 /* GrimoireProductContracts */; };
 		BD48F4487E31E9F5F43495BE /* GrimoireIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738200D07FF1C234DFCE049A /* GrimoireIOSApp.swift */; };
 		BDF81227A0118A792A486E45 /* GrimoireProductContracts in Frameworks */ = {isa = PBXBuildFile; productRef = 29D4091711E973810A31602B /* GrimoireProductContracts */; };
 		CD20D936D61774C7DC6BB05E /* GrimoireMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */; };
+		D273A35E55FAB8DA878831B2 /* MacContextInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */; };
+		D9F77D763BF78EC044291E45 /* MacNotebookTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76BF546386080ED672C62270 /* MacNotebookTheme.swift */; };
+		E18EA4BA0DE467B00EEA12E5 /* GrimoireWorkspaceModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A502D3E84A1D440C216EF27A /* GrimoireWorkspaceModelTests.swift */; };
 		E517DBA82153425FE1848062 /* MarkdownEditorUI in Frameworks */ = {isa = PBXBuildFile; productRef = A8917BAEFF5A713D93222F7F /* MarkdownEditorUI */; };
 		E6A8C8770230BB2408B9DC6E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C88B60C2E294E6006CF7641C /* Assets.xcassets */; };
 		F7645632AF619C2360E621A9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C88B60C2E294E6006CF7641C /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		30ACB22B80DCB25A88113164 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7433E3A51D34F80EA75C6E94 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B80C4D1DDDEDBFD45ECFB7A9;
+			remoteInfo = Grimoire;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		0538B36E2E874361D2118DB5 /* Grimoire.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Grimoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		155754323936FEBBC6A9C770 /* MacWorkspaceSidebar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacWorkspaceSidebar.swift; sourceTree = "<group>"; };
 		29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireRootView.swift; sourceTree = "<group>"; };
 		738200D07FF1C234DFCE049A /* GrimoireIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireIOSApp.swift; sourceTree = "<group>"; };
 		73B0BF9AC12C5E5F374E01EB /* Grimoire.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Grimoire.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7563E9E18AEEDD5B30C76249 /* MacWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacWorkspaceView.swift; sourceTree = "<group>"; };
+		76BF546386080ED672C62270 /* MacNotebookTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNotebookTheme.swift; sourceTree = "<group>"; };
+		778C26C4861A70A7D7C8CBC0 /* GrimoireTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GrimoireTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7CE1183F7DFE54CCDBB9C64F /* product-contracts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "product-contracts"; path = "../../packages/product-contracts"; sourceTree = SOURCE_ROOT; };
+		8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireWorkspaceModel.swift; sourceTree = "<group>"; };
+		A502D3E84A1D440C216EF27A /* GrimoireWorkspaceModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireWorkspaceModelTests.swift; sourceTree = "<group>"; };
 		B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireMacApp.swift; sourceTree = "<group>"; };
+		B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNativeMaterial.swift; sourceTree = "<group>"; };
 		C88B60C2E294E6006CF7641C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrimoireDocumentModel.swift; sourceTree = "<group>"; };
+		ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacContextInspector.swift; sourceTree = "<group>"; };
 		F3A787710AEFADD5F20D811D /* swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift; path = "../../markdown-editor/packages/swift"; sourceTree = SOURCE_ROOT; };
+		FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacEditorWorkspace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +99,12 @@
 			isa = PBXGroup;
 			children = (
 				B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */,
+				ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */,
+				FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */,
+				B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */,
+				76BF546386080ED672C62270 /* MacNotebookTheme.swift */,
+				155754323936FEBBC6A9C770 /* MacWorkspaceSidebar.swift */,
+				7563E9E18AEEDD5B30C76249 /* MacWorkspaceView.swift */,
 			);
 			path = macOS;
 			sourceTree = "<group>";
@@ -100,6 +134,7 @@
 				C88B60C2E294E6006CF7641C /* Assets.xcassets */,
 				6C1313A32A999F3CA1450D03 /* Packages */,
 				5BD67307E3ED499672173738 /* Sources */,
+				EB7E8E55F094217FB33625AB /* Tests */,
 				87072E869E85738878EC7BED /* Products */,
 			);
 			sourceTree = "<group>";
@@ -109,6 +144,7 @@
 			children = (
 				0538B36E2E874361D2118DB5 /* Grimoire.app */,
 				73B0BF9AC12C5E5F374E01EB /* Grimoire.app */,
+				778C26C4861A70A7D7C8CBC0 /* GrimoireTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -118,13 +154,48 @@
 			children = (
 				D0E6D38440D359F3DB27C85F /* GrimoireDocumentModel.swift */,
 				29949C66B55D5052C26F6E5B /* GrimoireRootView.swift */,
+				8F42FBDE1D280FA325B5C641 /* GrimoireWorkspaceModel.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		D910D0FB8E383D0315E095F2 /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				A502D3E84A1D440C216EF27A /* GrimoireWorkspaceModelTests.swift */,
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		EB7E8E55F094217FB33625AB /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				D910D0FB8E383D0315E095F2 /* macOS */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1960C4231DC59C3C63AAB5D5 /* GrimoireTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2D0EE3726C0B0027E0426584 /* Build configuration list for PBXNativeTarget "GrimoireTests" */;
+			buildPhases = (
+				C9902700BA06E2DBEE06BA9D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				045C01EF9192FFC3E9123F19 /* PBXTargetDependency */,
+			);
+			name = GrimoireTests;
+			packageProductDependencies = (
+			);
+			productName = GrimoireTests;
+			productReference = 778C26C4861A70A7D7C8CBC0 /* GrimoireTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		B80C4D1DDDEDBFD45ECFB7A9 /* Grimoire */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B555B5DCFC5A40DDE30E8D8E /* Build configuration list for PBXNativeTarget "Grimoire" */;
@@ -200,6 +271,7 @@
 			targets = (
 				B80C4D1DDDEDBFD45ECFB7A9 /* Grimoire */,
 				CF56F1AA7C7172727ACE6598 /* Grimoire-iOS */,
+				1960C4231DC59C3C63AAB5D5 /* GrimoireTests */,
 			);
 		};
 /* End PBXProject section */
@@ -231,6 +303,13 @@
 				67068215906EB30D81195453 /* GrimoireDocumentModel.swift in Sources */,
 				CD20D936D61774C7DC6BB05E /* GrimoireMacApp.swift in Sources */,
 				736F29C5769E33A4DBA6CEDD /* GrimoireRootView.swift in Sources */,
+				500278AC770BF2FFF0EF2357 /* GrimoireWorkspaceModel.swift in Sources */,
+				D273A35E55FAB8DA878831B2 /* MacContextInspector.swift in Sources */,
+				9290EDDDA015DC8469F37A8D /* MacEditorWorkspace.swift in Sources */,
+				8CC942FA0A4170755A10F090 /* MacNativeMaterial.swift in Sources */,
+				D9F77D763BF78EC044291E45 /* MacNotebookTheme.swift in Sources */,
+				A2F493B61DC63C6AB87C8E82 /* MacWorkspaceSidebar.swift in Sources */,
+				6E08A92E409FD3060D73FF3D /* MacWorkspaceView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,12 +320,47 @@
 				7B36A404D9C4F5DB19FC7FA4 /* GrimoireDocumentModel.swift in Sources */,
 				BD48F4487E31E9F5F43495BE /* GrimoireIOSApp.swift in Sources */,
 				5850B02064DB46BD6B4CBF92 /* GrimoireRootView.swift in Sources */,
+				AEAFF3DD7AAAE511D53BBD18 /* GrimoireWorkspaceModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9902700BA06E2DBEE06BA9D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E18EA4BA0DE467B00EEA12E5 /* GrimoireWorkspaceModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		045C01EF9192FFC3E9123F19 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B80C4D1DDDEDBFD45ECFB7A9 /* Grimoire */;
+			targetProxy = 30ACB22B80DCB25A88113164 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		262352B3DD2D8B85A4CE8089 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire.tests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Grimoire.app/Contents/MacOS/Grimoire";
+			};
+			name = Release;
+		};
 		2BADE139D2141DDF9D55EDB2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -269,6 +383,24 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
+		};
+		5563EEFDD5318A0CE7B20E0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sriinnu.grimoire.tests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Grimoire.app/Contents/MacOS/Grimoire";
+			};
+			name = Debug;
 		};
 		6CF3E1616D586294C861BCF6 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -455,6 +587,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2D0EE3726C0B0027E0426584 /* Build configuration list for PBXNativeTarget "GrimoireTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5563EEFDD5318A0CE7B20E0C /* Debug */,
+				262352B3DD2D8B85A4CE8089 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		5769589B3936E70015350B2D /* Build configuration list for PBXProject "GrimoireApple" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

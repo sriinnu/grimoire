@@ -173,6 +173,8 @@ if [ "$APPLE_SHELL_CHANGED" = true ]; then
   echo ""
   echo "🍎 Native Apple shell build..."
   pnpm run test:native-apple-build
+  pnpm run test:native-apple-unit
+  pnpm run test:native-ios-build
   echo "  ✅ Native Apple shell build OK"
 else
   echo ""
