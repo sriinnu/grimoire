@@ -4,10 +4,12 @@ import process from 'node:process'
 
 const root = process.cwd()
 const appDirectory = join(root, 'src', 'app')
+const appleSourcesDirectory = join(root, 'apps', 'apple', 'Sources')
 const appModules = (await readdir(appDirectory, { withFileTypes: true }))
   .filter((entry) => entry.isFile() && ['.ts', '.tsx'].includes(extname(entry.name)))
   .map((entry) => join(appDirectory, entry.name))
-const files = [join(root, 'src', 'App.tsx'), join(root, 'src', 'AppRuntime.tsx'), ...appModules]
+const appleModules = await collectFiles(appleSourcesDirectory, new Set(['.swift']))
+const files = [join(root, 'src', 'App.tsx'), join(root, 'src', 'AppRuntime.tsx'), ...appModules, ...appleModules]
 const limit = 400
 const violations = []
 
@@ -22,4 +24,16 @@ if (violations.length > 0) {
   process.exitCode = 1
 } else {
   console.log(`App module LOC check passed (${files.length} files, max ${limit})`)
+}
+
+async function collectFiles(directory, extensions) {
+  const entries = await readdir(directory, { withFileTypes: true })
+  const nested = await Promise.all(
+    entries.map(async (entry) => {
+      const path = join(directory, entry.name)
+      if (entry.isDirectory()) return collectFiles(path, extensions)
+      return entry.isFile() && extensions.has(extname(entry.name)) ? [path] : []
+    }),
+  )
+  return nested.flat()
 }

@@ -4,6 +4,10 @@ This is the native SwiftUI shell for macOS and iOS.
 
 It is intentionally separate from the Tauri app. The Apple shell imports `MarkdownEditor` for durable markdown behavior and `GrimoireProductContracts` for versioned product-kernel messages, then builds platform-native UX around them.
 
+The macOS target currently contains the first native Workspace and Context Inspector slice. Its documents are preview data until the Wave 2 vault service boundary is connected. Track replacement of the full Tauri product in [`docs/NATIVE-APPLE-CAPABILITY-PARITY.md`](../../docs/NATIVE-APPLE-CAPABILITY-PARITY.md).
+
+The signature native appearance is Morning Notebook in light mode and Night Notebook in dark mode. Both keep SwiftUI/AppKit controls, accessibility behavior, and system appearance while applying Grimoire's warm paper, indigo, and saffron identity.
+
 ## Tooling
 
 - XcodeGen 2.44.1 or newer

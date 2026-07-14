@@ -64,6 +64,6 @@ fi
 
 # Unit tests — fast, runs on every commit.
 echo "  → tests..."
-pnpm exec vitest run --silent
+pnpm exec vitest run --silent --maxWorkers=50%
 
 echo "✅ Pre-commit passed"

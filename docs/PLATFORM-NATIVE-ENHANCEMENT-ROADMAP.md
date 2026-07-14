@@ -2,6 +2,8 @@
 
 This roadmap keeps the product direction clear: Grimoire should have Bear-grade markdown writing, Mem-grade capture and recall, Obsidian-grade graph/wiki workflows, and native Apple clients over a reusable product kernel without abandoning the proven Tauri app before parity.
 
+The feature-by-feature replacement gate lives in [Native Apple Capability Parity](NATIVE-APPLE-CAPABILITY-PARITY.md). A native build or attractive shell is not product parity.
+
 ## Current / Prototype / Target
 
 | Area | Shipping today | Prototype now | Target |

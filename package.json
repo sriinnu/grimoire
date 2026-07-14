@@ -46,6 +46,8 @@
     "test:product-contracts:js": "pnpm --filter @grimoire/product-contracts build && pnpm exec vitest run packages/product-contracts/src/contextManifest.test.ts packages/product-contracts/src/events.test.ts src/lib/contextManifest.test.ts",
     "test:product-contracts:swift": "swift test --disable-sandbox --package-path packages/product-contracts",
     "test:native-apple-build": "xcodebuild -quiet -project apps/apple/GrimoireApple.xcodeproj -scheme Grimoire -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build",
+    "test:native-apple-unit": "xcodebuild -quiet -project apps/apple/GrimoireApple.xcodeproj -scheme Grimoire -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO test",
+    "test:native-ios-build": "xcodebuild -quiet -project apps/apple/GrimoireApple.xcodeproj -scheme Grimoire-iOS -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build",
     "test:local-only-audit": "node scripts/audit-local-only.mjs --self-test",
     "test:secret-scan": "node scripts/scan-secrets.mjs --self-test",
     "test:macos-install-app": "node scripts/verify-app-bundle-version.mjs --self-test && node scripts/install-macos-app.mjs --self-test",
