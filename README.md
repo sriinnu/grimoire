@@ -44,8 +44,17 @@ Run the native desktop app for real filesystem access, native menus, and
 platform behavior. This needs Rust and your platform's desktop dependencies:
 
 ```bash
-pnpm tauri dev
+pnpm grimoire:tauri
 ```
+
+Run the separate native SwiftUI macOS workspace with:
+
+```bash
+pnpm grimoire:macos
+```
+
+The commands deliberately launch their own targets, even though both apps are
+currently called Grimoire.
 
 `pnpm doctor:source` checks your toolchain and prints what is missing for each
 mode. Full setup details, including platform dependencies, are in

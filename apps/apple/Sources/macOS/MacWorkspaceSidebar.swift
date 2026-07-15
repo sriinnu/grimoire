@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct MacWorkspaceSidebar: View {
@@ -103,13 +104,12 @@ struct MacWorkspaceSidebar: View {
     private var brandHeader: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 9)
-                        .fill(MacNotebookTheme.brandGradient)
-                    Image(systemName: "book.pages.fill")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                }
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .accessibilityHidden(true)
                 .frame(width: 34, height: 34)
 
                 VStack(alignment: .leading, spacing: 0) {
@@ -132,7 +132,7 @@ struct MacWorkspaceSidebar: View {
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 7)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 9))
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
         }
         .padding(12)
         .background(.bar)

@@ -33,6 +33,15 @@ xcodebuild -project GrimoireApple.xcodeproj -scheme Grimoire -destination 'platf
 xcodebuild -project GrimoireApple.xcodeproj -scheme Grimoire-iOS -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
+From the repository root, build and open the native macOS app directly with:
+
+```bash
+pnpm grimoire:macos
+```
+
+Use `pnpm grimoire:tauri` for the separate Tauri desktop app. The launchers
+keep the two same-named local app bundles distinct.
+
 For local archive or TestFlight/App Store work, set signing in Xcode or an untracked local `.xcconfig`. Do not commit a personal development team ID.
 
 ## Boundary

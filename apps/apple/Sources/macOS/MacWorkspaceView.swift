@@ -2,10 +2,9 @@ import AppKit
 import SwiftUI
 
 struct MacWorkspaceView: View {
-    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var model: GrimoireWorkspaceModel
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var inspectorPresented = true
+    @State private var inspectorPresented = false
     @State private var newNotePresented = false
 
     init() {
@@ -16,13 +15,8 @@ struct MacWorkspaceView: View {
 
     var body: some View {
         workspace
-            .preferredColorScheme(.light)
             .tint(MacNotebookTheme.accent)
-            .background {
-                MacNotebookTheme.windowBackdrop(for: colorScheme)
-                    .ignoresSafeArea()
-            }
-            .frame(minWidth: 1_180, minHeight: 720)
+            .frame(minWidth: 900, minHeight: 620)
             .task {
                 guard let path = UserDefaults.standard.string(forKey: "activeVaultPath") else { return }
                 _ = await model.openVault(path: path)
