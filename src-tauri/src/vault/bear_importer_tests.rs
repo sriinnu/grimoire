@@ -75,7 +75,10 @@ fn workspace_with_store(notes: &[FixtureNote]) -> (tempfile::TempDir, PathBuf, P
 #[test]
 fn imports_notes_with_frontmatter_dates_tags_and_archived_flag() {
     let (_workspace, vault, store) = workspace_with_store(&[
-        fixture_note("Daily Plan", "# Daily Plan\n\nShip the #work/grimoire slice with #focus.\n"),
+        fixture_note(
+            "Daily Plan",
+            "# Daily Plan\n\nShip the #work/grimoire slice with #focus.\n",
+        ),
         FixtureNote {
             archived: 1,
             ..fixture_note("Old Ritual", "Archived body\n")
@@ -156,12 +159,8 @@ fn dry_run_reports_counts_and_sample_titles_without_writing() {
     assert_eq!(summary.notes_imported, 2);
     assert_eq!(summary.skipped_trashed, 1);
     assert_eq!(summary.report_path, None);
-    assert!(summary
-        .sample_titles
-        .contains(&"First Note".to_string()));
-    assert!(summary
-        .sample_titles
-        .contains(&"Second Note".to_string()));
+    assert!(summary.sample_titles.contains(&"First Note".to_string()));
+    assert!(summary.sample_titles.contains(&"Second Note".to_string()));
     assert!(!vault.join("imports").exists());
 }
 

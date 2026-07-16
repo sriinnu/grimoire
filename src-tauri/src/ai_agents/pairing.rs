@@ -25,15 +25,22 @@ pub fn rotate_chitragupta_socket_secret() -> Result<String, String> {
     let binary = super::discovery::find_chitragupta_binary()?;
     let mut command = super::path_env::command_for_binary(&binary);
     command.args([
-        "secret", "rotate", "api-key", "--consumer", "grimoire", "--store", "config",
+        "secret",
+        "rotate",
+        "api-key",
+        "--consumer",
+        "grimoire",
+        "--store",
+        "config",
     ]);
 
-    let output = super::discovery::output_with_timeout(command, ROTATE_TIMEOUT).map_err(|error| {
-        format!(
-            "Chitragupta secret rotation failed: {}",
-            sanitize_secret_material(&error)
-        )
-    })?;
+    let output =
+        super::discovery::output_with_timeout(command, ROTATE_TIMEOUT).map_err(|error| {
+            format!(
+                "Chitragupta secret rotation failed: {}",
+                sanitize_secret_material(&error)
+            )
+        })?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -153,25 +160,37 @@ mod tests {
              export GRIMOIRE_CHITRAGUPTA_TOKEN='{FAKE_SECRET}'\n\
              Stored in config."
         );
-        assert_eq!(extract_rotated_secret(&stdout).as_deref(), Some(FAKE_SECRET));
+        assert_eq!(
+            extract_rotated_secret(&stdout).as_deref(),
+            Some(FAKE_SECRET)
+        );
     }
 
     #[test]
     fn extracts_from_a_drifted_export_line_with_double_quotes_and_new_var_name() {
         let stdout = format!("set CHITRAGUPTA_CONSUMER_KEY=\"{FAKE_SECRET}\" to use it");
-        assert_eq!(extract_rotated_secret(&stdout).as_deref(), Some(FAKE_SECRET));
+        assert_eq!(
+            extract_rotated_secret(&stdout).as_deref(),
+            Some(FAKE_SECRET)
+        );
     }
 
     #[test]
     fn falls_back_to_a_standalone_token_when_the_export_line_is_gone() {
         let stdout = format!("Your new Grimoire API key:\n\n  {FAKE_SECRET}\n\nKeep it safe.");
-        assert_eq!(extract_rotated_secret(&stdout).as_deref(), Some(FAKE_SECRET));
+        assert_eq!(
+            extract_rotated_secret(&stdout).as_deref(),
+            Some(FAKE_SECRET)
+        );
     }
 
     #[test]
     fn falls_back_to_an_unquoted_assignment() {
         let stdout = format!("GRIMOIRE_CHITRAGUPTA_TOKEN={FAKE_SECRET}");
-        assert_eq!(extract_rotated_secret(&stdout).as_deref(), Some(FAKE_SECRET));
+        assert_eq!(
+            extract_rotated_secret(&stdout).as_deref(),
+            Some(FAKE_SECRET)
+        );
     }
 
     #[test]
@@ -181,7 +200,10 @@ mod tests {
             extract_rotated_secret("export GRIMOIRE_CHITRAGUPTA_TOKEN_PLACEHOLDER_NAME=''"),
             None
         );
-        assert_eq!(extract_rotated_secret("rotation complete, check your config"), None);
+        assert_eq!(
+            extract_rotated_secret("rotation complete, check your config"),
+            None
+        );
         assert_eq!(extract_rotated_secret(""), None);
         assert_eq!(extract_rotated_secret("<html>proxy error</html>"), None);
     }
@@ -189,7 +211,10 @@ mod tests {
     #[test]
     fn extraction_ignores_quoted_values_that_are_not_secrets() {
         let stdout = format!("profile='default' key='{FAKE_SECRET}'");
-        assert_eq!(extract_rotated_secret(&stdout).as_deref(), Some(FAKE_SECRET));
+        assert_eq!(
+            extract_rotated_secret(&stdout).as_deref(),
+            Some(FAKE_SECRET)
+        );
     }
 
     #[test]

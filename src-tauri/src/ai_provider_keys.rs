@@ -221,7 +221,11 @@ pub fn save_chitragupta_socket_token(token: &str) -> Result<AiProviderKeySource,
     if trimmed.is_empty() {
         return Err("Daemon token cannot be blank".into());
     }
-    save_keychain_secret(CHITRAGUPTA_SOCKET_ACCOUNT, CHITRAGUPTA_SOCKET_LABEL, trimmed)?;
+    save_keychain_secret(
+        CHITRAGUPTA_SOCKET_ACCOUNT,
+        CHITRAGUPTA_SOCKET_LABEL,
+        trimmed,
+    )?;
     Ok(chitragupta_socket_token_source())
 }
 
@@ -282,7 +286,9 @@ fn save_keychain_secret(account: &str, label: &str, secret: &str) -> Result<(), 
 
 #[cfg(not(target_os = "macos"))]
 fn save_keychain_secret(_account: &str, label: &str, _secret: &str) -> Result<(), String> {
-    Err(format!("{label} keys can only be saved to Keychain on macOS."))
+    Err(format!(
+        "{label} keys can only be saved to Keychain on macOS."
+    ))
 }
 
 #[cfg(target_os = "macos")]
@@ -290,7 +296,9 @@ fn delete_keychain_secret(account: &str, label: &str) -> Result<(), String> {
     match security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, account) {
         Ok(()) => Ok(()),
         Err(error) if error.code() == ERR_SEC_ITEM_NOT_FOUND => Ok(()),
-        Err(error) => Err(format!("Could not clear {label} key from Keychain: {error}")),
+        Err(error) => Err(format!(
+            "Could not clear {label} key from Keychain: {error}"
+        )),
     }
 }
 

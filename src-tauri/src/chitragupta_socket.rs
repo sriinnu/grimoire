@@ -116,9 +116,7 @@ fn unreachable_message(base: &str) -> String {
 
 fn read_envelope(response: reqwest::blocking::Response, base: &str) -> Result<Value, String> {
     let status = response.status();
-    let body = response
-        .text()
-        .map_err(|_| unreachable_message(base))?;
+    let body = response.text().map_err(|_| unreachable_message(base))?;
 
     if status.as_u16() == 401 || status.as_u16() == 403 {
         return Err(
@@ -359,7 +357,15 @@ pub fn trim_session_summary(summary: &Value) -> Option<TrimmedChitraguptaSession
     Some(TrimmedChitraguptaSession {
         id,
         title: json_text(summary, &["title", "name"]).map(ToString::to_string),
-        updated_at: first_value(summary, &["updatedAt", "updated_at", "lastMessageAt", "last_message_at"]),
+        updated_at: first_value(
+            summary,
+            &[
+                "updatedAt",
+                "updated_at",
+                "lastMessageAt",
+                "last_message_at",
+            ],
+        ),
         created_at: first_value(summary, &["createdAt", "created_at"]),
         message_count: summary
             .get("messageCount")
@@ -367,7 +373,13 @@ pub fn trim_session_summary(summary: &Value) -> Option<TrimmedChitraguptaSession
             .and_then(Value::as_u64),
         gist: json_text(
             summary,
-            &["gist", "summary", "preview", "lastMessagePreview", "last_message_preview"],
+            &[
+                "gist",
+                "summary",
+                "preview",
+                "lastMessagePreview",
+                "last_message_preview",
+            ],
         )
         .map(ToString::to_string),
     })
@@ -418,7 +430,9 @@ fn session_ids() -> &'static Mutex<HashMap<(String, String), String>> {
 /// Health, probing at most once per [`HEALTH_CACHE_TTL`] per base URL.
 pub fn cached_health(base: &str) -> CachedSocketHealth {
     {
-        let cache = health_cache().lock().unwrap_or_else(|poison| poison.into_inner());
+        let cache = health_cache()
+            .lock()
+            .unwrap_or_else(|poison| poison.into_inner());
         if let Some(entry) = cache.as_ref() {
             if entry.base == base && entry.checked_at.elapsed() < HEALTH_CACHE_TTL {
                 return entry.health.clone();
@@ -457,7 +471,9 @@ pub fn mark_socket_unhealthy(base: &str) {
 }
 
 fn store_health(base: &str, health: CachedSocketHealth) {
-    let mut cache = health_cache().lock().unwrap_or_else(|poison| poison.into_inner());
+    let mut cache = health_cache()
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner());
     *cache = Some(HealthCacheEntry {
         base: base.to_string(),
         checked_at: Instant::now(),
@@ -467,15 +483,20 @@ fn store_health(base: &str, health: CachedSocketHealth) {
 
 /// Last socket session id for a (vault, note) pair within this app run.
 pub fn remembered_session_id(vault_path: &str, note_path: &str) -> Option<String> {
-    let map = session_ids().lock().unwrap_or_else(|poison| poison.into_inner());
-    map.get(&(vault_path.to_string(), note_path.to_string())).cloned()
+    let map = session_ids()
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner());
+    map.get(&(vault_path.to_string(), note_path.to_string()))
+        .cloned()
 }
 
 pub fn remember_session_id(vault_path: &str, note_path: &str, session_id: &str) {
     if session_id.trim().is_empty() {
         return;
     }
-    let mut map = session_ids().lock().unwrap_or_else(|poison| poison.into_inner());
+    let mut map = session_ids()
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner());
     map.insert(
         (vault_path.to_string(), note_path.to_string()),
         session_id.to_string(),
@@ -527,8 +548,8 @@ mod tests {
 
     #[test]
     fn parse_envelope_surfaces_error_envelope_message() {
-        let error = parse_envelope(r#"{"ok":false,"error":{"message":"session not found"}}"#)
-            .unwrap_err();
+        let error =
+            parse_envelope(r#"{"ok":false,"error":{"message":"session not found"}}"#).unwrap_err();
         assert_eq!(error, "session not found");
     }
 
@@ -552,7 +573,11 @@ mod tests {
             json!({"response": "answer"}),
             json!({"reply": {"text": "answer"}}),
         ] {
-            assert_eq!(parse_chat_reply(&payload).text.as_deref(), Some("answer"), "payload: {payload}");
+            assert_eq!(
+                parse_chat_reply(&payload).text.as_deref(),
+                Some("answer"),
+                "payload: {payload}"
+            );
         }
     }
 
@@ -580,27 +605,45 @@ mod tests {
     #[test]
     fn session_list_extraction_handles_bare_and_wrapped_arrays() {
         assert_eq!(extract_session_list(&json!([{"id": "a"}])).len(), 1);
-        assert_eq!(extract_session_list(&json!({"sessions": [{"id": "a"}, {"id": "b"}]})).len(), 2);
+        assert_eq!(
+            extract_session_list(&json!({"sessions": [{"id": "a"}, {"id": "b"}]})).len(),
+            2
+        );
         assert!(extract_session_list(&json!({"unexpected": true})).is_empty());
     }
 
     #[test]
     fn session_filter_requires_project_match() {
-        let summary = json!({"id": "s1", "projectPath": "/vault-a", "sessionLineageKey": "notes/a.md"});
+        let summary =
+            json!({"id": "s1", "projectPath": "/vault-a", "sessionLineageKey": "notes/a.md"});
         assert!(session_matches_note(&summary, "/vault-a", "notes/a.md"));
         assert!(!session_matches_note(&summary, "/vault-b", "notes/a.md"));
     }
 
     #[test]
     fn session_filter_enforces_lineage_only_when_present() {
-        let with_lineage = json!({"id": "s1", "projectPath": "/vault", "sessionLineageKey": "notes/a.md"});
+        let with_lineage =
+            json!({"id": "s1", "projectPath": "/vault", "sessionLineageKey": "notes/a.md"});
         let without_lineage = json!({"id": "s2", "projectPath": "/vault"});
-        let snake_lineage = json!({"id": "s3", "projectPath": "/vault", "lineage_key": "notes/b.md"});
+        let snake_lineage =
+            json!({"id": "s3", "projectPath": "/vault", "lineage_key": "notes/b.md"});
 
         assert!(session_matches_note(&with_lineage, "/vault", "notes/a.md"));
-        assert!(!session_matches_note(&with_lineage, "/vault", "notes/other.md"));
-        assert!(session_matches_note(&without_lineage, "/vault", "notes/a.md"));
-        assert!(!session_matches_note(&snake_lineage, "/vault", "notes/a.md"));
+        assert!(!session_matches_note(
+            &with_lineage,
+            "/vault",
+            "notes/other.md"
+        ));
+        assert!(session_matches_note(
+            &without_lineage,
+            "/vault",
+            "notes/a.md"
+        ));
+        assert!(!session_matches_note(
+            &snake_lineage,
+            "/vault",
+            "notes/a.md"
+        ));
         assert!(session_matches_note(&snake_lineage, "/vault", "notes/b.md"));
     }
 
@@ -622,7 +665,10 @@ mod tests {
         assert_eq!(trimmed.updated_at, Some(json!("2026-07-15T10:00:00Z")));
         assert_eq!(trimmed.created_at, Some(json!(1752300000000i64)));
         assert_eq!(trimmed.message_count, Some(12));
-        assert_eq!(trimmed.gist.as_deref(), Some("Talked through the alpha rollout."));
+        assert_eq!(
+            trimmed.gist.as_deref(),
+            Some("Talked through the alpha rollout.")
+        );
         let serialized = serde_json::to_value(&trimmed).unwrap();
         assert!(serialized.get("unknownField").is_none());
     }
@@ -636,8 +682,14 @@ mod tests {
     fn session_memory_round_trips_per_vault_and_note() {
         remember_session_id("/vault-mem", "notes/a.md", "ses_a");
         remember_session_id("/vault-mem", "", "ses_vault");
-        assert_eq!(remembered_session_id("/vault-mem", "notes/a.md").as_deref(), Some("ses_a"));
-        assert_eq!(remembered_session_id("/vault-mem", "").as_deref(), Some("ses_vault"));
+        assert_eq!(
+            remembered_session_id("/vault-mem", "notes/a.md").as_deref(),
+            Some("ses_a")
+        );
+        assert_eq!(
+            remembered_session_id("/vault-mem", "").as_deref(),
+            Some("ses_vault")
+        );
         assert_eq!(remembered_session_id("/vault-mem", "notes/b.md"), None);
     }
 }

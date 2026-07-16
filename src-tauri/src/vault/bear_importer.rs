@@ -173,8 +173,9 @@ fn validate_zsfnote_schema(connection: &Connection) -> Result<(), String> {
         .filter_map(Result::ok)
         .collect();
     if columns.is_empty() {
-        return Err("Bear database has no ZSFNOTE table; is this a Bear database.sqlite store?"
-            .to_string());
+        return Err(
+            "Bear database has no ZSFNOTE table; is this a Bear database.sqlite store?".to_string(),
+        );
     }
     for required in REQUIRED_ZSFNOTE_COLUMNS {
         if !columns.contains(*required) {
@@ -312,8 +313,7 @@ fn write_bear_note(note: &BearNote, import_root: &Path, state: &mut AppImportSta
         } else {
             stem
         };
-        let destination =
-            unique_destination_path(import_root.join(format!("{stem}.md")), state);
+        let destination = unique_destination_path(import_root.join(format!("{stem}.md")), state);
         write_text_file(&destination, &render_bear_note(note)?)
     })();
     match result {

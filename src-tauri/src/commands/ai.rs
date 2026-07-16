@@ -118,7 +118,9 @@ fn chitragupta_socket_token_status() -> ChitraguptaSocketTokenStatus {
 }
 
 #[tauri::command]
-pub fn save_chitragupta_socket_token(token: String) -> Result<ChitraguptaSocketTokenStatus, String> {
+pub fn save_chitragupta_socket_token(
+    token: String,
+) -> Result<ChitraguptaSocketTokenStatus, String> {
     crate::ai_provider_keys::save_chitragupta_socket_token(&token)?;
     Ok(chitragupta_socket_token_status())
 }

@@ -395,9 +395,7 @@ where
             // Mark unhealthy so the NEXT message routes through the CLI.
             // Never auto-retry this one — a chat message must not double-send.
             socket::mark_socket_unhealthy(&base);
-            let message = format!(
-                "{error} The next message will use the Chitragupta CLI instead."
-            );
+            let message = format!("{error} The next message will use the Chitragupta CLI instead.");
             emit(AiAgentStreamEvent::Error {
                 message: message.clone(),
             });
