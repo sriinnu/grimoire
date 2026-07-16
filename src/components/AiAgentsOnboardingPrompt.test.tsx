@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
 import { AI_AGENTS_STATUS_SCAN_FAILED_DETAIL } from '../lib/aiAgents'
@@ -9,11 +9,17 @@ const dragRegionMouseDown = vi.fn()
 const originalPlatform = navigator.platform
 const originalUserAgent = navigator.userAgent
 
+const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
+
 vi.mock('../utils/url', () => ({
   openExternalUrl: (...args: unknown[]) => openExternalUrl(...args),
 }))
 vi.mock('../hooks/useDragRegion', () => ({
   useDragRegion: () => ({ onMouseDown: dragRegionMouseDown }),
+}))
+vi.mock('../mock-tauri', () => ({
+  isTauri: () => false,
+  mockInvoke,
 }))
 
 describe('AiAgentsOnboardingPrompt', () => {
@@ -237,6 +243,99 @@ describe('AiAgentsOnboardingPrompt', () => {
     expect(screen.getByTestId('ai-agent-scan-locations')).not.toHaveTextContent('/Applications')
     expect(screen.queryByTestId('ai-agents-onboarding-install-claude_code')).not.toBeInTheDocument()
     expect(screen.queryByTestId('ai-agent-status-claude_code')).not.toBeInTheDocument()
+  })
+
+  it('surfaces the daemon state and one-click pairing when Chitragupta is installed', async () => {
+    mockInvoke.mockImplementation(async (cmd: string) => {
+      if (cmd === 'get_chitragupta_socket_status') {
+        return { healthy: true, version: '0.1.16', token_present: false, token_source: 'missing', base_url: 'http://127.0.0.1:3141' }
+      }
+      throw new Error(`unexpected command ${cmd}`)
+    })
+
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: null },
+          codex: { status: 'missing', version: null },
+          chitragupta: { status: 'installed', version: '0.1.16' },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('ai-agents-onboarding-chitragupta-pairing')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByTestId('chitragupta-pairing-daemon')).toHaveTextContent('Daemon reachable · v0.1.16'))
+    expect(screen.getByTestId('chitragupta-pairing-connect')).toHaveTextContent('Connect automatically')
+    expect(screen.getByTestId('ai-agents-onboarding-chitragupta-pairing')).toHaveTextContent('Optional — you can pair later in Settings.')
+    // Pairing never blocks the step.
+    expect(screen.getByTestId('ai-agents-onboarding-continue').querySelector('button')).toBeEnabled()
+  })
+
+  it('shows the daemon-unreachable state without blocking onboarding', async () => {
+    mockInvoke.mockImplementation(async (cmd: string) => {
+      if (cmd === 'get_chitragupta_socket_status') {
+        return { healthy: false, version: null, token_present: false, token_source: 'missing', base_url: 'http://127.0.0.1:3141' }
+      }
+      throw new Error(`unexpected command ${cmd}`)
+    })
+
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: null },
+          codex: { status: 'missing', version: null },
+          chitragupta: { status: 'installed', version: '0.1.16' },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByTestId('chitragupta-pairing-daemon')).toHaveTextContent('Daemon not running'))
+    expect(screen.getByTestId('chitragupta-pairing-connect')).toBeInTheDocument()
+    expect(screen.getByTestId('ai-agents-onboarding-continue').querySelector('button')).toBeEnabled()
+  })
+
+  it('shows already-paired daemons as connected and hides the connect button', async () => {
+    mockInvoke.mockImplementation(async (cmd: string) => {
+      if (cmd === 'get_chitragupta_socket_status') {
+        return { healthy: true, version: '0.1.16', token_present: true, token_source: 'keychain', base_url: 'http://127.0.0.1:3141' }
+      }
+      throw new Error(`unexpected command ${cmd}`)
+    })
+
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: null },
+          codex: { status: 'missing', version: null },
+          chitragupta: { status: 'installed', version: '0.1.16' },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByTestId('chitragupta-pairing-connected')).toHaveTextContent('Daemon connected'))
+    expect(screen.queryByTestId('chitragupta-pairing-connect')).not.toBeInTheDocument()
+  })
+
+  it('never renders the pairing panel when the Chitragupta CLI is missing', () => {
+    render(
+      <AiAgentsOnboardingPrompt
+        statuses={{
+          claude_code: { status: 'missing', version: null },
+          codex: { status: 'missing', version: null },
+          chitragupta: { status: 'missing', version: null },
+        }}
+        onContinue={vi.fn()}
+      />,
+    )
+
+    expect(screen.queryByTestId('ai-agents-onboarding-chitragupta-pairing')).not.toBeInTheDocument()
+    expect(mockInvoke).not.toHaveBeenCalled()
   })
 
   it('uses the surrounding surface as a drag region and excludes the card', () => {

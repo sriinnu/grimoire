@@ -186,6 +186,39 @@ pub fn list_sessions(
     Ok(extract_session_list(&data))
 }
 
+/// Outcome of an authenticated reachability probe. Carries no body data.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SocketAuthProbe {
+    Connected,
+    Unauthorized,
+    Unreachable,
+}
+
+/// Authenticated probe used right after pairing: hits the sessions endpoint
+/// with a throwaway project path and reports only whether the daemon accepted
+/// the token. A 401/403 immediately after a rotation is expected until the
+/// daemon's serve process refreshes its key material.
+pub fn probe_sessions_auth(base: &str, token: &SocketToken) -> SocketAuthProbe {
+    let Ok(client) = blocking_client(SESSIONS_TIMEOUT) else {
+        return SocketAuthProbe::Unreachable;
+    };
+    let response = client
+        .get(format!("{base}/api/sessions"))
+        .query(&[
+            ("projectPath", "/grimoire/pairing-probe"),
+            ("consumer", "grimoire"),
+        ])
+        .bearer_auth(token.expose())
+        .send();
+    match response {
+        Ok(response) if matches!(response.status().as_u16(), 401 | 403) => {
+            SocketAuthProbe::Unauthorized
+        }
+        Ok(response) if response.status().is_success() => SocketAuthProbe::Connected,
+        Ok(_) | Err(_) => SocketAuthProbe::Unreachable,
+    }
+}
+
 /// `GET /api/sessions/:id` — full session passthrough.
 pub fn get_session(base: &str, token: &SocketToken, id: &str) -> Result<Value, String> {
     let client = blocking_client(SESSIONS_TIMEOUT)?;

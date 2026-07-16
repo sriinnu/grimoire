@@ -45,6 +45,7 @@ macro_rules! app_invoke_handler {
             commands::get_chitragupta_socket_status,
             commands::save_chitragupta_socket_token,
             commands::clear_chitragupta_socket_token,
+            commands::provision_chitragupta_socket_token,
             commands::list_chitragupta_note_sessions,
             commands::get_chitragupta_session,
             commands::get_vault_ai_guidance_status,

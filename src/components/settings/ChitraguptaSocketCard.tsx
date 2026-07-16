@@ -1,20 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
-import { invoke } from '../../lib/tauriRuntime'
-import { isTauri, mockInvoke } from '../../mock-tauri'
+import { useState } from 'react'
 import { AI_PROVIDER_KEY_SOURCE_TONE, type AiProviderKeySource } from '../../lib/aiProviderKeys'
 import {
   describeChitraguptaSocketStatus,
-  type ChitraguptaSocketStatus,
   type ChitraguptaSocketTokenStatus,
 } from '../../lib/chitraguptaSocket'
+import { chitraguptaSocketCall, useChitraguptaPairing } from '../../hooks/useChitraguptaPairing'
 import { desktopSecureStorageLabel, getDesktopPlatform } from '../../utils/platform'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import type { SettingsTranslate } from './settingsTypes'
-
-function socketCall<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  return isTauri() ? invoke<T>(command, args) : mockInvoke<T>(command, args)
-}
 
 function tokenSourceLabel(source: AiProviderKeySource, t: SettingsTranslate, secureStore: string): string {
   if (source === 'keychain') return secureStore
@@ -23,11 +17,19 @@ function tokenSourceLabel(source: AiProviderKeySource, t: SettingsTranslate, sec
 }
 
 /**
- * Daemon socket readiness and token entry. The token is write-only from this
- * card: Grimoire only ever reads back redacted presence/source booleans.
+ * Daemon socket readiness, one-click pairing, and manual token entry. The
+ * token is write-only from this card: Grimoire only ever reads back redacted
+ * presence/source booleans, and pairing errors arrive pre-sanitized.
  */
 export function ChitraguptaSocketCard({ t }: { t: SettingsTranslate }) {
-  const [status, setStatus] = useState<ChitraguptaSocketStatus | null>(null)
+  const {
+    status,
+    phase,
+    error: pairingError,
+    connect,
+    checkConnection,
+    refreshStatus,
+  } = useChitraguptaPairing()
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -35,25 +37,13 @@ export function ChitraguptaSocketCard({ t }: { t: SettingsTranslate }) {
   const canSaveSecureKeys = desktopPlatform === 'macos'
   const secureStore = desktopSecureStorageLabel(desktopPlatform)
 
-  const refreshStatus = useCallback(async () => {
-    try {
-      setStatus(await socketCall<ChitraguptaSocketStatus>('get_chitragupta_socket_status'))
-    } catch (statusError) {
-      setError(statusError instanceof Error ? statusError.message : String(statusError))
-    }
-  }, [])
-
-  useEffect(() => {
-    void refreshStatus()
-  }, [refreshStatus])
-
   const saveToken = async () => {
     const token = draft.trim()
     if (!token) return
     setBusy(true)
     setError(null)
     try {
-      await socketCall<ChitraguptaSocketTokenStatus>('save_chitragupta_socket_token', { token })
+      await chitraguptaSocketCall<ChitraguptaSocketTokenStatus>('save_chitragupta_socket_token', { token })
       setDraft('')
       await refreshStatus()
     } catch (saveError) {
@@ -67,7 +57,7 @@ export function ChitraguptaSocketCard({ t }: { t: SettingsTranslate }) {
     setBusy(true)
     setError(null)
     try {
-      await socketCall<ChitraguptaSocketTokenStatus>('clear_chitragupta_socket_token')
+      await chitraguptaSocketCall<ChitraguptaSocketTokenStatus>('clear_chitragupta_socket_token')
       await refreshStatus()
     } catch (clearError) {
       setError(clearError instanceof Error ? clearError.message : String(clearError))
@@ -77,6 +67,8 @@ export function ChitraguptaSocketCard({ t }: { t: SettingsTranslate }) {
   }
 
   const tokenSource = status?.token_source ?? 'missing'
+  const provisioning = phase === 'provisioning'
+  const displayError = error ?? pairingError
 
   return (
     <section
@@ -98,10 +90,44 @@ export function ChitraguptaSocketCard({ t }: { t: SettingsTranslate }) {
         {t('settings.aiAgents.chitraguptaSocketDescription')}
       </p>
 
-      {error && (
+      {displayError && (
         <div className="mt-2 rounded-md border border-[var(--feedback-error-text)]/30 bg-[var(--feedback-error-bg)] px-2 py-1 text-[var(--feedback-error-text)]">
-          {error}
+          {displayError}
         </div>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          disabled={!canSaveSecureKeys || busy || provisioning}
+          onClick={() => void connect()}
+          data-testid="settings-chitragupta-socket-connect"
+        >
+          {provisioning
+            ? t('settings.aiAgents.chitraguptaSocketConnecting')
+            : t('settings.aiAgents.chitraguptaSocketConnect')}
+        </Button>
+        {phase === 'waiting' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void checkConnection()}
+            data-testid="settings-chitragupta-socket-check"
+          >
+            {t('settings.aiAgents.chitraguptaSocketCheck')}
+          </Button>
+        )}
+        <span className="text-muted-foreground">
+          {t('settings.aiAgents.chitraguptaSocketConnectHint', { secureStore })}
+        </span>
+      </div>
+      {phase === 'waiting' && (
+        <p
+          className="m-0 mt-2 rounded-md border border-border/70 bg-background/35 px-2 py-1 text-muted-foreground"
+          data-testid="settings-chitragupta-socket-waiting"
+        >
+          {t('settings.aiAgents.chitraguptaSocketWaiting')}
+        </p>
       )}
 
       <div className="mt-3 grid gap-2 rounded-md border border-border/70 bg-background/35 p-2">

@@ -249,3 +249,61 @@ await call("chitragupta_ingest_markdown", {
 3. `chitragupta_wiki_list`
 4. `chitragupta_wiki_read`
 5. `chitragupta_graph_neighborhood`
+
+## HTTP Socket Contract (2026-07-16)
+
+Grimoire now talks to the serve daemon directly at `http://127.0.0.1:3141`
+(override: `GRIMOIRE_CHITRAGUPTA_SOCKET`). The CLI remains the fallback when
+the daemon is unreachable. This section is the live truth for the HTTP
+boundary; the older env-var guidance (`GRIMOIRE_CHITRAGUPTA_TOKEN`,
+`daemon.api-key`) is superseded.
+
+### Auth (works today — do not break)
+
+- Bearer token, minted per consumer: `chitragupta secret rotate api-key
+  --consumer grimoire --store config`. Grimoire stores its copy in the macOS
+  Keychain (`app.grimoire.ai-provider-keys` / `chitragupta-socket`); env
+  fallback `CHITRAGUPTA_API_KEY`. Never in the repo, never in an .env.
+- 401 = unauthenticated, 403 = authenticated but out of scope. Keep these
+  distinct — Grimoire's status pill relies on it.
+
+### P0 — needed for a seamless loop
+
+1. **Hot-reload of `apiKeys`** (or `POST /api/auth/refresh-keys`): today a
+   freshly rotated key 401s until serve restarts, which breaks one-click
+   pairing. Grimoire ships a "waiting for daemon refresh" state as a stopgap.
+2. **Project registration for vaults**: Grimoire sends the vault path as
+   `projectPath` on every call; unregistered paths 403 ("Project path is not
+   allowed on this serve runtime"). Either auto-allow paths for
+   `consumer=grimoire` keys or expose registration (CLI `chitragupta project
+   allow <path>` or `POST /api/projects`) that Grimoire pairing can call.
+3. **Machine-readable error codes**: `{ok:false, error:{code:
+   "PROJECT_NOT_ALLOWED", ...}}` instead of prose-only, so Grimoire can offer
+   the right fix affordance.
+4. **Pinned `/api/chat` response schema**: one canonical text field —
+   `{ok, data:{reply, sessionId, route?}}`. Grimoire currently guesses among
+   six candidate field names; pin it and the guessing is deleted.
+5. **Pinned session summary shape** for `GET /api/sessions`:
+   `{id, title, createdAt, updatedAt, messageCount, gist?, sessionLineageKey,
+   consumer}` — plus a **`lineageKey` query filter** so per-note lists don't
+   fetch-and-filter client-side. Grimoire sets `sessionLineageKey` to the
+   vault-relative note path on every chat.
+
+### P1 — big wins
+
+6. **Session gists**: a stored one-line summary per session makes the
+   per-note history list actually scannable (requested explicitly).
+7. **Streaming chat**: SSE on `/api/chat` (`Accept: text/event-stream`,
+   `delta {text}` events, `done {sessionId}`) or the blessed WS route —
+   Grimoire will render token-by-token the day it exists.
+8. **HTTP context build**: `POST /api/context/build {query, projectPath,
+   limit}` matching the CLI `context build --json` output — removes the last
+   CLI spawn from the hot path.
+9. **Capabilities in `/api/health`**: e.g. `{chat:{stream}, sessions:
+   {lineageFilter}, context:{http}, projects:{selfRegister}}` — Grimoire
+   feature-detects instead of version-sniffing while the API evolves.
+
+### P2 — later
+
+10. WS push for session/memory updates (live-refresh the past-sessions list).
+11. `/api/memory/search` pinned schema for Grimoire's similar-notes surface.

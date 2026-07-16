@@ -129,6 +129,48 @@ pub fn clear_chitragupta_socket_token() -> Result<ChitraguptaSocketTokenStatus, 
     Ok(chitragupta_socket_token_status())
 }
 
+/// Result of one-click daemon pairing. Never carries the token value.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ChitraguptaProvisionResult {
+    pub provisioned: bool,
+    pub connected: bool,
+    pub needs_daemon_refresh: bool,
+}
+
+/// Rotate a Grimoire API key through the Chitragupta CLI, store it in secure
+/// storage, and probe the daemon with it. A 401 right after rotation means
+/// the daemon has not refreshed its key material yet — that is expected, so
+/// it reports `needs_daemon_refresh` instead of failing.
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn provision_chitragupta_socket_token() -> Result<ChitraguptaProvisionResult, String> {
+    tokio::task::spawn_blocking(|| {
+        use crate::chitragupta_socket as socket;
+
+        let secret = crate::ai_agents::rotate_chitragupta_socket_secret()?;
+        crate::ai_provider_keys::save_chitragupta_socket_token(&secret)?;
+
+        let base = socket::socket_base_url();
+        let probe = socket::probe_sessions_auth(&base, &socket::SocketToken::new(secret));
+        let connected = probe == socket::SocketAuthProbe::Connected;
+        Ok(ChitraguptaProvisionResult {
+            provisioned: true,
+            connected,
+            // Unauthorized and unreachable both resolve on the daemon side
+            // once its serve process restarts or refreshes the rotated key.
+            needs_daemon_refresh: !connected,
+        })
+    })
+    .await
+    .map_err(|error| format!("Pairing task failed: {error}"))?
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn provision_chitragupta_socket_token() -> Result<ChitraguptaProvisionResult, String> {
+    Err("Chitragupta daemon pairing is not available on mobile.".into())
+}
+
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn get_chitragupta_socket_status() -> Result<ChitraguptaSocketStatus, String> {

@@ -23,6 +23,13 @@ export interface ChitraguptaSocketTokenStatus {
   token_source: AiProviderKeySource
 }
 
+/** Redacted pairing outcome from `provision_chitragupta_socket_token`. */
+export interface ChitraguptaProvisionResult {
+  provisioned: boolean
+  connected: boolean
+  needs_daemon_refresh: boolean
+}
+
 /** Trimmed session summary from `list_chitragupta_note_sessions`. */
 export interface ChitraguptaNoteSession {
   id: string

@@ -2,8 +2,12 @@ mod args;
 mod chitragupta_events;
 mod discovery;
 mod events;
+mod pairing;
 mod path_env;
 mod process_stream;
+
+#[cfg(desktop)]
+pub use pairing::rotate_chitragupta_socket_secret;
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;

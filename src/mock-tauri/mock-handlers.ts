@@ -262,6 +262,9 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     token_source: 'missing',
     base_url: 'http://127.0.0.1:3141',
   }),
+  provision_chitragupta_socket_token: () => {
+    throw new Error('Chitragupta daemon pairing is not available in the browser.')
+  },
   save_chitragupta_socket_token: () => ({ token_present: true, token_source: 'keychain' }),
   clear_chitragupta_socket_token: () => ({ token_present: false, token_source: 'missing' }),
   list_chitragupta_note_sessions: () => [],
