@@ -22,8 +22,6 @@ export interface GraphForceEngine {
   unpin(id: string): void
   /** The active note, hard-pinned to canvas center (null clears). */
   setPinned(id: string | null): void
-  /** Push nodes between `deadzone` and `radius` of a point outward (hover-repel). */
-  nudge(x: number, y: number, radius: number, strength: number, deadzone?: number): void
   /** Advance the simulation one step, scaled by alpha energy (0..1). */
   tick(alpha: number): void
   /** Current world positions by node id. */
@@ -41,10 +39,10 @@ export interface GraphForceEngine {
  */
 export const GRAPH_PHYSICS = {
   springK: 0.08,
-  restLength: 132,
-  repulsion: 5200,
+  restLength: 118,
+  repulsion: 17000,
   minDist: 14,
-  centerGravity: 0.012,
+  centerGravity: 0.004,
   velocityDecay: 0.82,
   maxStep: 18,
 }
@@ -67,6 +65,7 @@ export function createSpringEngine(): GraphForceEngine {
   const P = GRAPH_PHYSICS
   let bodies = new Map<string, Body>()
   let edges: NoteGraph['edges'] = []
+  let degrees = new Map<string, number>()
   let pinnedId: string | null = null
   const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v))
 
@@ -84,6 +83,11 @@ export function createSpringEngine(): GraphForceEngine {
       }
       bodies = next
       edges = e
+      degrees = new Map()
+      for (const edge of edges) {
+        degrees.set(edge.source, (degrees.get(edge.source) ?? 0) + 1)
+        degrees.set(edge.target, (degrees.get(edge.target) ?? 0) + 1)
+      }
     },
     pin(id, x, y) {
       const b = bodies.get(id)
@@ -94,20 +98,6 @@ export function createSpringEngine(): GraphForceEngine {
       if (b) { b.fx = null; b.fy = null }
     },
     setPinned(id) { pinnedId = id },
-    nudge(x, y, radius, strength, deadzone = 0) {
-      for (const b of bodies.values()) {
-        const dx = b.x - x
-        const dy = b.y - y
-        const d = Math.hypot(dx, dy)
-        if (d <= deadzone || d >= radius) continue // leave the targeted node clickable
-        // Force ramps 0→peak across the deadzone→radius band so the closest node
-        // (the one you're aiming at) barely moves while the cluster opens up.
-        const t = (d - deadzone) / (radius - deadzone)
-        const f = Math.sin(t * Math.PI) * strength
-        b.vx += (dx / d) * f
-        b.vy += (dy / d) * f
-      }
-    },
     maxVelocity() {
       let m = 0
       for (const b of bodies.values()) m = Math.max(m, Math.hypot(b.vx, b.vy))
@@ -138,7 +128,10 @@ export function createSpringEngine(): GraphForceEngine {
         }
       }
 
-      // Edge springs (Hooke) — pull connected notes toward restLength.
+      // Edge springs (Hooke) — pull connected notes toward restLength. Strength
+      // is normalized by endpoint degree (d3's link default): a hub with many
+      // edges must not accumulate their full combined pull, or the connected
+      // core contracts into an unreadable knot.
       for (const e of edges) {
         const a = bodies.get(e.source)
         const b = bodies.get(e.target)
@@ -146,7 +139,8 @@ export function createSpringEngine(): GraphForceEngine {
         const dx = b.x - a.x
         const dy = b.y - a.y
         const d = Math.hypot(dx, dy) || 0.01
-        const f = P.springK * (d - P.restLength) * alpha
+        const strength = 1 / Math.min(degrees.get(e.source) ?? 1, degrees.get(e.target) ?? 1)
+        const f = P.springK * strength * (d - P.restLength) * alpha
         const ux = dx / d
         const uy = dy / d
         a.vx += ux * f; a.vy += uy * f

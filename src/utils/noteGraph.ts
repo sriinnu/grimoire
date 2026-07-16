@@ -114,6 +114,28 @@ function resolveTarget(index: GraphTargetIndex, target: string): VaultEntry | un
 }
 
 /** Builds the note graph from frontmatter relationships and body wikilinks. */
+const graphStructureCache = new WeakMap<VaultEntry[], NoteGraph>()
+
+/**
+ * Cached variant for surfaces that rebuild per selection (inspector
+ * neighborhood, agent context, graph modal). Link resolution and degree
+ * counting run once per entries array; a vault reload replaces the array, so
+ * the cache can never serve stale structure. Only the cheap active flag is
+ * stamped per call.
+ */
+export function buildNoteGraphCached(entries: VaultEntry[], activePath: string | null = null): NoteGraph {
+  let base = graphStructureCache.get(entries)
+  if (!base) {
+    base = buildNoteGraph(entries, null)
+    graphStructureCache.set(entries, base)
+  }
+  if (!activePath) return base
+  return {
+    nodes: base.nodes.map((node) => (node.path === activePath ? { ...node, active: true } : node)),
+    edges: base.edges,
+  }
+}
+
 export function buildNoteGraph(entries: VaultEntry[], activePath: string | null = null): NoteGraph {
   const edges: NoteGraphEdge[] = []
   const seen = new Set<string>()

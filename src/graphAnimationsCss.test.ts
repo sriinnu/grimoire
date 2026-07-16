@@ -12,12 +12,11 @@ function ruleBody(selector: string): string {
 }
 
 describe('graph animation and layout CSS', () => {
-  it('reserves graph canvas rails instead of overlaying HUD and legend over nodes', () => {
-    expect(ruleBody('.graph-canvas-shell')).toContain('grid-template-rows: auto minmax(0, 1fr) auto')
-    expect(ruleBody('.graph-canvas-hud')).toContain('position: relative')
-    expect(ruleBody('.graph-canvas-hud')).not.toContain('position: absolute')
+  it('reserves legend space below the canvas and keeps the zoom cluster in its corner', () => {
+    expect(ruleBody('.graph-canvas-shell')).toContain('grid-template-rows: minmax(0, 1fr) auto')
     expect(ruleBody('.graph-canvas-legend')).toContain('position: relative')
     expect(ruleBody('.graph-canvas-legend')).not.toContain('position: absolute')
+    expect(ruleBody('.graph-canvas-zoom')).toContain('position: absolute')
   })
 
   it('keeps graph canvas rails responsive without hiding package state', () => {
