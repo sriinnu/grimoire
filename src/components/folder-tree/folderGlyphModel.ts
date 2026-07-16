@@ -2,27 +2,8 @@ import type { ComponentType } from 'react'
 import type { IconProps } from '@phosphor-icons/react'
 import type { FolderNode } from '../../types'
 import {
-  BrainIcon,
-  GrimoireStarIcon,
-  PuranasIcon,
-  RishiIcon,
-  SecondBrainIcon,
-  ShaastrasIcon,
-  VedasIcon,
-} from '../icons/grimoireKnowledgeIcons'
-import {
-  AgentFolderGlyphIcon,
-  DataFolderGlyphIcon,
   DefaultFolderGlyphIcon,
   DefaultFolderOpenGlyphIcon,
-  DevFolderGlyphIcon,
-  DocsFolderGlyphIcon,
-  JournalFolderGlyphIcon,
-  PrivateFolderGlyphIcon,
-  ResearchFolderGlyphIcon,
-  StorageFolderGlyphIcon,
-  TemplateFolderGlyphIcon,
-  VaultFolderGlyphIcon,
 } from './folderDomainIcons'
 
 type FolderGlyphTone =
@@ -53,7 +34,6 @@ export interface FolderGlyphModel {
 
 interface SemanticFolderGlyph {
   exactTerms?: readonly string[]
-  Icon: ComponentType<IconProps>
   name: string
   terms: readonly string[]
   tone: FolderGlyphTone
@@ -63,104 +43,87 @@ const SEMANTIC_FOLDER_GLYPHS: readonly SemanticFolderGlyph[] = [
   {
     name: 'agent',
     tone: 'agent',
-    Icon: AgentFolderGlyphIcon,
     terms: ['agent', 'agents', 'agent council', 'mcp', 'codex', 'claude', 'chitragupta', 'pavani', 'council', 'orchestrator'],
   },
   {
     name: 'private',
     tone: 'private',
-    Icon: PrivateFolderGlyphIcon,
     terms: ['private', 'local only', 'local-only', 'personal', 'secret', 'secrets', 'protected', 'locked', 'password', 'निजी', 'गुप्त'],
   },
   {
     name: 'second-brain',
     tone: 'brain',
-    Icon: SecondBrainIcon,
     terms: ['second brain', 'second-brain', '2nd brain', '2nd-brain', 'memory ledger', 'knowledge graph', 'दूसरा दिमाग', 'दूसरा मस्तिष्क'],
   },
   {
     name: 'brain',
     tone: 'brain',
-    Icon: BrainIcon,
     terms: ['brain', 'memory', 'smriti', 'manas', 'mind', 'recall', 'ai', 'llm', 'स्मृति', 'मनस्', 'मानस', 'दिमाग', 'मस्तिष्क'],
   },
   {
     name: 'journal',
     tone: 'journal',
-    Icon: JournalFolderGlyphIcon,
     terms: ['journal', 'journals', 'diary', 'diaries', 'dream', 'dreams', 'daily', 'log', 'logs', 'capture', 'thoughts', 'स्वप्न', 'दैनंदिनी'],
   },
   {
     name: 'rishi',
     tone: 'rishi',
-    Icon: RishiIcon,
     terms: ['rishi', 'rsi', 'guru', 'sage', 'acharya', 'parampara', 'lineage', 'ऋषि', 'गुरु', 'मुनि', 'आचार्य'],
   },
   {
     name: 'shaastras',
     tone: 'shaastra',
-    Icon: ShaastrasIcon,
     terms: ['shaastra', 'shaastras', 'shastra', 'shastras', 'sastra', 'sastras', 'sutra', 'sutras', 'bhashya', 'agama', 'agamas', 'tantra', 'tantras', 'darshana', 'nyaya', 'mimamsa', 'vyakarana', 'शास्त्र', 'शास्त्राणि', 'सूत्र', 'तन्त्र'],
   },
   {
     name: 'puranas',
     tone: 'purana',
-    Icon: PuranasIcon,
     terms: ['purana', 'puranas', 'itihasa', 'itihasas', 'mahabharata', 'ramayana', 'bhagavata', 'पुराण', 'पुराणानि', 'इतिहास', 'रामायण', 'महाभारत'],
   },
   {
     name: 'vedas',
     tone: 'veda',
-    Icon: VedasIcon,
     terms: ['veda', 'vedas', 'vedic', 'vedanga', 'vedangas', 'shruti', 'samhita', 'brahmana', 'aranyaka', 'upanishad', 'upanishads', 'upanisad', 'upanisads', 'वेद', 'वेदाः', 'वेदाङ्ग', 'वेदांग', 'श्रुति', 'उपनिषद्'],
   },
   {
     name: 'docs',
     tone: 'docs',
-    Icon: DocsFolderGlyphIcon,
     terms: ['doc', 'docs', 'documentation', 'guide', 'guides', 'architecture', 'status', 'readme'],
   },
   {
     name: 'dev',
     tone: 'dev',
-    Icon: DevFolderGlyphIcon,
     terms: ['frontend', 'backend', 'src', 'source', 'components', 'hooks', 'lib', 'utils', 'types', 'api', 'server', 'client', 'scripts', 'cli', 'tests', 'test'],
   },
   {
     name: 'data',
     tone: 'data',
-    Icon: DataFolderGlyphIcon,
     terms: ['data', 'database', 'db', 'sqlite', 'ephemeris', 'fixtures', 'fixture', 'assets'],
   },
   {
     name: 'storage',
     tone: 'storage',
-    Icon: StorageFolderGlyphIcon,
     terms: ['storage', 'sync', 'import', 'export', 'portability', 'backup', 'icloud', 'gdrive', 'google drive', 's3', 'azure', 'blob', 'provider', 'capsule', 'snapshot'],
   },
   {
     name: 'research',
     tone: 'research',
-    Icon: ResearchFolderGlyphIcon,
     terms: ['research', 'audit', 'review', 'reviews', 'reference', 'references', 'source survey', 'papers', 'evidence'],
   },
   {
     name: 'template',
     tone: 'template',
-    Icon: TemplateFolderGlyphIcon,
     terms: ['template', 'templates', 'blueprint', 'blueprints', 'boilerplate', 'snippet', 'snippets'],
   },
   {
     name: 'vault',
     tone: 'vault',
-    Icon: VaultFolderGlyphIcon,
     exactTerms: ['library', 'libraries', 'notebook', 'notebooks', 'notes'],
     terms: ['vault', 'vaults', 'grimoire'],
   },
   {
     name: 'star',
     tone: 'star',
-    Icon: GrimoireStarIcon,
     terms: ['star', 'stars', 'astral', 'graha', 'nakshatra', 'rashi', 'rasi', 'jyotisa', 'jyotisha', 'panchanga', 'horoscope', 'chart', 'ग्रह', 'नक्षत्र', 'राशि', 'ज्योतिष'],
   },
 ]
@@ -214,7 +177,7 @@ export function resolveFolderGlyphModel(node: FolderNode, isOpen: boolean): Fold
   const semanticGlyph = resolveSemanticFolderGlyph(node)
   if (semanticGlyph) {
     return {
-      Icon: semanticGlyph.Icon,
+      Icon: isOpen ? DefaultFolderOpenGlyphIcon : DefaultFolderGlyphIcon,
       name: semanticGlyph.name,
       tone: semanticGlyph.tone,
     }

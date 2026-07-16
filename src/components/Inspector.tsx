@@ -50,6 +50,7 @@ interface InspectorProps {
   onOpenSecondBrain?: () => void
   onToggleRawEditor?: () => void
   onReplaceContent?: (path: string, content: string) => Promise<void> | void
+  onFileModified?: (relativePath: string) => void
 }
 
 function buildTypeEntryMap(entries: VaultEntry[]): Record<string, VaultEntry> {
@@ -201,6 +202,7 @@ function InspectorBody({
   onOpenSecondBrain,
   onToggleRawEditor,
   onReplaceContent,
+  onFileModified,
 }: Omit<InspectorProps, 'collapsed' | 'onToggle'>) {
   const deferredContent = useDeferredValue(content ?? '')
   const referencedBy = useReferencedBy(entry, entries)
@@ -233,8 +235,10 @@ function InspectorBody({
         entry={entry}
         entries={entries}
         content={content}
+        vaultPath={vaultPath}
         onOpenSecondBrain={onOpenSecondBrain}
         onNavigate={onNavigate}
+        onFileModified={onFileModified}
       />
       <OutlinePanel
         semantics={semantics}

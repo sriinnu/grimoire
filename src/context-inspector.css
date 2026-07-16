@@ -1,0 +1,79 @@
+/*
+ * Context Inspector / Second Brain readability contract.
+ *
+ * These controls communicate privacy and inclusion decisions. They are not
+ * decorative glass: a label or state that cannot be read is a broken control.
+ */
+.grimoire-context-surface {
+  color: var(--text-primary);
+}
+
+.grimoire-context-capsule-dialog [data-testid="context-capsule-scroll-region"] {
+  scrollbar-gutter: stable;
+}
+
+.grimoire-context-capsule-dialog [data-testid="context-manifest-source-list"] {
+  background: var(--surface-card);
+  scrollbar-gutter: stable;
+}
+
+.grimoire-context-capsule-dialog .grimoire-context-technical-details {
+  background: var(--surface-card);
+}
+
+.grimoire-context-capsule-dialog .grimoire-context-technical-details > summary {
+  list-style: none;
+}
+
+.grimoire-context-capsule-dialog .grimoire-context-technical-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.grimoire-context-capsule-dialog .grimoire-context-technical-details > summary::before {
+  content: '+';
+  display: inline-block;
+  width: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.grimoire-context-capsule-dialog .grimoire-context-technical-details[open] > summary::before {
+  content: '−';
+}
+
+.grimoire-context-capsule-dialog .grimoire-context-technical-details pre {
+  scrollbar-gutter: stable;
+}
+
+.grimoire-context-review-summary,
+.grimoire-context-next-request {
+  background: var(--surface-card);
+}
+
+.grimoire-context-surface .grimoire-context-pill {
+  background: var(--surface-card) !important;
+  border-color: color-mix(in srgb, var(--text-primary) 34%, var(--border)) !important;
+  color: var(--text-primary) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+  opacity: 1 !important;
+}
+
+.grimoire-context-surface .grimoire-context-pill[data-tone="active"] {
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface-card)) !important;
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--border)) !important;
+}
+
+.grimoire-context-surface .grimoire-context-pill[data-tone="warning"] {
+  background: color-mix(in srgb, var(--destructive) 14%, var(--surface-card)) !important;
+  border-color: color-mix(in srgb, var(--destructive) 58%, var(--border)) !important;
+}
+
+.grimoire-context-surface .grimoire-context-label {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+}
+
+.grimoire-context-surface .grimoire-context-secondary {
+  color: var(--text-secondary) !important;
+  opacity: 1 !important;
+}

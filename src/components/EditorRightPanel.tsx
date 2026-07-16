@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
-import type { VaultEntry, GitCommit } from '../types'
+import type { VaultEntry, GitCommit, ModifiedFile } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { Inspector, type FrontmatterValue } from './Inspector'
 import { useAiPanelController } from './useAiPanelController'
@@ -26,6 +26,8 @@ interface EditorRightPanelProps {
   inspectorEntry: VaultEntry | null
   inspectorContent: string | null
   entries: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
+  openTabs?: readonly VaultEntry[]
   gitHistory: GitCommit[]
   vaultPath: string
   noteList?: NoteListItem[]
@@ -66,7 +68,7 @@ export function EditorRightPanel({
   defaultAiProvider,
   defaultAiModel,
   onUnsupportedAiPaste,
-  inspectorEntry, inspectorContent, entries, gitHistory, vaultPath,
+  inspectorEntry, inspectorContent, entries, modifiedFiles, openTabs, gitHistory, vaultPath,
   noteList, noteListFilter,
   onToggleInspector, onToggleAIChat, onNavigateWikilink, onViewCommitDiff,
   onUpdateFrontmatter, onDeleteProperty, onAddProperty, onCreateMissingType, onCreateAndOpenNote, onInitializeProperties, onToggleRawEditor, onReplaceContent, onOpenNote,
@@ -108,10 +110,12 @@ export function EditorRightPanel({
       defaultAiModel,
       defaultAiProvider,
       entries,
+      modifiedFiles,
       inspectorContent,
       inspectorEntry,
       noteList,
       noteListFilter,
+      openTabs,
       onFileCreated,
       onFileModified,
       onOpenNote,
@@ -135,7 +139,7 @@ export function EditorRightPanel({
   return (
     <div
       className="shrink-0 flex flex-col min-h-0"
-      style={{ width: inspectorWidth, height: '100%' }}
+      style={{ width: `min(${inspectorWidth}px, 45vw)`, minWidth: 240, height: '100%' }}
     >
       <Inspector
         collapsed={inspectorCollapsed}
@@ -158,6 +162,7 @@ export function EditorRightPanel({
         onOpenSecondBrain={onToggleAIChat}
         onToggleRawEditor={onToggleRawEditor}
         onReplaceContent={onReplaceContent}
+        onFileModified={onFileModified}
       />
     </div>
   )

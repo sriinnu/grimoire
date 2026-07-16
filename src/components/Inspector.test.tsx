@@ -140,7 +140,7 @@ describe('Inspector', () => {
     expect(screen.getByText('Words')).toBeInTheDocument()
   })
 
-  it('opens matched linked concepts from the insight map', () => {
+  it('opens an explicit connection from the Second Brain panel', () => {
     const onNavigate = vi.fn()
     renderSelectedInspector({
       entries: [
@@ -156,8 +156,8 @@ describe('Inspector', () => {
       onNavigate,
     })
 
-    const conceptMap = screen.getByLabelText('Linked concept map')
-    fireEvent.click(within(conceptMap).getByRole('button', { name: 'Open linked concept Software Development' }))
+    const panel = screen.getByTestId('second-brain-panel')
+    fireEvent.click(within(panel).getByRole('button', { name: 'Software Development' }))
 
     expect(onNavigate).toHaveBeenCalledWith('Software Development')
   })
@@ -168,15 +168,15 @@ describe('Inspector', () => {
 
     const panel = screen.getByTestId('second-brain-panel')
     expect(within(panel).getByText('Second Brain')).toBeInTheDocument()
-    expect(within(panel).getByText('Local context')).toBeInTheDocument()
-    expect(within(panel).getByRole('heading', { name: 'Signal' })).toBeInTheDocument()
+    expect(within(panel).getByText('Local note context')).toBeInTheDocument()
+    expect(within(panel).getByRole('heading', { name: 'Neighborhood' })).toBeInTheDocument()
 
-    fireEvent.click(within(panel).getByRole('button', { name: 'Open Second Brain chat' }))
+    fireEvent.click(within(panel).getByRole('button', { name: 'Ask about this note' }))
 
     expect(onOpenSecondBrain).toHaveBeenCalledOnce()
   })
 
-  it('keeps graph nodes visible for notes without explicit relationships', () => {
+  it('does not invent graph nodes for notes without explicit relationships', () => {
     renderSelectedInspector({
       entry: { ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] },
       entries: [
@@ -186,15 +186,11 @@ describe('Inspector', () => {
     })
 
     const panel = screen.getByTestId('second-brain-panel')
-    expect(within(panel).getByRole('heading', { name: 'Graph Nodes' })).toBeInTheDocument()
-    expect(within(panel).getByRole('button', { name: 'Current graph node Test Project' })).toHaveAttribute(
-      'data-concept-state',
-      'active',
-    )
-    expect(within(panel).getByRole('button', { name: 'Local graph node 2 local notes' })).toHaveAttribute(
-      'data-concept-state',
-      'nearby',
-    )
+    expect(within(panel).getByRole('heading', { name: 'Neighborhood' })).toBeInTheDocument()
+    // A real inbound wikilink is not invention: it appears in the incoming column.
+    expect(within(within(panel).getByTestId('neighborhood-incoming')).getByText('Referrer Note')).toBeInTheDocument()
+    expect(within(panel).queryByText('Memory lane')).toBeNull()
+    expect(within(panel).queryByText('Relationship scan')).toBeNull()
   })
 
   it('applies Living Frontmatter suggestions through frontmatter updates', () => {
@@ -360,7 +356,7 @@ This is a test note with some words to count.
       />
     )
     expect(screen.getByText('Backlinks')).toBeInTheDocument()
-    expect(screen.getByText('Referrer Note')).toBeInTheDocument()
+    expect(screen.getAllByText('Referrer Note').length).toBeGreaterThan(0)
   })
 
   it('updates backlinks reactively when outgoingLinks changes', () => {
@@ -383,7 +379,7 @@ This is a test note with some words to count.
       />
     )
     expect(screen.getByText('Backlinks')).toBeInTheDocument()
-    expect(screen.getByText('Referrer Note')).toBeInTheDocument()
+    expect(screen.getAllByText('Referrer Note').length).toBeGreaterThan(0)
   })
 
   it('hides backlinks section when no notes reference the current note', () => {
@@ -397,7 +393,7 @@ This is a test note with some words to count.
       entries: [mockEntry, referrerEntry],
       onNavigate,
     })
-    fireEvent.click(screen.getByText('Referrer Note'))
+    fireEvent.click(screen.getAllByText('Referrer Note')[0])
     expect(onNavigate).toHaveBeenCalledWith('Referrer Note')
   })
 
@@ -586,9 +582,9 @@ Status: Active
 
         />
       )
-      expect(screen.getByText('On Writing Well')).toBeInTheDocument()
-      expect(screen.getByText('Write Weekly Essays')).toBeInTheDocument()
-      expect(screen.getByText('SEO Experiment')).toBeInTheDocument()
+      expect(screen.getAllByText('On Writing Well').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Write Weekly Essays').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('SEO Experiment').length).toBeGreaterThan(0)
     })
 
     it('groups referenced-by entries by relationship key', () => {
@@ -623,7 +619,7 @@ Status: Active
         entries: [targetEntry, essayEntry],
         onNavigate,
       })
-      fireEvent.click(screen.getByText('On Writing Well'))
+      fireEvent.click(screen.getAllByText('On Writing Well')[0])
       expect(onNavigate).toHaveBeenCalledWith('On Writing Well')
     })
 
@@ -670,7 +666,7 @@ Status: Active
 
         />
       )
-      expect(screen.getByText('On Writing Well')).toBeInTheDocument()
+      expect(screen.getAllByText('On Writing Well').length).toBeGreaterThan(0)
       expect(screen.getByText(/← Topics/i)).toBeInTheDocument()
     })
 
@@ -710,7 +706,7 @@ Status: Active
       )
       // noteA shows in Referenced By (via Belongs to)
       expect(screen.getByText('Children')).toBeInTheDocument()
-      expect(screen.getByText('On Writing Well')).toBeInTheDocument()
+      expect(screen.getAllByText('On Writing Well').length).toBeGreaterThan(0)
       // But NOT in Backlinks (even though outgoingLinks matches) — section hidden
       expect(screen.queryByTestId('backlinks-toggle')).not.toBeInTheDocument()
     })

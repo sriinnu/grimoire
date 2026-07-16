@@ -16,12 +16,14 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
           className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground"
           onClick={onToggle}
           title="Properties (⌘⇧I)"
+          aria-label="Open Second Brain properties"
+          data-icon-intent="ai"
         >
           <SlidersHorizontal size={16} />
         </button>
       ) : (
         <>
-          <span className="inspector-header__brand-icon">
+          <span className="inspector-header__brand-icon" data-icon-intent="ai">
             <Glyph name="brain" size={14} />
           </span>
           <span className="flex min-w-0 flex-1 flex-col leading-tight">
@@ -32,6 +34,8 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
             className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground"
             onClick={onToggle}
             title="Close Second Brain (⌘⇧I)"
+            aria-label="Close Second Brain"
+            data-icon-intent="neutral"
           >
             <X size={16} />
           </button>

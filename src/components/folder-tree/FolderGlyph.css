@@ -1,18 +1,16 @@
 .folder-glyph {
-  --folder-glyph-tone: var(--sidebar-primary);
+  --folder-glyph-tone: var(--icon-intent-navigation, var(--accent-blue));
   --folder-glyph-ink: color-mix(in srgb, var(--folder-glyph-tone) 76%, var(--sidebar-foreground));
-  --folder-glyph-line: color-mix(in srgb, var(--folder-glyph-tone) 24%, var(--sidebar-border));
-  --folder-glyph-surface: color-mix(in srgb, var(--folder-glyph-tone) 8%, transparent);
   align-items: center;
   aspect-ratio: 1;
-  background: var(--folder-glyph-surface);
-  border: 1px solid var(--folder-glyph-line);
-  border-radius: 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   box-shadow: none;
   color: var(--folder-glyph-ink);
   display: inline-grid;
-  flex: 0 0 22px;
-  height: 22px;
+  flex: 0 0 20px;
+  height: 20px;
   justify-items: center;
   overflow: hidden;
   position: relative;
@@ -21,7 +19,7 @@
     border-color 160ms ease,
     color 160ms ease,
     transform 160ms ease;
-  width: 22px;
+  width: 20px;
 }
 
 .folder-glyph__icon {
@@ -32,44 +30,36 @@
   width: 16px;
 }
 
-.folder-glyph[data-folder-glyph-tone="veda"],
-.folder-glyph[data-folder-glyph-tone="star"],
-.folder-glyph[data-folder-glyph-tone="vault"] {
-  --folder-glyph-tone: var(--accent-yellow);
-}
-
 .folder-glyph[data-folder-glyph-tone="shaastra"],
 .folder-glyph[data-folder-glyph-tone="rishi"],
 .folder-glyph[data-folder-glyph-tone="agent"],
 .folder-glyph[data-folder-glyph-tone="storage"],
-.folder-glyph[data-folder-glyph-tone="dev"],
-.folder-glyph[data-folder-glyph-tone="data"],
 .folder-glyph[data-folder-glyph-tone="research"],
-.folder-glyph[data-folder-glyph-tone="template"] {
-  --folder-glyph-tone: var(--accent-blue);
-}
-
-.folder-glyph[data-folder-glyph-tone="purana"],
 .folder-glyph[data-folder-glyph-tone="brain"],
-.folder-glyph[data-folder-glyph-tone="journal"],
-.folder-glyph[data-folder-glyph-tone="private"] {
-  --folder-glyph-tone: var(--accent-purple);
+.folder-glyph[data-folder-glyph-tone="purana"],
+.folder-glyph[data-folder-glyph-tone="star"],
+.folder-glyph[data-folder-glyph-tone="veda"] {
+  --folder-glyph-tone: var(--icon-intent-structure, var(--accent-purple));
 }
 
-.folder-glyph[data-folder-glyph-tone="docs"] {
-  --folder-glyph-tone: var(--accent-orange);
+.folder-glyph[data-folder-glyph-tone="journal"] {
+  --folder-glyph-tone: var(--icon-intent-capture, var(--accent-yellow));
+}
+
+.folder-glyph[data-folder-glyph-tone="private"],
+.folder-glyph[data-folder-glyph-tone="vault"] {
+  --folder-glyph-tone: var(--icon-intent-safe, var(--accent-teal));
 }
 
 .folder-glyph[data-open="true"],
 .folder-glyph[data-selected="true"] {
-  --folder-glyph-surface: color-mix(in srgb, var(--folder-glyph-tone) 14%, transparent);
-  border-color: color-mix(in srgb, var(--folder-glyph-tone) 38%, var(--sidebar-border));
-  transform: translateY(-0.5px);
+  --folder-glyph-ink: var(--folder-glyph-tone);
+  transform: none;
 }
 
 .folder-glyph[data-open="true"] .folder-glyph__icon,
 .folder-glyph[data-selected="true"] .folder-glyph__icon {
-  transform: scale(1.02);
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

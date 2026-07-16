@@ -382,6 +382,9 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       }))
     return { results: matches, elapsed_ms: 42, query: q, mode: args.mode }
   },
+  // Unlinked mentions require a real filesystem scan; browser mode degrades to none.
+  find_note_mentions: () => [],
+  link_unlinked_mention: () => null,
   get_last_vault_path: () => mockLastVaultPath,
   set_last_vault_path: (args: { path: string }) => { mockLastVaultPath = args.path; return null },
   get_default_vault_path: () => '/Users/mock/Documents/Getting Started',

@@ -15,6 +15,8 @@ export interface GlyphProps {
    */
   label?: string
   style?: React.CSSProperties
+  /** Semantic colour role for a glyph inside an interactive surface. */
+  'data-icon-intent'?: string
 }
 
 /**
@@ -22,7 +24,7 @@ export interface GlyphProps {
  * stroke-based on a 64×64 grid and tint with the current text `color`, so they
  * adapt across Light, Dark, and Retro themes without per-mode assets.
  */
-export function Glyph({ name, size = 18, className, label, style }: GlyphProps) {
+export function Glyph({ name, size = 18, className, label, style, 'data-icon-intent': iconIntent }: GlyphProps) {
   return (
     <svg
       width={size}
@@ -31,6 +33,7 @@ export function Glyph({ name, size = 18, className, label, style }: GlyphProps) 
       fill="none"
       className={className}
       style={style}
+      data-icon-intent={iconIntent}
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
