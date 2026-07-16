@@ -49,7 +49,6 @@ Grimoire remains a personal notebook first: journal, diary, notes, dreams, memor
 | Locality Firewall | Proven | `grimoire-core` | Native slice | One shared decision path for every egress surface |
 | Provider and route disclosure | Proven | Tauri settings and agent adapters | Local preview only | Effective provider/model/route visible before and during every request |
 | Agent streaming and cancellation | Proven | Tauri Rust plus React | Not wired | Typed event stream, cancellation, restart and error recovery |
-| Agent Council and evidence | Proven product surface | React orchestration | Not wired | Native evidence inspection without duplicated cognition |
 | MCP registration and vault tools | Proven | Tauri Rust | Not wired | Shared service seam; native UI reports actual daemon/tool state |
 | Memory Ledger and Crystallize review | Proven product surface | Markdown plus React workflows | Not wired | Reviewed promotion and source trace; no transcript-as-memory shortcut |
 | Git status, history, diff, and pulse | Proven | Tauri Rust | Not wired | Shared kernel service plus native Changes and History surfaces |
@@ -96,7 +95,7 @@ Grimoire remains a personal notebook first: journal, diary, notes, dreams, memor
 
 ### Wave 5 — AI and agent workflows
 
-- real Context Manifest inputs, provider routing, event streaming, cancellation, Council, MCP status, and reviewed memory flows
+- real Context Manifest inputs, provider routing, event streaming, cancellation, MCP status, and reviewed memory flows
 - audit Chitragupta before defining its adapter; do not invent a second cognitive engine
 
 ### Wave 6 — Portability, media, and storage
