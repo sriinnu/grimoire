@@ -10,6 +10,7 @@ import type { McpStatus } from '../../hooks/useMcpStatus'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { AiProviderKeysCard } from './AiProviderKeysCard'
+import { ChitraguptaSocketCard } from './ChitraguptaSocketCard'
 import { LabeledSelect, SectionHeading } from './SettingsControls'
 import {
   updateAiAgentModelDraft,
@@ -266,6 +267,8 @@ export function AiAgentSettingsSection({
       </div>
 
       <AiProviderKeysCard t={t} />
+
+      <ChitraguptaSocketCard t={t} />
 
       {showProviderOverride ? (
         <div

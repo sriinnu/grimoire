@@ -28,6 +28,8 @@ interface UseCliAiAgentOptions {
   agentReady: boolean
   provider?: string | null
   model?: string | null
+  /** Vault-relative path of the active note; threads socket session lineage. */
+  notePath?: string | null
 }
 
 interface UseCliAiAgentRuntime extends AiAgentSessionRuntime {
@@ -73,7 +75,7 @@ export function useCliAiAgent(
   fileCallbacks: AgentFileCallbacks | undefined,
   options: UseCliAiAgentOptions,
 ) {
-  const { agent, agentReady, provider, model } = options
+  const { agent, agentReady, provider, model, notePath } = options
   const runtime = useCliAiAgentRuntime(fileCallbacks)
   const { messages, status } = runtime
   const queuedPromptsRef = useRef<PendingUserPrompt[]>([])
@@ -82,10 +84,11 @@ export function useCliAiAgent(
     agent,
     ready: agentReady,
     vaultPath,
+    notePath,
     systemPromptOverride: contextPrompt,
     provider,
     model,
-  }), [agent, agentReady, contextPrompt, model, provider, vaultPath])
+  }), [agent, agentReady, contextPrompt, model, notePath, provider, vaultPath])
 
   function enqueuePrompt(prompt: PendingUserPrompt): void {
     const queuedMessageId = appendQueuedMessage(runtime.setMessages, prompt)

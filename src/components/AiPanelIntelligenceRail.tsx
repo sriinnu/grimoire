@@ -13,6 +13,7 @@ import {
 import type { ModifiedFile, VaultEntry } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { buildCachedAgentGraphContext } from '../utils/agentGraphContext'
+import { ChitraguptaPastSessions } from './ChitraguptaPastSessions'
 import { ContextCapsuleDialog } from './ContextCapsuleDialog'
 import { AiPanelIntelligenceSummary } from './AiPanelIntelligenceSummary'
 import { RedTeamPlanCard } from './RedTeamPlanCard'
@@ -118,6 +119,9 @@ export function AiPanelIntelligenceRail({
           onReviewPlan={() => setPlanReviewOpen((open) => !open)}
           reviewOpen={planReviewOpen}
         />
+      ) : null}
+      {defaultAiAgent === 'chitragupta' && activeEntry ? (
+        <ChitraguptaPastSessions activeEntry={activeEntry} vaultPath={vaultPath} />
       ) : null}
       {planReviewOpen && activeEntry ? (
         <RedTeamPlanCard

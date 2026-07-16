@@ -41,6 +41,8 @@ export interface AgentExecutionContext {
   agent: AiAgentId
   ready: boolean
   vaultPath: string
+  /** Vault-relative path of the active note; threads socket session lineage. */
+  notePath?: string | null
   systemPromptOverride?: string
   provider?: string | null
   model?: string | null

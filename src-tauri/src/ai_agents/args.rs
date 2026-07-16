@@ -99,6 +99,7 @@ mod tests {
             vault_path: "/tmp/vault".into(),
             provider: None,
             model: None,
+            note_path: None,
         });
 
         assert!(prompt.starts_with("System instructions:\nBe concise"));
@@ -114,6 +115,7 @@ mod tests {
             vault_path: "/tmp/vault".into(),
             provider: None,
             model: None,
+            note_path: None,
         }) {
             assert!(!args.contains(&"--dangerously-bypass-approvals-and-sandbox".to_string()));
             assert!(args.contains(&"--sandbox".to_string()));
@@ -134,6 +136,7 @@ mod tests {
             vault_path: "/tmp/vault".into(),
             provider: None,
             model: Some("gpt-5.2".into()),
+            note_path: None,
         }) {
             assert!(args.contains(&"--model".to_string()));
             assert!(args.contains(&"gpt-5.2".to_string()));
@@ -149,6 +152,7 @@ mod tests {
             vault_path: "/tmp/vault".into(),
             provider: Some("openai".into()),
             model: Some("claude-sonnet-4-5-20250929".into()),
+            note_path: None,
         });
 
         assert_eq!(args[0], "ask");
@@ -180,6 +184,7 @@ mod tests {
             vault_path: "/tmp/vault".into(),
             provider: None,
             model: None,
+            note_path: None,
         });
 
         assert!(!args.contains(&"--provider".to_string()));
@@ -196,6 +201,7 @@ mod tests {
             vault_path: "/tmp/vault".into(),
             provider: Some("google gemini".into()),
             model: Some("gemini 2.5".into()),
+            note_path: None,
         });
 
         assert!(!args.contains(&"--provider".to_string()));

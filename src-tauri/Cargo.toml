@@ -1,6 +1,6 @@
 [package]
 name = "grimoire"
-version = "0.1.456"
+version = "0.1.457"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
 license = "AGPL-3.0-or-later"
@@ -35,6 +35,9 @@ futures-util = "0.3"
 base64 = "0.22"
 regex = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
+# Local Chitragupta daemon socket client. Blocking calls run inside
+# spawn_blocking, matching the async-command + blocking-runner pattern.
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 sha2 = "0.10"
 dirs = "5"
 # Native window materials: NSVisualEffectView vibrancy on macOS, Mica on Windows.

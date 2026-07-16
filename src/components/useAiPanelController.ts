@@ -4,6 +4,7 @@ import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
 import type { ContextManifestV1 } from '../lib/contextManifest'
 import type { AiAgentId } from '../lib/aiAgents'
 import { useCliAiAgent, type AgentFileCallbacks } from '../hooks/useCliAiAgent'
+import { vaultRelativeNotePath } from '../lib/chitraguptaSocket'
 import type { VaultEntry } from '../types'
 import {
   type NoteListItem,
@@ -81,11 +82,18 @@ export function useAiPanelController({
     onVaultChanged,
   }), [onFileCreated, onFileModified, onVaultChanged])
 
+  const activeNotePath = useMemo(() => (
+    activeEntry?.path && vaultPath
+      ? vaultRelativeNotePath(activeEntry.path, vaultPath)
+      : null
+  ), [activeEntry?.path, vaultPath])
+
   const agent = useCliAiAgent(vaultPath, contextPrompt, fileCallbacks, {
     agent: defaultAiAgent,
     agentReady: defaultAiAgentReady,
     provider: defaultAiProvider,
     model: defaultAiModel,
+    notePath: activeNotePath,
   })
   const hasContext = !!activeEntry
   const isActive = agent.status === 'thinking' || agent.status === 'tool-executing'

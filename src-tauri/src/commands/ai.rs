@@ -90,6 +90,130 @@ pub fn clear_ai_provider_api_key(provider_id: String) -> Result<Vec<AiProviderKe
     crate::ai_provider_keys::clear_ai_provider_api_key(&provider_id)
 }
 
+// ── Chitragupta daemon socket ────────────────────────────────────────────────
+
+/// Redacted socket readiness. Never carries the token value.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ChitraguptaSocketStatus {
+    pub healthy: bool,
+    pub version: Option<String>,
+    pub token_present: bool,
+    pub token_source: crate::ai_provider_keys::AiProviderKeySource,
+    pub base_url: String,
+}
+
+/// Redacted daemon-token readiness returned by save/clear.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ChitraguptaSocketTokenStatus {
+    pub token_present: bool,
+    pub token_source: crate::ai_provider_keys::AiProviderKeySource,
+}
+
+fn chitragupta_socket_token_status() -> ChitraguptaSocketTokenStatus {
+    let token_source = crate::ai_provider_keys::chitragupta_socket_token_source();
+    ChitraguptaSocketTokenStatus {
+        token_present: token_source != crate::ai_provider_keys::AiProviderKeySource::Missing,
+        token_source,
+    }
+}
+
+#[tauri::command]
+pub fn save_chitragupta_socket_token(token: String) -> Result<ChitraguptaSocketTokenStatus, String> {
+    crate::ai_provider_keys::save_chitragupta_socket_token(&token)?;
+    Ok(chitragupta_socket_token_status())
+}
+
+#[tauri::command]
+pub fn clear_chitragupta_socket_token() -> Result<ChitraguptaSocketTokenStatus, String> {
+    crate::ai_provider_keys::clear_chitragupta_socket_token()?;
+    Ok(chitragupta_socket_token_status())
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn get_chitragupta_socket_status() -> Result<ChitraguptaSocketStatus, String> {
+    tokio::task::spawn_blocking(|| {
+        let base_url = crate::chitragupta_socket::socket_base_url();
+        let health = crate::chitragupta_socket::probe_health(&base_url);
+        let token = chitragupta_socket_token_status();
+        ChitraguptaSocketStatus {
+            healthy: health.healthy,
+            version: health.version,
+            token_present: token.token_present,
+            token_source: token.token_source,
+            base_url,
+        }
+    })
+    .await
+    .map_err(|error| format!("Socket status task failed: {error}"))
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn list_chitragupta_note_sessions(
+    vault_path: String,
+    note_path: String,
+) -> Result<Vec<crate::chitragupta_socket::TrimmedChitraguptaSession>, String> {
+    tokio::task::spawn_blocking(move || {
+        use crate::chitragupta_socket as socket;
+        let token = socket::SocketToken::new(
+            crate::ai_provider_keys::chitragupta_socket_token()
+                .ok_or("Chitragupta daemon token is not configured.")?,
+        );
+        let base = socket::socket_base_url();
+        let sessions = socket::list_sessions(&base, &token, &vault_path, "grimoire")?;
+        Ok(sessions
+            .iter()
+            .filter(|summary| socket::session_matches_note(summary, &vault_path, &note_path))
+            .filter_map(socket::trim_session_summary)
+            .collect())
+    })
+    .await
+    .map_err(|error| format!("Session list task failed: {error}"))?
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn get_chitragupta_session(id: String) -> Result<serde_json::Value, String> {
+    tokio::task::spawn_blocking(move || {
+        use crate::chitragupta_socket as socket;
+        let token = socket::SocketToken::new(
+            crate::ai_provider_keys::chitragupta_socket_token()
+                .ok_or("Chitragupta daemon token is not configured.")?,
+        );
+        socket::get_session(&socket::socket_base_url(), &token, &id)
+    })
+    .await
+    .map_err(|error| format!("Session fetch task failed: {error}"))?
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn get_chitragupta_socket_status() -> Result<ChitraguptaSocketStatus, String> {
+    Ok(ChitraguptaSocketStatus {
+        healthy: false,
+        version: None,
+        token_present: false,
+        token_source: crate::ai_provider_keys::AiProviderKeySource::Missing,
+        base_url: crate::chitragupta_socket::socket_base_url(),
+    })
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn list_chitragupta_note_sessions(
+    _vault_path: String,
+    _note_path: String,
+) -> Result<Vec<crate::chitragupta_socket::TrimmedChitraguptaSession>, String> {
+    Err("Chitragupta daemon sessions are not available on mobile.".into())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn get_chitragupta_session(_id: String) -> Result<serde_json::Value, String> {
+    Err("Chitragupta daemon sessions are not available on mobile.".into())
+}
+
 #[tauri::command]
 pub fn get_vault_ai_guidance_status(vault_path: String) -> Result<VaultAiGuidanceStatus, String> {
     let vault_path = expand_tilde(&vault_path);
