@@ -16,6 +16,11 @@ const FILE_QUICK_OPEN: &str = "file-quick-open";
 const FILE_QUICK_OPEN_ALIAS: &str = "file-quick-open-alias";
 const FILE_SAVE: &str = "file-save";
 
+// macOS-only: handled natively (opens the Character Viewer) rather than
+// emitted to the frontend, so it is deliberately NOT part of CUSTOM_IDS.
+#[cfg(target_os = "macos")]
+const EDIT_EMOJI_AND_SYMBOLS: &str = "edit-emoji-and-symbols";
+
 const EDIT_FIND_IN_VAULT: &str = "edit-find-in-vault";
 const EDIT_TOGGLE_NOTE_LIST_SEARCH: &str = "edit-toggle-note-list-search";
 const EDIT_TOGGLE_RAW_EDITOR: &str = "edit-toggle-raw-editor";
@@ -225,7 +230,7 @@ fn build_edit_menu(app: &App) -> MenuResult {
         .id(EDIT_TOGGLE_DIFF)
         .build(app)?;
 
-    Ok(SubmenuBuilder::new(app, "Edit")
+    let builder = SubmenuBuilder::new(app, "Edit")
         .undo()
         .redo()
         .separator()
@@ -237,8 +242,23 @@ fn build_edit_menu(app: &App) -> MenuResult {
         .separator()
         .item(&find_in_vault)
         .item(&toggle_note_list_search)
-        .item(&toggle_diff)
-        .build()?)
+        .item(&toggle_diff);
+
+    // A fully custom Edit submenu loses AppKit's automatic "Emoji & Symbols"
+    // entry, so restore it explicitly at the conventional bottom position.
+    // Ctrl+Cmd+Space is owned by the system (it toggles the Character Viewer
+    // before the app sees the key event), so the accelerator here is display
+    // parity with native apps; the menu item itself is the reliable path.
+    #[cfg(target_os = "macos")]
+    let builder = {
+        let emoji_and_symbols = MenuItemBuilder::new("Emoji & Symbols")
+            .id(EDIT_EMOJI_AND_SYMBOLS)
+            .accelerator("Ctrl+Cmd+Space")
+            .build(app)?;
+        builder.separator().item(&emoji_and_symbols)
+    };
+
+    Ok(builder.build()?)
 }
 
 fn build_view_menu(app: &App) -> MenuResult {
@@ -459,10 +479,32 @@ pub fn setup_menu(app: &App) -> Result<(), Box<dyn std::error::Error>> {
 
     app.on_menu_event(|app_handle, event| {
         let id = event.id().0.as_str();
+        #[cfg(target_os = "macos")]
+        if id == EDIT_EMOJI_AND_SYMBOLS {
+            open_character_palette();
+            return;
+        }
         let _ = emit_custom_menu_event(app_handle, id);
     });
 
     Ok(())
+}
+
+/// Order front the macOS Character Viewer (the "Emoji & Symbols" palette).
+///
+/// AppKit adds this behavior automatically to standard Edit menus; our Edit
+/// menu is fully custom, so we call NSApplication directly — the same call
+/// the automatic item makes. Menu events are delivered on the main thread,
+/// which AppKit requires here; bail defensively if that ever changes.
+#[cfg(target_os = "macos")]
+fn open_character_palette() {
+    use objc2_app_kit::NSApplication;
+
+    let Some(mtm) = objc2::MainThreadMarker::new() else {
+        log::warn!("Emoji & Symbols requested off the main thread; ignoring");
+        return;
+    };
+    NSApplication::sharedApplication(mtm).orderFrontCharacterPalette(None);
 }
 
 pub fn emit_custom_menu_event(app_handle: &AppHandle, id: &str) -> Result<(), String> {
@@ -624,6 +666,18 @@ mod tests {
                 "git-vault-dependent ID {id} not in CUSTOM_IDS"
             );
         }
+    }
+
+    /// The Emoji & Symbols item is handled natively (NSApplication orders
+    /// front the Character Viewer) and must never route through the
+    /// frontend emit path, so it stays out of CUSTOM_IDS.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn emoji_and_symbols_stays_out_of_custom_ids() {
+        assert!(
+            !CUSTOM_IDS.contains(&EDIT_EMOJI_AND_SYMBOLS),
+            "emoji-and-symbols must be native-handled, not emitted"
+        );
     }
 
     #[test]
