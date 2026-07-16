@@ -34,6 +34,9 @@ export function SettingsBody(props: SettingsBodyProps) {
     onImportMarkdownZip,
     onPreviewBear,
     onImportBear,
+    installedApps,
+    onPreviewBearDatabase,
+    onImportBearDatabase,
     onPreviewObsidian,
     onImportObsidian,
     onPreviewNotion,
@@ -147,6 +150,9 @@ export function SettingsBody(props: SettingsBodyProps) {
               onImportMarkdownZip={onImportMarkdownZip}
               onPreviewBear={onPreviewBear}
               onImportBear={onImportBear}
+              installedApps={installedApps}
+              onPreviewBearDatabase={onPreviewBearDatabase}
+              onImportBearDatabase={onImportBearDatabase}
               onPreviewObsidian={onPreviewObsidian}
               onImportObsidian={onImportObsidian}
               onPreviewNotion={onPreviewNotion}

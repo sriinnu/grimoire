@@ -10,6 +10,7 @@ import type {
   AppImportSource,
   JournalImportSource,
 } from '../utils/markdownFolderImport'
+import type { DiscoveredApp } from '../utils/appStoreImport'
 import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
@@ -30,6 +31,7 @@ export interface VaultPortabilityActionsOptions {
 
 export interface VaultPortabilityActions {
   markdownImportBusy: boolean
+  installedApps: DiscoveredApp[]
   portabilityBusyAction: VaultPortabilityActionId | null
   portabilityProgress: PortabilityProgressState | null
   lastImportPreview: ImportAutopsyPreviewState | null
@@ -38,6 +40,7 @@ export interface VaultPortabilityActions {
   handlePreviewMarkdownFolder: () => void; handleImportMarkdownFolder: () => void
   handlePreviewMarkdownZip: () => void; handleImportMarkdownZip: () => void
   handlePreviewBear: () => void; handleImportBear: () => void
+  handlePreviewBearDatabase: () => void; handleImportBearDatabase: () => void
   handlePreviewObsidian: () => void; handleImportObsidian: () => void
   handlePreviewNotion: () => void; handleImportNotion: () => void
   handlePreviewNotionFolder: () => void; handleImportNotionFolder: () => void

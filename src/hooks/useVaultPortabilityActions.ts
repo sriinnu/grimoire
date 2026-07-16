@@ -20,6 +20,12 @@ import {
   type JournalImportSource,
 } from '../utils/markdownFolderImport'
 import {
+  discoverImportableApps,
+  formatBearDatabaseSummaryToast,
+  importBearDatabase,
+  type DiscoveredApp,
+} from '../utils/appStoreImport'
+import {
   formatPortabilityCapsuleImportPreviewToast,
   formatPortabilityCapsuleImportToast,
   importPortabilityCapsuleIntoVault,
@@ -66,6 +72,7 @@ export function useVaultPortabilityActions({
   setToastMessage,
 }: VaultPortabilityActionsOptions): VaultPortabilityActions {
   const [activeAction, setActiveAction] = useState<VaultPortabilityActionId | null>(null)
+  const [installedApps, setInstalledApps] = useState<DiscoveredApp[]>([])
   const [portabilityProgress, setPortabilityProgress] = useState<PortabilityProgressState | null>(null)
   const [lastImportPreview, setLastImportPreview] = useState<ImportAutopsyPreviewState | null>(null)
   const [lastExportPreview, setLastExportPreview] = useState<PortabilityExportPreviewState | null>(null)
@@ -78,6 +85,21 @@ export function useVaultPortabilityActions({
     setPortabilityProgress(null)
     activeOperationRef.current = null
   }, [resolvedPath])
+
+  useEffect(() => {
+    let cancelled = false
+    discoverImportableApps()
+      .then((apps) => {
+        if (!cancelled) setInstalledApps(apps)
+      })
+      .catch(() => {
+        // Discovery is best-effort; a failed probe just hides the group.
+        if (!cancelled) setInstalledApps([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const reloadAfterImport = useCallback(async () => {
     await reloadVault()
@@ -286,6 +308,28 @@ export function useVaultPortabilityActions({
       setActiveAction(null)
     }
   }, [lastImportPreview, reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
+  const handleBearDatabase = useCallback(async (mode: 'preview' | 'import') => {
+    if (!resolvedPath.trim()) {
+      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} the Bear database`)
+      return
+    }
+    const storePath = installedApps.find((app) => app.id === 'bear')?.store_path
+    if (!storePath) {
+      setToastMessage('Bear database not found on this Mac')
+      return
+    }
+    setActiveAction(mode === 'preview' ? 'bear-db-preview' : 'bear-db')
+    try {
+      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} Bear database...`)
+      const summary = await importBearDatabase(resolvedPath, storePath, mode === 'preview')
+      if (mode === 'import') await reloadAfterImport()
+      setToastMessage(formatBearDatabaseSummaryToast(summary))
+    } catch (error) {
+      setToastMessage(`${mode === 'preview' ? 'Preview' : 'Import'} failed: ${errorMessage(error, 'Import failed')}`)
+    } finally {
+      setActiveAction(null)
+    }
+  }, [installedApps, reloadAfterImport, resolvedPath, setToastMessage])
   const handleCapsuleImport = useCallback(async (format: PortabilityCapsuleFormat, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
       setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} capsules`)
@@ -369,6 +413,7 @@ export function useVaultPortabilityActions({
 
   return {
     markdownImportBusy,
+    installedApps,
     portabilityBusyAction: activeAction,
     portabilityProgress,
     lastImportPreview,
@@ -377,6 +422,7 @@ export function useVaultPortabilityActions({
     handlePreviewMarkdownFolder: () => { void handlePreviewFolder('markdown-folder') }, handleImportMarkdownFolder: () => { void handleImportFolder('markdown-folder') },
     handlePreviewMarkdownZip: () => { void handlePreviewMarkdownZip() }, handleImportMarkdownZip: () => { void handleImportFolder('markdown-zip') },
     handlePreviewBear: () => { void handlePreviewFolder('bear') }, handleImportBear: () => { void handleImportFolder('bear') },
+    handlePreviewBearDatabase: () => { void handleBearDatabase('preview') }, handleImportBearDatabase: () => { void handleBearDatabase('import') },
     handlePreviewObsidian: () => { void handleAppExport('obsidian', 'preview') }, handleImportObsidian: () => { void handleAppExport('obsidian', 'import') },
     handlePreviewNotion: () => { void handleAppExport('notion-markdown', 'preview') }, handleImportNotion: () => { void handleAppExport('notion-markdown', 'import') },
     handlePreviewNotionFolder: () => { void handleAppExport('notion-folder', 'preview') }, handleImportNotionFolder: () => { void handleAppExport('notion-folder', 'import') },

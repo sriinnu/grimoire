@@ -1,3 +1,4 @@
+mod app_store_cmds;
 mod boundary;
 mod desktop_storage_cmds;
 mod export_cmds;
@@ -14,6 +15,7 @@ mod scan_cmds;
 mod view_cmds;
 
 pub(super) use boundary::VaultBoundary;
+pub use app_store_cmds::*;
 pub use desktop_storage_cmds::*;
 pub use export_cmds::*;
 pub use file_cmds::*;

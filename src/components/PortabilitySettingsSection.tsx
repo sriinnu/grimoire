@@ -10,6 +10,7 @@ import {
 } from '../lib/vaultPortability'
 import type { ObjectStorageLiveProofReport } from '../lib/portabilityProof'
 import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
+import type { DiscoveredApp } from '../utils/appStoreImport'
 import type { DesktopStorageHealthReport, DesktopStorageProviderId } from '../utils/desktopStorageHealth'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
@@ -40,6 +41,9 @@ interface PortabilitySettingsSectionProps {
   onImportMarkdownZip?: () => void
   onPreviewBear?: () => void
   onImportBear?: () => void
+  installedApps?: DiscoveredApp[]
+  onPreviewBearDatabase?: () => void
+  onImportBearDatabase?: () => void
   onPreviewObsidian?: () => void
   onImportObsidian?: () => void
   onPreviewNotion?: () => void
@@ -125,6 +129,9 @@ export function PortabilitySettingsSection({
   onImportMarkdownZip,
   onPreviewBear,
   onImportBear,
+  installedApps,
+  onPreviewBearDatabase,
+  onImportBearDatabase,
   onPreviewObsidian,
   onImportObsidian,
   onPreviewNotion,
@@ -265,6 +272,9 @@ export function PortabilitySettingsSection({
         onImportMarkdownZip={onImportMarkdownZip}
         onPreviewBear={onPreviewBear}
         onImportBear={onImportBear}
+        installedApps={installedApps}
+        onPreviewBearDatabase={onPreviewBearDatabase}
+        onImportBearDatabase={onImportBearDatabase}
         onPreviewObsidian={onPreviewObsidian}
         onImportObsidian={onImportObsidian}
         onPreviewNotion={onPreviewNotion}

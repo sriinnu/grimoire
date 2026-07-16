@@ -5,6 +5,8 @@ export type VaultPortabilityActionId =
   | 'markdown-zip'
   | 'bear-preview'
   | 'bear'
+  | 'bear-db-preview'
+  | 'bear-db'
   | 'obsidian-preview'
   | 'obsidian'
   | 'notion-markdown-preview'

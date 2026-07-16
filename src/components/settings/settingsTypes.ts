@@ -1,4 +1,5 @@
 import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
+import type { DiscoveredApp } from '../../utils/appStoreImport'
 import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
 import type { createTranslator } from '../../lib/i18n'
 import type { AppLocale, UiLanguagePreference } from '../../lib/i18nCore'
@@ -112,6 +113,9 @@ export interface SettingsBodyProps {
   onImportMarkdownZip?: () => void
   onPreviewBear?: () => void
   onImportBear?: () => void
+  installedApps?: DiscoveredApp[]
+  onPreviewBearDatabase?: () => void
+  onImportBearDatabase?: () => void
   onPreviewObsidian?: () => void
   onImportObsidian?: () => void
   onPreviewNotion?: () => void

@@ -1,6 +1,7 @@
 import { Glyph } from './glyphs/Glyph'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { AppImportAutopsyActions } from './AppImportAutopsyActions'
+import { InstalledAppImportActions } from './InstalledAppImportActions'
 import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
 import { PortabilityCapsuleImportActions } from './PortabilityCapsuleImportActions'
@@ -54,6 +55,9 @@ export function PortabilityActionDeck({
   onImportMarkdownZip,
   onPreviewBear,
   onImportBear,
+  installedApps,
+  onPreviewBearDatabase,
+  onImportBearDatabase,
   onPreviewObsidian,
   onImportObsidian,
   onPreviewNotion,
@@ -135,6 +139,14 @@ export function PortabilityActionDeck({
           {t('settings.portability.actionDeckDescription')}
         </div>
       </div>
+      <InstalledAppImportActions
+        t={t}
+        vaultReady={vaultReady}
+        busyAction={busyAction}
+        installedApps={installedApps ?? []}
+        onPreviewBearDatabase={onPreviewBearDatabase}
+        onImportBearDatabase={onImportBearDatabase}
+      />
       <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border p-1" role="tablist">
         {lanes.map((lane) => (
           <Button

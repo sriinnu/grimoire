@@ -65,6 +65,8 @@ macro_rules! app_invoke_handler {
             commands::preview_app_export,
             commands::import_app_export,
             commands::import_app_export_with_progress,
+            commands::discover_importable_apps,
+            commands::import_bear_database,
             commands::export_markdown_zip,
             commands::export_markdown_zip_with_progress,
             commands::preview_portability_capsule,

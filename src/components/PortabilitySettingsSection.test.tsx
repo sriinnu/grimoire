@@ -186,7 +186,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Move vault data')).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-lane-markdown')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('settings-portability-preview-gate')).toHaveTextContent('Preview first to unlock')
-    expect(screen.getByText('Preview Bear')).toBeInTheDocument()
+    expect(screen.getByText('Preview Bear backup folder')).toBeInTheDocument()
     expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
     expect(screen.queryByTestId('object-storage-prototype-actions')).not.toBeInTheDocument()
 

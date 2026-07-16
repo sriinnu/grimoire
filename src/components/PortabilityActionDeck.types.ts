@@ -1,3 +1,4 @@
+import type { DiscoveredApp } from '../utils/appStoreImport'
 import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
 import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { createTranslator } from '../lib/i18n'
@@ -42,6 +43,9 @@ export interface PortabilityActionDeckProps {
   onImportMarkdownZip?: () => void
   onPreviewBear?: () => void
   onImportBear?: () => void
+  installedApps?: DiscoveredApp[]
+  onPreviewBearDatabase?: () => void
+  onImportBearDatabase?: () => void
   onPreviewObsidian?: () => void
   onImportObsidian?: () => void
   onPreviewNotion?: () => void
