@@ -33,6 +33,30 @@ describe('MarkdownContent', () => {
     expect(pre!.textContent).toContain('const x = 1')
   })
 
+  it('makes fenced code visible as a bounded copyable surface', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+    render(<MarkdownContent content={'```ts\nconst answer = 42\n```'} />)
+
+    const copy = await screen.findByRole('button', { name: 'Copy code' })
+    expect(screen.getByTestId('markdown-code-fence')).toHaveTextContent('ts')
+    fireEvent.click(copy)
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith('const answer = 42'))
+  })
+
+  it('uses a readable code lens and reveals long source on demand', async () => {
+    const source = Array.from({ length: 10 }, (_, index) => `const line${index + 1} = ${index + 1}`).join('\n')
+    render(<MarkdownContent content={`\`\`\`ts\n${source}\n\`\`\``} />)
+
+    const fence = await screen.findByTestId('markdown-code-fence')
+    expect(fence).toHaveClass('is-glimpsed', 'is-wrapped')
+    expect(screen.getByText('10 lines')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Show 2 more lines' }))
+    expect(fence).toHaveClass('is-expanded')
+    fireEvent.click(screen.getByRole('button', { name: 'Show exact code without wrapping' }))
+    expect(fence).toHaveClass('is-exact')
+  })
+
   it('auto-detects unlabeled fenced code languages', async () => {
     const code = 'def greet(name):\n    return f"Hello {name}"'
     const { container } = render(<MarkdownContent content={`\`\`\`\n${code}\n\`\`\``} />)

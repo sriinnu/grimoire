@@ -80,8 +80,8 @@ describe('system theme CSS', () => {
     expect(baseCss).toContain('--grimoire-code-block-bg')
     expect(editorThemeCss).toContain('var(--grimoire-code-block-bg, var(--surface-input))')
     expect(editorThemeCss).toContain('var(--grimoire-code-block-border, var(--border-default))')
-    expect(aiMarkdownCss).toContain('var(--grimoire-code-block-bg, var(--muted))')
-    expect(aiMarkdownCss).toContain('var(--grimoire-code-block-shadow, none)')
+    expect(aiMarkdownCss).toContain('var(--grimoire-code-block-bg, var(--surface-input))')
+    expect(aiMarkdownCss).toContain('--ai-code-lens-surface')
   })
 
   it('routes full theme profiles into shell UX materials', () => {
@@ -107,8 +107,8 @@ describe('system theme CSS', () => {
     expect(baseCss).toContain('--grimoire-html-preview-bg')
     expect(baseCss).toContain('--grimoire-html-preview-border')
     expect(getRuleBody(graphAnimationsCss, '.graph-canvas-shell')).toContain('var(--grimoire-graph-bg')
-    expect(getRuleBody(graphAnimationsCss, '.graph-canvas-hud span,\n.graph-canvas-agent-rail span')).toContain('var(--grimoire-graph-hud-bg')
-    expect(graphAnimationsCss).toContain('.graph-canvas-package-card')
+    expect(getRuleBody(graphAnimationsCss, '.graph-canvas-agent-rail span')).toContain('var(--grimoire-graph-hud-bg')
+    expect(getRuleBody(graphAnimationsCss, '.graph-canvas-zoom')).toContain('var(--grimoire-graph-hud-bg')
     expect(graphAnimationsCss).toContain('.graph-canvas-agent-rail')
     expect(graphAnimationsCss).toContain('var(--grimoire-graph-edge-relationship')
     expect(graphAnimationsCss).toContain('var(--grimoire-graph-edge-local')

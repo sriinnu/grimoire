@@ -35,13 +35,13 @@ export const CODE_BLOCK_TOKENS: Record<ThemeCodeBlockStyle, Record<string, strin
     '--grimoire-code-block-shadow': 'none',
   },
   notebook: {
-    '--grimoire-code-block-bg': 'linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 82%, var(--surface-editor)), var(--surface-input))',
+    '--grimoire-code-block-bg': 'color-mix(in srgb, var(--surface-card) 82%, var(--surface-editor))',
     '--grimoire-code-block-border': 'color-mix(in srgb, var(--primary) 18%, var(--border-default))',
     '--grimoire-code-block-radius': '8px',
     '--grimoire-code-block-shadow': 'inset 0 1px 0 color-mix(in srgb, var(--text-primary) 5%, transparent)',
   },
   terminal: {
-    '--grimoire-code-block-bg': 'linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 76%, black), color-mix(in srgb, var(--surface-input) 88%, black))',
+    '--grimoire-code-block-bg': 'color-mix(in srgb, var(--surface-input) 82%, black)',
     '--grimoire-code-block-border': 'color-mix(in srgb, var(--primary) 32%, var(--border-default))',
     '--grimoire-code-block-radius': '6px',
     '--grimoire-code-block-shadow': '0 0 24px color-mix(in srgb, var(--primary) 8%, transparent)',

@@ -117,13 +117,12 @@
   box-shadow: var(--grimoire-surface-shadow);
 }
 
-:is([data-theme-preset]) :is(.graph-canvas-package-card, .graph-canvas-agent-rail span, .graph-canvas-legend__item) {
+:is([data-theme-preset]) :is(.graph-canvas-zoom, .graph-canvas-agent-rail span, .graph-canvas-legend__item) {
   border-color: var(--grimoire-hairline);
   background: var(--grimoire-graph-inner-material);
   box-shadow: var(--grimoire-surface-shadow);
 }
 
-:is([data-theme-preset]) .graph-canvas-package-card[data-state="ready"],
 :is([data-theme-preset]) .graph-canvas-agent-rail span[data-state="ready"] {
   border-color: color-mix(in srgb, var(--primary) 38%, var(--grimoire-hairline));
   background: color-mix(in srgb, var(--primary) 12%, var(--grimoire-graph-inner-material));

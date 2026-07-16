@@ -74,6 +74,7 @@ vi.mock('@blocknote/react', () => ({
   EditLinkButton: () => <button type="button">Edit Link</button>,
   DeleteLinkButton: () => <button type="button">Remove Link</button>,
   SideMenuController: () => <div data-testid="side-menu-controller" />,
+  TableHandlesController: () => <div data-testid="grimoire-table-handles" />,
   SuggestionMenuController: (props: Record<string, unknown>) => {
     state.capturedSuggestionProps[String(props.triggerCharacter)] = props
     return <div data-testid={`suggestion-${String(props.triggerCharacter)}`} />
@@ -701,7 +702,7 @@ describe('SingleEditorView', () => {
     expect(editor.focus).not.toHaveBeenCalled()
   })
 
-  it('disables BlockNote table handles so stale column controls do not float above notes', () => {
+  it('mounts Grimoire table controls with explicit row and column actions', () => {
     const editor = createEditor()
 
     render(
@@ -714,6 +715,7 @@ describe('SingleEditorView', () => {
     )
 
     expect(screen.getByTestId('blocknote-view')).toHaveAttribute('data-table-handles', 'false')
+    expect(screen.getByTestId('grimoire-table-handles')).toBeInTheDocument()
   })
 
   it('falls back to the nearest editable block when the trailing block has no inline content', () => {
