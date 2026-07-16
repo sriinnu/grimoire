@@ -23,9 +23,10 @@ function bindMissingTypeAction(
   entry: VaultEntry | null,
   action: ((path: string, missingType: string, nextTypeName: string) => Promise<boolean | void>) | undefined,
 ) {
-  const missingType = entry?.isA
-  if (!entry || !missingType || !action) return undefined
-  return (nextTypeName: string) => action(entry.path, missingType, nextTypeName)
+  if (!entry || !action) return undefined
+  // Untyped notes have no missing type to repair, but can still create a type
+  // from scratch (for example via the TypeSelector create-from-query option).
+  return (nextTypeName: string) => action(entry.path, entry.isA ?? nextTypeName, nextTypeName)
 }
 
 export function useInspectorPropertyActions({

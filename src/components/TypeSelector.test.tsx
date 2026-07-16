@@ -87,4 +87,76 @@ describe('TypeSelector', () => {
 
     expect(screen.getByRole('option', { name: 'Custom Type' })).toHaveAttribute('aria-selected', 'true')
   })
+
+  it('offers a create option when the query matches no existing type', () => {
+    renderTypeSelector({ onCreateMissingType: vi.fn() })
+
+    openTypeCombobox()
+    fireEvent.change(screen.getByTestId('type-selector-search-input'), { target: { value: 'Recipe' } })
+
+    expect(screen.getByRole('option', { name: 'Create type “Recipe”' })).toBeInTheDocument()
+  })
+
+  it('creates and assigns the queried type through the creation callback', () => {
+    const onCreateMissingType = vi.fn()
+    const { onUpdateProperty } = renderTypeSelector({ onCreateMissingType })
+
+    openTypeCombobox()
+    fireEvent.change(screen.getByTestId('type-selector-search-input'), { target: { value: 'Recipe' } })
+    fireEvent.click(screen.getByRole('option', { name: 'Create type “Recipe”' }))
+
+    expect(onCreateMissingType).toHaveBeenCalledWith('Recipe')
+    expect(onUpdateProperty).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('type-selector-search-input')).not.toBeInTheDocument()
+  })
+
+  it('creates the queried type from the keyboard with Enter', () => {
+    const onCreateMissingType = vi.fn()
+    renderTypeSelector({ onCreateMissingType, availableTypes: [], typeColorKeys: {}, typeIconKeys: {} })
+
+    openTypeCombobox()
+    const searchInput = screen.getByTestId('type-selector-search-input')
+    fireEvent.change(searchInput, { target: { value: 'Recipe' } })
+    fireEvent.keyDown(searchInput, { key: 'Enter' })
+
+    expect(onCreateMissingType).toHaveBeenCalledWith('Recipe')
+  })
+
+  it('does not offer a create option when the query exactly matches an existing type', () => {
+    renderTypeSelector({ onCreateMissingType: vi.fn() })
+
+    openTypeCombobox()
+    fireEvent.change(screen.getByTestId('type-selector-search-input'), { target: { value: 'project' } })
+
+    expect(screen.getByRole('option', { name: 'Project' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: /Create type/ })).not.toBeInTheDocument()
+  })
+
+  it('does not offer a create option without a creation callback', () => {
+    renderTypeSelector()
+
+    openTypeCombobox()
+    fireEvent.change(screen.getByTestId('type-selector-search-input'), { target: { value: 'Recipe' } })
+
+    expect(screen.queryByRole('option', { name: /Create type/ })).not.toBeInTheDocument()
+    expect(screen.getByText('No matching types')).toBeInTheDocument()
+  })
+
+  it('explains that types are notes when the vault has none', () => {
+    renderTypeSelector({ availableTypes: [], typeColorKeys: {}, typeIconKeys: {}, onCreateMissingType: vi.fn() })
+
+    openTypeCombobox()
+
+    expect(screen.getByTestId('type-selector-empty-hint')).toHaveTextContent(
+      'Types are notes — create one to categorize pages.',
+    )
+  })
+
+  it('hides the empty-vault hint once types exist', () => {
+    renderTypeSelector()
+
+    openTypeCombobox()
+
+    expect(screen.queryByTestId('type-selector-empty-hint')).not.toBeInTheDocument()
+  })
 })
