@@ -52,14 +52,15 @@ fn is_word_char(ch: char) -> bool {
 }
 
 fn has_word_boundaries(line: &str, start: usize, end: usize) -> bool {
+    // map_or instead of is_none_or: the crate MSRV (1.77) predates its stabilization.
     let before_ok = line[..start]
         .chars()
         .next_back()
-        .is_none_or(|ch| !is_word_char(ch));
+        .map_or(true, |ch| !is_word_char(ch));
     let after_ok = line[end..]
         .chars()
         .next()
-        .is_none_or(|ch| !is_word_char(ch));
+        .map_or(true, |ch| !is_word_char(ch));
     before_ok && after_ok
 }
 
@@ -381,8 +382,7 @@ fn link_mention_in_content(
     }
 
     let mut offset = 0;
-    let mut current: u32 = 1;
-    for segment in content.split_inclusive('\n') {
+    for (current, segment) in (1_u32..).zip(content.split_inclusive('\n')) {
         if current == line {
             let excluded = excluded_spans(segment);
             let occurrence = find_word_matches(segment, &matched_text.to_lowercase())
@@ -408,7 +408,6 @@ fn link_mention_in_content(
             return Ok(updated);
         }
         offset += segment.len();
-        current += 1;
     }
 
     Err(format!("Line {line} not found in source note"))
