@@ -7,7 +7,7 @@ import { formatVaultPathForDisplay, getNotebookVaultDisplayName } from '../../ut
 import { getDesktopPlatform } from '../../utils/platform'
 import { useHomeDir } from '../../hooks/useHomeDir'
 import {
-  STATUS_BAR_POPOVER_BACKGROUND,
+  STATUS_BAR_POPOVER_PANEL_STYLE,
   STATUS_BAR_POPOVER_FOREGROUND,
   STATUS_BAR_POPOVER_MUTED_FOREGROUND,
 } from './styles'
@@ -287,11 +287,13 @@ export function VaultMenu({
             bottom: '100%',
             left: 0,
             marginBottom: 4,
-            background: STATUS_BAR_POPOVER_BACKGROUND,
+            ...STATUS_BAR_POPOVER_PANEL_STYLE,
             border: '1px solid var(--status-bar-control-border, var(--border))',
             borderRadius: 6,
             padding: 4,
             minWidth: 200,
+            maxHeight: 'min(60vh, 480px)',
+            overflowY: 'auto',
             boxShadow: '0 4px 12px var(--shadow-dialog)',
             color: STATUS_BAR_POPOVER_FOREGROUND,
             zIndex: 1000,
