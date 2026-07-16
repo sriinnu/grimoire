@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, type MutableRefObject } from 'react'
+import { stripInjectedCodeLanguages } from '../utils/codeLanguageDetect'
 import { compactMarkdown } from '../utils/compact-markdown'
 import { serializeMathAwareBlocks } from '../utils/mathMarkdown'
 import { portableImageUrls } from '../utils/vaultImages'
@@ -78,7 +79,8 @@ function useEditorChangeHandler(options: {
     if (!tab) return
 
     const blocks = editor.document
-    const restored = restoreWikilinksInBlocks(blocks)
+    // Detected code languages are display-only; keep them out of saved markdown.
+    const restored = restoreWikilinksInBlocks(stripInjectedCodeLanguages(blocks))
     const rawBodyMarkdown = compactMarkdown(serializeMathAwareBlocks(editor, restored as typeof blocks))
     const bodyMarkdown = vaultPathRef.current
       ? portableImageUrls(rawBodyMarkdown, vaultPathRef.current)

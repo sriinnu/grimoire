@@ -15,6 +15,7 @@ import type { VaultEntry } from '../types'
 import { _wikilinkEntriesRef } from './editorSchema'
 import { useBlockNoteSideMenuHoverGuard } from './blockNoteSideMenuHoverGuard'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
+import { GrimoireTableHandles } from './GrimoireTableHandles'
 import { useEditorLinkActivation } from './useEditorLinkActivation'
 import { findNearestTextCursorBlock } from './blockNoteCursorTarget'
 import {
@@ -339,6 +340,7 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
         tableHandles={false}
       >
         <SideMenuController sideMenu={GrimoireSideMenu} />
+        {editable ? <GrimoireTableHandles /> : null}
         <Suspense fallback={null}>
           <GrimoireFormattingToolbarSurface
             floatingUIOptions={{

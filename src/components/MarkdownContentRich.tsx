@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { WIKILINK_SCHEME } from '../utils/chatWikilinks'
 import { detectCodeLanguage } from '../utils/codeLanguageDetection'
+import { MarkdownCodeBlock } from './MarkdownCodeBlock'
 import { MermaidDiagram } from './MermaidDiagram'
 
 const REMARK_PLUGINS = [remarkGfm]
@@ -26,6 +27,13 @@ function isMermaidDiagramElement(children: ReactNode): boolean {
 function getCodeFenceLanguage(className?: string): string | null {
   const languageClass = className?.split(/\s+/u).find((token) => token.startsWith('language-'))
   return languageClass?.slice('language-'.length).toLowerCase() ?? null
+}
+
+function codeText(children: ReactNode): string {
+  if (typeof children === 'string' || typeof children === 'number') return String(children)
+  if (Array.isArray(children)) return children.map(codeText).join('')
+  if (isValidElement(children)) return codeText((children.props as { children?: ReactNode }).children)
+  return ''
 }
 
 function resolveMermaidChart(className: string | undefined, code: string): string | null {
@@ -57,7 +65,17 @@ export const MarkdownContentRich = memo(function MarkdownContentRich({ content, 
   const components = useMemo<Components>(() => ({
     pre: ({ children }) => {
       if (isMermaidDiagramElement(children)) return <>{children}</>
-      return <pre>{children}</pre>
+      if (!isValidElement(children)) return <pre>{children}</pre>
+      const codeProps = children.props as { children?: ReactNode; className?: string }
+      const source = codeText(codeProps.children).replace(/\n$/u, '')
+      return (
+        <MarkdownCodeBlock
+          language={getCodeFenceLanguage(codeProps.className)}
+          source={source}
+        >
+          {children}
+        </MarkdownCodeBlock>
+      )
     },
     code: ({ className, children }) => {
       const code = String(children).replace(/\n$/u, '')

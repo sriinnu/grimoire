@@ -60,7 +60,7 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
               onChange={onSortChange}
             />
           )}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={searchActionLabel} aria-label={searchActionLabel}>
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={searchActionLabel} aria-label={searchActionLabel} data-icon-intent="navigation">
             <Glyph name="search" size={16} />
           </Button>
           {propertyPicker && (
@@ -68,7 +68,7 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
               <ListPropertiesPopoverSurface {...propertyPicker} triggerClassName={NOTE_LIST_ACTION_BUTTON_CLASSNAME} />
             </Suspense>
           )}
-          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={createNoteLabel} aria-label={createNoteLabel}>
+          <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onCreateNote} title={createNoteLabel} aria-label={createNoteLabel} data-icon-intent="capture">
             <Glyph name="add" size={16} />
           </Button>
         </div>

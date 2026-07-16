@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
 import type { AskContextPackage } from '../lib/askContextPackage'
+import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
+import type { ContextManifestV1 } from '../lib/contextManifest'
 import type { AiAgentId } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
 import {
@@ -95,8 +97,10 @@ export function useCliAiAgent(
     text: string,
     references?: NoteReference[],
     contextPackage?: AskContextPackage,
+    chitraguptaRecall?: ChitraguptaRecallAttachment,
+    contextManifest?: ContextManifestV1,
   ): Promise<void> {
-    const prompt = { text, references, contextPackage }
+    const prompt = { text, references, contextPackage, chitraguptaRecall, contextManifest }
     if (runtime.statusRef.current === 'thinking' || runtime.statusRef.current === 'tool-executing') {
       if (text.trim()) enqueuePrompt(prompt)
       return

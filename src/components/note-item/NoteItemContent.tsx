@@ -248,16 +248,21 @@ function NoteTitleRow({
   )
 }
 
-function NoteDateRow({ entry }: { entry: VaultEntry }) {
+function NoteDateRow({ entry, isSelected }: { entry: VaultEntry; isSelected: boolean }) {
   const modifiedLabel = relativeDate(getDisplayDate(entry))
   const createdLabel = entry.createdAt ? `Created ${relativeDate(entry.createdAt)}` : null
 
-  if (!modifiedLabel && !createdLabel) return null
+  if (!modifiedLabel && !createdLabel && !isSelected) return null
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[10px] text-muted-foreground" data-testid="note-date-row">
       <span>{modifiedLabel}</span>
-      {createdLabel && <span className="justify-self-end text-right">{createdLabel}</span>}
+      {isSelected ? (
+        <span className="note-current-document-state justify-self-end text-right" data-testid="note-current-document-state" aria-label="Current document in editor">
+          <span aria-hidden="true" />
+          Current
+        </span>
+      ) : createdLabel && <span className="justify-self-end text-right">{createdLabel}</span>}
     </div>
   )
 }
@@ -307,7 +312,7 @@ function InteractiveNoteDetails({
         typeEntryMap={typeEntryMap}
         onClickNote={onClickNote}
       />
-      <NoteDateRow entry={entry} />
+      <NoteDateRow entry={entry} isSelected={isSelected} />
     </>
   )
 }
