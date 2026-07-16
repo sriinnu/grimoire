@@ -13,7 +13,10 @@ export const STATUS_BAR_POPOVER_BACKGROUND = 'var(--status-bar-popover-bg, var(-
  * matter what the active theme does to its inputs.
  */
 export const STATUS_BAR_POPOVER_PANEL_STYLE: CSSProperties = {
-  background: `linear-gradient(${STATUS_BAR_POPOVER_BACKGROUND}, ${STATUS_BAR_POPOVER_BACKGROUND}), var(--surface-popover, var(--popover, #fff))`,
+  // A literal-backed solid, not a derived mix: WKWebView drops backgrounds
+  // whose nested var()/color-mix chains fail to parse, which left this panel
+  // transparent over the sidebar in the native app.
+  background: 'var(--status-bar-popover-solid, #f7f4ec)',
   backdropFilter: 'blur(12px) saturate(1.1)',
   WebkitBackdropFilter: 'blur(12px) saturate(1.1)',
 }
