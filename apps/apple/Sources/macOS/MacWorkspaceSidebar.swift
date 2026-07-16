@@ -1,35 +1,14 @@
-import AppKit
 import SwiftUI
 
 struct MacWorkspaceSidebar: View {
     @ObservedObject var model: GrimoireWorkspaceModel
 
     var body: some View {
-        List {
-            Section {
+        List(selection: sidebarSelection) {
+            Section("Library") {
                 ForEach(WorkspaceDestination.allCases) { destination in
                     destinationRow(destination)
                 }
-            }
-
-            Section("Places") {
-                Button {
-                    model.selectDestination(.pages)
-                } label: {
-                    Label {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(model.vaultName)
-                                .lineLimit(1)
-                            Text(model.activeVaultPath == nil ? "Preview library" : "Local Markdown vault")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    } icon: {
-                        Image(systemName: "internaldrive")
-                            .foregroundStyle(MacNotebookTheme.tealAccent)
-                    }
-                }
-                .buttonStyle(.plain)
             }
 
             if !model.folderNames.isEmpty {
@@ -41,101 +20,54 @@ struct MacWorkspaceSidebar: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Library")
-        .safeAreaInset(edge: .top, spacing: 0) {
-            brandHeader
-        }
+        .navigationTitle("Grimoire")
+        .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
+    }
+
+    private var sidebarSelection: Binding<SidebarSelection?> {
+        Binding(
+            get: {
+                if let folder = model.selectedFolder {
+                    return .folder(folder)
+                }
+                return .destination(model.selectedDestination)
+            },
+            set: { selection in
+                guard let selection else { return }
+                switch selection {
+                case let .destination(destination):
+                    model.selectDestination(destination)
+                case let .folder(folder):
+                    model.selectFolder(folder)
+                }
+            }
+        )
     }
 
     private func destinationRow(_ destination: WorkspaceDestination) -> some View {
-        Button {
-            model.selectDestination(destination)
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: destination.systemImage)
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(MacNotebookTheme.destinationColor(destination))
-                    .frame(width: 19)
-
-                Text(destination.title)
-
-                Spacer(minLength: 0)
-
-                let count = documentCount(for: destination)
-                if count > 0 {
-                    Text("\(count)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .listRowBackground(
-            model.selectedFolder == nil && model.selectedDestination == destination
-                ? MacNotebookTheme.accent.opacity(0.15)
-                : Color.clear
-        )
-    }
-
-    private func folderRow(_ folder: String) -> some View {
-        Button {
-            model.selectFolder(folder)
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "folder")
-                    .foregroundStyle(MacNotebookTheme.folderColor(folder))
-                    .frame(width: 19)
-                Text(folder)
-                    .lineLimit(1)
-                Spacer(minLength: 0)
-                Text("\(model.documents.filter { $0.folderName == folder }.count)")
+        HStack {
+            Label(destination.title, systemImage: destination.systemImage)
+            Spacer(minLength: 0)
+            let count = documentCount(for: destination)
+            if count > 0 {
+                Text("\(count)")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .listRowBackground(
-            model.selectedFolder == folder ? MacNotebookTheme.accent.opacity(0.15) : Color.clear
-        )
+        .tag(SidebarSelection.destination(destination))
     }
 
-    private var brandHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(nsImage: NSApp.applicationIconImage)
-                    .resizable()
-                    .interpolation(.high)
-                    .aspectRatio(contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .accessibilityHidden(true)
-                .frame(width: 34, height: 34)
-
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Grimoire")
-                        .font(.title3.weight(.bold))
-                    Text("Living notebook")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            HStack(spacing: 7) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("Search your library", text: $model.searchText)
-                    .textFieldStyle(.plain)
-                Text("⌘F")
-                    .font(.caption2.monospaced())
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(.horizontal, 9)
-            .padding(.vertical, 7)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+    private func folderRow(_ folder: String) -> some View {
+        HStack {
+            Label(folder, systemImage: "folder")
+                .lineLimit(1)
+            Spacer(minLength: 0)
+            Text("\(model.documents.filter { $0.folderName == folder }.count)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
         }
-        .padding(12)
-        .background(.bar)
+        .tag(SidebarSelection.folder(folder))
     }
 
     private func documentCount(for destination: WorkspaceDestination) -> Int {
@@ -152,4 +84,9 @@ struct MacWorkspaceSidebar: View {
             model.documents.filter { $0.path.localizedCaseInsensitiveContains("Archive/") }.count
         }
     }
+}
+
+private enum SidebarSelection: Hashable {
+    case destination(WorkspaceDestination)
+    case folder(String)
 }

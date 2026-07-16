@@ -133,6 +133,35 @@ pub async fn reload_vault(
     task_result.map_err(|e| format!("Task panicked: {e}"))?
 }
 
+/// Soft reload: refresh vault entries without deleting the cache.
+///
+/// Agent file writes are ordinary uncommitted changes, so the incremental
+/// same-commit branch in `scan_vault_cached` re-parses only the touched
+/// files (created, modified, or deleted) instead of the full WalkDir rescan
+/// that `reload_vault` forces via `invalidate_cache`. Keep hard reloads for
+/// vault switches, external bulk changes, and manual refreshes.
+///
+/// `extra_paths` are vault-relative paths to force-re-parse regardless of git
+/// visibility: the incremental branch works off `git status`/`git ls-files`,
+/// which never reports gitignored files, so callers that know exactly which
+/// file an agent wrote pass it here to keep gitignored notes fresh. Paths are
+/// validated against the vault boundary; missing files are pruned as deletions.
+#[tauri::command]
+pub async fn reload_vault_soft(
+    path: String,
+    extra_paths: Option<Vec<String>>,
+) -> Result<Vec<crate::vault::VaultEntry>, String> {
+    let path = expand_tilde(&path).into_owned();
+    tokio::task::spawn_blocking(move || {
+        vault::scan_vault_cached_with_extra_paths(
+            Path::new(&path),
+            extra_paths.as_deref().unwrap_or_default(),
+        )
+    })
+    .await
+    .map_err(|e| format!("Task panicked: {e}"))?
+}
+
 #[tauri::command]
 pub async fn reload_vault_with_progress(
     app_handle: tauri::AppHandle,

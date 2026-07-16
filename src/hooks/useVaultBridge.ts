@@ -5,7 +5,22 @@ import { refreshPulledVaultState } from '../utils/pulledVaultRefresh'
 interface VaultBridgeDeps {
   entriesByPath: Map<string, VaultEntry>
   resolvedPath: string
-  reloadVault: () => Promise<VaultEntry[]>
+  /**
+   * Incremental vault refresh (no cache invalidation). Agent writes are plain
+   * uncommitted changes, so a soft reload picks them up without the full
+   * rescan reserved for vault switches and manual refreshes.
+   *
+   * `extraPaths` names files to force-re-parse even when git cannot see them
+   * (gitignored notes). Resolves to `null` when the reload aborted — callers
+   * treat that as "keep current state", never as an empty vault.
+   */
+  reloadVaultSoft: (extraPaths?: string[]) => Promise<VaultEntry[] | null>
+  /**
+   * Hard vault refresh (cache invalidation + full rescan). Used only for the
+   * pathless bulk vault-changed event: without knowing which files changed,
+   * the full scan is the only path that stays correct for gitignored notes.
+   */
+  reloadVault: () => Promise<VaultEntry[] | null>
   reloadFolders: () => Promise<unknown> | unknown
   reloadViews: () => Promise<unknown> | unknown
   closeAllTabs: () => void
@@ -26,6 +41,7 @@ function findInFresh(entries: VaultEntry[], resolvedPath: string, path: string):
 export function useVaultBridge({
   entriesByPath,
   resolvedPath,
+  reloadVaultSoft,
   reloadVault,
   reloadFolders,
   reloadViews,
@@ -36,11 +52,12 @@ export function useVaultBridge({
   activeTabPath,
 }: VaultBridgeDeps) {
   const reloadAndOpen = useCallback((path: string) => {
-    reloadVault().then(fresh => {
+    reloadVaultSoft([path]).then(fresh => {
+      if (!fresh) return // reload aborted — keep current state
       const entry = findInFresh(fresh, resolvedPath, path)
       if (entry) onSelectNote(entry)
     })
-  }, [reloadVault, onSelectNote, resolvedPath])
+  }, [reloadVaultSoft, onSelectNote, resolvedPath])
 
   const refreshAgentChanges = useCallback((updatedFiles: string[]) => (
     refreshPulledVaultState({
@@ -48,7 +65,15 @@ export function useVaultBridge({
       closeAllTabs,
       hasUnsavedChanges,
       reloadFolders,
-      reloadVault,
+      // Per-file agent events know exactly which paths changed, so the soft
+      // reload force-re-parses them even when git can't see them (gitignored
+      // notes). The pathless bulk event can't name its files, so it falls
+      // back to the hard reload — the only path that stays correct for
+      // gitignored files. Bulk events are much rarer than per-file ones, so
+      // the incremental perf win is preserved where it matters.
+      reloadVault: updatedFiles.length > 0
+        ? () => reloadVaultSoft(updatedFiles)
+        : reloadVault,
       reloadViews,
       replaceActiveTab,
       updatedFiles,
@@ -60,6 +85,7 @@ export function useVaultBridge({
     hasUnsavedChanges,
     reloadFolders,
     reloadVault,
+    reloadVaultSoft,
     reloadViews,
     replaceActiveTab,
     resolvedPath,

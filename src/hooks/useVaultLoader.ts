@@ -3,6 +3,7 @@ import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import type { VaultEntry, FolderNode, GitCommit, ModifiedFile, NoteStatus, GitPushResult, ViewFile } from '../types'
 import { setCurrentVaultPath } from '../utils/currentVaultPath'
+import { clearPrefetchCache } from './tabContentCache'
 import { useVaultRebuildProgress } from './useVaultRebuildProgress'
 
 function tauriCall<T>(command: string, tauriArgs: Record<string, unknown>, mockArgs?: Record<string, unknown>): Promise<T> {
@@ -16,6 +17,16 @@ function hasVaultPath(vaultPath: string): boolean {
 function loadVaultEntries(vaultPath: string): Promise<VaultEntry[]> {
   const command = isTauri() ? 'reload_vault' : 'list_vault'
   return tauriCall<VaultEntry[]>(command, { path: vaultPath })
+}
+
+/**
+ * Incremental rescan that keeps the vault cache intact (no invalidation).
+ * `extraPaths` are vault-relative paths the backend force-re-parses even when
+ * git cannot see them (agent writes to gitignored notes).
+ */
+function softReloadVaultEntries(vaultPath: string, extraPaths?: string[]): Promise<VaultEntry[]> {
+  const command = isTauri() ? 'reload_vault_soft' : 'list_vault'
+  return tauriCall<VaultEntry[]>(command, { path: vaultPath, extraPaths: extraPaths ?? null }, { path: vaultPath })
 }
 
 async function loadVaultData(vaultPath: string) {
@@ -323,6 +334,34 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     setEntries,
   )
 
+  // Soft reload for agent file writes: they are plain uncommitted changes, so
+  // the backend's incremental cache branch re-parses only the touched files.
+  // Hard `reloadVault` (cache invalidation + full rescan) stays reserved for
+  // vault switches, external bulk changes, and manual refreshes.
+  //
+  // `extraPaths` are forwarded to the backend so known agent-written files are
+  // re-parsed even when gitignored (invisible to the git-derived work list).
+  //
+  // Returns `null` when the reload could not complete (transient IPC failure
+  // or a vault switch mid-flight). Callers MUST treat `null` as "keep current
+  // state" — never as an authoritative empty vault, or a hiccup during an
+  // agent write would wipe the user's tab session.
+  const reloadVaultSoft = useCallback(async (extraPaths?: string[]): Promise<VaultEntry[] | null> => {
+    const path = vaultPath
+    if (!hasVaultPath(path)) return null
+    clearPrefetchCache()
+    try {
+      const nextEntries = await softReloadVaultEntries(path, extraPaths)
+      if (!isCurrentVaultPath(path)) return null
+      setEntries(nextEntries)
+      void loadModifiedFiles()
+      return nextEntries
+    } catch (err) {
+      console.warn('Vault soft reload failed; keeping current entries:', err)
+      return null
+    }
+  }, [vaultPath, isCurrentVaultPath, loadModifiedFiles])
+
   const reloadViews = useCallback(async () => {
     const path = vaultPath
     try {
@@ -343,7 +382,7 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     entries, folders, views, modifiedFiles, modifiedFilesError,
     addEntry, updateEntry, removeEntry, removeEntries, replaceEntry,
     loadModifiedFiles, loadGitHistory, loadDiff, loadDiffAtCommit,
-    getNoteStatus, commitAndPush, reloadVault, reloadFolders, reloadViews,
+    getNoteStatus, commitAndPush, reloadVault, reloadVaultSoft, reloadFolders, reloadViews,
     rebuildProgress, cancelVaultReload,
     addPendingSave: pendingSave.addPendingSave,
     removePendingSave: pendingSave.removePendingSave,

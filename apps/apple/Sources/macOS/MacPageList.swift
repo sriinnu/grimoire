@@ -27,48 +27,46 @@ struct MacPageList: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(pageTitle)
-                        .font(.title2.weight(.bold))
-                    Text(pageSubtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer(minLength: 0)
-
-                Button(action: onCreateNote) {
-                    Label("New", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(model.activeVaultPath == nil)
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(pageTitle)
+                    .font(.title2.weight(.semibold))
+                Text("\(model.filteredDocuments.count) pages")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
-            HStack(spacing: 8) {
-                Picker("Scope", selection: $scope) {
-                    ForEach(PageScope.allCases) { scope in
-                        Text(scope.title).tag(scope)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+            Spacer(minLength: 0)
 
-                Menu {
-                    Picker("Sort pages", selection: $sort) {
-                        ForEach(PageSort.allCases) { sort in
-                            Label(sort.title, systemImage: sort.systemImage).tag(sort)
+            Menu {
+                Section("Show") {
+                    Picker("Scope", selection: $scope) {
+                        ForEach(PageScope.allCases) { scope in
+                            Text(scope.title).tag(scope)
                         }
                     }
-                } label: {
-                    Label("Sort", systemImage: "arrow.up.arrow.down")
                 }
-                .menuStyle(.borderlessButton)
-                .fixedSize()
+                Section("Sort by") {
+                    Picker("Sort pages", selection: $sort) {
+                        ForEach(PageSort.allCases) { sort in
+                            Text(sort.title).tag(sort)
+                        }
+                    }
+                }
+            } label: {
+                Label("View options", systemImage: "line.3.horizontal.decrease.circle")
             }
+            .menuStyle(.borderlessButton)
+
+            Button(action: onCreateNote) {
+                Image(systemName: "square.and.pencil")
+            }
+            .buttonStyle(.borderless)
+            .disabled(model.activeVaultPath == nil)
+            .help("New page")
         }
-        .padding(14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
         .background(.bar)
     }
 
@@ -108,19 +106,6 @@ struct MacPageList: View {
         model.selectedFolder ?? model.selectedDestination.title
     }
 
-    private var pageSubtitle: String {
-        let count = model.filteredDocuments.count
-        return switch model.selectedDestination {
-        case .notebook: "The living record of this vault · \(count) pages"
-        case .inbox: "Unsorted thoughts waiting for a home · \(count) pages"
-        case .pages: "Every page in the current vault · \(count) pages"
-        case .graph: "Knowledge nodes available to the local graph · \(count) pages"
-        case .journal: "Daily pages and private reflection · \(count) entries"
-        case .dreams: "Private by default · \(count) entries"
-        case .archive: "Finished, kept, and out of the way · \(count) pages"
-        }
-    }
-
     private var emptyTitle: String {
         model.searchText.isEmpty ? "No \(pageTitle) Yet" : "Nothing Matches"
     }
@@ -143,42 +128,33 @@ private struct MacPageRow: View {
     let document: WorkspaceDocument
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 7) {
-                Image(systemName: document.systemImage)
-                    .foregroundStyle(
-                        document.isLocalOnly
-                            ? MacNotebookTheme.warmAccent
-                            : MacNotebookTheme.collectionColor(document.collection)
-                    )
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(document.title)
-                    .font(.headline)
+                    .font(.body.weight(.medium))
                     .lineLimit(1)
-                Spacer(minLength: 0)
+
+                Text(document.notePreview)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 8)
+
+            VStack(alignment: .trailing, spacing: 5) {
+                Text(documentActivity)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
                 if document.isLocalOnly {
                     Image(systemName: "lock.fill")
                         .font(.caption2)
-                        .foregroundStyle(MacNotebookTheme.warmAccent)
-                        .help("Local only")
+                        .foregroundStyle(.secondary)
+                        .help("Private on this Mac")
                 }
             }
-
-            Text(document.notePreview)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-
-            HStack(spacing: 8) {
-                if let folder = document.folderName {
-                    Label(folder, systemImage: "folder")
-                }
-                Spacer(minLength: 0)
-                Text(documentActivity)
-            }
-            .font(.caption2)
-            .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 6)
         .contentShape(Rectangle())
     }
 

@@ -78,6 +78,20 @@ describe('refreshPulledVaultState', () => {
     expect(options.closeAllTabs).not.toHaveBeenCalled()
   })
 
+  it('keeps tabs untouched when the reload aborts with null', async () => {
+    // A transient reload failure must be a no-op — treating it as an empty
+    // vault would close every tab over an IPC hiccup.
+    const options = makeOptions({
+      reloadVault: vi.fn().mockResolvedValue(null),
+    })
+
+    const entries = await refreshPulledVaultState(options)
+
+    expect(entries).toBeNull()
+    expect(options.closeAllTabs).not.toHaveBeenCalled()
+    expect(options.replaceActiveTab).not.toHaveBeenCalled()
+  })
+
   it('closes the tab when the pulled note disappeared from the reloaded vault', async () => {
     const options = makeOptions({
       reloadVault: vi.fn().mockResolvedValue([makeEntry('/vault/other.md', 'Other')]),

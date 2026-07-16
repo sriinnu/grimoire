@@ -1,6 +1,6 @@
 [package]
 name = "grimoire"
-version = "0.1.444"
+version = "0.1.456"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
 license = "AGPL-3.0-or-later"
@@ -50,6 +50,13 @@ sentry = "0.37"
 uuid = { version = "1", features = ["v4"] }
 tempfile = "3"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
+# Local syntax parsing for code-aware context. This is deliberately parser-only;
+# language-server diagnostics and references arrive in the next IDE slice.
+tree-sitter = "0.26.11"
+tree-sitter-go = "0.25.0"
+tree-sitter-python = "0.25.0"
+tree-sitter-rust = "0.24.2"
+tree-sitter-typescript = "0.23.2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.4"

@@ -5,7 +5,8 @@ interface PulledVaultRefreshOptions {
   closeAllTabs: () => void
   hasUnsavedChanges: (path: string) => boolean
   reloadFolders: () => Promise<unknown> | unknown
-  reloadVault: () => Promise<VaultEntry[]>
+  /** May resolve to `null` when the reload aborted — the refresh becomes a no-op. */
+  reloadVault: () => Promise<VaultEntry[] | null>
   reloadViews: () => Promise<unknown> | unknown
   replaceActiveTab: (entry: VaultEntry) => Promise<void>
   updatedFiles: string[]
@@ -29,7 +30,7 @@ function didPullUpdateActiveNote(updatedFiles: string[], vaultPath: string, acti
   return updatedFiles.some((path) => resolveUpdatedFilePath(path, vaultPath) === normalizedActivePath)
 }
 
-export async function refreshPulledVaultState(options: PulledVaultRefreshOptions): Promise<VaultEntry[]> {
+export async function refreshPulledVaultState(options: PulledVaultRefreshOptions): Promise<VaultEntry[] | null> {
   const {
     activeTabPath,
     closeAllTabs,
@@ -47,6 +48,12 @@ export async function refreshPulledVaultState(options: PulledVaultRefreshOptions
     Promise.resolve(reloadFolders()),
     Promise.resolve(reloadViews()),
   ])
+
+  // `null` means the reload aborted (transient IPC failure or vault switch
+  // mid-flight). Abort the whole refresh and keep the current tab session —
+  // an empty result here is NOT an empty vault, and closing tabs on it would
+  // destroy the user's session over a hiccup.
+  if (entries === null) return null
 
   if (!activeTabPath || hasUnsavedChanges(activeTabPath)) return entries
 

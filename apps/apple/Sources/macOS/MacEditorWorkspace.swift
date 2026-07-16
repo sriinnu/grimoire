@@ -1,26 +1,35 @@
+import MarkdownEditor
 import MarkdownEditorUI
 import SwiftUI
 
 struct MacEditorWorkspace: View {
     @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var model: GrimoireWorkspaceModel
+    @State private var mode: EditorMode = .preview
 
     var body: some View {
         if let document = model.activeDocument {
             VStack(spacing: 0) {
-                MacDocumentChrome(document: document)
+                MacDocumentChrome(document: document, mode: $mode)
                 Divider()
 
-                NativeMarkdownEditorView(
-                    markdown: model.markdownBinding(for: document.id),
-                    title: document.title,
-                    showsHeader: false,
-                    showsStats: false,
-                    style: NativeMarkdownEditorStyle(
-                        background: MacNotebookTheme.editorPaper(for: colorScheme),
-                        textFont: .system(.body, design: .serif)
-                    )
-                )
+                Group {
+                    switch mode {
+                    case .preview:
+                        MacMarkdownPreview(markdown: Frontmatter.split(document.markdown).body)
+                    case .edit:
+                        NativeMarkdownEditorView(
+                            markdown: bodyBinding(for: document.id),
+                            title: document.title,
+                            showsHeader: false,
+                            showsStats: false,
+                            style: NativeMarkdownEditorStyle(
+                                background: MacNotebookTheme.editorPaper(for: colorScheme),
+                                textFont: .system(.body, design: .serif)
+                            )
+                        )
+                    }
+                }
                 .overlay {
                     if model.isLoadingDocument {
                         ProgressView("Opening page…")
@@ -30,7 +39,6 @@ struct MacEditorWorkspace: View {
                 }
 
                 Divider()
-                MacAskComposer(document: document)
                 documentStatus(document)
             }
         } else {
@@ -65,80 +73,68 @@ struct MacEditorWorkspace: View {
         .padding(.vertical, 6)
         .background(.bar)
     }
+
+    private func bodyBinding(for documentID: WorkspaceDocument.ID) -> Binding<String> {
+        Binding(
+            get: {
+                Frontmatter.split(model.markdownBinding(for: documentID).wrappedValue).body
+            },
+            set: { body in
+                let source = model.markdownBinding(for: documentID)
+                source.wrappedValue = Frontmatter.split(source.wrappedValue).frontmatter + body
+            }
+        )
+    }
+}
+
+private enum EditorMode: String, CaseIterable, Identifiable {
+    case preview
+    case edit
+
+    var id: String { rawValue }
+    var title: String { rawValue.capitalized }
 }
 
 private struct MacDocumentChrome: View {
     let document: WorkspaceDocument
+    @Binding var mode: EditorMode
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Text(document.folderName ?? "Notebook")
-                Image(systemName: "chevron.right")
-                    .font(.caption2)
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(document.title)
-                    .fontWeight(.semibold)
+                    .font(.title2.weight(.semibold))
+                    .lineLimit(1)
                 Spacer(minLength: 0)
-            }
-            .font(.caption)
-            .foregroundStyle(.secondary)
 
-            Text(document.title)
-                .font(.largeTitle.weight(.bold))
-                .lineLimit(2)
+                Picker("Mode", selection: $mode) {
+                    ForEach(EditorMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 148)
 
-            HStack(spacing: 8) {
-                metadataChip(document.collection.title, image: document.systemImage)
-                metadataChip(
-                    document.isLocalOnly ? "Local only" : "Vault context",
-                    image: document.isLocalOnly ? "lock.fill" : "checkmark.shield"
-                )
-                metadataChip("\(document.wordCount) words", image: "text.word.spacing")
-                Spacer(minLength: 0)
-                metadataChip("TOC \(document.headingCount)", image: "list.bullet.indent")
-                metadataChip("Links \(document.linkCount)", image: "link")
-            }
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 14)
-        .background(.bar)
-    }
-
-    private func metadataChip(_ text: String, image: String) -> some View {
-        Label(text, systemImage: image)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 9)
-            .padding(.vertical, 5)
-            .background(.regularMaterial, in: Capsule())
-    }
-}
-
-private struct MacAskComposer: View {
-    let document: WorkspaceDocument
-    @State private var prompt = ""
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(MacNotebookTheme.accent)
-            TextField("Ask Grimoire about \(document.title)…", text: $prompt)
-                .textFieldStyle(.plain)
-                .disabled(true)
-                .help("Agent requests activate after the Chitragupta connection is wired")
-            Label("Local context", systemImage: "lock.shield")
+                Group {
+                    if document.isLocalOnly {
+                        Label("Private", systemImage: "lock.fill")
+                    } else {
+                        Label("Local", systemImage: "checkmark.shield")
+                    }
+                }
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button(action: {}) {
-                Image(systemName: "arrow.up.circle.fill")
-                    .font(.title3)
             }
-            .buttonStyle(.borderless)
-            .disabled(true)
-            .help("Agent requests will activate when Chitragupta is connected")
+
+            Text([document.folderName, document.collection.title, "\(document.wordCount) words"]
+                .compactMap { $0 }
+                .joined(separator: " · "))
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(.regularMaterial)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(.bar)
     }
 }

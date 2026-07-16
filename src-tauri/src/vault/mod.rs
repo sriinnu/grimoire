@@ -106,7 +106,7 @@ mod zip_importer_progress_tests;
 pub use app_importer::import_app_export;
 pub use app_importer_preview::preview_app_export;
 pub use app_importer_progress::import_app_export_with_progress;
-pub use cache::{invalidate_cache, scan_vault_cached};
+pub use cache::{invalidate_cache, scan_vault_cached, scan_vault_cached_with_extra_paths};
 pub use config_seed::{
     get_ai_guidance_status, migrate_agents_md, repair_config_files, restore_ai_guidance_files,
     seed_config_files, AiGuidanceFileState, VaultAiGuidanceStatus,

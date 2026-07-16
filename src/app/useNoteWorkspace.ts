@@ -245,6 +245,7 @@ export function useNoteWorkspace(
   const vaultBridge = useVaultBridge({
     entriesByPath,
     resolvedPath,
+    reloadVaultSoft: vault.reloadVaultSoft,
     reloadVault: vault.reloadVault,
     reloadFolders: vault.reloadFolders,
     reloadViews: vault.reloadViews,
@@ -296,7 +297,16 @@ export function useNoteWorkspace(
     onSetFilter: (filterType) => {
       handleSetSelection({ kind: 'sectionGroup', type: filterType })
     },
-    onVaultChanged: () => { vault.reloadVault() },
+    // MCP note writes broadcast vault_changed, sometimes with the written
+    // path. With a known path the incremental soft reload can force-re-parse
+    // it even when gitignored. Without one we must fall back to the hard
+    // reload: the soft reload's git-derived work list never sees gitignored
+    // files, so it would silently serve stale entries for them. Pathless
+    // bulk events are rare, so the incremental win is kept where it matters.
+    onVaultChanged: (path) => {
+      if (path) void vault.reloadVaultSoft([path])
+      else void vault.reloadVault()
+    },
   })
 
   return {

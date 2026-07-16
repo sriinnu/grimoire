@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		091FDAD32F081016EF26B633 /* WorkspaceNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53357C44746F34021F61D105 /* WorkspaceNavigation.swift */; };
+		0C0CB0910404C6F1CC434CA4 /* MacMarkdownPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8E52785149504598BCD9326 /* MacMarkdownPreview.swift */; };
 		1017CA1D06A35884E29B14D6 /* MarkdownEditor in Frameworks */ = {isa = PBXBuildFile; productRef = ACA50019022706A5E4864349 /* MarkdownEditor */; };
 		102379917992FC0E072A4D94 /* WorkspaceDocumentVaultMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D0DA9C105A8811654F22980 /* WorkspaceDocumentVaultMapping.swift */; };
 		19AED429D943C93B52F859C1 /* WorkspacePreviewDocuments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DB676DB429E3DC9125F3AF /* WorkspacePreviewDocuments.swift */; };
@@ -83,6 +84,7 @@
 		F3A787710AEFADD5F20D811D /* swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = swift; path = "../../markdown-editor/packages/swift"; sourceTree = SOURCE_ROOT; };
 		F41BF60C1AB3C5761EE072D0 /* MacNotebookDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacNotebookDashboard.swift; sourceTree = "<group>"; };
 		F5EB041501E9C500BA81847F /* MacVaultService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacVaultService.swift; sourceTree = "<group>"; };
+		F8E52785149504598BCD9326 /* MacMarkdownPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacMarkdownPreview.swift; sourceTree = "<group>"; };
 		FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacEditorWorkspace.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -124,6 +126,7 @@
 				B6B6B4045BD9CDAE9143BEE4 /* GrimoireMacApp.swift */,
 				ECA7503DB1C2C721065EE1C3 /* MacContextInspector.swift */,
 				FF619A645B202079E3C5EE8F /* MacEditorWorkspace.swift */,
+				F8E52785149504598BCD9326 /* MacMarkdownPreview.swift */,
 				B72D2E4FD7D69093BD38A6B7 /* MacNativeMaterial.swift */,
 				142315ABF89E0C9910FC3C06 /* MacNewNoteSheet.swift */,
 				F41BF60C1AB3C5761EE072D0 /* MacNotebookDashboard.swift */,
@@ -362,6 +365,7 @@
 				500278AC770BF2FFF0EF2357 /* GrimoireWorkspaceModel.swift in Sources */,
 				D273A35E55FAB8DA878831B2 /* MacContextInspector.swift in Sources */,
 				9290EDDDA015DC8469F37A8D /* MacEditorWorkspace.swift in Sources */,
+				0C0CB0910404C6F1CC434CA4 /* MacMarkdownPreview.swift in Sources */,
 				8CC942FA0A4170755A10F090 /* MacNativeMaterial.swift in Sources */,
 				4E39826C9A6B0DDCA201A4C2 /* MacNewNoteSheet.swift in Sources */,
 				F1E4805C8D694856FC41FC4B /* MacNotebookDashboard.swift in Sources */,

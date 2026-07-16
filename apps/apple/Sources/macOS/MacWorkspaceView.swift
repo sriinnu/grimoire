@@ -65,19 +65,6 @@ struct MacWorkspaceView: View {
                 .inspectorColumnWidth(min: 320, ideal: 370, max: 460)
         }
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack(spacing: 7) {
-                    Image(
-                        systemName: model.vaultActivity == "Save failed"
-                            ? "exclamationmark.triangle.fill"
-                            : "checkmark.circle"
-                    )
-                    Text(model.vaultActivity)
-                }
-                .font(.caption)
-                .foregroundStyle(model.vaultActivity == "Save failed" ? .red : .secondary)
-            }
-
             ToolbarItemGroup(placement: .primaryAction) {
                 Button(action: chooseVault) {
                     Label("Open Vault", systemImage: "folder")
