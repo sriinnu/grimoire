@@ -1,5 +1,6 @@
 import type { MutableRefObject } from 'react'
 import { compactMarkdown } from '../utils/compact-markdown'
+import { applyDetectedCodeLanguagesToEditor, stripInjectedCodeLanguages } from '../utils/codeLanguageDetect'
 import { injectMathInBlocks, preProcessMathMarkdown, serializeMathAwareBlocks } from '../utils/mathMarkdown'
 import { resolveImageUrls } from '../utils/vaultImages'
 import { injectWikilinks, preProcessWikilinks, restoreWikilinksInBlocks } from '../utils/wikilinks'
@@ -18,7 +19,9 @@ export function cacheEditorState(
   nextState: CachedTabState,
 ) {
   if (cache.has(path)) cache.delete(path)
-  cache.set(path, nextState)
+  // Cached blocks must mirror the note's source: revert display-only detected
+  // code languages so a cache round-trip can never persist them.
+  cache.set(path, { ...nextState, blocks: stripInjectedCodeLanguages(nextState.blocks) })
   while (cache.size > TAB_STATE_CACHE_LIMIT) {
     const oldestPath = cache.keys().next().value
     if (!oldestPath) return
@@ -113,6 +116,9 @@ export async function resolveBlocksForTarget(
   const parsed = normalizeParsedImageBlocks(await parseMarkdownBlocks(editor, preprocessed)) as EditorBlocks
   const withWikilinks = injectWikilinks(parsed)
   const withMath = injectMathInBlocks(withWikilinks)
+  // Code language detection deliberately does NOT run here: cached blocks must
+  // mirror the source markdown. Detection is applied to the live document after
+  // insertion (see applyBlocksToEditor) and stripped again at serialize time.
   const nextState = { blocks: withMath, scrollTop: 0, sourceContent: content }
   cacheEditorState(cache, targetPath, nextState)
   return nextState
@@ -132,11 +138,15 @@ export function applyBlocksToEditor(
     } else if (blocks.length > 0) {
       editor.insertBlocks(blocks, current[0], 'before')
     }
+    // Display-only pass, while changes are still suppressed: highlight
+    // unlabeled code blocks without ever marking the note dirty.
+    applyDetectedCodeLanguagesToEditor(editor)
   } catch (err) {
     console.error('applyBlocks failed, trying fallback:', err)
     try {
       const html = editor.blocksToHTMLLossy(blocks)
       editor._tiptapEditor.commands.setContent(html)
+      applyDetectedCodeLanguagesToEditor(editor)
     } catch (err2) {
       console.error('Fallback also failed:', err2)
     }
@@ -157,6 +167,7 @@ export function applyBlankStateToEditor(
   suppressChangeRef.current = true
   try {
     editor._tiptapEditor.commands.setContent('<p></p>')
+    applyDetectedCodeLanguagesToEditor(editor)
   } catch (err) {
     console.error('applyBlankStateToEditor failed, falling back to replaceBlocks:', err)
     applyBlocksToEditor(editor, blankParagraphBlocks(), 0, suppressChangeRef)
@@ -178,6 +189,10 @@ export function applyHtmlStateToEditor(
   suppressChangeRef.current = true
   try {
     editor._tiptapEditor.commands.setContent(html)
+    // Same display-only detection pass as applyBlocksToEditor — the HTML path
+    // also becomes live editor content, so detection must run post-insertion
+    // (with block ids tracked) rather than being baked into the HTML.
+    applyDetectedCodeLanguagesToEditor(editor)
   } catch (err) {
     console.error('applyHtmlStateToEditor failed:', err)
     suppressChangeRef.current = false
@@ -206,11 +221,14 @@ export async function resolveEmptyHeadingHtml(
   ) as EditorBlocks
   const withWikilinks = injectWikilinks(parsed)
   const withMath = injectMathInBlocks(withWikilinks)
+  // No language detection here: this HTML is set as live editor content, so
+  // baked-in languages would be untracked and would leak into saved markdown.
+  // applyHtmlStateToEditor runs the tracked detection pass after insertion.
   return `<h1></h1>${editor.blocksToHTMLLossy(withMath as typeof parsed)}`
 }
 
 export function serializeEditorBody(editor: Editor): string {
-  const restored = restoreWikilinksInBlocks(editor.document)
+  const restored = restoreWikilinksInBlocks(stripInjectedCodeLanguages(editor.document))
   return compactMarkdown(serializeMathAwareBlocks(editor, restored))
 }
 

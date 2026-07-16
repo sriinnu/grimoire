@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import type React from 'react'
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { FrontmatterValue } from './Inspector'
-import type { GitCommit, NoteLayout, NoteStatus, VaultEntry } from '../types'
+import type { GitCommit, ModifiedFile, NoteLayout, NoteStatus, VaultEntry } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { ResizeHandle } from './ResizeHandle'
 import { EditorContent } from './EditorContent'
@@ -24,6 +24,7 @@ interface EditorLayoutProps {
   activeTab: EditorLayoutTab | null
   isLoadingNewTab: boolean
   entries: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
   editor: ReturnType<typeof useCreateBlockNote>
   diffMode: boolean
   diffContent: string | null
@@ -118,6 +119,7 @@ export function EditorLayout({
   activeTab,
   isLoadingNewTab,
   entries,
+  modifiedFiles,
   editor,
   diffMode,
   diffContent,
@@ -235,6 +237,8 @@ export function EditorLayout({
               inspectorEntry={inspectorEntry}
               inspectorContent={inspectorContent}
               entries={entries}
+              modifiedFiles={modifiedFiles}
+              openTabs={tabs.map(tab => tab.entry)}
               gitHistory={gitHistory}
               vaultPath={vaultPath ?? ''}
               noteList={noteList}

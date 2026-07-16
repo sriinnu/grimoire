@@ -23,6 +23,7 @@ const DISABLED_ICON_STYLE = { opacity: 0.4, cursor: 'not-allowed' } as const
 
 function IconActionButton({
   copy,
+  intent = 'neutral',
   onClick,
   className,
   style,
@@ -31,6 +32,7 @@ function IconActionButton({
   tooltipAlign,
 }: {
   copy: ActionTooltipCopy
+  intent?: 'ai' | 'code' | 'danger' | 'favorite' | 'navigation' | 'neutral' | 'safe' | 'structure'
   onClick?: () => void
   className?: string
   style?: CSSProperties
@@ -49,6 +51,7 @@ function IconActionButton({
         onClick={onClick}
         aria-label={copy.label}
         aria-disabled={onClick ? undefined : true}
+        data-icon-intent={intent}
         data-testid={testId}
       >
         {children}
@@ -64,6 +67,7 @@ interface ToggleIconActionProps {
   children: ReactNode
   inactiveClassName?: string
   inactiveLabel: string
+  intent?: 'ai' | 'code' | 'favorite' | 'navigation' | 'neutral' | 'safe' | 'structure'
   onClick?: () => void
   shortcut: string
 }
@@ -75,6 +79,7 @@ function ToggleIconAction({
   children,
   inactiveClassName = 'hover:text-foreground',
   inactiveLabel,
+  intent,
   onClick,
   shortcut,
 }: ToggleIconActionProps) {
@@ -82,6 +87,7 @@ function ToggleIconAction({
     <IconActionButton
       copy={{ label: active ? activeLabel : inactiveLabel, shortcut }}
       onClick={onClick}
+      intent={intent}
       className={cn(active ? activeClassName : inactiveClassName)}
     >
       {children}
@@ -103,6 +109,7 @@ function RawToggleButton({
       activeLabel="Return to the editor"
       inactiveLabel="Open the raw editor"
       onClick={onToggleRaw}
+      intent="code"
       shortcut={formatShortcutDisplay({ display: '⌘\\' })}
     >
       <Code size={16} className={BREADCRUMB_ICON_CLASS} />
@@ -129,6 +136,7 @@ function NoteLayoutAction({
       }}
       onClick={onToggleNoteLayout}
       className={cn(isLeftAligned ? 'text-primary' : 'hover:text-foreground')}
+      intent="navigation"
     >
       {isLeftAligned
         ? <TextAlignLeft size={16} className={BREADCRUMB_ICON_CLASS} />
@@ -151,6 +159,7 @@ function FavoriteAction({
       activeLabel="Remove from favorites"
       inactiveLabel="Add to favorites"
       onClick={onToggleFavorite}
+      intent="favorite"
       shortcut={formatShortcutDisplay({ display: '⌘D' })}
     >
       <Star
@@ -177,6 +186,7 @@ function OrganizedAction({
       activeLabel="Set note as not organized"
       inactiveLabel="Set note as organized"
       onClick={onToggleOrganized}
+      intent="safe"
       shortcut={formatShortcutDisplay({ display: '⌘E' })}
     >
       <CheckCircle
@@ -196,7 +206,7 @@ function DiffAction({
 }: Pick<BreadcrumbBarProps, 'showDiffToggle' | 'diffMode' | 'diffLoading' | 'onToggleDiff'>) {
   if (!showDiffToggle) {
     return (
-      <IconActionButton copy={{ label: 'No diff is available yet' }} style={DISABLED_ICON_STYLE}>
+      <IconActionButton copy={{ label: 'No diff is available yet' }} intent="structure" style={DISABLED_ICON_STYLE}>
         <GitBranch size={16} className={BREADCRUMB_ICON_CLASS} />
       </IconActionButton>
     )
@@ -210,6 +220,7 @@ function DiffAction({
       copy={copy}
       onClick={onToggleDiff}
       className={cn(diffMode ? 'text-primary' : 'hover:text-foreground')}
+      intent="structure"
     >
       <GitBranch size={16} className={BREADCRUMB_ICON_CLASS} />
     </IconActionButton>
@@ -227,6 +238,7 @@ function AIChatAction({
       activeLabel="Close the AI panel"
       inactiveLabel="Open the AI panel"
       onClick={onToggleAIChat}
+      intent="ai"
       shortcut={formatShortcutDisplay({ display: '⌘⇧L' })}
     >
       <Sparkle
@@ -249,6 +261,7 @@ function ArchiveAction({
         copy={{ label: 'Restore this archived note' }}
         onClick={onUnarchive}
         className="hover:text-foreground"
+        intent="structure"
       >
         <ArrowUUpLeft size={16} className={BREADCRUMB_ICON_CLASS} />
       </IconActionButton>
@@ -260,6 +273,7 @@ function ArchiveAction({
       copy={{ label: 'Archive this note' }}
       onClick={onArchive}
       className="hover:text-foreground"
+      intent="structure"
     >
       <Archive size={16} className={BREADCRUMB_ICON_CLASS} />
     </IconActionButton>
@@ -275,6 +289,7 @@ function DeleteAction({ onDelete }: Pick<BreadcrumbBarProps, 'onDelete'>) {
       }}
       onClick={onDelete}
       className="hover:text-destructive"
+      intent="danger"
     >
       <Trash size={16} className={BREADCRUMB_ICON_CLASS} />
     </IconActionButton>
@@ -294,6 +309,7 @@ function InspectorAction({
       }}
       onClick={onToggleInspector}
       className="hover:text-foreground"
+      intent="ai"
       tooltipAlign="end"
     >
       <SlidersHorizontal size={16} className={BREADCRUMB_ICON_CLASS} />

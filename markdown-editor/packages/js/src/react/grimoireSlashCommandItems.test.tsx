@@ -169,6 +169,25 @@ describe('grimoireSlashCommandItems', () => {
     expect(getItem(items, 'grimoire_mermaid_sequence').aliases).toContain('api flow')
   })
 
+  it('keeps every published slash command discoverable and executable', () => {
+    const { editor } = createEditorMock()
+    const items = getGrimoireCustomSlashMenuItems(
+      editor as unknown as Parameters<typeof getGrimoireCustomSlashMenuItems>[0],
+      FIXED_DATE,
+    )
+    const keys = items.map((item) => item.key)
+
+    expect(new Set(keys).size).toBe(keys.length)
+    for (const item of items) {
+      expect(item.title.trim()).not.toBe('')
+      expect(item.subtext.trim()).not.toBe('')
+      expect(item.aliases.length).toBeGreaterThan(0)
+      expect(() => item.onItemClick()).not.toThrow()
+    }
+
+    expect(editor.updateBlock.mock.calls.length + editor.insertBlocks.mock.calls.length + editor.insertInlineContent.mock.calls.length).toBeGreaterThanOrEqual(items.length)
+  })
+
   it('inserts date and task commands as markdown-safe blocks', () => {
     const { cursorBlock, editor } = createEditorMock()
     const items = getGrimoireCustomSlashMenuItems(

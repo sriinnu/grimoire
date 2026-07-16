@@ -386,12 +386,77 @@
   border-radius: var(--grimoire-code-block-radius, 8px);
   background: var(--grimoire-code-block-bg, var(--surface-input));
   box-shadow: var(--grimoire-code-block-shadow, none);
+  max-height: min(360px, 42vh);
+  overflow: auto;
+  padding: 10px 12px;
+  font-family: var(--grimoire-mono-font-family, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
+  font-size: 13px;
+  line-height: 1.6;
+  tab-size: 2;
 }
 
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre code {
   background-color: transparent;
+  color: var(--text-primary);
   padding: 0;
   border-radius: 0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.editor__blocknote-container .bn-block-content[data-content-type="table"] .tableWrapper {
+  margin: 10px 0 24px;
+}
+
+.editor__blocknote-container .bn-block-content[data-content-type="table"] .table-widgets-container {
+  z-index: 6;
+}
+
+.editor__blocknote-container .bn-mantine .bn-table-handle,
+.editor__blocknote-container .bn-mantine .bn-extend-button {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border-default));
+  color: var(--text-secondary);
+}
+
+.editor__blocknote-container .bn-mantine .bn-table-handle svg {
+  margin: 0;
+}
+
+.editor__blocknote-container .grimoire-table-handle__icon,
+.editor__blocknote-container .grimoire-table-add {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.editor__blocknote-container .grimoire-table-add {
+  color: var(--text-secondary);
+  font-family: var(--grimoire-ui-font-family);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.editor__blocknote-container .bn-mantine .bn-extend-button-add-remove-rows {
+  cursor: pointer;
+  height: 26px;
+}
+
+.editor__blocknote-container .bn-mantine .bn-extend-button-add-remove-columns {
+  cursor: pointer;
+  width: 82px;
+}
+
+.editor__blocknote-container .bn-extend-button-add-remove-columns .grimoire-table-add {
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1;
+}
+
+.editor__blocknote-container .bn-extend-button-add-remove-columns .grimoire-table-add span {
+  writing-mode: vertical-rl;
 }
 
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre code .shiki {

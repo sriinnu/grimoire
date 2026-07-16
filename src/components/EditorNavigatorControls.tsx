@@ -134,6 +134,7 @@ export function EditorNavigatorControls({
             className="editor-navigator-controls__button"
             title="Search this note"
             aria-label="Search this note"
+            data-icon-intent="navigation"
             onClick={() => openNavigator('search')}
           >
             <Glyph name="search" size={16} />
@@ -146,6 +147,7 @@ export function EditorNavigatorControls({
             className="editor-navigator-controls__button"
             title="Table of contents"
             aria-label={`Table of contents, ${countLabel(summary.headingCount, 'heading')}`}
+            data-icon-intent="structure"
             onClick={() => openNavigator('toc')}
           >
             <ListTree className="size-4" />
@@ -163,6 +165,7 @@ export function EditorNavigatorControls({
             className="editor-navigator-controls__button"
             title="Note links in this note"
             aria-label={`Note links in this note, ${countLabel(summary.linkCount, 'link')}`}
+            data-icon-intent="structure"
             onClick={() => openNavigator('links')}
           >
             <Glyph name="link" size={16} />
