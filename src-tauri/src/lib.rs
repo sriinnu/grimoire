@@ -1,6 +1,7 @@
 pub mod ai_agents;
 pub mod ai_provider_keys;
 pub mod app_updater;
+pub mod chitragupta_socket;
 pub mod claude_cli;
 pub use grimoire_core as product_core;
 mod code_intelligence;
@@ -444,7 +445,7 @@ pub fn run() {
         return;
     }
 
-    let builder = tauri::Builder::default();
+    let builder = tauri::Builder::default().manage(search::SearchCacheState::default());
 
     #[cfg(desktop)]
     let builder = builder

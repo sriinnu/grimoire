@@ -194,6 +194,7 @@ pub async fn reload_vault_with_progress(
 
 #[tauri::command]
 pub async fn search_vault(
+    state: tauri::State<'_, search::SearchCacheState>,
     vault_path: String,
     query: String,
     mode: String,
@@ -201,9 +202,12 @@ pub async fn search_vault(
 ) -> Result<SearchResponse, String> {
     let vault_path = expand_tilde(&vault_path).into_owned();
     let limit = limit.unwrap_or(20);
-    tokio::task::spawn_blocking(move || search::search_vault(&vault_path, &query, &mode, limit))
-        .await
-        .map_err(|e| format!("Search task failed: {}", e))?
+    let cache = state.0.clone();
+    tokio::task::spawn_blocking(move || {
+        search::search_vault(&vault_path, &query, &mode, limit, &cache)
+    })
+    .await
+    .map_err(|e| format!("Search task failed: {}", e))?
 }
 
 #[cfg(test)]

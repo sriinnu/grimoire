@@ -138,10 +138,17 @@ export interface GitRemoteStatus {
   hasRemote: boolean
 }
 
+/** Matched term range within a search snippet, in UTF-16 code units. */
+export interface SnippetMatch {
+  start: number
+  end: number
+}
+
 export interface SearchResult {
   title: string
   path: string
   snippet: string
+  snippetMatches?: SnippetMatch[]
   score: number
   noteType: string | null
   fileKind?: VaultEntry['fileKind']

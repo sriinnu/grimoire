@@ -501,6 +501,95 @@ describe('SearchPanel', () => {
     })
   })
 
+  it('renders the matched snippet with quiet marks from backend offsets', async () => {
+    mockInvokeFn.mockResolvedValue({
+      results: [
+        {
+          title: 'How to Design AI-first APIs',
+          path: '/vault/essay/ai-apis.md',
+          snippet: 'designing APIs for AI agents',
+          snippet_matches: [{ start: 10, end: 14 }, { start: 19, end: 21 }],
+          score: 0.87,
+          note_type: 'Essay',
+        },
+      ],
+      elapsed_ms: 12,
+    })
+
+    render(
+      <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+    )
+
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'apis ai' } })
+
+    await waitFor(() => {
+      const marks = screen.getAllByText(/APIs|AI/, { selector: 'mark' })
+      expect(marks.map(m => m.textContent)).toEqual(['APIs', 'AI'])
+      expect(marks[0].className).toContain('decoration-dotted')
+      expect(marks[0].className).toContain('bg-transparent')
+    })
+  })
+
+  it('filters results client-side with type chips', async () => {
+    mockInvokeFn.mockResolvedValue({
+      results: [
+        { title: 'How to Design AI-first APIs', path: '/vault/essay/ai-apis.md', snippet: 'essay hit', score: 0.9, note_type: 'Essay' },
+        { title: 'Refactoring Retreat', path: '/vault/event/retreat.md', snippet: 'event hit', score: 0.8, note_type: 'Event' },
+      ],
+      elapsed_ms: 20,
+    })
+
+    render(
+      <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+    )
+
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'hit' } })
+
+    await waitFor(() => {
+      expect(screen.getByRole('group', { name: 'Filter results by type' })).toBeInTheDocument()
+    })
+
+    const essayChip = screen.getByRole('button', { name: 'Essay' })
+    expect(essayChip).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.click(essayChip)
+
+    await waitFor(() => {
+      expect(essayChip).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
+      expect(screen.queryByText('Refactoring Retreat')).not.toBeInTheDocument()
+      expect(screen.getByText(/1 result/)).toBeInTheDocument()
+    })
+
+    fireEvent.click(essayChip)
+
+    await waitFor(() => {
+      expect(screen.getByText('Refactoring Retreat')).toBeInTheDocument()
+      expect(screen.getByText(/2 results/)).toBeInTheDocument()
+    })
+  })
+
+  it('shows a keyboard affordances footer when results are visible', async () => {
+    mockInvokeFn.mockResolvedValue({
+      results: [
+        { title: 'Result', path: '/vault/essay/ai-apis.md', snippet: 'Content', score: 0.9, note_type: null },
+      ],
+      elapsed_ms: 10,
+    })
+
+    render(
+      <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+    )
+
+    expect(screen.queryByText('↑↓ navigate · ↵ open · esc close')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'content' } })
+
+    await waitFor(() => {
+      expect(screen.getByText('↑↓ navigate · ↵ open · esc close')).toBeInTheDocument()
+    })
+  })
+
   it('cancels inflight searches when panel closes', async () => {
     const resolvers: ((v: unknown) => void)[] = []
     mockInvokeFn.mockImplementation(
