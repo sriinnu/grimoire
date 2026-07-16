@@ -49,6 +49,13 @@
 }
 
 .status-bar {
+  /* The bar must own a stacking context above the workspace panes: the native
+   * shell material gives the sidebar a backdrop-filter (its own composited
+   * layer), and without an explicit z-index here the bar's popups paint
+   * underneath it regardless of their own z-index. Kept below dialog/portal
+   * layers (z 50+). */
+  position: relative;
+  z-index: 40;
   --hover: var(--status-bar-hover);
   --popover: var(--status-bar-popover-bg);
   --popover-foreground: var(--status-bar-popover-fg);
