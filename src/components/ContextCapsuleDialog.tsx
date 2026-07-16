@@ -10,16 +10,24 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import type {
   ContextCapsuleNote,
   ContextCapsulePackagePreview,
   ContextCapsulePreview,
 } from '../lib/contextCapsule'
-import { buildContextManifestFromCapsule, contextCapsuleSourceId } from '../lib/contextManifest'
+import type { ModifiedFile, VaultEntry } from '../types'
+import {
+  buildContextManifestFromCapsule,
+  contextCapsuleSourceId,
+  type ContextManifestV1,
+} from '../lib/contextManifest'
 import type { AiAgentId } from '../lib/aiAgents'
+import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
+import { isInspectableCodePath, type CodeSymbolSnapshot } from '../lib/codeIntelligence'
 import { AgentRouteDisclosure } from './AgentRouteDisclosure'
 import { AgentPreflightGate } from './AgentPreflightGate'
+import { ChitraguptaRecallSection } from './ChitraguptaRecallSection'
+import { CodeSyntaxSection } from './CodeSyntaxSection'
 
 interface ContextCapsuleDialogProps {
   defaultAiAgent?: AiAgentId
@@ -28,6 +36,12 @@ interface ContextCapsuleDialogProps {
   open: boolean
   packagePreview: ContextCapsulePackagePreview
   preview: ContextCapsulePreview
+  modifiedFiles?: readonly ModifiedFile[]
+  entries?: readonly VaultEntry[]
+  activeEntry?: VaultEntry | null
+  vaultPath?: string
+  onUseContextManifest?: (manifest: ContextManifestV1) => void
+  onUseChitraguptaRecall?: (attachment: ChitraguptaRecallAttachment) => void
   onClose: () => void
 }
 
@@ -42,11 +56,12 @@ interface CopyStateSnapshot {
 interface ManifestReviewSnapshot {
   createdAt: string
   excludedSourceIds: string[]
+  maximumTokens: number
   pinnedSourceIds: string[]
   revision: number
 }
 
-/** Read-only review dialog for a local context capsule package. */
+/** Inspect the local Context Manifest before it can be handed to an agent. */
 export function ContextCapsuleDialog({
   defaultAiAgent,
   defaultAiModel,
@@ -54,8 +69,16 @@ export function ContextCapsuleDialog({
   open,
   packagePreview,
   preview,
+  modifiedFiles,
+  entries,
+  activeEntry,
+  vaultPath,
+  onUseContextManifest,
+  onUseChitraguptaRecall,
   onClose,
 }: ContextCapsuleDialogProps) {
+  const [codeSymbols, setCodeSymbols] = useState<CodeSymbolSnapshot | null>(null)
+  const [chitraguptaRecall, setChitraguptaRecall] = useState<ChitraguptaRecallAttachment | null>(null)
   const [copySnapshot, setCopySnapshot] = useState<CopyStateSnapshot>(() => ({
     markdown: packagePreview.markdown,
     open,
@@ -75,9 +98,19 @@ export function ContextCapsuleDialog({
     manifestId: `${packagePreview.reviewReceipt}:context:${manifestReview.revision}`,
     requestId: `context-review:${packagePreview.reviewReceipt}`,
     createdAt: manifestReview.createdAt,
+    maximumTokens: manifestReview.maximumTokens,
     pinnedSourceIds: new Set(manifestReview.pinnedSourceIds),
     excludedSourceIds: new Set(manifestReview.excludedSourceIds),
+    workspace: {
+      modifiedFiles,
+      entries,
+      codeSymbols,
+      activeCodePath: activeEntry && isInspectableCodePath(activeEntry.path) ? activeEntry.path : undefined,
+      chitraguptaRecall,
+    },
   })
+  const gitChangeCount = manifest.code.filter(item => item.kind === 'git-diff').length
+  const symbolCount = manifest.code.filter(item => item.kind === 'symbol').length
 
   function updateManifestReview(update: (current: ManifestReviewSnapshot) => ManifestReviewSnapshot) {
     setStoredManifestReview(update)
@@ -117,6 +150,15 @@ export function ContextCapsuleDialog({
     }))
   }
 
+  function setMaximumTokens(maximumTokens: number) {
+    updateManifestReview((current) => ({
+      ...current,
+      maximumTokens,
+      createdAt: new Date().toISOString(),
+      revision: current.revision + 1,
+    }))
+  }
+
   async function copyMarkdownPackage() {
     if (!navigator.clipboard?.writeText) {
       setCurrentCopyState('unavailable')
@@ -134,34 +176,37 @@ export function ContextCapsuleDialog({
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
       <DialogContent
         showCloseButton={false}
-        className="grimoire-context-capsule-dialog grid max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-[640px]"
+        className="grimoire-context-capsule-dialog grimoire-context-surface grid h-[min(760px,calc(100dvh-2rem))] max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden sm:max-w-[640px]"
         data-testid="context-capsule-dialog"
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <PackageCheck className="size-4" />
-            {packagePreview.title}
+            Context Inspector
           </DialogTitle>
           <DialogDescription>
-            Inspect the local context package before any agent handoff, export, sync, or file write.
+            Inspect every local source before any agent handoff, export, sync, or file write.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid min-h-0 gap-3 overflow-hidden">
+        <div
+          className="grid min-h-0 content-start gap-3 overflow-y-scroll overscroll-contain pr-2"
+          data-testid="context-capsule-scroll-region"
+        >
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="rounded-md">
-              Review only
+            <Badge variant="secondary" className="grimoire-context-pill rounded-md font-semibold" data-tone="active">
+              Local inspection
             </Badge>
-            <Badge variant="outline" className="rounded-md">
-              No handoff
+            <Badge variant="outline" className="grimoire-context-pill rounded-md font-semibold">
+              No agent run
             </Badge>
-            <Badge variant="outline" className="rounded-md">
+            <Badge variant="outline" className="grimoire-context-pill rounded-md font-semibold">
               <ShieldCheck className="size-3" />
               {packagePreview.protectedContext ? 'Protected local context' : 'Source-safe'}
             </Badge>
             <Badge
               variant="outline"
-              className="rounded-md font-mono text-[10px]"
+              className="grimoire-context-pill rounded-md font-mono text-[10px] font-semibold"
               data-testid="context-capsule-review-receipt"
             >
               {packagePreview.reviewReceipt}
@@ -185,8 +230,24 @@ export function ContextCapsuleDialog({
             trimmedCount={packagePreview.preflight.trimmedCount}
           />
 
+          <ChitraguptaRecallSection
+            protectedContext={packagePreview.protectedContext}
+            reviewReceipt={packagePreview.reviewReceipt}
+            vaultPath={vaultPath}
+            onBuiltRecall={setChitraguptaRecall}
+            onUseRecall={onUseChitraguptaRecall}
+          />
+
+          <CodeSyntaxSection
+            activeEntry={activeEntry}
+            protectedContext={packagePreview.protectedContext}
+            vaultPath={vaultPath}
+            onInspected={setCodeSymbols}
+          />
+
           <div
-            className="grid grid-cols-2 gap-2 rounded-md border border-[var(--grimoire-signal-border)] bg-[var(--grimoire-signal-bg)] p-2 sm:grid-cols-4"
+            className="grimoire-context-surface grid grid-cols-2 gap-2 rounded-md border border-[var(--grimoire-signal-border)] p-2 sm:grid-cols-5"
+            style={{ background: 'var(--surface-panel)' }}
             data-locality={packagePreview.protectedContext ? 'protected-local' : 'source-safe'}
             data-testid="context-capsule-manifest"
           >
@@ -206,18 +267,67 @@ export function ContextCapsuleDialog({
               label="Excluded"
               value={String(manifest.excluded.length)}
             />
+            <ManifestMetric
+              label="Budget"
+              value={`${formatTokenCount(manifest.budget.usedTokens)} / ${formatTokenCount(manifest.budget.maximumTokens)}`}
+            />
           </div>
+
+          <div className="grimoire-context-surface flex flex-wrap items-center gap-1.5" data-testid="context-manifest-budget">
+            <span className="grimoire-context-label mr-1 text-[11px] font-semibold">Context budget</span>
+            {[2_000, 4_000, 8_000, 16_000].map((maximumTokens) => (
+              <Button
+                key={maximumTokens}
+                type="button"
+                size="xs"
+                variant={manifestReview.maximumTokens === maximumTokens ? 'secondary' : 'outline'}
+                className="grimoire-context-pill h-6 rounded-md px-2 text-[10px] font-semibold"
+                aria-pressed={manifestReview.maximumTokens === maximumTokens}
+                data-tone={manifestReview.maximumTokens === maximumTokens ? 'active' : undefined}
+                onClick={() => setMaximumTokens(maximumTokens)}
+              >
+                {formatTokenCount(maximumTokens)}
+              </Button>
+            ))}
+            <span className="grimoire-context-secondary basis-full text-[10px] leading-4">
+              Estimated metadata only. Source bodies stay local until you review and approve a tool read.
+            </span>
+          </div>
+
+          {gitChangeCount > 0 ? (
+            <div
+              className="grimoire-context-surface flex items-center justify-between rounded-md border border-border bg-[var(--surface-card)] px-2.5 py-2 text-xs"
+              data-testid="context-manifest-workspace"
+            >
+              <span className="font-medium text-foreground">Working tree</span>
+              <span className="grimoire-context-secondary font-medium">
+                {gitChangeCount} visible Git {gitChangeCount === 1 ? 'change' : 'changes'}
+              </span>
+            </div>
+          ) : null}
+
+          {symbolCount > 0 ? (
+            <div
+              className="grimoire-context-surface flex items-center justify-between rounded-md border border-border bg-[var(--surface-card)] px-2.5 py-2 text-xs"
+              data-testid="context-manifest-code-symbols"
+            >
+              <span className="font-medium text-foreground">Reviewed code symbols</span>
+              <span className="grimoire-context-secondary font-medium">
+                {symbolCount} local Tree-sitter {symbolCount === 1 ? 'fact' : 'facts'}
+              </span>
+            </div>
+          ) : null}
 
           {preview.includedNotes.length > 0 ? (
             <div className="grid gap-1.5" data-testid="context-manifest-sources">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium text-foreground">Context sources</span>
+                <span className="text-xs font-medium text-foreground">Sources in this review</span>
                 <Button type="button" size="sm" variant="ghost" onClick={rebuildManifest}>
                   <RefreshCw className="size-3.5" />
                   Rebuild
                 </Button>
               </div>
-              <div className="grid max-h-36 gap-1 overflow-auto rounded-md border border-border p-1">
+              <div className="grid max-h-48 gap-1 overflow-y-auto overscroll-contain rounded-md border border-border p-1" data-testid="context-manifest-source-list">
                 {preview.includedNotes.map((note) => (
                   <ManifestSourceRow
                     key={contextCapsuleSourceId(note)}
@@ -232,25 +342,44 @@ export function ContextCapsuleDialog({
             </div>
           ) : null}
 
-          <details className="min-h-0 overflow-auto rounded-md border border-border px-2 py-1.5">
+          <ContextReviewSummary
+            protectedContext={packagePreview.protectedContext}
+            sourceCount={preview.includedNotes.length}
+          />
+
+          {onUseContextManifest ? (
+            <div className="grimoire-context-next-request grid gap-2 rounded-md border border-border px-3 py-3" data-testid="context-next-request">
+              <div>
+                <div className="text-xs font-semibold text-foreground">Ready for the next request</div>
+                <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                  Attach this review when you are ready. Nothing is sent from this screen.
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="justify-self-start text-xs font-semibold"
+                onClick={() => onUseContextManifest(manifest)}
+                data-testid="use-context-manifest"
+              >
+                Attach to next request
+              </Button>
+            </div>
+          ) : null}
+
+          <details className="grimoire-context-technical-details rounded-md border border-border px-3 py-2">
             <summary className="cursor-pointer text-xs font-medium text-foreground">
-              Structured Context Manifest
+              Technical details
+              <span className="ml-1 font-normal text-muted-foreground">(JSON manifest)</span>
             </summary>
             <pre
-              className="mt-2 max-h-52 overflow-auto whitespace-pre-wrap break-all text-[10px] text-muted-foreground"
+              className="mt-2 max-h-52 overflow-y-auto overflow-x-hidden whitespace-pre-wrap break-words text-[10px] leading-4 text-muted-foreground"
               data-testid="context-manifest-json"
             >
               {JSON.stringify(manifest, null, 2)}
             </pre>
           </details>
-
-          <Textarea
-            readOnly
-            aria-label="Context Capsule Markdown package preview"
-            value={packagePreview.markdown}
-            className="min-h-[260px] resize-none overflow-auto font-mono text-xs"
-            data-testid="context-capsule-markdown"
-          />
         </div>
 
         <DialogFooter>
@@ -296,10 +425,10 @@ function ManifestSourceRow({
 }) {
   const sourceId = contextCapsuleSourceId(note)
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-sm px-2 py-1 hover:bg-muted/50">
+    <div className="flex min-w-0 items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-muted/50" data-testid="context-manifest-source-row">
       <div className="min-w-0 flex-1">
-        <div className="truncate text-xs text-foreground">{note.title}</div>
-        <div className="truncate text-[10px] text-muted-foreground">{note.kind} · {note.path}</div>
+        <div className="truncate text-xs font-medium text-foreground">{note.title}</div>
+        <div className="truncate text-[10px]" style={{ color: 'var(--text-secondary)' }}>{note.kind} · {note.path}</div>
       </div>
       <Button
         type="button"
@@ -329,9 +458,14 @@ function newManifestReview(): ManifestReviewSnapshot {
   return {
     createdAt: new Date().toISOString(),
     excludedSourceIds: [],
+    maximumTokens: 8_000,
     pinnedSourceIds: [],
     revision: 1,
   }
+}
+
+function formatTokenCount(tokens: number): string {
+  return tokens >= 1_000 ? `${Math.round(tokens / 1_000)}k` : String(tokens)
 }
 
 function copyButtonLabel(state: CopyState): string {
@@ -347,11 +481,32 @@ function copyStatus(state: CopyState): string {
   return 'Portable, review-only Markdown.'
 }
 
+function ContextReviewSummary({
+  protectedContext,
+  sourceCount,
+}: {
+  protectedContext: boolean
+  sourceCount: number
+}) {
+  const sourceLabel = `${sourceCount} ${sourceCount === 1 ? 'source' : 'sources'}`
+
+  return (
+    <section className="grimoire-context-review-summary rounded-md border border-border px-3 py-3" data-testid="context-review-summary">
+      <div className="text-xs font-semibold text-foreground">What Grimoire will use</div>
+      <p className="mt-1 text-[12px] leading-5 text-muted-foreground">
+        {protectedContext
+          ? 'This review contains protected local context. It stays on this Mac until you explicitly change the boundary.'
+          : `This review contains ${sourceLabel}: their labels, paths, and review state. Note bodies and private lanes stay on this Mac.`}
+      </p>
+    </section>
+  )
+}
+
 function ManifestMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-md border border-border bg-background/55 px-2 py-1">
-      <div className="text-[9px] uppercase tracking-[0.08em] text-muted-foreground">{label}</div>
-      <div className="truncate text-xs font-medium text-foreground">{value}</div>
+    <div className="grimoire-context-pill min-w-0 rounded-md border px-2 py-1">
+      <div className="grimoire-context-secondary text-[10px] font-semibold uppercase tracking-[0.08em]">{label}</div>
+      <div className="grimoire-context-label truncate text-xs font-semibold">{value}</div>
     </div>
   )
 }

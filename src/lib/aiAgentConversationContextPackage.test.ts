@@ -127,4 +127,80 @@ describe('aiAgentConversation context packages', () => {
     expect(prompt).toContain('- [[Beta]] -> [[Gamma]] (Wikilink, body-link)')
     expect(prompt).not.toContain('Dashboard ask package')
   })
+
+  it('includes recall only after the user explicitly approves that packet', () => {
+    buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault' },
+      [],
+      {
+        text: 'turn this into a plan',
+        chitraguptaRecall: {
+          degraded: true,
+          guidance: 'Prefer a local-first rollout.',
+          items: [{ answer: 'Ship the relationship map before agent runtime.', primarySource: 'project-memory', score: 0.9, snippet: null }],
+          predictions: null,
+          recalledCount: 2,
+          requestId: 'grimoire:pkg-1',
+          warnings: ['Lucy offline'],
+        },
+      },
+    )
+
+    const prompt = formatMessageWithHistoryMock.mock.calls.at(-1)?.[1] as string
+    expect(prompt).toContain('## User-approved Chitragupta Recall')
+    expect(prompt).toContain('Recall records: 2')
+    expect(prompt).toContain('Status: degraded')
+    expect(prompt).toContain('Guidance:\nPrefer a local-first rollout.')
+    expect(prompt).toContain('Warnings: Lucy offline')
+    expect(prompt).toContain('### Reviewed memory excerpts')
+    expect(prompt).toContain('[project-memory] Ship the relationship map before agent runtime.')
+  })
+
+  it('includes a Context Manifest only after the user-approved attachment is present', () => {
+    buildFormattedMessage(
+      { agent: 'codex', ready: true, vaultPath: '/vault' },
+      [],
+      {
+        text: 'review this change',
+        contextManifest: {
+          schemaVersion: 'grimoire.context-manifest.v1',
+          id: 'ctx-1',
+          requestId: 'request-1',
+          createdAt: '2026-07-15T00:00:00Z',
+          intent: 'review',
+          live: { activeFile: 'src/context.ts', openFiles: [], gitDiffs: [], terminalErrors: [] },
+          recalled: [],
+          code: [{
+            id: 'symbol:src/context.ts:4:1:buildManifest',
+            kind: 'symbol',
+            uri: 'symbol:///src/context.ts#L4',
+            score: 0.9,
+            tokenCount: 0,
+            selectedBecause: ['user inspected active code file'],
+            retrievalChannels: ['tree-sitter'],
+            scope: 'vault',
+            confidence: 1,
+            permission: 'allowed',
+          }],
+          pinned: [],
+          excluded: [{
+            id: 'policy-1',
+            kind: 'other',
+            uri: 'grimoire://locality-firewall/1',
+            reason: 'Protected source',
+            permission: 'blocked',
+          }],
+          budget: { maximumTokens: 8000, usedTokens: 0, remainingTokens: 8000, compactedTokens: 0 },
+          warnings: { stale: [], contradictions: [], weakEvidence: [], policyBlocks: ['Protected source'] },
+          provenance: [{ kind: 'symbol', uri: 'symbol:///src/context.ts#L4' }],
+        },
+      },
+    )
+
+    const prompt = formatMessageWithHistoryMock.mock.calls.at(-1)?.[1] as string
+    expect(prompt).toContain('## User-approved Grimoire Context Manifest')
+    expect(prompt).toContain('not permission to access excluded or local-only material')
+    expect(prompt).toContain('"kind":"symbol"')
+    expect(prompt).toContain('"permission":"blocked"')
+  })
 })

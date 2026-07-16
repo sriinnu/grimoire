@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
 import {
-  AiPanelBrief,
   AiPanelComposer,
   AiPanelContextBar,
   AiPanelHeader,
@@ -14,9 +13,8 @@ import {
   type AiAgentsStatus,
 } from '../lib/aiAgents'
 import type { AskContextPackage } from '../lib/askContextPackage'
-import type { AgentCouncilSynthesisPacket } from '../lib/agentCouncilSynthesis'
 import { type NoteListItem } from '../utils/ai-context'
-import type { VaultEntry } from '../types'
+import type { ModifiedFile, VaultEntry } from '../types'
 import { useAiPanelController, type AiPanelController } from './useAiPanelController'
 import { useAiPanelPromptQueue } from './useAiPanelPromptQueue'
 import { useAiPanelFocus } from './useAiPanelFocus'
@@ -28,12 +26,10 @@ import {
   persistCrystallizedNote,
   summarizeCrystallizeProposal,
 } from '../lib/crystallizeProposal'
-import {
-  councilCrystallizeHandoffMetadata,
-  councilCrystallizeMarkdown,
-} from '../lib/crystallizeCouncilHandoff'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { AiPanelIntelligenceRail } from './AiPanelIntelligenceRail'
+import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
+import type { ContextManifestV1 } from '../lib/contextManifest'
 
 export type { AiAgentMessage } from '../hooks/useCliAiAgent'
 
@@ -55,6 +51,7 @@ interface AiPanelProps {
   /** Direct content of the active note from the editor tab. */
   activeNoteContent?: string | null
   entries?: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
   openTabs?: VaultEntry[]
   noteList?: NoteListItem[]
   noteListFilter?: { type: string | null; query: string }
@@ -74,6 +71,7 @@ interface AiPanelViewProps {
   activeEntry?: VaultEntry | null
   activeNoteContent?: string | null
   entries?: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
   openTabs?: VaultEntry[]
   noteList?: NoteListItem[]
   noteListFilter?: { type: string | null; query: string }
@@ -82,10 +80,6 @@ interface AiPanelViewProps {
   onVaultChanged?: () => void
   onReplaceContent?: (path: string, content: string) => Promise<void> | void
 }
-
-type CrystallizeSource =
-  | { kind: 'latest-response' }
-  | { kind: 'agent-council'; packet: AgentCouncilSynthesisPacket }
 
 export function AiPanelView({
   controller,
@@ -101,6 +95,7 @@ export function AiPanelView({
   activeEntry,
   activeNoteContent,
   entries,
+  modifiedFiles,
   openTabs,
   noteList,
   noteListFilter,
@@ -117,8 +112,9 @@ export function AiPanelView({
   const [crystallizeOpen, setCrystallizeOpen] = useState(false)
   const [crystallizeApplying, setCrystallizeApplying] = useState(false)
   const [crystallizeError, setCrystallizeError] = useState<string | null>(null)
-  const [crystallizeSource, setCrystallizeSource] = useState<CrystallizeSource>({ kind: 'latest-response' })
   const [askContextPackage, setAskContextPackage] = useState<AskContextPackage | null>(null)
+  const [chitraguptaRecall, setChitraguptaRecall] = useState<ChitraguptaRecallAttachment | null>(null)
+  const [contextManifest, setContextManifest] = useState<ContextManifestV1 | null>(null)
   const agentLabel = getAiAgentDefinition(defaultAiAgent).label
   const agentRouteLabel = describeAiAgentRoute(defaultAiAgent, defaultAiProvider, defaultAiModel)
   const {
@@ -150,37 +146,23 @@ export function AiPanelView({
   const latestCrystallizable = useMemo(() => latestCrystallizableMessage(agent.messages), [agent.messages])
   const latestResponse = latestCrystallizable?.response ?? null
   const activePolicy = useMemo(() => activeEntry ? resolveEntryLocalityPolicy(activeEntry) : null, [activeEntry])
-  const councilPacket = crystallizeSource.kind === 'agent-council' ? crystallizeSource.packet : null
-  const crystallizeResponse = councilPacket ? councilCrystallizeMarkdown(councilPacket) : latestResponse
-  const crystallizeBlockedReason = councilPacket?.protectedContext
-    ? 'Protected Council packet is policy-only. Review safe guidance, but do not write it as shared memory from this context.'
-    : activePolicy?.localOnly && !councilPacket
-      ? 'Local-only context is protected. Crystallize from a public note or start a fresh chat.'
-      : crystallizeResponse ? null : 'Send an AI message first.'
+  const crystallizeBlockedReason = activePolicy?.localOnly
+    ? 'Local-only context is protected. Crystallize from a public note or start a fresh chat.'
+    : latestResponse ? null : 'Send an AI message first.'
   const crystallizeProposal = useMemo(() => {
-    if (!crystallizeResponse || !vaultPath || crystallizeBlockedReason) return null
-    const safeActiveEntry = activePolicy?.localOnly && councilPacket ? null : activeEntry
+    if (!latestResponse || !vaultPath || crystallizeBlockedReason) return null
     return buildCrystallizeProposal({
-      activeEntry: safeActiveEntry,
-      activeNoteContent: councilPacket ? null : onReplaceContent ? activeNoteContent : null,
-      askContextPackage: councilPacket ? askContextPackage : latestCrystallizable?.contextPackage ?? null,
-      handoffMetadata: councilPacket ? councilCrystallizeHandoffMetadata(councilPacket) : null,
-      response: crystallizeResponse,
-      sourceEntries: councilPacket ? entries : undefined,
-      sourceLabels: councilPacket ? ['Agent Council', ...councilPacket.sourceLabels] : undefined,
-      sourceName: councilPacket ? 'Agent Council' : 'AI Chat',
-      titleSubject: councilPacket ? 'Agent Council' : undefined,
+      activeEntry,
+      activeNoteContent: onReplaceContent ? activeNoteContent : null,
+      askContextPackage: latestCrystallizable?.contextPackage ?? null,
+      response: latestResponse,
       vaultPath,
     })
   }, [
     activeEntry,
     activeNoteContent,
-    activePolicy?.localOnly,
-    askContextPackage,
     crystallizeBlockedReason,
-    crystallizeResponse,
-    councilPacket,
-    entries,
+    latestResponse,
     latestCrystallizable?.contextPackage,
     onReplaceContent,
     vaultPath,
@@ -192,12 +174,6 @@ export function AiPanelView({
   const canCrystallize = !!crystallizeProposal && !crystallizeBlockedReason
 
   function handleOpenLatestCrystallize(): void {
-    setCrystallizeSource({ kind: 'latest-response' })
-    setCrystallizeOpen(true)
-  }
-
-  function handleCrystallizeCouncil(packet: AgentCouncilSynthesisPacket): void {
-    setCrystallizeSource({ kind: 'agent-council', packet })
     setCrystallizeOpen(true)
   }
 
@@ -234,7 +210,8 @@ export function AiPanelView({
 
   function handlePanelNewChat(): void {
     setAskContextPackage(null)
-    setCrystallizeSource({ kind: 'latest-response' })
+    setChitraguptaRecall(null)
+    setContextManifest(null)
     handleNewChat()
   }
 
@@ -266,51 +243,46 @@ export function AiPanelView({
           onCrystallize={handleOpenLatestCrystallize}
           onNewChat={handlePanelNewChat}
         />
-        {activeEntry && (
-          <>
-            <AiPanelBrief
-              agentLabel={agentLabel}
-              activeEntry={activeEntry}
-              linkedCount={linkedEntries.length}
-              conversationActive={agent.messages.length > 0 || isActive}
-            />
-            <AiPanelContextBar activeEntry={activeEntry} linkedCount={linkedEntries.length} />
-          </>
-        )}
-        <AiPanelIntelligenceRail
-          activeEntry={activeEntry}
-          activeNoteContent={activeNoteContent}
-          activePolicy={activePolicy}
-          aiAgentsStatus={providedAiAgentsStatus}
-          canCrystallize={canCrystallize}
-          crystallizeBlockedReason={crystallizeBlockedReason}
-          defaultAiAgent={defaultAiAgent}
-          defaultAiAgentReady={defaultAiAgentReady}
-          defaultAiModel={defaultAiModel}
-          defaultAiProvider={defaultAiProvider}
-          entries={entries ?? []}
-          hasContext={hasContext}
-          hasLatestResponse={!!latestResponse}
-          linkedEntries={linkedEntries}
-          noteList={noteList}
-          noteListFilter={noteListFilter}
-          onCrystallize={handleOpenLatestCrystallize}
-          onCrystallizeCouncil={handleCrystallizeCouncil}
-          onOpenNote={onOpenNote}
-          openTabs={openTabs}
-          proposalSummary={crystallizeProposalSummary}
-          askContextPackage={askContextPackage}
-        />
-        <AiPanelMessageHistory
-          agentLabel={agentLabel}
-          agentReady={defaultAiAgentReady}
-          legacyCopy={useLegacyAiExperience}
-          messages={agent.messages}
-          isActive={isActive}
-          onOpenNote={onOpenNote}
-          onNavigateWikilink={handleNavigateWikilink}
-          hasContext={hasContext}
-        />
+        {activeEntry ? <AiPanelContextBar activeEntry={activeEntry} linkedCount={linkedEntries.length} /> : null}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" data-testid="ai-panel-scroll-region">
+          <AiPanelIntelligenceRail
+            activeEntry={activeEntry}
+            activeNoteContent={activeNoteContent}
+            activePolicy={activePolicy}
+            aiAgentsStatus={providedAiAgentsStatus}
+            canCrystallize={canCrystallize}
+            crystallizeBlockedReason={crystallizeBlockedReason}
+            defaultAiAgent={defaultAiAgent}
+            defaultAiAgentReady={defaultAiAgentReady}
+            defaultAiModel={defaultAiModel}
+            defaultAiProvider={defaultAiProvider}
+            entries={entries ?? []}
+            modifiedFiles={modifiedFiles}
+            hasContext={hasContext}
+            hasLatestResponse={!!latestResponse}
+            linkedEntries={linkedEntries}
+            noteList={noteList}
+            noteListFilter={noteListFilter}
+            onCrystallize={handleOpenLatestCrystallize}
+            onOpenNote={onOpenNote}
+            openTabs={openTabs}
+            proposalSummary={crystallizeProposalSummary}
+            askContextPackage={askContextPackage}
+            vaultPath={vaultPath}
+            onUseContextManifest={setContextManifest}
+            onUseChitraguptaRecall={setChitraguptaRecall}
+          />
+          <AiPanelMessageHistory
+            agentLabel={agentLabel}
+            agentReady={defaultAiAgentReady}
+            legacyCopy={useLegacyAiExperience}
+            messages={agent.messages}
+            isActive={isActive}
+            onOpenNote={onOpenNote}
+            onNavigateWikilink={handleNavigateWikilink}
+            hasContext={hasContext}
+          />
+        </div>
         <AiPanelComposer
           entries={entries ?? []}
           agentLabel={agentLabel}
@@ -321,7 +293,15 @@ export function AiPanelView({
           isActive={isActive}
           legacyCopy={useLegacyAiExperience}
           onChange={setInput}
-          onSend={handleSend}
+          onSend={(text, references) => {
+            if (chitraguptaRecall || contextManifest) {
+              handleSend(text, references, undefined, chitraguptaRecall ?? undefined, contextManifest ?? undefined)
+            } else {
+              handleSend(text, references)
+            }
+            setChitraguptaRecall(null)
+            setContextManifest(null)
+          }}
           onUnsupportedAiPaste={onUnsupportedAiPaste}
         />
       </aside>
@@ -355,6 +335,7 @@ export function AiPanel({
   activeEntry,
   activeNoteContent,
   entries,
+  modifiedFiles,
   openTabs,
   noteList,
   noteListFilter,
@@ -392,6 +373,7 @@ export function AiPanel({
       activeEntry={activeEntry}
       activeNoteContent={activeNoteContent}
       entries={entries}
+      modifiedFiles={modifiedFiles}
       openTabs={openTabs}
       noteList={noteList}
       noteListFilter={noteListFilter}

@@ -44,7 +44,10 @@ pub(super) fn version_for_binary(binary: &Path) -> Option<String> {
         .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
 }
 
-fn output_with_timeout(mut command: Command, timeout: Duration) -> Result<Output, String> {
+pub(super) fn output_with_timeout(
+    mut command: Command,
+    timeout: Duration,
+) -> Result<Output, String> {
     let mut child = command
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

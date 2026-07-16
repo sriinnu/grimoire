@@ -79,7 +79,7 @@ describe('chitraguptaIntegration', () => {
 
     expect(status.state).toBe('blocked')
     expect(status.warnings).toContain('Project access denied')
-    expect(status.warnings).toContain('Missing Chitragupta capabilities: memory.append, recall.unified, wiki.list, wiki.read, graph.neighborhood, diagnostics.memory, ingest.markdown')
+    expect(status.warnings).toContain('Missing Chitragupta capabilities: memory.append, recall.unified, wiki.list, wiki.read, graph.neighborhood, diagnostics.memory, ingest.markdown, context.build')
     expect(status.missingCapabilities).toEqual([
       'memory.append',
       'recall.unified',
@@ -88,6 +88,7 @@ describe('chitraguptaIntegration', () => {
       'graph.neighborhood',
       'diagnostics.memory',
       'ingest.markdown',
+      'context.build',
     ])
   })
 
@@ -129,7 +130,7 @@ describe('chitraguptaIntegration', () => {
     expect(diagnostic.state).toBe('mcp_unverified')
     expect(diagnostic.cliLabel).toBe('CLI installed')
     expect(diagnostic.contractLabel).toBe('MCP contract unverified')
-    expect(diagnostic.capabilityLabel).toBe('0/8 MCP capabilities')
+    expect(diagnostic.capabilityLabel).toBe('0/9 MCP capabilities')
     expect(diagnostic.warnings[0]).toContain('CLI chat can run separately')
   })
 

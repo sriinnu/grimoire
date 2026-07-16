@@ -23,7 +23,7 @@ export function EditorAgentComposerBar({
           onClick={onOpen}
           aria-label="Ask Grimoire about this note"
         >
-          <Glyph name="sparkle" className="editor-agent-composer__mark" />
+          <Glyph name="sparkle" className="editor-agent-composer__mark" data-icon-intent="ai" />
           <span className="editor-agent-composer__placeholder">Ask Grimoire anything...</span>
         </Button>
         <EditorNavigatorControls content={content} variant="composer" />

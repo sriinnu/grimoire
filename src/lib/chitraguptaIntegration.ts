@@ -12,6 +12,7 @@ export type ChitraguptaCapability =
   | 'graph.neighborhood'
   | 'diagnostics.memory'
   | 'ingest.markdown'
+  | 'context.build'
 
 export interface ChitraguptaMemoryContext {
   /** Active note path Grimoire can pass to Chitragupta recall. */
@@ -41,6 +42,7 @@ export const REQUIRED_CHITRAGUPTA_CAPABILITIES: ChitraguptaCapability[] = [
   'graph.neighborhood',
   'diagnostics.memory',
   'ingest.markdown',
+  'context.build',
 ]
 
 export type ChitraguptaDaemonState = 'running' | 'stopped' | 'degraded'

@@ -62,6 +62,16 @@ pub fn get_ai_agents_status() -> AiAgentsStatus {
     crate::ai_agents::get_ai_agents_status()
 }
 
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn build_chitragupta_context(
+    request: crate::ai_agents::ChitraguptaContextBuildRequest,
+) -> Result<serde_json::Value, String> {
+    tokio::task::spawn_blocking(move || crate::ai_agents::build_chitragupta_context(request))
+        .await
+        .map_err(|error| format!("Context build task failed: {error}"))?
+}
+
 #[tauri::command]
 pub fn get_ai_provider_key_statuses() -> Vec<AiProviderKeyStatus> {
     crate::ai_provider_keys::get_ai_provider_key_statuses()
@@ -148,6 +158,14 @@ pub fn get_ai_agents_status() -> AiAgentsStatus {
             detail: Some("Chitragupta CLI is not available on mobile.".into()),
         },
     }
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn build_chitragupta_context(
+    _request: crate::ai_agents::ChitraguptaContextBuildRequest,
+) -> Result<serde_json::Value, String> {
+    Err("Chitragupta CLI context recall is not available on mobile yet.".into())
 }
 
 #[cfg(mobile)]

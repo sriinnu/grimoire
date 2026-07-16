@@ -1,6 +1,6 @@
 import type { VaultEntry } from '../types'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
-import { buildNoteGraph, type NoteGraph } from './noteGraph'
+import { buildNoteGraph, buildNoteGraphCached, type NoteGraph } from './noteGraph'
 
 /** Source-safe graph node exposed to agent previews. */
 export interface AgentGraphNode {
@@ -48,6 +48,22 @@ interface AgentGraphContextParams {
 
 const DEFAULT_NODE_LIMIT = 12
 const DEFAULT_EDGE_LIMIT = 18
+
+/**
+ * Builds the agent graph context from the shared cached note graph. When the
+ * active entry is not in `entries` yet (fresh unsaved note), the cached graph
+ * cannot represent it, so we omit `graph` and let `buildAgentGraphContext`
+ * rebuild with the active entry prepended instead of silently dropping it.
+ *
+ * Both the AI send path and the Context Inspector preview must use this so the
+ * preview always reports exactly what a request would carry.
+ */
+export function buildCachedAgentGraphContext(activeEntry: VaultEntry, entries: VaultEntry[]): AgentGraphContext {
+  const graph = entries.some((entry) => entry.path === activeEntry.path)
+    ? buildNoteGraphCached(entries, activeEntry.path)
+    : undefined
+  return buildAgentGraphContext({ activeEntry, entries, graph })
+}
 
 /** Builds a source-safe graph neighborhood for agent/capsule handoff previews. */
 export function buildAgentGraphContext({

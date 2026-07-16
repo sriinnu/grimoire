@@ -8,6 +8,8 @@ mod process_stream;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::process::Stdio;
+#[cfg(desktop)]
+use std::time::Duration;
 
 use args::{build_chitragupta_args, build_codex_args, build_codex_prompt};
 use chitragupta_events::dispatch_chitragupta_event;
@@ -85,6 +87,77 @@ pub struct AiAgentStreamRequest {
     pub vault_path: String,
     pub provider: Option<String>,
     pub model: Option<String>,
+}
+
+/** A deliberately narrow request for Chitragupta-owned recall assembly. */
+#[derive(Debug, Clone, Deserialize)]
+pub struct ChitraguptaContextBuildRequest {
+    pub query: String,
+    pub project: String,
+    pub request_id: Option<String>,
+    pub intent: Option<String>,
+    pub limit: Option<u8>,
+}
+
+/**
+ * Run the reviewed `context.build` seam through the installed Chitragupta CLI.
+ *
+ * Grimoire passes an explicit user question and vault path only. It does not
+ * add note bodies, selections, or Git content to this invocation.
+ */
+#[cfg(desktop)]
+pub fn build_chitragupta_context(
+    request: ChitraguptaContextBuildRequest,
+) -> Result<serde_json::Value, String> {
+    let query = request.query.trim();
+    if query.is_empty() {
+        return Err("A recall question is required.".into());
+    }
+    let project = request.project.trim();
+    if project.is_empty() {
+        return Err("A vault path is required.".into());
+    }
+    let limit = request.limit.unwrap_or(5);
+    if !(1..=20).contains(&limit) {
+        return Err("Recall limit must be between 1 and 20.".into());
+    }
+
+    let binary = find_chitragupta_binary()?;
+    let mut command = command_for_binary(&binary);
+    command
+        .arg("context")
+        .arg("build")
+        .arg(query)
+        .arg("--project")
+        .arg(project)
+        .arg("--limit")
+        .arg(limit.to_string())
+        .arg("--json");
+    if let Some(request_id) = request.request_id.filter(|value| !value.trim().is_empty()) {
+        command.arg("--request-id").arg(request_id);
+    }
+    if let Some(intent) = request.intent.filter(|value| !value.trim().is_empty()) {
+        command.arg("--intent").arg(intent);
+    }
+
+    let output = discovery::output_with_timeout(command, Duration::from_secs(12))?;
+    if !output.status.success() {
+        let detail = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if detail.is_empty() {
+            format!(
+                "Chitragupta context build exited with status {}.",
+                output.status
+            )
+        } else {
+            format!(
+                "Chitragupta context build failed: {}",
+                detail.chars().take(360).collect::<String>()
+            )
+        });
+    }
+
+    serde_json::from_slice(&output.stdout)
+        .map_err(|_| "Chitragupta returned an unreadable context packet.".to_string())
 }
 
 pub fn get_ai_agents_status() -> AiAgentsStatus {

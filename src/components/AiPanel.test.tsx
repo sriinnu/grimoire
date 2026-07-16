@@ -4,7 +4,6 @@ import { AiPanel } from './AiPanel'
 import { UNSUPPORTED_INLINE_PASTE_MESSAGE } from './InlineWikilinkInput'
 import type { VaultEntry } from '../types'
 import { queueAiPrompt } from '../utils/aiPromptBridge'
-import { createAiAgentAvailability } from '../lib/aiAgents'
 
 // Mock the hooks and utils to isolate component tests
 let mockMessages: ReturnType<typeof import('../hooks/useCliAiAgent').useCliAiAgent>['messages'] = []
@@ -61,10 +60,6 @@ const makeEntry = (overrides: Partial<VaultEntry> = {}): VaultEntry => ({
   fileKind: 'markdown',
   ...overrides,
 })
-
-const openIntelligenceDetails = () => {
-  fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
-}
 
 describe('AiPanel', () => {
   beforeEach(() => {
@@ -196,7 +191,7 @@ describe('AiPanel', () => {
 
   it('renders empty state without context', () => {
     render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
-    expect(screen.getByText('Open a note, then ask the AI about it')).toBeTruthy()
+    expect(screen.getByText('Open a note to give this conversation context.')).toBeTruthy()
   })
 
   it('renders contextual empty state when active entry is provided', () => {
@@ -204,23 +199,24 @@ describe('AiPanel', () => {
     render(
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />
     )
-    expect(screen.getByText('Ask about this note and its linked context')).toBeTruthy()
+    expect(screen.getByText('Ask about this note.')).toBeTruthy()
   })
 
-  it('shows an assistant brief summarising the active note for legacy AI chat', () => {
+  it('keeps active context to one compact, inspectable line', () => {
     const linked = makeEntry({ path: '/vault/linked.md', title: 'Linked Note' })
     const entry = makeEntry({ title: 'My Note', outgoingLinks: ['Linked Note'] })
     render(
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry, linked]} />,
     )
 
-    const brief = screen.getByTestId('ai-panel-brief')
-    expect(brief).toHaveTextContent('My Note')
-    expect(brief).toHaveTextContent('1 linked note')
-    expect(brief).not.toHaveAttribute('data-collapsed')
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('Context')
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('2 sources')
+    expect(screen.getByTestId('ai-context-inspector')).toHaveTextContent('Inspect')
+    expect(screen.queryByTestId('ai-panel-brief')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('agent-council')).not.toBeInTheDocument()
   })
 
-  it('collapses the assistant brief once a conversation is active', () => {
+  it('keeps the context affordance small while a conversation is active', () => {
     const entry = makeEntry({ title: 'My Note' })
     mockMessages = [{
       userMessage: 'hi',
@@ -232,23 +228,24 @@ describe('AiPanel', () => {
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />,
     )
 
-    expect(screen.getByTestId('ai-panel-brief')).toHaveAttribute('data-collapsed', 'true')
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('Context')
+    expect(screen.queryByTestId('ai-panel-brief')).not.toBeInTheDocument()
   })
 
-  it('redacts the assistant brief title for local-only notes', () => {
+  it('marks local-only context without exposing its title in the context affordance', () => {
     const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
     render(
       <AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" activeEntry={entry} entries={[entry]} />,
     )
 
-    const brief = screen.getByTestId('ai-panel-brief')
-    expect(brief).toHaveTextContent('a local-only note')
-    expect(brief).not.toHaveTextContent('Hidden Dream')
+    const summary = screen.getByTestId('ai-intelligence-summary')
+    expect(summary).toHaveTextContent('Local-only')
+    expect(summary).not.toHaveTextContent('Hidden Dream')
   })
 
-  it('does not show the assistant brief when there is no active entry', () => {
+  it('does not show a context affordance when there is no active entry', () => {
     render(<AiPanel onClose={vi.fn()} vaultPath="/tmp/vault" />)
-    expect(screen.queryByTestId('ai-panel-brief')).toBeNull()
+    expect(screen.queryByTestId('ai-intelligence-summary')).toBeNull()
   })
 
   it('shows context bar with active entry title', () => {
@@ -271,7 +268,7 @@ describe('AiPanel', () => {
     expect(within(screen.getByTestId('context-bar')).getByText('Protected')).toBeTruthy()
   })
 
-  it('does not surface a crystallize review packet for local-only active context', () => {
+  it('keeps protected context out of default Second Brain chrome', () => {
     const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
     mockMessages = [{
       userMessage: 'remember this',
@@ -285,92 +282,12 @@ describe('AiPanel', () => {
     )
 
     expect(screen.getByTestId('ai-crystallize')).toBeDisabled()
-    openIntelligenceDetails()
-    expect(screen.getByTestId('crystallize-loop-card')).toHaveTextContent('Protected context stays local')
-    expect(screen.getByTestId('crystallize-loop-card')).not.toHaveTextContent('Review packet')
+    expect(screen.queryByTestId('agent-council')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('context-capsule-card')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('ai-context-inspector'))
+    expect(screen.getByTestId('context-capsule-dialog')).toHaveTextContent('Protected local context')
     expect(screen.queryByText('Hidden Dream')).toBeNull()
     expect(screen.queryByText(/hidden-dream/i)).toBeNull()
-  })
-
-  it('shows an Agent Council with private lanes and protected-context permissions', () => {
-    const entry = makeEntry({ title: 'Hidden Dream', isA: 'Dream', properties: { local_only: true } })
-    render(
-      <AiPanel
-        onClose={vi.fn()}
-        vaultPath="/tmp/vault"
-        activeEntry={entry}
-        defaultAiAgent="chitragupta"
-        defaultAiAgentReady
-        aiAgentsStatus={{
-          claude_code: createAiAgentAvailability('installed', '1.0.0'),
-          codex: createAiAgentAvailability('missing'),
-          chitragupta: createAiAgentAvailability('installed', '0.9.0'),
-        }}
-      />,
-    )
-
-    openIntelligenceDetails()
-    const council = screen.getByTestId('agent-council')
-    expect(council).toHaveTextContent('Agent Council')
-    expect(council).toHaveTextContent('Protected context')
-    expect(council).toHaveTextContent('Claude Code')
-    expect(council).toHaveTextContent('Codex')
-    expect(council).toHaveTextContent('Chitragupta')
-    expect(council).toHaveTextContent('Woosh')
-    expect(council).toHaveTextContent('Tring CLI')
-    expect(council).toHaveTextContent('Active local-only note withheld')
-  })
-
-  it('turns a source-safe Agent Council synthesis into a reviewed Memory proposal', async () => {
-    const entry = makeEntry({ title: 'Public Plan' })
-    const onFileCreated = vi.fn()
-    const onVaultChanged = vi.fn()
-
-    render(
-      <AiPanel
-        onClose={vi.fn()}
-        vaultPath="/tmp/vault"
-        activeEntry={entry}
-        entries={[entry]}
-        aiAgentsStatus={{
-          claude_code: createAiAgentAvailability('installed', '1.0.0'),
-          codex: createAiAgentAvailability('installed', '0.2.0'),
-          chitragupta: createAiAgentAvailability('installed', '0.9.0'),
-        }}
-        onFileCreated={onFileCreated}
-        onVaultChanged={onVaultChanged}
-      />,
-    )
-
-    openIntelligenceDetails()
-    fireEvent.click(screen.getByTestId('agent-council-review-synthesis'))
-    fireEvent.click(screen.getByTestId('agent-council-crystallize-synthesis'))
-
-    const preview = screen.getByTestId('crystallize-markdown-preview') as HTMLTextAreaElement
-    expect(preview.value).toContain('source: "Agent Council"')
-    expect(preview.value).toContain('source_note: "Agent Council"')
-    expect(preview.value).toContain('source_notes:')
-    expect(preview.value).toContain('handoff: agent_council')
-    expect(preview.value).toContain('handoff_mode: "review-gated"')
-    expect(preview.value).toContain('handoff_ready_lanes:')
-    expect(preview.value).toContain('handoff_local_hold: false')
-    expect(preview.value).not.toContain('handoff_held_local')
-    expect(preview.value).toContain('handoff_source_count:')
-    expect(preview.value).toContain('- "[[Public Plan]]"')
-    expect(preview.value).toContain('# Agent Council synthesis')
-    expect(preview.value).toContain('## Handoff Gate')
-    expect(preview.value).toContain('- Held local: no')
-    expect(preview.value).not.toContain('source: AI Chat')
-
-    fireEvent.click(screen.getByTestId('crystallize-apply'))
-
-    await waitFor(() => expect(onVaultChanged).toHaveBeenCalledOnce())
-    expect(onFileCreated).toHaveBeenCalledWith(expect.stringMatching(/^memory\/crystallized\//))
-    expect(Object.values(window.__mockContent ?? {}).some((content) => (
-      content.includes('# Agent Council synthesis') &&
-      content.includes('source: "Agent Council"') &&
-      content.includes('handoff: agent_council')
-    ))).toBe(true)
   })
 
   it('shows linked count in context bar when entry has outgoing links', () => {
@@ -529,7 +446,7 @@ describe('AiPanel', () => {
     expect(screen.getByTestId('agent-send')).toBeDisabled()
   })
 
-  it('keeps dashboard ask packages visible in Council and Context Capsule after queueing', async () => {
+  it('keeps dashboard ask packages inspectable after queueing', async () => {
     const askPackage = {
       kind: 'dashboard-ask' as const,
       prompt: 'what needs attention?',
@@ -554,13 +471,12 @@ describe('AiPanel', () => {
     })
 
     expect(mockSendMessage).toHaveBeenCalledWith('what needs attention?', askPackage.references, askPackage)
-    openIntelligenceDetails()
-    expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('Context Capsule')
-    expect(screen.getByTestId('context-capsule-card')).toHaveTextContent('2')
-    expect(screen.getByTestId('agent-council')).toHaveTextContent('Grimoire')
-    expect(screen.getByTestId('agent-council')).toHaveTextContent('Grimoire Memory')
-    expect(screen.getByTestId('agent-council')).toHaveTextContent('Conflicts: Old Plan')
-    expect(screen.getByTestId('agent-council')).toHaveTextContent('dashboard ask package')
+    expect(screen.getByTestId('ai-intelligence-summary')).toHaveTextContent('2 sources')
+    expect(screen.queryByTestId('agent-council')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('ai-context-inspector'))
+    expect(screen.getByTestId('context-manifest-sources')).toHaveTextContent('Grimoire')
+    expect(screen.getByTestId('context-manifest-sources')).toHaveTextContent('Grimoire Memory')
+    expect(screen.getByTestId('context-capsule-dialog')).not.toHaveTextContent('Agent Council')
   })
 
   it('surfaces an unsupported image paste notice without locking the composer', () => {
