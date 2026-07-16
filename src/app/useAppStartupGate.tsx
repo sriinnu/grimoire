@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from 'react'
+import { isTauri } from '../mock-tauri'
 import {
   LazyTelemetryConsentDialog as TelemetryConsentDialog,
 } from '../components/AppLazySurfaces'
@@ -45,7 +46,8 @@ export function useAppStartupGate(foundation: VaultFoundation): ReactNode | null
 
   if (!noteWindowParams && onboarding.state.status === 'loading') return <LoadingView />
 
-  if (!noteWindowParams && settingsLoaded && settings.telemetry_consent === null) {
+  // Crash reporting is native-only; the browser demo must never gate on it.
+  if (!noteWindowParams && settingsLoaded && settings.telemetry_consent === null && isTauri()) {
     return (
       <TelemetryConsentDialog
         onAccept={() => saveSettings({
