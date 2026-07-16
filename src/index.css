@@ -59,6 +59,17 @@
     box-sizing: border-box;
   }
 
+  /* Tailwind v4 preflight leaves buttons on the arrow cursor; interactive
+   * things must read as clickable. Disabled states keep the default cursor. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  label[for],
+  select:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
   body {
     @apply bg-background text-foreground;
     margin: 0;

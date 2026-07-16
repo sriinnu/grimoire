@@ -124,7 +124,7 @@ function GraphModalContent({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Filter pages by title or type"
-              className="h-7 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+              className="h-7 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0"
               data-testid="graph-filter"
             />
           </label>
