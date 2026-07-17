@@ -1,4 +1,4 @@
-import type { DiscoveredApp } from '../utils/appStoreImport'
+import type { DiscoveredApp, InstalledAppDatabaseId } from '../utils/appStoreImport'
 import type { VaultPortabilityActionId } from '../lib/vaultPortability'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
 import { isPortabilityActionDisabled } from './PortabilityActionDeckModel'
@@ -9,8 +9,45 @@ interface InstalledAppImportActionsProps {
   vaultReady: boolean
   busyAction: VaultPortabilityActionId | null
   installedApps: DiscoveredApp[]
-  onPreviewBearDatabase?: () => void
-  onImportBearDatabase?: () => void
+  onPreviewAppDatabase?: (appId?: InstalledAppDatabaseId) => void
+  onImportAppDatabase?: (appId?: InstalledAppDatabaseId) => void
+}
+
+interface DatabaseActionConfig {
+  appId: InstalledAppDatabaseId
+  previewLabelKey: Parameters<PortabilityActionDeckTranslate>[0]
+  importLabelKey: Parameters<PortabilityActionDeckTranslate>[0]
+  previewActionId: VaultPortabilityActionId
+  importActionId: VaultPortabilityActionId
+  previewTestId: string
+  importTestId: string
+}
+
+const DATABASE_ACTIONS: Record<InstalledAppDatabaseId, DatabaseActionConfig> = {
+  bear: {
+    appId: 'bear',
+    previewLabelKey: 'settings.portability.previewBearDatabase',
+    importLabelKey: 'settings.portability.importBearDatabase',
+    previewActionId: 'bear-db-preview',
+    importActionId: 'bear-db',
+    previewTestId: 'settings-preview-bear-database',
+    importTestId: 'settings-import-bear-database',
+  },
+  'day-one': {
+    appId: 'day-one',
+    previewLabelKey: 'settings.portability.previewDayOneDatabase',
+    importLabelKey: 'settings.portability.importDayOneDatabase',
+    previewActionId: 'day-one-db-preview',
+    importActionId: 'day-one-db',
+    previewTestId: 'settings-preview-day-one-database',
+    importTestId: 'settings-import-day-one-database',
+  },
+}
+
+function databaseActionsFor(app: DiscoveredApp): DatabaseActionConfig | null {
+  if (!app.store_found || app.support !== 'full') return null
+  if (app.id === 'bear' || app.id === 'day-one') return DATABASE_ACTIONS[app.id]
+  return null
 }
 
 /** Direct imports from app data stores Grimoire discovered on this machine. */
@@ -19,8 +56,8 @@ export function InstalledAppImportActions({
   vaultReady,
   busyAction,
   installedApps,
-  onPreviewBearDatabase,
-  onImportBearDatabase,
+  onPreviewAppDatabase,
+  onImportAppDatabase,
 }: InstalledAppImportActionsProps) {
   if (installedApps.length === 0) return null
 
@@ -37,42 +74,45 @@ export function InstalledAppImportActions({
           {t('settings.portability.installedAppsDescription')}
         </div>
       </div>
-      {installedApps.map((app) => (
-        <div
-          key={app.id}
-          className="flex flex-wrap items-center gap-2"
-          data-testid={`settings-installed-app-${app.id}`}
-        >
-          <span className="text-xs font-medium text-foreground">{app.name}</span>
-          <span
-            className="text-[11px] text-muted-foreground"
-            data-testid={`settings-installed-app-status-${app.id}`}
+      {installedApps.map((app) => {
+        const actions = databaseActionsFor(app)
+        return (
+          <div
+            key={app.id}
+            className="flex flex-wrap items-center gap-2"
+            data-testid={`settings-installed-app-${app.id}`}
           >
-            {statusLine(t, app)}
-          </span>
-          {app.id === 'bear' && app.store_found && app.support === 'full' ? (
-            <span className="flex flex-wrap gap-2">
-              <PortabilityImportButton
-                label={t('settings.portability.previewBearDatabase')}
-                testId="settings-preview-bear-database"
-                busy={busyAction === 'bear-db-preview'}
-                busyLabel={t('settings.portability.previewing')}
-                disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewBearDatabase)}
-                onClick={onPreviewBearDatabase}
-                t={t}
-              />
-              <PortabilityImportButton
-                label={t('settings.portability.importBearDatabase')}
-                testId="settings-import-bear-database"
-                busy={busyAction === 'bear-db'}
-                disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportBearDatabase)}
-                onClick={onImportBearDatabase}
-                t={t}
-              />
+            <span className="text-xs font-medium text-foreground">{app.name}</span>
+            <span
+              className="text-[11px] text-muted-foreground"
+              data-testid={`settings-installed-app-status-${app.id}`}
+            >
+              {statusLine(t, app)}
             </span>
-          ) : null}
-        </div>
-      ))}
+            {actions ? (
+              <span className="flex flex-wrap gap-2">
+                <PortabilityImportButton
+                  label={t(actions.previewLabelKey)}
+                  testId={actions.previewTestId}
+                  busy={busyAction === actions.previewActionId}
+                  busyLabel={t('settings.portability.previewing')}
+                  disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewAppDatabase)}
+                  onClick={() => onPreviewAppDatabase?.(actions.appId)}
+                  t={t}
+                />
+                <PortabilityImportButton
+                  label={t(actions.importLabelKey)}
+                  testId={actions.importTestId}
+                  busy={busyAction === actions.importActionId}
+                  disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportAppDatabase)}
+                  onClick={() => onImportAppDatabase?.(actions.appId)}
+                  t={t}
+                />
+              </span>
+            ) : null}
+          </div>
+        )
+      })}
     </div>
   )
 }

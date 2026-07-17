@@ -1,4 +1,4 @@
-use crate::vault::{self, BearDatabaseImportSummary, DiscoveredApp};
+use crate::vault::{self, BearDatabaseImportSummary, DayOneDatabaseImportSummary, DiscoveredApp};
 use std::path::PathBuf;
 
 use super::boundary::with_boundary;
@@ -31,4 +31,25 @@ pub async fn import_bear_database(
     })
     .await
     .map_err(|e| format!("Bear database import task failed: {e}"))?
+}
+
+/// Imports journal entries straight from a snapshotted Day One SQLite store.
+///
+/// The vault path is boundary-validated; the store path legitimately lives
+/// OUTSIDE the vault (Day One's group container) and is validated by the
+/// importer to exist, end in `.sqlite`, and stay outside the vault.
+#[tauri::command]
+pub async fn import_day_one_database(
+    vault_path: PathBuf,
+    store_path: PathBuf,
+    dry_run: bool,
+) -> Result<DayOneDatabaseImportSummary, String> {
+    let raw_vault_path = vault_path.to_string_lossy().into_owned();
+    tokio::task::spawn_blocking(move || {
+        with_boundary(Some(raw_vault_path.as_str()), |boundary| {
+            vault::import_day_one_database(boundary.requested_root(), store_path.as_path(), dry_run)
+        })
+    })
+    .await
+    .map_err(|e| format!("Day One database import task failed: {e}"))?
 }

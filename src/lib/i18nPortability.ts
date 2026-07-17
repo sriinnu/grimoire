@@ -25,6 +25,8 @@ export const EN_PORTABILITY_TRANSLATIONS = {
   'settings.portability.installedAppDetectedOnly': 'Detected — import coming soon',
   'settings.portability.previewBearDatabase': 'Preview Bear database',
   'settings.portability.importBearDatabase': 'Import Bear database',
+  'settings.portability.previewDayOneDatabase': 'Preview Day One database',
+  'settings.portability.importDayOneDatabase': 'Import Day One database',
   'settings.portability.previewObsidian': 'Preview Obsidian',
   'settings.portability.importObsidian': 'Import Obsidian',
   'settings.portability.previewNotion': 'Preview Notion ZIP',

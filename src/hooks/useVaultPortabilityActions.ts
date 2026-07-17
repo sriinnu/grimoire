@@ -22,8 +22,11 @@ import {
 import {
   discoverImportableApps,
   formatBearDatabaseSummaryToast,
+  formatDayOneDatabaseSummaryToast,
   importBearDatabase,
+  importDayOneDatabase,
   type DiscoveredApp,
+  type InstalledAppDatabaseId,
 } from '../utils/appStoreImport'
 import {
   formatPortabilityCapsuleImportPreviewToast,
@@ -308,22 +311,28 @@ export function useVaultPortabilityActions({
       setActiveAction(null)
     }
   }, [lastImportPreview, reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
-  const handleBearDatabase = useCallback(async (mode: 'preview' | 'import') => {
+  const handleAppDatabase = useCallback(async (appId: InstalledAppDatabaseId, mode: 'preview' | 'import') => {
+    const label = appId === 'day-one' ? 'Day One database' : 'Bear database'
     if (!resolvedPath.trim()) {
-      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} the Bear database`)
+      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} the ${label}`)
       return
     }
-    const storePath = installedApps.find((app) => app.id === 'bear')?.store_path
+    const storePath = installedApps.find((app) => app.id === appId)?.store_path
     if (!storePath) {
-      setToastMessage('Bear database not found on this Mac')
+      setToastMessage(`${label} not found on this Mac`)
       return
     }
-    setActiveAction(mode === 'preview' ? 'bear-db-preview' : 'bear-db')
+    const actionId = appId === 'day-one'
+      ? (mode === 'preview' ? 'day-one-db-preview' : 'day-one-db')
+      : (mode === 'preview' ? 'bear-db-preview' : 'bear-db')
+    setActiveAction(actionId)
     try {
-      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} Bear database...`)
-      const summary = await importBearDatabase(resolvedPath, storePath, mode === 'preview')
+      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label}...`)
+      const toast = appId === 'day-one'
+        ? formatDayOneDatabaseSummaryToast(await importDayOneDatabase(resolvedPath, storePath, mode === 'preview'))
+        : formatBearDatabaseSummaryToast(await importBearDatabase(resolvedPath, storePath, mode === 'preview'))
       if (mode === 'import') await reloadAfterImport()
-      setToastMessage(formatBearDatabaseSummaryToast(summary))
+      setToastMessage(toast)
     } catch (error) {
       setToastMessage(`${mode === 'preview' ? 'Preview' : 'Import'} failed: ${errorMessage(error, 'Import failed')}`)
     } finally {
@@ -422,7 +431,10 @@ export function useVaultPortabilityActions({
     handlePreviewMarkdownFolder: () => { void handlePreviewFolder('markdown-folder') }, handleImportMarkdownFolder: () => { void handleImportFolder('markdown-folder') },
     handlePreviewMarkdownZip: () => { void handlePreviewMarkdownZip() }, handleImportMarkdownZip: () => { void handleImportFolder('markdown-zip') },
     handlePreviewBear: () => { void handlePreviewFolder('bear') }, handleImportBear: () => { void handleImportFolder('bear') },
-    handlePreviewBearDatabase: () => { void handleBearDatabase('preview') }, handleImportBearDatabase: () => { void handleBearDatabase('import') },
+    // Named for the first app it served; the optional id also routes Day One so
+    // the settings chrome prop chain stays untouched. Defaults to Bear.
+    handlePreviewBearDatabase: (appId?: InstalledAppDatabaseId) => { void handleAppDatabase(appId ?? 'bear', 'preview') },
+    handleImportBearDatabase: (appId?: InstalledAppDatabaseId) => { void handleAppDatabase(appId ?? 'bear', 'import') },
     handlePreviewObsidian: () => { void handleAppExport('obsidian', 'preview') }, handleImportObsidian: () => { void handleAppExport('obsidian', 'import') },
     handlePreviewNotion: () => { void handleAppExport('notion-markdown', 'preview') }, handleImportNotion: () => { void handleAppExport('notion-markdown', 'import') },
     handlePreviewNotionFolder: () => { void handleAppExport('notion-folder', 'preview') }, handleImportNotionFolder: () => { void handleAppExport('notion-folder', 'import') },

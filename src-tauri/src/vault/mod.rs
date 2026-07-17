@@ -14,6 +14,9 @@ mod bear_importer;
 mod bear_importer_tests;
 mod cache;
 mod config_seed;
+mod day_one_importer;
+#[cfg(test)]
+mod day_one_importer_tests;
 mod entry;
 mod exporter;
 mod exporter_progress;
@@ -117,6 +120,7 @@ pub use config_seed::{
     get_ai_guidance_status, migrate_agents_md, repair_config_files, restore_ai_guidance_files,
     seed_config_files, AiGuidanceFileState, VaultAiGuidanceStatus,
 };
+pub use day_one_importer::{import_day_one_database, DayOneDatabaseImportSummary};
 pub use entry::{FolderNode, VaultEntry};
 pub use exporter::{export_markdown_zip, VaultExportReport};
 pub use exporter_progress::{export_markdown_zip_with_progress, VaultExportProgressEvent};

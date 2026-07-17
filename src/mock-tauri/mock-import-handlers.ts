@@ -15,7 +15,7 @@ interface CapsuleImportArgs extends ImportPathArgs {
   previewSignature?: string
 }
 
-interface BearDatabaseImportArgs {
+interface AppDatabaseImportArgs {
   vaultPath?: string
   storePath?: string
   dryRun?: boolean
@@ -158,12 +158,13 @@ export const mockImportHandlers = {
     const kind = args.sourceKind ?? 'obsidian'
     return mockImportPreview(vault, source, `${kind}-export`, `app-${kind}`)
   },
-  // Browser mode has no local app stores, so discovery reports both apps absent.
+  // Browser mode has no local app stores, so discovery reports every app absent.
   discover_importable_apps: () => [
     { id: 'bear', name: 'Bear', installed: false, store_found: false, store_path: null, support: 'full' },
+    { id: 'day-one', name: 'Day One', installed: false, store_found: false, store_path: null, support: 'full' },
     { id: 'apple-notes', name: 'Apple Notes', installed: false, store_found: false, store_path: null, support: 'detected-only' },
   ],
-  import_bear_database: (args: BearDatabaseImportArgs) => {
+  import_bear_database: (args: AppDatabaseImportArgs) => {
     const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
     const dryRun = args.dryRun ?? true
     return {
@@ -175,6 +176,22 @@ export const mockImportHandlers = {
       skipped_encrypted: 1,
       failed_notes: 0,
       sample_titles: ['Daily Plan', 'Reading Notes', 'Project Sigil', 'Untitled'],
+      dry_run: dryRun,
+    }
+  },
+  import_day_one_database: (args: AppDatabaseImportArgs) => {
+    const vault = args.vaultPath ?? DEFAULT_MOCK_VAULT_PATH
+    const dryRun = args.dryRun ?? true
+    return {
+      source_store: args.storePath ?? '/Users/mock/Library/Group Containers/5U8NS4GX82.dayoneapp2/Data/Documents/DayOne.sqlite',
+      imported_root: `${vault}/imports/day-one`,
+      report_path: dryRun ? null : `${vault}/imports/day-one/import-report.md`,
+      entries_imported: 6,
+      skipped_empty: 1,
+      skipped_trashed: 1,
+      failed_entries: 0,
+      journals: ['Daily', 'Reflections'],
+      sample_titles: ['Morning Pages', 'Evening Walk', 'Gratitude'],
       dry_run: dryRun,
     }
   },

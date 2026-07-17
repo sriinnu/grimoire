@@ -144,8 +144,8 @@ export function PortabilityActionDeck({
         vaultReady={vaultReady}
         busyAction={busyAction}
         installedApps={installedApps ?? []}
-        onPreviewBearDatabase={onPreviewBearDatabase}
-        onImportBearDatabase={onImportBearDatabase}
+        onPreviewAppDatabase={onPreviewBearDatabase}
+        onImportAppDatabase={onImportBearDatabase}
       />
       <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border p-1" role="tablist">
         {lanes.map((lane) => (

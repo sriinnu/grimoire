@@ -10,7 +10,7 @@ import type {
   AppImportSource,
   JournalImportSource,
 } from '../utils/markdownFolderImport'
-import type { DiscoveredApp } from '../utils/appStoreImport'
+import type { DiscoveredApp, InstalledAppDatabaseId } from '../utils/appStoreImport'
 import type { PortabilityCapsuleFormat } from '../lib/portabilityCapsule'
 import type { AzureLivePreflightArgs, AzureLivePreflightReport } from '../utils/objectStorageLivePreflight'
 import type { ObjectStorageSyncReport, S3LivePreflightArgs, S3LivePreflightReport } from '../utils/objectStorageSync'
@@ -40,7 +40,9 @@ export interface VaultPortabilityActions {
   handlePreviewMarkdownFolder: () => void; handleImportMarkdownFolder: () => void
   handlePreviewMarkdownZip: () => void; handleImportMarkdownZip: () => void
   handlePreviewBear: () => void; handleImportBear: () => void
-  handlePreviewBearDatabase: () => void; handleImportBearDatabase: () => void
+  // The optional app id routes any installed-app database (Bear default, Day
+  // One via 'day-one') without widening the settings chrome prop chain.
+  handlePreviewBearDatabase: (appId?: InstalledAppDatabaseId) => void; handleImportBearDatabase: (appId?: InstalledAppDatabaseId) => void
   handlePreviewObsidian: () => void; handleImportObsidian: () => void
   handlePreviewNotion: () => void; handleImportNotion: () => void
   handlePreviewNotionFolder: () => void; handleImportNotionFolder: () => void
