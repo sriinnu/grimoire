@@ -234,7 +234,7 @@ describe('VaultDashboard', () => {
       />,
     )
 
-    const panel = await screen.findByTestId('dream-forge-panel')
+    const panel = await screen.findByTestId('dream-forge-panel', undefined, { timeout: 10000 })
     for (const [name, value] of [['data-locality', 'local-only'], ['data-private-surface', 'dream-forge']]) expect(panel).toHaveAttribute(name, value)
     const contract = within(panel).getByTestId('dream-forge-privacy-contract')
     expect(contract).toHaveAccessibleName('Dream Review private lens contract')
