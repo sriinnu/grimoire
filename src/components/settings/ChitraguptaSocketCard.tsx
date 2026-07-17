@@ -94,6 +94,7 @@ export function ChitraguptaSocketCard({ t }: { t: SettingsTranslate }) {
       />
 
       <SettingsActionRow
+        stacked
         label={t('settings.aiAgents.chitraguptaSocketConnect')}
         description={phase === 'waiting'
           ? (

@@ -52,7 +52,7 @@ describe('PortabilityActionDeck reviewed state', () => {
       />,
     )
 
-    expect(screen.getByText('Preview Day One')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Day One' })).toBeInTheDocument()
     expect(screen.getByTestId('settings-import-day-one')).not.toBeDisabled()
     expect(screen.getByTestId('settings-import-journey')).toBeDisabled()
     expect(screen.getByTestId('settings-import-obsidian')).toBeDisabled()

@@ -12,7 +12,7 @@ import type { PortabilityActionDeckProps, PortabilityActionDeckTranslate } from 
 import { isPortabilityActionDisabled } from './PortabilityActionDeckModel'
 import { PortabilityActionButton, PortabilityImportButton } from './PortabilityActionButton'
 import { PortabilityActionProgress } from './PortabilityActionProgress'
-import { PortabilityRowLabel } from './PortabilityGroups'
+import { PortabilityStatusBadge } from './PortabilityGroups'
 import {
   SettingsActionRow,
   SettingsGroup,
@@ -23,11 +23,20 @@ import { Badge } from './ui/badge'
 type DeckLabelKey = Parameters<PortabilityActionDeckTranslate>[0]
 
 interface DeckActionButton {
+  /** Full-context label; kept as the accessible name of the button. */
   labelKey: DeckLabelKey
+  /** Short verb-only label shown on the button ("Preview", "Import ZIP", ...). */
+  shortLabelKey?: DeckLabelKey
   testId: string
   actionId: VaultPortabilityActionId
   kind: 'preview' | 'import' | 'export'
   onClick?: () => void
+}
+
+const DEFAULT_SHORT_LABEL: Record<DeckActionButton['kind'], DeckLabelKey> = {
+  preview: 'settings.portability.actionPreview',
+  import: 'settings.portability.actionImport',
+  export: 'settings.portability.actionExport',
 }
 
 interface DeckActionRow {
@@ -154,10 +163,10 @@ export function PortabilityActionDeck({
     {
       sourceId: 'notion-markdown',
       buttons: [
-        { labelKey: 'settings.portability.previewNotion', testId: 'settings-preview-notion', actionId: 'notion-markdown-preview', kind: 'preview', onClick: onPreviewNotion },
-        { labelKey: 'settings.portability.importNotion', testId: 'settings-import-notion', actionId: 'notion-markdown', kind: 'import', onClick: onImportNotion },
-        { labelKey: 'settings.portability.previewNotionFolder', testId: 'settings-preview-notion-folder', actionId: 'notion-folder-preview', kind: 'preview', onClick: onPreviewNotionFolder },
-        { labelKey: 'settings.portability.importNotionFolder', testId: 'settings-import-notion-folder', actionId: 'notion-folder', kind: 'import', onClick: onImportNotionFolder },
+        { labelKey: 'settings.portability.previewNotion', shortLabelKey: 'settings.portability.actionPreviewZip', testId: 'settings-preview-notion', actionId: 'notion-markdown-preview', kind: 'preview', onClick: onPreviewNotion },
+        { labelKey: 'settings.portability.importNotion', shortLabelKey: 'settings.portability.actionImportZip', testId: 'settings-import-notion', actionId: 'notion-markdown', kind: 'import', onClick: onImportNotion },
+        { labelKey: 'settings.portability.previewNotionFolder', shortLabelKey: 'settings.portability.actionPreviewFolder', testId: 'settings-preview-notion-folder', actionId: 'notion-folder-preview', kind: 'preview', onClick: onPreviewNotionFolder },
+        { labelKey: 'settings.portability.importNotionFolder', shortLabelKey: 'settings.portability.actionImportFolder', testId: 'settings-import-notion-folder', actionId: 'notion-folder', kind: 'import', onClick: onImportNotionFolder },
       ],
     },
     {
@@ -274,7 +283,9 @@ export function PortabilityActionDeck({
           return (
             <SettingsActionRow
               key={row.sourceId}
-              label={<PortabilityRowLabel label={source.label} status={source.status} t={t} />}
+              stacked
+              label={source.label}
+              badge={<PortabilityStatusBadge status={source.status} t={t} />}
               description={source.description}
               actions={row.buttons.map(renderImportButton)}
             />
@@ -293,7 +304,9 @@ export function PortabilityActionDeck({
           return (
             <SettingsActionRow
               key={row.sourceId}
-              label={<PortabilityRowLabel label={target.label} status={target.status} t={t} />}
+              stacked
+              label={target.label}
+              badge={<PortabilityStatusBadge status={target.status} t={t} />}
               description={target.description}
               actions={row.buttons.length > 0 ? row.buttons.map(renderExportButton) : null}
             />
@@ -361,7 +374,8 @@ export function PortabilityActionDeck({
     return (
       <PortabilityImportButton
         key={button.actionId}
-        label={t(button.labelKey)}
+        label={t(button.shortLabelKey ?? DEFAULT_SHORT_LABEL[button.kind])}
+        ariaLabel={t(button.labelKey)}
         testId={button.testId}
         busy={busyAction === button.actionId}
         busyLabel={button.kind === 'preview' ? previewing : undefined}
@@ -385,7 +399,8 @@ export function PortabilityActionDeck({
       <PortabilityActionButton
         key={button.actionId}
         icon={<Glyph name="upload" size={14} />}
-        label={t(button.labelKey)}
+        label={t(button.shortLabelKey ?? DEFAULT_SHORT_LABEL[button.kind])}
+        ariaLabel={t(button.labelKey)}
         testId={button.testId}
         busy={busyAction === button.actionId}
         busyLabel={button.kind === 'preview' ? previewing : t('settings.portability.exporting')}

@@ -106,5 +106,56 @@ describe('Settings grouped-form primitives', () => {
     expect(within(actions as HTMLElement).getByRole('button', { name: 'Export' })).toBeInTheDocument()
     expect(row.querySelector('.settings-row__label')).toHaveTextContent('Pack file')
     expect(row.querySelector('.settings-row__description')).toHaveTextContent('Load or export JSON.')
+    // Compact rows keep the side-by-side grid: no stacked variant marker.
+    expect(row).not.toHaveAttribute('data-variant')
+  })
+
+  it('stacks the action row with an inline badge, full-width description, and actions below', () => {
+    render(
+      <SettingsActionRow
+        stacked
+        label="Markdown folder"
+        badge={<span data-testid="row-badge">ready</span>}
+        description="A long description that needs the full row width."
+        testId="stacked-row"
+        actions={
+          <>
+            <button type="button">Preview</button>
+            <button type="button">Import</button>
+          </>
+        }
+      />,
+    )
+
+    const row = screen.getByTestId('stacked-row')
+    expect(row).toHaveAttribute('data-variant', 'stacked')
+
+    // Header line: label with the badge inline beside it.
+    const label = row.querySelector('.settings-row__label')
+    expect(label).toHaveTextContent('Markdown folder')
+    expect(within(label as HTMLElement).getByTestId('row-badge')).toBeInTheDocument()
+    expect(label?.querySelector('.settings-row__badge')).not.toBeNull()
+
+    // Description below the header, actions as the row's own trailing line.
+    const children = Array.from(row.children)
+    expect(children[0]).toHaveClass('settings-row__text')
+    expect(children[1]).toHaveClass('settings-row__actions')
+    expect(within(children[1] as HTMLElement).getByRole('button', { name: 'Preview' })).toBeInTheDocument()
+    expect(within(children[1] as HTMLElement).getByRole('button', { name: 'Import' })).toBeInTheDocument()
+  })
+
+  it('omits the actions line entirely when a stacked row has no actions', () => {
+    render(
+      <SettingsActionRow
+        stacked
+        label="Vault folder"
+        description="Already portable."
+        testId="stacked-actionless-row"
+        actions={null}
+      />,
+    )
+
+    const row = screen.getByTestId('stacked-actionless-row')
+    expect(row.querySelector('.settings-row__actions')).toBeNull()
   })
 })

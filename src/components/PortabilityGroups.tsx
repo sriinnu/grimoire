@@ -109,17 +109,31 @@ export function PortabilityRowLabel({
   return (
     <span className="flex flex-wrap items-center gap-1.5">
       <span>{label}</span>
-      <Badge variant="outline" className="rounded-md text-[10px] font-normal text-muted-foreground">
-        {portabilityStatusLabel(status, t)}
-      </Badge>
+      <PortabilityStatusBadge status={status} t={t} />
     </span>
+  )
+}
+
+/** Quiet support-status chip for the settings-row inline badge slot. */
+export function PortabilityStatusBadge({
+  status,
+  t,
+}: {
+  status: VaultPortabilityStatus
+  t: Translate
+}) {
+  return (
+    <Badge variant="outline" className="rounded-md text-[10px] font-normal text-muted-foreground">
+      {portabilityStatusLabel(status, t)}
+    </Badge>
   )
 }
 
 /** Maps a portability support status to its localized short label. */
 function portabilityStatusLabel(status: VaultPortabilityStatus, t: Translate): string {
   if (status === 'ready') return t('settings.portability.ready')
-  if (status === 'preview-backed') return t('settings.portability.supportPreviewBacked')
+  // Render-side rename: the lib keeps 'preview-backed'; the badge drops the jargon.
+  if (status === 'preview-backed') return t('settings.portability.supportPreviewRequired')
   if (status === 'folder-proof') return t('settings.portability.supportFolderProofOnly')
   if (status === 'proof-preview') return t('settings.portability.proofPreview')
   return t('settings.portability.planned')

@@ -4,6 +4,7 @@ import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.typ
 import { isPortabilityActionDisabled } from './PortabilityActionDeckModel'
 import { PortabilityImportButton } from './PortabilityActionButton'
 import { SettingsActionRow, SettingsGroup } from './settings/primitives/SettingsGroup'
+import { Badge } from './ui/badge'
 
 interface InstalledAppImportActionsProps {
   t: PortabilityActionDeckTranslate
@@ -73,17 +74,21 @@ export function InstalledAppImportActions({
         return (
           <SettingsActionRow
             key={app.id}
+            stacked
             testId={`settings-installed-app-${app.id}`}
             label={app.name}
-            description={
-              <span data-testid={`settings-installed-app-status-${app.id}`}>
-                {statusLine(t, app)}
-              </span>
+            badge={
+              <Badge variant="outline" className="rounded-md text-[10px] font-normal text-muted-foreground">
+                <span data-testid={`settings-installed-app-status-${app.id}`}>
+                  {statusLine(t, app)}
+                </span>
+              </Badge>
             }
             actions={actions ? (
               <>
                 <PortabilityImportButton
-                  label={t(actions.previewLabelKey)}
+                  label={t('settings.portability.actionPreview')}
+                  ariaLabel={t(actions.previewLabelKey)}
                   testId={actions.previewTestId}
                   busy={busyAction === actions.previewActionId}
                   busyLabel={t('settings.portability.previewing')}
@@ -92,7 +97,8 @@ export function InstalledAppImportActions({
                   t={t}
                 />
                 <PortabilityImportButton
-                  label={t(actions.importLabelKey)}
+                  label={t('settings.portability.actionImport')}
+                  ariaLabel={t(actions.importLabelKey)}
                   testId={actions.importTestId}
                   busy={busyAction === actions.importActionId}
                   disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportAppDatabase)}

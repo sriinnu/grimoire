@@ -148,3 +148,26 @@
   gap: 8px;
   min-width: 0;
 }
+
+/* Stacked action row: header line (label + inline badge), full-width
+   description, then the actions on their own line under the text. */
+.settings-row[data-variant="stacked"] {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  row-gap: 8px;
+}
+
+.settings-row[data-variant="stacked"] .settings-row__description {
+  max-width: 580px;
+}
+
+.settings-row[data-variant="stacked"] .settings-row__actions {
+  justify-content: flex-start;
+}
+
+/* Status chip sitting inline beside the row title. */
+.settings-row__badge {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-left: 8px;
+}

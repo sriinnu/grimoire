@@ -78,8 +78,8 @@ describe('PortabilityActionDeck installed apps group', () => {
     renderDeck([dayOneWithStore], { onPreviewBearDatabase, onImportBearDatabase })
 
     expect(screen.getByTestId('settings-installed-app-status-day-one')).toHaveTextContent('Store found')
-    expect(screen.getByText('Preview Day One database')).toBeInTheDocument()
-    expect(screen.getByText('Import Day One database')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Day One database' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Import Day One database' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('settings-preview-day-one-database'))
     expect(onPreviewBearDatabase).toHaveBeenCalledExactlyOnceWith('day-one')
@@ -151,7 +151,7 @@ describe('PortabilityActionDeck installed apps group', () => {
   it('keeps the renamed manual Bear backup folder buttons in the import group', () => {
     renderDeck([bearWithStore])
 
-    expect(screen.getByText('Preview Bear backup folder')).toBeInTheDocument()
-    expect(screen.getByText('Import Bear backup folder')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Bear backup folder' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Import Bear backup folder' })).toBeInTheDocument()
   })
 })

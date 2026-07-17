@@ -84,21 +84,39 @@ export function SettingsRow({
   )
 }
 
-/** Label/description left with one or two small trailing action buttons. */
+/**
+ * Label/description left with one or two small trailing action buttons.
+ *
+ * `stacked` switches to the long-description layout: a header line (label plus
+ * an optional inline `badge` chip), the description at full width below it,
+ * and the actions on their own line beneath, left-aligned under the text.
+ */
 export function SettingsActionRow({
   label,
   description,
+  badge,
   actions,
+  stacked = false,
   testId,
 }: {
   label: ReactNode
   description?: ReactNode
+  badge?: ReactNode
   actions: ReactNode
+  stacked?: boolean
   testId?: string
 }) {
+  if (stacked) {
+    return (
+      <div className="settings-row" data-variant="stacked" data-testid={testId}>
+        <SettingsRowText label={label} badge={badge} description={description} />
+        {actions != null ? <div className="settings-row__actions">{actions}</div> : null}
+      </div>
+    )
+  }
   return (
     <div className="settings-row" data-testid={testId}>
-      <SettingsRowText label={label} description={description} />
+      <SettingsRowText label={label} badge={badge} description={description} />
       <div className="settings-row__actions">{actions}</div>
     </div>
   )
@@ -106,14 +124,21 @@ export function SettingsActionRow({
 
 function SettingsRowText({
   label,
+  badge,
   description,
 }: {
   label?: ReactNode
+  badge?: ReactNode
   description?: ReactNode
 }) {
   return (
     <div className="settings-row__text">
-      {label != null ? <div className="settings-row__label">{label}</div> : null}
+      {label != null ? (
+        <div className="settings-row__label">
+          {label}
+          {badge != null ? <span className="settings-row__badge">{badge}</span> : null}
+        </div>
+      ) : null}
       {description != null ? (
         <div className="settings-row__description">{description}</div>
       ) : null}
