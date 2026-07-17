@@ -383,6 +383,14 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   rename_note: handleRenameNote,
   rename_note_filename: handleRenameNoteFilename,
   move_note_to_folder: handleMoveNoteToFolder,
+  move_vault_folder: (args: { folderPath?: string; folder_path?: string; destinationPath?: string; destination_path?: string }) => {
+    const folderPath = (args.folderPath ?? args.folder_path ?? '').replace(/\/+$/, '')
+    const destination = (args.destinationPath ?? args.destination_path ?? '.').trim()
+    const folderName = folderPath.split('/').filter(Boolean).at(-1) ?? folderPath
+    const newPath = destination && destination !== '.' ? `${destination}/${folderName}` : folderName
+    return { old_path: folderPath, new_path: newPath, updated_files: 0 }
+  },
+  reveal_path_in_finder: () => null,
   clone_repo: (args: { url: string; localPath?: string; local_path?: string }) => {
     const localPath = args.localPath ?? args.local_path ?? ''
     setMockGitState(localPath, true)

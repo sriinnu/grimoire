@@ -365,6 +365,35 @@ describe('NoteList note context menu', () => {
     expect(onUpdateFrontmatter).toHaveBeenCalledWith('/vault/alpha.md', 'type', 'Project')
   })
 
+  it('offers Move to… and reveal actions that receive the right-clicked entry', () => {
+    const onMoveToFolder = vi.fn()
+    const onRevealInFinder = vi.fn()
+    const entries = [
+      makeEntry({ path: '/vault/alpha.md', title: 'Alpha' }),
+    ]
+
+    renderNoteList({ entries, onMoveToFolder, onRevealInFinder })
+
+    fireEvent.contextMenu(screen.getByText('Alpha'))
+    fireEvent.click(screen.getByTestId('note-context-move-to-folder'))
+    expect(onMoveToFolder).toHaveBeenCalledWith(expect.objectContaining({ path: '/vault/alpha.md' }))
+
+    fireEvent.contextMenu(screen.getByText('Alpha'))
+    fireEvent.click(screen.getByTestId('note-context-reveal-in-finder'))
+    expect(onRevealInFinder).toHaveBeenCalledWith(expect.objectContaining({ path: '/vault/alpha.md' }))
+  })
+
+  it('hides Move to… and reveal actions when no handlers are provided', () => {
+    const entries = [makeEntry({ path: '/vault/alpha.md', title: 'Alpha' })]
+
+    renderNoteList({ entries })
+
+    fireEvent.contextMenu(screen.getByText('Alpha'))
+    expect(screen.getByTestId('note-context-menu')).toBeInTheDocument()
+    expect(screen.queryByTestId('note-context-move-to-folder')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('note-context-reveal-in-finder')).not.toBeInTheDocument()
+  })
+
   it('preserves existing tag arrays when adding a context-menu tag', () => {
     const onUpdateFrontmatter = vi.fn()
     const entries = [

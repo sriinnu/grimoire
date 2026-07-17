@@ -3,6 +3,7 @@ import type { VaultEntry } from '../types'
 import {
   entryLocalityEgressLanes,
   isLocalOnlyTypeName,
+  localityMoveEffect,
   resolveEntryLocalityPolicy,
   summarizeVaultLocality,
 } from './localityPolicy'
@@ -136,5 +137,37 @@ describe('localityPolicy', () => {
       { type: 'Note', count: 2 },
       { type: 'Dream', count: 1 },
     ])
+  })
+
+  describe('localityMoveEffect', () => {
+    it('reports protects when a move lands under a local-only path segment', () => {
+      const effect = localityMoveEffect(entry(), '/vault/journal/test.md')
+
+      expect(effect).toBe('protects')
+    })
+
+    it('reports exposes when a move leaves a local-only path segment', () => {
+      const effect = localityMoveEffect(
+        entry({ path: '/vault/journal/test.md' }),
+        '/vault/Notes/test.md',
+      )
+
+      expect(effect).toBe('exposes')
+    })
+
+    it('reports no change for moves between unprotected paths', () => {
+      expect(localityMoveEffect(entry(), '/vault/Areas/test.md')).toBeNull()
+    })
+
+    it('reports no change when protection is frontmatter- or type-based', () => {
+      const frontmatterProtected = entry({
+        path: '/vault/journal/test.md',
+        properties: { private: true },
+      })
+      expect(localityMoveEffect(frontmatterProtected, '/vault/Notes/test.md')).toBeNull()
+
+      const typeProtected = entry({ path: '/vault/journal/test.md', isA: 'Dream' })
+      expect(localityMoveEffect(typeProtected, '/vault/Notes/test.md')).toBeNull()
+    })
   })
 })

@@ -121,7 +121,9 @@ pub use entry::{FolderNode, VaultEntry};
 pub use exporter::{export_markdown_zip, VaultExportReport};
 pub use exporter_progress::{export_markdown_zip_with_progress, VaultExportProgressEvent};
 pub use file::{create_note_content, get_note_content, save_note_content};
-pub use folders::{delete_folder, rename_folder, FolderRenameResult};
+pub use folders::{
+    delete_folder, move_folder, rename_folder, FolderMoveResult, FolderRenameResult,
+};
 pub use getting_started::{create_getting_started_vault, default_vault_path, vault_exists};
 pub use html_exporter::export_static_html_archive;
 pub use html_exporter_progress::export_static_html_archive_with_progress;

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { LazyNoteList as NoteList } from './components/LazyNoteList'
 import { LazyEditor as Editor } from './components/LazyEditor'
@@ -31,6 +31,8 @@ import {
   LazyWeatherSnapshotDialog as WeatherSnapshotDialog,
 } from './components/AppLazySurfaces'
 import { NoteRetargetingProvider } from './components/note-retargeting/noteRetargetingContext'
+import { MoveFolderDialog } from './components/folder-tree/MoveFolderDialog'
+import type { VaultEntry } from './types'
 import type { NoteListItem } from './utils/ai-context'
 import { filterEntries, filterInboxEntries } from './utils/noteListHelpers'
 import { useAppBootstrap } from './app/useAppBootstrap'
@@ -94,7 +96,7 @@ function App() {
   const {
     handleInitializeProperties,
     handleUpdateAllNotesNoteListProperties, handleUpdateInboxNoteListProperties, handleCreateFolder,
-    folderActions, handleOpenEntryInNewWindow,
+    folderActions, handleOpenEntryInNewWindow, handleRevealNoteInFinder, handleRevealFolderInFinder,
     handleDiscardFile, handleOpenDeletedNote, handleReplaceActiveTabWithQueuedDiff,
   } = entryWorkspace
 
@@ -122,6 +124,13 @@ function App() {
   const startupGate = useAppStartupGate(foundation)
 
   const activeTab = notes.tabs.find((t) => t.entry.path === notes.activeTabPath) ?? null
+
+  const handleMoveEntryToFolder = useCallback((entry: VaultEntry) => {
+    noteRetargetingUi.openMoveNoteToFolderDialogForPath(entry.path)
+  }, [noteRetargetingUi])
+  const handleRevealEntryInFinder = useCallback((entry: VaultEntry) => {
+    handleRevealNoteInFinder(entry.path)
+  }, [handleRevealNoteInFinder])
 
   const inboxCount = useMemo(() => filterInboxEntries(vault.entries, inboxPeriod).length, [vault.entries, inboxPeriod])
 
@@ -152,7 +161,7 @@ function App() {
                 className={`app__sidebar${sidebarColumnCollapsed ? ' app__sidebar--collapsed' : ''}`}
                 style={{ width: sidebarColumnCollapsed ? 68 : layout.sidebarWidth }}
               >
-                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSidebarSelect} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
+                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSidebarSelect} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} onMoveFolder={folderActions.startFolderMove} onRevealFolder={handleRevealFolderInFinder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
               </div>
               {!sidebarColumnCollapsed && <ResizeHandle onResize={layout.handleSidebarResize} />}
             </>
@@ -163,7 +172,7 @@ function App() {
                 {effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'pulse' ? (
                   <PulseView vaultPath={resolvedPath} onOpenNote={handlePulseOpenNote} sidebarCollapsed={!sidebarVisible} onExpandSidebar={() => handleSetViewMode('all')} />
                 ) : (
-                  <NoteList entries={vault.entries} selection={effectiveSelection} selectedNote={activeTab?.entry ?? null} noteListFilter={noteListFilter} onNoteListFilterChange={setNoteListFilter} inboxPeriod={inboxPeriod} modifiedFiles={vault.modifiedFiles} modifiedFilesError={vault.modifiedFilesError} getNoteStatus={vault.getNoteStatus} sidebarCollapsed={!sidebarVisible} onSelectNote={notes.handleSelectNote} onReplaceActiveTab={handleReplaceActiveTabWithQueuedDiff} onEnterNeighborhood={handleEnterNeighborhood} onCreateNote={notes.handleCreateNoteImmediate} onBulkOrganize={explicitOrganizationEnabled ? bulkActions.handleBulkOrganize : undefined} onBulkArchive={bulkActions.handleBulkArchive} onBulkDeletePermanently={deleteActions.handleBulkDeletePermanently} onUpdateTypeSort={notes.handleUpdateFrontmatter} onUpdateFrontmatter={notes.handleUpdateFrontmatter} onUpdateViewDefinition={handleUpdateViewDefinition} updateEntry={vault.updateEntry} onOpenInNewWindow={handleOpenEntryInNewWindow} onDiscardFile={handleDiscardFile} onOpenDeletedNote={handleOpenDeletedNote} allNotesNoteListProperties={vaultConfig.allNotes?.noteListProperties ?? null} onUpdateAllNotesNoteListProperties={handleUpdateAllNotesNoteListProperties} inboxNoteListProperties={vaultConfig.inbox?.noteListProperties ?? null} onUpdateInboxNoteListProperties={handleUpdateInboxNoteListProperties} views={vault.views} visibleNotesRef={visibleNotesRef} multiSelectionCommandRef={multiSelectionCommandRef} locale={appLocale} />
+                  <NoteList entries={vault.entries} selection={effectiveSelection} selectedNote={activeTab?.entry ?? null} noteListFilter={noteListFilter} onNoteListFilterChange={setNoteListFilter} inboxPeriod={inboxPeriod} modifiedFiles={vault.modifiedFiles} modifiedFilesError={vault.modifiedFilesError} getNoteStatus={vault.getNoteStatus} sidebarCollapsed={!sidebarVisible} onSelectNote={notes.handleSelectNote} onReplaceActiveTab={handleReplaceActiveTabWithQueuedDiff} onEnterNeighborhood={handleEnterNeighborhood} onCreateNote={notes.handleCreateNoteImmediate} onBulkOrganize={explicitOrganizationEnabled ? bulkActions.handleBulkOrganize : undefined} onBulkArchive={bulkActions.handleBulkArchive} onBulkDeletePermanently={deleteActions.handleBulkDeletePermanently} onUpdateTypeSort={notes.handleUpdateFrontmatter} onUpdateFrontmatter={notes.handleUpdateFrontmatter} onUpdateViewDefinition={handleUpdateViewDefinition} updateEntry={vault.updateEntry} onOpenInNewWindow={handleOpenEntryInNewWindow} onMoveToFolder={handleMoveEntryToFolder} onRevealInFinder={handleRevealEntryInFinder} onDiscardFile={handleDiscardFile} onOpenDeletedNote={handleOpenDeletedNote} allNotesNoteListProperties={vaultConfig.allNotes?.noteListProperties ?? null} onUpdateAllNotesNoteListProperties={handleUpdateAllNotesNoteListProperties} inboxNoteListProperties={vaultConfig.inbox?.noteListProperties ?? null} onUpdateInboxNoteListProperties={handleUpdateInboxNoteListProperties} views={vault.views} visibleNotesRef={visibleNotesRef} multiSelectionCommandRef={multiSelectionCommandRef} locale={appLocale} />
                 )}
               </div>
               <ResizeHandle onResize={layout.handleNoteListResize} />
@@ -295,6 +304,15 @@ function App() {
           onClose={noteRetargetingUi.closeDialog}
           onSelectType={noteRetargetingUi.selectType}
           onSelectFolder={noteRetargetingUi.selectFolder}
+          onConfirmFolderMove={noteRetargetingUi.confirmFolderMove}
+        />
+        <MoveFolderDialog
+          movingFolderPath={folderActions.movingFolderPath}
+          folders={vault.folders}
+          entries={vault.entries}
+          vaultPath={resolvedPath}
+          onClose={folderActions.cancelFolderMove}
+          onMove={folderActions.moveFolder}
         />
         <CreateViewDialog open={dialogs.showCreateViewDialog} onClose={dialogs.closeCreateView} onCreate={handleCreateOrUpdateView} availableFields={availableFields} editingView={dialogs.editingView?.definition ?? null} />
         <CommitDialog

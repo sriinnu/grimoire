@@ -64,6 +64,12 @@ export function localMachineLabel(platform: DesktopPlatform = getDesktopPlatform
   return `this ${desktopPlatformDeviceLabel(platform)}`
 }
 
+export function revealInFileManagerLabel(platform: DesktopPlatform = getDesktopPlatform()): string {
+  if (platform === 'macos') return 'Reveal in Finder'
+  if (platform === 'windows') return 'Show in Explorer'
+  return 'Show in file manager'
+}
+
 export function shouldUseLinuxWindowChrome(): boolean {
   return isTauri() && isLinux()
 }

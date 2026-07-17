@@ -287,6 +287,13 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     setEntries((prev) => prev.filter((entry) => !pathSet.has(entry.path)))
   }, [])
 
+  /** Drops every entry under an absolute folder prefix — the optimistic half
+   * of a folder deletion, so the note list empties before the rescan lands. */
+  const removeEntriesByPrefix = useCallback((absolutePrefix: string) => {
+    const prefix = absolutePrefix.endsWith('/') ? absolutePrefix : `${absolutePrefix}/`
+    setEntries((prev) => prev.filter((entry) => !entry.path.startsWith(prefix)))
+  }, [])
+
   const replaceEntry = useCallback((oldPath: string, patch: Partial<VaultEntry> & { path: string }) => {
     setEntries((prev) => prev.map((e) => e.path === oldPath ? { ...e, ...patch } : e))
   }, [])
@@ -380,7 +387,7 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
 
   return {
     entries, folders, views, modifiedFiles, modifiedFilesError,
-    addEntry, updateEntry, removeEntry, removeEntries, replaceEntry,
+    addEntry, updateEntry, removeEntry, removeEntries, removeEntriesByPrefix, replaceEntry,
     loadModifiedFiles, loadGitHistory, loadDiff, loadDiffAtCommit,
     getNoteStatus, commitAndPush, reloadVault, reloadVaultSoft, reloadFolders, reloadViews,
     rebuildProgress, cancelVaultReload,

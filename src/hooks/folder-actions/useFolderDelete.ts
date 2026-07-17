@@ -4,6 +4,7 @@ import {
   clearDeletedFolderTabs,
   type ConfirmFolderDeleteState,
   type FolderTab,
+  folderAbsolutePath,
   folderLabel,
   invokeDeleteFolder,
   resetSelectionIfFolderDeleted,
@@ -15,6 +16,8 @@ interface UseFolderDeleteInput {
   closeAllTabs: () => void
   reloadFolders: () => Promise<unknown>
   reloadVault: () => Promise<VaultEntry[]>
+  reloadVaultSoft?: (extraPaths?: string[]) => Promise<VaultEntry[] | null>
+  removeEntriesByPrefix?: (absolutePrefix: string) => void
   selection: SidebarSelection
   setSelection: (selection: SidebarSelection) => void
   setTabs: React.Dispatch<React.SetStateAction<FolderTab[]>>
@@ -28,6 +31,8 @@ export function useFolderDelete({
   closeAllTabs,
   reloadFolders,
   reloadVault,
+  reloadVaultSoft,
+  removeEntriesByPrefix,
   selection,
   setSelection,
   setTabs,
@@ -62,8 +67,20 @@ export function useFolderDelete({
         setTabs,
         vaultPath,
       })
+      // The folder is gone on disk: empty the note list and fix the selection
+      // NOW, before any rescan — the reloads below are reconciliation, not the
+      // source of the visual update.
+      removeEntriesByPrefix?.(folderAbsolutePath({ vaultPath, folderPath }))
+      resetSelectionIfFolderDeleted({
+        folderPath,
+        refreshedEntries: [],
+        selection,
+        setSelection,
+        vaultPath,
+      })
+      setToastMessage(`Deleted folder "${folderLabel({ folderPath })}"`)
       await reloadFolders()
-      const refreshedEntries = await reloadVault()
+      const refreshedEntries = (await (reloadVaultSoft ? reloadVaultSoft() : reloadVault())) ?? await reloadVault()
       resetSelectionIfFolderDeleted({
         folderPath,
         refreshedEntries,
@@ -71,11 +88,10 @@ export function useFolderDelete({
         setSelection,
         vaultPath,
       })
-      setToastMessage(`Deleted folder "${folderLabel({ folderPath })}"`)
     } catch (error) {
       setToastMessage(`Failed to delete folder: ${error}`)
     }
-  }, [activeTabPathRef, closeAllTabs, confirmDeleteFolder, reloadFolders, reloadVault, selection, setSelection, setTabs, setToastMessage, vaultPath])
+  }, [activeTabPathRef, closeAllTabs, confirmDeleteFolder, reloadFolders, reloadVault, reloadVaultSoft, removeEntriesByPrefix, selection, setSelection, setTabs, setToastMessage, vaultPath])
 
   const deleteSelectedFolder = useCallback(() => {
     if (selection.kind !== 'folder') return

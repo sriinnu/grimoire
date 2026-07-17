@@ -43,6 +43,8 @@ interface SidebarProps {
   onCreateFolder?: (name: string) => Promise<boolean> | boolean
   onRenameFolder?: (folderPath: string, nextName: string) => Promise<boolean> | boolean
   onDeleteFolder?: (folderPath: string) => void
+  onMoveFolder?: (folderPath: string) => void
+  onRevealFolder?: (folderPath: string) => void
   renamingFolderPath?: string | null
   onStartRenameFolder?: (folderPath: string) => void
   onCancelRenameFolder?: () => void
@@ -74,6 +76,8 @@ export const Sidebar = memo(function Sidebar({
   onCreateFolder,
   onRenameFolder,
   onDeleteFolder,
+  onMoveFolder,
+  onRevealFolder,
   renamingFolderPath,
   onStartRenameFolder,
   onCancelRenameFolder,
@@ -200,6 +204,8 @@ export const Sidebar = memo(function Sidebar({
           onCreateFolder={onCreateFolder}
           onRenameFolder={onRenameFolder}
           onDeleteFolder={onDeleteFolder}
+          onMoveFolder={onMoveFolder}
+          onRevealFolder={onRevealFolder}
           renamingFolderPath={renamingFolderPath}
           onStartRenameFolder={onStartRenameFolder}
           onCancelRenameFolder={onCancelRenameFolder}

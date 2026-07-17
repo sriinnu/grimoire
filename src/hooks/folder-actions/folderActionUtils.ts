@@ -7,6 +7,10 @@ export interface FolderRenameResult {
   new_path: string
 }
 
+export interface FolderMoveResult extends FolderRenameResult {
+  updated_files: number
+}
+
 export interface FolderTab {
   entry: VaultEntry
   content: string
@@ -66,6 +70,17 @@ export async function invokeRenameFolder(params: {
     return invoke<FolderRenameResult>('rename_vault_folder', params)
   }
   return mockInvoke<FolderRenameResult>('rename_vault_folder', params)
+}
+
+export async function invokeMoveFolder(params: {
+  vaultPath: string
+  folderPath: string
+  destinationPath: string
+}): Promise<FolderMoveResult> {
+  if (isTauri()) {
+    return invoke<FolderMoveResult>('move_vault_folder', params)
+  }
+  return mockInvoke<FolderMoveResult>('move_vault_folder', params)
 }
 
 export async function invokeDeleteFolder(params: { vaultPath: string; folderPath: string }): Promise<string> {

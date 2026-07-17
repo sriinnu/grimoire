@@ -112,6 +112,7 @@ macro_rules! app_invoke_handler {
             commands::migrate_is_a_to_type,
             commands::create_vault_folder,
             commands::rename_vault_folder,
+            commands::move_vault_folder,
             commands::delete_vault_folder,
             commands::batch_archive_notes,
             commands::get_settings,

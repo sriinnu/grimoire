@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
-import { CheckCircle2, Circle, ExternalLink, Flag, FolderKanban, Star, Tag, X } from 'lucide-react'
+import { CheckCircle2, Circle, ExternalLink, Flag, FolderInput, FolderKanban, FolderOpen, Star, Tag, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { clampFixedMenuPosition } from '@/lib/fixedMenuPosition'
+import { revealInFileManagerLabel } from '@/utils/platform'
 import type { VaultEntry } from '../../types'
 
 type FrontmatterValue = string | number | boolean | string[] | null
@@ -10,6 +11,8 @@ interface NoteContextMenuParams {
   enabled: boolean
   onUpdateFrontmatter?: (path: string, key: string, value: FrontmatterValue) => Promise<void> | void
   onOpenInNewWindow?: (entry: VaultEntry) => void
+  onMoveToFolder?: (entry: VaultEntry) => void
+  onRevealInFinder?: (entry: VaultEntry) => void
 }
 
 type MenuState = { x: number; y: number; entry: VaultEntry } | null
@@ -89,6 +92,8 @@ export function useNoteListContextMenu({
   enabled,
   onUpdateFrontmatter,
   onOpenInNewWindow,
+  onMoveToFolder,
+  onRevealInFinder,
 }: NoteContextMenuParams) {
   const [menu, setMenu] = useState<MenuState>(null)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -146,6 +151,20 @@ export function useNoteListContextMenu({
     closeMenu()
     onOpenInNewWindow(entry)
   }, [closeMenu, menu, onOpenInNewWindow])
+
+  const moveToFolder = useCallback(() => {
+    if (!menu?.entry || !onMoveToFolder) return
+    const entry = menu.entry
+    closeMenu()
+    onMoveToFolder(entry)
+  }, [closeMenu, menu, onMoveToFolder])
+
+  const revealInFinder = useCallback(() => {
+    if (!menu?.entry || !onRevealInFinder) return
+    const entry = menu.entry
+    closeMenu()
+    onRevealInFinder(entry)
+  }, [closeMenu, menu, onRevealInFinder])
   const menuPosition = menu ? clampFixedMenuPosition(menu.x, menu.y, {
     width: MENU_WIDTH,
     height: MENU_MAX_HEIGHT,
@@ -181,6 +200,18 @@ export function useNoteListContextMenu({
         {projectEntry ? <CheckCircle2 className="size-3.5" /> : <FolderKanban className="size-3.5" />}
         {projectEntry ? 'Already a project' : 'Convert to project'}
       </Button>
+      {onMoveToFolder && (
+        <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={moveToFolder} data-testid="note-context-move-to-folder">
+          <FolderInput className="size-3.5" />
+          Move to…
+        </Button>
+      )}
+      {onRevealInFinder && (
+        <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName()} onClick={revealInFinder} data-testid="note-context-reveal-in-finder">
+          <FolderOpen className="size-3.5" />
+          {revealInFileManagerLabel()}
+        </Button>
+      )}
       {menuSeparator()}
       {menuSectionLabel('Status')}
       <Button type="button" role="menuitem" variant="ghost" size="sm" className={menuItemClassName(false, activeStatus === 'active')} onClick={() => void update('status', 'Active')}>

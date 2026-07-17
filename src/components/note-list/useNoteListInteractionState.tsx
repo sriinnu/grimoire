@@ -59,6 +59,8 @@ interface UseNoteListInteractionStateParams {
   onEnterNeighborhood?: (entry: VaultEntry) => void
   onOpenDeletedNote?: (entry: DeletedNoteEntry) => void
   onOpenInNewWindow?: (entry: VaultEntry) => void
+  onMoveToFolder?: (entry: VaultEntry) => void
+  onRevealInFinder?: (entry: VaultEntry) => void
   onAutoTriggerDiff?: () => void
   onDiscardFile?: (relativePath: string) => Promise<void>
   onUpdateFrontmatter?: (path: string, key: string, value: string | number | boolean | string[] | null) => Promise<void> | void
@@ -83,6 +85,8 @@ export function useNoteListInteractionState({
   onEnterNeighborhood,
   onOpenDeletedNote,
   onOpenInNewWindow,
+  onMoveToFolder,
+  onRevealInFinder,
   onAutoTriggerDiff,
   onDiscardFile,
   onUpdateFrontmatter,
@@ -95,6 +99,8 @@ export function useNoteListInteractionState({
     enabled: !isChangesView,
     onUpdateFrontmatter,
     onOpenInNewWindow,
+    onMoveToFolder,
+    onRevealInFinder,
   })
   const {
     collapsedGroups,

@@ -234,4 +234,37 @@ describe('FolderTree', () => {
     fireEvent.click(screen.getByTestId('delete-folder-menu-item'))
     expect(onDeleteFolder).toHaveBeenCalledWith('projects')
   })
+
+  it('offers Move to… and reveal actions in the folder context menu', () => {
+    const onMoveFolder = vi.fn()
+    const onRevealFolder = vi.fn()
+    render(
+      <FolderTree
+        folders={mockFolders}
+        selection={defaultSelection}
+        onSelect={vi.fn()}
+        onMoveFolder={onMoveFolder}
+        onRevealFolder={onRevealFolder}
+      />,
+    )
+
+    fireEvent.contextMenu(screen.getByText('areas'))
+    fireEvent.click(screen.getByTestId('move-folder-menu-item'))
+    expect(onMoveFolder).toHaveBeenCalledWith('areas')
+
+    fireEvent.contextMenu(screen.getByText('areas'))
+    fireEvent.click(screen.getByTestId('reveal-folder-menu-item'))
+    expect(onRevealFolder).toHaveBeenCalledWith('areas')
+  })
+
+  it('hides Move to… and reveal actions when no handlers are provided', () => {
+    render(
+      <FolderTree folders={mockFolders} selection={defaultSelection} onSelect={vi.fn()} />,
+    )
+
+    fireEvent.contextMenu(screen.getByText('areas'))
+    expect(screen.getByTestId('folder-context-menu')).toBeInTheDocument()
+    expect(screen.queryByTestId('move-folder-menu-item')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('reveal-folder-menu-item')).not.toBeInTheDocument()
+  })
 })

@@ -86,7 +86,9 @@ export function useEntryWorkspace(foundation: VaultFoundation, workspace: NoteWo
     handleSwitchTab: notes.handleSwitchTab,
     closeAllTabs: notes.closeAllTabs,
     reloadVault: vault.reloadVault,
+    reloadVaultSoft: vault.reloadVaultSoft,
     reloadFolders: vault.reloadFolders,
+    removeEntriesByPrefix: vault.removeEntriesByPrefix,
     setToastMessage,
   })
 
@@ -118,6 +120,10 @@ export function useEntryWorkspace(foundation: VaultFoundation, workspace: NoteWo
 
   const handleRevealNoteInFinder = useCallback((path: string) => {
     void handleRevealPathInFinder(path, 'Revealed note in Finder')
+  }, [handleRevealPathInFinder])
+
+  const handleRevealFolderInFinder = useCallback((folderPath: string) => {
+    void handleRevealPathInFinder(folderPath, 'Revealed folder in Finder')
   }, [handleRevealPathInFinder])
 
   const handlePreviewNoteWithQuickLook = useCallback(async (path: string) => {
@@ -196,6 +202,7 @@ export function useEntryWorkspace(foundation: VaultFoundation, workspace: NoteWo
     handleInitializeProperties, handleSetNoteIconCommand, handleCustomizeNoteListColumns,
     handleUpdateAllNotesNoteListProperties, handleUpdateInboxNoteListProperties, handleCreateFolder,
     folderActions, handleRemoveNoteIconCommand, handleOpenInNewWindow, handleRevealNoteInFinder,
+    handleRevealFolderInFinder,
     handlePreviewNoteWithQuickLook, handleRevealVaultInFinder, handleOpenEntryInNewWindow,
     handleDiscardFile, handleOpenDeletedNote, handleReplaceActiveTabWithQueuedDiff,
   }

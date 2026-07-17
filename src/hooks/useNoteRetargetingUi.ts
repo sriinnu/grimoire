@@ -1,14 +1,23 @@
 import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import type { NoteRetargetingContextValue } from '../components/note-retargeting/noteRetargetingContext'
 import type { RetargetOption } from '../components/note-retargeting/RetargetNoteDialog'
+import { localityMoveEffect, type LocalityMoveEffect } from '../lib/localityPolicy'
 import type { FolderNode, SidebarSelection, VaultEntry } from '../types'
 import type { FrontmatterOpOptions } from './frontmatterOps'
 import { useNoteRetargeting } from './useNoteRetargeting'
 
-type DialogState =
+export type NoteRetargetDialogState =
   | { kind: 'type'; notePath: string }
   | { kind: 'folder'; notePath: string }
+  | {
+    kind: 'folder-locality'
+    notePath: string
+    folderPath: string
+    effect: Exclude<LocalityMoveEffect, null>
+  }
   | null
+
+type DialogState = NoteRetargetDialogState
 
 interface NoteRetargetingUiInput {
   activeEntry: VaultEntry | null
@@ -123,12 +132,14 @@ function useNoteRetargetDialogState({
   canMoveActiveNoteToFolder,
   changeNoteType,
   moveIntoFolder,
+  localityEffectForFolderMove,
 }: {
   activeEntry: VaultEntry | null
   canChangeActiveNoteType: boolean
   canMoveActiveNoteToFolder: boolean
   changeNoteType: (notePath: string, type: string) => Promise<'updated' | 'noop' | 'error'>
   moveIntoFolder: (notePath: string, folderPath: string) => Promise<'updated' | 'noop' | 'error'>
+  localityEffectForFolderMove: (notePath: string, folderPath: string) => LocalityMoveEffect
 }) {
   const [dialogState, setDialogState] = useState<DialogState>(null)
 
@@ -140,6 +151,10 @@ function useNoteRetargetDialogState({
     openDialogForActiveEntry(setDialogState, activeEntry, canMoveActiveNoteToFolder, 'folder')
   }, [activeEntry, canMoveActiveNoteToFolder])
 
+  const openMoveNoteToFolderDialogForPath = useCallback((notePath: string) => {
+    setDialogState({ kind: 'folder', notePath })
+  }, [])
+
   const closeDialog = useCallback(() => {
     setDialogState(null)
   }, [])
@@ -149,16 +164,33 @@ function useNoteRetargetDialogState({
   }, [changeNoteType, dialogState])
 
   const selectFolder = useCallback(async (folderPath: string) => {
-    return selectFromDialogState(dialogState, 'folder', folderPath, moveIntoFolder)
+    if (!dialogState || dialogState.kind !== 'folder') return false
+    const effect = localityEffectForFolderMove(dialogState.notePath, folderPath)
+    if (effect) {
+      // Swap the picker for a quiet privacy confirmation before moving.
+      setDialogState({ kind: 'folder-locality', notePath: dialogState.notePath, folderPath, effect })
+      return false
+    }
+    const result = await moveIntoFolder(dialogState.notePath, folderPath)
+    return result !== 'error'
+  }, [dialogState, localityEffectForFolderMove, moveIntoFolder])
+
+  const confirmFolderMove = useCallback(async () => {
+    if (!dialogState || dialogState.kind !== 'folder-locality') return
+    const { notePath, folderPath } = dialogState
+    setDialogState(null)
+    await moveIntoFolder(notePath, folderPath)
   }, [dialogState, moveIntoFolder])
 
   return {
     dialogState,
     openChangeNoteTypeDialog,
     openMoveNoteToFolderDialog,
+    openMoveNoteToFolderDialogForPath,
     closeDialog,
     selectType,
     selectFolder,
+    confirmFolderMove,
   }
 }
 
@@ -205,11 +237,13 @@ function buildNoteRetargetingUiState(params: {
   canMoveActiveNoteToFolder: boolean
   openChangeNoteTypeDialog: () => void
   openMoveNoteToFolderDialog: () => void
+  openMoveNoteToFolderDialogForPath: (notePath: string) => void
   typeOptions: RetargetOption[]
   folderOptions: RetargetOption[]
   closeDialog: () => void
   selectType: (type: string) => Promise<boolean>
   selectFolder: (folderPath: string) => Promise<boolean>
+  confirmFolderMove: () => Promise<void>
 }) {
   return {
     contextValue: params.contextValue,
@@ -220,11 +254,13 @@ function buildNoteRetargetingUiState(params: {
     canMoveActiveNoteToFolder: params.canMoveActiveNoteToFolder,
     openChangeNoteTypeDialog: params.openChangeNoteTypeDialog,
     openMoveNoteToFolderDialog: params.openMoveNoteToFolderDialog,
+    openMoveNoteToFolderDialogForPath: params.openMoveNoteToFolderDialogForPath,
     typeOptions: params.typeOptions,
     folderOptions: params.folderOptions,
     closeDialog: params.closeDialog,
     selectType: params.selectType,
     selectFolder: params.selectFolder,
+    confirmFolderMove: params.confirmFolderMove,
   }
 }
 
@@ -236,14 +272,28 @@ export function useNoteRetargetingUi({
   } = useNoteRetargeting({ entries, folders, selection, setSelection, setToastMessage, vaultPath, updateFrontmatter, moveNoteToFolder })
   const canChangeActiveNoteType = hasTypeRetargetDestination(activeEntry, activeNoteBlocked, availableTypes)
   const canMoveActiveNoteToFolder = hasFolderRetargetDestination(activeEntry, activeNoteBlocked, availableFolders, canDropNoteOnFolder)
-  const { dialogState, openChangeNoteTypeDialog, openMoveNoteToFolderDialog, closeDialog, selectType, selectFolder } = useNoteRetargetDialogState({
-    activeEntry, canChangeActiveNoteType, canMoveActiveNoteToFolder, changeNoteType, moveIntoFolder,
+  const localityEffectForFolderMove = useCallback((notePath: string, folderPath: string): LocalityMoveEffect => {
+    const entry = entries.find((candidate) => candidate.path === notePath)
+    if (!entry) return null
+    const normalizedVaultPath = vaultPath.replace(/\/+$/, '')
+    const normalizedFolderPath = folderPath.trim().replace(/^\/+|\/+$/g, '')
+    const newPath = normalizedFolderPath
+      ? `${normalizedVaultPath}/${normalizedFolderPath}/${entry.filename}`
+      : `${normalizedVaultPath}/${entry.filename}`
+    return localityMoveEffect(entry, newPath)
+  }, [entries, vaultPath])
+  const {
+    dialogState, openChangeNoteTypeDialog, openMoveNoteToFolderDialog, openMoveNoteToFolderDialogForPath,
+    closeDialog, selectType, selectFolder, confirmFolderMove,
+  } = useNoteRetargetDialogState({
+    activeEntry, canChangeActiveNoteType, canMoveActiveNoteToFolder, changeNoteType, moveIntoFolder, localityEffectForFolderMove,
   })
   const dialogEntry = useMemo(() => resolveDialogEntry(dialogState, entries, activeEntry), [activeEntry, dialogState, entries])
   const contextValue = useRetargetContextValue({ canDropNoteOnType, changeNoteType, canDropNoteOnFolder, moveIntoFolder })
   const { typeOptions, folderOptions } = buildDialogOptions(availableTypes, availableFolders, dialogEntry, vaultPath)
   return buildNoteRetargetingUiState({
     contextValue, dialogState, dialogEntry, canChangeActiveNoteType, canMoveActiveNoteToFolder,
-    openChangeNoteTypeDialog, openMoveNoteToFolderDialog, typeOptions, folderOptions, closeDialog, selectType, selectFolder,
+    openChangeNoteTypeDialog, openMoveNoteToFolderDialog, openMoveNoteToFolderDialogForPath,
+    typeOptions, folderOptions, closeDialog, selectType, selectFolder, confirmFolderMove,
   })
 }

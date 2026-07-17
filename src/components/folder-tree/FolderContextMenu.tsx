@@ -1,7 +1,8 @@
 import type { RefObject } from 'react'
-import { PencilSimple, Trash } from '@phosphor-icons/react'
+import { ArrowSquareOut, FolderOpen, PencilSimple, Trash } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { clampFixedMenuPosition } from '@/lib/fixedMenuPosition'
+import { revealInFileManagerLabel } from '@/utils/platform'
 
 export interface FolderContextMenuState {
   path: string
@@ -13,17 +14,21 @@ interface FolderContextMenuProps {
   menu: FolderContextMenuState | null
   menuRef: RefObject<HTMLDivElement | null>
   onDelete?: (folderPath: string) => void
+  onMove?: (folderPath: string) => void
   onRename: (folderPath: string) => void
+  onReveal?: (folderPath: string) => void
 }
 
 const FOLDER_MENU_WIDTH = 196
-const FOLDER_MENU_HEIGHT = 86
+const FOLDER_MENU_HEIGHT = 156
 
 export function FolderContextMenu({
   menu,
   menuRef,
   onDelete,
+  onMove,
   onRename,
+  onReveal,
 }: FolderContextMenuProps) {
   if (!menu) return null
   const menuPosition = clampFixedMenuPosition(menu.x, menu.y, {
@@ -50,6 +55,32 @@ export function FolderContextMenu({
         <PencilSimple size={14} />
         Rename folder…
       </Button>
+      {onMove && (
+        <Button
+          type="button"
+          role="menuitem"
+          variant="ghost"
+          className="h-auto w-full justify-start gap-2 px-2 py-1.5 text-sm"
+          onClick={() => onMove(menu.path)}
+          data-testid="move-folder-menu-item"
+        >
+          <FolderOpen size={14} />
+          Move to…
+        </Button>
+      )}
+      {onReveal && (
+        <Button
+          type="button"
+          role="menuitem"
+          variant="ghost"
+          className="h-auto w-full justify-start gap-2 px-2 py-1.5 text-sm"
+          onClick={() => onReveal(menu.path)}
+          data-testid="reveal-folder-menu-item"
+        >
+          <ArrowSquareOut size={14} />
+          {revealInFileManagerLabel()}
+        </Button>
+      )}
       <Button
         type="button"
         role="menuitem"

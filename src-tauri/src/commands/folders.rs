@@ -1,4 +1,4 @@
-use crate::vault::{self, FolderRenameResult};
+use crate::vault::{self, FolderMoveResult, FolderRenameResult};
 
 use super::expand_tilde;
 
@@ -13,6 +13,20 @@ pub fn rename_vault_folder(
         std::path::Path::new(vault_path.as_ref()),
         &folder_path,
         &new_name,
+    )
+}
+
+#[tauri::command]
+pub fn move_vault_folder(
+    vault_path: String,
+    folder_path: String,
+    destination_path: String,
+) -> Result<FolderMoveResult, String> {
+    let vault_path = expand_tilde(&vault_path);
+    vault::move_folder(
+        std::path::Path::new(vault_path.as_ref()),
+        &folder_path,
+        &destination_path,
     )
 }
 
@@ -43,8 +57,25 @@ mod tests {
         assert!(renamed.new_path.ends_with("Organized"));
         assert!(dir.path().join("Organized/note.md").exists());
 
-        let deleted = delete_vault_folder(vault_path, "Organized".to_string()).unwrap();
-        assert_eq!(deleted, "Organized");
-        assert!(!dir.path().join("Organized").exists());
+        let moved = move_vault_folder(
+            vault_path.clone(),
+            "Organized".to_string(),
+            "Archive".to_string(),
+        );
+        assert!(moved.is_err(), "missing destination should be rejected");
+
+        std::fs::create_dir(dir.path().join("Archive")).unwrap();
+        let moved = move_vault_folder(
+            vault_path.clone(),
+            "Organized".to_string(),
+            "Archive".to_string(),
+        )
+        .unwrap();
+        assert_eq!(moved.new_path, "Archive/Organized");
+        assert!(dir.path().join("Archive/Organized/note.md").exists());
+
+        let deleted = delete_vault_folder(vault_path, "Archive/Organized".to_string()).unwrap();
+        assert_eq!(deleted, "Archive/Organized");
+        assert!(!dir.path().join("Archive/Organized").exists());
     }
 }

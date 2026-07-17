@@ -199,6 +199,21 @@ export function isEntryLocalOnly(entry: LocalityPolicySubject): boolean {
   return resolveEntryLocalityPolicy(entry).localOnly
 }
 
+/**
+ * How moving an entry to `newPath` would change its local-only classification.
+ * `'protects'` — the note becomes local-only; `'exposes'` — it stops being
+ * local-only; `null` — no change (frontmatter/type protection is path-independent
+ * and therefore never flips here).
+ */
+export type LocalityMoveEffect = 'protects' | 'exposes' | null
+
+export function localityMoveEffect(entry: LocalityPolicySubject, newPath: string): LocalityMoveEffect {
+  const before = resolveEntryLocalityPolicy(entry).localOnly
+  const after = resolveEntryLocalityPolicy({ ...entry, path: newPath }).localOnly
+  if (before === after) return null
+  return after ? 'protects' : 'exposes'
+}
+
 /** Shared egress matrix for Inspector, agent package review, export, sync, and Git surfaces. */
 export function localityEgressLanes(localOnly: boolean): LocalityEgressLane[] {
   return localOnly ? protectedEgressLanes() : vaultContextEgressLanes()
