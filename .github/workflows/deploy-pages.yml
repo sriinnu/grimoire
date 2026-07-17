@@ -47,6 +47,9 @@ jobs:
       - name: Build browser demo
         env:
           GRIMOIRE_BASE_PATH: /grimoire/
+          # The demo has no native backend: production build must keep its
+          # mock-Tauri fixtures or the app soft-bricks on first settings read.
+          VITE_GRIMOIRE_BROWSER_DEMO: "1"
         run: pnpm build
 
       - name: Setup Pages

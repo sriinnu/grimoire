@@ -72,6 +72,9 @@ vi.mock('@blocknote/react', () => ({
   },
   FormattingToolbar: ({ children }: PropsWithChildren) => <>{children}</>,
   LinkToolbar: ({ children }: PropsWithChildren) => <>{children}</>,
+  TableHandlesController: () => null,
+  TableHandle: ({ children }: PropsWithChildren) => <>{children}</>,
+  ExtendButton: ({ children }: PropsWithChildren) => <>{children}</>,
   getFormattingToolbarItems: () => [],
   getDefaultReactSlashMenuItems: () => [],
   ComponentsContext: {

@@ -1,24 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { createSpringEngine } from '../lib/graphForceEngine'
-import type { GraphLayout, PositionedGraphNode } from '../utils/graphDisplay'
+import {
+  GRAPH_CENTER_X,
+  GRAPH_CENTER_Y,
+  type GraphLayout,
+  type PositionedGraphNode,
+} from '../utils/graphDisplay'
 
 /**
  * Alpha is the single energy value that gives both the feel and the battery
  * safety: interactions reheat it, it decays every tick, and the rAF loop stops
  * itself once the graph is cold, still, and not being panned. True idle = zero frames.
  */
-const ALPHA = { reheat: 0.6, dragHot: 1, focus: 0.45, hover: 0.12, decay: 0.045, min: 0.004, vEps: 0.05 }
-// Hide labels only during *big* motion (settle/drag). Hover-repel reheats to 0.12,
-// which stays below this, so moving the mouse no longer flashes every label off.
+const ALPHA = { reheat: 0.9, dragHot: 1, decay: 0.03, min: 0.004, vEps: 0.05 }
+// Hide labels only during *big* motion (settle/drag). Pan and zoom never raise
+// alpha, so reading a label never fights the physics.
 const LABEL_HIDE_ALPHA = 0.22
 const DRAG_THRESHOLD = 6 // world units before a press becomes a drag (vs. a tap)
 const ZOOM = { min: 0.45, max: 2.4, sensitivity: 0.0015 }
 const PAN_INERTIA_DECAY = 0.86
 const PAN_VEL_EPS = 0.12
 const VIEW_EASE = 0.22 // how fast double-click eases the view back to home
-// deadzone keeps the node you're aiming at from fleeing the cursor; repel only
-// opens up the cluster around it. Strength stays gentle so it reads as breathing.
-const HOVER = { radius: 78, strength: 0.4, deadzone: 26 }
 
 interface Viewport { tx: number; ty: number; scale: number }
 
@@ -27,22 +29,23 @@ interface UseForceSimulationResult {
   nodeById: Map<string, PositionedGraphNode>
   onNodePointerDown: (node: PositionedGraphNode, event: ReactPointerEvent) => void
   onBackgroundPointerDown: (event: ReactPointerEvent) => void
-  onCanvasPointerMove: (event: ReactPointerEvent) => void
   resetView: () => void
   bindSvg: (el: SVGSVGElement | null) => void
   viewportTransform: string
-  /** Gently reheat to let a newly focused neighborhood breathe. */
-  focus: () => void
+  /** Current viewport zoom — lets the renderer make semantic-zoom decisions. */
+  viewportScale: number
+  /** Zoom around the canvas center — the button path to the wheel's cursor-anchored zoom. */
+  zoomBy: (factor: number) => void
   /** True while the simulation is actively moving — used to hide labels mid-motion. */
   hot: boolean
 }
 
 /**
  * Drives a force simulation over a seed layout and exposes live node positions
- * plus pan/zoom + hover-repel. The renderer is untouched: every edge, badge,
- * label and orbit derives from node.x/node.y, so mutating those animates all of it.
+ * plus pan/zoom. The renderer is untouched: every edge, badge, label and orbit
+ * derives from node.x/node.y, so mutating those animates all of it.
  * Node positions live in group-local space; pan/zoom only transforms the wrapping
- * <g>, and toWorld() undoes that transform so drag/hover stay cursor-accurate.
+ * <g>, and toWorld() undoes that transform so drag stays cursor-accurate.
  */
 export function useForceSimulation(
   seed: GraphLayout,
@@ -52,14 +55,13 @@ export function useForceSimulation(
     () => (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) ?? false,
     [],
   )
-  const hoverCapable = useMemo(
-    () => (typeof window !== 'undefined' && window.matchMedia?.('(hover: hover) and (pointer: fine)').matches) ?? false,
-    [],
-  )
   const engineRef = useRef(createSpringEngine())
   const engine = engineRef.current
   const svgRef = useRef<SVGSVGElement | null>(null)
   const draggingRef = useRef<string | null>(null)
+  // Nodes the user parked by dragging. They stay put until the "let go"
+  // gesture (double-click background / reset view) releases them all at once.
+  const userPinsRef = useRef(new Set<string>())
   const panningRef = useRef(false)
   const panVelRef = useRef({ x: 0, y: 0 })
   const vpRef = useRef<Viewport>({ tx: 0, ty: 0, scale: 1 })
@@ -134,6 +136,10 @@ export function useForceSimulation(
   useEffect(() => {
     engine.seed(seed.nodes, seed.edges)
     engine.setPinned(opts.pinnedId)
+    // Nodes that left the graph take their user pin with them.
+    for (const id of userPinsRef.current) {
+      if (!seed.nodes.some((n) => n.id === id)) userPinsRef.current.delete(id)
+    }
     if (!reduced) reheat(ALPHA.reheat) // entrance settle / absorb the structure change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [structKey, opts.pinnedId])
@@ -186,9 +192,12 @@ export function useForceSimulation(
         window.removeEventListener('pointermove', move)
         window.removeEventListener('pointerup', up)
         window.removeEventListener('pointercancel', up)
-        if (moved && node.id !== opts.pinnedId) engine.unpin(node.id) // release → elastic snap-back
+        // A drag is a deliberate placement — the node stays pinned where it was
+        // dropped instead of elastically undoing the user's work. Double-click
+        // the background (reset view) to release every parked node at once.
+        if (moved && node.id !== opts.pinnedId) userPinsRef.current.add(node.id)
         draggingRef.current = null
-        if (moved) reheat(ALPHA.reheat) // let the web settle, then sleep
+        if (moved) reheat(ALPHA.reheat) // let the web settle around the drop, then sleep
       }
 
       window.addEventListener('pointermove', move)
@@ -268,21 +277,26 @@ export function useForceSimulation(
   const handleWheelRef = useRef(handleWheel)
   handleWheelRef.current = handleWheel
 
-  const onCanvasPointerMove = useCallback(
-    (event: ReactPointerEvent) => {
-      if (!hoverCapable || reduced) return
-      if (draggingRef.current || panningRef.current) return
-      const w = toWorld(event.clientX, event.clientY)
-      if (!w) return
-      engine.nudge(w.x, w.y, HOVER.radius, HOVER.strength, HOVER.deadzone)
-      reheat(ALPHA.hover)
-    },
-    [engine, hoverCapable, reduced, reheat, toWorld],
-  )
-
-  const focus = useCallback(() => { reheat(ALPHA.focus) }, [reheat])
+  /** Step-zoom anchored on the canvas center (the wheel anchors on the cursor instead). */
+  const zoomBy = useCallback((factor: number) => {
+    vpTargetRef.current = null // a manual zoom cancels any in-flight reset
+    const { tx, ty, scale } = vpRef.current
+    const next = Math.min(ZOOM.max, Math.max(ZOOM.min, scale * factor))
+    if (next === scale) return
+    // Keep the world point at the canvas center fixed while zooming.
+    const localX = (GRAPH_CENTER_X - tx) / scale
+    const localY = (GRAPH_CENTER_Y - ty) / scale
+    vpRef.current = { scale: next, tx: GRAPH_CENTER_X - next * localX, ty: GRAPH_CENTER_Y - next * localY }
+    wake()
+  }, [wake])
 
   const resetView = useCallback(() => {
+    // Reset is also the "let go" gesture: every node parked by a drag rejoins the web.
+    if (userPinsRef.current.size > 0) {
+      for (const id of userPinsRef.current) engine.unpin(id)
+      userPinsRef.current.clear()
+      reheat(ALPHA.reheat)
+    }
     if (vpRef.current.tx === 0 && vpRef.current.ty === 0 && vpRef.current.scale === 1) return
     panVelRef.current = { x: 0, y: 0 }
     if (reduced) {
@@ -293,7 +307,7 @@ export function useForceSimulation(
     }
     vpTargetRef.current = { tx: 0, ty: 0, scale: 1 }
     wake()
-  }, [reduced, wake])
+  }, [engine, reduced, reheat, wake])
 
   const positions = engine.positions()
   const nodes = seed.nodes.map((n) => {
@@ -317,11 +331,11 @@ export function useForceSimulation(
     nodeById,
     onNodePointerDown,
     onBackgroundPointerDown,
-    onCanvasPointerMove,
     resetView,
     bindSvg,
     viewportTransform,
-    focus,
+    viewportScale: scale,
+    zoomBy,
     hot,
   }
 }

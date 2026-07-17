@@ -5,16 +5,25 @@ import {
   type TranscriptionProviderId,
 } from '../../lib/transcriptionProviders'
 import { getTranscriptionReadiness, type TranscriptionReadiness } from '../../utils/transcriptionReadiness'
-import { LabeledSelect, SectionHeading, SettingsSwitchRow } from './SettingsControls'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
+import { Switch } from '../ui/switch'
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSectionTitle,
+} from './primitives/SettingsGroup'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
-
-type PrivacyRunwayTone = 'local' | 'cloud' | 'diagnostic'
 
 interface PrivacyRunwayStep {
   detail: string
   label: string
   state: string
-  tone: PrivacyRunwayTone
 }
 
 function buildPrivacyRunwaySteps({
@@ -29,7 +38,6 @@ function buildPrivacyRunwaySteps({
       detail: t('settings.privacy.runway.localDetail'),
       label: t('settings.privacy.runway.localLabel'),
       state: t('settings.privacy.runway.private'),
-      tone: 'local',
     },
     {
       detail: t('settings.privacy.cloudTranscriptionDescription'),
@@ -37,36 +45,11 @@ function buildPrivacyRunwaySteps({
       state: cloudTranscriptionEnabled
         ? t('settings.privacy.runway.cloudAllowed')
         : t('settings.privacy.runway.cloudBlocked'),
-      tone: cloudTranscriptionEnabled ? 'cloud' : 'local',
     },
   ]
 }
 
-function PrivacyRunway({
-  cloudTranscriptionEnabled,
-  t,
-}: {
-  cloudTranscriptionEnabled: boolean
-  t: SettingsTranslate
-}) {
-  return (
-    <div className="settings-privacy-runway" data-testid="settings-privacy-runway">
-      {buildPrivacyRunwaySteps({ cloudTranscriptionEnabled, t }).map((step) => (
-        <div
-          className="settings-privacy-runway__step rounded-md border px-3 py-2.5"
-          data-privacy-runway-tone={step.tone}
-          key={step.label}
-        >
-          <div className="settings-privacy-runway__state">{step.state}</div>
-          <div className="settings-privacy-runway__label">{step.label}</div>
-          <div className="settings-privacy-runway__detail">{step.detail}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function TranscriptionReadinessCard({
+function TranscriptionReadinessRow({
   cloudTranscriptionEnabled,
   readiness,
   t,
@@ -77,15 +60,13 @@ function TranscriptionReadinessCard({
   t: SettingsTranslate
   transcriptionProvider: TranscriptionProviderId
 }) {
-  const tone = readiness?.ready ? 'local' : 'diagnostic'
   return (
     <div
-      className="settings-material-card rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
+      className="text-[11px] leading-relaxed text-muted-foreground"
       data-testid="settings-transcription-readiness"
       data-readiness={readiness?.status ?? 'checking'}
-      data-privacy-runway-tone={tone}
     >
-      <div className="font-medium text-foreground">{t('settings.privacy.transcriptionReadiness')}</div>
+      <div className="text-[13px] text-foreground">{t('settings.privacy.transcriptionReadiness')}</div>
       <div>{readiness?.message ?? t('settings.privacy.transcriptionChecking')}</div>
       {readiness ? (
         <div className="mt-1 grid gap-1">
@@ -148,48 +129,70 @@ export function PrivacySettingsSection({
   }, [cloudTranscriptionEnabled, transcriptionProvider])
 
   return (
-    <>
-      <SectionHeading
-        title={t('settings.privacy.title')}
-        description={t('settings.privacy.description')}
-      />
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.privacy.title')}</SettingsSectionTitle>
 
-      <div
-        className="settings-material-card rounded-md border px-3.5 py-3 leading-relaxed"
-        data-testid="settings-privacy-local-note"
-        data-privacy-runway-tone="local"
-      >
-        <div className="text-[13px] font-semibold text-foreground">{t('settings.privacy.localOnly')}</div>
-        <div className="mt-1 text-[12px] text-muted-foreground">{t('settings.privacy.localOnlyDescription')}</div>
+      <SettingsGroup footnote={t('settings.privacy.description')}>
+        <SettingsRow
+          label={t('settings.privacy.localOnly')}
+          description={t('settings.privacy.localOnlyDescription')}
+          testId="settings-privacy-local-note"
+        />
+      </SettingsGroup>
+
+      <div data-testid="settings-privacy-runway">
+        <SettingsGroup>
+          {buildPrivacyRunwaySteps({ cloudTranscriptionEnabled, t }).map((step) => (
+            <SettingsRow key={step.label} label={step.label} description={step.detail}>
+              <span className="text-[11px] font-medium text-muted-foreground">{step.state}</span>
+            </SettingsRow>
+          ))}
+        </SettingsGroup>
       </div>
 
-      <PrivacyRunway
-        cloudTranscriptionEnabled={cloudTranscriptionEnabled}
-        t={t}
-      />
-
-      <SettingsSwitchRow
-        label={t('settings.privacy.cloudTranscription')}
-        description={t('settings.privacy.cloudTranscriptionDescription')}
-        checked={cloudTranscriptionEnabled}
-        onChange={setCloudTranscriptionEnabled}
-        testId="settings-cloud-transcription"
-      />
-
-      <LabeledSelect
-        label={t('settings.privacy.transcriptionProvider')}
-        value={transcriptionProvider}
-        onValueChange={(value) => setTranscriptionProvider(value as TranscriptionProviderId)}
-        options={transcriptionProviderOptions}
-        testId="settings-transcription-provider"
-      />
-
-      <TranscriptionReadinessCard
-        cloudTranscriptionEnabled={cloudTranscriptionEnabled}
-        readiness={readiness}
-        t={t}
-        transcriptionProvider={transcriptionProvider}
-      />
-    </>
+      <SettingsGroup title={t('settings.privacy.transcriptionGroup')}>
+        <SettingsRow
+          label={t('settings.privacy.cloudTranscription')}
+          description={t('settings.privacy.cloudTranscriptionDescription')}
+          testId="settings-cloud-transcription"
+        >
+          <Switch
+            checked={cloudTranscriptionEnabled}
+            onCheckedChange={setCloudTranscriptionEnabled}
+            aria-label={t('settings.privacy.cloudTranscription')}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('settings.privacy.transcriptionProvider')}>
+          <Select
+            value={transcriptionProvider}
+            onValueChange={(value) => setTranscriptionProvider(value as TranscriptionProviderId)}
+          >
+            <SelectTrigger
+              className="w-56 bg-transparent"
+              aria-label={t('settings.privacy.transcriptionProvider')}
+              data-testid="settings-transcription-provider"
+              data-value={transcriptionProvider}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              {transcriptionProviderOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+        <SettingsRow fullWidth>
+          <TranscriptionReadinessRow
+            cloudTranscriptionEnabled={cloudTranscriptionEnabled}
+            readiness={readiness}
+            t={t}
+            transcriptionProvider={transcriptionProvider}
+          />
+        </SettingsRow>
+      </SettingsGroup>
+    </div>
   )
 }

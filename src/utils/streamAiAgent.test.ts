@@ -115,6 +115,7 @@ describe('streamAiAgent', () => {
         message: 'Explain this',
         system_prompt: 'SYSTEM',
         vault_path: '/vault',
+        note_path: null,
         provider: 'anthropic',
         model: 'sonnet',
       },

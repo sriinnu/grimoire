@@ -1,0 +1,63 @@
+/* Icon language: colour names an intent, never a theme decoration. */
+:root {
+  --icon-intent-navigation: color-mix(in srgb, var(--accent-blue) 76%, var(--text-primary));
+  --icon-intent-capture: color-mix(in srgb, var(--accent-yellow) 78%, var(--text-primary));
+  --icon-intent-structure: color-mix(in srgb, var(--accent-purple) 76%, var(--text-primary));
+  --icon-intent-safe: color-mix(in srgb, var(--accent-green) 78%, var(--text-primary));
+  --icon-intent-ai: color-mix(in srgb, var(--accent-purple) 82%, var(--text-primary));
+  --icon-intent-code: color-mix(in srgb, var(--accent-blue) 64%, var(--text-primary));
+  --icon-intent-favorite: color-mix(in srgb, var(--accent-yellow) 88%, var(--text-primary));
+  --icon-intent-danger: var(--destructive);
+  --icon-intent-neutral: var(--muted-foreground);
+}
+
+[data-icon-intent='navigation'] { color: var(--icon-intent-navigation); }
+[data-icon-intent='capture'] { color: var(--icon-intent-capture); }
+[data-icon-intent='structure'] { color: var(--icon-intent-structure); }
+[data-icon-intent='safe'] { color: var(--icon-intent-safe); }
+[data-icon-intent='ai'] { color: var(--icon-intent-ai); }
+[data-icon-intent='code'] { color: var(--icon-intent-code); }
+[data-icon-intent='favorite'] { color: var(--icon-intent-favorite); }
+[data-icon-intent='danger'] { color: var(--icon-intent-danger); }
+[data-icon-intent='neutral'] { color: var(--icon-intent-neutral); }
+
+/* Every action gets a clear hit target and a calm semantic hover state. */
+button[data-icon-intent] { border-radius: 7px; }
+
+button[data-icon-intent]:hover,
+button[data-icon-intent]:focus-visible,
+button[data-icon-intent][aria-pressed='true'] {
+  background: color-mix(in srgb, currentColor 11%, transparent);
+  outline: none;
+}
+
+/* Sidebar labels carry the words; these colours make scan paths immediate. */
+.sidebar-top-nav__tone[data-sidebar-nav-tone='aura'] .sidebar-nav-glyph,
+.sidebar-rail__tone[data-sidebar-rail-tone='aura'] .sidebar-rail__glyph { color: var(--icon-intent-safe); }
+.sidebar-top-nav__tone[data-sidebar-nav-tone='amber'] .sidebar-nav-glyph,
+.sidebar-rail__tone[data-sidebar-rail-tone='amber'] .sidebar-rail__glyph { color: var(--icon-intent-capture); }
+.sidebar-top-nav__tone[data-sidebar-nav-tone='blue'] .sidebar-nav-glyph,
+.sidebar-rail__tone[data-sidebar-rail-tone='blue'] .sidebar-rail__glyph { color: var(--icon-intent-navigation); }
+.sidebar-top-nav__tone[data-sidebar-nav-tone='violet'] .sidebar-nav-glyph,
+.sidebar-rail__tone[data-sidebar-rail-tone='violet'] .sidebar-rail__glyph { color: var(--icon-intent-structure); }
+
+.sidebar-top-nav__tone[data-sidebar-nav-tone] .sidebar-nav-glyph__icon,
+.sidebar-rail__tone[data-sidebar-rail-tone] .sidebar-rail__glyph > svg { color: currentColor; }
+
+.inspector-header__brand-icon[data-icon-intent],
+.editor-agent-composer__mark[data-icon-intent] { color: var(--icon-intent-ai); }
+
+.constellation-insights [data-icon-intent='safe'] { color: var(--icon-intent-safe); }
+.constellation-insights [data-icon-intent='structure'] { color: var(--icon-intent-structure); }
+.constellation-insights [data-icon-intent='ai'] { color: var(--icon-intent-ai); }
+.constellation-insights [data-icon-intent='neutral'] { color: var(--icon-intent-neutral); }
+
+@media (prefers-contrast: more) {
+  :root {
+    --icon-intent-navigation: var(--accent-blue);
+    --icon-intent-capture: color-mix(in srgb, var(--accent-yellow) 92%, var(--text-primary));
+    --icon-intent-structure: var(--accent-purple);
+    --icon-intent-safe: var(--accent-green);
+  }
+  button[data-icon-intent] { outline: 1px solid color-mix(in srgb, currentColor 36%, transparent); }
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { buildNoteGraph, filterGraphByQuery } from './noteGraph'
+import { buildNoteGraph, buildNoteGraphCached, filterGraphByQuery } from './noteGraph'
 
 function entry(overrides: Partial<VaultEntry>): VaultEntry {
   return {
@@ -96,5 +96,32 @@ describe('noteGraph', () => {
 
     expect(filtered.nodes.map((node) => node.title).sort()).toEqual(['Alpha', 'Beta'])
     expect(filtered.edges).toHaveLength(1)
+  })
+})
+
+describe('buildNoteGraphCached', () => {
+  it('reuses the resolved structure for the same entries array', () => {
+    const alpha = entry({ filename: 'alpha.md', title: 'Alpha', outgoingLinks: ['Beta'] })
+    const beta = entry({ filename: 'beta.md', title: 'Beta' })
+    const entries = [alpha, beta]
+
+    const first = buildNoteGraphCached(entries)
+    const second = buildNoteGraphCached(entries)
+
+    expect(second).toBe(first)
+    expect(buildNoteGraphCached([alpha, beta])).not.toBe(first)
+  })
+
+  it('stamps the active flag without mutating the cached base', () => {
+    const alpha = entry({ filename: 'alpha.md', title: 'Alpha', outgoingLinks: ['Beta'] })
+    const beta = entry({ filename: 'beta.md', title: 'Beta' })
+    const entries = [alpha, beta]
+
+    const active = buildNoteGraphCached(entries, alpha.path)
+    const base = buildNoteGraphCached(entries)
+
+    expect(active.edges).toBe(base.edges)
+    expect(active.nodes.find((node) => node.path === alpha.path)?.active).toBe(true)
+    expect(base.nodes.every((node) => !node.active)).toBe(true)
   })
 })

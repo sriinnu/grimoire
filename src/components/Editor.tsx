@@ -6,7 +6,7 @@ import 'katex/dist/katex.min.css'
 import { uploadImageFile } from '../hooks/useImageDrop'
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import { RUNTIME_STYLE_NONCE } from '../lib/runtimeStyleNonce'
-import type { VaultEntry, GitCommit, NoteLayout, NoteStatus } from '../types'
+import type { VaultEntry, GitCommit, ModifiedFile, NoteLayout, NoteStatus } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import type { FrontmatterValue } from './Inspector'
 import { useDiffMode, type CommitDiffRequest } from '../hooks/useDiffMode'
@@ -35,6 +35,7 @@ export interface EditorProps {
   tabs: Tab[]
   activeTabPath: string | null
   entries: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
   onNavigateWikilink: (target: string) => void
   onUnsupportedAiPaste?: (message: string) => void
   onLoadDiff?: (path: string) => Promise<string>
@@ -259,7 +260,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
     defaultAiModel,
     onUnsupportedAiPaste,
     onInspectorResize,
-    inspectorEntry, inspectorContent, gitHistory,
+    inspectorEntry, inspectorContent, gitHistory, modifiedFiles,
     onUpdateFrontmatter, onDeleteProperty, onAddProperty, onCreateMissingType, onCreateAndOpenNote, onInitializeProperties,
     showAIChat, onToggleAIChat,
     vaultPath, noteList, noteListFilter,
@@ -300,6 +301,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
       activeTab={activeTab}
       isLoadingNewTab={isLoadingNewTab}
       entries={entries}
+      modifiedFiles={modifiedFiles}
       editor={editor}
       diffMode={diffMode}
       diffContent={diffContent}

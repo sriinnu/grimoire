@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { buildAgentGraphContext } from './agentGraphContext'
+import { buildAgentGraphContext, buildCachedAgentGraphContext } from './agentGraphContext'
 
 function entry(overrides: Partial<VaultEntry>): VaultEntry {
   return {
@@ -113,5 +113,28 @@ describe('agentGraphContext', () => {
     expect(context.edges).toHaveLength(1)
     expect(context.omitted.truncatedNodes).toBe(2)
     expect(context.omitted.truncatedEdges).toBe(2)
+  })
+})
+
+describe('buildCachedAgentGraphContext', () => {
+  it('keeps an unsaved active note in the graph when it is missing from entries', () => {
+    const active = entry({ filename: 'fresh.md', title: 'Fresh Draft', outgoingLinks: ['Public'] })
+    const publicNeighbor = entry({ filename: 'public.md', title: 'Public' })
+
+    const context = buildCachedAgentGraphContext(active, [publicNeighbor])
+
+    expect(context.state).toBe('ready')
+    expect(context.nodes.map((node) => node.title)).toContain('Fresh Draft')
+    expect(context.nodes.find((node) => node.title === 'Fresh Draft')?.active).toBe(true)
+    expect(context.edges).toHaveLength(1)
+  })
+
+  it('matches the uncached builder when the active note is already in entries', () => {
+    const active = entry({ filename: 'active.md', title: 'Active', outgoingLinks: ['Public'] })
+    const publicNeighbor = entry({ filename: 'public.md', title: 'Public' })
+    const entries = [active, publicNeighbor]
+
+    expect(buildCachedAgentGraphContext(active, entries))
+      .toEqual(buildAgentGraphContext({ activeEntry: active, entries }))
   })
 })

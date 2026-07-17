@@ -27,6 +27,8 @@ export interface StreamAiAgentRequest {
   message: string
   systemPrompt?: string
   vaultPath: string
+  /** Vault-relative path of the active note; threads socket session lineage. */
+  notePath?: string | null
   provider?: string | null
   model?: string | null
   callbacks: AgentStreamCallbacks
@@ -69,6 +71,7 @@ export async function streamAiAgent(
     message,
     systemPrompt,
     vaultPath,
+    notePath,
     provider,
     model,
     callbacks,
@@ -106,6 +109,7 @@ export async function streamAiAgent(
         message,
         system_prompt: systemPrompt || null,
         vault_path: vaultPath,
+        note_path: notePath || null,
         provider: provider || null,
         model: model || null,
       },

@@ -853,6 +853,103 @@ describe('useVaultLoader', () => {
     })
   })
 
+  describe('reloadVaultSoft', () => {
+    it('refreshes entries via reload_vault_soft without a hard reload in Tauri mode', async () => {
+      await enableTauriMode()
+      const softEntry = {
+        ...mockEntries[0],
+        path: '/vault/note/agent.md',
+        filename: 'agent.md',
+        title: 'Agent Note',
+      }
+
+      backendInvokeFn.mockImplementation(((cmd: string) => {
+        if (cmd === 'reload_vault') return Promise.resolve(mockEntries)
+        if (cmd === 'reload_vault_soft') return Promise.resolve([softEntry])
+        if (cmd === 'get_modified_files') return Promise.resolve([])
+        if (cmd === 'list_vault_folders') return Promise.resolve([])
+        if (cmd === 'list_views') return Promise.resolve([])
+        return Promise.resolve(null)
+      }) as typeof defaultMockInvoke)
+
+      const { result } = await renderVaultLoader()
+      backendInvokeFn.mockClear()
+
+      let entries: VaultEntry[] | null = []
+      await act(async () => {
+        entries = await result.current.reloadVaultSoft()
+      })
+
+      expect(entries!.map((entry) => entry.title)).toEqual(['Agent Note'])
+      expect(result.current.entries.map((entry) => entry.title)).toEqual(['Agent Note'])
+      const issuedCommands = backendInvokeFn.mock.calls.map(([command]) => command)
+      expect(issuedCommands).toContain('reload_vault_soft')
+      expect(issuedCommands).toContain('get_modified_files')
+      expect(issuedCommands).not.toContain('reload_vault')
+    })
+
+    it('forwards extra paths so gitignored agent writes are re-parsed', async () => {
+      await enableTauriMode()
+      backendInvokeFn.mockImplementation(((cmd: string) => {
+        if (cmd === 'reload_vault_soft') return Promise.resolve(mockEntries)
+        if (isVaultLoadCommand(cmd)) return Promise.resolve(mockEntries)
+        if (cmd === 'get_modified_files') return Promise.resolve([])
+        if (cmd === 'list_vault_folders') return Promise.resolve([])
+        if (cmd === 'list_views') return Promise.resolve([])
+        return Promise.resolve(null)
+      }) as typeof defaultMockInvoke)
+
+      const { result } = await renderVaultLoader()
+      backendInvokeFn.mockClear()
+
+      await act(async () => {
+        await result.current.reloadVaultSoft(['private/secret.md'])
+      })
+
+      const softCall = backendInvokeFn.mock.calls.find(([command]) => command === 'reload_vault_soft')
+      expect(softCall?.[1]).toMatchObject({ extraPaths: ['private/secret.md'] })
+    })
+
+    it('falls back to list_vault in browser mock mode', async () => {
+      const { result } = await renderVaultLoader()
+      backendInvokeFn.mockClear()
+
+      await act(async () => {
+        await result.current.reloadVaultSoft()
+      })
+
+      const issuedCommands = backendInvokeFn.mock.calls.map(([command]) => command)
+      expect(issuedCommands).toContain('list_vault')
+      expect(issuedCommands).not.toContain('reload_vault_soft')
+    })
+
+    it('returns null and keeps current entries when the soft reload fails', async () => {
+      await enableTauriMode()
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      backendInvokeFn.mockImplementation(((cmd: string) => {
+        if (cmd === 'reload_vault_soft') return Promise.reject(new Error('soft reload failed'))
+        if (isVaultLoadCommand(cmd)) return Promise.resolve(mockEntries)
+        if (cmd === 'get_modified_files') return Promise.resolve([])
+        if (cmd === 'list_vault_folders') return Promise.resolve([])
+        if (cmd === 'list_views') return Promise.resolve([])
+        return Promise.resolve(null)
+      }) as typeof defaultMockInvoke)
+
+      const { result } = await renderVaultLoader()
+
+      let entries: VaultEntry[] | null = []
+      await act(async () => {
+        entries = await result.current.reloadVaultSoft()
+      })
+
+      // A transient IPC failure must NOT masquerade as an empty vault:
+      // consumers use null as the "keep current state" signal.
+      expect(entries).toBeNull()
+      expect(result.current.entries).toEqual(mockEntries)
+      warnSpy.mockRestore()
+    })
+  })
+
   describe('reloadViews', () => {
     it('refreshes views and falls back to an empty array when they are unavailable', async () => {
       const initialViews = [{

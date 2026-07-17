@@ -28,13 +28,6 @@ interface AiPanelContextBarProps {
   linkedCount: number
 }
 
-interface AiPanelBriefProps {
-  agentLabel: string
-  activeEntry: VaultEntry
-  linkedCount: number
-  conversationActive: boolean
-}
-
 interface AiPanelMessageHistoryProps {
   agentLabel: string
   agentReady: boolean
@@ -86,15 +79,11 @@ function AiPanelEmptyState({
   if (!agentReady) {
     return (
       <div
-        className="flex flex-col items-center justify-center text-center text-muted-foreground"
-        style={{ paddingTop: 40 }}
+        className="text-muted-foreground"
+        style={{ padding: '4px 2px' }}
       >
-        <Glyph name="chitragupta" size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
-        <p style={{ fontSize: 14, margin: '0 0 4px' }}>
+        <p style={{ fontSize: 13, margin: 0, color: 'var(--text-secondary)' }}>
           {agentLabel} is not available on this machine
-        </p>
-        <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>
-          Install it or switch the default AI agent in Settings
         </p>
       </div>
     )
@@ -102,20 +91,13 @@ function AiPanelEmptyState({
 
   return (
     <div
-      className="flex flex-col items-center justify-center text-center text-muted-foreground"
-      style={{ paddingTop: 40 }}
+      className="text-muted-foreground"
+      style={{ padding: '4px 2px' }}
     >
-      <Glyph name="chitragupta" size={24} style={{ marginBottom: 8, opacity: 0.5 }} />
-      <p style={{ fontSize: 14, margin: '0 0 4px' }}>
+      <p style={{ fontSize: 13, margin: 0, color: 'var(--text-secondary)' }}>
         {hasContext
-          ? legacyCopy ? 'Ask about this note and its linked context' : `Ask ${agentLabel} about this note and its linked context`
-          : legacyCopy ? 'Open a note, then ask the AI about it' : `Open a note, then ask ${agentLabel} about it`
-        }
-      </p>
-      <p style={{ fontSize: 12, margin: 0, opacity: 0.6 }}>
-        {hasContext
-          ? 'Summarize, find connections, expand ideas'
-          : 'The AI will use the active note as context'
+          ? legacyCopy ? 'Ask about this note.' : `Ask ${agentLabel} about this note.`
+          : legacyCopy ? 'Open a note to give this conversation context.' : `Open a note to give ${agentLabel} context.`
         }
       </p>
     </div>
@@ -230,61 +212,30 @@ export function AiPanelHeader({
   )
 }
 
-export function AiPanelBrief({
-  agentLabel,
-  activeEntry,
-  linkedCount,
-  conversationActive,
-}: AiPanelBriefProps) {
-  const policy = resolveEntryLocalityPolicy(activeEntry)
-  const visibleTitle = policy.localOnly ? 'a local-only note' : activeEntry.title
-  const linkedClause = !policy.localOnly && linkedCount > 0
-    ? ` and its ${linkedCount} linked ${linkedCount === 1 ? 'note' : 'notes'}`
-    : ''
-  const brief = `${agentLabel} can see ${visibleTitle}${linkedClause} for this turn.`
-
-  return (
-    <p
-      className="ai-panel-brief shrink-0 truncate"
-      data-testid="ai-panel-brief"
-      data-collapsed={conversationActive || undefined}
-      style={{
-        margin: 0,
-        padding: conversationActive ? '6px 12px' : '8px 12px 10px',
-        fontSize: 13,
-        lineHeight: 1.4,
-        color: 'var(--text-muted)',
-        whiteSpace: conversationActive ? 'nowrap' : 'normal',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        borderBottom: '1px solid transparent',
-      }}
-    >
-      {brief}
-    </p>
-  )
-}
-
 export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBarProps) {
   const policy = resolveEntryLocalityPolicy(activeEntry)
   const visibleTitle = policy.localOnly ? 'Local-only note' : activeEntry.title
 
   return (
     <div
-      className="flex shrink-0 items-center border-b border-border text-muted-foreground"
+      className="flex shrink-0 items-center border-b border-border"
       style={{ padding: '6px 12px', gap: 6, fontSize: 12 }}
       data-testid="context-bar"
     >
-      <Glyph name="link" size={12} className="shrink-0" />
-      <span className="truncate" style={{ fontWeight: 500 }}>{visibleTitle}</span>
+      <Glyph name="link" size={12} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />
+      <span className="truncate" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{visibleTitle}</span>
       {policy.localOnly ? (
-        <Badge variant="outline" className="h-7 rounded-md px-2.5 text-[13px]">
+        <Badge
+          variant="outline"
+          className="h-7 rounded-md px-2.5 text-[13px] font-semibold"
+          style={{ borderColor: 'color-mix(in srgb, var(--primary) 45%, transparent)', color: 'var(--text-primary)', background: 'color-mix(in srgb, var(--primary) 12%, var(--surface-panel, var(--background)))' }}
+        >
           <Glyph name="shield" size={16} />
           Protected
         </Badge>
       ) : null}
       {!policy.localOnly && linkedCount > 0 && (
-        <span style={{ opacity: 0.6 }}>+ {linkedCount} linked</span>
+        <span style={{ color: 'var(--text-secondary)' }}>+ {linkedCount} linked</span>
       )}
     </div>
   )
@@ -307,7 +258,7 @@ export function AiPanelMessageHistory({
   }, [messages, isActive])
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ padding: 12 }}>
+    <div className="min-h-0" style={{ padding: 12 }}>
       {messages.length === 0 && !isActive && (
         <AiPanelEmptyState
           agentLabel={agentLabel}

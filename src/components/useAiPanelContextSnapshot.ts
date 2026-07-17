@@ -5,7 +5,7 @@ import {
   collectLinkedEntries,
   type NoteListItem,
 } from '../utils/ai-context'
-import { buildAgentGraphContext } from '../utils/agentGraphContext'
+import { buildCachedAgentGraphContext } from '../utils/agentGraphContext'
 import { extractProviderPromptReferences } from '../lib/providerPromptPrivacy'
 
 interface UseAiPanelContextSnapshotArgs {
@@ -38,7 +38,7 @@ export function useAiPanelContextSnapshot({
   )
   const graphContext = useMemo(() => {
     if (!activeEntry || !entries) return undefined
-    return buildAgentGraphContext({ activeEntry, entries })
+    return buildCachedAgentGraphContext(activeEntry, entries)
   }, [activeEntry, entries])
 
   const contextPrompt = useMemo(() => {

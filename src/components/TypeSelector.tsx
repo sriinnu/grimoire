@@ -1,4 +1,4 @@
-import { CaretUpDown, Check } from '@phosphor-icons/react'
+import { CaretUpDown, Check, Plus } from '@phosphor-icons/react'
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { FrontmatterValue } from './Inspector'
 import { Button } from '@/components/ui/button'
@@ -17,6 +17,8 @@ import {
 } from './TypeSelectorParts'
 
 const TYPE_NONE = '__none__'
+const TYPE_CREATE = '__create__'
+const EMPTY_TYPES_HINT = 'Types are notes — create one to categorize pages.'
 const MIN_POPOVER_WIDTH = 220
 const OPEN_COMBOBOX_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Enter', ' '])
 
@@ -28,10 +30,12 @@ function buildTypeOptions({
   availableTypes,
   currentType,
   query,
+  canCreate = false,
 }: {
   availableTypes: string[]
   currentType: string | null | undefined
   query: string
+  canCreate?: boolean
 }) {
   const normalized = normalizeTypeQuery({ query })
   const types = currentType && !availableTypes.includes(currentType)
@@ -40,8 +44,11 @@ function buildTypeOptions({
   const sortedTypes = types.sort((left, right) => left.localeCompare(right))
   const filteredTypes = sortedTypes.filter((type) => normalized === '' || type.toLowerCase().includes(normalized))
 
-  if (normalized !== '') return filteredTypes
-  return [TYPE_NONE, ...filteredTypes]
+  if (normalized === '') return [TYPE_NONE, ...filteredTypes]
+
+  const hasExactMatch = sortedTypes.some((type) => type.toLowerCase() === normalized)
+  if (canCreate && !hasExactMatch) return [...filteredTypes, TYPE_CREATE]
+  return filteredTypes
 }
 
 function initialHighlightedIndex({ options, currentValue }: { options: string[]; currentValue: string }): number {
@@ -113,9 +120,10 @@ function EditableTypeSelector({
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
+  const canCreate = Boolean(onCreateMissingType)
   const options = useMemo(
-    () => buildTypeOptions({ availableTypes, currentType: isA, query }),
-    [availableTypes, isA, query],
+    () => buildTypeOptions({ availableTypes, currentType: isA, query, canCreate }),
+    [availableTypes, canCreate, isA, query],
   )
 
   useEffect(() => {
@@ -136,7 +144,7 @@ function EditableTypeSelector({
   }, [open])
 
   const openCombobox = () => {
-    const nextOptions = buildTypeOptions({ availableTypes, currentType: isA, query: '' })
+    const nextOptions = buildTypeOptions({ availableTypes, currentType: isA, query: '', canCreate })
     setQuery('')
     setHighlightedIndex(initialHighlightedIndex({ options: nextOptions, currentValue }))
     setOpen(true)
@@ -149,6 +157,12 @@ function EditableTypeSelector({
   }
 
   const selectType = (value: string) => {
+    if (value === TYPE_CREATE) {
+      const typeName = query.trim()
+      if (typeName) void onCreateMissingType?.(typeName)
+      closeCombobox()
+      return
+    }
     onUpdateProperty('type', value === TYPE_NONE ? null : value)
     closeCombobox()
   }
@@ -187,7 +201,7 @@ function EditableTypeSelector({
   }
 
   const handleSearchChange = (query: string) => {
-    const nextOptions = buildTypeOptions({ availableTypes, currentType: isA, query })
+    const nextOptions = buildTypeOptions({ availableTypes, currentType: isA, query, canCreate })
     setQuery(query)
     setHighlightedIndex(nextOptions.length > 0 ? 0 : -1)
   }
@@ -277,6 +291,14 @@ function EditableTypeSelector({
               />
             </div>
             <div ref={listRef} className="max-h-60 overflow-y-auto p-1">
+              {availableTypes.length === 0 && normalizeTypeQuery({ query }) === '' && (
+                <div
+                  className="px-2 py-1.5 text-xs text-muted-foreground"
+                  data-testid="type-selector-empty-hint"
+                >
+                  {EMPTY_TYPES_HINT}
+                </div>
+              )}
               {options.length === 0 ? (
                 <div className="px-2 py-6 text-center text-sm text-muted-foreground">
                   No matching types
@@ -304,6 +326,14 @@ function EditableTypeSelector({
                       >
                         {type === TYPE_NONE ? (
                           <span className="truncate text-muted-foreground">None</span>
+                        ) : type === TYPE_CREATE ? (
+                          <span
+                            className="flex min-w-0 items-center gap-2 truncate text-primary"
+                            data-testid="type-selector-create-option"
+                          >
+                            <Plus size={14} aria-hidden="true" />
+                            Create type &ldquo;{query.trim()}&rdquo;
+                          </span>
                         ) : (
                           <span className="flex min-w-0 items-center gap-2 truncate">
                             <TypeSelectorItem type={type} typeColorKeys={typeColorKeys} typeIconKeys={typeIconKeys} />

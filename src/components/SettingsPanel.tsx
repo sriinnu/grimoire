@@ -280,6 +280,9 @@ function SettingsPanelInner({
           onImportMarkdownZip={portabilityActions.handleImportMarkdownZip}
           onPreviewBear={portabilityActions.handlePreviewBear}
           onImportBear={portabilityActions.handleImportBear}
+          installedApps={portabilityActions.installedApps}
+          onPreviewBearDatabase={portabilityActions.handlePreviewBearDatabase}
+          onImportBearDatabase={portabilityActions.handleImportBearDatabase}
           onPreviewObsidian={portabilityActions.handlePreviewObsidian}
           onImportObsidian={portabilityActions.handleImportObsidian}
           onPreviewNotion={portabilityActions.handlePreviewNotion}

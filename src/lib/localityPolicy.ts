@@ -140,8 +140,18 @@ function typeLocalOnlyReason(entry: LocalityPolicySubject): string | null {
 }
 
 function pathLocalOnlyReason(entry: LocalityPolicySubject): string | null {
-  const segment = localOnlyPathSegment(entry)
+  const segment = localOnlyPathSegment(entry.path)
   return segment ? `Path is under ${segment}` : null
+}
+
+/**
+ * True when a bare path sits under a protected local-only folder. Used for
+ * files that have no VaultEntry (deleted notes still in git status,
+ * non-markdown attachments) so they get the same path-lane protection as
+ * entry-backed notes.
+ */
+export function isLocalOnlyPath(path: string): boolean {
+  return localOnlyPathSegment(path) !== null
 }
 
 /** Resolves whether an entry must be withheld from export, sync, or AI context by default. */
@@ -187,6 +197,21 @@ export function resolveEntryLocalityPolicy(entry: LocalityPolicySubject): EntryL
 /** True when an entry should not be placed in remote, export, or AI context by default. */
 export function isEntryLocalOnly(entry: LocalityPolicySubject): boolean {
   return resolveEntryLocalityPolicy(entry).localOnly
+}
+
+/**
+ * How moving an entry to `newPath` would change its local-only classification.
+ * `'protects'` — the note becomes local-only; `'exposes'` — it stops being
+ * local-only; `null` — no change (frontmatter/type protection is path-independent
+ * and therefore never flips here).
+ */
+export type LocalityMoveEffect = 'protects' | 'exposes' | null
+
+export function localityMoveEffect(entry: LocalityPolicySubject, newPath: string): LocalityMoveEffect {
+  const before = resolveEntryLocalityPolicy(entry).localOnly
+  const after = resolveEntryLocalityPolicy({ ...entry, path: newPath }).localOnly
+  if (before === after) return null
+  return after ? 'protects' : 'exposes'
 }
 
 /** Shared egress matrix for Inspector, agent package review, export, sync, and Git surfaces. */
@@ -254,7 +279,7 @@ function isProtectedLocalitySource(source: LocalityPolicySource): source is Excl
 
 function localityExampleLabel(entry: LocalityPolicySubject, source: Exclude<LocalityPolicySource, 'none'>): string {
   if (source === 'type') return `${formatPublicLabel(entry.isA, 'Protected')} note`
-  if (source === 'path') return `${formatPublicLabel(localOnlyPathSegment(entry), 'Protected path')} folder note`
+  if (source === 'path') return `${formatPublicLabel(localOnlyPathSegment(entry.path), 'Protected path')} folder note`
   return 'Frontmatter-protected note'
 }
 
@@ -268,8 +293,8 @@ function formatPublicLabel(value: string | null | undefined, fallback: string): 
     .join(' ')
 }
 
-function localOnlyPathSegment(entry: LocalityPolicySubject): string | null {
-  return entry.path
+function localOnlyPathSegment(path: string): string | null {
+  return path
     .split(/[\\/]/)
     .map((segment) => segment.trim().toLowerCase())
     .find((candidate) => LOCAL_ONLY_PATH_SEGMENTS.has(candidate)) ?? null

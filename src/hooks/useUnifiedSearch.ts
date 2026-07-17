@@ -7,6 +7,7 @@ interface SearchResultData {
   title: string
   path: string
   snippet: string
+  snippet_matches?: { start: number; end: number }[]
   score: number
   note_type: string | null
   file_kind?: SearchResult['fileKind']
@@ -37,6 +38,7 @@ function mapResults(raw: SearchResultData[], scope: SearchVaultScope): SearchRes
       title: r.title,
       path: r.path,
       snippet: r.snippet,
+      snippetMatches: r.snippet_matches ?? [],
       score: r.score,
       noteType: r.note_type,
       fileKind: r.file_kind,

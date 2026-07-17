@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
 import type { AskContextPackage } from '../lib/askContextPackage'
+import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
+import type { ContextManifestV1 } from '../lib/contextManifest'
 import type { AiAgentId } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
 import {
@@ -26,6 +28,8 @@ interface UseCliAiAgentOptions {
   agentReady: boolean
   provider?: string | null
   model?: string | null
+  /** Vault-relative path of the active note; threads socket session lineage. */
+  notePath?: string | null
 }
 
 interface UseCliAiAgentRuntime extends AiAgentSessionRuntime {
@@ -71,7 +75,7 @@ export function useCliAiAgent(
   fileCallbacks: AgentFileCallbacks | undefined,
   options: UseCliAiAgentOptions,
 ) {
-  const { agent, agentReady, provider, model } = options
+  const { agent, agentReady, provider, model, notePath } = options
   const runtime = useCliAiAgentRuntime(fileCallbacks)
   const { messages, status } = runtime
   const queuedPromptsRef = useRef<PendingUserPrompt[]>([])
@@ -80,10 +84,11 @@ export function useCliAiAgent(
     agent,
     ready: agentReady,
     vaultPath,
+    notePath,
     systemPromptOverride: contextPrompt,
     provider,
     model,
-  }), [agent, agentReady, contextPrompt, model, provider, vaultPath])
+  }), [agent, agentReady, contextPrompt, model, notePath, provider, vaultPath])
 
   function enqueuePrompt(prompt: PendingUserPrompt): void {
     const queuedMessageId = appendQueuedMessage(runtime.setMessages, prompt)
@@ -95,8 +100,10 @@ export function useCliAiAgent(
     text: string,
     references?: NoteReference[],
     contextPackage?: AskContextPackage,
+    chitraguptaRecall?: ChitraguptaRecallAttachment,
+    contextManifest?: ContextManifestV1,
   ): Promise<void> {
-    const prompt = { text, references, contextPackage }
+    const prompt = { text, references, contextPackage, chitraguptaRecall, contextManifest }
     if (runtime.statusRef.current === 'thinking' || runtime.statusRef.current === 'tool-executing') {
       if (text.trim()) enqueuePrompt(prompt)
       return

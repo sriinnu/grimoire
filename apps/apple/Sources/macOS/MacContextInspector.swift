@@ -28,69 +28,118 @@ struct MacContextInspector: View {
                 privacy
             }
         }
-        .navigationTitle("Context Inspector")
+        .navigationTitle("Second Brain")
     }
 
     private var overview: some View {
-        Form {
-            Section("Request") {
-                Picker("Intent", selection: $model.intent) {
-                    ForEach(ContextIntentV1.inspectorCases, id: \.rawValue) { intent in
-                        Text(intent.rawValue.capitalized).tag(intent)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(MacNotebookTheme.brandGradient)
+                        Image(systemName: "brain.head.profile.fill")
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 38, height: 38)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Second Brain")
+                            .font(.headline)
+                        Label("Local context", systemImage: "lock.shield")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer(minLength: 0)
+                    Button("Ask") {}
+                        .buttonStyle(.bordered)
+                        .disabled(true)
+                        .help("Chitragupta connection arrives after the native workspace is solid")
+                }
+
+                inspectorCard("Signal", systemImage: "waveform.path.ecg") {
+                    Text(model.activeDocument?.notePreview ?? "Choose a page to build a grounded local signal.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(5)
+                }
+
+                inspectorCard("Context", systemImage: "point.3.connected.trianglepath.dotted") {
+                    LabeledContent("Active page", value: model.activeDocument?.title ?? "None")
+                    LabeledContent("Available nodes", value: "\(model.documents.count) local pages")
+                    LabeledContent("Manifest", value: "r\(model.manifestRevision)")
+                    Gauge(
+                        value: Double(model.manifest.budget.usedTokens),
+                        in: 0 ... Double(model.manifest.budget.maximumTokens)
+                    ) {
+                        Text("Context budget")
+                    } currentValueLabel: {
+                        Text("\(model.manifest.budget.usedTokens) tokens")
+                    }
+                    .gaugeStyle(.linearCapacity)
+                }
+
+                inspectorCard("Activity", systemImage: "clock.arrow.circlepath") {
+                    Label(model.vaultActivity, systemImage: "pencil.and.scribble")
+                    if let document = model.activeDocument {
+                        Text("You are working in \(document.path).")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
-                LabeledContent("Manifest", value: model.manifest.id)
-                LabeledContent("Revision", value: "r\(model.manifestRevision)")
-                LabeledContent("State") {
-                    Label(
-                        model.manifestNeedsRebuild ? "Rebuild needed" : "Current",
-                        systemImage: model.manifestNeedsRebuild
-                            ? "exclamationmark.arrow.triangle.2.circlepath"
-                            : "checkmark.circle.fill"
-                    )
-                    .foregroundStyle(model.manifestNeedsRebuild ? .orange : .green)
-                }
-            }
-
-            Section("Token Budget") {
-                Gauge(
-                    value: Double(model.manifest.budget.usedTokens),
-                    in: 0 ... Double(model.manifest.budget.maximumTokens)
-                ) {
-                    Text("Context tokens")
-                } currentValueLabel: {
-                    Text("\(model.manifest.budget.usedTokens)")
-                } minimumValueLabel: {
-                    Text("0")
-                } maximumValueLabel: {
-                    Text("\(model.manifest.budget.maximumTokens)")
-                }
-                .gaugeStyle(.linearCapacity)
-
-                Stepper(
-                    value: tokenBudget,
-                    in: 2_048 ... 32_768,
-                    step: 1_024
-                ) {
-                    LabeledContent("Maximum", value: "\(model.maximumTokens) tokens")
+                inspectorCard("Outline", systemImage: "list.bullet.indent") {
+                    if outlineHeadings.isEmpty {
+                        Text("Headings appear here as the page takes shape.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(Array(outlineHeadings.enumerated()), id: \.offset) { _, heading in
+                            Label(heading.title, systemImage: "h\(min(heading.level, 3)).square")
+                                .font(heading.level == 1 ? .callout.weight(.semibold) : .caption)
+                                .padding(.leading, CGFloat(max(0, heading.level - 1)) * 10)
+                        }
+                    }
                 }
 
-                LabeledContent("Remaining", value: "\(model.manifest.budget.remainingTokens)")
-                LabeledContent("Compacted", value: "\(model.manifest.budget.compactedTokens)")
-            }
-
-            Section {
                 Button {
                     model.rebuildManifest()
                 } label: {
-                    Label("Rebuild Context Manifest", systemImage: "arrow.triangle.2.circlepath")
-                        .frame(maxWidth: .infinity)
+                    Label(
+                        model.manifestNeedsRebuild ? "Refresh local context" : "Local context is current",
+                        systemImage: model.manifestNeedsRebuild
+                            ? "arrow.triangle.2.circlepath"
+                            : "checkmark.circle.fill"
+                    )
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
             }
+            .padding(12)
         }
-        .formStyle(.grouped)
+    }
+
+    private func inspectorCard<Content: View>(
+        _ title: String,
+        systemImage: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(title, systemImage: systemImage)
+                .font(.headline)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .grimoireGlassCard()
+    }
+
+    private var outlineHeadings: [(level: Int, title: String)] {
+        guard let markdown = model.activeDocument?.markdown else { return [] }
+        return markdown.split(separator: "\n").compactMap { line in
+            let level = line.prefix { $0 == "#" }.count
+            guard level > 0, level <= 6 else { return nil }
+            return (level, line.dropFirst(level).trimmingCharacters(in: .whitespaces))
+        }
     }
 
     private var sources: some View {
@@ -147,12 +196,6 @@ struct MacContextInspector: View {
         }
     }
 
-    private var tokenBudget: Binding<Int> {
-        Binding(
-            get: { Int(model.maximumTokens) },
-            set: { model.maximumTokens = UInt32($0) }
-        )
-    }
 }
 
 private struct MacContextSourceRow: View {
@@ -238,7 +281,13 @@ private enum InspectorPage: String, CaseIterable, Identifiable {
     case overview, sources, privacy
 
     var id: String { rawValue }
-    var title: String { rawValue.capitalized }
+    var title: String {
+        switch self {
+        case .overview: "Brain"
+        case .sources: "Sources"
+        case .privacy: "Privacy"
+        }
+    }
 
     var systemImage: String {
         switch self {

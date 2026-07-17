@@ -200,6 +200,8 @@ describe('NoteItem', () => {
     expect(item.style.getPropertyValue('--note-type-color')).toBe('var(--accent-green)')
     expect(item.style.borderLeftColor).toBe('')
     expect(item.className).not.toContain('border-l-[3px]')
+    expect(screen.getByTestId('note-current-document-state')).toHaveTextContent('Current')
+    expect(screen.getByTestId('note-current-document-state')).toHaveAttribute('aria-label', 'Current document in editor')
   })
 
   it('shows created date on the right side of the date row when available', () => {

@@ -78,7 +78,7 @@ describe('theme surface coherence CSS', () => {
 
   it('routes graph canvas nodes and agent orbit through the same material family', () => {
     expect(surfaceCss).toContain('.graph-canvas-shell')
-    expect(surfaceCss).toContain('.graph-canvas-package-card')
+    expect(surfaceCss).toContain('.graph-canvas-zoom')
     expect(surfaceCss).toContain('.grimoire-graph-node-title-backdrop')
     expect(surfaceCss).toContain('fill: var(--grimoire-graph-node-label-material)')
     expect(surfaceCss).toContain('.grimoire-graph-node-type-pill')
@@ -90,7 +90,6 @@ describe('theme surface coherence CSS', () => {
   })
 
   it('preserves graph agent readiness states after broad material overrides', () => {
-    expect(surfaceCss).toContain('.graph-canvas-package-card[data-state="ready"]')
     expect(surfaceCss).toContain('.graph-canvas-agent-rail span[data-state="ready"]')
     expect(surfaceCss).toContain('.graph-canvas-agent-rail span[data-state="guarded"]')
     expect(surfaceCss).toContain('.graph-canvas-agent-rail span[data-state="blocked"]')

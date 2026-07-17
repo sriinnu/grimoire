@@ -337,6 +337,7 @@ export function ListPropertiesPopover({
           title={triggerTitle}
           aria-label={triggerTitle}
           data-testid="list-properties-btn"
+          data-icon-intent="structure"
       >
         <SlidersHorizontal size={16} />
       </Button>

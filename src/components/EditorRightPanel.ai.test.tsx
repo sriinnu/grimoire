@@ -153,7 +153,7 @@ describe('EditorRightPanel AI chat lifecycle', () => {
 
     const secondBrain = screen.getByTestId('second-brain-panel')
     expect(secondBrain).toHaveTextContent('Second Brain')
-    fireEvent.click(screen.getByRole('button', { name: 'Open Second Brain chat' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ask about this note' }))
 
     expect(onToggleAIChat).toHaveBeenCalledOnce()
   })

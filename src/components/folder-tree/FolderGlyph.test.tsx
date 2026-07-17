@@ -108,16 +108,16 @@ describe('FolderGlyph', () => {
     })
   })
 
-  it('uses authored Grimoire glyphs for unmatched closed and open folders', () => {
+  it('uses the same recognisable folder family for unmatched closed and open folders', () => {
     expect(resolveFolderGlyphModel(folder('misc'), false).Icon).toBe(DefaultFolderGlyphIcon)
     expect(resolveFolderGlyphModel(folder('misc'), true).Icon).toBe(DefaultFolderOpenGlyphIcon)
   })
 
-  it('uses the authored Grimoire star glyph for star-domain folders', () => {
+  it('keeps semantic folders in the folder family while exposing their meaning through tone', () => {
     render(<FolderGlyph node={folder('Nakshatra')} isOpen={true} isSelected={true} />)
 
     const glyph = screen.getByTestId('folder-glyph:library/Nakshatra')
     expect(glyph).toHaveAttribute('data-folder-glyph', 'star')
-    expect(glyph.querySelector('[data-knowledge-icon="star"]')).not.toBeNull()
+    expect(glyph.querySelector('[data-domain-folder-glyph="folder-open"]')).not.toBeNull()
   })
 })

@@ -1,3 +1,4 @@
+import type { DiscoveredApp, InstalledAppDatabaseId } from '../utils/appStoreImport'
 import type { ImportAutopsyPreviewState, PortabilityProgressState, VaultPortabilityActionId } from '../lib/vaultPortability'
 import type { PortabilityExportPreviewState } from '../lib/exportReviewGate'
 import type { createTranslator } from '../lib/i18n'
@@ -42,6 +43,11 @@ export interface PortabilityActionDeckProps {
   onImportMarkdownZip?: () => void
   onPreviewBear?: () => void
   onImportBear?: () => void
+  installedApps?: DiscoveredApp[]
+  // Named for the first app they served; the optional app id also routes other
+  // installed-app databases (e.g. 'day-one') without new chrome props.
+  onPreviewBearDatabase?: (appId?: InstalledAppDatabaseId) => void
+  onImportBearDatabase?: (appId?: InstalledAppDatabaseId) => void
   onPreviewObsidian?: () => void
   onImportObsidian?: () => void
   onPreviewNotion?: () => void

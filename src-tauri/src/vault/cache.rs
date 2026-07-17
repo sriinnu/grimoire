@@ -172,6 +172,15 @@ fn has_hidden_segment(path: &str) -> bool {
     path.split('/').any(|seg| seg.starts_with('.'))
 }
 
+/// Append `additional` paths to `files`, skipping duplicates.
+fn merge_paths(files: &mut Vec<String>, additional: Vec<String>) {
+    for path in additional {
+        if !files.contains(&path) {
+            files.push(path);
+        }
+    }
+}
+
 fn git_changed_files(vault: &Path, from_hash: &str, to_hash: &str) -> Vec<String> {
     let diff_arg = format!("{}..{}", from_hash, to_hash);
     let mut files = run_git(vault, &["diff", &diff_arg, "--name-only"])
@@ -179,13 +188,7 @@ fn git_changed_files(vault: &Path, from_hash: &str, to_hash: &str) -> Vec<String
         .unwrap_or_default();
 
     // Include uncommitted changes (modified, staged, and untracked files).
-    let uncommitted = git_uncommitted_files(vault);
-
-    for path in uncommitted.into_iter() {
-        if !files.contains(&path) {
-            files.push(path);
-        }
-    }
+    merge_paths(&mut files, git_uncommitted_files(vault));
 
     files
 }
@@ -208,13 +211,34 @@ fn git_uncommitted_files(vault: &Path) -> Vec<String> {
         })
         .unwrap_or_default();
 
-    for path in untracked {
-        if !files.contains(&path) {
-            files.push(path);
-        }
-    }
+    merge_paths(&mut files, untracked);
 
     files
+}
+
+/// Validate caller-supplied extra paths against the vault boundary.
+///
+/// Accepts vault-relative paths or absolute paths inside the vault, and
+/// normalizes them to relative form. Rejects anything that could escape the
+/// vault (absolute paths outside it, `..` components) and hidden segments
+/// the scanner never indexes. Non-existent survivors are harmless: they are
+/// treated as deletions further down (`parse_files_at` skips them and
+/// `prune_stale_entries` drops their cached entries).
+fn sanitize_extra_paths(vault: &Path, extra_paths: &[String]) -> Vec<String> {
+    extra_paths
+        .iter()
+        .filter_map(|raw| {
+            let rel = to_relative_path(raw, vault);
+            let path = Path::new(&rel);
+            let is_safe = !rel.is_empty()
+                && path.is_relative()
+                && path
+                    .components()
+                    .all(|component| matches!(component, std::path::Component::Normal(_)))
+                && !has_hidden_segment(&rel);
+            is_safe.then_some(rel)
+        })
+        .collect()
 }
 
 fn cache_fingerprint(bytes: &[u8]) -> CacheFileFingerprint {
@@ -578,13 +602,19 @@ fn finalize_and_cache(
 /// Handle same-commit cache hit: re-parse any uncommitted changes (new or modified files).
 /// Always prunes stale entries even when git reports no changes, so that files
 /// deleted outside git (e.g., via Finder) are removed from the cache on vault open.
+///
+/// `extra_paths` (already sanitized) are force-re-parsed even though git
+/// cannot see them — the work list here comes from `git status`/`git ls-files`,
+/// which is blind to gitignored files that the full WalkDir scan indexes.
 fn update_same_commit(
     vault: &Path,
     loaded_cache: LoadedCache,
     git_dates: &HashMap<String, GitDates>,
+    extra_paths: &[String],
 ) -> Vec<VaultEntry> {
     let LoadedCache { cache, fingerprint } = loaded_cache;
-    let changed = git_uncommitted_files(vault);
+    let mut changed = git_uncommitted_files(vault);
+    merge_paths(&mut changed, extra_paths.to_vec());
     let mut entries = cache.entries;
     if !changed.is_empty() {
         let changed_set: std::collections::HashSet<String> = changed.iter().cloned().collect();
@@ -597,14 +627,18 @@ fn update_same_commit(
 }
 
 /// Handle different-commit cache: incremental update via git diff.
+/// `extra_paths` (already sanitized) are force-re-parsed like in
+/// `update_same_commit` — git diff/status never reports gitignored files.
 fn update_different_commit(
     vault: &Path,
     loaded_cache: LoadedCache,
     current_hash: String,
     git_dates: &HashMap<String, GitDates>,
+    extra_paths: &[String],
 ) -> Vec<VaultEntry> {
     let LoadedCache { cache, fingerprint } = loaded_cache;
-    let changed_files = git_changed_files(vault, &cache.commit_hash, &current_hash);
+    let mut changed_files = git_changed_files(vault, &cache.commit_hash, &current_hash);
+    merge_paths(&mut changed_files, extra_paths.to_vec());
     let changed_set: std::collections::HashSet<String> = changed_files.iter().cloned().collect();
 
     let mut entries: Vec<VaultEntry> = cache
@@ -649,6 +683,23 @@ pub fn invalidate_cache(vault_path: &Path) {
 /// Scan vault with incremental caching via git.
 /// Falls back to full scan if cache is missing/corrupt or git is unavailable.
 pub fn scan_vault_cached(vault_path: &Path) -> Result<Vec<VaultEntry>, String> {
+    scan_vault_cached_with_extra_paths(vault_path, &[])
+}
+
+/// Like `scan_vault_cached`, but force-re-parses `extra_paths` even when git
+/// cannot see them. The incremental branches derive their work list from
+/// `git status`/`git ls-files`, which is blind to gitignored files — yet the
+/// full WalkDir scan indexes those on purpose. Callers that know exactly
+/// which file changed (agent per-file writes) pass it here so gitignored
+/// notes stay fresh without a full rescan.
+///
+/// Paths are validated against the vault boundary (escaping or hidden paths
+/// are dropped); paths whose file no longer exists are treated as deletions
+/// and pruned from the cache.
+pub fn scan_vault_cached_with_extra_paths(
+    vault_path: &Path,
+    extra_paths: &[String],
+) -> Result<Vec<VaultEntry>, String> {
     if !vault_path.exists() || !vault_path.is_dir() {
         return Err(format!(
             "Vault path does not exist or is not a directory: {}",
@@ -666,6 +717,7 @@ pub fn scan_vault_cached(vault_path: &Path) -> Result<Vec<VaultEntry>, String> {
 
     // Build git dates map once — used by all code paths below
     let git_dates = get_all_file_dates(vault_path);
+    let extra_paths = sanitize_extra_paths(vault_path, extra_paths);
 
     match load_cache(vault_path) {
         CacheLoadState::Missing => {}
@@ -684,13 +736,19 @@ pub fn scan_vault_cached(vault_path: &Path) -> Result<Vec<VaultEntry>, String> {
                 );
             }
             return if loaded_cache.cache.commit_hash == current_hash {
-                Ok(update_same_commit(vault_path, loaded_cache, &git_dates))
+                Ok(update_same_commit(
+                    vault_path,
+                    loaded_cache,
+                    &git_dates,
+                    &extra_paths,
+                ))
             } else {
                 Ok(update_different_commit(
                     vault_path,
                     loaded_cache,
                     current_hash,
                     &git_dates,
+                    &extra_paths,
                 ))
             };
         }
@@ -1167,6 +1225,124 @@ mod tests {
             "deleted untracked file must be pruned on rescan"
         );
         assert_eq!(entries2[0].title, "Tracked");
+    }
+
+    /// Soft-reload contract for agent writes: with the cache left intact
+    /// (no `invalidate_cache`), a same-commit rescan must pick up created,
+    /// modified, and deleted uncommitted files purely incrementally.
+    #[test]
+    fn test_soft_reload_same_commit_handles_created_modified_and_deleted_files() {
+        let (_lock, _cache_tmp, dir) = setup_git_vault();
+        let vault = dir.path();
+
+        create_test_file(vault, "keep.md", "# Keep\n\nOriginal.");
+        create_test_file(vault, "gone.md", "# Gone\n\nWill be deleted.");
+        git_add_commit(vault, "init");
+
+        // Prime the cache
+        let entries = scan_vault_cached(vault).unwrap();
+        assert_eq!(entries.len(), 2);
+        let head = git_head_hash(vault).unwrap();
+
+        // Agent-style uncommitted changes: modify, create, delete (unstaged)
+        create_test_file(vault, "keep.md", "# Keep\n\nAgent edit.");
+        create_test_file(vault, "fresh.md", "# Fresh\n\nAgent created.");
+        fs::remove_file(vault.join("gone.md")).unwrap();
+
+        assert!(
+            cache_path(vault).exists(),
+            "soft reload must run against the intact cache file"
+        );
+        let entries2 = scan_vault_cached(vault).unwrap();
+
+        let titles: Vec<&str> = entries2.iter().map(|e| e.title.as_str()).collect();
+        assert_eq!(
+            entries2.len(),
+            2,
+            "created file must be added and deleted file pruned, got {titles:?}"
+        );
+        assert!(titles.contains(&"Keep"));
+        assert!(titles.contains(&"Fresh"));
+        let keep = entries2.iter().find(|e| e.title == "Keep").unwrap();
+        assert_eq!(
+            keep.snippet, "Agent edit.",
+            "modified file must be re-parsed from disk"
+        );
+
+        // The cache survives the soft reload and still points at the same
+        // commit — proof the incremental same-commit branch was used.
+        let CacheLoadState::Loaded(loaded) = load_cache(vault) else {
+            panic!("cache must still load after a soft reload");
+        };
+        assert_eq!(
+            loaded.cache.commit_hash, head,
+            "soft reload must not fall back to a full rescan"
+        );
+    }
+
+    /// Gitignored files are invisible to `git status`/`git ls-files`, so the
+    /// incremental soft reload misses agent edits to them unless the caller
+    /// names the file via `extra_paths` — which must force a re-parse.
+    #[test]
+    fn test_soft_reload_extra_paths_refresh_gitignored_files() {
+        let (_lock, _cache_tmp, dir) = setup_git_vault();
+        let vault = dir.path();
+
+        create_test_file(vault, ".gitignore", "private/\n");
+        create_test_file(vault, "note.md", "# Note\n\nTracked.");
+        create_test_file(vault, "private/secret.md", "# Secret\n\nOriginal.");
+        git_add_commit(vault, "init");
+
+        // Prime the cache: the full WalkDir scan indexes gitignored files.
+        let entries = scan_vault_cached(vault).unwrap();
+        assert_eq!(entries.len(), 2, "full scan must index the gitignored file");
+
+        // Agent edits the gitignored note (invisible to git).
+        create_test_file(vault, "private/secret.md", "# Secret\n\nAgent edit.");
+
+        // Soft reload WITHOUT extra paths: the git-derived work list misses it.
+        let stale = scan_vault_cached(vault).unwrap();
+        let secret = stale.iter().find(|e| e.title == "Secret").unwrap();
+        assert_eq!(
+            secret.snippet, "Original.",
+            "plain soft reload cannot see gitignored edits (documented gap)"
+        );
+
+        // Soft reload WITH the known path: force re-parse despite gitignore.
+        let fresh =
+            scan_vault_cached_with_extra_paths(vault, &["private/secret.md".to_string()]).unwrap();
+        let secret = fresh.iter().find(|e| e.title == "Secret").unwrap();
+        assert_eq!(
+            secret.snippet, "Agent edit.",
+            "extra path must be re-parsed regardless of git visibility"
+        );
+
+        // A deleted extra path is treated as a deletion and pruned.
+        fs::remove_file(vault.join("private/secret.md")).unwrap();
+        let pruned =
+            scan_vault_cached_with_extra_paths(vault, &["private/secret.md".to_string()]).unwrap();
+        assert_eq!(pruned.len(), 1, "deleted extra path must be pruned");
+        assert_eq!(pruned[0].title, "Note");
+    }
+
+    #[test]
+    fn test_sanitize_extra_paths_enforces_vault_boundary() {
+        let vault = Path::new("/Users/test/Vault");
+        let raw = vec![
+            "notes/ok.md".to_string(),
+            "/Users/test/Vault/inside.md".to_string(),
+            "../escape.md".to_string(),
+            "notes/../../escape.md".to_string(),
+            "/etc/passwd".to_string(),
+            ".hidden/note.md".to_string(),
+            String::new(),
+        ];
+
+        assert_eq!(
+            sanitize_extra_paths(vault, &raw),
+            vec!["notes/ok.md".to_string(), "inside.md".to_string()],
+            "only in-vault, non-hidden relative paths may survive"
+        );
     }
 
     #[test]

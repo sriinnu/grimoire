@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { AskContextPackage } from '../lib/askContextPackage'
+import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
+import type { ContextManifestV1 } from '../lib/contextManifest'
 import type { AiAgentId } from '../lib/aiAgents'
 import { useCliAiAgent, type AgentFileCallbacks } from '../hooks/useCliAiAgent'
+import { vaultRelativeNotePath } from '../lib/chitraguptaSocket'
 import type { VaultEntry } from '../types'
 import {
   type NoteListItem,
@@ -34,7 +37,13 @@ export interface AiPanelController {
   linkedEntries: ReturnType<typeof useAiPanelContextSnapshot>['linkedEntries']
   hasContext: boolean
   isActive: boolean
-  handleSend: (text: string, references: NoteReference[], contextPackage?: AskContextPackage) => void
+  handleSend: (
+    text: string,
+    references: NoteReference[],
+    contextPackage?: AskContextPackage,
+    chitraguptaRecall?: ChitraguptaRecallAttachment,
+    contextManifest?: ContextManifestV1,
+  ) => void
   handleNavigateWikilink: (target: string) => void
   handleNewChat: () => void
 }
@@ -73,19 +82,35 @@ export function useAiPanelController({
     onVaultChanged,
   }), [onFileCreated, onFileModified, onVaultChanged])
 
+  const activeNotePath = useMemo(() => (
+    activeEntry?.path && vaultPath
+      ? vaultRelativeNotePath(activeEntry.path, vaultPath)
+      : null
+  ), [activeEntry?.path, vaultPath])
+
   const agent = useCliAiAgent(vaultPath, contextPrompt, fileCallbacks, {
     agent: defaultAiAgent,
     agentReady: defaultAiAgentReady,
     provider: defaultAiProvider,
     model: defaultAiModel,
+    notePath: activeNotePath,
   })
   const hasContext = !!activeEntry
   const isActive = agent.status === 'thinking' || agent.status === 'tool-executing'
 
-  const handleSend = useCallback((text: string, references: NoteReference[], contextPackage?: AskContextPackage) => {
+  const handleSend = useCallback((
+    text: string,
+    references: NoteReference[],
+    contextPackage?: AskContextPackage,
+    chitraguptaRecall?: ChitraguptaRecallAttachment,
+    contextManifest?: ContextManifestV1,
+  ) => {
     if (!text.trim()) return
-    if (contextPackage) agent.sendMessage(text, references, contextPackage)
-    else agent.sendMessage(text, references)
+    if (contextPackage || chitraguptaRecall || contextManifest) {
+      agent.sendMessage(text, references, contextPackage, chitraguptaRecall, contextManifest)
+    } else {
+      agent.sendMessage(text, references)
+    }
     setInput('')
   }, [agent])
 

@@ -1,8 +1,8 @@
-import { useRef, useEffect, useCallback, useLayoutEffect } from 'react'
+import { useRef, useEffect, useCallback, useLayoutEffect, useState } from 'react'
 import { useMemo } from 'react'
 import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { SearchResult, VaultEntry } from '../types'
+import type { SearchResult, SnippetMatch, VaultEntry } from '../types'
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
 import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
@@ -53,6 +53,32 @@ function formatResultSubtitle(entry: VaultEntry | undefined, result: SearchResul
   return [pathLabel, kindLabel, metadata].filter(Boolean).join(' · ')
 }
 
+function resolveResultType(entry: VaultEntry | undefined, result: SearchResult): string | null {
+  return entry?.isA ?? result.noteType ?? null
+}
+
+/** Interleaves plain snippet text with quiet <mark> spans over matched terms. */
+function renderSnippetWithMarks(snippet: string, matches?: SnippetMatch[]): React.ReactNode {
+  if (!matches?.length) return snippet
+  const parts: React.ReactNode[] = []
+  let cursor = 0
+  for (const match of matches) {
+    if (match.start >= match.end || match.start < cursor || match.end > snippet.length) continue
+    if (match.start > cursor) parts.push(snippet.slice(cursor, match.start))
+    parts.push(
+      <mark
+        key={match.start}
+        className="bg-transparent text-inherit underline decoration-dotted decoration-muted-foreground/70 underline-offset-2"
+      >
+        {snippet.slice(match.start, match.end)}
+      </mark>,
+    )
+    cursor = match.end
+  }
+  if (cursor < snippet.length) parts.push(snippet.slice(cursor))
+  return parts
+}
+
 export function SearchPanel({
   open,
   vaultPath,
@@ -70,8 +96,48 @@ export function SearchPanel({
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
-  const resultsRef = useRef(results)
   const selectedIndexRef = useRef(selectedIndex)
+  const [activeTypes, setActiveTypes] = useState<ReadonlySet<string>>(new Set())
+
+  useEffect(() => {
+    if (open) setActiveTypes(new Set())
+  }, [open, openKey])
+
+  const entryLookup = useMemo(() => {
+    const map = new Map<string, VaultEntry>()
+    for (const e of entries) map.set(e.path, e)
+    return map
+  }, [entries])
+
+  const availableTypes = useMemo(() => {
+    const types: string[] = []
+    for (const result of results) {
+      const type = resolveResultType(entryLookup.get(result.path), result)
+      if (type && !types.includes(type)) types.push(type)
+    }
+    return types
+  }, [results, entryLookup])
+
+  const visibleResults = useMemo(() => {
+    const effective = availableTypes.filter(type => activeTypes.has(type))
+    if (effective.length === 0) return results
+    return results.filter(result => {
+      const type = resolveResultType(entryLookup.get(result.path), result)
+      return type !== null && effective.includes(type)
+    })
+  }, [results, availableTypes, activeTypes, entryLookup])
+
+  const resultsRef = useRef(visibleResults)
+
+  const handleToggleType = useCallback((type: string) => {
+    setActiveTypes(prev => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      return next
+    })
+    setSelectedIndex(0)
+  }, [setSelectedIndex])
 
   useEffect(() => {
     if (!listRef.current) return
@@ -91,9 +157,9 @@ export function SearchPanel({
   }, [entries, onSelectNote, onSelectSearchResult, onClose])
 
   useLayoutEffect(() => {
-    resultsRef.current = results
+    resultsRef.current = visibleResults
     selectedIndexRef.current = selectedIndex
-  }, [results, selectedIndex])
+  }, [visibleResults, selectedIndex])
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 50)
@@ -124,11 +190,6 @@ export function SearchPanel({
   }, [open, handleKeyDown])
 
   const typeEntryMap = useMemo(() => buildTypeEntryMap(entries), [entries])
-  const entryLookup = useMemo(() => {
-    const map = new Map<string, VaultEntry>()
-    for (const e of entries) map.set(e.path, e)
-    return map
-  }, [entries])
 
   if (!open) return null
 
@@ -154,7 +215,7 @@ export function SearchPanel({
         />
         <SearchContent
           query={query}
-          results={results}
+          results={visibleResults}
           selectedIndex={selectedIndex}
           loading={loading}
           elapsedMs={elapsedMs}
@@ -162,10 +223,18 @@ export function SearchPanel({
           vaultCount={vaultScopes?.length ?? 1}
           entryLookup={entryLookup}
           typeEntryMap={typeEntryMap}
+          availableTypes={availableTypes}
+          activeTypes={activeTypes}
+          onToggleType={handleToggleType}
           listRef={listRef}
           onSelect={handleSelect}
           onHover={setSelectedIndex}
         />
+        {visibleResults.length > 0 && (
+          <div className="shrink-0 border-t border-border/50 px-4 py-1.5 text-[10.5px] text-muted-foreground/60">
+            ↑↓ navigate · ↵ open · esc close
+          </div>
+        )}
       </div>
     </div>
   )
@@ -230,13 +299,16 @@ interface SearchContentProps {
   vaultCount: number
   entryLookup: Map<string, VaultEntry>
   typeEntryMap: Record<string, VaultEntry>
+  availableTypes: string[]
+  activeTypes: ReadonlySet<string>
+  onToggleType: (type: string) => void
   listRef: React.RefObject<HTMLDivElement | null>
   onSelect: (result: SearchResult) => void
   onHover: (index: number) => void
 }
 
 function SearchContent({
-  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, listRef, onSelect, onHover,
+  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, availableTypes, activeTypes, onToggleType, listRef, onSelect, onHover,
 }: SearchContentProps) {
   return (
     <div className="flex-1 overflow-y-auto">
@@ -276,6 +348,39 @@ function SearchContent({
               {results.length} result{results.length !== 1 ? 's' : ''}{elapsedMs !== null ? ` · ${elapsedMs}ms` : ''}
             </span>
           </div>
+          {availableTypes.length > 1 && (
+            <div
+              className="flex flex-wrap gap-1.5 border-b border-border/50 px-4 py-2"
+              role="group"
+              aria-label="Filter results by type"
+            >
+              {availableTypes.map(type => {
+                const te = typeEntryMap[type]
+                const active = activeTypes.has(type)
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    aria-pressed={active}
+                    className={cn(
+                      'flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold transition-colors',
+                      active
+                        ? 'border-border bg-accent text-foreground'
+                        : 'border-border/60 bg-muted/45 text-muted-foreground hover:bg-secondary',
+                    )}
+                    onClick={() => onToggleType(type)}
+                  >
+                    <span
+                      className="size-2 rounded-full"
+                      style={{ background: getTypeColor(type, te?.color) }}
+                      aria-hidden="true"
+                    />
+                    {type}
+                  </button>
+                )
+              })}
+            </div>
+          )}
           <div ref={listRef} role="listbox" aria-label="Search results" className="p-2">
             {results.map((result, i) => {
               const entry = entryLookup.get(result.path)
@@ -316,8 +421,8 @@ function SearchContent({
                     </p>
                   )}
                   {result.snippet && (
-                    <p className="mt-1 max-h-[2.8em] overflow-hidden pl-[22px] text-[11px] leading-snug text-muted-foreground/80">
-                      {result.snippet}
+                    <p className="mt-1 truncate pl-[22px] text-[11px] leading-snug text-muted-foreground/80">
+                      {renderSnippetWithMarks(result.snippet, result.snippetMatches)}
                     </p>
                   )}
                 </div>

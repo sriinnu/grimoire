@@ -114,7 +114,7 @@ const azurePreflight: AzureLivePreflightReport = {
 }
 
 describe('PortabilitySettingsSection', () => {
-  it('surfaces import, export, storage, and second-brain lanes', () => {
+  it('surfaces import, export, storage, and second-brain groups', () => {
     render(
       <PortabilitySettingsSection
         t={createTranslator('en')}
@@ -165,7 +165,7 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByTestId('settings-desktop-storage-health')).toHaveClass('grimoire-portability-inline-panel')
     expect(screen.getByTestId('settings-desktop-storage-health')).not.toHaveClass('grimoire-portability-card')
     expect(screen.getByText('Bear')).toBeInTheDocument()
-    expect(screen.getAllByText('preview-backed').length).toBeGreaterThanOrEqual(7)
+    expect(screen.getAllByText('Preview required').length).toBeGreaterThanOrEqual(7)
     expect(screen.getByText('Obsidian')).toBeInTheDocument()
     expect(screen.getByText('Notion Markdown')).toBeInTheDocument()
     expect(screen.getByText('Spanda')).toBeInTheDocument()
@@ -175,39 +175,32 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByText('Pure JSON snapshot')).toBeInTheDocument()
     expect(screen.getByText('Local SQLite snapshot')).toBeInTheDocument()
     expect(screen.getAllByText('iCloud Drive').length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('Amazon S3')).toBeInTheDocument()
+    expect(screen.getAllByText('Amazon S3').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Azure Blob Storage')).toBeInTheDocument()
     expect(screen.getByText('Apple Journal')).toBeInTheDocument()
     expect(screen.getByText('Journal capture')).toBeInTheDocument()
     expect(screen.getByText('Memory graph')).toBeInTheDocument()
     expect(actionDeck).toBeInTheDocument()
-    expect(actionDeck).toHaveClass('grimoire-portability-action-deck')
-    expect(screen.getByRole('tablist')).toHaveClass('grimoire-portability-lanes')
-    expect(screen.getByText('Move vault data')).toBeInTheDocument()
-    expect(screen.getByTestId('settings-portability-lane-markdown')).toHaveAttribute('aria-selected', 'true')
+    expect(screen.queryByTestId('settings-portability-lane-markdown')).not.toBeInTheDocument()
+    expect(screen.queryByText('Move vault data')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Import' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Export' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Storage' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Second brain' })).toBeInTheDocument()
     expect(screen.getByTestId('settings-portability-preview-gate')).toHaveTextContent('Preview first to unlock')
-    expect(screen.getByText('Preview Bear')).toBeInTheDocument()
-    expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('object-storage-prototype-actions')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Bear backup folder' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Obsidian' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Notion ZIP' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Notion folder' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Spanda' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Apple Journal' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Day One' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview Journey' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview JSON capsule' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Import SQLite capsule' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Export static HTML' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Preview JSON snapshot' })).toBeInTheDocument()
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-apps'))
-    expect(screen.getByText('Preview Obsidian')).toBeInTheDocument()
-    expect(screen.getByText('Preview Notion ZIP')).toBeInTheDocument()
-    expect(screen.getByText('Preview Spanda')).toBeInTheDocument()
-    expect(screen.queryByText('Preview Apple Journal')).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByTestId('settings-portability-lane-journals'))
-    expect(screen.getByText('Preview Apple Journal')).toBeInTheDocument()
-    expect(screen.getByText('Preview Day One')).toBeInTheDocument()
-    expect(screen.getByText('Preview Journey')).toBeInTheDocument()
-    expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByTestId('settings-portability-lane-capsules'))
-    expect(screen.getByText('Preview JSON capsule')).toBeInTheDocument()
-    expect(screen.getByText('Import SQLite capsule')).toBeInTheDocument()
-    expect(screen.queryByText('Preview Journey')).not.toBeInTheDocument()
-
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     expect(screen.getByTestId('object-storage-prototype-actions')).toHaveClass('grimoire-object-storage-prototype')
     expect(screen.getByTestId('object-storage-prototype-actions')).toHaveClass('grimoire-portability-inline-panel')
     expect(screen.getByTestId('object-storage-provider-empty')).toHaveTextContent('Pick a provider')
@@ -404,7 +397,6 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-preview-bear'))
     fireEvent.click(screen.getByTestId('settings-import-bear'))
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-apps'))
     fireEvent.click(screen.getByTestId('settings-preview-obsidian'))
     fireEvent.click(screen.getByTestId('settings-import-obsidian'))
     fireEvent.click(screen.getByTestId('settings-preview-notion'))
@@ -414,7 +406,6 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-preview-spanda'))
     fireEvent.click(screen.getByTestId('settings-import-spanda'))
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-journals'))
     fireEvent.click(screen.getByTestId('settings-preview-apple-journal'))
     fireEvent.click(screen.getByTestId('settings-import-apple-journal'))
     fireEvent.click(screen.getByTestId('settings-preview-day-one'))
@@ -422,13 +413,11 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-preview-journey'))
     fireEvent.click(screen.getByTestId('settings-import-journey'))
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-capsules'))
     fireEvent.click(screen.getByTestId('settings-preview-json-capsule'))
     fireEvent.click(screen.getByTestId('settings-import-json-capsule'))
     fireEvent.click(screen.getByTestId('settings-preview-sqlite-capsule'))
     fireEvent.click(screen.getByTestId('settings-import-sqlite-capsule'))
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
     fireEvent.click(screen.getByTestId('settings-export-markdown-zip'))
     fireEvent.click(screen.getByTestId('settings-export-static-html'))
     fireEvent.click(screen.getByTestId('settings-preview-json-snapshot'))
@@ -436,7 +425,6 @@ describe('PortabilitySettingsSection', () => {
     fireEvent.click(screen.getByTestId('settings-preview-sqlite-snapshot'))
     fireEvent.click(screen.getByTestId('settings-export-sqlite-snapshot'))
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-live-preflight'))
     fireEvent.click(screen.getByTestId('settings-storage-s3-provider-push-preview'))
@@ -520,7 +508,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
     const summary = screen.getByTestId('settings-export-preview-summary')
     expect(summary).toHaveTextContent('Reviewed preview')
     expect(summary).toHaveTextContent('JSON snapshot')
@@ -544,7 +531,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
     expect(screen.getByTestId('settings-export-json-snapshot')).toBeDisabled()
     expect(screen.getByTestId('settings-export-sqlite-snapshot')).not.toBeDisabled()
     fireEvent.click(screen.getByTestId('settings-export-sqlite-snapshot'))
@@ -581,7 +567,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-journals'))
     expect(screen.getByTestId('settings-import-day-one')).not.toBeDisabled()
     expect(screen.getByTestId('settings-import-journey')).toBeDisabled()
     fireEvent.click(screen.getByTestId('settings-import-day-one'))
@@ -607,7 +592,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
     expect(screen.getByTestId('settings-storage-s3-provider-push-apply')).toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-provider-pull-apply')).toBeDisabled()
@@ -782,7 +766,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
     fireEvent.change(screen.getByTestId('settings-s3-preflight-bucket'), { target: { value: ' sriinnu-vault ' } })
     fireEvent.change(screen.getByTestId('settings-s3-preflight-region'), { target: { value: ' us-east-1 ' } })
@@ -811,7 +794,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
     fireEvent.change(screen.getByTestId('settings-s3-preflight-bucket'), { target: { value: ' sriinnu-vault ' } })
     fireEvent.change(screen.getByTestId('settings-s3-preflight-region'), { target: { value: ' us-east-1 ' } })
@@ -841,7 +823,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
     fireEvent.change(screen.getByTestId('settings-azure-preflight-account'), { target: { value: ' sriinnuacct ' } })
     fireEvent.change(screen.getByTestId('settings-azure-preflight-container'), { target: { value: ' grimoire ' } })
@@ -870,7 +851,6 @@ describe('PortabilitySettingsSection', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-azure'))
     fireEvent.change(screen.getByTestId('settings-azure-preflight-account'), { target: { value: ' sriinnuacct ' } })
     fireEvent.change(screen.getByTestId('settings-azure-preflight-container'), { target: { value: ' grimoire ' } })
@@ -907,11 +887,14 @@ describe('PortabilitySettingsSection', () => {
     )
 
     expect(screen.getByTestId('settings-preview-markdown-folder')).toHaveTextContent('Previewing...')
-    expect(screen.getByTestId('settings-import-markdown-folder')).toHaveTextContent('Import Markdown folder')
+    expect(screen.getByTestId('settings-import-markdown-folder')).toHaveTextContent('Import')
+    expect(screen.getByTestId('settings-import-markdown-folder')).not.toHaveTextContent('Importing...')
+    expect(screen.getByTestId('settings-import-markdown-folder')).toHaveAccessibleName('Import Markdown folder')
     expect(screen.getByTestId('settings-import-markdown-folder')).toBeDisabled()
-    expect(screen.queryByTestId('settings-export-markdown-zip')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-export'))
+    expect(screen.getByTestId('settings-export-markdown-zip')).toHaveTextContent('Export')
+    expect(screen.getByTestId('settings-export-markdown-zip')).not.toHaveTextContent('Exporting...')
+    expect(screen.getByTestId('settings-export-markdown-zip')).toHaveAccessibleName('Export Markdown ZIP')
     expect(screen.getByTestId('settings-export-markdown-zip')).toBeDisabled()
     expect(screen.getByTestId('settings-export-static-html')).toBeDisabled()
     expect(screen.getByTestId('settings-preview-json-snapshot')).toBeDisabled()
@@ -919,7 +902,6 @@ describe('PortabilitySettingsSection', () => {
     expect(screen.getByTestId('settings-preview-sqlite-snapshot')).toBeDisabled()
     expect(screen.getByTestId('settings-export-sqlite-snapshot')).toBeDisabled()
 
-    fireEvent.click(screen.getByTestId('settings-portability-lane-storage'))
     fireEvent.click(screen.getByTestId('settings-object-storage-provider-s3'))
     expect(screen.getByTestId('settings-storage-s3-provider-push-preview')).toBeDisabled()
     expect(screen.getByTestId('settings-storage-s3-provider-pull-preview')).toBeDisabled()

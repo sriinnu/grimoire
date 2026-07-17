@@ -8,6 +8,8 @@ type Translate = ReturnType<typeof createTranslator>
 interface PortabilityActionButtonProps {
   icon: ReactNode
   label: string
+  /** Full-context accessible name when the visible label is a short verb. */
+  ariaLabel?: string
   testId: string
   busy: boolean
   busyLabel?: string
@@ -18,6 +20,8 @@ interface PortabilityActionButtonProps {
 
 interface PortabilityImportButtonProps {
   label: string
+  /** Full-context accessible name when the visible label is a short verb. */
+  ariaLabel?: string
   testId: string
   busy: boolean
   busyLabel?: string
@@ -30,6 +34,7 @@ interface PortabilityImportButtonProps {
 export function PortabilityActionButton({
   icon,
   label,
+  ariaLabel,
   testId,
   busy,
   busyLabel,
@@ -42,6 +47,7 @@ export function PortabilityActionButton({
       type="button"
       variant="outline"
       size="sm"
+      aria-label={ariaLabel}
       data-testid={testId}
       disabled={busy || disabled}
       onClick={onClick}
@@ -55,6 +61,7 @@ export function PortabilityActionButton({
 /** Shared import button with the standard portability download icon. */
 export function PortabilityImportButton({
   label,
+  ariaLabel,
   testId,
   busy,
   busyLabel,
@@ -66,6 +73,7 @@ export function PortabilityImportButton({
     <PortabilityActionButton
       icon={<Glyph name="download" size={14} />}
       label={label}
+      ariaLabel={ariaLabel}
       testId={testId}
       busy={busy}
       busyLabel={busyLabel}

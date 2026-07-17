@@ -5,7 +5,18 @@ import {
   type AppLocale,
   type UiLanguagePreference,
 } from '../../lib/i18nCore'
-import { LabeledSelect, SectionHeading } from './SettingsControls'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSectionTitle,
+} from './primitives/SettingsGroup'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
 
 function buildLanguageOptions(t: SettingsTranslate, locale: AppLocale, systemLocale: AppLocale) {
@@ -23,7 +34,7 @@ function buildLanguageOptions(t: SettingsTranslate, locale: AppLocale, systemLoc
   ]
 }
 
-/** Renders display-language preferences. */
+/** Renders display-language preferences as System Settings-style groups. */
 export function LanguageSettingsSection({
   t,
   locale,
@@ -32,23 +43,39 @@ export function LanguageSettingsSection({
   setUiLanguage,
 }: Pick<SettingsBodyProps, 't' | 'locale' | 'systemLocale' | 'uiLanguage' | 'setUiLanguage'>) {
   return (
-    <>
-      <SectionHeading
-        title={t('settings.language.title')}
-        description={t('settings.language.description')}
-      />
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.language.title')}</SettingsSectionTitle>
 
-      <LabeledSelect
-        label={t('settings.language.label')}
-        value={uiLanguage}
-        onValueChange={(value) => setUiLanguage(value as UiLanguagePreference)}
-        options={buildLanguageOptions(t, locale, systemLocale)}
-        testId="settings-ui-language"
-      />
-
-      <div className="text-[11px] leading-relaxed text-muted-foreground">
-        {t('settings.language.summary')}
-      </div>
-    </>
+      <SettingsGroup
+        footnote={
+          <>
+            {t('settings.language.description')} {t('settings.language.summary')}
+          </>
+        }
+      >
+        <SettingsRow label={t('settings.language.label')}>
+          <Select
+            value={uiLanguage}
+            onValueChange={(value) => setUiLanguage(value as UiLanguagePreference)}
+          >
+            <SelectTrigger
+              className="w-56 bg-transparent"
+              aria-label={t('settings.language.label')}
+              data-testid="settings-ui-language"
+              data-value={uiLanguage}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              {buildLanguageOptions(t, locale, systemLocale).map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+      </SettingsGroup>
+    </div>
   )
 }

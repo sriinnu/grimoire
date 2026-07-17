@@ -21,7 +21,11 @@ type MockWindow = Window & {
 
 let mockHandlersModule: MockHandlersModule | null = null
 let mockHandlersImport: Promise<MockHandlersModule> | null = null
-const importBrowserMockFixtures = import.meta.env?.PROD
+// Production builds exclude the demo fixtures (native releases must not carry
+// them) UNLESS the build is explicitly the hosted browser demo, which has no
+// native backend and runs entirely on these mocks.
+const isBrowserDemoBuild = import.meta.env?.VITE_GRIMOIRE_BROWSER_DEMO === '1'
+const importBrowserMockFixtures = import.meta.env?.PROD && !isBrowserDemoBuild
   ? null
   : () => Promise.all([
       import('./mock-handlers'),

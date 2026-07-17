@@ -154,6 +154,29 @@ function getMockRemoteState(path: string | null | undefined): boolean {
   return mockRemoteStateByVault[normalizedPath] ?? true
 }
 
+/** Mirrors the backend: merged, sorted term-hit ranges within the snippet. */
+function mockSnippetMatches(snippet: string, terms: string[]): { start: number; end: number }[] {
+  const snippetLower = snippet.toLowerCase()
+  const ranges: { start: number; end: number }[] = []
+  for (const term of terms) {
+    let from = 0
+    while (term.length > 0) {
+      const start = snippetLower.indexOf(term, from)
+      if (start === -1) break
+      ranges.push({ start, end: start + term.length })
+      from = start + term.length
+    }
+  }
+  ranges.sort((a, b) => a.start - b.start || a.end - b.end)
+  const merged: { start: number; end: number }[] = []
+  for (const range of ranges) {
+    const last = merged[merged.length - 1]
+    if (last && range.start <= last.end) last.end = Math.max(last.end, range.end)
+    else merged.push({ ...range })
+  }
+  return merged
+}
+
 function getMockGitState(path: string | null | undefined): boolean {
   const normalizedPath = normalizeMockVaultPath(path)
   if (!normalizedPath) return true
@@ -231,6 +254,21 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   get_ai_provider_key_statuses: () => getMockAiProviderKeyStatuses(),
   save_ai_provider_api_key: saveMockAiProviderApiKey,
   clear_ai_provider_api_key: clearMockAiProviderApiKey,
+  // Browser mode has no local Chitragupta daemon; the socket stays quiet.
+  get_chitragupta_socket_status: () => ({
+    healthy: false,
+    version: null,
+    token_present: false,
+    token_source: 'missing',
+    base_url: 'http://127.0.0.1:3141',
+  }),
+  provision_chitragupta_socket_token: () => {
+    throw new Error('Chitragupta daemon pairing is not available in the browser.')
+  },
+  save_chitragupta_socket_token: () => ({ token_present: true, token_source: 'keychain' }),
+  clear_chitragupta_socket_token: () => ({ token_present: false, token_source: 'missing' }),
+  list_chitragupta_note_sessions: () => [],
+  get_chitragupta_session: () => ({}),
   get_vault_ai_guidance_status: () => getMockVaultAiGuidanceStatus(),
   restore_vault_ai_guidance: () => restoreMockVaultAiGuidance(),
   stream_claude_chat: () => 'mock-session',
@@ -345,6 +383,14 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   rename_note: handleRenameNote,
   rename_note_filename: handleRenameNoteFilename,
   move_note_to_folder: handleMoveNoteToFolder,
+  move_vault_folder: (args: { folderPath?: string; folder_path?: string; destinationPath?: string; destination_path?: string }) => {
+    const folderPath = (args.folderPath ?? args.folder_path ?? '').replace(/\/+$/, '')
+    const destination = (args.destinationPath ?? args.destination_path ?? '.').trim()
+    const folderName = folderPath.split('/').filter(Boolean).at(-1) ?? folderPath
+    const newPath = destination && destination !== '.' ? `${destination}/${folderName}` : folderName
+    return { old_path: folderPath, new_path: newPath, updated_files: 0 }
+  },
+  reveal_path_in_finder: () => null,
   clone_repo: (args: { url: string; localPath?: string; local_path?: string }) => {
     const localPath = args.localPath ?? args.local_path ?? ''
     setMockGitState(localPath, true)
@@ -367,21 +413,30 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   search_vault: (args: { query: string; mode: string }) => {
     const q = (args.query ?? '').toLowerCase()
     if (!q) return { results: [], elapsed_ms: 0, query: q, mode: args.mode }
+    const terms = q.split(/\s+/).filter(Boolean)
     const matches = MOCK_ENTRIES
       .filter(e => {
         const content = MOCK_CONTENT[e.path] ?? ''
-        return e.title.toLowerCase().includes(q) || content.toLowerCase().includes(q)
+        const haystack = `${e.title}\n${content}`.toLowerCase()
+        return terms.every(term => haystack.includes(term))
       })
       .slice(0, 20)
-      .map((e, i) => ({
-        title: e.title,
-        path: e.path,
-        snippet: e.snippet || '',
-        score: 1.0 - i * 0.05,
-        note_type: e.isA,
-      }))
+      .map((e, i) => {
+        const snippet = e.snippet || ''
+        return {
+          title: e.title,
+          path: e.path,
+          snippet,
+          snippet_matches: mockSnippetMatches(snippet, terms),
+          score: 1.0 - i * 0.05,
+          note_type: e.isA,
+        }
+      })
     return { results: matches, elapsed_ms: 42, query: q, mode: args.mode }
   },
+  // Unlinked mentions require a real filesystem scan; browser mode degrades to none.
+  find_note_mentions: () => [],
+  link_unlinked_mention: () => null,
   get_last_vault_path: () => mockLastVaultPath,
   set_last_vault_path: (args: { path: string }) => { mockLastVaultPath = args.path; return null },
   get_default_vault_path: () => '/Users/mock/Documents/Getting Started',

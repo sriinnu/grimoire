@@ -4,95 +4,89 @@ struct MacWorkspaceSidebar: View {
     @ObservedObject var model: GrimoireWorkspaceModel
 
     var body: some View {
-        List(selection: $model.selectedDocumentID) {
-            ForEach(WorkspaceCollection.allCases) { collection in
-                let documents = model.filteredDocuments.filter { $0.collection == collection }
-                if !documents.isEmpty {
-                    Section(collection.title) {
-                        ForEach(documents) { document in
-                            documentRow(document)
-                        }
-                    }
+        List(selection: sidebarSelection) {
+            Section("Library") {
+                ForEach(WorkspaceDestination.allCases) { destination in
+                    destinationRow(destination)
                 }
             }
 
-            Section("Workspace Intelligence") {
-                LabeledContent {
-                    Text("r\(model.manifestRevision)")
-                        .foregroundStyle(.secondary)
-                } label: {
-                    Label("Context Manifest", systemImage: "list.bullet.rectangle")
-                }
-
-                LabeledContent {
-                    Text("On")
-                        .foregroundStyle(.green)
-                } label: {
-                    Label("Locality Firewall", systemImage: "lock.shield")
+            if !model.folderNames.isEmpty {
+                Section("Folders") {
+                    ForEach(model.folderNames, id: \.self) { folder in
+                        folderRow(folder)
+                    }
                 }
             }
         }
         .listStyle(.sidebar)
-        .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search workspace")
         .navigationTitle("Grimoire")
-        .safeAreaInset(edge: .top, spacing: 0) {
-            workspaceHeader
-        }
+        .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
     }
 
-    private func documentRow(_ document: WorkspaceDocument) -> some View {
-        Label {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(document.title)
-                    .lineLimit(1)
-                Text(document.path)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+    private var sidebarSelection: Binding<SidebarSelection?> {
+        Binding(
+            get: {
+                if let folder = model.selectedFolder {
+                    return .folder(folder)
+                }
+                return .destination(model.selectedDestination)
+            },
+            set: { selection in
+                guard let selection else { return }
+                switch selection {
+                case let .destination(destination):
+                    model.selectDestination(destination)
+                case let .folder(folder):
+                    model.selectFolder(folder)
+                }
             }
-        } icon: {
-            Image(systemName: document.systemImage)
-                .foregroundStyle(
-                    document.isLocalOnly
-                        ? Color.orange
-                        : MacNotebookTheme.collectionColor(document.collection)
-                )
-        }
-        .tag(document.id)
-        .help(document.isLocalOnly ? "Local-only note" : document.path)
+        )
     }
 
-    private var workspaceHeader: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "books.vertical.fill")
-                .font(.title3)
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(MacNotebookTheme.accent)
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Preview Notebook")
-                    .font(.headline)
-                Text("Local on this Mac")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
+    private func destinationRow(_ destination: WorkspaceDestination) -> some View {
+        HStack {
+            Label(destination.title, systemImage: destination.systemImage)
             Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background {
-            ZStack {
-                Rectangle().fill(.bar)
-                LinearGradient(
-                    colors: [
-                        MacNotebookTheme.accent.opacity(0.13),
-                        MacNotebookTheme.warmAccent.opacity(0.08),
-                    ],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
+            let count = documentCount(for: destination)
+            if count > 0 {
+                Text("\(count)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
             }
         }
+        .tag(SidebarSelection.destination(destination))
     }
+
+    private func folderRow(_ folder: String) -> some View {
+        HStack {
+            Label(folder, systemImage: "folder")
+                .lineLimit(1)
+            Spacer(minLength: 0)
+            Text("\(model.documents.filter { $0.folderName == folder }.count)")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+        }
+        .tag(SidebarSelection.folder(folder))
+    }
+
+    private func documentCount(for destination: WorkspaceDestination) -> Int {
+        switch destination {
+        case .notebook, .pages, .graph:
+            model.documents.count
+        case .inbox:
+            model.documents.filter { $0.path.localizedCaseInsensitiveContains("Inbox/") }.count
+        case .journal:
+            model.documents.filter { $0.collection == .today || $0.collection == .journal }.count
+        case .dreams:
+            model.documents.filter { $0.collection == .dreams }.count
+        case .archive:
+            model.documents.filter { $0.path.localizedCaseInsensitiveContains("Archive/") }.count
+        }
+    }
+}
+
+private enum SidebarSelection: Hashable {
+    case destination(WorkspaceDestination)
+    case folder(String)
 }

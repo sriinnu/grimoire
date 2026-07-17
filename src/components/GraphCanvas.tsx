@@ -1,33 +1,25 @@
 import type { PointerEvent as ReactPointerEvent } from 'react'
+import { CornersOut, MagnifyingGlassMinus, MagnifyingGlassPlus } from '@phosphor-icons/react'
 import { cn } from '@/lib/utils'
-import type { AgentGraphContext } from '../utils/agentGraphContext'
-import type { AiAgentsStatus } from '../lib/aiAgents'
-import {
-  GRAPH_AGENT_LANES,
-  agentLaneAvailability,
-  graphAgentLaneCopy,
-  graphAgentStateLabel,
-  resolveGraphAgentLaneState,
-  type GraphAgentLane,
-  type GraphAgentLaneState,
-} from '../lib/graphAgentLanes'
 import type { NoteGraph } from '../utils/noteGraph'
 import {
   GRAPH_CENTER_X,
   GRAPH_CENTER_Y,
   GRAPH_VIEWBOX_HEIGHT,
   GRAPH_VIEWBOX_WIDTH,
-  truncateGraphLabel,
   type GraphLayout,
   type PositionedGraphNode,
 } from '../utils/graphDisplay'
-import { GraphAgentOrbit } from './GraphAgentOrbit'
-import { GraphCanvasPackageTethers } from './GraphCanvasPackageTethers'
+import { Button } from './ui/button'
 import { GraphNode } from './GraphNode'
 
+// One button press ≈ a couple of wheel notches. In and out are exact inverses.
+const ZOOM_STEP = 1.25
+// Past this zoom the user has committed to a neighborhood, so every visible
+// node earns its label regardless of vault density.
+const SHOW_ALL_LABELS_SCALE = 1.4
+
 interface GraphCanvasProps {
-  agentGraphContext: AgentGraphContext
-  aiAgentsStatus?: AiAgentsStatus
   layout: GraphLayout
   localOnlyNodeIds: ReadonlySet<string>
   nodeById: Map<string, PositionedGraphNode>
@@ -35,19 +27,22 @@ interface GraphCanvasProps {
   highlightedNodeId?: string | null
   hot?: boolean
   viewportTransform?: string
+  viewportScale?: number
   bindSvg?: (el: SVGSVGElement | null) => void
   onNodePointerDown?: (node: PositionedGraphNode, event: ReactPointerEvent) => void
   onBackgroundPointerDown?: (event: ReactPointerEvent) => void
-  onCanvasPointerMove?: (event: ReactPointerEvent) => void
+  onZoomBy?: (factor: number) => void
   onResetView?: () => void
   onOpenNode: (path: string) => void
   onSelectNode: (node: PositionedGraphNode) => void
 }
 
-/** Interactive SVG canvas for note graph nodes and source-safe agent package state. */
+/**
+ * A local relationship canvas. It deliberately renders document truth only:
+ * Markdown wikilinks and frontmatter relationships. Agent state belongs in the
+ * Context Inspector, not inside a user's knowledge map.
+ */
 export function GraphCanvas({
-  agentGraphContext,
-  aiAgentsStatus,
   layout,
   localOnlyNodeIds,
   nodeById,
@@ -55,221 +50,122 @@ export function GraphCanvas({
   highlightedNodeId,
   hot,
   viewportTransform,
+  viewportScale = 1,
   bindSvg,
   onNodePointerDown,
   onBackgroundPointerDown,
-  onCanvasPointerMove,
+  onZoomBy,
   onResetView,
   onOpenNode,
   onSelectNode,
 }: GraphCanvasProps) {
-  const held = agentGraphContext.omitted.protectedNodes + agentGraphContext.omitted.protectedEdges
-  const sourceSafeNodePaths = new Set(agentGraphContext.nodes.map((node) => node.path))
-  const sourceSafeEdgeIds = new Set(agentGraphContext.edges.map(agentEdgeKey))
   const selectedNode = selectedNodeId ? nodeById.get(selectedNodeId) ?? null : null
-  const selectedLocalOnly = selectedNode ? localOnlyNodeIds.has(selectedNode.id) : false
-  const policyProtected = agentGraphContext.state === 'protected-active' || selectedLocalOnly
-  const agentStates = GRAPH_CANVAS_AGENTS.map((agent) => {
-    const state = resolveGraphAgentLaneState(agent, agentGraphContext.state, selectedLocalOnly, aiAgentsStatus)
-    return {
-      agent,
-      availability: agentLaneAvailability(agent, aiAgentsStatus),
-      label: graphAgentLaneCopy(agent, state, aiAgentsStatus, policyProtected),
-      state,
-    }
-  })
-  const readiness = graphAgentReadiness(agentStates)
 
   return (
-    <div
-      className="graph-canvas-shell grimoire-constellation-focus relative overflow-hidden rounded-md border"
-      data-testid="graph-canvas"
-    >
-      <div className="graph-canvas-hud" data-testid="graph-canvas-agent-hud">
-        <div className="graph-canvas-package-card" data-state={agentGraphContext.state}>
-          <span data-state={agentGraphContext.state}>{graphPackageLabel(agentGraphContext.state)}</span>
-          <span>{agentGraphContext.nodes.length} nodes</span>
-          <span>{agentGraphContext.edges.length} links</span>
-          {held > 0 ? <span>{held} held from agents</span> : null}
-          {selectedNode ? (
-            <span data-testid="graph-canvas-selected-summary">
-              {selectedLocalOnly ? 'Selected protected' : `Selected ${truncateGraphLabel(selectedNode.title)}`}
-            </span>
-          ) : null}
-          <span data-testid="graph-canvas-agent-summary">{readiness.label}</span>
-        </div>
-        <div className="graph-canvas-agent-rail" data-testid="graph-canvas-agent-rail" aria-label="Graph agent eligibility">
-          {agentStates.map(({ agent, availability, label, state }) => (
-            <AgentReadinessChip
-              key={agent.id}
-              agent={agent}
-              availability={availability}
-              label={label}
-              state={state}
-            />
-          ))}
+    <div className="graph-canvas-shell grimoire-constellation-focus relative overflow-hidden rounded-md border" data-testid="graph-canvas">
+      <div className="relative min-h-0">
+        <svg
+          ref={bindSvg}
+          viewBox={`0 0 ${GRAPH_VIEWBOX_WIDTH} ${GRAPH_VIEWBOX_HEIGHT}`}
+          className="block h-[min(60vh,640px)] w-full"
+          style={{ touchAction: 'none' }}
+          role="img"
+          aria-label="Document relationship map"
+          data-testid="graph-svg"
+          onPointerDown={onBackgroundPointerDown}
+          onDoubleClick={onResetView}
+        >
+          <defs>
+            <pattern id="graph-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.12" />
+            </pattern>
+          </defs>
+          <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="transparent" />
+          <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="url(#graph-grid)" />
+          <g transform={viewportTransform} data-testid="graph-viewport">
+            {layout.edges.map((edge) => {
+              const source = nodeById.get(edge.source)
+              const target = nodeById.get(edge.target)
+              if (!source || !target) return null
+              return (
+                <GraphEdge
+                  key={edge.id}
+                  edge={edge}
+                  localOnly={localOnlyNodeIds.has(edge.source) || localOnlyNodeIds.has(edge.target)}
+                  selected={Boolean(selectedNode && (edge.source === selectedNode.id || edge.target === selectedNode.id))}
+                  source={source}
+                  target={target}
+                />
+              )
+            })}
+            {layout.nodes.map((node) => (
+              <GraphNode
+                key={node.id}
+                localOnly={localOnlyNodeIds.has(node.id)}
+                labelVisible={shouldShowNodeLabel({ node, selected: node.id === selectedNodeId, totalNodes: layout.nodes.length, hot: Boolean(hot), scale: viewportScale })}
+                node={node}
+                selected={node.id === selectedNodeId}
+                highlighted={highlightedNodeId === node.id}
+                focusDimmed={highlightedNodeId != null && highlightedNodeId !== node.id}
+                onNodePointerDown={onNodePointerDown}
+                onOpenNode={onOpenNode}
+                onSelectNode={onSelectNode}
+              />
+            ))}
+            {layout.nodes.length === 0 ? (
+              <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y} textAnchor="middle" fill="var(--muted-foreground)" fontSize="18">
+                No matching pages
+              </text>
+            ) : null}
+            {layout.nodes.length === 1 && layout.edges.length === 0 ? (
+              <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y + 110} textAnchor="middle" fill="var(--muted-foreground)" fontSize="14" data-testid="graph-empty-neighborhood-hint">
+                No links yet — add a [[wikilink]] or a relationship property to grow this map.
+              </text>
+            ) : null}
+          </g>
+        </svg>
+        <div className="graph-canvas-zoom" data-testid="graph-canvas-zoom">
+          <Button type="button" variant="ghost" size="icon-xs" aria-label="Zoom in" title="Zoom in" onClick={() => onZoomBy?.(ZOOM_STEP)}>
+            <MagnifyingGlassPlus />
+          </Button>
+          <Button type="button" variant="ghost" size="icon-xs" aria-label="Zoom out" title="Zoom out" onClick={() => onZoomBy?.(1 / ZOOM_STEP)}>
+            <MagnifyingGlassMinus />
+          </Button>
+          <Button type="button" variant="ghost" size="icon-xs" aria-label="Reset view" title="Reset view" onClick={() => onResetView?.()}>
+            <CornersOut />
+          </Button>
         </div>
       </div>
-      <svg
-        ref={bindSvg}
-        viewBox={`0 0 ${GRAPH_VIEWBOX_WIDTH} ${GRAPH_VIEWBOX_HEIGHT}`}
-        className="block h-[min(60vh,640px)] w-full"
-        style={{ touchAction: 'none' }}
-        role="img"
-        aria-label="Vault relationship graph"
-        data-testid="graph-svg"
-        onPointerDown={onBackgroundPointerDown}
-        onPointerMove={onCanvasPointerMove}
-        onDoubleClick={onResetView}
-      >
-        <defs>
-          <pattern id="graph-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-            <path d="M 48 0 L 0 0 0 48" fill="none" stroke="var(--grimoire-graph-grid-stroke, var(--border-subtle))" strokeOpacity="0.12" />
-          </pattern>
-        </defs>
-        {/* Grid backdrop stays fixed; only the interactive layer pans/zooms. */}
-        <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="transparent" />
-        <rect width={GRAPH_VIEWBOX_WIDTH} height={GRAPH_VIEWBOX_HEIGHT} fill="url(#graph-grid)" />
-        <g transform={viewportTransform} data-testid="graph-viewport">
-          <GraphCanvasPackageTethers
-            localOnlyNodeIds={localOnlyNodeIds}
-            nodeById={nodeById}
-            selectedNode={selectedNode}
-            sourceSafeNodeIds={sourceSafeNodePaths}
-          />
-          <GraphAgentOrbit
-            agentStates={agentStates}
-            selectedNode={selectedNode}
-          />
-          {layout.edges.map((edge) => {
-            const source = nodeById.get(edge.source)
-            const target = nodeById.get(edge.target)
-            if (!source || !target) return null
-            return (
-              <GraphEdge
-                key={edge.id}
-                edge={edge}
-                localOnly={localOnlyNodeIds.has(edge.source) || localOnlyNodeIds.has(edge.target)}
-                selected={Boolean(selectedNode && (edge.source === selectedNode.id || edge.target === selectedNode.id))}
-                source={source}
-                sourceSafe={sourceSafeEdgeIds.has(noteEdgeKey(edge))}
-                target={target}
-              />
-            )
-          })}
-          {layout.nodes.map((node) => (
-            <GraphNode
-              key={node.id}
-              localOnly={localOnlyNodeIds.has(node.id)}
-              labelVisible={!hot && shouldShowNodeLabel({
-                node,
-                selected: node.id === selectedNodeId,
-                sourceSafe: sourceSafeNodePaths.has(node.path),
-                totalNodes: layout.nodes.length,
-              })}
-              node={node}
-              selected={node.id === selectedNodeId}
-              highlighted={highlightedNodeId === node.id}
-              focusDimmed={highlightedNodeId != null && highlightedNodeId !== node.id}
-              sourceSafe={sourceSafeNodePaths.has(node.path)}
-              onNodePointerDown={onNodePointerDown}
-              onOpenNode={onOpenNode}
-              onSelectNode={onSelectNode}
-            />
-          ))}
-          {layout.nodes.length === 0 ? (
-            <text x={GRAPH_CENTER_X} y={GRAPH_CENTER_Y} textAnchor="middle" fill="var(--muted-foreground)" fontSize="18">
-              No matching pages
-            </text>
-          ) : null}
-        </g>
-      </svg>
       <div className="graph-canvas-legend" data-testid="graph-canvas-legend">
-        <LegendItem tone="safe" label="Source-safe node" />
-        <LegendItem tone="package" label="Agent package" />
-        <LegendItem tone="selected" label="Selected path" />
-        <LegendItem tone="local" label="Local-only visible" />
-        <LegendItem tone="health" label="Route health" />
+        <LegendItem tone="relationship" label="Explicit relationship" />
+        <LegendItem tone="wikilink" label="Wikilink" />
+        <LegendItem tone="selected" label="Focused page" />
+        <LegendItem tone="local" label="Private/local page" />
       </div>
     </div>
   )
 }
 
-const GRAPH_CANVAS_AGENTS = [
-  ...GRAPH_AGENT_LANES,
-] as const
-
-function AgentReadinessChip({
-  agent,
-  availability,
-  label,
-  state,
-}: {
-  agent: GraphAgentLane
-  availability: ReturnType<typeof agentLaneAvailability>
-  label: string
-  state: GraphAgentLaneState
-}) {
-  return (
-    <span
-      aria-label={`${agent.name}: ${label}. ${agent.role}.`}
-      data-agent={agent.id}
-      data-state={state}
-      title={`${agent.name}: ${agent.role}; ${graphAgentStateLabel(state, availability)}`}
-    >
-      <i aria-hidden="true" className="graph-canvas-agent-rail__mark" />
-      <strong>{agent.shortName}</strong>
-      <em>{label}</em>
-    </span>
-  )
-}
-
-function graphAgentReadiness(agentStates: readonly { state: GraphAgentLaneState }[]): { label: string } {
-  const counts = { blocked: 0, guarded: 0, ready: 0, waiting: 0 } satisfies Record<GraphAgentLaneState, number>
-  for (const { state } of agentStates) {
-    counts[state] += 1
-  }
-
-  return {
-    label: [
-      `${counts.ready} source-safe`,
-      counts.guarded > 0 ? `${counts.guarded} local/private` : null,
-      counts.blocked > 0 ? `${counts.blocked} blocked` : null,
-      counts.waiting > 0 ? `${counts.waiting} waiting` : null,
-    ].filter(Boolean).join(' · '),
-  }
-}
-
-function agentEdgeKey(edge: AgentGraphContext['edges'][number]): string {
-  return `${edge.sourcePath}->${edge.targetPath}:${edge.kind}:${edge.label}`
-}
-
-function noteEdgeKey(edge: NoteGraph['edges'][number]): string {
-  return `${edge.source}->${edge.target}:${edge.kind}:${edge.label}`
-}
-
-function graphPackageLabel(state: AgentGraphContext['state']): string {
-  if (state === 'protected-active') return 'Agent package blocked'
-  if (state === 'empty') return 'No agent package'
-  return 'Source-safe package'
-}
-
 function shouldShowNodeLabel({
   node,
   selected,
-  sourceSafe,
   totalNodes,
+  hot,
+  scale,
 }: {
   node: PositionedGraphNode
   selected: boolean
-  sourceSafe: boolean
   totalNodes: number
+  hot: boolean
+  scale: number
 }): boolean {
+  if (hot) return node.active || selected
   if (node.active || selected) return true
+  // Semantic zoom: fewer nodes on screen means every label can afford to speak.
+  if (scale >= SHOW_ALL_LABELS_SCALE) return true
   if (totalNodes <= 18) return true
-  if (sourceSafe) return true
-  if (totalNodes <= 36) return node.neighborhood && node.degree >= 3
-  return node.degree >= 10
+  if (totalNodes <= 36) return node.neighborhood && node.degree >= 2
+  return node.degree >= 8
 }
 
 function GraphEdge({
@@ -277,20 +173,15 @@ function GraphEdge({
   localOnly,
   selected,
   source,
-  sourceSafe,
   target,
 }: {
   edge: NoteGraph['edges'][number]
   localOnly: boolean
   selected: boolean
   source: PositionedGraphNode
-  sourceSafe: boolean
   target: PositionedGraphNode
 }) {
   const relationship = edge.kind === 'relationship'
-  // Synaptic curve: bow the edge perpendicular to its midpoint so connections
-  // read like dendrites/axons, not a wiring diagram. One consistent rotational
-  // direction gives the whole map an organic, neural swirl.
   const dx = target.x - source.x
   const dy = target.y - source.y
   const len = Math.hypot(dx, dy) || 1
@@ -304,7 +195,6 @@ function GraphEdge({
         relationship && 'grimoire-graph-edge--relationship',
         localOnly && 'grimoire-graph-edge--local',
         selected && 'grimoire-graph-edge--selected',
-        sourceSafe && 'grimoire-graph-edge--source-safe',
       )}
       d={`M ${source.x} ${source.y} Q ${cx} ${cy} ${target.x} ${target.y}`}
       fill="none"
@@ -314,43 +204,15 @@ function GraphEdge({
         : relationship
           ? 'var(--grimoire-graph-edge-relationship, var(--primary))'
           : 'var(--grimoire-graph-edge-wikilink, var(--muted-foreground))'}
-      strokeDasharray={edgeDashArray({ localOnly, relationship, sourceSafe })}
+      strokeDasharray={localOnly ? '2 8' : relationship ? undefined : '5 8'}
       strokeLinecap="round"
-      strokeOpacity={edgeOpacity({ localOnly, selected, sourceSafe })}
+      strokeOpacity={selected ? 0.68 : localOnly ? 0.32 : 0.4}
       strokeWidth={selected ? 3.1 : relationship ? 2.4 : 1.4}
     />
   )
 }
 
-function edgeDashArray({
-  localOnly,
-  relationship,
-  sourceSafe,
-}: {
-  localOnly: boolean
-  relationship: boolean
-  sourceSafe: boolean
-}): string | undefined {
-  if (localOnly) return '2 8'
-  if (!sourceSafe) return '4 10'
-  return relationship ? undefined : '5 8'
-}
-
-function edgeOpacity({
-  localOnly,
-  selected,
-  sourceSafe,
-}: {
-  localOnly: boolean
-  selected: boolean
-  sourceSafe: boolean
-}): number {
-  if (localOnly) return 0.22
-  if (selected) return 0.68
-  return sourceSafe ? 0.48 : 0.26
-}
-
-function LegendItem({ label, tone }: { label: string; tone: 'health' | 'local' | 'package' | 'safe' | 'selected' }) {
+function LegendItem({ label, tone }: { label: string; tone: 'local' | 'relationship' | 'selected' | 'wikilink' }) {
   return (
     <span className="graph-canvas-legend__item" data-tone={tone}>
       <span className="graph-canvas-legend__mark" />

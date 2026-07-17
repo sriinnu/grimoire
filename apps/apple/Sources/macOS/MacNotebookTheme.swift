@@ -3,6 +3,22 @@ import SwiftUI
 enum MacNotebookTheme {
     static let accent = Color(red: 0.34, green: 0.38, blue: 0.72)
     static let warmAccent = Color(red: 0.88, green: 0.53, blue: 0.24)
+    static let tealAccent = Color(red: 0.24, green: 0.58, blue: 0.58)
+    static let roseAccent = Color(red: 0.72, green: 0.38, blue: 0.48)
+    static let ink = Color(red: 0.08, green: 0.14, blue: 0.20)
+    static let mutedInk = Color(red: 0.33, green: 0.41, blue: 0.48)
+    static let notebookCanvas = Color(red: 0.965, green: 0.955, blue: 0.925)
+    static let capturePaper = Color(red: 0.992, green: 0.988, blue: 0.978)
+    static let heroGradient = LinearGradient(
+        colors: [.white, Color(red: 0.91, green: 0.97, blue: 0.96)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    static let brandGradient = LinearGradient(
+        colors: [Color(red: 0.12, green: 0.20, blue: 0.19), accent],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
 
     static func editorPaper(for colorScheme: ColorScheme) -> Color {
         switch colorScheme {
@@ -48,5 +64,23 @@ enum MacNotebookTheme {
         case .dreams: Color(red: 0.47, green: 0.40, blue: 0.78)
         case .projects: Color(red: 0.28, green: 0.58, blue: 0.58)
         }
+    }
+
+    static func destinationColor(_ destination: WorkspaceDestination) -> Color {
+        switch destination {
+        case .notebook: accent
+        case .inbox: warmAccent
+        case .pages: tealAccent
+        case .graph: Color(red: 0.42, green: 0.48, blue: 0.78)
+        case .journal: roseAccent
+        case .dreams: Color(red: 0.49, green: 0.40, blue: 0.80)
+        case .archive: Color.secondary
+        }
+    }
+
+    static func folderColor(_ folder: String) -> Color {
+        let palette = [accent, warmAccent, tealAccent, roseAccent]
+        let index = abs(folder.unicodeScalars.reduce(0) { $0 + Int($1.value) }) % palette.count
+        return palette[index]
     }
 }

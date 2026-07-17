@@ -1,106 +1,143 @@
 # Grimoire
 
-Grimoire is a desktop app for Markdown vaults — folders of Markdown files with
-YAML frontmatter, stored on disk. It reads and writes those files directly, so
-the same vault also opens in another editor or under Git.
+Local-first desktop app for Markdown vaults — folders of Markdown files with
+YAML frontmatter, read and written directly on disk so a vault stays usable
+from Git or any other editor. AI surfaces run through local agent CLIs
+(Claude Code, Codex, Chitragupta); note content never reaches a provider
+except through inspectable, locality-filtered context.
 
-## Features
+## Architecture
 
-- Open any folder of Markdown as a vault; create, edit, rename, archive, trash,
-  and search notes
-- Rich Markdown and raw Markdown editing, with frontmatter, headings, tasks,
-  code, math, links, images, and wikilinks
-- Note properties, custom types, saved views, filters, and relationship
-  groupings
-- Backlinks, active-note neighborhoods, and a whole-vault graph
-- Dashboard lanes for capture, reflection, organization, and recent work
-- Git-backed history: inspect status, connect remotes, and review changes
-- Import and export through the native vault layer
-- Local AI surfaces (Claude Code, Codex, Chitragupta) that disclose their route
-  and status
+Two desktop clients share one Rust kernel:
 
-Grimoire runs natively via Tauri on macOS, Windows, and Linux, and in the
-browser for quick UI review.
+```
+React/Vite frontend (src/) ── invoke/events ──> Tauri backend (src-tauri/src/)
+                                                  ├─ grimoire-core kernel
+                                                  │  (src-tauri/crates/grimoire-core:
+                                                  │   vault service, locality firewall,
+                                                  │   versioned contracts, C FFI)
+                                                  ├─ agent CLI runners (claude/codex/chitragupta)
+                                                  └─ bundled MCP server (mcp-server/, Node)
+SwiftUI app (apps/apple/) ────── C FFI ─────────> same grimoire-core staticlib
+```
 
-## Getting started
+- **Frontend** (`src/`): React 18 + Vite + Tailwind. No state library — app
+  state composes through the hook pipeline in `src/app/` into
+  `AppRuntime.tsx`. Rich editing is BlockNote (`src/components/Editor.tsx`,
+  schema in `editorSchema.tsx`); raw mode is CodeMirror. The
+  `@grimoire/markdown-editor` workspace package supplies shared Markdown
+  *semantics*, not the editing engine.
+- **Backend** (`src-tauri/src/`): ~130 Tauri commands registered in
+  `invoke_handler.rs`, implemented as thin wrappers in `commands/` over
+  domain modules (`vault/`, `git/`, `ai_agents/`, `mentions.rs`,
+  `search.rs`, …). AI agents are spawned CLI subprocesses; their JSON output
+  streams back to the frontend as Tauri events.
+- **Kernel** (`src-tauri/crates/grimoire-core`): UI-neutral vault service,
+  Locality Firewall rules, and versioned wire contracts
+  (`ContextManifestV1`, `EventEnvelopeV1`, `VaultRequestV1`). Consumed by the
+  Tauri app as a crate and by the Swift app via the
+  `grimoire_vault_execute_v1` C FFI. Contracts are mirrored in
+  `packages/product-contracts` (TS + Swift) and validated in all three
+  languages against the fixtures in `contracts/fixtures/`.
+- **Privacy**: the Locality Firewall (kernel `locality.rs`, frontend
+  `src/lib/localityPolicy.ts`, Node mirror `mcp-server/locality.js`) keeps
+  local-only notes (journal/dream/health/therapy types, `private` paths,
+  frontmatter flags) out of every agent-bound surface. Treat any new
+  feature that reads note content as inside this boundary.
 
-Requires Node.js 20+, pnpm 10+, and Git.
+Deeper maps: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
+[docs/ABSTRACTIONS.md](docs/ABSTRACTIONS.md), decision records in
+[docs/adr/](docs/adr/).
+
+## Setup
+
+Requires Node.js 20+, pnpm 10+, Git; Rust for the native app; Xcode for the
+Swift app.
 
 ```bash
 git clone https://github.com/sriinnu/grimoire.git
 cd grimoire
 corepack enable
 pnpm install
+pnpm doctor:source   # checks your toolchain per run mode
 ```
 
-Run in the browser — the fastest way to look around. It uses mock Tauri
-handlers, so there is no real file IO:
+## Running
+
+| Mode | Command | Notes |
+| --- | --- | --- |
+| Browser (mock IO) | `pnpm dev` | fastest loop; mock Tauri handlers in `src/mock-tauri/`, no real file IO |
+| Native desktop | `pnpm grimoire:tauri` | real vault IO, menus, agent CLIs; needs Rust |
+| Local .app install | `pnpm macos:install-app` | release build → `/Applications/Grimoire.app` |
+| Native SwiftUI shell | `pnpm grimoire:macos` | separate early-stage app, see `apps/apple/` |
+
+First native launch clones a starter vault
+(`sriinnu/grimoire-getting-started`); packaged builds fall back to the
+bundled mirror of `demo-vault-v2/`.
+
+**Importing from installed apps** (Bear, Day One, Apple Notes) reads those
+apps' data stores, which macOS gates behind Full Disk Access. If an import
+fails with a permission error: System Settings → Privacy & Security →
+Full Disk Access → enable Grimoire, relaunch the app, retry. The grant can
+be removed again after importing. Local builds are ad-hoc signed by
+default, so every rebuild invalidates the grant — set
+`APPLE_SIGNING_IDENTITY` to a stable local code-signing certificate to
+make Full Disk Access and Keychain grants persist across rebuilds.
+
+## Development workflow
 
 ```bash
-pnpm dev
+pnpm lint                 # eslint
+pnpm exec tsc --noEmit    # typecheck
+pnpm test                 # vitest (unit + CSS design-contract tests)
+cargo test --manifest-path src-tauri/Cargo.toml
+pnpm build                # full production build incl. module-size gates
 ```
 
-Run the native desktop app for real filesystem access, native menus, and
-platform behavior. This needs Rust and your platform's desktop dependencies:
+Conventions that will bite you if you skip them:
 
-```bash
-pnpm tauri dev
-```
+- **Tests sit next to code** (`Foo.tsx` / `Foo.test.tsx`), and the many
+  `*Css.test.ts` files are design-contract tests that parse the CSS files
+  and pin selectors/tokens — if you change theme CSS, update its contract
+  test deliberately.
+- **Import budgets**: `src/startupImportBudget.test.ts` gates what may load
+  eagerly at startup; heavy surfaces stay behind `AppLazySurfaces.tsx`.
+- **Design charter**: [DESIGN.md](DESIGN.md) governs UI work (surface
+  hierarchy, semantic colour, no decorative chrome). CSS contract tests
+  enforce parts of it.
+- New Tauri commands: implement in a domain module, wrap in `commands/`,
+  register in `invoke_handler.rs`, add a browser fallback in
+  `src/mock-tauri/` so `pnpm dev` keeps working, and enforce the vault
+  boundary on any path input.
+- Vault mutations go through the atomic save path in `vault/file.rs`; bulk
+  operations must be single backend operations, not repeated UI actions.
 
-`pnpm doctor:source` checks your toolchain and prints what is missing for each
-mode. Full setup details, including platform dependencies, are in
-[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
-
-Prebuilt installers are not published yet — build from source for now.
-
-## First run
-
-On first launch Grimoire clones a starter vault from
-https://github.com/sriinnu/grimoire-getting-started. Packaged builds also carry
-a bundled fallback mirrored from `demo-vault-v2/` in this repository.
+E2E/smoke: Playwright specs in `e2e/` and `tests/smoke/`
+(`pnpm test:e2e`, `pnpm playwright:smoke`).
 
 ## Repository layout
 
 ```text
-src/             React app: dashboard, editor, graph, settings
-src-tauri/       Tauri commands, vault IO, native menus, bridges
-markdown-editor/ Shared Markdown editor (JS + Swift parity packages)
-mcp-server/      Bundled MCP bridge for the packaged app
-demo-vault-v2/   Starter-vault mirror and product tour
-docs/            Architecture, setup, and contracts
-scripts/         Build, audit, and release tooling
+src/               React app (components, hooks, app runtime, themes)
+src-tauri/         Tauri backend; crates/grimoire-core is the shared kernel
+apps/apple/        Native SwiftUI macOS/iOS shell (early; consumes the kernel FFI)
+markdown-editor/   Shared Markdown semantics packages (JS + Swift, parity fixtures)
+packages/          product-contracts (TS + Swift contract mirrors)
+contracts/         Canonical cross-language contract fixtures
+mcp-server/        Bundled MCP server exposing vault tools to agent CLIs
+demo-vault-v2/     Starter-vault mirror and product tour
+docs/              Architecture, abstractions, setup, ADRs
+scripts/           Build, audit, release tooling
 ```
 
-## Development
+## Releases and security
 
-```bash
-pnpm lint
-pnpm exec tsc --noEmit
-pnpm test
-pnpm build
-cargo test --manifest-path src-tauri/Cargo.toml
-```
-
-See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for the full workflow and
-[CONTRIBUTING](.github/CONTRIBUTING.md) for contributor conventions.
-
-## Docs
-
-Documentation lives in the [`docs/`](docs/) folder — architecture, setup,
-abstractions, and the decision records.
-
-## Security
-
-Report security issues privately as described in
-[SECURITY.md](.github/SECURITY.md). Do not commit API keys, signing keys,
-certificates, or private vault contents. For other help see
-[SUPPORT.md](.github/SUPPORT.md); conduct concerns go through the
-[Code of Conduct](.github/CODE_OF_CONDUCT.md).
+Release process: [docs/RELEASE-RUNBOOK.md](docs/RELEASE-RUNBOOK.md).
+Report security issues privately per [SECURITY.md](.github/SECURITY.md).
+Never commit API keys, signing material, or private vault contents —
+`pnpm audit:secrets` scans for slips.
 
 ## License
 
-Grimoire's source code is licensed under AGPL-3.0-or-later. Your vault content —
-notes, journals, attachments, and imported files — stays yours and is not
-licensed by this repository. See [LICENSING.md](LICENSING.md) for the full
-policy and the [trademark policy](TRADEMARKS.md) for the Grimoire name and
-brand.
+AGPL-3.0-or-later for the source. Vault content stays yours; see
+[LICENSING.md](LICENSING.md) and [TRADEMARKS.md](TRADEMARKS.md).

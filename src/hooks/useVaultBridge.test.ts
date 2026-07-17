@@ -8,18 +8,19 @@ function makeEntry(path: string, title = 'Test'): VaultEntry {
 }
 
 function expectVaultDerivedStateReloaded(options: {
-  reloadVault: ReturnType<typeof vi.fn>
+  reloadEntries: ReturnType<typeof vi.fn>
   reloadFolders: ReturnType<typeof vi.fn>
   reloadViews: ReturnType<typeof vi.fn>
 }) {
-  const { reloadVault, reloadFolders, reloadViews } = options
-  expect(reloadVault).toHaveBeenCalledOnce()
+  const { reloadEntries, reloadFolders, reloadViews } = options
+  expect(reloadEntries).toHaveBeenCalledOnce()
   expect(reloadFolders).toHaveBeenCalledOnce()
   expect(reloadViews).toHaveBeenCalledOnce()
 }
 
 describe('useVaultBridge', () => {
   const onSelectNote = vi.fn()
+  let reloadVaultSoft: ReturnType<typeof vi.fn>
   let reloadVault: ReturnType<typeof vi.fn>
   let reloadFolders: ReturnType<typeof vi.fn>
   let reloadViews: ReturnType<typeof vi.fn>
@@ -29,6 +30,7 @@ describe('useVaultBridge', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    reloadVaultSoft = vi.fn().mockResolvedValue([])
     reloadVault = vi.fn().mockResolvedValue([])
     reloadFolders = vi.fn()
     reloadViews = vi.fn()
@@ -49,6 +51,7 @@ describe('useVaultBridge', () => {
       useVaultBridge({
         entriesByPath,
         resolvedPath: '/vault',
+        reloadVaultSoft,
         reloadVault,
         reloadFolders,
         reloadViews,
@@ -68,7 +71,7 @@ describe('useVaultBridge', () => {
     act(() => { result.current.openNoteByPath('/vault/note.md') })
 
     expect(onSelectNote).toHaveBeenCalledWith(entry)
-    expect(reloadVault).not.toHaveBeenCalled()
+    expect(reloadVaultSoft).not.toHaveBeenCalled()
   })
 
   it('opens a note by relative path', () => {
@@ -82,12 +85,12 @@ describe('useVaultBridge', () => {
 
   it('reloads vault when entry not found', async () => {
     const fresh = makeEntry('/vault/new.md')
-    reloadVault.mockResolvedValue([fresh])
+    reloadVaultSoft.mockResolvedValue([fresh])
     const { result } = renderBridge([])
 
     await act(async () => { result.current.openNoteByPath('/vault/new.md') })
 
-    expect(reloadVault).toHaveBeenCalled()
+    expect(reloadVaultSoft).toHaveBeenCalled()
     expect(onSelectNote).toHaveBeenCalledWith(fresh)
   })
 
@@ -110,61 +113,87 @@ describe('useVaultBridge', () => {
 
   it('handleAgentFileCreated reloads and opens created note', async () => {
     const fresh = makeEntry('/vault/created.md')
-    reloadVault.mockResolvedValue([fresh])
+    reloadVaultSoft.mockResolvedValue([fresh])
     const { result } = renderBridge([])
 
     await act(async () => { result.current.handleAgentFileCreated('created.md') })
 
-    expect(reloadVault).toHaveBeenCalled()
+    // The known path is forwarded so gitignored files are re-parsed too.
+    expect(reloadVaultSoft).toHaveBeenCalledWith(['created.md'])
     expect(onSelectNote).toHaveBeenCalledWith(fresh)
   })
 
   it('handleAgentFileModified refreshes the active tab with fresh disk content', async () => {
     const fresh = makeEntry('/vault/active.md', 'Fresh active')
-    reloadVault.mockResolvedValue([fresh])
+    reloadVaultSoft.mockResolvedValue([fresh])
     const { result } = renderBridge([], '/vault/active.md')
 
     await act(async () => { result.current.handleAgentFileModified('active.md') })
 
-    expectVaultDerivedStateReloaded({ reloadVault, reloadFolders, reloadViews })
+    expectVaultDerivedStateReloaded({ reloadEntries: reloadVaultSoft, reloadFolders, reloadViews })
+    // The known path is forwarded so gitignored files are re-parsed too.
+    expect(reloadVaultSoft).toHaveBeenCalledWith(['active.md'])
     expect(closeAllTabs).toHaveBeenCalledOnce()
     expect(replaceActiveTab).toHaveBeenCalledWith(fresh)
   })
 
   it('handleAgentFileModified still refreshes vault-derived UI for other notes', async () => {
     const active = makeEntry('/vault/other.md', 'Other')
-    reloadVault.mockResolvedValue([active])
+    reloadVaultSoft.mockResolvedValue([active])
     const { result } = renderBridge([], '/vault/other.md')
 
     await act(async () => { result.current.handleAgentFileModified('active.md') })
 
-    expectVaultDerivedStateReloaded({ reloadVault, reloadFolders, reloadViews })
+    expectVaultDerivedStateReloaded({ reloadEntries: reloadVaultSoft, reloadFolders, reloadViews })
     expect(closeAllTabs).not.toHaveBeenCalled()
     expect(replaceActiveTab).toHaveBeenCalledWith(active)
   })
 
   it('keeps unsaved active note content intact while reloading agent changes', async () => {
     const fresh = makeEntry('/vault/active.md', 'Fresh active')
-    reloadVault.mockResolvedValue([fresh])
+    reloadVaultSoft.mockResolvedValue([fresh])
     const hasUnsaved = vi.fn((path: string) => path === '/vault/active.md')
     const { result } = renderBridge([], '/vault/active.md', { hasUnsavedChanges: hasUnsaved })
 
     await act(async () => { result.current.handleAgentFileModified('active.md') })
 
-    expectVaultDerivedStateReloaded({ reloadVault, reloadFolders, reloadViews })
+    expectVaultDerivedStateReloaded({ reloadEntries: reloadVaultSoft, reloadFolders, reloadViews })
     expect(closeAllTabs).not.toHaveBeenCalled()
     expect(replaceActiveTab).not.toHaveBeenCalled()
   })
 
-  it('handleAgentVaultChanged reloads vault-derived state and refreshes the active note when safe', async () => {
+  it('handleAgentVaultChanged falls back to the hard reload for pathless bulk changes', async () => {
     const fresh = makeEntry('/vault/active.md', 'Fresh active')
     reloadVault.mockResolvedValue([fresh])
     const { result } = renderBridge([], '/vault/active.md')
 
     await act(async () => { result.current.handleAgentVaultChanged() })
 
-    expectVaultDerivedStateReloaded({ reloadVault, reloadFolders, reloadViews })
+    // Without knowing which files changed, only the full rescan stays correct
+    // for gitignored files, so the pathless bulk event must not soft-reload.
+    expectVaultDerivedStateReloaded({ reloadEntries: reloadVault, reloadFolders, reloadViews })
+    expect(reloadVaultSoft).not.toHaveBeenCalled()
     expect(closeAllTabs).not.toHaveBeenCalled()
     expect(replaceActiveTab).toHaveBeenCalledWith(fresh)
+  })
+
+  it('keeps the tab session untouched when the soft reload aborts', async () => {
+    // A transient IPC failure resolves to null — never an empty entry list.
+    reloadVaultSoft.mockResolvedValue(null)
+    const { result } = renderBridge([], '/vault/active.md')
+
+    await act(async () => { result.current.handleAgentFileModified('active.md') })
+
+    expect(closeAllTabs).not.toHaveBeenCalled()
+    expect(replaceActiveTab).not.toHaveBeenCalled()
+  })
+
+  it('does not open anything when the reload behind openNoteByPath aborts', async () => {
+    reloadVaultSoft.mockResolvedValue(null)
+    const { result } = renderBridge([])
+
+    await act(async () => { result.current.openNoteByPath('/vault/new.md') })
+
+    expect(onSelectNote).not.toHaveBeenCalled()
   })
 })

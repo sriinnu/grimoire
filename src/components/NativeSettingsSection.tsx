@@ -1,7 +1,19 @@
 import type { createTranslator } from '../lib/i18n'
 import type { NativeShellMaterial } from '../lib/appearance'
 import { desktopPlatformLabel, isMac } from '../utils/platform'
-import { LabeledSelect, SectionHeading, SettingsSwitchRow } from './settings/SettingsControls'
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSectionTitle,
+} from './settings/primitives/SettingsGroup'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
+import { Switch } from './ui/switch'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -13,7 +25,7 @@ interface NativeSettingsSectionProps {
   setNativeShellMaterial: (value: NativeShellMaterial) => void
 }
 
-/** Renders installation-local controls for native desktop affordances. */
+/** Renders installation-local native desktop controls as System Settings-style groups. */
 export function NativeSettingsSection({
   t,
   menuBarIconEnabled,
@@ -23,47 +35,62 @@ export function NativeSettingsSection({
 }: NativeSettingsSectionProps) {
   const platform = desktopPlatformLabel()
   const menuBarSupported = isMac()
+  const menuBarLabel = menuBarSupported
+    ? t('settings.native.menuBarIcon')
+    : t('settings.native.menuBarIconUnavailable', { platform })
 
   return (
-    <>
-      <SectionHeading
-        title={t('settings.native.title', { platform })}
-        description={t('settings.native.description', { platform })}
-      />
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.native.title', { platform })}</SettingsSectionTitle>
 
-      <SettingsSwitchRow
-        label={menuBarSupported
-          ? t('settings.native.menuBarIcon')
-          : t('settings.native.menuBarIconUnavailable', { platform })}
-        description={menuBarSupported
-          ? t('settings.native.menuBarIconDescription')
-          : t('settings.native.menuBarIconUnavailableDescription', { platform })}
-        checked={menuBarSupported && menuBarIconEnabled}
-        onChange={(value) => {
-          if (menuBarSupported) setMenuBarIconEnabled(value)
-        }}
-        disabled={!menuBarSupported}
-        testId="settings-menu-bar-icon-enabled"
-      />
-
-      <LabeledSelect
-        label={t('settings.native.shellMaterial')}
-        value={nativeShellMaterial}
-        onValueChange={(value) => setNativeShellMaterial(value as NativeShellMaterial)}
-        options={[
-          { value: 'standard', label: t('settings.native.shellMaterialStandard') },
-          { value: 'unified', label: t('settings.native.shellMaterialUnified') },
-          { value: 'glass-preview', label: t('settings.native.shellMaterialGlassPreview') },
-        ]}
-        testId="settings-native-shell-material"
-      />
-
-      <div
-        className="settings-material-inner rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
-        data-testid="settings-native-locality-note"
+      <SettingsGroup
+        title={t('settings.native.windowGroup')}
+        footnote={
+          <>
+            <div>{t('settings.native.description', { platform })}</div>
+            <div data-testid="settings-native-locality-note">
+              {t('settings.native.shellMaterialDescription')}
+            </div>
+          </>
+        }
       >
-        {t('settings.native.shellMaterialDescription')}
-      </div>
-    </>
+        <SettingsRow
+          label={menuBarLabel}
+          description={menuBarSupported
+            ? t('settings.native.menuBarIconDescription')
+            : t('settings.native.menuBarIconUnavailableDescription', { platform })}
+          testId="settings-menu-bar-icon-enabled"
+        >
+          <Switch
+            checked={menuBarSupported && menuBarIconEnabled}
+            onCheckedChange={(value) => {
+              if (menuBarSupported) setMenuBarIconEnabled(value)
+            }}
+            aria-label={menuBarLabel}
+            disabled={!menuBarSupported}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('settings.native.shellMaterial')}>
+          <Select
+            value={nativeShellMaterial}
+            onValueChange={(value) => setNativeShellMaterial(value as NativeShellMaterial)}
+          >
+            <SelectTrigger
+              className="w-48 bg-transparent"
+              aria-label={t('settings.native.shellMaterial')}
+              data-testid="settings-native-shell-material"
+              data-value={nativeShellMaterial}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              <SelectItem value="standard">{t('settings.native.shellMaterialStandard')}</SelectItem>
+              <SelectItem value="unified">{t('settings.native.shellMaterialUnified')}</SelectItem>
+              <SelectItem value="glass-preview">{t('settings.native.shellMaterialGlassPreview')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+      </SettingsGroup>
+    </div>
   )
 }

@@ -20,6 +20,15 @@ import {
   type JournalImportSource,
 } from '../utils/markdownFolderImport'
 import {
+  discoverImportableApps,
+  formatBearDatabaseSummaryToast,
+  formatDayOneDatabaseSummaryToast,
+  importBearDatabase,
+  importDayOneDatabase,
+  type DiscoveredApp,
+  type InstalledAppDatabaseId,
+} from '../utils/appStoreImport'
+import {
   formatPortabilityCapsuleImportPreviewToast,
   formatPortabilityCapsuleImportToast,
   importPortabilityCapsuleIntoVault,
@@ -66,6 +75,7 @@ export function useVaultPortabilityActions({
   setToastMessage,
 }: VaultPortabilityActionsOptions): VaultPortabilityActions {
   const [activeAction, setActiveAction] = useState<VaultPortabilityActionId | null>(null)
+  const [installedApps, setInstalledApps] = useState<DiscoveredApp[]>([])
   const [portabilityProgress, setPortabilityProgress] = useState<PortabilityProgressState | null>(null)
   const [lastImportPreview, setLastImportPreview] = useState<ImportAutopsyPreviewState | null>(null)
   const [lastExportPreview, setLastExportPreview] = useState<PortabilityExportPreviewState | null>(null)
@@ -78,6 +88,21 @@ export function useVaultPortabilityActions({
     setPortabilityProgress(null)
     activeOperationRef.current = null
   }, [resolvedPath])
+
+  useEffect(() => {
+    let cancelled = false
+    discoverImportableApps()
+      .then((apps) => {
+        if (!cancelled) setInstalledApps(apps)
+      })
+      .catch(() => {
+        // Discovery is best-effort; a failed probe just hides the group.
+        if (!cancelled) setInstalledApps([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const reloadAfterImport = useCallback(async () => {
     await reloadVault()
@@ -286,6 +311,34 @@ export function useVaultPortabilityActions({
       setActiveAction(null)
     }
   }, [lastImportPreview, reloadAfterImport, rememberImportPreview, resolvedPath, setToastMessage, updateImportProgress])
+  const handleAppDatabase = useCallback(async (appId: InstalledAppDatabaseId, mode: 'preview' | 'import') => {
+    const label = appId === 'day-one' ? 'Day One database' : 'Bear database'
+    if (!resolvedPath.trim()) {
+      setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} the ${label}`)
+      return
+    }
+    const storePath = installedApps.find((app) => app.id === appId)?.store_path
+    if (!storePath) {
+      setToastMessage(`${label} not found on this Mac`)
+      return
+    }
+    const actionId = appId === 'day-one'
+      ? (mode === 'preview' ? 'day-one-db-preview' : 'day-one-db')
+      : (mode === 'preview' ? 'bear-db-preview' : 'bear-db')
+    setActiveAction(actionId)
+    try {
+      setToastMessage(`${mode === 'preview' ? 'Previewing' : 'Importing'} ${label}...`)
+      const toast = appId === 'day-one'
+        ? formatDayOneDatabaseSummaryToast(await importDayOneDatabase(resolvedPath, storePath, mode === 'preview'))
+        : formatBearDatabaseSummaryToast(await importBearDatabase(resolvedPath, storePath, mode === 'preview'))
+      if (mode === 'import') await reloadAfterImport()
+      setToastMessage(toast)
+    } catch (error) {
+      setToastMessage(`${mode === 'preview' ? 'Preview' : 'Import'} failed: ${errorMessage(error, 'Import failed')}`)
+    } finally {
+      setActiveAction(null)
+    }
+  }, [installedApps, reloadAfterImport, resolvedPath, setToastMessage])
   const handleCapsuleImport = useCallback(async (format: PortabilityCapsuleFormat, mode: 'preview' | 'import') => {
     if (!resolvedPath.trim()) {
       setToastMessage(`Open a vault before ${mode === 'preview' ? 'previewing' : 'importing'} capsules`)
@@ -369,6 +422,7 @@ export function useVaultPortabilityActions({
 
   return {
     markdownImportBusy,
+    installedApps,
     portabilityBusyAction: activeAction,
     portabilityProgress,
     lastImportPreview,
@@ -377,6 +431,10 @@ export function useVaultPortabilityActions({
     handlePreviewMarkdownFolder: () => { void handlePreviewFolder('markdown-folder') }, handleImportMarkdownFolder: () => { void handleImportFolder('markdown-folder') },
     handlePreviewMarkdownZip: () => { void handlePreviewMarkdownZip() }, handleImportMarkdownZip: () => { void handleImportFolder('markdown-zip') },
     handlePreviewBear: () => { void handlePreviewFolder('bear') }, handleImportBear: () => { void handleImportFolder('bear') },
+    // Named for the first app it served; the optional id also routes Day One so
+    // the settings chrome prop chain stays untouched. Defaults to Bear.
+    handlePreviewBearDatabase: (appId?: InstalledAppDatabaseId) => { void handleAppDatabase(appId ?? 'bear', 'preview') },
+    handleImportBearDatabase: (appId?: InstalledAppDatabaseId) => { void handleAppDatabase(appId ?? 'bear', 'import') },
     handlePreviewObsidian: () => { void handleAppExport('obsidian', 'preview') }, handleImportObsidian: () => { void handleAppExport('obsidian', 'import') },
     handlePreviewNotion: () => { void handleAppExport('notion-markdown', 'preview') }, handleImportNotion: () => { void handleAppExport('notion-markdown', 'import') },
     handlePreviewNotionFolder: () => { void handleAppExport('notion-folder', 'preview') }, handleImportNotionFolder: () => { void handleAppExport('notion-folder', 'import') },

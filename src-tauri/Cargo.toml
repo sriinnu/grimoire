@@ -1,6 +1,6 @@
 [package]
 name = "grimoire"
-version = "0.1.444"
+version = "0.1.467"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
 license = "AGPL-3.0-or-later"
@@ -30,11 +30,16 @@ tauri-plugin-log = "2"
 gray_matter = "0.2"
 walkdir = "2"
 chrono = { version = "0.4", features = ["serde"] }
+# IANA timezone lookup for Day One entries archived with NSTimeZone names.
+chrono-tz = "0.10"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 futures-util = "0.3"
 base64 = "0.22"
 regex = "1"
 rusqlite = { version = "0.32", features = ["bundled"] }
+# Local Chitragupta daemon socket client. Blocking calls run inside
+# spawn_blocking, matching the async-command + blocking-runner pattern.
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 sha2 = "0.10"
 dirs = "5"
 # Native window materials: NSVisualEffectView vibrancy on macOS, Mica on Windows.
@@ -50,6 +55,13 @@ sentry = "0.37"
 uuid = { version = "1", features = ["v4"] }
 tempfile = "3"
 zip = { version = "0.6", default-features = false, features = ["deflate"] }
+# Local syntax parsing for code-aware context. This is deliberately parser-only;
+# language-server diagnostics and references arrive in the next IDE slice.
+tree-sitter = "0.26.11"
+tree-sitter-go = "0.25.0"
+tree-sitter-python = "0.25.0"
+tree-sitter-rust = "0.24.2"
+tree-sitter-typescript = "0.23.2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.4"

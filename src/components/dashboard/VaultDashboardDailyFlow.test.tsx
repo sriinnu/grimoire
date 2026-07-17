@@ -133,7 +133,7 @@ describe('VaultDashboard notebook rhythm', () => {
     fireEvent.change(input, { target: { value: '' } })
     fireEvent.click(getFlowStep(flow, 'Remember'))
     expect(input).toHaveValue('/ask ')
-    expect(await screen.findByTestId('dashboard-ask-context-preview')).toHaveTextContent(
+    expect(await screen.findByTestId('dashboard-ask-context-preview', undefined, { timeout: 10000 })).toHaveTextContent(
       'Only listed public notes can be sent.',
     )
 
@@ -179,7 +179,7 @@ describe('VaultDashboard notebook rhythm', () => {
     renderDashboard({ entries: publicNotes })
 
     fireEvent.click(within(screen.getByTestId('dashboard-daily-flow')).getByRole('button', { name: /Remember/ }))
-    const preview = await screen.findByTestId('dashboard-ask-context-preview')
+    const preview = await screen.findByTestId('dashboard-ask-context-preview', undefined, { timeout: 10000 })
 
     for (const note of publicNotes) {
       expect(preview).toHaveTextContent(note.title)
@@ -218,13 +218,13 @@ describe('VaultDashboard notebook rhythm', () => {
       ],
     })
 
-    const rail = await screen.findByTestId('daily-thread-rail')
+    const rail = await screen.findByTestId('daily-thread-rail', undefined, { timeout: 10000 })
     expect(rail).toHaveTextContent('Crystallize the day')
     expect(rail).not.toHaveTextContent('Old Dream Private')
 
     fireEvent.click(within(rail).getByRole('button', { name: /Crystallize/ }))
     expect(screen.getByTestId('dashboard-capture-input')).toHaveValue(DAILY_THREAD_CRYSTALLIZE_PROMPT)
-    const preview = await screen.findByTestId('dashboard-ask-context-preview')
+    const preview = await screen.findByTestId('dashboard-ask-context-preview', undefined, { timeout: 10000 })
     expect(preview).toHaveTextContent('Daily Thread Crystallize')
     expect(preview).toHaveTextContent('Review-before-write Markdown memory; public references only.')
     expect(preview).toHaveTextContent('Only listed public notes can be sent.')

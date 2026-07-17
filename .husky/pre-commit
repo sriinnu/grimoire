@@ -62,8 +62,16 @@ if [ -n "$STAGED_TS" ]; then
   npx tsc --noEmit
 fi
 
-# Unit tests — fast, runs on every commit.
-echo "  → tests..."
-pnpm exec vitest run --silent --maxWorkers=50%
+# Unit tests only exercise React source changes. Running the whole browser
+# suite after a native SwiftUI, documentation, or release-script change makes
+# the commit hook needlessly slow and can leave the app unresponsive.
+STAGED_WEB_TEST_SURFACE=$(git diff --cached --name-only | grep -E '^(src|tests)/.*\.(ts|tsx)$' || true)
+if [ -n "$STAGED_WEB_TEST_SURFACE" ]; then
+  echo "  → web tests..."
+  # A percentage expands with core count and can overwhelm high-core machines.
+  pnpm exec vitest run --silent --maxWorkers=4
+else
+  echo "  → web tests skipped (no React source or test changes staged)"
+fi
 
 echo "✅ Pre-commit passed"

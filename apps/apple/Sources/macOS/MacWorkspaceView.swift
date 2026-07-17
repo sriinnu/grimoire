@@ -1,18 +1,63 @@
+import AppKit
 import SwiftUI
 
 struct MacWorkspaceView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @StateObject private var model = GrimoireWorkspaceModel()
+    @StateObject private var model: GrimoireWorkspaceModel
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
-    @State private var inspectorPresented = true
-    @State private var editorSurface: MacEditorSurface = .native
+    @State private var inspectorPresented = false
+    @State private var newNotePresented = false
+
+    init() {
+        _model = StateObject(
+            wrappedValue: GrimoireWorkspaceModel(vaultService: MacVaultService())
+        )
+    }
 
     var body: some View {
+        workspace
+            .tint(MacNotebookTheme.accent)
+            .frame(minWidth: 900, minHeight: 620)
+            .task {
+                guard let path = UserDefaults.standard.string(forKey: "activeVaultPath") else { return }
+                _ = await model.openVault(path: path)
+            }
+            .sheet(isPresented: $newNotePresented) {
+                MacNewNoteSheet(model: model)
+            }
+            .alert(
+                "Vault Error",
+                isPresented: Binding(
+                    get: { model.vaultError != nil },
+                    set: { if !$0 { model.clearVaultError() } }
+                )
+            ) {
+                Button("OK") { model.clearVaultError() }
+            } message: {
+                Text(model.vaultError ?? "The vault operation failed.")
+            }
+    }
+
+    @ViewBuilder
+    private var workspace: some View {
+        if model.selectedDestination == .notebook, model.selectedFolder == nil {
+            NavigationSplitView(columnVisibility: $columnVisibility) {
+                MacWorkspaceSidebar(model: model)
+                    .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 280)
+            } detail: {
+                MacNotebookDashboard(model: model, onOpenVault: chooseVault)
+                    .navigationTitle("Notebook")
+            }
+        } else {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             MacWorkspaceSidebar(model: model)
-                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
+                .navigationSplitViewColumnWidth(min: 190, ideal: 220, max: 280)
+        } content: {
+            MacPageList(model: model) {
+                newNotePresented = true
+            }
+            .navigationSplitViewColumnWidth(min: 280, ideal: 330, max: 430)
         } detail: {
-            MacEditorWorkspace(model: model, editorSurface: editorSurface)
+            MacEditorWorkspace(model: model)
                 .navigationTitle(model.activeDocument?.title ?? "Grimoire")
         }
         .inspector(isPresented: $inspectorPresented) {
@@ -20,65 +65,43 @@ struct MacWorkspaceView: View {
                 .inspectorColumnWidth(min: 320, ideal: 370, max: 460)
         }
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                Picker("Editor", selection: $editorSurface) {
-                    ForEach(MacEditorSurface.allCases) { surface in
-                        Label(surface.title, systemImage: surface.systemImage)
-                            .tag(surface)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 168)
-                .help("Choose the native or WebKit editor surface")
-            }
-
             ToolbarItemGroup(placement: .primaryAction) {
-                Button {
-                    model.rebuildManifest()
-                } label: {
-                    Label(
-                        model.manifestNeedsRebuild ? "Rebuild Context" : "Context Current",
-                        systemImage: model.manifestNeedsRebuild
-                            ? "arrow.triangle.2.circlepath"
-                            : "checkmark.circle"
-                    )
+                Button(action: chooseVault) {
+                    Label("Open Vault", systemImage: "folder")
                 }
-                .help(model.manifestNeedsRebuild ? "Rebuild the Context Manifest" : "Context Manifest is current")
+                .help("Open a local Markdown vault")
+
+                Button {
+                    newNotePresented = true
+                } label: {
+                    Label("New Page", systemImage: "square.and.pencil")
+                }
+                .disabled(model.activeVaultPath == nil)
+                .help("Create a portable Markdown page")
 
                 Button {
                     inspectorPresented.toggle()
                 } label: {
-                    Label("Context Inspector", systemImage: "sidebar.trailing")
+                    Label("Second Brain", systemImage: "sidebar.trailing")
                 }
-                .help(inspectorPresented ? "Hide Context Inspector" : "Show Context Inspector")
+                .help(inspectorPresented ? "Hide Second Brain" : "Show Second Brain")
             }
         }
-        .tint(MacNotebookTheme.accent)
-        .background {
-            MacNotebookTheme.windowBackdrop(for: colorScheme)
-                .ignoresSafeArea()
-        }
-        .frame(minWidth: 1_020, minHeight: 680)
-    }
-}
-
-enum MacEditorSurface: String, CaseIterable, Identifiable {
-    case native
-    case web
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .native: "Native"
-        case .web: "Web"
         }
     }
 
-    var systemImage: String {
-        switch self {
-        case .native: "text.cursor"
-        case .web: "network"
+    private func chooseVault() {
+        let panel = NSOpenPanel()
+        panel.title = "Open Grimoire Vault"
+        panel.prompt = "Open Vault"
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        Task {
+            if await model.openVault(path: url.path) {
+                UserDefaults.standard.set(url.path, forKey: "activeVaultPath")
+            }
         }
     }
 }

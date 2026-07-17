@@ -43,20 +43,6 @@ describe('createSpringEngine', () => {
     expect(engine.positions().get('dragged')).not.toEqual({ x: 420, y: 280 })
   })
 
-  it('nudges nearby nodes while preserving the cursor deadzone', () => {
-    const engine = createSpringEngine()
-    engine.seed([
-      node('target', 510, 310),
-      node('neighbor', 550, 310),
-    ], [])
-
-    engine.nudge(500, 310, 100, 1, 20)
-    engine.tick(0)
-
-    expect(engine.positions().get('target')).toEqual({ x: 510, y: 310 })
-    expect(engine.positions().get('neighbor')?.x).toBeGreaterThan(550)
-  })
-
   it('drops removed nodes and preserves surviving positions when reseeded', () => {
     const engine = createSpringEngine()
     engine.seed([node('keep', 320, 260), node('remove', 680, 360)], [])

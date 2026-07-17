@@ -8,8 +8,15 @@ mod app_importer_progress;
 mod app_importer_progress_tests;
 #[cfg(test)]
 mod app_importer_tests;
+mod app_store_discovery;
+mod bear_importer;
+#[cfg(test)]
+mod bear_importer_tests;
 mod cache;
 mod config_seed;
+mod day_one_importer;
+#[cfg(test)]
+mod day_one_importer_tests;
 mod entry;
 mod exporter;
 mod exporter_progress;
@@ -106,16 +113,21 @@ mod zip_importer_progress_tests;
 pub use app_importer::import_app_export;
 pub use app_importer_preview::preview_app_export;
 pub use app_importer_progress::import_app_export_with_progress;
-pub use cache::{invalidate_cache, scan_vault_cached};
+pub use app_store_discovery::{discover_importable_apps, DiscoveredApp};
+pub use bear_importer::{import_bear_database, BearDatabaseImportSummary};
+pub use cache::{invalidate_cache, scan_vault_cached, scan_vault_cached_with_extra_paths};
 pub use config_seed::{
     get_ai_guidance_status, migrate_agents_md, repair_config_files, restore_ai_guidance_files,
     seed_config_files, AiGuidanceFileState, VaultAiGuidanceStatus,
 };
+pub use day_one_importer::{import_day_one_database, DayOneDatabaseImportSummary};
 pub use entry::{FolderNode, VaultEntry};
 pub use exporter::{export_markdown_zip, VaultExportReport};
 pub use exporter_progress::{export_markdown_zip_with_progress, VaultExportProgressEvent};
 pub use file::{create_note_content, get_note_content, save_note_content};
-pub use folders::{delete_folder, rename_folder, FolderRenameResult};
+pub use folders::{
+    delete_folder, move_folder, rename_folder, FolderMoveResult, FolderRenameResult,
+};
 pub use getting_started::{create_getting_started_vault, default_vault_path, vault_exists};
 pub use html_exporter::export_static_html_archive;
 pub use html_exporter_progress::export_static_html_archive_with_progress;

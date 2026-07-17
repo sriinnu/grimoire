@@ -61,7 +61,7 @@ export function GraphControlPanel({
         </SegmentButton>
       </RadioControlGroup>
 
-      <RadioControlGroup label="Edges">
+      <RadioControlGroup label="Edges" columns={3}>
         {EDGE_FILTERS.map((filter) => (
           <SegmentButton
             key={filter.value}
@@ -96,11 +96,16 @@ export function GraphControlPanel({
   )
 }
 
-function RadioControlGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function RadioControlGroup({ label, columns = 2, children }: { label: string; columns?: number; children: React.ReactNode }) {
   return (
     <div className="mt-4 space-y-2">
       <div className="text-xs font-medium text-muted-foreground">{label}</div>
-      <div className="grid gap-1 rounded-md bg-muted p-1" role="radiogroup" aria-label={label}>
+      <div
+        className="grid gap-1 rounded-md bg-muted p-1"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+        role="radiogroup"
+        aria-label={label}
+      >
         {children}
       </div>
     </div>
@@ -127,7 +132,7 @@ function SegmentButton({
       aria-checked={selected}
       disabled={disabled}
       className={cn(
-        'h-7 justify-start px-2 text-xs',
+        'h-7 justify-center px-2 text-xs',
         selected ? 'bg-background text-foreground shadow-xs hover:bg-background' : 'text-muted-foreground',
       )}
       onClick={onClick}

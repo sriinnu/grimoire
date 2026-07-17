@@ -1,6 +1,6 @@
 .graph-canvas-shell {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: 8px;
   padding: 10px;
   border-color: color-mix(in srgb, var(--border) 74%, transparent);
@@ -8,42 +8,30 @@
   box-shadow: var(--grimoire-graph-shadow, none);
 }
 
-.graph-canvas-hud {
-  position: relative;
+/* Quiet zoom cluster in the canvas corner — the discoverable twin of
+   wheel-zoom and double-click-reset, never competing with the graph. */
+.graph-canvas-zoom {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 5px;
-  pointer-events: none;
-}
-
-.graph-canvas-package-card,
-.graph-canvas-agent-rail {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.graph-canvas-package-card {
-  max-width: min(620px, 100%);
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px;
   border: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
-  border-radius: 12px;
-  padding: 5px;
+  border-radius: 10px;
   background: color-mix(in srgb, var(--grimoire-graph-hud-bg, var(--surface-editor)) 82%, transparent);
   box-shadow: var(--grimoire-graph-shadow, none);
 }
 
-.graph-canvas-package-card[data-state="ready"] {
-  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
-}
-
 .graph-canvas-agent-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
   justify-content: flex-end;
   margin-left: auto;
 }
 
-.graph-canvas-hud span,
 .graph-canvas-agent-rail span {
   border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 999px;
@@ -54,16 +42,6 @@
   font-weight: 650;
   line-height: 1;
   padding: 6px 9px;
-}
-
-.graph-canvas-hud span[data-state="ready"] {
-  border-color: color-mix(in srgb, var(--primary) 34%, transparent);
-  color: var(--foreground);
-}
-
-.graph-canvas-hud span[data-state="protected-active"] {
-  border-color: color-mix(in srgb, var(--destructive) 34%, transparent);
-  color: var(--foreground);
 }
 
 .graph-canvas-agent-rail span[data-state="ready"] {
@@ -90,10 +68,6 @@
 }
 
 @media (max-width: 720px) {
-  .graph-canvas-hud {
-    justify-content: flex-start;
-  }
-
   .graph-canvas-agent-rail {
     justify-content: flex-start;
     margin-left: 0;
@@ -248,12 +222,18 @@
 .grimoire-graph-node--highlighted {
   opacity: 1;
   transform: scale(1.08);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .grimoire-graph-node-halo {
   fill: var(--node-color);
   opacity: 0.16;
   animation: grimoire-graph-halo 1.4s var(--motion-ease-cinematic) 1 both;
+  /* SVG transforms scale from the canvas origin unless the box is the element
+   * itself — without this the settled 0.92 frame displaces the halo off-node. */
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .grimoire-graph-node-package-orbit {

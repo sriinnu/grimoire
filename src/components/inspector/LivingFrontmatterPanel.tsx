@@ -72,7 +72,7 @@ function ReviewManifest({ plan }: { plan: LivingFrontmatterReviewPlan }) {
       data-testid="living-frontmatter-review-manifest"
       aria-label="Living Frontmatter review manifest"
     >
-      <ManifestChip label="Writes" value={`${plan.fieldCount} fields`} />
+      <ManifestChip label="Writes" value={`${plan.fieldCount} ${plan.fieldCount === 1 ? 'field' : 'fields'}`} />
       <ManifestChip label="Findings" value={`${plan.readOnlyCount} read-only`} />
       <ManifestChip label="Source" value={plan.sourceLabels.join(' / ')} />
       <ManifestChip label="Target" value={formatReviewTarget(plan)} />

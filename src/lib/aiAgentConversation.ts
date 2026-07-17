@@ -1,6 +1,8 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { AiAction } from '../components/AiMessage'
 import type { AskContextPackage } from './askContextPackage'
+import type { ChitraguptaRecallAttachment } from './chitraguptaContext'
+import type { ContextManifestV1 } from './contextManifest'
 import { buildAgentSystemPrompt } from '../utils/ai-agent'
 import {
   MAX_HISTORY_TOKENS,
@@ -21,6 +23,8 @@ import {
 
 export interface AiAgentMessage {
   contextPackage?: AskContextPackage
+  chitraguptaRecall?: ChitraguptaRecallAttachment
+  contextManifest?: ContextManifestV1
   userMessage: string
   references?: NoteReference[]
   route?: AiAgentRuntimeRoute
@@ -37,6 +41,8 @@ export interface AgentExecutionContext {
   agent: AiAgentId
   ready: boolean
   vaultPath: string
+  /** Vault-relative path of the active note; threads socket session lineage. */
+  notePath?: string | null
   systemPromptOverride?: string
   provider?: string | null
   model?: string | null
@@ -44,6 +50,8 @@ export interface AgentExecutionContext {
 
 export interface PendingUserPrompt {
   contextPackage?: AskContextPackage
+  chitraguptaRecall?: ChitraguptaRecallAttachment
+  contextManifest?: ContextManifestV1
   text: string
   references?: NoteReference[]
   queuedMessageId?: string
@@ -62,17 +70,23 @@ function toChatHistory(messages: AiAgentMessage[]): ChatMessage[] {
 function promptWithReferences(prompt: PendingUserPrompt): string {
   const references = prompt.references ?? []
   const contextPackage = prompt.contextPackage
-  if (references.length === 0 && !contextPackage) return prompt.text
+  const recall = prompt.chitraguptaRecall
+  const manifest = prompt.contextManifest
+  if (references.length === 0 && !contextPackage && !recall && !manifest) return prompt.text
 
   const referenceLines = references.map((reference) => {
     const type = reference.type ?? 'Note'
     return `- [[${reference.title}]] (type: ${type}, path: ${reference.path})`
   })
   const contextPackageLines = contextPackage ? askContextPackageLines(contextPackage) : []
+  const recallLines = recall ? chitraguptaRecallLines(recall) : []
+  const manifestLines = manifest ? contextManifestLines(manifest) : []
   return [
     prompt.text,
     '',
     ...contextPackageLines,
+    ...recallLines,
+    ...manifestLines,
     ...(referenceLines.length > 0 ? ['## Selected Grimoire References', ...referenceLines] : []),
     '',
     'Use these local vault references as context. Read note bodies only through Grimoire tools and keep local-only material withheld.',
@@ -151,8 +165,12 @@ export function appendQueuedMessage(
   return messageId
 }
 
-function messageContext(prompt: PendingUserPrompt): Pick<AiAgentMessage, 'contextPackage'> {
-  return prompt.contextPackage ? { contextPackage: prompt.contextPackage } : {}
+function messageContext(prompt: PendingUserPrompt): Pick<AiAgentMessage, 'chitraguptaRecall' | 'contextManifest' | 'contextPackage'> {
+  return {
+    ...(prompt.contextPackage ? { contextPackage: prompt.contextPackage } : {}),
+    ...(prompt.chitraguptaRecall ? { chitraguptaRecall: prompt.chitraguptaRecall } : {}),
+    ...(prompt.contextManifest ? { contextManifest: prompt.contextManifest } : {}),
+  }
 }
 
 function askContextPackageLines(contextPackage: AskContextPackage): string[] {
@@ -209,6 +227,39 @@ function graphContextPackageLines(contextPackage: AskContextPackage): string[] {
       ? `Source labels: ${contextPackage.sourceLabels.map((label) => `[[${label}]]`).join(', ')}`
       : 'Source labels: none',
     ...edgeLines,
+    '',
+  ]
+}
+
+function chitraguptaRecallLines(recall: ChitraguptaRecallAttachment): string[] {
+  const content = [
+    recall.guidance ? `Guidance:\n${recall.guidance}` : null,
+    recall.predictions ? `Live signals:\n${recall.predictions}` : null,
+  ].filter((value): value is string => Boolean(value))
+  const recallItems = recall.items ?? []
+  const excerpts = recallItems.length > 0 ? [
+    '### Reviewed memory excerpts',
+    ...recallItems.map((item) => (
+      `- ${item.primarySource ? `[${item.primarySource}] ` : ''}${item.answer}`
+    )),
+  ] : []
+  return [
+    '## User-approved Chitragupta Recall',
+    `Recall records: ${recall.recalledCount}`,
+    recall.degraded ? 'Status: degraded; qualify claims and do not treat this as complete memory.' : 'Status: available',
+    ...(recall.warnings.length > 0 ? [`Warnings: ${recall.warnings.join(' | ')}`] : []),
+    ...excerpts,
+    ...content,
+    '',
+  ]
+}
+
+function contextManifestLines(manifest: ContextManifestV1): string[] {
+  return [
+    '## User-approved Grimoire Context Manifest',
+    'This manifest is a reviewed local source map, not permission to access excluded or local-only material.',
+    'Read a source body only through Grimoire tools, and honour every item permission.',
+    JSON.stringify(manifest),
     '',
   ]
 }

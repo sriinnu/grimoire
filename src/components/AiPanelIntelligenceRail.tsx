@@ -1,31 +1,25 @@
 import { useMemo, useState } from 'react'
-import {
-  createAiAgentAvailability,
-  createMissingAiAgentsStatus,
-  type AiAgentId,
-  type AiAgentsStatus,
-} from '../lib/aiAgents'
+import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { AskContextPackage } from '../lib/askContextPackage'
-import type { AgentCouncilSynthesisPacket } from '../lib/agentCouncilSynthesis'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
 import type { EntryLocalityPolicy } from '../lib/localityPolicy'
+import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
+import type { ContextManifestV1 } from '../lib/contextManifest'
 import {
   buildAskContextCapsulePreview,
   buildContextCapsulePackagePreview,
   buildContextCapsulePreview,
 } from '../lib/contextCapsule'
-import { buildRedTeamPlanReview } from '../lib/redTeamPlan'
-import { buildRedTeamPatchPlan } from '../lib/redTeamPatchPlan'
-import type { VaultEntry } from '../types'
-import { buildAgentGraphContext, type AgentGraphContext } from '../utils/agentGraphContext'
+import type { ModifiedFile, VaultEntry } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
-import { AgentCouncilStrip } from './AgentCouncilStrip'
-import { AiCrystallizeLoopCard } from './AiCrystallizeLoopCard'
-import { AiPanelIntelligenceSummary } from './AiPanelIntelligenceSummary'
-import { ContextCapsuleCard } from './ContextCapsuleCard'
+import { buildCachedAgentGraphContext } from '../utils/agentGraphContext'
+import { ChitraguptaPastSessions } from './ChitraguptaPastSessions'
 import { ContextCapsuleDialog } from './ContextCapsuleDialog'
+import { AiPanelIntelligenceSummary } from './AiPanelIntelligenceSummary'
 import { RedTeamPlanCard } from './RedTeamPlanCard'
 import { RedTeamPlanDialog } from './RedTeamPlanDialog'
+import { buildRedTeamPatchPlan } from '../lib/redTeamPatchPlan'
+import { buildRedTeamPlanReview } from '../lib/redTeamPlan'
 
 interface AiPanelIntelligenceRailProps {
   activeEntry?: VaultEntry | null
@@ -39,59 +33,60 @@ interface AiPanelIntelligenceRailProps {
   defaultAiModel?: string | null
   defaultAiProvider?: string | null
   entries: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
   hasContext: boolean
   hasLatestResponse: boolean
   linkedEntries: VaultEntry[]
   noteList?: NoteListItem[]
   noteListFilter?: { type: string | null; query: string }
   onCrystallize: () => void
-  onCrystallizeCouncil?: (packet: AgentCouncilSynthesisPacket) => void
   onOpenNote?: (path: string) => void
   openTabs?: VaultEntry[]
   proposalSummary: CrystallizeProposalSummary | null
   askContextPackage?: AskContextPackage | null
+  vaultPath?: string
+  onUseContextManifest?: (manifest: ContextManifestV1) => void
+  onUseChitraguptaRecall?: (attachment: ChitraguptaRecallAttachment) => void
 }
 
-/** Intelligence surfaces that sit above the AI message stream. */
+/**
+ * The rail owns exactly one always-visible promise: inspect the context that
+ * will accompany a request. Council, memory review, and run workflows belong
+ * to explicit actions, not the idle chat state.
+ */
 export function AiPanelIntelligenceRail({
   activeEntry,
   activeNoteContent,
   activePolicy,
-  aiAgentsStatus: providedAiAgentsStatus,
-  canCrystallize,
-  crystallizeBlockedReason,
   defaultAiAgent,
-  defaultAiAgentReady,
   defaultAiModel,
   defaultAiProvider,
   entries,
-  hasContext,
-  hasLatestResponse,
+  modifiedFiles,
   linkedEntries,
   noteList,
   noteListFilter,
-  onCrystallize,
-  onCrystallizeCouncil,
-  onOpenNote,
   openTabs,
-  proposalSummary,
   askContextPackage,
+  vaultPath,
+  onUseContextManifest,
+  onUseChitraguptaRecall,
 }: AiPanelIntelligenceRailProps) {
-  const [contextCapsuleOpen, setContextCapsuleOpen] = useState(false)
-  const [detailsOpen, setDetailsOpen] = useState(false)
-  const [redTeamPlanOpen, setRedTeamPlanOpen] = useState(false)
+  const [contextInspectorOpen, setContextInspectorOpen] = useState(false)
+  const [planReviewOpen, setPlanReviewOpen] = useState(false)
+  const [patchPlanOpen, setPatchPlanOpen] = useState(false)
   const activeContextProtected = activePolicy?.localOnly === true
-  const councilContextProtected = activeContextProtected && !askContextPackage
-  const aiAgentsStatus = useMemo(() => {
-    const statuses = providedAiAgentsStatus ?? createMissingAiAgentsStatus()
-    return {
-      ...statuses,
-      [defaultAiAgent]: createAiAgentAvailability(defaultAiAgentReady ? 'installed' : 'missing'),
-    }
-  }, [defaultAiAgent, defaultAiAgentReady, providedAiAgentsStatus])
+  const redTeamReview = useMemo(
+    () => buildRedTeamPlanReview({ activeEntry, activeNoteContent }),
+    [activeEntry, activeNoteContent],
+  )
+  const redTeamPatchPlan = useMemo(() => buildRedTeamPatchPlan(redTeamReview), [redTeamReview])
+  // Built with the exact helper the send path uses (useAiPanelContextSnapshot),
+  // so the inspector's graph counts report what a request actually carries.
   const graphContext = useMemo(() => (
-    graphCouncilContextFromPackage(askContextPackage)
-      ?? buildAgentGraphContext({ activeEntry, entries })
+    activeEntry && !askContextPackage
+      ? buildCachedAgentGraphContext(activeEntry, entries)
+      : undefined
   ), [activeEntry, askContextPackage, entries])
   const contextCapsule = useMemo(() => (
     askContextPackage
@@ -110,130 +105,51 @@ export function AiPanelIntelligenceRail({
     () => buildContextCapsulePackagePreview(contextCapsule),
     [contextCapsule],
   )
-  const redTeamReview = useMemo(() => buildRedTeamPlanReview({
-    activeEntry,
-    activeNoteContent,
-  }), [activeEntry, activeNoteContent])
-  const redTeamPatchPlan = useMemo(() => buildRedTeamPatchPlan(redTeamReview), [redTeamReview])
   const heldCount = activeContextProtected ? 1 : contextCapsule.counts.exclusions
   const sourceCount = activeContextProtected ? 0 : contextCapsule.includedNotes.length
-  const graphNodeCount = activeContextProtected ? 0 : contextCapsule.projectMap.graphNodes
-  const routeReady = aiAgentsStatus[defaultAiAgent]?.status === 'installed'
 
   return (
     <>
-      <AiPanelIntelligenceSummary
-        activeContextProtected={activeContextProtected}
-        canCrystallize={canCrystallize}
-        contextPackageSummary={contextCapsule.state === 'empty' ? null : {
-          receipt: contextCapsulePackage.reviewReceipt,
-          state: contextCapsule.state,
-        }}
-        expanded={detailsOpen}
-        graphNodeCount={graphNodeCount}
-        hasContext={hasContext}
-        hasLatestResponse={hasLatestResponse}
-        heldCount={heldCount}
-        proposalSummary={proposalSummary}
-        routeReady={routeReady}
-        sourceCount={sourceCount}
-        onCrystallize={onCrystallize}
-        onToggle={() => setDetailsOpen((open) => !open)}
-      />
-      {detailsOpen ? (
-        <div data-testid="ai-intelligence-details">
-          {activeEntry || askContextPackage ? (
-            <ContextCapsuleCard
-              defaultAiAgent={defaultAiAgent}
-              defaultAiModel={defaultAiModel}
-              defaultAiProvider={defaultAiProvider}
-              preview={contextCapsule}
-              reviewReceipt={contextCapsulePackage.reviewReceipt}
-              onReviewPackage={() => setContextCapsuleOpen(true)}
-            />
-          ) : null}
-          <AgentCouncilStrip
-            statuses={aiAgentsStatus}
-            activeAgent={defaultAiAgent}
-            activeContextProtected={councilContextProtected}
-            activeSourceLabel={councilContextProtected || askContextPackage ? null : activeEntry?.title}
-            activeSourcePath={councilContextProtected || askContextPackage ? null : activeEntry?.path}
-            askContextPackage={councilContextProtected ? null : askContextPackage}
-            defaultAiModel={defaultAiModel}
-            defaultAiProvider={defaultAiProvider}
-            graphContext={graphContext}
-            linkedContextCount={councilContextProtected || askContextPackage ? 0 : linkedEntries.length}
-            onCrystallizeSynthesis={onCrystallizeCouncil}
-            onOpenSource={onOpenNote}
-            redTeamReview={redTeamReview}
-          />
-          <AiCrystallizeLoopCard
-            activeContextProtected={activeContextProtected}
-            blockedReason={crystallizeBlockedReason}
-            canCrystallize={canCrystallize}
-            hasContext={hasContext}
-            hasLatestResponse={hasLatestResponse}
-            linkedCount={activeContextProtected ? 0 : linkedEntries.length}
-            onCrystallize={onCrystallize}
-            proposalSummary={activeContextProtected ? null : proposalSummary}
-          />
-          <RedTeamPlanCard review={redTeamReview} onReviewPlan={() => setRedTeamPlanOpen(true)} />
-        </div>
+      {(activeEntry || askContextPackage) ? (
+        <AiPanelIntelligenceSummary
+          activeContextProtected={activeContextProtected}
+          heldCount={heldCount}
+          sourceCount={sourceCount}
+          onInspectContext={() => setContextInspectorOpen(true)}
+          onReviewPlan={() => setPlanReviewOpen((open) => !open)}
+          reviewOpen={planReviewOpen}
+        />
       ) : null}
-      <RedTeamPlanDialog
-        open={redTeamPlanOpen}
-        plan={redTeamPatchPlan}
-        onClose={() => setRedTeamPlanOpen(false)}
-      />
+      {defaultAiAgent === 'chitragupta' && activeEntry ? (
+        <ChitraguptaPastSessions activeEntry={activeEntry} vaultPath={vaultPath} />
+      ) : null}
+      {planReviewOpen && activeEntry ? (
+        <RedTeamPlanCard
+          review={redTeamReview}
+          onReviewPlan={() => setPatchPlanOpen(true)}
+        />
+      ) : null}
       <ContextCapsuleDialog
         key={contextCapsulePackage.reviewReceipt}
         defaultAiAgent={defaultAiAgent}
         defaultAiModel={defaultAiModel}
         defaultAiProvider={defaultAiProvider}
-        open={contextCapsuleOpen}
+        open={contextInspectorOpen}
         packagePreview={contextCapsulePackage}
         preview={contextCapsule}
-        onClose={() => setContextCapsuleOpen(false)}
+        modifiedFiles={modifiedFiles}
+        entries={entries}
+        activeEntry={activeEntry}
+        vaultPath={vaultPath}
+        onUseContextManifest={onUseContextManifest}
+        onUseChitraguptaRecall={onUseChitraguptaRecall}
+        onClose={() => setContextInspectorOpen(false)}
+      />
+      <RedTeamPlanDialog
+        open={patchPlanOpen}
+        plan={redTeamPatchPlan}
+        onClose={() => setPatchPlanOpen(false)}
       />
     </>
   )
-}
-
-function graphCouncilContextFromPackage(contextPackage?: AskContextPackage | null): AgentGraphContext | null {
-  if (contextPackage?.kind !== 'graph-council') return null
-
-  const pathByTitle = new Map(contextPackage.references.map((reference) => [reference.title, reference.path]))
-  const graph = contextPackage.graph
-  return {
-    edges: (graph?.edges ?? []).map((edge) => ({
-      kind: graphPackageEdgeKind(edge.kind),
-      label: edge.label,
-      sourcePath: pathByTitle.get(edge.sourceTitle) ?? edge.sourceTitle,
-      sourceTitle: edge.sourceTitle,
-      targetPath: pathByTitle.get(edge.targetTitle) ?? edge.targetTitle,
-      targetTitle: edge.targetTitle,
-    })),
-    omitted: {
-      protectedEdges: graph?.protectedEdges ?? 0,
-      protectedNodes: contextPackage.withheld.protectedNotes,
-      truncatedEdges: graph?.truncatedEdges ?? 0,
-      truncatedNodes: graph?.truncatedNodes ?? 0,
-    },
-    nodes: contextPackage.references.map((reference, index) => ({
-      active: index === 0,
-      degree: 0,
-      path: reference.path,
-      title: reference.title,
-      type: reference.type ?? 'Note',
-    })),
-    state: contextPackage.visibleCount > 0 ? 'ready' : 'empty',
-    totals: {
-      visibleEdges: graph?.visibleEdges ?? 0,
-      visibleNodes: graph?.visibleNodes ?? contextPackage.visibleCount,
-    },
-  }
-}
-
-function graphPackageEdgeKind(kind: string): AgentGraphContext['edges'][number]['kind'] {
-  return kind === 'relationship' ? 'relationship' : 'body-link'
 }

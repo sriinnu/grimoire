@@ -5,7 +5,6 @@ const PRODUCT_MOTION_FILES = [
   'src/motion.css',
   'src/motion-reduced-overrides.css',
   'src/motion-memory.css',
-  'src/motion-agent-council.css',
   'src/theme-flagship-shared.css',
   'src/graph-animations.css',
   'src/sidebar-artwork-themes.css',

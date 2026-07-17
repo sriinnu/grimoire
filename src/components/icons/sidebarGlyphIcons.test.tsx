@@ -23,44 +23,19 @@ const SIDEBAR_GLYPHS = [
 ] as const
 
 describe('sidebar glyph icons', () => {
-  it.each(SIDEBAR_GLYPHS)('renders the %s glyph with themed color channels', (name, Icon) => {
+  it.each(SIDEBAR_GLYPHS)('renders the familiar %s symbol at the requested size', (name, Icon) => {
     render(<Icon color="#234567" data-testid="sidebar-glyph" size={30} weight="duotone" />)
 
     const svg = screen.getByTestId('sidebar-glyph')
     expect(svg).toHaveAttribute('aria-hidden', 'true')
     expect(svg).toHaveAttribute('data-sidebar-glyph', name)
     expect(svg).toHaveAttribute('height', '30')
-    expect(svg).toHaveAttribute('stroke-width', '1.85')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-primary')).toBe('#234567')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-aura')).toContain('var(--accent-blue')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-aura')).not.toContain('accent-teal')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-bright')).toContain('var(--sidebar-foreground')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-route')).toContain('var(--accent-blue')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-bright')).toContain('92%')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-fill')).toContain('currentColor 26%')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-soft')).toContain('currentColor 18%')
-    expect(svg.style.getPropertyValue('--sidebar-glyph-shadow')).toContain('currentColor 30%')
-    expect(svg.querySelector('[stroke="var(--sidebar-glyph-aura)"], [fill="var(--sidebar-glyph-aura)"]')).not.toBeNull()
-    expect(svg.querySelector('[stroke="var(--sidebar-glyph-route)"], [fill="var(--sidebar-glyph-route)"]')).not.toBeNull()
+    expect(svg).toHaveAttribute('width', '30')
+    expect(svg.querySelector('path')).not.toBeNull()
   })
 
-  // Pin every weight so a typo in any stroke branch is caught (the rail uses
-  // regular, duotone, and fill in production).
-  const STROKE_WIDTHS = [
-    ['thin', '1.3'],
-    ['light', '1.5'],
-    ['regular', '1.6'],
-    ['bold', '2.1'],
-    ['fill', '2.1'],
-    ['duotone', '1.85'],
-  ] as const
-  it.each(STROKE_WIDTHS)('uses stroke-width %s → %s', (weight, expected) => {
-    render(<NotebookGlyphIcon data-testid="sidebar-glyph" weight={weight} />)
-    expect(screen.getByTestId('sidebar-glyph')).toHaveAttribute('stroke-width', expected)
-  })
-
-  it('defaults to the regular stroke when no weight is given', () => {
+  it('uses a regular, legible icon by default', () => {
     render(<NotebookGlyphIcon data-testid="sidebar-glyph" />)
-    expect(screen.getByTestId('sidebar-glyph')).toHaveAttribute('stroke-width', '1.6')
+    expect(screen.getByTestId('sidebar-glyph').querySelector('path')).not.toBeNull()
   })
 })

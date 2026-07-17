@@ -14,6 +14,7 @@ import {
   type AiAgentsStatus,
 } from '../lib/aiAgents'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
+import { useChitraguptaPairing } from '../hooks/useChitraguptaPairing'
 import { openExternalUrl } from '../utils/url'
 import { desktopPlatformLabel, getDesktopPlatform, type DesktopPlatform } from '../utils/platform'
 import { OnboardingShell } from './OnboardingShell'
@@ -166,6 +167,79 @@ function BrowserPreviewBoundary() {
   )
 }
 
+/**
+ * Optional one-click daemon pairing for an installed Chitragupta CLI. Shares
+ * the pairing state machine with the Settings card via useChitraguptaPairing.
+ * Purely additive: onboarding never blocks on it, and Continue stays live.
+ */
+function ChitraguptaDaemonPairing() {
+  const { status, phase, error, connect, checkConnection } = useChitraguptaPairing()
+  const canPair = getDesktopPlatform() === 'macos'
+  const paired = phase === 'connected'
+    || (phase === 'idle' && !!status?.healthy && status.token_present)
+
+  const daemonLine = status === null
+    ? 'Checking the local daemon...'
+    : status.healthy
+      ? `Daemon reachable${status.version ? ` · v${status.version}` : ''}.`
+      : 'Daemon not running. Chat uses the Chitragupta CLI until it starts.'
+
+  return (
+    <div
+      className="mt-2 space-y-2 rounded-md border border-border/70 bg-background/40 px-3 py-2 text-left"
+      data-testid="ai-agents-onboarding-chitragupta-pairing"
+    >
+      <div className="text-[11px] leading-5 text-muted-foreground" data-testid="chitragupta-pairing-daemon">
+        {daemonLine}
+      </div>
+      {error ? (
+        <div className="text-[11px] leading-5 text-[var(--feedback-error-text)]" data-testid="chitragupta-pairing-error">
+          {error} You can paste a token manually in Settings instead.
+        </div>
+      ) : null}
+      {phase === 'waiting' ? (
+        <div className="text-[11px] leading-5 text-muted-foreground" data-testid="chitragupta-pairing-waiting">
+          Key created — waiting for the Chitragupta daemon to refresh.
+        </div>
+      ) : null}
+      {paired ? (
+        <div className="text-[11px] leading-5 text-[var(--feedback-success-text)]" data-testid="chitragupta-pairing-connected">
+          Daemon connected. Sessions thread per note automatically.
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          {canPair ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={phase === 'provisioning'}
+              onClick={() => void connect()}
+              data-testid="chitragupta-pairing-connect"
+            >
+              {phase === 'provisioning' ? 'Connecting...' : 'Connect automatically'}
+            </Button>
+          ) : null}
+          {phase === 'waiting' ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => void checkConnection()}
+              data-testid="chitragupta-pairing-check"
+            >
+              Check connection
+            </Button>
+          ) : null}
+          <span className="text-[11px] leading-5 text-muted-foreground/80">
+            Optional — you can pair later in Settings.
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
   return (
     <div className="space-y-3">
@@ -178,12 +252,15 @@ function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
             className="flex items-start justify-between gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm"
             data-testid={`ai-agent-status-${definition.id}`}
           >
-            <div className="min-w-0 space-y-1 text-left">
+            <div className="min-w-0 flex-1 space-y-1 text-left">
               <div className="font-medium text-foreground">{definition.label}</div>
               <div className="text-xs text-muted-foreground">
                 {agentStatusDetail(definition, status)}
               </div>
               {secondaryDetail ? <div className="text-[11px] leading-5 text-muted-foreground/80">{secondaryDetail}</div> : null}
+              {definition.id === 'chitragupta' && status.status === 'installed' ? (
+                <ChitraguptaDaemonPairing />
+              ) : null}
             </div>
             <span
               className={`shrink-0 rounded-full px-2 py-1 text-[11px] font-medium ${statusBadgeClass(status)}`}

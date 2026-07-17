@@ -75,6 +75,8 @@ export interface NoteListProps {
   onUpdateTypeSort?: (path: string, key: string, value: string | number | boolean | string[] | null) => void
   updateEntry?: (path: string, patch: Partial<VaultEntry>) => void
   onOpenInNewWindow?: (entry: VaultEntry) => void
+  onMoveToFolder?: (entry: VaultEntry) => void
+  onRevealInFinder?: (entry: VaultEntry) => void
   onDiscardFile?: (relativePath: string) => Promise<void>
   onUpdateFrontmatter?: (path: string, key: string, value: string | number | boolean | string[] | null) => Promise<void> | void
   onAutoTriggerDiff?: () => void
@@ -197,6 +199,8 @@ export function useNoteListModel({
   onUpdateTypeSort,
   updateEntry,
   onOpenInNewWindow,
+  onMoveToFolder,
+  onRevealInFinder,
   onDiscardFile,
   onUpdateFrontmatter,
   onAutoTriggerDiff,
@@ -262,6 +266,8 @@ export function useNoteListModel({
     onEnterNeighborhood,
     onOpenDeletedNote,
     onOpenInNewWindow,
+    onMoveToFolder,
+    onRevealInFinder,
     onAutoTriggerDiff,
     onDiscardFile,
     onUpdateFrontmatter,

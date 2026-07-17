@@ -1,0 +1,164 @@
+/*
+ * The panel contract in DESIGN.md. This file deliberately comes last: earlier
+ * theme packs may decorate a pane, but the working app must keep one coherent
+ * native surface hierarchy.
+ */
+
+:root {
+  --grimoire-pane-hairline: color-mix(in srgb, var(--border-default) 82%, transparent);
+  --grimoire-row-hover: color-mix(in srgb, var(--primary) 6%, transparent);
+  --grimoire-row-selected: color-mix(in srgb, var(--primary) 12%, var(--surface-panel));
+  --grimoire-section-space: 16px;
+}
+
+:root[data-theme-preset] :is(.app-sidebar-panel, .app-sidebar-rail) {
+  background: var(--surface-sidebar) !important;
+  background-image: none !important;
+  box-shadow: inset -1px 0 0 var(--grimoire-pane-hairline) !important;
+}
+
+:root[data-theme-preset] .app-sidebar-panel::before {
+  animation: none !important;
+  background: none !important;
+}
+
+:root[data-theme-preset] :is(.app-sidebar-nav, .sidebar-top-nav, .sidebar-section-content) {
+  background: transparent !important;
+}
+
+:root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) :is(.sidebar-nav-glyph, .sidebar-rail__glyph) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) [aria-current="page"] {
+  background: color-mix(in srgb, var(--sidebar-primary) 13%, transparent) !important;
+  border-radius: 8px !important;
+  box-shadow: inset 2px 0 0 var(--sidebar-primary) !important;
+}
+
+:root[data-theme-preset] .note-list-panel {
+  background: var(--surface-panel) !important;
+  border-color: var(--grimoire-pane-hairline) !important;
+}
+
+:root[data-theme-preset] :is(.note-list-top-chrome, .note-list-chrome-row, .note-list-search-row, .note-list-filter-rail, .project-workspace-strip) {
+  background: var(--surface-panel) !important;
+  background-image: none !important;
+  border-color: var(--grimoire-pane-hairline) !important;
+}
+
+:root[data-theme-preset] .note-list-panel [data-note-path] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+
+:root[data-theme-preset] .note-list-panel [data-note-path]:not([data-selected="true"]):hover {
+  background: var(--grimoire-row-hover) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"] {
+  background: color-mix(in srgb, var(--note-type-color, var(--primary)) 15%, var(--surface-panel)) !important;
+  box-shadow: none !important;
+}
+
+/* The older note chrome painted a glow and two gradients over selected rows.
+ * Selection is one restrained tint plus a thin leading signal in the note's
+ * type colour. It describes the current document, not a card. */
+:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::before {
+  content: "" !important;
+  display: block !important;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 2.5px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--note-type-color, var(--primary)) 82%, var(--grimoire-pane-hairline)) !important;
+}
+
+:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+:root[data-theme-preset] .note-list-panel .note-current-document-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: color-mix(in srgb, var(--note-type-color, var(--primary)) 72%, var(--text-secondary)) !important;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+:root[data-theme-preset] .note-list-panel .note-current-document-state > span {
+  width: 5px;
+  height: 5px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+:root[data-theme-preset] .inspector-panel {
+  background: var(--surface-panel) !important;
+  background-image: none !important;
+  border-color: var(--grimoire-pane-hairline) !important;
+}
+
+:root[data-theme-preset] .inspector-header {
+  background: var(--surface-panel) !important;
+  background-image: none !important;
+  border-color: var(--grimoire-pane-hairline) !important;
+}
+
+:root[data-theme-preset] .inspector-body {
+  gap: 0 !important;
+  padding: 0 16px !important;
+  scroll-padding-block: var(--grimoire-section-space) !important;
+}
+
+:root[data-theme-preset] .inspector-panel :is(.inspector-card, .constellation-insights) {
+  background: transparent !important;
+  background-image: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--grimoire-pane-hairline) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: var(--grimoire-section-space) 0 !important;
+}
+
+:root[data-theme-preset] .inspector-body > [data-slot="separator"] {
+  background: var(--grimoire-pane-hairline) !important;
+  height: 1px !important;
+  margin: 0 !important;
+}
+
+:root[data-theme-preset] .inspector-panel .linked-concept-map__node {
+  background: transparent !important;
+  border-color: var(--grimoire-pane-hairline) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme-preset] .inspector-panel .linked-concept-map__node:hover:not(:disabled),
+:root[data-theme-preset] .inspector-panel .linked-concept-map__node[data-concept-state="active"] {
+  background: var(--grimoire-row-hover) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) [aria-current="page"] {
+    transition: none;
+  }
+}

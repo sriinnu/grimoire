@@ -251,7 +251,7 @@ export function MemoryPanel({
 
       <RuntimeDiagnosticStrip diagnostic={runtimeDiagnostic} />
 
-      {!displayPolicy.localOnly ? <LedgerEvidenceStrip summary={ledgerEvidence} /> : null}
+      {!displayPolicy.localOnly && ledgerRecords.length > 0 ? <LedgerEvidenceStrip summary={ledgerEvidence} /> : null}
       {!displayPolicy.localOnly ? <MemoryLedgerAuditStrip items={ledgerAuditItems} onNavigate={onNavigate} /> : null}
 
       {ledgerRecords.length > 0 ? (

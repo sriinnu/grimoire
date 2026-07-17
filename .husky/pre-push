@@ -71,6 +71,12 @@ if [ -t 0 ]; then PUSH_INPUT=""; else PUSH_INPUT=$(cat); fi
 validate_push_branch
 ensure_node_tooling
 
+PUSH_TARGET=$(git rev-parse @{push} 2>/dev/null || echo "")
+CHANGED=""
+if [ -n "$PUSH_TARGET" ]; then
+  CHANGED=$(git diff --name-only "$PUSH_TARGET"..HEAD)
+fi
+
 echo ""
 echo "🚀 Pre-push gate"
 echo "================"
@@ -121,16 +127,23 @@ echo "  ✅ Native Tauri link OK"
 
 # 2. Frontend unit tests (no coverage threshold — that's CI's job)
 echo ""
-echo "🧪 Frontend tests..."
-pnpm test --silent
-echo "  ✅ Tests OK"
+WEB_TESTS_CHANGED=true
+if [ -n "$PUSH_TARGET" ]; then
+  if ! echo "$CHANGED" | grep -qE '^(src|tests)/.*\.(ts|tsx)$'; then
+    WEB_TESTS_CHANGED=false
+  fi
+fi
+if [ "$WEB_TESTS_CHANGED" = true ]; then
+  echo "🧪 Frontend tests..."
+  pnpm test --silent
+  echo "  ✅ Tests OK"
+else
+  echo "⏭️  Frontend tests — skipped (no React source or test changes)"
+fi
 
 # 3. Shared MarkdownEditor parity checks (skipped when editor semantics are untouched)
-PUSH_TARGET=$(git rev-parse @{push} 2>/dev/null || echo "")
-CHANGED=""
 MARKDOWN_EDITOR_CHANGED=true
 if [ -n "$PUSH_TARGET" ]; then
-  CHANGED=$(git diff --name-only "$PUSH_TARGET"..HEAD)
   if ! echo "$CHANGED" | grep -qE '^(markdown-editor/packages/swift/|markdown-editor/packages/js/|src/components/(grimoireEditorFormattingConfig|tagCollectionSuggestions)(\.test)?\.tsx?|src/utils/(compact-markdown|mathMarkdown|markdownParity|markdownSemanticsAdapter|wikilinks)(\.test)?\.ts|src-tauri/tauri\.conf\.json|index\.html)'; then
     MARKDOWN_EDITOR_CHANGED=false
   fi

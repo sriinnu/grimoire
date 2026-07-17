@@ -7,6 +7,8 @@ describe('theme settings CSS', () => {
   const settingsWorkflowCss = readFileSync(`${process.cwd()}/src/theme-settings-workflow.css`, 'utf8')
   const settingsSyncCss = readFileSync(`${process.cwd()}/src/theme-settings-sync.css`, 'utf8')
   const settingsPrivacyCss = readFileSync(`${process.cwd()}/src/theme-settings-privacy.css`, 'utf8')
+  const settingsGroupsCss = readFileSync(`${process.cwd()}/src/theme-settings-groups.css`, 'utf8')
+  const settingsGroupPrimitives = readFileSync(`${process.cwd()}/src/components/settings/primitives/SettingsGroup.tsx`, 'utf8')
   const coherenceCss = readFileSync(`${process.cwd()}/src/theme-coherence.css`, 'utf8')
   const settingsBody = readFileSync(`${process.cwd()}/src/components/settings/SettingsBody.tsx`, 'utf8')
   const settingsNavigation = readFileSync(`${process.cwd()}/src/components/settings/SettingsNavigation.tsx`, 'utf8')
@@ -22,9 +24,7 @@ describe('theme settings CSS', () => {
   const desktopStorageHealthPanel = readFileSync(`${process.cwd()}/src/components/DesktopStorageHealthPanel.tsx`, 'utf8')
   const importAutopsyTimeline = readFileSync(`${process.cwd()}/src/components/ImportAutopsyTimeline.tsx`, 'utf8')
   const portabilityActionDeck = readFileSync(`${process.cwd()}/src/components/PortabilityActionDeck.tsx`, 'utf8')
-  const portabilityExportActions = readFileSync(`${process.cwd()}/src/components/PortabilityExportActions.tsx`, 'utf8')
   const portabilityGroups = readFileSync(`${process.cwd()}/src/components/PortabilityGroups.tsx`, 'utf8')
-  const portabilityLocalContract = readFileSync(`${process.cwd()}/src/components/PortabilityLocalContract.tsx`, 'utf8')
   const portabilityProofLedger = readFileSync(`${process.cwd()}/src/components/PortabilityProofLedger.tsx`, 'utf8')
   const objectStoragePreviewCard = readFileSync(`${process.cwd()}/src/components/ObjectStoragePreviewCard.tsx`, 'utf8')
   const objectStoragePreflightPanels = readFileSync(`${process.cwd()}/src/components/ObjectStorageLivePreflightPanels.tsx`, 'utf8')
@@ -99,6 +99,50 @@ describe('theme settings CSS', () => {
     expect(settingsCss).toContain('.settings-section [data-slot="input"]')
   })
 
+  it('ships System Settings-style grouped-form primitives with literal token fallbacks', () => {
+    // The grouped layer loads with the other settings layers, before agent CSS.
+    const settingsPrivacyIndex = systemThemesCss.indexOf("@import './theme-settings-privacy.css';")
+    const settingsGroupsIndex = systemThemesCss.indexOf("@import './theme-settings-groups.css';")
+    const agentIndex = systemThemesCss.indexOf("@import './theme-agent-council.css';")
+    expect(settingsGroupsIndex).toBeGreaterThan(settingsPrivacyIndex)
+    expect(settingsGroupsIndex).toBeLessThan(agentIndex)
+
+    // Tokens derive from surface tokens with LITERAL fallbacks (WKWebView-safe,
+    // one level deep — this file is intentionally exempt from the no-hex rule).
+    expect(settingsGroupsCss).toContain('--settings-group-bg: var(--surface-card, #ffffff)')
+    expect(settingsGroupsCss).toContain('--settings-group-bg: var(--surface-card, #0d1c23)')
+    expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #e7e2da)')
+    expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #1e3a43)')
+    expect(settingsGroupsCss).toContain('--settings-group-radius: 8px')
+    expect(settingsGroupsCss).toContain('[data-theme-preset="constellation"]')
+
+    // The primitive classes: title above, footnote below, inset row dividers.
+    for (const hook of [
+      '.settings-section-title',
+      '.settings-hig-stack',
+      '.settings-group-block',
+      '.settings-group-title',
+      '.settings-group',
+      '.settings-group-footnote',
+      '.settings-row',
+      '.settings-row__text',
+      '.settings-row__label',
+      '.settings-row__description',
+      '.settings-row__control',
+      '.settings-row__actions',
+      '.settings-row__content',
+    ]) {
+      expect(settingsGroupsCss).toContain(hook)
+    }
+    expect(settingsGroupsCss).toContain('.settings-group > * + *::before')
+    expect(settingsGroupsCss).toContain('left: var(--settings-group-inset, 12px)')
+    expect(settingsGroupsCss).toContain('.settings-row[data-variant="full"]')
+
+    // Primitive markup stays free of inline styles and ad-hoc background utilities.
+    expect(settingsGroupPrimitives).not.toContain('style={{')
+    expect(settingsGroupPrimitives).not.toMatch(/bg-(muted|background)|hover:bg-|bg-\[/)
+  })
+
   it('keeps Settings markup free of ad-hoc background material utilities', () => {
     expect(settingsBody).not.toContain('bg-[')
     expect(settingsNavigation).not.toContain('bg-[')
@@ -118,9 +162,7 @@ describe('theme settings CSS', () => {
       desktopStorageHealthPanel,
       importAutopsyTimeline,
       portabilityActionDeck,
-      portabilityExportActions,
       portabilityGroups,
-      portabilityLocalContract,
       portabilityProofLedger,
       objectStoragePreviewCard,
       objectStoragePreflightPanels,
@@ -131,8 +173,8 @@ describe('theme settings CSS', () => {
       expect(source).not.toMatch(/bg-(muted|background)|hover:bg-|bg-\[/)
     }
     expect(nativeSettings).not.toContain('style={{')
-    expect(nativeSettings).toContain('SectionHeading')
-    expect(nativeSettings).toContain('settings-material-inner')
+    expect(nativeSettings).toContain('SettingsGroup')
+    expect(nativeSettings).toContain('settings-hig-stack')
   })
 
   it('keeps portability proof surfaces on semantic theme hooks', () => {

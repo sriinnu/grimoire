@@ -1,5 +1,6 @@
 import type { useCreateBlockNote } from '@blocknote/react'
 import type { VaultEntry } from '../types'
+import { stripInjectedCodeLanguages } from '../utils/codeLanguageDetect'
 import { splitFrontmatter, restoreWikilinksInBlocks } from '../utils/wikilinks'
 import { compactMarkdown } from '../utils/compact-markdown'
 import { serializeMathAwareBlocks } from '../utils/mathMarkdown'
@@ -29,7 +30,9 @@ export function serializeEditorDocumentToMarkdown(
   vaultPath?: string,
 ): string {
   const blocks = editor.document
-  const restored = restoreWikilinksInBlocks(blocks)
+  // Detected code languages are display-only; keep them out of the raw buffer
+  // (and out of anything saved from it).
+  const restored = restoreWikilinksInBlocks(stripInjectedCodeLanguages(blocks))
   const rawBodyMarkdown = compactMarkdown(serializeMathAwareBlocks(editor, restored))
   const bodyMarkdown = vaultPath ? portableImageUrls(rawBodyMarkdown, vaultPath) : rawBodyMarkdown
   const [frontmatter] = splitFrontmatter(tabContent)

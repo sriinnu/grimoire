@@ -786,7 +786,9 @@ describe('App', () => {
     expect(screen.queryByText('Local helpers are optional')).not.toBeInTheDocument()
   })
 
-  it('shows onboarding after telemetry consent when no active vault is configured', async () => {
+  it('skips telemetry consent in browser mode and shows onboarding directly', async () => {
+    // Crash reporting is native-only: outside Tauri the consent dialog must
+    // never gate startup, even while telemetry_consent is unanswered.
     mockCommandResults.get_settings = {
       auto_pull_interval_minutes: null,
       telemetry_consent: null,
@@ -797,39 +799,17 @@ describe('App', () => {
     }
     mockCommandResults.load_vault_list = { vaults: [], active_vault: null, hidden_defaults: [] }
     mockCommandResults.check_vault_exists = (args?: { path?: string }) => args?.path === expectedDefaultVaultPath
-    const saveSettings = vi.fn(() => null)
-    mockCommandResults.save_settings = saveSettings
 
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
-    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('telemetry-accept'))
-      await Promise.resolve()
-    })
-
-    expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining({
-      settings: expect.objectContaining({
-        analytics_enabled: false,
-        anonymous_id: expect.any(String),
-        crash_reporting_enabled: true,
-        telemetry_consent: true,
-      }),
-    }))
-
-    await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
     }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
+    expect(screen.queryByText('Help improve Grimoire')).not.toBeInTheDocument()
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open notebook folder')
   })
 
-  it.each([
-    ['telemetry-accept', 'Allow anonymous reporting'],
-    ['telemetry-decline', 'No thanks'],
-  ])('ignores a remembered default vault after %s when onboarding was never completed', async (buttonTestId) => {
+  it('ignores a remembered default vault with unanswered consent when onboarding was never completed', async () => {
     const rememberedDefaultVaultPath = expectedDefaultVaultPath
     localStorage.setItem('grimoire_welcome_dismissed', '1')
     mockCommandResults.get_default_vault_path = rememberedDefaultVaultPath
@@ -851,14 +831,9 @@ describe('App', () => {
     render(<App />)
 
     await waitFor(() => {
-      expect(screen.getByText('Help improve Grimoire')).toBeInTheDocument()
-    }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
-
-    fireEvent.click(screen.getByTestId(buttonTestId))
-
-    await waitFor(() => {
       expect(screen.getByTestId('welcome-screen')).toBeInTheDocument()
     }, { timeout: APP_STARTUP_WAIT_TIMEOUT_MS })
+    expect(screen.queryByText('Help improve Grimoire')).not.toBeInTheDocument()
     expect(screen.getByTestId('welcome-open-folder')).toHaveTextContent('Open notebook folder')
   })
 

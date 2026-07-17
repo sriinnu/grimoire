@@ -32,12 +32,30 @@
   --status-bar-badge-bg: color-mix(in srgb, var(--status-bar-warning-fg) 22%, transparent);
   --status-bar-badge-fg: var(--status-bar-foreground);
   --status-bar-popover-bg: color-mix(in srgb, var(--surface-sidebar) 82%, var(--surface-popover));
+  /* Literal-backed solid for popup panels: WKWebView drops the whole
+   * background when nested var()/color-mix chains fail to parse, and the
+   * native shell material can make derived tokens translucent. Panels float
+   * over dense content, so this must never be see-through. Themes may
+   * override it, but only with an opaque colour. */
+  --status-bar-popover-solid: #f7f4ec;
   --status-bar-popover-fg: var(--status-bar-foreground);
   --status-bar-hover: color-mix(in srgb, var(--sidebar-primary) 12%, transparent);
   --status-bar-tone-line: color-mix(in srgb, var(--status-bar-hairline) 82%, transparent);
 }
 
+[data-theme="dark"],
+:root[data-theme="dark"] {
+  --status-bar-popover-solid: #15242c;
+}
+
 .status-bar {
+  /* The bar must own a stacking context above the workspace panes: the native
+   * shell material gives the sidebar a backdrop-filter (its own composited
+   * layer), and without an explicit z-index here the bar's popups paint
+   * underneath it regardless of their own z-index. Kept below dialog/portal
+   * layers (z 50+). */
+  position: relative;
+  z-index: 40;
   --hover: var(--status-bar-hover);
   --popover: var(--status-bar-popover-bg);
   --popover-foreground: var(--status-bar-popover-fg);

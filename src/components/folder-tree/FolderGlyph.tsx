@@ -3,7 +3,7 @@ import type { FolderNode } from '../../types'
 import { resolveFolderGlyphModel } from './folderGlyphModel'
 import './FolderGlyph.css'
 
-/** Renders Grimoire-native semantic medallions for folder rows in the left sidebar. */
+/** Renders one familiar folder silhouette with a semantic tone for each sidebar row. */
 export function FolderGlyph({
   className,
   isOpen,

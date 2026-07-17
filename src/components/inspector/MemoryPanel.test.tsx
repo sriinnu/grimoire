@@ -76,7 +76,7 @@ describe('MemoryPanel', () => {
     expect(runtime).toHaveAttribute('data-state', 'mcp_unverified')
     expect(runtime).toHaveTextContent('CLI installed')
     expect(runtime).toHaveTextContent('MCP contract unverified')
-    expect(runtime).toHaveTextContent('0/8 MCP capabilities')
+    expect(runtime).toHaveTextContent('0/9 MCP capabilities')
     expect(screen.getByTestId('memory-chitragupta-warnings')).toHaveTextContent('CLI chat can run separately')
   })
 

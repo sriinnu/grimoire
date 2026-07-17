@@ -175,6 +175,66 @@ fn env_var_configured(env_var: &str) -> bool {
     std::env::var(env_var).is_ok_and(|value| !value.trim().is_empty())
 }
 
+// ── Chitragupta daemon socket token ──────────────────────────────────────────
+//
+// The daemon bearer token lives in the same Keychain service as provider API
+// keys, under its own account. It is deliberately NOT part of
+// AI_PROVIDER_KEY_DEFINITIONS so it never joins the generic provider-keys list
+// or the CLI env-var injection path; only the socket client reads it.
+
+const CHITRAGUPTA_SOCKET_ACCOUNT: &str = "chitragupta-socket";
+const CHITRAGUPTA_SOCKET_LABEL: &str = "Chitragupta daemon token";
+pub const CHITRAGUPTA_SOCKET_TOKEN_ENV_VAR: &str = "CHITRAGUPTA_API_KEY";
+
+/// Resolve the daemon token value: Keychain first, then environment.
+/// Callers must never log, serialize, or embed the returned value in errors.
+pub fn chitragupta_socket_token() -> Option<String> {
+    keychain_secret(CHITRAGUPTA_SOCKET_ACCOUNT, CHITRAGUPTA_SOCKET_LABEL)
+        .ok()
+        .flatten()
+        .filter(|value| !value.trim().is_empty())
+        .or_else(|| {
+            std::env::var(CHITRAGUPTA_SOCKET_TOKEN_ENV_VAR)
+                .ok()
+                .filter(|value| !value.trim().is_empty())
+        })
+}
+
+/// Redacted source disclosure for the daemon token (Keychain → env → missing).
+pub fn chitragupta_socket_token_source() -> AiProviderKeySource {
+    let keychain_configured = keychain_secret(CHITRAGUPTA_SOCKET_ACCOUNT, CHITRAGUPTA_SOCKET_LABEL)
+        .ok()
+        .flatten()
+        .is_some_and(|value| !value.trim().is_empty());
+    if keychain_configured {
+        AiProviderKeySource::Keychain
+    } else if env_var_configured(CHITRAGUPTA_SOCKET_TOKEN_ENV_VAR) {
+        AiProviderKeySource::Environment
+    } else {
+        AiProviderKeySource::Missing
+    }
+}
+
+/// Save the daemon token to secure platform storage; returns the new source.
+pub fn save_chitragupta_socket_token(token: &str) -> Result<AiProviderKeySource, String> {
+    let trimmed = token.trim();
+    if trimmed.is_empty() {
+        return Err("Daemon token cannot be blank".into());
+    }
+    save_keychain_secret(
+        CHITRAGUPTA_SOCKET_ACCOUNT,
+        CHITRAGUPTA_SOCKET_LABEL,
+        trimmed,
+    )?;
+    Ok(chitragupta_socket_token_source())
+}
+
+/// Clear the daemon token from secure platform storage; returns the new source.
+pub fn clear_chitragupta_socket_token() -> Result<AiProviderKeySource, String> {
+    delete_keychain_secret(CHITRAGUPTA_SOCKET_ACCOUNT, CHITRAGUPTA_SOCKET_LABEL)?;
+    Ok(chitragupta_socket_token_source())
+}
+
 fn keychain_password_for_env_var(env_var: &str) -> Option<String> {
     AI_PROVIDER_KEY_DEFINITIONS
         .iter()
@@ -183,74 +243,67 @@ fn keychain_password_for_env_var(env_var: &str) -> Option<String> {
         .filter(|value| !value.trim().is_empty())
 }
 
-#[cfg(target_os = "macos")]
 fn keychain_password(definition: &AiProviderKeyDefinition) -> Result<Option<String>, String> {
-    match security_framework::passwords::get_generic_password(
-        KEYCHAIN_SERVICE,
-        definition.provider_id,
-    ) {
-        Ok(bytes) => String::from_utf8(bytes)
-            .map(Some)
-            .map_err(|_| format!("Stored key for {} is not UTF-8", definition.label)),
-        Err(error) if error.code() == ERR_SEC_ITEM_NOT_FOUND => Ok(None),
-        Err(error) => Err(format!(
-            "Could not read {} key from Keychain: {}",
-            definition.label, error
-        )),
-    }
+    keychain_secret(definition.provider_id, definition.label)
 }
 
-#[cfg(not(target_os = "macos"))]
-fn keychain_password(_definition: &AiProviderKeyDefinition) -> Result<Option<String>, String> {
-    Ok(None)
-}
-
-#[cfg(target_os = "macos")]
 fn save_keychain_password(
     definition: &AiProviderKeyDefinition,
     api_key: &str,
 ) -> Result<(), String> {
-    security_framework::passwords::set_generic_password(
-        KEYCHAIN_SERVICE,
-        definition.provider_id,
-        api_key.as_bytes(),
-    )
-    .map_err(|error| {
-        format!(
-            "Could not save {} key to Keychain: {error}",
-            definition.label
-        )
-    })
+    save_keychain_secret(definition.provider_id, definition.label, api_key)
+}
+
+fn delete_keychain_password(definition: &AiProviderKeyDefinition) -> Result<(), String> {
+    delete_keychain_secret(definition.provider_id, definition.label)
+}
+
+#[cfg(target_os = "macos")]
+fn keychain_secret(account: &str, label: &str) -> Result<Option<String>, String> {
+    match security_framework::passwords::get_generic_password(KEYCHAIN_SERVICE, account) {
+        Ok(bytes) => String::from_utf8(bytes)
+            .map(Some)
+            .map_err(|_| format!("Stored key for {label} is not UTF-8")),
+        Err(error) if error.code() == ERR_SEC_ITEM_NOT_FOUND => Ok(None),
+        Err(error) => Err(format!("Could not read {label} key from Keychain: {error}")),
+    }
 }
 
 #[cfg(not(target_os = "macos"))]
-fn save_keychain_password(
-    definition: &AiProviderKeyDefinition,
-    _api_key: &str,
-) -> Result<(), String> {
+fn keychain_secret(_account: &str, _label: &str) -> Result<Option<String>, String> {
+    Ok(None)
+}
+
+#[cfg(target_os = "macos")]
+fn save_keychain_secret(account: &str, label: &str, secret: &str) -> Result<(), String> {
+    security_framework::passwords::set_generic_password(
+        KEYCHAIN_SERVICE,
+        account,
+        secret.as_bytes(),
+    )
+    .map_err(|error| format!("Could not save {label} key to Keychain: {error}"))
+}
+
+#[cfg(not(target_os = "macos"))]
+fn save_keychain_secret(_account: &str, label: &str, _secret: &str) -> Result<(), String> {
     Err(format!(
-        "{} keys can only be saved to Keychain on macOS.",
-        definition.label
+        "{label} keys can only be saved to Keychain on macOS."
     ))
 }
 
 #[cfg(target_os = "macos")]
-fn delete_keychain_password(definition: &AiProviderKeyDefinition) -> Result<(), String> {
-    match security_framework::passwords::delete_generic_password(
-        KEYCHAIN_SERVICE,
-        definition.provider_id,
-    ) {
+fn delete_keychain_secret(account: &str, label: &str) -> Result<(), String> {
+    match security_framework::passwords::delete_generic_password(KEYCHAIN_SERVICE, account) {
         Ok(()) => Ok(()),
         Err(error) if error.code() == ERR_SEC_ITEM_NOT_FOUND => Ok(()),
         Err(error) => Err(format!(
-            "Could not clear {} key from Keychain: {}",
-            definition.label, error
+            "Could not clear {label} key from Keychain: {error}"
         )),
     }
 }
 
 #[cfg(not(target_os = "macos"))]
-fn delete_keychain_password(_definition: &AiProviderKeyDefinition) -> Result<(), String> {
+fn delete_keychain_secret(_account: &str, _label: &str) -> Result<(), String> {
     Ok(())
 }
 

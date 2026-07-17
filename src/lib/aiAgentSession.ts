@@ -34,6 +34,8 @@ interface SendAgentMessageOptions {
 function normalizePrompt(prompt: PendingUserPrompt): PendingUserPrompt {
   return {
     contextPackage: prompt.contextPackage,
+    chitraguptaRecall: prompt.chitraguptaRecall,
+    contextManifest: prompt.contextManifest,
     text: prompt.text.trim(),
     references: prompt.references && prompt.references.length > 0 ? prompt.references : undefined,
   }
@@ -85,6 +87,7 @@ export async function sendAgentMessage({
     message: formattedMessage,
     systemPrompt,
     vaultPath: context.vaultPath,
+    notePath: context.notePath,
     provider: context.provider,
     model: context.model,
     callbacks: createStreamCallbacks({

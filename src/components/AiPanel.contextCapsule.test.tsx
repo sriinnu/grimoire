@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { VaultEntry } from '../types'
 import { AiPanel } from './AiPanel'
@@ -77,12 +77,10 @@ describe('AiPanel Context Capsule', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
-    const card = screen.getByTestId('context-capsule-card')
-    expect(within(card).getByText('Context Capsule')).toBeInTheDocument()
-    expect(within(card).getByText('Local-only notes withheld')).toBeInTheDocument()
-    expect(within(card).getByText('Grimoire')).toBeInTheDocument()
-    expect(within(card).getByText('Research')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('ai-context-inspector'))
+    expect(screen.getByTestId('context-capsule-dialog')).toHaveTextContent('Context Inspector')
+    expect(screen.getByTestId('context-manifest-sources')).toHaveTextContent('Grimoire')
+    expect(screen.getByTestId('context-manifest-sources')).toHaveTextContent('Research')
   })
 
   it('withholds protected active context without leaking title', () => {
@@ -101,9 +99,8 @@ describe('AiPanel Context Capsule', () => {
       />,
     )
 
-    fireEvent.click(screen.getByTestId('ai-intelligence-toggle'))
-    const card = screen.getByTestId('context-capsule-card')
-    expect(within(card).getByText('Protected active note')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('ai-context-inspector'))
+    expect(screen.getByTestId('context-capsule-dialog')).toHaveTextContent('Protected local context')
     expect(screen.queryByText('River Dream')).toBeNull()
   })
 })

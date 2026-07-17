@@ -1,5 +1,5 @@
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
-import type { VaultEntry } from '../types'
+import type { ModifiedFile, VaultEntry } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { AiPanelView } from './AiPanel'
 import type { AiPanelController } from './useAiPanelController'
@@ -12,6 +12,8 @@ export interface AiChatRightPanelProps {
   defaultAiModel?: string | null
   defaultAiProvider?: string | null
   entries: VaultEntry[]
+  modifiedFiles?: readonly ModifiedFile[]
+  openTabs?: readonly VaultEntry[]
   inspectorContent: string | null
   inspectorEntry: VaultEntry | null
   noteList?: NoteListItem[]
@@ -36,6 +38,8 @@ export function AiChatRightPanel({
   defaultAiModel,
   defaultAiProvider,
   entries,
+  modifiedFiles,
+  openTabs,
   inspectorContent,
   inspectorEntry,
   noteList,
@@ -69,6 +73,8 @@ export function AiChatRightPanel({
         activeEntry={inspectorEntry}
         activeNoteContent={inspectorContent}
         entries={entries}
+        modifiedFiles={modifiedFiles}
+        openTabs={openTabs ? [...openTabs] : undefined}
         noteList={noteList}
         noteListFilter={noteListFilter}
         onFileCreated={onFileCreated}

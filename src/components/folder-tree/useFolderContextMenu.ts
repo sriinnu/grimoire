@@ -4,11 +4,15 @@ import type { FolderContextMenuState } from './FolderContextMenu'
 
 interface UseFolderContextMenuInput {
   onDeleteFolder?: (folderPath: string) => void
+  onMoveFolder?: (folderPath: string) => void
+  onRevealFolder?: (folderPath: string) => void
   onStartRenameFolder?: (folderPath: string) => void
 }
 
 export function useFolderContextMenu({
   onDeleteFolder,
+  onMoveFolder,
+  onRevealFolder,
   onStartRenameFolder,
 }: UseFolderContextMenuInput) {
   const [contextMenu, setContextMenu] = useState<FolderContextMenuState | null>(null)
@@ -53,12 +57,24 @@ export function useFolderContextMenu({
     onDeleteFolder?.(folderPath)
   }, [closeContextMenu, onDeleteFolder])
 
+  const handleMoveFromMenu = useCallback((folderPath: string) => {
+    closeContextMenu()
+    onMoveFolder?.(folderPath)
+  }, [closeContextMenu, onMoveFolder])
+
+  const handleRevealFromMenu = useCallback((folderPath: string) => {
+    closeContextMenu()
+    onRevealFolder?.(folderPath)
+  }, [closeContextMenu, onRevealFolder])
+
   return {
     closeContextMenu,
     contextMenu,
     handleDeleteFromMenu,
+    handleMoveFromMenu,
     handleOpenMenu,
     handleRenameFromMenu,
+    handleRevealFromMenu,
     menuRef,
   }
 }
