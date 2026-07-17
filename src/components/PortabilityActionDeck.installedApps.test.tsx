@@ -55,7 +55,7 @@ function renderDeck(installedApps: DiscoveredApp[], handlers?: {
 }
 
 describe('PortabilityActionDeck installed apps group', () => {
-  it('renders the group above the lanes with wired Bear database buttons', () => {
+  it('renders the group with wired Bear database buttons', () => {
     const onPreviewBearDatabase = vi.fn()
     const onImportBearDatabase = vi.fn()
     renderDeck([bearWithStore, appleNotesDetected], { onPreviewBearDatabase, onImportBearDatabase })
@@ -148,7 +148,7 @@ describe('PortabilityActionDeck installed apps group', () => {
     expect(screen.getByTestId('settings-preview-day-one-database')).toBeDisabled()
   })
 
-  it('keeps the renamed manual Bear backup folder buttons in the markdown lane', () => {
+  it('keeps the renamed manual Bear backup folder buttons in the import group', () => {
     renderDeck([bearWithStore])
 
     expect(screen.getByText('Preview Bear backup folder')).toBeInTheDocument()

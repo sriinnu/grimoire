@@ -19,8 +19,8 @@ import { ImportAutopsyTimeline } from './ImportAutopsyTimeline'
 import { LocalityFirewallSettingsCard } from './LocalityFirewallSettingsCard'
 import { PortabilityActionDeck } from './PortabilityActionDeck'
 import { PortabilityGroups } from './PortabilityGroups'
-import { PortabilityLocalContract } from './PortabilityLocalContract'
 import { PortabilityProofLedger } from './PortabilityProofLedger'
+import { SettingsSectionTitle } from './settings/primitives/SettingsGroup'
 
 type Translate = ReturnType<typeof createTranslator>
 
@@ -222,17 +222,10 @@ export function PortabilitySettingsSection({
   }
 
   return (
-    <>
-      <div className="flex flex-col gap-1.5">
-        <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
-          {t('settings.portability.title')}
-        </div>
-        <div className="max-w-[420px] text-xs leading-relaxed text-muted-foreground">
-          {t('settings.portability.description')}
-        </div>
-      </div>
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.portability.title')}</SettingsSectionTitle>
 
-      <PortabilityLocalContract t={t} />
+      <PortabilityLocalContractFootnote t={t} />
 
       <PortabilityActionDeck
         t={t}
@@ -323,7 +316,7 @@ export function PortabilitySettingsSection({
         isRefreshing={isImportPreviewAction(busyAction)}
       />
 
-      <div className="grid gap-2" data-testid="settings-portability-section">
+      <div className="settings-hig-stack" data-testid="settings-portability-section">
         <LocalityFirewallSettingsCard entries={entries} />
         <PortabilityProofLedger
           azureLivePreflightReport={azureLivePreflightReport}
@@ -350,7 +343,33 @@ export function PortabilitySettingsSection({
         />
       </div>
 
-    </>
+    </div>
+  )
+}
+
+/** Local-first contract as one compact footnote block instead of a boxed grid. */
+function PortabilityLocalContractFootnote({ t }: { t: Translate }) {
+  const items: Array<{ id: 'markdown' | 'private' | 'desktop' | 'provider'; label: string }> = [
+    { id: 'markdown', label: t('settings.portability.localContractMarkdown') },
+    { id: 'private', label: t('settings.portability.localContractPrivate') },
+    { id: 'desktop', label: t('settings.portability.localContractDesktop') },
+    { id: 'provider', label: t('settings.portability.localContractProvider') },
+  ]
+  return (
+    <div
+      aria-label={t('settings.portability.localContractAria')}
+      className="settings-group-footnote"
+      data-testid="portability-local-contract"
+    >
+      <div className="font-medium text-foreground">
+        {t('settings.portability.localContractTitle')}
+      </div>
+      {items.map((item) => (
+        <div data-contract-item={item.id} key={item.id}>
+          {item.label}
+        </div>
+      ))}
+    </div>
   )
 }
 

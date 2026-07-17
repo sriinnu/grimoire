@@ -1,24 +1,41 @@
-import { Glyph } from './glyphs/Glyph'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
-import { AppImportAutopsyActions } from './AppImportAutopsyActions'
-import { InstalledAppImportActions } from './InstalledAppImportActions'
-import { JournalImportAutopsyActions } from './JournalImportAutopsyActions'
-import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
-import { PortabilityCapsuleImportActions } from './PortabilityCapsuleImportActions'
-import type { PortabilityActionDeckProps } from './PortabilityActionDeck.types'
+import type { ReactNode } from 'react'
+import { exportRequiresReview, hasReviewedExportPreview } from '../lib/exportReviewGate'
 import {
-  buildPortabilityActionLanes,
-  isPortabilityActionDisabled,
-  laneForPortabilityAction,
-  laneForPortabilityReviewState,
-  type PortabilityActionLane,
-} from './PortabilityActionDeckModel'
-import { PortabilityExportActions } from './PortabilityExportActions'
-import { PortabilityImportButton } from './PortabilityActionButton'
+  listVaultExportTargets,
+  listVaultImportSources,
+  type VaultPortabilityActionId,
+} from '../lib/vaultPortability'
+import { Glyph } from './glyphs/Glyph'
+import { InstalledAppImportActions } from './InstalledAppImportActions'
+import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
+import type { PortabilityActionDeckProps, PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
+import { isPortabilityActionDisabled } from './PortabilityActionDeckModel'
+import { PortabilityActionButton, PortabilityImportButton } from './PortabilityActionButton'
 import { PortabilityActionProgress } from './PortabilityActionProgress'
-import { Button } from './ui/button'
+import { PortabilityRowLabel } from './PortabilityGroups'
+import {
+  SettingsActionRow,
+  SettingsGroup,
+  SettingsRow,
+} from './settings/primitives/SettingsGroup'
+import { Badge } from './ui/badge'
 
-/** Shows import/export/storage actions one lane at a time so Settings stays inspectable. */
+type DeckLabelKey = Parameters<PortabilityActionDeckTranslate>[0]
+
+interface DeckActionButton {
+  labelKey: DeckLabelKey
+  testId: string
+  actionId: VaultPortabilityActionId
+  kind: 'preview' | 'import' | 'export'
+  onClick?: () => void
+}
+
+interface DeckActionRow {
+  sourceId: string
+  buttons: DeckActionButton[]
+}
+
+/** Renders import, export, and storage actions as System Settings-style groups. */
 export function PortabilityActionDeck({
   t,
   vaultReady,
@@ -101,44 +118,138 @@ export function PortabilityActionDeck({
   onPreviewAzureMirrorPull,
   onApplyAzureMirrorPull,
 }: PortabilityActionDeckProps) {
-  const hasStorageReview = Boolean(
-    s3LivePreflightReport
-    || azureLivePreflightReport
-    || s3MirrorPreviewReport
-    || s3MirrorPullPreviewReport
-    || s3ProviderPushPreviewReport
-    || s3ProviderPullPreviewReport
-    || azureProviderPushPreviewReport
-    || azureProviderPullPreviewReport
-    || azureMirrorPreviewReport
-    || azureMirrorPullPreviewReport,
-  )
-  const previewLane = laneForPortabilityReviewState({ exportPreview, hasStorageReview, importPreview })
-  const [activeLane, setActiveLane] = useState<PortabilityActionLane>(previewLane)
+  const importSources = new Map(listVaultImportSources().map((source) => [source.id, source]))
+  const exportTargets = listVaultExportTargets()
+  const previewing = t('settings.portability.previewing')
 
-  useEffect(() => {
-    const busyLane = laneForPortabilityAction(busyAction)
-    if (busyLane) setActiveLane(busyLane)
-  }, [busyAction])
+  const importRows: DeckActionRow[] = [
+    {
+      sourceId: 'markdown-folder',
+      buttons: [
+        { labelKey: 'settings.portability.previewMarkdownFolder', testId: 'settings-preview-markdown-folder', actionId: 'markdown-folder-preview', kind: 'preview', onClick: onPreviewMarkdownFolder },
+        { labelKey: 'settings.portability.importMarkdownFolder', testId: 'settings-import-markdown-folder', actionId: 'markdown-folder', kind: 'import', onClick: onImportMarkdownFolder },
+      ],
+    },
+    {
+      sourceId: 'markdown-zip',
+      buttons: [
+        { labelKey: 'settings.portability.previewMarkdownZip', testId: 'settings-preview-markdown-zip', actionId: 'markdown-zip-preview', kind: 'preview', onClick: onPreviewMarkdownZip },
+        { labelKey: 'settings.portability.importMarkdownZip', testId: 'settings-import-markdown-zip', actionId: 'markdown-zip', kind: 'import', onClick: onImportMarkdownZip },
+      ],
+    },
+    {
+      sourceId: 'bear',
+      buttons: [
+        { labelKey: 'settings.portability.previewBear', testId: 'settings-preview-bear', actionId: 'bear-preview', kind: 'preview', onClick: onPreviewBear },
+        { labelKey: 'settings.portability.importBear', testId: 'settings-import-bear', actionId: 'bear', kind: 'import', onClick: onImportBear },
+      ],
+    },
+    {
+      sourceId: 'obsidian',
+      buttons: [
+        { labelKey: 'settings.portability.previewObsidian', testId: 'settings-preview-obsidian', actionId: 'obsidian-preview', kind: 'preview', onClick: onPreviewObsidian },
+        { labelKey: 'settings.portability.importObsidian', testId: 'settings-import-obsidian', actionId: 'obsidian', kind: 'import', onClick: onImportObsidian },
+      ],
+    },
+    {
+      sourceId: 'notion-markdown',
+      buttons: [
+        { labelKey: 'settings.portability.previewNotion', testId: 'settings-preview-notion', actionId: 'notion-markdown-preview', kind: 'preview', onClick: onPreviewNotion },
+        { labelKey: 'settings.portability.importNotion', testId: 'settings-import-notion', actionId: 'notion-markdown', kind: 'import', onClick: onImportNotion },
+        { labelKey: 'settings.portability.previewNotionFolder', testId: 'settings-preview-notion-folder', actionId: 'notion-folder-preview', kind: 'preview', onClick: onPreviewNotionFolder },
+        { labelKey: 'settings.portability.importNotionFolder', testId: 'settings-import-notion-folder', actionId: 'notion-folder', kind: 'import', onClick: onImportNotionFolder },
+      ],
+    },
+    {
+      sourceId: 'spanda',
+      buttons: [
+        { labelKey: 'settings.portability.previewSpanda', testId: 'settings-preview-spanda', actionId: 'spanda-preview', kind: 'preview', onClick: onPreviewSpanda },
+        { labelKey: 'settings.portability.importSpanda', testId: 'settings-import-spanda', actionId: 'spanda', kind: 'import', onClick: onImportSpanda },
+      ],
+    },
+    {
+      sourceId: 'apple-journal',
+      buttons: [
+        { labelKey: 'settings.portability.previewAppleJournal', testId: 'settings-preview-apple-journal', actionId: 'apple-journal-preview', kind: 'preview', onClick: onPreviewAppleJournal },
+        { labelKey: 'settings.portability.importAppleJournal', testId: 'settings-import-apple-journal', actionId: 'apple-journal', kind: 'import', onClick: onImportAppleJournal },
+      ],
+    },
+    {
+      sourceId: 'day-one',
+      buttons: [
+        { labelKey: 'settings.portability.previewDayOne', testId: 'settings-preview-day-one', actionId: 'day-one-preview', kind: 'preview', onClick: onPreviewDayOne },
+        { labelKey: 'settings.portability.importDayOne', testId: 'settings-import-day-one', actionId: 'day-one', kind: 'import', onClick: onImportDayOne },
+      ],
+    },
+    {
+      sourceId: 'journey',
+      buttons: [
+        { labelKey: 'settings.portability.previewJourney', testId: 'settings-preview-journey', actionId: 'journey-preview', kind: 'preview', onClick: onPreviewJourney },
+        { labelKey: 'settings.portability.importJourney', testId: 'settings-import-journey', actionId: 'journey', kind: 'import', onClick: onImportJourney },
+      ],
+    },
+    {
+      sourceId: 'json-capsule',
+      buttons: [
+        { labelKey: 'settings.portability.previewJsonCapsule', testId: 'settings-preview-json-capsule', actionId: 'json-capsule-preview', kind: 'preview', onClick: onPreviewJsonCapsule },
+        { labelKey: 'settings.portability.importJsonCapsule', testId: 'settings-import-json-capsule', actionId: 'json-capsule', kind: 'import', onClick: onImportJsonCapsule },
+      ],
+    },
+    {
+      sourceId: 'sqlite-capsule',
+      buttons: [
+        { labelKey: 'settings.portability.previewSqliteCapsule', testId: 'settings-preview-sqlite-capsule', actionId: 'sqlite-capsule-preview', kind: 'preview', onClick: onPreviewSqliteCapsule },
+        { labelKey: 'settings.portability.importSqliteCapsule', testId: 'settings-import-sqlite-capsule', actionId: 'sqlite-capsule', kind: 'import', onClick: onImportSqliteCapsule },
+      ],
+    },
+  ]
 
-  useEffect(() => {
-    if (!busyAction) setActiveLane(previewLane)
-  }, [busyAction, previewLane])
+  const exportRows: DeckActionRow[] = [
+    { sourceId: 'vault-folder', buttons: [] },
+    { sourceId: 'git-remote', buttons: [] },
+    {
+      sourceId: 'markdown-zip',
+      buttons: [
+        { labelKey: 'settings.portability.exportMarkdownZip', testId: 'settings-export-markdown-zip', actionId: 'export-markdown-zip', kind: 'export', onClick: onExportMarkdownZip },
+      ],
+    },
+    {
+      sourceId: 'static-html',
+      buttons: [
+        { labelKey: 'settings.portability.exportStaticHtml', testId: 'settings-export-static-html', actionId: 'export-static-html', kind: 'export', onClick: onExportStaticHtmlArchive },
+      ],
+    },
+    {
+      sourceId: 'json-snapshot',
+      buttons: [
+        { labelKey: 'settings.portability.previewJsonSnapshot', testId: 'settings-preview-json-snapshot', actionId: 'export-json-preview', kind: 'preview', onClick: onPreviewJsonSnapshot },
+        { labelKey: 'settings.portability.exportJsonSnapshot', testId: 'settings-export-json-snapshot', actionId: 'export-json', kind: 'export', onClick: onExportJsonSnapshot },
+      ],
+    },
+    {
+      sourceId: 'sqlite-snapshot',
+      buttons: [
+        { labelKey: 'settings.portability.previewSqliteSnapshot', testId: 'settings-preview-sqlite-snapshot', actionId: 'export-sqlite-preview', kind: 'preview', onClick: onPreviewSqliteSnapshot },
+        { labelKey: 'settings.portability.exportSqliteSnapshot', testId: 'settings-export-sqlite-snapshot', actionId: 'export-sqlite', kind: 'export', onClick: onExportSqliteSnapshot },
+      ],
+    },
+  ]
 
-  const lanes = useMemo(() => buildPortabilityActionLanes(t), [t])
-  const activeConfig = lanes.find((lane) => lane.id === activeLane) ?? lanes[0]
+  const progressSlot = progress
+    ? progress.actionId.startsWith('storage-')
+      ? 'storage'
+      : progress.actionId.startsWith('export-')
+        ? 'export'
+        : 'import'
+    : null
+  const progressRow = progress ? (
+    <SettingsRow fullWidth>
+      <PortabilityActionProgress progress={progress} onCancel={onCancelProgress} t={t} />
+    </SettingsRow>
+  ) : null
 
   return (
-    <section
-      className="grimoire-portability-action-deck grid gap-3 rounded-md border border-border p-3"
-      data-testid="settings-portability-action-deck"
-    >
-      <div className="flex flex-col gap-1">
-        <div className="text-xs font-semibold text-foreground">{t('settings.portability.actionDeckTitle')}</div>
-        <div className="max-w-[560px] text-[11px] leading-snug text-muted-foreground">
-          {t('settings.portability.actionDeckDescription')}
-        </div>
-      </div>
+    <div className="settings-hig-stack" data-testid="settings-portability-action-deck">
       <InstalledAppImportActions
         t={t}
         vaultReady={vaultReady}
@@ -147,97 +258,57 @@ export function PortabilityActionDeck({
         onPreviewAppDatabase={onPreviewBearDatabase}
         onImportAppDatabase={onImportBearDatabase}
       />
-      <div className="grimoire-portability-lanes flex flex-wrap gap-1 rounded-md border border-border p-1" role="tablist">
-        {lanes.map((lane) => (
-          <Button
-            key={lane.id}
-            type="button"
-            variant={activeLane === lane.id ? 'secondary' : 'ghost'}
-            size="sm"
-            role="tab"
-            aria-selected={activeLane === lane.id}
-            data-testid={`settings-portability-lane-${lane.id}`}
-            className="h-8 gap-1.5 px-2 text-xs"
-            onClick={() => setActiveLane(lane.id)}
-          >
-            {lane.icon}
-            {lane.label}
-          </Button>
-        ))}
-      </div>
-      <div className="grid gap-2" role="tabpanel" aria-label={activeConfig.label}>
-        <div className="text-[11px] leading-snug text-muted-foreground">{activeConfig.description}</div>
-        {progress ? (
-          <PortabilityActionProgress progress={progress} onCancel={onCancelProgress} t={t} />
-        ) : null}
-        {activeLane !== 'storage' && activeLane !== 'export' ? (
-          <div
-            className="grimoire-portability-review-gate flex items-start gap-2 rounded-md border border-border px-2.5 py-2 text-[11px] leading-snug text-muted-foreground"
-            data-testid="settings-portability-preview-gate"
-          >
-            <Glyph name="shield" size={14} className="mt-0.5 shrink-0" />
-            <span>{t('settings.portability.reviewGate')}</span>
-          </div>
-        ) : null}
-        <div className={activeLane === 'storage' ? 'grid gap-2' : 'flex flex-wrap gap-2'}>
-          {renderLaneActions(activeLane)}
-        </div>
-      </div>
-    </section>
-  )
 
-  function renderLaneActions(lane: PortabilityActionLane): ReactNode {
-    if (lane === 'markdown') return renderMarkdownActions()
-    if (lane === 'apps') {
-      return (
-        <AppImportAutopsyActions
-          t={t}
-          vaultReady={vaultReady}
-          busyAction={busyAction}
-          importPreview={importPreview}
-          onPreviewObsidian={onPreviewObsidian}
-          onImportObsidian={onImportObsidian}
-          onPreviewNotion={onPreviewNotion}
-          onImportNotion={onImportNotion}
-          onPreviewNotionFolder={onPreviewNotionFolder}
-          onImportNotionFolder={onImportNotionFolder}
-          onPreviewSpanda={onPreviewSpanda}
-          onImportSpanda={onImportSpanda}
-        />
-      )
-    }
-    if (lane === 'journals') {
-      return (
-        <JournalImportAutopsyActions
-          t={t}
-          vaultReady={vaultReady}
-          busyAction={busyAction}
-          importPreview={importPreview}
-          onPreviewAppleJournal={onPreviewAppleJournal}
-          onImportAppleJournal={onImportAppleJournal}
-          onPreviewDayOne={onPreviewDayOne}
-          onImportDayOne={onImportDayOne}
-          onPreviewJourney={onPreviewJourney}
-          onImportJourney={onImportJourney}
-        />
-      )
-    }
-    if (lane === 'capsules') {
-      return (
-        <PortabilityCapsuleImportActions
-          t={t}
-          vaultReady={vaultReady}
-          busyAction={busyAction}
-          importPreview={importPreview}
-          onPreviewJsonCapsule={onPreviewJsonCapsule}
-          onImportJsonCapsule={onImportJsonCapsule}
-          onPreviewSqliteCapsule={onPreviewSqliteCapsule}
-          onImportSqliteCapsule={onImportSqliteCapsule}
-        />
-      )
-    }
-    if (lane === 'export') return renderExportActions()
-    return (
+      <SettingsGroup
+        title={t('settings.portability.import')}
+        footnote={
+          <span data-testid="settings-portability-preview-gate">
+            {t('settings.portability.reviewGate')}
+          </span>
+        }
+      >
+        {progressSlot === 'import' ? progressRow : null}
+        {importRows.map((row) => {
+          const source = importSources.get(row.sourceId)
+          if (!source) return null
+          return (
+            <SettingsActionRow
+              key={row.sourceId}
+              label={<PortabilityRowLabel label={source.label} status={source.status} t={t} />}
+              description={source.description}
+              actions={row.buttons.map(renderImportButton)}
+            />
+          )
+        })}
+      </SettingsGroup>
+
+      <SettingsGroup
+        title={t('settings.portability.export')}
+        footnote={t('settings.portability.exportDescription')}
+      >
+        {progressSlot === 'export' ? progressRow : null}
+        {exportRows.map((row) => {
+          const target = exportTargets.find((candidate) => candidate.id === row.sourceId)
+          if (!target) return null
+          return (
+            <SettingsActionRow
+              key={row.sourceId}
+              label={<PortabilityRowLabel label={target.label} status={target.status} t={t} />}
+              description={target.description}
+              actions={row.buttons.length > 0 ? row.buttons.map(renderExportButton) : null}
+            />
+          )
+        })}
+        {exportPreview ? (
+          <SettingsRow fullWidth>
+            <ExportPreviewSummary exportPreview={exportPreview} t={t} />
+          </SettingsRow>
+        ) : null}
+      </SettingsGroup>
+
+      {progressSlot === 'storage' && progress ? (
+        <PortabilityActionProgress progress={progress} onCancel={onCancelProgress} t={t} />
+      ) : null}
       <ObjectStoragePrototypeActions
         t={t}
         vaultReady={vaultReady}
@@ -283,82 +354,84 @@ export function PortabilityActionDeck({
         onPreviewAzureMirrorPull={onPreviewAzureMirrorPull}
         onApplyAzureMirrorPull={onApplyAzureMirrorPull}
       />
-    )
-  }
+    </div>
+  )
 
-  function renderMarkdownActions(): ReactNode {
-    const previewing = t('settings.portability.previewing')
+  function renderImportButton(button: DeckActionButton): ReactNode {
     return (
-      <>
-        <PortabilityImportButton
-          label={t('settings.portability.previewMarkdownFolder')}
-          testId="settings-preview-markdown-folder"
-          busy={busyAction === 'markdown-folder-preview'}
-          busyLabel={previewing}
-          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewMarkdownFolder)}
-          onClick={onPreviewMarkdownFolder}
-          t={t}
-        />
-        <PortabilityImportButton
-          label={t('settings.portability.importMarkdownFolder')}
-          testId="settings-import-markdown-folder"
-          busy={busyAction === 'markdown-folder'}
-          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportMarkdownFolder, 'markdown-folder', importPreview)}
-          onClick={onImportMarkdownFolder}
-          t={t}
-        />
-        <PortabilityImportButton
-          label={t('settings.portability.previewMarkdownZip')}
-          testId="settings-preview-markdown-zip"
-          busy={busyAction === 'markdown-zip-preview'}
-          busyLabel={previewing}
-          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewMarkdownZip)}
-          onClick={onPreviewMarkdownZip}
-          t={t}
-        />
-        <PortabilityImportButton
-          label={t('settings.portability.importMarkdownZip')}
-          testId="settings-import-markdown-zip"
-          busy={busyAction === 'markdown-zip'}
-          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportMarkdownZip, 'markdown-zip', importPreview)}
-          onClick={onImportMarkdownZip}
-          t={t}
-        />
-        <PortabilityImportButton
-          label={t('settings.portability.previewBear')}
-          testId="settings-preview-bear"
-          busy={busyAction === 'bear-preview'}
-          busyLabel={previewing}
-          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onPreviewBear)}
-          onClick={onPreviewBear}
-          t={t}
-        />
-        <PortabilityImportButton
-          label={t('settings.portability.importBear')}
-          testId="settings-import-bear"
-          busy={busyAction === 'bear'}
-          disabled={isPortabilityActionDisabled(busyAction, vaultReady, onImportBear, 'bear', importPreview)}
-          onClick={onImportBear}
-          t={t}
-        />
-      </>
-    )
-  }
-
-  function renderExportActions(): ReactNode {
-    return (
-      <PortabilityExportActions
+      <PortabilityImportButton
+        key={button.actionId}
+        label={t(button.labelKey)}
+        testId={button.testId}
+        busy={busyAction === button.actionId}
+        busyLabel={button.kind === 'preview' ? previewing : undefined}
+        disabled={isPortabilityActionDisabled(
+          busyAction,
+          vaultReady,
+          button.onClick,
+          button.kind === 'import' ? button.actionId : undefined,
+          importPreview,
+        )}
+        onClick={button.onClick}
         t={t}
-        vaultReady={vaultReady}
-        busyAction={busyAction}
-        onExportMarkdownZip={onExportMarkdownZip}
-        onExportStaticHtmlArchive={onExportStaticHtmlArchive}
-        onPreviewJsonSnapshot={onPreviewJsonSnapshot}
-        onExportJsonSnapshot={onExportJsonSnapshot}
-        onPreviewSqliteSnapshot={onPreviewSqliteSnapshot}
-        onExportSqliteSnapshot={onExportSqliteSnapshot}
-        exportPreview={exportPreview}
       />
     )
   }
+
+  function renderExportButton(button: DeckActionButton): ReactNode {
+    const exportLocked = exportRequiresReview(button.actionId)
+      && !hasReviewedExportPreview(button.actionId, exportPreview)
+    return (
+      <PortabilityActionButton
+        key={button.actionId}
+        icon={<Glyph name="upload" size={14} />}
+        label={t(button.labelKey)}
+        testId={button.testId}
+        busy={busyAction === button.actionId}
+        busyLabel={button.kind === 'preview' ? previewing : t('settings.portability.exporting')}
+        disabled={Boolean(busyAction) || !vaultReady || !button.onClick || exportLocked}
+        onClick={button.onClick}
+        t={t}
+      />
+    )
+  }
+}
+
+function ExportPreviewSummary({
+  exportPreview,
+  t,
+}: {
+  exportPreview: NonNullable<PortabilityActionDeckProps['exportPreview']>
+  t: PortabilityActionDeckTranslate
+}) {
+  const { result } = exportPreview
+  const proofValue = (proved: boolean) => (
+    proved ? t('settings.portability.proofYes') : t('settings.portability.proofNeedsReview')
+  )
+  return (
+    <div className="grid gap-1.5 text-[11px]" data-testid="settings-export-preview-summary">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Badge variant="secondary" className="rounded-md">{t('settings.portability.exportPreviewReviewed')}</Badge>
+        <span className="font-medium text-foreground">
+          {t(exportPreview.format === 'json'
+            ? 'settings.portability.exportPreviewFormatJson'
+            : 'settings.portability.exportPreviewFormatSqlite')}
+        </span>
+      </div>
+      <div className="text-muted-foreground">
+        {t('settings.portability.exportPreviewCounts', {
+          assets: result.assets_exportable,
+          files: result.files_exportable,
+          notes: result.notes_exportable,
+          withheld: result.skipped_files,
+        })}
+      </div>
+      <div className="text-muted-foreground">
+        {t('settings.portability.exportPreviewProof', {
+          paths: proofValue(result.locality_proof.absolute_source_paths_redacted),
+          source: proofValue(result.locality_proof.markdown_source_of_truth),
+        })}
+      </div>
+    </div>
+  )
 }

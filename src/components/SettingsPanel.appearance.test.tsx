@@ -202,7 +202,9 @@ describe('SettingsPanel appearance and agent settings', () => {
     )
 
     expect(screen.getByRole('combobox', { name: 'Window material' })).toBeInTheDocument()
-    expect(screen.getByTestId('settings-native-locality-note')).toHaveClass('settings-material-inner')
+    expect(screen.getByTestId('settings-native-locality-note')).toHaveTextContent(
+      'Changes only Grimoire-owned shell layers.',
+    )
     fireEvent.pointerDown(screen.getByTestId('settings-native-shell-material'), { button: 0, pointerType: 'mouse' })
     fireEvent.click(screen.getByRole('option', { name: 'Glass preview' }))
     fireEvent.click(screen.getByTestId('settings-save'))

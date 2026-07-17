@@ -171,6 +171,7 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-provider-key-source-deepseek')).toHaveTextContent('Missing')
     expect(screen.queryByText('unit-test-provider-token')).not.toBeInTheDocument()
 
+    fireEvent.click(screen.getByTestId('settings-ai-provider-key-edit-deepseek'))
     fireEvent.change(screen.getByTestId('settings-ai-provider-key-input-deepseek'), {
       target: { value: 'unit-test-provider-token' },
     })
@@ -193,8 +194,8 @@ describe('AiAgentSettingsSection', () => {
     )
     expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Windows Credential Manager')
     expect(screen.getByTestId('settings-ai-provider-keys')).not.toHaveTextContent('macOS Keychain')
-    expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
-    expect(screen.getByTestId('settings-ai-provider-key-save-deepseek')).toBeDisabled()
+    expect(screen.getByTestId('settings-ai-provider-key-edit-deepseek')).toBeDisabled()
+    expect(screen.queryByTestId('settings-ai-provider-key-input-deepseek')).not.toBeInTheDocument()
   })
 
   it('localizes Windows provider-key storage limits without macOS-only copy', () => {
@@ -220,6 +221,6 @@ describe('AiAgentSettingsSection', () => {
     expect(providerKeys).toHaveTextContent('On Linux, Grimoire detects provider keys from environment variables.')
     expect(providerKeys).toHaveTextContent('Linux Secret Service/keyring')
     expect(providerKeys).not.toHaveTextContent('macOS Keychain')
-    expect(screen.getByTestId('settings-ai-provider-key-input-deepseek')).toBeDisabled()
+    expect(screen.getByTestId('settings-ai-provider-key-edit-deepseek')).toBeDisabled()
   })
 })

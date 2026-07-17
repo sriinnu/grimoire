@@ -9,9 +9,20 @@ import type { TranslationKey } from '../../lib/i18n'
 import type { McpStatus } from '../../hooks/useMcpStatus'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
 import { AiProviderKeysCard } from './AiProviderKeysCard'
 import { ChitraguptaSocketCard } from './ChitraguptaSocketCard'
-import { LabeledSelect, SectionHeading } from './SettingsControls'
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSectionTitle,
+} from './primitives/SettingsGroup'
 import {
   updateAiAgentModelDraft,
   updateAiAgentProviderDraft,
@@ -62,9 +73,9 @@ function buildDefaultAiAgentOptions(aiAgentsStatus: AiAgentsStatus, t: SettingsT
   })
 }
 
-function renderDefaultAiAgentSummary(defaultAiAgent: AiAgentId, aiAgentsStatus: AiAgentsStatus, t: SettingsTranslate): string {
-  const definition = getAiAgentDefinition(defaultAiAgent)
-  const status = aiAgentsStatus[defaultAiAgent]
+function describeAiAgentAvailability(agent: AiAgentId, aiAgentsStatus: AiAgentsStatus, t: SettingsTranslate): string {
+  const definition = getAiAgentDefinition(agent)
+  const status = aiAgentsStatus[agent]
   if (status.status === 'installed') {
     return t('settings.aiAgents.ready', {
       agent: definition.label,
@@ -88,7 +99,8 @@ function renderChitraguptaRouteSummary(provider: string, model: string, t: Setti
   })
 }
 
-function ChitraguptaMcpContractCard({
+/** MCP memory contract as a quiet full-width row: copy, runtime status, surfaces. */
+function ChitraguptaMcpContractRow({
   t,
   mcpStatus,
   onInstallMcp,
@@ -100,63 +112,53 @@ function ChitraguptaMcpContractCard({
   const mcpStatusCopy = mcpStatus ? MCP_STATUS_COPY_KEYS[mcpStatus] : null
 
   return (
-    <div
-      className="settings-material-inner mt-2 rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
-      data-testid="settings-ai-agent-chitragupta-contract"
+    <SettingsRow
+      fullWidth
+      label={t('settings.aiAgents.mcpContractTitle')}
+      description={t('settings.aiAgents.mcpContractReady')}
+      testId="settings-ai-agent-chitragupta-contract"
     >
-      <div className="font-medium text-foreground">{t('settings.aiAgents.mcpContractTitle')}</div>
-      <div>{t('settings.aiAgents.mcpContractReady')}</div>
-      <div className="mt-1" data-testid="settings-ai-agent-chitragupta-transport">
-        {t('settings.aiAgents.mcpContractTransport')}
-      </div>
-      {mcpStatus && mcpStatusCopy ? (
-        <div
-          className="mt-2 rounded-md border border-border/70 px-2.5 py-2"
-          data-testid="settings-ai-agent-mcp-runtime-status"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-medium text-foreground">{t('settings.aiAgents.mcpStatusLabel')}</span>
-            <span
-              className={`rounded-full border px-2 py-0.5 font-medium ${mcpStatusToneClass(mcpStatus)}`}
-              data-testid="settings-ai-agent-mcp-runtime-status-value"
-            >
-              {t(mcpStatusCopy.value)}
-            </span>
-          </div>
-          <div className="mt-1" data-testid="settings-ai-agent-mcp-runtime-status-detail">
-            {t(mcpStatusCopy.detail)}
-          </div>
-          {onInstallMcp ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-2 h-7 px-2 text-[11px]"
-              onClick={onInstallMcp}
-              data-testid="settings-ai-agent-mcp-runtime-action"
-            >
-              {t(mcpStatus === 'not_installed'
-                ? 'settings.aiAgents.mcpStatusConnect'
-                : 'settings.aiAgents.mcpStatusManage')}
-            </Button>
-          ) : null}
+      <div className="grid gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+        <div data-testid="settings-ai-agent-chitragupta-transport">
+          {t('settings.aiAgents.mcpContractTransport')}
         </div>
-      ) : null}
-      <div className="mt-2 flex flex-wrap gap-1">
-        {CHITRAGUPTA_MCP_SURFACE_KEYS.map((surfaceKey) => (
-          <span
-            key={surfaceKey}
-            className="settings-material-chip rounded-full border px-2 py-0.5 font-medium text-foreground/85"
-          >
-            {t(surfaceKey)}
-          </span>
-        ))}
+        {mcpStatus && mcpStatusCopy ? (
+          <div className="grid gap-1" data-testid="settings-ai-agent-mcp-runtime-status">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-medium text-foreground">{t('settings.aiAgents.mcpStatusLabel')}</span>
+              <span
+                className={`rounded-full border px-2 py-0.5 font-medium ${mcpStatusToneClass(mcpStatus)}`}
+                data-testid="settings-ai-agent-mcp-runtime-status-value"
+              >
+                {t(mcpStatusCopy.value)}
+              </span>
+              {onInstallMcp ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-[11px]"
+                  onClick={onInstallMcp}
+                  data-testid="settings-ai-agent-mcp-runtime-action"
+                >
+                  {t(mcpStatus === 'not_installed'
+                    ? 'settings.aiAgents.mcpStatusConnect'
+                    : 'settings.aiAgents.mcpStatusManage')}
+                </Button>
+              ) : null}
+            </div>
+            <div data-testid="settings-ai-agent-mcp-runtime-status-detail">
+              {t(mcpStatusCopy.detail)}
+            </div>
+          </div>
+        ) : null}
+        <div>{CHITRAGUPTA_MCP_SURFACE_KEYS.map((surfaceKey) => t(surfaceKey)).join(' · ')}</div>
       </div>
-    </div>
+    </SettingsRow>
   )
 }
 
-/** Renders default AI agent, provider, and model preferences. */
+/** Renders default AI agent, provider, and model preferences as HIG groups. */
 export function AiAgentSettingsSection({
   t,
   aiAgentsStatus,
@@ -193,34 +195,62 @@ export function AiAgentSettingsSection({
   }
   const showProviderOverride = defaultAiAgent === 'chitragupta'
 
+  const agentsFootnote = showProviderOverride ? (
+    <div className="grid gap-1.5">
+      <div>{t('settings.aiAgents.description')}</div>
+      <div className="grid gap-1" data-testid="settings-ai-agent-route-note">
+        <div>{renderChitraguptaRouteSummary(selectedProvider, selectedModel, t)}</div>
+        <div data-testid="settings-ai-agent-chitragupta-boundary">
+          {t('settings.aiAgents.mcpBoundary')}
+        </div>
+      </div>
+    </div>
+  ) : t('settings.aiAgents.description')
+
   return (
-    <>
-      <SectionHeading
-        title={t('settings.aiAgents.title')}
-        description={t('settings.aiAgents.description')}
-      />
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.aiAgents.title')}</SettingsSectionTitle>
 
-      <LabeledSelect
-        label={t('settings.aiAgents.default')}
-        value={defaultAiAgent}
-        onValueChange={(value) => setDefaultAiAgent(value as AiAgentId)}
-        options={buildDefaultAiAgentOptions(aiAgentsStatus, t)}
-        testId="settings-default-ai-agent"
-      />
+      <SettingsGroup footnote={agentsFootnote}>
+        {AI_AGENT_DEFINITIONS.map((definition) => (
+          <SettingsRow
+            key={definition.id}
+            label={definition.label}
+            description={describeAiAgentAvailability(definition.id, aiAgentsStatus, t)}
+            testId={`settings-ai-agent-status-${definition.id}`}
+          />
+        ))}
 
-      {showProviderOverride && (
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-foreground" htmlFor="settings-default-ai-provider">
-            {t('settings.aiAgents.provider')}
-          </label>
-          <div className="flex flex-wrap gap-2">
+        <SettingsRow label={t('settings.aiAgents.default')}>
+          <Select value={defaultAiAgent} onValueChange={(value) => setDefaultAiAgent(value as AiAgentId)}>
+            <SelectTrigger
+              className="w-64 bg-transparent"
+              aria-label={t('settings.aiAgents.default')}
+              data-testid="settings-default-ai-agent"
+              data-value={defaultAiAgent}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              {buildDefaultAiAgentOptions(aiAgentsStatus, t).map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+
+        {showProviderOverride ? (
+          <SettingsRow label={t('settings.aiAgents.provider')}>
             <Input
               id="settings-default-ai-provider"
               value={selectedProvider}
               placeholder={providerPlaceholder}
+              aria-label={t('settings.aiAgents.provider')}
               onChange={(event) => handleProviderChange(event.target.value)}
               data-testid="settings-default-ai-provider"
-              className="min-w-[220px] flex-1 bg-transparent"
+              className="w-48 bg-transparent"
             />
             <Button
               variant="outline"
@@ -232,22 +262,18 @@ export function AiAgentSettingsSection({
             >
               {t('settings.aiAgents.providerDefault')}
             </Button>
-          </div>
-        </div>
-      )}
+          </SettingsRow>
+        ) : null}
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-foreground" htmlFor="settings-default-ai-model">
-          {t('settings.aiAgents.model')}
-        </label>
-        <div className="flex flex-wrap gap-2">
+        <SettingsRow label={t('settings.aiAgents.model')}>
           <Input
             id="settings-default-ai-model"
             value={selectedModel}
             placeholder={t('settings.aiAgents.modelPlaceholder')}
+            aria-label={t('settings.aiAgents.model')}
             onChange={(event) => handleModelChange(event.target.value)}
             data-testid="settings-default-ai-model"
-            className="min-w-[220px] flex-1 bg-transparent"
+            className="w-48 bg-transparent"
           />
           <Button
             variant="outline"
@@ -259,29 +285,16 @@ export function AiAgentSettingsSection({
           >
             {t('settings.aiAgents.modelDefault')}
           </Button>
-        </div>
-      </div>
+        </SettingsRow>
 
-      <div className="text-[11px] leading-relaxed text-muted-foreground">
-        {renderDefaultAiAgentSummary(defaultAiAgent, aiAgentsStatus, t)}
-      </div>
+        {showProviderOverride ? (
+          <ChitraguptaMcpContractRow t={t} mcpStatus={mcpStatus} onInstallMcp={onInstallMcp} />
+        ) : null}
+      </SettingsGroup>
 
       <AiProviderKeysCard t={t} />
 
       <ChitraguptaSocketCard t={t} />
-
-      {showProviderOverride ? (
-        <div
-          className="settings-material-card rounded-md border px-3 py-2 text-[11px] leading-relaxed text-muted-foreground"
-          data-testid="settings-ai-agent-route-note"
-        >
-          <div>{renderChitraguptaRouteSummary(selectedProvider, selectedModel, t)}</div>
-          <div className="mt-1" data-testid="settings-ai-agent-chitragupta-boundary">
-            {t('settings.aiAgents.mcpBoundary')}
-          </div>
-          <ChitraguptaMcpContractCard t={t} mcpStatus={mcpStatus} onInstallMcp={onInstallMcp} />
-        </div>
-      ) : null}
-    </>
+    </div>
   )
 }

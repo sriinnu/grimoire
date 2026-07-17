@@ -24,9 +24,7 @@ describe('theme settings CSS', () => {
   const desktopStorageHealthPanel = readFileSync(`${process.cwd()}/src/components/DesktopStorageHealthPanel.tsx`, 'utf8')
   const importAutopsyTimeline = readFileSync(`${process.cwd()}/src/components/ImportAutopsyTimeline.tsx`, 'utf8')
   const portabilityActionDeck = readFileSync(`${process.cwd()}/src/components/PortabilityActionDeck.tsx`, 'utf8')
-  const portabilityExportActions = readFileSync(`${process.cwd()}/src/components/PortabilityExportActions.tsx`, 'utf8')
   const portabilityGroups = readFileSync(`${process.cwd()}/src/components/PortabilityGroups.tsx`, 'utf8')
-  const portabilityLocalContract = readFileSync(`${process.cwd()}/src/components/PortabilityLocalContract.tsx`, 'utf8')
   const portabilityProofLedger = readFileSync(`${process.cwd()}/src/components/PortabilityProofLedger.tsx`, 'utf8')
   const objectStoragePreviewCard = readFileSync(`${process.cwd()}/src/components/ObjectStoragePreviewCard.tsx`, 'utf8')
   const objectStoragePreflightPanels = readFileSync(`${process.cwd()}/src/components/ObjectStorageLivePreflightPanels.tsx`, 'utf8')
@@ -164,9 +162,7 @@ describe('theme settings CSS', () => {
       desktopStorageHealthPanel,
       importAutopsyTimeline,
       portabilityActionDeck,
-      portabilityExportActions,
       portabilityGroups,
-      portabilityLocalContract,
       portabilityProofLedger,
       objectStoragePreviewCard,
       objectStoragePreflightPanels,
@@ -177,8 +173,8 @@ describe('theme settings CSS', () => {
       expect(source).not.toMatch(/bg-(muted|background)|hover:bg-|bg-\[/)
     }
     expect(nativeSettings).not.toContain('style={{')
-    expect(nativeSettings).toContain('SectionHeading')
-    expect(nativeSettings).toContain('settings-material-inner')
+    expect(nativeSettings).toContain('SettingsGroup')
+    expect(nativeSettings).toContain('settings-hig-stack')
   })
 
   it('keeps portability proof surfaces on semantic theme hooks', () => {

@@ -38,35 +38,41 @@ const exportPreview: PortabilityExportPreviewState = {
   },
 }
 
-describe('PortabilityActionDeck reviewed state routing', () => {
-  it('opens the journal lane when a journal import preview is reviewed', () => {
+describe('PortabilityActionDeck reviewed state', () => {
+  it('unlocks only the matching journal import once its preview is reviewed', () => {
     render(
       <PortabilityActionDeck
         t={createTranslator('en')}
         vaultReady={true}
         busyAction={null}
         importPreview={importPreview}
+        onImportDayOne={() => {}}
+        onImportJourney={() => {}}
+        onImportObsidian={() => {}}
       />,
     )
 
-    expect(screen.getByTestId('settings-portability-lane-journals')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByText('Preview Day One')).toBeInTheDocument()
-    expect(screen.queryByText('Preview Obsidian')).not.toBeInTheDocument()
+    expect(screen.getByTestId('settings-import-day-one')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-import-journey')).toBeDisabled()
+    expect(screen.getByTestId('settings-import-obsidian')).toBeDisabled()
   })
 
-  it('opens the export lane when a capsule export preview is reviewed', () => {
+  it('shows the reviewed capsule export summary and unlocks the matching export', () => {
     render(
       <PortabilityActionDeck
         t={createTranslator('en')}
         vaultReady={true}
         busyAction={null}
         exportPreview={exportPreview}
+        onExportJsonSnapshot={() => {}}
+        onExportSqliteSnapshot={() => {}}
       />,
     )
 
-    expect(screen.getByTestId('settings-portability-lane-export')).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByTestId('settings-export-preview-summary')).toHaveTextContent('Reviewed preview')
-    expect(screen.queryByText('Preview Bear')).not.toBeInTheDocument()
+    expect(screen.getByTestId('settings-export-json-snapshot')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-export-sqlite-snapshot')).toBeDisabled()
   })
 
   it('keeps capsule import busy copy separate from preview copy', () => {

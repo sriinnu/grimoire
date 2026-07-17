@@ -3,6 +3,7 @@ import type { VaultPortabilityActionId } from '../lib/vaultPortability'
 import type { PortabilityActionDeckTranslate } from './PortabilityActionDeck.types'
 import { isPortabilityActionDisabled } from './PortabilityActionDeckModel'
 import { PortabilityImportButton } from './PortabilityActionButton'
+import { SettingsActionRow, SettingsGroup } from './settings/primitives/SettingsGroup'
 
 interface InstalledAppImportActionsProps {
   t: PortabilityActionDeckTranslate
@@ -62,35 +63,25 @@ export function InstalledAppImportActions({
   if (installedApps.length === 0) return null
 
   return (
-    <div
-      className="grimoire-portability-installed-apps grid gap-2 rounded-md border border-border p-2.5"
-      data-testid="settings-portability-installed-apps"
+    <SettingsGroup
+      title={t('settings.portability.installedApps')}
+      footnote={t('settings.portability.installedAppsDescription')}
+      testId="settings-portability-installed-apps"
     >
-      <div className="flex flex-col gap-0.5">
-        <div className="text-xs font-semibold text-foreground">
-          {t('settings.portability.installedApps')}
-        </div>
-        <div className="max-w-[560px] text-[11px] leading-snug text-muted-foreground">
-          {t('settings.portability.installedAppsDescription')}
-        </div>
-      </div>
       {installedApps.map((app) => {
         const actions = databaseActionsFor(app)
         return (
-          <div
+          <SettingsActionRow
             key={app.id}
-            className="flex flex-wrap items-center gap-2"
-            data-testid={`settings-installed-app-${app.id}`}
-          >
-            <span className="text-xs font-medium text-foreground">{app.name}</span>
-            <span
-              className="text-[11px] text-muted-foreground"
-              data-testid={`settings-installed-app-status-${app.id}`}
-            >
-              {statusLine(t, app)}
-            </span>
-            {actions ? (
-              <span className="flex flex-wrap gap-2">
+            testId={`settings-installed-app-${app.id}`}
+            label={app.name}
+            description={
+              <span data-testid={`settings-installed-app-status-${app.id}`}>
+                {statusLine(t, app)}
+              </span>
+            }
+            actions={actions ? (
+              <>
                 <PortabilityImportButton
                   label={t(actions.previewLabelKey)}
                   testId={actions.previewTestId}
@@ -108,12 +99,12 @@ export function InstalledAppImportActions({
                   onClick={() => onImportAppDatabase?.(actions.appId)}
                   t={t}
                 />
-              </span>
+              </>
             ) : null}
-          </div>
+          />
         )
       })}
-    </div>
+    </SettingsGroup>
   )
 }
 

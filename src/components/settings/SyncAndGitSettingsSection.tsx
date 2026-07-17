@@ -1,8 +1,21 @@
-import { Monitor } from '@phosphor-icons/react'
-import { Glyph } from '../glyphs/Glyph'
+import type { ReactNode } from 'react'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
 import { desktopPlatformLabel, getDesktopPlatform, type DesktopPlatform } from '../../utils/platform'
-import { LabeledNumberInput, LabeledSelect, SectionHeading, SettingsSwitchRow } from './SettingsControls'
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSectionTitle,
+} from './primitives/SettingsGroup'
+import { Input } from '../ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
+import { Switch } from '../ui/switch'
+import { sanitizePositiveInteger } from './settingsDraft'
 import type { SettingsBodyProps, SettingsTranslate } from './settingsTypes'
 
 const PULL_INTERVAL_OPTIONS = [1, 2, 5, 10, 15, 30] as const
@@ -45,25 +58,21 @@ function syncRunwaySteps({
       detail: t('settings.sync.runway.markdownDetail'),
       label: t('settings.sync.runway.markdown'),
       state: t('settings.sync.runway.local'),
-      tone: 'local',
     },
     {
       detail: hasGitMetadata ? t('settings.sync.runway.gitMetadata') : t('settings.sync.runway.gitNoMetadata'),
       label: t('settings.sync.runway.git'),
       state: isGitVault ? t('settings.git.status.on') : t('settings.git.status.off'),
-      tone: isGitVault ? 'ready' : 'local',
     },
     {
       detail: isGitVault ? t('settings.autogit.description.enabled') : t('settings.autogit.description.disabled'),
       label: t('settings.autogit.title'),
       state: autoGitEnabled && isGitVault ? t('settings.sync.runway.armed') : t('settings.sync.runway.gated'),
-      tone: autoGitEnabled && isGitVault ? 'ready' : 'gated',
     },
     {
       detail: t('settings.sync.runway.releaseDetail'),
       label: t('settings.releaseChannel'),
       state: releaseChannel === 'alpha' ? t('settings.releaseAlpha') : t('settings.releaseStable'),
-      tone: releaseChannel === 'alpha' ? 'watch' : 'local',
     },
   ] as const
 }
@@ -75,98 +84,9 @@ function sourceProofCopy(platform: DesktopPlatform, t: SettingsTranslate): strin
   return t('settings.releaseTruth.sourceUnknown')
 }
 
-function SyncRunway({
-  autoGitEnabled,
-  hasGitMetadata,
-  isGitVault,
-  releaseChannel,
-  t,
-}: {
-  autoGitEnabled: boolean
-  hasGitMetadata: boolean
-  isGitVault: boolean
-  releaseChannel: ReleaseChannel
-  t: SettingsTranslate
-}) {
-  return (
-    <div className="settings-sync-runway" data-testid="settings-sync-runway">
-      {syncRunwaySteps({ autoGitEnabled, hasGitMetadata, isGitVault, releaseChannel, t }).map((step) => (
-        <div
-          key={step.label}
-          className="settings-sync-runway__step"
-          data-sync-runway-tone={step.tone}
-        >
-          <div className="settings-sync-runway__state">{step.state}</div>
-          <div className="settings-sync-runway__label">{step.label}</div>
-          <div className="settings-sync-runway__detail">{step.detail}</div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ReleaseTruthCard({
-  releaseChannel,
-  t,
-}: {
-  releaseChannel: ReleaseChannel
-  t: SettingsTranslate
-}) {
-  const platform = getDesktopPlatform()
-
-  return (
-    <div
-      className="settings-local-card grid gap-3 rounded-md border p-4"
-      data-testid="settings-release-truth"
-    >
-      <div className="flex items-start gap-3">
-        <div className="settings-local-card__icon mt-0.5 rounded-md border p-2">
-          <Monitor size={17} />
-        </div>
-        <div className="min-w-0 space-y-1">
-          <div className="text-[13px] font-semibold text-foreground">{t('settings.releaseTruth.title')}</div>
-          <div className="text-[11px] leading-relaxed text-muted-foreground">
-            {t('settings.releaseTruth.description')}
-          </div>
-        </div>
-      </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        <ReleaseTruthMetric
-          label={t('settings.releaseTruth.platformLabel')}
-          value={desktopPlatformLabel(platform)}
-          detail={t('settings.releaseTruth.platformDetail', { platform: desktopPlatformLabel(platform) })}
-        />
-        <ReleaseTruthMetric
-          label={t('settings.releaseTruth.sourceLabel')}
-          value={t('settings.releaseTruth.sourceValue')}
-          detail={sourceProofCopy(platform, t)}
-        />
-        <ReleaseTruthMetric
-          label={t('settings.releaseTruth.packagedLabel')}
-          value={releaseChannel === 'alpha' ? t('settings.releaseAlpha') : t('settings.releaseStable')}
-          detail={t('settings.releaseTruth.packagedDetail')}
-        />
-      </div>
-    </div>
-  )
-}
-
-function ReleaseTruthMetric({
-  detail,
-  label,
-  value,
-}: {
-  detail: string
-  label: string
-  value: string
-}) {
-  return (
-    <div className="settings-material-inner rounded-md border px-2.5 py-2">
-      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{label}</div>
-      <div className="mt-1 text-[13px] font-semibold text-foreground">{value}</div>
-      <div className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{detail}</div>
-    </div>
-  )
+/** Quiet trailing status text pinned to a row's control slot. */
+function StatusBadge({ children }: { children: ReactNode }) {
+  return <span className="text-[11px] font-medium text-muted-foreground">{children}</span>
 }
 
 /** Renders local-first Git capability controls and background sync preferences. */
@@ -204,105 +124,177 @@ export function SyncAndGitSettingsSection({
   | 'autoGitInactiveThresholdSeconds'
   | 'setAutoGitInactiveThresholdSeconds'
 >) {
+  const platform = getDesktopPlatform()
+  const platformName = desktopPlatformLabel(platform)
+
   return (
-    <>
-      <SectionHeading
-        title={t('settings.sync.title')}
-        description={t('settings.sync.description')}
-      />
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.sync.title')}</SettingsSectionTitle>
 
-      <SyncRunway
-        autoGitEnabled={autoGitEnabled}
-        hasGitMetadata={hasGitMetadata}
-        isGitVault={isGitVault}
-        releaseChannel={releaseChannel}
-        t={t}
-      />
+      <SettingsGroup testId="settings-sync-runway" footnote={t('settings.sync.description')}>
+        {syncRunwaySteps({ autoGitEnabled, hasGitMetadata, isGitVault, releaseChannel, t }).map((step) => (
+          <SettingsRow key={step.label} label={step.label} description={step.detail}>
+            <StatusBadge>{step.state}</StatusBadge>
+          </SettingsRow>
+        ))}
+      </SettingsGroup>
 
-      <ReleaseTruthCard releaseChannel={releaseChannel} t={t} />
-
-      <div
-        className="settings-local-card flex items-start justify-between gap-4 rounded-md border p-4"
-        data-testid="settings-git-capability"
+      <SettingsGroup
+        testId="settings-git-capability"
+        title={t('settings.git.title')}
+        footnote={gitCapabilityDescription({ hasGitMetadata, isGitVault, t })}
       >
-        <div className="flex gap-3">
-          <div className="settings-local-card__icon mt-0.5 rounded-md border p-2">
-            {isGitVault ? <Glyph name="gitHistory" size={17} /> : <Glyph name="shield" size={17} />}
-          </div>
-          <div className="space-y-1">
-            <div className="text-[13px] font-semibold text-foreground">{t('settings.git.title')}</div>
-            <div className="max-w-[480px] text-[11px] leading-relaxed text-muted-foreground">
-              {gitCapabilityDescription({ hasGitMetadata, isGitVault, t })}
-            </div>
-            <div className="text-[11px] font-medium text-muted-foreground">
-              {isGitVault ? t('settings.git.status.on') : t('settings.git.status.off')}
-            </div>
-          </div>
-        </div>
-        <SettingsSwitchRow
+        <SettingsRow
+          testId="settings-git-enabled"
           label={t('settings.git.enable')}
           description={hasGitMetadata ? t('settings.git.enableDescription') : t('settings.git.initializeDescription')}
-          checked={isGitVault}
-          onChange={(value) => onSetGitEnabled?.(value)}
-          disabled={!onSetGitEnabled || gitCapabilityUpdating}
-          testId="settings-git-enabled"
-        />
-      </div>
+        >
+          <StatusBadge>
+            {isGitVault ? t('settings.git.status.on') : t('settings.git.status.off')}
+          </StatusBadge>
+          <Switch
+            checked={isGitVault}
+            onCheckedChange={(value) => onSetGitEnabled?.(value)}
+            aria-label={t('settings.git.enable')}
+            disabled={!onSetGitEnabled || gitCapabilityUpdating}
+          />
+        </SettingsRow>
+      </SettingsGroup>
 
-      <SettingsSwitchRow
-        label={t('settings.autogit.enable')}
-        description={t('settings.autogit.enableDescription')}
-        checked={autoGitEnabled}
-        onChange={setAutoGitEnabled}
-        disabled={!isGitVault}
-        testId="settings-autogit-enabled"
-      />
+      <SettingsGroup
+        title={t('settings.autogit.title')}
+        footnote={autoGitSectionDescription(isGitVault, t)}
+      >
+        <SettingsRow
+          testId="settings-autogit-enabled"
+          label={t('settings.autogit.enable')}
+          description={t('settings.autogit.enableDescription')}
+        >
+          <Switch
+            checked={autoGitEnabled}
+            onCheckedChange={setAutoGitEnabled}
+            aria-label={t('settings.autogit.enable')}
+            disabled={!isGitVault}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('settings.autogit.idleThreshold')}>
+          <ThresholdInput
+            label={t('settings.autogit.idleThreshold')}
+            value={autoGitIdleThresholdSeconds}
+            onValueChange={setAutoGitIdleThresholdSeconds}
+            testId="settings-autogit-idle-threshold"
+            disabled={!isGitVault}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('settings.autogit.inactiveThreshold')}>
+          <ThresholdInput
+            label={t('settings.autogit.inactiveThreshold')}
+            value={autoGitInactiveThresholdSeconds}
+            onValueChange={setAutoGitInactiveThresholdSeconds}
+            testId="settings-autogit-inactive-threshold"
+            disabled={!isGitVault}
+          />
+        </SettingsRow>
+        <SettingsRow label={t('settings.pullInterval')}>
+          <Select
+            value={`${pullInterval}`}
+            onValueChange={(value) => setPullInterval(Number(value))}
+            disabled={!isGitVault}
+          >
+            <SelectTrigger
+              className="w-24 bg-transparent"
+              aria-label={t('settings.pullInterval')}
+              data-testid="settings-pull-interval"
+              data-value={`${pullInterval}`}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              {PULL_INTERVAL_OPTIONS.map((value) => (
+                <SelectItem key={value} value={`${value}`}>
+                  {`${value}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+      </SettingsGroup>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <LabeledNumberInput
-          label={t('settings.autogit.idleThreshold')}
-          value={autoGitIdleThresholdSeconds}
-          onValueChange={setAutoGitIdleThresholdSeconds}
-          testId="settings-autogit-idle-threshold"
-          disabled={!isGitVault}
-        />
-        <LabeledNumberInput
-          label={t('settings.autogit.inactiveThreshold')}
-          value={autoGitInactiveThresholdSeconds}
-          onValueChange={setAutoGitInactiveThresholdSeconds}
-          testId="settings-autogit-inactive-threshold"
-          disabled={!isGitVault}
-        />
-      </div>
+      <SettingsGroup
+        testId="settings-release-truth"
+        title={t('settings.releaseTruth.title')}
+        footnote={t('settings.releaseTruth.description')}
+      >
+        <SettingsRow label={t('settings.releaseChannel')}>
+          <Select
+            value={releaseChannel}
+            onValueChange={(value) => setReleaseChannel(value as ReleaseChannel)}
+          >
+            <SelectTrigger
+              className="w-32 bg-transparent"
+              aria-label={t('settings.releaseChannel')}
+              data-testid="settings-release-channel"
+              data-value={releaseChannel}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              <SelectItem value="stable">{t('settings.releaseStable')}</SelectItem>
+              <SelectItem value="alpha">{t('settings.releaseAlpha')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+        <SettingsRow
+          label={t('settings.releaseTruth.platformLabel')}
+          description={t('settings.releaseTruth.platformDetail', { platform: platformName })}
+        >
+          <StatusBadge>{platformName}</StatusBadge>
+        </SettingsRow>
+        <SettingsRow
+          label={t('settings.releaseTruth.sourceLabel')}
+          description={sourceProofCopy(platform, t)}
+        >
+          <StatusBadge>{t('settings.releaseTruth.sourceValue')}</StatusBadge>
+        </SettingsRow>
+        <SettingsRow
+          label={t('settings.releaseTruth.packagedLabel')}
+          description={t('settings.releaseTruth.packagedDetail')}
+        >
+          <StatusBadge>
+            {releaseChannel === 'alpha' ? t('settings.releaseAlpha') : t('settings.releaseStable')}
+          </StatusBadge>
+        </SettingsRow>
+      </SettingsGroup>
+    </div>
+  )
+}
 
-      <div className="text-[11px] leading-relaxed text-muted-foreground">
-        {autoGitSectionDescription(isGitVault, t)}
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <LabeledSelect
-          label={t('settings.pullInterval')}
-          value={`${pullInterval}`}
-          onValueChange={(value) => setPullInterval(Number(value))}
-          options={PULL_INTERVAL_OPTIONS.map((value) => ({
-            value: `${value}`,
-            label: `${value}`,
-          }))}
-          testId="settings-pull-interval"
-          disabled={!isGitVault}
-        />
-
-        <LabeledSelect
-          label={t('settings.releaseChannel')}
-          value={releaseChannel}
-          onValueChange={(value) => setReleaseChannel(value as ReleaseChannel)}
-          options={[
-            { value: 'stable', label: t('settings.releaseStable') },
-            { value: 'alpha', label: t('settings.releaseAlpha') },
-          ]}
-          testId="settings-release-channel"
-        />
-      </div>
-    </>
+/** Compact positive-integer input that clamps invalid values to the last good value. */
+function ThresholdInput({
+  label,
+  value,
+  onValueChange,
+  testId,
+  disabled = false,
+}: {
+  label: string
+  value: number
+  onValueChange: (value: number) => void
+  testId: string
+  disabled?: boolean
+}) {
+  return (
+    <Input
+      id={testId}
+      type="number"
+      min={1}
+      step={1}
+      value={value}
+      disabled={disabled}
+      onChange={(event) => onValueChange(sanitizePositiveInteger(Number(event.target.value), value))}
+      data-testid={testId}
+      aria-label={label}
+      className="w-24 bg-transparent"
+    />
   )
 }
