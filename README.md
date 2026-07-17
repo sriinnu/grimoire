@@ -75,6 +75,15 @@ First native launch clones a starter vault
 (`sriinnu/grimoire-getting-started`); packaged builds fall back to the
 bundled mirror of `demo-vault-v2/`.
 
+**Importing from installed apps** (Bear, Day One, Apple Notes) reads those
+apps' data stores, which macOS gates behind Full Disk Access. If an import
+fails with a permission error: System Settings → Privacy & Security →
+Full Disk Access → enable Grimoire, relaunch the app, retry. The grant can
+be removed again after importing. Local builds are ad-hoc signed by
+default, so every rebuild invalidates the grant — set
+`APPLE_SIGNING_IDENTITY` to a stable local code-signing certificate to
+make Full Disk Access and Keychain grants persist across rebuilds.
+
 ## Development workflow
 
 ```bash
