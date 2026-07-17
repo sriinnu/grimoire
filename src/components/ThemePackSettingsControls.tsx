@@ -19,6 +19,11 @@ import {
   refreshDevelopmentThemePack,
   writeStoredLocalThemeDefinition,
 } from '../themes/localThemePacks'
+import {
+  SettingsActionRow,
+  SettingsGroup,
+  SettingsRow,
+} from './settings/primitives/SettingsGroup'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import type { createTranslator } from '../lib/i18n'
@@ -182,56 +187,59 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
   }, [activeDefinition, fields, t, typographyDraft])
 
   return (
-    <div className="settings-material-card space-y-2 rounded-md border p-3" data-testid="theme-pack-settings">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-            <Glyph name="code" size={14} />
-            {t('settings.themePack.title')}
-          </div>
-          <div className="mt-1 text-[11px] leading-5 text-muted-foreground" data-testid="theme-pack-message">
-            {localTheme ? t('settings.themePack.localOverride', { label: localTheme.label }) : message}
-          </div>
-        </div>
-        {localTheme ? (
-          <Button type="button" variant="ghost" size="icon-sm" aria-label={t('settings.themePack.clear')} onClick={handleClear}>
-            <Trash size={14} />
-          </Button>
-        ) : null}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={handleLoadClick} data-testid="theme-pack-load">
-          <Glyph name="upload" size={14} />
-          {t('settings.themePack.loadJson')}
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={handleExport} data-testid="theme-pack-export">
-          <Glyph name="download" size={14} />
-          {t('settings.themePack.exportJson')}
-        </Button>
-        {showDevReload ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={refreshing}
-            onClick={() => { void handleReloadLocalJson() }}
-            data-testid="theme-pack-reload-local"
-          >
-            <Glyph name="repeat" size={14} />
-            {refreshing ? t('settings.themePack.reloading') : t('settings.themePack.reloadLocal')}
-          </Button>
-        ) : null}
-      </div>
+    <SettingsGroup
+      title={t('settings.themePack.title')}
+      testId="theme-pack-settings"
+      footnote={
+        <span data-testid="theme-pack-message">
+          {localTheme ? t('settings.themePack.localOverride', { label: localTheme.label }) : message}
+        </span>
+      }
+    >
+      <SettingsActionRow
+        label={t('settings.themePack.fileRow')}
+        description={t('settings.themePack.fileRowDescription')}
+        actions={
+          <>
+            <Button type="button" variant="outline" size="sm" onClick={handleLoadClick} data-testid="theme-pack-load">
+              <Glyph name="upload" size={14} />
+              {t('settings.themePack.loadJson')}
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={handleExport} data-testid="theme-pack-export">
+              <Glyph name="download" size={14} />
+              {t('settings.themePack.exportJson')}
+            </Button>
+            {showDevReload ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={refreshing}
+                onClick={() => { void handleReloadLocalJson() }}
+                data-testid="theme-pack-reload-local"
+              >
+                <Glyph name="repeat" size={14} />
+                {refreshing ? t('settings.themePack.reloading') : t('settings.themePack.reloadLocal')}
+              </Button>
+            ) : null}
+            {localTheme ? (
+              <Button type="button" variant="ghost" size="icon-sm" aria-label={t('settings.themePack.clear')} onClick={handleClear}>
+                <Trash size={14} />
+              </Button>
+            ) : null}
+          </>
+        }
+      />
 
       {activeContractDetails.length > 0 ? (
-        <div className="settings-material-inner rounded-sm border px-2 py-1.5 text-[11px] text-muted-foreground" data-testid="theme-pack-contract-summary">
-          {t('settings.themePack.contractPrefix')} <span className="font-medium text-foreground">{activeContractDetails.join(' / ')}</span>
-        </div>
+        <SettingsRow fullWidth>
+          <div className="text-[11px] text-muted-foreground" data-testid="theme-pack-contract-summary">
+            {t('settings.themePack.contractPrefix')} <span className="font-medium text-foreground">{activeContractDetails.join(' / ')}</span>
+          </div>
+        </SettingsRow>
       ) : null}
 
-      <div className="settings-material-inner space-y-2 rounded-sm border p-2" data-testid="theme-pack-typography-roles">
-        <div className="text-[11px] font-semibold text-foreground">{t('settings.themePack.typographyTitle')}</div>
+      <SettingsRow fullWidth label={t('settings.themePack.typographyTitle')} testId="theme-pack-typography-roles">
         <div className="grid gap-2">
           {fields.map((field) => (
             <div key={field.role} className="grid gap-1">
@@ -255,10 +263,17 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
             </div>
           ))}
         </div>
-        <Button type="button" variant="secondary" size="sm" className="w-full" onClick={handleApplyTypography} data-testid="theme-pack-apply-typography">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="justify-self-start"
+          onClick={handleApplyTypography}
+          data-testid="theme-pack-apply-typography"
+        >
           {t('settings.themePack.applyTypography')}
         </Button>
-      </div>
+      </SettingsRow>
 
       <input
         ref={inputRef}
@@ -270,6 +285,6 @@ export function ThemePackSettingsControls({ t, themePreset }: ThemePackSettingsC
         data-testid="theme-pack-file-input"
         onChange={handleFileChange}
       />
-    </div>
+    </SettingsGroup>
   )
 }

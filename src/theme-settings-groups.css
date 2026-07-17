@@ -1,0 +1,150 @@
+/* macOS System Settings-style grouped-form primitives for the Settings panel.
+   Tokens derive from theme surface tokens with literal fallbacks so grouped
+   chrome never collapses when a WKWebView drops a var() chain. Chains stay
+   one level deep on purpose — do not nest color-mix inside these fallbacks. */
+
+:root,
+[data-theme="light"] {
+  --settings-group-bg: var(--surface-card, #ffffff);
+  --settings-hairline: var(--border-default, #e7e2da);
+  --settings-group-radius: 8px;
+  --settings-group-inset: 12px;
+}
+
+[data-theme="dark"] {
+  --settings-group-bg: var(--surface-card, #0d1c23);
+  --settings-hairline: var(--border-default, #1e3a43);
+}
+
+/* Preset-owned refinement: keep the group one quiet step off the panel. */
+:where(
+  [data-theme-preset="constellation"],
+  [data-theme-preset="daylight-notebook"],
+  [data-theme-preset="morning-notebook"],
+  [data-theme-preset="living-archive"],
+  [data-theme-preset="nocturne"],
+  [data-theme-preset="code-notebook"]
+) {
+  --settings-group-bg: color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel));
+  --settings-hairline: color-mix(in srgb, var(--border-default) 86%, transparent);
+}
+
+/* Panel title: 15px semibold, sits at the top of a settings pane. */
+.settings-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary, #17242f);
+}
+
+/* Vertical rhythm between grouped blocks inside one pane. */
+.settings-hig-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.settings-group-block {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* Small semibold sentence-case title ABOVE the group, never inside it. */
+.settings-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary, #17242f);
+  padding-inline: 2px;
+}
+
+/* The inset grouped container. One hairline, one surface step, no shadow. */
+.settings-group {
+  border: 1px solid var(--settings-hairline, #e7e2da);
+  border-radius: var(--settings-group-radius, 8px);
+  background: var(--settings-group-bg, #ffffff);
+  min-width: 0;
+}
+
+/* Hairline row dividers, inset from the left label edge. */
+.settings-group > * + * {
+  position: relative;
+}
+
+.settings-group > * + *::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: var(--settings-group-inset, 12px);
+  right: 0;
+  height: 1px;
+  background: var(--settings-hairline, #e7e2da);
+}
+
+/* Explanatory prose lives BELOW the group as an 11-12px footnote. */
+.settings-group-footnote {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-secondary, #516270);
+  padding-inline: 2px;
+  max-width: 580px;
+}
+
+/* One setting: label + optional description left, control pinned right. */
+.settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 16px;
+  min-height: 38px;
+  padding: 8px var(--settings-group-inset, 12px);
+}
+
+.settings-row[data-variant="full"] {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 8px;
+}
+
+.settings-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-block: 1px;
+}
+
+.settings-row__label {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-primary, #17242f);
+}
+
+.settings-row__description {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-secondary, #516270);
+}
+
+/* The description never pushes the control off-axis: the control column is
+   its own grid track, centered against the whole text block. */
+.settings-row__control,
+.settings-row__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.settings-row__actions {
+  flex-wrap: wrap;
+}
+
+.settings-row__content {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}

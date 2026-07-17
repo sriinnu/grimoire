@@ -1,6 +1,4 @@
 import { useEffect, type CSSProperties, type ReactNode } from 'react'
-import { TextAa } from '@phosphor-icons/react'
-import { Glyph } from './glyphs/Glyph'
 import type { EditorFont, EditorLineHeight, ThemePreset } from '../lib/appearance'
 import type { createTranslator } from '../lib/i18n'
 import type { ThemeMode } from '../lib/themeMode'
@@ -11,7 +9,12 @@ import {
 import { AppearanceProfilePreview } from './AppearanceProfilePreview'
 import { SidebarAppearancePreview } from './SidebarAppearancePreview'
 import { ThemePackSettingsControls } from './ThemePackSettingsControls'
-import { SectionHeading } from './settings/SettingsControls'
+import { Glyph } from './glyphs/Glyph'
+import {
+  SettingsGroup,
+  SettingsRow,
+  SettingsSectionTitle,
+} from './settings/primitives/SettingsGroup'
 import { Button } from './ui/button'
 import {
   Select,
@@ -45,7 +48,7 @@ interface AppearanceSettingsSectionProps {
   setEditorLineHeight: (value: EditorLineHeight) => void
 }
 
-/** Renders Grimoire's visual appearance controls and a compact live reading sample. */
+/** Renders Grimoire's visual appearance controls as System Settings-style groups. */
 export function AppearanceSettingsSection({
   t,
   themeMode,
@@ -68,81 +71,78 @@ export function AppearanceSettingsSection({
   }, [resolvedThemeMode, setThemeMode, themeMode])
 
   return (
-    <>
-      <SectionHeading
-        title={t('settings.appearance.title')}
-        description={t('settings.appearance.description')}
-      />
+    <div className="settings-hig-stack">
+      <SettingsSectionTitle>{t('settings.appearance.title')}</SettingsSectionTitle>
 
-      <div className="space-y-2">
-        <ControlLabel icon={<Glyph name="sun" size={14} />} label={t('settings.theme.label')} />
-        <ThemeModeControl
-          availableModes={availableThemeModes}
-          value={resolvedThemeMode}
-          onChange={setThemeMode}
-          t={t}
-        />
-      </div>
+      <SettingsGroup
+        title={t('settings.appearance.themeGroup')}
+        footnote={t('settings.appearance.description')}
+      >
+        <SettingsRow label={t('settings.theme.label')}>
+          <ThemeModeControl
+            availableModes={availableThemeModes}
+            value={resolvedThemeMode}
+            onChange={setThemeMode}
+            t={t}
+          />
+        </SettingsRow>
+        <SettingsRow fullWidth>
+          <SidebarAppearancePreview t={t} themeMode={resolvedThemeMode} themePreset={themePreset} />
+        </SettingsRow>
+      </SettingsGroup>
+
+      <SettingsGroup title={t('settings.appearance.typographyGroup')}>
+        <SettingsRow label={t('settings.editorFont.label')}>
+          <Select value={editorFont} onValueChange={(value) => setEditorFont(value as EditorFont)}>
+            <SelectTrigger
+              className="w-48 bg-transparent"
+              aria-label={t('settings.editorFont.label')}
+              data-testid="settings-editor-font"
+              data-value={editorFont}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              {CURATED_EDITOR_FONT_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {t(option.labelKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+        <SettingsRow label={t('settings.editorLineHeight.label')}>
+          <Select
+            value={editorLineHeight}
+            onValueChange={(value) => setEditorLineHeight(value as EditorLineHeight)}
+          >
+            <SelectTrigger
+              aria-label={t('settings.editorLineHeight.label')}
+              className="w-48 bg-transparent"
+              data-testid="settings-editor-line-height"
+              data-value={editorLineHeight}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent position="popper" data-anchor-strategy="popper">
+              <SelectItem value="compact">{t('settings.editorLineHeight.compact')}</SelectItem>
+              <SelectItem value="comfortable">{t('settings.editorLineHeight.comfortable')}</SelectItem>
+              <SelectItem value="spacious">{t('settings.editorLineHeight.spacious')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+        <SettingsRow fullWidth>
+          <AppearanceProfilePreview
+            t={t}
+            themeMode={resolvedThemeMode}
+            themePreset={themePreset}
+            editorFont={editorFont}
+            editorLineHeight={editorLineHeight}
+          />
+        </SettingsRow>
+      </SettingsGroup>
 
       <ThemePackSettingsControls t={t} themePreset={themePreset} />
-
-      <SidebarAppearancePreview t={t} themeMode={resolvedThemeMode} themePreset={themePreset} />
-
-      <div className="space-y-2">
-        <ControlLabel icon={<TextAa size={14} />} label={t('settings.editorFont.label')} />
-        <Select value={editorFont} onValueChange={(value) => setEditorFont(value as EditorFont)}>
-          <SelectTrigger
-            className="w-full bg-transparent"
-            data-testid="settings-editor-font"
-            data-value={editorFont}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper" data-anchor-strategy="popper">
-            {CURATED_EDITOR_FONT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <ControlLabel icon={<TextAa size={14} />} label={t('settings.editorLineHeight.label')} />
-        <Select value={editorLineHeight} onValueChange={(value) => setEditorLineHeight(value as EditorLineHeight)}>
-          <SelectTrigger
-            aria-label={t('settings.editorLineHeight.label')}
-            className="w-full bg-transparent"
-            data-testid="settings-editor-line-height"
-            data-value={editorLineHeight}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent position="popper" data-anchor-strategy="popper">
-            <SelectItem value="compact">{t('settings.editorLineHeight.compact')}</SelectItem>
-            <SelectItem value="comfortable">{t('settings.editorLineHeight.comfortable')}</SelectItem>
-            <SelectItem value="spacious">{t('settings.editorLineHeight.spacious')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <AppearanceProfilePreview
-        t={t}
-        themeMode={resolvedThemeMode}
-        themePreset={themePreset}
-        editorFont={editorFont}
-        editorLineHeight={editorLineHeight}
-      />
-    </>
-  )
-}
-
-function ControlLabel({ icon, label }: { icon: ReactNode; label: string }) {
-  return (
-    <div className="flex items-center gap-1.5" style={{ fontSize: 12, fontWeight: 600, color: 'var(--foreground)' }}>
-      {icon}
-      {label}
     </div>
   )
 }
@@ -160,7 +160,7 @@ function ThemeModeControl({
 }) {
   return (
     <div
-      className="settings-material-inner inline-flex w-full rounded-md border p-1"
+      className="settings-material-inner inline-flex rounded-md border p-0.5"
       role="radiogroup"
       aria-label={t('settings.theme.label')}
       data-testid="settings-theme-mode"
@@ -230,10 +230,10 @@ function ThemeModeButton({
       style={buttonStyle}
       className={
         selected
-          ? 'settings-theme-mode-button h-7 flex-1 border text-foreground shadow-xs'
+          ? 'settings-theme-mode-button h-7 border px-3 text-foreground shadow-xs'
           : disabled
-            ? 'h-7 flex-1 text-muted-foreground opacity-45'
-            : 'h-7 flex-1 text-muted-foreground hover:text-foreground'
+            ? 'h-7 px-3 text-muted-foreground opacity-45'
+            : 'h-7 px-3 text-muted-foreground hover:text-foreground'
       }
       onClick={() => onSelect(value)}
     >

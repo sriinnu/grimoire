@@ -39,6 +39,20 @@ describe('AppearanceSettingsSection', () => {
       />,
     )
 
+    // System Settings structure: one 15px section title, sentence-case group
+    // titles above inset groups, and no nested material cards anywhere.
+    expect(screen.getByRole('heading', { level: 2, name: 'Appearance' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'Theme' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'Typography' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 3, name: 'Experience packs' })).toBeInTheDocument()
+    expect(document.querySelector('.settings-material-card')).toBeNull()
+    expect(document.querySelectorAll('.settings-group').length).toBeGreaterThanOrEqual(3)
+
+    // Every discrete setting is one grouped row with the control pinned right.
+    expect(screen.getByTestId('settings-theme-mode').closest('.settings-row__control')).not.toBeNull()
+    expect(screen.getByTestId('settings-editor-font').closest('.settings-row__control')).not.toBeNull()
+    expect(screen.getByTestId('settings-editor-line-height').closest('.settings-row__control')).not.toBeNull()
+
     // The multi-card preset picker is gone; the light/dark toggle is the primary theme control.
     const mode = screen.getByTestId('settings-theme-mode')
     expect(within(mode).getByTestId('settings-theme-light')).toBeInTheDocument()

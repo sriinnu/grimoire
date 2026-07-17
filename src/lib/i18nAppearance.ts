@@ -1,4 +1,8 @@
 export const EN_APPEARANCE_TRANSLATIONS = {
+  'settings.appearance.themeGroup': 'Theme',
+  'settings.appearance.typographyGroup': 'Typography',
+  'settings.themePack.fileRow': 'Pack file',
+  'settings.themePack.fileRowDescription': 'Load or export the active experience pack as JSON.',
   'settings.themePack.title': 'Experience packs',
   'settings.themePack.localNotice': 'Experience packs control shell material, density, motion, graph/canvas style, code blocks, and typography. They stay local to this app.',
   'settings.themePack.localOverride': 'Local override active: {label}',
