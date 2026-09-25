@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import type { SidebarSelection } from '../../types'
 import { cn } from '../../lib/utils'
 import { isSelectionActive } from '../SidebarParts'
-import grimoireLogo from '@/assets/app-icon.png'
+import grimoireLogo from '@/assets/app-icon-ui.png'
 import {
   ArchiveGlyphIcon,
   DreamGlyphIcon,

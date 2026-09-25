@@ -127,7 +127,9 @@ describe('dashboard theme CSS', () => {
     expect(dashboardHeroCss).toContain('.dashboard-hero')
     expect(dashboardHeroCss).toContain('grid-column: 1 / -1')
     expect(dashboardHeroCss).toContain('font-family: var(--grimoire-display-font-family)')
-    expect(dashboardHeroCss).toContain('font-size: clamp(30px, 4vw, 44px)')
+    expect(dashboardHeroCss).toContain('font-size: clamp(26px, 3vw, 34px)')
+    // Anchored band, not a floating card: hairline only, no decorative shadow.
+    expect(dashboardHeroCss).not.toContain('conic-gradient')
     expect(dashboardHeroCss).toContain('line-height: 1.05')
     expect(dashboardHeroCss).toContain('color: var(--text-heading)')
     expect(dashboardHeroCss).toContain('.dashboard-hero__tagline')
