@@ -22,7 +22,6 @@ describe('system theme preview CSS', () => {
     'system-themes.css',
     'theme-system-tokens.css',
     'theme-semantic-tokens.css',
-    'theme-constellation.css',
     'theme-flagship-shared.css',
     'theme-editor-navigator.css',
     'theme-coherence.css',

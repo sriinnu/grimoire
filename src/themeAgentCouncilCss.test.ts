@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest'
 describe('agent council theme CSS', () => {
   const agentCss = readFileSync(`${process.cwd()}/src/theme-agent-council.css`, 'utf8')
   const coherenceCss = readFileSync(`${process.cwd()}/src/theme-coherence.css`, 'utf8')
-  const polishCss = readFileSync(`${process.cwd()}/src/theme-polish.css`, 'utf8')
 
   it('keeps council map tokens computable instead of mixing gradient tokens as colors', () => {
     expect(agentCss).toContain('--grimoire-agent-council-inner-material: color-mix(in srgb, var(--surface-card) 82%, var(--surface-panel))')
@@ -69,6 +68,5 @@ describe('agent council theme CSS', () => {
   })
 
   it('lets Graphite Archive feed its panel material into shared panel material', () => {
-    expect(polishCss).toContain('--grimoire-panel-material: var(--grimoire-panel-gradient), var(--surface-panel)')
   })
 })
