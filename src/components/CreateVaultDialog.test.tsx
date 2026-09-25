@@ -110,10 +110,10 @@ describe('CreateVaultDialog', () => {
     })
   })
 
-  it('sends the aurora experience profile and coerces unknown presets', async () => {
+  it('sends the vellum experience profile and coerces unknown presets', async () => {
     const onCreate = vi.fn().mockResolvedValue(true)
 
-    // Any removed/unknown preset normalizes back to the single shipped Aurora theme.
+    // Any removed/unknown preset normalizes back to the single shipped Vellum theme.
     render(<CreateVaultDialog initialThemePreset={'nocturne' as never} open={true} onClose={vi.fn()} onCreate={onCreate} />)
 
     expect(screen.getByTestId('create-vault-experience-preview')).toHaveAttribute(
@@ -121,7 +121,7 @@ describe('CreateVaultDialog', () => {
       'morning-notebook',
     )
     expect(screen.getByTestId('create-vault-experience-morning-notebook')).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Aurora')
+    expect(screen.getByTestId('create-vault-plan')).toHaveTextContent('Vellum')
 
     fireEvent.click(screen.getByTestId('create-vault-experience-morning-notebook'))
     expect(screen.getByTestId('create-vault-experience-preview')).toHaveAttribute(
