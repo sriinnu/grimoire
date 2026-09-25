@@ -1,6 +1,6 @@
 import type { ReactNode, RefObject } from 'react'
 import { AlertTriangle } from 'lucide-react'
-import grimoireIcon from '@/assets/app-icon.png'
+import grimoireIcon from '@/assets/app-icon-ui.png'
 import type { WelcomeScreenProps } from './WelcomeScreenTypes'
 import { BRAND_ICON_STYLE } from './welcomeScreenStyles'
 
