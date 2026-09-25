@@ -7,6 +7,7 @@ interface NavigationCommandsConfig {
   onQuickOpen: () => void
   onCaptureThought?: () => void
   onCaptureJournal?: () => void
+  onOpenTodayJournal?: () => void
   onCaptureDream?: () => void
   onSelect: (sel: SidebarSelection) => void
   selection?: SidebarSelection
@@ -49,6 +50,7 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
     onQuickOpen,
     onCaptureThought,
     onCaptureJournal,
+    onOpenTodayJournal,
     onCaptureDream,
     onSelect,
     onGoBack,
@@ -62,6 +64,7 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
     { id: 'search-notes', label: 'Search Pages', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileQuickOpen), keywords: ['find', 'open', 'quick', 'pages', 'notes', 'search pages', 'search notes'], enabled: true, execute: onQuickOpen },
     { id: 'go-dashboard', label: 'Go to Notebook', group: 'Navigation', keywords: ['home', 'today', 'assistant', 'capture', 'dashboard', 'notebook', 'go dashboard'], enabled: true, execute: () => onSelect({ kind: 'dashboard' }) },
     { id: 'capture-thought', label: 'Catch a Thought', group: 'Capture', keywords: ['note', 'thought', 'quick', 'menu bar'], enabled: !!onCaptureThought, execute: () => onCaptureThought?.() },
+    { id: 'open-today-journal', label: "Today's Journal", group: 'Navigation', keywords: ['today', 'daily', 'journal', 'diary', 'date', 'daily note'], enabled: !!onOpenTodayJournal, execute: () => onOpenTodayJournal?.() },
     { id: 'capture-journal', label: 'Journal Page', group: 'Capture', keywords: ['journal', 'reflect', 'private', 'menu bar'], enabled: !!onCaptureJournal, execute: () => onCaptureJournal?.() },
     { id: 'capture-dream', label: 'Dream Page', group: 'Capture', keywords: ['dream', 'private', 'night', 'menu bar'], enabled: !!onCaptureDream, execute: () => onCaptureDream?.() },
     { id: 'go-all', label: 'Go to Pages', group: 'Navigation', keywords: ['filter'], enabled: true, execute: () => onSelect({ kind: 'filter', filter: 'all' }) },
