@@ -164,7 +164,8 @@ describe('startup import budget', () => {
     expect(runtimeStaticImports('src/App.tsx')).not.toContain('./components/NoteList')
     expect(startupFiles).not.toEqual(expect.arrayContaining(NOTE_LIST_ROUTE_COLD_FILES))
     expect(startupSpecifiers).not.toContain('react-virtuoso')
-    expect(runtimeStaticImports('src/components/LazyNoteList.tsx')).toEqual(['react'])
+    // Only react plus the tiny stable-handler hook (already in the shell via Sidebar).
+    expect(runtimeStaticImports('src/components/LazyNoteList.tsx')).toEqual(['react', '../hooks/useStableHandlers'])
     expect(runtimeDynamicImports('src/components/LazyNoteList.tsx')).toContain('./NoteList')
   })
 
