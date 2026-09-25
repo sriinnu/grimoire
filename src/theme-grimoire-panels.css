@@ -32,9 +32,24 @@
   box-shadow: none !important;
 }
 
+:root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div) {
+  border-color: transparent !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* Hover is a faint ink tint; only the active destination is filled
+   (DESIGN.md: "hover is weaker than selection"). Hover used to paint the
+   same 13% lapis as active, so the sidebar couldn't say where you are. */
+:root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div):not([aria-current="page"]):hover {
+  background: color-mix(in srgb, var(--sidebar-foreground) 5%, transparent) !important;
+}
+
 :root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) [aria-current="page"] {
-  background: color-mix(in srgb, var(--sidebar-primary) 13%, transparent) !important;
-  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--sidebar-primary) 12%, transparent) !important;
+  border-color: transparent !important;
+  border-radius: 6px !important;
   box-shadow: inset 2px 0 0 var(--sidebar-primary) !important;
 }
 
@@ -162,4 +177,20 @@
   :root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) [aria-current="page"] {
     transition: none;
   }
+}
+
+/* Denser, calmer destinations: 22px glyph box (was 28) and a true 13px label,
+   so rows are ~36px instead of 42 and the whole list scans at a glance. */
+:root[data-theme-preset] .sidebar-top-nav__tone .sidebar-nav-glyph {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+:root[data-theme-preset] .sidebar-top-nav__tone .sidebar-nav-glyph__icon {
+  width: 18px;
+  height: 18px;
+}
+
+:root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div) {
+  font-size: 13px;
 }

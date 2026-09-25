@@ -47,6 +47,11 @@
   --sidebar-nav-tone: var(--accent-purple);
 }
 
+.sidebar-top-nav__tone[data-sidebar-nav-tone="neutral"],
+.sidebar-rail__tone[data-sidebar-rail-tone="neutral"] {
+  --sidebar-nav-tone: var(--text-secondary);
+}
+
 .sidebar-top-nav__tone > :is(button, div) {
   border: 1px solid transparent;
   position: relative;

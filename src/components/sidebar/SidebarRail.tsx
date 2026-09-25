@@ -35,7 +35,7 @@ interface RailItem {
   label: string
   icon: ComponentType<IconProps>
   selection: SidebarSelection
-  tone: 'aura' | 'amber' | 'blue' | 'violet'
+  tone: 'aura' | 'amber' | 'blue' | 'violet' | 'neutral'
 }
 
 function RailButton({
@@ -108,7 +108,7 @@ export function SidebarRail({
     {
       label: 'Journal',
       icon: JournalGlyphIcon,
-      tone: 'aura',
+      tone: 'amber',
       selection: { kind: 'sectionGroup', type: 'Journal' },
     },
     {
@@ -120,7 +120,7 @@ export function SidebarRail({
     {
       label: 'Archive',
       icon: ArchiveGlyphIcon,
-      tone: 'violet',
+      tone: 'neutral',
       selection: { kind: 'filter', filter: 'archived' },
     },
   ]

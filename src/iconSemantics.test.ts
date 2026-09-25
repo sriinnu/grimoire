@@ -22,7 +22,7 @@ describe('semantic icon language', () => {
   })
 
   it('gives each primary navigation family a stable colour role', () => {
-    for (const tone of ['aura', 'amber', 'blue', 'violet']) {
+    for (const tone of ['aura', 'amber', 'blue', 'violet', 'neutral']) {
       expect(semanticsCss).toContain(`data-sidebar-nav-tone='${tone}'`)
       expect(semanticsCss).toContain(`data-sidebar-rail-tone='${tone}'`)
     }
