@@ -42,6 +42,8 @@ import {
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { installAppContextMenuGuard } from './lib/nativeContextMenu'
 import { installWritingFocus } from './lib/writingFocus'
+import { hasRememberedNote } from './app/sessionMemory'
+import { preloadEditor } from './components/editorPreload'
 
 const EDITOR_DROP_SELECTOR = '.editor__blocknote-container'
 
@@ -91,6 +93,8 @@ if (desktopPlatform === 'windows') {
 }
 
 applyStoredThemeMode(document, window.localStorage)
+// Returning to a note: fetch the editor engine now, in parallel with the vault.
+if (hasRememberedNote(window.localStorage)) void preloadEditor()
 const startupAppearance = applyStoredAppearance(document, window.localStorage)
 void loadFontAssetsForAppearance(document, startupAppearance)
 

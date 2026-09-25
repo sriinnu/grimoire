@@ -5,6 +5,8 @@ import { createReactBlockSpec, createReactInlineContentSpec } from '@blocknote/r
 import { resolveWikilinkColor as resolveColor } from '../utils/wikilinkColors'
 import { resolveEntry } from '../utils/wikilink'
 import { MATH_BLOCK_TYPE, MATH_INLINE_TYPE, renderMathToHtml } from '../utils/mathMarkdown'
+import { getLoadedKatex, loadKatex } from '../utils/katexLoader'
+import { useEffect, useState } from 'react'
 import type { VaultEntry } from '../types'
 import { NoteTitleIcon } from './NoteTitleIcon'
 
@@ -60,6 +62,13 @@ export const WikiLink = createReactInlineContentSpec(
 
 function MathRender({ latex, displayMode }: { latex: string; displayMode: boolean }) {
   const source = displayMode ? `$$\n${latex}\n$$` : `$${latex}$`
+  const [, setKatexReady] = useState(() => getLoadedKatex() !== null)
+  useEffect(() => {
+    if (getLoadedKatex()) return
+    let alive = true
+    void loadKatex().then(() => { if (alive) setKatexReady(true) })
+    return () => { alive = false }
+  }, [])
   return (
     <span
       aria-label={`Math: ${latex}`}

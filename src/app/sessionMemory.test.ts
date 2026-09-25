@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SidebarSelection, VaultEntry } from '../types'
 import {
+  hasRememberedNote,
   parsePersistableSelection,
   readStoredSession,
   resolveSessionRestore,
@@ -27,6 +28,14 @@ describe('sessionMemory model', () => {
       notePath: `${VAULT}/a.md`,
     })
     expect(readStoredSession(localStorage, '/other/vault')).toBeNull()
+  })
+
+  it('knows at boot whether a note is about to be restored (for editor preload)', () => {
+    expect(hasRememberedNote(localStorage)).toBe(false)
+    writeStoredSession(localStorage, VAULT, { selection: { kind: 'dashboard' }, notePath: null })
+    expect(hasRememberedNote(localStorage)).toBe(false)
+    writeStoredSession(localStorage, '/other', { selection: { kind: 'filter', filter: 'all' }, notePath: '/other/a.md' })
+    expect(hasRememberedNote(localStorage)).toBe(true)
   })
 
   it('drops malformed or unknown selections instead of trusting storage', () => {

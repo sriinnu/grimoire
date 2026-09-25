@@ -118,6 +118,19 @@ export default defineConfig(({ command }) => ({
   plugins: [react(), tailwindcss(), vaultApiPlugin(), mcpBridgeInfoPlugin(), localThemePackPlugin()],
 
   resolve: {
+    // The markdown-editor workspace is aliased to its *source*, so its imports
+    // resolved against its own node_modules (react 19.2.4, @blocknote/react,
+    // mantine…). That shipped a second react-dom and a second BlockNote React
+    // context inside the Editor chunk. Force one copy of each.
+    dedupe: [
+      'react',
+      'react-dom',
+      '@blocknote/core',
+      '@blocknote/react',
+      '@blocknote/mantine',
+      '@mantine/core',
+      'lucide-react',
+    ],
     alias: {
       '@grimoire/markdown-editor/math': path.resolve(__dirname, './markdown-editor/packages/js/src/mathTypes.ts'),
       '@grimoire/markdown-editor/react': path.resolve(__dirname, './markdown-editor/packages/js/src/react/index.ts'),
