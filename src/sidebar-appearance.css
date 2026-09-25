@@ -289,8 +289,7 @@
   display: block;
 }
 
-[data-theme="dark"] .app-sidebar-panel,
-[data-theme-preset="code-notebook"] .app-sidebar-panel {
+[data-theme="dark"] .app-sidebar-panel {
   --foreground: var(--sidebar-foreground);
   --muted-foreground: color-mix(in srgb, var(--sidebar-foreground) 68%, transparent);
   --border: var(--sidebar-border);
@@ -302,27 +301,8 @@
 }
 
 [data-theme="dark"] .app-sidebar-panel .text-primary,
-[data-theme="dark"] .app-sidebar-panel .hover\:text-primary:hover,
-[data-theme-preset="code-notebook"] .app-sidebar-panel .text-primary,
-[data-theme-preset="code-notebook"] .app-sidebar-panel .hover\:text-primary:hover {
+[data-theme="dark"] .app-sidebar-panel .hover\:text-primary:hover {
   color: var(--sidebar-foreground);
-}
-
-[data-theme-preset="nocturne"] .app-sidebar-panel {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--sidebar-foreground) 4%, transparent), transparent 18rem),
-    var(--surface-sidebar);
-}
-
-[data-theme-preset="code-notebook"] .app-sidebar-panel {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--sidebar-primary) 8%, transparent), transparent 14rem),
-    var(--surface-sidebar);
-}
-
-[data-theme-preset="code-notebook"] .sidebar-brand-mark {
-  border-color: color-mix(in srgb, var(--accent-blue) 28%, var(--border-default));
-  box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-blue) 18%, transparent);
 }
 
 [data-theme-preset] :is(.app-sidebar-panel, .app-sidebar-rail) {

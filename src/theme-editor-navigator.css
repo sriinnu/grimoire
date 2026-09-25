@@ -93,14 +93,6 @@
   box-shadow: 0 24px 60px color-mix(in srgb, var(--surface-app, Canvas) 58%, transparent);
 }
 
-[data-theme-preset="constellation"] .editor-navigator-popover-shell {
-  border-color: color-mix(in srgb, var(--sidebar-primary) 28%, transparent);
-  background: var(--surface-popover);
-  box-shadow:
-    0 24px 60px color-mix(in srgb, var(--surface-app) 74%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--sidebar-primary) 8%, transparent);
-}
-
 .editor-navigator-popover {
   display: flex;
   flex-direction: column;
@@ -228,7 +220,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .editor-navigator-hit,
-  .editor-navigator-hit-overlay {
+.editor-navigator-hit-overlay {
     animation: none;
     background: color-mix(in srgb, var(--primary, currentColor) 16%, transparent);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary, currentColor) 32%, transparent);

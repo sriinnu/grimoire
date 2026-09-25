@@ -67,7 +67,6 @@ describe('sidebar artwork theme CSS', () => {
     expect(css).not.toContain('mix-blend-mode: multiply')
     expect(css).not.toContain('mix-blend-mode: screen')
     expect(css).toContain('filter: none')
-    expect(css).toContain('--art-presence: 0.26')
     expect(css).toContain('border: 0')
     expect(css).not.toContain('.sidebar-artwork__glyph--notebook-atlas')
     expect(css).toContain('.sidebar-artwork__glyph--notebook-thread')

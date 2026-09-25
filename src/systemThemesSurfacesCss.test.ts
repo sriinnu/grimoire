@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const NON_GRAPH_FLAGSHIP_SELECTOR = ':where([data-theme-preset="living-archive"], [data-theme-preset="daylight-notebook"], [data-theme-preset="morning-notebook"], [data-theme-preset="nocturne"], [data-theme-preset="code-notebook"])'
+const NON_GRAPH_FLAGSHIP_SELECTOR = ':where([data-theme-preset="morning-notebook"])'
 
 const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
 

@@ -18,18 +18,14 @@
 
 /* Preset-owned refinement: keep the group one quiet step off the panel. */
 :where(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-notebook"],
-  [data-theme-preset="morning-notebook"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="code-notebook"]
+  [data-theme-preset="morning-notebook"]
 ) {
   --settings-group-bg: color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel));
   --settings-hairline: color-mix(in srgb, var(--border-default) 86%, transparent);
 }
 
-/* Panel title: 15px semibold, sits at the top of a settings pane. */
+/* Panel title: 15px semibold,
+sits at the top of a settings pane. */
 .settings-section-title {
   font-size: 15px;
   font-weight: 600;
@@ -52,7 +48,8 @@
   min-width: 0;
 }
 
-/* Small semibold sentence-case title ABOVE the group, never inside it. */
+/* Small semibold sentence-case title ABOVE the group,
+never inside it. */
 .settings-group-title {
   font-size: 13px;
   font-weight: 600;
@@ -61,7 +58,9 @@
   padding-inline: 2px;
 }
 
-/* The inset grouped container. One hairline, one surface step, no shadow. */
+/* The inset grouped container. One hairline,
+one surface step,
+no shadow. */
 .settings-group {
   border: 1px solid var(--settings-hairline, #e7e2da);
   border-radius: var(--settings-group-radius, 8px);
@@ -69,7 +68,8 @@
   min-width: 0;
 }
 
-/* Hairline row dividers, inset from the left label edge. */
+/* Hairline row dividers,
+inset from the left label edge. */
 .settings-group > * + * {
   position: relative;
 }
@@ -93,7 +93,8 @@
   max-width: 580px;
 }
 
-/* One setting: label + optional description left, control pinned right. */
+/* One setting: label + optional description left,
+control pinned right. */
 .settings-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -129,7 +130,8 @@
 }
 
 /* The description never pushes the control off-axis: the control column is
-   its own grid track, centered against the whole text block. */
+   its own grid track,
+centered against the whole text block. */
 .settings-row__control,
 .settings-row__actions {
   display: flex;
@@ -149,8 +151,10 @@
   min-width: 0;
 }
 
-/* Stacked action row: header line (label + inline badge), full-width
-   description, then the actions on their own line under the text. */
+/* Stacked action row: header line (label + inline badge),
+full-width
+   description,
+then the actions on their own line under the text. */
 .settings-row[data-variant="stacked"] {
   grid-template-columns: minmax(0, 1fr);
   align-items: start;

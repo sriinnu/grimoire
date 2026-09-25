@@ -24,7 +24,7 @@ describe('system theme CSS', () => {
   const canvasAttachmentCss = readText(`${process.cwd()}/src/components/canvas/CanvasAttachment.css`)
   const noteListChromeCss = ['NoteListChrome.css', 'ProjectWorkspaceChrome.css', 'NoteListFilterRail.css']
     .map((file) => readText(`${process.cwd()}/src/components/note-list/${file}`)).join('\n')
-  const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="living-archive"], [data-theme-preset="daylight-notebook"], [data-theme-preset="morning-notebook"], [data-theme-preset="nocturne"], [data-theme-preset="code-notebook"])'
+  const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="morning-notebook"])'
 
   function getRuleBody(source: string, selector: string): string {
     const ruleStart = source.indexOf(`${selector} {`)
@@ -56,12 +56,8 @@ describe('system theme CSS', () => {
     const navigatorCss = readText(`${process.cwd()}/src/theme-editor-navigator.css`)
     const sidebarCss = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
-    expect(getRuleBody(navigatorCss, '[data-theme-preset="constellation"] .editor-navigator-popover-shell')).toContain('var(--surface-popover)')
     expect(navigatorCss).not.toContain('#08131f')
     expect(navigatorCss).not.toContain('rgba(84, 225, 210')
-    const nocturneSidebar = getRuleBody(sidebarCss, '[data-theme-preset="nocturne"] .app-sidebar-panel')
-    expect(nocturneSidebar).toContain('var(--sidebar-foreground)')
-    expect(nocturneSidebar).not.toContain('var(--sidebar-primary)')
     expect(sidebarCss).not.toContain('var(--accent-yellow)')
     expect(sidebarCss).not.toContain('rgba(155, 255, 122')
   })
@@ -208,16 +204,8 @@ describe('system theme CSS', () => {
 
   it('keeps flagship notebook accent-green aliased to a semantic token, never a raw hex', () => {
     const flagshipNotebookSelectors = [
-      '[data-theme-preset="constellation"]',
-      '[data-theme-preset="daylight-notebook"][data-theme="light"]',
-      '[data-theme-preset="daylight-notebook"][data-theme="dark"]',
       '[data-theme-preset="morning-notebook"][data-theme="light"]',
       '[data-theme-preset="morning-notebook"][data-theme="dark"]',
-      '[data-theme-preset="living-archive"][data-theme="light"]',
-      '[data-theme-preset="living-archive"][data-theme="dark"]',
-      '[data-theme-preset="nocturne"][data-theme="light"]',
-      '[data-theme-preset="nocturne"][data-theme="dark"]',
-      '[data-theme-preset="code-notebook"]',
     ]
 
     for (const selector of flagshipNotebookSelectors) {
@@ -246,7 +234,7 @@ describe('system theme CSS', () => {
   })
 
   it('gives the shared semantic token layer the editor page background', () => {
-    expect(getRuleBody(css, ':where(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-notebook"],\n  [data-theme-preset="morning-notebook"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="code-notebook"]\n)')).toContain('--background: var(--surface-editor)')
+    expect(getRuleBody(css, ':where(\n  [data-theme-preset="morning-notebook"]\n)')).toContain('--background: var(--surface-editor)')
   })
 
   it('keeps status bar and settings shell material ownership in shared theme layers', () => {
@@ -333,10 +321,10 @@ describe('system theme CSS', () => {
     expect(agentCouncilThemeCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
   })
 
-  it('declares Nocturne sidebar contrast tokens explicitly in both modes', () => {
+  it('declares Vellum sidebar contrast tokens explicitly in both modes (AA)', () => {
     for (const selector of [
-      '[data-theme-preset="nocturne"][data-theme="light"]',
-      '[data-theme-preset="nocturne"][data-theme="dark"]',
+      '[data-theme-preset="morning-notebook"][data-theme="light"]',
+      '[data-theme-preset="morning-notebook"][data-theme="dark"]',
     ]) {
       const body = getRuleBody(css, selector)
 
