@@ -28,12 +28,49 @@ interface InlineItem {
 
 type ContentTransform = (content: InlineItem[]) => InlineItem[]
 
+interface TableCellLike {
+  type?: string
+  content?: InlineItem[]
+  [key: string]: unknown
+}
+
+interface TableContentLike {
+  type: 'tableContent'
+  rows: Array<{ cells: Array<InlineItem[] | TableCellLike>; [key: string]: unknown }>
+  [key: string]: unknown
+}
+
+function isTableContent(content: unknown): content is TableContentLike {
+  return typeof content === 'object'
+    && content !== null
+    && (content as { type?: unknown }).type === 'tableContent'
+    && Array.isArray((content as { rows?: unknown }).rows)
+}
+
+// Table blocks keep inline content per cell, not on the block. Without this,
+// wikilinks in tables rendered as raw ‹WIKILINK:…› placeholder text.
+function transformTableContent(table: TableContentLike, transform: ContentTransform): TableContentLike {
+  return {
+    ...table,
+    rows: table.rows.map(row => ({
+      ...row,
+      cells: row.cells.map(cell => {
+        if (Array.isArray(cell)) return transform(cell)
+        if (cell && Array.isArray(cell.content)) return { ...cell, content: transform(cell.content) }
+        return cell
+      }),
+    })),
+  }
+}
+
 /** Walk blocks recursively, applying a transform to each block's inline content */
 function walkBlocks(blocks: unknown[], transform: ContentTransform, clone = false): unknown[] {
   return (blocks as BlockLike[]).map(block => {
     const b = clone ? { ...block } : block
     if (b.content && Array.isArray(b.content)) {
       b.content = transform(b.content)
+    } else if (isTableContent(b.content)) {
+      b.content = transformTableContent(b.content, transform) as unknown as InlineItem[]
     }
     if (b.children && Array.isArray(b.children)) {
       b.children = walkBlocks(b.children, transform, clone) as BlockLike[]
