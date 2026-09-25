@@ -19,6 +19,7 @@ import './sidebar-artwork-polish.css'
 import './icon-semantics.css'
 import './theme-grimoire-panels.css'
 import './motion-reduced-overrides.css'
+import './writing-focus.css'
 import { PlatformChrome } from './components/PlatformChrome'
 import { applyStoredAppearance } from './lib/appearance'
 import { loadFontAssetsForAppearance } from './lib/fontConfig'
@@ -40,6 +41,7 @@ import {
 } from './utils/platform'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { installAppContextMenuGuard } from './lib/nativeContextMenu'
+import { installWritingFocus } from './lib/writingFocus'
 
 const EDITOR_DROP_SELECTOR = '.editor__blocknote-container'
 
@@ -66,6 +68,7 @@ document.addEventListener('dragover', preventFileDropNavigation, true)
 document.addEventListener('drop', preventFileDropNavigation, true)
 
 installAppContextMenuGuard(document)
+installWritingFocus(document)
 
 const desktopPlatform = getDesktopPlatform()
 if (shouldUseLinuxWindowChrome()) {
