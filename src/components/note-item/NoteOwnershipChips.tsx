@@ -126,16 +126,20 @@ function NoteProjectChips({
   )
 }
 
-/** Shows a compact folder + project ownership row for each note card. */
+/** Shows a compact folder + project ownership row; root notes skip the folder chip. */
 export function NoteOwnershipChips({
   locationLabel,
   projects,
   typeEntryMap,
   onClickNote,
 }: NoteOwnershipChipsProps) {
+  // Empty label = the note lives at the notebook root; with no project either,
+  // the whole row would be noise, so it doesn't render at all.
+  if (!locationLabel && projects.length === 0) return null
+
   return (
     <div className="flex max-w-full flex-wrap gap-1.5" data-testid="note-ownership-chips">
-      <NoteLocationChip locationLabel={locationLabel} />
+      {locationLabel ? <NoteLocationChip locationLabel={locationLabel} /> : null}
       <NoteProjectChips projects={projects} typeEntryMap={typeEntryMap} onClickNote={onClickNote} />
     </div>
   )

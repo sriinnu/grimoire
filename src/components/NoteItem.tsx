@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { getTypeColor } from '../utils/typeColors'
 import { NoteItemContent } from './note-item/NoteItemContent'
 import { isOpaqueBinaryEntry } from '../utils/filePreviews'
-import { getNoteLocationLabel } from '../utils/noteLocation'
+import { getNoteLocationLabel, isNoteAtNotebookRoot } from '../utils/noteLocation'
 
 type NoteItemVisualState = {
   isBinary: boolean
@@ -190,7 +190,7 @@ export function NoteItem({ entry, isSelected, isMultiSelected = false, isHighlig
         entry={entry}
         isBinary={isBinary}
         isSelected={isSelected}
-        locationLabel={getNoteLocationLabel(entry.path, vaultPath)}
+        locationLabel={isNoteAtNotebookRoot(entry.path, vaultPath) ? '' : getNoteLocationLabel(entry.path, vaultPath)}
         noteStatus={noteStatus}
         changeStatus={changeStatus}
         typeColor={typeColor}
