@@ -26,7 +26,7 @@ type NoteItemSurfaceProps = {
 }
 
 const NOTE_ITEM_BASE_CLASS_NAME = 'relative border-b border-[var(--border)] transition-colors'
-const BINARY_NOTE_STYLE: CSSProperties = { padding: '14px 16px' }
+const BINARY_NOTE_STYLE: CSSProperties = { padding: '10px 14px' }
 const NOTE_ITEM_ROW_CLASS_NAMES: Record<NoteItemRowState, string> = {
   binary: 'cursor-default opacity-50',
   multiSelected: 'cursor-pointer',
@@ -52,7 +52,7 @@ type NoteItemStyle = CSSProperties & { '--note-type-color': string }
 function noteItemStyle(isMultiSelected: boolean, typeColor: string): NoteItemStyle {
   const base: NoteItemStyle = {
     '--note-type-color': typeColor,
-    padding: '14px 16px',
+    padding: '10px 14px',
   }
   if (isMultiSelected) base.backgroundColor = 'color-mix(in srgb, var(--accent-blue) 10%, transparent)'
   return base

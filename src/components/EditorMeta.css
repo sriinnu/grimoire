@@ -105,11 +105,21 @@
   margin-top: 14px;
 }
 
+/* Quiet = plain text, no pill boxes: the note's facts, not a row of badges. */
 [data-theme-metadata-strip="quiet"] .editor-meta-pill {
-  min-height: 25px;
-  border-color: color-mix(in srgb, var(--border-subtle) 56%, transparent);
-  background: color-mix(in srgb, var(--surface-editor) 86%, transparent);
+  min-height: 22px;
+  padding-inline: 0 10px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
   color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+[data-theme-metadata-strip="quiet"] .editor-meta-pill__value,
+[data-theme-metadata-strip="quiet"] .editor-meta-pill strong {
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 
 [data-theme-metadata-strip="quiet"] .editor-meta-pill__label,

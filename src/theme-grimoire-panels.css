@@ -64,13 +64,14 @@
 }
 
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"] {
-  background: color-mix(in srgb, var(--note-type-color, var(--primary)) 15%, var(--surface-panel)) !important;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel)) !important;
   box-shadow: none !important;
 }
 
 /* The older note chrome painted a glow and two gradients over selected rows.
- * Selection is one restrained tint plus a thin leading signal in the note's
- * type colour. It describes the current document, not a card. */
+ * Selection is one restrained tint plus a thin leading signal, always in the
+ * lapis accent — one signature selection, whatever the note's type. The type
+ * colour stays on the row's icon. */
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::before {
   content: "" !important;
   display: block !important;
@@ -82,7 +83,7 @@
   left: 0;
   width: 2.5px;
   border-radius: 2px;
-  background: color-mix(in srgb, var(--note-type-color, var(--primary)) 82%, var(--grimoire-pane-hairline)) !important;
+  background: var(--primary) !important;
 }
 
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::after {
@@ -94,7 +95,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: color-mix(in srgb, var(--note-type-color, var(--primary)) 72%, var(--text-secondary)) !important;
+  color: color-mix(in srgb, var(--primary) 72%, var(--text-secondary)) !important;
   font-size: 9px;
   font-weight: 650;
   letter-spacing: 0.06em;

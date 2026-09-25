@@ -98,10 +98,10 @@
 }
 
 :where([data-theme-preset="living-archive"], [data-theme-preset="daylight-notebook"], [data-theme-preset="morning-notebook"], [data-theme-preset="nocturne"], [data-theme-preset="code-notebook"]) .note-signal-chip {
-  display: inline-flex; align-items: center; min-height: 19px;
-  border: 1px solid color-mix(in srgb, var(--border-default) 74%, transparent); border-radius: 5px; padding: 0 7px;
-  background: var(--accent-blue-light); color: var(--muted-foreground);
-  font-size: 10px; font-weight: 560;
+  /* Signals are plain text on the note's single meta line, not chips. */
+  display: inline; border: 0; padding: 0;
+  background: none; color: var(--muted-foreground);
+  font-size: inherit; font-weight: inherit;
 }
 
 :is([data-theme-preset="living-archive"], [data-theme-preset="daylight-notebook"], [data-theme-preset="morning-notebook"], [data-theme-preset="nocturne"], [data-theme-preset="code-notebook"]) :is(.editor, .editor-scroll-area) {

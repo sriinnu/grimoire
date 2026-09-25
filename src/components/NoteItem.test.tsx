@@ -124,7 +124,7 @@ describe('NoteItem', () => {
     expect(screen.queryByTestId('change-status-icon')).not.toBeInTheDocument()
   })
 
-  it('adds more breathing room between note sections', () => {
+  it('keeps note sections compact: title, snippet, one meta line', () => {
     const entry = makeEntry({
       title: 'Spaced note',
       snippet: 'Body preview',
@@ -143,7 +143,7 @@ describe('NoteItem', () => {
       />,
     )
 
-    expect(screen.getByTestId('note-content-stack').className).toContain('space-y-2')
+    expect(screen.getByTestId('note-content-stack').className).toContain('space-y-1')
   })
 
   it('aligns icon-bearing note rows under the title text column', () => {
@@ -210,11 +210,21 @@ describe('NoteItem', () => {
     expect(item.style.getPropertyValue('--note-type-color')).toBe('var(--accent-green)')
     expect(item.style.borderLeftColor).toBe('')
     expect(item.className).not.toContain('border-l-[3px]')
-    expect(screen.getByTestId('note-current-document-state')).toHaveTextContent('Current')
-    expect(screen.getByTestId('note-current-document-state')).toHaveAttribute('aria-label', 'Current document in editor')
   })
 
-  it('shows created date on the right side of the date row when available', () => {
+  it('keeps the same layout selected or not, so the row never jumps', () => {
+    const entry = makeEntry({ title: 'Steady note', status: 'Active', properties: { tags: ['a', 'b', 'c'] } })
+    const { rerender } = render(<NoteItem entry={entry} isSelected={false} typeEntryMap={{}} onClickNote={vi.fn()} />)
+    const unselectedChips = screen.getAllByText(/^(Active|a|b|c)$/).length
+    const unselectedTitleClass = screen.getByTestId('note-title').className
+
+    rerender(<NoteItem entry={entry} isSelected={true} typeEntryMap={{}} onClickNote={vi.fn()} />)
+
+    expect(screen.getAllByText(/^(Active|a|b|c)$/)).toHaveLength(unselectedChips)
+    expect(screen.getByTestId('note-title').className).toBe(unselectedTitleClass)
+  })
+
+  it('shows the modified date on the meta line and keeps the created date in its tooltip', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(NOW_SECONDS * 1000))
     const entry = makeEntry({
@@ -226,9 +236,10 @@ describe('NoteItem', () => {
     render(<NoteItem entry={entry} isSelected={false} typeEntryMap={{}} onClickNote={vi.fn()} />)
 
     const dateRow = screen.getByTestId('note-date-row')
-    expect(dateRow.className).toContain('grid')
+    expect(dateRow.className).toContain('note-meta-line')
     expect(dateRow).toHaveTextContent('2d ago')
-    expect(dateRow).toHaveTextContent('Created 5d ago')
+    expect(dateRow).not.toHaveTextContent('Created')
+    expect(screen.getByTitle('Created 5d ago')).toHaveTextContent('2d ago')
   })
 
   it('leaves the right side empty when no creation date exists', () => {
