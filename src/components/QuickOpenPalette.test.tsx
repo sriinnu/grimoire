@@ -89,6 +89,27 @@ describe('QuickOpenPalette', () => {
     expect(screen.getByText('No matching pages')).toBeInTheDocument()
   })
 
+  it('turns an empty search into a new page (Enter or click)', () => {
+    const onCreate = vi.fn()
+    render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} onCreate={onCreate} />)
+    fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: '  Garden plans  ' } })
+
+    expect(screen.getByTestId('quick-open-create')).toHaveTextContent('Create “Garden plans”')
+    fireEvent.keyDown(window, { key: 'Enter' })
+
+    expect(onCreate).toHaveBeenCalledWith('Garden plans')
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('creates on Shift+Enter even when pages match', () => {
+    const onCreate = vi.fn()
+    render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} onCreate={onCreate} />)
+    fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'Alpha' } })
+
+    fireEvent.keyDown(window, { key: 'Enter', shiftKey: true })
+    expect(onCreate).toHaveBeenCalledWith('Alpha')
+  })
+
   it('shows type badge for entries with isA', () => {
     render(<QuickOpenPalette open={true} entries={entries} onSelect={onSelect} onClose={onClose} />)
     expect(screen.getByText('Project')).toBeInTheDocument()
