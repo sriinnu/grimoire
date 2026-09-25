@@ -65,7 +65,7 @@ body.windows-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-b
 }
 
 :root:not([data-native-shell-material="standard"])[data-native-shell-material] .app-shell {
-  background: linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-panel) 86%, var(--surface-app)));
+  background: var(--surface-app);
   border-radius: var(--grimoire-shell-radius);
   border-color: color-mix(in srgb, var(--border-subtle) 72%, transparent);
   box-shadow: var(--grimoire-panel-shadow);

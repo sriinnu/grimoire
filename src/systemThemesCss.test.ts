@@ -224,7 +224,9 @@ describe('system theme CSS', () => {
     expect(classOrAttributeCount(flagshipBlockNoteSelector)).toBeGreaterThan(classOrAttributeCount(lazyBlockNoteSelector))
     expect(getRuleBody(css, flagshipMetaSelector)).toContain('display: flex')
     expect(getRuleBody(css, flagshipBlockNoteSelector)).toContain('--bn-colors-editor-background: transparent')
-    expect(getRuleBody(css, flagshipCanvasSelector)).toContain('var(--surface-editor)')
+    // Flat desk behind a flat page (no lapis wash).
+    expect(getRuleBody(css, flagshipCanvasSelector)).toContain('background: var(--surface-app)')
+    expect(getRuleBody(css, flagshipCanvasSelector)).not.toContain('gradient')
   })
 
   it('keeps the light Midnight Aurora primary button foreground at AA contrast', () => {
@@ -303,7 +305,7 @@ describe('system theme CSS', () => {
     expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] .note-list-panel')).toContain('var(--surface-panel)')
     expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] :is(.editor, .editor-scroll-area)')).toContain('var(--surface-editor)')
     expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] :is(.inspector-panel, .ai-panel)')).toContain('var(--surface-panel)')
-    expect(getRuleBody(flagshipSharedCss, `${strongNonConstellationFlagshipSelector} .editor-content-wrapper`)).toContain('var(--surface-card)')
+    expect(getRuleBody(flagshipSharedCss, `${strongNonConstellationFlagshipSelector} .editor-content-wrapper`)).toContain('background: var(--surface-editor)')
     expect(flagshipSharedCss).toContain(':is(.project-workspace-chrome__overview, .project-workspace-chrome__docs, .note-list-filter-group)')
     expect(flagshipSharedCss).not.toContain(':is(.project-workspace-chrome, .note-list-filter-shelf)')
     expect(flagshipSharedCss).toContain('box-shadow: none')
