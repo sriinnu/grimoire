@@ -57,7 +57,7 @@ export function toPersistableSelection(selection: SidebarSelection): Persistable
   return selection.kind === 'entity' ? null : selection
 }
 
-export function readStoredSession(storage: SessionStorage, vaultPath: string): StoredSession | null {
+export function readStoredSession(storage: Pick<Storage, 'getItem'>, vaultPath: string): StoredSession | null {
   try {
     const raw = storage.getItem(sessionStorageKey(vaultPath))
     if (!raw) return null
@@ -100,4 +100,19 @@ export function resolveSessionRestore(
     return { selection: typeStillExists ? selection : null, note }
   }
   return { selection, note }
+}
+
+/** True when any vault has a remembered open note — i.e. launch will restore one. */
+export function hasRememberedNote(storage: Pick<Storage, 'length' | 'key' | 'getItem'>): boolean {
+  try {
+    const prefix = `${APP_STORAGE_KEYS.sessionMemory}:`
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index)
+      if (!key?.startsWith(prefix)) continue
+      if (readStoredSession(storage, key.slice(prefix.length))?.notePath) return true
+    }
+  } catch {
+    // Storage unavailable: just don't preload.
+  }
+  return false
 }

@@ -2,9 +2,10 @@ import { lazy, Suspense } from 'react'
 import type { EditorProps } from './Editor'
 import { EditorEmptyState } from './EditorEmptyState'
 import { EditorLoadingState } from './EditorLoadingState'
+import { preloadEditor } from './editorPreload'
 
 const EditorSurface = lazy(async () => {
-  const module = await import('./Editor')
+  const module = await preloadEditor()
   return { default: module.Editor }
 })
 
