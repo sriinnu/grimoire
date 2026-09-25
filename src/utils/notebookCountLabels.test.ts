@@ -36,4 +36,9 @@ describe('notebook count labels', () => {
     expect(formatTypeLabel('Person', 1)).toBe('person')
     expect(formatTypeLabel('Person', 4)).toBe('people')
   })
+
+  it('pluralises -y words by the vowel rule (essays, not essaies)', () => {
+    expect(formatTypeLabel('Essay', 3)).toBe('essays')
+    expect(formatTypeLabel('Story', 2)).toBe('stories')
+  })
 })
