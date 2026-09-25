@@ -13,7 +13,7 @@ export function preProcessWikilinks(md: string): string {
 
 // Minimal shape of a BlockNote block for wikilink processing
 interface BlockLike {
-  content?: InlineItem[]
+  content?: InlineItem[] | TableContentLike
   children?: BlockLike[]
   [key: string]: unknown
 }
@@ -26,17 +26,75 @@ interface InlineItem {
   [key: string]: unknown
 }
 
+// BlockNote table cells come in three shapes: a plain string (partial blocks),
+// an inline-content array, or a full `tableCell` object wrapping inline content.
+interface TableCellLike {
+  type: 'tableCell'
+  content?: InlineItem[] | string
+  [key: string]: unknown
+}
+
+type TableCell = string | InlineItem[] | TableCellLike
+
+interface TableContentLike {
+  type: 'tableContent'
+  rows: { cells: TableCell[]; [key: string]: unknown }[]
+  [key: string]: unknown
+}
+
 type ContentTransform = (content: InlineItem[]) => InlineItem[]
 
-/** Walk blocks recursively, applying a transform to each block's inline content */
-function walkBlocks(blocks: unknown[], transform: ContentTransform, clone = false): unknown[] {
+function isTableContent(content: unknown): content is TableContentLike {
+  return typeof content === 'object'
+    && content !== null
+    && (content as { type?: unknown }).type === 'tableContent'
+    && Array.isArray((content as { rows?: unknown }).rows)
+}
+
+function transformCellInline(content: InlineItem[] | string, transform: ContentTransform): InlineItem[] | string {
+  if (Array.isArray(content)) return transform(content)
+  // Only upgrade a bare string when the transform would actually change it,
+  // so untouched partial cells keep their original compact shape.
+  const asInline: InlineItem[] = [{ type: 'text', text: content, styles: {} }]
+  const transformed = transform(asInline)
+  return transformed.length === 1 && transformed[0] === asInline[0] ? content : transformed
+}
+
+function transformTableCell(cell: TableCell, transform: ContentTransform): TableCell {
+  if (typeof cell === 'string' || Array.isArray(cell)) return transformCellInline(cell, transform)
+  if (cell && typeof cell === 'object' && cell.content !== undefined) {
+    return { ...cell, content: transformCellInline(cell.content, transform) }
+  }
+  return cell
+}
+
+/** Rebuild table content with every cell transformed; always returns fresh row/cell containers. */
+function transformTableContent(table: TableContentLike, transform: ContentTransform): TableContentLike {
+  return {
+    ...table,
+    rows: table.rows.map(row => ({
+      ...row,
+      cells: row.cells.map(cell => transformTableCell(cell, transform)),
+    })),
+  }
+}
+
+/** Walk blocks recursively, applying a transform to each block's inline content (table cells included) */
+function walkBlocks(
+  blocks: unknown[],
+  transform: ContentTransform,
+  clone = false,
+  cellTransform: ContentTransform = transform,
+): unknown[] {
   return (blocks as BlockLike[]).map(block => {
     const b = clone ? { ...block } : block
     if (b.content && Array.isArray(b.content)) {
       b.content = transform(b.content)
+    } else if (isTableContent(b.content)) {
+      b.content = transformTableContent(b.content, cellTransform)
     }
     if (b.children && Array.isArray(b.children)) {
-      b.children = walkBlocks(b.children, transform, clone) as BlockLike[]
+      b.children = walkBlocks(b.children, transform, clone, cellTransform) as BlockLike[]
     }
     return b
   })
@@ -53,7 +111,7 @@ export function injectWikilinks(blocks: unknown[]): unknown[] {
  * so that wikilinks survive the markdown round-trip.
  */
 export function restoreWikilinksInBlocks(blocks: unknown[]): unknown[] {
-  return walkBlocks(blocks, collapseWikilinksInContent, true)
+  return walkBlocks(blocks, collapseWikilinksInContent, true, collapseWikilinksInTableCell)
 }
 
 function expandWikilinksInContent(content: InlineItem[]): InlineItem[] {
@@ -86,10 +144,20 @@ function expandWikilinksInContent(content: InlineItem[]): InlineItem[] {
 }
 
 function collapseWikilinksInContent(content: InlineItem[]): InlineItem[] {
+  return collapseWikilinks(content, target => target)
+}
+
+// Inside a GFM table a bare `|` splits the cell, so aliased links must be written
+// the Obsidian way: [[target\|alias]]. The markdown parser unescapes it on load.
+function collapseWikilinksInTableCell(content: InlineItem[]): InlineItem[] {
+  return collapseWikilinks(content, target => target.replace(/\|/g, '\\|'))
+}
+
+function collapseWikilinks(content: InlineItem[], encodeTarget: (target: string) => string): InlineItem[] {
   const result: InlineItem[] = []
   for (const item of content) {
     if (item.type === 'wikilink' && item.props?.target) {
-      result.push({ type: 'text', text: `[[${item.props.target}]]` })
+      result.push({ type: 'text', text: `[[${encodeTarget(item.props.target)}]]` })
     } else {
       result.push(item)
     }
