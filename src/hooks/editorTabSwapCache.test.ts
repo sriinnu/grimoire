@@ -122,3 +122,63 @@ describe('code language detection stays display-only', () => {
     expect(serialized).not.toContain('```python')
   })
 })
+
+// Sriinnu: table cells used to keep the raw ‹WIKILINK:…› placeholder because
+// the wikilink walker only looked at inline-content arrays, never tableContent.
+const NOTE_WITH_WIKILINK_TABLE = [
+  '| Surface | Demo note |',
+  '| --- | --- |',
+  '| Start | [[grimoire-start-here]] |',
+  '| Aliased | see [[notes/target\\|The Target]] too |',
+  '',
+].join('\n')
+
+interface InlineShape {
+  type: string
+  text?: string
+  props?: { target?: string }
+}
+
+interface TableBlockShape {
+  type?: string
+  content?: { type?: string; rows: { cells: { content: InlineShape[] }[] }[] }
+}
+
+describe('wikilinks inside table cells', () => {
+  it('renders wikilink inline content in table cells and round-trips [[Target]] on save', async () => {
+    const editor = createEditor()
+    const cache = new Map<string, CachedTabState>()
+    const state = await resolveBlocksForTarget({
+      editor,
+      cache,
+      targetPath: 'table.md',
+      content: NOTE_WITH_WIKILINK_TABLE,
+    })
+
+    applyBlocksToEditor(editor, state.blocks, 0, { current: false })
+
+    const table = (editor.document as TableBlockShape[]).find(block => block.type === 'table')
+    expect(table?.content?.type).toBe('tableContent')
+    const cells = table!.content!.rows.flatMap(row => row.cells.flatMap(cell => cell.content))
+    expect(cells.filter(item => item.type === 'wikilink').map(item => item.props?.target)).toEqual([
+      'grimoire-start-here',
+      'notes/target|The Target',
+    ])
+    expect(cells.some(item => item.text?.includes('‹WIKILINK'))).toBe(false)
+
+    const serialized = serializeEditorBody(editor)
+    expect(serialized).toContain('[[grimoire-start-here]]')
+    expect(serialized).toContain('see [[notes/target\\|The Target]] too')
+    expect(serialized).not.toContain('WIKILINK')
+
+    // reopening the saved body must be a fixed point
+    const reopened = await resolveBlocksForTarget({
+      editor,
+      cache,
+      targetPath: 'table.md',
+      content: serialized,
+    })
+    applyBlocksToEditor(editor, reopened.blocks, 0, { current: false })
+    expect(serializeEditorBody(editor)).toBe(serialized)
+  })
+})
