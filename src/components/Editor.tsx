@@ -157,6 +157,8 @@ function useEditorSetup({
     uploadFile: (file: File) => uploadImageFile(file, vaultPathRef.current),
     _tiptapOptions: { injectNonce: RUNTIME_STYLE_NONCE },
     extensions: [createArrowLigaturesExtension()],
+    // A human invitation instead of BlockNote's "Enter text or type '/' for commands".
+    placeholders: { default: 'Start writing, or press / for blocks' },
   })
   useFilenameAutolinkGuard(editor)
   const activeTab = tabs.find((t) => t.entry.path === activeTabPath) ?? null
