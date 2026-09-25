@@ -306,15 +306,18 @@ export function useOnboarding(
 
     async function check() {
       try {
-        const defaultPath = await tauriCall<string>('get_default_vault_path', {})
+        // Common launch: the vault is there. Only the welcome / vault-missing
+        // screens need the default path, so don't pay that round-trip first.
         const exists = await tauriCall<boolean>('check_vault_exists', { path: initialVaultPath })
-
         if (cancelled) return
 
         if (exists) {
           setState({ status: 'ready', vaultPath: initialVaultPath })
           return
         }
+
+        const defaultPath = await tauriCall<string>('get_default_vault_path', {})
+        if (cancelled) return
 
         const missingWasPersistedActiveVault = await clearMissingActiveVault(initialVaultPath)
         if (cancelled) return
