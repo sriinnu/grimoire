@@ -114,7 +114,6 @@ describe('theme settings CSS', () => {
     expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #e7e2da)')
     expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #2c2925)')
     expect(settingsGroupsCss).toContain('--settings-group-radius: 8px')
-    expect(settingsGroupsCss).toContain('[data-theme-preset="constellation"]')
 
     // The primitive classes: title above, footnote below, inset row dividers.
     for (const hook of [

@@ -23,49 +23,6 @@
     inset 0 1px 0 color-mix(in srgb, var(--text-heading) 7%, transparent);
 }
 
-:root[data-theme-preset="constellation"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
-  --grimoire-native-frame-material:
-    radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 24rem),
-    radial-gradient(circle at 16% 18%, color-mix(in srgb, var(--accent-purple) 12%, transparent), transparent 20rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 94%, #000), var(--surface-app));
-  --grimoire-native-sidebar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 76%, var(--primary) 6%), var(--surface-sidebar));
-  --grimoire-native-toolbar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 74%, var(--primary) 5%), color-mix(in srgb, var(--surface-panel) 94%, #000));
-  --grimoire-native-card-material:
-    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 18rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
-  --grimoire-native-card-shadow: 0 18px 48px color-mix(in srgb, #000 28%, transparent);
-  --grimoire-native-editor-material:
-    radial-gradient(circle at 78% 0%, color-mix(in srgb, var(--primary) 11%, transparent), transparent 22rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 88%, #000), var(--surface-editor));
-  --grimoire-native-menu-shadow: 0 26px 62px color-mix(in srgb, #000 42%, transparent);
-  --grimoire-native-image-stage-material:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface-card)), var(--surface-editor));
-  --grimoire-graph-material:
-    radial-gradient(circle at 52% 28%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 18rem),
-    var(--grimoire-graph-bg);
-}
-
-:root[data-theme-preset="daylight-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
-  --grimoire-native-frame-material:
-    linear-gradient(90deg, color-mix(in srgb, var(--surface-sidebar) 18%, transparent), transparent 22rem),
-    linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-panel) 82%, var(--surface-editor)));
-  --grimoire-native-sidebar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 92%, #000), var(--surface-sidebar));
-  --grimoire-native-toolbar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)), var(--surface-panel));
-  --grimoire-native-card-material:
-    linear-gradient(180deg, var(--surface-card), color-mix(in srgb, var(--surface-card) 88%, var(--surface-editor)));
-  --grimoire-native-card-shadow:
-    0 12px 28px color-mix(in srgb, var(--surface-sidebar) 12%, transparent);
-  --grimoire-native-editor-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 94%, var(--primary) 3%), var(--surface-editor));
-  --grimoire-native-menu-shadow: 0 18px 42px color-mix(in srgb, var(--surface-sidebar) 22%, transparent);
-  --grimoire-native-image-stage-material:
-    linear-gradient(135deg, color-mix(in srgb, var(--surface-editor) 88%, var(--primary) 4%), var(--surface-card));
-}
-
 :root[data-theme-preset="morning-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
   /* Vellum is paper on paper: flat surfaces, no lapis glows or sheens. Shadows
      are built from black, not --text-heading (off-white in Lamplight, which
@@ -82,64 +39,6 @@
     0 1px 2px color-mix(in srgb, black 8%, transparent),
     0 12px 28px color-mix(in srgb, black 12%, transparent);
   --grimoire-native-image-stage-material: var(--surface-card);
-}
-
-:root[data-theme-preset="living-archive"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
-  --grimoire-native-frame-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 96%, var(--surface-sidebar) 4%), var(--surface-app));
-  --grimoire-native-sidebar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 90%, var(--surface-panel) 10%), var(--surface-sidebar));
-  --grimoire-native-toolbar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel)), var(--surface-panel));
-  --grimoire-native-card-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 90%, var(--surface-editor)), color-mix(in srgb, var(--surface-card) 76%, var(--surface-panel)));
-  --grimoire-native-card-shadow:
-    0 18px 38px color-mix(in srgb, #000 9%, transparent);
-  --grimoire-native-editor-material:
-    radial-gradient(circle at 50% 2rem, color-mix(in srgb, var(--primary) 7%, transparent), transparent 24rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 96%, var(--surface-panel)), var(--surface-editor));
-  --grimoire-native-menu-shadow: 0 18px 40px color-mix(in srgb, #000 18%, transparent);
-  --grimoire-native-image-stage-material:
-    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-sidebar) 6%), var(--surface-editor));
-}
-
-:root[data-theme-preset="nocturne"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
-  --grimoire-native-frame-material:
-    radial-gradient(circle at 80% -10%, color-mix(in srgb, var(--primary) 9%, transparent), transparent 24rem),
-    linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-panel) 72%, var(--surface-app)));
-  --grimoire-native-sidebar-material:
-    linear-gradient(180deg, color-mix(in srgb, #151719 82%, var(--surface-sidebar) 18%), color-mix(in srgb, #0b0d10 88%, var(--surface-sidebar) 12%));
-  --grimoire-native-toolbar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-panel) 86%, var(--primary) 3%), color-mix(in srgb, var(--surface-panel) 92%, #000));
-  --grimoire-native-card-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-app)));
-  --grimoire-native-card-shadow:
-    0 18px 42px color-mix(in srgb, #000 26%, transparent);
-  --grimoire-native-editor-material:
-    radial-gradient(circle at 76% 0%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 24rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 90%, #000), var(--surface-editor));
-  --grimoire-native-menu-shadow: 0 22px 58px color-mix(in srgb, #000 42%, transparent);
-  --grimoire-native-image-stage-material:
-    linear-gradient(135deg, color-mix(in srgb, var(--surface-card) 88%, var(--primary) 4%), var(--surface-editor));
-}
-
-:root[data-theme-preset="code-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
-  --grimoire-native-frame-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 82%, #000), var(--surface-app));
-  --grimoire-native-sidebar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 76%, #000), var(--surface-sidebar));
-  --grimoire-native-toolbar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 82%, #000), var(--surface-panel));
-  --grimoire-native-card-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 84%, #000), color-mix(in srgb, var(--surface-panel) 88%, #000));
-  --grimoire-native-card-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 12%, transparent);
-  --grimoire-native-editor-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-input) 76%, #000), var(--surface-editor));
-  --grimoire-native-menu-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 22%, transparent);
-  --grimoire-native-image-stage-material:
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--surface-input)), var(--surface-editor));
-  --grimoire-graph-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-editor) 82%, #000), var(--surface-editor));
 }
 
 :where([data-theme-preset]) .app-shell {

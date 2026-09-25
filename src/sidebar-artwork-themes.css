@@ -62,39 +62,11 @@
   opacity: var(--art-presence);
 }
 
-[data-sidebar-preset-preview="nocturne"] .sidebar-artwork {
-  --art-accent: #aeb8c4;
-  --art-aura: color-mix(in srgb, #aeb8c4 18%, transparent);
-  --art-page: color-mix(in srgb, var(--surface-sidebar) 88%, #aeb8c4 12%);
-  --art-presence: 0.26;
-}
-
-[data-sidebar-preset-preview="code-notebook"] .sidebar-artwork {
-  --art-accent: #d8b957;
-  --art-aura: transparent;
-  --art-page: transparent;
-  --art-presence: 0.2;
-}
-
-[data-sidebar-preset-preview="daylight-notebook"] .sidebar-artwork {
-  --art-accent: #2f668e;
-  --art-aura: color-mix(in srgb, #8fcfed 28%, #2f668e);
-  --art-page: color-mix(in srgb, #f7efe1 92%, #8fcfed 8%);
-  --art-presence: 0.22;
-}
-
 [data-sidebar-preset-preview="morning-notebook"] .sidebar-artwork {
   --art-accent: var(--accent-blue);
   --art-aura: color-mix(in srgb, var(--accent-blue) 28%, transparent);
   --art-page: color-mix(in srgb, var(--surface-editor) 92%, var(--accent-blue) 8%);
   --art-presence: 0.2;
-}
-
-[data-sidebar-preset-preview="living-archive"] .sidebar-artwork {
-  --art-accent: #a88642;
-  --art-aura: color-mix(in srgb, #8cbfc0 24%, #a88642);
-  --art-page: color-mix(in srgb, #f2ddb2 18%, var(--surface-sidebar) 82%);
-  --art-presence: 0.24;
 }
 
 @media (prefers-reduced-motion: no-preference) {
