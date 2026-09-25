@@ -106,7 +106,7 @@ describe('appearance', () => {
   })
 
   it('applies appearance attributes to the root document', () => {
-    // data-theme=dark selects the midnight-navy mode of the aurora preset.
+    // data-theme=dark selects the lamplight mode of the Vellum preset.
     document.documentElement.setAttribute('data-theme', 'dark')
     applyAppearanceToDocument(document, {
       themePreset: 'morning-notebook',
@@ -130,13 +130,13 @@ describe('appearance', () => {
     expect(document.documentElement).toHaveAttribute('data-editor-font', 'literary')
     expect(document.documentElement).toHaveAttribute('data-editor-line-height', 'compact')
     expect(document.documentElement).toHaveAttribute('data-native-shell-material', 'unified')
-    // Midnight-navy aurora surfaces — cool deep navy, no warm parchment anywhere.
-    expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#050d12')
-    expect(document.documentElement.style.getPropertyValue('--background')).toBe('#050d12')
+    // Lamplight surfaces — warm charcoal, never teal-black.
+    expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#12110f')
+    expect(document.documentElement.style.getPropertyValue('--background')).toBe('#12110f')
     expect(document.documentElement.style.getPropertyValue('--editor-line-height')).toBe('1.34')
-    // Aurora teal accent (#26d6c9) is bright enough that filled controls take dark ink.
-    expect(document.documentElement.style.getPropertyValue('--accent-blue')).toBe('#26d6c9')
-    expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#26d6c9')
+    // Lapis accent (#9aa8ff) is bright enough that filled controls take dark ink.
+    expect(document.documentElement.style.getPropertyValue('--accent-blue')).toBe('#9aa8ff')
+    expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#9aa8ff')
     expect(document.documentElement.style.getPropertyValue('--primary-foreground')).toBe('#061217')
     expect(document.documentElement.style.getPropertyValue('--grimoire-code-block-radius')).toBe('8px')
     // Ledger graph uses a flat linear wash, not the old constellation radial glow.

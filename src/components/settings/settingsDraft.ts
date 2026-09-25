@@ -16,7 +16,7 @@ import { trackEvent } from '../../lib/telemetry'
 import {
   resolveConfiguredTranscriptionProvider,
 } from '../../lib/transcriptionProviders'
-import { DEFAULT_THEME_MODE, readStoredThemeMode, type ThemeMode } from '../../lib/themeMode'
+import { DEFAULT_THEME_MODE, resolveInitialThemeMode, type ThemeMode } from '../../lib/themeMode'
 import type { Settings } from '../../types'
 import type { SettingsDraft } from './settingsTypes'
 
@@ -73,7 +73,7 @@ export function createSettingsDraft(
 export function resolveSettingsDraftThemeMode(themeMode: Settings['theme_mode']): ThemeMode {
   if (themeMode) return themeMode
   if (typeof window === 'undefined') return DEFAULT_THEME_MODE
-  return readStoredThemeMode(window.localStorage) ?? DEFAULT_THEME_MODE
+  return resolveInitialThemeMode(window.localStorage)
 }
 
 function resolveTelemetryConsent(settings: Settings, draft: SettingsDraft): boolean | null {

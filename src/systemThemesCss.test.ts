@@ -239,7 +239,7 @@ describe('system theme CSS', () => {
     expect(flagshipSharedCss).toContain('@keyframes grimoire-agent-ready')
   })
 
-  it('keeps flagship notebook accent-green aliases tied to blue accents', () => {
+  it('keeps flagship notebook accent-green aliased to a semantic token, never a raw hex', () => {
     const flagshipNotebookSelectors = [
       '[data-theme-preset="constellation"]',
       '[data-theme-preset="daylight-notebook"][data-theme="light"]',
@@ -261,7 +261,10 @@ describe('system theme CSS', () => {
         .find((line) => line.startsWith('--accent-green:'))
 
       expect(accentGreenDeclaration, selector).toBeDefined()
-      expect(accentGreenDeclaration, selector).toContain('var(--accent-blue)')
+      // The default Vellum preset routes success to teal (DESIGN.md: teal = safe/verified);
+      // retired presets still alias it to their blue accent.
+      const expectedAlias = selector.includes('morning-notebook') ? 'var(--accent-teal)' : 'var(--accent-blue)'
+      expect(accentGreenDeclaration, selector).toContain(expectedAlias)
       expect(accentGreenDeclaration, selector).not.toMatch(/#[0-9a-fA-F]{3,6}/u)
     }
   })
