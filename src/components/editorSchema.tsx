@@ -104,8 +104,38 @@ const MathBlock = createReactBlockSpec(
   },
 )
 
+type ShikiHighlighter = Awaited<ReturnType<NonNullable<typeof codeBlockOptions.createHighlighter>>>
+type CodeToTokensOptions = Parameters<ShikiHighlighter['codeToTokens']>[1]
+
+/**
+ * BlockNote tokenises with the first loaded Shiki theme (github-dark), so code
+ * in light mode rendered near-white on paper. Ask Shiki for both themes as CSS
+ * variables instead (--shiki-light / --shiki-dark) and let EditorTheme.css pick
+ * one per data-theme — no re-highlight when the theme flips.
+ */
+export function withDualThemeTokens(highlighter: ShikiHighlighter): ShikiHighlighter {
+  return new Proxy(highlighter, {
+    get(target, property, receiver) {
+      if (property === 'codeToTokens') {
+        return (code: string, options: CodeToTokensOptions) => {
+          const { theme: _singleTheme, ...rest } = (options ?? {}) as CodeToTokensOptions & { theme?: unknown }
+          void _singleTheme
+          return target.codeToTokens(code, {
+            ...rest,
+            themes: { light: 'github-light', dark: 'github-dark' },
+            defaultColor: false,
+          } as CodeToTokensOptions)
+        }
+      }
+      const value = Reflect.get(target, property, receiver)
+      return typeof value === 'function' ? value.bind(target) : value
+    },
+  })
+}
+
 const codeBlock = createCodeBlockSpec({
   ...codeBlockOptions,
+  createHighlighter: async () => withDualThemeTokens(await codeBlockOptions.createHighlighter!()),
   defaultLanguage: 'text',
 })
 const mathBlock = MathBlock()
