@@ -58,6 +58,16 @@ describe('NoteList rendering', () => {
     expect(chrome.querySelector('.project-workspace-chrome__search-actions')).toBeInTheDocument()
   })
 
+  it('hides the Open/Archived toggle when nothing is archived', () => {
+    renderNoteList({
+      selection: { kind: 'folder', path: 'project' },
+      entries: [makeEntry({ path: '/vault/project/README.md', filename: 'README.md', title: 'README' })],
+    })
+
+    expect(screen.queryByTestId('note-list-state-filter-group')).toBeNull()
+    expect(screen.getByTestId('note-list-file-scope-group')).toBeInTheDocument()
+  })
+
   it('renders folder filters in the upper chrome instead of the list footer', () => {
     renderNoteList({
       selection: { kind: 'folder', path: 'project' },
@@ -66,6 +76,12 @@ describe('NoteList rendering', () => {
           path: '/vault/project/README.md',
           filename: 'README.md',
           title: 'README',
+        }),
+        makeEntry({
+          path: '/vault/project/old-plan.md',
+          filename: 'old-plan.md',
+          title: 'Old plan',
+          archived: true,
         }),
       ],
     })
