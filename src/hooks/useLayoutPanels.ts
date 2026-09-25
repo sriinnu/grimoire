@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type SetStateAction } from 'react'
+import { APP_STORAGE_KEYS } from '../constants/appStorage'
 
 export const COLUMN_MIN_WIDTHS = {
   sidebar: 180,
@@ -13,9 +14,11 @@ const COLUMN_MAX_WIDTHS = {
   inspector: 500,
 } as const
 
+// Sriinnu: Bear-like proportions — the list is for scanning titles, the editor
+// is for writing. 450px of list left the page cramped on a 13" screen.
 const COLUMN_DEFAULT_WIDTHS = {
-  sidebar: 284,
-  noteList: 450,
+  sidebar: 256,
+  noteList: 340,
   inspector: 280,
 } as const
 const FULL_LAYOUT_RESIZE_HANDLES_WIDTH = 12
@@ -77,6 +80,28 @@ function fitNavigationColumns(navigationBudget: number): Pick<InitialLayout, 'si
   return { sidebarWidth, noteListWidth }
 }
 
+/**
+ * The Second Brain inspector is something you open, not something you get on
+ * launch — it starts closed and remembers your last choice.
+ */
+function readStoredInspectorOpen(): boolean | null {
+  try {
+    if (typeof window === 'undefined') return null
+    const stored = window.localStorage.getItem(APP_STORAGE_KEYS.inspectorOpen)
+    return stored === '1' ? true : stored === '0' ? false : null
+  } catch {
+    return null
+  }
+}
+
+function writeStoredInspectorOpen(open: boolean): void {
+  try {
+    window.localStorage.setItem(APP_STORAGE_KEYS.inspectorOpen, open ? '1' : '0')
+  } catch {
+    // Storage unavailable: the choice just won't survive a relaunch.
+  }
+}
+
 function resolveInitialLayout(options?: LayoutPanelOptions): InitialLayout {
   const viewportWidth = getViewportWidth(options)
   const compactInspectorWidth = COLUMN_MIN_WIDTHS.sidebar
@@ -84,9 +109,9 @@ function resolveInitialLayout(options?: LayoutPanelOptions): InitialLayout {
     + COLUMN_DEFAULT_WIDTHS.inspector
     + COLUMN_MIN_WIDTHS.editor
     + FULL_LAYOUT_RESIZE_HANDLES_WIDTH
-  const inspectorCollapsed = options?.initialInspectorCollapsed ?? (
-    viewportWidth !== null && viewportWidth < compactInspectorWidth
-  )
+  const inspectorFits = viewportWidth === null || viewportWidth >= compactInspectorWidth
+  const inspectorCollapsed = options?.initialInspectorCollapsed
+    ?? !(inspectorFits && readStoredInspectorOpen() === true)
   const navigationWidths = viewportWidth === null
     ? { sidebarWidth: COLUMN_DEFAULT_WIDTHS.sidebar, noteListWidth: COLUMN_DEFAULT_WIDTHS.noteList }
     : inspectorCollapsed
@@ -106,7 +131,15 @@ export function useLayoutPanels(options?: LayoutPanelOptions) {
   const [sidebarWidth, setSidebarWidth] = useState(initialLayout.sidebarWidth)
   const [noteListWidth, setNoteListWidth] = useState(initialLayout.noteListWidth)
   const [inspectorWidth, setInspectorWidth] = useState(initialLayout.inspectorWidth)
-  const [inspectorCollapsed, setInspectorCollapsed] = useState(initialLayout.inspectorCollapsed)
+  const [inspectorCollapsed, setInspectorCollapsedState] = useState(initialLayout.inspectorCollapsed)
+  const persistInspectorChoice = options?.initialInspectorCollapsed === undefined
+  const setInspectorCollapsed = useCallback((next: SetStateAction<boolean>) => {
+    setInspectorCollapsedState((previous) => {
+      const collapsed = typeof next === 'function' ? next(previous) : next
+      if (persistInspectorChoice) writeStoredInspectorOpen(!collapsed)
+      return collapsed
+    })
+  }, [persistInspectorChoice])
   const handleSidebarResize = useCallback((delta: number) => setSidebarWidth((w) => clamp(w + delta, COLUMN_MIN_WIDTHS.sidebar, COLUMN_MAX_WIDTHS.sidebar)), [])
   const handleNoteListResize = useCallback((delta: number) => setNoteListWidth((w) => clamp(w + delta, COLUMN_MIN_WIDTHS.noteList, COLUMN_MAX_WIDTHS.noteList)), [])
   const handleInspectorResize = useCallback((delta: number) => setInspectorWidth((w) => clamp(w - delta, COLUMN_MIN_WIDTHS.inspector, COLUMN_MAX_WIDTHS.inspector)), [])

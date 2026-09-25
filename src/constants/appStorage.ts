@@ -14,6 +14,7 @@ export const APP_STORAGE_KEYS = {
   objectStorageLiveProofReportHistory: 'grimoire:object-storage-live-proof-report-history',
   welcomeDismissed: 'grimoire_welcome_dismissed',
   sessionMemory: 'grimoire:session',
+  inspectorOpen: 'grimoire:inspector-open',
 } as const
 
 export const LEGACY_APP_STORAGE_KEYS = {
