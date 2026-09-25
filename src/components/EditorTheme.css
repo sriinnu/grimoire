@@ -143,9 +143,10 @@
 }
 
 .editor__blocknote-container .bn-editor ::selection {
-  /* Was var(--colors-selection) — an undefined token, so editor selection fell
-     back to a dull default. Pick up the aurora accent like the rest of the app. */
-  background: color-mix(in srgb, var(--primary) 28%, transparent);
+  /* Tinted lapis, text keeps its own colour — the global ::selection rule
+     paints text white, which vanished on this pale tint. */
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  color: inherit;
 }
 
 /* Keep BlockNote toolbar/menu icons at a stable size.
@@ -461,6 +462,26 @@
 
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre code .shiki {
   background-color: transparent !important;
+  color: var(--shiki-light);
+}
+
+:root[data-theme="dark"] .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre code .shiki {
+  color: var(--shiki-dark);
+}
+
+/* BlockNote paints the code block container rgb(22 22 22) with 3px padding;
+   around our paper-coloured <pre> that showed as black bars. */
+.editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] > div > select {
+  top: 6px;
+  right: 10px;
+  left: auto;
+  font: 500 11px var(--grimoire-ui-font-family, system-ui, sans-serif);
+  color: var(--text-tertiary, var(--muted-foreground));
 }
 
 /* --- Sandboxed HTML preview --- */
