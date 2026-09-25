@@ -23,7 +23,7 @@ describe('Grimoire panel contract', () => {
     expect(css).toContain('content: none !important')
     expect(css).toContain('thin leading signal')
     expect(css).toContain('width: 2.5px')
-    expect(css).toContain('.note-current-document-state')
+    expect(css).not.toContain('.note-current-document-state')
   })
 
   it('turns Second Brain cards into a section rhythm rather than nested surfaces', () => {

@@ -38,17 +38,10 @@ describe('agent council theme CSS', () => {
     expect(agentCss).toContain('.grimoire-context-capsule__stat')
   })
 
-  it('themes graph package and runway envelope metrics as one source-safe handoff surface', () => {
-    expect(agentCss).toContain('.graph-agent-runway__summary')
-    expect(agentCss).toContain('.graph-agent-package__envelope')
-    expect(agentCss).toContain('.graph-agent-runway__metric')
-    expect(agentCss).toContain('.graph-agent-package__metric')
-    expect(agentCss).toContain('.graph-agent-runway__connector')
-    expect(agentCss).toContain('.graph-agent-runway__marker')
-    expect(agentCss).toContain('grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr))')
+  it('themes the council graph lane (retired runway/package surfaces are gone)', () => {
     expect(agentCss).toContain('.grimoire-agent-council__graph-lane')
-    expect(agentCss).toContain('[data-state="waiting"]')
-    expect(agentCss).toContain('@media (max-width: 720px)')
+    expect(agentCss).not.toContain('.graph-agent-runway__')
+    expect(agentCss).not.toContain('.graph-agent-package__')
   })
 
   it('routes Crystallize review runway through theme-owned materials', () => {

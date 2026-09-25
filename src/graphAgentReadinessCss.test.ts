@@ -17,8 +17,6 @@ describe('graph agent readiness CSS', () => {
     expect(readinessCss).toContain('.graph-canvas-agent-rail strong')
     expect(readinessCss).toContain('.graph-canvas-agent-rail em')
     expect(readinessCss).toContain('.graph-canvas-agent-rail__mark')
-    expect(readinessCss).toContain('.graph-agent-command-center')
-    expect(readinessCss).toContain('.graph-agent-command-center__stack')
     expect(readinessCss).toContain('span[data-state="ready"] .graph-canvas-agent-rail__mark')
     expect(readinessCss).toContain('span[data-state="guarded"] .graph-canvas-agent-rail__mark')
     expect(readinessCss).toContain('span[data-state="blocked"] .graph-canvas-agent-rail__mark')
