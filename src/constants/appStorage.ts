@@ -13,6 +13,7 @@ export const APP_STORAGE_KEYS = {
   objectStorageLiveProofReport: 'grimoire:object-storage-live-proof-report',
   objectStorageLiveProofReportHistory: 'grimoire:object-storage-live-proof-report-history',
   welcomeDismissed: 'grimoire_welcome_dismissed',
+  sessionMemory: 'grimoire:session',
 } as const
 
 export const LEGACY_APP_STORAGE_KEYS = {

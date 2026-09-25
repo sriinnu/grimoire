@@ -13,6 +13,7 @@ import type { SidebarSelection, VaultEntry } from '../types'
 import { refreshPulledVaultState } from '../utils/pulledVaultRefresh'
 import { createPulseDeletedNoteEntry, loadNoteWindowContent, resolveNoteWindowEntry, selectionScreenKey } from './appRuntimeSupport'
 import type { DeferredAppActions } from './useDeferredAppActions'
+import { useSessionMemory } from './useSessionMemory'
 import type { useNativeIntegrations } from './useNativeIntegrations'
 import type { VaultFoundation } from './useVaultFoundation'
 
@@ -24,7 +25,7 @@ export function useNoteWorkspace(
   deferred: DeferredAppActions,
 ) {
   const {
-    dialogs, gitRemoteStatus, handleEnterNeighborhood, handleSetSelection, handleStatusBarSwitchVault,
+    dialogs, effectiveSelection, gitRemoteStatus, handleEnterNeighborhood, handleSetSelection, handleStatusBarSwitchVault,
     isGitVault, noteWindowParams, resolvedPath, selectionRef, setToastMessage, settings, vault,
   } = foundation
   const { conflictResolver } = native
@@ -60,6 +61,16 @@ export function useNoteWorkspace(
     openTabWithContent,
   } = notes
   deferred.closeAllTabs.current = closeAllTabs
+  useSessionMemory({
+    disabled: Boolean(noteWindowParams),
+    vaultPath: resolvedPath,
+    isLoading: vault.isLoading,
+    entries: vault.entries,
+    selection: effectiveSelection,
+    activeTabPath: notes.activeTabPath,
+    onRestoreSelection: handleSetSelection,
+    onRestoreNote: handleSelectNote,
+  })
   const noteWindowActionsRef = useRef({ handleSelectNote, openTabWithContent })
   useEffect(() => {
     noteWindowActionsRef.current = { handleSelectNote, openTabWithContent }
