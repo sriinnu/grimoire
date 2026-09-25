@@ -6,17 +6,12 @@ import { fileURLToPath } from 'node:url'
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(SCRIPT_DIR, '..')
 
-const EXPECTED_ACTIONS = [
-  'actions/checkout@v6',
-  'actions/setup-node@v6',
-  'pnpm/action-setup@v6',
-]
-
-const LEGACY_ACTIONS = [
-  'actions/checkout@v4',
-  'actions/setup-node@v4',
-  'pnpm/action-setup@v4',
-]
+// Actions may be referenced by tag (`@v6`) or pinned to a commit SHA with the
+// version as a trailing comment (`@<sha>  # v6.1.0`), which is how workflows
+// pin third-party code. Both forms count as that major.
+const ACTIONS = ['actions/checkout', 'actions/setup-node', 'pnpm/action-setup']
+const EXPECTED_MAJOR = 6
+const LEGACY_MAJOR = 4
 
 const WORKFLOWS = ['.github/workflows/ci.yml', '.github/workflows/release.yml']
 
@@ -44,6 +39,15 @@ function assertContains(path, text, expected) {
   if (!text.includes(expected)) {
     fail(`${path} must contain ${expected}`)
   }
+}
+
+function usesMajor(text, action, major) {
+  const name = action.replace(/[.*+?^${}()|[\]\\/]/gu, '\\$&')
+  const pattern = new RegExp(
+    `${name}@(?:v${major}(?![0-9])|[0-9a-f]{40}[ \\t]+#[ \\t]*v${major}(?![0-9]))`,
+    'u',
+  )
+  return pattern.test(text)
 }
 
 function assertNotContains(path, text, forbidden) {
@@ -76,12 +80,13 @@ function assertStepTimeout(path, text, stepName, minutes) {
 function verifyWorkflow(path) {
   const text = readText(path)
 
-  for (const action of EXPECTED_ACTIONS) {
-    assertContains(path, text, action)
-  }
-
-  for (const action of LEGACY_ACTIONS) {
-    assertNotContains(path, text, action)
+  for (const action of ACTIONS) {
+    if (!usesMajor(text, action, EXPECTED_MAJOR)) {
+      fail(`${path} must use ${action}@v${EXPECTED_MAJOR} (tag or SHA pinned with a # v${EXPECTED_MAJOR}.x comment)`)
+    }
+    if (usesMajor(text, action, LEGACY_MAJOR)) {
+      fail(`${path} must not use ${action}@v${LEGACY_MAJOR}`)
+    }
   }
 
   assertContains(path, text, "node-version: '24'")
