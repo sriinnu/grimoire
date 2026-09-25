@@ -1,0 +1,47 @@
+/*
+ * Writing focus (see src/lib/writingFocus.ts). While you type, editor chrome
+ * fades out and the side panes dim; any deliberate mouse movement brings it
+ * all back. Fading is slow and returning is quick, so the chrome never feels
+ * like it's lagging behind your hand.
+ */
+.breadcrumb-bar,
+.editor-meta-strip,
+.editor-agent-composer-wrap,
+.status-bar,
+.app__sidebar,
+.app__note-list {
+  transition: opacity 180ms ease-out, filter 180ms ease-out;
+}
+
+/* filter: opacity() rather than opacity — the composer's entrance animation
+   holds `opacity` with fill-mode, which would pin it visible. */
+html[data-writing] .breadcrumb-bar,
+html[data-writing] .editor-meta-strip,
+html[data-writing] .editor-agent-composer-wrap,
+html[data-writing] .status-bar {
+  filter: opacity(0);
+  transition: filter 600ms ease-in 120ms;
+}
+
+html[data-writing] .app__sidebar,
+html[data-writing] .app__note-list {
+  opacity: 0.35;
+  transition: opacity 600ms ease-in 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breadcrumb-bar,
+  .editor-meta-strip,
+  .editor-agent-composer-wrap,
+  .status-bar,
+  .app__sidebar,
+  .app__note-list,
+  html[data-writing] .breadcrumb-bar,
+  html[data-writing] .editor-meta-strip,
+  html[data-writing] .editor-agent-composer-wrap,
+  html[data-writing] .status-bar,
+  html[data-writing] .app__sidebar,
+  html[data-writing] .app__note-list {
+    transition: none;
+  }
+}
