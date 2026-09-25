@@ -31,7 +31,9 @@ button[data-icon-intent][aria-pressed='true'] {
   outline: none;
 }
 
-/* Sidebar labels carry the words; these colours make scan paths immediate. */
+/* Sidebar labels carry the words; these colours make scan paths immediate.
+   DESIGN.md: navigation blue, capture/journals amber, graph/relationships
+   violet, local/safe teal; archive is neutral (it's storage, not a signal). */
 .sidebar-top-nav__tone[data-sidebar-nav-tone='aura'] .sidebar-nav-glyph,
 .sidebar-rail__tone[data-sidebar-rail-tone='aura'] .sidebar-rail__glyph { color: var(--icon-intent-safe); }
 .sidebar-top-nav__tone[data-sidebar-nav-tone='amber'] .sidebar-nav-glyph,
@@ -40,6 +42,8 @@ button[data-icon-intent][aria-pressed='true'] {
 .sidebar-rail__tone[data-sidebar-rail-tone='blue'] .sidebar-rail__glyph { color: var(--icon-intent-navigation); }
 .sidebar-top-nav__tone[data-sidebar-nav-tone='violet'] .sidebar-nav-glyph,
 .sidebar-rail__tone[data-sidebar-rail-tone='violet'] .sidebar-rail__glyph { color: var(--icon-intent-structure); }
+.sidebar-top-nav__tone[data-sidebar-nav-tone='neutral'] .sidebar-nav-glyph,
+.sidebar-rail__tone[data-sidebar-rail-tone='neutral'] .sidebar-rail__glyph { color: var(--text-secondary); }
 
 .sidebar-top-nav__tone[data-sidebar-nav-tone] .sidebar-nav-glyph__icon,
 .sidebar-rail__tone[data-sidebar-rail-tone] .sidebar-rail__glyph > svg { color: currentColor; }
