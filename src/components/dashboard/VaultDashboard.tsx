@@ -35,6 +35,7 @@ import { DashboardCalendarCard } from './DashboardCalendarCard'
 import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
 import { dashboardMomentLabel } from './dashboardMoment'
+import { resolveVaultHealth } from './vaultHealthModel'
 import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import './VaultDashboardLayout.css'
 import './VaultDashboardResponsive.css'
@@ -118,24 +119,25 @@ function DashboardSparkline({ series, label }: { series: number[]; label: string
   )
 }
 
-/** Compact reassurance card: everything is backed up, locally, with a teal check. */
-function VaultHealthCard({ activeNotes }: { activeNotes: number }) {
+/** Honest save/sync state for the vault — never claims more than it knows. */
+function VaultHealthCard(props: Parameters<typeof resolveVaultHealth>[0]) {
+  const health = resolveVaultHealth(props)
   return (
-    <section className="vault-dashboard__panel vault-dashboard__health" data-testid="dashboard-vault-health">
+    <section className="vault-dashboard__panel vault-dashboard__health" data-testid="dashboard-vault-health" data-tone={health.tone}>
       <div className="vault-dashboard__panel-head">
         <div className="vault-dashboard__panel-label">Vault health</div>
       </div>
       <div className="vault-dashboard__health-body">
         <span className="vault-dashboard__health-shield" aria-hidden="true">
           <ShieldCheck size={26} />
-          <span className="vault-dashboard__health-check" aria-hidden="true">
-            <Check size={11} strokeWidth={3} />
-          </span>
+          {health.tone === 'calm' ? (
+            <span className="vault-dashboard__health-check" aria-hidden="true">
+              <Check size={11} strokeWidth={3} />
+            </span>
+          ) : null}
         </span>
-        <strong className="vault-dashboard__health-title">Everything backed up</strong>
-        <span className="vault-dashboard__health-meta">
-          {activeNotes} {activeNotes === 1 ? 'page' : 'pages'} held local
-        </span>
+        <strong className="vault-dashboard__health-title">{health.title}</strong>
+        <span className="vault-dashboard__health-meta">{health.meta}</span>
       </div>
     </section>
   )
@@ -349,9 +351,16 @@ export function VaultDashboard({
 
         <DashboardStatRow stats={heroStats} />
 
+        {/* The most useful thing on the page goes first, not five screens down. */}
+        <DashboardRecentNotesPanel
+          entries={summary.recentEntries}
+          onOpenNote={onOpenNote}
+          protectedCount={summary.recentProtectedCount}
+        />
+
         <DashboardCalendarCard entries={entries} />
 
-        <VaultHealthCard activeNotes={summary.activeNotes} />
+        <VaultHealthCard activeNotes={summary.activeNotes} modifiedCount={modifiedCount} conflictCount={conflictCount} syncStatus={syncStatus} />
 
         <DashboardTodayRunway
           attention={attentionSuggestion}
@@ -365,16 +374,22 @@ export function VaultDashboard({
           summary={summary}
         />
 
-        <Suspense fallback={<DashboardInsightPanelsFallback />}>
-          <DashboardInsightPanels
-            crystallizedTodayCount={summary.crystallizedTodayCount}
-            entries={entries}
-            onCaptureDream={(date) => seedDatedPrompt('dream', date)}
-            onCaptureJournal={(date) => seedDatedPrompt('journal', date)}
-            onStartAsk={(promptSeed) => seedPrompt('ask', promptSeed)}
-            pulseCommits={pulseCommits}
-          />
-        </Suspense>
+        {/* Time Loom, Daily Thread and Dream Forge are there when you want
+            them, folded by default so the page doesn't read as a wall of
+            telemetry (and the Time Loom calendar doesn't double the one above). */}
+        <details className="vault-dashboard__patterns" data-testid="dashboard-patterns">
+          <summary className="vault-dashboard__patterns-summary">Patterns &amp; rhythms</summary>
+          <Suspense fallback={<DashboardInsightPanelsFallback />}>
+            <DashboardInsightPanels
+              crystallizedTodayCount={summary.crystallizedTodayCount}
+              entries={entries}
+              onCaptureDream={(date) => seedDatedPrompt('dream', date)}
+              onCaptureJournal={(date) => seedDatedPrompt('journal', date)}
+              onStartAsk={(promptSeed) => seedPrompt('ask', promptSeed)}
+              pulseCommits={pulseCommits}
+            />
+          </Suspense>
+        </details>
 
         <div className="vault-dashboard__panel vault-dashboard__panel--revisit">
           <div className="vault-dashboard__panel-head">
@@ -428,11 +443,6 @@ export function VaultDashboard({
           </div>
         </div>
 
-        <DashboardRecentNotesPanel
-          entries={summary.recentEntries}
-          onOpenNote={onOpenNote}
-          protectedCount={summary.recentProtectedCount}
-        />
       </section>
     </main>
   )

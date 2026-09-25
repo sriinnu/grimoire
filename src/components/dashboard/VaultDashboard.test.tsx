@@ -78,7 +78,7 @@ describe('VaultDashboard', () => {
     expect(within(calendar).getByTestId('dashboard-calendar-month')).toBeInTheDocument()
     expect(within(calendar).getAllByRole('gridcell')).toHaveLength(42)
     const health = screen.getByTestId('dashboard-vault-health')
-    expect(health).toHaveTextContent('Everything backed up')
+    expect(health).toHaveTextContent('All saved on this device')
     expect(screen.queryByText('Personal Sync')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Vault locality')).not.toBeInTheDocument()
     expect(screen.queryByText('Plain Markdown')).not.toBeInTheDocument()
