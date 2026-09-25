@@ -5,10 +5,14 @@ import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
 
-const DEFAULT_METADATA_FIELDS = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
-type MetadataField = typeof DEFAULT_METADATA_FIELDS[number]
+const SUPPORTED_METADATA_FIELD_LIST = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
+type MetadataField = typeof SUPPORTED_METADATA_FIELD_LIST[number]
 
-const SUPPORTED_METADATA_FIELDS = new Set<string>(DEFAULT_METADATA_FIELDS)
+// 'locality' is opt-in (theme packs can still ask for it): "local markdown" was
+// true of every note, so by default it was a pill with no information in it.
+const DEFAULT_METADATA_FIELDS: readonly MetadataField[] = ['type', 'status', 'owner', 'priority', 'modified']
+
+const SUPPORTED_METADATA_FIELDS = new Set<string>(SUPPORTED_METADATA_FIELD_LIST)
 
 function normalizeMetadataFields(value: string | null): MetadataField[] {
   if (!value) return [...DEFAULT_METADATA_FIELDS]
@@ -78,7 +82,8 @@ function MetaPill({
 /** Compact note intelligence strip shown above the editor body. */
 export function EditorConstellationMeta({ content, entry }: { content: string; entry: VaultEntry }) {
   const visibleFields = useVisibleMetadataFields()
-  const status = propertyText(entry, ['status', 'Status']) ?? entry.status ?? 'active'
+  // Only a status the note actually declares — no invented 'active' default.
+  const status = propertyText(entry, ['status', 'Status']) ?? entry.status ?? null
   const owner = propertyText(entry, ['owner', 'Owner', 'author', 'Author'])
   const priority = propertyText(entry, ['priority', 'Priority'])
   const modified = formatModified(entry)
@@ -86,7 +91,7 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
   return (
     <div className="editor-meta-strip" aria-label="Note metadata" data-testid="editor-meta-strip">
       {visibleFields.has('type') ? <MetaPill field="type" label="type" value={shortType(entry)} /> : null}
-      {visibleFields.has('status') ? (
+      {visibleFields.has('status') && status ? (
         <MetaPill field="status" label="status" value={status} tone={status.toLowerCase() === 'active' ? 'active' : undefined} />
       ) : null}
       {visibleFields.has('owner') && owner ? (
