@@ -34,6 +34,7 @@ import { DashboardHero } from './DashboardHero'
 import { DashboardCalendarCard } from './DashboardCalendarCard'
 import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
+import { dashboardMomentLabel } from './dashboardMoment'
 import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import './VaultDashboardLayout.css'
 import './VaultDashboardResponsive.css'
@@ -310,7 +311,7 @@ export function VaultDashboard({
     <main className="vault-dashboard" data-testid="vault-dashboard">
       <section className="vault-dashboard__grid grimoire-cascade">
         <DashboardHero
-          eyebrowLabel="Grimoire"
+          eyebrowLabel={dashboardMomentLabel(new Date())}
           title={activeNotebookTitle}
           tagline="One living notebook. Capture, connect, and remember — private by default."
           action={(
