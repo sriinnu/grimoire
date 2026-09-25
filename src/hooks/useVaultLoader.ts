@@ -114,12 +114,15 @@ function useNewNoteTracker() {
 function useUnsavedTracker() {
   const [unsavedPaths, setUnsavedPaths] = useState<Set<string>>(new Set())
 
+  // Keep the same Set when nothing changes: this runs on every keystroke, and a
+  // fresh Set each time re-derived getNoteStatus and re-rendered the note list.
   const trackUnsaved = useCallback((path: string) => {
-    setUnsavedPaths((prev) => new Set(prev).add(path))
+    setUnsavedPaths((prev) => (prev.has(path) ? prev : new Set(prev).add(path)))
   }, [])
 
   const clearUnsaved = useCallback((path: string) => {
     setUnsavedPaths((prev) => {
+      if (!prev.has(path)) return prev
       const next = new Set(prev)
       next.delete(path)
       return next
@@ -135,11 +138,12 @@ function usePendingSaveTracker() {
   const [pendingSavePaths, setPendingSavePaths] = useState<Set<string>>(new Set())
 
   const addPendingSave = useCallback((path: string) => {
-    setPendingSavePaths((prev) => new Set(prev).add(path))
+    setPendingSavePaths((prev) => (prev.has(path) ? prev : new Set(prev).add(path)))
   }, [])
 
   const removePendingSave = useCallback((path: string) => {
     setPendingSavePaths((prev) => {
+      if (!prev.has(path)) return prev
       const next = new Set(prev)
       next.delete(path)
       return next
