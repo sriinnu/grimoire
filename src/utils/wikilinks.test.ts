@@ -75,7 +75,8 @@ describe('injectWikilinks', () => {
     const restored = restoreWikilinksInBlocks(injected) as typeof injected
     const [plainBack, richBack] = restored[0].content.rows[0].cells as [Array<{ text: string }>, { content: Array<{ text: string }> }]
     expect(plainBack[0].text).toBe('[[Start Here]]')
-    expect(richBack.content.map((item) => item.text).join('')).toBe('see [[Links|backlinks]]')
+    // Inside a GFM table the alias pipe is escaped so the row doesn't split.
+    expect(richBack.content.map((item) => item.text).join('')).toBe('see [[Links\\|backlinks]]')
     // restore clones: the live editor blocks keep their wikilink nodes
     expect(plainCell[0].type).toBe('wikilink')
   })
@@ -652,5 +653,47 @@ describe('extractSnippet', () => {
     const snippet = extractSnippet(content)
     expect(snippet).toContain('fn main()')
     expect(snippet).toContain('Some text.')
+  })
+})
+
+describe('wikilinks in table cells', () => {
+  const WL_START = '‹WIKILINK:'
+  const WL_END = '›'
+
+  function tableBlock(cells: unknown[]) {
+    return { type: 'table', content: { type: 'tableContent', rows: [{ cells }] } }
+  }
+
+  it('injects wikilinks into tableCell objects, inline arrays and string cells', () => {
+    const blocks = [tableBlock([
+      { type: 'tableCell', props: {}, content: [{ type: 'text', text: `${WL_START}A${WL_END}`, styles: {} }] },
+      [{ type: 'text', text: `x ${WL_START}B${WL_END}`, styles: {} }],
+      `${WL_START}C${WL_END}`,
+      'plain',
+    ])]
+
+    const [table] = injectWikilinks(blocks) as { content: { rows: { cells: unknown[] }[] } }[]
+    const [objCell, arrCell, strCell, plainCell] = table.content.rows[0].cells as [
+      { content: TestBlock[] }, TestBlock[], TestBlock[], string,
+    ]
+    expect(objCell.content).toEqual([{ type: 'wikilink', props: { target: 'A' }, content: undefined }])
+    expect(arrCell[1]).toEqual({ type: 'wikilink', props: { target: 'B' }, content: undefined })
+    expect(strCell).toEqual([{ type: 'wikilink', props: { target: 'C' }, content: undefined }])
+    expect(plainCell).toBe('plain')
+  })
+
+  it('restores [[target]] in cells, escapes alias pipes, and leaves the source blocks untouched', () => {
+    const wikilink = (target: string) => ({ type: 'wikilink', props: { target } })
+    const blocks = [tableBlock([
+      { type: 'tableCell', props: {}, content: [wikilink('Target')] },
+      [wikilink('notes/x|Alias')],
+    ])]
+    const snapshot = JSON.parse(JSON.stringify(blocks))
+
+    const [table] = restoreWikilinksInBlocks(blocks) as { content: { rows: { cells: unknown[] }[] } }[]
+    const [objCell, arrCell] = table.content.rows[0].cells as [{ content: TestBlock[] }, TestBlock[]]
+    expect(objCell.content).toEqual([{ type: 'text', text: '[[Target]]' }])
+    expect(arrCell).toEqual([{ type: 'text', text: '[[notes/x\\|Alias]]' }])
+    expect(blocks).toEqual(snapshot)
   })
 })
