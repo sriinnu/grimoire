@@ -133,7 +133,7 @@ describe('appearance', () => {
     // Lamplight surfaces — warm charcoal, never teal-black.
     expect(document.documentElement.style.getPropertyValue('--surface-editor')).toBe('#12110f')
     expect(document.documentElement.style.getPropertyValue('--background')).toBe('#12110f')
-    expect(document.documentElement.style.getPropertyValue('--editor-line-height')).toBe('1.34')
+    expect(document.documentElement.style.getPropertyValue('--editor-line-height')).toBe('1.45')
     // Lapis accent (#9aa8ff) is bright enough that filled controls take dark ink.
     expect(document.documentElement.style.getPropertyValue('--accent-blue')).toBe('#9aa8ff')
     expect(document.documentElement.style.getPropertyValue('--primary')).toBe('#9aa8ff')

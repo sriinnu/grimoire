@@ -67,23 +67,21 @@
 }
 
 :root[data-theme-preset="morning-notebook"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
-  --grimoire-native-frame-material:
-    radial-gradient(circle at 78% -10%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 22rem),
-    linear-gradient(180deg, var(--surface-app), color-mix(in srgb, var(--surface-editor) 80%, var(--surface-panel)));
-  --grimoire-native-sidebar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 96%, white), var(--surface-sidebar));
-  --grimoire-native-toolbar-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 86%, transparent), color-mix(in srgb, var(--surface-panel) 92%, white));
-  --grimoire-native-card-material:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 96%, var(--surface-editor)), var(--surface-card));
+  /* Vellum is paper on paper: flat surfaces, no lapis glows or sheens. Shadows
+     are built from black, not --text-heading (off-white in Lamplight, which
+     made the page glow at its edges in dark mode). */
+  --grimoire-native-frame-material: var(--surface-app);
+  --grimoire-native-sidebar-material: var(--surface-sidebar);
+  --grimoire-native-toolbar-material: var(--surface-app);
+  --grimoire-native-card-material: var(--surface-card);
   --grimoire-native-card-shadow:
-    0 14px 34px color-mix(in srgb, var(--text-heading) 10%, transparent);
-  --grimoire-native-editor-material:
-    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 4%, transparent), transparent 18rem),
-    linear-gradient(180deg, var(--surface-editor), color-mix(in srgb, var(--surface-editor) 94%, var(--surface-panel)));
-  --grimoire-native-menu-shadow: 0 14px 30px color-mix(in srgb, var(--text-heading) 10%, transparent);
-  --grimoire-native-image-stage-material:
-    linear-gradient(135deg, color-mix(in srgb, var(--surface-editor) 94%, var(--primary) 3%), var(--surface-card));
+    0 1px 2px color-mix(in srgb, black 6%, transparent),
+    0 8px 24px color-mix(in srgb, black 6%, transparent);
+  --grimoire-native-editor-material: var(--surface-app);
+  --grimoire-native-menu-shadow:
+    0 1px 2px color-mix(in srgb, black 8%, transparent),
+    0 12px 28px color-mix(in srgb, black 12%, transparent);
+  --grimoire-native-image-stage-material: var(--surface-card);
 }
 
 :root[data-theme-preset="living-archive"]:not([data-native-shell-material="standard"])[data-native-shell-material] {
@@ -150,9 +148,7 @@
 }
 
 :where([data-theme-preset]) .app {
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--surface-sidebar) 82%, transparent), transparent 21rem),
-    var(--grimoire-native-frame-material);
+  background: var(--grimoire-native-frame-material);
 }
 
 :where([data-theme-preset]) :is(.app-sidebar-panel, .app-sidebar-rail) {

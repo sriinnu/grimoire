@@ -172,9 +172,9 @@
    BlockNote renders H1 without data-level, so we target :has(h1) */
 .editor__blocknote-container .bn-block-outer:has(h1) {
   margin-top: var(--headings-h1-margin-top) !important;
-  margin-bottom: var(--headings-h1-margin-bottom) !important;
-  padding-bottom: 16px !important;
-  border-bottom: 1px solid var(--border-primary);
+  /* No rule under the title: it started 8px off the text column and doubled
+     the H1's own weight. Space does the separating. */
+  margin-bottom: calc(var(--headings-h1-margin-bottom) + 8px) !important;
 }
 .editor__blocknote-container [data-content-type="heading"]:not([data-level]) .bn-inline-content,
 .editor__blocknote-container [data-content-type="heading"][data-level="1"] .bn-inline-content {
@@ -210,6 +210,7 @@
   margin-bottom: var(--headings-h3-margin-bottom) !important;
 }
 .editor__blocknote-container [data-content-type="heading"][data-level="3"] .bn-inline-content {
+  font-family: var(--grimoire-display-font-family, var(--grimoire-editor-font-family));
   font-size: var(--headings-h3-font-size);
   font-weight: var(--headings-h3-font-weight);
   line-height: var(--headings-h3-line-height);
@@ -222,6 +223,7 @@
   margin-bottom: var(--headings-h4-margin-bottom) !important;
 }
 .editor__blocknote-container [data-content-type="heading"][data-level="4"] .bn-inline-content {
+  font-family: var(--grimoire-display-font-family, var(--grimoire-editor-font-family));
   font-size: var(--headings-h4-font-size);
   font-weight: var(--headings-h4-font-weight);
   line-height: var(--headings-h4-line-height);
@@ -447,7 +449,7 @@
 
 .editor__blocknote-container .bn-mantine .bn-extend-button-add-remove-columns {
   cursor: pointer;
-  width: 82px;
+  width: 22px;
 }
 
 .editor__blocknote-container .bn-extend-button-add-remove-columns .grimoire-table-add {
@@ -514,8 +516,15 @@
 }
 
 .editor__blocknote-container [data-content-type="table"] th {
-  background: var(--table-header-background);
+  /* th never got the themed border, so header cells kept BlockNote's #ddd —
+     bright white lines in Lamplight. Header reads as a quiet UI label row. */
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border-color: var(--table-border-color);
   padding: var(--table-cell-padding-vertical) var(--table-cell-padding-horizontal);
+  font-family: var(--grimoire-ui-font-family, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .editor__blocknote-container [data-content-type="table"] td {
