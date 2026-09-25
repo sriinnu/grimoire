@@ -51,3 +51,12 @@ export function getNoteLocationLabel(path: string, vaultPath?: string): string {
   const location = rootRelativeParentSegments(path, resolvedVaultPath).join(' / ')
   return location || getVaultDisplayName(matchedVaultPath || vaultPath ? resolvedVaultPath : undefined)
 }
+
+/**
+ * True when the note sits directly in the notebook root. The note list hides
+ * the location chip for these — "Notebook root" on every row is noise, not
+ * information.
+ */
+export function isNoteAtNotebookRoot(path: string, vaultPath?: string): boolean {
+  return rootRelativeParentSegments(path, vaultPath ?? getCurrentVaultPath()).length === 0
+}

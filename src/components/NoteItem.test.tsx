@@ -162,8 +162,18 @@ describe('NoteItem', () => {
     expect(screen.getByTestId('note-title-icon-cell')).toBeInTheDocument()
     expect(screen.getByTestId('note-title-text')).toHaveClass('note-title-text')
     expect(screen.getByTestId('note-title-text')).toHaveTextContent('Icon aligned note')
-    expect(screen.getByTestId('note-location-chip')).toBeInTheDocument()
+    // Root-level note: the "Notebook root" chip is noise, so the row skips it.
+    expect(screen.queryByTestId('note-location-chip')).toBeNull()
     expect(screen.getByTestId('note-date-row')).toBeInTheDocument()
+  })
+
+  it('drops the ownership row entirely for a root note with no project', () => {
+    const entry = makeEntry({ path: '/Users/sriinnu/Grimoire/todo.md', title: 'Loose thought' })
+
+    render(<NoteItem entry={entry} isSelected={false} typeEntryMap={{}} onClickNote={vi.fn()} />)
+
+    expect(screen.queryByTestId('note-ownership-chips')).toBeNull()
+    expect(screen.getByTestId('note-title-text')).toHaveTextContent('Loose thought')
   })
 
   it('uses the type icon as the title-row leading icon when no custom note icon exists', () => {
