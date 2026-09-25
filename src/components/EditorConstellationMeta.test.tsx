@@ -64,6 +64,15 @@ describe('EditorConstellationMeta', () => {
     expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('1 word')
   })
 
+  it('shows no pills that would read the same on every note', () => {
+    render(<EditorConstellationMeta content="# Plain" entry={makeEntry({ isA: 'Note', status: null })} />)
+
+    const strip = screen.getByTestId('editor-meta-strip')
+    expect(within(strip).queryByText('local markdown')).toBeNull()
+    expect(strip.querySelector('[data-field="status"]')).toBeNull()
+    expect(within(strip).getByText('Note')).toBeInTheDocument()
+  })
+
   it('honors theme-pack metadata field visibility', () => {
     document.documentElement.setAttribute('data-theme-metadata-fields', 'type modified locality')
 
