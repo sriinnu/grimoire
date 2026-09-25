@@ -1,5 +1,4 @@
 import type { MouseEvent as ReactMouseEvent, SVGAttributes, ComponentType } from 'react'
-import { FolderTree } from 'lucide-react'
 import type { VaultEntry } from '../../types'
 import { cn } from '@/lib/utils'
 import { getTypeColor } from '../../utils/typeColors'
@@ -24,15 +23,14 @@ function NoteLocationChip({ locationLabel }: { locationLabel: string }) {
   const location = splitLocationLabel(locationLabel)
 
   return (
-    <div
-      className="note-context-chip note-location-chip inline-flex min-w-0 max-w-full items-center gap-1 self-start rounded border border-border bg-muted/55 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+    <span
+      className="note-meta-item note-location-chip min-w-0 truncate"
       data-testid="note-location-chip"
       title={locationLabel}
     >
-      <FolderTree className="size-3 shrink-0" aria-hidden="true" />
-      {location.parent ? <span className="min-w-0 truncate text-muted-foreground">{location.parent} / </span> : null}
-      <span className="min-w-0 truncate font-semibold text-foreground/85">{location.leaf}</span>
-    </div>
+      {location.parent ? <span>{location.parent} / </span> : null}
+      <span>{location.leaf}</span>
+    </span>
   )
 }
 
@@ -65,7 +63,7 @@ function NoteProjectChip({
   return (
     <span
       className={cn(
-        'note-context-chip note-project-chip inline-flex min-w-0 max-w-full items-center gap-1 self-start rounded border px-1.5 py-0.5 text-[10px] font-semibold',
+        'note-meta-item note-project-chip inline-flex min-w-0 items-center gap-1',
         project.entry && 'cursor-pointer',
       )}
       data-testid="note-project-chip"
@@ -73,11 +71,6 @@ function NoteProjectChip({
         event.preventDefault()
         event.stopPropagation()
         if (event.metaKey && project.entry) onClickNote(project.entry, event)
-      }}
-      style={{
-        backgroundColor: 'var(--muted)',
-        borderColor: `color-mix(in srgb, ${color} 42%, var(--border))`,
-        color: 'var(--foreground)',
       }}
       title={project.entry ? `${project.entry.path} - Cmd-click to open project` : project.label}
       aria-label={`Project ${project.label}`}
@@ -115,7 +108,7 @@ function NoteProjectChips({
       />
       {hiddenProjects.length > 0 ? (
         <span
-          className="note-context-chip note-project-chip note-project-chip--more inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground"
+          className="note-meta-item note-project-chip note-project-chip--more"
           data-testid="note-project-chip-more"
           title={hiddenProjects.map((project) => project.label).join(', ')}
         >
@@ -126,21 +119,22 @@ function NoteProjectChips({
   )
 }
 
-/** Shows a compact folder + project ownership row; root notes skip the folder chip. */
+/**
+ * Folder + project ownership as inline meta items (rendered inside the note's
+ * single meta line, not as a separate chip row). Root notes skip the folder.
+ */
 export function NoteOwnershipChips({
   locationLabel,
   projects,
   typeEntryMap,
   onClickNote,
 }: NoteOwnershipChipsProps) {
-  // Empty label = the note lives at the notebook root; with no project either,
-  // the whole row would be noise, so it doesn't render at all.
   if (!locationLabel && projects.length === 0) return null
 
   return (
-    <div className="flex max-w-full flex-wrap gap-1.5" data-testid="note-ownership-chips">
-      {locationLabel ? <NoteLocationChip locationLabel={locationLabel} /> : null}
+    <span className="note-meta-group" data-testid="note-ownership-chips">
       <NoteProjectChips projects={projects} typeEntryMap={typeEntryMap} onClickNote={onClickNote} />
-    </div>
+      {locationLabel ? <NoteLocationChip locationLabel={locationLabel} /> : null}
+    </span>
   )
 }

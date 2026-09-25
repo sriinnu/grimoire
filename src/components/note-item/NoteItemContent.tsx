@@ -10,6 +10,7 @@ import { NoteOwnershipChips } from './NoteOwnershipChips'
 import { PropertyChips } from './PropertyChips'
 import { getNoteProjectContexts, isProjectContextPropertyName, type NoteProjectContext } from './noteContext'
 import { getFileKindIcon, getTypeIcon } from './typeIcon'
+import './NoteMetaLine.css'
 
 type ChangeStatus = 'modified' | 'added' | 'deleted' | 'untracked' | 'renamed'
 
@@ -90,7 +91,7 @@ function NoteSnippet({ snippet }: { snippet?: string | null }) {
 
   return (
     <div
-      className="text-[12px] leading-[1.5] text-muted-foreground"
+      className="note-snippet text-[13px] leading-[1.45] text-muted-foreground"
       data-testid="note-snippet"
       style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
     >
@@ -170,8 +171,8 @@ function belongsToSignalChips(entry: VaultEntry, projects: NoteProjectContext[])
 }
 
 function getSignalChips(entry: VaultEntry, projects: NoteProjectContext[]): string[] {
+  // The type is already the row's leading icon, so it isn't repeated as text.
   const source = [
-    entry.isA,
     entry.status,
     ...normalizeChipValue(entry.properties.status),
     ...normalizeChipValue(entry.properties.Status),
@@ -183,30 +184,30 @@ function getSignalChips(entry: VaultEntry, projects: NoteProjectContext[]): stri
   return [...new Set(source.map((chip) => chip?.trim()).filter(Boolean) as string[])].slice(0, 4)
 }
 
-function NoteSignalChips({ entry, isSelected, projects }: { entry: VaultEntry; isSelected: boolean; projects: NoteProjectContext[] }) {
-  const chips = getSignalChips(entry, projects).slice(0, isSelected ? 4 : 2)
+function NoteSignalItems({ entry, projects }: { entry: VaultEntry; projects: NoteProjectContext[] }) {
+  // Same count selected or not: the row must not change height on selection.
+  const chips = getSignalChips(entry, projects).slice(0, 2)
   if (chips.length === 0) return null
 
   return (
-    <div className="note-signal-chips flex flex-wrap gap-1.5" aria-label="Note signals">
+    <span className="note-meta-group note-signal-chips" aria-label="Note signals">
       {chips.map((chip) => (
-        <span key={chip} className="note-signal-chip" data-note-chip>
+        <span key={chip} className="note-meta-item note-signal-chip" data-note-chip>
           {chip}
         </span>
       ))}
-    </div>
+    </span>
   )
 }
 
 function NoteTitleRow({
   entry,
   isBinary,
-  isSelected,
   noteStatus,
   TypeIcon,
   typeIconValue,
   typeColor,
-}: Pick<NoteItemContentProps, 'entry' | 'isBinary' | 'isSelected' | 'noteStatus' | 'typeColor'> & {
+}: Pick<NoteItemContentProps, 'entry' | 'isBinary' | 'noteStatus' | 'typeColor'> & {
   TypeIcon: ComponentType<SVGAttributes<SVGSVGElement>>
   typeIconValue?: string | null
 }) {
@@ -222,10 +223,9 @@ function NoteTitleRow({
   return (
     <div
       className={cn(
-        'note-title-row truncate text-[13px] leading-[1.35]',
+        'note-title-row truncate text-[14px] leading-[1.35]',
         'note-title-row--with-icon grid',
-        isBinary ? 'text-muted-foreground' : 'text-foreground',
-        isSelected && !isBinary ? 'font-semibold' : 'font-medium',
+        isBinary ? 'text-muted-foreground font-medium' : 'text-foreground font-semibold',
       )}
       data-title-icon="true"
       data-testid="note-title"
@@ -248,21 +248,37 @@ function NoteTitleRow({
   )
 }
 
-function NoteDateRow({ entry, isSelected }: { entry: VaultEntry; isSelected: boolean }) {
+/**
+ * One quiet meta line under the snippet — "2h ago · Project · Active" — in
+ * place of the old ownership row, signal-chip row and date row. Bear and Apple
+ * Notes carry title, preview and a date; everything else is secondary.
+ */
+function NoteMetaLine({
+  entry,
+  locationLabel,
+  projects,
+  displayProps,
+  typeEntryMap,
+  onClickNote,
+}: Pick<NoteItemContentProps, 'entry' | 'locationLabel' | 'displayProps' | 'typeEntryMap' | 'onClickNote'> & {
+  projects: NoteProjectContext[]
+}) {
   const modifiedLabel = relativeDate(getDisplayDate(entry))
-  const createdLabel = entry.createdAt ? `Created ${relativeDate(entry.createdAt)}` : null
-
-  if (!modifiedLabel && !createdLabel && !isSelected) return null
+  const createdLabel = entry.createdAt ? `Created ${relativeDate(entry.createdAt)}` : undefined
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[10px] text-muted-foreground" data-testid="note-date-row">
-      <span>{modifiedLabel}</span>
-      {isSelected ? (
-        <span className="note-current-document-state justify-self-end text-right" data-testid="note-current-document-state" aria-label="Current document in editor">
-          <span aria-hidden="true" />
-          Current
-        </span>
-      ) : createdLabel && <span className="justify-self-end text-right">{createdLabel}</span>}
+    <div className="note-meta-line" data-testid="note-date-row">
+      {modifiedLabel ? (
+        <span className="note-meta-item note-meta-date" title={createdLabel}>{modifiedLabel}</span>
+      ) : null}
+      <NoteContextChips
+        locationLabel={locationLabel}
+        projects={projects}
+        displayProps={displayProps}
+        typeEntryMap={typeEntryMap}
+        onClickNote={onClickNote}
+      />
+      <NoteSignalItems entry={entry} projects={projects} />
     </div>
   )
 }
@@ -271,7 +287,6 @@ function InteractiveNoteDetails({
   entry,
   locationLabel,
   noteStatus,
-  isSelected,
   displayProps,
   allEntries,
   typeEntryMap,
@@ -291,20 +306,19 @@ function InteractiveNoteDetails({
         TypeIcon={TypeIcon}
         entry={entry}
         isBinary={false}
-        isSelected={isSelected}
         noteStatus={noteStatus}
         typeColor={typeColor}
         typeIconValue={typeIconValue}
       />
-      <NoteContextChips
+      <NoteSnippet snippet={entry.snippet} />
+      <NoteMetaLine
+        entry={entry}
         locationLabel={locationLabel}
         projects={projects}
         displayProps={displayProps}
         typeEntryMap={typeEntryMap}
         onClickNote={onClickNote}
       />
-      <NoteSnippet snippet={entry.snippet} />
-      <NoteSignalChips entry={entry} isSelected={isSelected} projects={projects} />
       <NotePropertySection
         entry={entry}
         displayProps={displayProps}
@@ -312,7 +326,6 @@ function InteractiveNoteDetails({
         typeEntryMap={typeEntryMap}
         onClickNote={onClickNote}
       />
-      <NoteDateRow entry={entry} isSelected={isSelected} />
     </>
   )
 }
@@ -339,13 +352,12 @@ function StandardNoteContent({
   const typeIconValue = entry.fileKind && entry.fileKind !== 'markdown' ? null : te?.icon ?? null
 
   return (
-    <div className="note-content-stack space-y-2" data-title-icon="true" data-testid="note-content-stack">
+    <div className="note-content-stack space-y-1" data-title-icon="true" data-testid="note-content-stack">
       {isBinary ? (
         <NoteTitleRow
           TypeIcon={TypeIcon}
           entry={entry}
           isBinary={true}
-          isSelected={isSelected}
           noteStatus={noteStatus}
           typeColor={typeColor}
           typeIconValue={typeIconValue}

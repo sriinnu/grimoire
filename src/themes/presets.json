@@ -14,7 +14,7 @@
     "editor": { "maxWidth": 820, "lineHeight": 1.6, "headingStyle": "system", "codeBlockStyle": "notebook" },
     "typography": { "ui": "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif", "editor": "'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif", "mono": "'Grimoire Berkeley Mono', 'TX-02 Berkeley Mono', 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace", "display": "'Inter Display', 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif", "label": "'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif" },
     "sidebar": { "artwork": "notebook-mark", "artworkOpacity": 0.16 },
-    "metadataStrip": { "style": "badges", "visibleFields": ["type","status","modified","locality"] },
+    "metadataStrip": { "style": "quiet", "visibleFields": ["type","status","owner","priority","modified"] },
     "density": { "scale": "comfortable" },
     "motion": { "profile": "standard" },
     "visuals": { "graphStyle": "ledger", "canvasStyle": "paper" }
