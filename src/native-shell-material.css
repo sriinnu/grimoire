@@ -57,16 +57,10 @@ body.windows-chrome :is(.sidebar-title-bar, .note-list-chrome-row, .breadcrumb-b
 :root[data-theme="dark"][data-native-shell-material="unified"],
 :root[data-theme="dark"][data-native-shell-material="glass-preview"] {
   --grimoire-native-shell-sheen: color-mix(in srgb, var(--text-secondary) 7%, transparent);
-  --grimoire-native-titlebar-material: linear-gradient(
-    180deg,
-    color-mix(in srgb, #122832 88%, var(--surface-sidebar) 12%),
-    color-mix(in srgb, #071217 78%, var(--surface-app) 22%)
-  );
-  --grimoire-native-sidebar-material: linear-gradient(
-    180deg,
-    color-mix(in srgb, #0a1a21 82%, var(--surface-sidebar) 18%),
-    color-mix(in srgb, #081a21 86%, var(--surface-sidebar) 14%)
-  );
+  /* Lamplight tokens, not literals — the old Aurora hex band painted the
+     note-list header, breadcrumb and inspector header teal-navy on macOS. */
+  --grimoire-native-titlebar-material: color-mix(in srgb, var(--surface-sidebar) 70%, var(--surface-app) 30%);
+  --grimoire-native-sidebar-material: var(--surface-sidebar);
   --grimoire-native-titlebar-border: color-mix(in srgb, var(--border-default) 64%, transparent);
 }
 

@@ -84,9 +84,9 @@
 }
 
 [data-sidebar-preset-preview="morning-notebook"] .sidebar-artwork {
-  --art-accent: #2f6f9e;
-  --art-aura: color-mix(in srgb, #8fcfed 28%, #2f6f9e);
-  --art-page: color-mix(in srgb, #fdfdff 92%, #8fcfed 8%);
+  --art-accent: var(--accent-blue);
+  --art-aura: color-mix(in srgb, var(--accent-blue) 28%, transparent);
+  --art-page: color-mix(in srgb, var(--surface-editor) 92%, var(--accent-blue) 8%);
   --art-presence: 0.2;
 }
 

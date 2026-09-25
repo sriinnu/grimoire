@@ -45,7 +45,7 @@
 
 [data-theme="dark"],
 :root[data-theme="dark"] {
-  --status-bar-popover-solid: #15242c;
+  --status-bar-popover-solid: #1c1a17;
 }
 
 .status-bar {
