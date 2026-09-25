@@ -549,3 +549,10 @@
   transition: none !important;
   animation: none !important;
 }
+
+/* Empty-block prompts: upright and faint, in the page's own face — BlockNote
+   defaults to italic, which read like a notice rather than an invitation. */
+.editor__blocknote-container .bn-inline-content:has(> .ProseMirror-trailingBreak:only-child)::before {
+  font-style: normal;
+  color: var(--text-faint, var(--muted-foreground));
+}

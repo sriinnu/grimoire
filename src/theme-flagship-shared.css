@@ -236,12 +236,26 @@
 }
 
 :where([data-theme-preset="morning-notebook"]) .editor-agent-composer {
+  /* A quiet hairline pill that sits under the text, not a lapis-bordered
+     slab over it; it firms up when you reach for it. */
   justify-content: flex-start;
   width: 100%;
-  min-height: 50px;
-  border: 1px solid color-mix(in srgb, var(--primary) 34%, var(--border-default));
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--surface-card) 86%, transparent);
+  min-height: 40px;
+  padding: 3px 4px;
+  border: 1px solid var(--grimoire-pane-hairline, var(--border-subtle));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-editor) 94%, transparent);
+  opacity: 0.82;
+  transition: opacity 160ms ease-out, border-color 160ms ease-out;
+}
+
+:where([data-theme-preset="morning-notebook"]) .editor-agent-composer:is(:hover, :focus-within) {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border-default));
+}
+
+:where([data-theme-preset="morning-notebook"]) .editor-agent-composer__prompt {
+  min-height: 32px;
 }
 
 :where([data-sidebar-preset-preview="morning-notebook"]) .sidebar-artwork {
