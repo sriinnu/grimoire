@@ -1,7 +1,7 @@
 ---
 type: Type
 icon: notebook
-color: teal
+color: yellow
 sidebar label: Journal
 ---
 

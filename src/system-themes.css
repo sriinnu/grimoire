@@ -47,19 +47,19 @@
 }
 
 [data-theme-preset-preview="morning-notebook"] {
-  --surface-editor: #fdfdff;
-  --foreground: #24313a;
-  --muted-foreground: #607080;
-  --border: #d9dee7;
-  --primary: #2f668e;
+  --surface-editor: #fffdf9;
+  --foreground: #1f1c18;
+  --muted-foreground: #5c554b;
+  --border: #e6e1d6;
+  --primary: #3a4ba8;
 }
 
 [data-theme-preset-preview="morning-notebook"][data-theme-preview="dark"] {
-  --surface-editor: #13171c;
-  --foreground: #e8eaed;
-  --muted-foreground: #adb4bd;
-  --border: #30363d;
-  --primary: #aab6c5;
+  --surface-editor: #12110f;
+  --foreground: #f5f2ea;
+  --muted-foreground: #b5aea2;
+  --border: #2c2925;
+  --primary: #9aa8ff;
 }
 
 [data-theme-preset-preview="living-archive"] {

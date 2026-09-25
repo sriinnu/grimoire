@@ -76,14 +76,14 @@
   --tracking-wide: 0.02em;
   --tracking-caps: 0.06em;
 
-  /* Elevation ladder — composable, cool shadows. Tinted with deep slate-navy so
-     depth reads like lit panes floating over a night sky, never muddy black.
+  /* Elevation ladder — composable shadows tinted with the ink colour, so depth
+     reads like paper lifted off a desk rather than a cool navy haze.
      Replaces ad-hoc per-component box-shadows for a consistent sense of depth. */
-  --elevation-1: 0 1px 2px color-mix(in srgb, #16252f 10%, transparent);
-  --elevation-2: 0 2px 6px color-mix(in srgb, #16252f 12%, transparent);
-  --elevation-3: 0 6px 18px color-mix(in srgb, #16252f 14%, transparent);
-  --elevation-4: 0 14px 34px color-mix(in srgb, #16252f 17%, transparent);
-  --elevation-5: 0 24px 56px color-mix(in srgb, #16252f 22%, transparent);
+  --elevation-1: 0 1px 2px color-mix(in srgb, #1f1c18 10%, transparent);
+  --elevation-2: 0 2px 6px color-mix(in srgb, #1f1c18 12%, transparent);
+  --elevation-3: 0 6px 18px color-mix(in srgb, #1f1c18 14%, transparent);
+  --elevation-4: 0 14px 34px color-mix(in srgb, #1f1c18 17%, transparent);
+  --elevation-5: 0 24px 56px color-mix(in srgb, #1f1c18 22%, transparent);
 
   font-family: var(--grimoire-ui-font-family);
   line-height: var(--leading-normal);
@@ -269,11 +269,11 @@
   /* Lamplight — the dark contract. Warm charcoal surfaces, paper-white text
      (never pure white), a lapis glow; teal stays reserved for local/protected.
      Deeper, higher-opacity shadows so elevation still reads on dark surfaces. */
-  --elevation-1: 0 1px 2px color-mix(in srgb, #01040a 30%, transparent);
-  --elevation-2: 0 2px 8px color-mix(in srgb, #01040a 36%, transparent);
-  --elevation-3: 0 8px 22px color-mix(in srgb, #01040a 42%, transparent);
-  --elevation-4: 0 16px 40px color-mix(in srgb, #01040a 50%, transparent);
-  --elevation-5: 0 26px 64px color-mix(in srgb, #01040a 58%, transparent);
+  --elevation-1: 0 1px 2px color-mix(in srgb, #0b0a09 30%, transparent);
+  --elevation-2: 0 2px 8px color-mix(in srgb, #0b0a09 36%, transparent);
+  --elevation-3: 0 8px 22px color-mix(in srgb, #0b0a09 42%, transparent);
+  --elevation-4: 0 16px 40px color-mix(in srgb, #0b0a09 50%, transparent);
+  --elevation-5: 0 26px 64px color-mix(in srgb, #0b0a09 58%, transparent);
   --surface-app: #141311;
   --surface-sidebar: #11100e;
   --surface-panel: #171614;
