@@ -32,7 +32,7 @@ export function useAppCommandRegistry(
   const {
     activeDeletedFile, activeNoteHasIcon, activeNoteModified, audioTranscription,
     canCustomizeNoteListColumns, changeNoteTypeCommand, handleCaptureDreamCommand,
-    handleCaptureJournalCommand, handleCaptureThoughtCommand, handleCheckForUpdates,
+    handleCaptureJournalCommand, handleCaptureThoughtCommand, handleCheckForUpdates, handleOpenTodayJournalCommand,
     handleRepairVault, handleSetViewMode, handleToggleInspector, insertWeatherSnapshotCommand,
     moveNoteToFolderCommand, noteLayout, noteListColumnsLabel, removeActiveVaultCommand,
     restoreDeletedNoteCommand, restoreVaultAiGuidanceCommand, toggleDiffCommand,
@@ -52,6 +52,7 @@ export function useAppCommandRegistry(
     onCreateNote: notes.handleCreateNoteImmediate,
     onCaptureThought: handleCaptureThoughtCommand,
     onCaptureJournal: handleCaptureJournalCommand,
+    onOpenTodayJournal: handleOpenTodayJournalCommand,
     onCaptureDream: handleCaptureDreamCommand,
     onCreateNoteOfType: notes.handleCreateNoteImmediate,
     onSave: appSave.handleSave,

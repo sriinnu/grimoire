@@ -15,6 +15,7 @@ import { useZoom } from '../hooks/useZoom'
 import { normalizeReleaseChannel } from '../lib/releaseChannel'
 import type { VaultEntry } from '../types'
 import { hasNoteIconValue } from '../utils/noteIcon'
+import { findTodayJournal, todayJournalTitle } from '../utils/todayJournal'
 import {
   focusNoteListContainer,
   isEditableElement,
@@ -41,7 +42,7 @@ export function useAppShellState(
     showGraphModal, showMcpSetupDialog, showWeatherSnapshotDialog, vault, vaultSwitcher,
     visibleNotesRef,
   } = foundation
-  const { handleSelectNote, notes } = workspace
+  const { handleDashboardOpenNote, handleSelectNote, notes } = workspace
   const { handleDiscardFile } = entryWorkspace
   const { entryActions } = gitWorkflow
   const rawToggleRef = useRef<() => void>(() => {})
@@ -317,6 +318,13 @@ export function useAppShellState(
   const handleCaptureThoughtCommand = useCallback(() => openDashboardCapture('note'), [openDashboardCapture])
   const handleCaptureJournalCommand = useCallback(() => openDashboardCapture('journal'), [openDashboardCapture])
   const handleCaptureDreamCommand = useCallback(() => openDashboardCapture('dream'), [openDashboardCapture])
+  // Reflect/Capacities habit: one command lands on today's page, creating it if needed.
+  const handleOpenTodayJournalCommand = useCallback(() => {
+    const existing = findTodayJournal(vault.entries)
+    if (existing) return handleDashboardOpenNote(existing)
+    handleSetSelection({ kind: 'sectionGroup', type: 'Journal' })
+    void notes.handleCreateNote(todayJournalTitle(), 'Journal')
+  }, [handleDashboardOpenNote, handleSetSelection, notes, vault.entries])
   return {
     rawToggleRef, diffToggleRef, sidebarVisible, noteListVisible, sidebarColumnCollapsed,
     noteLayout, toggleNoteLayout, zoom, buildNumber, handleSetViewMode, handleToggleInspector,
@@ -327,7 +335,7 @@ export function useAppShellState(
     activeNoteHasIcon, toggleOrganizedCommand, canCustomizeNoteListColumns,
     restoreDeletedNoteCommand, insertWeatherSnapshotCommand, audioTranscription,
     handleOpenGraphNote, handleCaptureThoughtCommand, handleCaptureJournalCommand,
-    handleCaptureDreamCommand,
+    handleCaptureDreamCommand, handleOpenTodayJournalCommand,
   }
 }
 

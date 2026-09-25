@@ -23,6 +23,8 @@ export interface AppCommandsConfig {
   onCreateNote: () => void
   onCaptureThought?: () => void
   onCaptureJournal?: () => void
+  /** Open today's journal entry, creating it if it doesn't exist yet. */
+  onOpenTodayJournal?: () => void
   onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
@@ -136,6 +138,7 @@ export type CommandRegistryCoreActions = Pick<
   | 'onCreateNote'
   | 'onCaptureThought'
   | 'onCaptureJournal'
+  | 'onOpenTodayJournal'
   | 'onCaptureDream'
   | 'onCreateNoteOfType'
   | 'onSave'
