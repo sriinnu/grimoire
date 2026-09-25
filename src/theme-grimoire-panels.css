@@ -106,25 +106,6 @@
   display: none !important;
 }
 
-:root[data-theme-preset] .note-list-panel .note-current-document-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: color-mix(in srgb, var(--primary) 72%, var(--text-secondary)) !important;
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-:root[data-theme-preset] .note-list-panel .note-current-document-state > span {
-  width: 5px;
-  height: 5px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-}
-
 :root[data-theme-preset] .inspector-panel {
   background: var(--surface-panel) !important;
   background-image: none !important;
