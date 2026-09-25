@@ -53,6 +53,33 @@ describe('injectWikilinks', () => {
   const WL_START = '\u2039WIKILINK:'
   const WL_END = '\u203A'
 
+  it('expands wikilinks inside table cells (both cell shapes) and restores them', () => {
+    const blocks = [{
+      type: 'table',
+      content: {
+        type: 'tableContent',
+        rows: [{
+          cells: [
+            [{ type: 'text', text: `${WL_START}Start Here${WL_END}`, styles: {} }],
+            { type: 'tableCell', props: {}, content: [{ type: 'text', text: `see ${WL_START}Links|backlinks${WL_END}`, styles: {} }] },
+          ],
+        }],
+      },
+    }]
+
+    const injected = injectWikilinks(blocks) as Array<{ content: { rows: Array<{ cells: unknown[] }> } }>
+    const [plainCell, richCell] = injected[0].content.rows[0].cells as [Array<{ type: string }>, { content: Array<{ type: string; props?: { target: string } }> }]
+    expect(plainCell[0]).toMatchObject({ type: 'wikilink', props: { target: 'Start Here' } })
+    expect(richCell.content[1]).toMatchObject({ type: 'wikilink', props: { target: 'Links|backlinks' } })
+
+    const restored = restoreWikilinksInBlocks(injected) as typeof injected
+    const [plainBack, richBack] = restored[0].content.rows[0].cells as [Array<{ text: string }>, { content: Array<{ text: string }> }]
+    expect(plainBack[0].text).toBe('[[Start Here]]')
+    expect(richBack.content.map((item) => item.text).join('')).toBe('see [[Links|backlinks]]')
+    // restore clones: the live editor blocks keep their wikilink nodes
+    expect(plainCell[0].type).toBe('wikilink')
+  })
+
   it('converts placeholder text nodes into wikilink nodes', () => {
     const blocks = [{
       content: [
