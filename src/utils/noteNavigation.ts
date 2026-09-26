@@ -292,18 +292,29 @@ export function scrollToNoteSearchMatch(match: NoteSearchMatch) {
   pulseElement(target)
 }
 
-/** Scrolls a Markdown heading from any outline surface into the active editor. */
-export function scrollToNoteHeading(heading: MarkdownHeading, index: number, headings: MarkdownHeading[]) {
-  const root = getEditorRoot()
-  if (!root) return
+/** Resolves the rendered editor element for a Markdown heading, if it is mounted. */
+export function findNoteHeadingElement(
+  heading: MarkdownHeading,
+  index: number,
+  headings: MarkdownHeading[],
+  root: ParentNode | null = getEditorRoot(),
+): HTMLElement | null {
+  if (!root) return null
 
   const lineTarget = findLineElement(root, heading.line, heading.text)
   const headingTarget = lineTarget?.closest<HTMLElement>(`[data-content-type="heading"], ${HEADING_SELECTOR}`)
+  if (headingTarget) return headingTarget
   const matchingHeadings = getHeadingElements(root).filter((element) => isSameHeading(element, heading))
   const duplicateIndex = countPriorHeadings(headings, index)
-  const target = headingTarget ?? matchingHeadings[duplicateIndex] ?? getHeadingElements(root)[index]
-  if (!target) return
+  return matchingHeadings[duplicateIndex] ?? getHeadingElements(root)[index] ?? null
+}
+
+/** Scrolls a Markdown heading from any outline surface into the active editor. */
+export function scrollToNoteHeading(heading: MarkdownHeading, index: number, headings: MarkdownHeading[]): HTMLElement | null {
+  const target = findNoteHeadingElement(heading, index, headings)
+  if (!target) return null
 
   target.scrollIntoView(navigatorScrollOptions())
   pulseElement(target)
+  return target
 }

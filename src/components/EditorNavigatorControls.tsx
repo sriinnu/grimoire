@@ -153,6 +153,7 @@ export function EditorNavigatorControls({
             title="Table of contents"
             aria-label={`Table of contents, ${countLabel(summary.headingCount, 'heading')}`}
             data-icon-intent="structure"
+            data-navigator-mode="toc"
             onClick={() => openNavigator('toc')}
           >
             <ListTree className="size-[15px]" />

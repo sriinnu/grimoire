@@ -3,6 +3,7 @@ import type { CommandAction } from './types'
 import type { ViewMode } from '../useViewMode'
 import type { NoteLayout } from '../../types'
 import { requestNewAiChat } from '../../utils/aiPromptBridge'
+import { toggleHeadingOutline } from '../../lib/headingOutlinePreference'
 
 const NOTE_LAYOUT_COMMAND_LABELS: Record<NoteLayout, string> = {
   centered: 'Use Left-Aligned Note Layout',
@@ -58,6 +59,7 @@ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
     { id: 'toggle-diff', label: 'Toggle Diff Mode', group: 'View', keywords: ['diff', 'changes', 'git', 'compare', 'version'], enabled: hasActiveNote && activeNoteModified, execute: () => onToggleDiff?.() },
     { id: 'toggle-raw-editor', label: 'Toggle Raw Editor', group: 'View', keywords: ['raw', 'source', 'markdown', 'frontmatter', 'code', 'textarea'], enabled: hasActiveNote && !!onToggleRawEditor, execute: () => onToggleRawEditor?.() },
     buildNoteLayoutCommand(noteLayout, onToggleNoteLayout),
+    { id: 'toggle-outline', label: 'Toggle Outline', group: 'View', keywords: ['outline', 'headings', 'toc', 'table of contents', 'on this page', 'navigate'], enabled: hasActiveNote, execute: toggleHeadingOutline },
     { id: 'toggle-ai-panel', label: 'Toggle AI Panel', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewToggleAiChat), keywords: ['ai', 'agent', 'chat', 'assistant', 'contextual'], enabled: true, execute: () => onToggleAIChat?.() },
     { id: 'new-ai-chat', label: 'New AI chat', group: 'View', keywords: ['ai', 'agent', 'chat', 'assistant', 'new', 'fresh', 'conversation', 'reset'], enabled: true, execute: requestNewAiChat },
     { id: 'open-graph', label: 'Open Knowledge Graph', group: 'View', keywords: ['graph', 'map', 'network', 'links', 'relationships', 'visualization'], enabled: !!onOpenGraph, execute: () => onOpenGraph?.() },

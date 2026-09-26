@@ -4,6 +4,7 @@ import { useCommandRegistry, buildTypeCommands, extractVaultTypes, pluralizeType
 import type { CommandAction } from './useCommandRegistry'
 import { NEW_AI_CHAT_EVENT, OPEN_AI_CHAT_EVENT } from '../utils/aiPromptBridge'
 import { formatShortcutDisplay } from './appCommandCatalog'
+import { isHeadingOutlineEnabled, setHeadingOutlineEnabled } from '../lib/headingOutlinePreference'
 
 function makeConfig(overrides: Record<string, unknown> = {}) {
   return {
@@ -348,6 +349,18 @@ describe('useCommandRegistry', () => {
     cmd!.execute()
 
     expect(onToggleNoteLayout).toHaveBeenCalledOnce()
+  })
+
+  it('exposes a Toggle Outline command that flips the persisted outline preference', () => {
+    setHeadingOutlineEnabled(true)
+    const { result } = renderHook(() => useCommandRegistry(makeConfig()))
+    const cmd = findCommand(result.current, 'toggle-outline')
+
+    expect(cmd).toMatchObject({ label: 'Toggle Outline', group: 'View', enabled: true })
+    cmd!.execute()
+    expect(isHeadingOutlineEnabled()).toBe(false)
+    cmd!.execute()
+    expect(isHeadingOutlineEnabled()).toBe(true)
   })
 
   it('updates note layout command copy when left alignment is active', () => {
