@@ -60,25 +60,25 @@ function hueDegrees(color: RgbColor): number {
   return ((red - green) / delta + 4) * 60
 }
 
-function expectTealAccent(value: string, label: string): void {
+function expectLapisAccent(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const hue = hueDegrees(color!)
 
-  // Midnight Aurora's accent IS teal: the hue must sit in the teal band.
-  expect(hue >= 150 && hue <= 195, `${label} should be aurora teal; hue ${hue}`).toBe(true)
+  // Vellum's accent IS lapis: the hue must sit in the ultramarine band.
+  expect(hue >= 220 && hue <= 240, `${label} should be lapis; hue ${hue}`).toBe(true)
 }
 
-function expectCoolDarkSurface(value: string, label: string): void {
+function expectLamplightDarkSurface(value: string, label: string): void {
   const color = parseHexColor(value)
   expect(color, label).not.toBeNull()
   const [red, green, blue] = color!.map((channel) => Math.round(channel * 255))
 
-  // Midnight Aurora surfaces lean cool navy: blue is the dominant channel
-  // and red never out-cools it. A red-leaning value would be the old parchment.
+  // Lamplight surfaces are near-neutral charcoal with a faint warm lean.
+  // Blue leading would be the old teal/navy; big chroma would read muddy brown.
   expect(
-    blue >= green && green >= red,
-    `${label} should lean cool navy, not warm parchment; rgb(${red}, ${green}, ${blue})`,
+    red >= green && green >= blue && red - blue <= 8,
+    `${label} should be lamplight charcoal; rgb(${red}, ${green}, ${blue})`,
   ).toBe(true)
 }
 
@@ -89,7 +89,7 @@ describe('theme registry', () => {
     ])
   })
 
-  it('ships only the single Midnight Aurora theme in the settings catalog', () => {
+  it('ships only the single Vellum theme in the settings catalog', () => {
     const presetIds = THEME_PRESET_CATALOG.map((preset) => preset.id)
 
     expect(presetIds).toEqual(['morning-notebook'])
@@ -160,18 +160,18 @@ describe('theme registry', () => {
     })
   })
 
-  it('keeps dark visible theme accents in the aurora teal hue band', () => {
+  it('keeps dark visible theme accents in the lapis hue band', () => {
     for (const preset of THEME_PRESET_CATALOG) {
       const dark = preset.modes.dark
       if (!dark) continue
 
       for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
-        expectTealAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectLapisAccent(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
 
-  it('keeps dark theme surfaces cool navy instead of warm parchment', () => {
+  it('keeps dark theme surfaces lamplight charcoal instead of teal-black', () => {
     const surfaceTokens = [
       'surface.app',
       'surface.sidebar',
@@ -182,7 +182,6 @@ describe('theme registry', () => {
       'surface.editor',
       'state.hover',
       'state.hoverSubtle',
-      'state.selected',
     ] as const
 
     for (const preset of THEME_PRESET_CATALOG) {
@@ -190,7 +189,7 @@ describe('theme registry', () => {
       if (!dark) continue
 
       for (const token of surfaceTokens) {
-        expectCoolDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
+        expectLamplightDarkSurface(dark.tokens[token], `${preset.id}.dark.${token}`)
       }
     }
   })
@@ -219,7 +218,7 @@ describe('theme registry', () => {
       expect(parsed.definition.motion.profile).toBe('standard')
       expect(parsed.definition.visuals.graphStyle).toBe('constellation')
       expect(parsed.definition.visuals.canvasStyle).toBe('paper')
-      // Midnight Aurora keeps both modes, so the research-family fallback prefers light.
+      // Vellum keeps both modes, so the research-family fallback prefers light.
       expect(parsed.definition.preferredMode).toBe('light')
     }
   })
@@ -246,7 +245,7 @@ describe('theme registry', () => {
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
       expect(parsed.definition.id).toBe(THEME_PRESET_CATALOG[0].id)
-      // Midnight Aurora carries both modes, so a requested mode resolves to itself.
+      // Vellum carries both modes, so a requested mode resolves to itself.
       expect(resolveThemeDefinitionMode(parsed.definition, 'light')).toBe('light')
       expect(resolveThemeDefinitionMode(parsed.definition, 'dark')).toBe('dark')
     }

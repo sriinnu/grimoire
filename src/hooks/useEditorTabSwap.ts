@@ -4,7 +4,7 @@ import { compactMarkdown } from '../utils/compact-markdown'
 import { serializeMathAwareBlocks } from '../utils/mathMarkdown'
 import { portableImageUrls } from '../utils/vaultImages'
 import { restoreWikilinksInBlocks, splitFrontmatter } from '../utils/wikilinks'
-import { cacheEditorState, readEditorScrollTop } from './editorTabSwapCache'
+import { cacheEditorState } from './editorTabSwapCache'
 import { runTabSwapEffect } from './editorTabSwapSchedule'
 import type { CachedTabState, Editor, PendingLocalContent, Tab } from './editorTabSwapTypes'
 
@@ -90,7 +90,10 @@ function useEditorChangeHandler(options: {
     pendingLocalContentRef.current = { path, content: nextContent }
     cacheEditorState(tabCacheRef.current, path, {
       blocks,
-      scrollTop: readEditorScrollTop(),
+      // Reading scrollTop right after a DOM mutation forces a synchronous
+      // layout on every keystroke. Tab swaps and raw-mode toggles re-read the
+      // live scroll position themselves, so keep the last known value here.
+      scrollTop: tabCacheRef.current.get(path)?.scrollTop ?? 0,
       sourceContent: nextContent,
     })
     onContentChangeRef.current?.(path, nextContent)

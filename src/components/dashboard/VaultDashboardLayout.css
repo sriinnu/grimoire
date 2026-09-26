@@ -382,3 +382,32 @@
   font-size: 13px;
   font-weight: 640;
 }
+
+/* Attention (conflicts, sync trouble): amber, not the calm "safe" teal. */
+.vault-dashboard__health[data-tone="attention"] .vault-dashboard__health-shield {
+  color: var(--feedback-warning-text);
+  background: var(--feedback-warning-bg);
+}
+
+/* Folded insight panels — one quiet disclosure row until opened. */
+.vault-dashboard__patterns {
+  grid-column: 1 / -1;
+}
+
+.vault-dashboard__patterns > :not(summary) {
+  margin-top: 12px;
+}
+
+.vault-dashboard__patterns-summary {
+  cursor: pointer;
+  padding: 10px 2px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  border-top: 1px solid var(--grimoire-hairline, var(--border-subtle));
+  list-style-position: inside;
+}
+
+.vault-dashboard__patterns-summary:hover {
+  color: var(--text-primary);
+}

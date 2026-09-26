@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 describe('system theme CSS', () => {
   const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
   const css = [
-    'system-themes.css', 'theme-system-tokens.css', 'theme-semantic-tokens.css', 'theme-constellation.css',
+    'system-themes.css', 'theme-system-tokens.css', 'theme-semantic-tokens.css',
     'theme-flagship-shared.css', 'theme-editor-navigator.css', 'theme-coherence.css', 'theme-status-bar.css',
     'theme-surface-coherence.css', 'theme-agent-council.css', 'theme-ai-brief.css', 'theme-accessibility.css',
   ].map((file) => readText(`${process.cwd()}/src/${file}`)).join('\n')
@@ -15,7 +15,6 @@ describe('system theme CSS', () => {
   const flagshipSharedCss = readText(`${process.cwd()}/src/theme-flagship-shared.css`)
   const coherenceCss = readText(`${process.cwd()}/src/theme-coherence.css`)
   const statusBarCss = readText(`${process.cwd()}/src/theme-status-bar.css`)
-  const constellationCss = readText(`${process.cwd()}/src/theme-constellation.css`)
   const editorCss = readText(`${process.cwd()}/src/components/Editor.css`)
   const editorHeadingCss = readText(`${process.cwd()}/src/components/EditorHeadingProfiles.css`)
   const editorMetaCss = readText(`${process.cwd()}/src/components/EditorMeta.css`)
@@ -23,11 +22,9 @@ describe('system theme CSS', () => {
   const graphAnimationsCss = readText(`${process.cwd()}/src/graph-animations.css`)
   const agentCouncilThemeCss = readText(`${process.cwd()}/src/theme-agent-council.css`)
   const canvasAttachmentCss = readText(`${process.cwd()}/src/components/canvas/CanvasAttachment.css`)
-  const mainTsx = readText(`${process.cwd()}/src/main.tsx`)
   const noteListChromeCss = ['NoteListChrome.css', 'ProjectWorkspaceChrome.css', 'NoteListFilterRail.css']
     .map((file) => readText(`${process.cwd()}/src/components/note-list/${file}`)).join('\n')
-  const polishCss = readText(`${process.cwd()}/src/theme-polish.css`)
-  const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="living-archive"], [data-theme-preset="daylight-notebook"], [data-theme-preset="morning-notebook"], [data-theme-preset="nocturne"], [data-theme-preset="code-notebook"])'
+  const strongNonConstellationFlagshipSelector = ':is([data-theme-preset="morning-notebook"])'
 
   function getRuleBody(source: string, selector: string): string {
     const ruleStart = source.indexOf(`${selector} {`)
@@ -59,12 +56,8 @@ describe('system theme CSS', () => {
     const navigatorCss = readText(`${process.cwd()}/src/theme-editor-navigator.css`)
     const sidebarCss = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
-    expect(getRuleBody(navigatorCss, '[data-theme-preset="constellation"] .editor-navigator-popover-shell')).toContain('var(--surface-popover)')
     expect(navigatorCss).not.toContain('#08131f')
     expect(navigatorCss).not.toContain('rgba(84, 225, 210')
-    const nocturneSidebar = getRuleBody(sidebarCss, '[data-theme-preset="nocturne"] .app-sidebar-panel')
-    expect(nocturneSidebar).toContain('var(--sidebar-foreground)')
-    expect(nocturneSidebar).not.toContain('var(--sidebar-primary)')
     expect(sidebarCss).not.toContain('var(--accent-yellow)')
     expect(sidebarCss).not.toContain('rgba(155, 255, 122')
   })
@@ -181,38 +174,6 @@ describe('system theme CSS', () => {
     expect(groupBody).toContain('gap: var(--grimoire-block-side-control-gap) !important')
   })
 
-  it('keeps the Graphite Archive editor pane on one paper stack', () => {
-    const lightBody = getRuleBody(polishCss, '[data-theme-preset="living-archive"][data-theme="light"]')
-    const darkBody = getRuleBody(polishCss, '[data-theme-preset="living-archive"][data-theme="dark"]')
-
-    expect(polishCss).toContain('[data-theme-preset="living-archive"] .editor')
-    expect(polishCss).toContain('[data-theme-preset="living-archive"] .breadcrumb-bar')
-    expect(polishCss).toContain('[data-theme-preset="living-archive"] .editor-content-wrapper')
-    expect(polishCss).toContain('[data-theme-preset="living-archive"] :is(.inspector-panel, .ai-panel)')
-    expect(polishCss).not.toContain('--grimoire-brand-gold')
-    expect(polishCss).not.toContain('--grimoire-parchment')
-    expect(polishCss).not.toContain('warm paper')
-    expect(polishCss).toContain('--grimoire-settings-main-material')
-    expect(polishCss).toContain('[data-theme-preset="living-archive"] .ai-panel [data-testid="agent-input"]')
-    expect(getRuleBody(css, ':where(\n  [data-theme-preset="constellation"],\n  [data-theme-preset="daylight-notebook"],\n  [data-theme-preset="morning-notebook"],\n  [data-theme-preset="living-archive"],\n  [data-theme-preset="nocturne"],\n  [data-theme-preset="code-notebook"]\n)')).toContain('--background: var(--surface-editor)')
-    expect(lightBody).toContain('--grimoire-document-page: var(--grimoire-page-tint-2)')
-    expect(darkBody).toContain('--grimoire-document-page: #191d22')
-    expect(darkBody).toContain('--background: var(--surface-app)')
-    expect(getRuleBody(polishCss, '[data-theme-preset="living-archive"] .editor__blocknote-container .bn-container')).toContain('--bn-colors-editor-background: transparent')
-  })
-
-  it('keeps Graphite Archive H3/H4 headings out of the manuscript display font', () => {
-    const h3Body = getRuleBody(polishCss, '[data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="3"] .bn-inline-content')
-    const h4Body = getRuleBody(polishCss, '[data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="4"] .bn-inline-content')
-
-    expect(getRuleBody(flagshipSharedCss, '[data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"][data-level="2"] .bn-inline-content')).toContain('var(--grimoire-display-font-family)')
-    expect(flagshipSharedCss).not.toContain('[data-theme-preset="living-archive"] .editor__blocknote-container [data-content-type="heading"] .bn-inline-content')
-    expect(h3Body).toContain('var(--grimoire-label-font')
-    expect(h4Body).toContain('var(--grimoire-label-font')
-    expect(h3Body).toContain('font-style: normal !important')
-    expect(h4Body).toContain('font-style: normal !important')
-  })
-
   it('keeps flagship editor backgrounds stronger than lazy Editor.css', () => {
     const lazyBlockNoteSelector = '.editor__blocknote-container .bn-container'
     const flagshipBlockNoteSelector = `${strongNonConstellationFlagshipSelector} .editor__blocknote-container .bn-container`
@@ -224,7 +185,9 @@ describe('system theme CSS', () => {
     expect(classOrAttributeCount(flagshipBlockNoteSelector)).toBeGreaterThan(classOrAttributeCount(lazyBlockNoteSelector))
     expect(getRuleBody(css, flagshipMetaSelector)).toContain('display: flex')
     expect(getRuleBody(css, flagshipBlockNoteSelector)).toContain('--bn-colors-editor-background: transparent')
-    expect(getRuleBody(css, flagshipCanvasSelector)).toContain('var(--surface-editor)')
+    // Flat desk behind a flat page (no lapis wash).
+    expect(getRuleBody(css, flagshipCanvasSelector)).toContain('background: var(--surface-app)')
+    expect(getRuleBody(css, flagshipCanvasSelector)).not.toContain('gradient')
   })
 
   it('keeps the light Midnight Aurora primary button foreground at AA contrast', () => {
@@ -239,18 +202,10 @@ describe('system theme CSS', () => {
     expect(flagshipSharedCss).toContain('@keyframes grimoire-agent-ready')
   })
 
-  it('keeps flagship notebook accent-green aliases tied to blue accents', () => {
+  it('keeps flagship notebook accent-green aliased to a semantic token, never a raw hex', () => {
     const flagshipNotebookSelectors = [
-      '[data-theme-preset="constellation"]',
-      '[data-theme-preset="daylight-notebook"][data-theme="light"]',
-      '[data-theme-preset="daylight-notebook"][data-theme="dark"]',
       '[data-theme-preset="morning-notebook"][data-theme="light"]',
       '[data-theme-preset="morning-notebook"][data-theme="dark"]',
-      '[data-theme-preset="living-archive"][data-theme="light"]',
-      '[data-theme-preset="living-archive"][data-theme="dark"]',
-      '[data-theme-preset="nocturne"][data-theme="light"]',
-      '[data-theme-preset="nocturne"][data-theme="dark"]',
-      '[data-theme-preset="code-notebook"]',
     ]
 
     for (const selector of flagshipNotebookSelectors) {
@@ -261,7 +216,10 @@ describe('system theme CSS', () => {
         .find((line) => line.startsWith('--accent-green:'))
 
       expect(accentGreenDeclaration, selector).toBeDefined()
-      expect(accentGreenDeclaration, selector).toContain('var(--accent-blue)')
+      // The default Vellum preset routes success to teal (DESIGN.md: teal = safe/verified);
+      // retired presets still alias it to their blue accent.
+      const expectedAlias = selector.includes('morning-notebook') ? 'var(--accent-teal)' : 'var(--accent-blue)'
+      expect(accentGreenDeclaration, selector).toContain(expectedAlias)
       expect(accentGreenDeclaration, selector).not.toMatch(/#[0-9a-fA-F]{3,6}/u)
     }
   })
@@ -275,8 +233,12 @@ describe('system theme CSS', () => {
     expect(graphAnimationsCss).toContain('.grimoire-graph-package-tether')
   })
 
+  it('gives the shared semantic token layer the editor page background', () => {
+    expect(getRuleBody(css, ':where(\n  [data-theme-preset="morning-notebook"]\n)')).toContain('--background: var(--surface-editor)')
+  })
+
   it('keeps status bar and settings shell material ownership in shared theme layers', () => {
-    for (const source of [flagshipSharedCss, constellationCss, polishCss]) {
+    for (const source of [flagshipSharedCss]) {
       expect(source).not.toContain('.status-bar')
       expect(source).not.toContain('.settings-panel-shell')
       expect(source).not.toContain('.settings-navigation-rail')
@@ -295,16 +257,11 @@ describe('system theme CSS', () => {
     expect(statusBarBody).toContain('var(--status-bar-background)')
   })
 
-  it('keeps constellation surfaces token-driven instead of hard-coded panel islands', () => {
-    expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] .app-shell')).toContain('var(--surface-app)')
-    expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] .note-list-panel')).toContain('var(--surface-panel)')
-    expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] :is(.editor, .editor-scroll-area)')).toContain('var(--surface-editor)')
-    expect(getRuleBody(constellationCss, '[data-theme-preset="constellation"] :is(.inspector-panel, .ai-panel)')).toContain('var(--surface-panel)')
-    expect(getRuleBody(flagshipSharedCss, `${strongNonConstellationFlagshipSelector} .editor-content-wrapper`)).toContain('var(--surface-card)')
+  it('keeps flagship surfaces token-driven instead of hard-coded panel islands', () => {
+    expect(getRuleBody(flagshipSharedCss, `${strongNonConstellationFlagshipSelector} .editor-content-wrapper`)).toContain('background: var(--surface-editor)')
     expect(flagshipSharedCss).toContain(':is(.project-workspace-chrome__overview, .project-workspace-chrome__docs, .note-list-filter-group)')
     expect(flagshipSharedCss).not.toContain(':is(.project-workspace-chrome, .note-list-filter-shelf)')
     expect(flagshipSharedCss).toContain('box-shadow: none')
-    expect(constellationCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
   })
 
   it('routes flagship workspace chrome through shared material tokens', () => {
@@ -364,15 +321,10 @@ describe('system theme CSS', () => {
     expect(agentCouncilThemeCss).not.toMatch(/#[0-9a-f]{3,8}|rgba\(/iu)
   })
 
-  it('loads system theme layers before screenshot polish so final preset tuning wins', () => {
-    expect(mainTsx.indexOf("import './system-themes.css'")).toBeGreaterThanOrEqual(0)
-    expect(mainTsx.indexOf("import './theme-polish.css'")).toBeGreaterThan(mainTsx.indexOf("import './system-themes.css'"))
-  })
-
-  it('declares Nocturne sidebar contrast tokens explicitly in both modes', () => {
+  it('declares Vellum sidebar contrast tokens explicitly in both modes (AA)', () => {
     for (const selector of [
-      '[data-theme-preset="nocturne"][data-theme="light"]',
-      '[data-theme-preset="nocturne"][data-theme="dark"]',
+      '[data-theme-preset="morning-notebook"][data-theme="light"]',
+      '[data-theme-preset="morning-notebook"][data-theme="dark"]',
     ]) {
       const body = getRuleBody(css, selector)
 

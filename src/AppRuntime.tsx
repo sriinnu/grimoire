@@ -275,7 +275,7 @@ function App() {
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-        <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} />
+        <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={(title) => { if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' }); void notes.handleCreateNote(title, 'Note') }} />
         <CommandPalette
           open={dialogs.showCommandPalette}
           commands={commands}

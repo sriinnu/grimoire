@@ -22,18 +22,18 @@ describe('buildPresetOptions', () => {
     const jsonMorning = THEME_PRESET_CATALOG.find((preset) => preset.id === 'morning-notebook')
 
     expect(morning?.swatches).toEqual(jsonMorning?.swatches)
-    // Midnight Aurora identity: deep navy surface, navy card, and teal accent.
-    expect(morning?.swatches).toEqual(['#FBFAF7', '#0D1C23', '#26D6C9'])
+    // Vellum identity: paper surface, lamplight card, and lapis accent.
+    expect(morning?.swatches).toEqual(['#FAF8F3', '#1C1A17', '#9AA8FF'])
   })
 
-  it('exposes a single signature group containing only Midnight Aurora', () => {
+  it('exposes a single signature group containing only Vellum', () => {
     const groups = buildPresetGroups(createTranslator('en'))
 
     expect(groups.map((group) => group.id)).toEqual(['signature'])
     expect(groups[0].options.map((option) => option.value)).toEqual(['morning-notebook'])
   })
 
-  it('models the Midnight Aurora profile as a notebook shell with system writing', () => {
+  it('models the Vellum profile as a notebook shell with system writing', () => {
     const options = buildPresetOptions(createTranslator('en'))
 
     expect(options).toHaveLength(1)

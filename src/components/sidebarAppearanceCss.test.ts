@@ -9,8 +9,6 @@ describe('sidebar appearance CSS', () => {
     const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="code-notebook"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="code-notebook"] .app-sidebar-panel .text-primary')
     expect(css).toContain('--foreground: var(--sidebar-foreground)')
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel .text-primary')
     expect(css).toContain('color: var(--sidebar-foreground)')

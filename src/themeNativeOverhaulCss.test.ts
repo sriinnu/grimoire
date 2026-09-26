@@ -139,29 +139,28 @@ describe('native theme overhaul CSS', () => {
     )
   })
 
-  it('keeps the midnight-aurora dark mode cool navy with teal accents instead of warm amber or brass', () => {
-    const aurora = resolveThemePresetDefinition('morning-notebook')
-    const dark = aurora.modes.dark?.tokens
+  it('keeps the lamplight dark mode charcoal with lapis accents instead of teal-black or brass', () => {
+    const vellum = resolveThemePresetDefinition('morning-notebook')
+    const dark = vellum.modes.dark?.tokens
     expect(dark).toBeDefined()
 
-    expect(dark!['surface.app']).toBe('#071217')
-    expect(dark!['surface.sidebar']).toBe('#081a21')
-    expect(dark!['surface.panel']).toBe('#0a1a21')
-    expect(dark!['surface.editor']).toBe('#050d12')
-    expect(dark!['accent.primary']).toBe('#26d6c9')
+    expect(dark!['surface.app']).toBe('#141311')
+    expect(dark!['surface.sidebar']).toBe('#11100e')
+    expect(dark!['surface.panel']).toBe('#171614')
+    expect(dark!['surface.editor']).toBe('#12110f')
+    expect(dark!['accent.primary']).toBe('#9aa8ff')
 
-    // Teal accents must sit in the cyan-green band (~150-195deg), never amber/brass.
+    // Lapis accents sit in the ultramarine band (~220-240deg), never teal or brass.
     for (const token of ['accent.primary', 'sidebar.primary', 'syntax.link'] as const) {
       const hue = hueDegrees(dark![token])
-      expect(hue > 150 && hue < 195, token).toBe(true)
+      expect(hue > 220 && hue < 240, token).toBe(true)
     }
 
-    // Aurora surfaces are cool-toned: blue channel leads, red trails — not warm candlelit.
+    // Lamplight surfaces are near-neutral charcoal with a faint warm lean.
     for (const token of ['surface.app', 'surface.sidebar', 'surface.panel', 'surface.editor'] as const) {
-      const [red, , blue] = hexToRgb(dark![token])
-      expect(blue, `${token} should be cool (blue leads red)`).toBeGreaterThan(red)
-      const hue = hueDegrees(dark![token])
-      expect(hue > 180 && hue < 260, `${token} should stay in the cool navy band`).toBe(true)
+      const [red, green, blue] = hexToRgb(dark![token])
+      expect(red >= green && green >= blue, `${token} should lean faintly warm`).toBe(true)
+      expect(Math.max(red, green, blue) - Math.min(red, green, blue), `${token} chroma`).toBeLessThanOrEqual(8)
     }
   })
 })

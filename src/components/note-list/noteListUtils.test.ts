@@ -33,6 +33,12 @@ function makeMouseEvent(overrides: Partial<React.MouseEvent> = {}): React.MouseE
 }
 
 describe('resolveHeaderTitle', () => {
+  it('uses the type sidebar label so the header matches the sidebar', () => {
+    const dreamType = { title: 'Dream', sidebarLabel: 'Dreams' } as VaultEntry
+    expect(resolveHeaderTitle({ kind: 'sectionGroup', type: 'Dream' }, dreamType)).toBe('Dreams')
+    expect(resolveHeaderTitle({ kind: 'sectionGroup', type: 'Recipe' }, { title: 'Recipe', sidebarLabel: null } as VaultEntry)).toBe('Recipe')
+  })
+
   it('returns History for the pulse filter', () => {
     const selection: SidebarSelection = { kind: 'filter', filter: 'pulse' }
     expect(resolveHeaderTitle(selection, null)).toBe('History')

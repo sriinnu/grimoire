@@ -1,0 +1,977 @@
+From e7c1e89e3dfeaea1bc7a12e88b04293baa0c711f Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 26 Sep 2026 14:14:38 +0000
+Subject: [PATCH] feat(editor): heading outline rail
+
+Adds a quiet "On this page" rail on the right edge of wide editor
+canvases (>=1100px, >=3 H1-H3 headings). It reuses the navigator TOC's
+Markdown heading source and scrollToNoteHeading jump logic, debounced
+150ms, and highlights the heading in view via rAF-coalesced scroll
+tracking. Clicking also places the caret in the heading. On wide
+canvases the rail replaces the popover TOC launcher; it fades with
+writing focus. Adds a persisted "Toggle Outline" palette command.
+---
+ src/components/EditorNavigatorControls.tsx    |   1 +
+ .../editor-content/EditorContentLayout.tsx    |  42 +++--
+ .../heading-outline/HeadingOutline.css        | 116 +++++++++++++
+ .../HeadingOutlineRail.test.tsx               | 152 ++++++++++++++++++
+ .../heading-outline/HeadingOutlineRail.tsx    |  71 ++++++++
+ .../headingOutlineModel.test.ts               |  57 +++++++
+ .../heading-outline/headingOutlineModel.ts    |  51 ++++++
+ .../useActiveOutlineHeading.ts                |  59 +++++++
+ .../heading-outline/useOutlineHeadings.ts     |  72 +++++++++
+ src/constants/appStorage.ts                   |   1 +
+ src/hooks/commands/viewCommands.ts            |   2 +
+ src/hooks/useCommandRegistry.test.ts          |  13 ++
+ src/lib/headingOutlinePreference.test.ts      |  43 +++++
+ src/lib/headingOutlinePreference.ts           |  47 ++++++
+ src/utils/noteNavigation.ts                   |  23 ++-
+ 15 files changed, 729 insertions(+), 21 deletions(-)
+ create mode 100644 src/components/heading-outline/HeadingOutline.css
+ create mode 100644 src/components/heading-outline/HeadingOutlineRail.test.tsx
+ create mode 100644 src/components/heading-outline/HeadingOutlineRail.tsx
+ create mode 100644 src/components/heading-outline/headingOutlineModel.test.ts
+ create mode 100644 src/components/heading-outline/headingOutlineModel.ts
+ create mode 100644 src/components/heading-outline/useActiveOutlineHeading.ts
+ create mode 100644 src/components/heading-outline/useOutlineHeadings.ts
+ create mode 100644 src/lib/headingOutlinePreference.test.ts
+ create mode 100644 src/lib/headingOutlinePreference.ts
+
+diff --git a/src/components/EditorNavigatorControls.tsx b/src/components/EditorNavigatorControls.tsx
+index c46b193..772deee 100644
+--- a/src/components/EditorNavigatorControls.tsx
++++ b/src/components/EditorNavigatorControls.tsx
+@@ -148,6 +148,7 @@ export function EditorNavigatorControls({
+             title="Table of contents"
+             aria-label={`Table of contents, ${countLabel(summary.headingCount, 'heading')}`}
+             data-icon-intent="structure"
++            data-navigator-mode="toc"
+             onClick={() => openNavigator('toc')}
+           >
+             <ListTree className="size-4" />
+diff --git a/src/components/editor-content/EditorContentLayout.tsx b/src/components/editor-content/EditorContentLayout.tsx
+index 0dcd692..078802b 100644
+--- a/src/components/editor-content/EditorContentLayout.tsx
++++ b/src/components/editor-content/EditorContentLayout.tsx
+@@ -12,6 +12,8 @@ import { VaultImagePreview } from './VaultImagePreview'
+ import { EditorLoadingState } from '../EditorLoadingState'
+ import { EditorConstellationMeta } from '../EditorConstellationMeta'
+ import { EditorAgentComposerBar } from '../EditorAgentComposerBar'
++import { HeadingOutlineRail } from '../heading-outline/HeadingOutlineRail'
++import { useHeadingOutline, type HeadingOutlineState } from '../heading-outline/useOutlineHeadings'
+ 
+ const RawEditorViewSurface = lazy(async () => ({
+   default: (await import('../RawEditorView')).RawEditorView,
+@@ -181,6 +183,7 @@ function EditorCanvas({
+   isDeletedPreview,
+   vaultPath,
+   activeTab,
++  outline,
+ }: Pick<
+   EditorContentModel,
+   | 'showEditor'
+@@ -193,23 +196,26 @@ function EditorCanvas({
+   | 'isDeletedPreview'
+   | 'vaultPath'
+   | 'activeTab'
+->) {
++> & { outline: HeadingOutlineState }) {
+   if (!showEditor) return null
+ 
+   return (
+-    <div className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
+-      <div className="editor-content-wrapper">
+-        <SingleEditorView
+-          activeContent={activeTab?.content ?? ''}
+-          editor={editor}
+-          entries={entries}
+-          onNavigateWikilink={onNavigateWikilink}
+-          onCreateAndOpenNote={onCreateAndOpenNote}
+-          onChange={onEditorChange}
+-          vaultPath={vaultPath}
+-          editable={!isDeletedPreview}
+-        />
++    <div className="editor-canvas-frame">
++      <div ref={outline.scrollRef} className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
++        <div className="editor-content-wrapper">
++          <SingleEditorView
++            activeContent={activeTab?.content ?? ''}
++            editor={editor}
++            entries={entries}
++            onNavigateWikilink={onNavigateWikilink}
++            onCreateAndOpenNote={onCreateAndOpenNote}
++            onChange={onEditorChange}
++            vaultPath={vaultPath}
++            editable={!isDeletedPreview}
++          />
++        </div>
+       </div>
++      {outline.visible ? <HeadingOutlineRail outline={outline} editor={editor} /> : null}
+     </div>
+   )
+ }
+@@ -244,6 +250,7 @@ export function EditorContentLayout(model: EditorContentModel) {
+     rawModeContent,
+     noteLayout,
+   } = model
++  const outline = useHeadingOutline(activeTab?.content ?? '', showEditor && !effectiveRawMode)
+   const rootClassName = cn(
+     'editor-canvas flex flex-1 flex-col min-w-0 min-h-0',
+     noteLayout === 'left' ? 'editor-content-layout--left' : 'editor-content-layout--centered',
+@@ -251,14 +258,18 @@ export function EditorContentLayout(model: EditorContentModel) {
+ 
+   if (!activeTab) {
+     return (
+-      <div className={rootClassName}>
++      <div ref={outline.rootRef} className={rootClassName}>
+         {isLoadingNewTab && showEditor && <EditorLoadingSkeleton />}
+       </div>
+     )
+   }
+ 
+   return (
+-    <div className={rootClassName}>
++    <div
++      ref={outline.rootRef}
++      className={rootClassName}
++      data-outline-rail={outline.visible ? 'visible' : undefined}
++    >
+       <ActiveTabBreadcrumb
+         activeTab={activeTab}
+         barRef={breadcrumbBarRef}
+@@ -322,6 +333,7 @@ export function EditorContentLayout(model: EditorContentModel) {
+         onNavigateWikilink={onNavigateWikilink}
+         onEditorChange={onEditorChange}
+         isDeletedPreview={isDeletedPreview}
++        outline={outline}
+       />
+       {!diffMode && !effectiveRawMode && !model.isImagePreview && !model.isHtmlPreview ? (
+         <EditorAgentComposerBar
+diff --git a/src/components/heading-outline/HeadingOutline.css b/src/components/heading-outline/HeadingOutline.css
+new file mode 100644
+index 0000000..9bfb339
+--- /dev/null
++++ b/src/components/heading-outline/HeadingOutline.css
+@@ -0,0 +1,116 @@
++/* Positioning context for the outline rail; the scroll area keeps its own layout. */
++.editor-canvas-frame {
++  position: relative;
++  display: flex;
++  flex: 1;
++  flex-direction: column;
++  min-width: 0;
++  min-height: 0;
++}
++
++.heading-outline {
++  position: absolute;
++  top: 28px;
++  right: 20px;
++  z-index: 2;
++  width: clamp(132px, calc((100% - var(--editor-max-width, 860px)) / 2 - 36px), 216px);
++  max-height: calc(100% - 56px);
++  overflow-y: auto;
++  scrollbar-width: none;
++  opacity: 0.72;
++  transition: opacity 320ms ease;
++}
++
++.heading-outline::-webkit-scrollbar {
++  display: none;
++}
++
++.heading-outline:hover,
++.heading-outline:focus-within {
++  opacity: 1;
++}
++
++/* Fade with the rest of the chrome while the writer is typing. */
++:root[data-writing]:not([data-writing='false']) .heading-outline:not(:hover):not(:focus-within) {
++  opacity: 0;
++  pointer-events: none;
++}
++
++.heading-outline__label {
++  margin: 0 0 6px;
++  padding-left: 10px;
++  font-size: 11px;
++  letter-spacing: 0.02em;
++  color: var(--muted-foreground);
++}
++
++.heading-outline__list {
++  display: flex;
++  flex-direction: column;
++  gap: 1px;
++  margin: 0;
++  padding: 0;
++  list-style: none;
++}
++
++.heading-outline__item {
++  position: relative;
++  display: block;
++  width: 100%;
++  padding: 3px 6px 3px calc(10px + var(--heading-outline-indent, 0) * 12px);
++  border: 0;
++  border-radius: 4px;
++  background: transparent;
++  color: var(--muted-foreground);
++  font: inherit;
++  font-size: 12.5px;
++  line-height: 1.4;
++  text-align: left;
++  white-space: nowrap;
++  overflow: hidden;
++  text-overflow: ellipsis;
++  cursor: pointer;
++  transition: color 140ms ease;
++}
++
++.heading-outline__item::before {
++  content: "";
++  position: absolute;
++  top: 4px;
++  bottom: 4px;
++  left: 0;
++  width: 2px;
++  border-radius: 2px;
++  background: transparent;
++  transition: background-color 140ms ease;
++}
++
++.heading-outline__item:hover {
++  color: var(--foreground);
++}
++
++.heading-outline__item:focus-visible {
++  outline: 1px solid var(--border);
++  outline-offset: -1px;
++}
++
++.heading-outline__item[data-active='true'] {
++  color: var(--primary);
++}
++
++.heading-outline__item[data-active='true']::before {
++  background: var(--primary);
++}
++
++/* On wide canvases the rail replaces the popover TOC launcher. */
++.editor-canvas[data-outline-rail='visible'] .editor-navigator-controls__button[data-navigator-mode='toc'] {
++  display: none;
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .heading-outline,
++  .heading-outline__item,
++  .heading-outline__item::before {
++    transition: none;
++  }
++}
+diff --git a/src/components/heading-outline/HeadingOutlineRail.test.tsx b/src/components/heading-outline/HeadingOutlineRail.test.tsx
+new file mode 100644
+index 0000000..b641f01
+--- /dev/null
++++ b/src/components/heading-outline/HeadingOutlineRail.test.tsx
+@@ -0,0 +1,152 @@
++import { act, fireEvent, render, renderHook, screen } from '@testing-library/react'
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
++import { APP_STORAGE_KEYS } from '../../constants/appStorage'
++import {
++  resetHeadingOutlinePreferenceForTests,
++  setHeadingOutlineEnabled,
++} from '../../lib/headingOutlinePreference'
++import { extractNoteHeadings } from '../../utils/noteNavigation'
++import { buildOutlineRailItems } from './headingOutlineModel'
++import { HeadingOutlineRail } from './HeadingOutlineRail'
++import { OUTLINE_DEBOUNCE_MS, useHeadingOutline } from './useOutlineHeadings'
++
++const NOTE = '# Intro\n\nText\n\n## Setup\n\nMore\n\n### Details\n'
++
++function mountEditorDom(): HTMLDivElement {
++  const container = document.createElement('div')
++  container.className = 'editor-scroll-area'
++  container.innerHTML = [
++    ['b1', 1, 'Intro'],
++    ['b2', 2, 'Setup'],
++    ['b3', 3, 'Details'],
++  ].map(([id, level, text]) => (
++    `<div class="bn-block-outer" data-id="${id}"><div data-content-type="heading" data-level="${level}"><h${level}>${text}</h${level}></div></div>`
++  )).join('')
++  document.body.append(container)
++  return container
++}
++
++function stubTop(element: Element, top: number) {
++  vi.spyOn(element, 'getBoundingClientRect').mockReturnValue({ top } as DOMRect)
++}
++
++describe('HeadingOutlineRail', () => {
++  let container: HTMLDivElement
++
++  beforeEach(() => {
++    container = mountEditorDom()
++    Element.prototype.scrollIntoView = vi.fn()
++  })
++
++  afterEach(() => {
++    container.remove()
++    vi.restoreAllMocks()
++  })
++
++  function renderRail(editor = { setTextCursorPosition: vi.fn(), focus: vi.fn() }) {
++    const headings = extractNoteHeadings(NOTE)
++    const outline = { headings, items: buildOutlineRailItems(headings), scrollRef: { current: container } }
++    render(<HeadingOutlineRail outline={outline} editor={editor} />)
++    return editor
++  }
++
++  it('lists headings with level indentation', () => {
++    renderRail()
++    const items = screen.getAllByRole('button')
++    expect(items.map((item) => item.textContent)).toEqual(['Intro', 'Setup', 'Details'])
++    expect(items[2].style.getPropertyValue('--heading-outline-indent')).toBe('2')
++    expect(screen.getByRole('navigation', { name: 'On this page' })).toBeInTheDocument()
++  })
++
++  it('scrolls to the heading and places the caret there on click', () => {
++    const editor = renderRail()
++    fireEvent.click(screen.getByRole('button', { name: 'Setup' }))
++
++    const setupHeading = container.querySelector('[data-id="b2"] [data-content-type="heading"]')
++    expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
++    expect(vi.mocked(Element.prototype.scrollIntoView).mock.contexts[0]).toBe(setupHeading)
++    expect(editor.setTextCursorPosition).toHaveBeenCalledWith('b2', 'end')
++    expect(editor.focus).toHaveBeenCalled()
++    expect(screen.getByRole('button', { name: 'Setup' })).toHaveAttribute('aria-current', 'location')
++  })
++
++  it('highlights the heading currently in view as the canvas scrolls', async () => {
++    stubTop(container, 0)
++    const headingEls = container.querySelectorAll('[data-content-type="heading"]')
++    stubTop(headingEls[0], -400)
++    stubTop(headingEls[1], 40)
++    stubTop(headingEls[2], 600)
++    renderRail()
++
++    await act(async () => {
++      container.dispatchEvent(new Event('scroll'))
++      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)))
++    })
++
++    expect(screen.getByRole('button', { name: 'Setup' })).toHaveAttribute('data-active', 'true')
++    expect(screen.getByRole('button', { name: 'Intro' })).not.toHaveAttribute('data-active')
++  })
++})
++
++describe('useHeadingOutline', () => {
++  let observed: Array<(width: number) => void> = []
++
++  beforeEach(() => {
++    vi.useFakeTimers()
++    observed = []
++    vi.stubGlobal('ResizeObserver', class {
++      private callback: ResizeObserverCallback
++      constructor(callback: ResizeObserverCallback) { this.callback = callback }
++      observe() {
++        observed.push((width) => this.callback([{ contentRect: { width } } as ResizeObserverEntry], this as unknown as ResizeObserver))
++      }
++      disconnect() {}
++      unobserve() {}
++    })
++  })
++
++  afterEach(() => {
++    vi.useRealTimers()
++    vi.unstubAllGlobals()
++    localStorage.removeItem(APP_STORAGE_KEYS.headingOutline)
++    resetHeadingOutlinePreferenceForTests()
++  })
++
++  function renderOutline(content: string) {
++    const root = document.createElement('div')
++    return renderHook(({ text }) => {
++      const outline = useHeadingOutline(text, true)
++      outline.rootRef.current = root
++      return outline
++    }, { initialProps: { text: content } })
++  }
++
++  it('shows only on wide canvases with three or more headings, after the debounce', () => {
++    const { result, rerender } = renderOutline('')
++    // The root ref is assigned during render, so re-run effects once it exists.
++    rerender({ text: '' })
++    expect(result.current.visible).toBe(false)
++
++    act(() => observed.forEach((notify) => notify(1200)))
++    rerender({ text: NOTE })
++    expect(result.current.visible).toBe(false)
++
++    act(() => { vi.advanceTimersByTime(OUTLINE_DEBOUNCE_MS) })
++    expect(result.current.items).toHaveLength(3)
++    expect(result.current.visible).toBe(true)
++
++    act(() => observed.forEach((notify) => notify(900)))
++    expect(result.current.visible).toBe(false)
++  })
++
++  it('hides when the persisted toggle is off', () => {
++    const { result, rerender } = renderOutline(NOTE)
++    rerender({ text: NOTE })
++    act(() => observed.forEach((notify) => notify(1400)))
++    act(() => { vi.advanceTimersByTime(OUTLINE_DEBOUNCE_MS) })
++    expect(result.current.visible).toBe(true)
++
++    act(() => setHeadingOutlineEnabled(false))
++    expect(result.current.visible).toBe(false)
++  })
++})
+diff --git a/src/components/heading-outline/HeadingOutlineRail.tsx b/src/components/heading-outline/HeadingOutlineRail.tsx
+new file mode 100644
+index 0000000..c12c3cf
+--- /dev/null
++++ b/src/components/heading-outline/HeadingOutlineRail.tsx
+@@ -0,0 +1,71 @@
++import { useCallback } from 'react'
++import { scrollToNoteHeading } from '../../utils/noteNavigation'
++import type { OutlineRailItem } from './headingOutlineModel'
++import type { HeadingOutlineState } from './useOutlineHeadings'
++import { useActiveOutlineHeading } from './useActiveOutlineHeading'
++import './HeadingOutline.css'
++
++export interface OutlineCaretEditor {
++  setTextCursorPosition: (blockId: string, placement?: 'start' | 'end') => void
++  focus: () => void
++}
++
++function placeCaretInHeading(editor: OutlineCaretEditor | undefined, target: HTMLElement | null) {
++  const blockId = target?.closest<HTMLElement>('[data-id]')?.dataset.id
++  if (!editor || !blockId) return
++  try {
++    editor.setTextCursorPosition(blockId, 'end')
++    editor.focus()
++  } catch {
++    // The block can vanish between render and click; scrolling already happened.
++  }
++}
++
++function OutlineItem({ item, active, onSelect }: {
++  item: OutlineRailItem
++  active: boolean
++  onSelect: (item: OutlineRailItem) => void
++}) {
++  return (
++    <li>
++      <button
++        type="button"
++        className="heading-outline__item"
++        data-level={item.heading.level}
++        data-active={active ? 'true' : undefined}
++        aria-current={active ? 'location' : undefined}
++        style={{ '--heading-outline-indent': item.indent } as React.CSSProperties}
++        title={item.heading.text}
++        onClick={() => onSelect(item)}
++      >
++        {item.heading.text}
++      </button>
++    </li>
++  )
++}
++
++/** Quiet right-edge "On this page" rail for wide editor canvases. */
++export function HeadingOutlineRail({ outline, editor }: {
++  outline: Pick<HeadingOutlineState, 'items' | 'headings' | 'scrollRef'>
++  editor?: OutlineCaretEditor
++}) {
++  const { items, headings, scrollRef } = outline
++  const [activeKey, setActiveKey] = useActiveOutlineHeading(scrollRef, items, headings)
++
++  const handleSelect = useCallback((item: OutlineRailItem) => {
++    const target = scrollToNoteHeading(item.heading, item.index, headings)
++    placeCaretInHeading(editor, target)
++    setActiveKey(item.key)
++  }, [editor, headings, setActiveKey])
++
++  return (
++    <nav className="heading-outline" aria-label="On this page">
++      <p className="heading-outline__label">On this page</p>
++      <ol className="heading-outline__list">
++        {items.map((item) => (
++          <OutlineItem key={item.key} item={item} active={item.key === activeKey} onSelect={handleSelect} />
++        ))}
++      </ol>
++    </nav>
++  )
++}
+diff --git a/src/components/heading-outline/headingOutlineModel.test.ts b/src/components/heading-outline/headingOutlineModel.test.ts
+new file mode 100644
+index 0000000..8b56277
+--- /dev/null
++++ b/src/components/heading-outline/headingOutlineModel.test.ts
+@@ -0,0 +1,57 @@
++import { describe, expect, it } from 'vitest'
++import { extractNoteHeadings } from '../../utils/noteNavigation'
++import {
++  buildOutlineRailItems,
++  pickActiveOutlineIndex,
++  shouldShowOutlineRail,
++} from './headingOutlineModel'
++
++describe('buildOutlineRailItems', () => {
++  it('keeps H1–H3 from the shared heading source with their full-list index', () => {
++    const headings = extractNoteHeadings('# Title\n\n## Setup\n\n#### Deep\n\n### Detail\n')
++    const items = buildOutlineRailItems(headings)
++
++    expect(items.map((item) => [item.heading.text, item.index, item.indent])).toEqual([
++      ['Title', 0, 0],
++      ['Setup', 1, 1],
++      ['Detail', 3, 2],
++    ])
++  })
++
++  it('indents relative to the shallowest level present', () => {
++    const items = buildOutlineRailItems(extractNoteHeadings('## One\n\n### Two\n\n## Three\n'))
++    expect(items.map((item) => item.indent)).toEqual([0, 1, 0])
++  })
++
++  it('ignores headings inside fenced code', () => {
++    const items = buildOutlineRailItems(extractNoteHeadings('# Real\n\n```\n# fake\n```\n'))
++    expect(items.map((item) => item.heading.text)).toEqual(['Real'])
++  })
++})
++
++describe('shouldShowOutlineRail', () => {
++  it('needs the toggle, a wide canvas and at least three headings', () => {
++    expect(shouldShowOutlineRail({ enabled: true, wide: true, itemCount: 3 })).toBe(true)
++    expect(shouldShowOutlineRail({ enabled: true, wide: true, itemCount: 2 })).toBe(false)
++    expect(shouldShowOutlineRail({ enabled: true, wide: false, itemCount: 5 })).toBe(false)
++    expect(shouldShowOutlineRail({ enabled: false, wide: true, itemCount: 5 })).toBe(false)
++  })
++})
++
++describe('pickActiveOutlineIndex', () => {
++  it('picks the last heading above the reading line', () => {
++    expect(pickActiveOutlineIndex([10, 90, 400], 100, false)).toBe(1)
++  })
++
++  it('falls back to the first mounted heading before any has been passed', () => {
++    expect(pickActiveOutlineIndex([null, 300, 600], 100, false)).toBe(1)
++  })
++
++  it('selects the last heading once scrolled to the bottom', () => {
++    expect(pickActiveOutlineIndex([-500, -200, 700], 100, true)).toBe(2)
++  })
++
++  it('returns -1 when nothing is mounted', () => {
++    expect(pickActiveOutlineIndex([null, null], 100, false)).toBe(-1)
++  })
++})
+diff --git a/src/components/heading-outline/headingOutlineModel.ts b/src/components/heading-outline/headingOutlineModel.ts
+new file mode 100644
+index 0000000..4782156
+--- /dev/null
++++ b/src/components/heading-outline/headingOutlineModel.ts
+@@ -0,0 +1,51 @@
++import type { MarkdownHeading } from '@grimoire/markdown-editor'
++
++export const MIN_OUTLINE_HEADINGS = 3
++export const MIN_OUTLINE_CANVAS_WIDTH = 1100
++export const MAX_OUTLINE_LEVEL = 3
++
++export interface OutlineRailItem {
++  key: string
++  heading: MarkdownHeading
++  /** Position in the full heading list, which the shared jump logic expects. */
++  index: number
++  indent: number
++}
++
++/** H1–H3 slice of the shared note headings, indented relative to the shallowest level present. */
++export function buildOutlineRailItems(headings: MarkdownHeading[]): OutlineRailItem[] {
++  const items: OutlineRailItem[] = []
++  let minLevel = MAX_OUTLINE_LEVEL
++  headings.forEach((heading, index) => {
++    if (heading.level > MAX_OUTLINE_LEVEL) return
++    minLevel = Math.min(minLevel, heading.level)
++    items.push({ key: `${heading.slug}:${heading.line}`, heading, index, indent: 0 })
++  })
++  for (const item of items) item.indent = item.heading.level - minLevel
++  return items
++}
++
++export function shouldShowOutlineRail(options: {
++  enabled: boolean
++  wide: boolean
++  itemCount: number
++}): boolean {
++  return options.enabled && options.wide && options.itemCount >= MIN_OUTLINE_HEADINGS
++}
++
++/** Index of the last heading whose top has crossed the reading line. */
++export function pickActiveOutlineIndex(tops: Array<number | null>, readingLine: number, atBottom: boolean): number {
++  let active = -1
++  let lastKnown = -1
++  tops.forEach((top, index) => {
++    if (top === null) return
++    lastKnown = index
++    if (top <= readingLine) active = index
++  })
++  if (atBottom && lastKnown >= 0) return lastKnown
++  if (active === -1) {
++    const firstKnown = tops.findIndex((top) => top !== null)
++    return firstKnown
++  }
++  return active
++}
+diff --git a/src/components/heading-outline/useActiveOutlineHeading.ts b/src/components/heading-outline/useActiveOutlineHeading.ts
+new file mode 100644
+index 0000000..43308a4
+--- /dev/null
++++ b/src/components/heading-outline/useActiveOutlineHeading.ts
+@@ -0,0 +1,59 @@
++import { useEffect, useState } from 'react'
++import type { MarkdownHeading } from '@grimoire/markdown-editor'
++import { findNoteHeadingElement } from '../../utils/noteNavigation'
++import { pickActiveOutlineIndex, type OutlineRailItem } from './headingOutlineModel'
++
++/** Distance below the scroll viewport top that counts as "currently reading". */
++const READING_LINE_OFFSET = 96
++const BOTTOM_SLACK = 4
++const RESOLVE_RETRY_MS = 400
++
++/**
++ * Tracks which rail item is in view. Scroll events are coalesced into one
++ * measurement per animation frame, and heading elements are resolved once per
++ * heading list rather than per frame.
++ */
++export function useActiveOutlineHeading(
++  scrollRef: React.RefObject<HTMLElement | null>,
++  items: OutlineRailItem[],
++  headings: MarkdownHeading[],
++): [string | null, (key: string) => void] {
++  const [activeKey, setActiveKey] = useState<string | null>(null)
++
++  useEffect(() => {
++    const container = scrollRef.current
++    if (!container || items.length === 0) return
++    let elements: Array<HTMLElement | null> = []
++    let frame = 0
++    let resolvedAt = 0
++
++    const resolve = () => {
++      resolvedAt = performance.now()
++      elements = items.map((item) => findNoteHeadingElement(item.heading, item.index, headings, container))
++    }
++    const measure = () => {
++      frame = 0
++      const stale = elements.some((element) => element === null || !element.isConnected)
++      if (stale && performance.now() - resolvedAt > RESOLVE_RETRY_MS) resolve()
++      const viewportTop = container.getBoundingClientRect().top
++      const tops = elements.map((element) => (element ? element.getBoundingClientRect().top : null))
++      const atBottom = container.scrollTop > 0
++        && container.scrollTop + container.clientHeight >= container.scrollHeight - BOTTOM_SLACK
++      const index = pickActiveOutlineIndex(tops, viewportTop + READING_LINE_OFFSET, atBottom)
++      setActiveKey(index >= 0 ? items[index].key : null)
++    }
++    const schedule = () => {
++      if (frame === 0) frame = requestAnimationFrame(measure)
++    }
++
++    resolve()
++    schedule()
++    container.addEventListener('scroll', schedule, { passive: true })
++    return () => {
++      container.removeEventListener('scroll', schedule)
++      if (frame !== 0) cancelAnimationFrame(frame)
++    }
++  }, [scrollRef, items, headings])
++
++  return [activeKey, setActiveKey]
++}
+diff --git a/src/components/heading-outline/useOutlineHeadings.ts b/src/components/heading-outline/useOutlineHeadings.ts
+new file mode 100644
+index 0000000..da1f190
+--- /dev/null
++++ b/src/components/heading-outline/useOutlineHeadings.ts
+@@ -0,0 +1,72 @@
++import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
++import {
++  isHeadingOutlineEnabled,
++  subscribeHeadingOutline,
++} from '../../lib/headingOutlinePreference'
++import { extractNoteHeadings } from '../../utils/noteNavigation'
++import {
++  buildOutlineRailItems,
++  MIN_OUTLINE_CANVAS_WIDTH,
++  shouldShowOutlineRail,
++} from './headingOutlineModel'
++
++export const OUTLINE_DEBOUNCE_MS = 150
++
++export function useHeadingOutlineEnabled(): boolean {
++  return useSyncExternalStore(subscribeHeadingOutline, isHeadingOutlineEnabled, isHeadingOutlineEnabled)
++}
++
++/** Trailing debounce so a burst of keystrokes costs one heading parse once typing pauses. */
++function useDebouncedContent(content: string, active: boolean): string {
++  const [settled, setSettled] = useState(content)
++
++  useEffect(() => {
++    if (!active || settled === content) return
++    const timer = setTimeout(() => setSettled(content), OUTLINE_DEBOUNCE_MS)
++    return () => clearTimeout(timer)
++  }, [active, content, settled])
++
++  return active ? settled : ''
++}
++
++function useWideElement(elementRef: React.RefObject<HTMLElement | null>, active: boolean): boolean {
++  const [wide, setWide] = useState(false)
++
++  useEffect(() => {
++    const element = elementRef.current
++    if (!active || !element) return
++    const update = (width: number) => setWide(width >= MIN_OUTLINE_CANVAS_WIDTH)
++    if (typeof ResizeObserver === 'undefined') {
++      update(element.getBoundingClientRect().width)
++      return
++    }
++    const observer = new ResizeObserver((records) => {
++      const record = records[records.length - 1]
++      if (record) update(record.contentRect.width)
++    })
++    observer.observe(element)
++    return () => observer.disconnect()
++  }, [elementRef, active])
++
++  return active && wide
++}
++
++/**
++ * Right-edge "On this page" state. Uses the same Markdown heading source as the
++ * navigator popover TOC so both surfaces always agree.
++ */
++export function useHeadingOutline(content: string, active: boolean) {
++  const rootRef = useRef<HTMLDivElement | null>(null)
++  const scrollRef = useRef<HTMLDivElement | null>(null)
++  const enabled = useHeadingOutlineEnabled()
++  const tracking = active && enabled
++  const wide = useWideElement(rootRef, tracking)
++  const settledContent = useDebouncedContent(content, tracking && wide)
++  const headings = useMemo(() => (settledContent ? extractNoteHeadings(settledContent) : []), [settledContent])
++  const items = useMemo(() => buildOutlineRailItems(headings), [headings])
++  const visible = shouldShowOutlineRail({ enabled: tracking, wide, itemCount: items.length })
++
++  return { rootRef, scrollRef, headings, items, visible }
++}
++
++export type HeadingOutlineState = ReturnType<typeof useHeadingOutline>
+diff --git a/src/constants/appStorage.ts b/src/constants/appStorage.ts
+index 5c43dc3..b4d5ac2 100644
+--- a/src/constants/appStorage.ts
++++ b/src/constants/appStorage.ts
+@@ -13,6 +13,7 @@ export const APP_STORAGE_KEYS = {
+   objectStorageLiveProofReport: 'grimoire:object-storage-live-proof-report',
+   objectStorageLiveProofReportHistory: 'grimoire:object-storage-live-proof-report-history',
+   welcomeDismissed: 'grimoire_welcome_dismissed',
++  headingOutline: 'grimoire:heading-outline',
+ } as const
+ 
+ export const LEGACY_APP_STORAGE_KEYS = {
+diff --git a/src/hooks/commands/viewCommands.ts b/src/hooks/commands/viewCommands.ts
+index 1d24573..5eed283 100644
+--- a/src/hooks/commands/viewCommands.ts
++++ b/src/hooks/commands/viewCommands.ts
+@@ -3,6 +3,7 @@ import type { CommandAction } from './types'
+ import type { ViewMode } from '../useViewMode'
+ import type { NoteLayout } from '../../types'
+ import { requestNewAiChat } from '../../utils/aiPromptBridge'
++import { toggleHeadingOutline } from '../../lib/headingOutlinePreference'
+ 
+ const NOTE_LAYOUT_COMMAND_LABELS: Record<NoteLayout, string> = {
+   centered: 'Use Left-Aligned Note Layout',
+@@ -58,6 +59,7 @@ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
+     { id: 'toggle-diff', label: 'Toggle Diff Mode', group: 'View', keywords: ['diff', 'changes', 'git', 'compare', 'version'], enabled: hasActiveNote && activeNoteModified, execute: () => onToggleDiff?.() },
+     { id: 'toggle-raw-editor', label: 'Toggle Raw Editor', group: 'View', keywords: ['raw', 'source', 'markdown', 'frontmatter', 'code', 'textarea'], enabled: hasActiveNote && !!onToggleRawEditor, execute: () => onToggleRawEditor?.() },
+     buildNoteLayoutCommand(noteLayout, onToggleNoteLayout),
++    { id: 'toggle-outline', label: 'Toggle Outline', group: 'View', keywords: ['outline', 'headings', 'toc', 'table of contents', 'on this page', 'navigate'], enabled: hasActiveNote, execute: toggleHeadingOutline },
+     { id: 'toggle-ai-panel', label: 'Toggle AI Panel', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewToggleAiChat), keywords: ['ai', 'agent', 'chat', 'assistant', 'contextual'], enabled: true, execute: () => onToggleAIChat?.() },
+     { id: 'new-ai-chat', label: 'New AI chat', group: 'View', keywords: ['ai', 'agent', 'chat', 'assistant', 'new', 'fresh', 'conversation', 'reset'], enabled: true, execute: requestNewAiChat },
+     { id: 'open-graph', label: 'Open Knowledge Graph', group: 'View', keywords: ['graph', 'map', 'network', 'links', 'relationships', 'visualization'], enabled: !!onOpenGraph, execute: () => onOpenGraph?.() },
+diff --git a/src/hooks/useCommandRegistry.test.ts b/src/hooks/useCommandRegistry.test.ts
+index 149efd4..1359f45 100644
+--- a/src/hooks/useCommandRegistry.test.ts
++++ b/src/hooks/useCommandRegistry.test.ts
+@@ -4,6 +4,7 @@ import { useCommandRegistry, buildTypeCommands, extractVaultTypes, pluralizeType
+ import type { CommandAction } from './useCommandRegistry'
+ import { NEW_AI_CHAT_EVENT, OPEN_AI_CHAT_EVENT } from '../utils/aiPromptBridge'
+ import { formatShortcutDisplay } from './appCommandCatalog'
++import { isHeadingOutlineEnabled, setHeadingOutlineEnabled } from '../lib/headingOutlinePreference'
+ 
+ function makeConfig(overrides: Record<string, unknown> = {}) {
+   return {
+@@ -350,6 +351,18 @@ describe('useCommandRegistry', () => {
+     expect(onToggleNoteLayout).toHaveBeenCalledOnce()
+   })
+ 
++  it('exposes a Toggle Outline command that flips the persisted outline preference', () => {
++    setHeadingOutlineEnabled(true)
++    const { result } = renderHook(() => useCommandRegistry(makeConfig()))
++    const cmd = findCommand(result.current, 'toggle-outline')
++
++    expect(cmd).toMatchObject({ label: 'Toggle Outline', group: 'View', enabled: true })
++    cmd!.execute()
++    expect(isHeadingOutlineEnabled()).toBe(false)
++    cmd!.execute()
++    expect(isHeadingOutlineEnabled()).toBe(true)
++  })
++
+   it('updates note layout command copy when left alignment is active', () => {
+     const config = makeConfig({ noteLayout: 'left' })
+     const { result } = renderHook(() => useCommandRegistry(config))
+diff --git a/src/lib/headingOutlinePreference.test.ts b/src/lib/headingOutlinePreference.test.ts
+new file mode 100644
+index 0000000..56d8df2
+--- /dev/null
++++ b/src/lib/headingOutlinePreference.test.ts
+@@ -0,0 +1,43 @@
++import { afterEach, describe, expect, it, vi } from 'vitest'
++import { APP_STORAGE_KEYS } from '../constants/appStorage'
++import {
++  isHeadingOutlineEnabled,
++  resetHeadingOutlinePreferenceForTests,
++  subscribeHeadingOutline,
++  toggleHeadingOutline,
++} from './headingOutlinePreference'
++
++describe('headingOutlinePreference', () => {
++  afterEach(() => {
++    localStorage.removeItem(APP_STORAGE_KEYS.headingOutline)
++    resetHeadingOutlinePreferenceForTests()
++  })
++
++  it('defaults to enabled', () => {
++    resetHeadingOutlinePreferenceForTests()
++    expect(isHeadingOutlineEnabled()).toBe(true)
++  })
++
++  it('persists toggles and notifies subscribers', () => {
++    resetHeadingOutlinePreferenceForTests()
++    const listener = vi.fn()
++    const unsubscribe = subscribeHeadingOutline(listener)
++
++    toggleHeadingOutline()
++    expect(isHeadingOutlineEnabled()).toBe(false)
++    expect(localStorage.getItem(APP_STORAGE_KEYS.headingOutline)).toBe('0')
++    expect(listener).toHaveBeenCalledTimes(1)
++
++    toggleHeadingOutline()
++    expect(localStorage.getItem(APP_STORAGE_KEYS.headingOutline)).toBe('1')
++    unsubscribe()
++    toggleHeadingOutline()
++    expect(listener).toHaveBeenCalledTimes(2)
++  })
++
++  it('restores a stored off state', () => {
++    localStorage.setItem(APP_STORAGE_KEYS.headingOutline, '0')
++    resetHeadingOutlinePreferenceForTests()
++    expect(isHeadingOutlineEnabled()).toBe(false)
++  })
++})
+diff --git a/src/lib/headingOutlinePreference.ts b/src/lib/headingOutlinePreference.ts
+new file mode 100644
+index 0000000..a0a16c1
+--- /dev/null
++++ b/src/lib/headingOutlinePreference.ts
+@@ -0,0 +1,47 @@
++import { APP_STORAGE_KEYS } from '../constants/appStorage'
++
++// Kept dependency-free: the command palette imports this on the boot path,
++// while the outline rail itself lives in the lazy editor chunk.
++type Listener = () => void
++
++const listeners = new Set<Listener>()
++
++function readStoredPreference(): boolean {
++  try {
++    return localStorage.getItem(APP_STORAGE_KEYS.headingOutline) !== '0'
++  } catch {
++    return true
++  }
++}
++
++let enabled = readStoredPreference()
++
++export function isHeadingOutlineEnabled(): boolean {
++  return enabled
++}
++
++export function setHeadingOutlineEnabled(next: boolean): void {
++  if (next === enabled) return
++  enabled = next
++  try {
++    localStorage.setItem(APP_STORAGE_KEYS.headingOutline, next ? '1' : '0')
++  } catch {
++    // Storage may be unavailable; the in-memory value still applies.
++  }
++  listeners.forEach((listener) => listener())
++}
++
++export function toggleHeadingOutline(): void {
++  setHeadingOutlineEnabled(!enabled)
++}
++
++export function subscribeHeadingOutline(listener: Listener): () => void {
++  listeners.add(listener)
++  return () => {
++    listeners.delete(listener)
++  }
++}
++
++export function resetHeadingOutlinePreferenceForTests(): void {
++  enabled = readStoredPreference()
++}
+diff --git a/src/utils/noteNavigation.ts b/src/utils/noteNavigation.ts
+index 35ac6ad..cfb6b11 100644
+--- a/src/utils/noteNavigation.ts
++++ b/src/utils/noteNavigation.ts
+@@ -292,18 +292,29 @@ export function scrollToNoteSearchMatch(match: NoteSearchMatch) {
+   pulseElement(target)
+ }
+ 
+-/** Scrolls a Markdown heading from any outline surface into the active editor. */
+-export function scrollToNoteHeading(heading: MarkdownHeading, index: number, headings: MarkdownHeading[]) {
+-  const root = getEditorRoot()
+-  if (!root) return
++/** Resolves the rendered editor element for a Markdown heading, if it is mounted. */
++export function findNoteHeadingElement(
++  heading: MarkdownHeading,
++  index: number,
++  headings: MarkdownHeading[],
++  root: ParentNode | null = getEditorRoot(),
++): HTMLElement | null {
++  if (!root) return null
+ 
+   const lineTarget = findLineElement(root, heading.line, heading.text)
+   const headingTarget = lineTarget?.closest<HTMLElement>(`[data-content-type="heading"], ${HEADING_SELECTOR}`)
++  if (headingTarget) return headingTarget
+   const matchingHeadings = getHeadingElements(root).filter((element) => isSameHeading(element, heading))
+   const duplicateIndex = countPriorHeadings(headings, index)
+-  const target = headingTarget ?? matchingHeadings[duplicateIndex] ?? getHeadingElements(root)[index]
+-  if (!target) return
++  return matchingHeadings[duplicateIndex] ?? getHeadingElements(root)[index] ?? null
++}
++
++/** Scrolls a Markdown heading from any outline surface into the active editor. */
++export function scrollToNoteHeading(heading: MarkdownHeading, index: number, headings: MarkdownHeading[]): HTMLElement | null {
++  const target = findNoteHeadingElement(heading, index, headings)
++  if (!target) return null
+ 
+   target.scrollIntoView(navigatorScrollOptions())
+   pulseElement(target)
++  return target
+ }
+-- 
+2.43.0
+

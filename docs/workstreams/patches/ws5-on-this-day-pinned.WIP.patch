@@ -1,0 +1,714 @@
+diff --git a/src/components/dashboard/VaultDashboard.tsx b/src/components/dashboard/VaultDashboard.tsx
+index eb1bd08..82e8333 100644
+--- a/src/components/dashboard/VaultDashboard.tsx
++++ b/src/components/dashboard/VaultDashboard.tsx
+@@ -21,6 +21,10 @@ import type { DashboardCaptureTemplateId, DreamTemplateId, JournalTemplateId } f
+ import { buildDashboardSummary } from '../../utils/dashboardModel'
+ import { formatTypeCount } from '../../utils/notebookCountLabels'
+ import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
++import { DashboardOnThisDay } from './DashboardOnThisDay'
++import { DashboardPinnedRow } from './DashboardPinnedRow'
++import { selectOnThisDay } from '../../utils/onThisDay'
++import { selectPinnedEntries } from '../../utils/pinnedPages'
+ import { DashboardInsightPanelsFallback } from './DashboardInsightPanelsFallback'
+ import { DashboardTodayRunway } from './DashboardTodayRunway'
+ import {
+@@ -170,6 +174,8 @@ export function VaultDashboard({
+   const [askContextPreview, setAskContextPreview] = useState<DashboardAskContextPreviewModel | null>(null)
+   const inputRef = useRef<HTMLTextAreaElement>(null)
+   const summary = useMemo(() => buildDashboardSummary(entries), [entries])
++  const pinnedEntries = useMemo(() => selectPinnedEntries(entries), [entries])
++  const onThisDayItems = useMemo(() => selectOnThisDay(entries), [entries])
+   const attentionSuggestion = useMemo(
+     () => buildAttentionModeSuggestion({ conflictCount, modifiedCount, summary, syncStatus }),
+     [conflictCount, modifiedCount, summary, syncStatus],
+@@ -349,6 +355,8 @@ export function VaultDashboard({
+           />
+         </DashboardHero>
+ 
++        <DashboardPinnedRow entries={pinnedEntries} onOpenNote={onOpenNote} />
++
+         <DashboardStatRow stats={heroStats} />
+ 
+         {/* The most useful thing on the page goes first, not five screens down. */}
+@@ -358,6 +366,8 @@ export function VaultDashboard({
+           protectedCount={summary.recentProtectedCount}
+         />
+ 
++        <DashboardOnThisDay items={onThisDayItems} onOpenNote={onOpenNote} />
++
+         <DashboardCalendarCard entries={entries} />
+ 
+         <VaultHealthCard activeNotes={summary.activeNotes} modifiedCount={modifiedCount} conflictCount={conflictCount} syncStatus={syncStatus} />
+diff --git a/src/mock-tauri/mock-entries.ts b/src/mock-tauri/mock-entries.ts
+index e92aa78..485afda 100644
+--- a/src/mock-tauri/mock-entries.ts
++++ b/src/mock-tauri/mock-entries.ts
+@@ -151,6 +151,8 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
+     relationships: { 'Belongs to': [LEARNING_PROJECT], 'Related to': ['[[grimoire-start-here]]'], 'Type': ['[[note]]'] },
+     outgoingLinks: ['grimoire-start-here', 'grimoire-markdown-learning', 'grimoire-properties-and-types', 'grimoire-search-and-commands', 'grimoire-calendar-time-loom'],
+     properties: { Priority: 'High' },
++    favorite: true,
++    favoriteIndex: 1,
+   }),
+   mockEntry({
+     filename: 'grimoire-start-here.md',
+@@ -167,6 +169,8 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
+     wordCount: 285,
+     relationships: { 'Belongs to': [LEARNING_PROJECT], 'Related to': [FEATURE_TOUR], 'Type': ['[[note]]'] },
+     outgoingLinks: ['grimoire-feature-tour', 'grimoire-markdown-learning', 'grimoire-properties-and-types', 'grimoire-calendar-time-loom', 'grimoire-links-and-backlinks', 'grimoire-console-and-agents'],
++    favorite: true,
++    favoriteIndex: 0,
+   }),
+   mockEntry({
+     filename: 'grimoire-markdown-learning.md',
+diff --git a/src/components/dashboard/DashboardMemoryPanels.css b/src/components/dashboard/DashboardMemoryPanels.css
+new file mode 100644
+index 0000000..7098ed2
+--- /dev/null
++++ b/src/components/dashboard/DashboardMemoryPanels.css
+@@ -0,0 +1,100 @@
++/* Pinned chips and On this day rows: quiet, token-only. */
++.dashboard-pinned {
++  grid-column: 1 / -1;
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  gap: 8px 12px;
++  min-width: 0;
++}
++
++.dashboard-pinned__chips {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 6px;
++  min-width: 0;
++}
++
++.dashboard-pinned__chip,
++.dashboard-on-this-day__item {
++  cursor: pointer;
++  border: 1px solid var(--border);
++  background: var(--surface-panel, var(--card));
++  color: var(--foreground);
++  font: inherit;
++  text-align: left;
++  transition: border-color 120ms ease, color 120ms ease;
++}
++
++.dashboard-pinned__chip {
++  display: inline-flex;
++  align-items: center;
++  gap: 5px;
++  max-width: 220px;
++  min-height: 28px;
++  padding: 3px 10px;
++  border-radius: 999px;
++  font-size: 12px;
++  font-weight: 560;
++}
++
++.dashboard-pinned__chip span,
++.dashboard-on-this-day__title span {
++  overflow: hidden;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.dashboard-pinned__chip svg,
++.dashboard-on-this-day__title svg {
++  flex: none;
++  color: var(--muted-foreground);
++}
++
++.dashboard-pinned__chip:hover,
++.dashboard-on-this-day__item:hover {
++  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
++  color: var(--primary);
++}
++
++.dashboard-pinned__chip:focus-visible,
++.dashboard-on-this-day__item:focus-visible {
++  outline: 2px solid var(--primary);
++  outline-offset: 2px;
++}
++
++.dashboard-on-this-day__list {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
++  gap: var(--grimoire-density-row-gap, 8px);
++}
++
++.dashboard-on-this-day__item {
++  display: grid;
++  gap: 3px;
++  min-width: 0;
++  padding: 10px 12px;
++  border-radius: 7px;
++}
++
++.dashboard-on-this-day__when {
++  color: var(--muted-foreground);
++  font-size: 11px;
++  font-weight: 640;
++  letter-spacing: 0.06em;
++  text-transform: uppercase;
++}
++
++.dashboard-on-this-day__title {
++  display: flex;
++  align-items: center;
++  gap: 5px;
++  min-width: 0;
++  font-size: 13px;
++  font-weight: 640;
++}
++
++.dashboard-on-this-day__date {
++  color: var(--muted-foreground);
++  font-size: 12px;
++}
+diff --git a/src/components/dashboard/DashboardMemoryPanels.test.tsx b/src/components/dashboard/DashboardMemoryPanels.test.tsx
+new file mode 100644
+index 0000000..ab0cad7
+--- /dev/null
++++ b/src/components/dashboard/DashboardMemoryPanels.test.tsx
+@@ -0,0 +1,111 @@
++import { fireEvent, render, screen, within } from '@testing-library/react'
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
++import type { VaultEntry } from '../../types'
++import { makeEntry } from '../../test-utils/noteListTestUtils'
++import { DashboardOnThisDay } from './DashboardOnThisDay'
++import { DashboardPinnedRow } from './DashboardPinnedRow'
++import { VaultDashboard } from './VaultDashboard'
++
++function localSeconds(year: number, month: number, day: number): number {
++  return Math.floor(new Date(year, month - 1, day, 12).getTime() / 1000)
++}
++
++function page(title: string, overrides: Partial<VaultEntry> = {}): VaultEntry {
++  const slug = title.toLowerCase().replace(/\s+/g, '-')
++  return makeEntry({ path: `/vault/${slug}.md`, filename: `${slug}.md`, title, isA: 'Note', ...overrides })
++}
++
++describe('DashboardPinnedRow', () => {
++  it('renders nothing without favourites', () => {
++    const { container } = render(<DashboardPinnedRow entries={[]} onOpenNote={vi.fn()} />)
++    expect(container).toBeEmptyDOMElement()
++  })
++
++  it('opens a pinned page and keeps private titles off the chip', () => {
++    const onOpenNote = vi.fn()
++    const roadmap = page('Roadmap')
++    const dream = page('Falling Dream', { isA: 'Dream' })
++    render(<DashboardPinnedRow entries={[roadmap, dream]} onOpenNote={onOpenNote} />)
++
++    const row = screen.getByTestId('dashboard-pinned')
++    expect(row).toHaveTextContent('Pinned')
++    expect(row).not.toHaveTextContent('Falling Dream')
++    fireEvent.click(within(row).getByRole('button', { name: 'Private dream' }))
++    expect(onOpenNote).toHaveBeenCalledWith(dream)
++    fireEvent.click(within(row).getByRole('button', { name: 'Roadmap' }))
++    expect(onOpenNote).toHaveBeenCalledWith(roadmap)
++  })
++})
++
++describe('DashboardOnThisDay', () => {
++  it('renders nothing when there is nothing to remember', () => {
++    const { container } = render(<DashboardOnThisDay items={[]} onOpenNote={vi.fn()} />)
++    expect(container).toBeEmptyDOMElement()
++  })
++
++  it('labels each page with how long ago it was and opens it', () => {
++    const onOpenNote = vi.fn()
++    const essay = page('First essay')
++    render(
++      <DashboardOnThisDay
++        items={[{ entry: essay, kind: 'years', label: '2 years ago', day: { year: 2024, month: 9, day: 26 } }]}
++        onOpenNote={onOpenNote}
++      />,
++    )
++    const button = screen.getByRole('button', { name: /First essay/ })
++    expect(button).toHaveTextContent('2 years ago')
++    fireEvent.click(button)
++    expect(onOpenNote).toHaveBeenCalledWith(essay)
++  })
++})
++
++describe('VaultDashboard memory sections', () => {
++  beforeEach(() => {
++    vi.useFakeTimers({ toFake: ['Date'] })
++    vi.setSystemTime(new Date(2026, 8, 26, 10))
++  })
++  afterEach(() => {
++    vi.useRealTimers()
++  })
++
++  function renderDashboard(entries: VaultEntry[], onOpenNote = vi.fn()) {
++    render(
++      <VaultDashboard
++        conflictCount={0}
++        entries={entries}
++        isGitVault={false}
++        modifiedCount={0}
++        onCapture={vi.fn()}
++        onOpenCreateVault={vi.fn()}
++        onOpenNote={onOpenNote}
++        syncStatus="idle"
++        vaultPath="/vault"
++      />,
++    )
++    return onOpenNote
++  }
++
++  it('hides both sections when there are no favourites or anniversaries', () => {
++    renderDashboard([page('Fresh note', { createdAt: localSeconds(2026, 9, 26) })])
++    expect(screen.queryByTestId('dashboard-pinned')).not.toBeInTheDocument()
++    expect(screen.queryByTestId('dashboard-on-this-day')).not.toBeInTheDocument()
++  })
++
++  it('shows pinned favourites in order and last year’s journal without its title', () => {
++    const journal = page('Journal 2025-09-26 - the long walk home', { isA: 'Journal', createdAt: localSeconds(2026, 1, 2) })
++    const onOpenNote = renderDashboard([
++      journal,
++      page('Second pin', { favorite: true, favoriteIndex: 1 }),
++      page('First pin', { favorite: true, favoriteIndex: 0 }),
++    ])
++
++    const chips = within(screen.getByTestId('dashboard-pinned')).getAllByRole('button')
++    expect(chips.map((chip) => chip.textContent)).toEqual(['First pin', 'Second pin'])
++
++    const onThisDay = screen.getByTestId('dashboard-on-this-day')
++    expect(onThisDay).toHaveTextContent('1 year ago')
++    expect(onThisDay).not.toHaveTextContent('the long walk home')
++    fireEvent.click(within(onThisDay).getByRole('button', { name: /Private journal/ }))
++    expect(onOpenNote).toHaveBeenCalledWith(journal)
++  })
++})
+diff --git a/src/components/dashboard/DashboardOnThisDay.tsx b/src/components/dashboard/DashboardOnThisDay.tsx
+new file mode 100644
+index 0000000..8f38f81
+--- /dev/null
++++ b/src/components/dashboard/DashboardOnThisDay.tsx
+@@ -0,0 +1,54 @@
++import { History, Lock } from 'lucide-react'
++import type { VaultEntry } from '../../types'
++import type { LocalDay, OnThisDayItem } from '../../utils/onThisDay'
++import { dashboardEntryTitle } from './dashboardEntryLabel'
++import './DashboardMemoryPanels.css'
++
++function formatDay({ year, month, day }: LocalDay): string {
++  return new Date(year, month - 1, day).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
++}
++
++/** Pages from this day in earlier years (or a week/month back); hidden when empty. */
++export function DashboardOnThisDay({
++  items,
++  onOpenNote,
++}: {
++  items: OnThisDayItem[]
++  onOpenNote: (entry: VaultEntry) => void
++}) {
++  if (items.length === 0) return null
++  const pastYears = items[0].kind === 'years'
++  return (
++    <section className="vault-dashboard__panel vault-dashboard__panel--wide dashboard-on-this-day" data-testid="dashboard-on-this-day">
++      <div className="vault-dashboard__panel-head">
++        <div>
++          <div className="vault-dashboard__panel-label">
++            <History size={13} aria-hidden="true" />
++            On this day
++          </div>
++          <h2>{pastYears ? 'From this date in other years.' : 'From a little while back.'}</h2>
++        </div>
++      </div>
++      <div className="dashboard-on-this-day__list">
++        {items.map((item) => {
++          const { title, isPrivate } = dashboardEntryTitle(item.entry)
++          return (
++            <button
++              key={item.entry.path}
++              type="button"
++              className="dashboard-on-this-day__item"
++              onClick={() => onOpenNote(item.entry)}
++            >
++              <span className="dashboard-on-this-day__when">{item.label}</span>
++              <span className="dashboard-on-this-day__title">
++                {isPrivate ? <Lock size={11} aria-hidden="true" /> : null}
++                <span>{title}</span>
++              </span>
++              <span className="dashboard-on-this-day__date">{formatDay(item.day)}</span>
++            </button>
++          )
++        })}
++      </div>
++    </section>
++  )
++}
+diff --git a/src/components/dashboard/DashboardPinnedRow.tsx b/src/components/dashboard/DashboardPinnedRow.tsx
+new file mode 100644
+index 0000000..b1e51b9
+--- /dev/null
++++ b/src/components/dashboard/DashboardPinnedRow.tsx
+@@ -0,0 +1,40 @@
++import { Lock, Pin } from 'lucide-react'
++import type { VaultEntry } from '../../types'
++import { dashboardEntryTitle } from './dashboardEntryLabel'
++import './DashboardMemoryPanels.css'
++
++/** Favourite pages as a quiet row of chips; renders nothing without favourites. */
++export function DashboardPinnedRow({
++  entries,
++  onOpenNote,
++}: {
++  entries: VaultEntry[]
++  onOpenNote: (entry: VaultEntry) => void
++}) {
++  if (entries.length === 0) return null
++  return (
++    <section className="dashboard-pinned" aria-label="Pinned pages" data-testid="dashboard-pinned">
++      <div className="vault-dashboard__panel-label">
++        <Pin size={13} aria-hidden="true" />
++        Pinned
++      </div>
++      <div className="dashboard-pinned__chips">
++        {entries.map((entry) => {
++          const { title, isPrivate } = dashboardEntryTitle(entry)
++          return (
++            <button
++              key={entry.path}
++              type="button"
++              className="dashboard-pinned__chip"
++              onClick={() => onOpenNote(entry)}
++              title={isPrivate ? undefined : entry.title}
++            >
++              {isPrivate ? <Lock size={11} aria-hidden="true" /> : null}
++              <span>{title}</span>
++            </button>
++          )
++        })}
++      </div>
++    </section>
++  )
++}
+diff --git a/src/components/dashboard/dashboardEntryLabel.ts b/src/components/dashboard/dashboardEntryLabel.ts
+new file mode 100644
+index 0000000..44703c4
+--- /dev/null
++++ b/src/components/dashboard/dashboardEntryLabel.ts
+@@ -0,0 +1,13 @@
++import type { VaultEntry } from '../../types'
++import { resolveEntryLocalityPolicy } from '../../lib/localityPolicy'
++
++/**
++ * Title to show for an entry on the dashboard. Local-only pages (journals,
++ * dreams, anything marked private) keep their titles off this screen, the
++ * same way Recent Pages does; they stay openable.
++ */
++export function dashboardEntryTitle(entry: VaultEntry): { title: string; isPrivate: boolean } {
++  if (!resolveEntryLocalityPolicy(entry).localOnly) return { title: entry.title, isPrivate: false }
++  const type = entry.isA?.trim().toLowerCase() || 'page'
++  return { title: `Private ${type}`, isPrivate: true }
++}
+diff --git a/src/utils/onThisDay.test.ts b/src/utils/onThisDay.test.ts
+new file mode 100644
+index 0000000..47d1c98
+--- /dev/null
++++ b/src/utils/onThisDay.test.ts
+@@ -0,0 +1,102 @@
++import { describe, expect, it } from 'vitest'
++import { makeEntry } from '../test-utils/noteListTestUtils'
++import { entryLocalDay, isAnniversary, selectOnThisDay } from './onThisDay'
++
++/** Seconds since epoch for a local wall-clock time. */
++function localSeconds(year: number, month: number, day: number, hour = 12): number {
++  return Math.floor(new Date(year, month - 1, day, hour).getTime() / 1000)
++}
++
++function note(title: string, created: number | null, overrides: Parameters<typeof makeEntry>[0] = {}) {
++  return makeEntry({ path: `/v/${title}.md`, filename: `${title}.md`, title, isA: 'Note', createdAt: created, ...overrides })
++}
++
++const now = new Date(2026, 8, 26, 9, 30)
++
++describe('selectOnThisDay', () => {
++  it('finds pages from this day in earlier years, nearest year first', () => {
++    const items = selectOnThisDay([
++      note('three', localSeconds(2023, 9, 26)),
++      note('one', localSeconds(2025, 9, 26)),
++      note('today', localSeconds(2026, 9, 26)),
++      note('other day', localSeconds(2025, 9, 25)),
++    ], now)
++    expect(items.map((item) => [item.entry.title, item.label])).toEqual([
++      ['one', '1 year ago'],
++      ['three', '3 years ago'],
++    ])
++  })
++
++  it('compares local calendar days, not UTC days', () => {
++    // 23:30 and 00:30 local sit on different UTC dates in most timezones.
++    const late = note('late', localSeconds(2025, 9, 26, 23) + 30 * 60)
++    const early = note('early', localSeconds(2025, 9, 26, 0) + 30 * 60)
++    const dayBefore = note('before', localSeconds(2025, 9, 25, 23) + 30 * 60)
++    const titles = selectOnThisDay([late, early, dayBefore], now).map((item) => item.entry.title)
++    expect(titles.sort()).toEqual(['early', 'late'])
++  })
++
++  it('uses a journal title date over the file date', () => {
++    const journal = note('Journal 2024-09-26 - rain', localSeconds(2026, 9, 1), { isA: 'Journal' })
++    expect(selectOnThisDay([journal], now).map((item) => item.label)).toEqual(['2 years ago'])
++  })
++
++  it('falls back to a title date when createdAt is missing', () => {
++    expect(entryLocalDay(note('Journal 2025-09-26', null))).toEqual({ year: 2025, month: 9, day: 26 })
++    expect(entryLocalDay(note('Untitled', null))).toBeNull()
++    expect(entryLocalDay(note('Journal 2025-02-30', null, { isA: 'Journal' }))).toBeNull()
++  })
++
++  it('caps the list at three', () => {
++    const entries = [2025, 2024, 2023, 2022, 2021].map((year) => note(`y${year}`, localSeconds(year, 9, 26)))
++    expect(selectOnThisDay(entries, now)).toHaveLength(3)
++  })
++
++  it('falls back to a week or a month ago only when earlier years are empty', () => {
++    const week = note('week', localSeconds(2026, 9, 19))
++    const month = note('month', localSeconds(2026, 8, 26))
++    expect(selectOnThisDay([month, week], now).map((item) => item.label)).toEqual(['A week ago', 'A month ago'])
++    const year = note('year', localSeconds(2025, 9, 26))
++    expect(selectOnThisDay([month, week, year], now).map((item) => item.entry.title)).toEqual(['year'])
++  })
++
++  it('crosses month and year boundaries for the fallbacks', () => {
++    const jan3 = new Date(2026, 0, 3, 8)
++    const items = selectOnThisDay([
++      note('week', localSeconds(2025, 12, 27)),
++      note('month', localSeconds(2025, 12, 3)),
++    ], jan3)
++    expect(items.map((item) => item.label)).toEqual(['A week ago', 'A month ago'])
++    // Mar 31 has no Feb 31: a month ago clamps to the end of February.
++    expect(selectOnThisDay([note('feb', localSeconds(2026, 2, 28))], new Date(2026, 2, 31, 8))[0]?.label).toBe('A month ago')
++  })
++
++  it('skips archived, non-markdown and type pages', () => {
++    const created = localSeconds(2025, 9, 26)
++    expect(selectOnThisDay([
++      note('archived', created, { archived: true }),
++      note('image', created, { fileKind: 'binary' }),
++      note('Type', created, { isA: 'Type' }),
++    ], now)).toEqual([])
++  })
++
++  it('returns nothing for an empty vault', () => {
++    expect(selectOnThisDay([], now)).toEqual([])
++  })
++})
++
++describe('leap days', () => {
++  const leapDay = { year: 2024, month: 2, day: 29 }
++
++  it('shows Feb 29 on Feb 28 in non-leap years', () => {
++    expect(isAnniversary(leapDay, { year: 2025, month: 2, day: 28 })).toBe(true)
++    expect(isAnniversary(leapDay, { year: 2025, month: 3, day: 1 })).toBe(false)
++    const items = selectOnThisDay([note('leap', localSeconds(2024, 2, 29))], new Date(2025, 1, 28, 9))
++    expect(items.map((item) => item.label)).toEqual(['1 year ago'])
++  })
++
++  it('keeps Feb 29 on Feb 29 in leap years', () => {
++    expect(isAnniversary(leapDay, { year: 2028, month: 2, day: 28 })).toBe(false)
++    expect(isAnniversary(leapDay, { year: 2028, month: 2, day: 29 })).toBe(true)
++  })
++})
+diff --git a/src/utils/onThisDay.ts b/src/utils/onThisDay.ts
+new file mode 100644
+index 0000000..3470130
+--- /dev/null
++++ b/src/utils/onThisDay.ts
+@@ -0,0 +1,132 @@
++import type { VaultEntry } from '../types'
++
++/** A calendar day in the local timezone; month is 1-12. */
++export interface LocalDay {
++  year: number
++  month: number
++  day: number
++}
++
++export type OnThisDayKind = 'years' | 'week' | 'month'
++
++export interface OnThisDayItem {
++  entry: VaultEntry
++  kind: OnThisDayKind
++  /** "1 year ago", "3 years ago", "A week ago", "A month ago". */
++  label: string
++  /** The local day the entry belongs to. */
++  day: LocalDay
++}
++
++const TITLE_DATE = /\b(\d{4})-(\d{2})-(\d{2})\b/
++
++export function isLeapYear(year: number): boolean {
++  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
++}
++
++function daysInMonth(year: number, month: number): number {
++  return new Date(year, month, 0).getDate()
++}
++
++export function localDayOf(date: Date): LocalDay {
++  return { year: date.getFullYear(), month: date.getMonth() + 1, day: date.getDate() }
++}
++
++function sameDay(a: LocalDay, b: LocalDay): boolean {
++  return a.year === b.year && a.month === b.month && a.day === b.day
++}
++
++function parseTitleDay(title: string): LocalDay | null {
++  const match = TITLE_DATE.exec(title)
++  if (!match) return null
++  const [year, month, day] = match.slice(1).map(Number)
++  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return null
++  return { year, month, day }
++}
++
++/**
++ * The day an entry belongs to. A journal's title date ("Journal 2025-09-26")
++ * wins over the file's createdAt, since captures can be backdated and file
++ * dates get reset by copies and clones; everything else uses createdAt.
++ */
++export function entryLocalDay(entry: VaultEntry): LocalDay | null {
++  if (entry.isA?.trim().toLowerCase() === 'journal') {
++    const titleDay = parseTitleDay(entry.title)
++    if (titleDay) return titleDay
++  }
++  if (typeof entry.createdAt === 'number' && Number.isFinite(entry.createdAt) && entry.createdAt > 0) {
++    return localDayOf(new Date(entry.createdAt * 1000))
++  }
++  return parseTitleDay(entry.title)
++}
++
++/** Same month and day; Feb 29 entries surface on Feb 28 in non-leap years. */
++export function isAnniversary(entryDay: LocalDay, today: LocalDay): boolean {
++  if (entryDay.month === today.month && entryDay.day === today.day) return true
++  return entryDay.month === 2 && entryDay.day === 29
++    && today.month === 2 && today.day === 28 && !isLeapYear(today.year)
++}
++
++function weekAgo(today: LocalDay): LocalDay {
++  return localDayOf(new Date(today.year, today.month - 1, today.day - 7))
++}
++
++/** Same day last month, clamped to the month's end (Mar 31 → Feb 28). */
++function monthAgo(today: LocalDay): LocalDay {
++  const year = today.month === 1 ? today.year - 1 : today.year
++  const month = today.month === 1 ? 12 : today.month - 1
++  return { year, month, day: Math.min(today.day, daysInMonth(year, month)) }
++}
++
++function yearsLabel(years: number): string {
++  return years === 1 ? '1 year ago' : `${years} years ago`
++}
++
++function isCandidate(entry: VaultEntry): boolean {
++  if (entry.archived) return false
++  if (entry.fileKind && entry.fileKind !== 'markdown') return false
++  return entry.isA !== 'Type'
++}
++
++function byRecentlyTouched(a: OnThisDayItem, b: OnThisDayItem): number {
++  return (b.entry.modifiedAt ?? 0) - (a.entry.modifiedAt ?? 0)
++}
++
++/**
++ * Pages from this day in earlier years, nearest year first. When no earlier
++ * year has anything, falls back to exactly a week or a month ago.
++ */
++export function selectOnThisDay(
++  entries: readonly VaultEntry[],
++  now: Date = new Date(),
++  limit = 3,
++): OnThisDayItem[] {
++  const today = localDayOf(now)
++  const week = weekAgo(today)
++  const month = monthAgo(today)
++  const years: OnThisDayItem[] = []
++  const recent: OnThisDayItem[] = []
++
++  for (const entry of entries) {
++    if (!isCandidate(entry)) continue
++    const day = entryLocalDay(entry)
++    if (!day) continue
++    const yearsAgo = today.year - day.year
++    if (yearsAgo >= 1 && isAnniversary(day, today)) {
++      years.push({ entry, kind: 'years', label: yearsLabel(yearsAgo), day })
++    } else if (sameDay(day, week)) {
++      recent.push({ entry, kind: 'week', label: 'A week ago', day })
++    } else if (sameDay(day, month)) {
++      recent.push({ entry, kind: 'month', label: 'A month ago', day })
++    }
++  }
++
++  if (years.length > 0) {
++    return years
++      .sort((a, b) => (b.day.year - a.day.year) || byRecentlyTouched(a, b))
++      .slice(0, limit)
++  }
++  return recent
++    .sort((a, b) => (a.kind === b.kind ? byRecentlyTouched(a, b) : a.kind === 'week' ? -1 : 1))
++    .slice(0, limit)
++}
+diff --git a/src/utils/pinnedPages.test.ts b/src/utils/pinnedPages.test.ts
+new file mode 100644
+index 0000000..cbc040d
+--- /dev/null
++++ b/src/utils/pinnedPages.test.ts
+@@ -0,0 +1,30 @@
++import { describe, expect, it } from 'vitest'
++import { makeEntry } from '../test-utils/noteListTestUtils'
++import { selectPinnedEntries } from './pinnedPages'
++
++function page(title: string, favoriteIndex: number | null, overrides: Parameters<typeof makeEntry>[0] = {}) {
++  return makeEntry({ path: `/v/${title}.md`, title, favorite: true, favoriteIndex, ...overrides })
++}
++
++describe('selectPinnedEntries', () => {
++  it('orders favourites by their sidebar index, unindexed last', () => {
++    const titles = selectPinnedEntries([
++      page('c', null),
++      page('b', 2),
++      page('a', 0),
++      makeEntry({ path: '/v/plain.md', title: 'plain' }),
++    ]).map((entry) => entry.title)
++    expect(titles).toEqual(['a', 'b', 'c'])
++  })
++
++  it('drops archived favourites and caps at six', () => {
++    const entries = Array.from({ length: 8 }, (_, index) => page(`p${index}`, index))
++    entries[0] = page('p0', 0, { archived: true })
++    const titles = selectPinnedEntries(entries).map((entry) => entry.title)
++    expect(titles).toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'p6'])
++  })
++
++  it('returns nothing when there are no favourites', () => {
++    expect(selectPinnedEntries([makeEntry()])).toEqual([])
++  })
++})
+diff --git a/src/utils/pinnedPages.ts b/src/utils/pinnedPages.ts
+new file mode 100644
+index 0000000..49cdf26
+--- /dev/null
++++ b/src/utils/pinnedPages.ts
+@@ -0,0 +1,14 @@
++import type { VaultEntry } from '../types'
++
++/** Favourite pages in the user's sidebar order. */
++export function selectPinnedEntries(entries: readonly VaultEntry[], limit = 6): VaultEntry[] {
++  return entries
++    .filter((entry) => entry.favorite && !entry.archived)
++    .sort((a, b) => {
++      const ai = a.favoriteIndex ?? Number.POSITIVE_INFINITY
++      const bi = b.favoriteIndex ?? Number.POSITIVE_INFINITY
++      if (ai !== bi) return ai < bi ? -1 : 1
++      return a.title.localeCompare(b.title)
++    })
++    .slice(0, limit)
++}

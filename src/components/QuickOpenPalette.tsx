@@ -9,9 +9,11 @@ interface QuickOpenPaletteProps {
   entries: VaultEntry[]
   onSelect: (entry: VaultEntry) => void
   onClose: () => void
+  /** Creates a new page titled with the query (Enter when nothing matches, Shift+Enter always). */
+  onCreate?: (title: string) => void
 }
 
-export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpenPaletteProps) {
+export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }: QuickOpenPaletteProps) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const { results, selectedIndex, setSelectedIndex, handleKeyDown } = useNoteSearch(entries, query)
@@ -37,6 +39,13 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
         onClose()
       } else if (e.key === 'Enter') {
         e.preventDefault()
+        const title = query.trim()
+        // Bear/Obsidian habit: a search that finds nothing becomes the new page.
+        if (onCreate && title && (e.shiftKey || results.length === 0)) {
+          onCreate(title)
+          onClose()
+          return
+        }
         const selected = results[selectedIndex]
         if (selected) {
           onSelect(selected.entry)
@@ -46,7 +55,10 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, results, selectedIndex, onSelect, onClose, handleKeyDown])
+  }, [open, query, results, selectedIndex, onSelect, onClose, onCreate, handleKeyDown])
+
+  const createTitle = query.trim()
+  const showCreateRow = Boolean(onCreate && createTitle && results.length === 0)
 
   if (!open) return null
 
@@ -78,9 +90,24 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
             onClose()
           }}
           onItemHover={(i) => setSelectedIndex(i)}
-          emptyMessage="No matching pages"
-          className="flex-1 overflow-y-auto"
+          emptyMessage={showCreateRow ? '' : 'No matching pages'}
+          className={showCreateRow ? 'hidden' : 'flex-1 overflow-y-auto'}
         />
+        {showCreateRow ? (
+          <button
+            type="button"
+            data-testid="quick-open-create"
+            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-foreground hover:bg-muted"
+            onClick={() => {
+              onCreate?.(createTitle)
+              onClose()
+            }}
+          >
+            <span className="text-muted-foreground">No matching pages —</span>
+            <span className="font-semibold">Create “{createTitle}”</span>
+            <kbd className="ml-auto text-[11px] text-muted-foreground">↵</kbd>
+          </button>
+        ) : null}
       </div>
     </div>
   )

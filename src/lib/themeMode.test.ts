@@ -1,10 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   applyStoredThemeMode,
   applyThemeModeToDocument,
   LEGACY_THEME_MODE_STORAGE_KEY,
   normalizeThemeMode,
   readStoredThemeMode,
+  resolveInitialThemeMode,
   resolveThemeMode,
   THEME_MODE_STORAGE_KEY,
   writeStoredThemeMode,
@@ -62,5 +63,30 @@ describe('themeMode', () => {
     expect(applyStoredThemeMode(document, storage)).toBe('dark')
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
     expect(document.documentElement).toHaveClass('dark')
+  })
+
+  describe('first-run default', () => {
+    function stubSystemDark(matches: boolean) {
+      vi.stubGlobal('matchMedia', vi.fn(() => ({ matches }) as MediaQueryList))
+    }
+
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('follows the OS appearance when nothing is stored', () => {
+      stubSystemDark(true)
+      expect(resolveInitialThemeMode(makeStorage())).toBe('dark')
+      stubSystemDark(false)
+      expect(resolveInitialThemeMode(makeStorage())).toBe('light')
+    })
+
+    it('never overrides an explicit stored choice', () => {
+      stubSystemDark(true)
+      expect(resolveInitialThemeMode(makeStorage({ [THEME_MODE_STORAGE_KEY]: 'light' }))).toBe('light')
+    })
+
+    it('falls back to light when matchMedia is unavailable', () => {
+      vi.stubGlobal('matchMedia', undefined)
+      expect(resolveInitialThemeMode(makeStorage())).toBe('light')
+    })
   })
 })

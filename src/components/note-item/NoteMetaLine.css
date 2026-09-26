@@ -1,0 +1,40 @@
+/* One quiet meta line per note row: "2h ago · Project · folder · Active". */
+.note-meta-line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.note-meta-group {
+  display: contents;
+}
+
+.note-meta-item {
+  min-width: 0;
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-meta-date {
+  flex-shrink: 0;
+}
+
+/* Middle-dot separators between whatever items are present. */
+.note-meta-line .note-meta-item + .note-meta-item::before,
+.note-meta-line .note-meta-date ~ .note-meta-group .note-meta-item:first-child::before,
+.note-meta-line .note-meta-group + .note-meta-group .note-meta-item:first-child::before {
+  content: "·";
+  margin: 0 6px;
+  color: color-mix(in srgb, var(--muted-foreground) 60%, transparent);
+}
+
+.note-meta-line .note-project-chip {
+  color: var(--text-secondary, var(--muted-foreground));
+}

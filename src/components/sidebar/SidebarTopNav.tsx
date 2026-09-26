@@ -11,7 +11,7 @@ import {
   NotesGlyphIcon,
 } from '../icons/sidebarGlyphIcons'
 
-type SidebarNavTone = 'aura' | 'amber' | 'blue' | 'violet'
+type SidebarNavTone = 'aura' | 'amber' | 'blue' | 'violet' | 'neutral'
 
 interface SidebarTopNavProps {
   selection: SidebarSelection
@@ -88,7 +88,7 @@ export function SidebarTopNav({
         />
       </ToneNavItem>
       {onOpenGraph && (
-        <ToneNavItem active={false} tone="blue">
+        <ToneNavItem active={false} tone="violet">
           <NavItem
             icon={GraphGlyphIcon}
             label="Graph"
@@ -97,7 +97,7 @@ export function SidebarTopNav({
           />
         </ToneNavItem>
       )}
-      <ToneNavItem active={journalActive} tone="aura">
+      <ToneNavItem active={journalActive} tone="amber">
         <NavItem
           icon={JournalGlyphIcon}
           label="Journal"
@@ -113,7 +113,7 @@ export function SidebarTopNav({
           onClick={() => onSelect({ kind: 'sectionGroup', type: 'Dream' })}
         />
       </ToneNavItem>
-      <ToneNavItem active={archiveActive} tone="violet">
+      <ToneNavItem active={archiveActive} tone="neutral">
         <NavItem
           icon={ArchiveGlyphIcon}
           label="Archive"

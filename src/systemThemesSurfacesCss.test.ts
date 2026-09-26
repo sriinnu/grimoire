@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const NON_GRAPH_FLAGSHIP_SELECTOR = ':where([data-theme-preset="living-archive"], [data-theme-preset="daylight-notebook"], [data-theme-preset="morning-notebook"], [data-theme-preset="nocturne"], [data-theme-preset="code-notebook"])'
+const NON_GRAPH_FLAGSHIP_SELECTOR = ':where([data-theme-preset="morning-notebook"])'
 
 const readText = (path: string): string => readFileSync(path, 'utf8').replace(/\r\n?/gu, '\n')
 
@@ -18,7 +18,6 @@ describe('system theme surface CSS', () => {
     'system-themes.css',
     'theme-system-tokens.css',
     'theme-semantic-tokens.css',
-    'theme-constellation.css',
     'theme-flagship-shared.css',
     'theme-editor-navigator.css',
     'theme-coherence.css',
@@ -28,7 +27,6 @@ describe('system theme surface CSS', () => {
     'theme-ai-brief.css',
     'theme-accessibility.css',
   ].map((file) => readText(`${process.cwd()}/src/${file}`)).join('\n')
-  const constellationCss = readText(`${process.cwd()}/src/theme-constellation.css`)
   const editorHeadingCss = readText(`${process.cwd()}/src/components/EditorHeadingProfiles.css`)
   const editorMetaCss = readText(`${process.cwd()}/src/components/EditorMeta.css`)
   const editorThemeCss = readText(`${process.cwd()}/src/components/EditorTheme.css`)
@@ -81,6 +79,5 @@ describe('system theme surface CSS', () => {
     expect(getRuleBody(flagshipSharedCss, `${NON_GRAPH_FLAGSHIP_SELECTOR} .linked-concept-map`)).toContain('display: grid')
     expect(getRuleBody(flagshipSharedCss, `${NON_GRAPH_FLAGSHIP_SELECTOR} .linked-concept-map__node`)).toContain('position: static')
     expect(flagshipSharedCss).not.toContain('linear-gradient(28deg')
-    expect(constellationCss).toContain('[data-theme-preset="constellation"] .linked-concept-map__node--6')
   })
 })

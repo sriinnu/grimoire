@@ -17,7 +17,7 @@ import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingCo
 import { SidebarGroupHeader } from './SidebarGroupHeader'
 import { SidebarViewItem } from './SidebarViewItem'
 import { countByFilter } from '../../utils/noteListHelpers'
-import grimoireLogo from '@/assets/app-icon.png'
+import grimoireLogo from '@/assets/app-icon-ui.png'
 import { BrandWordmark } from './BrandWordmark'
 import { clampFixedMenuPosition } from '../../lib/fixedMenuPosition'
 

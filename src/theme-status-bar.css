@@ -2,12 +2,7 @@
 [data-theme="light"],
 [data-theme="dark"],
 :where(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-notebook"],
-  [data-theme-preset="morning-notebook"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="code-notebook"]
+  [data-theme-preset="morning-notebook"]
 ) {
   --status-bar-raw-accent-blue: var(--accent-blue);
   --status-bar-raw-accent-green: var(--accent-green);
@@ -45,7 +40,7 @@
 
 [data-theme="dark"],
 :root[data-theme="dark"] {
-  --status-bar-popover-solid: #15242c;
+  --status-bar-popover-solid: #1c1a17;
 }
 
 .status-bar {

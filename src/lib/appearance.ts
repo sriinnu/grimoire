@@ -44,10 +44,11 @@ export const SUPPORTED_NATIVE_SHELL_MATERIALS = [
   'glass-preview',
 ] as const
 
+// Sriinnu: 1.44 read cramped at body size; iA Writer / Bear sit around 1.6.
 const EDITOR_LINE_HEIGHT_VALUES: Record<EditorLineHeight, number> = {
-  compact: 1.34,
-  comfortable: 1.44,
-  spacious: 1.58,
+  compact: 1.45,
+  comfortable: 1.62,
+  spacious: 1.8,
 }
 
 const THEME_PRESETS = new Set<string>(SUPPORTED_THEME_PRESETS)

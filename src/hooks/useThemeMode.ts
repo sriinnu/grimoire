@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import {
   applyThemeModeToDocument,
   DEFAULT_THEME_MODE,
-  readStoredThemeMode,
+  resolveInitialThemeMode,
   writeStoredThemeMode,
   type ThemeMode,
 } from '../lib/themeMode'
@@ -10,7 +10,7 @@ import {
 function resolveRuntimeThemeMode(themeMode: ThemeMode | null | undefined): ThemeMode {
   if (themeMode) return themeMode
   if (typeof window === 'undefined') return DEFAULT_THEME_MODE
-  return readStoredThemeMode(window.localStorage) ?? DEFAULT_THEME_MODE
+  return resolveInitialThemeMode(window.localStorage)
 }
 
 export function useThemeMode(

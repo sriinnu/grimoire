@@ -59,8 +59,8 @@ describe('SettingsPanel sidebar appearance', () => {
     installPointerCapturePolyfill()
   })
 
-  it('renders the aurora sidebar preview in its light mode', () => {
-    // Grimoire now ships a single theme: midnight aurora. Any persisted preset value —
+  it('renders the Vellum sidebar preview in its light mode', () => {
+    // Grimoire now ships a single theme: Vellum. Any persisted preset value —
     // including legacy ids like "nocturne" — collapses to morning-notebook.
     render(
       <SettingsPanel
@@ -75,11 +75,11 @@ describe('SettingsPanel sidebar appearance', () => {
     expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-definition-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-preview', 'light')
-    // Light mode paints the cool aurora sidebar surface.
-    expect(preview).toHaveStyle({ background: '#f6f2ea' })
+    // Light mode paints the vellum sidebar surface.
+    expect(preview).toHaveStyle({ background: '#f4f1ea' })
   })
 
-  it('repaints the aurora preview when the dark mode is selected', () => {
+  it('repaints the Vellum preview when the dark mode is selected', () => {
     // The preset picker is gone; the light/dark toggle is the primary theme control.
     render(
       <SettingsPanel open={true} settings={emptySettings} onSave={vi.fn()} onClose={vi.fn()} />
@@ -87,14 +87,14 @@ describe('SettingsPanel sidebar appearance', () => {
 
     const preview = screen.getByTestId('settings-sidebar-preview')
     expect(preview).toHaveAttribute('data-theme-preview', 'light')
-    expect(preview).toHaveStyle({ background: '#f6f2ea' })
+    expect(preview).toHaveStyle({ background: '#f4f1ea' })
 
     fireEvent.click(screen.getByTestId('settings-theme-dark'))
 
-    // Same single aurora preset, now in its dark navy mode.
+    // Same single Vellum preset, now in its lamplight mode.
     expect(preview).toHaveAttribute('data-sidebar-preset-preview', 'morning-notebook')
     expect(preview).toHaveAttribute('data-theme-preview', 'dark')
-    expect(preview).toHaveStyle({ background: '#081a21' })
+    expect(preview).toHaveStyle({ background: '#11100e' })
   })
 
   it('includes the same artwork rail used by the live sidebar preview', () => {

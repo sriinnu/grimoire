@@ -1,3 +1,4 @@
+import { useStableFunctionProps } from '../hooks/useStableHandlers'
 import { useCallback, memo } from 'react'
 import type { VaultEntry, FolderNode, SidebarSelection, ViewFile } from '../types'
 import { FolderTree } from './FolderTree'
@@ -57,7 +58,7 @@ interface SidebarProps {
   onOpenGraph?: () => void
 }
 
-export const Sidebar = memo(function Sidebar({
+const SidebarPane = memo(function Sidebar({
   entries,
   selection,
   onSelect,
@@ -231,3 +232,9 @@ export const Sidebar = memo(function Sidebar({
     </aside>
   )
 })
+
+
+/** Sidebar with stable handler identities, so the memoised pane skips keystroke re-renders. */
+export function Sidebar(props: SidebarProps) {
+  return <SidebarPane {...useStableFunctionProps(props)} />
+}

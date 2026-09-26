@@ -1,23 +1,25 @@
 :where([data-theme-preset]) {
+  /* Materials are flat surfaces (DESIGN.md: no gradients in normal chrome).
+     Kept as tokens so a future theme can still opt into texture. */
   --grimoire-hairline: color-mix(in srgb, var(--border-default) 76%, transparent);
-  --grimoire-panel-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 18%, var(--surface-panel)), var(--surface-panel));
-  --grimoire-toolbar-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 30%, var(--surface-panel)), var(--surface-panel));
-  --grimoire-dashboard-material: radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 18rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 92%, var(--surface-panel)), var(--surface-app));
-  --grimoire-card-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 94%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 90%, var(--surface-panel)));
-  --grimoire-card-selected-material: linear-gradient(135deg, color-mix(in srgb, var(--note-type-color, var(--primary)) 16%, var(--surface-card)), color-mix(in srgb, var(--state-selected) 68%, var(--surface-card)));
-  --grimoire-dialog-material: linear-gradient(145deg, color-mix(in srgb, var(--primary) 7%, transparent), transparent 34%), var(--surface-panel);
+  --grimoire-panel-material: var(--surface-panel);
+  --grimoire-toolbar-material: var(--surface-panel);
+  --grimoire-dashboard-material: var(--surface-app);
+  --grimoire-card-material: var(--surface-card);
+  --grimoire-card-selected-material: color-mix(in srgb, var(--primary) 10%, var(--surface-card));
+  --grimoire-dialog-material: var(--surface-panel);
   --grimoire-dialog-overlay: color-mix(in srgb, var(--shadow-overlay) 82%, transparent);
   --grimoire-dialog-shadow: 0 18px 54px color-mix(in srgb, var(--shadow-dialog) 84%, transparent);
   --grimoire-shell-radius: calc(var(--radius) + 4px);
-  --grimoire-portability-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 88%, var(--surface-panel)), color-mix(in srgb, var(--surface-card) 78%, var(--surface-panel)));
+  --grimoire-portability-material: var(--surface-card);
   --grimoire-portability-preview-material: color-mix(in srgb, var(--surface-card) 72%, var(--surface-panel));
   --grimoire-portability-rail-material: color-mix(in srgb, var(--primary) 8%, var(--surface-card));
   --grimoire-portability-warn-fg: var(--feedback-warning-text); --grimoire-portability-safe-fg: var(--feedback-success-text);
-  --grimoire-editor-material: linear-gradient(180deg, color-mix(in srgb, var(--primary) 5%, transparent), transparent 18rem), var(--surface-editor);
-  --grimoire-editor-page-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-card) 74%, var(--surface-editor)), var(--surface-editor));
-  --grimoire-settings-main-material: radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 19rem), linear-gradient(180deg, color-mix(in srgb, var(--surface-app) 82%, var(--surface-panel)), var(--surface-app));
-  --grimoire-status-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-sidebar) 90%, var(--surface-panel)), var(--surface-sidebar));
-  --grimoire-agent-card-material: linear-gradient(145deg, color-mix(in srgb, var(--primary) 8%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 92%, var(--surface-panel)));
+  --grimoire-editor-material: var(--surface-editor);
+  --grimoire-editor-page-material: var(--surface-editor);
+  --grimoire-settings-main-material: var(--surface-app);
+  --grimoire-status-material: var(--surface-sidebar);
+  --grimoire-agent-card-material: var(--surface-card);
   --grimoire-signal-accent: color-mix(in srgb, var(--primary) 82%, var(--text-primary));
   --grimoire-signal-bg: linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface-card)), color-mix(in srgb, var(--surface-card) 84%, var(--surface-panel)));
   --grimoire-signal-border: color-mix(in srgb, var(--primary) 34%, var(--border-default));

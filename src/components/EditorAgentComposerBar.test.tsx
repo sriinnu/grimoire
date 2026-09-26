@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { EditorAgentComposerBar } from './EditorAgentComposerBar'
+import { EditorNavigatorControls } from './EditorNavigatorControls'
 
 const content = `# First Heading
 
@@ -31,18 +32,19 @@ async function navigatorPanel() {
   return within(panel as HTMLElement)
 }
 
-describe('EditorAgentComposerBar', () => {
-  it('keeps note search and TOC as real composer tools', () => {
-    const { container } = render(<EditorAgentComposerBar content={content} onOpen={vi.fn()} />)
+describe('EditorAgentComposerBar and the note navigator', () => {
+  it('is just the prompt — note tools live once, in the meta strip', () => {
+    const onOpen = vi.fn()
+    render(<EditorAgentComposerBar onOpen={onOpen} />)
 
-    expect(screen.getByRole('button', { name: /search this note/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /table of contents/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /note links in this note/i })).toBeInTheDocument()
-    expect(container.querySelector('.editor-agent-composer__ai-tools')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /search this note/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /table of contents/i })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /ask grimoire about this note/i }))
+    expect(onOpen).toHaveBeenCalledOnce()
   })
 
   it('shows outgoing note links from the composer tools', async () => {
-    render(<EditorAgentComposerBar content={linkedContent} onOpen={vi.fn()} />)
+    render(<EditorNavigatorControls content={linkedContent} />)
 
     fireEvent.click(screen.getByRole('button', { name: /note links in this note/i }))
     const navigator = await navigatorPanel()
@@ -69,7 +71,7 @@ describe('EditorAgentComposerBar', () => {
             The second dream marker lives here.
           </p>
         </div>
-        <EditorAgentComposerBar content={duplicateContent} onOpen={vi.fn()} />
+        <EditorNavigatorControls content={duplicateContent} />
       </>,
     )
 
@@ -86,7 +88,7 @@ describe('EditorAgentComposerBar', () => {
   })
 
   it('shows a navigable table of contents from headings', async () => {
-    render(<EditorAgentComposerBar content={content} onOpen={vi.fn()} />)
+    render(<EditorNavigatorControls content={content} />)
 
     fireEvent.click(screen.getByRole('button', { name: /table of contents/i }))
     const navigator = await navigatorPanel()
@@ -121,7 +123,7 @@ describe('EditorAgentComposerBar', () => {
             Repeat
           </div>
         </div>
-        <EditorAgentComposerBar content={duplicateContent} onOpen={vi.fn()} />
+        <EditorNavigatorControls content={duplicateContent} />
       </>,
     )
 
