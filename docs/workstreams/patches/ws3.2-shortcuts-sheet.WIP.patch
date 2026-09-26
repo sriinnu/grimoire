@@ -1,0 +1,1122 @@
+diff --git a/src/AppRuntime.tsx b/src/AppRuntime.tsx
+index 72b44d1..3879c6c 100644
+--- a/src/AppRuntime.tsx
++++ b/src/AppRuntime.tsx
+@@ -18,6 +18,7 @@ import {
+   LazyDeleteProgressNotice as DeleteProgressNotice,
+   LazyFeedbackDialog as FeedbackDialog,
+   LazyGraphModal as GraphModal,
++  LazyKeyboardShortcutsDialog as KeyboardShortcutsDialog,
+   LazyMcpSetupDialog as McpSetupDialog,
+   LazyNoteRetargetingDialogs as NoteRetargetingDialogs,
+   LazyPulseView as PulseView,
+@@ -286,6 +287,7 @@ function App() {
+           onClose={dialogs.closeCommandPalette}
+         />
+         <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onClose={dialogs.closeSearch} />
++        <KeyboardShortcutsDialog open={dialogs.showKeyboardShortcuts} onClose={dialogs.closeKeyboardShortcuts} />
+         <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
+         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
+         <AudioRecordingDialog open={showAudioRecordingDialog} vaultPath={resolvedPath} onClose={closeAudioRecordingDialog} onRecordingSaved={audioTranscription.transcribeRecordedAudio} />
+diff --git a/src/app/useAppCommandRegistry.ts b/src/app/useAppCommandRegistry.ts
+index e8f1380..4043250 100644
+--- a/src/app/useAppCommandRegistry.ts
++++ b/src/app/useAppCommandRegistry.ts
+@@ -48,7 +48,7 @@ export function useAppCommandRegistry(
+     activeNoteModified,
+     selection: effectiveSelection,
+     onQuickOpen: dialogs.openQuickOpen, onCommandPalette: dialogs.openCommandPalette,
+-    onSearch: dialogs.openSearch,
++    onSearch: dialogs.openSearch, onToggleKeyboardShortcuts: dialogs.toggleKeyboardShortcuts,
+     onCreateNote: notes.handleCreateNoteImmediate,
+     onCaptureThought: handleCaptureThoughtCommand,
+     onCaptureJournal: handleCaptureJournalCommand,
+diff --git a/src/app/useAppShellState.ts b/src/app/useAppShellState.ts
+index ef0b5b1..fc5bc76 100644
+--- a/src/app/useAppShellState.ts
++++ b/src/app/useAppShellState.ts
+@@ -189,6 +189,7 @@ export function useAppShellState(
+     dialogs.showCreateTypeDialog
+     || dialogs.showQuickOpen
+     || dialogs.showCommandPalette
++    || dialogs.showKeyboardShortcuts
+     || dialogs.showAIChat
+     || dialogs.showSettings
+     || dialogs.showCloneVault
+diff --git a/src/components/AppLazySurfaces.tsx b/src/components/AppLazySurfaces.tsx
+index 2779444..55d86ff 100644
+--- a/src/components/AppLazySurfaces.tsx
++++ b/src/components/AppLazySurfaces.tsx
+@@ -12,6 +12,7 @@ import type { DashboardRoute } from './dashboard/DashboardRoute'
+ import type { DeleteProgressNotice } from './DeleteProgressNotice'
+ import type { FeedbackDialog } from './FeedbackDialog'
+ import type { GraphModal } from './GraphModal'
++import type { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
+ import type { McpSetupDialog } from './McpSetupDialog'
+ import type { NoteRetargetingDialogs } from './note-retargeting/NoteRetargetingDialogs'
+ import type { PulseView } from './PulseView'
+@@ -40,6 +41,7 @@ const DashboardRouteSurface = lazy(async () => ({ default: (await import('./dash
+ const DeleteProgressNoticeSurface = lazy(async () => ({ default: (await import('./DeleteProgressNotice')).DeleteProgressNotice }))
+ const FeedbackDialogSurface = lazy(async () => ({ default: (await import('./FeedbackDialog')).FeedbackDialog }))
+ const GraphModalSurface = lazy(async () => ({ default: (await import('./GraphModal')).GraphModal }))
++const KeyboardShortcutsDialogSurface = lazy(async () => ({ default: (await import('./KeyboardShortcutsDialog')).KeyboardShortcutsDialog }))
+ const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
+ const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
+ const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
+@@ -144,6 +146,15 @@ export function LazyGraphModal(props: ComponentProps<typeof GraphModal>) {
+   )
+ }
+ 
++/** Defers the shortcut cheat sheet until Cmd+/ or the palette opens it. */
++export function LazyKeyboardShortcutsDialog(props: ComponentProps<typeof KeyboardShortcutsDialog>) {
++  return (
++    <VisibleSurface open={props.open}>
++      <KeyboardShortcutsDialogSurface {...props} />
++    </VisibleSurface>
++  )
++}
++
+ /** Defers weather snapshot UI until the insert dialog is opened. */
+ export function LazyWeatherSnapshotDialog(props: ComponentProps<typeof WeatherSnapshotDialog>) {
+   return (
+diff --git a/src/hooks/appCommandDefinitions.ts b/src/hooks/appCommandDefinitions.ts
+index ebd9bc1..6ff3bc6 100644
+--- a/src/hooks/appCommandDefinitions.ts
++++ b/src/hooks/appCommandDefinitions.ts
+@@ -96,6 +96,11 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
+     menuOwned: true,
+     shortcut: { combo: 'command-or-ctrl', key: 'k', code: 'KeyK', display: '⌘K' },
+   },
++  [APP_COMMAND_IDS.viewKeyboardShortcuts]: {
++    route: { kind: 'handler', handler: 'onToggleKeyboardShortcuts' },
++    menuOwned: false,
++    shortcut: { combo: 'command-or-ctrl', key: '/', code: 'Slash', display: '⌘/' },
++  },
+   [APP_COMMAND_IDS.viewZoomIn]: {
+     route: { kind: 'handler', handler: 'onZoomIn' },
+     menuOwned: true,
+diff --git a/src/hooks/appCommandDispatcher.test.ts b/src/hooks/appCommandDispatcher.test.ts
+index 5e08a11..6f36b03 100644
+--- a/src/hooks/appCommandDispatcher.test.ts
++++ b/src/hooks/appCommandDispatcher.test.ts
+@@ -223,6 +223,13 @@ describe('appCommandDispatcher', () => {
+     expect(handlers.onToggleAIChat).toHaveBeenCalled()
+   })
+ 
++  it('dispatches the keyboard shortcuts sheet as a renderer-only toggle', () => {
++    const handlers = { ...makeHandlers(), onToggleKeyboardShortcuts: vi.fn() }
++    expect(isNativeMenuCommandId(APP_COMMAND_IDS.viewKeyboardShortcuts)).toBe(false)
++    expect(dispatchAppCommand(APP_COMMAND_IDS.viewKeyboardShortcuts, handlers)).toBe(true)
++    expect(handlers.onToggleKeyboardShortcuts).toHaveBeenCalledTimes(1)
++  })
++
+   it('uses the active note for note-scoped commands', () => {
+     const handlers = makeHandlers()
+     expect(dispatchAppCommand(APP_COMMAND_IDS.noteToggleFavorite, handlers)).toBe(true)
+diff --git a/src/hooks/appCommandDispatcher.ts b/src/hooks/appCommandDispatcher.ts
+index 92c11c2..773fc0d 100644
+--- a/src/hooks/appCommandDispatcher.ts
++++ b/src/hooks/appCommandDispatcher.ts
+@@ -39,6 +39,7 @@ export interface AppCommandHandlers {
+   onOpenSettings: () => void
+   onToggleInspector: () => void
+   onCommandPalette: () => void
++  onToggleKeyboardShortcuts?: () => void
+   onZoomIn: () => void
+   onZoomOut: () => void
+   onZoomReset: () => void
+@@ -88,6 +89,7 @@ type SimpleHandlerKey = keyof Pick<
+   | 'onToggleInspector'
+   | 'onToggleAIChat'
+   | 'onCommandPalette'
++  | 'onToggleKeyboardShortcuts'
+   | 'onZoomIn'
+   | 'onZoomOut'
+   | 'onZoomReset'
+@@ -129,6 +131,7 @@ const SIMPLE_HANDLER_EXECUTORS: Record<SimpleHandlerKey, (handlers: AppCommandHa
+   onToggleInspector: (handlers) => handlers.onToggleInspector(),
+   onToggleAIChat: (handlers) => handlers.onToggleAIChat?.(),
+   onCommandPalette: (handlers) => handlers.onCommandPalette(),
++  onToggleKeyboardShortcuts: (handlers) => handlers.onToggleKeyboardShortcuts?.(),
+   onZoomIn: (handlers) => handlers.onZoomIn(),
+   onZoomOut: (handlers) => handlers.onZoomOut(),
+   onZoomReset: (handlers) => handlers.onZoomReset(),
+diff --git a/src/hooks/appCommandTypes.ts b/src/hooks/appCommandTypes.ts
+index f836b2b..a142988 100644
+--- a/src/hooks/appCommandTypes.ts
++++ b/src/hooks/appCommandTypes.ts
+@@ -21,6 +21,7 @@ export const APP_COMMAND_IDS = {
+   viewToggleAiChat: 'view-toggle-ai-chat',
+   viewToggleBacklinks: 'view-toggle-backlinks',
+   viewCommandPalette: 'view-command-palette',
++  viewKeyboardShortcuts: 'view-keyboard-shortcuts',
+   viewZoomIn: 'view-zoom-in',
+   viewZoomOut: 'view-zoom-out',
+   viewZoomReset: 'view-zoom-reset',
+@@ -91,6 +92,7 @@ export type SimpleHandlerKey =
+   | 'onToggleInspector'
+   | 'onToggleAIChat'
+   | 'onCommandPalette'
++  | 'onToggleKeyboardShortcuts'
+   | 'onZoomIn'
+   | 'onZoomOut'
+   | 'onZoomReset'
+diff --git a/src/hooks/appKeyboardShortcuts.ts b/src/hooks/appKeyboardShortcuts.ts
+index a3264c9..a734d50 100644
+--- a/src/hooks/appKeyboardShortcuts.ts
++++ b/src/hooks/appKeyboardShortcuts.ts
+@@ -12,6 +12,7 @@ export type KeyboardActions = Pick<
+   AppCommandHandlers,
+   | 'onQuickOpen'
+   | 'onCommandPalette'
++  | 'onToggleKeyboardShortcuts'
+   | 'onSearch'
+   | 'onCreateNote'
+   | 'onSave'
+diff --git a/src/hooks/commands/viewCommands.ts b/src/hooks/commands/viewCommands.ts
+index 1d24573..16175fe 100644
+--- a/src/hooks/commands/viewCommands.ts
++++ b/src/hooks/commands/viewCommands.ts
+@@ -22,6 +22,7 @@ interface ViewCommandsConfig {
+   onToggleNoteLayout?: () => void
+   onToggleAIChat?: () => void
+   onOpenGraph?: () => void
++  onToggleKeyboardShortcuts?: () => void
+   zoomLevel: number
+   onZoomIn: () => void
+   onZoomOut: () => void
+@@ -45,7 +46,7 @@ function buildNoteLayoutCommand(noteLayout: NoteLayout, onToggleNoteLayout?: ()
+ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
+   const {
+     hasActiveNote, activeNoteModified,
+-    onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout = 'centered', onToggleNoteLayout, onToggleAIChat, onOpenGraph,
++    onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout = 'centered', onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts,
+     zoomLevel, onZoomIn, onZoomOut, onZoomReset,
+     onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
+   } = config
+@@ -61,6 +62,7 @@ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
+     { id: 'toggle-ai-panel', label: 'Toggle AI Panel', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewToggleAiChat), keywords: ['ai', 'agent', 'chat', 'assistant', 'contextual'], enabled: true, execute: () => onToggleAIChat?.() },
+     { id: 'new-ai-chat', label: 'New AI chat', group: 'View', keywords: ['ai', 'agent', 'chat', 'assistant', 'new', 'fresh', 'conversation', 'reset'], enabled: true, execute: requestNewAiChat },
+     { id: 'open-graph', label: 'Open Knowledge Graph', group: 'View', keywords: ['graph', 'map', 'network', 'links', 'relationships', 'visualization'], enabled: !!onOpenGraph, execute: () => onOpenGraph?.() },
++    { id: 'keyboard-shortcuts', label: 'Keyboard shortcuts', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewKeyboardShortcuts), keywords: ['keyboard', 'shortcuts', 'keys', 'hotkeys', 'keybindings', 'cheat sheet', 'help'], enabled: !!onToggleKeyboardShortcuts, execute: () => onToggleKeyboardShortcuts?.() },
+     { id: 'toggle-backlinks', label: 'Toggle Backlinks', group: 'View', keywords: ['backlinks', 'references', 'links', 'mentions', 'incoming'], enabled: hasActiveNote, execute: onToggleInspector },
+     { id: 'customize-note-list-columns', label: noteListColumnsLabel, group: 'View', keywords: ['all notes', 'inbox', 'columns', 'chips', 'properties', 'note list'], enabled: !!(canCustomizeNoteListColumns && onCustomizeNoteListColumns), execute: () => onCustomizeNoteListColumns?.() },
+     { id: 'zoom-in', label: `Zoom In (${zoomLevel}%)`, group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewZoomIn), keywords: ['zoom', 'bigger', 'larger', 'scale'], enabled: zoomLevel < 150, execute: onZoomIn },
+diff --git a/src/hooks/useAppCommands.ts b/src/hooks/useAppCommands.ts
+index e1665b5..0627f6f 100644
+--- a/src/hooks/useAppCommands.ts
++++ b/src/hooks/useAppCommands.ts
+@@ -22,6 +22,7 @@ function createKeyboardActions(
+   return {
+     onQuickOpen: config.onQuickOpen,
+     onCommandPalette: config.onCommandPalette,
++    onToggleKeyboardShortcuts: config.onToggleKeyboardShortcuts,
+     onSearch: config.onSearch,
+     onCreateNote: config.onCreateNote,
+     onSave: config.onSave,
+@@ -229,6 +230,7 @@ function createCommandRegistryCoreConfig(
+     onToggleNoteLayout: config.onToggleNoteLayout,
+     onToggleAIChat: config.onToggleAIChat,
+     onOpenGraph: config.onOpenGraph,
++    onToggleKeyboardShortcuts: config.onToggleKeyboardShortcuts,
+   }
+ }
+ 
+diff --git a/src/hooks/useAppCommands.types.ts b/src/hooks/useAppCommands.types.ts
+index 294f300..3517033 100644
+--- a/src/hooks/useAppCommands.types.ts
++++ b/src/hooks/useAppCommands.types.ts
+@@ -19,6 +19,7 @@ export interface AppCommandsConfig {
+   selection: SidebarSelection
+   onQuickOpen: () => void
+   onCommandPalette: () => void
++  onToggleKeyboardShortcuts?: () => void
+   onSearch: () => void
+   onCreateNote: () => void
+   onCaptureThought?: () => void
+@@ -158,6 +159,7 @@ export type CommandRegistryCoreActions = Pick<
+   | 'onToggleNoteLayout'
+   | 'onToggleAIChat'
+   | 'onOpenGraph'
++  | 'onToggleKeyboardShortcuts'
+ >
+ export type CommandRegistryVaultActions = Pick<
+   CommandRegistryConfig,
+diff --git a/src/hooks/useCommandRegistry.test.ts b/src/hooks/useCommandRegistry.test.ts
+index 149efd4..7966018 100644
+--- a/src/hooks/useCommandRegistry.test.ts
++++ b/src/hooks/useCommandRegistry.test.ts
+@@ -208,6 +208,18 @@ describe('useCommandRegistry', () => {
+     expect(onOpenGraph).toHaveBeenCalledOnce()
+   })
+ 
++  it('opens the keyboard shortcuts sheet from the palette', () => {
++    const onToggleKeyboardShortcuts = vi.fn()
++    const { result } = renderHook(() => useCommandRegistry(makeConfig({ onToggleKeyboardShortcuts })))
++    const cmd = findCommand(result.current, 'keyboard-shortcuts')
++
++    expect(cmd?.label).toBe('Keyboard shortcuts')
++    expect(cmd?.enabled).toBe(true)
++    expect(cmd?.shortcut).toMatch(/^(⌘\/|Ctrl\+\/)$/)
++    cmd!.execute()
++    expect(onToggleKeyboardShortcuts).toHaveBeenCalledOnce()
++  })
++
+   it('inserts a weather snapshot only when a note is active', () => {
+     const onInsertWeatherSnapshot = vi.fn()
+     const { result, rerender } = renderHook(
+diff --git a/src/hooks/useCommandRegistry.ts b/src/hooks/useCommandRegistry.ts
+index 7e2d21b..5c89121 100644
+--- a/src/hooks/useCommandRegistry.ts
++++ b/src/hooks/useCommandRegistry.ts
+@@ -93,6 +93,7 @@ interface CommandRegistryConfig {
+   onToggleNoteLayout?: () => void
+   onToggleAIChat?: () => void
+   onOpenGraph?: () => void
++  onToggleKeyboardShortcuts?: () => void
+   activeNoteModified: boolean
+   onCheckForUpdates?: () => void
+   onZoomIn: () => void
+@@ -121,7 +122,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
+     activeTabPath, entries, isGitVault = true, modifiedCount,
+     onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
+     onDeleteNote, onArchiveNote, onUnarchiveNote,
+-    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault,
++    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault,
+     activeNoteModified,
+     onZoomIn, onZoomOut, onZoomReset, zoomLevel,
+     onSelect, onRenameFolder, onDeleteFolder,
+@@ -214,7 +215,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
+     }),
+     ...buildViewCommands({
+       hasActiveNote, activeNoteModified, onSetViewMode, onToggleInspector,
+-      onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
++      onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
+       onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
+     }),
+     ...buildSettingsCommands({
+@@ -239,7 +240,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
+     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
+     onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+     onDeleteNote, onArchiveNote, onUnarchiveNote,
+-    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
++    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
+     onCheckForUpdates,
+     onZoomIn, onZoomOut, onZoomReset, zoomLevel,
+     onSelect, onRenameFolder, onDeleteFolder,
+diff --git a/src/hooks/useDialogs.ts b/src/hooks/useDialogs.ts
+index d8dad35..e7205c9 100644
+--- a/src/hooks/useDialogs.ts
++++ b/src/hooks/useDialogs.ts
+@@ -5,6 +5,7 @@ export function useDialogs() {
+   const [showCreateTypeDialog, setShowCreateTypeDialog] = useState(false)
+   const [showQuickOpen, setShowQuickOpen] = useState(false)
+   const [showCommandPalette, setShowCommandPalette] = useState(false)
++  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
+   const [showAIChat, setShowAIChat] = useState(false)
+   const [showSettings, setShowSettings] = useState(false)
+   const [showCloneVault, setShowCloneVault] = useState(false)
+@@ -21,6 +22,8 @@ export function useDialogs() {
+   const closeQuickOpen = useCallback(() => setShowQuickOpen(false), [])
+   const openCommandPalette = useCallback(() => setShowCommandPalette(true), [])
+   const closeCommandPalette = useCallback(() => setShowCommandPalette(false), [])
++  const toggleKeyboardShortcuts = useCallback(() => setShowKeyboardShortcuts((c) => !c), [])
++  const closeKeyboardShortcuts = useCallback(() => setShowKeyboardShortcuts(false), [])
+   const openSettings = useCallback(() => setShowSettings(true), [])
+   const closeSettings = useCallback(() => setShowSettings(false), [])
+   const openCloneVault = useCallback(() => setShowCloneVault(true), [])
+@@ -45,6 +48,7 @@ export function useDialogs() {
+     showCreateTypeDialog, openCreateType, closeCreateType,
+     showQuickOpen, openQuickOpen, closeQuickOpen,
+     showCommandPalette, openCommandPalette, closeCommandPalette,
++    showKeyboardShortcuts, toggleKeyboardShortcuts, closeKeyboardShortcuts,
+     showAIChat, toggleAIChat,
+     showSettings, openSettings, closeSettings,
+     showCloneVault, openCloneVault, closeCloneVault,
+diff --git a/src/startupImportBudget.test.ts b/src/startupImportBudget.test.ts
+index 42eda28..4b7d43d 100644
+--- a/src/startupImportBudget.test.ts
++++ b/src/startupImportBudget.test.ts
+@@ -24,6 +24,7 @@ const HEAVY_APP_IMPORTS = [
+   './components/Editor',
+   './components/FeedbackDialog',
+   './components/GraphModal',
++  './components/KeyboardShortcutsDialog',
+   './components/McpSetupDialog',
+   './components/note-retargeting/NoteRetargetingDialogs',
+   './components/PulseView',
+diff --git a/src/components/KeyboardShortcutsDialog.test.tsx b/src/components/KeyboardShortcutsDialog.test.tsx
+new file mode 100644
+index 0000000..bb9c70c
+--- /dev/null
++++ b/src/components/KeyboardShortcutsDialog.test.tsx
+@@ -0,0 +1,64 @@
++import { describe, expect, it, vi } from 'vitest'
++import { fireEvent, render, screen, within } from '@testing-library/react'
++import { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
++
++function renderDialog(platform: 'mac' | 'other' = 'mac') {
++  const onClose = vi.fn()
++  render(<KeyboardShortcutsDialog open onClose={onClose} platform={platform} />)
++  return { onClose, dialog: screen.getByRole('dialog', { name: 'Keyboard shortcuts' }) }
++}
++
++describe('KeyboardShortcutsDialog', () => {
++  it('is a labelled dialog with the four groups', () => {
++    const { dialog } = renderDialog()
++    const titleId = dialog.getAttribute('aria-labelledby')
++    expect(titleId).toBeTruthy()
++    expect(document.getElementById(titleId!)?.textContent).toBe('Keyboard shortcuts')
++    const headings = within(dialog).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)
++    expect(headings).toEqual(['Navigate', 'Notes', 'Writing', 'View'])
++  })
++
++  it('focuses the filter input on open', () => {
++    renderDialog()
++    expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: 'Filter shortcuts' }))
++  })
++
++  it('renders macOS symbols or Ctrl-style caps by platform', () => {
++    const { dialog } = renderDialog('mac')
++    const row = within(dialog).getByTestId('shortcut-view-keyboard-shortcuts')
++    expect(within(row).getAllByText(/./, { selector: 'kbd' }).map((kbd) => kbd.textContent)).toEqual(['⌘', '/'])
++  })
++
++  it('renders Ctrl caps off macOS', () => {
++    const { dialog } = renderDialog('other')
++    const row = within(dialog).getByTestId('shortcut-edit-find-in-vault')
++    expect(within(row).getAllByText(/./, { selector: 'kbd' }).map((kbd) => kbd.textContent)).toEqual(['Ctrl', 'Shift', 'F'])
++  })
++
++  it('filters rows and shows an empty state', () => {
++    const { dialog } = renderDialog()
++    const input = screen.getByRole('searchbox', { name: 'Filter shortcuts' })
++    fireEvent.change(input, { target: { value: 'italic' } })
++    expect(within(dialog).getAllByRole('heading', { level: 3 }).map((heading) => heading.textContent)).toEqual(['Writing'])
++    expect(within(dialog).getByText('Italic')).toBeInTheDocument()
++    expect(within(dialog).queryByText('Bold')).toBeNull()
++
++    fireEvent.change(input, { target: { value: 'nothing matches this' } })
++    expect(within(dialog).getByRole('status')).toHaveTextContent('No shortcuts match')
++  })
++
++  it('closes on Escape', () => {
++    const { onClose } = renderDialog()
++    fireEvent.keyDown(screen.getByRole('searchbox', { name: 'Filter shortcuts' }), { key: 'Escape' })
++    expect(onClose).toHaveBeenCalledTimes(1)
++  })
++
++  it('traps focus inside the dialog', () => {
++    const { dialog } = renderDialog()
++    const close = within(dialog).getByRole('button', { name: 'Close' })
++    close.focus()
++    fireEvent.keyDown(close, { key: 'Tab' })
++    expect(dialog.contains(document.activeElement)).toBe(true)
++    expect(document.activeElement).toBe(screen.getByRole('searchbox', { name: 'Filter shortcuts' }))
++  })
++})
+diff --git a/src/components/KeyboardShortcutsDialog.tsx b/src/components/KeyboardShortcutsDialog.tsx
+new file mode 100644
+index 0000000..1193ed3
+--- /dev/null
++++ b/src/components/KeyboardShortcutsDialog.tsx
+@@ -0,0 +1,104 @@
++import { useId, useMemo, useState } from 'react'
++import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog'
++import { allShortcutEntries } from '../lib/keyboardShortcuts/registry'
++import { filterShortcutGroups, groupShortcutEntries, type ShortcutSheetRow } from '../lib/keyboardShortcuts/sheet'
++import type { ShortcutPlatform } from '../lib/keyboardShortcuts/chords'
++import { isMac } from '../utils/platform'
++
++interface KeyboardShortcutsDialogProps {
++  open: boolean
++  onClose: () => void
++  /** Test seam; defaults to the running platform. */
++  platform?: ShortcutPlatform
++}
++
++function KeyCaps({ caps, typed }: { caps: string[]; typed?: boolean }) {
++  return (
++    <span className="inline-flex items-center gap-1">
++      {typed ? <span className="text-[11px] text-[var(--muted-foreground)]">type</span> : null}
++      {caps.map((cap, index) => (
++        <kbd
++          key={`${cap}-${index}`}
++          className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-b-2 border-[var(--border)] bg-[var(--surface-panel)] px-1.5 font-sans text-[11px] font-medium text-[var(--foreground)]"
++        >
++          {cap}
++        </kbd>
++      ))}
++    </span>
++  )
++}
++
++function ShortcutRow({ row }: { row: ShortcutSheetRow }) {
++  return (
++    <li className="flex items-center justify-between gap-3 py-1.5" data-testid={`shortcut-${row.entry.id}`}>
++      <span className="min-w-0 text-[13px] text-[var(--foreground)]">{row.entry.label}</span>
++      <span className="flex shrink-0 items-center gap-1.5">
++        {row.caps.map((caps, index) => (
++          <span key={index} className="inline-flex items-center gap-1.5">
++            {index > 0 ? <span className="text-[11px] text-[var(--muted-foreground)]">or</span> : null}
++            <KeyCaps caps={caps} typed={row.entry.typed} />
++          </span>
++        ))}
++      </span>
++    </li>
++  )
++}
++
++/** Cheat sheet of every registered shortcut, grouped and filterable. */
++export function KeyboardShortcutsDialog({ open, onClose, platform }: KeyboardShortcutsDialogProps) {
++  const [query, setQuery] = useState('')
++  const filterId = useId()
++  const resolvedPlatform: ShortcutPlatform = platform ?? (isMac() ? 'mac' : 'other')
++  const groups = useMemo(
++    () => groupShortcutEntries(allShortcutEntries(), resolvedPlatform),
++    [resolvedPlatform],
++  )
++  const visibleGroups = useMemo(() => filterShortcutGroups(groups, query), [groups, query])
++
++  return (
++    <Dialog open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose() }}>
++      <DialogContent
++        className="keyboard-shortcuts-dialog gap-3 border-[var(--border)] bg-[var(--surface-panel)] text-[var(--foreground)] sm:max-w-3xl"
++        data-testid="keyboard-shortcuts-dialog"
++      >
++        <DialogHeader>
++          <DialogTitle className="text-base font-semibold text-[var(--foreground)]">Keyboard shortcuts</DialogTitle>
++          <DialogDescription className="sr-only">
++            Every keyboard shortcut in Grimoire, grouped by area. Type to filter.
++          </DialogDescription>
++        </DialogHeader>
++        <label htmlFor={filterId} className="sr-only">Filter shortcuts</label>
++        <input
++          id={filterId}
++          type="search"
++          autoFocus
++          value={query}
++          onChange={(event) => setQuery(event.target.value)}
++          placeholder="Filter shortcuts"
++          className="h-9 w-full rounded-md border border-[var(--border)] bg-transparent px-3 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus-visible:border-[var(--primary)] focus-visible:ring-1 focus-visible:ring-[var(--primary)]"
++        />
++        {visibleGroups.length === 0 ? (
++          <p className="py-6 text-center text-sm text-[var(--muted-foreground)]" role="status">
++            No shortcuts match “{query.trim()}”
++          </p>
++        ) : (
++          <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
++            {visibleGroups.map((group) => (
++              <section key={group.id} aria-labelledby={`${filterId}-${group.id}`}>
++                <h3
++                  id={`${filterId}-${group.id}`}
++                  className="mb-1 text-[11px] font-semibold tracking-wide text-[var(--muted-foreground)] uppercase"
++                >
++                  {group.label}
++                </h3>
++                <ul className="divide-y divide-[var(--border)]">
++                  {group.rows.map((row) => <ShortcutRow key={row.entry.id} row={row} />)}
++                </ul>
++              </section>
++            ))}
++          </div>
++        )}
++      </DialogContent>
++    </Dialog>
++  )
++}
+diff --git a/src/lib/keyboardShortcuts/chords.ts b/src/lib/keyboardShortcuts/chords.ts
+new file mode 100644
+index 0000000..d76907f
+--- /dev/null
++++ b/src/lib/keyboardShortcuts/chords.ts
+@@ -0,0 +1,79 @@
++import type { AppCommandShortcutDefinition } from '../../hooks/appCommandTypes'
++
++/** `mod` is Cmd on macOS and Ctrl elsewhere; `ctrl` is always the Control key. */
++export type ShortcutModifier = 'mod' | 'ctrl' | 'alt' | 'shift'
++
++export interface ShortcutChord {
++  modifiers: readonly ShortcutModifier[]
++  /** KeyboardEvent.key-style name ('K', '/', 'ArrowUp', 'Enter') or typed text ('[['). */
++  key: string
++}
++
++export type ShortcutPlatform = 'mac' | 'other'
++
++// Matches the order the app's own display strings use (⌘⇧F, Ctrl+Shift+F).
++const MODIFIER_ORDER: readonly ShortcutModifier[] = ['mod', 'ctrl', 'shift', 'alt']
++
++const MAC_MODIFIER_CAPS: Record<ShortcutModifier, string> = { mod: '⌘', ctrl: '⌃', alt: '⌥', shift: '⇧' }
++const OTHER_MODIFIER_CAPS: Record<ShortcutModifier, string> = { mod: 'Ctrl', ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift' }
++
++const MAC_KEY_CAPS: Record<string, string> = {
++  ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→',
++  Backspace: '⌫', Delete: '⌦', Enter: '↵', Escape: 'Esc', Tab: '⇥', Space: 'Space',
++}
++const OTHER_KEY_CAPS: Record<string, string> = {
++  ArrowUp: 'Up', ArrowDown: 'Down', ArrowLeft: 'Left', ArrowRight: 'Right',
++  Backspace: 'Backspace', Delete: 'Delete', Enter: 'Enter', Escape: 'Esc', Tab: 'Tab', Space: 'Space',
++}
++
++function keyCap(key: string, platform: ShortcutPlatform): string {
++  const named = (platform === 'mac' ? MAC_KEY_CAPS : OTHER_KEY_CAPS)[key]
++  if (named) return named
++  return key.length === 1 ? key.toUpperCase() : key
++}
++
++/** Renders one chord as an ordered list of key caps for the given platform. */
++export function formatChordCaps(chord: ShortcutChord, platform: ShortcutPlatform): string[] {
++  const modifierCaps = platform === 'mac' ? MAC_MODIFIER_CAPS : OTHER_MODIFIER_CAPS
++  const caps: string[] = []
++  for (const modifier of MODIFIER_ORDER) {
++    if (!chord.modifiers.includes(modifier)) continue
++    const cap = modifierCaps[modifier]
++    if (!caps.includes(cap)) caps.push(cap)
++  }
++  caps.push(keyCap(chord.key, platform))
++  return caps
++}
++
++const KEYMAP_MODIFIERS: Record<string, ShortcutModifier> = {
++  Mod: 'mod', Cmd: 'mod', Meta: 'mod', Ctrl: 'ctrl', Control: 'ctrl', Alt: 'alt', Shift: 'shift',
++}
++
++/** Parses a ProseMirror/Tiptap keymap string such as `Shift-Mod-z` or `Mod-Alt-1`. */
++export function parseKeymap(keymap: string): ShortcutChord {
++  const parts = keymap.split('-')
++  let key = parts.pop() ?? ''
++  if (key === '' && parts.length > 0) {
++    parts.pop()
++    key = '-'
++  }
++  const modifiers = parts.map((part) => {
++    const modifier = KEYMAP_MODIFIERS[part]
++    if (!modifier) throw new Error(`Unknown keymap modifier "${part}" in "${keymap}"`)
++    return modifier
++  })
++  return { modifiers, key }
++}
++
++/**
++ * Chords for an app command shortcut. Aliases are only shown when the authored
++ * display string advertises them (e.g. `⌘P / ⌘O`), so the sheet never shows more
++ * than the palette and menus do.
++ */
++export function chordsForAppShortcut(shortcut: AppCommandShortcutDefinition): ShortcutChord[] {
++  const modifiers: ShortcutModifier[] = shortcut.combo === 'command-or-ctrl' ? ['mod'] : ['mod', 'shift']
++  const advertised = shortcut.display.split(' / ').length
++  return [shortcut.key, ...(shortcut.aliases ?? [])]
++    .slice(0, advertised)
++    .map((key) => ({ modifiers, key }))
++}
+diff --git a/src/lib/keyboardShortcuts/registry.test.ts b/src/lib/keyboardShortcuts/registry.test.ts
+new file mode 100644
+index 0000000..4d5ab47
+--- /dev/null
++++ b/src/lib/keyboardShortcuts/registry.test.ts
+@@ -0,0 +1,167 @@
++import { readdirSync, readFileSync, realpathSync } from 'node:fs'
++import { createRequire } from 'node:module'
++import { join, resolve } from 'node:path'
++import { renderHook } from '@testing-library/react'
++import { describe, expect, it, vi } from 'vitest'
++import {
++  APP_COMMAND_DEFINITIONS,
++  APP_COMMAND_IDS,
++  findShortcutCommandIdForEvent,
++  type AppCommandId,
++} from '../../hooks/appCommandCatalog'
++import { isNeighborhoodKey, isToggleSearchShortcut } from '../../hooks/noteListKeyboardModel'
++import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation'
++import { useMultiSelectKeyboard } from '../../components/note-list/useMultiSelectKeyboard'
++import type { MultiSelectState } from '../../hooks/useMultiSelect'
++import type { VaultEntry } from '../../types'
++import { formatChordCaps, parseKeymap, type ShortcutChord } from './chords'
++import {
++  AD_HOC_SHORTCUTS,
++  WRITING_BINDINGS,
++  allShortcutEntries,
++  appCommandSheetMeta,
++  appCommandShortcutEntries,
++} from './registry'
++
++const ROOT = resolve(__dirname, '../../..')
++
++function eventInit(chord: ShortcutChord, preferControl = false): KeyboardEventInit & { key: string; code: string } {
++  const mod = chord.modifiers.includes('mod')
++  const key = chord.key.length === 1 ? chord.key.toLowerCase() : chord.key
++  const code = /^[a-z]$/i.test(chord.key) ? `Key${chord.key.toUpperCase()}` : chord.key === '/' ? 'Slash' : chord.key
++  return {
++    key,
++    code,
++    metaKey: mod && !preferControl,
++    ctrlKey: (mod && preferControl) || chord.modifiers.includes('ctrl'),
++    altKey: chord.modifiers.includes('alt'),
++    shiftKey: chord.modifiers.includes('shift'),
++    bubbles: true,
++    cancelable: true,
++  }
++}
++
++function sourceFiles(directory: string): string[] {
++  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
++    const path = join(directory, entry.name)
++    if (entry.isDirectory()) return sourceFiles(path)
++    return /\.(ts|js|cjs)$/.test(entry.name) && !entry.name.includes('.test.') ? [path] : []
++  })
++}
++
++function installedEditorKeymapSource(): string {
++  const blockNoteDir = realpathSync(join(ROOT, 'node_modules/@blocknote/core'))
++  const requireFromBlockNote = createRequire(join(blockNoteDir, 'package.json'))
++  const markPackages = ['bold', 'italic', 'underline', 'strike'].map((mark) =>
++    readFileSync(requireFromBlockNote.resolve(`@tiptap/extension-${mark}`), 'utf8'))
++  const blockNoteSource = sourceFiles(join(blockNoteDir, 'src')).map((file) => readFileSync(file, 'utf8'))
++  return [...markPackages, ...blockNoteSource].join('\n')
++}
++
++describe('app command shortcuts on the sheet', () => {
++  it('places every command that owns a shortcut', () => {
++    const missing = (Object.keys(APP_COMMAND_DEFINITIONS) as AppCommandId[])
++      .filter((id) => APP_COMMAND_DEFINITIONS[id].shortcut && !appCommandSheetMeta(id))
++    expect(missing).toEqual([])
++  })
++
++  it('renders the same keys the palette and menus advertise', () => {
++    for (const entry of appCommandShortcutEntries()) {
++      const display = APP_COMMAND_DEFINITIONS[entry.id as AppCommandId].shortcut?.display
++      const rendered = entry.chords.map((chord) => formatChordCaps(chord, 'mac').join('')).join(' / ')
++      expect(rendered, entry.id).toBe(display)
++    }
++  })
++
++  it('resolves every listed chord back to its command with Cmd and with Ctrl', () => {
++    for (const entry of appCommandShortcutEntries()) {
++      for (const chord of entry.chords) {
++        expect(findShortcutCommandIdForEvent(eventInit(chord) as KeyboardEvent), entry.id).toBe(entry.id)
++        expect(findShortcutCommandIdForEvent(eventInit(chord, true) as KeyboardEvent), entry.id).toBe(entry.id)
++      }
++    }
++  })
++
++  it('binds Cmd+/ and Ctrl+/ to the shortcut sheet', () => {
++    const base = { key: '/', code: 'Slash', altKey: false, shiftKey: false }
++    expect(findShortcutCommandIdForEvent({ ...base, metaKey: true, ctrlKey: false })).toBe(APP_COMMAND_IDS.viewKeyboardShortcuts)
++    expect(findShortcutCommandIdForEvent({ ...base, metaKey: false, ctrlKey: true })).toBe(APP_COMMAND_IDS.viewKeyboardShortcuts)
++  })
++})
++
++describe('ad-hoc shortcuts are handled by their real handlers', () => {
++  const notes = [{ path: 'a.md' }, { path: 'b.md' }] as VaultEntry[]
++
++  function fireNavigation(chord: ShortcutChord) {
++    const onSelectNote = vi.fn()
++    const { unmount } = renderHook(() => useKeyboardNavigation({
++      activeTabPath: null,
++      visibleNotesRef: { current: notes },
++      onReplaceActiveTab: vi.fn(),
++      onSelectNote,
++    }))
++    window.dispatchEvent(new KeyboardEvent('keydown', eventInit(chord)))
++    unmount()
++    return onSelectNote.mock.calls.length > 0
++  }
++
++  function fireSelectAll(chord: ShortcutChord) {
++    const selectAll = vi.fn()
++    const multiSelect = { isMultiSelecting: false, selectAll, clear: vi.fn() } as unknown as MultiSelectState
++    const { unmount } = renderHook(() => useMultiSelectKeyboard({ multiSelect, isEntityView: false }))
++    window.dispatchEvent(new KeyboardEvent('keydown', eventInit(chord)))
++    unmount()
++    return selectAll.mock.calls.length > 0
++  }
++
++  const verifiers: Record<string, (chord: ShortcutChord) => boolean> = {
++    'next-page-in-list': fireNavigation,
++    'previous-page-in-list': fireNavigation,
++    'find-in-page': (chord) => isToggleSearchShortcut(eventInit(chord)),
++    'open-neighborhood': (chord) => isNeighborhoodKey(eventInit(chord) as KeyboardEvent),
++    'select-all-pages': fireSelectAll,
++  }
++
++  it.each(AD_HOC_SHORTCUTS.map((entry) => [entry.id, entry] as const))('%s', (id, entry) => {
++    const verify = verifiers[id]
++    expect(verify, `add a handler check for ${id}`).toBeDefined()
++    for (const chord of entry.chords) expect(verify(chord)).toBe(true)
++  })
++})
++
++describe('writing shortcuts', () => {
++  const source = installedEditorKeymapSource()
++  const singleEditorView = readFileSync(join(ROOT, 'src/components/SingleEditorView.tsx'), 'utf8')
++
++  it.each(WRITING_BINDINGS.map((binding) => [binding.id, binding] as const))('%s is registered by the editor', (_id, binding) => {
++    if (binding.trigger !== undefined) {
++      expect(singleEditorView).toContain(`triggerCharacter="${binding.trigger}"`)
++      return
++    }
++    const keymap = binding.keymap ?? ''
++    const heading = /^Mod-Alt-([1-6])$/.exec(keymap)
++    if (heading) {
++      expect(source).toContain('`Mod-Alt-${level}`')
++      return
++    }
++    expect(source).toMatch(new RegExp(`(?:^|[\\s{,])["']?${keymap.replace(/-/g, '\\-')}["']?\\s*:`, 'm'))
++  })
++
++  it('never shadows an app command shortcut', () => {
++    for (const binding of WRITING_BINDINGS) {
++      if (!binding.keymap) continue
++      const chord = parseKeymap(binding.keymap)
++      if (!chord.modifiers.includes('mod')) continue
++      expect(findShortcutCommandIdForEvent(eventInit(chord) as KeyboardEvent), binding.id).toBeNull()
++    }
++  })
++})
++
++describe('sheet as a whole', () => {
++  it('has unique ids and no chord listed twice', () => {
++    const entries = allShortcutEntries()
++    expect(new Set(entries.map((entry) => entry.id)).size).toBe(entries.length)
++    const chords = entries.flatMap((entry) => entry.chords.map((chord) => formatChordCaps(chord, 'mac').join('')))
++    expect(chords.filter((chord, index) => chords.indexOf(chord) !== index)).toEqual([])
++  })
++})
+diff --git a/src/lib/keyboardShortcuts/registry.ts b/src/lib/keyboardShortcuts/registry.ts
+new file mode 100644
+index 0000000..c3a493c
+--- /dev/null
++++ b/src/lib/keyboardShortcuts/registry.ts
+@@ -0,0 +1,196 @@
++import { APP_COMMAND_DEFINITIONS, APP_COMMAND_IDS, type AppCommandId } from '../../hooks/appCommandCatalog'
++import { chordsForAppShortcut, parseKeymap, type ShortcutChord } from './chords'
++
++export type ShortcutGroupId = 'navigate' | 'notes' | 'writing' | 'view'
++
++export const SHORTCUT_GROUPS: ReadonlyArray<{ id: ShortcutGroupId; label: string }> = [
++  { id: 'navigate', label: 'Navigate' },
++  { id: 'notes', label: 'Notes' },
++  { id: 'writing', label: 'Writing' },
++  { id: 'view', label: 'View' },
++]
++
++export interface ShortcutEntry {
++  id: string
++  label: string
++  group: ShortcutGroupId
++  /** Alternative chords that trigger the same action. */
++  chords: readonly ShortcutChord[]
++  /** True when the chord is typed text (e.g. `/` or `[[`) rather than a key combination. */
++  typed?: boolean
++  keywords?: readonly string[]
++}
++
++interface SheetMeta {
++  label: string
++  group: ShortcutGroupId
++  keywords?: readonly string[]
++}
++
++/**
++ * Sheet placement for every app command. Exhaustive on purpose: adding an
++ * AppCommandId fails type-checking until someone decides whether it belongs on
++ * the sheet. Commands without a shortcut are skipped regardless.
++ */
++const APP_COMMAND_SHEET_META: Record<AppCommandId, SheetMeta | null> = {
++  [APP_COMMAND_IDS.fileQuickOpen]: { label: 'Quick open a page', group: 'navigate', keywords: ['find', 'jump', 'go to'] },
++  [APP_COMMAND_IDS.viewCommandPalette]: { label: 'Command palette', group: 'navigate', keywords: ['actions', 'run'] },
++  [APP_COMMAND_IDS.editFindInVault]: { label: 'Search the notebook', group: 'navigate', keywords: ['find', 'vault', 'full text'] },
++  [APP_COMMAND_IDS.viewGoBack]: { label: 'Go back', group: 'navigate', keywords: ['history', 'previous'] },
++  [APP_COMMAND_IDS.viewGoForward]: { label: 'Go forward', group: 'navigate', keywords: ['history', 'next'] },
++  [APP_COMMAND_IDS.fileNewNote]: { label: 'New page', group: 'notes', keywords: ['create', 'note'] },
++  [APP_COMMAND_IDS.fileSave]: { label: 'Save', group: 'notes' },
++  [APP_COMMAND_IDS.noteToggleOrganized]: { label: 'Toggle organized', group: 'notes', keywords: ['inbox', 'triage'] },
++  [APP_COMMAND_IDS.noteToggleFavorite]: { label: 'Toggle favorite', group: 'notes', keywords: ['star', 'pin'] },
++  [APP_COMMAND_IDS.noteDelete]: { label: 'Delete page', group: 'notes', keywords: ['remove', 'trash'] },
++  [APP_COMMAND_IDS.noteOpenInNewWindow]: { label: 'Open page in new window', group: 'notes' },
++  [APP_COMMAND_IDS.editToggleRawEditor]: { label: 'Toggle raw Markdown editor', group: 'notes', keywords: ['source', 'markdown'] },
++  [APP_COMMAND_IDS.viewEditorOnly]: { label: 'Editor only', group: 'view', keywords: ['layout', 'focus'] },
++  [APP_COMMAND_IDS.viewEditorList]: { label: 'Editor and page list', group: 'view', keywords: ['layout'] },
++  [APP_COMMAND_IDS.viewAll]: { label: 'All panels', group: 'view', keywords: ['layout', 'sidebar'] },
++  [APP_COMMAND_IDS.viewToggleProperties]: { label: 'Toggle properties panel', group: 'view', keywords: ['inspector'] },
++  [APP_COMMAND_IDS.viewToggleAiChat]: { label: 'Toggle AI panel', group: 'view', keywords: ['chat', 'assistant'] },
++  [APP_COMMAND_IDS.viewZoomIn]: { label: 'Zoom in', group: 'view' },
++  [APP_COMMAND_IDS.viewZoomOut]: { label: 'Zoom out', group: 'view' },
++  [APP_COMMAND_IDS.viewZoomReset]: { label: 'Actual size', group: 'view', keywords: ['zoom', 'reset'] },
++  [APP_COMMAND_IDS.appSettings]: { label: 'Settings', group: 'view', keywords: ['preferences'] },
++  [APP_COMMAND_IDS.viewKeyboardShortcuts]: { label: 'Keyboard shortcuts', group: 'view', keywords: ['help', 'keys', 'cheat sheet'] },
++  [APP_COMMAND_IDS.appCheckForUpdates]: null,
++  [APP_COMMAND_IDS.fileCaptureThought]: null,
++  [APP_COMMAND_IDS.fileCaptureJournal]: null,
++  [APP_COMMAND_IDS.fileCaptureDream]: null,
++  [APP_COMMAND_IDS.fileNewType]: null,
++  [APP_COMMAND_IDS.editToggleDiff]: null,
++  [APP_COMMAND_IDS.viewToggleBacklinks]: null,
++  [APP_COMMAND_IDS.goAllNotes]: null,
++  [APP_COMMAND_IDS.goArchived]: null,
++  [APP_COMMAND_IDS.goChanges]: null,
++  [APP_COMMAND_IDS.goInbox]: null,
++  [APP_COMMAND_IDS.noteArchive]: null,
++  [APP_COMMAND_IDS.noteRestoreDeleted]: null,
++  [APP_COMMAND_IDS.vaultOpen]: null,
++  [APP_COMMAND_IDS.vaultRemove]: null,
++  [APP_COMMAND_IDS.vaultRestoreGettingStarted]: null,
++  [APP_COMMAND_IDS.vaultAddRemote]: null,
++  [APP_COMMAND_IDS.vaultCommitPush]: null,
++  [APP_COMMAND_IDS.vaultPull]: null,
++  [APP_COMMAND_IDS.vaultResolveConflicts]: null,
++  [APP_COMMAND_IDS.vaultViewChanges]: null,
++  [APP_COMMAND_IDS.vaultInstallMcp]: null,
++  [APP_COMMAND_IDS.vaultReload]: null,
++  [APP_COMMAND_IDS.vaultRepair]: null,
++}
++
++/** Placement lookup, exported for the drift test. */
++export function appCommandSheetMeta(id: AppCommandId): SheetMeta | null {
++  return APP_COMMAND_SHEET_META[id]
++}
++
++/** Shortcuts owned by the app command registry (`APP_COMMAND_DEFINITIONS`). */
++export function appCommandShortcutEntries(): ShortcutEntry[] {
++  const entries: ShortcutEntry[] = []
++  for (const id of Object.keys(APP_COMMAND_DEFINITIONS) as AppCommandId[]) {
++    const shortcut = APP_COMMAND_DEFINITIONS[id].shortcut
++    const meta = APP_COMMAND_SHEET_META[id]
++    if (!shortcut || !meta) continue
++    entries.push({ id, ...meta, chords: chordsForAppShortcut(shortcut) })
++  }
++  return entries
++}
++
++/**
++ * Bindings that live in one-off key handlers rather than the command registry.
++ * Each one is exercised against its real handler in registry.test.ts.
++ */
++export const AD_HOC_SHORTCUTS: readonly ShortcutEntry[] = [
++  {
++    id: 'next-page-in-list',
++    label: 'Next page in list',
++    group: 'navigate',
++    chords: [{ modifiers: ['mod', 'alt'], key: 'ArrowDown' }],
++  },
++  {
++    id: 'previous-page-in-list',
++    label: 'Previous page in list',
++    group: 'navigate',
++    chords: [{ modifiers: ['mod', 'alt'], key: 'ArrowUp' }],
++  },
++  {
++    id: 'find-in-page',
++    label: 'Find in page or filter page list',
++    group: 'notes',
++    chords: [{ modifiers: ['mod'], key: 'F' }],
++    keywords: ['search', 'navigator'],
++  },
++  {
++    id: 'open-neighborhood',
++    label: 'Open neighborhood of highlighted page',
++    group: 'notes',
++    chords: [{ modifiers: ['mod'], key: 'Enter' }],
++    keywords: ['related', 'links'],
++  },
++  {
++    id: 'select-all-pages',
++    label: 'Select all pages in list',
++    group: 'notes',
++    chords: [{ modifiers: ['mod'], key: 'A' }],
++    keywords: ['multi', 'bulk'],
++  },
++]
++
++interface WritingBinding {
++  id: string
++  label: string
++  /** Keymap string exactly as BlockNote/Tiptap register it. */
++  keymap?: string
++  /** Suggestion-menu trigger text registered in SingleEditorView. */
++  trigger?: string
++  keywords?: readonly string[]
++}
++
++/**
++ * Editor bindings provided by BlockNote and Tiptap, plus Grimoire's suggestion
++ * triggers. registry.test.ts checks each keymap against the installed packages.
++ * Inline code (Mod-e) is left out because ⌘E belongs to Toggle organized.
++ */
++export const WRITING_BINDINGS: readonly WritingBinding[] = [
++  { id: 'bold', label: 'Bold', keymap: 'Mod-b' },
++  { id: 'italic', label: 'Italic', keymap: 'Mod-i' },
++  { id: 'underline', label: 'Underline', keymap: 'Mod-u' },
++  { id: 'strike', label: 'Strikethrough', keymap: 'Mod-Shift-s' },
++  { id: 'heading-1', label: 'Heading 1', keymap: 'Mod-Alt-1', keywords: ['h1', 'title'] },
++  { id: 'heading-2', label: 'Heading 2', keymap: 'Mod-Alt-2', keywords: ['h2'] },
++  { id: 'heading-3', label: 'Heading 3', keymap: 'Mod-Alt-3', keywords: ['h3'] },
++  { id: 'paragraph', label: 'Plain paragraph', keymap: 'Mod-Alt-0', keywords: ['text', 'body'] },
++  { id: 'quote', label: 'Quote', keymap: 'Mod-Alt-q', keywords: ['blockquote'] },
++  { id: 'bullet-list', label: 'Bulleted list', keymap: 'Mod-Shift-8' },
++  { id: 'numbered-list', label: 'Numbered list', keymap: 'Mod-Shift-7' },
++  { id: 'check-list', label: 'Checklist', keymap: 'Mod-Shift-9', keywords: ['todo', 'task'] },
++  { id: 'toggle-list', label: 'Toggle list', keymap: 'Mod-Shift-6', keywords: ['collapse'] },
++  { id: 'indent', label: 'Indent block', keymap: 'Tab', keywords: ['nest'] },
++  { id: 'outdent', label: 'Outdent block', keymap: 'Shift-Tab', keywords: ['unnest'] },
++  { id: 'move-block-up', label: 'Move block up', keymap: 'Shift-Mod-ArrowUp' },
++  { id: 'move-block-down', label: 'Move block down', keymap: 'Shift-Mod-ArrowDown' },
++  { id: 'undo', label: 'Undo', keymap: 'Mod-z' },
++  { id: 'redo', label: 'Redo', keymap: 'Shift-Mod-z' },
++  { id: 'slash-menu', label: 'Insert block (slash menu)', trigger: '/', keywords: ['command', 'insert'] },
++  { id: 'wikilink', label: 'Link to a page', trigger: '[[', keywords: ['wikilink', 'backlink'] },
++  { id: 'mention', label: 'Mention', trigger: '@' },
++  { id: 'tag', label: 'Tag', trigger: '#' },
++]
++
++export function writingShortcutEntries(): ShortcutEntry[] {
++  return WRITING_BINDINGS.map(({ id, label, keymap, trigger, keywords }) => ({
++    id: `writing-${id}`,
++    label,
++    group: 'writing',
++    chords: [trigger !== undefined ? { modifiers: [], key: trigger } : parseKeymap(keymap ?? '')],
++    typed: trigger !== undefined,
++    keywords,
++  }))
++}
++
++/** Every shortcut on the sheet, in display order within each group. */
++export function allShortcutEntries(): ShortcutEntry[] {
++  return [...appCommandShortcutEntries(), ...AD_HOC_SHORTCUTS, ...writingShortcutEntries()]
++}
+diff --git a/src/lib/keyboardShortcuts/sheet.test.ts b/src/lib/keyboardShortcuts/sheet.test.ts
+new file mode 100644
+index 0000000..6ea4978
+--- /dev/null
++++ b/src/lib/keyboardShortcuts/sheet.test.ts
+@@ -0,0 +1,73 @@
++import { describe, expect, it } from 'vitest'
++import { chordsForAppShortcut, formatChordCaps, parseKeymap } from './chords'
++import { allShortcutEntries } from './registry'
++import { filterShortcutGroups, groupShortcutEntries } from './sheet'
++
++describe('chords', () => {
++  it('parses keymaps regardless of modifier order', () => {
++    expect(parseKeymap('Shift-Mod-z')).toEqual({ modifiers: ['shift', 'mod'], key: 'z' })
++    expect(parseKeymap('Mod-Alt-1')).toEqual({ modifiers: ['mod', 'alt'], key: '1' })
++    expect(parseKeymap('Mod--')).toEqual({ modifiers: ['mod'], key: '-' })
++    expect(() => parseKeymap('Hyper-x')).toThrow()
++  })
++
++  it('renders platform-aware caps', () => {
++    const chord = parseKeymap('Shift-Mod-ArrowUp')
++    expect(formatChordCaps(chord, 'mac')).toEqual(['⌘', '⇧', '↑'])
++    expect(formatChordCaps(chord, 'other')).toEqual(['Ctrl', 'Shift', 'Up'])
++    expect(formatChordCaps(parseKeymap('Mod-Alt-q'), 'mac')).toEqual(['⌘', '⌥', 'Q'])
++    expect(formatChordCaps(parseKeymap('Mod-Alt-q'), 'other')).toEqual(['Ctrl', 'Alt', 'Q'])
++    expect(formatChordCaps({ modifiers: ['mod', 'ctrl'], key: 'Space' }, 'mac')).toEqual(['⌘', '⌃', 'Space'])
++    expect(formatChordCaps({ modifiers: ['mod', 'ctrl'], key: 'Space' }, 'other')).toEqual(['Ctrl', 'Space'])
++  })
++
++  it('only shows aliases the display string advertises', () => {
++    expect(chordsForAppShortcut({ combo: 'command-or-ctrl', key: 'p', aliases: ['o'], display: '⌘P / ⌘O' })).toHaveLength(2)
++    expect(chordsForAppShortcut({ combo: 'command-or-ctrl', key: '=', aliases: ['+'], display: '⌘=' })).toHaveLength(1)
++  })
++})
++
++describe('shortcut sheet grouping', () => {
++  const groups = groupShortcutEntries(allShortcutEntries(), 'mac')
++
++  it('uses the four columns in order', () => {
++    expect(groups.map((group) => group.label)).toEqual(['Navigate', 'Notes', 'Writing', 'View'])
++  })
++
++  it('keeps writing shortcuts in their own group', () => {
++    const writing = groups.find((group) => group.id === 'writing')
++    expect(writing?.rows.map((row) => row.entry.label)).toEqual(expect.arrayContaining(['Bold', 'Italic', 'Heading 1', 'Insert block (slash menu)']))
++    expect(groups.filter((group) => group.id !== 'writing').flatMap((group) => group.rows).some((row) => row.entry.id.startsWith('writing-'))).toBe(false)
++  })
++
++  it('lists the sheet itself under View', () => {
++    const view = groups.find((group) => group.id === 'view')
++    const row = view?.rows.find((candidate) => candidate.entry.label === 'Keyboard shortcuts')
++    expect(row?.caps).toEqual([['⌘', '/']])
++  })
++})
++
++describe('filterShortcutGroups', () => {
++  const groups = groupShortcutEntries(allShortcutEntries(), 'other')
++
++  it('returns everything for a blank query', () => {
++    expect(filterShortcutGroups(groups, '   ')).toEqual(groups)
++  })
++
++  it('matches labels, keywords and group names case-insensitively', () => {
++    const [bold] = filterShortcutGroups(groups, 'BOLD')
++    expect(bold.id).toBe('writing')
++    expect(bold.rows.map((row) => row.entry.label)).toEqual(['Bold'])
++    expect(filterShortcutGroups(groups, 'todo')[0].rows[0].entry.label).toBe('Checklist')
++    expect(filterShortcutGroups(groups, 'navigate').map((group) => group.id)).toEqual(['navigate'])
++  })
++
++  it('matches key caps as typed', () => {
++    const labels = filterShortcutGroups(groups, 'ctrl+shift+f').flatMap((group) => group.rows.map((row) => row.entry.label))
++    expect(labels).toEqual(['Search the notebook'])
++  })
++
++  it('drops groups with no matches', () => {
++    expect(filterShortcutGroups(groups, 'zzz-no-such-shortcut')).toEqual([])
++  })
++})
+diff --git a/src/lib/keyboardShortcuts/sheet.ts b/src/lib/keyboardShortcuts/sheet.ts
+new file mode 100644
+index 0000000..db1ec16
+--- /dev/null
++++ b/src/lib/keyboardShortcuts/sheet.ts
+@@ -0,0 +1,50 @@
++import { formatChordCaps, type ShortcutPlatform } from './chords'
++import { SHORTCUT_GROUPS, type ShortcutEntry, type ShortcutGroupId } from './registry'
++
++export interface ShortcutSheetRow {
++  entry: ShortcutEntry
++  /** One cap list per alternative chord. */
++  caps: string[][]
++}
++
++export interface ShortcutSheetGroup {
++  id: ShortcutGroupId
++  label: string
++  rows: ShortcutSheetRow[]
++}
++
++/** Groups entries into sheet columns (Navigate, Notes, Writing, View), dropping empty groups. */
++export function groupShortcutEntries(
++  entries: readonly ShortcutEntry[],
++  platform: ShortcutPlatform,
++): ShortcutSheetGroup[] {
++  return SHORTCUT_GROUPS
++    .map(({ id, label }) => ({
++      id,
++      label,
++      rows: entries
++        .filter((entry) => entry.group === id)
++        .map((entry) => ({ entry, caps: entry.chords.map((chord) => formatChordCaps(chord, platform)) })),
++    }))
++    .filter((group) => group.rows.length > 0)
++}
++
++function rowSearchText(row: ShortcutSheetRow, groupLabel: string): string {
++  const capsText = row.caps.flatMap((caps) => [caps.join(''), caps.join('+'), ...caps])
++  return [row.entry.label, groupLabel, ...(row.entry.keywords ?? []), ...capsText].join(' ').toLowerCase()
++}
++
++/** Keeps rows whose label, group, keywords or key caps contain every query term. */
++export function filterShortcutGroups(groups: readonly ShortcutSheetGroup[], query: string): ShortcutSheetGroup[] {
++  const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
++  if (terms.length === 0) return [...groups]
++  return groups
++    .map((group) => ({
++      ...group,
++      rows: group.rows.filter((row) => {
++        const text = rowSearchText(row, group.label)
++        return terms.every((term) => text.includes(term))
++      }),
++    }))
++    .filter((group) => group.rows.length > 0)
++}

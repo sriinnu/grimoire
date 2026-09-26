@@ -1,0 +1,533 @@
+diff --git a/src/components/SingleEditorView.tsx b/src/components/SingleEditorView.tsx
+index 6c9af85..04ed5da 100644
+--- a/src/components/SingleEditorView.tsx
++++ b/src/components/SingleEditorView.tsx
+@@ -17,6 +17,7 @@ import { useBlockNoteSideMenuHoverGuard } from './blockNoteSideMenuHoverGuard'
+ import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
+ import { GrimoireTableHandles } from './GrimoireTableHandles'
+ import { useEditorLinkActivation } from './useEditorLinkActivation'
++import { WikilinkPeek } from './WikilinkPeek'
+ import { findNearestTextCursorBlock } from './blockNoteCursorTarget'
+ import {
+   GrimoireLinkToolbar,
+@@ -328,6 +329,7 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
+         markdown={liveMarkdown}
+         vaultPath={vaultPath}
+       />
++      <WikilinkPeek containerRef={containerRef} entries={entries} />
+       <SharedContextBlockNoteView
+         editor={editor}
+         theme={themeMode}
+diff --git a/src/components/WikilinkPeek.css b/src/components/WikilinkPeek.css
+new file mode 100644
+index 0000000..60160cd
+--- /dev/null
++++ b/src/components/WikilinkPeek.css
+@@ -0,0 +1,63 @@
++/* Hover preview for a wikilink target. Tokens only, so every theme carries it. */
++.wikilink-peek {
++  position: fixed;
++  z-index: 60;
++  width: 300px;
++  max-width: calc(100vw - 16px);
++  box-sizing: border-box;
++  padding: 10px 12px;
++  border: 1px solid var(--border);
++  border-radius: 8px;
++  background: var(--surface-panel, var(--popover));
++  color: var(--foreground);
++  box-shadow: 0 6px 20px -8px var(--shadow-dialog, transparent);
++  font-size: 12.5px;
++  line-height: 1.45;
++  pointer-events: auto;
++  animation: wikilink-peek-in 120ms ease-out;
++}
++
++.wikilink-peek__title {
++  font-weight: 600;
++  font-size: 13px;
++  overflow: hidden;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++.wikilink-peek__meta {
++  margin-top: 2px;
++  color: var(--muted-foreground);
++  font-size: 11.5px;
++}
++
++.wikilink-peek__excerpt {
++  margin: 6px 0 0;
++  color: var(--muted-foreground);
++  display: -webkit-box;
++  -webkit-box-orient: vertical;
++  -webkit-line-clamp: 3;
++  line-clamp: 3;
++  overflow: hidden;
++}
++
++.wikilink-peek[data-kind='missing'] {
++  border-style: dashed;
++}
++
++.wikilink-peek[data-kind='missing'] .wikilink-peek__meta {
++  color: var(--primary);
++}
++
++@keyframes wikilink-peek-in {
++  from {
++    opacity: 0;
++    transform: translateY(2px);
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  .wikilink-peek {
++    animation: none;
++  }
++}
+diff --git a/src/components/WikilinkPeek.test.tsx b/src/components/WikilinkPeek.test.tsx
+new file mode 100644
+index 0000000..84c46ca
+--- /dev/null
++++ b/src/components/WikilinkPeek.test.tsx
+@@ -0,0 +1,131 @@
++import { act, fireEvent, render, screen } from '@testing-library/react'
++import { useRef } from 'react'
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
++import type { VaultEntry } from '../types'
++import { WikilinkPeek } from './WikilinkPeek'
++import { peekCardPosition } from './wikilinkPeekModel'
++import { PEEK_CLOSE_GRACE_MS, PEEK_OPEN_DELAY_MS, PEEK_TYPING_QUIET_MS } from './useWikilinkPeek'
++
++const entries = [{
++  path: '/vault/alpha.md', filename: 'alpha.md', title: 'Project Alpha', isA: 'Project',
++  aliases: [], belongsTo: [], relatedTo: [], status: null, archived: false,
++  modifiedAt: null, createdAt: null, fileSize: 0, snippet: 'Alpha is the first project.', wordCount: 5,
++  relationships: {}, icon: null, color: null, order: null, sidebarLabel: null,
++  template: null, sort: null, view: null, visible: null, outgoingLinks: [], properties: {},
++}] as unknown as VaultEntry[]
++
++function Harness() {
++  const ref = useRef<HTMLDivElement>(null)
++  return (
++    <div ref={ref}>
++      <span className="wikilink" data-target="alpha"><span data-testid="alpha-inner">Project Alpha</span></span>
++      <span className="wikilink wikilink--broken" data-target="new-idea">New Idea</span>
++      <WikilinkPeek containerRef={ref} entries={entries} />
++    </div>
++  )
++}
++
++function hoverLink(target: string) {
++  const el = document.querySelector(`[data-target="${target}"]`) as HTMLElement
++  fireEvent.pointerOver(el)
++  return el
++}
++
++describe('WikilinkPeek', () => {
++  beforeEach(() => {
++    vi.useFakeTimers()
++    vi.setSystemTime(new Date('2026-09-26T10:00:00Z'))
++  })
++  afterEach(() => {
++    vi.useRealTimers()
++    document.documentElement.removeAttribute('data-writing')
++  })
++
++  it('shows the target note after the hover delay', () => {
++    render(<Harness />)
++    hoverLink('alpha')
++    act(() => { vi.advanceTimersByTime(PEEK_OPEN_DELAY_MS - 1) })
++    expect(screen.queryByTestId('wikilink-peek')).toBeNull()
++    act(() => { vi.advanceTimersByTime(1) })
++    const card = screen.getByTestId('wikilink-peek')
++    expect(card).toHaveTextContent('Project Alpha')
++    expect(card).toHaveTextContent('Project')
++    expect(card).toHaveTextContent('Alpha is the first project.')
++  })
++
++  it('shows a quiet placeholder for broken links', () => {
++    render(<Harness />)
++    hoverLink('new-idea')
++    act(() => { vi.advanceTimersByTime(PEEK_OPEN_DELAY_MS) })
++    const card = screen.getByTestId('wikilink-peek')
++    expect(card).toHaveAttribute('data-kind', 'missing')
++    expect(card).toHaveTextContent('No page yet')
++  })
++
++  it('does not open when the pointer leaves before the delay', () => {
++    render(<Harness />)
++    const link = hoverLink('alpha')
++    fireEvent.pointerOut(link, { relatedTarget: document.body })
++    act(() => { vi.advanceTimersByTime(PEEK_OPEN_DELAY_MS * 2) })
++    expect(screen.queryByTestId('wikilink-peek')).toBeNull()
++  })
++
++  it('stays open while moving within the link and into the card', () => {
++    render(<Harness />)
++    const link = hoverLink('alpha')
++    act(() => { vi.advanceTimersByTime(PEEK_OPEN_DELAY_MS) })
++    fireEvent.pointerOut(link, { relatedTarget: screen.getByTestId('alpha-inner') })
++    act(() => { vi.advanceTimersByTime(PEEK_CLOSE_GRACE_MS * 2) })
++    expect(screen.getByTestId('wikilink-peek')).toBeInTheDocument()
++
++    fireEvent.pointerOut(link, { relatedTarget: document.body })
++    fireEvent.pointerEnter(screen.getByTestId('wikilink-peek'))
++    act(() => { vi.advanceTimersByTime(PEEK_CLOSE_GRACE_MS * 2) })
++    expect(screen.getByTestId('wikilink-peek')).toBeInTheDocument()
++
++    fireEvent.pointerLeave(screen.getByTestId('wikilink-peek'))
++    act(() => { vi.advanceTimersByTime(PEEK_CLOSE_GRACE_MS) })
++    expect(screen.queryByTestId('wikilink-peek')).toBeNull()
++  })
++
++  it.each([
++    ['Escape', () => fireEvent.keyDown(window, { key: 'Escape' })],
++    ['any key', () => fireEvent.keyDown(window, { key: 'a' })],
++    ['scroll', () => fireEvent.scroll(window)],
++  ])('hides on %s', (_label, dismiss) => {
++    render(<Harness />)
++    hoverLink('alpha')
++    act(() => { vi.advanceTimersByTime(PEEK_OPEN_DELAY_MS) })
++    expect(screen.getByTestId('wikilink-peek')).toBeInTheDocument()
++    act(() => { dismiss() })
++    expect(screen.queryByTestId('wikilink-peek')).toBeNull()
++  })
++
++  it('stays out of the way while the user is typing', () => {
++    render(<Harness />)
++    fireEvent.keyDown(window, { key: 'a' })
++    hoverLink('alpha')
++    act(() => { vi.advanceTimersByTime(PEEK_TYPING_QUIET_MS) })
++    expect(screen.queryByTestId('wikilink-peek')).toBeNull()
++  })
++
++  it('respects the writing-focus flag on the document root', () => {
++    document.documentElement.setAttribute('data-writing', '')
++    render(<Harness />)
++    hoverLink('alpha')
++    act(() => { vi.advanceTimersByTime(PEEK_OPEN_DELAY_MS) })
++    expect(screen.queryByTestId('wikilink-peek')).toBeNull()
++  })
++})
++
++describe('peekCardPosition', () => {
++  const viewport = { width: 800, height: 600 }
++
++  it('sits below the link when there is room', () => {
++    expect(peekCardPosition({ top: 100, bottom: 118, left: 50 }, viewport)).toEqual({ left: 50, top: 124 })
++  })
++
++  it('flips above near the bottom edge and clamps to the viewport', () => {
++    expect(peekCardPosition({ top: 560, bottom: 578, left: 700 }, viewport)).toEqual({ left: 492, bottom: 46 })
++  })
++})
+diff --git a/src/components/WikilinkPeek.tsx b/src/components/WikilinkPeek.tsx
+new file mode 100644
+index 0000000..321cbb7
+--- /dev/null
++++ b/src/components/WikilinkPeek.tsx
+@@ -0,0 +1,41 @@
++import type { RefObject } from 'react'
++import { createPortal } from 'react-dom'
++import type { VaultEntry } from '../types'
++import { useWikilinkPeek } from './useWikilinkPeek'
++import { peekCardPosition } from './wikilinkPeekModel'
++import './WikilinkPeek.css'
++
++export function WikilinkPeek({
++  containerRef,
++  entries,
++}: {
++  containerRef: RefObject<HTMLElement | null>
++  entries: VaultEntry[]
++}) {
++  const { peek, scheduleHide, cancelHide } = useWikilinkPeek(containerRef, entries)
++  if (!peek) return null
++  const { model, anchor } = peek
++
++  return createPortal(
++    <div
++      className="wikilink-peek"
++      role="tooltip"
++      data-testid="wikilink-peek"
++      data-kind={model.kind}
++      style={peekCardPosition(anchor)}
++      onPointerEnter={cancelHide}
++      onPointerLeave={scheduleHide}
++    >
++      <div className="wikilink-peek__title">{model.title}</div>
++      {model.kind === 'note' ? (
++        <>
++          {model.meta ? <div className="wikilink-peek__meta">{model.meta}</div> : null}
++          {model.excerpt ? <p className="wikilink-peek__excerpt">{model.excerpt}</p> : null}
++        </>
++      ) : (
++        <div className="wikilink-peek__meta">No page yet</div>
++      )}
++    </div>,
++    document.body,
++  )
++}
+diff --git a/src/components/useWikilinkPeek.ts b/src/components/useWikilinkPeek.ts
+new file mode 100644
+index 0000000..c253b41
+--- /dev/null
++++ b/src/components/useWikilinkPeek.ts
+@@ -0,0 +1,122 @@
++import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
++import type { VaultEntry } from '../types'
++import { buildWikilinkPeekModel, type WikilinkPeekAnchor, type WikilinkPeekModel } from './wikilinkPeekModel'
++
++export const PEEK_OPEN_DELAY_MS = 350
++export const PEEK_CLOSE_GRACE_MS = 150
++// A pointer that lands on a link right after a keystroke is incidental, not a hover.
++export const PEEK_TYPING_QUIET_MS = 700
++
++const WIKILINK_SELECTOR = '.wikilink[data-target]'
++
++export interface WikilinkPeekState {
++  model: WikilinkPeekModel
++  anchor: WikilinkPeekAnchor
++}
++
++function linkFromEvent(event: Event): HTMLElement | null {
++  const target = event.target
++  if (!(target instanceof Element)) return null
++  return target.closest<HTMLElement>(WIKILINK_SELECTOR)
++}
++
++function isWritingActive() {
++  return document.documentElement.hasAttribute('data-writing')
++}
++
++export function useWikilinkPeek(
++  containerRef: RefObject<HTMLElement | null>,
++  entries: VaultEntry[],
++) {
++  const [peek, setPeek] = useState<WikilinkPeekState | null>(null)
++  const entriesRef = useRef(entries)
++  const openTimer = useRef<number | undefined>(undefined)
++  const closeTimer = useRef<number | undefined>(undefined)
++  const hoveredLink = useRef<HTMLElement | null>(null)
++  const lastKeyAt = useRef(0)
++
++  useEffect(() => {
++    entriesRef.current = entries
++  }, [entries])
++
++  const clearTimers = useCallback(() => {
++    window.clearTimeout(openTimer.current)
++    window.clearTimeout(closeTimer.current)
++  }, [])
++
++  const hide = useCallback(() => {
++    clearTimers()
++    hoveredLink.current = null
++    setPeek(null)
++  }, [clearTimers])
++
++  const scheduleHide = useCallback(() => {
++    window.clearTimeout(openTimer.current)
++    window.clearTimeout(closeTimer.current)
++    closeTimer.current = window.setTimeout(() => {
++      hoveredLink.current = null
++      setPeek(null)
++    }, PEEK_CLOSE_GRACE_MS)
++  }, [])
++
++  const cancelHide = useCallback(() => {
++    window.clearTimeout(closeTimer.current)
++  }, [])
++
++  useEffect(() => {
++    const container = containerRef.current
++    if (!container) return
++
++    const show = (link: HTMLElement) => {
++      if (hoveredLink.current !== link || !link.isConnected || isWritingActive()) return
++      const model = buildWikilinkPeekModel(entriesRef.current, link.dataset.target ?? '')
++      if (!model) return
++      const rect = link.getBoundingClientRect()
++      setPeek({ model, anchor: { top: rect.top, bottom: rect.bottom, left: rect.left } })
++    }
++
++    const handleOver = (event: PointerEvent) => {
++      if (event.pointerType === 'touch' || event.buttons > 0) return
++      const link = linkFromEvent(event)
++      if (!link) return
++      window.clearTimeout(closeTimer.current)
++      if (hoveredLink.current === link) return
++      hoveredLink.current = link
++      window.clearTimeout(openTimer.current)
++      if (isWritingActive() || Date.now() - lastKeyAt.current < PEEK_TYPING_QUIET_MS) return
++      openTimer.current = window.setTimeout(() => show(link), PEEK_OPEN_DELAY_MS)
++    }
++
++    const handleOut = (event: PointerEvent) => {
++      const link = linkFromEvent(event)
++      if (!link) return
++      const next = event.relatedTarget
++      if (next instanceof Node && link.contains(next)) return
++      scheduleHide()
++    }
++
++    const handleKeyDown = () => {
++      lastKeyAt.current = Date.now()
++      hide()
++    }
++
++    container.addEventListener('pointerover', handleOver)
++    container.addEventListener('pointerout', handleOut)
++    container.addEventListener('pointerdown', hide)
++    window.addEventListener('keydown', handleKeyDown, true)
++    window.addEventListener('scroll', hide, true)
++    window.addEventListener('blur', hide)
++
++    return () => {
++      container.removeEventListener('pointerover', handleOver)
++      container.removeEventListener('pointerout', handleOut)
++      container.removeEventListener('pointerdown', hide)
++      window.removeEventListener('keydown', handleKeyDown, true)
++      window.removeEventListener('scroll', hide, true)
++      window.removeEventListener('blur', hide)
++      clearTimers()
++    }
++  }, [containerRef, hide, scheduleHide, clearTimers])
++
++  return { peek, hide, scheduleHide, cancelHide }
++}
+diff --git a/src/components/wikilinkPeekModel.test.ts b/src/components/wikilinkPeekModel.test.ts
+new file mode 100644
+index 0000000..cdd26a7
+--- /dev/null
++++ b/src/components/wikilinkPeekModel.test.ts
+@@ -0,0 +1,61 @@
++import { describe, expect, it } from 'vitest'
++import type { VaultEntry } from '../types'
++import { buildWikilinkPeekModel, peekExcerpt } from './wikilinkPeekModel'
++
++function entry(overrides: Partial<VaultEntry>): VaultEntry {
++  return {
++    path: '/vault/note.md', filename: 'note.md', title: 'Note', isA: null,
++    aliases: [], belongsTo: [], relatedTo: [], status: null, archived: false,
++    modifiedAt: null, createdAt: null, fileSize: 0, snippet: '', wordCount: 0,
++    relationships: {}, icon: null, color: null, order: null, sidebarLabel: null,
++    template: null, sort: null, view: null, visible: null, outgoingLinks: [], properties: {},
++    ...overrides,
++  } as VaultEntry
++}
++
++describe('buildWikilinkPeekModel', () => {
++  const entries = [
++    entry({ path: '/vault/projects/alpha.md', filename: 'alpha.md', title: 'Project Alpha', isA: 'Project', snippet: 'First line.\nSecond line.' }),
++  ]
++
++  it('resolves a target to its title, type and snippet', () => {
++    expect(buildWikilinkPeekModel(entries, 'projects/alpha')).toEqual({
++      kind: 'note',
++      title: 'Project Alpha',
++      meta: 'Project',
++      excerpt: 'First line. Second line.',
++    })
++  })
++
++  it('ignores pipe display text when resolving', () => {
++    expect(buildWikilinkPeekModel(entries, 'alpha|the alpha')?.kind).toBe('note')
++  })
++
++  it('includes a relative edited date when known', () => {
++    const now = Math.floor(Date.now() / 1000)
++    const model = buildWikilinkPeekModel([entry({ title: 'Fresh', filename: 'fresh.md', path: '/v/fresh.md', modifiedAt: now - 120 })], 'fresh')
++    expect(model).toMatchObject({ kind: 'note', meta: 'Edited 2m ago' })
++  })
++
++  it('reports missing targets with a humanised title', () => {
++    expect(buildWikilinkPeekModel(entries, 'some-new-idea')).toEqual({ kind: 'missing', title: 'Some New Idea' })
++  })
++
++  it('returns null for an empty target', () => {
++    expect(buildWikilinkPeekModel(entries, '  ')).toBeNull()
++  })
++})
++
++describe('peekExcerpt', () => {
++  it('keeps short snippets intact', () => {
++    expect(peekExcerpt('  hello   world ')).toBe('hello world')
++  })
++
++  it('trims long snippets on a word boundary', () => {
++    const long = Array.from({ length: 80 }, (_, i) => `word${i}`).join(' ')
++    const out = peekExcerpt(long)
++    expect(out.length).toBeLessThanOrEqual(221)
++    expect(out.endsWith('…')).toBe(true)
++    expect(out).toMatch(/word\d+…$/)
++  })
++})
+diff --git a/src/components/wikilinkPeekModel.ts b/src/components/wikilinkPeekModel.ts
+new file mode 100644
+index 0000000..d6e799e
+--- /dev/null
++++ b/src/components/wikilinkPeekModel.ts
+@@ -0,0 +1,59 @@
++import type { CSSProperties } from 'react'
++import type { VaultEntry } from '../types'
++import { resolveEntry, wikilinkDisplay } from '../utils/wikilink'
++import { relativeDate } from '../utils/noteListHelpers'
++
++export type WikilinkPeekModel =
++  | { kind: 'note'; title: string; meta: string; excerpt: string }
++  | { kind: 'missing'; title: string }
++
++// Roughly three lines of card text; CSS clamps the rest.
++const EXCERPT_MAX_CHARS = 220
++
++export function peekExcerpt(snippet: string | null | undefined): string {
++  const flat = (snippet ?? '').replace(/\s+/g, ' ').trim()
++  if (flat.length <= EXCERPT_MAX_CHARS) return flat
++  const cut = flat.slice(0, EXCERPT_MAX_CHARS)
++  const lastSpace = cut.lastIndexOf(' ')
++  return `${(lastSpace > EXCERPT_MAX_CHARS * 0.6 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`
++}
++
++function peekMeta(entry: VaultEntry): string {
++  const parts: string[] = []
++  if (entry.isA) parts.push(entry.isA)
++  const edited = relativeDate(entry.modifiedAt)
++  if (edited) parts.push(`Edited ${edited}`)
++  return parts.join(' · ')
++}
++
++export function buildWikilinkPeekModel(entries: VaultEntry[], target: string): WikilinkPeekModel | null {
++  const trimmed = target.trim()
++  if (!trimmed) return null
++  const entry = resolveEntry(entries, trimmed)
++  if (!entry) return { kind: 'missing', title: wikilinkDisplay(trimmed) }
++  return {
++    kind: 'note',
++    title: entry.title,
++    meta: peekMeta(entry),
++    excerpt: peekExcerpt(entry.snippet),
++  }
++}
++
++export interface WikilinkPeekAnchor {
++  top: number
++  bottom: number
++  left: number
++}
++
++const CARD_WIDTH = 300
++const CARD_EST_HEIGHT = 150
++const GAP = 6
++const EDGE = 8
++
++export function peekCardPosition(anchor: WikilinkPeekAnchor, viewport = { width: window.innerWidth, height: window.innerHeight }): CSSProperties {
++  const maxLeft = Math.max(EDGE, viewport.width - CARD_WIDTH - EDGE)
++  const left = Math.min(Math.max(anchor.left, EDGE), maxLeft)
++  const fitsBelow = anchor.bottom + GAP + CARD_EST_HEIGHT <= viewport.height - EDGE
++  if (fitsBelow || anchor.top < CARD_EST_HEIGHT + GAP) return { left, top: anchor.bottom + GAP }
++  return { left, bottom: viewport.height - anchor.top + GAP }
++}

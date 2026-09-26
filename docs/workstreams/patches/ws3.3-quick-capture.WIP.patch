@@ -1,0 +1,1027 @@
+diff --git a/src-tauri/Cargo.toml b/src-tauri/Cargo.toml
+index 75c3d66..089a573 100644
+--- a/src-tauri/Cargo.toml
++++ b/src-tauri/Cargo.toml
+@@ -63,6 +63,9 @@ tree-sitter-python = "0.25.0"
+ tree-sitter-rust = "0.24.2"
+ tree-sitter-typescript = "0.23.2"
+ 
++[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
++tauri-plugin-global-shortcut = "2"
++
+ [target.'cfg(target_os = "macos")'.dependencies]
+ objc2 = "0.6.4"
+ objc2-app-kit = "0.3.2"
+diff --git a/src-tauri/src/lib.rs b/src-tauri/src/lib.rs
+index 2ab967b..19570d6 100644
+--- a/src-tauri/src/lib.rs
++++ b/src-tauri/src/lib.rs
+@@ -19,6 +19,8 @@ pub mod menu_bar;
+ #[cfg(all(desktop, target_os = "macos"))]
+ mod menu_bar_window;
+ mod native_startup_smoke;
++#[cfg(desktop)]
++mod quick_capture_shortcut;
+ pub mod search;
+ pub mod settings;
+ pub mod telemetry;
+@@ -190,6 +192,7 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
+         .plugin(tauri_plugin_updater::Builder::new().build())?;
+     app.handle().plugin(tauri_plugin_process::init())?;
+     app.handle().plugin(tauri_plugin_opener::init())?;
++    quick_capture_shortcut::setup(app);
+     #[cfg(not(target_os = "linux"))]
+     menu::setup_menu(app)?;
+     setup_linux_window_chrome(app)?;
+diff --git a/src/AppRuntime.tsx b/src/AppRuntime.tsx
+index 72b44d1..87eafd1 100644
+--- a/src/AppRuntime.tsx
++++ b/src/AppRuntime.tsx
+@@ -21,6 +21,7 @@ import {
+   LazyMcpSetupDialog as McpSetupDialog,
+   LazyNoteRetargetingDialogs as NoteRetargetingDialogs,
+   LazyPulseView as PulseView,
++  LazyQuickCaptureSheet as QuickCaptureSheet,
+   LazyQuickOpenPalette as QuickOpenPalette,
+   LazyRenameDetectedBanner as RenameDetectedBanner,
+   LazySearchPanel as SearchPanel,
+@@ -117,7 +118,7 @@ function App() {
+     noteLayout, toggleNoteLayout, zoom, buildNumber, handleSetViewMode, handleToggleInspector,
+     handleSetSidebarColumnCollapsed, updateStatus, updateActions, handleCheckForUpdates,
+     restoreVaultAiGuidance, activeDeletedFile, noteRetargetingUi,
+-    toggleOrganizedCommand, audioTranscription, handleOpenGraphNote,
++    toggleOrganizedCommand, audioTranscription, handleOpenGraphNote, quickCapture,
+   } = shell
+ 
+   const commands = useAppCommandRegistry(foundation, noteWorkspace, entryWorkspace, gitWorkflow, shell)
+@@ -276,6 +277,7 @@ function App() {
+         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
+         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
+         <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={(title) => { if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' }); void notes.handleCreateNote(title, 'Note') }} />
++        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} />
+         <CommandPalette
+           open={dialogs.showCommandPalette}
+           commands={commands}
+diff --git a/src/app/useAppCommandRegistry.ts b/src/app/useAppCommandRegistry.ts
+index e8f1380..1b7de39 100644
+--- a/src/app/useAppCommandRegistry.ts
++++ b/src/app/useAppCommandRegistry.ts
+@@ -53,6 +53,7 @@ export function useAppCommandRegistry(
+     onCaptureThought: handleCaptureThoughtCommand,
+     onCaptureJournal: handleCaptureJournalCommand,
+     onOpenTodayJournal: handleOpenTodayJournalCommand,
++    onQuickCapture: shell.quickCapture.openQuickCapture,
+     onCaptureDream: handleCaptureDreamCommand,
+     onCreateNoteOfType: notes.handleCreateNoteImmediate,
+     onSave: appSave.handleSave,
+diff --git a/src/app/useAppShellState.ts b/src/app/useAppShellState.ts
+index ef0b5b1..f3b2c2f 100644
+--- a/src/app/useAppShellState.ts
++++ b/src/app/useAppShellState.ts
+@@ -26,6 +26,7 @@ import { getNextVisibleInboxEntry, invokeAppCommand } from './appRuntimeSupport'
+ import type { EntryWorkspace } from './useEntryWorkspace'
+ import type { GitWorkflow } from './useGitWorkflow'
+ import type { NoteWorkspace } from './useNoteWorkspace'
++import { useQuickCapture } from './useQuickCapture'
+ import type { VaultFoundation } from './useVaultFoundation'
+ 
+ export function useAppShellState(
+@@ -53,6 +54,7 @@ export function useAppShellState(
+   const { sidebarColumnCollapsed, setSidebarColumnCollapsed } = useSidebarColumnCollapse()
+   const { noteLayout, toggleNoteLayout } = useNoteLayout()
+   const zoom = useZoom()
++  const quickCapture = useQuickCapture(foundation, workspace)
+   const buildNumber = useBuildNumber()
+ 
+   const updateMainWindowConstraints = useCallback((
+@@ -201,6 +203,7 @@ export function useAppShellState(
+     || showGraphModal
+     || showWeatherSnapshotDialog
+     || showAudioRecordingDialog
++    || quickCapture.showQuickCapture
+   )
+ 
+   useEffect(() => {
+@@ -335,7 +338,7 @@ export function useAppShellState(
+     activeNoteHasIcon, toggleOrganizedCommand, canCustomizeNoteListColumns,
+     restoreDeletedNoteCommand, insertWeatherSnapshotCommand, audioTranscription,
+     handleOpenGraphNote, handleCaptureThoughtCommand, handleCaptureJournalCommand,
+-    handleCaptureDreamCommand, handleOpenTodayJournalCommand,
++    handleCaptureDreamCommand, handleOpenTodayJournalCommand, quickCapture,
+   }
+ }
+ 
+diff --git a/src/components/AppLazySurfaces.tsx b/src/components/AppLazySurfaces.tsx
+index 2779444..26ae3d6 100644
+--- a/src/components/AppLazySurfaces.tsx
++++ b/src/components/AppLazySurfaces.tsx
+@@ -15,6 +15,7 @@ import type { GraphModal } from './GraphModal'
+ import type { McpSetupDialog } from './McpSetupDialog'
+ import type { NoteRetargetingDialogs } from './note-retargeting/NoteRetargetingDialogs'
+ import type { PulseView } from './PulseView'
++import type { QuickCaptureSheet } from './QuickCaptureSheet'
+ import type { QuickOpenPalette } from './QuickOpenPalette'
+ import type { RenameDetectedBanner } from './RenameDetectedBanner'
+ import type { SearchPanel } from './SearchPanel'
+@@ -43,6 +44,7 @@ const GraphModalSurface = lazy(async () => ({ default: (await import('./GraphMod
+ const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
+ const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
+ const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
++const QuickCaptureSheetSurface = lazy(async () => ({ default: (await import('./QuickCaptureSheet')).QuickCaptureSheet }))
+ const QuickOpenPaletteSurface = lazy(async () => ({ default: (await import('./QuickOpenPalette')).QuickOpenPalette }))
+ const RenameDetectedBannerSurface = lazy(async () => ({ default: (await import('./RenameDetectedBanner')).RenameDetectedBanner }))
+ const SearchPanelSurface = lazy(async () => ({ default: (await import('./SearchPanel')).SearchPanel }))
+@@ -153,6 +155,15 @@ export function LazyWeatherSnapshotDialog(props: ComponentProps<typeof WeatherSn
+   )
+ }
+ 
++/** Defers the quick-capture composer until it is summoned. */
++export function LazyQuickCaptureSheet(props: ComponentProps<typeof QuickCaptureSheet>) {
++  return (
++    <VisibleSurface open={props.open}>
++      <QuickCaptureSheetSurface {...props} />
++    </VisibleSurface>
++  )
++}
++
+ /** Defers microphone recording UI until the user starts a voice note. */
+ export function LazyAudioRecordingDialog(props: ComponentProps<typeof AudioRecordingDialog>) {
+   return (
+diff --git a/src/constants/appStorage.ts b/src/constants/appStorage.ts
+index ec68a15..df280ec 100644
+--- a/src/constants/appStorage.ts
++++ b/src/constants/appStorage.ts
+@@ -15,6 +15,7 @@ export const APP_STORAGE_KEYS = {
+   welcomeDismissed: 'grimoire_welcome_dismissed',
+   sessionMemory: 'grimoire:session',
+   inspectorOpen: 'grimoire:inspector-open',
++  quickCaptureDraft: 'grimoire:quick-capture-draft',
+ } as const
+ 
+ export const LEGACY_APP_STORAGE_KEYS = {
+diff --git a/src/hooks/commands/navigationCommands.test.ts b/src/hooks/commands/navigationCommands.test.ts
+index fa71fac..714d1dc 100644
+--- a/src/hooks/commands/navigationCommands.test.ts
++++ b/src/hooks/commands/navigationCommands.test.ts
+@@ -53,4 +53,18 @@ describe('buildNavigationCommands', () => {
+     expect(onCaptureJournal).toHaveBeenCalledTimes(1)
+     expect(onCaptureDream).toHaveBeenCalledTimes(1)
+   })
++
++  it('offers Quick capture only when a handler is wired', () => {
++    const onQuickCapture = vi.fn()
++    const withHandler = buildNavigationCommands({ onQuickOpen: vi.fn(), onSelect: vi.fn(), onQuickCapture })
++    const command = withHandler.find((item) => item.id === 'quick-capture')
++
++    expect(command).toMatchObject({ label: 'Quick capture', group: 'Capture', enabled: true })
++    expect(command?.shortcut).toMatch(/Space$/)
++    command?.execute()
++    expect(onQuickCapture).toHaveBeenCalledTimes(1)
++
++    const withoutHandler = buildNavigationCommands({ onQuickOpen: vi.fn(), onSelect: vi.fn() })
++    expect(withoutHandler.find((item) => item.id === 'quick-capture')?.enabled).toBe(false)
++  })
+ })
+diff --git a/src/hooks/commands/navigationCommands.ts b/src/hooks/commands/navigationCommands.ts
+index 7bcbbda..1a7560d 100644
+--- a/src/hooks/commands/navigationCommands.ts
++++ b/src/hooks/commands/navigationCommands.ts
+@@ -1,4 +1,4 @@
+-import { APP_COMMAND_IDS, getAppCommandShortcutDisplay } from '../appCommandCatalog'
++import { APP_COMMAND_IDS, formatShortcutDisplay, getAppCommandShortcutDisplay } from '../appCommandCatalog'
+ import type { CommandAction } from './types'
+ import type { SidebarSelection } from '../../types'
+ 
+@@ -8,6 +8,7 @@ interface NavigationCommandsConfig {
+   onCaptureThought?: () => void
+   onCaptureJournal?: () => void
+   onOpenTodayJournal?: () => void
++  onQuickCapture?: () => void
+   onCaptureDream?: () => void
+   onSelect: (sel: SidebarSelection) => void
+   selection?: SidebarSelection
+@@ -51,6 +52,7 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
+     onCaptureThought,
+     onCaptureJournal,
+     onOpenTodayJournal,
++    onQuickCapture,
+     onCaptureDream,
+     onSelect,
+     onGoBack,
+@@ -64,6 +66,7 @@ function buildBaseCommands(config: NavigationCommandsConfig): CommandAction[] {
+     { id: 'search-notes', label: 'Search Pages', group: 'Navigation', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.fileQuickOpen), keywords: ['find', 'open', 'quick', 'pages', 'notes', 'search pages', 'search notes'], enabled: true, execute: onQuickOpen },
+     { id: 'go-dashboard', label: 'Go to Notebook', group: 'Navigation', keywords: ['home', 'today', 'assistant', 'capture', 'dashboard', 'notebook', 'go dashboard'], enabled: true, execute: () => onSelect({ kind: 'dashboard' }) },
+     { id: 'capture-thought', label: 'Catch a Thought', group: 'Capture', keywords: ['note', 'thought', 'quick', 'menu bar'], enabled: !!onCaptureThought, execute: () => onCaptureThought?.() },
++    { id: 'quick-capture', label: 'Quick capture', group: 'Capture', shortcut: formatShortcutDisplay({ display: '⌘⇧Space' }), keywords: ['capture', 'thought', 'inbox', 'journal', 'today', 'jot', 'bullet'], enabled: !!onQuickCapture, execute: () => onQuickCapture?.() },
+     { id: 'open-today-journal', label: "Today's Journal", group: 'Navigation', keywords: ['today', 'daily', 'journal', 'diary', 'date', 'daily note'], enabled: !!onOpenTodayJournal, execute: () => onOpenTodayJournal?.() },
+     { id: 'capture-journal', label: 'Journal Page', group: 'Capture', keywords: ['journal', 'reflect', 'private', 'menu bar'], enabled: !!onCaptureJournal, execute: () => onCaptureJournal?.() },
+     { id: 'capture-dream', label: 'Dream Page', group: 'Capture', keywords: ['dream', 'private', 'night', 'menu bar'], enabled: !!onCaptureDream, execute: () => onCaptureDream?.() },
+diff --git a/src/hooks/useAppCommands.ts b/src/hooks/useAppCommands.ts
+index e1665b5..316e676 100644
+--- a/src/hooks/useAppCommands.ts
++++ b/src/hooks/useAppCommands.ts
+@@ -210,6 +210,7 @@ function createCommandRegistryCoreConfig(
+     onCaptureThought: config.onCaptureThought,
+     onCaptureJournal: config.onCaptureJournal,
+     onOpenTodayJournal: config.onOpenTodayJournal,
++    onQuickCapture: config.onQuickCapture,
+     onCaptureDream: config.onCaptureDream,
+     onCreateNoteOfType: config.onCreateNoteOfType,
+     onSave: config.onSave,
+diff --git a/src/hooks/useAppCommands.types.ts b/src/hooks/useAppCommands.types.ts
+index 294f300..4297d10 100644
+--- a/src/hooks/useAppCommands.types.ts
++++ b/src/hooks/useAppCommands.types.ts
+@@ -25,6 +25,8 @@ export interface AppCommandsConfig {
+   onCaptureJournal?: () => void
+   /** Open today's journal entry, creating it if it doesn't exist yet. */
+   onOpenTodayJournal?: () => void
++  /** Open the quick-capture sheet (appends to today's journal). */
++  onQuickCapture?: () => void
+   onCaptureDream?: () => void
+   onCreateNoteOfType: (type: string) => void
+   onSave: () => void
+@@ -139,6 +141,7 @@ export type CommandRegistryCoreActions = Pick<
+   | 'onCaptureThought'
+   | 'onCaptureJournal'
+   | 'onOpenTodayJournal'
++  | 'onQuickCapture'
+   | 'onCaptureDream'
+   | 'onCreateNoteOfType'
+   | 'onSave'
+diff --git a/src/hooks/useCommandRegistry.ts b/src/hooks/useCommandRegistry.ts
+index 7e2d21b..4b90fd6 100644
+--- a/src/hooks/useCommandRegistry.ts
++++ b/src/hooks/useCommandRegistry.ts
+@@ -69,6 +69,7 @@ interface CommandRegistryConfig {
+   onCaptureThought?: () => void
+   onCaptureJournal?: () => void
+   onOpenTodayJournal?: () => void
++  onQuickCapture?: () => void
+   onCaptureDream?: () => void
+   onCreateNoteOfType: (type: string) => void
+   onSave: () => void
+@@ -119,7 +120,7 @@ interface CommandRegistryConfig {
+ export function useCommandRegistry(config: CommandRegistryConfig): import('./commands/types').CommandAction[] {
+   const {
+     activeTabPath, entries, isGitVault = true, modifiedCount,
+-    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
++    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
+     onDeleteNote, onArchiveNote, onUnarchiveNote,
+     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault,
+     activeNoteModified,
+@@ -181,6 +182,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
+       onCaptureThought,
+       onCaptureJournal,
+       onOpenTodayJournal,
++      onQuickCapture,
+       onCaptureDream,
+       onSelect,
+       selection,
+@@ -237,7 +239,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
+     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
+   ], [
+     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
+-    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
++    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+     onDeleteNote, onArchiveNote, onUnarchiveNote,
+     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
+     onCheckForUpdates,
+diff --git a/src/startupImportBudget.test.ts b/src/startupImportBudget.test.ts
+index 42eda28..edad1cd 100644
+--- a/src/startupImportBudget.test.ts
++++ b/src/startupImportBudget.test.ts
+@@ -27,6 +27,7 @@ const HEAVY_APP_IMPORTS = [
+   './components/McpSetupDialog',
+   './components/note-retargeting/NoteRetargetingDialogs',
+   './components/PulseView',
++  './components/QuickCaptureSheet',
+   './components/QuickOpenPalette',
+   './components/SearchPanel',
+   './components/SettingsPanel',
+@@ -199,6 +200,11 @@ describe('startup import budget', () => {
+     expect(runtimeDynamicImports('src/components/sidebar/SidebarSections.tsx')).toContain('../TypeCustomizePopover')
+   })
+ 
++  it('keeps quick-capture persistence behind the save intent', () => {
++    expect(staticImportGraph('src/main.tsx')).not.toContain('src/utils/quickCaptureJournal.ts')
++    expect(runtimeDynamicImports('src/app/useQuickCapture.ts')).toContain('../utils/quickCaptureJournal')
++  })
++
+   it('keeps audio transcription implementation behind transcribe intent', () => {
+     expect(staticImportGraph('src/main.tsx')).not.toEqual(expect.arrayContaining(INTENT_COLD_FILES))
+     expect(runtimeStaticImports('src/hooks/useAudioTranscription.ts')).not.toContain('../utils/audioTranscription')
+diff --git a/src-tauri/src/quick_capture_shortcut.rs b/src-tauri/src/quick_capture_shortcut.rs
+new file mode 100644
+index 0000000..e720081
+--- /dev/null
++++ b/src-tauri/src/quick_capture_shortcut.rs
+@@ -0,0 +1,61 @@
++//! System-wide quick-capture chord: brings Grimoire forward and asks the
++//! renderer to open its capture sheet, even when another app has focus.
++
++use tauri::{AppHandle, Emitter};
++use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
++
++/// Renderer listens for this in `src/app/useQuickCapture.ts`.
++pub(crate) const QUICK_CAPTURE_OPEN_EVENT: &str = "quick-capture-open";
++
++/// Cmd+Shift+Space on macOS, Ctrl+Shift+Space elsewhere (matches the in-app chord).
++pub(crate) fn quick_capture_shortcut() -> Shortcut {
++    #[cfg(target_os = "macos")]
++    let modifiers = Modifiers::SUPER | Modifiers::SHIFT;
++    #[cfg(not(target_os = "macos"))]
++    let modifiers = Modifiers::CONTROL | Modifiers::SHIFT;
++    Shortcut::new(Some(modifiers), Code::Space)
++}
++
++fn open_quick_capture(app_handle: &AppHandle) {
++    crate::window_lifecycle::show_main_window(app_handle);
++    if let Err(error) = app_handle.emit_to("main", QUICK_CAPTURE_OPEN_EVENT, ()) {
++        log::warn!("Failed to emit quick-capture open event: {error}");
++    }
++}
++
++/// Installs the global-shortcut plugin and registers the capture chord.
++/// Failures are logged, never fatal: another app may already own the chord,
++/// and some Wayland sessions refuse global grabs. The in-app shortcut still works.
++pub(crate) fn setup(app: &tauri::App) {
++    let shortcut = quick_capture_shortcut();
++    let plugin = tauri_plugin_global_shortcut::Builder::new()
++        .with_handler(move |app_handle, triggered, event| {
++            if *triggered == shortcut && event.state() == ShortcutState::Pressed {
++                open_quick_capture(app_handle);
++            }
++        })
++        .build();
++    if let Err(error) = app.handle().plugin(plugin) {
++        log::warn!("Global shortcut plugin unavailable: {error}");
++        return;
++    }
++    if let Err(error) = app.global_shortcut().register(shortcut) {
++        log::warn!("Could not register the quick-capture shortcut: {error}");
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn quick_capture_chord_uses_the_platform_command_modifier() {
++        let shortcut = quick_capture_shortcut();
++        assert_eq!(shortcut.key, Code::Space);
++        assert!(shortcut.mods.contains(Modifiers::SHIFT));
++        #[cfg(target_os = "macos")]
++        assert!(shortcut.mods.contains(Modifiers::SUPER));
++        #[cfg(not(target_os = "macos"))]
++        assert!(shortcut.mods.contains(Modifiers::CONTROL));
++    }
++}
+diff --git a/src/app/useQuickCapture.test.ts b/src/app/useQuickCapture.test.ts
+new file mode 100644
+index 0000000..8a46b76
+--- /dev/null
++++ b/src/app/useQuickCapture.test.ts
+@@ -0,0 +1,18 @@
++import { describe, expect, it } from 'vitest'
++import { isQuickCaptureShortcut } from './useQuickCapture'
++
++const base = { altKey: false, ctrlKey: false, metaKey: false, shiftKey: true, code: 'Space', key: ' ' }
++
++describe('isQuickCaptureShortcut', () => {
++  it('matches Cmd+Shift+Space and Ctrl+Shift+Space', () => {
++    expect(isQuickCaptureShortcut({ ...base, metaKey: true })).toBe(true)
++    expect(isQuickCaptureShortcut({ ...base, ctrlKey: true })).toBe(true)
++  })
++
++  it('ignores near misses', () => {
++    expect(isQuickCaptureShortcut({ ...base, metaKey: true, shiftKey: false })).toBe(false)
++    expect(isQuickCaptureShortcut({ ...base, metaKey: true, altKey: true })).toBe(false)
++    expect(isQuickCaptureShortcut(base)).toBe(false)
++    expect(isQuickCaptureShortcut({ ...base, metaKey: true, code: 'KeyK', key: 'k' })).toBe(false)
++  })
++})
+diff --git a/src/app/useQuickCapture.ts b/src/app/useQuickCapture.ts
+new file mode 100644
+index 0000000..6220190
+--- /dev/null
++++ b/src/app/useQuickCapture.ts
+@@ -0,0 +1,96 @@
++import { useCallback, useEffect, useState } from 'react'
++import { isTauri } from '../mock-tauri'
++import type { NoteWorkspace } from './useNoteWorkspace'
++import type { VaultFoundation } from './useVaultFoundation'
++
++/** Native global-shortcut handler emits this after showing the main window. */
++export const QUICK_CAPTURE_OPEN_EVENT = 'quick-capture-open'
++
++/** Cmd+Shift+Space on macOS, Ctrl+Shift+Space elsewhere. */
++export function isQuickCaptureShortcut(event: Pick<KeyboardEvent, 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey' | 'code' | 'key'>): boolean {
++  if (event.altKey || !event.shiftKey || !(event.metaKey || event.ctrlKey)) return false
++  return event.code === 'Space' || event.key === ' '
++}
++
++function useQuickCaptureTriggers(openQuickCapture: () => void, enabled: boolean) {
++  useEffect(() => {
++    if (!enabled) return
++    const handleKeyDown = (event: KeyboardEvent) => {
++      if (!isQuickCaptureShortcut(event)) return
++      event.preventDefault()
++      event.stopPropagation()
++      openQuickCapture()
++    }
++    window.addEventListener('keydown', handleKeyDown, true)
++    return () => window.removeEventListener('keydown', handleKeyDown, true)
++  }, [enabled, openQuickCapture])
++
++  useEffect(() => {
++    if (!enabled || !isTauri()) return
++    let disposed = false
++    let unlisten: (() => void) | null = null
++    import('@tauri-apps/api/event')
++      .then(({ listen }) => listen(QUICK_CAPTURE_OPEN_EVENT, () => openQuickCapture()))
++      .then((teardown) => {
++        if (disposed) teardown()
++        else unlisten = teardown
++      })
++      .catch(() => { /* event bridge unavailable */ })
++    return () => {
++      disposed = true
++      unlisten?.()
++    }
++  }, [enabled, openQuickCapture])
++}
++
++/** Open state, triggers and the save path for the quick-capture sheet. */
++export function useQuickCapture(foundation: VaultFoundation, workspace: NoteWorkspace) {
++  const { noteWindowParams, resolvedPath, setToastMessage, vault } = foundation
++  const { appSave, flushPendingRawContentRef, notes } = workspace
++  const [showQuickCapture, setShowQuickCapture] = useState(false)
++  const openQuickCapture = useCallback(() => setShowQuickCapture(true), [])
++  const closeQuickCapture = useCallback(() => setShowQuickCapture(false), [])
++  // Detached note windows keep their own focus; capture belongs to the main window.
++  useQuickCaptureTriggers(openQuickCapture, !noteWindowParams)
++
++  const { setTabs, tabs } = notes
++  const saveQuickCapture = useCallback(async (text: string): Promise<boolean> => {
++    if (!resolvedPath) {
++      setToastMessage('Open a vault to capture')
++      return false
++    }
++    try {
++      const { appendQuickCaptureToTodayJournal } = await import('../utils/quickCaptureJournal')
++      const result = await appendQuickCaptureToTodayJournal(text, {
++        entries: vault.entries,
++        vaultPath: resolvedPath,
++        openPaths: tabs.map((tab) => tab.entry.path),
++        flushBeforeWrite: async (path) => {
++          flushPendingRawContentRef.current?.(path)
++          await appSave.flushBeforeAction(path)
++        },
++        addEntry: vault.addEntry,
++        removeEntry: vault.removeEntry,
++        updateEntry: vault.updateEntry,
++        updateTabContent: (path, content) => {
++          setTabs((prev) => prev.map((tab) => (tab.entry.path === path ? { ...tab, content } : tab)))
++        },
++        addPendingSave: vault.addPendingSave,
++        removePendingSave: vault.removePendingSave,
++        loadModifiedFiles: vault.loadModifiedFiles,
++      })
++      if (result.status === 'blocked') {
++        setToastMessage(result.message)
++        return false
++      }
++      if (result.status === 'empty') return false
++      setToastMessage(`Captured to ${result.entry.title}`)
++      return true
++    } catch (error) {
++      setToastMessage(`Capture failed: ${error instanceof Error ? error.message : String(error)}`)
++      return false
++    }
++  }, [appSave, flushPendingRawContentRef, resolvedPath, setTabs, setToastMessage, tabs, vault])
++
++  return { showQuickCapture, openQuickCapture, closeQuickCapture, saveQuickCapture }
++}
+diff --git a/src/components/QuickCaptureSheet.test.tsx b/src/components/QuickCaptureSheet.test.tsx
+new file mode 100644
+index 0000000..053e8b2
+--- /dev/null
++++ b/src/components/QuickCaptureSheet.test.tsx
+@@ -0,0 +1,81 @@
++import { fireEvent, render, screen, waitFor } from '@testing-library/react'
++import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
++import { APP_STORAGE_KEYS } from '../constants/appStorage'
++import { QuickCaptureSheet } from './QuickCaptureSheet'
++
++const DRAFT_KEY = APP_STORAGE_KEYS.quickCaptureDraft
++
++function renderSheet(onSave = vi.fn(async () => true), onClose = vi.fn()) {
++  render(<QuickCaptureSheet open onClose={onClose} onSave={onSave} />)
++  return { onSave, onClose, textarea: screen.getByPlaceholderText('Capture a thought…') as HTMLTextAreaElement }
++}
++
++describe('QuickCaptureSheet', () => {
++  beforeEach(() => localStorage.clear())
++  afterEach(() => vi.restoreAllMocks())
++
++  it('renders a focused composer', async () => {
++    const { textarea } = renderSheet()
++    expect(screen.getByTestId('quick-capture-sheet')).toBeInTheDocument()
++    await waitFor(() => expect(textarea).toHaveFocus())
++  })
++
++  it('saves on Cmd+Enter and Ctrl+Enter, then clears the draft and closes', async () => {
++    const { textarea, onSave, onClose } = renderSheet()
++    fireEvent.change(textarea, { target: { value: 'buy oat milk' } })
++    expect(localStorage.getItem(DRAFT_KEY)).toBe('buy oat milk')
++
++    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true })
++
++    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
++    expect(onSave).toHaveBeenCalledWith('buy oat milk')
++    expect(localStorage.getItem(DRAFT_KEY)).toBeNull()
++  })
++
++  it('accepts Ctrl+Enter too', async () => {
++    const { textarea, onSave } = renderSheet()
++    fireEvent.change(textarea, { target: { value: 'x' } })
++    fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true })
++    await waitFor(() => expect(onSave).toHaveBeenCalledWith('x'))
++  })
++
++  it('leaves plain Enter for new lines and ignores blank submits', () => {
++    const { textarea, onSave } = renderSheet()
++    fireEvent.keyDown(textarea, { key: 'Enter' })
++    fireEvent.change(textarea, { target: { value: '   ' } })
++    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true })
++    expect(onSave).not.toHaveBeenCalled()
++  })
++
++  it('keeps the sheet and draft when saving fails', async () => {
++    const onSave = vi.fn(async () => false)
++    const { textarea, onClose } = renderSheet(onSave)
++    fireEvent.change(textarea, { target: { value: 'keep me' } })
++    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true })
++
++    await waitFor(() => expect(onSave).toHaveBeenCalled())
++    expect(onClose).not.toHaveBeenCalled()
++    expect(textarea.value).toBe('keep me')
++    expect(localStorage.getItem(DRAFT_KEY)).toBe('keep me')
++  })
++
++  it('closes on Escape and restores the unsent draft next time', () => {
++    localStorage.setItem(DRAFT_KEY, 'half a thought')
++    const { textarea, onClose } = renderSheet()
++    expect(textarea.value).toBe('half a thought')
++
++    fireEvent.keyDown(textarea, { key: 'Escape' })
++    expect(onClose).toHaveBeenCalledTimes(1)
++    expect(localStorage.getItem(DRAFT_KEY)).toBe('half a thought')
++  })
++
++  it('still works when storage throws', async () => {
++    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('blocked') })
++    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
++    const { textarea, onSave } = renderSheet()
++    expect(textarea.value).toBe('')
++    fireEvent.change(textarea, { target: { value: 'still here' } })
++    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true })
++    await waitFor(() => expect(onSave).toHaveBeenCalledWith('still here'))
++  })
++})
+diff --git a/src/components/QuickCaptureSheet.tsx b/src/components/QuickCaptureSheet.tsx
+new file mode 100644
+index 0000000..28b789d
+--- /dev/null
++++ b/src/components/QuickCaptureSheet.tsx
+@@ -0,0 +1,107 @@
++import { useRef, useState, type KeyboardEvent } from 'react'
++import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
++import { APP_STORAGE_KEYS } from '../constants/appStorage'
++import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
++
++interface QuickCaptureSheetProps {
++  open: boolean
++  onClose: () => void
++  /** Resolves true when the capture landed; the sheet stays open otherwise. */
++  onSave: (text: string) => Promise<boolean>
++}
++
++const DRAFT_KEY = APP_STORAGE_KEYS.quickCaptureDraft
++
++function readDraft(): string {
++  try {
++    return localStorage.getItem(DRAFT_KEY) ?? ''
++  } catch {
++    return ''
++  }
++}
++
++function writeDraft(value: string): void {
++  try {
++    if (value.length > 0) localStorage.setItem(DRAFT_KEY, value)
++    else localStorage.removeItem(DRAFT_KEY)
++  } catch {
++    // Storage can be unavailable (private windows, blocked site data); the draft is a convenience.
++  }
++}
++
++function isSaveShortcut(event: KeyboardEvent<HTMLTextAreaElement>): boolean {
++  return event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !event.altKey
++}
++
++/** Small centered composer that drops a thought into today's journal without leaving the current note. */
++export function QuickCaptureSheet({ open, onClose, onSave }: QuickCaptureSheetProps) {
++  const [text, setText] = useState(readDraft)
++  const [saving, setSaving] = useState(false)
++  const textareaRef = useRef<HTMLTextAreaElement>(null)
++
++  const updateText = (value: string) => {
++    setText(value)
++    writeDraft(value)
++  }
++
++  const submit = async () => {
++    if (saving || text.trim().length === 0) return
++    setSaving(true)
++    try {
++      const saved = await onSave(text)
++      if (!saved) return
++      writeDraft('')
++      setText('')
++      onClose()
++    } finally {
++      setSaving(false)
++    }
++  }
++
++  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
++    if (!isSaveShortcut(event)) return
++    event.preventDefault()
++    event.stopPropagation()
++    void submit()
++  }
++
++  return (
++    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
++      <DialogContent
++        showCloseButton={false}
++        data-testid="quick-capture-sheet"
++        className="quick-capture-sheet gap-2 border-[var(--border)] bg-[var(--surface-panel)] p-3 text-[var(--foreground)] sm:max-w-[460px]"
++        onOpenAutoFocus={(event) => {
++          event.preventDefault()
++          const textarea = textareaRef.current
++          if (!textarea) return
++          textarea.focus()
++          textarea.setSelectionRange(textarea.value.length, textarea.value.length)
++        }}
++      >
++        <DialogTitle className="sr-only">Quick capture</DialogTitle>
++        <DialogDescription className="sr-only">
++          Adds a timestamped bullet to today's journal.
++        </DialogDescription>
++        <textarea
++          ref={textareaRef}
++          aria-label="Quick capture"
++          className="min-h-[96px] w-full resize-none rounded-md border border-[var(--border)] bg-transparent px-3 py-2 text-sm leading-relaxed text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus-visible:border-[var(--primary)]"
++          placeholder="Capture a thought…"
++          rows={4}
++          value={text}
++          readOnly={saving}
++          aria-busy={saving}
++          onChange={(event) => updateText(event.target.value)}
++          onKeyDown={handleKeyDown}
++        />
++        <div className="flex items-center justify-between text-[11px] text-[var(--muted-foreground)]">
++          <span>Today's journal</span>
++          <span>
++            <kbd className="font-sans">{formatShortcutDisplay({ display: '⌘↵' })}</kbd> save · <kbd className="font-sans">esc</kbd> close
++          </span>
++        </div>
++      </DialogContent>
++    </Dialog>
++  )
++}
+diff --git a/src/utils/quickCapture.test.ts b/src/utils/quickCapture.test.ts
+new file mode 100644
+index 0000000..7e55e94
+--- /dev/null
++++ b/src/utils/quickCapture.test.ts
+@@ -0,0 +1,42 @@
++import { describe, expect, it } from 'vitest'
++import { appendCaptureBullet, formatCaptureBullet, formatCaptureTime } from './quickCapture'
++
++const at = new Date(2026, 8, 26, 14, 5)
++
++describe('quick capture formatting', () => {
++  it('uses a zero-padded local 24h clock', () => {
++    expect(formatCaptureTime(at)).toBe('14:05')
++    expect(formatCaptureTime(new Date(2026, 0, 1, 7, 3))).toBe('07:03')
++  })
++
++  it('formats a single-line capture as a timestamped bullet', () => {
++    expect(formatCaptureBullet('  call the plumber  ', at)).toBe('- 14:05 call the plumber')
++  })
++
++  it('keeps multi-line captures inside one list item', () => {
++    expect(formatCaptureBullet('idea\r\n\n  second line\nthird', at)).toBe('- 14:05 idea\n  second line\n  third')
++  })
++
++  it('returns null for blank input', () => {
++    expect(formatCaptureBullet('   \n\t\n', at)).toBeNull()
++  })
++})
++
++describe('appendCaptureBullet', () => {
++  const bullet = '- 14:05 new'
++
++  it('starts an empty note with the bullet', () => {
++    expect(appendCaptureBullet('', bullet)).toBe('- 14:05 new\n')
++  })
++
++  it('separates the first bullet from a heading or frontmatter with a blank line', () => {
++    expect(appendCaptureBullet('---\ntype: Journal\n---\n# Journal 2026-09-26\n', bullet))
++      .toBe('---\ntype: Journal\n---\n# Journal 2026-09-26\n\n- 14:05 new\n')
++    expect(appendCaptureBullet('---\ntype: Journal\n---\n', bullet)).toBe('---\ntype: Journal\n---\n\n- 14:05 new\n')
++  })
++
++  it('stacks onto an existing trailing list', () => {
++    expect(appendCaptureBullet('# Today\n\n- 09:00 coffee\n\n\n', bullet)).toBe('# Today\n\n- 09:00 coffee\n- 14:05 new\n')
++    expect(appendCaptureBullet('- 09:00 a\n  more', bullet)).toBe('- 09:00 a\n  more\n- 14:05 new\n')
++  })
++})
+diff --git a/src/utils/quickCapture.ts b/src/utils/quickCapture.ts
+new file mode 100644
+index 0000000..fe51cbe
+--- /dev/null
++++ b/src/utils/quickCapture.ts
+@@ -0,0 +1,46 @@
++/** Local 24h clock label used as the capture bullet prefix, e.g. "14:05". */
++export function formatCaptureTime(now: Date = new Date()): string {
++  const hours = String(now.getHours()).padStart(2, '0')
++  const minutes = String(now.getMinutes()).padStart(2, '0')
++  return `${hours}:${minutes}`
++}
++
++/**
++ * Turns a raw capture into one Markdown bullet: "- 14:05 text".
++ * Extra lines become indented continuation lines so the bullet stays one list
++ * item; blank lines are dropped for the same reason. Returns null when there
++ * is nothing worth saving.
++ */
++export function formatCaptureBullet(text: string, now: Date = new Date()): string | null {
++  const lines = text
++    .replace(/\r\n?/g, '\n')
++    .split('\n')
++    .map((line) => line.trimEnd())
++    .filter((line) => line.trim().length > 0)
++  if (lines.length === 0) return null
++
++  const [first, ...rest] = lines
++  const head = `- ${formatCaptureTime(now)} ${first.trim()}`
++  return [head, ...rest.map((line) => `  ${line.trim()}`)].join('\n')
++}
++
++const LIST_LINE = /^\s*(?:[-*+]|\d+[.)])\s/
++const CONTINUATION_LINE = /^\s{2,}\S/
++
++function endsWithListItem(content: string): boolean {
++  const lines = content.split('\n')
++  const last = lines[lines.length - 1] ?? ''
++  return LIST_LINE.test(last) || CONTINUATION_LINE.test(last)
++}
++
++/**
++ * Appends a capture bullet to a note body. Captures stack into the trailing
++ * list when the note already ends with one; otherwise a blank line separates
++ * the new list from the preceding paragraph, heading or frontmatter.
++ */
++export function appendCaptureBullet(content: string, bullet: string): string {
++  const body = content.replace(/\s+$/u, '')
++  if (body.length === 0) return `${bullet}\n`
++  const separator = endsWithListItem(body) ? '\n' : '\n\n'
++  return `${body}${separator}${bullet}\n`
++}
+diff --git a/src/utils/quickCaptureJournal.test.ts b/src/utils/quickCaptureJournal.test.ts
+new file mode 100644
+index 0000000..9cf1274
+--- /dev/null
++++ b/src/utils/quickCaptureJournal.test.ts
+@@ -0,0 +1,113 @@
++import { beforeEach, describe, expect, it, vi } from 'vitest'
++import { makeEntry } from '../test-utils/noteListTestUtils'
++import type { VaultEntry } from '../types'
++
++type InvokeArgs = { path: string; content?: string }
++
++const { content, mockInvoke, addMockEntry } = vi.hoisted(() => {
++  const content: Record<string, string> = {}
++  return {
++    content,
++    mockInvoke: vi.fn(async (command: string, args: InvokeArgs) => {
++      if (command === 'get_note_content') return content[args.path] ?? ''
++      if (command === 'save_note_content') content[args.path] = args.content ?? ''
++      return null
++    }),
++    addMockEntry: vi.fn((entry: { path: string }, body: string) => { content[entry.path] = body }),
++  }
++})
++
++vi.mock('../mock-tauri', () => ({
++  isTauri: () => false,
++  mockInvoke,
++  addMockEntry,
++  updateMockContent: vi.fn(),
++}))
++
++import { appendQuickCaptureToTodayJournal } from './quickCaptureJournal'
++
++const now = new Date(2026, 8, 26, 14, 5)
++
++function makeDeps(entries: VaultEntry[], openPaths: string[] = []) {
++  return {
++    entries,
++    vaultPath: '/vault',
++    openPaths,
++    flushBeforeWrite: vi.fn<(path: string) => Promise<void>>(async () => {}),
++    addEntry: vi.fn(),
++    removeEntry: vi.fn(),
++    updateEntry: vi.fn(),
++    updateTabContent: vi.fn(),
++    addPendingSave: vi.fn(),
++    removePendingSave: vi.fn(),
++    loadModifiedFiles: vi.fn(async () => {}),
++  }
++}
++
++describe('appendQuickCaptureToTodayJournal', () => {
++  beforeEach(() => {
++    for (const key of Object.keys(content)) delete content[key]
++    mockInvoke.mockClear()
++    addMockEntry.mockClear()
++  })
++
++  it('appends a bullet to an existing journal without opening it', async () => {
++    const journal = makeEntry({ path: '/vault/journal-2026-09-26.md', title: 'Journal 2026-09-26', isA: 'Journal' })
++    content[journal.path] = '---\ntype: Journal\n---\n# Journal 2026-09-26\n\n- 09:00 coffee\n'
++    const deps = makeDeps([journal])
++
++    const result = await appendQuickCaptureToTodayJournal('ship the capture sheet', deps, now)
++
++    expect(result).toEqual({ status: 'appended', entry: journal })
++    expect(content[journal.path]).toBe('---\ntype: Journal\n---\n# Journal 2026-09-26\n\n- 09:00 coffee\n- 14:05 ship the capture sheet\n')
++    expect(deps.updateTabContent).toHaveBeenCalledWith(journal.path, content[journal.path])
++    expect(deps.flushBeforeWrite).not.toHaveBeenCalled()
++    expect(deps.addEntry).not.toHaveBeenCalled()
++    expect(deps.loadModifiedFiles).toHaveBeenCalled()
++  })
++
++  it('flushes pending editor edits before writing to an open journal', async () => {
++    const journal = makeEntry({ path: '/vault/j.md', title: 'Journal 2026-09-26', isA: 'Journal' })
++    content[journal.path] = '# Journal\n'
++    const deps = makeDeps([journal], [journal.path])
++    deps.flushBeforeWrite.mockImplementation(async () => { content[journal.path] = '# Journal\n\nunsaved typing\n' })
++
++    await appendQuickCaptureToTodayJournal('later', deps, now)
++
++    expect(deps.flushBeforeWrite).toHaveBeenCalledWith(journal.path)
++    expect(content[journal.path]).toBe('# Journal\n\nunsaved typing\n\n- 14:05 later\n')
++  })
++
++  it("creates today's journal with the bullet when it is missing", async () => {
++    const deps = makeDeps([makeEntry({ path: '/vault/other.md', title: 'Other', isA: 'Note' })])
++
++    const result = await appendQuickCaptureToTodayJournal('first thought', deps, now)
++
++    expect(result.status).toBe('created')
++    if (result.status !== 'created') return
++    expect(result.entry.title).toBe('Journal 2026-09-26')
++    expect(result.entry.isA).toBe('Journal')
++    expect(deps.addEntry).toHaveBeenCalledWith(result.entry)
++    expect(addMockEntry).toHaveBeenCalledTimes(1)
++    expect(content[result.entry.path]).toMatch(/\n\n- 14:05 first thought\n$/)
++    expect(deps.addPendingSave).toHaveBeenCalledWith(result.entry.path)
++    expect(deps.removePendingSave).toHaveBeenCalledWith(result.entry.path)
++    expect(deps.updateTabContent).not.toHaveBeenCalled()
++  })
++
++  it('reports path collisions instead of overwriting', async () => {
++    const clash = makeEntry({ path: '/vault/journal-2026-09-26.md', title: 'Something else', isA: 'Note' })
++    const deps = makeDeps([clash])
++
++    const result = await appendQuickCaptureToTodayJournal('x', deps, now)
++
++    expect(result.status).toBe('blocked')
++    expect(deps.addEntry).not.toHaveBeenCalled()
++  })
++
++  it('ignores blank captures', async () => {
++    const deps = makeDeps([])
++    await expect(appendQuickCaptureToTodayJournal('  \n ', deps, now)).resolves.toEqual({ status: 'empty' })
++    expect(mockInvoke).not.toHaveBeenCalled()
++  })
++})
+diff --git a/src/utils/quickCaptureJournal.ts b/src/utils/quickCaptureJournal.ts
+new file mode 100644
+index 0000000..a71ef47
+--- /dev/null
++++ b/src/utils/quickCaptureJournal.ts
+@@ -0,0 +1,96 @@
++import { invoke } from '../lib/tauriRuntime'
++import { isTauri, mockInvoke } from '../mock-tauri'
++import { addEntryWithMock, persistNewNote } from '../hooks/noteCreationPersistence'
++import { planNewNoteCreation, resolveTemplate } from '../hooks/noteCreationModel'
++import { persistContent } from '../hooks/useSaveNote'
++import { cacheNoteContent } from '../hooks/tabContentCache'
++import type { VaultEntry } from '../types'
++import { appendCaptureBullet, formatCaptureBullet } from './quickCapture'
++import { findTodayJournal, todayJournalTitle } from './todayJournal'
++
++export interface QuickCaptureJournalDeps {
++  entries: VaultEntry[]
++  vaultPath: string
++  /** Paths currently open in the editor; their pending edits are flushed first. */
++  openPaths: readonly string[]
++  flushBeforeWrite?: (path: string) => Promise<void> | void
++  addEntry: (entry: VaultEntry) => void
++  removeEntry: (path: string) => void
++  updateEntry: (path: string, patch: Partial<VaultEntry>) => void
++  updateTabContent: (path: string, content: string) => void
++  addPendingSave?: (path: string) => void
++  removePendingSave?: (path: string) => void
++  loadModifiedFiles?: () => Promise<unknown>
++}
++
++export type QuickCaptureResult =
++  | { status: 'appended' | 'created'; entry: VaultEntry }
++  | { status: 'empty' }
++  | { status: 'blocked'; message: string }
++
++function readNoteContent(path: string): Promise<string> {
++  return isTauri()
++    ? invoke<string>('get_note_content', { path })
++    : mockInvoke<string>('get_note_content', { path })
++}
++
++async function appendToExisting(entry: VaultEntry, bullet: string, deps: QuickCaptureJournalDeps): Promise<void> {
++  // Flush the editor first so an open journal's unsaved typing isn't overwritten.
++  if (deps.openPaths.includes(entry.path)) await deps.flushBeforeWrite?.(entry.path)
++  const current = await readNoteContent(entry.path)
++  const next = appendCaptureBullet(current, bullet)
++  await persistContent(entry.path, next)
++  cacheNoteContent(entry.path, next)
++  deps.updateTabContent(entry.path, next)
++  deps.updateEntry(entry.path, { modifiedAt: Math.floor(Date.now() / 1000) })
++}
++
++async function createWithCapture(
++  bullet: string,
++  now: Date,
++  deps: QuickCaptureJournalDeps,
++): Promise<QuickCaptureResult> {
++  const title = todayJournalTitle(now)
++  const template = resolveTemplate({ entries: deps.entries, typeName: 'Journal' })
++  const plan = planNewNoteCreation({ entries: deps.entries, title, type: 'Journal', vaultPath: deps.vaultPath, template })
++  if (plan.status === 'blocked') return { status: 'blocked', message: plan.message }
++
++  const { entry } = plan.resolved
++  const content = appendCaptureBullet(plan.resolved.content, bullet)
++  addEntryWithMock(entry, content, deps.addEntry)
++  deps.addPendingSave?.(entry.path)
++  try {
++    await persistNewNote(entry.path, content)
++    cacheNoteContent(entry.path, content)
++  } catch (error) {
++    deps.removeEntry(entry.path)
++    throw error
++  } finally {
++    deps.removePendingSave?.(entry.path)
++  }
++  return { status: 'created', entry }
++}
++
++/**
++ * Appends a timestamped bullet to today's journal, creating the journal when
++ * it doesn't exist yet. Never opens or switches tabs.
++ */
++export async function appendQuickCaptureToTodayJournal(
++  text: string,
++  deps: QuickCaptureJournalDeps,
++  now: Date = new Date(),
++): Promise<QuickCaptureResult> {
++  const bullet = formatCaptureBullet(text, now)
++  if (!bullet) return { status: 'empty' }
++
++  const existing = findTodayJournal(deps.entries, now)
++  let result: QuickCaptureResult
++  if (existing) {
++    await appendToExisting(existing, bullet, deps)
++    result = { status: 'appended', entry: existing }
++  } else {
++    result = await createWithCapture(bullet, now, deps)
++  }
++  if (result.status !== 'blocked') void deps.loadModifiedFiles?.().catch(() => {})
++  return result
++}
