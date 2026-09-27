@@ -17,6 +17,7 @@ import { useBlockNoteSideMenuHoverGuard } from './blockNoteSideMenuHoverGuard'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
 import { GrimoireTableHandles } from './GrimoireTableHandles'
 import { useEditorLinkActivation } from './useEditorLinkActivation'
+import { WikilinkPeek } from './WikilinkPeek'
 import { findNearestTextCursorBlock } from './blockNoteCursorTarget'
 import {
   GrimoireLinkToolbar,
@@ -328,6 +329,7 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
         markdown={liveMarkdown}
         vaultPath={vaultPath}
       />
+      <WikilinkPeek containerRef={containerRef} entries={entries} />
       <SharedContextBlockNoteView
         editor={editor}
         theme={themeMode}
