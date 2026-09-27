@@ -84,3 +84,44 @@
 .editor-canvas[data-reading-width='full'] .heading-outline {
   display: none;
 }
+
+/* Wide blocks break out of the measure. Paragraphs keep the reading width;
+   tables, code, images and other media may grow to min(1200px, the page's
+   inner width), centred on the column (or flush left in the left layout).
+   The wrapper is the container so 100cqw is the real room on the page. */
+:root[data-theme-preset] .editor-scroll-area .editor-content-wrapper {
+  container: editor-page / inline-size;
+}
+
+:root[data-theme-preset] .editor__blocknote-container .bn-editor {
+  overflow: visible;
+}
+
+:root[data-theme-preset] .editor__blocknote-container .bn-editor > .bn-block-group > .bn-block-outer:has(
+  > .bn-block > .bn-block-content:is(
+    [data-content-type='table'],
+    [data-content-type='codeBlock'],
+    [data-content-type='image'],
+    [data-content-type='video'],
+    [data-content-type='audio'],
+    [data-content-type='file']
+  )
+) {
+  --editor-wide-block-width: max(100%, min(1200px, 100cqw));
+  width: var(--editor-wide-block-width);
+  margin-inline: calc((100% - var(--editor-wide-block-width)) / 2);
+}
+
+:root[data-theme-preset] .editor-content-layout--left .editor__blocknote-container .bn-editor > .bn-block-group > .bn-block-outer:has(
+  > .bn-block > .bn-block-content:is(
+    [data-content-type='table'],
+    [data-content-type='codeBlock'],
+    [data-content-type='image'],
+    [data-content-type='video'],
+    [data-content-type='audio'],
+    [data-content-type='file']
+  )
+) {
+  margin-inline: 0 calc(100% - var(--editor-wide-block-width));
+}
+
