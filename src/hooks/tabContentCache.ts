@@ -116,8 +116,20 @@ export function prefetchNoteContent(path: string): void {
   })
 }
 
+type NoteContentListener = (path: string, content: string) => void
+const contentListeners = new Set<NoteContentListener>()
+
+/** Hear about content the app knows is fresh (saves, creates), without polling files. */
+export function subscribeNoteContentCached(listener: NoteContentListener): () => void {
+  contentListeners.add(listener)
+  return () => {
+    contentListeners.delete(listener)
+  }
+}
+
 /** Seeds the note-content cache with known content, usually after a save/create flow. */
 export function cacheNoteContent(path: string, content: string): void {
+  contentListeners.forEach((listener) => listener(path, content))
   const byteSize = measureNoteContentBytes(content)
   if (byteSize > NOTE_CONTENT_ENTRY_MAX_BYTES) {
     prefetchCache.delete(path)

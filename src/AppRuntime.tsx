@@ -48,6 +48,8 @@ import { useKnowledgeOrganization } from './app/useKnowledgeOrganization'
 import { useNativeIntegrations } from './app/useNativeIntegrations'
 import { useNoteWorkspace } from './app/useNoteWorkspace'
 import { useVaultFoundation } from './app/useVaultFoundation'
+import { useBodyIndexSync } from './app/useBodyIndexSync'
+import { useTagSnapshot } from './lib/bodyIndex/tagSnapshot'
 import './App.css'
 
 // Type declarations for mock content storage and test overrides
@@ -134,15 +136,18 @@ function App() {
     handleRevealNoteInFinder(entry.path)
   }, [handleRevealNoteInFinder])
 
+  useBodyIndexSync(vault.entries, resolvedPath ?? null)
   const inboxCount = useMemo(() => filterInboxEntries(vault.entries, inboxPeriod).length, [vault.entries, inboxPeriod])
 
+  const tagSnapshot = useTagSnapshot()
   const aiNoteList = useMemo<NoteListItem[]>(() => {
     const isInbox = effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'inbox'
     const filtered = isInbox ? filterInboxEntries(vault.entries, inboxPeriod) : filterEntries(vault.entries, effectiveSelection, undefined, vault.views)
     return filtered.map(e => ({
       path: e.path, title: e.title, type: e.isA ?? 'Note',
     }))
-  }, [vault.entries, vault.views, effectiveSelection, inboxPeriod])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- tag selections re-filter when the index publishes
+  }, [vault.entries, vault.views, effectiveSelection, inboxPeriod, tagSnapshot])
 
   const aiNoteListFilter = useMemo(() => {
     if (effectiveSelection.kind === 'sectionGroup') return { type: effectiveSelection.type, query: '' }
