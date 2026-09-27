@@ -325,7 +325,6 @@ export function EditorContentLayout(model: EditorContentModel) {
       />
       {!diffMode && !effectiveRawMode && !model.isImagePreview && !model.isHtmlPreview ? (
         <EditorAgentComposerBar
-          content={activeTab.content}
           disabled={model.showAIChat}
           onOpen={model.onToggleAIChat}
         />

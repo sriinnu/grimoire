@@ -14,19 +14,19 @@ const linkedNote = `${note}
 Related: [[Core Note]] and [[projects/alpha|Alpha Project]].`
 
 describe('EditorNavigatorControls', () => {
-  it('shows labeled note navigator actions in the editor metadata strip', () => {
+  it('shows quiet icon actions with counts only where there is something to count', () => {
     render(<EditorNavigatorControls content={note} variant="meta" />)
 
-    expect(screen.getByRole('button', { name: /search this note/i })).toHaveTextContent('Find')
-    expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('TOC2')
-    expect(screen.getByRole('button', { name: /note links in this note, 0 links/i })).toHaveTextContent('Links0')
+    expect(screen.getByRole('button', { name: /search this note/i })).toHaveTextContent('')
+    expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('2')
+    expect(screen.getByRole('button', { name: /note links in this note, 0 links/i })).toHaveTextContent('')
   })
 
   it('summarizes headings and links without counting code fences as document navigation', () => {
     render(<EditorNavigatorControls content={`${linkedNote}\n\n\`\`\`\n## Ignored\n[[Hidden]]\n\`\`\``} variant="meta" />)
 
-    expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('TOC2')
-    expect(screen.getByRole('button', { name: /note links in this note, 2 links/i })).toHaveTextContent('Links2')
+    expect(screen.getByRole('button', { name: /table of contents, 2 headings/i })).toHaveTextContent('2')
+    expect(screen.getByRole('button', { name: /note links in this note, 2 links/i })).toHaveTextContent('2')
   })
 
   it('opens the note links navigator from the editor metadata strip', async () => {

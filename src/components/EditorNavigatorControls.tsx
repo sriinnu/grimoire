@@ -89,6 +89,12 @@ function countLabel(count: number, singular: string, plural = `${singular}s`): s
   return `${count} ${count === 1 ? singular : plural}`
 }
 
+/** A count only earns its place when there is something to count. */
+function NavigatorCount({ variant, count }: { variant: 'composer' | 'meta'; count: number }) {
+  if (variant !== 'meta' || count === 0) return null
+  return <span className="editor-navigator-controls__count">{count}</span>
+}
+
 interface EditorNavigatorControlsProps {
   content: string
   enableFindShortcut?: boolean
@@ -130,51 +136,40 @@ export function EditorNavigatorControls({
           <Button
             type="button"
             variant="ghost"
-            size={variant === 'meta' ? 'sm' : 'icon-sm'}
+            size="icon-sm"
             className="editor-navigator-controls__button"
-            title="Search this note"
+            title="Search this note (⌘F)"
             aria-label="Search this note"
             data-icon-intent="navigation"
             onClick={() => openNavigator('search')}
           >
-            <Glyph name="search" size={16} />
-            {variant === 'meta' ? <span>Find</span> : null}
+            <Glyph name="search" size={15} />
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size={variant === 'meta' ? 'sm' : 'icon-sm'}
+            size={variant === 'meta' && summary.headingCount > 0 ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
             title="Table of contents"
             aria-label={`Table of contents, ${countLabel(summary.headingCount, 'heading')}`}
             data-icon-intent="structure"
             onClick={() => openNavigator('toc')}
           >
-            <ListTree className="size-4" />
-            {variant === 'meta' ? <span>TOC</span> : null}
-            {variant === 'meta' ? (
-              <span className="editor-navigator-controls__count" data-empty={summary.headingCount === 0 ? 'true' : 'false'}>
-                {summary.headingCount}
-              </span>
-            ) : null}
+            <ListTree className="size-[15px]" />
+            <NavigatorCount variant={variant} count={summary.headingCount} />
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size={variant === 'meta' ? 'sm' : 'icon-sm'}
+            size={variant === 'meta' && summary.linkCount > 0 ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
             title="Note links in this note"
             aria-label={`Note links in this note, ${countLabel(summary.linkCount, 'link')}`}
             data-icon-intent="structure"
             onClick={() => openNavigator('links')}
           >
-            <Glyph name="link" size={16} />
-            {variant === 'meta' ? <span>Links</span> : null}
-            {variant === 'meta' ? (
-              <span className="editor-navigator-controls__count" data-empty={summary.linkCount === 0 ? 'true' : 'false'}>
-                {summary.linkCount}
-              </span>
-            ) : null}
+            <Glyph name="link" size={15} />
+            <NavigatorCount variant={variant} count={summary.linkCount} />
           </Button>
         </div>
       </PopoverAnchor>
