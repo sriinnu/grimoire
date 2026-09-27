@@ -35,8 +35,7 @@ import {
 import { NoteRetargetingProvider } from './components/note-retargeting/noteRetargetingContext'
 import { MoveFolderDialog } from './components/folder-tree/MoveFolderDialog'
 import type { VaultEntry } from './types'
-import type { NoteListItem } from './utils/ai-context'
-import { filterEntries, filterInboxEntries } from './utils/noteListHelpers'
+import { filterInboxEntries } from './utils/noteListHelpers'
 import { useAppBootstrap } from './app/useAppBootstrap'
 import { useAppCommandRegistry } from './app/useAppCommandRegistry'
 import { useAppShellState } from './app/useAppShellState'
@@ -48,8 +47,8 @@ import { useKnowledgeOrganization } from './app/useKnowledgeOrganization'
 import { useNativeIntegrations } from './app/useNativeIntegrations'
 import { useNoteWorkspace } from './app/useNoteWorkspace'
 import { useVaultFoundation } from './app/useVaultFoundation'
+import { useAiNoteList } from './app/useAiNoteList'
 import { useBodyIndexSync } from './app/useBodyIndexSync'
-import { useTagSnapshot } from './lib/bodyIndex/tagSnapshot'
 import './App.css'
 
 // Type declarations for mock content storage and test overrides
@@ -136,18 +135,9 @@ function App() {
     handleRevealNoteInFinder(entry.path)
   }, [handleRevealNoteInFinder])
 
-  useBodyIndexSync(vault.entries, resolvedPath ?? null)
+  const tagSnapshot = useBodyIndexSync(vault.entries, resolvedPath ?? null)
   const inboxCount = useMemo(() => filterInboxEntries(vault.entries, inboxPeriod).length, [vault.entries, inboxPeriod])
-
-  const tagSnapshot = useTagSnapshot()
-  const aiNoteList = useMemo<NoteListItem[]>(() => {
-    const isInbox = effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'inbox'
-    const filtered = isInbox ? filterInboxEntries(vault.entries, inboxPeriod) : filterEntries(vault.entries, effectiveSelection, undefined, vault.views)
-    return filtered.map(e => ({
-      path: e.path, title: e.title, type: e.isA ?? 'Note',
-    }))
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- tag selections re-filter when the index publishes
-  }, [vault.entries, vault.views, effectiveSelection, inboxPeriod, tagSnapshot])
+  const aiNoteList = useAiNoteList({ entries: vault.entries, views: vault.views, selection: effectiveSelection, inboxPeriod, tagSnapshot })
 
   const aiNoteListFilter = useMemo(() => {
     if (effectiveSelection.kind === 'sectionGroup') return { type: effectiveSelection.type, query: '' }

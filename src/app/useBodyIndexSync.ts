@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTagSnapshot } from '../lib/bodyIndex/tagSnapshot'
 import type { VaultEntry } from '../types'
 import { subscribeNoteContentCached } from '../hooks/tabContentCache'
 
@@ -21,7 +22,7 @@ function whenIdle(callback: () => void): () => void {
  * the boot path. Later entry changes diff by path and modifiedAt; saves push
  * their content straight in through the note-content cache.
  */
-export function useBodyIndexSync(entries: VaultEntry[], vaultPath: string | null): void {
+export function useBodyIndexSync(entries: VaultEntry[], vaultPath: string | null): ReturnType<typeof useTagSnapshot> {
   const moduleRef = useRef<BodyIndexModule | null>(null)
   const entriesRef = useRef(entries)
   entriesRef.current = entries
@@ -54,4 +55,5 @@ export function useBodyIndexSync(entries: VaultEntry[], vaultPath: string | null
   useEffect(() => subscribeNoteContentCached((path, content) => {
     moduleRef.current?.getBodyIndex().update(path, content)
   }), [])
+  return useTagSnapshot()
 }
