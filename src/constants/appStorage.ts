@@ -17,6 +17,8 @@ export const APP_STORAGE_KEYS = {
   inspectorOpen: 'grimoire:inspector-open',
   inspectorSections: 'grimoire:inspector-sections',
   connectionsFilter: 'grimoire:connections-filter',
+  typewriterMode: 'grimoire:typewriter-mode',
+  editorSpellcheck: 'grimoire:editor-spellcheck',
   headingOutline: 'grimoire:heading-outline',
   readingWidth: 'grimoire:reading-width',
   quickCaptureDraft: 'grimoire:quick-capture-draft',

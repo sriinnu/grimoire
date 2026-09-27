@@ -29,30 +29,36 @@ function isElement(node: ParentNode): node is Element {
   return typeof Element !== 'undefined' && node instanceof Element
 }
 
-function setNativeTextAssistanceDisabled(element: Element) {
+export interface NativeTextAssistanceOptions {
+  /** Leave the browser's spellcheck on (autocorrect, autocomplete and autocapitalize stay off). */
+  keepSpellcheck?: boolean
+}
+
+function setNativeTextAssistanceDisabled(element: Element, options: NativeTextAssistanceOptions) {
   for (const [attribute, value] of Object.entries(nativeTextAssistanceDisabledAttributes)) {
-    if (element.getAttribute(attribute) !== value) {
-      element.setAttribute(attribute, value)
+    const wanted = attribute === 'spellcheck' && options.keepSpellcheck ? 'true' : value
+    if (element.getAttribute(attribute) !== wanted) {
+      element.setAttribute(attribute, wanted)
     }
   }
 }
 
-export function disableNativeTextAssistance(root: ParentNode) {
+export function disableNativeTextAssistance(root: ParentNode, options: NativeTextAssistanceOptions = {}) {
   if (isElement(root) && root.matches(TEXT_ENTRY_SELECTOR)) {
-    setNativeTextAssistanceDisabled(root)
+    setNativeTextAssistanceDisabled(root, options)
   }
 
-  root.querySelectorAll(TEXT_ENTRY_SELECTOR).forEach(setNativeTextAssistanceDisabled)
+  root.querySelectorAll(TEXT_ENTRY_SELECTOR).forEach((element) => setNativeTextAssistanceDisabled(element, options))
 }
 
-export function observeNativeTextAssistanceDisabled(root: ParentNode): () => void {
-  disableNativeTextAssistance(root)
+export function observeNativeTextAssistanceDisabled(root: ParentNode, options: NativeTextAssistanceOptions = {}): () => void {
+  disableNativeTextAssistance(root, options)
 
   if (typeof MutationObserver === 'undefined') {
     return () => {}
   }
 
-  const observer = new MutationObserver(() => disableNativeTextAssistance(root))
+  const observer = new MutationObserver(() => disableNativeTextAssistance(root, options))
   observer.observe(root, {
     attributeFilter: ['contenteditable'],
     attributes: true,

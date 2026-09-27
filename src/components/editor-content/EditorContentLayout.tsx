@@ -15,6 +15,7 @@ import { EditorAgentComposerBar } from '../EditorAgentComposerBar'
 import { HeadingOutlineRail } from '../heading-outline/HeadingOutlineRail'
 import { useHeadingOutline, type HeadingOutlineState } from '../heading-outline/useOutlineHeadings'
 import { useReadingWidth } from './useReadingWidth'
+import { useTypewriterMode } from './useTypewriterMode'
 
 const RawEditorViewSurface = lazy(async () => ({
   default: (await import('../RawEditorView')).RawEditorView,
@@ -252,6 +253,7 @@ export function EditorContentLayout(model: EditorContentModel) {
     noteLayout,
   } = model
   const outline = useHeadingOutline(activeTab?.content ?? '', showEditor && !effectiveRawMode)
+  useTypewriterMode(outline.scrollRef, showEditor && !effectiveRawMode)
   const readingWidth = useReadingWidth(showEditor)
   const rootClassName = cn(
     'editor-canvas flex flex-1 flex-col min-w-0 min-h-0',

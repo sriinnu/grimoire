@@ -11,6 +11,7 @@ import {
   setReadingWidth,
 } from '../../lib/readingWidthPreference'
 import { toggleHeadingOutline } from '../../lib/headingOutlinePreference'
+import { spellcheckPreference, typewriterPreference } from '../../lib/editorTogglePreference'
 
 const NOTE_LAYOUT_COMMAND_LABELS: Record<NoteLayout, string> = {
   centered: 'Use Left-Aligned Note Layout',
@@ -91,6 +92,8 @@ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
     { id: 'toggle-raw-editor', label: 'Toggle Raw Editor', group: 'View', keywords: ['raw', 'source', 'markdown', 'frontmatter', 'code', 'textarea'], enabled: hasActiveNote && !!onToggleRawEditor, execute: () => onToggleRawEditor?.() },
     buildNoteLayoutCommand(noteLayout, onToggleNoteLayout),
     ...buildReadingWidthCommands(hasActiveNote),
+    { id: 'toggle-typewriter', label: 'Toggle Typewriter Mode', group: 'View', keywords: ['typewriter', 'caret', 'centre', 'center', 'scroll', 'focus'], enabled: hasActiveNote, execute: () => typewriterPreference.toggle() },
+    { id: 'toggle-spellcheck', label: 'Toggle Spellcheck', group: 'View', keywords: ['spelling', 'spell check', 'typos', 'dictionary'], enabled: hasActiveNote, execute: () => spellcheckPreference.toggle() },
     { id: 'toggle-outline', label: 'Toggle Outline', group: 'View', keywords: ['outline', 'headings', 'toc', 'table of contents', 'on this page', 'navigate'], enabled: hasActiveNote, execute: toggleHeadingOutline },
     { id: 'toggle-ai-panel', label: 'Toggle AI Panel', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewToggleAiChat), keywords: ['ai', 'agent', 'chat', 'assistant', 'contextual'], enabled: true, execute: () => onToggleAIChat?.() },
     { id: 'new-ai-chat', label: 'New AI chat', group: 'View', keywords: ['ai', 'agent', 'chat', 'assistant', 'new', 'fresh', 'conversation', 'reset'], enabled: true, execute: requestNewAiChat },

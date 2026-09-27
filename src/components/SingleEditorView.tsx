@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useCallback, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useCallback, useRef, useState, useSyncExternalStore } from 'react'
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -10,6 +10,7 @@ import { useEditorTheme } from '../hooks/useTheme'
 import { useImageDrop } from '../hooks/useImageDrop'
 import { useNoteWikilinkDrop } from '../hooks/useNoteWikilinkDrop'
 import { observeNativeTextAssistanceDisabled } from '../lib/nativeTextAssistance'
+import { spellcheckPreference } from '../lib/editorTogglePreference'
 import { WikilinkSuggestionMenu, type WikilinkSuggestionItem } from './WikilinkSuggestionMenu'
 import type { VaultEntry } from '../types'
 import { _wikilinkEntriesRef } from './editorSchema'
@@ -295,11 +296,13 @@ export function SingleEditorView({ activeContent, editor, entries, onNavigateWik
     _wikilinkEntriesRef.current = entries
   }, [entries])
 
+  // Autocorrect and friends stay off; spellcheck follows the user's toggle.
+  const spellcheckEnabled = useSyncExternalStore(spellcheckPreference.subscribe, spellcheckPreference.isEnabled, spellcheckPreference.isEnabled)
   useEffect(() => {
     const container = containerRef.current
     if (!container) return
-    return observeNativeTextAssistanceDisabled(container)
-  }, [])
+    return observeNativeTextAssistanceDisabled(container, { keepSpellcheck: spellcheckEnabled })
+  }, [spellcheckEnabled])
 
   useSeedBlockNoteTableBridge(editor)
 
