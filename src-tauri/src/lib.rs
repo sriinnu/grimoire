@@ -19,6 +19,8 @@ pub mod menu_bar;
 #[cfg(all(desktop, target_os = "macos"))]
 mod menu_bar_window;
 mod native_startup_smoke;
+#[cfg(desktop)]
+mod quick_capture_shortcut;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
@@ -190,6 +192,7 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
         .plugin(tauri_plugin_updater::Builder::new().build())?;
     app.handle().plugin(tauri_plugin_process::init())?;
     app.handle().plugin(tauri_plugin_opener::init())?;
+    quick_capture_shortcut::setup(app);
     #[cfg(not(target_os = "linux"))]
     menu::setup_menu(app)?;
     setup_linux_window_chrome(app)?;
