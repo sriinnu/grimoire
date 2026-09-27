@@ -18,6 +18,7 @@ import {
 } from './noteListDataHooks'
 import { useListPropertyPicker } from './noteListPropertyHooks'
 import { useNoteListSort } from './noteListSortHooks'
+import { pathsWithTagSync, useTagSnapshot } from '../../lib/bodyIndex/tagSnapshot'
 
 interface UseNoteListContentParams {
   entries: VaultEntry[]
@@ -60,9 +61,15 @@ export function useNoteListContent({
   views,
   visibleNotesRef,
 }: UseNoteListContentParams) {
-  const subFilter = (selection.kind === 'sectionGroup' || selection.kind === 'folder')
+  const subFilter = (selection.kind === 'sectionGroup' || selection.kind === 'folder' || selection.kind === 'tag')
     ? noteListFilter
     : undefined
+  const tagSnapshot = useTagSnapshot()
+  const tagPaths = useMemo(
+    () => (selection.kind === 'tag' ? pathsWithTagSync(selection.tag) : undefined),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- a new snapshot means new tag paths
+    [selection, tagSnapshot],
+  )
   const effectiveInboxPeriod = isInboxView ? inboxPeriod : undefined
   const filteredEntries = useFilteredEntries({
     entries,
@@ -74,6 +81,7 @@ export function useNoteListContent({
     fileScope,
     inboxPeriod: effectiveInboxPeriod,
     views,
+    tagPaths,
   })
   const { listSort, listDirection, customProperties, handleSortChange, sortPrefs, typeDocument } = useNoteListSort({
     entries,

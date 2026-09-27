@@ -27,6 +27,8 @@ export function useTypeEntryMap(entries: VaultEntry[]) {
 }
 
 export interface FilteredEntriesParams {
+  /** Paths carrying the selected tag, from the body index snapshot. */
+  tagPaths?: ReadonlySet<string>
   entries: VaultEntry[]
   selection: SidebarSelection
   modifiedPathSet: Set<string>
@@ -52,6 +54,7 @@ function buildFilteredEntries({
   fileScope,
   inboxPeriod,
   views,
+  tagPaths,
 }: FilteredEntriesParams & {
   isEntityView: boolean
   isChangesView: boolean
@@ -63,7 +66,7 @@ function buildFilteredEntries({
     return entries.filter((entry) => isModifiedEntry(entry.path, modifiedPathSet, modifiedSuffixes))
   }
   if (isInboxView) return filterInboxEntries(entries, inboxPeriod ?? 'month')
-  return filterEntries(entries, selection, subFilter, views, fileScope)
+  return filterEntries(entries, selection, subFilter, views, fileScope, tagPaths)
 }
 
 function useSearchedRelationshipGroups(
@@ -105,6 +108,7 @@ export function useFilteredEntries({
   fileScope,
   inboxPeriod,
   views,
+  tagPaths,
 }: FilteredEntriesParams) {
   const isEntityView = selection.kind === 'entity'
   const isChangesView = selection.kind === 'filter' && selection.filter === 'changes'
@@ -124,11 +128,13 @@ export function useFilteredEntries({
       fileScope,
       inboxPeriod,
       views,
+      tagPaths,
     })
   }, [
     entries,
     fileScope,
     inboxPeriod,
+    tagPaths,
     isChangesView,
     isEntityView,
     isInboxView,

@@ -13,6 +13,7 @@ export function selectionScreenKey(selection: SidebarSelection): string | null {
     case 'filter': return `filter:${selection.filter}`
     case 'view': return `view:${selection.filename}`
     case 'folder': return `folder:${selection.path}`
+    case 'tag': return `tag:${selection.tag}`
     case 'sectionGroup': return `type:${selection.type}`
     case 'dashboard': return 'dashboard'
     default: return 'screen'

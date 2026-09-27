@@ -13,6 +13,7 @@ import {
   DEFAULT_NOTE_FILE_SCOPE,
   countAllNotesByFilter,
   countByFilter,
+  countTagByFilter,
   countFolderByFilter,
   countFolderFileScopes,
   type NoteFileScope,
@@ -28,6 +29,7 @@ import {
   type DeletedNoteEntry,
 } from './noteListUtils'
 import { useNoteListContent } from './useNoteListContent'
+import { pathsWithTagSync, useTagSnapshot } from '../../lib/bodyIndex/tagSnapshot'
 import { useNoteListInteractionState, useRenderItem } from './useNoteListInteractionState'
 
 type EntitySelection = Extract<SidebarSelection, { kind: 'entity' }>
@@ -39,12 +41,15 @@ function useViewFlags(selection: SidebarSelection) {
 }
 
 function useFilterCounts(entries: VaultEntry[], selection: SidebarSelection, fileScope: NoteFileScope) {
+  const tagSnapshot = useTagSnapshot()
   return useMemo(() => {
     if (selection.kind === 'sectionGroup') return countByFilter(entries, selection.type)
+    if (selection.kind === 'tag') return countTagByFilter(entries, pathsWithTagSync(selection.tag))
     if (selection.kind === 'folder') return countFolderByFilter(entries, selection.path, fileScope)
     if (selection.kind === 'filter' && selection.filter === 'all') return countAllNotesByFilter(entries)
     return { open: 0, archived: 0 }
-  }, [entries, fileScope, selection])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- a new snapshot means new tag paths
+  }, [entries, fileScope, selection, tagSnapshot])
 }
 
 function useFileScopeCounts(entries: VaultEntry[], selection: SidebarSelection, noteListFilter: NoteListFilter) {
@@ -158,7 +163,7 @@ function buildNoteListLayoutModel(params: {
     modifiedFilesError: params.modifiedFilesError,
     searched: params.content.searched,
     query: params.content.query,
-    showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder',
+    showFilterPills: params.selection.kind === 'sectionGroup' || params.selection.kind === 'folder' || params.selection.kind === 'tag',
     showFileScopePills: params.selection.kind === 'folder',
     noteListFilter: params.noteListFilter,
     filterCounts: params.filterCounts,

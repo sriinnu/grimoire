@@ -20,6 +20,7 @@ import {
 } from './sidebar/SidebarSections'
 import { SidebarRail } from './sidebar/SidebarRail'
 import { SidebarSearchLauncher } from './sidebar/SidebarSearchLauncher'
+import { TagsSection } from './sidebar/TagsSection'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
 
 interface SidebarProps {
@@ -169,6 +170,12 @@ const SidebarPane = memo(function Sidebar({
             />
           </div>
         )}
+        <TagsSection
+          selection={selection}
+          onSelect={onSelect}
+          collapsed={groupCollapsed.tags}
+          onToggle={() => toggleGroup('tags')}
+        />
         {hasViews && (
           <ViewsSection
             views={views}

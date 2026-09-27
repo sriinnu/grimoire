@@ -48,6 +48,8 @@ export function parsePersistableSelection(value: unknown): PersistableSelection 
       return isNonEmptyString(candidate.path) ? { kind: 'folder', path: candidate.path } : null
     case 'view':
       return isNonEmptyString(candidate.filename) ? { kind: 'view', filename: candidate.filename } : null
+    case 'tag':
+      return isNonEmptyString(candidate.tag) ? { kind: 'tag', tag: candidate.tag } : null
     default:
       return null
   }

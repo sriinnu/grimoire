@@ -1,4 +1,5 @@
 import type { VaultEntry, SidebarSelection, InboxPeriod, ViewFile } from '../types'
+import { pathsWithTagSync } from '../lib/bodyIndex/tagSnapshot'
 import { evaluateView } from './viewFilters'
 
 export type NoteListFilter = 'open' | 'archived'
@@ -120,6 +121,12 @@ function filterFolderEntries(
   return subFilter ? applySubFilter(folderEntries, subFilter) : folderEntries.filter(isActive)
 }
 
+function filterTagEntries(entries: VaultEntry[], tag: string, subFilter?: NoteListFilter, tagPaths?: ReadonlySet<string>): VaultEntry[] {
+  const tagged = tagPaths ?? pathsWithTagSync(tag)
+  const tagEntries = entries.filter((entry) => isAllNotesEntry(entry) && tagged.has(entry.path))
+  return subFilter ? applySubFilter(tagEntries, subFilter) : tagEntries.filter(isActive)
+}
+
 function filterSectionGroupEntries(entries: VaultEntry[], type: string, subFilter?: NoteListFilter): VaultEntry[] {
   const typeEntries = entries.filter((entry) => isAllNotesEntry(entry) && matchesType(entry, type))
   return subFilter ? applySubFilter(typeEntries, subFilter) : typeEntries.filter(isActive)
@@ -143,12 +150,14 @@ function filterByKind(
   subFilter?: NoteListFilter,
   views?: ViewFile[],
   fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
+  tagPaths?: ReadonlySet<string>,
 ): VaultEntry[] {
   if (selection.kind === 'dashboard') return []
   if (selection.kind === 'entity') return []
   if (selection.kind === 'view') return filterViewEntries(entries, selection.filename, views)
   if (selection.kind === 'folder') return filterFolderEntries(entries, selection.path, subFilter, fileScope)
   if (selection.kind === 'sectionGroup') return filterSectionGroupEntries(entries, selection.type, subFilter)
+  if (selection.kind === 'tag') return filterTagEntries(entries, selection.tag, subFilter, tagPaths)
   if (selection.kind === 'filter') return filterTopLevelEntries(entries, selection, subFilter)
   return []
 }
@@ -167,8 +176,18 @@ export function filterEntries(
   subFilter?: NoteListFilter,
   views?: ViewFile[],
   fileScope: NoteFileScope = DEFAULT_NOTE_FILE_SCOPE,
+  tagPaths?: ReadonlySet<string>,
 ): VaultEntry[] {
-  return filterByKind(entries, selection, subFilter, views, fileScope)
+  return filterByKind(entries, selection, subFilter, views, fileScope, tagPaths)
+}
+
+/** Count notes per sub-filter carrying a tag (or a tag nested under it). */
+export function countTagByFilter(entries: VaultEntry[], tagged: ReadonlySet<string>): Record<NoteListFilter, number> {
+  const tagEntries = entries.filter((entry) => isAllNotesEntry(entry) && tagged.has(entry.path))
+  return {
+    open: tagEntries.filter(isActive).length,
+    archived: tagEntries.filter((entry) => entry.archived).length,
+  }
 }
 
 /** Count notes per sub-filter for a given type. */

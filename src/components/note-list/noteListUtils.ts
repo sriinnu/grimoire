@@ -80,6 +80,7 @@ export function resolveHeaderTitle(selection: SidebarSelection, typeDocument: Va
     return view?.definition.name ?? translateNoteList(locale, 'noteList.title.view')
   }
   if (selection.kind === 'entity') return selection.entry.title
+  if (selection.kind === 'tag') return `#${selection.tag}`
   // Match the sidebar: a type's 'sidebar label' (e.g. "Dreams") wins over its
   // singular document title ("Dream"), so the header reads like where you clicked.
   if (typeDocument) return typeDocument.sidebarLabel?.trim() || typeDocument.title
