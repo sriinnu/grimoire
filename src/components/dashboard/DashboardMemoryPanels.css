@@ -1,0 +1,100 @@
+/* Pinned chips and On this day rows: quiet, token-only. */
+.dashboard-pinned {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.dashboard-pinned__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dashboard-pinned__chip,
+.dashboard-on-this-day__item {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface-panel, var(--card));
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+
+.dashboard-pinned__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 220px;
+  min-height: 28px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 560;
+}
+
+.dashboard-pinned__chip span,
+.dashboard-on-this-day__title span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-pinned__chip svg,
+.dashboard-on-this-day__title svg {
+  flex: none;
+  color: var(--muted-foreground);
+}
+
+.dashboard-pinned__chip:hover,
+.dashboard-on-this-day__item:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  color: var(--primary);
+}
+
+.dashboard-pinned__chip:focus-visible,
+.dashboard-on-this-day__item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.dashboard-on-this-day__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--grimoire-density-row-gap, 8px);
+}
+
+.dashboard-on-this-day__item {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 7px;
+}
+
+.dashboard-on-this-day__when {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dashboard-on-this-day__title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 640;
+}
+
+.dashboard-on-this-day__date {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}

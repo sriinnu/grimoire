@@ -21,6 +21,10 @@ import type { DashboardCaptureTemplateId, DreamTemplateId, JournalTemplateId } f
 import { buildDashboardSummary } from '../../utils/dashboardModel'
 import { formatTypeCount } from '../../utils/notebookCountLabels'
 import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
+import { DashboardOnThisDay } from './DashboardOnThisDay'
+import { DashboardPinnedRow } from './DashboardPinnedRow'
+import { selectOnThisDay } from '../../utils/onThisDay'
+import { selectPinnedEntries } from '../../utils/pinnedPages'
 import { DashboardInsightPanelsFallback } from './DashboardInsightPanelsFallback'
 import { DashboardTodayRunway } from './DashboardTodayRunway'
 import {
@@ -170,6 +174,8 @@ export function VaultDashboard({
   const [askContextPreview, setAskContextPreview] = useState<DashboardAskContextPreviewModel | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const summary = useMemo(() => buildDashboardSummary(entries), [entries])
+  const pinnedEntries = useMemo(() => selectPinnedEntries(entries), [entries])
+  const onThisDayItems = useMemo(() => selectOnThisDay(entries), [entries])
   const attentionSuggestion = useMemo(
     () => buildAttentionModeSuggestion({ conflictCount, modifiedCount, summary, syncStatus }),
     [conflictCount, modifiedCount, summary, syncStatus],
@@ -349,6 +355,8 @@ export function VaultDashboard({
           />
         </DashboardHero>
 
+        <DashboardPinnedRow entries={pinnedEntries} onOpenNote={onOpenNote} />
+
         <DashboardStatRow stats={heroStats} />
 
         {/* The most useful thing on the page goes first, not five screens down. */}
@@ -357,6 +365,8 @@ export function VaultDashboard({
           onOpenNote={onOpenNote}
           protectedCount={summary.recentProtectedCount}
         />
+
+        <DashboardOnThisDay items={onThisDayItems} onOpenNote={onOpenNote} />
 
         <DashboardCalendarCard entries={entries} />
 

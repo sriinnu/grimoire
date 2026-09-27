@@ -151,6 +151,8 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
     relationships: { 'Belongs to': [LEARNING_PROJECT], 'Related to': ['[[grimoire-start-here]]'], 'Type': ['[[note]]'] },
     outgoingLinks: ['grimoire-start-here', 'grimoire-markdown-learning', 'grimoire-properties-and-types', 'grimoire-search-and-commands', 'grimoire-calendar-time-loom'],
     properties: { Priority: 'High' },
+    favorite: true,
+    favoriteIndex: 1,
   }),
   mockEntry({
     filename: 'grimoire-start-here.md',
@@ -167,6 +169,8 @@ const LEARNING_GUIDE_ENTRIES: VaultEntry[] = [
     wordCount: 285,
     relationships: { 'Belongs to': [LEARNING_PROJECT], 'Related to': [FEATURE_TOUR], 'Type': ['[[note]]'] },
     outgoingLinks: ['grimoire-feature-tour', 'grimoire-markdown-learning', 'grimoire-properties-and-types', 'grimoire-calendar-time-loom', 'grimoire-links-and-backlinks', 'grimoire-console-and-agents'],
+    favorite: true,
+    favoriteIndex: 0,
   }),
   mockEntry({
     filename: 'grimoire-markdown-learning.md',
