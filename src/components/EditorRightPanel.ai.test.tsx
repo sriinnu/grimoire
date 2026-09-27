@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AiAgentMessage } from '../hooks/useCliAiAgent'
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
@@ -151,6 +151,9 @@ describe('EditorRightPanel AI chat lifecycle', () => {
       />,
     )
 
+    // Insights live under Details, which starts collapsed.
+    const details = screen.getByTestId('inspector-section-details')
+    fireEvent.click(within(details).getByRole('button', { expanded: false }))
     const secondBrain = screen.getByTestId('second-brain-panel')
     expect(secondBrain).toHaveTextContent('Second Brain')
     fireEvent.click(screen.getByRole('button', { name: 'Ask about this note' }))
@@ -176,7 +179,7 @@ describe('EditorRightPanel AI chat lifecycle', () => {
     )
 
     expect(screen.getByTestId('inspector-header-title')).toHaveTextContent('Second Brain')
-    expect(screen.getByText('Properties')).toBeInTheDocument()
+    expect(screen.getByTestId('inspector-header-subtitle')).toHaveTextContent(entry.title)
   })
 
   it('passes Chitragupta MCP transport failures into the inspector memory lane', () => {

@@ -1,7 +1,8 @@
 import type { ComponentProps, ReactElement } from 'react'
 import { render as rtlRender, screen, fireEvent, within } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { Inspector } from './Inspector'
+import { resetInspectorSectionStateForTests, type InspectorSectionId } from './inspector/inspectorSectionState'
 import type { VaultEntry, GitCommit } from '../types'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
@@ -96,6 +97,18 @@ const defaultProps = {
 
 type InspectorProps = ComponentProps<typeof Inspector>
 
+/** Sections closed by default (History, Details) keep their panels mounted but hidden; open one to query by role. */
+function openSection(id: InspectorSectionId) {
+  const section = screen.getByTestId(`inspector-section-${id}`)
+  const toggle = within(section).getByRole('button', { expanded: false })
+  fireEvent.click(toggle)
+  return section
+}
+
+function section(id: InspectorSectionId) {
+  return screen.getByTestId(`inspector-section-${id}`)
+}
+
 function renderInspector(overrides: Partial<InspectorProps> = {}) {
   return render(<Inspector {...defaultProps} {...overrides} />)
 }
@@ -109,10 +122,12 @@ function renderSelectedInspector(overrides: Partial<InspectorProps> = {}) {
 }
 
 describe('Inspector', () => {
+  afterEach(() => resetInspectorSectionStateForTests())
+
   it('renders expanded state with "no note selected"', () => {
     render(<Inspector {...defaultProps} />)
-    // Header now says "Properties" (not "Inspector")
-    expect(screen.getAllByText('Properties').length).toBeGreaterThan(0)
+    expect(screen.getByTestId('inspector-header-title')).toHaveTextContent('Second Brain')
+    expect(screen.queryByTestId('inspector-header-subtitle')).not.toBeInTheDocument()
     expect(document.querySelector('[data-panel-role="inspector"]')).toHaveClass('grimoire-inspector-stage')
     expect(document.querySelector('.inspector-body')).toHaveClass('grimoire-panel-reveal')
     expect(screen.getByText('No note selected')).toBeInTheDocument()
@@ -156,6 +171,7 @@ describe('Inspector', () => {
       onNavigate,
     })
 
+    openSection('details')
     const panel = screen.getByTestId('second-brain-panel')
     fireEvent.click(within(panel).getByRole('button', { name: 'Software Development' }))
 
@@ -166,6 +182,7 @@ describe('Inspector', () => {
     const onOpenSecondBrain = vi.fn()
     renderSelectedInspector({ onOpenSecondBrain })
 
+    openSection('details')
     const panel = screen.getByTestId('second-brain-panel')
     expect(within(panel).getByText('Second Brain')).toBeInTheDocument()
     expect(within(panel).getByText('Local note context')).toBeInTheDocument()
@@ -185,6 +202,7 @@ describe('Inspector', () => {
       ],
     })
 
+    openSection('details')
     const panel = screen.getByTestId('second-brain-panel')
     expect(within(panel).getByRole('heading', { name: 'Neighborhood' })).toBeInTheDocument()
     // A real inbound wikilink is not invention: it appears in the incoming column.
@@ -237,6 +255,8 @@ owner: Sriinnu
       chitraguptaAvailability: { status: 'installed', version: '0.1.0' },
     })
 
+    expect(section('history')).toContainElement(screen.getByTestId('memory-panel'))
+    openSection('history')
     const panel = screen.getByTestId('memory-panel')
     expect(panel).toBeInTheDocument()
     expect(screen.getByTestId('memory-signal')).toBeInTheDocument()
@@ -252,9 +272,11 @@ owner: Sriinnu
     expect(within(panel).getByText('Remember the project launch constraints.')).toBeInTheDocument()
   })
 
-  it('shows the per-note Locality Firewall before the memory lane', () => {
+  it('keeps the per-note Locality Firewall reachable under Details', () => {
     renderSelectedInspector()
 
+    expect(section('details')).toContainElement(screen.getByTestId('note-locality-firewall'))
+    openSection('details')
     const panel = screen.getByTestId('note-locality-firewall')
     expect(within(panel).getByRole('heading', { name: 'Firewall' })).toBeInTheDocument()
     expect(within(panel).getByText('Vault context')).toBeInTheDocument()
@@ -309,9 +331,37 @@ owner: Sriinnu
     expect(screen.getByText('Weekly')).toBeInTheDocument()
   })
 
-  it('shows a separator between properties and relationships', () => {
-    render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
-    expect(screen.getByTestId('inspector-properties-relationships-separator')).toBeInTheDocument()
+  it('asks three questions in order: About, Connections, History, then Details', () => {
+    renderSelectedInspector({ entries: [mockEntry, referrerEntry], gitHistory: mockGitHistory })
+    const ids = Array.from(document.querySelectorAll('[data-section]')).map((node) => node.getAttribute('data-section'))
+    expect(ids).toEqual(['about', 'connections', 'history', 'details'])
+    expect(section('about')).toHaveAttribute('data-open', 'true')
+    expect(section('connections')).toHaveAttribute('data-open', 'true')
+    expect(section('history')).toHaveAttribute('data-open', 'false')
+    expect(section('details')).toHaveAttribute('data-open', 'false')
+    expect(screen.getByTestId('inspector-header-subtitle')).toHaveTextContent('Test Project')
+  })
+
+  it('counts connections in the section heading and remembers a toggled section', () => {
+    const { unmount } = renderSelectedInspector({ entries: [mockEntry, referrerEntry], gitHistory: mockGitHistory })
+    // Belongs to + Related to (2 out) + 1 backlink in.
+    expect(screen.getByTestId('inspector-section-connections-count')).toHaveTextContent('3')
+    expect(screen.getByTestId('inspector-section-history-count')).toHaveTextContent('3')
+    openSection('history')
+    expect(section('history')).toHaveAttribute('data-open', 'true')
+    unmount()
+    renderSelectedInspector({ gitHistory: mockGitHistory })
+    expect(section('history')).toHaveAttribute('data-open', 'true')
+  })
+
+  it('says so when a page has no connections yet', () => {
+    renderSelectedInspector({
+      entry: { ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] },
+      content: '---\ntitle: Test Project\nis_a: Project\n---\n\n# Test Project\n',
+      entries: [{ ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] }],
+    })
+    expect(screen.getByTestId('inspector-connections-empty')).toHaveTextContent('No connections yet')
+    expect(screen.queryByTestId('inspector-section-connections-count')).not.toBeInTheDocument()
   })
 
   it('shows relationships with clickable links', () => {
@@ -399,7 +449,8 @@ This is a test note with some words to count.
 
   it('shows git history with commit hashes and messages', () => {
     renderSelectedInspector({ gitHistory: mockGitHistory })
-    expect(screen.getByText('History')).toBeInTheDocument()
+    openSection('history')
+    expect(within(section('history')).getByRole('heading', { name: 'History' })).toBeInTheDocument()
     expect(screen.getByText('a1b2c3d')).toBeInTheDocument()
     expect(screen.getByText('e4f5g6h')).toBeInTheDocument()
     expect(screen.getByText('i7j8k9l')).toBeInTheDocument()
@@ -418,9 +469,10 @@ This is a test note with some words to count.
     expect(onViewCommitDiff).toHaveBeenCalledWith('a1b2c3d4e5f6a7b8')
   })
 
-  it('hides history section when no commits', () => {
+  it('shows no commit list or count when there are no commits', () => {
     renderSelectedInspector({ gitHistory: [] })
-    expect(screen.queryByText('History')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('inspector-section-history-count')).not.toBeInTheDocument()
+    expect(screen.queryByText('a1b2c3d')).not.toBeInTheDocument()
   })
 
   it('shows separate Info section with read-only metadata', () => {
@@ -820,7 +872,7 @@ Status: Active
       )
       expect(screen.getByText('Initialize properties')).toBeInTheDocument()
       expect(screen.getByText('Backlinks')).toBeInTheDocument()
-      expect(screen.getByText('History')).toBeInTheDocument()
+      expect(screen.getByText('a1b2c3d')).toBeInTheDocument()
     })
   })
 })

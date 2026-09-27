@@ -10,7 +10,7 @@ function render(ui: ReactElement) {
 }
 
 describe('Inspector Living Frontmatter integration', () => {
-  it('shows read-only frontmatter hints between properties and relationships', () => {
+  it('shows read-only frontmatter hints inside About, ahead of Connections', () => {
     const entry = makeEntry({
       path: '/vault/project/grimoire.md',
       filename: 'grimoire.md',
@@ -39,8 +39,10 @@ Links to [[Agent Council]].
     )
 
     const panel = screen.getByTestId('living-frontmatter-panel')
-    const separator = screen.getByTestId('inspector-properties-relationships-separator')
-    expect(panel.compareDocumentPosition(separator) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const about = screen.getByTestId('inspector-section-about')
+    const connections = screen.getByTestId('inspector-section-connections')
+    expect(about).toContainElement(panel)
+    expect(panel.compareDocumentPosition(connections) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(within(panel).getByText('Read-only')).toBeInTheDocument()
     expect(within(panel).getByText('Add status')).toBeInTheDocument()
     expect(within(panel).getByText('Promote links')).toBeInTheDocument()

@@ -2,7 +2,7 @@ import { SlidersHorizontal, X, PencilSimple } from '@phosphor-icons/react'
 import { useDragRegion } from '../../hooks/useDragRegion'
 import { Glyph } from '@/components/glyphs/Glyph'
 
-export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
+export function InspectorHeader({ collapsed, onToggle, subtitle }: { collapsed: boolean; onToggle: () => void; subtitle?: string | null }) {
   const { onMouseDown } = useDragRegion()
 
   return (
@@ -28,7 +28,7 @@ export function InspectorHeader({ collapsed, onToggle }: { collapsed: boolean; o
           </span>
           <span className="flex min-w-0 flex-1 flex-col leading-tight">
             <span className="inspector-header__title truncate" data-testid="inspector-header-title">Second Brain</span>
-            <span className="inspector-header__subtitle truncate">Properties</span>
+            {subtitle ? <span className="inspector-header__subtitle truncate" data-testid="inspector-header-subtitle">{subtitle}</span> : null}
           </span>
           <button
             className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground"

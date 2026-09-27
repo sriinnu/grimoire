@@ -15,6 +15,7 @@ export const APP_STORAGE_KEYS = {
   welcomeDismissed: 'grimoire_welcome_dismissed',
   sessionMemory: 'grimoire:session',
   inspectorOpen: 'grimoire:inspector-open',
+  inspectorSections: 'grimoire:inspector-sections',
   headingOutline: 'grimoire:heading-outline',
   quickCaptureDraft: 'grimoire:quick-capture-draft',
 } as const
