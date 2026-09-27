@@ -128,14 +128,29 @@ describe('DynamicPropertiesPanel', () => {
     expect(screen.getByText('Note')).toBeInTheDocument()
   })
 
-  it('summarizes visible property and quick-add counts', () => {
+  it('renders a Living Frontmatter hint under its field and applies it', () => {
+    const onApplySuggestion = vi.fn()
     renderPanel({
-      frontmatter: { Status: 'Active', Owner: 'Sriinu' },
+      frontmatter: { Status: 'Draft', Owner: 'Sriinu' },
       onAddProperty,
+      hintsByField: {
+        status: [{ id: 'stale', kind: 'stale-status', label: 'Review status', detail: 'Untouched for a while.', severity: 'info', source: 'built-in-rule', field: 'status', suggestedValue: 'Active' }],
+        due: [{ id: 'missing-due', kind: 'missing-field', label: 'Add due', detail: 'Tasks want a due date.', severity: 'info', source: 'built-in-rule', field: 'due' }],
+      },
+      onApplySuggestion,
     })
 
-    expect(screen.getByTestId('properties-panel-summary')).toHaveTextContent('2 fields')
-    expect(screen.getByTestId('properties-panel-summary')).toHaveTextContent('6 quick add')
+    const hints = screen.getAllByTestId('living-frontmatter-hint')
+    expect(hints.map((hint) => hint.getAttribute('data-field'))).toEqual(['status', 'due'])
+    // The status hint sits directly after the Status row.
+    const statusRow = screen.getByText('Status').closest('[data-testid="editable-property"]')!
+    expect(statusRow.nextElementSibling).toBe(hints[0])
+    expect(hints[0]).toHaveTextContent('Active')
+    fireEvent.click(within(hints[0]).getByRole('button', { name: 'Apply' }))
+    expect(onApplySuggestion).toHaveBeenCalledWith('status', 'Active')
+    // A hint for a missing field has nothing to apply yet; it explains instead.
+    expect(hints[1]).toHaveTextContent('Tasks want a due date.')
+    expect(within(hints[1]).queryByRole('button', { name: 'Apply' })).toBeNull()
   })
 
   it('shows the shared type icon in the type row label', () => {

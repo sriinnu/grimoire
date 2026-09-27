@@ -27,8 +27,8 @@ export function InstancesPanel({ entry, entries, typeEntryMap, onNavigate }: {
 
   return (
     <div>
-      <span className="font-mono-overline mb-1 block text-muted-foreground">
-        Instances ({total})
+      <span className="inspector-sublabel" data-testid="instances-label">
+        Pages of this type ({total})
       </span>
       <div className="flex flex-col gap-0.5">
         {displayed.map((e) => {

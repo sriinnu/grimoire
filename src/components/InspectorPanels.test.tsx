@@ -726,7 +726,7 @@ describe('InstancesPanel', () => {
     render(
       <InstancesPanel entry={quarterType} entries={instances} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
     )
-    expect(screen.getByText('Instances (3)')).toBeInTheDocument()
+    expect(screen.getByText('Pages of this type (3)')).toBeInTheDocument()
     const buttons = screen.getAllByRole('button').filter(b => ['Q1 2026', 'Q2 2026', 'Q3 2026'].includes(b.textContent?.replace(/\s*\(.*\)/, '') ?? ''))
     // Q2 (3000) should come before Q3 (2000) before Q1 (1000)
     expect(buttons[0].textContent).toContain('Q2 2026')
@@ -767,7 +767,7 @@ describe('InstancesPanel', () => {
     render(
       <InstancesPanel entry={quarterType} entries={instances} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
     )
-    expect(screen.getByText('Instances (80)')).toBeInTheDocument()
+    expect(screen.getByText('Pages of this type (80)')).toBeInTheDocument()
     // Only 50 link buttons rendered
     const allButtons = screen.getAllByRole('button')
     const instanceButtons = allButtons.filter(b => b.textContent?.startsWith('Instance'))

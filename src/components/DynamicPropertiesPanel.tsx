@@ -1,5 +1,5 @@
 import { Glyph } from './glyphs/Glyph'
-import { useMemo, useCallback, useEffect, useState } from 'react'
+import { Fragment, useMemo, useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import type { VaultEntry } from '../types'
 import type { FrontmatterValue } from './Inspector'
@@ -26,6 +26,8 @@ import {
 } from './propertyPanelLayout'
 import { humanizePropertyKey } from '../utils/propertyLabels'
 import { canonicalSystemMetadataKey, hasSystemMetadataKey } from '../utils/systemMetadata'
+import type { LivingFrontmatterHint, LivingFrontmatterSuggestedValue } from '../lib/livingFrontmatter'
+import { canApplyHint, formatSuggestedValue } from './inspector/livingFrontmatterRows'
 
 // eslint-disable-next-line react-refresh/only-export-components -- utility co-located with component
 export function containsWikilinks(value: FrontmatterValue): boolean {
@@ -142,23 +144,39 @@ function SuggestedPropertySlot({ label, displayMode, onAdd }: {
   )
 }
 
-function PropertiesPanelHeader({ propertyCount, suggestedCount }: {
-  propertyCount: number
-  suggestedCount: number
+/** A Living Frontmatter hint anchored under its field: what, and one Apply when it is safe to write. */
+function PropertyHintRow({ hint, onApply }: {
+  hint: LivingFrontmatterHint
+  onApply?: (field: string, value: LivingFrontmatterSuggestedValue) => void
 }) {
-  const propertyLabel = propertyCount === 1 ? '1 field' : `${propertyCount} fields`
-  const suggestionLabel = suggestedCount > 0 ? ` · ${suggestedCount} quick add` : ''
-
+  const applicable = !!onApply && canApplyHint(hint)
   return (
-    <div className="flex min-w-0 items-center justify-between gap-2">
-      <div className="min-w-0">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-          Properties
-        </div>
-        <div className="truncate text-[11px] text-muted-foreground/70" data-testid="properties-panel-summary">
-          {propertyLabel}{suggestionLabel}
-        </div>
-      </div>
+    <div
+      className="property-hint"
+      style={PROPERTY_PANEL_ROW_STYLE}
+      data-testid="living-frontmatter-hint"
+      data-field={hint.field}
+      data-severity={hint.severity}
+    >
+      <span className={PROPERTY_PANEL_PLACEHOLDER_LABEL_CLASS_NAME}>
+        <span className={PROPERTY_PANEL_LABEL_ICON_SLOT_CLASS_NAME} aria-hidden="true" />
+        <span className="min-w-0 truncate">{hint.label}</span>
+      </span>
+      <span className="property-hint__value">
+        <span className="min-w-0 truncate" title={hint.detail}>
+          {applicable ? formatSuggestedValue(hint.suggestedValue) : hint.detail}
+        </span>
+        {applicable ? (
+          <button
+            type="button"
+            className="inspector-text-action"
+            onClick={() => onApply(hint.field, hint.suggestedValue)}
+            title={hint.detail}
+          >
+            Apply
+          </button>
+        ) : null}
+      </span>
     </div>
   )
 }
@@ -259,6 +277,7 @@ function useSuggestedPropertyActions({
 export function DynamicPropertiesPanel({
   entry, frontmatter, entries,
   onUpdateProperty, onDeleteProperty, onAddProperty, onNavigate, onCreateMissingType,
+  hintsByField, onApplySuggestion,
 }: {
   entry: VaultEntry
   content?: string | null
@@ -269,6 +288,9 @@ export function DynamicPropertiesPanel({
   onAddProperty?: (key: string, value: FrontmatterValue) => void
   onNavigate?: (target: string) => void
   onCreateMissingType?: (typeName: string) => boolean | void | Promise<boolean | void>
+  /** Living Frontmatter hints keyed by lower-cased field; shown under that field, or after the fields when it is missing. */
+  hintsByField?: Record<string, LivingFrontmatterHint[]>
+  onApplySuggestion?: (field: string, value: LivingFrontmatterSuggestedValue) => void
 }) {
   const {
     editingKey, setEditingKey, showAddDialog, setShowAddDialog, displayOverrides,
@@ -297,12 +319,13 @@ export function DynamicPropertiesPanel({
 
   useFocusNoteIconProperty({ onAddProperty, setEditingKey, setPendingSuggestedKey })
 
+  const presentKeys = new Set(propertyEntries.map(([key]) => key.toLowerCase()))
+  const hintsForMissingFields = Object.entries(hintsByField ?? {})
+    .filter(([field]) => !presentKeys.has(field))
+    .flatMap(([, hints]) => hints)
+
   return (
-    <div className="inspector-card flex flex-col gap-3">
-      <PropertiesPanelHeader
-        propertyCount={propertyEntries.length}
-        suggestedCount={missingSuggested.length}
-      />
+    <div className="properties flex flex-col gap-3" data-testid="properties-panel">
       <div className="grid min-w-0 gap-x-2 gap-y-1.5" style={PROPERTY_PANEL_GRID_STYLE}>
         <TypeSelector
           isA={entry.isA}
@@ -316,16 +339,24 @@ export function DynamicPropertiesPanel({
           onCreateMissingType={onCreateMissingType}
         />
         {propertyEntries.map(([key, value]) => (
-          <PropertyRow
-            key={key} propKey={key} value={value}
-            editingKey={editingKey} displayMode={getEffectiveDisplayMode(key, value, displayOverrides)} autoMode={detectPropertyType(key, value)}
-            vaultStatuses={vaultStatuses}
-            vaultTags={vaultTagsByKey[key] ?? []}
-            onStartEdit={setEditingKey} onSave={handleSaveValue}
-            onSaveList={handleSaveList} onUpdate={onUpdateProperty}
-            onDelete={onDeleteProperty}
-            onDisplayModeChange={handleDisplayModeChange}
-          />
+          <Fragment key={key}>
+            <PropertyRow
+              propKey={key} value={value}
+              editingKey={editingKey} displayMode={getEffectiveDisplayMode(key, value, displayOverrides)} autoMode={detectPropertyType(key, value)}
+              vaultStatuses={vaultStatuses}
+              vaultTags={vaultTagsByKey[key] ?? []}
+              onStartEdit={setEditingKey} onSave={handleSaveValue}
+              onSaveList={handleSaveList} onUpdate={onUpdateProperty}
+              onDelete={onDeleteProperty}
+              onDisplayModeChange={handleDisplayModeChange}
+            />
+            {(hintsByField?.[key.toLowerCase()] ?? []).map((hint) => (
+              <PropertyHintRow key={hint.id} hint={hint} onApply={onApplySuggestion} />
+            ))}
+          </Fragment>
+        ))}
+        {hintsForMissingFields.map((hint) => (
+          <PropertyHintRow key={hint.id} hint={hint} onApply={onApplySuggestion} />
         ))}
         {pendingSuggestedKey && editingKey === pendingSuggestedKey && (
           <PropertyRow

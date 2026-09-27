@@ -1,7 +1,8 @@
-import { useDeferredValue, useMemo } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import type { VaultEntry, GitCommit } from '../types'
 import type { AiAgentAvailability } from '../lib/aiAgents'
 import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
+import { buildLivingFrontmatterHints } from '../lib/livingFrontmatter'
 import { cn } from '@/lib/utils'
 import { parseFrontmatter, detectFrontmatterState } from '../utils/frontmatter'
 import { markdownSemanticsAdapter } from '../utils/markdownSemanticsAdapter'
@@ -9,8 +10,6 @@ import { mobileReviewState } from '../lib/mobileCaptureMetadata'
 import { DynamicPropertiesPanel } from './DynamicPropertiesPanel'
 import {
   DynamicRelationshipsPanel,
-  BacklinksPanel,
-  ReferencedByPanel,
   GitHistoryPanel,
   InstancesPanel,
   LivingFrontmatterPanel,
@@ -23,7 +22,9 @@ import {
 import type { BacklinkItem, ReferencedByItem } from './InspectorPanels'
 import { EmptyInspector, InitializePropertiesPrompt, InspectorHeader, InvalidFrontmatterNotice } from './inspector/InspectorChrome'
 import { InspectorSection } from './inspector/InspectorSection'
-import { extractRelationshipRefs } from './inspector/relationshipPanelModel'
+import { ConnectionsList } from './inspector/ConnectionsList'
+import { buildConnections } from './inspector/connectionsModel'
+import { partitionLivingFrontmatterHints } from './inspector/livingFrontmatterRows'
 import { useBacklinks, useReferencedBy } from './inspector/useInspectorData'
 import { useInspectorPropertyActions } from './inspector/useInspectorPropertyActions'
 import { ConstellationInsightsPanel } from './ConstellationInsightsPanel'
@@ -72,7 +73,7 @@ function buildTypeEntryMap(entries: VaultEntry[]): Record<string, VaultEntry> {
   return map
 }
 
-/** ① About: what this page is. Properties, or the prompt that gets them started. */
+/** ① About: what this page is. Properties with Living Frontmatter hints under their fields. */
 function AboutSection({
   entry,
   entries,
@@ -92,10 +93,14 @@ function AboutSection({
   onToggleRawEditor?: () => void
   onInitializeProperties?: (path: string) => void
 }) {
+  const hints = useMemo(
+    () => (frontmatterState === 'valid' ? partitionLivingFrontmatterHints(buildLivingFrontmatterHints({ entry, entries, frontmatter })) : null),
+    [entry, entries, frontmatter, frontmatterState],
+  )
   if (frontmatterState === 'invalid') {
     return onToggleRawEditor ? <InvalidFrontmatterNotice onFix={onToggleRawEditor} /> : null
   }
-  if (frontmatterState !== 'valid') {
+  if (frontmatterState !== 'valid' || !hints) {
     return onInitializeProperties ? <InitializePropertiesPrompt onClick={() => onInitializeProperties(entry.path)} /> : null
   }
   return (
@@ -109,18 +114,15 @@ function AboutSection({
         onAddProperty={handlers.onAddProperty}
         onNavigate={onNavigate}
         onCreateMissingType={handlers.onCreateMissingType}
-      />
-      <LivingFrontmatterPanel
-        entry={entry}
-        entries={entries}
-        frontmatter={frontmatter}
+        hintsByField={hints.byField}
         onApplySuggestion={handlers.onUpdateProperty}
       />
+      <LivingFrontmatterPanel hints={hints.loose} onApplySuggestion={handlers.onUpdateProperty} />
     </>
   )
 }
 
-/** ② Connections: what this page touches and what touches it. */
+/** ② Connections: one list of what this page touches and what touches it, plus the relationship editor on demand. */
 function ConnectionsSection({
   entry,
   entries,
@@ -130,7 +132,6 @@ function ConnectionsSection({
   vaultPath,
   referencedBy,
   backlinks,
-  outgoingCount,
   handlers,
   onNavigate,
   onCreateAndOpenNote,
@@ -143,17 +144,50 @@ function ConnectionsSection({
   vaultPath?: string
   referencedBy: ReferencedByItem[]
   backlinks: BacklinkItem[]
-  outgoingCount: number
   handlers: PropertyHandlers
   onNavigate: (target: string) => void
   onCreateAndOpenNote?: (title: string) => Promise<boolean>
 }) {
   const hasValidFrontmatter = frontmatterState === 'valid'
-  const isEmpty = outgoingCount === 0 && referencedBy.length === 0 && backlinks.length === 0 && entry.isA !== 'Type'
+  const rows = useMemo(
+    () => buildConnections({ entry, entries, frontmatter: hasValidFrontmatter ? frontmatter : null, referencedBy, backlinks }),
+    [entry, entries, frontmatter, hasValidFrontmatter, referencedBy, backlinks],
+  )
+  const canEdit = hasValidFrontmatter && !!handlers.onAddProperty
+  const [editing, setEditing] = useState(false)
+  const isEmpty = rows.length === 0 && entry.isA !== 'Type'
+
   return (
     <>
-      {hasValidFrontmatter ? (
-        <>
+      <ConnectionsList rows={rows} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
+      <InstancesPanel entry={entry} entries={entries} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
+      {isEmpty ? (
+        <p className="inspector-section__empty" data-testid="inspector-connections-empty">
+          No connections yet · type [[ to link a page
+          {canEdit ? (
+            <>
+              {' · '}
+              <button type="button" className="inspector-text-action" onClick={() => setEditing(true)}>Link a page</button>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+      {canEdit && !isEmpty ? (
+        <div className="connections__edit">
+          <button
+            type="button"
+            className="inspector-text-action"
+            aria-expanded={editing}
+            aria-controls="inspector-relationship-editor"
+            data-testid="connections-edit-toggle"
+            onClick={() => setEditing((current) => !current)}
+          >
+            {editing ? 'Done' : 'Edit relationships'}
+          </button>
+        </div>
+      ) : null}
+      {canEdit && editing ? (
+        <div id="inspector-relationship-editor">
           <DynamicRelationshipsPanel
             frontmatter={frontmatter}
             entries={entries}
@@ -165,17 +199,24 @@ function ConnectionsSection({
             onDeleteProperty={handlers.onDeleteProperty}
             onCreateAndOpenNote={onCreateAndOpenNote}
           />
-          <InstancesPanel entry={entry} entries={entries} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
-          <ReferencedByPanel items={referencedBy} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
-        </>
-      ) : null}
-      <BacklinksPanel backlinks={backlinks} onNavigate={onNavigate} />
-      {isEmpty ? (
-        <p className="inspector-section__empty" data-testid="inspector-connections-empty">
-          No connections yet · type [[ to link a page
-        </p>
+        </div>
       ) : null}
     </>
+  )
+}
+
+/** Pending phone captures: one line at the top, the full review gate on demand. */
+function CaptureReviewBanner({ entry, onUpdateReviewProperty }: {
+  entry: VaultEntry
+  onUpdateReviewProperty?: (key: string, value: FrontmatterValue) => Promise<void>
+}) {
+  const [open, setOpen] = useState(false)
+  if (open) return <MobileCaptureReviewPanel entry={entry} onUpdateReviewProperty={onUpdateReviewProperty} />
+  return (
+    <button type="button" className="capture-banner" data-testid="capture-review-banner" onClick={() => setOpen(true)}>
+      <span>1 capture to review</span>
+      <span aria-hidden="true">→</span>
+    </button>
   )
 }
 
@@ -207,9 +248,9 @@ function InspectorBody({
   const frontmatterState = useMemo(() => detectFrontmatterState(deferredContent), [deferredContent])
   const semantics = useMemo(() => markdownSemanticsAdapter.parseDocument(deferredContent), [deferredContent])
   const typeEntryMap = useMemo(() => buildTypeEntryMap(entries), [entries])
-  const outgoingCount = useMemo(
-    () => (frontmatterState === 'valid' ? extractRelationshipRefs(frontmatter).reduce((sum, group) => sum + group.refs.length, 0) : 0),
-    [frontmatter, frontmatterState],
+  const connectionCount = useMemo(
+    () => (entry ? buildConnections({ entry, entries, frontmatter: frontmatterState === 'valid' ? frontmatter : null, referencedBy, backlinks }).length : 0),
+    [entry, entries, frontmatter, frontmatterState, referencedBy, backlinks],
   )
   const hasMobileReview = entry ? mobileReviewState(entry) !== null : false
   const {
@@ -235,15 +276,11 @@ function InspectorBody({
     onAddProperty: onAddProperty ? handleAddProperty : undefined,
     onCreateMissingType: onCreateMissingType ? handleCreateMissingType : undefined,
   }
-  const connectionCount = outgoingCount + referencedBy.length + backlinks.length
 
   return (
     <>
       {hasMobileReview && (
-        <MobileCaptureReviewPanel
-          entry={entry}
-          onUpdateReviewProperty={onUpdateFrontmatter ? handleUpdateProperty : undefined}
-        />
+        <CaptureReviewBanner entry={entry} onUpdateReviewProperty={onUpdateFrontmatter ? handleUpdateProperty : undefined} />
       )}
       <InspectorSection id="about" title="About">
         <AboutSection
@@ -267,7 +304,6 @@ function InspectorBody({
           vaultPath={vaultPath}
           referencedBy={referencedBy}
           backlinks={backlinks}
-          outgoingCount={outgoingCount}
           handlers={handlers}
           onNavigate={onNavigate}
           onCreateAndOpenNote={onCreateAndOpenNote}

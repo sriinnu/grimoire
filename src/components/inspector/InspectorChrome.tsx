@@ -56,31 +56,21 @@ export function EmptyInspector() {
 
 export function InitializePropertiesPrompt({ onClick }: { onClick: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-4 py-6">
-      <Glyph name="sparkle" size={24} className="text-muted-foreground" />
-      <p className="m-0 text-center text-[13px] text-muted-foreground">This note has no properties yet</p>
-      <button
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"
-        onClick={onClick}
-      >
-        Initialize properties
-      </button>
-    </div>
+    <p className="inspector-section__empty" data-testid="initialize-properties-prompt">
+      No properties yet ·{' '}
+      <button type="button" className="inspector-text-action" onClick={onClick}>Add properties</button>
+    </p>
   )
 }
 
 export function InvalidFrontmatterNotice({ onFix }: { onFix: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-destructive/40 bg-destructive/5 px-4 py-6">
-      <Glyph name="warning" size={24} className="text-destructive" />
-      <p className="m-0 text-center text-[13px] text-muted-foreground">Invalid properties</p>
-      <button
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-[13px] font-medium text-foreground transition-colors hover:bg-muted"
-        onClick={onFix}
-      >
-        <PencilSimple size={14} />
+    <p className="inspector-section__empty inspector-section__empty--warn" data-testid="invalid-frontmatter-notice">
+      Invalid properties ·{' '}
+      <button type="button" className="inspector-text-action" onClick={onFix}>
+        <PencilSimple size={12} aria-hidden="true" />
         Fix in editor
       </button>
-    </div>
+    </p>
   )
 }
