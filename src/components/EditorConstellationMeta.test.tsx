@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { makeEntry } from '../test-utils/noteListTestUtils'
 import { EditorConstellationMeta } from './EditorConstellationMeta'
@@ -114,5 +114,19 @@ describe('EditorConstellationMeta', () => {
     expect(within(strip).queryByText('Active')).toBeNull()
     expect(within(strip).queryByText('Sriinnu')).toBeNull()
     expect(within(strip).queryByText('High')).toBeNull()
+  })
+
+  it('chips ask the Second Brain to edit their property', () => {
+    const opened = vi.fn()
+    const focused = vi.fn()
+    const jumped = vi.fn()
+    window.addEventListener('grimoire:open-inspector', opened)
+    window.addEventListener('grimoire:focus-note-property', (event) => focused((event as CustomEvent<{ key: string }>).detail.key))
+    window.addEventListener('grimoire:inspector-jump', (event) => jumped((event as CustomEvent<{ section: string }>).detail.section))
+    render(<EditorConstellationMeta content="" entry={makeEntry({ title: 'Plan', isA: 'Project', status: 'Active' })} />)
+    fireEvent.click(within(screen.getByTestId('editor-meta-strip')).getByRole('button', { name: /^status/ }))
+    expect(opened).toHaveBeenCalledOnce()
+    expect(focused).toHaveBeenCalledWith('status')
+    expect(jumped).toHaveBeenCalledWith('about')
   })
 })

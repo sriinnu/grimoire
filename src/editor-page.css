@@ -125,3 +125,22 @@
   margin-inline: 0 calc(100% - var(--editor-wide-block-width));
 }
 
+
+/* Meta chips are buttons now: same look, a hand on hover, no button chrome. */
+.editor-meta-pill--button {
+  appearance: none;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.editor-meta-pill--button:hover .editor-meta-pill__value,
+.editor-meta-pill--button:focus-visible .editor-meta-pill__value {
+  text-decoration: underline;
+  text-decoration-color: var(--text-tertiary);
+}
+
+.editor-meta-pill--button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 1px var(--primary);
+}

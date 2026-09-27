@@ -14,7 +14,7 @@ import {
   inferDisplayModeFromPropertyKey,
   SUGGESTED_PROPERTIES,
 } from '../utils/propertySuggestions'
-import { FOCUS_NOTE_ICON_PROPERTY_EVENT } from './noteIconPropertyEvents'
+import { FOCUS_NOTE_ICON_PROPERTY_EVENT, FOCUS_NOTE_PROPERTY_EVENT, consumePendingNotePropertyFocus, type FocusNotePropertyDetail } from './noteIconPropertyEvents'
 import {
   PROPERTY_PANEL_GRID_STYLE,
   PROPERTY_PANEL_INTERACTIVE_ROW_CLASS_NAME,
@@ -217,6 +217,37 @@ function useFocusNoteIconProperty({
   }, [onAddProperty, setEditingKey, setPendingSuggestedKey])
 }
 
+/** A meta-line chip asked for one property; edit it in place, or offer it if the note lacks it. */
+function useFocusNoteProperty({
+  propertyKeys,
+  setEditingKey,
+  setPendingSuggestedKey,
+}: {
+  propertyKeys: readonly string[]
+  setEditingKey: (key: string | null) => void
+  setPendingSuggestedKey: (key: string | null) => void
+}) {
+  useEffect(() => {
+    const focus = (requested: string) => {
+      const existing = propertyKeys.find((key) => key.toLowerCase() === requested.toLowerCase())
+      if (existing) {
+        setEditingKey(existing)
+        return
+      }
+      setPendingSuggestedKey(requested)
+      setEditingKey(requested)
+    }
+    const pending = consumePendingNotePropertyFocus()
+    if (pending) focus(pending)
+    const handle = (event: Event) => {
+      const key = (event as CustomEvent<FocusNotePropertyDetail>).detail?.key
+      if (key) focus(key)
+    }
+    window.addEventListener(FOCUS_NOTE_PROPERTY_EVENT, handle)
+    return () => window.removeEventListener(FOCUS_NOTE_PROPERTY_EVENT, handle)
+  }, [propertyKeys, setEditingKey, setPendingSuggestedKey])
+}
+
 function useSuggestedPropertyActions({
   onAddProperty,
   setEditingKey,
@@ -318,6 +349,8 @@ export function DynamicPropertiesPanel({
   })
 
   useFocusNoteIconProperty({ onAddProperty, setEditingKey, setPendingSuggestedKey })
+  const propertyKeys = useMemo(() => propertyEntries.map(([key]) => key), [propertyEntries])
+  useFocusNoteProperty({ propertyKeys, setEditingKey, setPendingSuggestedKey })
 
   const presentKeys = new Set(propertyEntries.map(([key]) => key.toLowerCase()))
   const hintsForMissingFields = Object.entries(hintsByField ?? {})

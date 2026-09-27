@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react'
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { DynamicPropertiesPanel, containsWikilinks } from './DynamicPropertiesPanel'
+import { requestNotePropertyFocus } from './noteIconPropertyEvents'
 import type { VaultEntry } from '../types'
 import { bindVaultConfigStore, getVaultConfig, resetVaultConfigStore } from '../utils/vaultConfigStore'
 import { initDisplayModeOverrides } from '../utils/propertyTypes'
@@ -126,6 +127,12 @@ describe('DynamicPropertiesPanel', () => {
     })
     expect(screen.getByText('Type')).toBeInTheDocument()
     expect(screen.getByText('Note')).toBeInTheDocument()
+  })
+
+  it('starts editing a property when a meta chip asks for it, even if the panel mounts later', () => {
+    requestNotePropertyFocus('status')
+    renderPanel({ frontmatter: { Status: 'Draft' }, onUpdateProperty })
+    expect(screen.getAllByRole('textbox').length + screen.getAllByRole('combobox', { hidden: true }).length).toBeGreaterThan(0)
   })
 
   it('renders a Living Frontmatter hint under its field and applies it', () => {

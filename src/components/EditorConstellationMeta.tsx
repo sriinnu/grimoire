@@ -6,6 +6,8 @@ import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
 import { useLiveWordCount } from './useLiveWordCount'
 import { formatReadingTime } from '../utils/readingTime'
+import { requestNotePropertyFocus } from './noteIconPropertyEvents'
+import { requestInspectorJump } from './inspector/inspectorKeyboard'
 
 const SUPPORTED_METADATA_FIELD_LIST = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
 type MetadataField = typeof SUPPORTED_METADATA_FIELD_LIST[number]
@@ -62,6 +64,16 @@ function formatModified(entry: VaultEntry): string | null {
   return date ? relativeDate(date) : null
 }
 
+/** Which frontmatter key a chip edits. Type is a chip too, but it opens About rather than a cell. */
+const CHIP_PROPERTY: Partial<Record<MetadataField, string>> = { status: 'status', owner: 'owner', priority: 'priority' }
+
+function editChip(field: MetadataField) {
+  const key = CHIP_PROPERTY[field]
+  if (key) requestNotePropertyFocus(key)
+  else requestNotePropertyFocus('type')
+  requestInspectorJump('about')
+}
+
 function MetaPill({
   field,
   label,
@@ -74,10 +86,17 @@ function MetaPill({
   tone?: 'active' | 'high'
 }) {
   return (
-    <span className="editor-meta-pill" data-field={field} data-tone={tone}>
+    <button
+      type="button"
+      className="editor-meta-pill editor-meta-pill--button"
+      data-field={field}
+      data-tone={tone}
+      title={`Edit ${label} in Second Brain`}
+      onClick={() => editChip(field)}
+    >
       <span className="editor-meta-pill__label">{label}</span>
       <strong className="editor-meta-pill__value">{value}</strong>
-    </span>
+    </button>
   )
 }
 
@@ -99,10 +118,10 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
         <MetaPill field="status" label="status" value={status} tone={status.toLowerCase() === 'active' ? 'active' : undefined} />
       ) : null}
       {visibleFields.has('owner') && owner ? (
-        <span className="editor-meta-pill editor-meta-pill--icon" data-field="owner">
+        <button type="button" className="editor-meta-pill editor-meta-pill--icon editor-meta-pill--button" data-field="owner" title="Edit owner in Second Brain" onClick={() => editChip('owner')}>
           <UserRound className="size-3.5" />
           <strong className="editor-meta-pill__value">{owner}</strong>
-        </span>
+        </button>
       ) : null}
       {visibleFields.has('priority') && priority ? (
         <MetaPill field="priority" label="priority" value={priority} tone={priority.toLowerCase() === 'high' ? 'high' : undefined} />

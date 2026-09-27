@@ -7,6 +7,7 @@ import {
   useMainWindowSizeConstraints,
 } from '../hooks/useMainWindowSizeConstraints'
 import { useNoteLayout } from '../hooks/useNoteLayout'
+import { OPEN_INSPECTOR_EVENT } from '../components/noteIconPropertyEvents'
 import { useNoteRetargetingUi } from '../hooks/useNoteRetargetingUi'
 import { useSidebarColumnCollapse } from '../hooks/useSidebarColumnCollapse'
 import { restartApp, useUpdater } from '../hooks/useUpdater'
@@ -90,6 +91,15 @@ export function useAppShellState(
     sidebarVisible,
     updateMainWindowConstraints,
   ])
+
+  // A meta-line chip or a command may ask for the Second Brain to be open, not toggled.
+  useEffect(() => {
+    const open = () => {
+      if (layout.inspectorCollapsed) handleToggleInspector()
+    }
+    window.addEventListener(OPEN_INSPECTOR_EVENT, open)
+    return () => window.removeEventListener(OPEN_INSPECTOR_EVENT, open)
+  }, [handleToggleInspector, layout.inspectorCollapsed])
 
   const handleSetSidebarColumnCollapsed = useCallback((collapsed: boolean) => {
     setSidebarColumnCollapsed(collapsed)
