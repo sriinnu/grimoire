@@ -67,6 +67,12 @@ const MOCK_ENTRIES: VaultEntry[] = [
   },
 ]
 
+
+// Titles are rendered as text runs with <mark>s around query terms, so match on the
+// title span's whole text rather than on a single text node.
+const titleText = (title: string) => (_content: string, el: Element | null) =>
+  el?.tagName === 'SPAN' && el.classList.contains('font-medium') && el.textContent === title
+
 describe('SearchPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -147,7 +153,7 @@ describe('SearchPanel', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
     })
   })
 
@@ -177,7 +183,7 @@ describe('SearchPanel', () => {
       expect(mockInvokeFn).toHaveBeenCalledWith('search_vault', expect.objectContaining({
         query: 'roadmap',
       }))
-      expect(screen.getByText('Refactoring Retreat')).toBeInTheDocument()
+      expect(screen.getByText(titleText('Refactoring Retreat'))).toBeInTheDocument()
     })
   })
 
@@ -225,7 +231,7 @@ describe('SearchPanel', () => {
       expect(mockInvokeFn).toHaveBeenCalledWith('search_vault', expect.objectContaining({ vaultPath: '/work' }))
       expect(screen.getByText('Work Plan')).toBeInTheDocument()
       expect(screen.getByText(/Work Vault/)).toBeInTheDocument()
-      expect(screen.getByText('Roadmap search hit')).toBeInTheDocument()
+      expect(screen.getByText((_c, el) => el?.tagName === 'P' && el.textContent === 'Roadmap search hit')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByText('Work Plan').closest('[class*="cursor-pointer"]')!)
@@ -255,7 +261,7 @@ describe('SearchPanel', () => {
 
     await waitFor(() => {
       // Should show VaultEntry title, not filename-based search result title
-      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
       expect(screen.queryByText('ai-apis')).not.toBeInTheDocument()
     })
   })
@@ -292,7 +298,7 @@ describe('SearchPanel', () => {
     fireEvent.change(input, { target: { value: 'test' } })
 
     await waitFor(() => {
-      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
     })
 
     await act(async () => {
@@ -300,7 +306,7 @@ describe('SearchPanel', () => {
     })
 
     await waitFor(() => {
-      const resultTwo = screen.getByText('Refactoring Retreat').closest('[class*="cursor-pointer"]')!
+      const resultTwo = screen.getByText(titleText('Refactoring Retreat')).closest('[class*="cursor-pointer"]')!
       expect(resultTwo.className).toContain('bg-accent')
     })
   })
@@ -323,7 +329,7 @@ describe('SearchPanel', () => {
     fireEvent.change(input, { target: { value: 'api' } })
 
     await waitFor(() => {
-      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
     })
 
     await act(async () => {
@@ -443,7 +449,7 @@ describe('SearchPanel', () => {
 
     // Spinner disappears after search completes — VaultEntry title shown instead of search result title
     await waitFor(() => {
-      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
       expect(screen.queryByTestId('search-spinner')).not.toBeInTheDocument()
     })
   })
@@ -471,7 +477,7 @@ describe('SearchPanel', () => {
 
     // Only second query results should appear — VaultEntry title shown
     await waitFor(() => {
-      expect(screen.getByText('Refactoring Retreat')).toBeInTheDocument()
+      expect(screen.getByText(titleText('Refactoring Retreat'))).toBeInTheDocument()
     })
   })
 
@@ -492,7 +498,7 @@ describe('SearchPanel', () => {
     fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
 
     await waitFor(() => {
-      const titles = screen.getAllByText('How to Design AI-first APIs')
+      const titles = screen.getAllByText(titleText('How to Design AI-first APIs'))
       expect(titles).toHaveLength(1) // deduped — not 2
     })
 
@@ -523,10 +529,105 @@ describe('SearchPanel', () => {
     fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'apis ai' } })
 
     await waitFor(() => {
+      // Title marks come from the query client-side; snippet marks from backend offsets.
       const marks = screen.getAllByText(/APIs|AI/, { selector: 'mark' })
-      expect(marks.map(m => m.textContent)).toEqual(['APIs', 'AI'])
+      expect(marks.map(m => m.textContent)).toEqual(['AI', 'APIs', 'APIs', 'AI'])
       expect(marks[0].className).toContain('decoration-dotted')
       expect(marks[0].className).toContain('bg-transparent')
+    })
+  })
+
+  it('marks query terms in titles without touching markup-looking text', async () => {
+    mockInvokeFn.mockResolvedValue({
+      results: [
+        { title: '<b>Retreat</b> notes', path: '/vault/other/x.md', snippet: 'plain', score: 0.5, note_type: null },
+      ],
+      elapsed_ms: 3,
+    })
+    render(<SearchPanel open={true} vaultPath="/vault" entries={[]} onSelectNote={vi.fn()} onClose={vi.fn()} />)
+    fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'retreat' } })
+
+    await waitFor(() => {
+      const mark = screen.getByText('Retreat', { selector: 'mark' })
+      expect(mark.parentElement?.textContent).toBe('<b>Retreat</b> notes')
+      expect(document.querySelector('b')).toBeNull()
+    })
+  })
+
+  describe('create row', () => {
+    it('offers to create the query as a page when no result has that exact title', async () => {
+      mockInvokeFn.mockResolvedValue({
+        results: [
+          { title: 'Refactoring Retreat', path: '/vault/event/retreat.md', snippet: 'x', score: 0.5, note_type: null },
+        ],
+        elapsed_ms: 3,
+      })
+      const onCreate = vi.fn()
+      const onClose = vi.fn()
+      render(<SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onCreate={onCreate} onClose={onClose} />)
+      fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'Retreat plan' } })
+
+      const row = await screen.findByTestId('search-create-row')
+      expect(row).toHaveTextContent("Create ‘Retreat plan’")
+      fireEvent.click(row)
+      expect(onCreate).toHaveBeenCalledWith('Retreat plan')
+      expect(onClose).toHaveBeenCalled()
+    })
+
+    it('hides the create row when a result title matches the query exactly', async () => {
+      mockInvokeFn.mockResolvedValue({
+        results: [
+          { title: 'retreat.md', path: '/vault/event/retreat.md', snippet: 'x', score: 0.5, note_type: null },
+        ],
+        elapsed_ms: 3,
+      })
+      render(<SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onCreate={vi.fn()} onClose={vi.fn()} />)
+      fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'refactoring retreat' } })
+
+      await waitFor(() => expect(screen.getByText(titleText('Refactoring Retreat'))).toBeInTheDocument())
+      expect(screen.queryByTestId('search-create-row')).not.toBeInTheDocument()
+    })
+
+    it('shows the create row under "No results found" and reaches it with the keyboard', async () => {
+      mockInvokeFn.mockResolvedValue({ results: [], elapsed_ms: 3 })
+      const onCreate = vi.fn()
+      render(<SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onCreate={onCreate} onClose={vi.fn()} />)
+      const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
+      fireEvent.change(input, { target: { value: 'Brand new idea' } })
+
+      await screen.findByText('No results found')
+      const row = await screen.findByTestId('search-create-row')
+      expect(row).toHaveAttribute('aria-selected', 'true')
+      await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }) })
+      expect(onCreate).toHaveBeenCalledWith('Brand new idea')
+    })
+
+    it('does not offer creation without an onCreate handler', async () => {
+      mockInvokeFn.mockResolvedValue({ results: [], elapsed_ms: 3 })
+      render(<SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />)
+      fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'nothing here' } })
+      await screen.findByText('No results found')
+      expect(screen.queryByTestId('search-create-row')).not.toBeInTheDocument()
+    })
+
+    it('walks past the last result onto the create row with ArrowDown', async () => {
+      mockInvokeFn.mockResolvedValue({
+        results: [
+          { title: 'Refactoring Retreat', path: '/vault/event/retreat.md', snippet: 'x', score: 0.5, note_type: null },
+        ],
+        elapsed_ms: 3,
+      })
+      const onCreate = vi.fn()
+      render(<SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onCreate={onCreate} onClose={vi.fn()} />)
+      const input = screen.getByPlaceholderText('Search pages, docs, and project files...')
+      fireEvent.change(input, { target: { value: 'retreat' } })
+      await screen.findByTestId('search-create-row')
+
+      await act(async () => { fireEvent.keyDown(input, { key: 'ArrowDown' }) })
+      await act(async () => { fireEvent.keyDown(input, { key: 'ArrowDown' }) })
+      expect(screen.getByTestId('search-create-row')).toHaveAttribute('aria-selected', 'true')
+      await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }) })
+      expect(onCreate).toHaveBeenCalledWith('retreat')
     })
   })
 
@@ -556,15 +657,15 @@ describe('SearchPanel', () => {
 
     await waitFor(() => {
       expect(essayChip).toHaveAttribute('aria-pressed', 'true')
-      expect(screen.getByText('How to Design AI-first APIs')).toBeInTheDocument()
-      expect(screen.queryByText('Refactoring Retreat')).not.toBeInTheDocument()
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
+      expect(screen.queryByText(titleText('Refactoring Retreat'))).not.toBeInTheDocument()
       expect(screen.getByText(/1 result/)).toBeInTheDocument()
     })
 
     fireEvent.click(essayChip)
 
     await waitFor(() => {
-      expect(screen.getByText('Refactoring Retreat')).toBeInTheDocument()
+      expect(screen.getByText(titleText('Refactoring Retreat'))).toBeInTheDocument()
       expect(screen.getByText(/2 results/)).toBeInTheDocument()
     })
   })

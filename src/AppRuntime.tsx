@@ -153,6 +153,12 @@ function App() {
 
   if (startupGate) return startupGate
 
+  // Quick Open and Search share one way of turning a typed title into a page.
+  const createPageFromQuery = (title: string) => {
+    if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' })
+    void notes.handleCreateNote(title, 'Note')
+  }
+
   return (
     <NoteRetargetingProvider value={noteRetargetingUi.contextValue}>
       <div className="app-shell">
@@ -277,7 +283,7 @@ function App() {
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-        <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={(title) => { if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' }); void notes.handleCreateNote(title, 'Note') }} />
+        <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={createPageFromQuery} />
         <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} />
         <CommandPalette
           open={dialogs.showCommandPalette}
@@ -290,7 +296,7 @@ function App() {
           locale={appLocale}
           onClose={dialogs.closeCommandPalette}
         />
-        <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onClose={dialogs.closeSearch} />
+        <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onCreate={createPageFromQuery} onClose={dialogs.closeSearch} />
         <KeyboardShortcutsDialog open={dialogs.showKeyboardShortcuts} onClose={dialogs.closeKeyboardShortcuts} />
         <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
