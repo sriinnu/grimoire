@@ -13,21 +13,32 @@ async function insertWikilink(page: Page) {
   await expect(
     firstParagraph,
   ).toContainText('Build a sustainable audience through high-quality weekly essays', { timeout: 5000 })
+  const paragraphsBefore = await editor.locator('p').count()
   await firstParagraph.click()
   await page.keyboard.press('End')
   await page.keyboard.press('Enter')
-  await page.waitForTimeout(200)
+  // The new block exists before we type into it; no fixed sleep.
+  await expect(editor.locator('p')).toHaveCount(paragraphsBefore + 1, { timeout: 5000 })
 
   await page.keyboard.type(INSERTED_WIKILINK_QUERY)
 
   const suggestionMenu = page.locator('.wikilink-menu')
   await expect(suggestionMenu).toBeVisible({ timeout: 5000 })
+  const item = suggestionMenu.getByText(INSERTED_WIKILINK_TITLE, { exact: true })
+  await expect(item).toBeVisible({ timeout: 5000 })
+  // Let the menu settle: the same item count on two consecutive frames.
+  await expect.poll(async () => {
+    const before = await suggestionMenu.locator('[role="option"], li, button').count()
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    const after = await suggestionMenu.locator('[role="option"], li, button').count()
+    return before > 0 && before === after
+  }, { timeout: 5000 }).toBe(true)
   const matchingWikilinks = editor.locator('.wikilink').filter({ hasText: INSERTED_WIKILINK_TITLE })
   const existingCount = await matchingWikilinks.count()
-  await suggestionMenu.getByText(INSERTED_WIKILINK_TITLE, { exact: true }).click()
-  await page.waitForTimeout(500)
+  await item.click()
 
-  await expect(matchingWikilinks).toHaveCount(existingCount + 1)
+  // Assert on the inserted node itself rather than sleeping.
+  await expect(matchingWikilinks).toHaveCount(existingCount + 1, { timeout: 5000 })
   return matchingWikilinks.nth(existingCount)
 }
 
