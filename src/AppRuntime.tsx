@@ -22,6 +22,7 @@ import {
   LazyMcpSetupDialog as McpSetupDialog,
   LazyNoteRetargetingDialogs as NoteRetargetingDialogs,
   LazyPulseView as PulseView,
+  LazyQuickCaptureSheet as QuickCaptureSheet,
   LazyQuickOpenPalette as QuickOpenPalette,
   LazyRenameDetectedBanner as RenameDetectedBanner,
   LazySearchPanel as SearchPanel,
@@ -118,7 +119,7 @@ function App() {
     noteLayout, toggleNoteLayout, zoom, buildNumber, handleSetViewMode, handleToggleInspector,
     handleSetSidebarColumnCollapsed, updateStatus, updateActions, handleCheckForUpdates,
     restoreVaultAiGuidance, activeDeletedFile, noteRetargetingUi,
-    toggleOrganizedCommand, audioTranscription, handleOpenGraphNote,
+    toggleOrganizedCommand, audioTranscription, handleOpenGraphNote, quickCapture,
   } = shell
 
   const commands = useAppCommandRegistry(foundation, noteWorkspace, entryWorkspace, gitWorkflow, shell)
@@ -277,6 +278,7 @@ function App() {
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
         <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={(title) => { if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' }); void notes.handleCreateNote(title, 'Note') }} />
+        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} />
         <CommandPalette
           open={dialogs.showCommandPalette}
           commands={commands}

@@ -28,6 +28,7 @@ const HEAVY_APP_IMPORTS = [
   './components/McpSetupDialog',
   './components/note-retargeting/NoteRetargetingDialogs',
   './components/PulseView',
+  './components/QuickCaptureSheet',
   './components/QuickOpenPalette',
   './components/SearchPanel',
   './components/SettingsPanel',
@@ -198,6 +199,11 @@ describe('startup import budget', () => {
     expect(staticImportGraph('src/main.tsx')).not.toEqual(expect.arrayContaining(SIDEBAR_TYPE_CUSTOMIZER_COLD_FILES))
     expect(runtimeStaticImports('src/components/sidebar/SidebarSections.tsx')).not.toContain('../TypeCustomizePopover')
     expect(runtimeDynamicImports('src/components/sidebar/SidebarSections.tsx')).toContain('../TypeCustomizePopover')
+  })
+
+  it('keeps quick-capture persistence behind the save intent', () => {
+    expect(staticImportGraph('src/main.tsx')).not.toContain('src/utils/quickCaptureJournal.ts')
+    expect(runtimeDynamicImports('src/app/useQuickCapture.ts')).toContain('../utils/quickCaptureJournal')
   })
 
   it('keeps audio transcription implementation behind transcribe intent', () => {

@@ -53,6 +53,7 @@ export function useAppCommandRegistry(
     onCaptureThought: handleCaptureThoughtCommand,
     onCaptureJournal: handleCaptureJournalCommand,
     onOpenTodayJournal: handleOpenTodayJournalCommand,
+    onQuickCapture: shell.quickCapture.openQuickCapture,
     onCaptureDream: handleCaptureDreamCommand,
     onCreateNoteOfType: notes.handleCreateNoteImmediate,
     onSave: appSave.handleSave,

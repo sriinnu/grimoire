@@ -26,6 +26,7 @@ import { getNextVisibleInboxEntry, invokeAppCommand } from './appRuntimeSupport'
 import type { EntryWorkspace } from './useEntryWorkspace'
 import type { GitWorkflow } from './useGitWorkflow'
 import type { NoteWorkspace } from './useNoteWorkspace'
+import { useQuickCapture } from './useQuickCapture'
 import type { VaultFoundation } from './useVaultFoundation'
 
 export function useAppShellState(
@@ -53,6 +54,7 @@ export function useAppShellState(
   const { sidebarColumnCollapsed, setSidebarColumnCollapsed } = useSidebarColumnCollapse()
   const { noteLayout, toggleNoteLayout } = useNoteLayout()
   const zoom = useZoom()
+  const quickCapture = useQuickCapture(foundation, workspace)
   const buildNumber = useBuildNumber()
 
   const updateMainWindowConstraints = useCallback((
@@ -202,6 +204,7 @@ export function useAppShellState(
     || showGraphModal
     || showWeatherSnapshotDialog
     || showAudioRecordingDialog
+    || quickCapture.showQuickCapture
   )
 
   useEffect(() => {
@@ -336,7 +339,7 @@ export function useAppShellState(
     activeNoteHasIcon, toggleOrganizedCommand, canCustomizeNoteListColumns,
     restoreDeletedNoteCommand, insertWeatherSnapshotCommand, audioTranscription,
     handleOpenGraphNote, handleCaptureThoughtCommand, handleCaptureJournalCommand,
-    handleCaptureDreamCommand, handleOpenTodayJournalCommand,
+    handleCaptureDreamCommand, handleOpenTodayJournalCommand, quickCapture,
   }
 }
 

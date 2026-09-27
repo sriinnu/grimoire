@@ -211,6 +211,7 @@ function createCommandRegistryCoreConfig(
     onCaptureThought: config.onCaptureThought,
     onCaptureJournal: config.onCaptureJournal,
     onOpenTodayJournal: config.onOpenTodayJournal,
+    onQuickCapture: config.onQuickCapture,
     onCaptureDream: config.onCaptureDream,
     onCreateNoteOfType: config.onCreateNoteOfType,
     onSave: config.onSave,

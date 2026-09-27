@@ -26,6 +26,8 @@ export interface AppCommandsConfig {
   onCaptureJournal?: () => void
   /** Open today's journal entry, creating it if it doesn't exist yet. */
   onOpenTodayJournal?: () => void
+  /** Open the quick-capture sheet (appends to today's journal). */
+  onQuickCapture?: () => void
   onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
@@ -140,6 +142,7 @@ export type CommandRegistryCoreActions = Pick<
   | 'onCaptureThought'
   | 'onCaptureJournal'
   | 'onOpenTodayJournal'
+  | 'onQuickCapture'
   | 'onCaptureDream'
   | 'onCreateNoteOfType'
   | 'onSave'

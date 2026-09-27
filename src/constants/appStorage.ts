@@ -16,6 +16,7 @@ export const APP_STORAGE_KEYS = {
   sessionMemory: 'grimoire:session',
   inspectorOpen: 'grimoire:inspector-open',
   headingOutline: 'grimoire:heading-outline',
+  quickCaptureDraft: 'grimoire:quick-capture-draft',
 } as const
 
 export const LEGACY_APP_STORAGE_KEYS = {

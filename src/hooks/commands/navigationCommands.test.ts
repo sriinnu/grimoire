@@ -53,4 +53,18 @@ describe('buildNavigationCommands', () => {
     expect(onCaptureJournal).toHaveBeenCalledTimes(1)
     expect(onCaptureDream).toHaveBeenCalledTimes(1)
   })
+
+  it('offers Quick capture only when a handler is wired', () => {
+    const onQuickCapture = vi.fn()
+    const withHandler = buildNavigationCommands({ onQuickOpen: vi.fn(), onSelect: vi.fn(), onQuickCapture })
+    const command = withHandler.find((item) => item.id === 'quick-capture')
+
+    expect(command).toMatchObject({ label: 'Quick capture', group: 'Capture', enabled: true })
+    expect(command?.shortcut).toMatch(/Space$/)
+    command?.execute()
+    expect(onQuickCapture).toHaveBeenCalledTimes(1)
+
+    const withoutHandler = buildNavigationCommands({ onQuickOpen: vi.fn(), onSelect: vi.fn() })
+    expect(withoutHandler.find((item) => item.id === 'quick-capture')?.enabled).toBe(false)
+  })
 })

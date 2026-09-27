@@ -69,6 +69,7 @@ interface CommandRegistryConfig {
   onCaptureThought?: () => void
   onCaptureJournal?: () => void
   onOpenTodayJournal?: () => void
+  onQuickCapture?: () => void
   onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
@@ -120,7 +121,7 @@ interface CommandRegistryConfig {
 export function useCommandRegistry(config: CommandRegistryConfig): import('./commands/types').CommandAction[] {
   const {
     activeTabPath, entries, isGitVault = true, modifiedCount,
-    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault,
     activeNoteModified,
@@ -182,6 +183,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
       onCaptureThought,
       onCaptureJournal,
       onOpenTodayJournal,
+      onQuickCapture,
       onCaptureDream,
       onSelect,
       selection,
@@ -238,7 +240,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
   ], [
     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
-    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
     onCheckForUpdates,

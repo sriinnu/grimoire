@@ -136,6 +136,13 @@ export const AD_HOC_SHORTCUTS: readonly ShortcutEntry[] = [
     chords: [{ modifiers: ['mod'], key: 'A' }],
     keywords: ['multi', 'bulk'],
   },
+  {
+    id: 'quick-capture',
+    label: 'Quick capture to today\'s journal',
+    group: 'notes',
+    chords: [{ modifiers: ['mod', 'shift'], key: 'Space' }],
+    keywords: ['capture', 'jot', 'thought', 'inbox'],
+  },
 ]
 
 interface WritingBinding {

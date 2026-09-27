@@ -16,6 +16,7 @@ import type { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
 import type { McpSetupDialog } from './McpSetupDialog'
 import type { NoteRetargetingDialogs } from './note-retargeting/NoteRetargetingDialogs'
 import type { PulseView } from './PulseView'
+import type { QuickCaptureSheet } from './QuickCaptureSheet'
 import type { QuickOpenPalette } from './QuickOpenPalette'
 import type { RenameDetectedBanner } from './RenameDetectedBanner'
 import type { SearchPanel } from './SearchPanel'
@@ -45,6 +46,7 @@ const KeyboardShortcutsDialogSurface = lazy(async () => ({ default: (await impor
 const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
 const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
 const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
+const QuickCaptureSheetSurface = lazy(async () => ({ default: (await import('./QuickCaptureSheet')).QuickCaptureSheet }))
 const QuickOpenPaletteSurface = lazy(async () => ({ default: (await import('./QuickOpenPalette')).QuickOpenPalette }))
 const RenameDetectedBannerSurface = lazy(async () => ({ default: (await import('./RenameDetectedBanner')).RenameDetectedBanner }))
 const SearchPanelSurface = lazy(async () => ({ default: (await import('./SearchPanel')).SearchPanel }))
@@ -160,6 +162,15 @@ export function LazyWeatherSnapshotDialog(props: ComponentProps<typeof WeatherSn
   return (
     <VisibleSurface open={props.open}>
       <WeatherSnapshotDialogSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers the quick-capture composer until it is summoned. */
+export function LazyQuickCaptureSheet(props: ComponentProps<typeof QuickCaptureSheet>) {
+  return (
+    <VisibleSurface open={props.open}>
+      <QuickCaptureSheetSurface {...props} />
     </VisibleSurface>
   )
 }
