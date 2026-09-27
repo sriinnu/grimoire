@@ -7,6 +7,7 @@ import type { NoteListFilter } from '../utils/noteListHelpers'
 import type { ViewMode } from './useViewMode'
 import { buildNavigationCommands } from './commands/navigationCommands'
 import { buildNoteCommands } from './commands/noteCommands'
+import { buildExportCommands } from './commands/exportCommands'
 import { buildGitCommands } from './commands/gitCommands'
 import { buildViewCommands } from './commands/viewCommands'
 import { buildSettingsCommands } from './commands/settingsCommands'
@@ -215,6 +216,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
       onResolveConflicts,
       onSelect,
     }),
+    ...buildExportCommands({ hasActiveNote, activeEntry }),
     ...buildViewCommands({
       hasActiveNote, activeNoteModified, onSetViewMode, onToggleInspector,
       onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
