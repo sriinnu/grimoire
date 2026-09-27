@@ -4,7 +4,7 @@ This policy covers the Grimoire name, app icon, logo, wordmark, and related bran
 
 ## Code License Vs. Trademarks
 
-Grimoire's source code is licensed under the GNU Affero General Public License v3.0 or later (`AGPL-3.0-or-later`).
+Grimoire's source code is licensed under the MIT License.
 
 That license applies to the code. It does not grant any right to use the Grimoire name, logo, app icon, wordmark, or branding.
 
@@ -30,7 +30,7 @@ You may not, without prior written permission:
 
 ## Forks And Modified Versions
 
-You are welcome to fork or modify Grimoire under the AGPL. Redistributed, hosted, or packaged modified versions must use their own visible product name and branding unless you have written permission to use the Grimoire marks.
+You are welcome to fork or modify Grimoire under the MIT License. Redistributed, hosted, or packaged modified versions must use their own visible product name and branding unless you have written permission to use the Grimoire marks.
 
 Good examples:
 

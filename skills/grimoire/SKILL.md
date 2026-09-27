@@ -4,7 +4,7 @@ description: >
   Chitragupta product skill for Grimoire, the local-first Markdown vault app
   whose notes, journals, projects, graph, Git history, and AI proposals remain
   inspectable as user-owned files.
-license: AGPL-3.0-or-later
+license: MIT
 version: "1.0.0"
 author: grimoire
 tags: [grimoire, markdown, vault, local-first, memory, journal, agent]
