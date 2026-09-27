@@ -78,6 +78,41 @@ describe('StatusBar', () => {
     setWindowWidth(DEFAULT_WINDOW_WIDTH)
   })
 
+  it('shows a quiet syncing signal while the vault pulls', () => {
+    render(
+      <StatusBar
+        noteCount={3}
+        vaultPath="/Users/srinivas/Grimoire"
+        vaults={vaults}
+        onSwitchVault={vi.fn()}
+        isGitVault
+        syncStatus="syncing"
+        lastSyncTime={null}
+      />
+    )
+    expect(screen.getByTestId('status-save-signal')).toHaveTextContent('Syncing')
+  })
+
+  it('shows a retryable sync failure signal', () => {
+    const onTriggerSync = vi.fn()
+    render(
+      <StatusBar
+        noteCount={3}
+        vaultPath="/Users/srinivas/Grimoire"
+        vaults={vaults}
+        onSwitchVault={vi.fn()}
+        isGitVault
+        syncStatus="error"
+        lastSyncTime={null}
+        onTriggerSync={onTriggerSync}
+      />
+    )
+    const signal = screen.getByTestId('status-save-signal')
+    expect(signal).toHaveTextContent('Sync failed')
+    fireEvent.click(signal)
+    expect(onTriggerSync).toHaveBeenCalledTimes(1)
+  })
+
   it('does not display the bottom-bar note count readout', () => {
     render(<StatusBar noteCount={9200} vaultPath="/Users/srinivas/Grimoire" vaults={vaults} onSwitchVault={vi.fn()} />)
     expect(screen.queryByText('9,200 notes')).not.toBeInTheDocument()
