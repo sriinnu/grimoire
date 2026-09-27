@@ -35,6 +35,25 @@ globalThis.WebSocket = class MockWebSocket {
   dispatchEvent() { return true }
 } as unknown as typeof WebSocket
 
+// Node 26 defines its own globalThis.localStorage/sessionStorage getters that
+// return undefined unless --localstorage-file is set. jsdom shares this global
+// object, so its Storage never gets installed and 27 storage-backed test files
+// fail locally while CI (Node 24) passes. Install an in-memory Storage instead.
+class MemoryStorage implements Storage {
+  private store = new Map<string, string>()
+  get length() { return this.store.size }
+  key(index: number) { return Array.from(this.store.keys())[index] ?? null }
+  getItem(key: string) { return this.store.get(String(key)) ?? null }
+  setItem(key: string, value: string) { this.store.set(String(key), String(value)) }
+  removeItem(key: string) { this.store.delete(String(key)) }
+  clear() { this.store.clear() }
+}
+for (const key of ['localStorage', 'sessionStorage'] as const) {
+  if (typeof globalThis[key] === 'undefined') {
+    Object.defineProperty(globalThis, key, { value: new MemoryStorage(), configurable: true, writable: true })
+  }
+}
+
 // Mock scrollIntoView for jsdom (not implemented)
 Element.prototype.scrollIntoView = vi.fn()
 
