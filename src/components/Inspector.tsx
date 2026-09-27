@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useMemo, useState, type KeyboardEvent } from 'react'
 import type { VaultEntry, GitCommit } from '../types'
 import type { AiAgentAvailability } from '../lib/aiAgents'
 import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
@@ -23,6 +23,8 @@ import type { BacklinkItem, ReferencedByItem } from './InspectorPanels'
 import { EmptyInspector, InitializePropertiesPrompt, InspectorHeader, InvalidFrontmatterNotice } from './inspector/InspectorChrome'
 import { InspectorSection } from './inspector/InspectorSection'
 import { ConnectionsList } from './inspector/ConnectionsList'
+import { MentionsRow } from './inspector/MentionsRow'
+import { inspectorJumpTarget, isInspectorEscape, requestInspectorJump } from './inspector/inspectorKeyboard'
 import { buildConnections } from './inspector/connectionsModel'
 import { partitionLivingFrontmatterHints } from './inspector/livingFrontmatterRows'
 import { useBacklinks, useReferencedBy } from './inspector/useInspectorData'
@@ -135,6 +137,7 @@ function ConnectionsSection({
   handlers,
   onNavigate,
   onCreateAndOpenNote,
+  onReplaceContent,
 }: {
   entry: VaultEntry
   entries: VaultEntry[]
@@ -147,6 +150,7 @@ function ConnectionsSection({
   handlers: PropertyHandlers
   onNavigate: (target: string) => void
   onCreateAndOpenNote?: (title: string) => Promise<boolean>
+  onReplaceContent?: (path: string, content: string) => Promise<void> | void
 }) {
   const hasValidFrontmatter = frontmatterState === 'valid'
   const rows = useMemo(
@@ -156,11 +160,13 @@ function ConnectionsSection({
   const canEdit = hasValidFrontmatter && !!handlers.onAddProperty
   const [editing, setEditing] = useState(false)
   const isEmpty = rows.length === 0 && entry.isA !== 'Type'
+  const connectedPaths = useMemo(() => new Set(rows.flatMap((row) => (row.entry ? [row.entry.path] : []))), [rows])
 
   return (
     <>
       <ConnectionsList rows={rows} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
       <InstancesPanel entry={entry} entries={entries} typeEntryMap={typeEntryMap} onNavigate={onNavigate} />
+      <MentionsRow entry={entry} entries={entries} connectedPaths={connectedPaths} onNavigate={onNavigate} onReplaceContent={onReplaceContent} />
       {isEmpty ? (
         <p className="inspector-section__empty" data-testid="inspector-connections-empty">
           No connections yet · type [[ to link a page
@@ -307,6 +313,7 @@ function InspectorBody({
           handlers={handlers}
           onNavigate={onNavigate}
           onCreateAndOpenNote={onCreateAndOpenNote}
+          onReplaceContent={onReplaceContent}
         />
       </InspectorSection>
       <InspectorSection id="history" title="History" count={gitHistory.length}>
@@ -347,10 +354,26 @@ function InspectorBody({
 }
 
 export function Inspector({ collapsed, onToggle, ...bodyProps }: InspectorProps) {
+  // Esc closes the panel; ⌘⌥1/2/3 jump to a question. Both only while focus is inside.
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
+    if (collapsed) return
+    if (isInspectorEscape(event, event.target)) {
+      event.preventDefault()
+      onToggle()
+      return
+    }
+    const target = inspectorJumpTarget(event)
+    if (target) {
+      event.preventDefault()
+      requestInspectorJump(target)
+    }
+  }, [collapsed, onToggle])
+
   return (
     <aside
       className={cn('inspector-panel grimoire-inspector-stage flex flex-1 flex-col overflow-hidden border-l border-border bg-background text-foreground transition-[width] duration-200', collapsed && '!w-10 !min-w-10')}
       data-panel-role="inspector"
+      onKeyDown={handleKeyDown}
     >
       <InspectorHeader collapsed={collapsed} onToggle={onToggle} subtitle={bodyProps.entry?.title ?? null} />
       {!collapsed && (

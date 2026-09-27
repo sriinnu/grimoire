@@ -33,7 +33,7 @@ function writeSectionState(id: InspectorSectionId, open: boolean): void {
 }
 
 /** Persisted open state for one section, falling back to the section's default. */
-export function useInspectorSectionOpen(id: InspectorSectionId): [boolean, () => void] {
+export function useInspectorSectionOpen(id: InspectorSectionId): [boolean, () => void, (next: boolean) => void] {
   const [open, setOpen] = useState(() => readSectionState()[id] ?? INSPECTOR_SECTION_DEFAULTS[id])
   const toggle = useCallback(() => {
     setOpen((current) => {
@@ -42,7 +42,11 @@ export function useInspectorSectionOpen(id: InspectorSectionId): [boolean, () =>
       return next
     })
   }, [id])
-  return [open, toggle]
+  const set = useCallback((next: boolean) => {
+    setOpen(next)
+    writeSectionState(id, next)
+  }, [id])
+  return [open, toggle, set]
 }
 
 /** Test seam: forget persisted section state between tests. */

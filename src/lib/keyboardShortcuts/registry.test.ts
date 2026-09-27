@@ -11,6 +11,7 @@ import {
 } from '../../hooks/appCommandCatalog'
 import { isNeighborhoodKey, isToggleSearchShortcut } from '../../hooks/noteListKeyboardModel'
 import { isQuickCaptureShortcut } from '../../app/useQuickCapture'
+import { inspectorJumpTarget } from '../../components/inspector/inspectorKeyboard'
 import { isReadingWidthShortcut } from '../readingWidthPreference'
 import { useKeyboardNavigation } from '../../hooks/useKeyboardNavigation'
 import { useMultiSelectKeyboard } from '../../components/note-list/useMultiSelectKeyboard'
@@ -123,6 +124,7 @@ describe('ad-hoc shortcuts are handled by their real handlers', () => {
     'open-neighborhood': (chord) => isNeighborhoodKey(eventInit(chord) as KeyboardEvent),
     'select-all-pages': fireSelectAll,
     'quick-capture': (chord) => isQuickCaptureShortcut(eventInit(chord)),
+    'inspector-jump': (chord) => inspectorJumpTarget(eventInit(chord)) !== null,
     'cycle-reading-width': (chord) => isReadingWidthShortcut(eventInit(chord)),
   }
 

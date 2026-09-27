@@ -354,6 +354,25 @@ owner: Sriinnu
     expect(section('history')).toHaveAttribute('data-open', 'true')
   })
 
+  it('closes on Escape from plain focus but not from a text field', () => {
+    const onToggle = vi.fn()
+    renderSelectedInspector({ onToggle, onAddProperty: vi.fn() })
+    fireEvent.keyDown(screen.getByTestId('inspector-section-about'), { key: 'Escape' })
+    expect(onToggle).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByRole('button', { name: 'Add property' }))
+    const field = screen.getAllByRole('textbox')[0]
+    fireEvent.keyDown(field, { key: 'Escape' })
+    expect(onToggle).toHaveBeenCalledOnce()
+  })
+
+  it('jumps to a section on ⌃3, opening it and moving focus to its heading', () => {
+    renderSelectedInspector({ gitHistory: mockGitHistory })
+    expect(section('history')).toHaveAttribute('data-open', 'false')
+    fireEvent.keyDown(section('about'), { key: '3', code: 'Digit3', ctrlKey: true })
+    expect(section('history')).toHaveAttribute('data-open', 'true')
+    expect(document.activeElement).toBe(within(section('history')).getByRole('button', { expanded: true }))
+  })
+
   it('says so when a page has no connections yet', () => {
     renderSelectedInspector({
       entry: { ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] },

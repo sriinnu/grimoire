@@ -144,6 +144,17 @@ export const AD_HOC_SHORTCUTS: readonly ShortcutEntry[] = [
     keywords: ['measure', 'narrow', 'wide', 'full', 'line length'],
   },
   {
+    id: 'inspector-jump',
+    label: 'Jump to About / Connections / History (in Second Brain)',
+    group: 'view',
+    chords: [
+      { modifiers: ['ctrl'], key: '1' },
+      { modifiers: ['ctrl'], key: '2' },
+      { modifiers: ['ctrl'], key: '3' },
+    ],
+    keywords: ['inspector', 'second brain', 'section'],
+  },
+  {
     id: 'quick-capture',
     label: 'Quick capture to today\'s journal',
     group: 'notes',
