@@ -78,3 +78,9 @@
   font-size: 12.5px;
 }
 
+/* Reading width. The canvas root carries --editor-max-width for Narrow, Wide
+   and Full; Comfortable leaves the theme's measure alone. At Full the text
+   reaches the gutters, so there is no margin for the outline rail. */
+.editor-canvas[data-reading-width='full'] .heading-outline {
+  display: none;
+}

@@ -5,6 +5,7 @@ import type { CommandAction } from './useCommandRegistry'
 import { NEW_AI_CHAT_EVENT, OPEN_AI_CHAT_EVENT } from '../utils/aiPromptBridge'
 import { formatShortcutDisplay } from './appCommandCatalog'
 import { isHeadingOutlineEnabled, setHeadingOutlineEnabled } from '../lib/headingOutlinePreference'
+import { getReadingWidth, resetReadingWidthForTests, setReadingWidth } from '../lib/readingWidthPreference'
 
 function makeConfig(overrides: Record<string, unknown> = {}) {
   return {
@@ -361,6 +362,29 @@ describe('useCommandRegistry', () => {
     cmd!.execute()
 
     expect(onToggleNoteLayout).toHaveBeenCalledOnce()
+  })
+
+  it('exposes reading width commands: one per width plus a cycle bound to Cmd+Alt+W', () => {
+    setReadingWidth('comfortable')
+    const { result } = renderHook(() => useCommandRegistry(makeConfig()))
+
+    const cycle = findCommand(result.current, 'cycle-reading-width')
+    expect(cycle).toMatchObject({ group: 'View', enabled: true })
+    expect(cycle!.label).toContain('Comfortable')
+    expect(cycle!.shortcut).toMatch(/W$/)
+    cycle!.execute()
+    expect(getReadingWidth()).toBe('wide')
+
+    const narrow = findCommand(result.current, 'reading-width-narrow')
+    expect(narrow).toMatchObject({ label: 'Reading Width: Narrow', group: 'View', enabled: true })
+    narrow!.execute()
+    expect(getReadingWidth()).toBe('narrow')
+
+    // The current width is not offered as a choice.
+    const { result: again } = renderHook(() => useCommandRegistry(makeConfig()))
+    expect(findCommand(again.current, 'reading-width-narrow')!.enabled).toBe(false)
+    resetReadingWidthForTests()
+    setReadingWidth('comfortable')
   })
 
   it('exposes a Toggle Outline command that flips the persisted outline preference', () => {

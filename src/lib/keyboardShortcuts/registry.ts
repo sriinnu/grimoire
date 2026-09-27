@@ -137,6 +137,13 @@ export const AD_HOC_SHORTCUTS: readonly ShortcutEntry[] = [
     keywords: ['multi', 'bulk'],
   },
   {
+    id: 'cycle-reading-width',
+    label: 'Cycle reading width',
+    group: 'view',
+    chords: [{ modifiers: ['mod', 'alt'], key: 'W' }],
+    keywords: ['measure', 'narrow', 'wide', 'full', 'line length'],
+  },
+  {
     id: 'quick-capture',
     label: 'Quick capture to today\'s journal',
     group: 'notes',

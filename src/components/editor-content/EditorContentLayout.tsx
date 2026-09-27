@@ -14,6 +14,7 @@ import { EditorConstellationMeta } from '../EditorConstellationMeta'
 import { EditorAgentComposerBar } from '../EditorAgentComposerBar'
 import { HeadingOutlineRail } from '../heading-outline/HeadingOutlineRail'
 import { useHeadingOutline, type HeadingOutlineState } from '../heading-outline/useOutlineHeadings'
+import { useReadingWidth } from './useReadingWidth'
 
 const RawEditorViewSurface = lazy(async () => ({
   default: (await import('../RawEditorView')).RawEditorView,
@@ -251,6 +252,7 @@ export function EditorContentLayout(model: EditorContentModel) {
     noteLayout,
   } = model
   const outline = useHeadingOutline(activeTab?.content ?? '', showEditor && !effectiveRawMode)
+  const readingWidth = useReadingWidth(showEditor)
   const rootClassName = cn(
     'editor-canvas flex flex-1 flex-col min-w-0 min-h-0',
     noteLayout === 'left' ? 'editor-content-layout--left' : 'editor-content-layout--centered',
@@ -258,7 +260,7 @@ export function EditorContentLayout(model: EditorContentModel) {
 
   if (!activeTab) {
     return (
-      <div ref={outline.rootRef} className={rootClassName}>
+      <div ref={outline.rootRef} className={rootClassName} style={readingWidth.style} data-reading-width={readingWidth.width}>
         {isLoadingNewTab && showEditor && <EditorLoadingSkeleton />}
       </div>
     )
@@ -268,6 +270,8 @@ export function EditorContentLayout(model: EditorContentModel) {
     <div
       ref={outline.rootRef}
       className={rootClassName}
+      style={readingWidth.style}
+      data-reading-width={readingWidth.width}
       data-outline-rail={outline.visible ? 'visible' : undefined}
     >
       <ActiveTabBreadcrumb
