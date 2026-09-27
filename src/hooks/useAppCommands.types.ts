@@ -19,6 +19,7 @@ export interface AppCommandsConfig {
   selection: SidebarSelection
   onQuickOpen: () => void
   onCommandPalette: () => void
+  onToggleKeyboardShortcuts?: () => void
   onSearch: () => void
   onCreateNote: () => void
   onCaptureThought?: () => void
@@ -158,6 +159,7 @@ export type CommandRegistryCoreActions = Pick<
   | 'onToggleNoteLayout'
   | 'onToggleAIChat'
   | 'onOpenGraph'
+  | 'onToggleKeyboardShortcuts'
 >
 export type CommandRegistryVaultActions = Pick<
   CommandRegistryConfig,

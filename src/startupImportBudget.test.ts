@@ -24,6 +24,7 @@ const HEAVY_APP_IMPORTS = [
   './components/Editor',
   './components/FeedbackDialog',
   './components/GraphModal',
+  './components/KeyboardShortcutsDialog',
   './components/McpSetupDialog',
   './components/note-retargeting/NoteRetargetingDialogs',
   './components/PulseView',

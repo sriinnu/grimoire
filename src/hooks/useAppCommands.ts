@@ -22,6 +22,7 @@ function createKeyboardActions(
   return {
     onQuickOpen: config.onQuickOpen,
     onCommandPalette: config.onCommandPalette,
+    onToggleKeyboardShortcuts: config.onToggleKeyboardShortcuts,
     onSearch: config.onSearch,
     onCreateNote: config.onCreateNote,
     onSave: config.onSave,
@@ -229,6 +230,7 @@ function createCommandRegistryCoreConfig(
     onToggleNoteLayout: config.onToggleNoteLayout,
     onToggleAIChat: config.onToggleAIChat,
     onOpenGraph: config.onOpenGraph,
+    onToggleKeyboardShortcuts: config.onToggleKeyboardShortcuts,
   }
 }
 

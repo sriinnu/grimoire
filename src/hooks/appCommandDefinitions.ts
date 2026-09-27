@@ -96,6 +96,11 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
     menuOwned: true,
     shortcut: { combo: 'command-or-ctrl', key: 'k', code: 'KeyK', display: '⌘K' },
   },
+  [APP_COMMAND_IDS.viewKeyboardShortcuts]: {
+    route: { kind: 'handler', handler: 'onToggleKeyboardShortcuts' },
+    menuOwned: false,
+    shortcut: { combo: 'command-or-ctrl', key: '/', code: 'Slash', display: '⌘/' },
+  },
   [APP_COMMAND_IDS.viewZoomIn]: {
     route: { kind: 'handler', handler: 'onZoomIn' },
     menuOwned: true,

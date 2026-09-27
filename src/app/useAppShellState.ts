@@ -189,6 +189,7 @@ export function useAppShellState(
     dialogs.showCreateTypeDialog
     || dialogs.showQuickOpen
     || dialogs.showCommandPalette
+    || dialogs.showKeyboardShortcuts
     || dialogs.showAIChat
     || dialogs.showSettings
     || dialogs.showCloneVault

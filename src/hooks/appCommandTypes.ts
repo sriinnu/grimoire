@@ -21,6 +21,7 @@ export const APP_COMMAND_IDS = {
   viewToggleAiChat: 'view-toggle-ai-chat',
   viewToggleBacklinks: 'view-toggle-backlinks',
   viewCommandPalette: 'view-command-palette',
+  viewKeyboardShortcuts: 'view-keyboard-shortcuts',
   viewZoomIn: 'view-zoom-in',
   viewZoomOut: 'view-zoom-out',
   viewZoomReset: 'view-zoom-reset',
@@ -91,6 +92,7 @@ export type SimpleHandlerKey =
   | 'onToggleInspector'
   | 'onToggleAIChat'
   | 'onCommandPalette'
+  | 'onToggleKeyboardShortcuts'
   | 'onZoomIn'
   | 'onZoomOut'
   | 'onZoomReset'

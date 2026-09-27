@@ -48,7 +48,7 @@ export function useAppCommandRegistry(
     activeNoteModified,
     selection: effectiveSelection,
     onQuickOpen: dialogs.openQuickOpen, onCommandPalette: dialogs.openCommandPalette,
-    onSearch: dialogs.openSearch,
+    onSearch: dialogs.openSearch, onToggleKeyboardShortcuts: dialogs.toggleKeyboardShortcuts,
     onCreateNote: notes.handleCreateNoteImmediate,
     onCaptureThought: handleCaptureThoughtCommand,
     onCaptureJournal: handleCaptureJournalCommand,

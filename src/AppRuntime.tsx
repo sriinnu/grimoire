@@ -18,6 +18,7 @@ import {
   LazyDeleteProgressNotice as DeleteProgressNotice,
   LazyFeedbackDialog as FeedbackDialog,
   LazyGraphModal as GraphModal,
+  LazyKeyboardShortcutsDialog as KeyboardShortcutsDialog,
   LazyMcpSetupDialog as McpSetupDialog,
   LazyNoteRetargetingDialogs as NoteRetargetingDialogs,
   LazyPulseView as PulseView,
@@ -286,6 +287,7 @@ function App() {
           onClose={dialogs.closeCommandPalette}
         />
         <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onClose={dialogs.closeSearch} />
+        <KeyboardShortcutsDialog open={dialogs.showKeyboardShortcuts} onClose={dialogs.closeKeyboardShortcuts} />
         <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <AudioRecordingDialog open={showAudioRecordingDialog} vaultPath={resolvedPath} onClose={closeAudioRecordingDialog} onRecordingSaved={audioTranscription.transcribeRecordedAudio} />

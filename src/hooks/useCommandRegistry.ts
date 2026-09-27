@@ -93,6 +93,7 @@ interface CommandRegistryConfig {
   onToggleNoteLayout?: () => void
   onToggleAIChat?: () => void
   onOpenGraph?: () => void
+  onToggleKeyboardShortcuts?: () => void
   activeNoteModified: boolean
   onCheckForUpdates?: () => void
   onZoomIn: () => void
@@ -121,7 +122,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     activeTabPath, entries, isGitVault = true, modifiedCount,
     onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
-    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault,
+    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault,
     activeNoteModified,
     onZoomIn, onZoomOut, onZoomReset, zoomLevel,
     onSelect, onRenameFolder, onDeleteFolder,
@@ -214,7 +215,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     }),
     ...buildViewCommands({
       hasActiveNote, activeNoteModified, onSetViewMode, onToggleInspector,
-      onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
+      onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
       onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
     }),
     ...buildSettingsCommands({
@@ -239,7 +240,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
     onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
-    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
+    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
     onCheckForUpdates,
     onZoomIn, onZoomOut, onZoomReset, zoomLevel,
     onSelect, onRenameFolder, onDeleteFolder,

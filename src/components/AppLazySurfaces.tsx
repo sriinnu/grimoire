@@ -12,6 +12,7 @@ import type { DashboardRoute } from './dashboard/DashboardRoute'
 import type { DeleteProgressNotice } from './DeleteProgressNotice'
 import type { FeedbackDialog } from './FeedbackDialog'
 import type { GraphModal } from './GraphModal'
+import type { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
 import type { McpSetupDialog } from './McpSetupDialog'
 import type { NoteRetargetingDialogs } from './note-retargeting/NoteRetargetingDialogs'
 import type { PulseView } from './PulseView'
@@ -40,6 +41,7 @@ const DashboardRouteSurface = lazy(async () => ({ default: (await import('./dash
 const DeleteProgressNoticeSurface = lazy(async () => ({ default: (await import('./DeleteProgressNotice')).DeleteProgressNotice }))
 const FeedbackDialogSurface = lazy(async () => ({ default: (await import('./FeedbackDialog')).FeedbackDialog }))
 const GraphModalSurface = lazy(async () => ({ default: (await import('./GraphModal')).GraphModal }))
+const KeyboardShortcutsDialogSurface = lazy(async () => ({ default: (await import('./KeyboardShortcutsDialog')).KeyboardShortcutsDialog }))
 const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
 const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
 const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
@@ -140,6 +142,15 @@ export function LazyGraphModal(props: ComponentProps<typeof GraphModal>) {
   return (
     <VisibleSurface open={props.open}>
       <GraphModalSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers the shortcut cheat sheet until Cmd+/ or the palette opens it. */
+export function LazyKeyboardShortcutsDialog(props: ComponentProps<typeof KeyboardShortcutsDialog>) {
+  return (
+    <VisibleSurface open={props.open}>
+      <KeyboardShortcutsDialogSurface {...props} />
     </VisibleSurface>
   )
 }

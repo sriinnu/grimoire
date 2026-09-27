@@ -23,6 +23,7 @@ interface ViewCommandsConfig {
   onToggleNoteLayout?: () => void
   onToggleAIChat?: () => void
   onOpenGraph?: () => void
+  onToggleKeyboardShortcuts?: () => void
   zoomLevel: number
   onZoomIn: () => void
   onZoomOut: () => void
@@ -46,7 +47,7 @@ function buildNoteLayoutCommand(noteLayout: NoteLayout, onToggleNoteLayout?: () 
 export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
   const {
     hasActiveNote, activeNoteModified,
-    onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout = 'centered', onToggleNoteLayout, onToggleAIChat, onOpenGraph,
+    onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout = 'centered', onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts,
     zoomLevel, onZoomIn, onZoomOut, onZoomReset,
     onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
   } = config
@@ -63,6 +64,7 @@ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
     { id: 'toggle-ai-panel', label: 'Toggle AI Panel', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewToggleAiChat), keywords: ['ai', 'agent', 'chat', 'assistant', 'contextual'], enabled: true, execute: () => onToggleAIChat?.() },
     { id: 'new-ai-chat', label: 'New AI chat', group: 'View', keywords: ['ai', 'agent', 'chat', 'assistant', 'new', 'fresh', 'conversation', 'reset'], enabled: true, execute: requestNewAiChat },
     { id: 'open-graph', label: 'Open Knowledge Graph', group: 'View', keywords: ['graph', 'map', 'network', 'links', 'relationships', 'visualization'], enabled: !!onOpenGraph, execute: () => onOpenGraph?.() },
+    { id: 'keyboard-shortcuts', label: 'Keyboard shortcuts', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewKeyboardShortcuts), keywords: ['keyboard', 'shortcuts', 'keys', 'hotkeys', 'keybindings', 'cheat sheet', 'help'], enabled: !!onToggleKeyboardShortcuts, execute: () => onToggleKeyboardShortcuts?.() },
     { id: 'toggle-backlinks', label: 'Toggle Backlinks', group: 'View', keywords: ['backlinks', 'references', 'links', 'mentions', 'incoming'], enabled: hasActiveNote, execute: onToggleInspector },
     { id: 'customize-note-list-columns', label: noteListColumnsLabel, group: 'View', keywords: ['all notes', 'inbox', 'columns', 'chips', 'properties', 'note list'], enabled: !!(canCustomizeNoteListColumns && onCustomizeNoteListColumns), execute: () => onCustomizeNoteListColumns?.() },
     { id: 'zoom-in', label: `Zoom In (${zoomLevel}%)`, group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewZoomIn), keywords: ['zoom', 'bigger', 'larger', 'scale'], enabled: zoomLevel < 150, execute: onZoomIn },

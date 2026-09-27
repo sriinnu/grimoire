@@ -39,6 +39,7 @@ export interface AppCommandHandlers {
   onOpenSettings: () => void
   onToggleInspector: () => void
   onCommandPalette: () => void
+  onToggleKeyboardShortcuts?: () => void
   onZoomIn: () => void
   onZoomOut: () => void
   onZoomReset: () => void
@@ -88,6 +89,7 @@ type SimpleHandlerKey = keyof Pick<
   | 'onToggleInspector'
   | 'onToggleAIChat'
   | 'onCommandPalette'
+  | 'onToggleKeyboardShortcuts'
   | 'onZoomIn'
   | 'onZoomOut'
   | 'onZoomReset'
@@ -129,6 +131,7 @@ const SIMPLE_HANDLER_EXECUTORS: Record<SimpleHandlerKey, (handlers: AppCommandHa
   onToggleInspector: (handlers) => handlers.onToggleInspector(),
   onToggleAIChat: (handlers) => handlers.onToggleAIChat?.(),
   onCommandPalette: (handlers) => handlers.onCommandPalette(),
+  onToggleKeyboardShortcuts: (handlers) => handlers.onToggleKeyboardShortcuts?.(),
   onZoomIn: (handlers) => handlers.onZoomIn(),
   onZoomOut: (handlers) => handlers.onZoomOut(),
   onZoomReset: (handlers) => handlers.onZoomReset(),

@@ -209,6 +209,18 @@ describe('useCommandRegistry', () => {
     expect(onOpenGraph).toHaveBeenCalledOnce()
   })
 
+  it('opens the keyboard shortcuts sheet from the palette', () => {
+    const onToggleKeyboardShortcuts = vi.fn()
+    const { result } = renderHook(() => useCommandRegistry(makeConfig({ onToggleKeyboardShortcuts })))
+    const cmd = findCommand(result.current, 'keyboard-shortcuts')
+
+    expect(cmd?.label).toBe('Keyboard shortcuts')
+    expect(cmd?.enabled).toBe(true)
+    expect(cmd?.shortcut).toMatch(/^(⌘\/|Ctrl\+\/)$/)
+    cmd!.execute()
+    expect(onToggleKeyboardShortcuts).toHaveBeenCalledOnce()
+  })
+
   it('inserts a weather snapshot only when a note is active', () => {
     const onInsertWeatherSnapshot = vi.fn()
     const { result, rerender } = renderHook(
