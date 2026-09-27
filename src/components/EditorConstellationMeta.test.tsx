@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { makeEntry } from '../test-utils/noteListTestUtils'
 import { EditorConstellationMeta } from './EditorConstellationMeta'
 
@@ -51,6 +51,24 @@ describe('EditorConstellationMeta', () => {
     expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('1,234 words')
     expect(editorMetaCss).toContain('.editor-meta-strip__wordcount')
     expect(editorMetaCss).toContain('.editor-meta-strip__spacer')
+  })
+
+  it('adds a reading time once a note is long enough, and follows the editor after a debounce', () => {
+    vi.useFakeTimers()
+    const words = Array.from({ length: 480 }, (_, index) => `word${index}`).join(' ')
+    const { rerender } = render(
+      <EditorConstellationMeta content="# Draft" entry={makeEntry({ isA: 'Project', wordCount: 12 })} />,
+    )
+    // Saved count first, so nothing flashes on open; too short for a reading time.
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('12 words')
+    expect(screen.queryByTestId('editor-meta-readingtime')).toBeNull()
+
+    rerender(<EditorConstellationMeta content={`# Draft\n\n${words}`} entry={makeEntry({ isA: 'Project', wordCount: 12 })} />)
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('12 words')
+    act(() => { vi.advanceTimersByTime(300) })
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('480 words')
+    expect(screen.getByTestId('editor-meta-readingtime')).toHaveTextContent('2 min read')
+    vi.useRealTimers()
   })
 
   it('singularises the word count for a one-word note', () => {

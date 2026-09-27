@@ -4,6 +4,8 @@ import { Glyph } from './glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
+import { useLiveWordCount } from './useLiveWordCount'
+import { formatReadingTime } from '../utils/readingTime'
 
 const SUPPORTED_METADATA_FIELD_LIST = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
 type MetadataField = typeof SUPPORTED_METADATA_FIELD_LIST[number]
@@ -87,6 +89,8 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
   const owner = propertyText(entry, ['owner', 'Owner', 'author', 'Author'])
   const priority = propertyText(entry, ['priority', 'Priority'])
   const modified = formatModified(entry)
+  const wordCount = useLiveWordCount(content, entry.wordCount)
+  const readingTime = formatReadingTime(wordCount)
 
   return (
     <div className="editor-meta-strip" aria-label="Note metadata" data-testid="editor-meta-strip">
@@ -117,11 +121,10 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
       ) : null}
       <EditorNavigatorControls content={content} enableFindShortcut variant="meta" />
       <span className="editor-meta-strip__spacer" aria-hidden="true" />
-      {typeof entry.wordCount === 'number' ? (
-        <span className="editor-meta-strip__wordcount" data-testid="editor-meta-wordcount">
-          {entry.wordCount.toLocaleString()} {entry.wordCount === 1 ? 'word' : 'words'}
-        </span>
-      ) : null}
+      <span className="editor-meta-strip__wordcount" data-testid="editor-meta-wordcount">
+        {wordCount.toLocaleString()} {wordCount === 1 ? 'word' : 'words'}
+        {readingTime ? <span data-testid="editor-meta-readingtime"> · {readingTime}</span> : null}
+      </span>
     </div>
   )
 }
