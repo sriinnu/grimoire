@@ -68,6 +68,7 @@ export function useAppNavigation({
     handleGoForward,
     canGoBack: navHistory.canGoBack,
     canGoForward: navHistory.canGoForward,
+    recentPaths: navHistory.recentPaths,
     entriesByPath,
   }
 }

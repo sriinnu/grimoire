@@ -283,6 +283,8 @@ function App() {
           open={dialogs.showCommandPalette}
           commands={commands}
           entries={vault.entries}
+          recentEntries={noteWorkspace.recentEntries}
+          onOpenEntry={handleDashboardOpenNote}
           aiAgentReady={aiAgentPreferences.defaultAiAgentReady}
           aiAgentLabel={aiAgentPreferences.defaultAiAgentLabel}
           locale={appLocale}

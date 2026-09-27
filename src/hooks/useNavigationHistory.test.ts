@@ -180,4 +180,22 @@ describe('useNavigationHistory', () => {
     }
     expect(result.current.canGoForward).toBe(false)
   })
+
+  describe('recentPaths', () => {
+    it('lists earlier pages most recent first, once each, without the current page', () => {
+      const { result } = renderHook(() => useNavigationHistory())
+      act(() => {
+        result.current.push('/a')
+        result.current.push('/b')
+        result.current.push('/a')
+        result.current.push('/c')
+      })
+      expect(result.current.recentPaths).toEqual(['/a', '/b'])
+    })
+
+    it('is empty before any navigation', () => {
+      const { result } = renderHook(() => useNavigationHistory())
+      expect(result.current.recentPaths).toEqual([])
+    })
+  })
 })

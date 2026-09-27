@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { useAiActivity } from '../hooks/useAiActivity'
 import { useAppNavigation } from '../hooks/useAppNavigation'
 import { useAppSave } from '../hooks/useAppSave'
@@ -207,11 +207,17 @@ export function useNoteWorkspace(
     })
   }, [vault.entries]) // eslint-disable-line react-hooks/exhaustive-deps -- notes.setTabs is stable (useState setter)
 
-  const { handleGoBack, handleGoForward, canGoBack, canGoForward, entriesByPath } = useAppNavigation({
+  const { handleGoBack, handleGoForward, canGoBack, canGoForward, recentPaths, entriesByPath } = useAppNavigation({
     entries: vault.entries,
     activeTabPath: notes.activeTabPath,
     onSelectNote: notes.handleSelectNote,
   })
+
+  // Recently visited pages that still exist, for the command palette's empty state.
+  const recentEntries = useMemo(
+    () => recentPaths.map((path) => entriesByPath.get(path)).filter((entry): entry is VaultEntry => entry !== undefined),
+    [recentPaths, entriesByPath],
+  )
 
   const queuePendingDiff = useCallback((path: string, commitHash?: string) => {
     pendingDiffRequestIdRef.current += 1
@@ -325,7 +331,7 @@ export function useNoteWorkspace(
     openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote,
     handleSearchResultSelect, autoSync, effectiveRemoteStatus, canAddRemote, pendingDiffRequest,
     handlePendingDiffHandled, queuePendingDiff, handlePulseOpenNote, handleOpenFavorite, vaultBridge, conflictFlow,
-    appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward,
+    appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward, recentEntries,
   }
 }
 

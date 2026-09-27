@@ -5,11 +5,11 @@ import { fuzzyMatch } from '../utils/fuzzyMatch'
 import { queueAiPrompt, requestOpenAiChat } from '../utils/aiPromptBridge'
 import type { NoteReference } from '../utils/ai-context'
 import type { CommandAction, CommandGroup } from '../hooks/useCommandRegistry'
-import { groupSortKey } from '../hooks/useCommandRegistry'
 import { rememberFeedbackDialogOpener } from '../lib/feedbackDialogOpener'
 import type { AppLocale } from '../lib/i18nCore'
 import { createCommandTranslator } from '../lib/i18nCommands'
 import { CommandPaletteAiMode } from './CommandPaletteAiMode'
+import { buildEmptyQueryGroups, buildRecentCommands, registerPaletteOpen } from './commandPaletteDefaults'
 import { CommandPaletteFooter, CommandPaletteInput, CommandPaletteResults, type CommandPaletteFooterText } from './CommandPaletteParts'
 
 interface CommandPaletteProps {
@@ -20,6 +20,9 @@ interface CommandPaletteProps {
   aiAgentReady?: boolean
   aiAgentLabel?: string
   locale?: AppLocale
+  /** Recently visited pages, most recent first; shown before you type. */
+  recentEntries?: VaultEntry[]
+  onOpenEntry?: (entry: VaultEntry) => void
   onClose: () => void
 }
 
@@ -60,10 +63,8 @@ function matchCommand(query: string, command: CommandAction): ScoredCommand | nu
   return null
 }
 
-function groupResults(
-  commands: CommandAction[],
-  byRelevance: boolean,
-): { group: CommandGroup; items: CommandAction[] }[] {
+/** Groups a relevance-sorted match list, keeping first-hit order between groups. */
+function groupResults(commands: CommandAction[]): { group: CommandGroup; items: CommandAction[] }[] {
   const groupedCommands = new Map<CommandGroup, CommandAction[]>()
 
   for (const command of commands) {
@@ -75,15 +76,15 @@ function groupResults(
     groupedCommands.set(command.group, [command])
   }
 
-  const entries = Array.from(groupedCommands.entries())
-  if (!byRelevance) {
-    entries.sort((left, right) => groupSortKey(left[0]) - groupSortKey(right[0]))
-  }
-
-  return entries.map(([group, items]) => ({ group, items }))
+  return Array.from(groupedCommands.entries()).map(([group, items]) => ({ group, items }))
 }
 
-function usePaletteResults(commands: CommandAction[], query: string) {
+function usePaletteResults(
+  commands: CommandAction[],
+  query: string,
+  recentCommands: CommandAction[],
+  recentsFirst: boolean,
+) {
   const enabledCommands = useMemo(
     () => commands.filter((command) => command.enabled),
     [commands],
@@ -100,8 +101,10 @@ function usePaletteResults(commands: CommandAction[], query: string) {
 
   const hasQuery = query.trim().length > 0
   const groups = useMemo(
-    () => groupResults(filteredCommands, hasQuery),
-    [filteredCommands, hasQuery],
+    () => (hasQuery
+      ? groupResults(filteredCommands)
+      : buildEmptyQueryGroups(enabledCommands, recentCommands, recentsFirst)),
+    [enabledCommands, filteredCommands, hasQuery, recentCommands, recentsFirst],
   )
 
   return {
@@ -130,9 +133,16 @@ function OpenCommandPalette({
   aiAgentReady,
   aiAgentLabel = 'Claude Code',
   locale = 'en',
+  recentEntries,
+  onOpenEntry,
   onClose,
 }: Omit<CommandPaletteProps, 'open'>) {
   const [query, setQuery] = useState('')
+  const [recentsFirst] = useState(registerPaletteOpen)
+  const recentCommands = useMemo(
+    () => (recentEntries && onOpenEntry ? buildRecentCommands(recentEntries, onOpenEntry) : []),
+    [recentEntries, onOpenEntry],
+  )
   const [aiValue, setAiValue] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -140,7 +150,7 @@ function OpenCommandPalette({
   const listRef = useRef<HTMLDivElement>(null)
   const aiMode = aiValue.startsWith(' ')
   const resolvedAiAgentReady = aiAgentReady ?? claudeCodeReady
-  const { groups, flatList } = usePaletteResults(commands, query)
+  const { groups, flatList } = usePaletteResults(commands, query, recentCommands, recentsFirst)
   const t = createCommandTranslator(locale)
   const footerText: CommandPaletteFooterText = {
     aiMode: t('command.aiMode', { agent: '{agent}' }),
