@@ -33,6 +33,7 @@ pub mod vault_list;
 mod vault_watch;
 #[cfg(desktop)]
 mod window_lifecycle;
+mod vault_index;
 
 use std::{ffi::OsStr, process::Command};
 
@@ -450,7 +451,9 @@ pub fn run() {
         return;
     }
 
-    let builder = tauri::Builder::default().manage(search::SearchCacheState::default());
+    let builder = tauri::Builder::default()
+        .manage(search::SearchCacheState::default())
+        .manage(vault_index::VaultIndexState::default());
 
     #[cfg(desktop)]
     let builder = builder

@@ -4,6 +4,7 @@ import type { VaultEntry } from '../../types'
 import { BodyIndexStore, type Tag, type TagSnapshot } from './bodyIndexCore'
 import type { IndexedNoteInput, WorkerRequest, WorkerResponse } from './bodyIndexProtocol'
 import { getTagSnapshot, publishTagSnapshot } from './tagSnapshot'
+import { createNativeBodyIndex } from './nativeBodyIndex'
 
 /**
  * Body index: which notes carry which tags, and which notes mention a phrase.
@@ -26,6 +27,8 @@ export interface BodyIndex {
   /** Number of notes currently indexed. */
   size(): number
   dispose(): void
+  /** The native index is per vault; the worker index does not need this. */
+  setVaultPath?(path: string | null): void
 }
 
 export interface BodyIndexOptions {
@@ -225,7 +228,7 @@ let shared: BodyIndex | null = null
 
 /** The app-wide index. Created on first use, never on the boot path. */
 export function getBodyIndex(): BodyIndex {
-  shared ??= createBodyIndex()
+  shared ??= isTauri() ? createNativeBodyIndex() : createBodyIndex()
   return shared
 }
 

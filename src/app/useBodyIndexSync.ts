@@ -35,6 +35,7 @@ export function useBodyIndexSync(entries: VaultEntry[], vaultPath: string | null
       void import('../lib/bodyIndex/bodyIndex').then((module) => {
         if (cancelled) return
         moduleRef.current = module
+        module.getBodyIndex().setVaultPath?.(vaultPath)
         void module.getBodyIndex().rebuild(entriesRef.current)
       })
     })

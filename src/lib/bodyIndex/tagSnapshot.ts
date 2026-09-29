@@ -15,6 +15,7 @@ const listeners = new Set<Listener>()
 const EMPTY_PATHS: ReadonlySet<string> = new Set()
 
 export function publishTagSnapshot(snapshot: TagSnapshot): void {
+  if (!snapshot || !Array.isArray(snapshot.tags)) return
   current = snapshot
   pathsByTag = new Map(snapshot.tags.map((record) => [record.tag, new Set(record.paths)]))
   listeners.forEach((listener) => listener())

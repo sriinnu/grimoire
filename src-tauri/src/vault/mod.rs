@@ -116,6 +116,7 @@ pub use app_importer_progress::import_app_export_with_progress;
 pub use app_store_discovery::{discover_importable_apps, DiscoveredApp};
 pub use bear_importer::{import_bear_database, BearDatabaseImportSummary};
 pub use cache::{invalidate_cache, scan_vault_cached, scan_vault_cached_with_extra_paths};
+pub use cache::index_db_path;
 pub use config_seed::{
     get_ai_guidance_status, migrate_agents_md, repair_config_files, restore_ai_guidance_files,
     seed_config_files, AiGuidanceFileState, VaultAiGuidanceStatus,

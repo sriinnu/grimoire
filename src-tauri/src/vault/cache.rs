@@ -98,6 +98,11 @@ fn cache_dir() -> PathBuf {
         .join("cache")
 }
 
+/// Where the SQLite index for a vault lives: beside its JSON scan cache.
+pub fn index_db_path(vault: &Path) -> PathBuf {
+    cache_dir().join(format!("{}-index.sqlite", vault_path_hash(vault)))
+}
+
 fn cache_path(vault: &Path) -> PathBuf {
     cache_dir().join(format!("{}.json", vault_path_hash(vault)))
 }

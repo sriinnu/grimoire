@@ -128,3 +128,55 @@ pub fn watch_vault(_vault_path: String) -> Result<(), String> {
 pub fn unwatch_vault() -> Result<(), String> {
     Ok(())
 }
+
+#[tauri::command]
+pub async fn index_refresh(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+) -> Result<crate::vault_index::IndexRefreshReport, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::refresh(&state, std::path::Path::new(&vault_path)) })
+        .await
+        .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_search(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+    query: String,
+    limit: Option<usize>,
+) -> Result<crate::vault_index::IndexSearchResponse, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::search(&state, std::path::Path::new(&vault_path), &query, limit.unwrap_or(50).clamp(1, 500)) })
+        .await
+        .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_tags(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+) -> Result<crate::vault_index::IndexTagSnapshot, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::tags(&state, std::path::Path::new(&vault_path)) })
+        .await
+        .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_mentions(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+    phrase: String,
+    limit: Option<usize>,
+) -> Result<Vec<String>, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::mentions(&state, std::path::Path::new(&vault_path), &phrase, limit.unwrap_or(100).clamp(1, 1000)) })
+        .await
+        .map_err(|error| format!("Index task failed: {error}"))?
+}
