@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
 import {
+  CHITRAGUPTA_HISTORY_REFRESH_EVENT,
   vaultRelativeNotePath,
   type ChitraguptaNoteSession,
   type ChitraguptaSocketStatus,
@@ -17,57 +18,62 @@ function socketCall<T>(command: string, args?: Record<string, unknown>): Promise
 interface NoteSessionsState {
   status: ChitraguptaSocketStatus | null
   sessions: ChitraguptaNoteSession[]
+  loading: boolean
+  error: string | null
 }
 
-/**
- * Past Chitragupta daemon sessions for the active note.
- *
- * Sessions are only fetched after the socket status confirms the daemon is
- * healthy AND a token is present — otherwise the hook stays quiet with an
- * empty list. Fetches are debounced on note changes and stale-guarded with a
- * generation counter (same discipline as useUnlinkedMentions).
- */
+/** Refresh authorized history on note changes, explicit requests, and chat completion. */
 export function useChitraguptaNoteSessions(
   notePath: string | null | undefined,
   vaultPath: string | undefined,
   enabled: boolean,
 ) {
-  const [state, setState] = useState<NoteSessionsState>({ status: null, sessions: NO_SESSIONS })
+  const [state, setState] = useState<NoteSessionsState>({ status: null, sessions: NO_SESSIONS, loading: false, error: null })
+  const [revision, setRevision] = useState(0)
   const genRef = useRef(0)
+  const refreshSessions = useCallback(() => { setRevision((current) => current + 1) }, [])
+
+  useEffect(() => {
+    const refreshAfterChat = (event: Event) => {
+      const detail = (event as CustomEvent<{ vaultPath: string; notePath?: string | null }>).detail
+      if (!enabled || !vaultPath || detail?.vaultPath !== vaultPath) return
+      if (detail.notePath && vaultRelativeNotePath(detail.notePath, vaultPath) !== vaultRelativeNotePath(notePath ?? '', vaultPath)) return
+      refreshSessions()
+    }
+    window.addEventListener(CHITRAGUPTA_HISTORY_REFRESH_EVENT, refreshAfterChat)
+    return () => window.removeEventListener(CHITRAGUPTA_HISTORY_REFRESH_EVENT, refreshAfterChat)
+  }, [enabled, notePath, vaultPath, refreshSessions])
 
   useEffect(() => {
     genRef.current++
-    setState({ status: null, sessions: NO_SESSIONS })
-    if (!enabled || !notePath || !vaultPath) return
+    const canFetch = !!(enabled && notePath && vaultPath)
+    setState({ status: null, sessions: NO_SESSIONS, loading: canFetch, error: null })
+    if (!canFetch) return
 
     const gen = genRef.current
     const stillCurrent = () => gen === genRef.current
-
     const fetchSessions = async () => {
-      let status: ChitraguptaSocketStatus
+      let status: ChitraguptaSocketStatus | null = null
       try {
-        status = await socketCall<ChitraguptaSocketStatus>('get_chitragupta_socket_status')
-      } catch {
-        return
-      }
-      if (!stillCurrent()) return
-      setState({ status, sessions: NO_SESSIONS })
-      if (!status.healthy || !status.token_present) return
-
-      try {
+        status = await socketCall<ChitraguptaSocketStatus>('get_chitragupta_socket_status', { vaultPath })
+        if (!stillCurrent()) return
+        if (status.contractVersion !== 1 || (status.selectedVaultPath ?? status.projectPath) !== vaultPath || status.state !== 'ready') {
+          setState({ status, sessions: NO_SESSIONS, loading: false, error: null })
+          return
+        }
         const sessions = await socketCall<ChitraguptaNoteSession[]>(
           'list_chitragupta_note_sessions',
-          { vaultPath, notePath: vaultRelativeNotePath(notePath, vaultPath) },
+          { vaultPath, notePath: vaultRelativeNotePath(notePath!, vaultPath!) },
         )
-        if (stillCurrent()) setState({ status, sessions })
-      } catch {
-        // Session history is a quiet extra; failures leave the list empty.
+        if (stillCurrent()) setState({ status, sessions, loading: false, error: null })
+      } catch (error) {
+        if (stillCurrent()) setState({ status, sessions: NO_SESSIONS, loading: false, error: error instanceof Error ? error.message : String(error) })
       }
     }
 
     const timer = setTimeout(() => { void fetchSessions() }, DEBOUNCE_MS)
-    return () => clearTimeout(timer)
-  }, [enabled, notePath, vaultPath])
+    return () => { clearTimeout(timer); genRef.current++ }
+  }, [enabled, notePath, vaultPath, revision])
 
-  return state
+  return { ...state, refreshSessions }
 }

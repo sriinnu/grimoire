@@ -84,6 +84,7 @@ pub struct SocketChatReply {
 /// numbers or ISO strings.
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct TrimmedChitraguptaSession {
+    pub pending_request_id: Option<String>,
     pub id: String,
     pub title: Option<String>,
     pub updated_at: Option<Value>,
@@ -251,7 +252,7 @@ fn envelope_error_message(json: &Value) -> String {
         .to_string()
 }
 
-fn parse_chat_reply(data: &Value) -> SocketChatReply {
+pub(crate) fn parse_chat_reply(data: &Value) -> SocketChatReply {
     SocketChatReply {
         text: reply_text(data, 0),
         session_id: reply_session_id(data),
@@ -301,7 +302,7 @@ fn route_field(data: &Value, keys: &[&str]) -> Option<String> {
     json_text(route, keys).map(ToString::to_string)
 }
 
-fn extract_session_list(data: &Value) -> Vec<Value> {
+pub(crate) fn extract_session_list(data: &Value) -> Vec<Value> {
     if let Some(list) = data.as_array() {
         return list.clone();
     }
@@ -355,6 +356,10 @@ pub fn session_matches_note(summary: &Value, vault_path: &str, note_path: &str) 
 pub fn trim_session_summary(summary: &Value) -> Option<TrimmedChitraguptaSession> {
     let id = json_text(summary, &["id", "sessionId", "session_id"])?.to_string();
     Some(TrimmedChitraguptaSession {
+        pending_request_id: summary
+            .pointer("/connector/pendingRequestId")
+            .and_then(Value::as_str)
+            .map(ToString::to_string),
         id,
         title: json_text(summary, &["title", "name"]).map(ToString::to_string),
         updated_at: first_value(
@@ -422,8 +427,8 @@ fn health_cache() -> &'static Mutex<Option<HealthCacheEntry>> {
     CACHE.get_or_init(|| Mutex::new(None))
 }
 
-fn session_ids() -> &'static Mutex<HashMap<(String, String), String>> {
-    static IDS: OnceLock<Mutex<HashMap<(String, String), String>>> = OnceLock::new();
+fn session_ids() -> &'static Mutex<HashMap<(String, String, String), String>> {
+    static IDS: OnceLock<Mutex<HashMap<(String, String, String), String>>> = OnceLock::new();
     IDS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
@@ -481,16 +486,20 @@ fn store_health(base: &str, health: CachedSocketHealth) {
     });
 }
 
-/// Last socket session id for a (vault, note) pair within this app run.
-pub fn remembered_session_id(vault_path: &str, note_path: &str) -> Option<String> {
+/// Last connector session id for an (origin, canonical vault, note) within this app run.
+pub fn remembered_session_id(base_url: &str, vault_path: &str, note_path: &str) -> Option<String> {
     let map = session_ids()
         .lock()
         .unwrap_or_else(|poison| poison.into_inner());
-    map.get(&(vault_path.to_string(), note_path.to_string()))
-        .cloned()
+    map.get(&(
+        base_url.to_string(),
+        session_project_key(vault_path),
+        note_path.to_string(),
+    ))
+    .cloned()
 }
 
-pub fn remember_session_id(vault_path: &str, note_path: &str, session_id: &str) {
+pub fn remember_session_id(base_url: &str, vault_path: &str, note_path: &str, session_id: &str) {
     if session_id.trim().is_empty() {
         return;
     }
@@ -498,9 +507,20 @@ pub fn remember_session_id(vault_path: &str, note_path: &str, session_id: &str) 
         .lock()
         .unwrap_or_else(|poison| poison.into_inner());
     map.insert(
-        (vault_path.to_string(), note_path.to_string()),
+        (
+            base_url.to_string(),
+            session_project_key(vault_path),
+            note_path.to_string(),
+        ),
         session_id.to_string(),
     );
+}
+
+fn session_project_key(vault_path: &str) -> String {
+    std::fs::canonicalize(vault_path)
+        .ok()
+        .and_then(|path| path.into_os_string().into_string().ok())
+        .unwrap_or_else(|| vault_path.to_string())
 }
 
 #[cfg(test)]
@@ -650,6 +670,7 @@ mod tests {
     #[test]
     fn trim_session_summary_keeps_render_fields_and_drops_the_rest() {
         let summary = json!({
+            "connector": {"pendingRequestId": "pending-7"},
             "id": "ses_1",
             "title": "Alpha planning",
             "updatedAt": "2026-07-15T10:00:00Z",
@@ -660,6 +681,7 @@ mod tests {
             "unknownField": {"deep": true}
         });
         let trimmed = trim_session_summary(&summary).unwrap();
+        assert_eq!(trimmed.pending_request_id.as_deref(), Some("pending-7"));
         assert_eq!(trimmed.id, "ses_1");
         assert_eq!(trimmed.title.as_deref(), Some("Alpha planning"));
         assert_eq!(trimmed.updated_at, Some(json!("2026-07-15T10:00:00Z")));
@@ -680,16 +702,25 @@ mod tests {
 
     #[test]
     fn session_memory_round_trips_per_vault_and_note() {
-        remember_session_id("/vault-mem", "notes/a.md", "ses_a");
-        remember_session_id("/vault-mem", "", "ses_vault");
+        remember_session_id(
+            "http://memory-test.invalid",
+            "/vault-mem",
+            "notes/a.md",
+            "ses_a",
+        );
+        remember_session_id("http://memory-test.invalid", "/vault-mem", "", "ses_vault");
         assert_eq!(
-            remembered_session_id("/vault-mem", "notes/a.md").as_deref(),
+            remembered_session_id("http://memory-test.invalid", "/vault-mem", "notes/a.md")
+                .as_deref(),
             Some("ses_a")
         );
         assert_eq!(
-            remembered_session_id("/vault-mem", "").as_deref(),
+            remembered_session_id("http://memory-test.invalid", "/vault-mem", "").as_deref(),
             Some("ses_vault")
         );
-        assert_eq!(remembered_session_id("/vault-mem", "notes/b.md"), None);
+        assert_eq!(
+            remembered_session_id("http://memory-test.invalid", "/vault-mem", "notes/b.md"),
+            None
+        );
     }
 }

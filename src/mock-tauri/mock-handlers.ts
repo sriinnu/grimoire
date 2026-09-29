@@ -255,12 +255,11 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   save_ai_provider_api_key: saveMockAiProviderApiKey,
   clear_ai_provider_api_key: clearMockAiProviderApiKey,
   // Browser mode has no local Chitragupta daemon; the socket stays quiet.
-  get_chitragupta_socket_status: () => ({
-    healthy: false,
-    version: null,
-    token_present: false,
-    token_source: 'missing',
-    base_url: 'http://127.0.0.1:3141',
+  get_chitragupta_socket_status: (args: { vaultPath?: string }) => ({
+    contractVersion: 1,
+    state: 'pairing_required',
+    baseUrl: 'http://127.0.0.1:3141',
+    projectPath: args.vaultPath ?? '',
   }),
   provision_chitragupta_socket_token: () => {
     throw new Error('Chitragupta daemon pairing is not available in the browser.')
@@ -269,6 +268,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   clear_chitragupta_socket_token: () => ({ token_present: false, token_source: 'missing' }),
   list_chitragupta_note_sessions: () => [],
   get_chitragupta_session: () => ({}),
+  acknowledge_chitragupta_request: () => { throw new Error('Chitragupta session recovery is not available in the browser.') },
   get_vault_ai_guidance_status: () => getMockVaultAiGuidanceStatus(),
   restore_vault_ai_guidance: () => restoreMockVaultAiGuidance(),
   stream_claude_chat: () => 'mock-session',

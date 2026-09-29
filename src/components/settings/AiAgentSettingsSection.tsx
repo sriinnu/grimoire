@@ -220,6 +220,7 @@ function ChitraguptaMcpContractRow({
 /** Renders default AI agent, provider, and model preferences as HIG groups. */
 export function AiAgentSettingsSection({
   t,
+  vaultPath,
   aiAgentsStatus,
   defaultAiAgent,
   setDefaultAiAgent,
@@ -234,6 +235,7 @@ export function AiAgentSettingsSection({
   aiAgentAuthStatus = null,
 }: Pick<SettingsBodyProps,
   | 't'
+  | 'vaultPath'
   | 'aiAgentsStatus'
   | 'defaultAiAgent'
   | 'setDefaultAiAgent'
@@ -379,7 +381,7 @@ export function AiAgentSettingsSection({
 
       <AiProviderKeysCard t={t} hiddenProviderIds={hiddenProviderKeyIds(aiAgentAuthModes)} />
 
-      <ChitraguptaSocketCard t={t} />
+      <ChitraguptaSocketCard t={t} vaultPath={vaultPath} />
     </div>
   )
 }

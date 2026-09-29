@@ -101,16 +101,6 @@ pub fn clear_ai_provider_api_key(provider_id: String) -> Result<Vec<AiProviderKe
 
 // ── Chitragupta daemon socket ────────────────────────────────────────────────
 
-/// Redacted socket readiness. Never carries the token value.
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct ChitraguptaSocketStatus {
-    pub healthy: bool,
-    pub version: Option<String>,
-    pub token_present: bool,
-    pub token_source: crate::ai_provider_keys::AiProviderKeySource,
-    pub base_url: String,
-}
-
 /// Redacted daemon-token readiness returned by save/clear.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ChitraguptaSocketTokenStatus {
@@ -140,65 +130,51 @@ pub fn clear_chitragupta_socket_token() -> Result<ChitraguptaSocketTokenStatus, 
     Ok(chitragupta_socket_token_status())
 }
 
-/// Result of one-click daemon pairing. Never carries the token value.
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct ChitraguptaProvisionResult {
-    pub provisioned: bool,
-    pub connected: bool,
-    pub needs_daemon_refresh: bool,
-}
-
-/// Rotate a Grimoire API key through the Chitragupta CLI, store it in secure
-/// storage, and probe the daemon with it. A 401 right after rotation means
-/// the daemon has not refreshed its key material yet — that is expected, so
-/// it reports `needs_daemon_refresh` instead of failing.
 #[cfg(desktop)]
 #[tauri::command]
-pub async fn provision_chitragupta_socket_token() -> Result<ChitraguptaProvisionResult, String> {
-    tokio::task::spawn_blocking(|| {
-        use crate::chitragupta_socket as socket;
-
-        let secret = crate::ai_agents::rotate_chitragupta_socket_secret()?;
-        crate::ai_provider_keys::save_chitragupta_socket_token(&secret)?;
-
-        let base = socket::socket_base_url();
-        let probe = socket::probe_sessions_auth(&base, &socket::SocketToken::new(secret));
-        let connected = probe == socket::SocketAuthProbe::Connected;
-        Ok(ChitraguptaProvisionResult {
-            provisioned: true,
-            connected,
-            // Unauthorized and unreachable both resolve on the daemon side
-            // once its serve process restarts or refreshes the rotated key.
-            needs_daemon_refresh: !connected,
-        })
+pub async fn provision_chitragupta_socket_token(
+    vault_path: String,
+    pairing_code: Option<String>,
+    pairing_invitation: Option<String>,
+    reconnect: Option<bool>,
+    request_approval: Option<bool>,
+) -> Result<crate::ai_agents::VerticalStatus, String> {
+    tokio::task::spawn_blocking(move || {
+        crate::ai_agents::vertical_status(
+            &vault_path,
+            pairing_code.as_deref(),
+            pairing_invitation.as_deref(),
+            true,
+            reconnect.unwrap_or(false),
+            request_approval.unwrap_or(false),
+        )
     })
     .await
-    .map_err(|error| format!("Pairing task failed: {error}"))?
+    .map_err(|_| "Pairing task failed.")?
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn get_chitragupta_socket_status(
+    vault_path: String,
+) -> Result<crate::ai_agents::VerticalStatus, String> {
+    tokio::task::spawn_blocking(move || {
+        crate::ai_agents::vertical_status(&vault_path, None, None, false, false, false)
+    })
+    .await
+    .map_err(|_| "Connection status task failed.")?
 }
 
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn provision_chitragupta_socket_token() -> Result<ChitraguptaProvisionResult, String> {
-    Err("Chitragupta daemon pairing is not available on mobile.".into())
-}
-
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn get_chitragupta_socket_status() -> Result<ChitraguptaSocketStatus, String> {
-    tokio::task::spawn_blocking(|| {
-        let base_url = crate::chitragupta_socket::socket_base_url();
-        let health = crate::chitragupta_socket::probe_health(&base_url);
-        let token = chitragupta_socket_token_status();
-        ChitraguptaSocketStatus {
-            healthy: health.healthy,
-            version: health.version,
-            token_present: token.token_present,
-            token_source: token.token_source,
-            base_url,
-        }
-    })
-    .await
-    .map_err(|error| format!("Socket status task failed: {error}"))
+pub async fn provision_chitragupta_socket_token(
+    _vault_path: String,
+    _pairing_code: Option<String>,
+    _pairing_invitation: Option<String>,
+    _reconnect: Option<bool>,
+    _request_approval: Option<bool>,
+) -> Result<serde_json::Value, String> {
+    Err("Chitragupta pairing is not available on mobile.".into())
 }
 
 #[cfg(desktop)]
@@ -209,12 +185,13 @@ pub async fn list_chitragupta_note_sessions(
 ) -> Result<Vec<crate::chitragupta_socket::TrimmedChitraguptaSession>, String> {
     tokio::task::spawn_blocking(move || {
         use crate::chitragupta_socket as socket;
-        let token = socket::SocketToken::new(
-            crate::ai_provider_keys::chitragupta_socket_token()
-                .ok_or("Chitragupta daemon token is not configured.")?,
-        );
-        let base = socket::socket_base_url();
-        let sessions = socket::list_sessions(&base, &token, &vault_path, "grimoire")?;
+        let vault_path = crate::ai_agents::canonical_project_path(&vault_path)?;
+        let data = crate::ai_agents::vertical_request(
+            &vault_path,
+            "sessions.list",
+            serde_json::json!({"lineageKey": note_path}),
+        )?;
+        let sessions = socket::extract_session_list(&data);
         Ok(sessions
             .iter()
             .filter(|summary| socket::session_matches_note(summary, &vault_path, &note_path))
@@ -227,29 +204,55 @@ pub async fn list_chitragupta_note_sessions(
 
 #[cfg(desktop)]
 #[tauri::command]
-pub async fn get_chitragupta_session(id: String) -> Result<serde_json::Value, String> {
+pub async fn get_chitragupta_session(
+    id: String,
+    vault_path: String,
+) -> Result<serde_json::Value, String> {
     tokio::task::spawn_blocking(move || {
-        use crate::chitragupta_socket as socket;
-        let token = socket::SocketToken::new(
-            crate::ai_provider_keys::chitragupta_socket_token()
-                .ok_or("Chitragupta daemon token is not configured.")?,
-        );
-        socket::get_session(&socket::socket_base_url(), &token, &id)
+        crate::ai_agents::vertical_request(
+            &vault_path,
+            "sessions.get",
+            serde_json::json!({"sessionId": id}),
+        )
     })
     .await
     .map_err(|error| format!("Session fetch task failed: {error}"))?
 }
 
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn acknowledge_chitragupta_request(
+    vault_path: String,
+    session_id: String,
+    request_id: String,
+) -> Result<serde_json::Value, String> {
+    tokio::task::spawn_blocking(move || {
+        crate::ai_agents::vertical_request(
+            &vault_path,
+            "chat.acknowledge",
+            serde_json::json!({"sessionId": session_id, "requestId": request_id}),
+        )
+    })
+    .await
+    .map_err(|_| "Request acknowledgement task failed.")?
+}
+
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn get_chitragupta_socket_status() -> Result<ChitraguptaSocketStatus, String> {
-    Ok(ChitraguptaSocketStatus {
-        healthy: false,
-        version: None,
-        token_present: false,
-        token_source: crate::ai_provider_keys::AiProviderKeySource::Missing,
-        base_url: crate::chitragupta_socket::socket_base_url(),
-    })
+pub async fn acknowledge_chitragupta_request(
+    _vault_path: String,
+    _session_id: String,
+    _request_id: String,
+) -> Result<serde_json::Value, String> {
+    Err("Chitragupta sessions are not available on mobile.".into())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn get_chitragupta_socket_status(
+    _vault_path: String,
+) -> Result<serde_json::Value, String> {
+    Err("Chitragupta connector is not available on mobile.".into())
 }
 
 #[cfg(mobile)]
@@ -263,7 +266,10 @@ pub async fn list_chitragupta_note_sessions(
 
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn get_chitragupta_session(_id: String) -> Result<serde_json::Value, String> {
+pub async fn get_chitragupta_session(
+    _id: String,
+    _vault_path: String,
+) -> Result<serde_json::Value, String> {
     Err("Chitragupta daemon sessions are not available on mobile.".into())
 }
 

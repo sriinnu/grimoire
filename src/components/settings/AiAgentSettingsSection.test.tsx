@@ -52,6 +52,7 @@ type AiAgentSettingsProps = Parameters<typeof AiAgentSettingsSection>[0]
 function createProps(overrides: Partial<AiAgentSettingsProps> = {}): AiAgentSettingsProps {
   return {
     t: createTranslator('en'),
+    vaultPath: '/vault',
     aiAgentsStatus: installedStatuses,
     defaultAiAgent: 'chitragupta',
     setDefaultAiAgent: vi.fn(),

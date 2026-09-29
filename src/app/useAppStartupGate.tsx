@@ -102,7 +102,7 @@ export function useAppStartupGate(foundation: VaultFoundation): ReactNode | null
   ) {
     return (
       <>
-        <AiAgentsOnboardingView statuses={aiAgentsStatus} onContinue={aiAgentsOnboarding.dismissPrompt} />
+        <AiAgentsOnboardingView vaultPath={resolvedPath ?? onboarding.state.vaultPath} statuses={aiAgentsStatus} onContinue={aiAgentsOnboarding.dismissPrompt} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
       </>
     )

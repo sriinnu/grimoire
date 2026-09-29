@@ -11,22 +11,19 @@ import {
 
 function status(overrides: Partial<ChitraguptaSocketStatus> = {}): ChitraguptaSocketStatus {
   return {
-    healthy: true,
-    version: '0.1.10',
-    token_present: true,
-    token_source: 'keychain',
-    base_url: 'http://127.0.0.1:3141',
+    contractVersion: 1,
+    state: 'ready',
+    projectPath: '/vault',
     ...overrides,
   }
 }
 
 describe('describeChitraguptaSocketStatus', () => {
-  it('reports connected with version, unreachable, and token missing states', () => {
-    expect(describeChitraguptaSocketStatus(status())).toBe('Connected · v0.1.10')
-    expect(describeChitraguptaSocketStatus(status({ healthy: false }))).toBe('Daemon unreachable')
-    expect(describeChitraguptaSocketStatus(status({ token_present: false, token_source: 'missing' })))
-      .toBe('Connected · v0.1.10 · Token missing')
-    expect(describeChitraguptaSocketStatus(null)).toBe('Checking daemon...')
+  it('describes pairing and workspace approval independently', () => {
+    expect(describeChitraguptaSocketStatus(status())).toBe('Connected to this vault')
+    expect(describeChitraguptaSocketStatus(status({ state: 'approval_required' }))).toBe('Paired · Workspace approval required')
+    expect(describeChitraguptaSocketStatus(status({ state: 'pairing_required' }))).toBe('Pairing required')
+    expect(describeChitraguptaSocketStatus(null)).toBe('Checking connection...')
   })
 })
 

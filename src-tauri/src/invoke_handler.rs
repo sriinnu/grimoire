@@ -50,6 +50,7 @@ macro_rules! app_invoke_handler {
             commands::provision_chitragupta_socket_token,
             commands::list_chitragupta_note_sessions,
             commands::get_chitragupta_session,
+            commands::acknowledge_chitragupta_request,
             commands::get_vault_ai_guidance_status,
             commands::restore_vault_ai_guidance,
             commands::stream_claude_chat,

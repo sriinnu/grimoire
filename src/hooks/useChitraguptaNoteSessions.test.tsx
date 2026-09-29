@@ -1,6 +1,7 @@
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useChitraguptaNoteSessions } from './useChitraguptaNoteSessions'
+import { CHITRAGUPTA_HISTORY_REFRESH_EVENT } from '../lib/chitraguptaSocket'
 
 const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
 
@@ -9,21 +10,9 @@ vi.mock('../mock-tauri', () => ({
   mockInvoke,
 }))
 
-const HEALTHY_STATUS = {
-  healthy: true,
-  version: '0.1.10',
-  token_present: true,
-  token_source: 'keychain',
-  base_url: 'http://127.0.0.1:3141',
-}
+const HEALTHY_STATUS = { contractVersion: 1, state: 'ready', projectPath: '/vault' }
 
-const OFFLINE_STATUS = {
-  healthy: false,
-  version: null,
-  token_present: false,
-  token_source: 'missing',
-  base_url: 'http://127.0.0.1:3141',
-}
+const OFFLINE_STATUS = { contractVersion: 1, state: 'approval_required', projectPath: '/vault' }
 
 const SESSION = {
   id: 'ses_1',
@@ -43,7 +32,7 @@ describe('useChitraguptaNoteSessions', () => {
     mockInvoke.mockReset()
   })
 
-  it('fetches sessions only after a healthy status with a token', async () => {
+  it('fetches sessions only after a ready status for the selected vault', async () => {
     mockInvoke.mockImplementation(async (cmd: string) => {
       if (cmd === 'get_chitragupta_socket_status') return HEALTHY_STATUS
       if (cmd === 'list_chitragupta_note_sessions') return [SESSION]
@@ -59,7 +48,7 @@ describe('useChitraguptaNoteSessions', () => {
     expect(listCall?.[1]).toEqual({ vaultPath: '/vault', notePath: 'notes/alpha.md' })
   })
 
-  it('never requests sessions when the daemon is unreachable or has no token', async () => {
+  it('never requests sessions when the workspace approval is pending', async () => {
     mockInvoke.mockImplementation(async (cmd: string) => {
       if (cmd === 'get_chitragupta_socket_status') return OFFLINE_STATUS
       throw new Error(`unexpected command ${cmd}`)
@@ -109,4 +98,19 @@ describe('useChitraguptaNoteSessions', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(result.current.sessions.map((s) => s.id)).toEqual(['ses_beta'])
   })
+  it('refreshes first-chat history on a matching stream completion and ignores other vaults', async () => {
+    let history: typeof SESSION[] = []
+    mockInvoke.mockImplementation(async (command: string) => command === 'get_chitragupta_socket_status' ? HEALTHY_STATUS : history)
+    const { result } = renderHook(() => useChitraguptaNoteSessions('/vault/notes/alpha.md', '/vault', true))
+    await waitFor(() => expect(result.current.status).toEqual(HEALTHY_STATUS))
+    expect(result.current.sessions).toEqual([])
+    act(() => { window.dispatchEvent(new CustomEvent(CHITRAGUPTA_HISTORY_REFRESH_EVENT, { detail: { vaultPath: '/another-vault', notePath: 'notes/alpha.md' } })) })
+    await new Promise((resolve) => setTimeout(resolve, 350))
+    expect(sessionListCalls()).toBe(1)
+    history = [SESSION]
+    act(() => { window.dispatchEvent(new CustomEvent(CHITRAGUPTA_HISTORY_REFRESH_EVENT, { detail: { vaultPath: '/vault', notePath: 'notes/alpha.md' } })) })
+    await waitFor(() => expect(result.current.sessions).toEqual([SESSION]))
+    expect(sessionListCalls()).toBe(2)
+  })
+
 })

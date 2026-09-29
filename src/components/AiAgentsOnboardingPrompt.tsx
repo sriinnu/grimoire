@@ -14,7 +14,8 @@ import {
   type AiAgentsStatus,
 } from '../lib/aiAgents'
 import { AI_AGENTS_STATUS_REFRESH_EVENT } from '../hooks/useAiAgentsStatus'
-import { useChitraguptaPairing } from '../hooks/useChitraguptaPairing'
+import { ChitraguptaSocketCard } from './settings/ChitraguptaSocketCard'
+import { createTranslator } from '../lib/i18n'
 import { openExternalUrl } from '../utils/url'
 import { desktopPlatformLabel, getDesktopPlatform, type DesktopPlatform } from '../utils/platform'
 import { OnboardingShell } from './OnboardingShell'
@@ -23,6 +24,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card'
 
 interface AiAgentsOnboardingPromptProps {
   statuses: AiAgentsStatus
+  vaultPath?: string
   onContinue: () => void
 }
 
@@ -167,80 +169,7 @@ function BrowserPreviewBoundary() {
   )
 }
 
-/**
- * Optional one-click daemon pairing for an installed Chitragupta CLI. Shares
- * the pairing state machine with the Settings card via useChitraguptaPairing.
- * Purely additive: onboarding never blocks on it, and Continue stays live.
- */
-function ChitraguptaDaemonPairing() {
-  const { status, phase, error, connect, checkConnection } = useChitraguptaPairing()
-  const canPair = getDesktopPlatform() === 'macos'
-  const paired = phase === 'connected'
-    || (phase === 'idle' && !!status?.healthy && status.token_present)
-
-  const daemonLine = status === null
-    ? 'Checking the local daemon...'
-    : status.healthy
-      ? `Daemon reachable${status.version ? ` · v${status.version}` : ''}.`
-      : 'Daemon not running. Chat uses the Chitragupta CLI until it starts.'
-
-  return (
-    <div
-      className="mt-2 space-y-2 rounded-md border border-border/70 bg-background/40 px-3 py-2 text-left"
-      data-testid="ai-agents-onboarding-chitragupta-pairing"
-    >
-      <div className="text-[11px] leading-5 text-muted-foreground" data-testid="chitragupta-pairing-daemon">
-        {daemonLine}
-      </div>
-      {error ? (
-        <div className="text-[11px] leading-5 text-[var(--feedback-error-text)]" data-testid="chitragupta-pairing-error">
-          {error} You can paste a token manually in Settings instead.
-        </div>
-      ) : null}
-      {phase === 'waiting' ? (
-        <div className="text-[11px] leading-5 text-muted-foreground" data-testid="chitragupta-pairing-waiting">
-          Key created — waiting for the Chitragupta daemon to refresh.
-        </div>
-      ) : null}
-      {paired ? (
-        <div className="text-[11px] leading-5 text-[var(--feedback-success-text)]" data-testid="chitragupta-pairing-connected">
-          Daemon connected. Sessions thread per note automatically.
-        </div>
-      ) : (
-        <div className="flex flex-wrap items-center gap-2">
-          {canPair ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={phase === 'provisioning'}
-              onClick={() => void connect()}
-              data-testid="chitragupta-pairing-connect"
-            >
-              {phase === 'provisioning' ? 'Connecting...' : 'Connect automatically'}
-            </Button>
-          ) : null}
-          {phase === 'waiting' ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => void checkConnection()}
-              data-testid="chitragupta-pairing-check"
-            >
-              Check connection
-            </Button>
-          ) : null}
-          <span className="text-[11px] leading-5 text-muted-foreground/80">
-            Optional — you can pair later in Settings.
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
+function AgentStatusList({ statuses, vaultPath }: { statuses: AiAgentsStatus; vaultPath?: string }) {
   return (
     <div className="space-y-3">
       {AI_AGENT_DEFINITIONS.map((definition) => {
@@ -259,7 +188,7 @@ function AgentStatusList({ statuses }: { statuses: AiAgentsStatus }) {
               </div>
               {secondaryDetail ? <div className="text-[11px] leading-5 text-muted-foreground/80">{secondaryDetail}</div> : null}
               {definition.id === 'chitragupta' && status.status === 'installed' ? (
-                <ChitraguptaDaemonPairing />
+                <ChitraguptaSocketCard t={createTranslator('en')} vaultPath={vaultPath} />
               ) : null}
             </div>
             <span
@@ -324,6 +253,7 @@ function ScanReceipt({ statuses }: { statuses: AiAgentsStatus }) {
 
 export function AiAgentsOnboardingPrompt({
   statuses,
+  vaultPath,
   onContinue,
 }: AiAgentsOnboardingPromptProps) {
   const copy = getPromptCopy(statuses)
@@ -378,7 +308,7 @@ export function AiAgentsOnboardingPrompt({
               </p>
             </div>
           ) : null}
-          {isBrowserPreview ? <BrowserPreviewBoundary /> : <AgentStatusList statuses={statuses} />}
+          {isBrowserPreview ? <BrowserPreviewBoundary /> : <AgentStatusList statuses={statuses} vaultPath={vaultPath} />}
         </CardContent>
 
         <CardFooter className="flex-wrap justify-center gap-3">

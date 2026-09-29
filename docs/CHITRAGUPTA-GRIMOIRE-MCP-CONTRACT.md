@@ -1,12 +1,12 @@
 # Chitragupta Grimoire MCP Contract
 
-Last updated: 2026-05-25
+Last updated: 2026-09-29
 
 This is the stable MCP contract Grimoire needs from Chitragupta. Grimoire owns the Markdown vault and UI. Chitragupta owns memory, recall, wiki projection, graph intelligence, diagnostics, and model routing.
 
 ## Current Boundary
 
-Grimoire currently has app-side Chitragupta route truth through the local CLI: it launches `chitragupta ask --stream-json`, parses route/status/error events, and shows provider/model disclosure when the CLI emits it. That is not the same as this MCP contract being ready. Recall, wiki, graph-neighborhood, ingest, diagnostics, and source-backed write suggestions remain contract requirements until Chitragupta exposes the stable tools below in a ready state.
+Grimoire source now routes native chat and sessions through the shared `chitragupta vertical` connector described below, retaining provider/model disclosure from its reply. Installed-app and live-runtime verification remain separate. That is not the same as this MCP contract being ready. Recall, wiki, graph-neighborhood, ingest, diagnostics, and source-backed write suggestions remain contract requirements until Chitragupta exposes the stable tools below in a ready state.
 
 ## Required Tools
 
@@ -250,60 +250,101 @@ await call("chitragupta_ingest_markdown", {
 4. `chitragupta_wiki_read`
 5. `chitragupta_graph_neighborhood`
 
-## HTTP Socket Contract (2026-07-16)
+## HTTP and Shared Connector Contract (2026-09-29)
 
-Grimoire now talks to the serve daemon directly at `http://127.0.0.1:3141`
-(override: `GRIMOIRE_CHITRAGUPTA_SOCKET`). The CLI remains the fallback when
-the daemon is unreachable. This section is the live truth for the HTTP
-boundary; the older env-var guidance (`GRIMOIRE_CHITRAGUPTA_TOKEN`,
-`daemon.api-key`) is superseded.
+Grimoire source uses the shared CLI connector for its Chitragupta chat and
+session requests. Chitragupta owns the HTTP authentication, proof keys,
+encrypted credential custody, exact workspace grant, and session bootstrap.
+The default origin remains `http://127.0.0.1:3141`, configurable with
+`GRIMOIRE_CHITRAGUPTA_SOCKET`; this connector slice accepts loopback origins.
+The previous direct bearer-token/`ask` fallback and stdout key-rotation flow
+are superseded. A reachable health endpoint or saved token is not readiness.
 
-### Auth (works today — do not break)
+These are source contracts, not a claim about installed binaries or running
+services. This change does not prove the separate MCP tools above are ready.
 
-- Bearer token, minted per consumer: `chitragupta secret rotate api-key
-  --consumer grimoire --store config`. Grimoire stores its copy in the macOS
-  Keychain (`app.grimoire.ai-provider-keys` / `chitragupta-socket`); env
-  fallback `CHITRAGUPTA_API_KEY`. Never in the repo, never in an .env.
-- 401 = unauthenticated, 403 = authenticated but out of scope. Keep these
-  distinct — Grimoire's status pill relies on it.
+### Pairing and workspace approval
 
-### P0 — needed for a seamless loop
+Open **Chitragupta Hub → Devices → Connect an app**, enter `grimoire`, then use
+its visible six-digit code in **Grimoire Settings → Local AI**. Alternatively,
+paste its invitation link or import its QR image (PNG/JPEG/WebP, up to 16 MB
+and 16 million pixels). Image decoding stays local; no camera, mobile or remote
+transport is implied. Both forms use the same short-lived, single-use app
+challenge; Grimoire clears the submitted proof and never persists it. Hub's
+authenticated operator endpoint `POST /api/operator/app-pairing {app}` creates a purpose-bound
+app challenge; it cannot enroll a Hub/browser identity. The menubar can open
+Hub. The existing terminal six-digit pairing code remains a CLI compatibility
+path.
 
-1. **Hot-reload of `apiKeys`** (or `POST /api/auth/refresh-keys`): today a
-   freshly rotated key 401s until serve restarts, which breaks one-click
-   pairing. Grimoire ships a "waiting for daemon refresh" state as a stopgap.
-2. **Project registration for vaults**: Grimoire sends the vault path as
-   `projectPath` on every call; unregistered paths 403 ("Project path is not
-   allowed on this serve runtime"). Either auto-allow paths for
-   `consumer=grimoire` keys or expose registration (CLI `chitragupta project
-   allow <path>` or `POST /api/projects`) that Grimoire pairing can call.
-3. **Machine-readable error codes**: `{ok:false, error:{code:
-   "PROJECT_NOT_ALLOWED", ...}}` instead of prose-only, so Grimoire can offer
-   the right fix affordance.
-4. **Pinned `/api/chat` response schema**: one canonical text field —
-   `{ok, data:{reply, sessionId, route?}}`. Grimoire currently guesses among
-   six candidate field names; pin it and the guessing is deleted.
-5. **Pinned session summary shape** for `GET /api/sessions`:
-   `{id, title, createdAt, updatedAt, messageCount, gist?, sessionLineageKey,
-   consumer}` — plus a **`lineageKey` query filter** so per-note lists don't
-   fetch-and-filter client-side. Grimoire sets `sessionLineageKey` to the
-   vault-relative note path on every chat.
+```text
+chitragupta vertical connect grimoire --json
+chitragupta vertical status grimoire --json
+chitragupta vertical request grimoire --json
+```
 
-### P1 — big wins
+Other local subprocess apps can run `chitragupta vertical init <app> --output
+<new-directory> --json` to generate a runnable Node 22+ sample with the shared
+compiled adapter and contract declarations. The parent directory must exist;
+reserved app identities, symlinked paths and existing outputs are refused.
+The generated sample needs no npm dependencies and stores no credentials.
 
-6. **Session gists**: a stored one-line summary per session makes the
-   per-note history list actually scannable (requested explicitly).
-7. **Streaming chat**: SSE on `/api/chat` (`Accept: text/event-stream`,
-   `delta {text}` events, `done {sessionId}`) or the blessed WS route —
-   Grimoire will render token-by-token the day it exists.
-8. **HTTP context build**: `POST /api/context/build {query, projectPath,
-   limit}` matching the CLI `context build --json` output — removes the last
-   CLI spawn from the hot path.
-9. **Capabilities in `/api/health`**: e.g. `{chat:{stream}, sessions:
-   {lineageFilter}, context:{http}, projects:{selfRegister}}` — Grimoire
-   feature-detects instead of version-sniffing while the API evolves.
+All inputs travel as JSON on stdin, never as secret-bearing arguments. Common
+fields are `{contractVersion:1, baseUrl, projectPath}`; Grimoire canonicalizes
+its selected vault before invocation. Missing/unavailable vaults report `PROJECT_REQUIRED`.
 
-### P2 — later
+Connect optionally accepts either `pairingCode` or `pairingInvitation`, plus
+`reconnect` and `requestApproval`. Invitation URLs are bounded to 4096 bytes
+and checked for the exact app, configured loopback origin, version and expiry.
+Ordinary Connect reuses credentials. Status has no pairing or grant-creation
+side effects. **Pair again** is an explicit `reconnect:true` action with a fresh
+code or invitation to reauthenticate the retained device; history is preserved.
+A revoked device cannot be resurrected this way. **Request access again**
+explicitly supplies `requestApproval:true` for a denied/revoked/expired workspace grant; it does not grant access itself.
 
-10. WS push for session/memory updates (live-refresh the past-sessions list).
-11. `/api/memory/search` pinned schema for Grimoire's similar-notes surface.
+Success is `{contractVersion:1,ok:true,data:{contractVersion:1,state,projectPath,requestId?,reason?,chatReady?,nextAction?,manifest}}`.
+States are `pairing_required`, `approval_required`, `ready`, `denied`, `revoked`,
+`expired`, `busy`, and `renewal_indeterminate`; optional `reason` is `pairing`
+or `workspace`. `ready` means
+workspace access is connected, not that a model/session is hot. Grimoire shows
+**Connected to this vault**, keeping optional `chatReady` separate. Native
+Grimoire adds its own `selectedVaultPath` to the renderer projection so a
+canonical-path receipt cannot accidentally update another selected vault.
+
+Failures use `{contractVersion:1,ok:false,error:{code,message,retryable,retryAfterMs?,requestId?}}` and a nonzero exit. Grimoire
+fails closed, exposes only safe diagnostics, and never falls back to legacy
+credentials after a rejection. Device proof keys and reusable bearer tokens do not appear in stdout
+or the renderer. The earlier direct HTTP design is superseded; key rotation,
+automatic project allowance, and manual service restarts are not this connection workflow.
+
+### Chat and session requests
+
+Request adds `{operation,params}` to the common input and returns
+`{contractVersion:1,ok:true,data:<operation result>}`:
+
+| Operation | Params | Result used by Grimoire |
+| --- | --- | --- |
+| `chat` | Serialized chat request: `message`, optional `sessionId`, `title`, `provider`, `model`, and vault-relative `sessionLineageKey` | Reply text, session ID, provider/model route |
+| `sessions.list` | `{lineageKey?}` | `{sessions:[...]}` from the scoped index, including optional `connector.pendingRequestId` |
+| `sessions.get` | `{sessionId}` | Owned session transcript and optional `connector.pendingRequestId` |
+| `chat.acknowledge` | `{sessionId,requestId}` | `{sessionId,acknowledgedRequestId}` after exact marker and ownership validation |
+
+History refreshes after a Chitragupta chat completes or fails. **Refresh history**
+is also available when the list is empty. Pending requests appear first, then
+newest sessions; **Show all sessions** makes every older transcript reachable.
+
+The connector supplies authoritative app/device/workspace identity rather
+than trusting identity fields in chat params. A projected note lineage is a
+UI association, not daemon session authority. Session continuation hints in
+Grimoire are scoped by origin, canonical vault, and note. Pairing renewal
+keeps the retained device and continuation history. **Recover connection**
+reconciles `RENEWAL_INDETERMINATE` using the existing durable renewal request.
+If that recovery fails, **Use a fresh code or invitation** explicitly reauthenticates
+the retained device; it never resends chat.
+`BUSY` permits a later manual check; no mutation is retried automatically.
+
+`CHAT_INDETERMINATE` requires review of past-session history. If the transcript
+has `connector.pendingRequestId`, Grimoire offers **Allow a new message**.
+This explicit acknowledgement clears only the verified pending marker. It
+never resends the old request or declares that it completed. Ordinary errors,
+checks, and navigation do not acknowledge requests automatically; asynchronous
+transcript/recovery results are discarded after vault or note changes.

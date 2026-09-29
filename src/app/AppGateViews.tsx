@@ -55,14 +55,16 @@ export function WelcomeView({
 
 export function AiAgentsOnboardingView({
   statuses,
+  vaultPath,
   onContinue,
 }: {
+  vaultPath?: string
   statuses: ReturnType<typeof useAiAgentsStatus>
   onContinue: () => void
 }) {
   return (
     <div className="app-shell">
-      <AiAgentsOnboardingPrompt statuses={statuses} onContinue={onContinue} />
+      <AiAgentsOnboardingPrompt vaultPath={vaultPath} statuses={statuses} onContinue={onContinue} />
     </div>
   )
 }
