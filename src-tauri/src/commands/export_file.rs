@@ -15,7 +15,10 @@ fn validate_export_path(path: &Path) -> Result<(), String> {
     if !ALLOWED_EXTENSIONS.contains(&extension.as_str()) {
         return Err(format!("Cannot export to a .{extension} file"));
     }
-    if path.components().any(|part| matches!(part, std::path::Component::ParentDir)) {
+    if path
+        .components()
+        .any(|part| matches!(part, std::path::Component::ParentDir))
+    {
         return Err("Export path may not contain '..'".to_string());
     }
     if !path.is_absolute() {
@@ -29,9 +32,11 @@ fn validate_export_path(path: &Path) -> Result<(), String> {
 pub fn write_export_file(path: PathBuf, contents: String) -> Result<(), String> {
     validate_export_path(&path)?;
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|error| format!("Could not create {}: {error}", parent.display()))?;
+        std::fs::create_dir_all(parent)
+            .map_err(|error| format!("Could not create {}: {error}", parent.display()))?;
     }
-    std::fs::write(&path, contents).map_err(|error| format!("Could not write {}: {error}", path.display()))
+    std::fs::write(&path, contents)
+        .map_err(|error| format!("Could not write {}: {error}", path.display()))
 }
 
 #[cfg(test)]

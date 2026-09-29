@@ -1,9 +1,9 @@
 mod ai;
 mod code_intelligence;
 mod delete;
+pub mod export_file;
 mod folders;
 mod git;
-pub mod export_file;
 pub mod git_clone;
 mod git_connect;
 mod reveal;
