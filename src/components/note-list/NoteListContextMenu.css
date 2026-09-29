@@ -1,0 +1,163 @@
+/* Note context menu: one column of quiet rows, a check for the current state, no boxes. */
+.note-menu {
+  position: fixed;
+  z-index: 50;
+  max-height: min(320px, calc(100vh - 16px));
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--popover);
+  color: var(--foreground);
+  box-shadow: 0 10px 30px -12px var(--shadow-dialog, transparent);
+}
+
+.note-menu__title {
+  padding: 4px 8px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.note-menu__item {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 12.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.note-menu__item:hover,
+.note-menu__item:focus-visible {
+  background: var(--accent);
+  outline: none;
+}
+
+.note-menu__item:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.note-menu__item:disabled:hover {
+  background: transparent;
+}
+
+.note-menu__icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.note-menu__icon > svg {
+  width: 14px;
+  height: 14px;
+}
+
+.note-menu__item[data-checked='true'] .note-menu__label {
+  font-weight: 500;
+}
+
+.note-menu__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-menu__check {
+  width: 13px;
+  height: 13px;
+  color: var(--primary);
+}
+
+.note-menu__separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+/* Colors: five dots in a row. The current one carries a check; "none" is a hollow dot. */
+.note-menu__colors {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.note-menu__swatch {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--background);
+}
+
+.note-menu__swatch::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.note-menu__swatch--none::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--text-muted);
+}
+
+.note-menu__swatch--none {
+  color: var(--text-muted);
+}
+
+.note-menu__swatch:hover,
+.note-menu__swatch:focus-visible {
+  background: var(--accent);
+  outline: none;
+}
+
+.note-menu__swatch-check {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  stroke-width: 3;
+}
+
+.note-menu__swatch {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .note-menu {
+    animation: note-menu-in 120ms ease-out;
+  }
+}
+
+@keyframes note-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
