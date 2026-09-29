@@ -30,9 +30,9 @@ mod transcription_runtime_discovery;
 pub mod vault;
 pub mod vault_list;
 #[cfg(desktop)]
-mod window_lifecycle;
-#[cfg(desktop)]
 mod vault_watch;
+#[cfg(desktop)]
+mod window_lifecycle;
 
 use std::{ffi::OsStr, process::Command};
 
@@ -457,7 +457,7 @@ pub fn run() {
         .manage(WsBridgeChild(Mutex::new(None)))
         .manage(ActiveAssetScopeRoots(Mutex::new(Vec::new())))
         .manage(vault_watch::VaultWatchState::default())
-        .on_window_event(|window, event| window_lifecycle::handle_window_event(window, event));
+        .on_window_event(window_lifecycle::handle_window_event);
 
     invoke_handler::with_invoke_handler(builder)
         .setup(setup_app)

@@ -76,7 +76,10 @@ pub fn watch_vault(
     if !root.is_dir() {
         return Err("Vault folder is not available to watch.".into());
     }
-    let mut guard = state.0.lock().map_err(|_| "Vault watcher is busy.".to_string())?;
+    let mut guard = state
+        .0
+        .lock()
+        .map_err(|_| "Vault watcher is busy.".to_string())?;
     if let Some((current, _)) = guard.as_ref() {
         if current == &root {
             return Ok(());
@@ -91,7 +94,10 @@ pub fn watch_vault(
         if paths.is_empty() {
             return;
         }
-        let payload = VaultFsChanged { vault_path: vault_for_event.clone(), paths };
+        let payload = VaultFsChanged {
+            vault_path: vault_for_event.clone(),
+            paths,
+        };
         if let Err(error) = emit_target.emit_to("main", VAULT_FS_CHANGED_EVENT, payload) {
             log::warn!("Could not emit vault change event: {error}");
         }
@@ -105,7 +111,10 @@ pub fn watch_vault(
 }
 
 pub fn unwatch_vault(state: tauri::State<'_, VaultWatchState>) -> Result<(), String> {
-    let mut guard = state.0.lock().map_err(|_| "Vault watcher is busy.".to_string())?;
+    let mut guard = state
+        .0
+        .lock()
+        .map_err(|_| "Vault watcher is busy.".to_string())?;
     *guard = None;
     Ok(())
 }

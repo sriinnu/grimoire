@@ -111,7 +111,9 @@ pub fn watch_vault(
 
 #[cfg(desktop)]
 #[tauri::command]
-pub fn unwatch_vault(state: tauri::State<'_, crate::vault_watch::VaultWatchState>) -> Result<(), String> {
+pub fn unwatch_vault(
+    state: tauri::State<'_, crate::vault_watch::VaultWatchState>,
+) -> Result<(), String> {
     crate::vault_watch::unwatch_vault(state)
 }
 
