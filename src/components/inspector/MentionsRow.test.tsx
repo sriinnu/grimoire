@@ -18,6 +18,7 @@ vi.mock('../../lib/bodyIndex/bodyIndex', () => ({
   getBodyIndex: () => ({
     ready: Promise.resolve(),
     pathsMentioning: vi.fn(() => Promise.resolve(['/vault/a.md', '/vault/b.md', '/vault/c.md', '/vault/self.md'])),
+    pathsLinkingTo: vi.fn(() => Promise.resolve(['/vault/c.md'])),
   }),
 }))
 

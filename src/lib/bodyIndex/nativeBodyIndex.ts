@@ -68,6 +68,10 @@ export function createNativeBodyIndex(): BodyIndex & { setVaultPath(path: string
       if (!vaultPath) return []
       return invoke<string[]>('index_mentions', { vaultPath, phrase, limit })
     },
+    async pathsLinkingTo(path: string): Promise<string[]> {
+      if (!vaultPath) return []
+      return invoke<string[]>('index_backlinks', { vaultPath, path })
+    },
     size() {
       const paths = new Set<string>()
       for (const record of getTagSnapshot().tags) for (const path of record.paths) paths.add(path)

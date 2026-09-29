@@ -180,3 +180,36 @@ pub async fn index_mentions(
         .await
         .map_err(|error| format!("Index task failed: {error}"))?
 }
+
+#[tauri::command]
+pub async fn index_backlinks(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+    path: String,
+) -> Result<Vec<String>, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || crate::vault_index::backlinks(&state, std::path::Path::new(&vault_path), &path))
+        .await
+        .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_manifest(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+) -> Result<Vec<crate::vault_index::ManifestEntry>, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || crate::vault_index::manifest(&state, std::path::Path::new(&vault_path)))
+        .await
+        .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+/// Pure: decide what to pull, push, keep as conflicts, or delete. No I/O.
+#[tauri::command]
+pub fn sync_plan(
+    local: Vec<crate::vault_index::ManifestEntry>,
+    remote: Vec<crate::vault_index::ManifestEntry>,
+    base: Option<Vec<crate::vault_index::ManifestEntry>>,
+) -> crate::vault_index::SyncPlan {
+    crate::vault_index::sync_plan(&local, &remote, base.as_deref())
+}

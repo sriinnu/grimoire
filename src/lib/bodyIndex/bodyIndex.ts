@@ -24,6 +24,8 @@ export interface BodyIndex {
   pathsWithTag(tag: Tag): string[]
   allTags(): Array<{ tag: Tag; count: number }>
   pathsMentioning(phrase: string, limit?: number): Promise<string[]>
+  /** Pages whose body links to this path, resolved at index time. Empty where there is no link table. */
+  pathsLinkingTo(path: string): Promise<string[]>
   /** Number of notes currently indexed. */
   size(): number
   dispose(): void
@@ -215,6 +217,7 @@ export function createBodyIndex(options: BodyIndexOptions = {}): BodyIndex {
       return getTagSnapshot().tags.map(({ tag, count }) => ({ tag, count }))
     },
     pathsMentioning: (phrase, limit) => backend.mentions(phrase, limit),
+    pathsLinkingTo: async () => [],
     size: () => indexed.size,
     dispose() {
       disposed = true

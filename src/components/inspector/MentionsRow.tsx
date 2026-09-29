@@ -25,10 +25,11 @@ async function findUnlinkedMentions(entry: VaultEntry, entries: VaultEntry[], co
   const index = getBodyIndex()
   await index.ready
   const names = [entry.title, ...entry.aliases].filter((name) => name.trim().length > 0)
+  const alreadyLinking = new Set(await index.pathsLinkingTo(entry.path))
   const candidatePaths = new Set<string>()
   for (const name of names) {
     for (const path of await index.pathsMentioning(name, MAX_MENTIONS * 2)) {
-      if (path !== entry.path && !connectedPaths.has(path)) candidatePaths.add(path)
+      if (path !== entry.path && !connectedPaths.has(path) && !alreadyLinking.has(path)) candidatePaths.add(path)
     }
   }
   const byPath = new Map(entries.map((candidate) => [candidate.path, candidate]))

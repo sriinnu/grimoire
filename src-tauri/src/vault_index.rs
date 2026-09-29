@@ -13,8 +13,10 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use crate::vault::{self, VaultEntry};
+use serde::Deserialize;
+use sha2::{Digest, Sha256};
 
-const SCHEMA_VERSION: i64 = 1;
+const SCHEMA_VERSION: i64 = 2;
 /// Marks around FTS5 highlights; stripped before the text leaves this module.
 const MARK_OPEN: &str = "\u{1}";
 const MARK_CLOSE: &str = "\u{2}";
@@ -87,7 +89,9 @@ fn open(vault_path: &Path) -> Result<Connection, String> {
            mtime INTEGER NOT NULL,
            title TEXT NOT NULL,
            is_a TEXT,
-           file_kind TEXT NOT NULL
+           file_kind TEXT NOT NULL,
+           size INTEGER NOT NULL DEFAULT 0,
+           hash TEXT NOT NULL DEFAULT ''
          );
          CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(
            path UNINDEXED, title, body,
@@ -95,8 +99,9 @@ fn open(vault_path: &Path) -> Result<Connection, String> {
          );
          CREATE TABLE IF NOT EXISTS tags (path TEXT NOT NULL, tag TEXT NOT NULL, PRIMARY KEY (path, tag));
          CREATE INDEX IF NOT EXISTS tags_by_tag ON tags(tag);
-         CREATE TABLE IF NOT EXISTS links (from_path TEXT NOT NULL, target TEXT NOT NULL, PRIMARY KEY (from_path, target));
-         CREATE INDEX IF NOT EXISTS links_by_target ON links(target);",
+         CREATE TABLE IF NOT EXISTS links (from_path TEXT NOT NULL, target TEXT NOT NULL, to_path TEXT, PRIMARY KEY (from_path, target));
+         CREATE INDEX IF NOT EXISTS links_by_target ON links(target);
+         CREATE INDEX IF NOT EXISTS links_by_to_path ON links(to_path);",
     )
     .map_err(|error| format!("Could not prepare the vault index: {error}"))?;
     let version: Option<String> = conn
@@ -333,6 +338,65 @@ pub fn strip_marks(marked: &str) -> (String, Vec<IndexSearchMatch>) {
     (text, matches)
 }
 
+// ── Link resolution (same rules as the inspector's in-memory lookup) ───────
+
+pub struct LinkLookup {
+    exact: HashMap<String, Vec<String>>,
+    suffix: HashMap<String, Vec<String>>,
+}
+
+impl LinkLookup {
+    pub fn build(entries: &[VaultEntry]) -> Self {
+        let mut exact: HashMap<String, Vec<String>> = HashMap::new();
+        let mut suffix: HashMap<String, Vec<String>> = HashMap::new();
+        for entry in entries {
+            let stem = entry.filename.trim_end_matches(".md").to_string();
+            let mut keys = vec![stem, entry.title.clone()];
+            keys.extend(entry.aliases.iter().cloned());
+            for key in keys {
+                if key.is_empty() {
+                    continue;
+                }
+                exact.entry(key).or_default().push(entry.path.clone());
+            }
+            let no_ext = entry.path.trim_end_matches(".md").trim_start_matches('/');
+            let segments: Vec<&str> = no_ext.split('/').collect();
+            for start in 0..segments.len() {
+                suffix
+                    .entry(segments[start..].join("/").to_lowercase())
+                    .or_default()
+                    .push(entry.path.clone());
+            }
+        }
+        Self { exact, suffix }
+    }
+
+    /// First matching path for a wikilink target, or None when no page exists yet.
+    pub fn resolve(&self, target: &str, from_path: &str) -> Option<String> {
+        let mut candidates: Vec<&String> = Vec::new();
+        if let Some(paths) = self.exact.get(target) {
+            candidates.extend(paths);
+        }
+        if let Some(last) = target.rsplit('/').next() {
+            if let Some(paths) = self.exact.get(last) {
+                candidates.extend(paths);
+            }
+        }
+        if target.contains('/') {
+            if let Some(paths) = self.suffix.get(&target.to_lowercase()) {
+                candidates.extend(paths);
+            }
+        }
+        candidates.into_iter().find(|path| path.as_str() != from_path).cloned()
+    }
+}
+
+pub fn content_hash(content: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(content.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
 // ── Refresh ───────────────────────────────────────────────────────────────
 
 fn indexed_mtimes(conn: &Connection) -> Result<HashMap<String, i64>, String> {
@@ -348,7 +412,7 @@ fn indexed_mtimes(conn: &Connection) -> Result<HashMap<String, i64>, String> {
     Ok(map)
 }
 
-fn index_entry(conn: &Connection, entry: &VaultEntry, content: &str) -> Result<(), String> {
+fn index_entry(conn: &Connection, entry: &VaultEntry, content: &str, lookup: &LinkLookup) -> Result<(), String> {
     let prose = prose_of(content);
     let tags = tags_of(content, &prose);
     let mtime = entry.modified_at.unwrap_or(0) as i64;
@@ -356,8 +420,8 @@ fn index_entry(conn: &Connection, entry: &VaultEntry, content: &str) -> Result<(
     conn.execute("DELETE FROM tags WHERE path = ?1", params![entry.path]).map_err(|e| e.to_string())?;
     conn.execute("DELETE FROM links WHERE from_path = ?1", params![entry.path]).map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT OR REPLACE INTO notes (path, mtime, title, is_a, file_kind) VALUES (?1, ?2, ?3, ?4, ?5)",
-        params![entry.path, mtime, entry.title, entry.is_a, entry.file_kind],
+        "INSERT OR REPLACE INTO notes (path, mtime, title, is_a, file_kind, size, hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+        params![entry.path, mtime, entry.title, entry.is_a, entry.file_kind, content.len() as i64, content_hash(content)],
     )
     .map_err(|e| e.to_string())?;
     conn.execute(
@@ -370,9 +434,10 @@ fn index_entry(conn: &Connection, entry: &VaultEntry, content: &str) -> Result<(
             .map_err(|e| e.to_string())?;
     }
     for target in &entry.outgoing_links {
+        let to_path = lookup.resolve(target, &entry.path);
         conn.execute(
-            "INSERT OR IGNORE INTO links (from_path, target) VALUES (?1, ?2)",
-            params![entry.path, target.to_lowercase()],
+            "INSERT OR IGNORE INTO links (from_path, target, to_path) VALUES (?1, ?2, ?3)",
+            params![entry.path, target.to_lowercase(), to_path],
         )
         .map_err(|e| e.to_string())?;
     }
@@ -398,6 +463,7 @@ pub fn refresh_with(conn: &mut Connection, entries: &[VaultEntry]) -> Result<Ind
     let known = indexed_mtimes(conn)?;
     let mut report = IndexRefreshReport::default();
     let present: HashSet<&str> = entries.iter().map(|entry| entry.path.as_str()).collect();
+    let lookup = LinkLookup::build(entries);
     let transaction = conn.transaction().map_err(|e| e.to_string())?;
     for entry in entries {
         if entry.file_kind != "markdown" {
@@ -410,7 +476,7 @@ pub fn refresh_with(conn: &mut Connection, entries: &[VaultEntry]) -> Result<Ind
         let Ok(content) = std::fs::read_to_string(&entry.path) else {
             continue;
         };
-        index_entry(&transaction, entry, &content)?;
+        index_entry(&transaction, entry, &content, &lookup)?;
         report.indexed += 1;
     }
     for path in known.keys() {
@@ -540,6 +606,145 @@ pub fn mentions(state: &VaultIndexState, vault_path: &Path, phrase: &str, limit:
     with_connection(state, vault_path, |conn| mentions_with(conn, phrase, limit))
 }
 
+// ── Backlinks ─────────────────────────────────────────────────────────────
+
+/// Pages whose body links to `path`, resolved at index time with the same
+/// rules the inspector uses, so the answer is one indexed lookup.
+pub fn backlinks_with(conn: &Connection, path: &str) -> Result<Vec<String>, String> {
+    let mut statement = conn
+        .prepare("SELECT DISTINCT from_path FROM links WHERE to_path = ?1 AND from_path != ?1 ORDER BY from_path")
+        .map_err(|e| e.to_string())?;
+    let rows = statement.query_map(params![path], |row| row.get::<_, String>(0)).map_err(|e| e.to_string())?;
+    rows.map(|row| row.map_err(|e| e.to_string())).collect()
+}
+
+pub fn backlinks(state: &VaultIndexState, vault_path: &Path, path: &str) -> Result<Vec<String>, String> {
+    refresh(state, vault_path)?;
+    with_connection(state, vault_path, |conn| backlinks_with(conn, path))
+}
+
+// ── Sync manifest ─────────────────────────────────────────────────────────
+
+/// What another device needs to know about a note to decide who is newer:
+/// the vault-relative path, the mtime, the size and a content hash.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ManifestEntry {
+    pub path: String,
+    pub mtime: i64,
+    pub size: i64,
+    pub hash: String,
+}
+
+pub fn manifest_with(conn: &Connection, vault_path: &Path) -> Result<Vec<ManifestEntry>, String> {
+    let root = vault_path.to_string_lossy().trim_end_matches('/').to_string();
+    let mut statement = conn
+        .prepare("SELECT path, mtime, size, hash FROM notes WHERE file_kind = 'markdown' ORDER BY path")
+        .map_err(|e| e.to_string())?;
+    let rows = statement
+        .query_map([], |row| {
+            Ok(ManifestEntry {
+                path: row.get::<_, String>(0)?,
+                mtime: row.get::<_, i64>(1)?,
+                size: row.get::<_, i64>(2)?,
+                hash: row.get::<_, String>(3)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    rows.map(|row| {
+        row.map(|mut entry| {
+            if let Some(relative) = entry.path.strip_prefix(&format!("{root}/")) {
+                entry.path = relative.to_string();
+            }
+            entry
+        })
+        .map_err(|e| e.to_string())
+    })
+    .collect()
+}
+
+pub fn manifest(state: &VaultIndexState, vault_path: &Path) -> Result<Vec<ManifestEntry>, String> {
+    refresh(state, vault_path)?;
+    with_connection(state, vault_path, |conn| manifest_with(conn, vault_path))
+}
+
+/// The decision for one sync round. Never silently drops an edit: a note
+/// changed on both sides since the last sync is a conflict, kept as both.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct SyncPlan {
+    /// Remote is newer or new; fetch it.
+    pub pull: Vec<String>,
+    /// Local is newer or new; send it.
+    pub push: Vec<String>,
+    /// Both changed since the last sync and differ; keep both as conflict copies.
+    pub conflicts: Vec<String>,
+    /// Deleted remotely since the last sync and untouched locally.
+    pub delete_local: Vec<String>,
+    /// Deleted locally since the last sync and untouched remotely.
+    pub delete_remote: Vec<String>,
+}
+
+/// Three-way when a `base` (the manifest at the last successful sync) exists;
+/// mtime comparison, hash-equal short circuit, when it does not.
+pub fn sync_plan(local: &[ManifestEntry], remote: &[ManifestEntry], base: Option<&[ManifestEntry]>) -> SyncPlan {
+    let by_path = |list: &[ManifestEntry]| -> BTreeMap<String, ManifestEntry> {
+        list.iter().map(|entry| (entry.path.clone(), entry.clone())).collect()
+    };
+    let local = by_path(local);
+    let remote = by_path(remote);
+    let base = base.map(by_path);
+    let mut plan = SyncPlan::default();
+    let mut paths: Vec<&String> = local.keys().chain(remote.keys()).collect();
+    if let Some(base) = &base {
+        paths.extend(base.keys());
+    }
+    paths.sort();
+    paths.dedup();
+    for path in paths {
+        let l = local.get(path);
+        let r = remote.get(path);
+        let b = base.as_ref().and_then(|base| base.get(path));
+        match (l, r) {
+            (Some(l), Some(r)) => {
+                if l.hash == r.hash {
+                    continue;
+                }
+                match b {
+                    Some(b) => {
+                        let local_changed = l.hash != b.hash;
+                        let remote_changed = r.hash != b.hash;
+                        match (local_changed, remote_changed) {
+                            (true, true) => plan.conflicts.push(path.clone()),
+                            (true, false) => plan.push.push(path.clone()),
+                            (false, true) => plan.pull.push(path.clone()),
+                            (false, false) => {}
+                        }
+                    }
+                    None => {
+                        if l.mtime > r.mtime {
+                            plan.push.push(path.clone());
+                        } else if r.mtime > l.mtime {
+                            plan.pull.push(path.clone());
+                        } else {
+                            plan.conflicts.push(path.clone());
+                        }
+                    }
+                }
+            }
+            (Some(l), None) => match b {
+                // Known at last sync, gone remotely: deleted there unless we edited since.
+                Some(b) if l.hash == b.hash => plan.delete_local.push(path.clone()),
+                _ => plan.push.push(path.clone()),
+            },
+            (None, Some(r)) => match b {
+                Some(b) if r.hash == b.hash => plan.delete_remote.push(path.clone()),
+                _ => plan.pull.push(path.clone()),
+            },
+            (None, None) => {}
+        }
+    }
+    plan
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -600,10 +805,10 @@ mod tests {
         let mut conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(
             "CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-             CREATE TABLE notes (path TEXT PRIMARY KEY, mtime INTEGER NOT NULL, title TEXT NOT NULL, is_a TEXT, file_kind TEXT NOT NULL);
+             CREATE TABLE notes (path TEXT PRIMARY KEY, mtime INTEGER NOT NULL, title TEXT NOT NULL, is_a TEXT, file_kind TEXT NOT NULL, size INTEGER NOT NULL DEFAULT 0, hash TEXT NOT NULL DEFAULT '');
              CREATE VIRTUAL TABLE notes_fts USING fts5(path UNINDEXED, title, body, tokenize = 'unicode61 remove_diacritics 2');
              CREATE TABLE tags (path TEXT NOT NULL, tag TEXT NOT NULL, PRIMARY KEY (path, tag));
-             CREATE TABLE links (from_path TEXT NOT NULL, target TEXT NOT NULL, PRIMARY KEY (from_path, target));",
+             CREATE TABLE links (from_path TEXT NOT NULL, target TEXT NOT NULL, to_path TEXT, PRIMARY KEY (from_path, target));",
         )
         .unwrap();
 
@@ -625,11 +830,63 @@ mod tests {
         let mentioning = mentions_with(&conn, "Alpha", 10).unwrap();
         assert!(mentioning.iter().any(|path| path.ends_with("beta.md")));
 
+        // Alpha links to Beta by title; Beta's backlinks are exactly Alpha.
+        let back = backlinks_with(&conn, b.to_str().unwrap()).unwrap();
+        assert_eq!(back, vec![a.to_str().unwrap().to_string()]);
+        assert!(backlinks_with(&conn, a.to_str().unwrap()).unwrap().is_empty());
+
+        let manifest = manifest_with(&conn, vault).unwrap();
+        assert_eq!(manifest.iter().map(|m| m.path.as_str()).collect::<Vec<_>>(), vec!["alpha.md", "beta.md"]);
+        assert_eq!(manifest[0].hash.len(), 64);
+        assert!(manifest[0].size > 0);
+
         // Beta disappears, Alpha changes: one re-read, one removal.
         std::fs::write(&a, "# Alpha\n\nRewritten.").unwrap();
         let entries = vec![entry(a.to_str().unwrap(), "Alpha", 11, &[])];
         let third = refresh_with(&mut conn, &entries).unwrap();
         assert_eq!((third.indexed, third.removed), (1, 1));
         assert!(search_with(&conn, "grimoire", 10).unwrap().results.is_empty());
+    }
+
+    fn m(path: &str, mtime: i64, hash: &str) -> ManifestEntry {
+        ManifestEntry { path: path.into(), mtime, size: 1, hash: hash.into() }
+    }
+
+    #[test]
+    fn sync_plan_three_way_never_drops_an_edit() {
+        let base = vec![m("a.md", 1, "A"), m("b.md", 1, "B"), m("c.md", 1, "C"), m("d.md", 1, "D")];
+        let local = vec![m("a.md", 5, "A2"), m("b.md", 1, "B"), m("c.md", 5, "C2"), m("e.md", 5, "E")];
+        let remote = vec![m("a.md", 6, "A3"), m("b.md", 6, "B2"), m("d.md", 1, "D"), m("f.md", 6, "F")];
+        let plan = sync_plan(&local, &remote, Some(&base));
+        assert_eq!(plan.conflicts, vec!["a.md"]);          // both changed, differ
+        assert_eq!(plan.pull, vec!["b.md", "f.md"]);        // remote changed / new remote
+        assert_eq!(plan.push, vec!["c.md", "e.md"]);        // gone remotely but edited here / new local
+        assert_eq!(plan.delete_local, Vec::<String>::new());
+        assert_eq!(plan.delete_remote, vec!["d.md"]);       // gone locally, untouched remotely
+    }
+
+    #[test]
+    fn sync_plan_without_a_base_uses_mtime_and_treats_ties_as_conflicts() {
+        let local = vec![m("a.md", 5, "A1"), m("b.md", 1, "B1"), m("c.md", 3, "C1"), m("same.md", 9, "S")];
+        let remote = vec![m("a.md", 2, "A2"), m("b.md", 4, "B2"), m("c.md", 3, "C2"), m("same.md", 1, "S")];
+        let plan = sync_plan(&local, &remote, None);
+        assert_eq!(plan.push, vec!["a.md"]);
+        assert_eq!(plan.pull, vec!["b.md"]);
+        assert_eq!(plan.conflicts, vec!["c.md"]);
+        assert!(plan.delete_local.is_empty() && plan.delete_remote.is_empty());
+    }
+
+    #[test]
+    fn link_lookup_matches_title_stem_alias_and_path_suffix_but_not_self() {
+        let mut a = entry("/v/topic/agent-council.md", "Agent Council", 1, &[]);
+        a.aliases = vec!["Council".into()];
+        let b = entry("/v/notes/b.md", "B", 1, &[]);
+        let lookup = LinkLookup::build(&[a.clone(), b]);
+        assert_eq!(lookup.resolve("Agent Council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
+        assert_eq!(lookup.resolve("agent-council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
+        assert_eq!(lookup.resolve("Council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
+        assert_eq!(lookup.resolve("topic/Agent-Council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
+        assert_eq!(lookup.resolve("Agent Council", "/v/topic/agent-council.md"), None);
+        assert_eq!(lookup.resolve("Nowhere", "/v/notes/b.md"), None);
     }
 }
