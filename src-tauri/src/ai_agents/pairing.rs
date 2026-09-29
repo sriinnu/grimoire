@@ -2,9 +2,9 @@
 //! requests over stdin and consumes only the versioned, redacted CLI contract.
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::io::{Read, Write};
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -171,58 +171,73 @@ fn connector(action: &str, input: &Value) -> Result<Value, String> {
     )
 }
 
-fn run_connector(mut command: Command, input: &Value, timeout: Duration) -> Result<Value, String> {
+fn run_connector(command: Command, input: &Value, timeout: Duration) -> Result<Value, String> {
     let payload = serde_json::to_vec(input).map_err(|_| "Could not encode Chitragupta request.")?;
-    let mut child = command
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .map_err(|_| "Could not start the Chitragupta connector. Update the installed CLI.")?;
-    let mut stdin = child
-        .stdin
-        .take()
-        .ok_or("Chitragupta connector input unavailable.")?;
-    let stdout = child
-        .stdout
-        .take()
-        .ok_or("Chitragupta connector output unavailable.")?;
-    let writer = std::thread::spawn(move || stdin.write_all(&payload));
-    // Drain stdout concurrently so large session transcripts cannot fill the pipe.
-    let reader = std::thread::spawn(move || {
-        let mut data = Vec::new();
-        stdout
-            .take(16 * 1024 * 1024 + 1)
-            .read_to_end(&mut data)
-            .map(|_| data)
-    });
-    let deadline = Instant::now() + timeout;
-    let status = loop {
-        match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) if Instant::now() < deadline => std::thread::sleep(Duration::from_millis(25)),
-            _ => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err(
-                    "Chitragupta connector timed out or stopped. Check its status before retrying."
-                        .into(),
-                );
-            }
-        }
-    };
-    writer
-        .join()
-        .map_err(|_| "Chitragupta connector input failed.")?
-        .map_err(|_| "Chitragupta connector input failed.")?;
-    let output = reader
-        .join()
-        .map_err(|_| "Chitragupta connector output failed.")?
-        .map_err(|_| "Chitragupta connector output failed.")?;
-    if output.len() > 16 * 1024 * 1024 {
-        return Err("Chitragupta connector response is too large.".into());
-    }
-    decode_receipt(status.success(), &output)
+    // Native callers already use a blocking worker. Async pipes make the whole
+    // exchange cancellable, including descriptors retained by a wrapper's child.
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|_| "Could not initialize the Chitragupta connector.")?;
+    runtime.block_on(async move {
+        tokio::time::timeout(timeout, async move {
+            let mut child = tokio::process::Command::from(command)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .kill_on_drop(true)
+                .spawn()
+                .map_err(|_| {
+                    "Could not start the Chitragupta connector. Update the installed CLI."
+                })?;
+            let mut stdin = child
+                .stdin
+                .take()
+                .ok_or("Chitragupta connector input unavailable.")?;
+            let stdout = child
+                .stdout
+                .take()
+                .ok_or("Chitragupta connector output unavailable.")?;
+            let ((), output, status) = tokio::try_join!(
+                async move {
+                    stdin
+                        .write_all(&payload)
+                        .await
+                        .map_err(|_| "Chitragupta connector input failed.")?;
+                    stdin
+                        .shutdown()
+                        .await
+                        .map_err(|_| "Chitragupta connector input failed.")
+                },
+                async move {
+                    let mut output = Vec::new();
+                    stdout
+                        .take(16 * 1024 * 1024 + 1)
+                        .read_to_end(&mut output)
+                        .await
+                        .map_err(|_| "Chitragupta connector output failed.")?;
+                    if output.len() > 16 * 1024 * 1024 {
+                        return Err("Chitragupta connector response is too large.");
+                    }
+                    Ok(output)
+                },
+                async {
+                    child
+                        .wait()
+                        .await
+                        .map_err(|_| "Chitragupta connector stopped.")
+                },
+            )?;
+            decode_receipt(status.success(), &output)
+        })
+        .await
+        .unwrap_or_else(|_| {
+            Err(
+                "Chitragupta connector timed out or stopped. Check its status before retrying."
+                    .into(),
+            )
+        })
+    })
 }
 
 fn decode_receipt(success: bool, output: &[u8]) -> Result<Value, String> {
@@ -256,121 +271,5 @@ fn decode_receipt(success: bool, output: &[u8]) -> Result<Value, String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[cfg(unix)]
-    #[test]
-    fn selected_vault_aliases_use_one_canonical_workspace() {
-        let directory = tempfile::tempdir().unwrap();
-        let vault = directory.path().join("vault");
-        std::fs::create_dir(&vault).unwrap();
-        let alias = directory.path().join("alias");
-        std::os::unix::fs::symlink(&vault, &alias).unwrap();
-        let selected = format!("{}/", alias.display());
-        let input = input_for_project(&selected).unwrap();
-        assert_eq!(
-            input["projectPath"],
-            json!(std::fs::canonicalize(&vault).unwrap())
-        );
-        assert!(input_for_project("")
-            .unwrap_err()
-            .starts_with("PROJECT_REQUIRED:"));
-        assert!(
-            input_for_project(directory.path().join("missing").to_str().unwrap())
-                .unwrap_err()
-                .starts_with("PROJECT_REQUIRED:")
-        );
-    }
-
-    #[test]
-    fn status_manifest_binds_the_exact_app_origin_and_workspace() {
-        let input = json!({"baseUrl":"http://localhost:3141/", "projectPath":"/vault"});
-        let receipt = json!({"manifest": {
-            "contractVersion":1, "verticalId":"grimoire", "runtimeProfileId":"app-consumer",
-            "connection":{"transport":"cli-connector", "httpBaseUrl":"http://localhost:3141"},
-            "attachment":{"consumer":"grimoire", "surface":"grimoire-native", "projectPath":"/vault"}
-        }});
-        assert_eq!(
-            validate_status_manifest(&receipt, &input).unwrap(),
-            "http://localhost:3141"
-        );
-        assert!(validate_status_manifest(&json!({"manifest":{}}), &input)
-            .unwrap_err()
-            .starts_with("STALE_RESPONSE:"));
-        for (pointer, replacement) in [
-            ("/manifest/contractVersion", json!(2)),
-            ("/manifest/verticalId", json!("other-app")),
-            ("/manifest/runtimeProfileId", json!("hub-browser")),
-            ("/manifest/connection/transport", json!("daemon-rpc")),
-            (
-                "/manifest/connection/httpBaseUrl",
-                json!("http://127.0.0.1:3141"),
-            ),
-            ("/manifest/attachment/consumer", json!("other-app")),
-            ("/manifest/attachment/surface", json!("grimoire-web")),
-            ("/manifest/attachment/projectPath", json!("/other-vault")),
-        ] {
-            let mut wrong = receipt.clone();
-            *wrong.pointer_mut(pointer).unwrap() = replacement;
-            assert!(
-                validate_status_manifest(&wrong, &input)
-                    .unwrap_err()
-                    .starts_with("STALE_RESPONSE:"),
-                "{pointer}"
-            );
-        }
-    }
-
-    #[test]
-    fn receipts_fail_closed_without_exposing_cli_output() {
-        for (success, receipt) in [
-            (false, r#"{"contractVersion":1,"ok":true,"data":{}}"#),
-            (
-                true,
-                r#"{"contractVersion":1,"ok":false,"error":{"message":"private-material"}}"#,
-            ),
-            (true, "private-material"),
-            (true, r#"{"ok":true,"data":{}}"#),
-            (true, r#"{"contractVersion":1,"ok":true}"#),
-        ] {
-            let error = decode_receipt(success, receipt.as_bytes()).unwrap_err();
-            assert!(!error.contains("private-material"));
-        }
-        for code in [
-            "PAIRING_REJECTED",
-            "PAIRING_REQUIRED",
-            "PAIRING_EXPIRED",
-            "REPAIR_REQUIRED",
-        ] {
-            let receipt = json!({"contractVersion": 1, "ok": false, "error": {"code": code, "message": "private-material"}});
-            let error = decode_receipt(false, &serde_json::to_vec(&receipt).unwrap()).unwrap_err();
-            assert!(
-                error.starts_with("REPAIR_REQUIRED:"),
-                "{code} must offer explicit re-pairing"
-            );
-            assert!(!error.contains("private-material"));
-        }
-        assert_eq!(
-            decode_receipt(
-                true,
-                br#"{"contractVersion":1,"ok":true,"data":{"text":"reply"}}"#
-            )
-            .unwrap(),
-            json!({"text":"reply"})
-        );
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn connector_supplies_input_privately_and_drains_large_output() {
-        let mut command = Command::new("/bin/sh");
-        command.args(["-c", "read payload; test \"$payload\" = '{\"pairingCode\":\"123456\"}' || exit 2; printf '{\"contractVersion\":1,\"ok\":true,\"data\":\"'; head -c 100000 /dev/zero | tr '\\0' x; printf '\"}'"]);
-        let result = run_connector(
-            command,
-            &json!({"pairingCode":"123456"}),
-            Duration::from_secs(3),
-        );
-        assert_eq!(result.unwrap().as_str().unwrap().len(), 100000);
-    }
-}
+#[path = "pairing_tests.rs"]
+mod tests;

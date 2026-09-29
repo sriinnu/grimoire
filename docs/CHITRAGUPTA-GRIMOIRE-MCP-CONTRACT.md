@@ -291,6 +291,10 @@ The generated sample needs no npm dependencies and stores no credentials.
 All inputs travel as JSON on stdin, never as secret-bearing arguments. Common
 fields are `{contractVersion:1, baseUrl, projectPath}`; Grimoire canonicalizes
 its selected vault before invocation. Missing/unavailable vaults report `PROJECT_REQUIRED`.
+The native bridge bounds the entire subprocess exchange, including stdin and
+stdout completion, to 30 seconds for connection/status and 300 seconds for
+requests. A wrapper exiting while its descendants retain a pipe cannot leave
+the UI waiting indefinitely. Timeout never triggers automatic replay.
 
 Connect optionally accepts either `pairingCode` or `pairingInvitation`, plus
 `reconnect` and `requestApproval`. Invitation URLs are bounded to 4096 bytes
