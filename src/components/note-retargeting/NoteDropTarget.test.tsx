@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { DraggableNoteItem } from './DraggableNoteItem'
 import { NoteDropTarget } from './NoteDropTarget'
 import { clearDraggedNotePath } from './noteDragData'
@@ -49,8 +49,13 @@ function serializedDragData(dataTransfer: DataTransfer) {
 }
 
 describe('NoteDropTarget', () => {
-  afterEach(() => {
+  afterEach(async () => {
     clearDraggedNotePath()
+    // DraggableNoteItem unmounts its drag-image root two frames after dragstart;
+    // let that happen while jsdom is still alive, or react-dom throws after teardown.
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    })
   })
 
   it('keeps a note drag valid when dragover cannot read DataTransfer payloads', async () => {
