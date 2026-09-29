@@ -73,7 +73,7 @@ export const SA_TRANSLATIONS: Partial<Record<TranslationKey, string>> = {
   ...SA_WORKFLOW_RUNWAY_TRANSLATIONS,
   ...SA_PROOF_LEDGER_TRANSLATIONS,
   ...SA_PROOF_LEDGER_FAILURE_TRANSLATIONS,
-  'settings.footerShortcut': '⌘↵ रक्षतु · Esc पिधताम्',
+  'settings.footerShortcut': '{save} रक्षतु · {close} पिधताम्',
   'settings.cancel': 'निरस्यतु',
   'settings.save': 'रक्षतु',
   'locale.en': 'आङ्ग्लभाषा',

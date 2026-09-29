@@ -1,3 +1,4 @@
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { ListTree } from 'lucide-react'
 import { Glyph } from './glyphs/Glyph'
@@ -138,7 +139,7 @@ export function EditorNavigatorControls({
             variant="ghost"
             size="icon-sm"
             className="editor-navigator-controls__button"
-            title="Search this note (⌘F)"
+            title={`Search this note (${formatShortcutDisplay({ display: '⌘F' })})`}
             aria-label="Search this note"
             data-icon-intent="navigation"
             onClick={() => openNavigator('search')}

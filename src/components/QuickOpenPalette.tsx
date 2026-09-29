@@ -1,3 +1,4 @@
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import type { VaultEntry } from '../types'
 import { NoteSearchList } from './NoteSearchList'
@@ -105,7 +106,7 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
           >
             <span className="text-muted-foreground">No matching pages —</span>
             <span className="font-semibold">Create “{createTitle}”</span>
-            <kbd className="ml-auto text-[11px] text-muted-foreground">↵</kbd>
+            <kbd className="ml-auto text-[11px] text-muted-foreground">{formatShortcutDisplay({ display: '↵' })}</kbd>
           </button>
         ) : null}
       </div>

@@ -1,3 +1,4 @@
+import { formatShortcutDisplay, formatShortcutHint } from '../../hooks/appCommandCatalog'
 import { X } from '@phosphor-icons/react'
 import { DialogDescription, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
@@ -37,10 +38,13 @@ export function SettingsFooter({
   onSave: () => void
   t: SettingsTranslate
 }) {
+  const saveHint = formatShortcutHint('⌘↵')
   return (
     <div className="settings-panel-footer flex h-14 shrink-0 items-center justify-between border-t px-6">
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="settings-panel-footer__shortcut text-[11px]">{t('settings.footerShortcut')}</span>
+        {saveHint ? (
+          <span className="settings-panel-footer__shortcut text-[11px]">{t('settings.footerShortcut', { save: saveHint, close: formatShortcutDisplay({ display: '⎋' }) })}</span>
+        ) : null}
         <span
           className="settings-panel-footer__build text-[10px] text-muted-foreground tabular-nums"
           data-testid="settings-build-stamp"

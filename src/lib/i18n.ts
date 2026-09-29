@@ -256,7 +256,7 @@ const EN_TRANSLATIONS = {
   'settings.privacy.analytics': 'Usage analytics',
   'settings.privacy.analyticsDescription': 'Share anonymous usage patterns',
   ...EN_PRIVACY_RUNWAY_TRANSLATIONS,
-  'settings.footerShortcut': '⌘↵ to save · Esc to close',
+  'settings.footerShortcut': '{save} to save · {close} to close',
   'settings.cancel': 'Cancel',
   'settings.save': 'Save',
 

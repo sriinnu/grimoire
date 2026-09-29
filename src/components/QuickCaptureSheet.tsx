@@ -1,7 +1,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { APP_STORAGE_KEYS } from '../constants/appStorage'
-import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
+import { formatShortcutDisplay, formatShortcutHint } from '../hooks/appCommandCatalog'
 
 interface QuickCaptureSheetProps {
   open: boolean
@@ -97,9 +97,11 @@ export function QuickCaptureSheet({ open, onClose, onSave }: QuickCaptureSheetPr
         />
         <div className="flex items-center justify-between text-[11px] text-[var(--muted-foreground)]">
           <span>Today's journal</span>
-          <span>
-            <kbd className="font-sans">{formatShortcutDisplay({ display: '⌘↵' })}</kbd> save · <kbd className="font-sans">esc</kbd> close
-          </span>
+          {formatShortcutHint('⌘↵') ? (
+            <span>
+              <kbd className="font-sans">{formatShortcutDisplay({ display: '⌘↵' })}</kbd> save · <kbd className="font-sans">{formatShortcutDisplay({ display: '⎋' })}</kbd> close
+            </span>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

@@ -1,4 +1,4 @@
-import { isMac } from '../utils/platform'
+import { isMac, isTouchPlatform } from '../utils/platform'
 import {
   APP_COMMAND_DEFINITIONS,
   MANUAL_NATIVE_ACCELERATOR_QA_COMMAND_SET,
@@ -154,19 +154,47 @@ export function findShortcutCommandIdForEvent(event: ShortcutEventLike): AppComm
   return null
 }
 
+const NON_MAC_KEY_NAMES: Record<string, string> = {
+  '⌫': 'Backspace', '⌦': 'Delete', '←': 'Left', '→': 'Right', '↑': 'Up', '↓': 'Down', '↵': 'Enter', '⇥': 'Tab', '⎋': 'Esc',
+}
+
+/** One chord like ⌘⌥⇧K: modifiers in Ctrl+Alt+Shift order, then the key, on Windows and Linux. */
+function formatChordForNonMac(chord: string): string {
+  const modifiers: string[] = []
+  let rest = chord
+  const push = (name: string) => { if (!modifiers.includes(name)) modifiers.push(name) }
+  while (rest.length > 0) {
+    const glyph = rest[0]
+    if (glyph === '⌘' || glyph === '⌃') push('Ctrl')
+    else if (glyph === '⌥') push('Alt')
+    else if (glyph === '⇧') push('Shift')
+    else break
+    rest = rest.slice(1)
+  }
+  const order = ['Ctrl', 'Alt', 'Shift']
+  modifiers.sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  const key = rest.split('').map((char) => NON_MAC_KEY_NAMES[char] ?? char).join('')
+  return [...modifiers, key].filter(Boolean).join('+')
+}
+
+/**
+ * The display string is authored with Mac glyphs. On Windows and Linux it
+ * becomes Ctrl+Alt+Shift+Key; alternatives separated by " / " are kept.
+ */
 export function formatShortcutDisplay(
   shortcut: Pick<AppCommandShortcutDefinition, 'display'>,
 ): string {
-  if (isMac()) return shortcut.display
-
+  if (isMac() && !isTouchPlatform()) return shortcut.display
   return shortcut.display
-    .replaceAll('⌘⇧', 'Ctrl+Shift+')
-    .replaceAll('⌘', 'Ctrl+')
-    .replaceAll('⌫', 'Backspace')
-    .replaceAll('⌦', 'Delete')
-    .replaceAll('←', 'Left')
-    .replaceAll('→', 'Right')
-    .replaceAll('↵', 'Enter')
+    .split(' / ')
+    .map((chord) => formatChordForNonMac(chord.trim()))
+    .join(' / ')
+}
+
+/** A hint for a footer or tooltip: null on touch platforms, where there is no chord to press. */
+export function formatShortcutHint(display: string): string | null {
+  if (isTouchPlatform()) return null
+  return formatShortcutDisplay({ display })
 }
 
 export function getAppCommandShortcutDisplay(id: AppCommandId): string | undefined {

@@ -1,5 +1,6 @@
 import { SlidersHorizontal, X, PencilSimple } from '@phosphor-icons/react'
 import { useDragRegion } from '../../hooks/useDragRegion'
+import { formatShortcutDisplay } from '../../hooks/appCommandCatalog'
 import { Glyph } from '@/components/glyphs/Glyph'
 
 export function InspectorHeader({ collapsed, onToggle, subtitle }: { collapsed: boolean; onToggle: () => void; subtitle?: string | null }) {
@@ -15,7 +16,7 @@ export function InspectorHeader({ collapsed, onToggle, subtitle }: { collapsed: 
         <button
           className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground"
           onClick={onToggle}
-          title="Properties (⌘⇧I)"
+          title={`Properties (${formatShortcutDisplay({ display: '⌘⇧I' })})`}
           aria-label="Open Second Brain properties"
           data-icon-intent="ai"
         >
@@ -33,7 +34,7 @@ export function InspectorHeader({ collapsed, onToggle, subtitle }: { collapsed: 
           <button
             className="shrink-0 border-none bg-transparent p-1 text-muted-foreground cursor-pointer hover:text-foreground"
             onClick={onToggle}
-            title="Close Second Brain (⌘⇧I)"
+            title={`Close Second Brain (${formatShortcutDisplay({ display: '⌘⇧I' })})`}
             aria-label="Close Second Brain"
             data-icon-intent="neutral"
           >
