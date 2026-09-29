@@ -1,9 +1,11 @@
+import { markLocalWrite } from '../lib/localWriteLedger'
 import { useCallback } from 'react'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke, updateMockContent } from '../mock-tauri'
 import { cacheNoteContent } from './useTabManagement'
 
 export async function persistContent(path: string, content: string): Promise<void> {
+  markLocalWrite(path)
   if (isTauri()) {
     await invoke('save_note_content', { path, content })
   } else {

@@ -390,6 +390,7 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     && (loadState.path !== vaultPath || loadState.status === 'loading')
 
   return {
+    pendingSavePaths: pendingSave.pendingSavePaths,
     entries, folders, views, modifiedFiles, modifiedFilesError,
     addEntry, updateEntry, removeEntry, removeEntries, removeEntriesByPrefix, replaceEntry,
     loadModifiedFiles, loadGitHistory, loadDiff, loadDiffAtCommit,

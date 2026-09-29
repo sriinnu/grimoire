@@ -9,6 +9,8 @@ macro_rules! app_invoke_handler {
             commands::create_note_content,
             commands::save_note_content,
             commands::write_export_file,
+            commands::watch_vault,
+            commands::unwatch_vault,
             commands::update_frontmatter,
             commands::delete_frontmatter_property,
             commands::rename_note,

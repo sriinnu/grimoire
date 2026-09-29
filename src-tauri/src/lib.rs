@@ -31,6 +31,8 @@ pub mod vault;
 pub mod vault_list;
 #[cfg(desktop)]
 mod window_lifecycle;
+#[cfg(desktop)]
+mod vault_watch;
 
 use std::{ffi::OsStr, process::Command};
 
@@ -453,7 +455,9 @@ pub fn run() {
     #[cfg(desktop)]
     let builder = builder
         .manage(WsBridgeChild(Mutex::new(None)))
-        .manage(ActiveAssetScopeRoots(Mutex::new(Vec::new())));
+        .manage(ActiveAssetScopeRoots(Mutex::new(Vec::new())))
+        .manage(vault_watch::VaultWatchState::default())
+        .on_window_event(|window, event| window_lifecycle::handle_window_event(window, event));
 
     invoke_handler::with_invoke_handler(builder)
         .setup(setup_app)

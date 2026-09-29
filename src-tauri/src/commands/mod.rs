@@ -98,3 +98,31 @@ mod tests {
         assert_eq!(result, "/home/~user/path");
     }
 }
+
+#[cfg(desktop)]
+#[tauri::command]
+pub fn watch_vault(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, crate::vault_watch::VaultWatchState>,
+    vault_path: String,
+) -> Result<(), String> {
+    crate::vault_watch::watch_vault(app, state, vault_path)
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub fn unwatch_vault(state: tauri::State<'_, crate::vault_watch::VaultWatchState>) -> Result<(), String> {
+    crate::vault_watch::unwatch_vault(state)
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn watch_vault(_vault_path: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn unwatch_vault() -> Result<(), String> {
+    Ok(())
+}

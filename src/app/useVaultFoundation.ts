@@ -1,3 +1,4 @@
+import { useVaultWatcher } from './useVaultWatcher'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAiAgentPreferences } from '../hooks/useAiAgentPreferences'
 import { useAppearanceSettings } from '../hooks/useAppearanceSettings'
@@ -115,6 +116,11 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
   }, [gitCapabilityUpdating, hasGitMetadata, persistActiveVaultSyncProvider, resolvedPath, setToastMessage])
 
   const vault = useVaultLoader(noteWindowParams ? '' : resolvedPath, { isGitVault })
+  useVaultWatcher({
+    vaultPath: noteWindowParams ? null : resolvedPath,
+    pendingSavePaths: vault.pendingSavePaths,
+    reloadVaultSoft: vault.reloadVaultSoft,
+  })
   const handleStatusBarSwitchVault = useCallback((path: string) => {
     if (!path || path === resolvedPath) return
     const label = vaultSwitcher.allVaults.find((option) => option.path === path)?.label ?? labelFromVaultPath(path)
