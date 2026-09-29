@@ -1,5 +1,7 @@
 use super::AiAgentStreamRequest;
 
+// Legacy `ask` route, superseded by `vertical request`; test-only for now.
+#[cfg(test)]
 pub(super) fn build_chitragupta_args(request: &AiAgentStreamRequest) -> Vec<String> {
     let mut args = vec![
         "ask".into(),

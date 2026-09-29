@@ -427,8 +427,11 @@ fn health_cache() -> &'static Mutex<Option<HealthCacheEntry>> {
     CACHE.get_or_init(|| Mutex::new(None))
 }
 
-fn session_ids() -> &'static Mutex<HashMap<(String, String, String), String>> {
-    static IDS: OnceLock<Mutex<HashMap<(String, String, String), String>>> = OnceLock::new();
+/// (origin, vault, note) -> Chitragupta session id.
+type SessionIdMap = HashMap<(String, String, String), String>;
+
+fn session_ids() -> &'static Mutex<SessionIdMap> {
+    static IDS: OnceLock<Mutex<SessionIdMap>> = OnceLock::new();
     IDS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
