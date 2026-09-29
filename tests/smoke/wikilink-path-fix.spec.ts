@@ -26,12 +26,12 @@ async function insertWikilink(page: Page) {
   await expect(suggestionMenu).toBeVisible({ timeout: 5000 })
   const item = suggestionMenu.getByText(INSERTED_WIKILINK_TITLE, { exact: true })
   await expect(item).toBeVisible({ timeout: 5000 })
-  // Let the menu settle: the same item count on two consecutive frames.
+  // Let the menu settle: the item sits in the same place on two consecutive frames.
   await expect.poll(async () => {
-    const before = await suggestionMenu.locator('[role="option"], li, button').count()
+    const before = await item.boundingBox()
     await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
-    const after = await suggestionMenu.locator('[role="option"], li, button').count()
-    return before > 0 && before === after
+    const after = await item.boundingBox()
+    return Boolean(before && after && before.x === after.x && before.y === after.y)
   }, { timeout: 5000 }).toBe(true)
   const matchingWikilinks = editor.locator('.wikilink').filter({ hasText: INSERTED_WIKILINK_TITLE })
   const existingCount = await matchingWikilinks.count()
