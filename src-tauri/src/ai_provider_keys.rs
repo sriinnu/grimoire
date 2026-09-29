@@ -146,7 +146,11 @@ pub fn apply_provider_keys_to_command(command: &mut Command, agent: AiAgentId) {
     apply_provider_keys_with_mode(command, agent, ai_agent_auth_mode(agent));
 }
 
-pub fn apply_provider_keys_with_mode(command: &mut Command, agent: AiAgentId, mode: AiAgentAuthMode) {
+pub fn apply_provider_keys_with_mode(
+    command: &mut Command,
+    agent: AiAgentId,
+    mode: AiAgentAuthMode,
+) {
     for env_var in agent_provider_key_env_vars(agent) {
         match mode {
             AiAgentAuthMode::Subscription => {
@@ -358,11 +362,18 @@ mod tests {
     fn subscription_mode_strips_inherited_keys_from_the_child() {
         let mut command = Command::new("true");
         command.env("ANTHROPIC_API_KEY", "inherited");
-        apply_provider_keys_with_mode(&mut command, AiAgentId::ClaudeCode, AiAgentAuthMode::Subscription);
+        apply_provider_keys_with_mode(
+            &mut command,
+            AiAgentId::ClaudeCode,
+            AiAgentAuthMode::Subscription,
+        );
         let removed = command
             .get_envs()
             .any(|(key, value)| key == "ANTHROPIC_API_KEY" && value.is_none());
-        assert!(removed, "ANTHROPIC_API_KEY should be removed for a subscription login");
+        assert!(
+            removed,
+            "ANTHROPIC_API_KEY should be removed for a subscription login"
+        );
     }
 
     #[test]

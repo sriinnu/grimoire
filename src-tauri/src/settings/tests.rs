@@ -49,7 +49,10 @@ fn test_settings_json_roundtrip() {
             "chitragupta".to_string(),
             "openai".to_string(),
         )])),
-        ai_agent_auth_modes: Some(BTreeMap::from([("codex".to_string(), "api_key".to_string())])),
+        ai_agent_auth_modes: Some(BTreeMap::from([(
+            "codex".to_string(),
+            "api_key".to_string(),
+        )])),
         transcription_provider: Some("local_voice_model".to_string()),
         cloud_transcription_enabled: Some(false),
     };

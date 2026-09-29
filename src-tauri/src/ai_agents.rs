@@ -7,9 +7,9 @@ mod pairing;
 mod path_env;
 mod process_stream;
 
+pub use auth_status::{get_ai_agent_auth_status, AiAgentsAuthStatus};
 #[cfg(desktop)]
 pub use pairing::rotate_chitragupta_socket_secret;
-pub use auth_status::{get_ai_agent_auth_status, AiAgentsAuthStatus};
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;

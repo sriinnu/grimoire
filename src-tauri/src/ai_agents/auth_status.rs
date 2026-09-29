@@ -70,7 +70,10 @@ pub fn parse_claude_auth_status(stdout: &str) -> AiAgentAuthStatus {
             }
         }
     };
-    let signed_in = json.get("loggedIn").and_then(|v| v.as_bool()).unwrap_or(false);
+    let signed_in = json
+        .get("loggedIn")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
     if !signed_in {
         return AiAgentAuthStatus {
             signed_in: false,
@@ -78,7 +81,10 @@ pub fn parse_claude_auth_status(stdout: &str) -> AiAgentAuthStatus {
             detail: Some("Not signed in. Run `claude` in Terminal and log in.".into()),
         };
     }
-    let auth_method = json.get("authMethod").and_then(|v| v.as_str()).unwrap_or("");
+    let auth_method = json
+        .get("authMethod")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
     let subscription = json.get("subscriptionType").and_then(|v| v.as_str());
     let is_subscription = auth_method == "claude.ai";
     let detail = match (is_subscription, subscription) {
@@ -88,14 +94,25 @@ pub fn parse_claude_auth_status(stdout: &str) -> AiAgentAuthStatus {
     };
     AiAgentAuthStatus {
         signed_in: true,
-        method: Some(if is_subscription { "subscription" } else { "api_key" }.into()),
+        method: Some(
+            if is_subscription {
+                "subscription"
+            } else {
+                "api_key"
+            }
+            .into(),
+        ),
         detail: Some(detail),
     }
 }
 
 fn codex_auth_status(auth_file: Option<PathBuf>) -> AiAgentAuthStatus {
     let Some(path) = auth_file else {
-        return AiAgentAuthStatus { signed_in: false, method: None, detail: Some("No home directory.".into()) };
+        return AiAgentAuthStatus {
+            signed_in: false,
+            method: None,
+            detail: Some("No home directory.".into()),
+        };
     };
     match std::fs::read_to_string(&path) {
         Ok(contents) => parse_codex_auth_file(&contents),
@@ -152,10 +169,15 @@ mod tests {
 
     #[test]
     fn claude_subscription_login_is_reported() {
-        let status = parse_claude_auth_status(r#"{"loggedIn":true,"authMethod":"claude.ai","subscriptionType":"max"}"#);
+        let status = parse_claude_auth_status(
+            r#"{"loggedIn":true,"authMethod":"claude.ai","subscriptionType":"max"}"#,
+        );
         assert!(status.signed_in);
         assert_eq!(status.method.as_deref(), Some("subscription"));
-        assert_eq!(status.detail.as_deref(), Some("Signed in with claude.ai (max)"));
+        assert_eq!(
+            status.detail.as_deref(),
+            Some("Signed in with claude.ai (max)")
+        );
     }
 
     #[test]
@@ -166,14 +188,18 @@ mod tests {
 
     #[test]
     fn codex_chatgpt_login_is_a_subscription() {
-        let status = parse_codex_auth_file(r#"{"auth_mode":"chatgpt","OPENAI_API_KEY":null,"tokens":{"access_token":"x"}}"#);
+        let status = parse_codex_auth_file(
+            r#"{"auth_mode":"chatgpt","OPENAI_API_KEY":null,"tokens":{"access_token":"x"}}"#,
+        );
         assert!(status.signed_in);
         assert_eq!(status.method.as_deref(), Some("subscription"));
     }
 
     #[test]
     fn codex_key_login_and_empty_file_are_distinguished() {
-        let key = parse_codex_auth_file(r#"{"auth_mode":"apikey","OPENAI_API_KEY":"sk-test","tokens":null}"#);
+        let key = parse_codex_auth_file(
+            r#"{"auth_mode":"apikey","OPENAI_API_KEY":"sk-test","tokens":null}"#,
+        );
         assert_eq!(key.method.as_deref(), Some("api_key"));
         assert!(!parse_codex_auth_file(r#"{"auth_mode":"chatgpt","tokens":null}"#).signed_in);
     }

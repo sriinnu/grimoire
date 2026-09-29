@@ -398,8 +398,14 @@ mod ai_agent_auth_mode_tests {
         input.insert("nope".to_string(), "api_key".to_string());
         input.insert("codex ".to_string(), "magic".to_string());
         let normalized = normalize_ai_agent_auth_modes(Some(input)).expect("some");
-        assert_eq!(normalized.get("claude_code").map(String::as_str), Some("api_key"));
-        assert_eq!(normalized.get("codex").map(String::as_str), Some("subscription"));
+        assert_eq!(
+            normalized.get("claude_code").map(String::as_str),
+            Some("api_key")
+        );
+        assert_eq!(
+            normalized.get("codex").map(String::as_str),
+            Some("subscription")
+        );
         assert!(!normalized.contains_key("chitragupta"));
         assert_eq!(normalized.len(), 2);
     }
