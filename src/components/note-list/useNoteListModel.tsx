@@ -98,6 +98,8 @@ export interface NoteListProps {
 
 function buildNoteListLayoutModel(params: {
   selection: SidebarSelection
+  entries: VaultEntry[]
+  selectedNotePath: string | null
   views?: ViewFile[]
   sidebarCollapsed?: boolean
   modifiedFilesError?: string | null
@@ -118,6 +120,9 @@ function buildNoteListLayoutModel(params: {
   }
 }) {
   return {
+    selection: params.selection,
+    entries: params.entries,
+    selectedNotePath: params.selectedNotePath,
     title: resolveHeaderTitle(params.selection, params.content.typeDocument, params.views, params.locale),
     createNoteLabel: resolveCreateNoteActionLabel(params.selection, params.locale),
     searchActionLabel: resolveSearchActionLabel(params.selection, params.locale),
@@ -317,6 +322,8 @@ export function useNoteListModel({
 
   return buildNoteListLayoutModel({
     selection,
+    entries,
+    selectedNotePath,
     views,
     sidebarCollapsed,
     onOpenType: onReplaceActiveTab,

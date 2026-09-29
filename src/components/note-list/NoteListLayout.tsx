@@ -1,6 +1,12 @@
 import { BulkActionBar } from '../BulkActionBar'
 import { NoteListTopChrome } from './NoteListTopChrome'
 import { ListView } from './NoteListViews'
+import { NoteTableView } from './NoteTableView'
+import type { MouseEvent } from 'react'
+
+/** A table row has no modifier keys to honour; open like a plain click. */
+const PLAIN_CLICK = { metaKey: false, ctrlKey: false, shiftKey: false, altKey: false, button: 0, preventDefault() {}, stopPropagation() {} } as unknown as MouseEvent
+import { useNoteListLayout, type NoteListLayout as NoteListLayoutMode } from './noteListLayoutPreference'
 import type { useNoteListModel } from './useNoteListModel'
 import { lazy, Suspense, type ReactNode } from 'react'
 
@@ -52,8 +58,19 @@ function NoteListContent({
   searched,
   noteListVirtuosoRef,
   locale,
-}: Pick<
+  layout,
+  entries,
+  typeEntryMap,
+  customProperties,
+  selectedNotePath,
+  handleClickNote,
+}: { layout: NoteListLayoutMode } & Pick<
   NoteListLayoutProps,
+  | 'entries'
+  | 'typeEntryMap'
+  | 'customProperties'
+  | 'selectedNotePath'
+  | 'handleClickNote'
   | 'entitySelection'
   | 'searchedGroups'
   | 'query'
@@ -86,6 +103,15 @@ function NoteListContent({
             locale={locale}
           />
         </Suspense>
+      ) : layout === 'table' ? (
+        <NoteTableView
+          entries={searched}
+          allEntries={entries}
+          typeEntryMap={typeEntryMap}
+          customProperties={customProperties}
+          selectedPath={selectedNotePath}
+          onSelect={(entry) => handleClickNote(entry, PLAIN_CLICK)}
+        />
       ) : (
         <ListView
           isArchivedView={isArchivedView}
@@ -124,7 +150,13 @@ function NoteListBody({
   modifiedFilesError,
   searched,
   locale,
-}: Pick<
+  layout,
+  entries,
+  typeEntryMap,
+  customProperties,
+  selectedNotePath,
+  handleClickNote,
+}: { layout: NoteListLayoutMode } & Pick<
   NoteListLayoutProps,
   | 'handleListKeyDown'
   | 'noteListContainerRef'
@@ -146,6 +178,11 @@ function NoteListBody({
   | 'modifiedFilesError'
   | 'searched'
   | 'locale'
+  | 'entries'
+  | 'typeEntryMap'
+  | 'customProperties'
+  | 'selectedNotePath'
+  | 'handleClickNote'
 >) {
   return (
     <div
@@ -175,6 +212,12 @@ function NoteListBody({
         searched={searched}
         noteListVirtuosoRef={noteListVirtuosoRef}
         locale={locale}
+        layout={layout}
+        entries={entries}
+        typeEntryMap={typeEntryMap}
+        customProperties={customProperties}
+        selectedNotePath={selectedNotePath}
+        handleClickNote={handleClickNote}
       />
     </div>
   )
@@ -223,6 +266,7 @@ export function NoteListLayout({
   renderProjectIntelligence,
   ...contentProps
 }: NoteListLayoutProps) {
+  const [layout, toggleLayout] = useNoteListLayout(contentProps.selection)
   return (
     <div
       ref={noteListPanelRef}
@@ -231,8 +275,8 @@ export function NoteListLayout({
       onBlurCapture={handleNoteListPanelBlurCapture}
       onFocusCapture={handleNoteListPanelFocusCapture}
     >
-      <NoteListTopChrome {...contentProps} renderProjectIntelligence={renderProjectIntelligence} />
-      <NoteListBody {...contentProps} />
+      <NoteListTopChrome {...contentProps} renderProjectIntelligence={renderProjectIntelligence} layout={layout} onToggleLayout={toggleLayout} />
+      <NoteListBody {...contentProps} layout={layout} />
       <NoteListFooter {...contentProps} />
     </div>
   )

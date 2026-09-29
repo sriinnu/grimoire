@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { useNoteListModel } from './useNoteListModel'
 import { NoteListFilterRail } from './NoteListFilterRail'
 import { NoteListHeader } from './NoteListHeader'
+import type { NoteListLayout } from './noteListLayoutPreference'
 
 type NoteListTopChromeModelProps = Pick<
   ReturnType<typeof useNoteListModel>,
@@ -37,6 +38,8 @@ type NoteListTopChromeModelProps = Pick<
 >
 
 type NoteListTopChromeProps = NoteListTopChromeModelProps & {
+  layout?: NoteListLayout
+  onToggleLayout?: () => void
   renderProjectIntelligence?: (filterNode: ReactNode) => ReactNode
 }
 
@@ -72,6 +75,8 @@ export function NoteListTopChrome({
   fileScopeCounts,
   onNoteListFilterChange,
   onFileScopeChange,
+  layout,
+  onToggleLayout,
 }: NoteListTopChromeProps) {
   const filterNode = (
     <NoteListFilterRail
@@ -110,6 +115,8 @@ export function NoteListTopChrome({
         onOpenType={onOpenType}
         onToggleSearch={toggleSearch}
         onSearchChange={setSearch}
+        layout={layout}
+        onToggleLayout={onToggleLayout}
         onSearchKeyDown={handleSearchKeyDown}
       />
       {renderProjectIntelligence ? renderProjectIntelligence(filterNode) : filterNode}

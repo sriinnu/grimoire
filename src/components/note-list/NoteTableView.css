@@ -1,0 +1,123 @@
+/* Table layout for the note list: hairlines, no boxes, the title column carries the weight. */
+.note-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.note-table__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.note-table__filter {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+.note-table__filter:focus-visible {
+  border-color: var(--primary);
+}
+
+.note-table__count {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.note-table__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.note-table__grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.note-table__grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.note-table__sort {
+  width: 100%;
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.note-table__sort:hover,
+.note-table__sort:focus-visible {
+  color: var(--foreground);
+  outline: none;
+}
+
+.note-table__row {
+  cursor: pointer;
+}
+
+.note-table__row td {
+  max-width: 260px;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.note-table__row td.note-table__title {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.note-table__row:hover td,
+.note-table__row:focus-visible td {
+  background: var(--accent);
+}
+
+.note-table__row:focus-visible {
+  outline: none;
+}
+
+.note-table__row[data-selected='true'] td {
+  background: var(--accent);
+}
+
+.note-table__more {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}

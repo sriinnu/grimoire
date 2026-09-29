@@ -343,6 +343,26 @@ describe('NoteList filter pills', () => {
   })
 })
 
+describe('NoteList table layout', () => {
+  it('switches the list to a table and remembers it for that place', () => {
+    localStorage.removeItem('grimoire:note-list-layout')
+    const entries = [
+      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', status: 'Active' }),
+      makeEntry({ path: '/vault/beta.md', title: 'Beta', status: 'Done' }),
+    ]
+    const { unmount } = renderNoteList({ entries })
+    expect(screen.queryByTestId('note-table')).toBeNull()
+    fireEvent.click(screen.getByTestId('note-list-layout-toggle'))
+    expect(screen.getAllByTestId('note-table-row')).toHaveLength(2)
+    expect(screen.getByTestId('note-list-layout-toggle')).toHaveAttribute('aria-pressed', 'true')
+    unmount()
+    renderNoteList({ entries })
+    expect(screen.getByTestId('note-table')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('note-list-layout-toggle'))
+    expect(screen.queryByTestId('note-table')).toBeNull()
+  })
+})
+
 describe('NoteList note context menu', () => {
   it('offers right-click organization actions for normal note rows', () => {
     const onUpdateFrontmatter = vi.fn()
