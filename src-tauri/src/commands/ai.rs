@@ -62,6 +62,15 @@ pub fn get_ai_agents_status() -> AiAgentsStatus {
     crate::ai_agents::get_ai_agents_status()
 }
 
+/// How each CLI is signed in (subscription or key); never carries a token.
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn get_ai_agent_auth_status() -> Result<crate::ai_agents::AiAgentsAuthStatus, String> {
+    tokio::task::spawn_blocking(crate::ai_agents::get_ai_agent_auth_status)
+        .await
+        .map_err(|error| format!("Auth status probe failed: {error}"))
+}
+
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn build_chitragupta_context(

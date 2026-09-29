@@ -109,11 +109,54 @@ pub fn clear_ai_provider_api_key(provider_id: &str) -> Result<Vec<AiProviderKeyS
     Ok(get_ai_provider_key_statuses())
 }
 
-/// Inject stored provider keys into a CLI command according to the selected agent.
+/// Subscription or key: the two are either/or. A key in the environment would
+/// silently override a CLI login and bill the API, so subscription mode strips
+/// the agent's key variables from the child instead of merely not adding them.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AiAgentAuthMode {
+    Subscription,
+    ApiKey,
+}
+
+fn settings_agent_key(agent: AiAgentId) -> Option<&'static str> {
+    match agent {
+        AiAgentId::ClaudeCode => Some("claude_code"),
+        AiAgentId::Codex => Some("codex"),
+        AiAgentId::Chitragupta => None,
+    }
+}
+
+/// The saved mode for an agent. Chitragupta is the local harness and always takes keys.
+pub fn ai_agent_auth_mode(agent: AiAgentId) -> AiAgentAuthMode {
+    let Some(key) = settings_agent_key(agent) else {
+        return AiAgentAuthMode::ApiKey;
+    };
+    let stored = crate::settings::get_settings()
+        .ok()
+        .and_then(|settings| settings.ai_agent_auth_modes)
+        .and_then(|modes| modes.get(key).cloned());
+    match stored.as_deref() {
+        Some(crate::settings::AI_AGENT_AUTH_MODE_API_KEY) => AiAgentAuthMode::ApiKey,
+        _ => AiAgentAuthMode::Subscription,
+    }
+}
+
+/// Inject stored provider keys into a CLI command according to the selected agent's auth mode.
 pub fn apply_provider_keys_to_command(command: &mut Command, agent: AiAgentId) {
+    apply_provider_keys_with_mode(command, agent, ai_agent_auth_mode(agent));
+}
+
+pub fn apply_provider_keys_with_mode(command: &mut Command, agent: AiAgentId, mode: AiAgentAuthMode) {
     for env_var in agent_provider_key_env_vars(agent) {
-        if let Some(value) = keychain_password_for_env_var(env_var) {
-            command.env(env_var, value);
+        match mode {
+            AiAgentAuthMode::Subscription => {
+                command.env_remove(env_var);
+            }
+            AiAgentAuthMode::ApiKey => {
+                if let Some(value) = keychain_password_for_env_var(env_var) {
+                    command.env(env_var, value);
+                }
+            }
         }
     }
 }
@@ -310,6 +353,17 @@ fn delete_keychain_secret(_account: &str, _label: &str) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn subscription_mode_strips_inherited_keys_from_the_child() {
+        let mut command = Command::new("true");
+        command.env("ANTHROPIC_API_KEY", "inherited");
+        apply_provider_keys_with_mode(&mut command, AiAgentId::ClaudeCode, AiAgentAuthMode::Subscription);
+        let removed = command
+            .get_envs()
+            .any(|(key, value)| key == "ANTHROPIC_API_KEY" && value.is_none());
+        assert!(removed, "ANTHROPIC_API_KEY should be removed for a subscription login");
+    }
 
     #[test]
     fn maps_agent_ids_to_expected_provider_env_vars() {

@@ -1,10 +1,14 @@
 import {
   AI_AGENT_CLI_DEFAULT_ROUTE,
   AI_AGENT_DEFINITIONS,
+  AI_AGENT_SUBSCRIPTION_NAMES,
   getAiAgentDefinition,
+  supportsAiAgentAuthMode,
+  type AiAgentAuthMode,
   type AiAgentId,
   type AiAgentsStatus,
 } from '../../lib/aiAgents'
+import type { AiAgentsAuthStatus } from '../../hooks/useAiAgentAuthStatus'
 import type { TranslationKey } from '../../lib/i18n'
 import type { McpStatus } from '../../hooks/useMcpStatus'
 import { Button } from '../ui/button'
@@ -24,6 +28,8 @@ import {
   SettingsSectionTitle,
 } from './primitives/SettingsGroup'
 import {
+  hiddenProviderKeyIds,
+  updateAiAgentAuthModeDraft,
   updateAiAgentModelDraft,
   updateAiAgentProviderDraft,
 } from './settingsDraft'
@@ -83,6 +89,59 @@ function describeAiAgentAvailability(agent: AiAgentId, aiAgentsStatus: AiAgentsS
     })
   }
   return t('settings.aiAgents.notInstalled', { agent: definition.label })
+}
+
+const AGENT_KEY_ENV_VAR: Partial<Record<AiAgentId, string>> = { claude_code: 'ANTHROPIC_API_KEY', codex: 'OPENAI_API_KEY' }
+const AGENT_LOGIN_COMMAND: Partial<Record<AiAgentId, string>> = { claude_code: 'claude', codex: 'codex login' }
+
+function authModeFor(agent: AiAgentId, modes: Partial<Record<AiAgentId, AiAgentAuthMode>>): AiAgentAuthMode {
+  return modes[agent] ?? 'subscription'
+}
+
+/** One line under the toggle: what this mode uses, and for subscriptions whether the CLI is actually signed in. */
+function describeAuthMode(
+  agent: AiAgentId,
+  mode: AiAgentAuthMode,
+  authStatus: AiAgentsAuthStatus | null | undefined,
+  t: SettingsTranslate,
+): string {
+  const subscription = AI_AGENT_SUBSCRIPTION_NAMES[agent] ?? ''
+  const envVar = AGENT_KEY_ENV_VAR[agent] ?? ''
+  if (mode === 'api_key') return t('settings.aiAgents.authModeApiKeyDetail', { envVar, subscription })
+  const status = agent === 'claude_code' ? authStatus?.claude_code : agent === 'codex' ? authStatus?.codex : undefined
+  if (!status) return t('settings.aiAgents.authModeSubscriptionDetail', { agent: subscription, envVar })
+  if (status.signed_in && status.method !== 'api_key') return t('settings.aiAgents.authModeSignedIn', { subscription })
+  if (status.signed_in) return status.detail ?? t('settings.aiAgents.authModeUnknown', { command: AGENT_LOGIN_COMMAND[agent] ?? '' })
+  return t('settings.aiAgents.authModeNotSignedIn', { command: AGENT_LOGIN_COMMAND[agent] ?? '' })
+}
+
+function AuthModeToggle({ agent, mode, onChange, t }: {
+  agent: AiAgentId
+  mode: AiAgentAuthMode
+  onChange: (mode: AiAgentAuthMode) => void
+  t: SettingsTranslate
+}) {
+  const options: Array<{ value: AiAgentAuthMode; label: string }> = [
+    { value: 'subscription', label: t('settings.aiAgents.authModeSubscription') },
+    { value: 'api_key', label: t('settings.aiAgents.authModeApiKey') },
+  ]
+  return (
+    <div className="connections__filters" role="radiogroup" aria-label={`${getAiAgentDefinition(agent).label} ${t('settings.aiAgents.authMode')}`} data-testid={`settings-ai-auth-mode-${agent}`}>
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          role="radio"
+          aria-checked={mode === option.value}
+          className="connections__filter"
+          data-testid={`settings-ai-auth-mode-${agent}-${option.value}`}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 function renderChitraguptaRouteSummary(provider: string, model: string, t: SettingsTranslate): string {
@@ -170,6 +229,9 @@ export function AiAgentSettingsSection({
   setAiAgentProviders,
   mcpStatus,
   onInstallMcp,
+  aiAgentAuthModes = {},
+  setAiAgentAuthModes = () => {},
+  aiAgentAuthStatus = null,
 }: Pick<SettingsBodyProps,
   | 't'
   | 'aiAgentsStatus'
@@ -179,6 +241,9 @@ export function AiAgentSettingsSection({
   | 'setAiAgentModels'
   | 'aiAgentProviders'
   | 'setAiAgentProviders'
+  | 'aiAgentAuthModes'
+  | 'setAiAgentAuthModes'
+  | 'aiAgentAuthStatus'
   | 'mcpStatus'
   | 'onInstallMcp'
 >) {
@@ -218,7 +283,27 @@ export function AiAgentSettingsSection({
             label={definition.label}
             description={describeAiAgentAvailability(definition.id, aiAgentsStatus, t)}
             testId={`settings-ai-agent-status-${definition.id}`}
-          />
+          >
+            {supportsAiAgentAuthMode(definition.id) ? (
+              <AuthModeToggle
+                agent={definition.id}
+                mode={authModeFor(definition.id, aiAgentAuthModes)}
+                onChange={(mode) => setAiAgentAuthModes(updateAiAgentAuthModeDraft(aiAgentAuthModes, definition.id, mode))}
+                t={t}
+              />
+            ) : null}
+          </SettingsRow>
+        ))}
+        {AI_AGENT_DEFINITIONS.filter((definition) => supportsAiAgentAuthMode(definition.id)).map((definition) => (
+          <SettingsRow
+            key={`${definition.id}-auth`}
+            fullWidth
+            testId={`settings-ai-auth-detail-${definition.id}`}
+          >
+            <div className="text-[11px] leading-relaxed text-muted-foreground">
+              {describeAuthMode(definition.id, authModeFor(definition.id, aiAgentAuthModes), aiAgentAuthStatus, t)}
+            </div>
+          </SettingsRow>
         ))}
 
         <SettingsRow label={t('settings.aiAgents.default')}>
@@ -292,7 +377,7 @@ export function AiAgentSettingsSection({
         ) : null}
       </SettingsGroup>
 
-      <AiProviderKeysCard t={t} />
+      <AiProviderKeysCard t={t} hiddenProviderIds={hiddenProviderKeyIds(aiAgentAuthModes)} />
 
       <ChitraguptaSocketCard t={t} />
     </div>

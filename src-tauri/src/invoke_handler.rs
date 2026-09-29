@@ -38,6 +38,7 @@ macro_rules! app_invoke_handler {
             commands::init_git_repo,
             commands::check_claude_cli,
             commands::get_ai_agents_status,
+            commands::get_ai_agent_auth_status,
             commands::build_chitragupta_context,
             commands::inspect_code_symbols,
             commands::get_ai_provider_key_statuses,

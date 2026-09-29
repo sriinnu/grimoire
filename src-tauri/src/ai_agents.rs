@@ -1,4 +1,5 @@
 mod args;
+mod auth_status;
 mod chitragupta_events;
 mod discovery;
 mod events;
@@ -8,6 +9,7 @@ mod process_stream;
 
 #[cfg(desktop)]
 pub use pairing::rotate_chitragupta_socket_secret;
+pub use auth_status::{get_ai_agent_auth_status, AiAgentsAuthStatus};
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;

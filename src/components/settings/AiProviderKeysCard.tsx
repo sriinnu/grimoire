@@ -22,7 +22,7 @@ function sourceLabel(source: AiProviderKeySource, t: SettingsTranslate, secureSt
 }
 
 /** Renders redacted provider API-key rows backed by native secure storage. */
-export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
+export function AiProviderKeysCard({ t, hiddenProviderIds = [] }: { t: SettingsTranslate; hiddenProviderIds?: readonly string[] }) {
   const {
     statuses,
     loading,
@@ -100,7 +100,7 @@ export function AiProviderKeysCard({ t }: { t: SettingsTranslate }) {
       {loading && statuses.length === 0 ? (
         <SettingsRow description={t('settings.aiAgents.providerKeysLoading')} />
       ) : (
-        statuses.map((status) => {
+        statuses.filter((status) => !hiddenProviderIds.includes(status.provider_id)).map((status) => {
           const editing = editingProvider === status.provider_id
           const draft = drafts[status.provider_id] ?? ''
           const busy = busyProvider === status.provider_id

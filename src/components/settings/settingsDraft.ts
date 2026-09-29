@@ -1,7 +1,10 @@
 import {
   AI_AGENT_DEFINITIONS,
+  normalizeAiAgentAuthMode,
   resolveDefaultAiAgent,
+  supportsAiAgentAuthMode,
   supportsAiAgentProviderRoute,
+  type AiAgentAuthMode,
   type AiAgentId,
 } from '../../lib/aiAgents'
 import {
@@ -49,6 +52,7 @@ export function createSettingsDraft(
     defaultAiAgent: resolveDefaultAiAgent(settings.default_ai_agent),
     aiAgentModels: createAiAgentModelsDraft(settings.ai_agent_models),
     aiAgentProviders: createAiAgentProvidersDraft(settings.ai_agent_providers),
+    aiAgentAuthModes: createAiAgentAuthModesDraft(settings.ai_agent_auth_modes),
     releaseChannel: normalizeReleaseChannel(settings.release_channel),
     themeMode: resolveSettingsDraftThemeMode(settings.theme_mode),
     themePreset: resolveThemePreset(settings.theme_preset),
@@ -113,6 +117,7 @@ export function buildSettingsFromDraft(settings: Settings, draft: SettingsDraft)
     default_ai_agent: draft.defaultAiAgent,
     ai_agent_models: normalizeAiAgentModelsForSave(draft.aiAgentModels),
     ai_agent_providers: normalizeAiAgentProvidersForSave(draft.aiAgentProviders),
+    ai_agent_auth_modes: normalizeAiAgentAuthModesForSave(draft.aiAgentAuthModes),
     transcription_provider: resolveConfiguredTranscriptionProvider({
       provider: draft.transcriptionProvider,
       cloudTranscriptionEnabled: draft.cloudTranscriptionEnabled,
@@ -160,6 +165,51 @@ function normalizeAiAgentProvidersForSave(
 ): Settings['ai_agent_providers'] {
   const saved = createAiAgentProvidersDraft(providers)
   return Object.keys(saved).length > 0 ? saved : null
+}
+
+/** Only agents with a login get a mode; anything unknown reads as subscription. */
+function createAiAgentAuthModesDraft(
+  modes: Settings['ai_agent_auth_modes'],
+): Partial<Record<AiAgentId, AiAgentAuthMode>> {
+  const draft: Partial<Record<AiAgentId, AiAgentAuthMode>> = {}
+  for (const definition of AI_AGENT_DEFINITIONS) {
+    if (!supportsAiAgentAuthMode(definition.id)) continue
+    const stored = modes?.[definition.id]
+    if (stored) draft[definition.id] = normalizeAiAgentAuthMode(stored)
+  }
+  return draft
+}
+
+/** Subscription is the default, so only explicit API-key choices are persisted. */
+function normalizeAiAgentAuthModesForSave(
+  modes: Partial<Record<AiAgentId, AiAgentAuthMode>>,
+): Settings['ai_agent_auth_modes'] {
+  const saved: Partial<Record<AiAgentId, AiAgentAuthMode>> = {}
+  for (const [agent, mode] of Object.entries(modes) as [AiAgentId, AiAgentAuthMode][]) {
+    if (supportsAiAgentAuthMode(agent) && mode === 'api_key') saved[agent] = mode
+  }
+  return Object.keys(saved).length > 0 ? saved : null
+}
+
+const AGENT_KEY_PROVIDER: Partial<Record<AiAgentId, string>> = { claude_code: 'anthropic', codex: 'openai' }
+
+/** Providers whose key row is pointless while that agent signs in with a subscription. */
+export function hiddenProviderKeyIds(modes: Partial<Record<AiAgentId, AiAgentAuthMode>>): string[] {
+  return (Object.keys(AGENT_KEY_PROVIDER) as AiAgentId[])
+    .filter((agent) => (modes[agent] ?? 'subscription') === 'subscription')
+    .map((agent) => AGENT_KEY_PROVIDER[agent]!)
+}
+
+/** Sets how one agent signs in. */
+export function updateAiAgentAuthModeDraft(
+  modes: Partial<Record<AiAgentId, AiAgentAuthMode>>,
+  agent: AiAgentId,
+  mode: AiAgentAuthMode,
+): Partial<Record<AiAgentId, AiAgentAuthMode>> {
+  const next = { ...modes }
+  if (!supportsAiAgentAuthMode(agent) || mode === 'subscription') delete next[agent]
+  else next[agent] = mode
+  return next
 }
 
 /** Stores or clears the selected model override for one AI agent. */

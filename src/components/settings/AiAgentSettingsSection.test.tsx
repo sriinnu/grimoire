@@ -160,8 +160,30 @@ describe('AiAgentSettingsSection', () => {
     expect(screen.getByTestId('settings-ai-agent-chitragupta-transport')).not.toHaveTextContent('If the MCP transport closes')
   })
 
+  it('hides vendor key rows while an agent signs in with a subscription, and offers the toggle', () => {
+    const setAiAgentAuthModes = vi.fn()
+    renderSection({ setAiAgentAuthModes })
+    expect(screen.queryByTestId('settings-ai-provider-key-anthropic')).toBeNull()
+    expect(screen.queryByTestId('settings-ai-provider-key-openai')).toBeNull()
+    expect(screen.getByTestId('settings-ai-auth-mode-claude_code-subscription')).toHaveAttribute('aria-checked', 'true')
+    expect(screen.queryByTestId('settings-ai-auth-mode-chitragupta')).toBeNull()
+    fireEvent.click(screen.getByTestId('settings-ai-auth-mode-codex-api_key'))
+    expect(setAiAgentAuthModes).toHaveBeenCalledWith({ codex: 'api_key' })
+  })
+
+  it('shows the CLI sign-in state under a subscription toggle', () => {
+    renderSection({
+      aiAgentAuthStatus: {
+        claude_code: { signed_in: true, method: 'subscription', detail: 'Signed in with claude.ai (max)' },
+        codex: { signed_in: false, method: null, detail: null },
+      },
+    })
+    expect(screen.getByTestId('settings-ai-auth-detail-claude_code')).toHaveTextContent('Signed in with claude.ai')
+    expect(screen.getByTestId('settings-ai-auth-detail-codex')).toHaveTextContent('Not signed in. Run codex login in Terminal.')
+  })
+
   it('shows provider API-key status without rendering secret values', async () => {
-    renderSection()
+    renderSection({ aiAgentAuthModes: { claude_code: 'api_key', codex: 'api_key' } })
 
     expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('Provider API keys')
     expect(screen.getByTestId('settings-ai-provider-keys')).toHaveTextContent('macOS Keychain')

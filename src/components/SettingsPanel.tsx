@@ -1,3 +1,4 @@
+import { useAiAgentAuthStatus } from '../hooks/useAiAgentAuthStatus'
 import { useState, useRef, useCallback, useEffect, useMemo, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import {
   createMissingAiAgentsStatus,
@@ -144,6 +145,7 @@ function SettingsPanelInner({
   onClose,
 }: SettingsPanelInnerProps) {
   const [draft, setDraft] = useState(() => createSettingsDraft(settings, explicitOrganizationEnabled))
+  const { status: aiAgentAuthStatus } = useAiAgentAuthStatus()
   const panelRef = useRef<HTMLDivElement>(null)
   const draftLocale = resolveEffectiveLocale(draft.uiLanguage, [systemLocale])
   const t = createTranslator(draftLocale)
@@ -264,6 +266,9 @@ function SettingsPanelInner({
           setAiAgentModels={(value) => updateDraft('aiAgentModels', value)}
           aiAgentProviders={draft.aiAgentProviders}
           setAiAgentProviders={(value) => updateDraft('aiAgentProviders', value)}
+          aiAgentAuthModes={draft.aiAgentAuthModes}
+          setAiAgentAuthModes={(value) => updateDraft('aiAgentAuthModes', value)}
+          aiAgentAuthStatus={aiAgentAuthStatus}
           mcpStatus={mcpStatus}
           onInstallMcp={onInstallMcp}
           vaultPath={vaultPath}
