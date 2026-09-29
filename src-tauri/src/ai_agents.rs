@@ -1,8 +1,5 @@
 mod args;
 mod auth_status;
-// The legacy `ask` stream parser; kept test-only until Sriinnu decides to drop it.
-#[cfg(test)]
-mod chitragupta_events;
 mod discovery;
 mod events;
 mod pairing;
