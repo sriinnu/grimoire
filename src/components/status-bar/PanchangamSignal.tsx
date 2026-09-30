@@ -1,5 +1,6 @@
-import { Moon } from 'lucide-react'
 import { useMemo } from 'react'
+import { MoonPhaseIcon } from './MoonPhaseIcon'
+import { moonPhaseName } from './moonPhase'
 import { computePanchangam, formatPanchangamDetail, formatPanchangamLine } from '../../lib/panchangam/panchangam'
 
 /**
@@ -13,16 +14,16 @@ export function PanchangamSignal({ now }: { now?: () => Date }) {
   const minute = Math.floor(instant.getTime() / 60_000)
   const panchangam = useMemo(() => computePanchangam(new Date(minute * 60_000)), [minute])
 
-  const detail = formatPanchangamDetail(panchangam)
+  const detail = `${moonPhaseName(panchangam.tithi.elongationDegrees)} · ${formatPanchangamDetail(panchangam)}`
   return (
     <span
       aria-label={detail}
-      className="status-bar-summary-static"
+      className="status-bar-summary-static status-bar-panchangam"
       data-testid="status-panchangam"
       title={detail}
     >
       <span className="status-bar-summary-chip">
-        <Moon size={12} />
+        <MoonPhaseIcon elongationDegrees={panchangam.tithi.elongationDegrees} size={12} />
         <span>{formatPanchangamLine(panchangam)}</span>
       </span>
     </span>

@@ -9,5 +9,7 @@ describe('PanchangamSignal', () => {
     expect(signal).toHaveTextContent(/^Purnima · [A-Za-z ]+ · [A-Za-z]+vara$/)
     expect(signal.getAttribute('title')).toContain('Yoga ')
     expect(signal.getAttribute('title')).toContain('Karana ')
+    expect(signal.getAttribute('title')).toMatch(/^Full moon · /)
+    expect(screen.getByTestId('status-panchangam-moon')).toHaveAttribute('data-moon-phase', 'Full moon')
   })
 })

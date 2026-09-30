@@ -12,7 +12,8 @@ describe('notebook page CSS', () => {
 
   it('lays the page out as one calm column with the capture card as the only card', () => {
     expect(css).toContain('grid-template-columns: minmax(0, 1fr)')
-    expect(css).toContain('max-width: 880px')
+    expect(css).toContain('max-width: 1120px')
+    expect(css).toContain('@container vault-dashboard (min-width: 1040px)')
     expect(css).toContain(':root[data-theme-preset] .dashboard-hero {')
     expect(css).toContain(':root[data-theme-preset] .dashboard-hero__aurora {\n  display: none;')
     expect(css).toContain(':root[data-theme-preset] .vault-dashboard__panel:not(.vault-dashboard__panel--capture)')

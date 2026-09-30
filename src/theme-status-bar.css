@@ -261,3 +261,12 @@
     flex: 0 0 auto !important;
   }
 }
+
+/* Panchangam: readable ink, the Moon in the accent so its phase reads. */
+.status-bar .status-bar-panchangam .status-bar-summary-chip {
+  color: var(--text-secondary);
+}
+
+.status-bar .status-bar-panchangam svg {
+  color: var(--primary);
+}

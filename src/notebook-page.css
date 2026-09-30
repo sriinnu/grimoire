@@ -18,7 +18,7 @@
 :root[data-theme-preset] .vault-dashboard__grid {
   grid-template-columns: minmax(0, 1fr);
   gap: 32px;
-  max-width: 880px;
+  max-width: 1120px;
 }
 
 :root[data-theme-preset] .vault-dashboard__grid > * {
@@ -458,4 +458,21 @@
   font-size: 12px;
   line-height: 16px;
   font-weight: 400;
+}
+
+/* A wide window gets two columns for the short sections; the greeting, the
+   capture card, the ledger and today's runway keep the full width. */
+@container vault-dashboard (min-width: 1040px) {
+  :root[data-theme-preset] .vault-dashboard__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 48px;
+  }
+
+  :root[data-theme-preset] .vault-dashboard__grid > :is(.dashboard-hero, .dashboard-pinned, .dashboard-stat-row, .vault-dashboard__today-runway, .vault-dashboard__patterns, .vault-dashboard__panel--revisit, .vault-dashboard__dream-forge) {
+    grid-column: 1 / -1;
+  }
+
+  :root[data-theme-preset] .vault-dashboard__grid > :is(.vault-dashboard__panel--wide, .dashboard-calendar, .vault-dashboard__health) {
+    grid-column: auto;
+  }
 }
