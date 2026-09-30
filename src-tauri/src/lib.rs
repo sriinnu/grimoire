@@ -28,12 +28,12 @@ pub mod transcription;
 mod transcription_runtime;
 mod transcription_runtime_discovery;
 pub mod vault;
+mod vault_index;
 pub mod vault_list;
 #[cfg(desktop)]
 mod vault_watch;
 #[cfg(desktop)]
 mod window_lifecycle;
-mod vault_index;
 
 use std::{ffi::OsStr, process::Command};
 

@@ -77,9 +77,11 @@ fn index_path(vault_path: &Path) -> PathBuf {
 fn open(vault_path: &Path) -> Result<Connection, String> {
     let path = index_path(vault_path);
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).map_err(|error| format!("Could not create the index folder: {error}"))?;
+        std::fs::create_dir_all(parent)
+            .map_err(|error| format!("Could not create the index folder: {error}"))?;
     }
-    let conn = Connection::open(&path).map_err(|error| format!("Could not open the vault index: {error}"))?;
+    let conn = Connection::open(&path)
+        .map_err(|error| format!("Could not open the vault index: {error}"))?;
     conn.execute_batch(
         "PRAGMA journal_mode = WAL;
          PRAGMA synchronous = NORMAL;
@@ -105,12 +107,16 @@ fn open(vault_path: &Path) -> Result<Connection, String> {
     )
     .map_err(|error| format!("Could not prepare the vault index: {error}"))?;
     let version: Option<String> = conn
-        .query_row("SELECT value FROM meta WHERE key = 'schema'", [], |row| row.get(0))
+        .query_row("SELECT value FROM meta WHERE key = 'schema'", [], |row| {
+            row.get(0)
+        })
         .optional()
         .map_err(|error| error.to_string())?;
     if version.as_deref() != Some(&SCHEMA_VERSION.to_string()) {
-        conn.execute_batch("DELETE FROM notes; DELETE FROM notes_fts; DELETE FROM tags; DELETE FROM links;")
-            .map_err(|error| error.to_string())?;
+        conn.execute_batch(
+            "DELETE FROM notes; DELETE FROM notes_fts; DELETE FROM tags; DELETE FROM links;",
+        )
+        .map_err(|error| error.to_string())?;
         conn.execute(
             "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema', ?1)",
             params![SCHEMA_VERSION.to_string()],
@@ -125,12 +131,17 @@ fn with_connection<T>(
     vault_path: &Path,
     action: impl FnOnce(&mut Connection) -> Result<T, String>,
 ) -> Result<T, String> {
-    let mut guard = state.0.lock().map_err(|_| "Vault index is busy.".to_string())?;
+    let mut guard = state
+        .0
+        .lock()
+        .map_err(|_| "Vault index is busy.".to_string())?;
     if !guard.contains_key(vault_path) {
         let conn = open(vault_path)?;
         guard.insert(vault_path.to_path_buf(), conn);
     }
-    let conn = guard.get_mut(vault_path).expect("connection inserted above");
+    let conn = guard
+        .get_mut(vault_path)
+        .expect("connection inserted above");
     action(conn)
 }
 
@@ -171,7 +182,9 @@ pub fn prose_of(content: &str) -> String {
 }
 
 pub fn strip_frontmatter(content: &str) -> &str {
-    let rest = content.strip_prefix("---\n").or_else(|| content.strip_prefix("---\r\n"));
+    let rest = content
+        .strip_prefix("---\n")
+        .or_else(|| content.strip_prefix("---\r\n"));
     let Some(rest) = rest else { return content };
     for terminator in ["\n---\n", "\n---\r\n", "\r\n---\r\n"] {
         if let Some(index) = rest.find(terminator) {
@@ -248,7 +261,10 @@ pub fn tags_of(content: &str, prose: &str) -> Vec<String> {
 }
 
 fn frontmatter_tag_values(content: &str) -> Vec<String> {
-    let Some(rest) = content.strip_prefix("---\n").or_else(|| content.strip_prefix("---\r\n")) else {
+    let Some(rest) = content
+        .strip_prefix("---\n")
+        .or_else(|| content.strip_prefix("---\r\n"))
+    else {
         return Vec::new();
     };
     let block = rest.split("\n---").next().unwrap_or("");
@@ -259,7 +275,7 @@ fn frontmatter_tag_values(content: &str) -> Vec<String> {
         if !(lower.starts_with("tags:") || lower.starts_with("tag:")) || line.starts_with(' ') {
             continue;
         }
-        let after = line.splitn(2, ':').nth(1).unwrap_or("").trim();
+        let after = line.split_once(':').map_or("", |(_, rest)| rest).trim();
         if after.starts_with('[') {
             for item in after.trim_matches(|c| c == '[' || c == ']').split(',') {
                 values.push(item.trim().trim_matches('"').trim_matches('\'').to_string());
@@ -272,7 +288,13 @@ fn frontmatter_tag_values(content: &str) -> Vec<String> {
             while let Some(next) = lines.peek() {
                 let item = next.trim_start();
                 if let Some(value) = item.strip_prefix("- ") {
-                    values.push(value.trim().trim_matches('"').trim_matches('\'').to_string());
+                    values.push(
+                        value
+                            .trim()
+                            .trim_matches('"')
+                            .trim_matches('\'')
+                            .to_string(),
+                    );
                     lines.next();
                 } else {
                     break;
@@ -305,7 +327,13 @@ pub fn fts_query(raw: &str) -> Option<String> {
         words
             .iter()
             .enumerate()
-            .map(|(index, word)| if index == last { format!("\"{word}\"*") } else { format!("\"{word}\"") })
+            .map(|(index, word)| {
+                if index == last {
+                    format!("\"{word}\"*")
+                } else {
+                    format!("\"{word}\"")
+                }
+            })
             .collect::<Vec<_>>()
             .join(" "),
     )
@@ -387,7 +415,10 @@ impl LinkLookup {
                 candidates.extend(paths);
             }
         }
-        candidates.into_iter().find(|path| path.as_str() != from_path).cloned()
+        candidates
+            .into_iter()
+            .find(|path| path.as_str() != from_path)
+            .cloned()
     }
 }
 
@@ -400,9 +431,13 @@ pub fn content_hash(content: &str) -> String {
 // ── Refresh ───────────────────────────────────────────────────────────────
 
 fn indexed_mtimes(conn: &Connection) -> Result<HashMap<String, i64>, String> {
-    let mut statement = conn.prepare("SELECT path, mtime FROM notes").map_err(|e| e.to_string())?;
+    let mut statement = conn
+        .prepare("SELECT path, mtime FROM notes")
+        .map_err(|e| e.to_string())?;
     let rows = statement
-        .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)))
+        .query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+        })
         .map_err(|e| e.to_string())?;
     let mut map = HashMap::new();
     for row in rows {
@@ -412,13 +447,24 @@ fn indexed_mtimes(conn: &Connection) -> Result<HashMap<String, i64>, String> {
     Ok(map)
 }
 
-fn index_entry(conn: &Connection, entry: &VaultEntry, content: &str, lookup: &LinkLookup) -> Result<(), String> {
+fn index_entry(
+    conn: &Connection,
+    entry: &VaultEntry,
+    content: &str,
+    lookup: &LinkLookup,
+) -> Result<(), String> {
     let prose = prose_of(content);
     let tags = tags_of(content, &prose);
     let mtime = entry.modified_at.unwrap_or(0) as i64;
-    conn.execute("DELETE FROM notes_fts WHERE path = ?1", params![entry.path]).map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM tags WHERE path = ?1", params![entry.path]).map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM links WHERE from_path = ?1", params![entry.path]).map_err(|e| e.to_string())?;
+    conn.execute("DELETE FROM notes_fts WHERE path = ?1", params![entry.path])
+        .map_err(|e| e.to_string())?;
+    conn.execute("DELETE FROM tags WHERE path = ?1", params![entry.path])
+        .map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM links WHERE from_path = ?1",
+        params![entry.path],
+    )
+    .map_err(|e| e.to_string())?;
     conn.execute(
         "INSERT OR REPLACE INTO notes (path, mtime, title, is_a, file_kind, size, hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         params![entry.path, mtime, entry.title, entry.is_a, entry.file_kind, content.len() as i64, content_hash(content)],
@@ -430,8 +476,11 @@ fn index_entry(conn: &Connection, entry: &VaultEntry, content: &str, lookup: &Li
     )
     .map_err(|e| e.to_string())?;
     for tag in tags {
-        conn.execute("INSERT OR IGNORE INTO tags (path, tag) VALUES (?1, ?2)", params![entry.path, tag])
-            .map_err(|e| e.to_string())?;
+        conn.execute(
+            "INSERT OR IGNORE INTO tags (path, tag) VALUES (?1, ?2)",
+            params![entry.path, tag],
+        )
+        .map_err(|e| e.to_string())?;
     }
     for target in &entry.outgoing_links {
         let to_path = lookup.resolve(target, &entry.path);
@@ -451,14 +500,18 @@ fn remove_path(conn: &Connection, path: &str) -> Result<(), String> {
         "DELETE FROM tags WHERE path = ?1",
         "DELETE FROM links WHERE from_path = ?1",
     ] {
-        conn.execute(sql, params![path]).map_err(|e| e.to_string())?;
+        conn.execute(sql, params![path])
+            .map_err(|e| e.to_string())?;
     }
     Ok(())
 }
 
 /// Bring the index in line with the entries: re-read files whose mtime moved,
 /// drop files that are gone. Cheap when nothing changed.
-pub fn refresh_with(conn: &mut Connection, entries: &[VaultEntry]) -> Result<IndexRefreshReport, String> {
+pub fn refresh_with(
+    conn: &mut Connection,
+    entries: &[VaultEntry],
+) -> Result<IndexRefreshReport, String> {
     let started = Instant::now();
     let known = indexed_mtimes(conn)?;
     let mut report = IndexRefreshReport::default();
@@ -486,7 +539,10 @@ pub fn refresh_with(conn: &mut Connection, entries: &[VaultEntry]) -> Result<Ind
         }
     }
     transaction.commit().map_err(|e| e.to_string())?;
-    report.total = entries.iter().filter(|entry| entry.file_kind == "markdown").count();
+    report.total = entries
+        .iter()
+        .filter(|entry| entry.file_kind == "markdown")
+        .count();
     report.elapsed_ms = started.elapsed().as_millis() as u64;
     Ok(report)
 }
@@ -498,7 +554,11 @@ pub fn refresh(state: &VaultIndexState, vault_path: &Path) -> Result<IndexRefres
 
 // ── Queries ───────────────────────────────────────────────────────────────
 
-pub fn search_with(conn: &Connection, query: &str, limit: usize) -> Result<IndexSearchResponse, String> {
+pub fn search_with(
+    conn: &Connection,
+    query: &str,
+    limit: usize,
+) -> Result<IndexSearchResponse, String> {
     let started = Instant::now();
     let mut results = Vec::new();
     if let Some(fts) = fts_query(query) {
@@ -529,7 +589,8 @@ pub fn search_with(conn: &Connection, query: &str, limit: usize) -> Result<Index
             })
             .map_err(|e| e.to_string())?;
         for row in rows {
-            let (path, title, is_a, file_kind, _title_marked, body_snippet, rank) = row.map_err(|e| e.to_string())?;
+            let (path, title, is_a, file_kind, _title_marked, body_snippet, rank) =
+                row.map_err(|e| e.to_string())?;
             let (snippet, snippet_matches) = strip_marks(&body_snippet);
             results.push(IndexSearchResult {
                 title,
@@ -551,15 +612,24 @@ pub fn search_with(conn: &Connection, query: &str, limit: usize) -> Result<Index
     })
 }
 
-pub fn search(state: &VaultIndexState, vault_path: &Path, query: &str, limit: usize) -> Result<IndexSearchResponse, String> {
+pub fn search(
+    state: &VaultIndexState,
+    vault_path: &Path,
+    query: &str,
+    limit: usize,
+) -> Result<IndexSearchResponse, String> {
     refresh(state, vault_path)?;
     with_connection(state, vault_path, |conn| search_with(conn, query, limit))
 }
 
 pub fn tags_with(conn: &Connection) -> Result<IndexTagSnapshot, String> {
-    let mut statement = conn.prepare("SELECT path, tag FROM tags").map_err(|e| e.to_string())?;
+    let mut statement = conn
+        .prepare("SELECT path, tag FROM tags")
+        .map_err(|e| e.to_string())?;
     let rows = statement
-        .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+        .query_map([], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })
         .map_err(|e| e.to_string())?;
     let mut by_tag: BTreeMap<String, HashSet<String>> = BTreeMap::new();
     for row in rows {
@@ -573,11 +643,17 @@ pub fn tags_with(conn: &Connection) -> Result<IndexTagSnapshot, String> {
         .map(|(tag, paths)| {
             let mut paths: Vec<String> = paths.into_iter().collect();
             paths.sort();
-            IndexTagRecord { count: paths.len(), tag, paths }
+            IndexTagRecord {
+                count: paths.len(),
+                tag,
+                paths,
+            }
         })
         .collect();
     let version: i64 = conn
-        .query_row("SELECT COALESCE(MAX(mtime), 0) FROM notes", [], |row| row.get(0))
+        .query_row("SELECT COALESCE(MAX(mtime), 0) FROM notes", [], |row| {
+            row.get(0)
+        })
         .map_err(|e| e.to_string())?;
     Ok(IndexTagSnapshot { version, tags })
 }
@@ -593,15 +669,24 @@ pub fn mentions_with(conn: &Connection, phrase: &str, limit: usize) -> Result<Ve
         return Ok(Vec::new());
     }
     let mut statement = conn
-        .prepare("SELECT path FROM notes_fts WHERE notes_fts MATCH ?1 ORDER BY bm25(notes_fts) LIMIT ?2")
+        .prepare(
+            "SELECT path FROM notes_fts WHERE notes_fts MATCH ?1 ORDER BY bm25(notes_fts) LIMIT ?2",
+        )
         .map_err(|e| e.to_string())?;
     let rows = statement
-        .query_map(params![format!("\"{cleaned}\""), limit as i64], |row| row.get::<_, String>(0))
+        .query_map(params![format!("\"{cleaned}\""), limit as i64], |row| {
+            row.get::<_, String>(0)
+        })
         .map_err(|e| e.to_string())?;
     rows.map(|row| row.map_err(|e| e.to_string())).collect()
 }
 
-pub fn mentions(state: &VaultIndexState, vault_path: &Path, phrase: &str, limit: usize) -> Result<Vec<String>, String> {
+pub fn mentions(
+    state: &VaultIndexState,
+    vault_path: &Path,
+    phrase: &str,
+    limit: usize,
+) -> Result<Vec<String>, String> {
     refresh(state, vault_path)?;
     with_connection(state, vault_path, |conn| mentions_with(conn, phrase, limit))
 }
@@ -614,11 +699,17 @@ pub fn backlinks_with(conn: &Connection, path: &str) -> Result<Vec<String>, Stri
     let mut statement = conn
         .prepare("SELECT DISTINCT from_path FROM links WHERE to_path = ?1 AND from_path != ?1 ORDER BY from_path")
         .map_err(|e| e.to_string())?;
-    let rows = statement.query_map(params![path], |row| row.get::<_, String>(0)).map_err(|e| e.to_string())?;
+    let rows = statement
+        .query_map(params![path], |row| row.get::<_, String>(0))
+        .map_err(|e| e.to_string())?;
     rows.map(|row| row.map_err(|e| e.to_string())).collect()
 }
 
-pub fn backlinks(state: &VaultIndexState, vault_path: &Path, path: &str) -> Result<Vec<String>, String> {
+pub fn backlinks(
+    state: &VaultIndexState,
+    vault_path: &Path,
+    path: &str,
+) -> Result<Vec<String>, String> {
     refresh(state, vault_path)?;
     with_connection(state, vault_path, |conn| backlinks_with(conn, path))
 }
@@ -636,9 +727,14 @@ pub struct ManifestEntry {
 }
 
 pub fn manifest_with(conn: &Connection, vault_path: &Path) -> Result<Vec<ManifestEntry>, String> {
-    let root = vault_path.to_string_lossy().trim_end_matches('/').to_string();
+    let root = vault_path
+        .to_string_lossy()
+        .trim_end_matches('/')
+        .to_string();
     let mut statement = conn
-        .prepare("SELECT path, mtime, size, hash FROM notes WHERE file_kind = 'markdown' ORDER BY path")
+        .prepare(
+            "SELECT path, mtime, size, hash FROM notes WHERE file_kind = 'markdown' ORDER BY path",
+        )
         .map_err(|e| e.to_string())?;
     let rows = statement
         .query_map([], |row| {
@@ -685,9 +781,15 @@ pub struct SyncPlan {
 
 /// Three-way when a `base` (the manifest at the last successful sync) exists;
 /// mtime comparison, hash-equal short circuit, when it does not.
-pub fn sync_plan(local: &[ManifestEntry], remote: &[ManifestEntry], base: Option<&[ManifestEntry]>) -> SyncPlan {
+pub fn sync_plan(
+    local: &[ManifestEntry],
+    remote: &[ManifestEntry],
+    base: Option<&[ManifestEntry]>,
+) -> SyncPlan {
     let by_path = |list: &[ManifestEntry]| -> BTreeMap<String, ManifestEntry> {
-        list.iter().map(|entry| (entry.path.clone(), entry.clone())).collect()
+        list.iter()
+            .map(|entry| (entry.path.clone(), entry.clone()))
+            .collect()
     };
     let local = by_path(local);
     let remote = by_path(remote);
@@ -752,7 +854,11 @@ mod tests {
     fn entry(path: &str, title: &str, mtime: u64, links: &[&str]) -> VaultEntry {
         let mut entry = VaultEntry::default();
         entry.path = path.to_string();
-        entry.filename = Path::new(path).file_name().unwrap().to_string_lossy().to_string();
+        entry.filename = Path::new(path)
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
         entry.title = title.to_string();
         entry.modified_at = Some(mtime);
         entry.file_kind = "markdown".into();
@@ -762,7 +868,8 @@ mod tests {
 
     #[test]
     fn prose_drops_frontmatter_fences_and_inline_code() {
-        let content = "---\ntags: [A, b/c]\n---\n# Title\n\nText #real `#notag` more\n```\n#fenced\n```\nend";
+        let content =
+            "---\ntags: [A, b/c]\n---\n# Title\n\nText #real `#notag` more\n```\n#fenced\n```\nend";
         let prose = prose_of(content);
         assert!(!prose.contains("tags:"));
         assert!(!prose.contains("#notag"));
@@ -783,11 +890,17 @@ mod tests {
     #[test]
     fn lineage_query_and_marks_behave() {
         assert_eq!(tag_lineage("a/b/c"), vec!["a", "a/b", "a/b/c"]);
-        assert_eq!(fts_query("  gri  moire ").as_deref(), Some("\"gri\" \"moire\"*"));
+        assert_eq!(
+            fts_query("  gri  moire ").as_deref(),
+            Some("\"gri\" \"moire\"*")
+        );
         assert_eq!(fts_query("\"\""), None);
         let (text, marks) = strip_marks("say \u{1}hello\u{2} to \u{1}wörld\u{2}!");
         assert_eq!(text, "say hello to wörld!");
-        assert_eq!(marks.iter().map(|m| (m.start, m.end)).collect::<Vec<_>>(), vec![(4, 9), (13, 18)]);
+        assert_eq!(
+            marks.iter().map(|m| (m.start, m.end)).collect::<Vec<_>>(),
+            vec![(4, 9), (13, 18)]
+        );
     }
 
     #[test]
@@ -796,8 +909,16 @@ mod tests {
         let vault = dir.path();
         let a = vault.join("alpha.md");
         let b = vault.join("beta.md");
-        std::fs::write(&a, "---\ntags: [project/grimoire]\n---\n# Alpha\n\nThe grimoire keeps notes. #daily").unwrap();
-        std::fs::write(&b, "# Beta\n\nNothing about the book here, but it mentions Alpha in prose.").unwrap();
+        std::fs::write(
+            &a,
+            "---\ntags: [project/grimoire]\n---\n# Alpha\n\nThe grimoire keeps notes. #daily",
+        )
+        .unwrap();
+        std::fs::write(
+            &b,
+            "# Beta\n\nNothing about the book here, but it mentions Alpha in prose.",
+        )
+        .unwrap();
         let entries = vec![
             entry(a.to_str().unwrap(), "Alpha", 10, &["Beta"]),
             entry(b.to_str().unwrap(), "Beta", 10, &[]),
@@ -824,7 +945,11 @@ mod tests {
         assert!(hits.results[0].snippet.to_lowercase().contains("grimoire"));
 
         let snapshot = tags_with(&conn).unwrap();
-        let names: Vec<&str> = snapshot.tags.iter().map(|record| record.tag.as_str()).collect();
+        let names: Vec<&str> = snapshot
+            .tags
+            .iter()
+            .map(|record| record.tag.as_str())
+            .collect();
         assert_eq!(names, vec!["daily", "project", "project/grimoire"]);
 
         let mentioning = mentions_with(&conn, "Alpha", 10).unwrap();
@@ -833,10 +958,15 @@ mod tests {
         // Alpha links to Beta by title; Beta's backlinks are exactly Alpha.
         let back = backlinks_with(&conn, b.to_str().unwrap()).unwrap();
         assert_eq!(back, vec![a.to_str().unwrap().to_string()]);
-        assert!(backlinks_with(&conn, a.to_str().unwrap()).unwrap().is_empty());
+        assert!(backlinks_with(&conn, a.to_str().unwrap())
+            .unwrap()
+            .is_empty());
 
         let manifest = manifest_with(&conn, vault).unwrap();
-        assert_eq!(manifest.iter().map(|m| m.path.as_str()).collect::<Vec<_>>(), vec!["alpha.md", "beta.md"]);
+        assert_eq!(
+            manifest.iter().map(|m| m.path.as_str()).collect::<Vec<_>>(),
+            vec!["alpha.md", "beta.md"]
+        );
         assert_eq!(manifest[0].hash.len(), 64);
         assert!(manifest[0].size > 0);
 
@@ -845,30 +975,63 @@ mod tests {
         let entries = vec![entry(a.to_str().unwrap(), "Alpha", 11, &[])];
         let third = refresh_with(&mut conn, &entries).unwrap();
         assert_eq!((third.indexed, third.removed), (1, 1));
-        assert!(search_with(&conn, "grimoire", 10).unwrap().results.is_empty());
+        assert!(search_with(&conn, "grimoire", 10)
+            .unwrap()
+            .results
+            .is_empty());
     }
 
     fn m(path: &str, mtime: i64, hash: &str) -> ManifestEntry {
-        ManifestEntry { path: path.into(), mtime, size: 1, hash: hash.into() }
+        ManifestEntry {
+            path: path.into(),
+            mtime,
+            size: 1,
+            hash: hash.into(),
+        }
     }
 
     #[test]
     fn sync_plan_three_way_never_drops_an_edit() {
-        let base = vec![m("a.md", 1, "A"), m("b.md", 1, "B"), m("c.md", 1, "C"), m("d.md", 1, "D")];
-        let local = vec![m("a.md", 5, "A2"), m("b.md", 1, "B"), m("c.md", 5, "C2"), m("e.md", 5, "E")];
-        let remote = vec![m("a.md", 6, "A3"), m("b.md", 6, "B2"), m("d.md", 1, "D"), m("f.md", 6, "F")];
+        let base = vec![
+            m("a.md", 1, "A"),
+            m("b.md", 1, "B"),
+            m("c.md", 1, "C"),
+            m("d.md", 1, "D"),
+        ];
+        let local = vec![
+            m("a.md", 5, "A2"),
+            m("b.md", 1, "B"),
+            m("c.md", 5, "C2"),
+            m("e.md", 5, "E"),
+        ];
+        let remote = vec![
+            m("a.md", 6, "A3"),
+            m("b.md", 6, "B2"),
+            m("d.md", 1, "D"),
+            m("f.md", 6, "F"),
+        ];
         let plan = sync_plan(&local, &remote, Some(&base));
-        assert_eq!(plan.conflicts, vec!["a.md"]);          // both changed, differ
-        assert_eq!(plan.pull, vec!["b.md", "f.md"]);        // remote changed / new remote
-        assert_eq!(plan.push, vec!["c.md", "e.md"]);        // gone remotely but edited here / new local
+        assert_eq!(plan.conflicts, vec!["a.md"]); // both changed, differ
+        assert_eq!(plan.pull, vec!["b.md", "f.md"]); // remote changed / new remote
+        assert_eq!(plan.push, vec!["c.md", "e.md"]); // gone remotely but edited here / new local
         assert_eq!(plan.delete_local, Vec::<String>::new());
-        assert_eq!(plan.delete_remote, vec!["d.md"]);       // gone locally, untouched remotely
+        assert_eq!(plan.delete_remote, vec!["d.md"]); // gone locally, untouched remotely
     }
 
     #[test]
     fn sync_plan_without_a_base_uses_mtime_and_treats_ties_as_conflicts() {
-        let local = vec![m("a.md", 5, "A1"), m("b.md", 1, "B1"), m("c.md", 3, "C1"), m("same.md", 9, "S")];
-        let remote = vec![m("a.md", 2, "A2"), m("b.md", 4, "B2"), m("c.md", 3, "C2"), m("same.md", 1, "S")];
+        let local = vec![
+            m("a.md", 5, "A1"),
+            m("b.md", 1, "B1"),
+            m("c.md", 3, "C1"),
+            m("same.md", 9, "S"),
+        ];
+        let remote = vec![
+            m("a.md", 2, "A2"),
+            m("b.md", 4, "B2"),
+            m("c.md", 3, "C2"),
+            m("same.md", 1, "S"),
+        ];
         let plan = sync_plan(&local, &remote, None);
         assert_eq!(plan.push, vec!["a.md"]);
         assert_eq!(plan.pull, vec!["b.md"]);
@@ -882,11 +1045,28 @@ mod tests {
         a.aliases = vec!["Council".into()];
         let b = entry("/v/notes/b.md", "B", 1, &[]);
         let lookup = LinkLookup::build(&[a.clone(), b]);
-        assert_eq!(lookup.resolve("Agent Council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
-        assert_eq!(lookup.resolve("agent-council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
-        assert_eq!(lookup.resolve("Council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
-        assert_eq!(lookup.resolve("topic/Agent-Council", "/v/notes/b.md").as_deref(), Some("/v/topic/agent-council.md"));
-        assert_eq!(lookup.resolve("Agent Council", "/v/topic/agent-council.md"), None);
+        assert_eq!(
+            lookup.resolve("Agent Council", "/v/notes/b.md").as_deref(),
+            Some("/v/topic/agent-council.md")
+        );
+        assert_eq!(
+            lookup.resolve("agent-council", "/v/notes/b.md").as_deref(),
+            Some("/v/topic/agent-council.md")
+        );
+        assert_eq!(
+            lookup.resolve("Council", "/v/notes/b.md").as_deref(),
+            Some("/v/topic/agent-council.md")
+        );
+        assert_eq!(
+            lookup
+                .resolve("topic/Agent-Council", "/v/notes/b.md")
+                .as_deref(),
+            Some("/v/topic/agent-council.md")
+        );
+        assert_eq!(
+            lookup.resolve("Agent Council", "/v/topic/agent-council.md"),
+            None
+        );
         assert_eq!(lookup.resolve("Nowhere", "/v/notes/b.md"), None);
     }
 }

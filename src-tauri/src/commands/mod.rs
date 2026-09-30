@@ -136,9 +136,11 @@ pub async fn index_refresh(
 ) -> Result<crate::vault_index::IndexRefreshReport, String> {
     let vault_path = vault_path.clone();
     let state = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::refresh(&state, std::path::Path::new(&vault_path)) })
-        .await
-        .map_err(|error| format!("Index task failed: {error}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::refresh(&state, std::path::Path::new(&vault_path))
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
 }
 
 #[tauri::command]
@@ -150,9 +152,16 @@ pub async fn index_search(
 ) -> Result<crate::vault_index::IndexSearchResponse, String> {
     let vault_path = vault_path.clone();
     let state = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::search(&state, std::path::Path::new(&vault_path), &query, limit.unwrap_or(50).clamp(1, 500)) })
-        .await
-        .map_err(|error| format!("Index task failed: {error}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::search(
+            &state,
+            std::path::Path::new(&vault_path),
+            &query,
+            limit.unwrap_or(50).clamp(1, 500),
+        )
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
 }
 
 #[tauri::command]
@@ -162,9 +171,11 @@ pub async fn index_tags(
 ) -> Result<crate::vault_index::IndexTagSnapshot, String> {
     let vault_path = vault_path.clone();
     let state = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::tags(&state, std::path::Path::new(&vault_path)) })
-        .await
-        .map_err(|error| format!("Index task failed: {error}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::tags(&state, std::path::Path::new(&vault_path))
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
 }
 
 #[tauri::command]
@@ -176,9 +187,16 @@ pub async fn index_mentions(
 ) -> Result<Vec<String>, String> {
     let vault_path = vault_path.clone();
     let state = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || { crate::vault_index::mentions(&state, std::path::Path::new(&vault_path), &phrase, limit.unwrap_or(100).clamp(1, 1000)) })
-        .await
-        .map_err(|error| format!("Index task failed: {error}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::mentions(
+            &state,
+            std::path::Path::new(&vault_path),
+            &phrase,
+            limit.unwrap_or(100).clamp(1, 1000),
+        )
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
 }
 
 #[tauri::command]
@@ -188,9 +206,11 @@ pub async fn index_backlinks(
     path: String,
 ) -> Result<Vec<String>, String> {
     let state = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || crate::vault_index::backlinks(&state, std::path::Path::new(&vault_path), &path))
-        .await
-        .map_err(|error| format!("Index task failed: {error}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::backlinks(&state, std::path::Path::new(&vault_path), &path)
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
 }
 
 #[tauri::command]
@@ -199,9 +219,11 @@ pub async fn index_manifest(
     vault_path: String,
 ) -> Result<Vec<crate::vault_index::ManifestEntry>, String> {
     let state = state.inner().clone();
-    tauri::async_runtime::spawn_blocking(move || crate::vault_index::manifest(&state, std::path::Path::new(&vault_path)))
-        .await
-        .map_err(|error| format!("Index task failed: {error}"))?
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::manifest(&state, std::path::Path::new(&vault_path))
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
 }
 
 /// Pure: decide what to pull, push, keep as conflicts, or delete. No I/O.
