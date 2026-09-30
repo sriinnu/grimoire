@@ -82,7 +82,7 @@
 }
 
 .editor-navigator-popover-shell {
-  width: min(560px, calc(100vw - 32px));
+  width: min(560px, var(--radix-popover-content-available-width, calc(100vw - 32px)));
   z-index: 2147483000 !important;
   padding: 10px;
   border-radius: 10px;

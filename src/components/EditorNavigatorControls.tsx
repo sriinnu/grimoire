@@ -110,7 +110,13 @@ export function EditorNavigatorControls({
 }: EditorNavigatorControlsProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<EditorNavigatorMode>('search')
+  const [pane, setPane] = useState<HTMLElement | null>(null)
   const summary = useMemo(() => summarizeNavigatorContent(content), [content])
+  // The popover is portaled to <body>; the editor pane is its collision
+  // boundary so it never spills over the note list or the inspector.
+  const anchorRef = useCallback((node: HTMLDivElement | null) => {
+    setPane(node?.closest<HTMLElement>('.app__editor') ?? null)
+  }, [])
 
   const openNavigator = useCallback((nextMode: EditorNavigatorMode) => {
     setMode(nextMode)
@@ -133,7 +139,7 @@ export function EditorNavigatorControls({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
-        <div className={cn('editor-navigator-controls', `editor-navigator-controls--${variant}`)}>
+        <div ref={anchorRef} className={cn('editor-navigator-controls', `editor-navigator-controls--${variant}`)}>
           <Button
             type="button"
             variant="ghost"
@@ -144,7 +150,7 @@ export function EditorNavigatorControls({
             data-icon-intent="navigation"
             onClick={() => openNavigator('search')}
           >
-            <Glyph name="search" size={15} />
+            <Glyph name="search" size={16} />
           </Button>
           <Button
             type="button"
@@ -170,12 +176,19 @@ export function EditorNavigatorControls({
             data-icon-intent="structure"
             onClick={() => openNavigator('links')}
           >
-            <Glyph name="link" size={15} />
+            <Glyph name="link" size={16} />
             <NavigatorCount variant={variant} count={summary.linkCount} />
           </Button>
         </div>
       </PopoverAnchor>
-      <PopoverContent className="editor-navigator-popover-shell grimoire-panel-reveal" align="center" side="top" sideOffset={10}>
+      <PopoverContent
+        className="editor-navigator-popover-shell grimoire-panel-reveal"
+        align="center"
+        side="top"
+        sideOffset={8}
+        collisionBoundary={pane ?? undefined}
+        collisionPadding={12}
+      >
         <Suspense fallback={<EditorNavigatorFallback />}>
           <EditorNavigatorPopoverSurface content={content} mode={mode} onModeChange={setMode} />
         </Suspense>
