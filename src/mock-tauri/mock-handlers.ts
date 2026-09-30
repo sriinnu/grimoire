@@ -345,6 +345,14 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     return `${vault}/Private/attachments/recordings/${Date.now()}-${args.filename}`
   },
   save_canvas_preview: () => null,
+  import_files_into_vault: (args: { vault_path?: string; folder?: string | null; sources: string[] }) => {
+    const target = args.folder ?? args.vault_path ?? '/Users/mock/Grimoire'
+    return args.sources.map((source) => {
+      const name = source.split('/').pop() ?? 'file'
+      const note = /\.(md|markdown|txt)$/i.test(name)
+      return { source, path: note ? `${target}/${name.replace(/\.(markdown|txt)$/i, '.md')}` : `${target}/attachments/${name}`, kind: note ? 'note' : 'attachment' }
+    })
+  },
   copy_image_to_vault: (args: { vault_path?: string; source_path: string }) => {
     const vault = args.vault_path ?? '/Users/mock/Grimoire'
     const filename = args.source_path.split('/').pop() ?? 'image.png'

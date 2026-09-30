@@ -1,5 +1,5 @@
 import type { RefObject } from 'react'
-import { ArrowSquareOut, FolderOpen, PencilSimple, Trash } from '@phosphor-icons/react'
+import { ArrowSquareOut, DownloadSimple, FolderOpen, PencilSimple, Trash } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { clampFixedMenuPosition } from '@/lib/fixedMenuPosition'
 import { revealInFileManagerLabel } from '@/utils/platform'
@@ -17,10 +17,11 @@ interface FolderContextMenuProps {
   onMove?: (folderPath: string) => void
   onRename: (folderPath: string) => void
   onReveal?: (folderPath: string) => void
+  onImport?: (folderPath: string) => void
 }
 
 const FOLDER_MENU_WIDTH = 196
-const FOLDER_MENU_HEIGHT = 156
+const FOLDER_MENU_HEIGHT = 190
 
 export function FolderContextMenu({
   menu,
@@ -29,6 +30,7 @@ export function FolderContextMenu({
   onMove,
   onRename,
   onReveal,
+  onImport,
 }: FolderContextMenuProps) {
   if (!menu) return null
   const menuPosition = clampFixedMenuPosition(menu.x, menu.y, {
@@ -66,6 +68,19 @@ export function FolderContextMenu({
         >
           <FolderOpen size={14} />
           Move to…
+        </Button>
+      )}
+      {onImport && (
+        <Button
+          type="button"
+          role="menuitem"
+          variant="ghost"
+          className="h-auto w-full justify-start gap-2 px-2 py-1.5 text-sm"
+          onClick={() => onImport(menu.path)}
+          data-testid="import-files-menu-item"
+        >
+          <DownloadSimple size={14} />
+          Import Files…
         </Button>
       )}
       {onReveal && (

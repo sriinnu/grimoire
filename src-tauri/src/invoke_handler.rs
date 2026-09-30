@@ -119,6 +119,7 @@ macro_rules! app_invoke_handler {
             commands::save_audio_recording,
             commands::save_canvas_preview,
             commands::copy_image_to_vault,
+            commands::import_files_into_vault,
             commands::delete_note,
             commands::batch_delete_notes,
             commands::batch_delete_notes_async,

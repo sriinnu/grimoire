@@ -247,6 +247,7 @@ function createCommandRegistryVaultConfig(
     canAddRemote: !isGitVault || (config.canAddRemote ?? true),
     onCheckForUpdates: config.onCheckForUpdates,
     onCreateType: config.onCreateType,
+    onImportFiles: config.onImportFiles,
     locale: config.locale,
     systemLocale: config.systemLocale,
     selectedUiLanguage: config.selectedUiLanguage,

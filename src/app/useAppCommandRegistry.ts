@@ -26,7 +26,7 @@ export function useAppCommandRegistry(
   const {
     folderActions, handleCustomizeNoteListColumns, handleOpenInNewWindow,
     handlePreviewNoteWithQuickLook, handleRemoveNoteIconCommand, handleRevealNoteInFinder,
-    handleRevealVaultInFinder, handleSetNoteIconCommand,
+    handleRevealVaultInFinder, handleSetNoteIconCommand, handleImportFiles,
   } = entryWorkspace
   const { deleteActions, entryActions, handleCommitPush } = gitWorkflow
   const {
@@ -56,6 +56,7 @@ export function useAppCommandRegistry(
     onQuickCapture: shell.quickCapture.openQuickCapture,
     onCaptureDream: handleCaptureDreamCommand,
     onCreateNoteOfType: notes.handleCreateNoteImmediate,
+    onImportFiles: () => { void handleImportFiles() },
     onSave: appSave.handleSave,
     onOpenSettings: dialogs.openSettings,
     onOpenFeedback: openFeedback,

@@ -15,6 +15,9 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
     menuOwned: true,
     shortcut: { combo: 'command-or-ctrl', key: 'n', code: 'KeyN', display: '⌘N' },
   },
+  [APP_COMMAND_IDS.fileImportFiles]: {
+    route: { kind: 'handler', handler: 'onImportFiles' },
+  },
   [APP_COMMAND_IDS.fileCaptureThought]: {
     route: { kind: 'handler', handler: 'onCaptureThought' },
     menuOwned: true,

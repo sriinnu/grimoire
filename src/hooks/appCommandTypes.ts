@@ -5,6 +5,7 @@ export const APP_COMMAND_IDS = {
   appSettings: 'app-settings',
   appCheckForUpdates: 'app-check-for-updates',
   fileNewNote: 'file-new-note',
+  fileImportFiles: 'file-import-files',
   fileCaptureThought: 'file-capture-thought',
   fileCaptureJournal: 'file-capture-journal',
   fileCaptureDream: 'file-capture-dream',
@@ -84,6 +85,7 @@ export type SimpleHandlerKey =
   | 'onCaptureJournal'
   | 'onCaptureDream'
   | 'onCreateType'
+  | 'onImportFiles'
   | 'onQuickOpen'
   | 'onSave'
   | 'onSearch'

@@ -34,6 +34,7 @@ mod html_exporter_progress_tests;
 #[cfg(test)]
 mod html_exporter_tests;
 mod image;
+mod import_files;
 mod import_manifest;
 mod import_preview_signature;
 #[cfg(test)]
@@ -133,6 +134,7 @@ pub use getting_started::{create_getting_started_vault, default_vault_path, vaul
 pub use html_exporter::export_static_html_archive;
 pub use html_exporter_progress::export_static_html_archive_with_progress;
 pub use image::{copy_image_to_vault, save_audio_recording, save_canvas_preview, save_image};
+pub use import_files::{import_files_into_folder, ImportedFile};
 pub use import_preview_signature::{
     import_reviewed_app_export, import_reviewed_app_export_with_progress,
     import_reviewed_journal_export, import_reviewed_journal_export_with_progress,

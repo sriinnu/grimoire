@@ -81,6 +81,7 @@ interface CommandRegistryConfig {
   onAddRemote?: () => void
   canAddRemote?: boolean
   onCreateType?: () => void
+  onImportFiles?: () => void
   onDeleteNote: (path: string) => void
   onArchiveNote: (path: string) => void
   onUnarchiveNote: (path: string) => void
@@ -130,7 +131,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     onSelect, onRenameFolder, onDeleteFolder,
     showInbox,
     onGoBack, onGoForward, canGoBack, canGoForward,
-    onCheckForUpdates, onCreateType,
+    onCheckForUpdates, onCreateType, onImportFiles,
     onRemoveActiveVault, onRestoreGettingStarted, isGettingStartedHidden, vaultCount,
     mcpStatus, onInstallMcp, aiAgentsStatus, vaultAiGuidanceStatus,
     onOpenAiAgents, onRestoreVaultAiGuidance, onSetDefaultAiAgent, selectedAiAgent, onCycleDefaultAiAgent, selectedAiAgentLabel,
@@ -198,7 +199,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     }),
     ...buildNoteCommands({
       hasActiveNote, activeTabPath, isArchived,
-      onCreateNote: createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave,
+      onCreateNote: createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onImportFiles, onSave,
       onDeleteNote, onArchiveNote, onUnarchiveNote,
       onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
       onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onOpenInNewWindow, onToggleFavorite, isFavorite,
@@ -242,7 +243,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
   ], [
     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
-    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onImportFiles, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
     onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
     onCheckForUpdates,

@@ -9,6 +9,7 @@ import type { VaultEntry } from '../types'
 import { initializeNoteProperties } from '../utils/initializeNoteProperties'
 import { openNoteInNewWindow } from '../utils/openNoteWindow'
 import { invokeAppCommand } from './appRuntimeSupport'
+import { importTargetFolder, pickFilesToImport, summarizeImport, type ImportedFile } from '../lib/importFiles'
 import type { NoteWorkspace } from './useNoteWorkspace'
 import type { VaultFoundation } from './useVaultFoundation'
 
@@ -126,6 +127,45 @@ export function useEntryWorkspace(foundation: VaultFoundation, workspace: NoteWo
     void handleRevealPathInFinder(folderPath, 'Revealed folder in Finder')
   }, [handleRevealPathInFinder])
 
+  /**
+   * Import Files…: pick files from anywhere on disk and copy them into the
+   * folder in view (or the one right-clicked), then open the first note.
+   */
+  const handleImportFiles = useCallback(async (folderPath?: string) => {
+    if (!resolvedPath) {
+      setToastMessage('Open a vault before importing files')
+      return
+    }
+    if (!isTauri()) {
+      setToastMessage('Import Files is available in the desktop app')
+      return
+    }
+    let sources: string[] = []
+    try {
+      sources = await pickFilesToImport()
+    } catch (err) {
+      setToastMessage(`Could not open the file picker: ${err}`)
+      return
+    }
+    if (sources.length === 0) return
+    const folder = typeof folderPath === 'string' ? folderPath : importTargetFolder(effectiveSelection)
+    try {
+      const results = await invokeAppCommand<ImportedFile[]>('import_files_into_vault', { vaultPath: resolvedPath, folder, sources })
+      let first: VaultEntry | null = null
+      for (const file of results) {
+        if (file.kind === 'attachment') continue
+        const entry = await invokeAppCommand<VaultEntry | null>('reload_vault_entry', { path: file.path })
+        if (!entry) continue
+        if (file.kind === 'note') vault.addEntry(entry)
+        first ??= entry
+      }
+      setToastMessage(summarizeImport(results, folder, resolvedPath))
+      if (first) void notes.handleSelectNote(first)
+    } catch (err) {
+      setToastMessage(`Could not import: ${err}`)
+    }
+  }, [effectiveSelection, notes, resolvedPath, setToastMessage, vault])
+
   const handlePreviewNoteWithQuickLook = useCallback(async (path: string) => {
     if (!resolvedPath || !path) {
       setToastMessage('Open a vault before previewing notes with Quick Look')
@@ -202,7 +242,7 @@ export function useEntryWorkspace(foundation: VaultFoundation, workspace: NoteWo
     handleInitializeProperties, handleSetNoteIconCommand, handleCustomizeNoteListColumns,
     handleUpdateAllNotesNoteListProperties, handleUpdateInboxNoteListProperties, handleCreateFolder,
     folderActions, handleRemoveNoteIconCommand, handleOpenInNewWindow, handleRevealNoteInFinder,
-    handleRevealFolderInFinder,
+    handleRevealFolderInFinder, handleImportFiles,
     handlePreviewNoteWithQuickLook, handleRevealVaultInFinder, handleOpenEntryInNewWindow,
     handleDiscardFile, handleOpenDeletedNote, handleReplaceActiveTabWithQueuedDiff,
   }

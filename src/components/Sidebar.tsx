@@ -47,6 +47,7 @@ interface SidebarProps {
   onDeleteFolder?: (folderPath: string) => void
   onMoveFolder?: (folderPath: string) => void
   onRevealFolder?: (folderPath: string) => void
+  onImportFilesToFolder?: (folderPath: string) => void
   renamingFolderPath?: string | null
   onStartRenameFolder?: (folderPath: string) => void
   onCancelRenameFolder?: () => void
@@ -80,6 +81,7 @@ const SidebarPane = memo(function Sidebar({
   onDeleteFolder,
   onMoveFolder,
   onRevealFolder,
+  onImportFilesToFolder,
   renamingFolderPath,
   onStartRenameFolder,
   onCancelRenameFolder,
@@ -214,6 +216,7 @@ const SidebarPane = memo(function Sidebar({
           onDeleteFolder={onDeleteFolder}
           onMoveFolder={onMoveFolder}
           onRevealFolder={onRevealFolder}
+          onImportFilesToFolder={onImportFilesToFolder}
           renamingFolderPath={renamingFolderPath}
           onStartRenameFolder={onStartRenameFolder}
           onCancelRenameFolder={onCancelRenameFolder}
