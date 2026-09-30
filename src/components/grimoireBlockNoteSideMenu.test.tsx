@@ -192,6 +192,17 @@ describe('GrimoireSideMenu', () => {
     expect(screen.getByText('Turn into').parentElement).toHaveTextContent('Turn intoNumbered List')
   })
 
+  it('shows the block type on the handle instead of an anonymous grip', () => {
+    focusedBlock = { id: 'h', type: 'heading', props: { level: 2 } }
+    render(<GrimoireSideMenu />)
+
+    const handle = screen.getByRole('button', { name: 'Open block menu' }).querySelector('.bn-block-handle')
+    expect(handle).toHaveAttribute('data-block-type', 'heading')
+    expect(handle).toHaveAttribute('title', 'Heading 2 · drag to move, click for options')
+    expect(handle?.querySelector('.bn-block-handle__glyph')).toBeInTheDocument()
+    expect(handle?.querySelector('.bn-block-handle__grip')).toBeInTheDocument()
+  })
+
   it('marks the focused block type as the checked turn-into option', () => {
     render(<GrimoireSideMenu />)
 

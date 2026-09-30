@@ -15,6 +15,7 @@ import {
 import type { PartialBlock } from '@blocknote/core'
 import { SideMenuExtension } from '@blocknote/core/extensions'
 import { applyTurnInto, type TurnIntoEditor } from './turnIntoPlan'
+import { blockHandleGlyph } from './blockHandleGlyph'
 import {
   Code,
   GripVertical,
@@ -163,6 +164,7 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
   const Component = props.dragHandleMenu || GrimoireDragHandleMenu
 
   if (!Components || block === undefined) return null
+  const glyph = blockHandleGlyph(block)
 
   return (
     <Components.Generic.Menu.Root
@@ -178,8 +180,18 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
           draggable
           onDragStart={(event) => sideMenu.blockDragStart(event, block)}
           onDragEnd={sideMenu.blockDragEnd}
-          className="bn-button"
-          icon={<GripVertical size={20} strokeWidth={2.4} data-test="dragHandle" />}
+          className="bn-button bn-block-handle-button"
+          icon={
+            <span
+              className="bn-block-handle"
+              data-block-type={block?.type}
+              title={`${glyph.label} · drag to move, click for options`}
+              data-test="dragHandle"
+            >
+              <glyph.Icon className="bn-block-handle__glyph" size={14} strokeWidth={2} aria-hidden="true" />
+              <GripVertical className="bn-block-handle__grip" size={16} strokeWidth={2.4} aria-hidden="true" />
+            </span>
+          }
         />
       </Components.Generic.Menu.Trigger>
       <Component />
