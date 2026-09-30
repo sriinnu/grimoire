@@ -70,13 +70,13 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
       onClick={onClose}
     >
       <div
-        className="grimoire-command-stage grimoire-command-surface flex w-[500px] max-w-[90vw] max-h-[400px] flex-col self-start overflow-hidden border"
+        className="grimoire-command-stage grimoire-command-surface flex w-[520px] max-w-[90vw] max-h-[440px] flex-col self-start overflow-hidden border"
         onClick={(e) => e.stopPropagation()}
       >
         <Input
           ref={inputRef}
           data-testid="quick-open-input"
-          className="border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
+          className="h-auto rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:border-border focus-visible:ring-0 md:text-[15px]"
           type="text"
           placeholder="Search pages..."
           value={query}
@@ -98,7 +98,7 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
           <button
             type="button"
             data-testid="quick-open-create"
-            className="flex w-full items-center gap-2 px-4 py-3 text-left text-[14px] text-foreground hover:bg-muted"
+            className="flex h-10 w-full items-center gap-2 px-4 text-left text-sm text-foreground hover:bg-muted"
             onClick={() => {
               onCreate?.(createTitle)
               onClose()

@@ -57,7 +57,7 @@ export function NoteSearchList<T extends NoteSearchResultItem>({
         <div
           key={getItemKey(item, i)}
           className={cn(
-            'flex cursor-pointer items-center justify-between gap-2 px-3 py-1.5 transition-colors',
+            'mx-1 flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 transition-colors',
             i === selectedIndex ? 'bg-accent' : 'hover:bg-secondary',
           )}
           onClick={() => onItemClick(item, i)}
