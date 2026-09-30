@@ -384,14 +384,20 @@
   cursor: pointer;
 }
 
+/* The box hangs into the gutter by exactly its horizontal padding, so the
+   first code glyph sits on the same vertical line as the prose. Width auto
+   (not BlockNote's 100%) is what lets the negative margins widen it. */
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] pre {
   border: 1px solid var(--grimoire-code-block-border, var(--border-default));
   border-radius: var(--grimoire-code-block-radius, 8px);
   background: var(--grimoire-code-block-bg, var(--surface-input));
   box-shadow: var(--grimoire-code-block-shadow, none);
+  box-sizing: border-box;
+  width: auto;
+  margin-inline: calc(-1 * var(--grimoire-code-block-padding-x, 12px));
   max-height: min(360px, 42vh);
   overflow: auto;
-  padding: 10px 12px;
+  padding: var(--grimoire-code-block-padding-y, 10px) var(--grimoire-code-block-padding-x, 12px);
   font-family: var(--grimoire-mono-font-family, ui-monospace, 'SF Mono', Menlo, Consolas, monospace);
   font-size: 13px;
   line-height: 1.6;
@@ -476,11 +482,13 @@
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] {
   background: transparent;
   color: var(--text-primary);
+  /* Same rhythm as a paragraph, so a code block never hugs the next line. */
+  margin-bottom: var(--editor-paragraph-spacing);
 }
 
 .editor__blocknote-container .bn-block-content[data-content-type="codeBlock"] > div > select {
   top: 6px;
-  right: 10px;
+  right: 0;
   left: auto;
   font: 500 11px var(--grimoire-ui-font-family, system-ui, sans-serif);
   color: var(--text-tertiary, var(--muted-foreground));

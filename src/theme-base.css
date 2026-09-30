@@ -17,6 +17,8 @@
   --grimoire-code-block-bg: color-mix(in srgb, var(--surface-card) 82%, var(--surface-editor));
   --grimoire-code-block-border: color-mix(in srgb, var(--primary) 18%, var(--border-default));
   --grimoire-code-block-radius: 8px;
+  --grimoire-code-block-padding-x: 12px;
+  --grimoire-code-block-padding-y: 10px;
   --grimoire-code-block-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-primary) 5%, transparent);
   --grimoire-graph-bg:
     radial-gradient(60% 52% at 76% 12%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 60%),

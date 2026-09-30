@@ -15,7 +15,7 @@ describe('editor page CSS', () => {
     expect(css).toContain('margin-inline: calc((100% - var(--editor-wide-block-width)) / 2)')
     // Only top-level blocks of these kinds grow; nested list content never does.
     expect(css).toContain('.bn-editor > .bn-block-group > .bn-block-outer:has(')
-    for (const type of ['table', 'codeBlock', 'image', 'video', 'audio', 'file']) {
+    for (const type of ['table', 'image', 'video', 'audio', 'file']) {
       expect(css).toContain(`[data-content-type='${type}']`)
     }
     // Left-aligned layout hugs the left edge instead of centring.

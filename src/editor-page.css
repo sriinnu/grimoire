@@ -86,8 +86,10 @@
 }
 
 /* Wide blocks break out of the measure. Paragraphs keep the reading width;
-   tables, code, images and other media may grow to min(1200px, the page's
-   inner width), centred on the column (or flush left in the left layout).
+   tables, images and other media may grow to min(1200px, the page's inner
+   width), centred on the column (or flush left in the left layout). Code is
+   text and stays in the measure: its glyphs line up with the prose and the
+   box hangs into the gutter by exactly its own padding (see EditorTheme.css).
    The wrapper is the container so 100cqw is the real room on the page. */
 :root[data-theme-preset] .editor-scroll-area .editor-content-wrapper {
   container: editor-page / inline-size;
@@ -100,7 +102,6 @@
 :root[data-theme-preset] .editor__blocknote-container .bn-editor > .bn-block-group > .bn-block-outer:has(
   > .bn-block > .bn-block-content:is(
     [data-content-type='table'],
-    [data-content-type='codeBlock'],
     [data-content-type='image'],
     [data-content-type='video'],
     [data-content-type='audio'],
@@ -115,7 +116,6 @@
 :root[data-theme-preset] .editor-content-layout--left .editor__blocknote-container .bn-editor > .bn-block-group > .bn-block-outer:has(
   > .bn-block > .bn-block-content:is(
     [data-content-type='table'],
-    [data-content-type='codeBlock'],
     [data-content-type='image'],
     [data-content-type='video'],
     [data-content-type='audio'],
