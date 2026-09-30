@@ -366,6 +366,8 @@ function SettingsPanelInner({
           setUiLanguage={(value) => updateDraft('uiLanguage', value)}
           menuBarIconEnabled={draft.menuBarIconEnabled}
           setMenuBarIconEnabled={(value) => updateDraft('menuBarIconEnabled', value)}
+          panchangamEnabled={draft.panchangamEnabled}
+          setPanchangamEnabled={(value) => updateDraft('panchangamEnabled', value)}
           nativeShellMaterial={draft.nativeShellMaterial}
           setNativeShellMaterial={(value) => updateDraft('nativeShellMaterial', value)}
           initialH1AutoRename={draft.initialH1AutoRename}

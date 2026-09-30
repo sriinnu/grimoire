@@ -119,6 +119,7 @@ interface StatusBarProps {
   onToggleThemeMode?: () => void
   onOpenFeedback?: () => void
   buildNumber?: string
+  panchangamEnabled?: boolean
   onCheckForUpdates?: () => void
   onRemoveVault?: (path: string) => void
   mcpStatus?: McpStatus
@@ -230,6 +231,7 @@ function StatusBarFooter({
   onToggleThemeMode,
   onOpenFeedback,
   buildNumber,
+  panchangamEnabled,
   onCheckForUpdates,
   onRemoveVault,
   mcpStatus,
@@ -314,6 +316,7 @@ function StatusBarFooter({
       />
       <StatusBarSecondarySection
         buildNumber={buildNumber}
+        panchangamEnabled={panchangamEnabled}
         conflictCount={conflictCount}
         isGitVault={isGitVault}
         modifiedCount={modifiedCount}

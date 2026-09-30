@@ -38,6 +38,7 @@ fn test_settings_json_roundtrip() {
         editor_line_height: Some("compact".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
+        panchangam_enabled: Some(false),
         native_shell_material: Some("unified".to_string()),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),

@@ -37,6 +37,9 @@ pub struct Settings {
     pub editor_line_height: Option<String>,
     pub ui_language: Option<String>,
     pub menu_bar_icon_enabled: Option<bool>,
+    /// Today's panchangam in the status bar. `None` means on.
+    #[serde(default)]
+    pub panchangam_enabled: Option<bool>,
     pub native_shell_material: Option<String>,
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
@@ -264,6 +267,7 @@ fn normalize_settings(settings: Settings) -> Settings {
         editor_line_height: normalize_editor_line_height(settings.editor_line_height.as_deref()),
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         menu_bar_icon_enabled: settings.menu_bar_icon_enabled,
+        panchangam_enabled: settings.panchangam_enabled,
         native_shell_material: normalize_native_shell_material(
             settings.native_shell_material.as_deref(),
         ),

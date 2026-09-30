@@ -99,6 +99,8 @@ export interface Settings {
   editor_line_height?: EditorLineHeight | null
   ui_language?: AppLocale | null
   menu_bar_icon_enabled?: boolean | null
+  /** Today's panchangam in the status bar. Missing means on. */
+  panchangam_enabled?: boolean | null
   native_shell_material?: NativeShellMaterial | null
   initial_h1_auto_rename_enabled?: boolean | null
   default_ai_agent?: AiAgentId | null

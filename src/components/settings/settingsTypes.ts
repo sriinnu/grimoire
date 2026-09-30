@@ -37,6 +37,7 @@ export interface SettingsDraft {
   editorLineHeight: EditorLineHeight
   uiLanguage: UiLanguagePreference
   menuBarIconEnabled: boolean
+  panchangamEnabled: boolean
   nativeShellMaterial: NativeShellMaterial
   initialH1AutoRename: boolean
   crashReporting: boolean
@@ -88,6 +89,8 @@ export interface SettingsBodyProps {
   setUiLanguage: (value: UiLanguagePreference) => void
   menuBarIconEnabled: boolean
   setMenuBarIconEnabled: (value: boolean) => void
+  panchangamEnabled: boolean
+  setPanchangamEnabled: (value: boolean) => void
   nativeShellMaterial: NativeShellMaterial
   setNativeShellMaterial: (value: NativeShellMaterial) => void
   locale: AppLocale

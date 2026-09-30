@@ -148,6 +148,8 @@ const EN_TRANSLATIONS = {
   'settings.native.menuBarIconDescription': 'Adds Open, New Page, Quick Open, Settings, Reload Notebook, and Quit to the native menu bar menu.',
   'settings.native.menuBarIconUnavailable': '{platform} tray integration not available yet',
   'settings.native.menuBarIconUnavailableDescription': 'This control stays off until Grimoire ships native quick actions for {platform}.',
+  'settings.native.panchangam': 'Panchangam in the status bar',
+  'settings.native.panchangamDescription': 'Today\u2019s tithi, nakshatra and vara, computed on this device. On by default.',
   'settings.native.shellMaterial': 'Window material',
   'settings.native.shellMaterialDescription': 'Changes only Grimoire-owned shell layers. Release builds stay conservative and avoid private transparent-window APIs.',
   'settings.native.shellMaterialStandard': 'Standard',

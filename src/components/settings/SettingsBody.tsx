@@ -251,6 +251,8 @@ export function SettingsBody(props: SettingsBodyProps) {
               t={t}
               menuBarIconEnabled={props.menuBarIconEnabled}
               setMenuBarIconEnabled={props.setMenuBarIconEnabled}
+              panchangamEnabled={props.panchangamEnabled}
+              setPanchangamEnabled={props.setPanchangamEnabled}
               nativeShellMaterial={props.nativeShellMaterial}
               setNativeShellMaterial={props.setNativeShellMaterial}
             />
