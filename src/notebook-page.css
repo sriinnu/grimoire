@@ -431,3 +431,31 @@
 :root[data-theme-preset] .dashboard-on-this-day__date {
   font-size: 12px;
 }
+
+/* The runway board: a compact row of four steps, not four tall columns */
+:root[data-theme-preset] .vault-dashboard__flow {
+  align-items: start;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-steps {
+  align-self: start;
+  border-radius: 8px;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-step {
+  min-height: 0;
+  padding: 12px;
+  gap: 2px;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-step strong {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-step small {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
