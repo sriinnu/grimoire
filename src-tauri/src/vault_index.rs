@@ -852,18 +852,19 @@ mod tests {
     use super::*;
 
     fn entry(path: &str, title: &str, mtime: u64, links: &[&str]) -> VaultEntry {
-        let mut entry = VaultEntry::default();
-        entry.path = path.to_string();
-        entry.filename = Path::new(path)
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-            .to_string();
-        entry.title = title.to_string();
-        entry.modified_at = Some(mtime);
-        entry.file_kind = "markdown".into();
-        entry.outgoing_links = links.iter().map(|link| link.to_string()).collect();
-        entry
+        VaultEntry {
+            path: path.to_string(),
+            filename: Path::new(path)
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+            title: title.to_string(),
+            modified_at: Some(mtime),
+            file_kind: "markdown".into(),
+            outgoing_links: links.iter().map(|link| link.to_string()).collect(),
+            ..VaultEntry::default()
+        }
     }
 
     #[test]
