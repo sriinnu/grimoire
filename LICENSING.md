@@ -48,7 +48,7 @@ The Grimoire name, app icon, logo, wordmark, and related brand assets are not gr
 
 See [TRADEMARKS.md](TRADEMARKS.md) for permitted and restricted uses.
 
-Third-party assets keep their own licenses. For example, the bundled Caveat font is licensed under the SIL Open Font License in [assets/fonts/Caveat-OFL.txt](assets/fonts/Caveat-OFL.txt).
+Third-party assets keep their own licenses. The bundled fonts (Caveat, Inter, Literata, Fraunces) are licensed under the SIL Open Font License; each license sits beside its font in `assets/fonts/`, for example [assets/fonts/Fraunces-OFL.txt](assets/fonts/Fraunces-OFL.txt).
 
 ## Third-Party Code
 

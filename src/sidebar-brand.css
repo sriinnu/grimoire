@@ -52,20 +52,24 @@
   fill: var(--brand-mark-dot);
 }
 
+/* The wordmark is set, not scribbled: Fraunces at its display optical size,
+   a touch of soft and wonk baked into the file, tracked slightly tight so the
+   eight letters read as one shape. Cap height sits on the mark's centre. */
 .sidebar-brand-wordmark {
   color: var(--sidebar-foreground, var(--foreground));
   display: block;
   font-family: var(--grimoire-wordmark-font-family);
+  font-optical-sizing: none;
   font-size: 24px;
   font-style: normal;
-  font-weight: 600;
-  height: 23px;
-  letter-spacing: 0;
-  line-height: 0.96;
+  font-variation-settings: 'opsz' 72;
+  font-weight: 640;
+  height: 24px;
+  letter-spacing: -0.02em;
+  line-height: 1;
   max-width: min(138px, 100%);
   overflow: visible;
   position: relative;
-  text-wrap: nowrap;
   text-rendering: optimizeLegibility;
   white-space: nowrap;
   width: 138px;
@@ -74,44 +78,8 @@
 .sidebar-brand-wordmark__text {
   align-items: baseline;
   display: inline-flex;
-  transform: translateY(1px) rotate(-0.3deg);
 }
 
 .sidebar-brand-wordmark__letter {
   display: inline-block;
-  transform: translateY(var(--wordmark-y, 0)) rotate(var(--wordmark-rotate, 0deg));
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="0"] {
-  --wordmark-rotate: -1.2deg;
-  --wordmark-y: 0.02em;
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="1"] {
-  --wordmark-rotate: 0.8deg;
-  --wordmark-y: -0.03em;
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="2"],
-.sidebar-brand-wordmark__letter[data-letter-index="5"] {
-  --wordmark-rotate: -0.5deg;
-  --wordmark-y: 0.04em;
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="3"] {
-  --wordmark-rotate: 0.6deg;
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="4"] {
-  --wordmark-rotate: -0.3deg;
-  --wordmark-y: -0.02em;
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="6"] {
-  --wordmark-rotate: 0.7deg;
-}
-
-.sidebar-brand-wordmark__letter[data-letter-index="7"] {
-  --wordmark-rotate: -0.9deg;
-  --wordmark-y: 0.01em;
 }

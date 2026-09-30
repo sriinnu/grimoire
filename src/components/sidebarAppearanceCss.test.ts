@@ -105,17 +105,20 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('pointer-events: auto')
   })
 
-  it('treats the sidebar brand as a restrained handwritten wordmark', () => {
+  it('sets the sidebar wordmark in Fraunces with no per-letter jitter', () => {
     const baseCss = readText(`${process.cwd()}/src/theme-base.css`)
+    const fontsCss = readText(`${process.cwd()}/src/fonts.css`)
 
-    expect(baseCss).toContain('--grimoire-wordmark-font-family')
+    expect(baseCss).toContain("--grimoire-wordmark-font-family: 'Fraunces'")
+    expect(fontsCss).toContain("font-family: 'Fraunces'")
+    expect(fontsCss).toContain('Fraunces-latin.woff2')
     expect(brandCss).toContain('.sidebar-brand-wordmark')
     expect(brandCss).toContain('font-family: var(--grimoire-wordmark-font-family)')
-    expect(brandCss).not.toContain('font-family: "Noteworthy"')
+    expect(brandCss).toContain("font-variation-settings: 'opsz' 72")
     expect(brandCss).toContain('.sidebar-brand-wordmark__text')
     expect(brandCss).toContain('.sidebar-brand-wordmark__letter')
-    expect(brandCss).toContain('data-letter-index="0"')
-    expect(brandCss).toContain('--wordmark-rotate')
+    expect(brandCss).not.toContain('--wordmark-rotate')
+    expect(brandCss).not.toContain('rotate(')
     expect(brandCss).not.toContain('.sidebar-brand-wordmark::after')
     expect(brandCss).not.toContain('"swsh"')
     expect(brandCss).not.toContain('.sidebar-brand-wordmark::first-letter')
