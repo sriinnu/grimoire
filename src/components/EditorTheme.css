@@ -92,9 +92,14 @@
   height: 16px !important;
 }
 
-.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *):hover {
-  background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
-  color: var(--primary) !important;
+/* Hover fills the control solid in the accent, glyph flipped to white, with a
+   soft accent glow. It stays lit while the block menu is open. */
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *):is(:hover, [aria-expanded="true"], [data-expanded="true"]) {
+  background: var(--primary) !important;
+  color: var(--primary-foreground, #fff) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--primary) 60%, transparent),
+    0 4px 12px color-mix(in srgb, var(--primary) 32%, transparent) !important;
 }
 
 /* The block handle: a capsule carrying the block's type glyph. Drag it to
@@ -127,8 +132,10 @@
   opacity: 0;
 }
 
-.editor__blocknote-container .bn-block-handle-button:hover .bn-block-handle {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 40%, transparent);
+.editor__blocknote-container .bn-block-handle-button:is(:hover, [aria-expanded="true"], [data-expanded="true"]) .bn-block-handle {
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
 }
 
 .editor__blocknote-container .bn-block-handle-button:active .bn-block-handle__glyph,
