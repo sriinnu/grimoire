@@ -230,7 +230,8 @@ describe('GrimoireSideMenu', () => {
 
     const handle = screen.getByRole('button', { name: 'Open block menu' }).querySelector('.bn-block-handle')
     expect(handle).toHaveAttribute('data-block-type', 'heading')
-    expect(handle).toHaveAttribute('title', 'Heading 2 · drag to move, click for options')
+    expect(handle).toHaveAttribute('aria-label', 'Heading 2')
+    expect(handle).not.toHaveAttribute('title')
     expect(handle?.querySelector('.bn-block-handle__glyph')).toBeInTheDocument()
     expect(handle?.querySelector('.bn-block-handle__grip')).toBeInTheDocument()
   })

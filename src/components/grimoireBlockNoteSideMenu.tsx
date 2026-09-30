@@ -185,7 +185,7 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
             <span
               className="bn-block-handle"
               data-block-type={block?.type}
-              title={`${glyph.label} · drag to move, click for options`}
+              aria-label={glyph.label}
               data-test="dragHandle"
             >
               <glyph.Icon className="bn-block-handle__glyph" size={14} strokeWidth={2.25} aria-hidden="true" />
