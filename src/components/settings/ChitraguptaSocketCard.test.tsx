@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { configure, fireEvent, getConfig, render, screen, waitFor } from '@testing-library/react'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTranslator } from '../../lib/i18n'
 import * as invitationImport from '../../lib/chitraguptaInvitation'
 import invitationFixture from '../../lib/__fixtures__/invitation-qr.json'
@@ -8,6 +8,11 @@ const { mockInvoke } = vi.hoisted(() => ({ mockInvoke: vi.fn() }))
 vi.mock('../../mock-tauri', () => ({ isTauri: () => false, mockInvoke }))
 
 describe('ChitraguptaSocketCard', () => {
+  // Every findBy/waitFor here chains several async renders; under full-suite load on CI
+  // (Windows, Ubuntu) the 1s default has run out. Give the whole file room, then restore.
+  const defaultAsyncTimeout = getConfig().asyncUtilTimeout
+  beforeAll(() => configure({ asyncUtilTimeout: 5000 }))
+  afterAll(() => configure({ asyncUtilTimeout: defaultAsyncTimeout }))
   beforeEach(() => { vi.restoreAllMocks(); mockInvoke.mockReset() })
   it('requires a six-digit Hub code, clears it, and shows the workspace approval step', async () => {
     mockInvoke.mockImplementation(async (command: string) => ({ contractVersion: 1, projectPath: '/vault', state: command === 'provision_chitragupta_socket_token' ? 'approval_required' : 'pairing_required' }))
