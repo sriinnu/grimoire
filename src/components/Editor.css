@@ -147,7 +147,7 @@
   --bn-colors-selected-text: var(--text-primary);
   --bn-colors-border: var(--border-primary);
   --bn-colors-shadow: var(--border-primary);
-  --bn-colors-side-menu: var(--text-muted);
+  --bn-colors-side-menu: var(--text-secondary);
 }
 
 .editor__blocknote-container .bn-editor {

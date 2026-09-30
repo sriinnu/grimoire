@@ -88,8 +88,13 @@
 }
 
 .editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *) svg:not(.bn-block-handle *) {
-  width: 16px !important;
-  height: 16px !important;
+  width: 18px !important;
+  height: 18px !important;
+  color: inherit !important;
+}
+
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *) > span {
+  color: inherit !important;
 }
 
 /* Each block kind has a tone. At rest the capsule's glyph and ring carry it

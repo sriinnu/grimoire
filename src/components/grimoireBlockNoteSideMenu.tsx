@@ -230,7 +230,7 @@ function GrimoireAddBlockButton() {
     <Components.SideMenu.Button
       className="bn-button bn-block-add-button"
       label={dict.side_menu.add_block_label}
-      icon={<Plus size={16} strokeWidth={2.25} onClick={addBlock} data-test="dragHandleAdd" aria-hidden="true" />}
+      icon={<Plus size={18} strokeWidth={2.5} onClick={addBlock} data-test="dragHandleAdd" aria-hidden="true" />}
     />
   )
 }
