@@ -74,3 +74,12 @@ objc2-app-kit = "0.3.2"
 security-framework = "3.7.0"
 
 [dev-dependencies]
+
+# Debug builds of a Tauri app carry ~740 crates. Full debug info for all of
+# them was a 10 GB target folder. Line tables keep backtraces readable for our
+# code; dependencies are never stepped into, so they get none.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
