@@ -1,5 +1,4 @@
 import {
-  AddBlockButton,
   DragHandleMenu,
   RemoveBlockItem,
   SideMenu,
@@ -13,7 +12,7 @@ import {
   useExtensionState,
 } from '@blocknote/react'
 import type { PartialBlock } from '@blocknote/core'
-import { SideMenuExtension } from '@blocknote/core/extensions'
+import { SideMenuExtension, SuggestionMenu } from '@blocknote/core/extensions'
 import { applyTurnInto, type TurnIntoEditor } from './turnIntoPlan'
 import { blockHandleGlyph } from './blockHandleGlyph'
 import {
@@ -26,6 +25,7 @@ import {
   ListChecks,
   ListOrdered,
   Pilcrow,
+  Plus,
   Repeat,
   TextQuote,
   type LucideIcon,
@@ -199,11 +199,47 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
   )
 }
 
+/**
+ * ＋ with the same 16px glyph weight as the handle. Mirrors BlockNote's own
+ * add button: an empty block gets the slash menu in place; otherwise a new
+ * paragraph is inserted after the block and the slash menu opens there.
+ */
+function GrimoireAddBlockButton() {
+  const Components = useComponentsContext()
+  const dict = useDictionary()
+  const editor = useBlockNoteEditor()
+  const suggestionMenu = useExtension(SuggestionMenu)
+  const block = useExtensionState(SideMenuExtension, {
+    selector: (state) => state?.block,
+  })
+
+  if (!Components || block === undefined) return null
+
+  const addBlock = () => {
+    const content = block.content
+    if (content !== undefined && Array.isArray(content) && content.length === 0) {
+      editor.setTextCursorPosition(block)
+    } else {
+      const inserted = editor.insertBlocks([{ type: 'paragraph' }], block, 'after')[0]
+      editor.setTextCursorPosition(inserted)
+    }
+    suggestionMenu.openSuggestionMenu('/')
+  }
+
+  return (
+    <Components.SideMenu.Button
+      className="bn-button bn-block-add-button"
+      label={dict.side_menu.add_block_label}
+      icon={<Plus size={16} strokeWidth={2.25} onClick={addBlock} data-test="dragHandleAdd" aria-hidden="true" />}
+    />
+  )
+}
+
 /** Renders Grimoire's BlockNote side controls without clipping the drag-handle menu. */
 export function GrimoireSideMenu(props: SideMenuProps) {
   return (
     <SideMenu {...props}>
-      <AddBlockButton />
+      <GrimoireAddBlockButton />
       <GrimoireDragHandleButton dragHandleMenu={props.dragHandleMenu ?? GrimoireDragHandleMenu} />
     </SideMenu>
   )

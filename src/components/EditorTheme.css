@@ -92,14 +92,37 @@
   height: 16px !important;
 }
 
-/* Hover fills the control solid in the accent, glyph flipped to white, with a
-   soft accent glow. It stays lit while the block menu is open. */
+/* Each block kind has a tone. At rest the capsule's glyph and ring carry it
+   quietly; on hover (and while the block menu is open) the control fills solid
+   in that tone with the glyph in the inverse ink, plus a soft glow. ＋ uses the
+   primary accent. --text-inverse flips with the theme, so contrast holds on
+   light and dark fills. */
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *) {
+  --handle-tone: var(--primary);
+}
+
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="paragraph"]) { --handle-tone: var(--accent-blue); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="heading"]) { --handle-tone: var(--accent-purple); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="bulletListItem"]),
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="numberedListItem"]) { --handle-tone: var(--accent-teal); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="checkListItem"]) { --handle-tone: var(--accent-green); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="quote"]) { --handle-tone: var(--accent-yellow); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="codeBlock"]) { --handle-tone: var(--text-secondary); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="table"]) { --handle-tone: var(--accent-orange); }
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="image"]),
+.editor__blocknote-container .bn-block-handle-button:has([data-block-type="mathBlock"]) { --handle-tone: var(--accent-pink); }
+
 .editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *):is(:hover, [aria-expanded="true"], [data-expanded="true"]) {
-  background: var(--primary) !important;
-  color: var(--primary-foreground, #fff) !important;
+  background: var(--handle-tone) !important;
+  color: var(--text-inverse, #fff) !important;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--primary) 60%, transparent),
-    0 4px 12px color-mix(in srgb, var(--primary) 32%, transparent) !important;
+    0 0 0 1px color-mix(in srgb, var(--handle-tone) 60%, transparent),
+    0 4px 12px color-mix(in srgb, var(--handle-tone) 32%, transparent) !important;
+}
+
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *):is(:hover, [aria-expanded="true"], [data-expanded="true"]) svg {
+  color: var(--text-inverse, #fff) !important;
+  stroke: currentColor;
 }
 
 /* The block handle: a capsule carrying the block's type glyph. Drag it to
@@ -118,8 +141,9 @@
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-secondary) 40%, transparent);
-  background: color-mix(in srgb, var(--surface-card, var(--background)) 80%, transparent);
+  color: var(--handle-tone, var(--text-secondary));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--handle-tone, var(--text-secondary)) 45%, transparent);
+  background: color-mix(in srgb, var(--handle-tone, var(--text-secondary)) 8%, var(--surface-card, var(--background)));
   transition: box-shadow var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease);
 }
 

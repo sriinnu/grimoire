@@ -16,6 +16,9 @@ const ALL_BLOCK_SPECS = {
 let capturedMenuPosition: string | undefined
 const updateBlock = vi.fn()
 const transact = vi.fn((fn: () => void) => fn())
+const openSuggestionMenu = vi.fn()
+const insertBlocks = vi.fn((blocks: unknown[]) => blocks.map((block, index) => ({ id: `new-${index}`, ...(block as object) })))
+const setTextCursorPosition = vi.fn()
 type MockBlock = { id?: string; type: string; props?: Record<string, unknown>; content?: unknown[]; children?: MockBlock[] }
 let siblings: MockBlock[] = []
 const sibling = (id: string | undefined, offset: number) => {
@@ -35,13 +38,15 @@ beforeEach(() => {
   capturedMenuPosition = undefined
   updateBlock.mockClear()
   transact.mockClear()
+  openSuggestionMenu.mockClear()
+  insertBlocks.mockClear()
+  setTextCursorPosition.mockClear()
   siblings = []
   focusedBlock = { type: 'paragraph', props: {}, content: [] }
   editorBlockSpecs = { ...ALL_BLOCK_SPECS }
 })
 
 vi.mock('@blocknote/react', () => ({
-  AddBlockButton: () => <button type="button">Add block</button>,
   DragHandleMenu: ({ children }: PropsWithChildren) => (
     <div data-testid="drag-handle-menu">{children}</div>
   ),
@@ -53,6 +58,8 @@ vi.mock('@blocknote/react', () => ({
     schema: { blockSpecs: editorBlockSpecs },
     updateBlock,
     transact,
+    insertBlocks,
+    setTextCursorPosition,
     getPrevBlock: (id: string) => sibling(id, -1),
     getNextBlock: (id: string) => sibling(id, 1),
   }),
@@ -90,6 +97,7 @@ vi.mock('@blocknote/react', () => ({
       colors_menuitem: 'Colors',
     },
     side_menu: {
+      add_block_label: 'Add block',
       drag_handle_label: 'Open block menu',
     },
     slash_menu: {
@@ -109,12 +117,14 @@ vi.mock('@blocknote/react', () => ({
     blockDragStart: vi.fn(),
     freezeMenu: vi.fn(),
     unfreezeMenu: vi.fn(),
+    openSuggestionMenu: openSuggestionMenu,
   }),
   useExtensionState: () => focusedBlock,
 }))
 
 vi.mock('@blocknote/core/extensions', () => ({
   SideMenuExtension: {},
+  SuggestionMenu: {},
 }))
 
 describe('GrimoireSideMenu', () => {
@@ -190,6 +200,28 @@ describe('GrimoireSideMenu', () => {
     render(<GrimoireSideMenu />)
 
     expect(screen.getByText('Turn into').parentElement).toHaveTextContent('Turn intoNumbered List')
+  })
+
+  it('adds a paragraph after a filled block and opens the slash menu there', () => {
+    focusedBlock = { id: 'p1', type: 'paragraph', content: [{ type: 'text', text: 'hello' }] }
+    render(<GrimoireSideMenu />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add block' }).querySelector('svg')!)
+
+    expect(insertBlocks).toHaveBeenCalledWith([{ type: 'paragraph' }], focusedBlock, 'after')
+    expect(setTextCursorPosition).toHaveBeenCalledWith(expect.objectContaining({ id: 'new-0', type: 'paragraph' }))
+    expect(openSuggestionMenu).toHaveBeenCalledWith('/')
+  })
+
+  it('opens the slash menu in place when the block is empty', () => {
+    focusedBlock = { id: 'p1', type: 'paragraph', content: [] }
+    render(<GrimoireSideMenu />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add block' }).querySelector('svg')!)
+
+    expect(insertBlocks).not.toHaveBeenCalled()
+    expect(setTextCursorPosition).toHaveBeenCalledWith(focusedBlock)
+    expect(openSuggestionMenu).toHaveBeenCalledWith('/')
   })
 
   it('shows the block type on the handle instead of an anonymous grip', () => {
