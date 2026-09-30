@@ -6,9 +6,11 @@
    only card. Loaded after the theme layers so it wins by order alone,
    the same way editor-page.css owns the editor. */
 
-/* Page and column */
+/* Page and column. Under the transparent macOS title bar the page has no
+   chrome row to absorb the traffic-light strip, so it takes the same top
+   inset the sidebar's title bar does. */
 :root[data-theme-preset] .vault-dashboard {
-  padding: 32px 24px 48px;
+  padding: calc(32px + var(--sidebar-title-bar-padding-top, 0px)) 24px 48px;
 }
 
 :root[data-theme-preset] .app__dashboard {
