@@ -29,14 +29,15 @@ describe('ChitraguptaSocketCard', () => {
   ])('requires an explicit renewal action for %s %s access', async (state, reason, label, options) => {
     mockInvoke.mockResolvedValue({ contractVersion: 1, projectPath: '/vault', state, reason })
     render(<ChitraguptaSocketCard t={createTranslator('en')} vaultPath="/vault" />)
-    const action = await screen.findByRole('button', { name: label as string })
+    // Generous waits: under full-suite load the first render has taken >1s (CI, Sriinnu saw it flake).
+    const action = await screen.findByRole('button', { name: label as string }, { timeout: 5000 })
     expect(mockInvoke).toHaveBeenCalledTimes(1)
     if (reason === 'pairing') {
       expect(action).toBeDisabled()
       fireEvent.change(screen.getByLabelText('Six-digit pairing code'), { target: { value: '654321' } })
     }
     fireEvent.click(action)
-    await waitFor(() => expect(mockInvoke).toHaveBeenLastCalledWith('provision_chitragupta_socket_token', { vaultPath: '/vault', ...options as object }))
+    await waitFor(() => expect(mockInvoke).toHaveBeenLastCalledWith('provision_chitragupta_socket_token', { vaultPath: '/vault', ...options as object }), { timeout: 5000 })
   })
 
   it('offers a fresh-code retry after pairing rejection and explicitly re-pairs', async () => {
