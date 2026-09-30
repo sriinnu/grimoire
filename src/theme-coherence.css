@@ -122,6 +122,15 @@
   border-radius: 12px;
 }
 
+/* The search field is the only control in the sheet and the sheet is the
+   focus context, so the global focus outline and the inset field shadow stay
+   off it; the caret and the results say where you are. */
+:is([data-theme-preset]) .grimoire-command-surface [data-slot="input"],
+:is([data-theme-preset]) .grimoire-command-surface [data-slot="input"]:focus-visible {
+  box-shadow: none;
+  outline: none;
+}
+
 :is([data-theme-preset]) .grimoire-dialog-content {
   padding: var(--grimoire-density-panel-padding, 16px);
 }
