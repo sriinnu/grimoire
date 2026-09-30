@@ -3,7 +3,7 @@
    A greeting on the paper, one capture card, a ledger line for the numbers,
    recent pages as rows, a compact calendar, today as rows. Sections are
    separated by space and a hairline, not by boxes; the capture card is the
-   only card. Loaded after the theme layers so it wins without !important,
+   only card. Loaded after the theme layers so it wins by order alone,
    the same way editor-page.css owns the editor. */
 
 /* Page and column */
@@ -182,9 +182,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 40px;
-  padding: 16px 0;
+  padding: 24px 0 0;
   border-top: 1px solid var(--grimoire-hairline);
-  border-bottom: 1px solid var(--grimoire-hairline);
 }
 
 :root[data-theme-preset] .dashboard-stat {
@@ -393,4 +392,42 @@
   :root[data-theme-preset] .dashboard-stat-row {
     gap: 8px 24px;
   }
+}
+
+/* On this day: rows, not tiles */
+:root[data-theme-preset] .dashboard-on-this-day__list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 8px 8px;
+  margin-inline: -8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__item:hover {
+  background: var(--grimoire-row-hover, var(--state-hover));
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__when {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__title {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__date {
+  font-size: 12px;
 }
