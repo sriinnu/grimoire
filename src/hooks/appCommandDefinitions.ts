@@ -17,6 +17,7 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
   },
   [APP_COMMAND_IDS.fileImportFiles]: {
     route: { kind: 'handler', handler: 'onImportFiles' },
+    menuOwned: false,
   },
   [APP_COMMAND_IDS.fileCaptureThought]: {
     route: { kind: 'handler', handler: 'onCaptureThought' },

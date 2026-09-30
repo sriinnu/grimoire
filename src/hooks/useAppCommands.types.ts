@@ -65,6 +65,7 @@ export interface AppCommandsConfig {
   onAddRemote?: () => void
   canAddRemote?: boolean
   onCreateType?: () => void
+  onImportFiles?: () => void
   onToggleAIChat?: () => void
   onOpenGraph?: () => void
   onCheckForUpdates?: () => void
@@ -172,6 +173,7 @@ export type CommandRegistryVaultActions = Pick<
   | 'canAddRemote'
   | 'onCheckForUpdates'
   | 'onCreateType'
+  | 'onImportFiles'
   | 'locale'
   | 'systemLocale'
   | 'selectedUiLanguage'

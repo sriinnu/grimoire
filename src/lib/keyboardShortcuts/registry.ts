@@ -39,6 +39,7 @@ const APP_COMMAND_SHEET_META: Record<AppCommandId, SheetMeta | null> = {
   [APP_COMMAND_IDS.viewGoBack]: { label: 'Go back', group: 'navigate', keywords: ['history', 'previous'] },
   [APP_COMMAND_IDS.viewGoForward]: { label: 'Go forward', group: 'navigate', keywords: ['history', 'next'] },
   [APP_COMMAND_IDS.fileNewNote]: { label: 'New page', group: 'notes', keywords: ['create', 'note'] },
+  [APP_COMMAND_IDS.fileImportFiles]: { label: 'Import files', group: 'notes', keywords: ['import', 'file', 'attach'] },
   [APP_COMMAND_IDS.fileSave]: { label: 'Save', group: 'notes' },
   [APP_COMMAND_IDS.noteToggleOrganized]: { label: 'Toggle organized', group: 'notes', keywords: ['inbox', 'triage'] },
   [APP_COMMAND_IDS.noteToggleFavorite]: { label: 'Toggle favorite', group: 'notes', keywords: ['star', 'pin'] },
