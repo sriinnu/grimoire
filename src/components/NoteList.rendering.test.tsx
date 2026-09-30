@@ -165,9 +165,9 @@ describe('NoteList rendering', () => {
 
   it('toggles the search input from the header action', () => {
     renderNoteList()
-    expect(screen.queryByPlaceholderText('Search pages...')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Search pages')).not.toBeInTheDocument()
     fireEvent.click(screen.getByTitle('Search pages'))
-    expect(screen.getByPlaceholderText('Search pages...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search pages')).toBeInTheDocument()
   })
 
   it('filters by a case-insensitive search query', async () => {
@@ -271,9 +271,9 @@ describe('NoteList rendering', () => {
       })
 
       fireEvent.click(screen.getByTitle('Search pages'))
-      fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'strategy' } })
+      fireEvent.change(screen.getByPlaceholderText('Search pages'), { target: { value: 'strategy' } })
 
-      const searchInput = screen.getByPlaceholderText('Search pages...')
+      const searchInput = screen.getByPlaceholderText('Search pages')
       expect(searchInput).toHaveClass('pr-8')
       expect(searchInput.parentElement).toHaveClass('relative', 'flex-1')
       expect(screen.getByTestId('note-list-search-loading')).toBeInTheDocument()

@@ -141,7 +141,7 @@ describe('NoteSearchList', () => {
       />,
     )
     const selectedItem = screen.getByText('Beta Notes').closest('div')!
-    expect(selectedItem.className).toContain('bg-accent')
+    expect(selectedItem).toHaveAttribute('data-selected', 'true')
 
     const unselectedItem = screen.getByText('Alpha Project').closest('div')!
     expect(unselectedItem.className).not.toContain('bg-accent')

@@ -272,7 +272,7 @@ const EN_TRANSLATIONS = {
   'noteList.title.history': 'History',
   'noteList.title.view': 'View',
   'noteList.title.notes': 'Pages',
-  'noteList.searchPlaceholder': 'Search pages...',
+  'noteList.searchPlaceholder': 'Search pages',
   'noteList.searchAction': 'Search pages',
   'noteList.createNote': 'Create new page',
   'noteList.empty.changesError': 'Failed to load changes: {error}',

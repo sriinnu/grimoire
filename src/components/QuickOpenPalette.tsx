@@ -2,6 +2,7 @@ import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import type { VaultEntry } from '../types'
 import { NoteSearchList } from './NoteSearchList'
+import { Glyph } from '@/components/glyphs/Glyph'
 import { Input } from './ui/input'
 import { useNoteSearch } from '../hooks/useNoteSearch'
 
@@ -73,15 +74,18 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
         className="grimoire-command-stage grimoire-command-surface flex w-[520px] max-w-[90vw] max-h-[440px] flex-col self-start overflow-hidden border"
         onClick={(e) => e.stopPropagation()}
       >
-        <Input
-          ref={inputRef}
-          data-testid="quick-open-input"
-          className="h-auto rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:border-border focus-visible:ring-0 md:text-[15px]"
-          type="text"
-          placeholder="Search pages..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="flex items-center gap-3 border-b border-border px-4">
+          <Glyph name="search" size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+          <Input
+            ref={inputRef}
+            data-testid="quick-open-input"
+            className="h-12 flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0 md:text-[16px]"
+            type="text"
+            placeholder="Search pages"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
         <NoteSearchList
           items={results}
           selectedIndex={selectedIndex}
@@ -109,6 +113,12 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
             <kbd className="ml-auto text-[11px] text-muted-foreground">{formatShortcutDisplay({ display: '↵' })}</kbd>
           </button>
         ) : null}
+        <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-[11px] text-muted-foreground" aria-hidden="true">
+          <span><kbd className="font-medium text-foreground/70">↑↓</kbd> Navigate</span>
+          <span><kbd className="font-medium text-foreground/70">{formatShortcutDisplay({ display: '↵' })}</kbd> Open</span>
+          {onCreate ? <span><kbd className="font-medium text-foreground/70">{formatShortcutDisplay({ display: '↵' })}</kbd> Create when nothing matches</span> : null}
+          <span className="ml-auto"><kbd className="font-medium text-foreground/70">esc</kbd> Close</span>
+        </div>
       </div>
     </div>
   )

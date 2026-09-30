@@ -2,6 +2,7 @@ import type React from 'react'
 import { cn } from '@/lib/utils'
 import type { CommandAction, CommandGroup } from '../hooks/useCommandRegistry'
 import { formatDroppedPathList } from './inlineWikilinkDropText'
+import { Glyph } from '@/components/glyphs/Glyph'
 import { Input } from './ui/input'
 import { useNativePathDrop } from './useNativePathDrop'
 
@@ -57,9 +58,11 @@ export function CommandPaletteInput({
   })
 
   return (
+    <div className="flex items-center gap-3 border-b border-border px-4">
+    <Glyph name="search" size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
     <Input
       ref={inputRef}
-      className="h-auto rounded-none border-x-0 border-t-0 border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground shadow-none transition-none outline-none placeholder:text-muted-foreground focus-visible:border-border focus-visible:ring-0 md:text-[15px]"
+      className="h-12 flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none transition-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0 md:text-[16px]"
       type="text"
       placeholder={placeholder}
       value={query}
@@ -69,6 +72,7 @@ export function CommandPaletteInput({
       autoComplete="off"
       onChange={(event) => onChange(event.target.value)}
     />
+    </div>
   )
 }
 

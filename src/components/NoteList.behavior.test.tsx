@@ -73,7 +73,7 @@ describe('NoteList virtualized datasets', () => {
 
       renderNoteList({ entries })
       fireEvent.click(screen.getByTitle('Search pages'))
-      fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'Strategy' } })
+      fireEvent.change(screen.getByPlaceholderText('Search pages'), { target: { value: 'Strategy' } })
 
       await act(async () => {
         vi.advanceTimersByTime(200)

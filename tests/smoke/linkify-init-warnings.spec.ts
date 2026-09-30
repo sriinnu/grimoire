@@ -33,7 +33,7 @@ async function openNote(page: import('@playwright/test').Page, title: string) {
   const quickOpenInput = page.locator('input[placeholder="Search notes..."]')
   await expect(quickOpenInput).toBeVisible({ timeout: 5_000 })
   await quickOpenInput.fill(title)
-  const selectedResult = page.getByTestId('quick-open-palette').locator('[class*="bg-accent"]').first()
+  const selectedResult = page.getByTestId('quick-open-palette').locator('[data-selected="true"]').first()
   const selectedTitle = selectedResult.locator('span.truncate').first()
   await expect(selectedTitle).toHaveText(title, { timeout: 5_000 })
   await selectedResult.click()

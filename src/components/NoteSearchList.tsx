@@ -57,28 +57,36 @@ export function NoteSearchList<T extends NoteSearchResultItem>({
         <div
           key={getItemKey(item, i)}
           className={cn(
-            'mx-1 flex cursor-pointer items-center justify-between gap-2 rounded-md px-3 py-1.5 transition-colors',
-            i === selectedIndex ? 'bg-accent' : 'hover:bg-secondary',
+            'mx-2 flex h-9 cursor-pointer items-center justify-between gap-3 rounded-md px-3 transition-colors',
+            i === selectedIndex
+              ? 'bg-[color-mix(in_srgb,var(--primary)_12%,transparent)]'
+              : 'hover:bg-[color-mix(in_srgb,var(--primary)_6%,transparent)]',
           )}
+          data-selected={i === selectedIndex ? 'true' : undefined}
           onClick={() => onItemClick(item, i)}
           onMouseEnter={() => onItemHover?.(i)}
         >
-          <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm text-foreground">
-            <TypeIconMark
-              className="shrink-0"
-              color={item.typeColor}
-              fallbackIcon={item.TypeIcon}
-              iconValue={item.typeIconValue}
-              size={14}
-              testId="note-search-item-type-icon"
-            />
-            <NoteTitleIcon icon={item.noteIcon} size={14} testId="note-search-item-icon" />
+          <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-sm text-foreground">
+            <span className="flex size-5 shrink-0 items-center justify-center">
+              {item.noteIcon ? (
+                <NoteTitleIcon icon={item.noteIcon} size={16} testId="note-search-item-icon" />
+              ) : (
+                <TypeIconMark
+                  className="shrink-0"
+                  color={item.typeColor}
+                  fallbackIcon={item.TypeIcon}
+                  iconValue={item.typeIconValue}
+                  size={16}
+                  testId="note-search-item-type-icon"
+                />
+              )}
+            </span>
             <span className="truncate">{item.title}</span>
           </span>
           {item.noteType && (
             <Badge
               variant="secondary"
-              className="shrink-0 text-[11px]"
+              className="h-5 shrink-0 rounded-full px-2 text-[11px] font-medium"
               style={item.typeColor ? { color: item.typeColor, backgroundColor: item.typeLightColor } : undefined}
             >
               {item.noteType}
