@@ -49,20 +49,20 @@
     "bulletColor": "var(--accent-blue)",
     "indentSize": 24,
     "itemSpacing": 4,
-    "paddingLeft": 8,
+    "paddingLeft": 0,
     "nestedBulletSymbols": [
       "\u2022",
       "\u25e6",
       "\u25aa"
     ],
-    "bulletGap": 8
+    "bulletGap": 4
   },
   "checkboxes": {
     "size": 16,
     "borderRadius": 4,
     "checkedColor": "var(--accent-blue)",
     "uncheckedBorderColor": "var(--text-muted)",
-    "gap": 8
+    "gap": 4
   },
   "inlineStyles": {
     "bold": {

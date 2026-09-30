@@ -45,6 +45,27 @@
   box-shadow: none;
   isolation: isolate;
   translate: -8px 0;
+  /* BlockNote sizes this box for its own type metrics (78px for its H1). Size
+     it to ours instead: one line box plus the block's 3px padding on each
+     side, so ＋ and the handle centre on the first line of every block. */
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.5) + 6px) !important;
+}
+
+.editor__blocknote-container .bn-side-menu[data-block-type="heading"]:not([data-level]),
+.editor__blocknote-container .bn-side-menu[data-block-type="heading"][data-level="1"] {
+  height: calc(var(--headings-h1-font-size) * var(--headings-h1-line-height) + 6px) !important;
+}
+
+.editor__blocknote-container .bn-side-menu[data-block-type="heading"][data-level="2"] {
+  height: calc(var(--headings-h2-font-size) * var(--headings-h2-line-height) + 6px) !important;
+}
+
+.editor__blocknote-container .bn-side-menu[data-block-type="heading"][data-level="3"] {
+  height: calc(var(--headings-h3-font-size) * var(--headings-h3-line-height) + 6px) !important;
+}
+
+.editor__blocknote-container .bn-side-menu[data-block-type="heading"][data-level="4"] {
+  height: calc(var(--headings-h4-font-size) * var(--headings-h4-line-height) + 6px) !important;
 }
 
 .editor__blocknote-container .bn-side-menu :is([role="group"], .mantine-Group-root) {
@@ -61,9 +82,14 @@
   width: var(--grimoire-block-side-control-size) !important;
   height: var(--grimoire-block-side-control-size) !important;
   border-radius: 6px !important;
-  color: var(--text-muted) !important;
+  color: var(--text-secondary) !important;
   background: transparent !important;
   transition: background var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease), color var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease) !important;
+}
+
+.editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *) svg:not(.bn-block-handle *) {
+  width: 16px !important;
+  height: 16px !important;
 }
 
 .editor__blocknote-container .bn-side-menu button:not(.bn-drag-handle-menu *):not(.bn-menu-dropdown *):hover {
@@ -87,7 +113,7 @@
   width: 20px;
   height: 20px;
   border-radius: 6px;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-muted) 28%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text-secondary) 40%, transparent);
   background: color-mix(in srgb, var(--surface-card, var(--background)) 80%, transparent);
   transition: box-shadow var(--motion-duration-control, 160ms) var(--motion-ease-standard, ease);
 }
