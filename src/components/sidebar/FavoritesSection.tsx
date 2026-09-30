@@ -7,6 +7,7 @@ import {
   FavoriteListItemContent,
   type FavoriteTypeEntryMap,
 } from './favoritesSectionContent'
+import { SIDEBAR_SECTION_INSET } from './sidebarStyles'
 
 const LazyFavoritesSortableList = lazy(() => import('./FavoritesSortableList')
   .then((module) => ({ default: module.FavoritesSortableList })))
@@ -33,7 +34,7 @@ function FavoritesStaticList({
   onSelectEntry: (entry: VaultEntry) => void
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 4 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingBottom: 4 }}>
       {favorites.map((entry) => (
         <FavoriteListItemContent
           key={entry.path}
@@ -101,7 +102,7 @@ export function FavoritesSection({
   ) : staticList
 
   return (
-    <div style={{ padding: '0 6px' }}>
+    <div style={{ padding: SIDEBAR_SECTION_INSET }}>
       <SidebarGroupHeader label="Favorites" collapsed={collapsed} onToggle={onToggle} count={favorites.length} />
       {!collapsed && favoriteList}
     </div>

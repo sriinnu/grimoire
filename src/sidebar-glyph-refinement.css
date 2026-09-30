@@ -15,7 +15,7 @@
 .folder-glyph {
   background: var(--sidebar-glyph-surface);
   border-color: color-mix(in srgb, var(--folder-glyph-tone) 32%, var(--sidebar-glyph-line));
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: none;
   filter: none;
 }
@@ -24,35 +24,19 @@
   overflow: hidden;
 }
 
-.folder-item-row::before {
-  background: var(--folder-row-tone);
-  border-radius: 999px;
-  box-shadow: none;
-  content: "";
-  inset: 6px auto 6px 2px;
-  opacity: 0;
-  position: absolute;
-  transition:
-    opacity 160ms var(--motion-ease-standard, ease),
-    width 160ms var(--motion-ease-standard, ease);
-  width: 2px;
-}
-
+.folder-item-row::before,
 .folder-item-row::after {
   display: none;
 }
 
-.folder-item-row:hover::before {
-  opacity: 0.28;
-}
-
-.folder-item-row[data-selected="true"]::before {
-  opacity: 0.72;
-  width: 3px;
+/* Selection speaks the same language as the nav rows: a tint and a 2px bar. */
+.folder-item-row[data-selected="true"] {
+  box-shadow: inset 2px 0 0 var(--folder-row-tone);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .folder-item-row::before {
+  .folder-item-row,
+  .folder-glyph {
     transition-duration: 0ms;
   }
 }

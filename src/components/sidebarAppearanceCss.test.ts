@@ -67,12 +67,12 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('--sidebar-nav-tone-ink')
     expect(css).toContain('.sidebar-top-nav__tone > :is(button, div)')
     expect(css).toContain('.sidebar-top-nav__tone[data-active="true"] > :is(button, div)')
-    expect(css).toContain('height: 28px')
+    expect(css).toContain('height: 20px')
     expect(css).not.toContain('--sidebar-nav-tone-hot')
     expect(css).not.toContain('--sidebar-nav-tone-shadow')
     expect(css).not.toContain('conic-gradient')
     expect(css).not.toContain('drop-shadow')
-    expect(css).toContain('.sidebar-top-nav__tone[data-active="true"]::before')
+    expect(css).not.toContain('.sidebar-top-nav__tone[data-active="true"]::before')
     expect(css).toContain('.sidebar-top-nav__tone:not([data-active="true"]):hover .sidebar-nav-glyph')
     expect(css).toContain('.sidebar-rail__tone:not([data-active="true"]):hover .sidebar-rail__glyph')
   })
@@ -90,7 +90,7 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('.sidebar-section-glyph__icon')
     expect(css).toContain('background: transparent')
     expect(css).toContain('background: color-mix(in srgb, var(--sidebar-section-tone) 12%, transparent)')
-    expect(css).toContain('height: 26px')
+    expect(css).toContain('.sidebar-row-glyph')
   })
 
   it('keeps sidebar group actions tucked away until the header is active', () => {

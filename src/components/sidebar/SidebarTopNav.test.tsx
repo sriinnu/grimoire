@@ -26,7 +26,7 @@ describe('SidebarTopNav', () => {
     expect(document.querySelector('[data-sidebar-glyph="dream"]')).not.toBeNull()
     expect(document.querySelector('[data-sidebar-glyph="archive"]')).not.toBeNull()
     expect(document.querySelectorAll('.sidebar-nav-glyph')).toHaveLength(6)
-    expect(document.querySelector('[data-sidebar-glyph="notebook"]')).toHaveAttribute('height', '20')
+    expect(document.querySelector('[data-sidebar-glyph="notebook"]')).toHaveAttribute('height', '16')
     expect(document.querySelectorAll('.sidebar-nav-glyph__halo')).toHaveLength(0)
     expect(document.querySelectorAll('.sidebar-nav-glyph__route')).toHaveLength(0)
     expect(document.querySelectorAll('.sidebar-nav-glyph__bead')).toHaveLength(0)

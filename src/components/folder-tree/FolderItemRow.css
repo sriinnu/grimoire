@@ -36,8 +36,7 @@
 
 .folder-item-row[data-selected="true"] {
   background: var(--folder-row-selected-bg);
-  border-color: var(--folder-row-selected-border);
-  box-shadow: none;
+  border-color: transparent;
   color: var(--folder-row-selected-text);
 }
 

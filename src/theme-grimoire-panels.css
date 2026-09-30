@@ -160,16 +160,16 @@
   }
 }
 
-/* Denser, calmer destinations: 22px glyph box (was 28) and a true 13px label,
-   so rows are ~36px instead of 42 and the whole list scans at a glance. */
+/* One row geometry: a 20px glyph box with a 16px icon and a 13px label, so
+   every destination is 32px tall and its label starts on the same edge. */
 :root[data-theme-preset] .sidebar-top-nav__tone .sidebar-nav-glyph {
-  width: 22px !important;
-  height: 22px !important;
+  width: 20px !important;
+  height: 20px !important;
 }
 
 :root[data-theme-preset] .sidebar-top-nav__tone .sidebar-nav-glyph__icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 :root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div) {

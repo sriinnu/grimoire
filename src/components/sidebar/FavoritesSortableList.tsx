@@ -83,7 +83,7 @@ export function FavoritesSortableList({
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={favoriteIds} strategy={verticalListSortingStrategy}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingBottom: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0, paddingBottom: 4 }}>
           {favorites.map((entry) => (
             <SortableFavoriteItem
               key={entry.path}

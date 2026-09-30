@@ -247,7 +247,7 @@ describe('Sidebar', () => {
 
   it('renders Grimoire branding in the sidebar title bar', () => {
     render(<Sidebar entries={[]} selection={defaultSelection} onSelect={() => {}} />)
-    expect(screen.getByTestId('sidebar-title-bar')).toHaveStyle({ paddingLeft: '12px' })
+    expect(screen.getByTestId('sidebar-title-bar')).toHaveStyle({ paddingLeft: '16px' })
     expect(screen.getByTestId('sidebar-brand')).toHaveClass('justify-start')
     const wordmark = screen.getByTestId('sidebar-brand-wordmark')
     expect(wordmark).toHaveAccessibleName('Grimoire')
@@ -1364,10 +1364,10 @@ describe('Sidebar', () => {
       const favoritesHeader = screen.getByText('Favorites').closest('div') as HTMLElement
       const countChip = within(favoritesHeader).getByTestId('sidebar-count-chip')
 
-      expect(favoritesHeader).toHaveStyle({ padding: '8px 8px 8px 16px' })
+      expect(favoritesHeader).toHaveStyle({ padding: '4px 8px' })
       expect(countChip).toHaveStyle({
         background: 'var(--muted)',
-        height: '18px',
+        height: '20px',
         padding: '0 6px',
       })
     })
@@ -1563,7 +1563,7 @@ describe('Sidebar', () => {
       const navItem = viewLabel.closest('[class*="cursor-pointer"]') as HTMLElement
       const countChip = within(navItem).getByTestId('view-count-chip')
 
-      expect(navItem).toHaveStyle({ padding: '6px 8px 6px 16px' })
+      expect(navItem).toHaveStyle({ padding: '6px 8px' })
       expect(countChip).toHaveStyle({
         background: 'var(--muted)',
         height: '20px',
@@ -1581,8 +1581,8 @@ describe('Sidebar', () => {
       const viewItem = screen.getByText('Active Projects').closest('[class*="cursor-pointer"]') as HTMLElement
       const viewCount = within(viewItem).getByTestId('view-count-chip')
 
-      expect(topNavItem).toHaveStyle({ padding: '6px 16px' })
-      expect(viewItem).toHaveStyle({ padding: '6px 8px 6px 16px' })
+      expect(topNavItem).toHaveStyle({ padding: '6px 8px' })
+      expect(viewItem).toHaveStyle({ padding: '6px 8px' })
       expect(within(topNavItem).queryByTestId('sidebar-count-chip')).not.toBeInTheDocument()
       expect(topNavItem.textContent).toBe('Inbox')
       expect(viewCount).toHaveStyle({

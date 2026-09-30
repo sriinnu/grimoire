@@ -7,6 +7,7 @@ import { buildTagTree, type TagTreeNode } from './tagTree'
 import { SidebarCountPill } from './SidebarNavItem'
 import { SidebarGroupHeader } from './SidebarGroupHeader'
 import { isSelectionActive } from './sidebarSelection'
+import { SIDEBAR_ROW_RADIUS, SIDEBAR_SECTION_INSET, SIDEBAR_TREE_STEP } from './sidebarStyles'
 
 function TagRow({
   node,
@@ -30,31 +31,31 @@ function TagRow({
     <>
       <div
         className={cn(
-          'tag-row group flex items-center gap-1 rounded transition-colors',
+          'tag-row group flex items-center rounded transition-colors',
           isActive ? 'text-primary' : 'text-foreground hover:bg-accent',
         )}
         data-testid={`tag-row:${node.tag}`}
         data-selected={isActive ? 'true' : 'false'}
-        style={{ paddingLeft: depth * 16, borderRadius: 4 }}
+        style={{ paddingLeft: 8 + depth * SIDEBAR_TREE_STEP, paddingRight: 8, borderRadius: SIDEBAR_ROW_RADIUS }}
       >
         <button
           type="button"
-          className="flex size-4 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-muted-foreground"
+          className="flex size-5 shrink-0 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-muted-foreground"
           aria-label={isOpen ? `Collapse ${node.tag}` : `Expand ${node.tag}`}
           aria-expanded={hasChildren ? isOpen : undefined}
           onClick={() => onToggle(node.tag)}
           style={{ visibility: hasChildren ? 'visible' : 'hidden' }}
           tabIndex={hasChildren ? 0 : -1}
         >
-          {isOpen ? <CaretDown size={10} /> : <CaretRight size={10} />}
+          {isOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
         </button>
         <button
           type="button"
-          className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 border-none bg-transparent py-1 pr-2 text-left text-[12.5px]"
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 border-none bg-transparent py-1 pr-0 text-left text-[13px] leading-5"
           aria-current={isActive ? 'page' : undefined}
           onClick={() => onSelect({ kind: 'tag', tag: node.tag })}
         >
-          <Hash size={12} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="sidebar-row-glyph"><Hash size={14} className="text-muted-foreground" aria-hidden="true" /></span>
           <span className="min-w-0 flex-1 truncate">{node.label}</span>
           <SidebarCountPill count={node.count} compact className="text-muted-foreground" style={{ background: 'var(--muted)' }} />
         </button>
@@ -91,7 +92,7 @@ export const TagsSection = memo(function TagsSection({ selection, onSelect, coll
   if (tree.length === 0) return null
 
   return (
-    <div className="border-b border-border" style={{ padding: '0 6px' }} data-testid="sidebar-tags">
+    <div className="border-b border-border" style={{ padding: SIDEBAR_SECTION_INSET }} data-testid="sidebar-tags">
       <SidebarGroupHeader label="Tags" collapsed={collapsed} onToggle={onToggle} count={rootCount} />
       <div className="sidebar-section-content" data-collapsed={collapsed || undefined}>
         <div style={{ paddingBottom: 4 }}>

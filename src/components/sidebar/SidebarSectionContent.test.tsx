@@ -25,7 +25,7 @@ describe('SidebarSectionContent', () => {
     const iconWrapper = container.querySelector('.sidebar-section-glyph__icon')
     expect(glyph).toHaveAttribute('data-active', 'true')
     expect(glyph?.getAttribute('style')).toContain('--sidebar-section-tone')
-    expect(iconWrapper).toHaveStyle({ height: '18px', width: '18px' })
+    expect(iconWrapper).toHaveStyle({ height: '16px', width: '16px' })
     expect(container.querySelector('[data-knowledge-icon="vedas"]')).not.toBeNull()
     expect(iconWrapper).not.toBeNull()
     expect(container.querySelector('.sidebar-section-glyph__aura')).toBeNull()

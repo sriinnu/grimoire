@@ -2,12 +2,12 @@ import type { ComponentType, CSSProperties } from 'react'
 import type { IconProps } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { SIDEBAR_ITEM_PADDING } from './sidebarStyles'
+import { SIDEBAR_ITEM_PADDING, SIDEBAR_ROW_RADIUS } from './sidebarStyles'
 
 const SIDEBAR_COUNT_PILL_STYLE = {
   borderRadius: 9999,
   padding: '0 6px',
-  fontSize: 10,
+  fontSize: 11,
   fontVariantNumeric: 'tabular-nums',
 } as const
 
@@ -20,9 +20,8 @@ function getNavItemPadding(compact: boolean | undefined, hasCount: boolean) {
   return hasCount ? SIDEBAR_ITEM_PADDING.withCount : SIDEBAR_ITEM_PADDING.regular
 }
 
-function getNavItemIconSize(compact?: boolean) {
-  return compact ? 18 : 20
-}
+/** Row icons are 16px in a 20px box, regardless of density. */
+const NAV_ITEM_ICON_SIZE = 16
 
 function getNavItemTextClass(compact?: boolean) {
   return compact ? 'text-[12px]' : 'text-[13px]'
@@ -77,12 +76,12 @@ export function SidebarCountPill({
   count,
   className,
   style,
-  compact,
   testId = 'sidebar-count-chip',
 }: {
   count: number
   className?: string
   style?: CSSProperties
+  /** Kept for callers; pills are one 20px size now. */
   compact?: boolean
   testId?: string
 }) {
@@ -90,7 +89,7 @@ export function SidebarCountPill({
     <span
       data-testid={testId}
       className={cn("flex items-center justify-center", className)}
-      style={{ height: compact ? 18 : 20, ...SIDEBAR_COUNT_PILL_STYLE, ...style }}
+      style={{ height: 20, ...SIDEBAR_COUNT_PILL_STYLE, ...style }}
     >
       {count}
     </span>
@@ -98,7 +97,7 @@ export function SidebarCountPill({
 }
 
 function NavItemLabel({ label, compact }: { label: string; compact?: boolean }) {
-  return <span className={cn("flex-1 font-medium", getNavItemTextClass(compact))}>{label}</span>
+  return <span className={cn("flex-1 truncate font-medium leading-5", getNavItemTextClass(compact))}>{label}</span>
 }
 
 function NavItemCount({
@@ -144,10 +143,10 @@ function DisabledNavItem({
       variant="ghost"
       disabled
       className="h-auto w-full select-none justify-start gap-2 rounded text-foreground disabled:opacity-40"
-      style={{ padding, borderRadius: 4, cursor: 'not-allowed' }}
+      style={{ padding, borderRadius: SIDEBAR_ROW_RADIUS, cursor: 'not-allowed' }}
       title={disabledTooltip ?? "Coming soon"}
     >
-      <SidebarNavIcon Icon={Icon} emoji={emoji} iconSize={getNavItemIconSize(compact)} />
+      <SidebarNavIcon Icon={Icon} emoji={emoji} iconSize={NAV_ITEM_ICON_SIZE} />
       <NavItemLabel label={label} compact={compact} />
     </Button>
   )
@@ -191,10 +190,10 @@ function ClickableNavItem({
         "h-auto w-full cursor-pointer select-none justify-start gap-2 rounded text-left transition-colors",
         isActive ? activeClassName : "text-foreground hover:bg-accent",
       )}
-      style={{ padding, borderRadius: 4 }}
+      style={{ padding, borderRadius: SIDEBAR_ROW_RADIUS }}
       onClick={onClick}
     >
-      <SidebarNavIcon Icon={Icon} emoji={emoji} iconSize={getNavItemIconSize(compact)} isActive={isActive} />
+      <SidebarNavIcon Icon={Icon} emoji={emoji} iconSize={NAV_ITEM_ICON_SIZE} isActive={isActive} />
       <NavItemLabel label={label} compact={compact} />
       <NavItemCount
         count={count}

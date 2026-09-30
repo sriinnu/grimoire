@@ -22,7 +22,7 @@ export function SidebarGroupHeader({
 }: SidebarGroupHeaderProps) {
   return (
     <div
-      className="sidebar-group-header flex w-full items-center justify-between text-muted-foreground"
+      className="sidebar-group-header flex min-h-7 w-full items-center justify-between text-muted-foreground"
       data-actions-open={actionsOpen || undefined}
       style={{ padding: count != null ? SIDEBAR_GROUP_HEADER_PADDING.withCount : SIDEBAR_GROUP_HEADER_PADDING.regular }}
     >
@@ -32,7 +32,7 @@ export function SidebarGroupHeader({
         onClick={onToggle}
       >
         {collapsed ? <CaretRight size={12} /> : <CaretDown size={12} />}
-        <span className="text-[10px] font-semibold" style={{ letterSpacing: 0 }}>{label}</span>
+        <span className="text-[11px] font-semibold leading-4" style={{ letterSpacing: 0 }}>{label}</span>
       </button>
       {children ? (
         <span className="sidebar-group-header__actions">

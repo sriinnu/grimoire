@@ -47,8 +47,8 @@ export function FolderNameInput({
   }, [onSubmit, value])
 
   return (
-    <div className="flex items-center gap-2 rounded" style={{ paddingTop: 6, paddingBottom: 6, paddingRight: 16, paddingLeft: leftInset, borderRadius: 4 }}>
-      <Folder size={17} className="size-[17px] shrink-0 text-muted-foreground" />
+    <div className="flex items-center gap-2 rounded" style={{ paddingTop: 6, paddingBottom: 6, paddingRight: 8, paddingLeft: leftInset, borderRadius: 6 }}>
+      <span className="sidebar-row-glyph"><Folder size={16} className="size-4 shrink-0 text-muted-foreground" /></span>
       <Input
         ref={inputRef}
         aria-label={ariaLabel}

@@ -16,6 +16,7 @@ import { getTypeColor, getTypeLightColor } from '../../utils/typeColors'
 import { SidebarCountPill } from './SidebarNavItem'
 import { isSelectionActive } from './sidebarSelection'
 import type { SectionGroup } from './sidebarSectionTypes'
+import { SIDEBAR_ITEM_PADDING, SIDEBAR_ROW_GAP, SIDEBAR_ROW_RADIUS } from './sidebarStyles'
 
 export interface SectionContentProps {
   group: SectionGroup
@@ -69,9 +70,9 @@ function InlineRenameInput({ initialValue, onSubmit, onCancel }: {
   )
 }
 
-function getSectionHeaderBackground(isActive: boolean, sectionLightColor: string) {
+function getSectionHeaderBackground(isActive: boolean, sectionLightColor: string, sectionColor: string) {
   if (!isActive) return undefined
-  return { background: sectionLightColor }
+  return { background: sectionLightColor, boxShadow: `inset 2px 0 0 ${sectionColor}` }
 }
 
 function getSectionHeaderIconWeight(isActive: boolean): IconProps['weight'] {
@@ -145,7 +146,7 @@ function SectionHeaderLabel({
     )
   }
 
-  return <span className="text-[13px] font-medium" style={{ marginLeft: 4, color: getSectionHeaderTitleColor(isActive, sectionColor) }}>{label}</span>
+  return <span className="truncate text-[13px] font-medium leading-5" style={{ color: getSectionHeaderTitleColor(isActive, sectionColor) }}>{label}</span>
 }
 
 function SectionHeaderCountPill({
@@ -178,12 +179,12 @@ function SectionHeader({ label, type, Icon, iconValue, sectionColor, sectionLigh
   return (
     <div
       className={cn("group/section flex cursor-pointer select-none items-center justify-between rounded transition-colors", !isActive && "hover:bg-accent")}
-      style={{ padding: '6px 8px 6px 16px', borderRadius: 4, gap: 4, ...getSectionHeaderBackground(isActive, sectionLightColor) }}
+      style={{ padding: SIDEBAR_ITEM_PADDING.regular, borderRadius: SIDEBAR_ROW_RADIUS, gap: SIDEBAR_ROW_GAP, ...getSectionHeaderBackground(isActive, sectionLightColor, sectionColor) }}
       {...dragHandleProps}
       onClick={getSectionSelectHandler(isRenaming, onSelect)}
       onContextMenu={getSectionContextMenuHandler(isRenaming, onContextMenu)}
     >
-      <div className="flex min-w-0 flex-1 items-center" style={{ gap: 4 }}>
+      <div className="flex min-w-0 flex-1 items-center" style={{ gap: SIDEBAR_ROW_GAP }}>
         <span
           className="sidebar-section-glyph"
           data-active={isActive ? 'true' : 'false'}
@@ -194,7 +195,7 @@ function SectionHeader({ label, type, Icon, iconValue, sectionColor, sectionLigh
             color="currentColor"
             fallbackIcon={(props) => <Icon {...props} weight={getSectionHeaderIconWeight(isActive)} />}
             iconValue={iconValue}
-            size={18}
+            size={16}
           />
         </span>
         <SectionHeaderLabel

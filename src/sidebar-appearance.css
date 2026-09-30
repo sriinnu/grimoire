@@ -57,16 +57,6 @@
   position: relative;
 }
 
-.sidebar-top-nav__tone[data-active="true"]::before {
-  background: var(--sidebar-nav-paper-line);
-  border-radius: 2px;
-  content: "";
-  inset: 10px auto 10px 4px;
-  opacity: 0.72;
-  position: absolute;
-  width: 2px;
-}
-
 .sidebar-top-nav__tone .sidebar-nav-glyph {
   align-items: center;
   aspect-ratio: 1;
@@ -75,9 +65,9 @@
   background: transparent;
   color: var(--sidebar-nav-quiet-ink);
   display: inline-grid;
-  flex: 0 0 28px;
+  flex: 0 0 20px;
   box-shadow: none;
-  height: 28px;
+  height: 20px;
   justify-items: center;
   overflow: hidden;
   position: relative;
@@ -86,7 +76,7 @@
     border-color 160ms ease,
     color 160ms ease,
     transform 160ms ease;
-  width: 28px;
+  width: 20px;
 }
 
 .sidebar-top-nav__tone .sidebar-nav-glyph::before,
@@ -103,10 +93,26 @@
 
 .sidebar-top-nav__tone .sidebar-nav-glyph > svg {
   filter: none;
-  height: 22px;
+  height: 16px;
   position: relative;
-  width: 22px;
+  width: 16px;
   z-index: 1;
+}
+
+/* Every row icon lives in the same 20px box, so labels line up whether the
+   glyph is a nav icon, a type mark, a note icon, a folder or a hash. */
+.sidebar-row-glyph {
+  align-items: center;
+  display: inline-grid;
+  flex: 0 0 20px;
+  height: 20px;
+  justify-items: center;
+  width: 20px;
+}
+
+.tag-row[data-selected="true"] {
+  background: color-mix(in srgb, var(--sidebar-primary, var(--primary)) 12%, transparent);
+  box-shadow: inset 2px 0 0 var(--sidebar-primary, var(--primary));
 }
 
 .sidebar-rail__tone .sidebar-rail__glyph {
@@ -209,8 +215,8 @@
   box-shadow: none;
   color: var(--sidebar-section-ink);
   display: inline-grid;
-  flex: 0 0 26px;
-  height: 26px;
+  flex: 0 0 20px;
+  height: 20px;
   justify-items: center;
   overflow: hidden;
   position: relative;
@@ -218,7 +224,7 @@
     background 160ms ease,
     border-color 160ms ease,
     color 160ms ease;
-  width: 26px;
+  width: 20px;
 }
 
 .sidebar-section-glyph::after {

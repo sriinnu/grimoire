@@ -60,7 +60,7 @@ export function SidebarTopNav({
   const archiveActive = isSelectionActive(selection, { kind: 'filter', filter: 'archived' })
 
   return (
-    <div className="border-b border-border" data-testid="sidebar-top-nav" style={{ padding: '4px 6px' }}>
+    <div className="border-b border-border" data-testid="sidebar-top-nav" style={{ padding: '4px 8px' }}>
       <ToneNavItem active={dashboardActive} tone="aura">
         <NavItem
           icon={NotebookGlyphIcon}

@@ -52,14 +52,14 @@ export function FolderItemRow({
   return (
     <div
       className={cn(
-        'folder-item-row group relative flex items-center gap-1 rounded transition-colors',
+        'folder-item-row group relative flex items-center rounded transition-colors',
         isSelected
           ? 'text-primary'
           : 'text-foreground hover:bg-accent',
       )}
       data-folder-row-tone={glyphModel.tone}
       data-selected={isSelected ? 'true' : 'false'}
-      style={{ paddingLeft: depthIndent, borderRadius: 4 }}
+      style={{ paddingLeft: 8 + depthIndent, borderRadius: 6 }}
       onContextMenu={(event) => {
         onSelect()
         onOpenMenu(node, event)
@@ -134,7 +134,7 @@ function FolderToggleButton({
       type="button"
       variant="ghost"
       size="icon-xs"
-      className="h-6 w-4 shrink-0 p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+      className="h-8 w-5 shrink-0 p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
       onClick={(event) => {
         event.stopPropagation()
         onToggle()
@@ -207,14 +207,14 @@ function FolderSelectButton({
       type="button"
       variant="ghost"
       className={cn(
-        'folder-item-row__select h-auto flex-1 justify-start gap-2 rounded text-left text-[13px] font-medium hover:bg-transparent',
+        'folder-item-row__select h-auto flex-1 justify-start gap-2 rounded text-left text-[13px] font-medium leading-5 hover:bg-transparent',
         isSelected ? 'text-primary hover:text-primary' : 'text-foreground hover:text-foreground',
       )}
       style={{
         paddingTop: 6,
         paddingBottom: 6,
         paddingLeft: hasChildren ? 0 : contentInset,
-        paddingRight: hasActions ? 48 : 16,
+        paddingRight: hasActions ? 48 : 8,
       }}
       title={node.path}
       onClick={(event) => onClick(event.detail)}

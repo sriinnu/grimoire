@@ -1,7 +1,7 @@
 import type { VaultEntry } from '../../types'
 import { buildTypeEntryMap, getTypeColor, getTypeLightColor } from '../../utils/typeColors'
 import { NoteTitleIcon } from '../NoteTitleIcon'
-import { SIDEBAR_ITEM_PADDING } from './sidebarStyles'
+import { SIDEBAR_ITEM_PADDING, SIDEBAR_ROW_GAP, SIDEBAR_ROW_RADIUS } from './sidebarStyles'
 
 const FAVORITE_TYPE_ICON_MAP: Record<string, string> = {
   Project: 'wrench',
@@ -55,12 +55,12 @@ export function FavoriteListItemContent({
   return (
     <div
       className={`group/section flex cursor-pointer select-none items-center justify-between rounded transition-colors ${isActive ? '' : 'hover:bg-accent'}`}
-      style={{ padding: SIDEBAR_ITEM_PADDING.withCount, borderRadius: 4, gap: 4, ...(isActive ? { background: typeLightColor } : {}) }}
+      style={{ padding: SIDEBAR_ITEM_PADDING.regular, borderRadius: SIDEBAR_ROW_RADIUS, gap: SIDEBAR_ROW_GAP, ...(isActive ? { background: typeLightColor, boxShadow: `inset 2px 0 0 ${typeColor}` } : {}) }}
       onClick={onSelect}
     >
-      <div className="flex min-w-0 flex-1 items-center" style={{ gap: 4 }}>
-        <NoteTitleIcon icon={icon} size={16} color={typeColor} />
-        <span className="truncate text-[13px] font-medium" style={{ marginLeft: 4, color: isActive ? typeColor : undefined }}>
+      <div className="flex min-w-0 flex-1 items-center" style={{ gap: SIDEBAR_ROW_GAP }}>
+        <span className="sidebar-row-glyph"><NoteTitleIcon icon={icon} size={16} color={typeColor} /></span>
+        <span className="truncate text-[13px] font-medium leading-5" style={{ color: isActive ? typeColor : undefined }}>
           {entry.title}
         </span>
       </div>
