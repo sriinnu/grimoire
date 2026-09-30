@@ -1,9 +1,7 @@
-import type { ReactNode } from 'react'
 import { Check } from 'lucide-react'
 
-/** One row: icon slot, label, and a check on the right when it is the current state. */
-export function MenuItem({ icon, label, checked, disabled, onSelect, testId }: {
-  icon?: ReactNode
+/** One row: a leading column that holds the check when this is the current state, then the label. */
+export function MenuItem({ label, checked, disabled, onSelect, testId }: {
   label: string
   checked?: boolean
   disabled?: boolean
@@ -13,7 +11,7 @@ export function MenuItem({ icon, label, checked, disabled, onSelect, testId }: {
   return (
     <button
       type="button"
-      role="menuitem"
+      role={checked === undefined ? 'menuitem' : 'menuitemradio'}
       aria-checked={checked}
       className="note-menu__item"
       data-checked={checked ? 'true' : undefined}
@@ -21,10 +19,10 @@ export function MenuItem({ icon, label, checked, disabled, onSelect, testId }: {
       onClick={onSelect}
       data-testid={testId}
     >
-      <span className="note-menu__icon" aria-hidden="true">{icon}</span>
+      <span className="note-menu__lead" aria-hidden="true">
+        {checked ? <Check className="note-menu__check" /> : null}
+      </span>
       <span className="note-menu__label">{label}</span>
-      {checked ? <Check className="note-menu__check" aria-hidden="true" /> : null}
     </button>
   )
 }
-

@@ -33,10 +33,10 @@
   --ai-reference-pill-bg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 12%, var(--surface-card));
   --ai-reference-pill-border: color-mix(in srgb, var(--reference-type-color, var(--primary)) 24%, var(--border-default));
   --ai-reference-pill-fg: color-mix(in srgb, var(--reference-type-color, var(--primary)) 72%, var(--text-primary));
-  --grimoire-context-menu-item-radius: calc(var(--grimoire-shell-radius) - 2px);
+  --grimoire-context-menu-item-radius: 4px;
   --grimoire-context-menu-material: linear-gradient(180deg, color-mix(in srgb, var(--surface-popover) 98%, var(--surface-card)), var(--surface-popover));
-  --grimoire-context-menu-padding: 6px;
-  --grimoire-context-menu-radius: var(--grimoire-shell-radius);
+  --grimoire-context-menu-padding: 4px;
+  --grimoire-context-menu-radius: 8px;
   --grimoire-context-menu-shadow: var(--grimoire-dialog-shadow);
   --grimoire-editor-page-border: color-mix(in srgb, var(--border-default) 52%, transparent);
   --grimoire-hover-transform: translateY(var(--motion-hover-lift-distance, 0));
@@ -51,15 +51,11 @@
 }
 
 [data-theme-density="compact"] {
-  --grimoire-context-menu-padding: 4px;
-  --grimoire-context-menu-radius: 6px;
   --grimoire-note-card-shape: 6px;
   --grimoire-shell-radius: 6px;
 }
 
 [data-theme-density="spacious"] {
-  --grimoire-context-menu-padding: 8px;
-  --grimoire-context-menu-radius: 10px;
   --grimoire-note-card-shape: 10px;
   --grimoire-shell-radius: 10px;
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react'
-import { Check, ExternalLink, FolderInput, FolderKanban, FolderOpen, Star, Tag } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { MenuItem } from './NoteListContextMenuItem'
 import { clampFixedMenuPosition } from '@/lib/fixedMenuPosition'
 import { revealInFileManagerLabel } from '@/utils/platform'
@@ -19,8 +19,8 @@ interface NoteContextMenuParams {
 type MenuState = { x: number; y: number; entry: VaultEntry } | null
 const NOTE_CONTEXT_COLORS = ['yellow', 'green', 'blue', 'red'] as const
 const TAG_PROPERTY_KEYS = ['tags', 'tag', 'keywords', 'labels'] as const
-const MENU_WIDTH = 224
-const MENU_MAX_HEIGHT = 320
+const MENU_WIDTH = 220
+const MENU_MAX_HEIGHT = 360
 const MENU_VIEWPORT_GAP = 8
 /* The same accent tokens the note rows use for their chips, so a flag looks the same everywhere. */
 const NOTE_CONTEXT_COLOR_VALUES: Record<(typeof NOTE_CONTEXT_COLORS)[number], string> = {
@@ -155,20 +155,17 @@ export function useNoteListContextMenu({
       aria-label={`Actions for ${menu.entry.title}`}
       onKeyDown={handleMenuKeyDown}
     >
-      <div className="note-menu__title" role="presentation">{menu.entry.title}</div>
-
       {onOpenInNewWindow ? (
-        <MenuItem icon={<ExternalLink />} label="Open in new window" onSelect={withEntry(onOpenInNewWindow)} />
+        <MenuItem label="Open in New Window" onSelect={withEntry(onOpenInNewWindow)} />
       ) : null}
       {onMoveToFolder ? (
-        <MenuItem icon={<FolderInput />} label="Move to…" onSelect={withEntry(onMoveToFolder)} testId="note-context-move-to-folder" />
+        <MenuItem label="Move to…" onSelect={withEntry(onMoveToFolder)} testId="note-context-move-to-folder" />
       ) : null}
       {onRevealInFinder ? (
-        <MenuItem icon={<FolderOpen />} label={revealInFileManagerLabel()} onSelect={withEntry(onRevealInFinder)} testId="note-context-reveal-in-finder" />
+        <MenuItem label={revealInFileManagerLabel()} onSelect={withEntry(onRevealInFinder)} testId="note-context-reveal-in-finder" />
       ) : null}
       <MenuItem
-        icon={<FolderKanban />}
-        label={projectEntry ? 'Already a project' : 'Convert to project'}
+        label={projectEntry ? 'Already a Project' : 'Convert to Project'}
         disabled={projectEntry}
         onSelect={() => void update('type', 'Project')}
         testId="note-context-make-project"
@@ -179,8 +176,7 @@ export function useNoteListContextMenu({
       <MenuItem label="Active" checked={activeStatus === 'active'} onSelect={() => void update('status', 'Active')} testId="note-context-status-active" />
       <MenuItem label="Done" checked={activeStatus === 'done'} onSelect={() => void update('status', 'Done')} testId="note-context-status-done" />
       <MenuItem
-        icon={<Star className={menu.entry.favorite ? 'fill-current' : undefined} />}
-        label={menu.entry.favorite ? 'Remove from favorites' : 'Add to favorites'}
+        label={menu.entry.favorite ? 'Remove from Favorites' : 'Add to Favorites'}
         onSelect={() => void update('_favorite', !menu.entry.favorite)}
         testId="note-context-toggle-favorite"
       />
@@ -220,8 +216,8 @@ export function useNoteListContextMenu({
 
       <div className="note-menu__separator" role="none" />
 
-      <MenuItem icon={<Tag />} label="Tag #todo" onSelect={() => void update('tags', tagsWith(menu.entry, 'todo'))} testId="note-context-tag-todo" />
-      <MenuItem icon={<Tag />} label="Tag #review" onSelect={() => void update('tags', tagsWith(menu.entry, 'review'))} testId="note-context-tag-review" />
+      <MenuItem label="Tag #todo" onSelect={() => void update('tags', tagsWith(menu.entry, 'todo'))} testId="note-context-tag-todo" />
+      <MenuItem label="Tag #review" onSelect={() => void update('tags', tagsWith(menu.entry, 'review'))} testId="note-context-tag-review" />
     </div>
   ) : null
 
