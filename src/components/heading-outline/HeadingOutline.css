@@ -13,7 +13,7 @@
   top: 28px;
   right: 20px;
   z-index: 2;
-  width: clamp(132px, calc((100% - var(--editor-max-width, 860px)) / 2 - 36px), 216px);
+  width: clamp(132px, calc((100% - var(--editor-max-width)) / 2 - 36px), 216px);
   max-height: calc(100% - 56px);
   overflow-y: auto;
   scrollbar-width: none;
