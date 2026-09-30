@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { MouseEventHandler, PropsWithChildren, ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GrimoireSideMenu } from './grimoireBlockNoteSideMenu'
@@ -15,9 +15,16 @@ const ALL_BLOCK_SPECS = {
 
 let capturedMenuPosition: string | undefined
 const updateBlock = vi.fn()
+const transact = vi.fn((fn: () => void) => fn())
+type MockBlock = { id?: string; type: string; props?: Record<string, unknown>; content?: unknown[]; children?: MockBlock[] }
+let siblings: MockBlock[] = []
+const sibling = (id: string | undefined, offset: number) => {
+  const index = siblings.findIndex((block) => block.id === id)
+  return index < 0 ? undefined : siblings[index + offset]
+}
 // Mutable so tests can vary the focused block and the editor schema; the mock
 // arrows read these bindings at render time.
-let focusedBlock: { type: string; props?: Record<string, unknown>; content?: unknown[] } = {
+let focusedBlock: MockBlock = {
   type: 'paragraph',
   props: {},
   content: [],
@@ -27,6 +34,8 @@ let editorBlockSpecs: Record<string, unknown> = { ...ALL_BLOCK_SPECS }
 beforeEach(() => {
   capturedMenuPosition = undefined
   updateBlock.mockClear()
+  transact.mockClear()
+  siblings = []
   focusedBlock = { type: 'paragraph', props: {}, content: [] }
   editorBlockSpecs = { ...ALL_BLOCK_SPECS }
 })
@@ -43,6 +52,9 @@ vi.mock('@blocknote/react', () => ({
   useBlockNoteEditor: () => ({
     schema: { blockSpecs: editorBlockSpecs },
     updateBlock,
+    transact,
+    getPrevBlock: (id: string) => sibling(id, -1),
+    getNextBlock: (id: string) => sibling(id, 1),
   }),
   useComponentsContext: () => ({
     Generic: {
@@ -52,7 +64,7 @@ vi.mock('@blocknote/react', () => ({
           return <div data-testid="drag-menu-root">{children}</div>
         },
         Trigger: ({ children }: PropsWithChildren) => <div>{children}</div>,
-        Dropdown: ({ children }: PropsWithChildren) => <div>{children}</div>,
+        Dropdown: ({ children }: PropsWithChildren) => <div data-testid="turn-into-options">{children}</div>,
         Item: ({
           children,
           onClick,
@@ -124,15 +136,16 @@ describe('GrimoireSideMenu', () => {
     render(<GrimoireSideMenu />)
 
     expect(screen.getByText('Turn into')).toBeInTheDocument()
+    const options = within(screen.getByTestId('turn-into-options'))
     for (const label of ['Paragraph', 'Heading 1', 'Bullet List', 'Quote', 'Code Block']) {
-      expect(screen.getByText(label)).toBeInTheDocument()
+      expect(options.getByText(label)).toBeInTheDocument()
     }
   })
 
   it('converts the focused block when a turn-into target is chosen', () => {
     render(<GrimoireSideMenu />)
 
-    fireEvent.click(screen.getByText('Heading 1'))
+    fireEvent.click(within(screen.getByTestId('turn-into-options')).getByText('Heading 1'))
 
     expect(updateBlock).toHaveBeenCalledWith(focusedBlock, {
       type: 'heading',
@@ -140,11 +153,51 @@ describe('GrimoireSideMenu', () => {
     })
   })
 
+  it('turns a whole numbered list into bullets in one transaction, not just the focused item', () => {
+    siblings = [
+      { id: 'p', type: 'paragraph' },
+      { id: 'n1', type: 'numberedListItem', children: [{ id: 'n1a', type: 'numberedListItem' }] },
+      { id: 'n2', type: 'numberedListItem' },
+      { id: 'n3', type: 'numberedListItem' },
+      { id: 'q', type: 'quote' },
+    ]
+    focusedBlock = siblings[2]
+    render(<GrimoireSideMenu />)
+
+    fireEvent.click(within(screen.getByTestId('turn-into-options')).getByText('Bullet List'))
+
+    expect(transact).toHaveBeenCalledTimes(1)
+    expect(updateBlock.mock.calls.map(([block]) => (block as MockBlock).id)).toEqual(['n1', 'n1a', 'n2', 'n3'])
+    expect(updateBlock).toHaveBeenCalledWith(siblings[1], { type: 'bulletListItem' })
+  })
+
+  it('turns only the focused list item when the target is not a list', () => {
+    siblings = [
+      { id: 'n1', type: 'numberedListItem' },
+      { id: 'n2', type: 'numberedListItem' },
+    ]
+    focusedBlock = siblings[1]
+    render(<GrimoireSideMenu />)
+
+    fireEvent.click(within(screen.getByTestId('turn-into-options')).getByText('Paragraph'))
+
+    expect(updateBlock).toHaveBeenCalledTimes(1)
+    expect(updateBlock).toHaveBeenCalledWith(siblings[1], { type: 'paragraph' })
+  })
+
+  it('shows the current block type beside Turn into', () => {
+    focusedBlock = { id: 'n1', type: 'numberedListItem', props: {} }
+    render(<GrimoireSideMenu />)
+
+    expect(screen.getByText('Turn into').parentElement).toHaveTextContent('Turn intoNumbered List')
+  })
+
   it('marks the focused block type as the checked turn-into option', () => {
     render(<GrimoireSideMenu />)
 
-    expect(screen.getByText('Paragraph').closest('button')).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByText('Heading 1').closest('button')).toHaveAttribute('aria-pressed', 'false')
+    const options = within(screen.getByTestId('turn-into-options'))
+    expect(options.getByText('Paragraph').closest('button')).toHaveAttribute('aria-pressed', 'true')
+    expect(options.getByText('Heading 1').closest('button')).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('omits turn-into targets absent from the editor schema', () => {
@@ -158,8 +211,9 @@ describe('GrimoireSideMenu', () => {
     }
     render(<GrimoireSideMenu />)
 
-    expect(screen.getByText('Paragraph')).toBeInTheDocument()
-    expect(screen.queryByText('Code Block')).not.toBeInTheDocument()
+    const options = within(screen.getByTestId('turn-into-options'))
+    expect(options.getByText('Paragraph')).toBeInTheDocument()
+    expect(options.queryByText('Code Block')).not.toBeInTheDocument()
   })
 
   it('hides Turn into for blocks whose content cannot be converted', () => {

@@ -14,6 +14,7 @@ import {
 } from '@blocknote/react'
 import type { PartialBlock } from '@blocknote/core'
 import { SideMenuExtension } from '@blocknote/core/extensions'
+import { applyTurnInto, type TurnIntoEditor } from './turnIntoPlan'
 import {
   Code,
   GripVertical,
@@ -73,7 +74,7 @@ function turnIntoOptions(dict: ReturnType<typeof useDictionary>): TurnIntoOption
 }
 
 /** Block as seen by the side menu: only the fields the turn-into matcher reads. */
-type SideMenuBlock = { type: string; props?: Record<string, unknown> }
+type SideMenuBlock = { id?: string; type: string; props?: Record<string, unknown>; children?: unknown[] }
 
 /** True when the focused block already matches a turn-into target's type and props. */
 function isActiveOption(block: SideMenuBlock, update: PartialBlock): boolean {
@@ -104,16 +105,18 @@ function GrimoireTurnIntoItem() {
     (option) => typeof option.update.type === 'string' && option.update.type in editor.schema.blockSpecs,
   )
   if (options.length === 0) return null
+  const current = options.find((option) => isActiveOption(block, option.update))
 
   return (
     <Components.Generic.Menu.Root position="right" sub>
       <Components.Generic.Menu.Trigger sub>
         <Components.Generic.Menu.Item
-          className="bn-menu-item"
+          className="bn-menu-item bn-menu-item--turn-into"
           subTrigger
           icon={<Repeat size={16} />}
         >
-          Turn into
+          <span>Turn into</span>
+          {current ? <span className="bn-menu-item__hint" aria-hidden="true">{current.label}</span> : null}
         </Components.Generic.Menu.Item>
       </Components.Generic.Menu.Trigger>
       <Components.Generic.Menu.Dropdown sub className="bn-menu-dropdown">
@@ -125,7 +128,7 @@ function GrimoireTurnIntoItem() {
               className="bn-menu-item"
               icon={<OptionIcon size={16} />}
               checked={isActiveOption(block, option.update)}
-              onClick={() => editor.updateBlock(block, option.update)}
+              onClick={() => applyTurnInto(editor as unknown as TurnIntoEditor, block, option.update)}
             >
               {option.label}
             </Components.Generic.Menu.Item>
