@@ -15,10 +15,21 @@ async function insertWikilink(page: Page) {
   ).toContainText('Build a sustainable audience through high-quality weekly essays', { timeout: 5000 })
   const paragraphsBefore = await editor.locator('p').count()
   await firstParagraph.click()
-  await page.keyboard.press('End')
+  // The paragraph wraps, and End only reaches the end of the visual line, so
+  // Enter would split mid-sentence and the query would run into the tail of
+  // the paragraph. Put the caret at the true end of the block instead.
+  await firstParagraph.evaluate((element) => {
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    range.collapse(false)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  })
   await page.keyboard.press('Enter')
-  // The new block exists before we type into it; no fixed sleep.
+  // The new block exists, and is empty, before we type into it; no fixed sleep.
   await expect(editor.locator('p')).toHaveCount(paragraphsBefore + 1, { timeout: 5000 })
+  await expect(editor.locator('p').nth(1)).toHaveText('', { timeout: 5000 })
 
   await page.keyboard.type(INSERTED_WIKILINK_QUERY)
 
