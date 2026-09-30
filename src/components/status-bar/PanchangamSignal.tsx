@@ -1,23 +1,17 @@
 import { Moon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { computePanchangam, formatPanchangamDetail, formatPanchangamLine } from '../../lib/panchangam/panchangam'
 
-const REFRESH_MS = 60_000
-
 /**
- * Today's tithi, nakshatra and vara in the status bar, recomputed every
- * minute on this device. Off in Settings → Native → Status bar.
+ * Today's tithi, nakshatra and vara in the status bar, computed on this
+ * device. The bar's own ticker re-renders it every half minute while the
+ * window is visible, so this owns no timer; the value is memoized by the
+ * minute. Off in Settings → Native → Status bar.
  */
 export function PanchangamSignal({ now }: { now?: () => Date }) {
-  const read = now ?? (() => new Date())
-  const [panchangam, setPanchangam] = useState(() => computePanchangam(read()))
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setPanchangam(computePanchangam(read())), REFRESH_MS)
-    return () => window.clearInterval(timer)
-    // `read` is stable for the life of the bar; a new function means a new mount in tests.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  const instant = (now ?? (() => new Date()))()
+  const minute = Math.floor(instant.getTime() / 60_000)
+  const panchangam = useMemo(() => computePanchangam(new Date(minute * 60_000)), [minute])
 
   const detail = formatPanchangamDetail(panchangam)
   return (
