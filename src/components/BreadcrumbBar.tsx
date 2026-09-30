@@ -25,7 +25,7 @@ export const BreadcrumbBar = memo(function BreadcrumbBar({
         style={{
           height: 52,
           background: 'var(--background)',
-          padding: '6px 16px',
+          padding: '0 16px',
           boxSizing: 'border-box',
         }}
       >

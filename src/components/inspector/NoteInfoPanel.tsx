@@ -18,7 +18,7 @@ function formatFileSize(bytes: number): string {
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid min-w-0 grid-cols-2 items-center gap-2 px-1.5" data-testid="readonly-property">
+    <div className="grid min-h-7 min-w-0 grid-cols-2 items-center gap-2" data-testid="readonly-property">
       <span className="min-w-0 truncate text-[12px] text-muted-foreground">{label}</span>
       <span className="min-w-0 truncate text-right text-[12px]" style={{ color: 'var(--text-muted)' }}>{value}</span>
     </div>
@@ -33,7 +33,7 @@ export function NoteInfoPanel({ entry, content }: { entry: VaultEntry; content: 
         <Glyph name="compass" size={12} />
         Info
       </h4>
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-0">
         <InfoRow label="Modified" value={formatDate(entry.modifiedAt)} />
         <InfoRow label="Created" value={formatDate(entry.createdAt)} />
         <InfoRow label="Words" value={String(wordCount)} />

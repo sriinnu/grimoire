@@ -358,8 +358,8 @@ export function DynamicPropertiesPanel({
     .flatMap(([, hints]) => hints)
 
   return (
-    <div className="properties flex flex-col gap-3" data-testid="properties-panel">
-      <div className="grid min-w-0 gap-x-2 gap-y-1.5" style={PROPERTY_PANEL_GRID_STYLE}>
+    <div className="properties flex flex-col gap-2" data-testid="properties-panel">
+      <div className="grid min-w-0 gap-x-2 gap-y-0" style={PROPERTY_PANEL_GRID_STYLE}>
         <TypeSelector
           isA={entry.isA}
           customColorKey={customColorKey}

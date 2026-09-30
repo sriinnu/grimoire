@@ -1,7 +1,18 @@
-/* Second Brain sections: quiet caps heading, hairline between sections, no boxes. */
+/* Second Brain sections: quiet caps heading, hairline between sections, no
+   boxes. Everything starts on the pane's 16px edge; rows that highlight pad
+   8px and pull 8px back into the gutter so the text stays on that edge and
+   the hover pill bleeds, the way a native list does. */
 .inspector-section + .inspector-section {
   border-top: 1px solid var(--border);
-  padding-top: 10px;
+  padding-top: 12px;
+}
+
+.inspector-panel .font-mono-overline {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
 }
 
 .inspector-section__heading {
@@ -12,9 +23,10 @@
 .inspector-section__toggle {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  padding: 4px 2px;
+  min-height: 28px;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--text-tertiary);
@@ -63,8 +75,8 @@
 .inspector-section__body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-top: 6px;
+  gap: 12px;
+  padding-top: 4px;
 }
 
 .inspector-section__body[hidden] {
@@ -73,7 +85,7 @@
 
 .inspector-section__empty {
   margin: 0;
-  padding: 2px 2px 4px;
+  padding: 0 0 4px;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -89,14 +101,14 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 0 2px;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--primary);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .inspector-text-action:hover {
@@ -127,7 +139,8 @@
   grid-template-columns: subgrid;
   align-items: center;
   gap: 8px;
-  padding: 0 6px;
+  padding: 0 8px;
+  margin-inline: -8px;
   border-radius: 4px;
 }
 
@@ -155,7 +168,8 @@
   grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 3px 6px;
+  min-height: 28px;
+  padding: 0;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -176,7 +190,7 @@
   display: inline-flex;
   gap: 2px;
   padding: 2px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   border-radius: 6px;
   background: var(--muted);
 }
@@ -184,14 +198,15 @@
 .connections__filter {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
   border: 0;
   border-radius: 4px;
   background: transparent;
   color: var(--text-muted);
   font: inherit;
-  font-size: 11.5px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -213,12 +228,13 @@
 
 .connection-row {
   display: grid;
-  grid-template-columns: 14px auto minmax(0, 1fr) auto;
+  grid-template-columns: 16px auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 26px;
-  padding: 2px 6px;
+  gap: 8px;
+  width: calc(100% + 16px);
+  min-height: 28px;
+  padding: 0 8px;
+  margin-inline: -8px;
   border: 0;
   border-radius: 4px;
   background: transparent;
@@ -238,6 +254,7 @@
 .connection-row__glyph {
   color: var(--text-tertiary);
   font-size: 12px;
+  line-height: 16px;
   text-align: center;
 }
 
@@ -268,18 +285,18 @@
 }
 
 .connections__edit {
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 /* History: edits as a timeline. */
 .git-timeline {
   margin: 0;
-  padding: 0 0 0 10px;
+  padding: 0 0 0 12px;
   list-style: none;
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .git-timeline__item {
@@ -289,12 +306,13 @@
 .git-timeline__item::before {
   content: '';
   position: absolute;
-  left: -13px;
+  left: -16px;
   top: 11px;
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--text-tertiary);
+  box-shadow: 0 0 0 2px var(--surface-panel, var(--background));
 }
 
 .git-timeline__commit {
@@ -303,7 +321,8 @@
   align-items: baseline;
   gap: 8px;
   width: 100%;
-  padding: 4px 6px;
+  min-height: 28px;
+  padding: 4px 8px;
   border: 0;
   border-radius: 4px;
   background: transparent;
@@ -339,7 +358,7 @@
 
 .git-timeline__hash {
   font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--text-tertiary);
   opacity: 0;
 }
@@ -356,7 +375,8 @@
   justify-content: space-between;
   gap: 8px;
   width: 100%;
-  padding: 6px 8px;
+  min-height: 32px;
+  padding: 4px 8px;
   border: 0;
   border-radius: 6px;
   background: var(--muted);

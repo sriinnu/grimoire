@@ -9,7 +9,7 @@ export function InspectorHeader({ collapsed, onToggle, subtitle }: { collapsed: 
   return (
     <div
       className="inspector-header flex shrink-0 items-center border-b border-border"
-      style={{ height: 52, padding: '6px 12px', gap: 8, cursor: 'default' }}
+      style={{ height: 52, padding: '0 12px 0 16px', gap: 8, cursor: 'default' }}
       onMouseDown={onMouseDown}
     >
       {collapsed ? (
@@ -25,7 +25,7 @@ export function InspectorHeader({ collapsed, onToggle, subtitle }: { collapsed: 
       ) : (
         <>
           <span className="inspector-header__brand-icon" data-icon-intent="ai">
-            <Glyph name="brain" size={14} />
+            <Glyph name="brain" size={16} />
           </span>
           <span className="flex min-w-0 flex-1 flex-col leading-tight">
             <span className="inspector-header__title truncate" data-testid="inspector-header-title">Second Brain</span>

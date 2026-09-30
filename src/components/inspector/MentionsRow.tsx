@@ -80,7 +80,7 @@ export function MentionsRow({ entry, entries, connectedPaths, onNavigate, onRepl
           return (
             <div key={candidate.path} className="connection-row mentions__row" data-testid="unlinked-mention" data-linked={done ? 'true' : undefined}>
               <span className="connection-row__glyph" aria-label="Mentions this page">…</span>
-              <NoteTitleIcon icon={candidate.icon} size={13} />
+              <NoteTitleIcon icon={candidate.icon} size={16} />
               <button type="button" className="mentions__title" onClick={() => onNavigate(candidate.title)}>{candidate.title}</button>
               {done ? (
                 <span className="connection-row__labels">Linked</span>

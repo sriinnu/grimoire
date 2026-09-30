@@ -119,7 +119,7 @@
   border-radius: 0 !important;
   box-shadow: none !important;
   margin: 0 !important;
-  padding: var(--grimoire-section-space) 0 !important;
+  padding: 12px 0 !important;
 }
 
 :root[data-theme-preset] .inspector-body > [data-slot="separator"] {

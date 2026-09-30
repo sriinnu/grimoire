@@ -4,7 +4,7 @@ import { NoteTitleIcon } from '../NoteTitleIcon'
 import { TypeIconMark } from '../TypeIconMark'
 
 export function StatusSuffix({ isArchived }: { isArchived: boolean }) {
-  if (isArchived) return <span style={{ marginLeft: 4, fontSize: 10, opacity: 0.8 }}>(archived)</span>
+  if (isArchived) return <span style={{ marginLeft: 4, fontSize: 11, opacity: 0.8 }}>(archived)</span>
   return null
 }
 
@@ -27,14 +27,14 @@ export function LinkButton({ label, noteIcon, typeColor, bgColor, isArchived, on
       className={`group/link flex w-full items-center justify-between gap-2 border-none text-left cursor-pointer min-w-0${bgColor ? ' ring-inset hover:ring-1 hover:ring-current' : ' hover:opacity-80'}`}
       style={{
         background: isDimmed ? 'var(--muted)' : (bgColor ?? 'transparent'),
-        color, borderRadius: 6, padding: bgColor ? '6px 10px' : '4px 0',
+        color, borderRadius: 4, minHeight: 28, padding: '4px 8px', marginInline: -8, width: 'calc(100% + 16px)',
         fontSize: 12, fontWeight: 500, opacity: isDimmed ? 0.7 : 1,
       }}
       onClick={onClick}
       title={title}
     >
-      <span className="flex items-center gap-1 flex-1 truncate">
-        <NoteTitleIcon icon={noteIcon} size={14} />
+      <span className="flex items-center gap-2 flex-1 truncate">
+        <NoteTitleIcon icon={noteIcon} size={16} />
         {label}
         <StatusSuffix isArchived={isArchived} />
       </span>

@@ -51,7 +51,7 @@ export function InspectorSection({ id, title, count, children }: InspectorSectio
           aria-controls={regionId}
           onClick={toggle}
         >
-          <CaretRight size={10} weight="bold" aria-hidden="true" className="inspector-section__caret" />
+          <CaretRight size={12} weight="bold" aria-hidden="true" className="inspector-section__caret" />
           <span className="inspector-section__title">{title}</span>
           {typeof count === 'number' && count > 0 ? (
             <span className="inspector-section__count" data-testid={`inspector-section-${id}-count`}>{count}</span>

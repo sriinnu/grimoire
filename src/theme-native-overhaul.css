@@ -136,13 +136,13 @@
 
 :where([data-theme-preset]) .inspector-header__brand-icon {
   display: inline-flex;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   flex: none;
   align-items: center;
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--border-default));
-  border-radius: 7px;
+  border-radius: 6px;
   background:
     radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 72%),
     color-mix(in srgb, var(--surface-card) 72%, transparent);
@@ -155,14 +155,14 @@
 :where([data-theme-preset]) .inspector-header__title {
   color: var(--text-heading);
   font-size: 13px;
-  font-weight: 680;
+  font-weight: 600;
 }
 
 :where([data-theme-preset]) .inspector-header__subtitle {
   color: color-mix(in srgb, var(--text-secondary) 84%, transparent);
-  font-size: 10px;
-  font-weight: 620;
-  letter-spacing: 0.02em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 :where([data-theme-preset]) :is(.editor, .editor-scroll-area) {

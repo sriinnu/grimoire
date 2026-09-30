@@ -60,7 +60,7 @@ function ConnectionRowButton({
       title={entry?.archived ? 'Archived' : undefined}
     >
       <span className="connection-row__glyph" aria-label={directionLabel}>{glyph}</span>
-      {entry ? <NoteTitleIcon icon={entry.icon} size={13} /> : null}
+      {entry ? <NoteTitleIcon icon={entry.icon} size={16} /> : null}
       <span className="connection-row__title" style={color ? { color } : undefined}>{row.title}</span>
       {row.labels.length > 0 ? (
         <span className="connection-row__labels">{row.labels.join(' · ')}</span>
@@ -72,7 +72,7 @@ function ConnectionRowButton({
           color={color ?? 'currentColor'}
           fallbackIcon={getTypeIcon(entry.isA, typeEntry?.icon)}
           iconValue={typeEntry?.icon ?? null}
-          size={13}
+          size={14}
         />
       ) : null}
     </button>
