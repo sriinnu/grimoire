@@ -40,7 +40,7 @@ function StatusDot({ noteStatus }: { noteStatus: NoteStatus }) {
 
   return (
     <span
-      className={`mr-1.5 inline-block align-middle${noteStatus === 'pendingSave' ? ' tab-status-pulse' : ''}`}
+      className={`mr-2 inline-block align-middle${noteStatus === 'pendingSave' ? ' tab-status-pulse' : ''}`}
       data-testid={dot.testId}
       style={{ width: 6, height: 6, borderRadius: '50%', background: dot.color, verticalAlign: 'middle' }}
       title={dot.title}
@@ -54,7 +54,7 @@ function StateBadge({ archived }: { archived: boolean }) {
   return (
     <span
       className="ml-1.5 inline-block align-middle text-muted-foreground"
-      style={{ fontSize: 9, fontWeight: 500, background: 'var(--muted)', borderRadius: 4, padding: '1px 4px', verticalAlign: 'middle' }}
+      style={{ fontSize: 10, fontWeight: 500, lineHeight: '16px', background: 'var(--muted)', borderRadius: 4, padding: '0 4px', verticalAlign: 'middle' }}
     >
       ARCHIVED
     </span>
@@ -91,7 +91,7 @@ function NoteSnippet({ snippet }: { snippet?: string | null }) {
 
   return (
     <div
-      className="note-snippet text-[13px] leading-[1.45] text-muted-foreground"
+      className="note-snippet text-[13px] leading-[18px] text-muted-foreground"
       data-testid="note-snippet"
       style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
     >
@@ -223,7 +223,7 @@ function NoteTitleRow({
   return (
     <div
       className={cn(
-        'note-title-row truncate text-[14px] leading-[1.35]',
+        'note-title-row truncate text-[14px] leading-5',
         'note-title-row--with-icon grid',
         isBinary ? 'text-muted-foreground font-medium' : 'text-foreground font-semibold',
       )}
@@ -232,13 +232,13 @@ function NoteTitleRow({
     >
       <span className="note-title-icon-cell flex items-center justify-center" data-testid="note-title-icon-cell">
         {hasTitleIcon ? (
-          <NoteTitleIcon icon={entry.icon} size={15} testId="note-title-icon" />
+          <NoteTitleIcon icon={entry.icon} size={16} testId="note-title-icon" />
         ) : (
           <NoteTypeIndicator
             TypeIcon={TypeIcon}
             className="note-title-leading-type-icon"
             iconValue={typeIconValue}
-            size={15}
+            size={16}
             typeColor={typeColor}
           />
         )}

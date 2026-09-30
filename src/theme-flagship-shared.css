@@ -48,7 +48,7 @@
 }
 
 :where([data-theme-preset="morning-notebook"]) .note-list-panel [data-note-path] {
-  margin: var(--grimoire-density-note-card-margin, 8px 10px 0);
+  margin: var(--grimoire-density-note-card-margin, 8px 12px 0);
   border: 1px solid color-mix(in srgb, var(--border-default) 78%, transparent);
   border-radius: var(--grimoire-shell-radius);
   background: color-mix(in srgb, var(--surface-card) 94%, transparent);

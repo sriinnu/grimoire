@@ -92,7 +92,7 @@ export function useChangesContextMenu({
   const contextMenuNode = ctxMenu ? (
     <div
       ref={ctxMenuRef}
-      className="grimoire-context-menu-surface fixed z-50 w-[184px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl backdrop-blur"
+      className="grimoire-context-menu-surface fixed z-50 w-[184px] max-w-[calc(100vw-16px)] rounded-lg border border-border bg-popover/95 p-1 shadow-xl backdrop-blur"
       style={{ left: menuPosition?.left, top: menuPosition?.top }}
       data-testid="changes-context-menu"
     >
@@ -100,7 +100,7 @@ export function useChangesContextMenu({
         type="button"
         variant="ghost"
         size="sm"
-        className="h-7 w-full justify-start gap-2 rounded-[5px] px-2 text-left text-xs font-medium text-destructive hover:text-destructive"
+        className="h-6 w-full justify-start gap-2 rounded px-2 text-left text-[13px] font-medium text-destructive hover:text-destructive"
         onClick={() => {
           if (!menuActionTarget) return
           setActionTarget(menuActionTarget)

@@ -7,13 +7,13 @@
       transparent 64%
     ),
     color-mix(in srgb, var(--card) 94%, var(--background));
-  padding: var(--grimoire-density-toolbar-padding, 8px 10px);
+  padding: var(--grimoire-density-toolbar-padding, 8px 16px);
 }
 
 .project-workspace-chrome {
   display: grid;
   min-width: 0;
-  gap: 6px;
+  gap: 8px;
   border: 0;
   background: transparent;
   padding: 0;
@@ -29,7 +29,7 @@
     "filters filters"
     "docs docs";
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: 1px solid var(--note-list-chrome-border);
   border-radius: var(--note-list-chrome-radius);
   background:
@@ -42,7 +42,7 @@
     color-mix(in srgb, var(--background) 64%, var(--card));
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--foreground) 7%, transparent);
   overflow: hidden;
-  padding: 7px;
+  padding: 8px;
   position: relative;
 }
 
@@ -73,14 +73,14 @@
     "metrics metrics";
   align-items: center;
   gap: 4px 8px;
-  padding: 1px 2px 1px 5px;
+  padding: 0 0 0 4px;
 }
 
 .project-workspace-chrome__scope-label,
 .project-workspace-chrome__label {
   color: var(--note-list-chrome-muted);
   font-size: 10px;
-  font-weight: 720;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -98,7 +98,7 @@
   gap: 4px;
   color: var(--foreground);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -106,7 +106,7 @@
 .project-workspace-chrome__scope-part {
   display: inline-flex;
   min-width: 0;
-  max-width: 7.4rem;
+  max-width: 8rem;
   align-items: center;
   color: var(--note-list-chrome-muted);
   overflow: hidden;
@@ -120,7 +120,7 @@
 
 .project-workspace-chrome__scope-part[data-leaf="true"] {
   color: var(--foreground);
-  font-weight: 760;
+  font-weight: 700;
 }
 
 .project-workspace-chrome__metrics,
@@ -142,7 +142,7 @@
 .project-workspace-chrome__metrics {
   grid-area: metrics;
   justify-content: flex-start;
-  padding: 1px 2px 0 0;
+  padding: 0;
 }
 
 .project-workspace-chrome__actions,
@@ -165,16 +165,16 @@
 .project-workspace-chrome__metric {
   display: inline-flex;
   min-width: max-content;
-  height: 23px;
+  height: 24px;
   align-items: center;
   border: 1px solid color-mix(in srgb, var(--note-list-chrome-border) 56%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--background) 54%, transparent);
-  padding: 0 7px;
+  padding: 0 8px;
   color: var(--note-list-chrome-muted);
-  font-size: 10.5px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
-  font-weight: 640;
+  font-weight: 600;
 }
 
 .project-workspace-chrome__metric[data-state="primary"] {
@@ -205,8 +205,8 @@
 }
 
 .project-workspace-chrome__action {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
   padding: 0;
 }
@@ -224,13 +224,13 @@
   min-width: 0;
   grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: 1px solid color-mix(in srgb, var(--note-list-chrome-border) 64%, transparent);
-  border-radius: 7px;
+  border-radius: 6px;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--primary) 4%, transparent), transparent 70%),
     color-mix(in srgb, var(--background) 46%, transparent);
-  padding: 5px 6px;
+  padding: 4px 8px;
 }
 
 .project-workspace-chrome__docs-scroll {
@@ -238,7 +238,7 @@
 }
 
 .project-workspace-chrome__doc {
-  height: 25px;
+  height: 24px;
   max-width: 8rem;
   flex-shrink: 0;
   border-radius: 999px;
@@ -252,8 +252,8 @@
 .project-workspace-chrome__doc-count,
 .project-workspace-chrome__doc-more {
   display: inline-flex;
-  height: 23px;
-  min-width: 23px;
+  height: 24px;
+  min-width: 24px;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--note-list-chrome-border);
@@ -261,7 +261,7 @@
   background: color-mix(in srgb, var(--muted) 50%, transparent);
   color: var(--note-list-chrome-muted);
   font-size: 10px;
-  font-weight: 720;
+  font-weight: 600;
 }
 
 .project-workspace-chrome__doc-more {
@@ -275,7 +275,7 @@
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   border: 1px solid var(--note-list-chrome-border);
   border-radius: var(--note-list-chrome-radius);
   background: color-mix(in srgb, var(--background) 52%, transparent);
@@ -287,12 +287,12 @@
   min-width: 0;
   border-top: 1px solid color-mix(in srgb, var(--note-list-chrome-border) 58%, transparent);
   background: transparent;
-  padding-top: 6px;
+  padding-top: 8px;
 }
 
 .project-workspace-chrome__search-input {
   height: 32px;
-  border-radius: 7px;
+  border-radius: 6px;
   border-color: var(--note-list-chrome-border);
   background: color-mix(in srgb, var(--background) 72%, var(--card));
   padding-left: 28px;

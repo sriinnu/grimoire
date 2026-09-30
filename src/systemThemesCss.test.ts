@@ -65,9 +65,9 @@ describe('system theme CSS', () => {
     expect(baseCss).toContain('--grimoire-density-panel-padding: 16px')
     expect(dashboardLayoutCss).toContain('padding: var(--grimoire-density-page-padding, 28px)')
     expect(dashboardLayoutCss).toContain('gap: var(--grimoire-density-card-gap, 14px)')
-    expect(flagshipSharedCss).toContain('margin: var(--grimoire-density-note-card-margin, 8px 10px 0)')
-    expect(noteListChromeCss).toContain('padding: var(--grimoire-density-toolbar-padding, 8px 10px)')
-    expect(noteListChromeCss).toContain('padding: var(--grimoire-density-note-footer-padding, 7px 10px)')
+    expect(flagshipSharedCss).toContain('margin: var(--grimoire-density-note-card-margin, 8px 12px 0)')
+    expect(noteListChromeCss).toContain('padding: var(--grimoire-density-toolbar-padding, 8px 16px)')
+    expect(noteListChromeCss).toContain('padding: var(--grimoire-density-note-footer-padding, 8px 16px)')
   })
   it('routes code blocks through theme-pack code treatment variables', () => {
     expect(baseCss).toContain('--grimoire-code-block-bg')

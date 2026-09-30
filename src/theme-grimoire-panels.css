@@ -80,27 +80,14 @@
 
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"] {
   background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel)) !important;
-  box-shadow: none !important;
+  box-shadow: inset 2px 0 0 var(--primary) !important;
 }
 
 /* The older note chrome painted a glow and two gradients over selected rows.
- * Selection is one restrained tint plus a thin leading signal, always in the
- * lapis accent — one signature selection, whatever the note's type. The type
- * colour stays on the row's icon. */
-:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::before {
-  content: "" !important;
-  display: block !important;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
-  top: 6px;
-  bottom: 6px;
-  left: 0;
-  width: 2.5px;
-  border-radius: 2px;
-  background: var(--primary) !important;
-}
-
+ * Selection is one restrained tint plus a 2px leading bar in the lapis accent,
+ * the same language as a selected sidebar row. The type colour stays on the
+ * row's icon. */
+:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::before,
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::after {
   content: none !important;
   display: none !important;

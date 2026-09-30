@@ -94,7 +94,7 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
         </div>
       </div>
       {searchVisible && (
-        <div className="note-list-search-row border-b px-3 py-2">
+        <div className="note-list-search-row border-b px-4 py-2">
           <div className="relative flex-1" aria-live="polite">
             <Input
               ref={searchInputRef}

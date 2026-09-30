@@ -3,7 +3,7 @@
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--background) 72%, transparent), transparent),
     color-mix(in srgb, var(--card) 90%, var(--background));
-  padding: var(--grimoire-density-note-footer-padding, 7px 10px);
+  padding: var(--grimoire-density-note-footer-padding, 8px 16px);
 }
 
 .note-list-filter-rail--embedded {
@@ -18,7 +18,7 @@
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
+  gap: 8px;
   border: 0;
   background: transparent;
   overflow-x: auto;
@@ -36,7 +36,7 @@
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--primary) 3%, transparent), transparent 72%),
     color-mix(in srgb, var(--background) 42%, transparent);
-  padding: 4px 5px 4px 8px;
+  padding: 4px 4px 4px 8px;
 }
 
 .note-list-filter-shelf::-webkit-scrollbar {
@@ -49,18 +49,17 @@
   min-width: 0;
   align-items: center;
   justify-content: flex-start;
-  gap: 7px;
+  gap: 8px;
   border: 1px solid color-mix(in srgb, var(--note-list-chrome-border) 74%, transparent);
-  border-radius: 7px;
+  border-radius: 6px;
   background: color-mix(in srgb, var(--background) 58%, transparent);
-  padding: 5px 6px 5px 9px;
+  padding: 4px 4px 4px 8px;
 }
 
 .note-list-filter-group__label {
-  min-width: 3.7rem;
   color: var(--note-list-chrome-muted);
   font-size: 10px;
-  font-weight: 720;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -71,7 +70,7 @@
   flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 5px;
+  gap: 4px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
@@ -82,15 +81,14 @@
 }
 
 .note-list-segment-pill {
-  height: 27px;
-  min-width: 4.9rem;
+  height: 24px;
   justify-content: center;
   border: 1px solid transparent;
   border-radius: 999px;
   color: var(--note-list-chrome-muted);
   padding-inline: 10px;
   font-size: 12px;
-  font-weight: 580;
+  font-weight: 500;
   white-space: nowrap;
 }
 

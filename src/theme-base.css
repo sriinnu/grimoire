@@ -11,9 +11,9 @@
   --grimoire-density-panel-padding: 16px;
   --grimoire-density-card-gap: 14px;
   --grimoire-density-row-gap: 8px;
-  --grimoire-density-note-card-margin: 8px 10px 0;
-  --grimoire-density-note-footer-padding: 7px 10px;
-  --grimoire-density-toolbar-padding: 8px 10px;
+  --grimoire-density-note-card-margin: 8px 12px 0;
+  --grimoire-density-note-footer-padding: 8px 16px;
+  --grimoire-density-toolbar-padding: 8px 16px;
   --grimoire-code-block-bg: color-mix(in srgb, var(--surface-card) 82%, var(--surface-editor));
   --grimoire-code-block-border: color-mix(in srgb, var(--primary) 18%, var(--border-default));
   --grimoire-code-block-radius: 8px;

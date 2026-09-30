@@ -21,8 +21,9 @@ describe('Grimoire panel contract', () => {
     expect(css).not.toContain('var(--note-type-color, var(--primary)) 15%')
     expect(css).toContain('[data-note-path][data-selected="true"]::before')
     expect(css).toContain('content: none !important')
-    expect(css).toContain('thin leading signal')
-    expect(css).toContain('width: 2.5px')
+    expect(css).toContain('2px leading bar')
+    expect(css).toContain('box-shadow: inset 2px 0 0 var(--primary) !important')
+    expect(css).not.toContain('width: 2.5px')
     expect(css).not.toContain('.note-current-document-state')
   })
 
