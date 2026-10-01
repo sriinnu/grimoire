@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/grimoire-logo.svg" alt="Grimoire — Local-first markdown workspace" width="480" />
+</p>
+
 # Grimoire
 
 Local-first desktop app for Markdown vaults — folders of Markdown files with
