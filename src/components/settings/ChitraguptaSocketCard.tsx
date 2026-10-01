@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { describeChitraguptaSocketStatus } from '../../lib/chitraguptaSocket'
 import { readInvitationImage, validateGrimoireInvitation } from '../../lib/chitraguptaInvitation'
 import { useChitraguptaPairing } from '../../hooks/useChitraguptaPairing'
@@ -19,7 +19,9 @@ export function ChitraguptaSocketCard({ t, vaultPath }: { t: SettingsTranslate; 
   const picker = useRef<HTMLInputElement>(null)
   const configuredOrigin = useRef('http://127.0.0.1:3141')
   if (status?.baseUrl) configuredOrigin.current = status.baseUrl
-  useEffect(() => {
+  // Layout effect, not a passive one: a deferred reset could land after the user has already
+  // typed a code or chosen a fresh invitation for the new status, and silently wipe it.
+  useLayoutEffect(() => {
     importGeneration.current++
     setCode(''); setInvitation(''); setImportError(null); setImporting(false); setFreshInvitation(false)
     return () => { importGeneration.current++ }
