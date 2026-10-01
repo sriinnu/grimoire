@@ -1,3 +1,4 @@
+import { CHITRAGUPTA_HISTORY_REFRESH_EVENT } from '../lib/chitraguptaSocket'
 import { isTauri } from '../mock-tauri'
 import type { AiAgentId, AiAgentRuntimeRoute } from '../lib/aiAgents'
 import { liveAiNativeAppRequiredMessage } from './liveAiRuntime'
@@ -90,6 +91,7 @@ export async function streamAiAgent(
   const closeStream = (): void => {
     if (closed) return
     closed = true
+    if (agent === 'chitragupta') window.dispatchEvent(new CustomEvent(CHITRAGUPTA_HISTORY_REFRESH_EVENT, { detail: { vaultPath, notePath } }))
     callbacks.onDone()
   }
 

@@ -7,10 +7,10 @@ import { LinkButton } from './LinkButton'
 import { resolveRefProps } from './shared'
 import { InlineAddNote } from './RelationshipSearchControls'
 
-const RELATIONSHIP_SECTION_ROW_CLASS_NAME = 'flex min-w-0 flex-col gap-1 px-1.5'
+const RELATIONSHIP_SECTION_ROW_CLASS_NAME = 'flex min-w-0 flex-col gap-1'
 const RELATIONSHIP_SECTION_LABEL_TEXT_CLASS_NAME = 'min-w-0 flex-1 truncate'
 const RELATIONSHIP_SECTION_VALUE_CLASS_NAME = 'min-w-0'
-const RELATIONSHIP_ACTION_ROW_CLASS_NAME = 'min-w-0 px-1.5'
+const RELATIONSHIP_ACTION_ROW_CLASS_NAME = 'min-w-0'
 
 /** Full-width relationship row with a property-label header. */
 export function RelationshipSectionRow({

@@ -32,9 +32,24 @@
   box-shadow: none !important;
 }
 
+:root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div) {
+  border-color: transparent !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* Hover is a faint ink tint; only the active destination is filled
+   (DESIGN.md: "hover is weaker than selection"). Hover used to paint the
+   same 13% lapis as active, so the sidebar couldn't say where you are. */
+:root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div):not([aria-current="page"]):hover {
+  background: color-mix(in srgb, var(--sidebar-foreground) 5%, transparent) !important;
+}
+
 :root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) [aria-current="page"] {
-  background: color-mix(in srgb, var(--sidebar-primary) 13%, transparent) !important;
-  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--sidebar-primary) 12%, transparent) !important;
+  border-color: transparent !important;
+  border-radius: 6px !important;
   box-shadow: inset 2px 0 0 var(--sidebar-primary) !important;
 }
 
@@ -64,49 +79,18 @@
 }
 
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"] {
-  background: color-mix(in srgb, var(--note-type-color, var(--primary)) 15%, var(--surface-panel)) !important;
-  box-shadow: none !important;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel)) !important;
+  box-shadow: inset 2px 0 0 var(--primary) !important;
 }
 
 /* The older note chrome painted a glow and two gradients over selected rows.
- * Selection is one restrained tint plus a thin leading signal in the note's
- * type colour. It describes the current document, not a card. */
-:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::before {
-  content: "" !important;
-  display: block !important;
-  pointer-events: none;
-  position: absolute;
-  z-index: 2;
-  top: 6px;
-  bottom: 6px;
-  left: 0;
-  width: 2.5px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--note-type-color, var(--primary)) 82%, var(--grimoire-pane-hairline)) !important;
-}
-
+ * Selection is one restrained tint plus a 2px leading bar in the lapis accent,
+ * the same language as a selected sidebar row. The type colour stays on the
+ * row's icon. */
+:root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::before,
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"]::after {
   content: none !important;
   display: none !important;
-}
-
-:root[data-theme-preset] .note-list-panel .note-current-document-state {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: color-mix(in srgb, var(--note-type-color, var(--primary)) 72%, var(--text-secondary)) !important;
-  font-size: 9px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-:root[data-theme-preset] .note-list-panel .note-current-document-state > span {
-  width: 5px;
-  height: 5px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
 }
 
 :root[data-theme-preset] .inspector-panel {
@@ -135,7 +119,7 @@
   border-radius: 0 !important;
   box-shadow: none !important;
   margin: 0 !important;
-  padding: var(--grimoire-section-space) 0 !important;
+  padding: 12px 0 !important;
 }
 
 :root[data-theme-preset] .inspector-body > [data-slot="separator"] {
@@ -161,4 +145,20 @@
   :root[data-theme-preset] :is(.sidebar-top-nav__tone, .sidebar-rail__tone) [aria-current="page"] {
     transition: none;
   }
+}
+
+/* One row geometry: a 20px glyph box with a 16px icon and a 13px label, so
+   every destination is 32px tall and its label starts on the same edge. */
+:root[data-theme-preset] .sidebar-top-nav__tone .sidebar-nav-glyph {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+:root[data-theme-preset] .sidebar-top-nav__tone .sidebar-nav-glyph__icon {
+  width: 16px;
+  height: 16px;
+}
+
+:root[data-theme-preset] .sidebar-top-nav__tone > :is(button, div) {
+  font-size: 13px;
 }

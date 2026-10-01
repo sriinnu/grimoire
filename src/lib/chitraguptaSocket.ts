@@ -6,32 +6,26 @@
  * strings, and transcripts fall back to raw JSON when the shape is new.
  */
 
-import type { AiProviderKeySource } from './aiProviderKeys'
+export const CHITRAGUPTA_HISTORY_REFRESH_EVENT = 'grimoire:chitragupta-history-refresh'
 
-/** Redacted socket readiness from `get_chitragupta_socket_status`. */
+export type ChitraguptaConnectionState = 'pairing_required' | 'approval_required' | 'ready' | 'denied' | 'revoked' | 'expired' | 'busy' | 'renewal_indeterminate'
+
+/** Redacted connector status for one selected vault. */
 export interface ChitraguptaSocketStatus {
-  healthy: boolean
-  version: string | null
-  token_present: boolean
-  token_source: AiProviderKeySource
-  base_url: string
-}
-
-/** Redacted token readiness from the save/clear token commands. */
-export interface ChitraguptaSocketTokenStatus {
-  token_present: boolean
-  token_source: AiProviderKeySource
-}
-
-/** Redacted pairing outcome from `provision_chitragupta_socket_token`. */
-export interface ChitraguptaProvisionResult {
-  provisioned: boolean
-  connected: boolean
-  needs_daemon_refresh: boolean
+  contractVersion: 1
+  state: ChitraguptaConnectionState
+  projectPath: string
+  baseUrl?: string
+  nextAction?: string
+  chatReady?: boolean
+  selectedVaultPath?: string
+  reason?: 'pairing' | 'workspace'
+  requestId?: string
 }
 
 /** Trimmed session summary from `list_chitragupta_note_sessions`. */
 export interface ChitraguptaNoteSession {
+  pending_request_id?: string | null
   id: string
   title: string | null
   updated_at: unknown
@@ -48,10 +42,20 @@ export interface ChitraguptaTranscriptMessage {
 
 /** Human status line for the Settings card. Never mentions the token value. */
 export function describeChitraguptaSocketStatus(status: ChitraguptaSocketStatus | null): string {
-  if (!status) return 'Checking daemon...'
-  if (!status.healthy) return 'Daemon unreachable'
-  if (!status.token_present) return `Connected${status.version ? ` · v${status.version}` : ''} · Token missing`
-  return `Connected${status.version ? ` · v${status.version}` : ''}`
+  if (!status) return 'Checking connection...'
+  if (status.reason === 'pairing' && status.state === 'revoked') return 'Device pairing revoked'
+  if (status.reason === 'pairing' && status.state === 'expired') return 'Pairing needs renewal'
+  const labels = {
+    pairing_required: 'Pairing required',
+    approval_required: 'Paired · Workspace approval required',
+    ready: 'Connected to this vault',
+    denied: 'Workspace access denied',
+    revoked: 'Workspace access revoked',
+    expired: 'Workspace access expired',
+    busy: 'Connection busy',
+    renewal_indeterminate: 'Connection recovery needed',
+  }
+  return labels[status.state] ?? 'Connection status unavailable'
 }
 
 /** Epoch seconds from a defensive timestamp value (ISO string, s, or ms). */

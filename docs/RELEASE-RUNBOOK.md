@@ -90,25 +90,38 @@ the presence of required secret names. `audit:public-readiness` verifies the
 public repo state, signed HEAD, clean tree, latest hosted CI, starter-vault
 mirror, release assets, update feeds, and README/readiness wording.
 
-## Tag Order
+## Shipping
 
-Create release tags only after preflight is clean and the commit is signed.
-
-```bash
-git tag -s alpha-vYYYY.M.D.N -m "alpha-vYYYY.M.D.N"
-git push origin alpha-vYYYY.M.D.N
-```
-
-For a stable promotion:
+One command does the whole release from a clean, in-sync `main`:
 
 ```bash
-git tag -s stable-vYYYY.M.D -m "stable-vYYYY.M.D"
-git push origin stable-vYYYY.M.D
+pnpm release            # patch bump, stable channel
+pnpm release --minor    # or --major
+pnpm release --alpha    # prerelease on the alpha updater feed
+pnpm release:dry        # preflight and plan only, writes nothing
 ```
 
-The release workflow creates GitHub Releases, uploads macOS, Windows, and Linux
-artifacts, generates stable or alpha Pages output, and publishes updater
-manifests when the signed updater artifacts and signatures exist.
+`scripts/release.mjs` runs preflight (clean `main`, secrets present,
+`release:preflight`, green CI on the head), bumps the version in
+`package.json`, `tauri.conf.json`, `Cargo.toml`, and `Cargo.lock`, commits on
+`chore/release-vX.Y.Z`, opens a PR, waits for checks, squash-merges it, then
+creates a signed `stable-vX.Y.Z` or `alpha-vX.Y.Z` tag on the merge commit and
+pushes it. Tag names carry the app version, so the GitHub Release, the updater
+feed, and the About panel all agree.
+
+Pushing the tag starts the release workflow, which builds macOS (both
+architectures), Windows, and Linux, signs and notarizes the macOS bundles with
+the repository secrets, uploads the assets to the GitHub Release, and
+republishes the stable or alpha Pages output and updater manifests. The script
+watches that run, then replaces the placeholder release notes with a changelog
+grouped by commit type.
+
+If the PR merged but tagging did not happen, `pnpm release --tag-only` tags the
+version already on `main`. `--no-wait` pushes the tag and returns without
+watching the workflow.
+
+Direct pushes to `main` are refused by the pre-push hook; the release commit
+always goes through a PR, which is why the script opens one.
 
 ## Post-Release Verification
 

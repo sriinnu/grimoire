@@ -1,3 +1,4 @@
+import { useStableFunctionProps } from '../hooks/useStableHandlers'
 import { useCallback, memo } from 'react'
 import type { VaultEntry, FolderNode, SidebarSelection, ViewFile } from '../types'
 import { FolderTree } from './FolderTree'
@@ -19,6 +20,7 @@ import {
 } from './sidebar/SidebarSections'
 import { SidebarRail } from './sidebar/SidebarRail'
 import { SidebarSearchLauncher } from './sidebar/SidebarSearchLauncher'
+import { TagsSection } from './sidebar/TagsSection'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
 
 interface SidebarProps {
@@ -45,6 +47,7 @@ interface SidebarProps {
   onDeleteFolder?: (folderPath: string) => void
   onMoveFolder?: (folderPath: string) => void
   onRevealFolder?: (folderPath: string) => void
+  onImportFilesToFolder?: (folderPath: string) => void
   renamingFolderPath?: string | null
   onStartRenameFolder?: (folderPath: string) => void
   onCancelRenameFolder?: () => void
@@ -57,7 +60,7 @@ interface SidebarProps {
   onOpenGraph?: () => void
 }
 
-export const Sidebar = memo(function Sidebar({
+const SidebarPane = memo(function Sidebar({
   entries,
   selection,
   onSelect,
@@ -78,6 +81,7 @@ export const Sidebar = memo(function Sidebar({
   onDeleteFolder,
   onMoveFolder,
   onRevealFolder,
+  onImportFilesToFolder,
   renamingFolderPath,
   onStartRenameFolder,
   onCancelRenameFolder,
@@ -168,6 +172,12 @@ export const Sidebar = memo(function Sidebar({
             />
           </div>
         )}
+        <TagsSection
+          selection={selection}
+          onSelect={onSelect}
+          collapsed={groupCollapsed.tags}
+          onToggle={() => toggleGroup('tags')}
+        />
         {hasViews && (
           <ViewsSection
             views={views}
@@ -206,6 +216,7 @@ export const Sidebar = memo(function Sidebar({
           onDeleteFolder={onDeleteFolder}
           onMoveFolder={onMoveFolder}
           onRevealFolder={onRevealFolder}
+          onImportFilesToFolder={onImportFilesToFolder}
           renamingFolderPath={renamingFolderPath}
           onStartRenameFolder={onStartRenameFolder}
           onCancelRenameFolder={onCancelRenameFolder}
@@ -231,3 +242,9 @@ export const Sidebar = memo(function Sidebar({
     </aside>
   )
 })
+
+
+/** Sidebar with stable handler identities, so the memoised pane skips keystroke re-renders. */
+export function Sidebar(props: SidebarProps) {
+  return <SidebarPane {...useStableFunctionProps(props)} />
+}

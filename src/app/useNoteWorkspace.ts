@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react'
 import { useAiActivity } from '../hooks/useAiActivity'
 import { useAppNavigation } from '../hooks/useAppNavigation'
 import { useAppSave } from '../hooks/useAppSave'
@@ -13,6 +13,7 @@ import type { SidebarSelection, VaultEntry } from '../types'
 import { refreshPulledVaultState } from '../utils/pulledVaultRefresh'
 import { createPulseDeletedNoteEntry, loadNoteWindowContent, resolveNoteWindowEntry, selectionScreenKey } from './appRuntimeSupport'
 import type { DeferredAppActions } from './useDeferredAppActions'
+import { useSessionMemory } from './useSessionMemory'
 import type { useNativeIntegrations } from './useNativeIntegrations'
 import type { VaultFoundation } from './useVaultFoundation'
 
@@ -24,7 +25,7 @@ export function useNoteWorkspace(
   deferred: DeferredAppActions,
 ) {
   const {
-    dialogs, gitRemoteStatus, handleEnterNeighborhood, handleSetSelection, handleStatusBarSwitchVault,
+    dialogs, effectiveSelection, gitRemoteStatus, handleEnterNeighborhood, handleSetSelection, handleStatusBarSwitchVault,
     isGitVault, noteWindowParams, resolvedPath, selectionRef, setToastMessage, settings, vault,
   } = foundation
   const { conflictResolver } = native
@@ -60,6 +61,16 @@ export function useNoteWorkspace(
     openTabWithContent,
   } = notes
   deferred.closeAllTabs.current = closeAllTabs
+  useSessionMemory({
+    disabled: Boolean(noteWindowParams),
+    vaultPath: resolvedPath,
+    isLoading: vault.isLoading,
+    entries: vault.entries,
+    selection: effectiveSelection,
+    activeTabPath: notes.activeTabPath,
+    onRestoreSelection: handleSetSelection,
+    onRestoreNote: handleSelectNote,
+  })
   const noteWindowActionsRef = useRef({ handleSelectNote, openTabWithContent })
   useEffect(() => {
     noteWindowActionsRef.current = { handleSelectNote, openTabWithContent }
@@ -196,11 +207,17 @@ export function useNoteWorkspace(
     })
   }, [vault.entries]) // eslint-disable-line react-hooks/exhaustive-deps -- notes.setTabs is stable (useState setter)
 
-  const { handleGoBack, handleGoForward, canGoBack, canGoForward, entriesByPath } = useAppNavigation({
+  const { handleGoBack, handleGoForward, canGoBack, canGoForward, recentPaths, entriesByPath } = useAppNavigation({
     entries: vault.entries,
     activeTabPath: notes.activeTabPath,
     onSelectNote: notes.handleSelectNote,
   })
+
+  // Recently visited pages that still exist, for the command palette's empty state.
+  const recentEntries = useMemo(
+    () => recentPaths.map((path) => entriesByPath.get(path)).filter((entry): entry is VaultEntry => entry !== undefined),
+    [recentPaths, entriesByPath],
+  )
 
   const queuePendingDiff = useCallback((path: string, commitHash?: string) => {
     pendingDiffRequestIdRef.current += 1
@@ -314,7 +331,7 @@ export function useNoteWorkspace(
     openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote,
     handleSearchResultSelect, autoSync, effectiveRemoteStatus, canAddRemote, pendingDiffRequest,
     handlePendingDiffHandled, queuePendingDiff, handlePulseOpenNote, handleOpenFavorite, vaultBridge, conflictFlow,
-    appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward,
+    appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward, recentEntries,
   }
 }
 

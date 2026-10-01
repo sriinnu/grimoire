@@ -37,11 +37,17 @@ pub struct Settings {
     pub editor_line_height: Option<String>,
     pub ui_language: Option<String>,
     pub menu_bar_icon_enabled: Option<bool>,
+    /// Today's panchangam in the status bar. `None` means on.
+    #[serde(default)]
+    pub panchangam_enabled: Option<bool>,
     pub native_shell_material: Option<String>,
     pub initial_h1_auto_rename_enabled: Option<bool>,
     pub default_ai_agent: Option<String>,
     pub ai_agent_models: Option<BTreeMap<String, String>>,
     pub ai_agent_providers: Option<BTreeMap<String, String>>,
+    /// Per agent: "subscription" (CLI login) or "api_key". Missing means subscription.
+    #[serde(default)]
+    pub ai_agent_auth_modes: Option<BTreeMap<String, String>>,
     pub transcription_provider: Option<String>,
     pub cloud_transcription_enabled: Option<bool>,
 }
@@ -120,6 +126,29 @@ pub fn normalize_ai_agent_providers(
         };
         if !value.chars().any(char::is_whitespace) {
             normalized_values.insert("chitragupta".to_string(), value);
+        }
+    }
+    (!normalized_values.is_empty()).then_some(normalized_values)
+}
+
+pub const AI_AGENT_AUTH_MODE_SUBSCRIPTION: &str = "subscription";
+pub const AI_AGENT_AUTH_MODE_API_KEY: &str = "api_key";
+
+/// Only Claude Code and Codex have a login to choose between; Chitragupta is the local harness.
+pub fn normalize_ai_agent_auth_modes(
+    value: Option<BTreeMap<String, String>>,
+) -> Option<BTreeMap<String, String>> {
+    let mut normalized_values = BTreeMap::new();
+    for (agent, raw_value) in value? {
+        let Some(agent) = normalize_default_ai_agent(Some(&agent)) else {
+            continue;
+        };
+        if agent == "chitragupta" {
+            continue;
+        }
+        let mode = raw_value.trim().to_ascii_lowercase();
+        if mode == AI_AGENT_AUTH_MODE_SUBSCRIPTION || mode == AI_AGENT_AUTH_MODE_API_KEY {
+            normalized_values.insert(agent, mode);
         }
     }
     (!normalized_values.is_empty()).then_some(normalized_values)
@@ -238,6 +267,7 @@ fn normalize_settings(settings: Settings) -> Settings {
         editor_line_height: normalize_editor_line_height(settings.editor_line_height.as_deref()),
         ui_language: normalize_ui_language(settings.ui_language.as_deref()),
         menu_bar_icon_enabled: settings.menu_bar_icon_enabled,
+        panchangam_enabled: settings.panchangam_enabled,
         native_shell_material: normalize_native_shell_material(
             settings.native_shell_material.as_deref(),
         ),
@@ -245,6 +275,7 @@ fn normalize_settings(settings: Settings) -> Settings {
         default_ai_agent: normalize_default_ai_agent(settings.default_ai_agent.as_deref()),
         ai_agent_models: normalize_ai_agent_models(settings.ai_agent_models),
         ai_agent_providers: normalize_ai_agent_providers(settings.ai_agent_providers),
+        ai_agent_auth_modes: normalize_ai_agent_auth_modes(settings.ai_agent_auth_modes),
         transcription_provider: normalize_transcription_provider(
             settings.transcription_provider.as_deref(),
         ),
@@ -357,3 +388,35 @@ mod theme_preset_tests;
 #[cfg(test)]
 #[path = "settings/last_vault_tests.rs"]
 mod last_vault_tests;
+
+#[cfg(test)]
+mod ai_agent_auth_mode_tests {
+    use super::*;
+
+    #[test]
+    fn keeps_only_known_agents_and_modes() {
+        let mut input = BTreeMap::new();
+        input.insert("claude_code".to_string(), " API_KEY ".to_string());
+        input.insert("codex".to_string(), "subscription".to_string());
+        input.insert("chitragupta".to_string(), "api_key".to_string());
+        input.insert("nope".to_string(), "api_key".to_string());
+        input.insert("codex ".to_string(), "magic".to_string());
+        let normalized = normalize_ai_agent_auth_modes(Some(input)).expect("some");
+        assert_eq!(
+            normalized.get("claude_code").map(String::as_str),
+            Some("api_key")
+        );
+        assert_eq!(
+            normalized.get("codex").map(String::as_str),
+            Some("subscription")
+        );
+        assert!(!normalized.contains_key("chitragupta"));
+        assert_eq!(normalized.len(), 2);
+    }
+
+    #[test]
+    fn empty_maps_collapse_to_none() {
+        assert!(normalize_ai_agent_auth_modes(Some(BTreeMap::new())).is_none());
+        assert!(normalize_ai_agent_auth_modes(None).is_none());
+    }
+}

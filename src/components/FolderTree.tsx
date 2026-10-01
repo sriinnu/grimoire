@@ -23,6 +23,7 @@ interface FolderTreeProps {
   onDeleteFolder?: (folderPath: string) => void
   onMoveFolder?: (folderPath: string) => void
   onRevealFolder?: (folderPath: string) => void
+  onImportFilesToFolder?: (folderPath: string) => void
   renamingFolderPath?: string | null
   onStartRenameFolder?: (folderPath: string) => void
   onCancelRenameFolder?: () => void
@@ -39,6 +40,7 @@ export const FolderTree = memo(function FolderTree({
   onDeleteFolder,
   onMoveFolder,
   onRevealFolder,
+  onImportFilesToFolder,
   renamingFolderPath,
   onStartRenameFolder,
   onCancelRenameFolder,
@@ -67,11 +69,13 @@ export const FolderTree = memo(function FolderTree({
     handleOpenMenu,
     handleRenameFromMenu,
     handleRevealFromMenu,
+    handleImportFromMenu,
     menuRef,
   } = useFolderContextMenu({
     onDeleteFolder,
     onMoveFolder,
     onRevealFolder,
+    onImportFilesToFolder,
     onStartRenameFolder,
   })
 
@@ -152,6 +156,7 @@ export const FolderTree = memo(function FolderTree({
         onMove={onMoveFolder ? handleMoveFromMenu : undefined}
         onRename={handleRenameFromMenu}
         onReveal={onRevealFolder ? handleRevealFromMenu : undefined}
+        onImport={onImportFilesToFolder ? handleImportFromMenu : undefined}
       />
     </div>
   )

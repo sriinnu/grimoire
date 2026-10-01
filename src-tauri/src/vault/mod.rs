@@ -34,6 +34,7 @@ mod html_exporter_progress_tests;
 #[cfg(test)]
 mod html_exporter_tests;
 mod image;
+mod import_files;
 mod import_manifest;
 mod import_preview_signature;
 #[cfg(test)]
@@ -115,6 +116,7 @@ pub use app_importer_preview::preview_app_export;
 pub use app_importer_progress::import_app_export_with_progress;
 pub use app_store_discovery::{discover_importable_apps, DiscoveredApp};
 pub use bear_importer::{import_bear_database, BearDatabaseImportSummary};
+pub use cache::index_db_path;
 pub use cache::{invalidate_cache, scan_vault_cached, scan_vault_cached_with_extra_paths};
 pub use config_seed::{
     get_ai_guidance_status, migrate_agents_md, repair_config_files, restore_ai_guidance_files,
@@ -132,6 +134,7 @@ pub use getting_started::{create_getting_started_vault, default_vault_path, vaul
 pub use html_exporter::export_static_html_archive;
 pub use html_exporter_progress::export_static_html_archive_with_progress;
 pub use image::{copy_image_to_vault, save_audio_recording, save_canvas_preview, save_image};
+pub use import_files::{import_files_into_folder, ImportedFile};
 pub use import_preview_signature::{
     import_reviewed_app_export, import_reviewed_app_export_with_progress,
     import_reviewed_journal_export, import_reviewed_journal_export_with_progress,

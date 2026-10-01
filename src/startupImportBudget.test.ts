@@ -24,9 +24,11 @@ const HEAVY_APP_IMPORTS = [
   './components/Editor',
   './components/FeedbackDialog',
   './components/GraphModal',
+  './components/KeyboardShortcutsDialog',
   './components/McpSetupDialog',
   './components/note-retargeting/NoteRetargetingDialogs',
   './components/PulseView',
+  './components/QuickCaptureSheet',
   './components/QuickOpenPalette',
   './components/SearchPanel',
   './components/SettingsPanel',
@@ -164,7 +166,8 @@ describe('startup import budget', () => {
     expect(runtimeStaticImports('src/App.tsx')).not.toContain('./components/NoteList')
     expect(startupFiles).not.toEqual(expect.arrayContaining(NOTE_LIST_ROUTE_COLD_FILES))
     expect(startupSpecifiers).not.toContain('react-virtuoso')
-    expect(runtimeStaticImports('src/components/LazyNoteList.tsx')).toEqual(['react'])
+    // Only react plus the tiny stable-handler hook (already in the shell via Sidebar).
+    expect(runtimeStaticImports('src/components/LazyNoteList.tsx')).toEqual(['react', '../hooks/useStableHandlers'])
     expect(runtimeDynamicImports('src/components/LazyNoteList.tsx')).toContain('./NoteList')
   })
 
@@ -196,6 +199,11 @@ describe('startup import budget', () => {
     expect(staticImportGraph('src/main.tsx')).not.toEqual(expect.arrayContaining(SIDEBAR_TYPE_CUSTOMIZER_COLD_FILES))
     expect(runtimeStaticImports('src/components/sidebar/SidebarSections.tsx')).not.toContain('../TypeCustomizePopover')
     expect(runtimeDynamicImports('src/components/sidebar/SidebarSections.tsx')).toContain('../TypeCustomizePopover')
+  })
+
+  it('keeps quick-capture persistence behind the save intent', () => {
+    expect(staticImportGraph('src/main.tsx')).not.toContain('src/utils/quickCaptureJournal.ts')
+    expect(runtimeDynamicImports('src/app/useQuickCapture.ts')).toContain('../utils/quickCaptureJournal')
   })
 
   it('keeps audio transcription implementation behind transcribe intent', () => {

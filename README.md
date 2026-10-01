@@ -139,5 +139,5 @@ Never commit API keys, signing material, or private vault contents —
 
 ## License
 
-AGPL-3.0-or-later for the source. Vault content stays yours; see
+MIT for the source. Vault content stays yours; see
 [LICENSING.md](LICENSING.md).

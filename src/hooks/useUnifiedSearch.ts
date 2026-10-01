@@ -25,10 +25,15 @@ export interface SearchVaultScope {
 
 const DEBOUNCE_MS = 300
 
-function searchCall(args: Record<string, unknown>): Promise<SearchResponseData> {
-  return isTauri()
-    ? invoke<SearchResponseData>('search_vault', args)
-    : mockInvoke<SearchResponseData>('search_vault', args)
+/** Native: the SQLite FTS index, ranked and highlighted; the walking scanner only if the index errors. */
+async function searchCall(args: { vaultPath: string; query: string; mode: string; limit: number }): Promise<SearchResponseData> {
+  if (!isTauri()) return mockInvoke<SearchResponseData>('search_vault', args)
+  try {
+    return await invoke<SearchResponseData>('index_search', { vaultPath: args.vaultPath, query: args.query, limit: args.limit })
+  } catch (error) {
+    console.warn('[search] index unavailable, scanning instead:', error)
+    return invoke<SearchResponseData>('search_vault', args)
+  }
 }
 
 function mapResults(raw: SearchResultData[], scope: SearchVaultScope): SearchResult[] {

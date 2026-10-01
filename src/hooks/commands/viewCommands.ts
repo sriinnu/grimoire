@@ -1,8 +1,17 @@
-import { APP_COMMAND_IDS, getAppCommandShortcutDisplay } from '../appCommandCatalog'
+import { APP_COMMAND_IDS, formatShortcutDisplay, getAppCommandShortcutDisplay } from '../appCommandCatalog'
 import type { CommandAction } from './types'
 import type { ViewMode } from '../useViewMode'
 import type { NoteLayout } from '../../types'
 import { requestNewAiChat } from '../../utils/aiPromptBridge'
+import {
+  READING_WIDTHS,
+  READING_WIDTH_LABELS,
+  cycleReadingWidth,
+  getReadingWidth,
+  setReadingWidth,
+} from '../../lib/readingWidthPreference'
+import { toggleHeadingOutline } from '../../lib/headingOutlinePreference'
+import { spellcheckPreference, typewriterPreference } from '../../lib/editorTogglePreference'
 
 const NOTE_LAYOUT_COMMAND_LABELS: Record<NoteLayout, string> = {
   centered: 'Use Left-Aligned Note Layout',
@@ -22,6 +31,7 @@ interface ViewCommandsConfig {
   onToggleNoteLayout?: () => void
   onToggleAIChat?: () => void
   onOpenGraph?: () => void
+  onToggleKeyboardShortcuts?: () => void
   zoomLevel: number
   onZoomIn: () => void
   onZoomOut: () => void
@@ -42,10 +52,33 @@ function buildNoteLayoutCommand(noteLayout: NoteLayout, onToggleNoteLayout?: () 
   }
 }
 
+function buildReadingWidthCommands(hasActiveNote: boolean): CommandAction[] {
+  const current = getReadingWidth()
+  return [
+    {
+      id: 'cycle-reading-width',
+      label: `Cycle Reading Width (${READING_WIDTH_LABELS[current]})`,
+      group: 'View',
+      shortcut: formatShortcutDisplay({ display: '⌘⌥W' }),
+      keywords: ['reading', 'width', 'measure', 'line length', 'narrow', 'wide', 'full'],
+      enabled: hasActiveNote,
+      execute: () => { cycleReadingWidth() },
+    },
+    ...READING_WIDTHS.map((width): CommandAction => ({
+      id: `reading-width-${width}`,
+      label: `Reading Width: ${READING_WIDTH_LABELS[width]}`,
+      group: 'View',
+      keywords: ['reading', 'width', 'measure', 'line length', width],
+      enabled: hasActiveNote && width !== current,
+      execute: () => setReadingWidth(width),
+    })),
+  ]
+}
+
 export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
   const {
     hasActiveNote, activeNoteModified,
-    onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout = 'centered', onToggleNoteLayout, onToggleAIChat, onOpenGraph,
+    onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout = 'centered', onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts,
     zoomLevel, onZoomIn, onZoomOut, onZoomReset,
     onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
   } = config
@@ -58,9 +91,14 @@ export function buildViewCommands(config: ViewCommandsConfig): CommandAction[] {
     { id: 'toggle-diff', label: 'Toggle Diff Mode', group: 'View', keywords: ['diff', 'changes', 'git', 'compare', 'version'], enabled: hasActiveNote && activeNoteModified, execute: () => onToggleDiff?.() },
     { id: 'toggle-raw-editor', label: 'Toggle Raw Editor', group: 'View', keywords: ['raw', 'source', 'markdown', 'frontmatter', 'code', 'textarea'], enabled: hasActiveNote && !!onToggleRawEditor, execute: () => onToggleRawEditor?.() },
     buildNoteLayoutCommand(noteLayout, onToggleNoteLayout),
+    ...buildReadingWidthCommands(hasActiveNote),
+    { id: 'toggle-typewriter', label: 'Toggle Typewriter Mode', group: 'View', keywords: ['typewriter', 'caret', 'centre', 'center', 'scroll', 'focus'], enabled: hasActiveNote, execute: () => typewriterPreference.toggle() },
+    { id: 'toggle-spellcheck', label: 'Toggle Spellcheck', group: 'View', keywords: ['spelling', 'spell check', 'typos', 'dictionary'], enabled: hasActiveNote, execute: () => spellcheckPreference.toggle() },
+    { id: 'toggle-outline', label: 'Toggle Outline', group: 'View', keywords: ['outline', 'headings', 'toc', 'table of contents', 'on this page', 'navigate'], enabled: hasActiveNote, execute: toggleHeadingOutline },
     { id: 'toggle-ai-panel', label: 'Toggle AI Panel', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewToggleAiChat), keywords: ['ai', 'agent', 'chat', 'assistant', 'contextual'], enabled: true, execute: () => onToggleAIChat?.() },
     { id: 'new-ai-chat', label: 'New AI chat', group: 'View', keywords: ['ai', 'agent', 'chat', 'assistant', 'new', 'fresh', 'conversation', 'reset'], enabled: true, execute: requestNewAiChat },
     { id: 'open-graph', label: 'Open Knowledge Graph', group: 'View', keywords: ['graph', 'map', 'network', 'links', 'relationships', 'visualization'], enabled: !!onOpenGraph, execute: () => onOpenGraph?.() },
+    { id: 'keyboard-shortcuts', label: 'Keyboard shortcuts', group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewKeyboardShortcuts), keywords: ['keyboard', 'shortcuts', 'keys', 'hotkeys', 'keybindings', 'cheat sheet', 'help'], enabled: !!onToggleKeyboardShortcuts, execute: () => onToggleKeyboardShortcuts?.() },
     { id: 'toggle-backlinks', label: 'Toggle Backlinks', group: 'View', keywords: ['backlinks', 'references', 'links', 'mentions', 'incoming'], enabled: hasActiveNote, execute: onToggleInspector },
     { id: 'customize-note-list-columns', label: noteListColumnsLabel, group: 'View', keywords: ['all notes', 'inbox', 'columns', 'chips', 'properties', 'note list'], enabled: !!(canCustomizeNoteListColumns && onCustomizeNoteListColumns), execute: () => onCustomizeNoteListColumns?.() },
     { id: 'zoom-in', label: `Zoom In (${zoomLevel}%)`, group: 'View', shortcut: getAppCommandShortcutDisplay(APP_COMMAND_IDS.viewZoomIn), keywords: ['zoom', 'bigger', 'larger', 'scale'], enabled: zoomLevel < 150, execute: onZoomIn },

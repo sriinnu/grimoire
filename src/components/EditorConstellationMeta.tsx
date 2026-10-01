@@ -4,11 +4,19 @@ import { Glyph } from './glyphs/Glyph'
 import type { VaultEntry } from '../types'
 import { getDisplayDate, relativeDate } from '../utils/noteListHelpers'
 import { EditorNavigatorControls } from './EditorNavigatorControls'
+import { useLiveWordCount } from './useLiveWordCount'
+import { formatReadingTime } from '../utils/readingTime'
+import { requestNotePropertyFocus } from './noteIconPropertyEvents'
+import { requestInspectorJump } from './inspector/inspectorKeyboard'
 
-const DEFAULT_METADATA_FIELDS = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
-type MetadataField = typeof DEFAULT_METADATA_FIELDS[number]
+const SUPPORTED_METADATA_FIELD_LIST = ['type', 'status', 'owner', 'priority', 'modified', 'locality'] as const
+type MetadataField = typeof SUPPORTED_METADATA_FIELD_LIST[number]
 
-const SUPPORTED_METADATA_FIELDS = new Set<string>(DEFAULT_METADATA_FIELDS)
+// 'locality' is opt-in (theme packs can still ask for it): "local markdown" was
+// true of every note, so by default it was a pill with no information in it.
+const DEFAULT_METADATA_FIELDS: readonly MetadataField[] = ['type', 'status', 'owner', 'priority', 'modified']
+
+const SUPPORTED_METADATA_FIELDS = new Set<string>(SUPPORTED_METADATA_FIELD_LIST)
 
 function normalizeMetadataFields(value: string | null): MetadataField[] {
   if (!value) return [...DEFAULT_METADATA_FIELDS]
@@ -56,6 +64,16 @@ function formatModified(entry: VaultEntry): string | null {
   return date ? relativeDate(date) : null
 }
 
+/** Which frontmatter key a chip edits. Type is a chip too, but it opens About rather than a cell. */
+const CHIP_PROPERTY: Partial<Record<MetadataField, string>> = { status: 'status', owner: 'owner', priority: 'priority' }
+
+function editChip(field: MetadataField) {
+  const key = CHIP_PROPERTY[field]
+  if (key) requestNotePropertyFocus(key)
+  else requestNotePropertyFocus('type')
+  requestInspectorJump('about')
+}
+
 function MetaPill({
   field,
   label,
@@ -68,32 +86,42 @@ function MetaPill({
   tone?: 'active' | 'high'
 }) {
   return (
-    <span className="editor-meta-pill" data-field={field} data-tone={tone}>
+    <button
+      type="button"
+      className="editor-meta-pill editor-meta-pill--button"
+      data-field={field}
+      data-tone={tone}
+      title={`Edit ${label} in Second Brain`}
+      onClick={() => editChip(field)}
+    >
       <span className="editor-meta-pill__label">{label}</span>
       <strong className="editor-meta-pill__value">{value}</strong>
-    </span>
+    </button>
   )
 }
 
 /** Compact note intelligence strip shown above the editor body. */
 export function EditorConstellationMeta({ content, entry }: { content: string; entry: VaultEntry }) {
   const visibleFields = useVisibleMetadataFields()
-  const status = propertyText(entry, ['status', 'Status']) ?? entry.status ?? 'active'
+  // Only a status the note actually declares — no invented 'active' default.
+  const status = propertyText(entry, ['status', 'Status']) ?? entry.status ?? null
   const owner = propertyText(entry, ['owner', 'Owner', 'author', 'Author'])
   const priority = propertyText(entry, ['priority', 'Priority'])
   const modified = formatModified(entry)
+  const wordCount = useLiveWordCount(content, entry.wordCount)
+  const readingTime = formatReadingTime(wordCount)
 
   return (
     <div className="editor-meta-strip" aria-label="Note metadata" data-testid="editor-meta-strip">
       {visibleFields.has('type') ? <MetaPill field="type" label="type" value={shortType(entry)} /> : null}
-      {visibleFields.has('status') ? (
+      {visibleFields.has('status') && status ? (
         <MetaPill field="status" label="status" value={status} tone={status.toLowerCase() === 'active' ? 'active' : undefined} />
       ) : null}
       {visibleFields.has('owner') && owner ? (
-        <span className="editor-meta-pill editor-meta-pill--icon" data-field="owner">
+        <button type="button" className="editor-meta-pill editor-meta-pill--icon editor-meta-pill--button" data-field="owner" title="Edit owner in Second Brain" onClick={() => editChip('owner')}>
           <UserRound className="size-3.5" />
           <strong className="editor-meta-pill__value">{owner}</strong>
-        </span>
+        </button>
       ) : null}
       {visibleFields.has('priority') && priority ? (
         <MetaPill field="priority" label="priority" value={priority} tone={priority.toLowerCase() === 'high' ? 'high' : undefined} />
@@ -112,11 +140,10 @@ export function EditorConstellationMeta({ content, entry }: { content: string; e
       ) : null}
       <EditorNavigatorControls content={content} enableFindShortcut variant="meta" />
       <span className="editor-meta-strip__spacer" aria-hidden="true" />
-      {typeof entry.wordCount === 'number' ? (
-        <span className="editor-meta-strip__wordcount" data-testid="editor-meta-wordcount">
-          {entry.wordCount.toLocaleString()} {entry.wordCount === 1 ? 'word' : 'words'}
-        </span>
-      ) : null}
+      <span className="editor-meta-strip__wordcount" data-testid="editor-meta-wordcount">
+        {wordCount.toLocaleString()} {wordCount === 1 ? 'word' : 'words'}
+        {readingTime ? <span data-testid="editor-meta-readingtime"> · {readingTime}</span> : null}
+      </span>
     </div>
   )
 }

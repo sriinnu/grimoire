@@ -19,6 +19,8 @@ pub mod menu_bar;
 #[cfg(all(desktop, target_os = "macos"))]
 mod menu_bar_window;
 mod native_startup_smoke;
+#[cfg(desktop)]
+mod quick_capture_shortcut;
 pub mod search;
 pub mod settings;
 pub mod telemetry;
@@ -26,7 +28,10 @@ pub mod transcription;
 mod transcription_runtime;
 mod transcription_runtime_discovery;
 pub mod vault;
+mod vault_index;
 pub mod vault_list;
+#[cfg(desktop)]
+mod vault_watch;
 #[cfg(desktop)]
 mod window_lifecycle;
 
@@ -190,6 +195,7 @@ fn setup_desktop_plugins(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
         .plugin(tauri_plugin_updater::Builder::new().build())?;
     app.handle().plugin(tauri_plugin_process::init())?;
     app.handle().plugin(tauri_plugin_opener::init())?;
+    quick_capture_shortcut::setup(app);
     #[cfg(not(target_os = "linux"))]
     menu::setup_menu(app)?;
     setup_linux_window_chrome(app)?;
@@ -445,12 +451,16 @@ pub fn run() {
         return;
     }
 
-    let builder = tauri::Builder::default().manage(search::SearchCacheState::default());
+    let builder = tauri::Builder::default()
+        .manage(search::SearchCacheState::default())
+        .manage(vault_index::VaultIndexState::default());
 
     #[cfg(desktop)]
     let builder = builder
         .manage(WsBridgeChild(Mutex::new(None)))
-        .manage(ActiveAssetScopeRoots(Mutex::new(Vec::new())));
+        .manage(ActiveAssetScopeRoots(Mutex::new(Vec::new())))
+        .manage(vault_watch::VaultWatchState::default())
+        .on_window_event(window_lifecycle::handle_window_event);
 
     invoke_handler::with_invoke_handler(builder)
         .setup(setup_app)

@@ -34,7 +34,7 @@ function OutlineHeading({
     <Button
       type="button"
       variant="ghost"
-      className="h-auto w-full justify-start rounded-md px-1.5 py-1 text-[12px] text-muted-foreground hover:text-foreground"
+      className="-mx-2 h-7 w-[calc(100%+16px)] justify-start rounded px-2 py-0 text-[12px] text-muted-foreground hover:text-foreground"
       style={{ paddingLeft: headingIndent(heading.level) }}
       title={`Line ${heading.line}`}
       aria-label={`Jump to H${heading.level} ${heading.text}`}

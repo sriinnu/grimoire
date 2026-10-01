@@ -4,6 +4,7 @@ import type { VaultEntry } from '../types'
 import { queueAiPrompt, requestOpenAiChat } from '../utils/aiPromptBridge'
 import { readSelectionRange } from './inlineWikilinkDom'
 import { CommandPalette } from './CommandPalette'
+import { resetPaletteOpensForTests } from './commandPaletteDefaults'
 import type { CommandAction } from '../hooks/useCommandRegistry'
 
 type NativeDropPayload = {
@@ -207,8 +208,10 @@ describe('CommandPalette', () => {
 
   it('shows group labels', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
+    // New Page is one of the Start verbs, so its Page group has nothing left to show.
+    expect(screen.getByText('Start')).toBeInTheDocument()
     expect(screen.getByText('Navigation')).toBeInTheDocument()
-    expect(screen.getByText('Page')).toBeInTheDocument()
+    expect(screen.queryByText('Page')).not.toBeInTheDocument()
     expect(screen.getByText('Git')).toBeInTheDocument()
     expect(screen.getByText('Settings')).toBeInTheDocument()
   })
@@ -264,8 +267,8 @@ describe('CommandPalette', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
     fireEvent.keyDown(window, { key: 'Enter' })
 
-    // First enabled command (Search Pages) should execute
-    expect(commands[0].execute).toHaveBeenCalled()
+    // The first row before typing is the Start verb New Page.
+    expect(commands[1].execute).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -275,8 +278,8 @@ describe('CommandPalette', () => {
     fireEvent.keyDown(window, { key: 'ArrowDown' })
     fireEvent.keyDown(window, { key: 'Enter' })
 
-    // Second enabled command (New Page) should execute
-    expect(commands[1].execute).toHaveBeenCalled()
+    // Second row: Search Pages, first of the registry-ordered groups after Start.
+    expect(commands[0].execute).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -327,8 +330,8 @@ describe('CommandPalette', () => {
     fireEvent.keyDown(window, { key: 'ArrowUp' })
     fireEvent.keyDown(window, { key: 'Enter' })
 
-    // Should still select first command
-    expect(commands[0].execute).toHaveBeenCalled()
+    // Should still select the first row (the Start verb New Page)
+    expect(commands[1].execute).toHaveBeenCalled()
   })
 
   it('calls onClose when clicking backdrop', () => {
@@ -486,8 +489,70 @@ describe('CommandPalette', () => {
           !!el.textContent,
       ).map(el => el.textContent)
 
-      // Default order: Navigation < Page < View
-      expect(groupHeaders).toEqual(['Navigation', 'Page', 'View'])
+      // New Page leads as a Start verb; the rest keep registry order.
+      expect(groupHeaders).toEqual(['Start', 'Navigation', 'View'])
+    })
+  })
+
+  describe('before you type', () => {
+    beforeEach(() => resetPaletteOpensForTests())
+
+    const startCommands: CommandAction[] = [
+      makeCommand({ id: 'open-settings', label: 'Open Settings', group: 'Settings' }),
+      makeCommand({ id: 'quick-capture', label: 'Quick capture', group: 'Capture' }),
+      makeCommand({ id: 'search-notes', label: 'Search Pages', group: 'Navigation' }),
+      makeCommand({ id: 'create-note', label: 'New Page', group: 'Page' }),
+      makeCommand({ id: 'open-today-journal', label: "Today's Journal", group: 'Navigation' }),
+    ]
+    const recents = [
+      makeEntry({ path: '/vault/note/one.md', filename: 'one.md', title: 'Page One' }),
+      makeEntry({ path: '/vault/note/two.md', filename: 'two.md', title: 'Page Two' }),
+    ]
+
+    function visibleLabels() {
+      return screen.getAllByText(
+        (_content, el) => el?.tagName === 'SPAN' && el.classList.contains('text-foreground') && !!el.textContent,
+      ).map((el) => el.textContent)
+    }
+
+    function groupHeaders() {
+      return screen.getAllByText(
+        (_content, el) => el?.tagName === 'DIV' && el.classList.contains('text-[11px]') && el.classList.contains('font-medium') && !!el.textContent,
+      ).map((el) => el.textContent)
+    }
+
+    it('leads with Today, New page and Quick capture, then recent pages, then the rest', () => {
+      render(<CommandPalette open={true} commands={startCommands} recentEntries={recents} onOpenEntry={vi.fn()} onClose={onClose} />)
+      expect(groupHeaders()).toEqual(['Start', 'Recent', 'Navigation', 'Settings'])
+      expect(visibleLabels()).toEqual(["Today's Journal", 'New Page', 'Quick capture', 'Page One', 'Page Two', 'Search Pages', 'Open Settings'])
+    })
+
+    it('puts recent pages first on the second open', () => {
+      const first = render(<CommandPalette open={true} commands={startCommands} recentEntries={recents} onOpenEntry={vi.fn()} onClose={onClose} />)
+      expect(groupHeaders()[0]).toBe('Start')
+      first.unmount()
+      render(<CommandPalette open={true} commands={startCommands} recentEntries={recents} onOpenEntry={vi.fn()} onClose={onClose} />)
+      expect(groupHeaders().slice(0, 2)).toEqual(['Recent', 'Start'])
+    })
+
+    it('opens a recent page and closes', () => {
+      const onOpenEntry = vi.fn()
+      render(<CommandPalette open={true} commands={startCommands} recentEntries={recents} onOpenEntry={onOpenEntry} onClose={onClose} />)
+      fireEvent.click(screen.getByText('Page Two'))
+      expect(onOpenEntry).toHaveBeenCalledWith(recents[1])
+      expect(onClose).toHaveBeenCalled()
+    })
+
+    it('shows no Start or Recent rows it cannot back with real commands or history', () => {
+      render(<CommandPalette open={true} commands={[makeCommand({ id: 'open-settings', label: 'Open Settings', group: 'Settings' })]} recentEntries={[]} onOpenEntry={vi.fn()} onClose={onClose} />)
+      expect(groupHeaders()).toEqual(['Settings'])
+      expect(screen.queryByText('Recent')).not.toBeInTheDocument()
+    })
+
+    it('caps recent pages at five', () => {
+      const many = Array.from({ length: 8 }, (_, i) => makeEntry({ path: `/vault/note/${i}.md`, filename: `${i}.md`, title: `Page ${i}` }))
+      render(<CommandPalette open={true} commands={startCommands} recentEntries={many} onOpenEntry={vi.fn()} onClose={onClose} />)
+      expect(visibleLabels().filter((label) => label?.startsWith('Page ')).length).toBe(5)
     })
   })
 })

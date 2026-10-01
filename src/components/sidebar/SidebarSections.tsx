@@ -17,9 +17,10 @@ import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingCo
 import { SidebarGroupHeader } from './SidebarGroupHeader'
 import { SidebarViewItem } from './SidebarViewItem'
 import { countByFilter } from '../../utils/noteListHelpers'
-import grimoireLogo from '@/assets/app-icon.png'
+import grimoireLogo from '@/assets/app-icon-ui.png'
 import { BrandWordmark } from './BrandWordmark'
 import { clampFixedMenuPosition } from '../../lib/fixedMenuPosition'
+import { SIDEBAR_SECTION_INSET } from './sidebarStyles'
 
 export { SidebarTopNav } from './SidebarTopNav'
 export { FavoritesSection } from './FavoritesSection'
@@ -62,7 +63,7 @@ export function ViewsSection({
   entries: VaultEntry[]
 }) {
   return (
-    <div className="border-b border-border" style={{ padding: '0 6px' }}>
+    <div className="border-b border-border" style={{ padding: SIDEBAR_SECTION_INSET }}>
       <SidebarGroupHeader label="Lenses" collapsed={collapsed} onToggle={onToggle}>
         {onCreateView && (
           <Plus
@@ -118,7 +119,7 @@ function StaticSection({
   )
 
   return (
-    <div style={{ padding: '0 6px' }}>
+    <div style={{ padding: SIDEBAR_SECTION_INSET }}>
       {noteRetargeting ? (
         <NoteDropTarget
           canAcceptNotePath={(notePath) => noteRetargeting.canDropNoteOnType(notePath, group.type)}
@@ -192,7 +193,7 @@ export function TypesSection({
 
   return (
     <div className="border-b border-border">
-      <div ref={customizeRef} style={{ position: 'relative', padding: '0 6px' }}>
+      <div ref={customizeRef} style={{ position: 'relative', padding: SIDEBAR_SECTION_INSET }}>
         <SidebarGroupHeader label="Places" collapsed={collapsed} onToggle={onToggle} actionsOpen={showCustomize}>
           <div className="flex items-center gap-1.5">
             {onCreateView && (
@@ -261,15 +262,15 @@ export function SidebarTitleBar({ onCollapse }: { onCollapse?: () => void }) {
       className="sidebar-title-bar grid shrink-0 items-center border-b border-border"
       style={{
         height: 'var(--sidebar-title-bar-height, 60px)',
-        gridTemplateColumns: 'minmax(0, 1fr) 6px auto',
-        padding: '0 8px 0 12px',
+        gridTemplateColumns: 'minmax(0, 1fr) 8px auto',
+        padding: '0 8px 0 16px',
         cursor: 'default',
       }}
       onMouseDown={onMouseDown}
       data-testid="sidebar-title-bar"
     >
       <div
-        className="sidebar-brand flex min-w-0 items-center justify-start gap-2.5"
+        className="sidebar-brand flex min-w-0 items-center justify-start gap-2"
         aria-label="Grimoire"
         data-testid="sidebar-brand"
       >

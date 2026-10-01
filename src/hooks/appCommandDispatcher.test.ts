@@ -223,6 +223,13 @@ describe('appCommandDispatcher', () => {
     expect(handlers.onToggleAIChat).toHaveBeenCalled()
   })
 
+  it('dispatches the keyboard shortcuts sheet as a renderer-only toggle', () => {
+    const handlers = { ...makeHandlers(), onToggleKeyboardShortcuts: vi.fn() }
+    expect(isNativeMenuCommandId(APP_COMMAND_IDS.viewKeyboardShortcuts)).toBe(false)
+    expect(dispatchAppCommand(APP_COMMAND_IDS.viewKeyboardShortcuts, handlers)).toBe(true)
+    expect(handlers.onToggleKeyboardShortcuts).toHaveBeenCalledTimes(1)
+  })
+
   it('uses the active note for note-scoped commands', () => {
     const handlers = makeHandlers()
     expect(dispatchAppCommand(APP_COMMAND_IDS.noteToggleFavorite, handlers)).toBe(true)

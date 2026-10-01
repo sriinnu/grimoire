@@ -1,0 +1,116 @@
+/* Positioning context for the outline rail; the scroll area keeps its own layout. */
+.editor-canvas-frame {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.heading-outline {
+  position: absolute;
+  top: 28px;
+  right: 20px;
+  z-index: 2;
+  width: clamp(132px, calc((100% - var(--editor-max-width)) / 2 - 36px), 216px);
+  max-height: calc(100% - 56px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  opacity: 0.72;
+  transition: opacity 320ms ease;
+}
+
+.heading-outline::-webkit-scrollbar {
+  display: none;
+}
+
+.heading-outline:hover,
+.heading-outline:focus-within {
+  opacity: 1;
+}
+
+/* Fade with the rest of the chrome while the writer is typing. */
+:root[data-writing]:not([data-writing='false']) .heading-outline:not(:hover):not(:focus-within) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.heading-outline__label {
+  margin: 0 0 6px;
+  padding-left: 10px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--muted-foreground);
+}
+
+.heading-outline__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heading-outline__item {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 3px 6px 3px calc(10px + var(--heading-outline-indent, 0) * 12px);
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.heading-outline__item::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background-color 140ms ease;
+}
+
+.heading-outline__item:hover {
+  color: var(--foreground);
+}
+
+.heading-outline__item:focus-visible {
+  outline: 1px solid var(--border);
+  outline-offset: -1px;
+}
+
+.heading-outline__item[data-active='true'] {
+  color: var(--primary);
+}
+
+.heading-outline__item[data-active='true']::before {
+  background: var(--primary);
+}
+
+/* On wide canvases the rail replaces the popover TOC launcher. */
+.editor-canvas[data-outline-rail='visible'] .editor-navigator-controls__button[data-navigator-mode='toc'] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heading-outline,
+  .heading-outline__item,
+  .heading-outline__item::before {
+    transition: none;
+  }
+}

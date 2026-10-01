@@ -605,7 +605,10 @@ describe('App', () => {
 
     expect((await screen.findAllByText('Test Project', {}, { timeout: 10000 })).length).toBeGreaterThan(0)
     expect((await screen.findAllByText('Software Development', {}, { timeout: 10000 })).length).toBeGreaterThan(0)
-  })
+  // The findAll waits above allow 10s, but the default per-test budget was 5s, so on a
+  // slow Windows runner the test died before its own waits did. The full App render
+  // (lazy sidebar, note list and dashboard chunks) is inherently the slow part.
+  }, 15000)
 
   it('opens to the vault dashboard when no note is selected', async () => {
     render(<App />)

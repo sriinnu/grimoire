@@ -125,7 +125,7 @@ export function AiPanelHeader({
       style={{
         height: 52,
         padding: '0 12px',
-        gap: 9,
+        gap: 8,
         borderBottom: '1px solid transparent',
       }}
       data-testid="ai-panel-header"
@@ -134,9 +134,9 @@ export function AiPanelHeader({
         className="ai-panel-header__glyph relative flex shrink-0 items-center justify-center"
         aria-hidden="true"
         style={{
-          width: 26,
-          height: 26,
-          borderRadius: 8,
+          width: 24,
+          height: 24,
+          borderRadius: 6,
           background: 'color-mix(in srgb, var(--primary) 14%, transparent)',
           border: '1px solid color-mix(in srgb, var(--primary) 28%, transparent)',
         }}
@@ -219,7 +219,7 @@ export function AiPanelContextBar({ activeEntry, linkedCount }: AiPanelContextBa
   return (
     <div
       className="flex shrink-0 items-center border-b border-border"
-      style={{ padding: '6px 12px', gap: 6, fontSize: 12 }}
+      style={{ padding: '8px 12px', gap: 8, fontSize: 12 }}
       data-testid="context-bar"
     >
       <Glyph name="link" size={12} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />
@@ -311,7 +311,7 @@ export function AiPanelComposer({
         borderTop: '1px solid color-mix(in srgb, var(--grimoire-hairline, var(--border-default)) 80%, transparent)',
       }}
     >
-      <div className="flex items-end gap-2.5">
+      <div className="flex items-end gap-2">
         <div className="flex-1">
           <AiChatComposerInput
             entries={entries}
@@ -328,7 +328,7 @@ export function AiPanelComposer({
           type="button"
           size="icon-sm"
           variant={canSend ? 'default' : 'secondary'}
-          className="h-[34px] w-8 shrink-0"
+          className="size-8 shrink-0"
           onClick={sendInput}
           disabled={!canSend}
           title="Send message"

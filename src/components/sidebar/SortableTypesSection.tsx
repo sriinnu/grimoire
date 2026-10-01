@@ -14,6 +14,7 @@ import { useNoteRetargetingContext } from '../note-retargeting/noteRetargetingCo
 import { countByFilter } from '../../utils/noteListHelpers'
 import { computeReorder } from './sidebarHooks'
 import type { SidebarSectionProps } from './SidebarSections'
+import { SIDEBAR_SECTION_INSET } from './sidebarStyles'
 
 function SortableSection({
   group,
@@ -48,7 +49,7 @@ function SortableSection({
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
-        padding: '0 6px',
+        padding: SIDEBAR_SECTION_INSET,
       }}
       {...attributes}
     >

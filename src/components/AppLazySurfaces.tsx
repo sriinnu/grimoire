@@ -12,9 +12,11 @@ import type { DashboardRoute } from './dashboard/DashboardRoute'
 import type { DeleteProgressNotice } from './DeleteProgressNotice'
 import type { FeedbackDialog } from './FeedbackDialog'
 import type { GraphModal } from './GraphModal'
+import type { KeyboardShortcutsDialog } from './KeyboardShortcutsDialog'
 import type { McpSetupDialog } from './McpSetupDialog'
 import type { NoteRetargetingDialogs } from './note-retargeting/NoteRetargetingDialogs'
 import type { PulseView } from './PulseView'
+import type { QuickCaptureSheet } from './QuickCaptureSheet'
 import type { QuickOpenPalette } from './QuickOpenPalette'
 import type { RenameDetectedBanner } from './RenameDetectedBanner'
 import type { SearchPanel } from './SearchPanel'
@@ -40,9 +42,11 @@ const DashboardRouteSurface = lazy(async () => ({ default: (await import('./dash
 const DeleteProgressNoticeSurface = lazy(async () => ({ default: (await import('./DeleteProgressNotice')).DeleteProgressNotice }))
 const FeedbackDialogSurface = lazy(async () => ({ default: (await import('./FeedbackDialog')).FeedbackDialog }))
 const GraphModalSurface = lazy(async () => ({ default: (await import('./GraphModal')).GraphModal }))
+const KeyboardShortcutsDialogSurface = lazy(async () => ({ default: (await import('./KeyboardShortcutsDialog')).KeyboardShortcutsDialog }))
 const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
 const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
 const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
+const QuickCaptureSheetSurface = lazy(async () => ({ default: (await import('./QuickCaptureSheet')).QuickCaptureSheet }))
 const QuickOpenPaletteSurface = lazy(async () => ({ default: (await import('./QuickOpenPalette')).QuickOpenPalette }))
 const RenameDetectedBannerSurface = lazy(async () => ({ default: (await import('./RenameDetectedBanner')).RenameDetectedBanner }))
 const SearchPanelSurface = lazy(async () => ({ default: (await import('./SearchPanel')).SearchPanel }))
@@ -144,11 +148,29 @@ export function LazyGraphModal(props: ComponentProps<typeof GraphModal>) {
   )
 }
 
+/** Defers the shortcut cheat sheet until Cmd+/ or the palette opens it. */
+export function LazyKeyboardShortcutsDialog(props: ComponentProps<typeof KeyboardShortcutsDialog>) {
+  return (
+    <VisibleSurface open={props.open}>
+      <KeyboardShortcutsDialogSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
 /** Defers weather snapshot UI until the insert dialog is opened. */
 export function LazyWeatherSnapshotDialog(props: ComponentProps<typeof WeatherSnapshotDialog>) {
   return (
     <VisibleSurface open={props.open}>
       <WeatherSnapshotDialogSurface {...props} />
+    </VisibleSurface>
+  )
+}
+
+/** Defers the quick-capture composer until it is summoned. */
+export function LazyQuickCaptureSheet(props: ComponentProps<typeof QuickCaptureSheet>) {
+  return (
+    <VisibleSurface open={props.open}>
+      <QuickCaptureSheetSurface {...props} />
     </VisibleSurface>
   )
 }

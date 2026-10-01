@@ -29,6 +29,24 @@ export interface AiAgentRuntimeRoute {
 }
 
 export const DEFAULT_AI_AGENT: AiAgentId = 'claude_code'
+
+/** Subscription (the CLI's own login) or an API key. Either/or: a key would override the login and bill the API. */
+export type AiAgentAuthMode = 'subscription' | 'api_key'
+export const DEFAULT_AI_AGENT_AUTH_MODE: AiAgentAuthMode = 'subscription'
+
+/** Chitragupta is the local harness; only the two vendor CLIs have a login to choose. */
+export function supportsAiAgentAuthMode(agent: AiAgentId): boolean {
+  return agent === 'claude_code' || agent === 'codex'
+}
+
+export function normalizeAiAgentAuthMode(value: string | null | undefined): AiAgentAuthMode {
+  return value === 'api_key' ? 'api_key' : 'subscription'
+}
+
+export const AI_AGENT_SUBSCRIPTION_NAMES: Partial<Record<AiAgentId, string>> = {
+  claude_code: 'claude.ai',
+  codex: 'ChatGPT',
+}
 export const BROWSER_PREVIEW_AI_STATUS_REASON = 'Live local helpers run in the native Grimoire app.'
 export const AI_AGENTS_STATUS_SCAN_FAILED_DETAIL =
   'Local CLI scan failed. Check again after the native app finishes launching.'

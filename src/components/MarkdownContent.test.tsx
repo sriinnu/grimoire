@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeAll } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import mermaid from 'mermaid'
 import { MarkdownContent } from './MarkdownContent'
@@ -12,6 +12,12 @@ vi.mock('mermaid', () => ({
     })),
   },
 }))
+
+// The rich renderer is a lazy chunk. Under full-suite load its first import can
+// take longer than findBy's default second, so load it once up front.
+beforeAll(async () => {
+  await import('./MarkdownContentRich')
+})
 
 describe('MarkdownContent', () => {
   it('renders bold text', () => {

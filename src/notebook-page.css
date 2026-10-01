@@ -1,0 +1,490 @@
+/* The Notebook page as one calm column, not a dashboard of tiles.
+
+   A greeting on the paper, one capture card, a ledger line for the numbers,
+   recent pages as rows, a compact calendar, today as rows. Sections are
+   separated by space and a hairline, not by boxes; the capture card is the
+   only card. Loaded after the theme layers so it wins by order alone,
+   the same way editor-page.css owns the editor. */
+
+/* Page and column. Under the transparent macOS title bar the page has no
+   chrome row to absorb the traffic-light strip, so it takes the same top
+   inset the sidebar's title bar does. */
+:root[data-theme-preset] .vault-dashboard {
+  padding: calc(32px + var(--sidebar-title-bar-padding-top, 0px)) 24px 48px;
+}
+
+:root[data-theme-preset] .app__dashboard {
+  background: var(--surface-editor, var(--surface-app));
+}
+
+:root[data-theme-preset] .vault-dashboard__grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 32px;
+  max-width: 1120px;
+}
+
+:root[data-theme-preset] .vault-dashboard__grid > * {
+  grid-column: 1 / -1;
+}
+
+/* Greeting, straight on the paper */
+:root[data-theme-preset] .dashboard-hero {
+  gap: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+:root[data-theme-preset] .dashboard-hero__aurora {
+  display: none;
+}
+
+:root[data-theme-preset] .dashboard-hero__eyebrow {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .dashboard-hero__title {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+:root[data-theme-preset] .dashboard-hero__tagline {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+:root[data-theme-preset] .dashboard-hero__pill {
+  height: 28px;
+  padding: 0 10px;
+  gap: 6px;
+  border-color: var(--grimoire-hairline);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .dashboard-hero__pill-dot {
+  width: 6px;
+  height: 6px;
+  box-shadow: none;
+}
+
+:root[data-theme-preset] .vault-dashboard__new-page-button {
+  height: 28px;
+  border-radius: 6px;
+}
+
+/* The one card: capture */
+:root[data-theme-preset] .dashboard-hero .dashboard-capture-card,
+:root[data-theme-preset] .vault-dashboard__panel--capture {
+  min-height: 0;
+  padding: 20px;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 12px;
+  background: var(--surface-card);
+  box-shadow: 0 1px 2px color-mix(in srgb, #000 6%, transparent);
+}
+
+:root[data-theme-preset] .vault-dashboard__panel--capture .vault-dashboard__panel-head {
+  margin-bottom: 12px;
+}
+
+:root[data-theme-preset] .vault-dashboard__panel--capture h2 {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+:root[data-theme-preset] .vault-dashboard__capture-form {
+  grid-template-rows: auto auto auto auto auto;
+  gap: 12px;
+}
+
+:root[data-theme-preset] .vault-dashboard__textarea {
+  min-height: 96px;
+  height: auto;
+  padding: 12px 14px;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 8px;
+  background: var(--surface-editor, var(--background));
+  font-size: 15px;
+  line-height: 24px;
+}
+
+:root[data-theme-preset] .vault-dashboard__textarea:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--grimoire-hairline));
+  box-shadow: none;
+  outline: none;
+}
+
+:root[data-theme-preset] .vault-dashboard__capture-kinds,
+:root[data-theme-preset] .vault-dashboard__capture-actions {
+  gap: 8px;
+}
+
+:root[data-theme-preset] .vault-dashboard__capture-pill {
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+
+:root[data-theme-preset] .vault-dashboard__capture-submit {
+  min-height: 32px;
+  height: 32px;
+  padding-inline: 16px;
+  border-radius: 6px;
+}
+
+:root[data-theme-preset] .vault-dashboard__markdown-tool {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+/* Every other panel: a section, not a box */
+:root[data-theme-preset] .vault-dashboard__panel:not(.vault-dashboard__panel--capture),
+:root[data-theme-preset] .vault-dashboard__health {
+  padding: 24px 0 0;
+  border: 0;
+  border-top: 1px solid var(--grimoire-hairline);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme-preset] .vault-dashboard__panel-head {
+  margin-bottom: 12px;
+}
+
+:root[data-theme-preset] .vault-dashboard h2 {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+:root[data-theme-preset] .vault-dashboard__panel-copy {
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+/* Numbers as one ledger line */
+:root[data-theme-preset] .dashboard-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 40px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--grimoire-hairline);
+}
+
+:root[data-theme-preset] .dashboard-stat {
+  gap: 2px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+:root[data-theme-preset] .dashboard-stat__value {
+  font-size: 24px;
+  line-height: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+:root[data-theme-preset] .dashboard-stat__label {
+  margin-top: 0;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .dashboard-stat__delta {
+  font-size: 11px;
+  line-height: 16px;
+}
+
+/* Recent pages as rows */
+:root[data-theme-preset] .vault-dashboard__recent-list {
+  gap: 0;
+}
+
+:root[data-theme-preset] .vault-dashboard__recent {
+  min-height: 36px;
+  padding: 8px 8px;
+  margin-inline: -8px;
+  border-radius: 6px;
+  background: transparent;
+  gap: 2px;
+}
+
+:root[data-theme-preset] .vault-dashboard__recent:hover {
+  background: var(--grimoire-row-hover, var(--state-hover));
+}
+
+:root[data-theme-preset] .vault-dashboard__recent-title {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .vault-dashboard__recent-meta {
+  font-size: 11px;
+  line-height: 16px;
+}
+
+/* Calendar, compact */
+:root[data-theme-preset] .dashboard-calendar {
+  gap: 8px;
+}
+
+:root[data-theme-preset] .dashboard-calendar__month {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+:root[data-theme-preset] .dashboard-calendar__nav-button,
+:root[data-theme-preset] .dashboard-calendar__today {
+  width: auto;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+:root[data-theme-preset] .dashboard-calendar__day {
+  min-height: 32px;
+  padding: 4px 4px 2px;
+  border-radius: 6px;
+}
+
+:root[data-theme-preset] .dashboard-calendar__day-number {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+:root[data-theme-preset] .dashboard-calendar__day[data-today="true"] .dashboard-calendar__day-number {
+  width: 20px;
+  height: 20px;
+  margin: -2px 0 0 -2px;
+  background: var(--primary);
+  color: var(--text-inverse, #fff);
+  font-weight: 600;
+}
+
+:root[data-theme-preset] .dashboard-calendar__dot {
+  width: 4px;
+  height: 4px;
+}
+
+/* Vault health: a line, not a shrine */
+:root[data-theme-preset] .vault-dashboard__health {
+  display: block;
+}
+
+:root[data-theme-preset] .vault-dashboard__health .vault-dashboard__panel-head {
+  margin-bottom: 8px;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-body {
+  display: flex;
+  align-items: center;
+  justify-items: start;
+  gap: 12px;
+  padding: 0;
+  text-align: left;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-shield {
+  width: 24px;
+  height: 24px;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-shield svg {
+  width: 14px;
+  height: 14px;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-check {
+  width: 12px;
+  height: 12px;
+  right: -3px;
+  bottom: -3px;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-check svg {
+  width: 8px;
+  height: 8px;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-title {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+:root[data-theme-preset] .vault-dashboard__health-meta {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Today: rows and quiet chips */
+:root[data-theme-preset] .vault-dashboard__panel.vault-dashboard__assistant-brief {
+  background: transparent;
+}
+
+:root[data-theme-preset] .vault-dashboard__assistant-focus {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+:root[data-theme-preset] .vault-dashboard__assistant-lock,
+:root[data-theme-preset] .vault-dashboard__assistant-action,
+:root[data-theme-preset] .vault-dashboard__assistant-items span,
+:root[data-theme-preset] .dashboard-pinned__chip,
+:root[data-theme-preset] .vault-dashboard__panel-link {
+  min-height: 28px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .vault-dashboard__prompt-button {
+  min-height: 32px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+:root[data-theme-preset] .vault-dashboard__loop-row {
+  min-height: 36px;
+  font-size: 13px;
+}
+
+:root[data-theme-preset] .vault-dashboard__patterns-summary {
+  padding: 12px 0;
+  font-size: 13px;
+}
+
+@container vault-dashboard (max-width: 640px) {
+  :root[data-theme-preset] .vault-dashboard {
+    padding: 24px 16px 40px;
+  }
+
+  :root[data-theme-preset] .vault-dashboard__grid {
+    gap: 24px;
+  }
+
+  :root[data-theme-preset] .dashboard-stat-row {
+    gap: 8px 24px;
+  }
+}
+
+/* On this day: rows, not tiles */
+:root[data-theme-preset] .dashboard-on-this-day__list {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  padding: 8px 8px;
+  margin-inline: -8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__item:hover {
+  background: var(--grimoire-row-hover, var(--state-hover));
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__when {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__title {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .dashboard-on-this-day__date {
+  font-size: 12px;
+}
+
+/* The runway board: a compact row of four steps, not four tall columns */
+:root[data-theme-preset] .vault-dashboard__flow {
+  align-items: start;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-steps {
+  align-self: start;
+  border-radius: 8px;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-step {
+  min-height: 0;
+  padding: 12px;
+  gap: 2px;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-step strong {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+:root[data-theme-preset] .vault-dashboard__flow-step small {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+/* A wide window gets two columns for the short sections; the greeting, the
+   capture card, the ledger and today's runway keep the full width. */
+@container vault-dashboard (min-width: 1040px) {
+  :root[data-theme-preset] .vault-dashboard__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-auto-flow: row dense;
+    column-gap: 48px;
+  }
+
+  :root[data-theme-preset] .vault-dashboard__grid > :is(.dashboard-hero, .dashboard-pinned, .dashboard-stat-row, .vault-dashboard__today-runway, .vault-dashboard__patterns, .vault-dashboard__panel--revisit, .vault-dashboard__dream-forge) {
+    grid-column: 1 / -1;
+  }
+
+  /* Left column: the two tall sections, each spanning two rows. Right
+     column: the two short ones, one row each, so health sits right under
+     on-this-day instead of lining up with the bottom of the recent list. */
+  :root[data-theme-preset] .vault-dashboard__grid > :is(.vault-dashboard__panel--wide:not(.dashboard-on-this-day), .dashboard-calendar) {
+    grid-column: 1;
+    grid-row: span 2;
+  }
+
+  :root[data-theme-preset] .vault-dashboard__grid > :is(.dashboard-on-this-day, .vault-dashboard__health) {
+    grid-column: 2;
+    grid-row: span 1;
+  }
+}

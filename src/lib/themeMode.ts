@@ -46,6 +46,24 @@ export function readStoredThemeMode(storage: ThemeStorage): ThemeMode | null {
   return legacyMode
 }
 
+/**
+ * First-run default follows the OS appearance — opening Grimoire at night
+ * shouldn't flash a bright page at you. Only used when nothing is stored yet.
+ */
+export function readSystemThemeMode(): ThemeMode | null {
+  try {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return null
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  } catch {
+    return null
+  }
+}
+
+/** Stored choice wins; otherwise the OS appearance; otherwise light. */
+export function resolveInitialThemeMode(storage: ThemeStorage): ThemeMode {
+  return readStoredThemeMode(storage) ?? readSystemThemeMode() ?? DEFAULT_THEME_MODE
+}
+
 export function writeStoredThemeMode(storage: ThemeStorage, mode: ThemeMode): void {
   safeSetThemeMode(storage, THEME_MODE_STORAGE_KEY, mode)
 }
@@ -60,7 +78,7 @@ export function applyStoredThemeMode(
   documentObject: ThemeDocument,
   storage: ThemeStorage,
 ): ThemeMode {
-  const mode = readStoredThemeMode(storage) ?? DEFAULT_THEME_MODE
+  const mode = resolveInitialThemeMode(storage)
   applyThemeModeToDocument(documentObject, mode)
   return mode
 }

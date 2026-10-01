@@ -68,10 +68,10 @@ function FolderChildren({
   if (!isExpanded || !hasChildren) return null
 
   return (
-    <div className="relative" style={{ paddingLeft: 15 }}>
+    <div className="relative">
       <div
         className="absolute top-0 bottom-0 bg-border"
-        style={{ left: 15 + depth * 16, width: 1, opacity: 0.3 }}
+        style={{ left: 18 + depth * 20, width: 1, opacity: 0.3 }}
       />
       {node.children.map((child) => (
         <FolderTreeRow
@@ -111,8 +111,8 @@ export const FolderTreeRow = memo(function FolderTreeRow({
   const isExpanded = expanded[node.path] ?? false
   const isRenaming = renamingFolderPath === node.path
   const isSelected = selection.kind === 'folder' && selection.path === node.path
-  const depthIndent = depth * 16
-  const contentInset = 16
+  const depthIndent = depth * 20
+  const contentInset = 20
   const noteRetargeting = useNoteRetargetingContext()
   const selectFolder = useCallback(() => {
     onSelect({ kind: 'folder', path: node.path })

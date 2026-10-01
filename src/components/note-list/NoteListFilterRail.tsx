@@ -27,7 +27,10 @@ export function NoteListFilterRail({
   onNoteListFilterChange,
   onFileScopeChange,
 }: NoteListFilterRailProps) {
-  if (!showFilterPills && !showFileScopePills) return null
+  // An Open/Archived toggle with nothing archived is a control with no choice
+  // in it; keep it out of the way until there's something to switch to.
+  const showStateFilter = showFilterPills && (filterCounts.archived > 0 || noteListFilter === 'archived')
+  if (!showStateFilter && !showFileScopePills) return null
 
   return (
     <div
@@ -37,7 +40,7 @@ export function NoteListFilterRail({
       <div className="note-list-filter-shelf">
         {showFileScopePills && (
           <div className="note-list-filter-group" data-testid="note-list-file-scope-group">
-            <span className="note-list-filter-group__label"><Glyph name="folderFile" size={11} className="inline-block align-middle mr-0.5 -mt-px" />Files</span>
+            <span className="note-list-filter-group__label"><Glyph name="folderFile" size={12} className="mr-1 inline-block align-[-2px]" />Files</span>
             <FileScopePills
               active={fileScope}
               counts={fileScopeCounts}
@@ -45,9 +48,9 @@ export function NoteListFilterRail({
             />
           </div>
         )}
-        {showFilterPills && (
+        {showStateFilter && (
           <div className="note-list-filter-group" data-testid="note-list-state-filter-group">
-            <span className="note-list-filter-group__label"><Glyph name="archive" size={11} className="inline-block align-middle mr-0.5 -mt-px" />Archive</span>
+            <span className="note-list-filter-group__label"><Glyph name="archive" size={12} className="mr-1 inline-block align-[-2px]" />Archive</span>
             <FilterPills
               active={noteListFilter}
               counts={filterCounts}

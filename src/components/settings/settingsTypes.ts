@@ -1,9 +1,10 @@
-import type { AiAgentId, AiAgentsStatus } from '../../lib/aiAgents'
+import type { AiAgentId, AiAgentsStatus, AiAgentAuthMode } from '../../lib/aiAgents'
 import type { DiscoveredApp } from '../../utils/appStoreImport'
 import type { EditorFont, EditorLineHeight, NativeShellMaterial, ThemePreset } from '../../lib/appearance'
 import type { createTranslator } from '../../lib/i18n'
 import type { AppLocale, UiLanguagePreference } from '../../lib/i18nCore'
 import type { McpStatus } from '../../hooks/useMcpStatus'
+import type { AiAgentsAuthStatus } from '../../hooks/useAiAgentAuthStatus'
 import type { PortabilityExportPreviewState } from '../../lib/exportReviewGate'
 import type { ReleaseChannel } from '../../lib/releaseChannel'
 import type { TranscriptionProviderId } from '../../lib/transcriptionProviders'
@@ -28,6 +29,7 @@ export interface SettingsDraft {
   defaultAiAgent: AiAgentId
   aiAgentModels: Partial<Record<AiAgentId, string>>
   aiAgentProviders: Partial<Record<AiAgentId, string>>
+  aiAgentAuthModes: Partial<Record<AiAgentId, AiAgentAuthMode>>
   releaseChannel: ReleaseChannel
   themeMode: ThemeMode
   themePreset: ThemePreset
@@ -35,6 +37,7 @@ export interface SettingsDraft {
   editorLineHeight: EditorLineHeight
   uiLanguage: UiLanguagePreference
   menuBarIconEnabled: boolean
+  panchangamEnabled: boolean
   nativeShellMaterial: NativeShellMaterial
   initialH1AutoRename: boolean
   crashReporting: boolean
@@ -67,6 +70,9 @@ export interface SettingsBodyProps {
   setAiAgentModels: (value: Partial<Record<AiAgentId, string>>) => void
   aiAgentProviders: Partial<Record<AiAgentId, string>>
   setAiAgentProviders: (value: Partial<Record<AiAgentId, string>>) => void
+  aiAgentAuthModes?: Partial<Record<AiAgentId, AiAgentAuthMode>>
+  setAiAgentAuthModes?: (value: Partial<Record<AiAgentId, AiAgentAuthMode>>) => void
+  aiAgentAuthStatus?: AiAgentsAuthStatus | null
   mcpStatus?: McpStatus
   onInstallMcp?: () => void
   releaseChannel: ReleaseChannel
@@ -83,6 +89,8 @@ export interface SettingsBodyProps {
   setUiLanguage: (value: UiLanguagePreference) => void
   menuBarIconEnabled: boolean
   setMenuBarIconEnabled: (value: boolean) => void
+  panchangamEnabled: boolean
+  setPanchangamEnabled: (value: boolean) => void
   nativeShellMaterial: NativeShellMaterial
   setNativeShellMaterial: (value: NativeShellMaterial) => void
   locale: AppLocale

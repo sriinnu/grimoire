@@ -186,6 +186,7 @@ describe('mockHandlers coverage', () => {
       editor_line_height: null,
       ui_language: 'zh-Hans',
       menu_bar_icon_enabled: false,
+      panchangam_enabled: true,
       default_ai_agent: 'codex',
       ai_agent_models: { codex: 'gpt-5.2' },
       ai_agent_providers: null,

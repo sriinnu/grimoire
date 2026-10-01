@@ -374,8 +374,9 @@ describe('Editor', () => {
         inspectorContent={mockContent}
       />
     )
-    // Inspector renders "Properties" header
-    expect((await screen.findAllByText('Properties', {}, { timeout: 5000 })).length).toBeGreaterThan(0)
+    // The lazy inspector shows the Second Brain header with the note title beneath it.
+    expect(await screen.findByTestId('inspector-header-title', {}, { timeout: 5000 })).toHaveTextContent('Second Brain')
+    expect(screen.getByTestId('inspector-header-subtitle')).toHaveTextContent(mockEntry.title)
   })
 
   // Regression: editor content did not appear on first load because BlockNote's

@@ -7,6 +7,7 @@ import {
   useMainWindowSizeConstraints,
 } from '../hooks/useMainWindowSizeConstraints'
 import { useNoteLayout } from '../hooks/useNoteLayout'
+import { OPEN_INSPECTOR_EVENT } from '../components/noteIconPropertyEvents'
 import { useNoteRetargetingUi } from '../hooks/useNoteRetargetingUi'
 import { useSidebarColumnCollapse } from '../hooks/useSidebarColumnCollapse'
 import { restartApp, useUpdater } from '../hooks/useUpdater'
@@ -15,6 +16,7 @@ import { useZoom } from '../hooks/useZoom'
 import { normalizeReleaseChannel } from '../lib/releaseChannel'
 import type { VaultEntry } from '../types'
 import { hasNoteIconValue } from '../utils/noteIcon'
+import { findTodayJournal, todayJournalTitle } from '../utils/todayJournal'
 import {
   focusNoteListContainer,
   isEditableElement,
@@ -25,6 +27,7 @@ import { getNextVisibleInboxEntry, invokeAppCommand } from './appRuntimeSupport'
 import type { EntryWorkspace } from './useEntryWorkspace'
 import type { GitWorkflow } from './useGitWorkflow'
 import type { NoteWorkspace } from './useNoteWorkspace'
+import { useQuickCapture } from './useQuickCapture'
 import type { VaultFoundation } from './useVaultFoundation'
 
 export function useAppShellState(
@@ -41,7 +44,7 @@ export function useAppShellState(
     showGraphModal, showMcpSetupDialog, showWeatherSnapshotDialog, vault, vaultSwitcher,
     visibleNotesRef,
   } = foundation
-  const { handleSelectNote, notes } = workspace
+  const { handleDashboardOpenNote, handleSelectNote, notes } = workspace
   const { handleDiscardFile } = entryWorkspace
   const { entryActions } = gitWorkflow
   const rawToggleRef = useRef<() => void>(() => {})
@@ -52,6 +55,7 @@ export function useAppShellState(
   const { sidebarColumnCollapsed, setSidebarColumnCollapsed } = useSidebarColumnCollapse()
   const { noteLayout, toggleNoteLayout } = useNoteLayout()
   const zoom = useZoom()
+  const quickCapture = useQuickCapture(foundation, workspace)
   const buildNumber = useBuildNumber()
 
   const updateMainWindowConstraints = useCallback((
@@ -87,6 +91,15 @@ export function useAppShellState(
     sidebarVisible,
     updateMainWindowConstraints,
   ])
+
+  // A meta-line chip or a command may ask for the Second Brain to be open, not toggled.
+  useEffect(() => {
+    const open = () => {
+      if (layout.inspectorCollapsed) handleToggleInspector()
+    }
+    window.addEventListener(OPEN_INSPECTOR_EVENT, open)
+    return () => window.removeEventListener(OPEN_INSPECTOR_EVENT, open)
+  }, [handleToggleInspector, layout.inspectorCollapsed])
 
   const handleSetSidebarColumnCollapsed = useCallback((collapsed: boolean) => {
     setSidebarColumnCollapsed(collapsed)
@@ -188,6 +201,7 @@ export function useAppShellState(
     dialogs.showCreateTypeDialog
     || dialogs.showQuickOpen
     || dialogs.showCommandPalette
+    || dialogs.showKeyboardShortcuts
     || dialogs.showAIChat
     || dialogs.showSettings
     || dialogs.showCloneVault
@@ -200,6 +214,7 @@ export function useAppShellState(
     || showGraphModal
     || showWeatherSnapshotDialog
     || showAudioRecordingDialog
+    || quickCapture.showQuickCapture
   )
 
   useEffect(() => {
@@ -317,6 +332,13 @@ export function useAppShellState(
   const handleCaptureThoughtCommand = useCallback(() => openDashboardCapture('note'), [openDashboardCapture])
   const handleCaptureJournalCommand = useCallback(() => openDashboardCapture('journal'), [openDashboardCapture])
   const handleCaptureDreamCommand = useCallback(() => openDashboardCapture('dream'), [openDashboardCapture])
+  // Reflect/Capacities habit: one command lands on today's page, creating it if needed.
+  const handleOpenTodayJournalCommand = useCallback(() => {
+    const existing = findTodayJournal(vault.entries)
+    if (existing) return handleDashboardOpenNote(existing)
+    handleSetSelection({ kind: 'sectionGroup', type: 'Journal' })
+    void notes.handleCreateNote(todayJournalTitle(), 'Journal')
+  }, [handleDashboardOpenNote, handleSetSelection, notes, vault.entries])
   return {
     rawToggleRef, diffToggleRef, sidebarVisible, noteListVisible, sidebarColumnCollapsed,
     noteLayout, toggleNoteLayout, zoom, buildNumber, handleSetViewMode, handleToggleInspector,
@@ -327,7 +349,7 @@ export function useAppShellState(
     activeNoteHasIcon, toggleOrganizedCommand, canCustomizeNoteListColumns,
     restoreDeletedNoteCommand, insertWeatherSnapshotCommand, audioTranscription,
     handleOpenGraphNote, handleCaptureThoughtCommand, handleCaptureJournalCommand,
-    handleCaptureDreamCommand,
+    handleCaptureDreamCommand, handleOpenTodayJournalCommand, quickCapture,
   }
 }
 

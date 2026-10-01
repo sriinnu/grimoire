@@ -5,7 +5,7 @@ import { Funnel, PencilSimple, Trash } from '@phosphor-icons/react'
 import { Button } from '@/components/ui/button'
 import { NoteTitleIcon } from '../NoteTitleIcon'
 import { SidebarCountPill } from '../SidebarParts'
-import { SIDEBAR_ITEM_PADDING } from './sidebarStyles'
+import { SIDEBAR_ITEM_PADDING, SIDEBAR_ROW_RADIUS } from './sidebarStyles'
 
 interface SidebarViewItemProps {
   view: ViewFile
@@ -26,19 +26,23 @@ export function SidebarViewItem({
 }: SidebarViewItemProps) {
   const count = useMemo(() => evaluateView(view.definition, entries).length, [view.definition, entries])
   const showCount = count > 0
-  const icon = view.definition.icon
-    ? <NoteTitleIcon icon={view.definition.icon} size={16} />
-    : <Funnel size={16} weight={isActive ? 'fill' : 'regular'} />
+  const icon = (
+    <span className="sidebar-row-glyph">
+      {view.definition.icon
+        ? <NoteTitleIcon icon={view.definition.icon} size={16} />
+        : <Funnel size={16} weight={isActive ? 'fill' : 'regular'} />}
+    </span>
+  )
 
   return (
     <div className="group relative">
       <div
         className={`flex cursor-pointer select-none items-center gap-2 rounded transition-colors ${isActive ? 'text-foreground bg-[color-mix(in_srgb,var(--primary)_10%,transparent)] shadow-[inset_2px_0_0_var(--primary)]' : 'text-foreground hover:bg-[color-mix(in_srgb,var(--primary)_7%,transparent)]'}`}
-        style={{ padding: showCount ? SIDEBAR_ITEM_PADDING.withCount : SIDEBAR_ITEM_PADDING.regular, borderRadius: 4 }}
+        style={{ padding: showCount ? SIDEBAR_ITEM_PADDING.withCount : SIDEBAR_ITEM_PADDING.regular, borderRadius: SIDEBAR_ROW_RADIUS }}
         onClick={onSelect}
       >
         {icon}
-        <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{view.definition.name}</span>
+        <span className="min-w-0 flex-1 truncate text-[13px] font-medium leading-5">{view.definition.name}</span>
         {showCount && (
           <SidebarCountPill
             count={count}

@@ -9,8 +9,6 @@ describe('sidebar appearance CSS', () => {
     const css = readText(`${process.cwd()}/src/sidebar-appearance.css`)
 
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="code-notebook"] .app-sidebar-panel')
-    expect(css).toContain('[data-theme-preset="code-notebook"] .app-sidebar-panel .text-primary')
     expect(css).toContain('--foreground: var(--sidebar-foreground)')
     expect(css).toContain('[data-theme="dark"] .app-sidebar-panel .text-primary')
     expect(css).toContain('color: var(--sidebar-foreground)')
@@ -69,12 +67,12 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('--sidebar-nav-tone-ink')
     expect(css).toContain('.sidebar-top-nav__tone > :is(button, div)')
     expect(css).toContain('.sidebar-top-nav__tone[data-active="true"] > :is(button, div)')
-    expect(css).toContain('height: 28px')
+    expect(css).toContain('height: 20px')
     expect(css).not.toContain('--sidebar-nav-tone-hot')
     expect(css).not.toContain('--sidebar-nav-tone-shadow')
     expect(css).not.toContain('conic-gradient')
     expect(css).not.toContain('drop-shadow')
-    expect(css).toContain('.sidebar-top-nav__tone[data-active="true"]::before')
+    expect(css).not.toContain('.sidebar-top-nav__tone[data-active="true"]::before')
     expect(css).toContain('.sidebar-top-nav__tone:not([data-active="true"]):hover .sidebar-nav-glyph')
     expect(css).toContain('.sidebar-rail__tone:not([data-active="true"]):hover .sidebar-rail__glyph')
   })
@@ -92,7 +90,7 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('.sidebar-section-glyph__icon')
     expect(css).toContain('background: transparent')
     expect(css).toContain('background: color-mix(in srgb, var(--sidebar-section-tone) 12%, transparent)')
-    expect(css).toContain('height: 26px')
+    expect(css).toContain('.sidebar-row-glyph')
   })
 
   it('keeps sidebar group actions tucked away until the header is active', () => {
@@ -107,17 +105,20 @@ describe('sidebar appearance CSS', () => {
     expect(css).toContain('pointer-events: auto')
   })
 
-  it('treats the sidebar brand as a restrained handwritten wordmark', () => {
+  it('sets the sidebar wordmark in Fraunces with no per-letter jitter', () => {
     const baseCss = readText(`${process.cwd()}/src/theme-base.css`)
+    const fontsCss = readText(`${process.cwd()}/src/fonts.css`)
 
-    expect(baseCss).toContain('--grimoire-wordmark-font-family')
+    expect(baseCss).toContain("--grimoire-wordmark-font-family: 'Fraunces'")
+    expect(fontsCss).toContain("font-family: 'Fraunces'")
+    expect(fontsCss).toContain('Fraunces-latin.woff2')
     expect(brandCss).toContain('.sidebar-brand-wordmark')
     expect(brandCss).toContain('font-family: var(--grimoire-wordmark-font-family)')
-    expect(brandCss).not.toContain('font-family: "Noteworthy"')
+    expect(brandCss).toContain("font-variation-settings: 'opsz' 72")
     expect(brandCss).toContain('.sidebar-brand-wordmark__text')
     expect(brandCss).toContain('.sidebar-brand-wordmark__letter')
-    expect(brandCss).toContain('data-letter-index="0"')
-    expect(brandCss).toContain('--wordmark-rotate')
+    expect(brandCss).not.toContain('--wordmark-rotate')
+    expect(brandCss).not.toContain('rotate(')
     expect(brandCss).not.toContain('.sidebar-brand-wordmark::after')
     expect(brandCss).not.toContain('"swsh"')
     expect(brandCss).not.toContain('.sidebar-brand-wordmark::first-letter')

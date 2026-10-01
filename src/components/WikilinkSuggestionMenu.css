@@ -2,10 +2,11 @@
 .wikilink-menu {
   background: var(--popover);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow-dialog);
   max-height: 320px;
   overflow: hidden;
+  padding: 4px;
   min-width: 260px;
   max-width: 400px;
   z-index: 9999;
@@ -16,10 +17,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 5px 8px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
-  line-height: 1.4;
+  line-height: 20px;
 }
 
 .wikilink-menu__item:hover,

@@ -5,6 +5,7 @@ export const APP_COMMAND_IDS = {
   appSettings: 'app-settings',
   appCheckForUpdates: 'app-check-for-updates',
   fileNewNote: 'file-new-note',
+  fileImportFiles: 'file-import-files',
   fileCaptureThought: 'file-capture-thought',
   fileCaptureJournal: 'file-capture-journal',
   fileCaptureDream: 'file-capture-dream',
@@ -21,6 +22,7 @@ export const APP_COMMAND_IDS = {
   viewToggleAiChat: 'view-toggle-ai-chat',
   viewToggleBacklinks: 'view-toggle-backlinks',
   viewCommandPalette: 'view-command-palette',
+  viewKeyboardShortcuts: 'view-keyboard-shortcuts',
   viewZoomIn: 'view-zoom-in',
   viewZoomOut: 'view-zoom-out',
   viewZoomReset: 'view-zoom-reset',
@@ -83,6 +85,7 @@ export type SimpleHandlerKey =
   | 'onCaptureJournal'
   | 'onCaptureDream'
   | 'onCreateType'
+  | 'onImportFiles'
   | 'onQuickOpen'
   | 'onSave'
   | 'onSearch'
@@ -91,6 +94,7 @@ export type SimpleHandlerKey =
   | 'onToggleInspector'
   | 'onToggleAIChat'
   | 'onCommandPalette'
+  | 'onToggleKeyboardShortcuts'
   | 'onZoomIn'
   | 'onZoomOut'
   | 'onZoomReset'

@@ -10,6 +10,7 @@ interface NoteCommandsConfig {
   createNoteLabel?: string
   createNoteKeywords?: string[]
   onCreateType?: () => void
+  onImportFiles?: () => void
   onSave: () => void
   onDeleteNote: (path: string) => void
   onArchiveNote: (path: string) => void
@@ -78,6 +79,13 @@ function buildCoreNoteCommands(config: NoteCommandsConfig): CommandAction[] {
       keywords: ['new', 'create', 'type', 'template'],
       enabled: !!config.onCreateType,
       execute: () => config.onCreateType?.(),
+    }),
+    createNoteCommand({
+      id: 'import-files',
+      label: 'Import Files…',
+      keywords: ['import', 'file', 'files', 'open', 'attach', 'attachment', 'bring', 'copy', 'markdown', 'pdf'],
+      enabled: !!config.onImportFiles,
+      execute: () => config.onImportFiles?.(),
     }),
     createNoteCommand({
       id: 'save-note',

@@ -1,6 +1,8 @@
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import type { VaultEntry } from '../types'
 import { NoteSearchList } from './NoteSearchList'
+import { Glyph } from '@/components/glyphs/Glyph'
 import { Input } from './ui/input'
 import { useNoteSearch } from '../hooks/useNoteSearch'
 
@@ -9,9 +11,11 @@ interface QuickOpenPaletteProps {
   entries: VaultEntry[]
   onSelect: (entry: VaultEntry) => void
   onClose: () => void
+  /** Creates a new page titled with the query (Enter when nothing matches, Shift+Enter always). */
+  onCreate?: (title: string) => void
 }
 
-export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpenPaletteProps) {
+export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }: QuickOpenPaletteProps) {
   const [query, setQuery] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const { results, selectedIndex, setSelectedIndex, handleKeyDown } = useNoteSearch(entries, query)
@@ -37,6 +41,13 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
         onClose()
       } else if (e.key === 'Enter') {
         e.preventDefault()
+        const title = query.trim()
+        // Bear/Obsidian habit: a search that finds nothing becomes the new page.
+        if (onCreate && title && (e.shiftKey || results.length === 0)) {
+          onCreate(title)
+          onClose()
+          return
+        }
         const selected = results[selectedIndex]
         if (selected) {
           onSelect(selected.entry)
@@ -46,7 +57,10 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, results, selectedIndex, onSelect, onClose, handleKeyDown])
+  }, [open, query, results, selectedIndex, onSelect, onClose, onCreate, handleKeyDown])
+
+  const createTitle = query.trim()
+  const showCreateRow = Boolean(onCreate && createTitle && results.length === 0)
 
   if (!open) return null
 
@@ -57,18 +71,21 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
       onClick={onClose}
     >
       <div
-        className="grimoire-command-stage grimoire-command-surface flex w-[500px] max-w-[90vw] max-h-[400px] flex-col self-start overflow-hidden border"
+        className="grimoire-command-stage grimoire-command-surface flex w-[520px] max-w-[90vw] max-h-[440px] flex-col self-start overflow-hidden border"
         onClick={(e) => e.stopPropagation()}
       >
-        <Input
-          ref={inputRef}
-          data-testid="quick-open-input"
-          className="border-b border-border bg-transparent px-4 py-3 text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
-          type="text"
-          placeholder="Search pages..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="flex items-center gap-3 border-b border-border px-4">
+          <Glyph name="search" size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+          <Input
+            ref={inputRef}
+            data-testid="quick-open-input"
+            className="h-12 flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0 md:text-[16px]"
+            type="text"
+            placeholder="Search pages"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
         <NoteSearchList
           items={results}
           selectedIndex={selectedIndex}
@@ -78,9 +95,30 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose }: QuickOpen
             onClose()
           }}
           onItemHover={(i) => setSelectedIndex(i)}
-          emptyMessage="No matching pages"
-          className="flex-1 overflow-y-auto"
+          emptyMessage={showCreateRow ? '' : 'No matching pages'}
+          className={showCreateRow ? 'hidden' : 'flex-1 overflow-y-auto'}
         />
+        {showCreateRow ? (
+          <button
+            type="button"
+            data-testid="quick-open-create"
+            className="flex h-10 w-full items-center gap-2 px-4 text-left text-sm text-foreground hover:bg-muted"
+            onClick={() => {
+              onCreate?.(createTitle)
+              onClose()
+            }}
+          >
+            <span className="text-muted-foreground">No matching pages —</span>
+            <span className="font-semibold">Create “{createTitle}”</span>
+            <kbd className="ml-auto text-[11px] text-muted-foreground">{formatShortcutDisplay({ display: '↵' })}</kbd>
+          </button>
+        ) : null}
+        <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-[11px] text-muted-foreground" aria-hidden="true">
+          <span><kbd className="font-medium text-foreground/70">↑↓</kbd> Navigate</span>
+          <span><kbd className="font-medium text-foreground/70">{formatShortcutDisplay({ display: '↵' })}</kbd> Open</span>
+          {onCreate ? <span><kbd className="font-medium text-foreground/70">{formatShortcutDisplay({ display: '↵' })}</kbd> Create when nothing matches</span> : null}
+          <span className="ml-auto"><kbd className="font-medium text-foreground/70">esc</kbd> Close</span>
+        </div>
       </div>
     </div>
   )

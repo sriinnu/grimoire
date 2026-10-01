@@ -7,6 +7,7 @@ import type { NoteListFilter } from '../utils/noteListHelpers'
 import type { ViewMode } from './useViewMode'
 import { buildNavigationCommands } from './commands/navigationCommands'
 import { buildNoteCommands } from './commands/noteCommands'
+import { buildExportCommands } from './commands/exportCommands'
 import { buildGitCommands } from './commands/gitCommands'
 import { buildViewCommands } from './commands/viewCommands'
 import { buildSettingsCommands } from './commands/settingsCommands'
@@ -68,6 +69,8 @@ interface CommandRegistryConfig {
   onCreateNote: () => void
   onCaptureThought?: () => void
   onCaptureJournal?: () => void
+  onOpenTodayJournal?: () => void
+  onQuickCapture?: () => void
   onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
@@ -78,6 +81,7 @@ interface CommandRegistryConfig {
   onAddRemote?: () => void
   canAddRemote?: boolean
   onCreateType?: () => void
+  onImportFiles?: () => void
   onDeleteNote: (path: string) => void
   onArchiveNote: (path: string) => void
   onUnarchiveNote: (path: string) => void
@@ -92,6 +96,7 @@ interface CommandRegistryConfig {
   onToggleNoteLayout?: () => void
   onToggleAIChat?: () => void
   onOpenGraph?: () => void
+  onToggleKeyboardShortcuts?: () => void
   activeNoteModified: boolean
   onCheckForUpdates?: () => void
   onZoomIn: () => void
@@ -118,15 +123,15 @@ interface CommandRegistryConfig {
 export function useCommandRegistry(config: CommandRegistryConfig): import('./commands/types').CommandAction[] {
   const {
     activeTabPath, entries, isGitVault = true, modifiedCount,
-    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCreateNote, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
-    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault,
+    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault,
     activeNoteModified,
     onZoomIn, onZoomOut, onZoomReset, zoomLevel,
     onSelect, onRenameFolder, onDeleteFolder,
     showInbox,
     onGoBack, onGoForward, canGoBack, canGoForward,
-    onCheckForUpdates, onCreateType,
+    onCheckForUpdates, onCreateType, onImportFiles,
     onRemoveActiveVault, onRestoreGettingStarted, isGettingStartedHidden, vaultCount,
     mcpStatus, onInstallMcp, aiAgentsStatus, vaultAiGuidanceStatus,
     onOpenAiAgents, onRestoreVaultAiGuidance, onSetDefaultAiAgent, selectedAiAgent, onCycleDefaultAiAgent, selectedAiAgentLabel,
@@ -179,6 +184,8 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
       onQuickOpen,
       onCaptureThought,
       onCaptureJournal,
+      onOpenTodayJournal,
+      onQuickCapture,
       onCaptureDream,
       onSelect,
       selection,
@@ -192,7 +199,7 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     }),
     ...buildNoteCommands({
       hasActiveNote, activeTabPath, isArchived,
-      onCreateNote: createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave,
+      onCreateNote: createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onImportFiles, onSave,
       onDeleteNote, onArchiveNote, onUnarchiveNote,
       onChangeNoteType, onMoveNoteToFolder, canMoveNoteToFolder,
       onSetNoteIcon, onRemoveNoteIcon, activeNoteHasIcon, onOpenInNewWindow, onToggleFavorite, isFavorite,
@@ -210,9 +217,10 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
       onResolveConflicts,
       onSelect,
     }),
+    ...buildExportCommands({ hasActiveNote, activeEntry }),
     ...buildViewCommands({
       hasActiveNote, activeNoteModified, onSetViewMode, onToggleInspector,
-      onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
+      onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, zoomLevel, onZoomIn, onZoomOut, onZoomReset,
       onCustomizeNoteListColumns, canCustomizeNoteListColumns, noteListColumnsLabel,
     }),
     ...buildSettingsCommands({
@@ -235,9 +243,9 @@ export function useCommandRegistry(config: CommandRegistryConfig): import('./com
     ...buildFilterCommands({ isSectionGroup, noteListFilter, onSetNoteListFilter }),
   ], [
     hasActiveNote, activeTabPath, isArchived, isGitVault, modifiedCount, activeNoteModified,
-    onQuickOpen, onCaptureThought, onCaptureJournal, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onSave, onOpenSettings, onOpenFeedback,
+    onQuickOpen, onCaptureThought, onCaptureJournal, onOpenTodayJournal, onQuickCapture, onCaptureDream, onCreateNoteOfType, createNoteFromCurrentScope, createNoteLabel, createNoteKeywords, onCreateType, onImportFiles, onSave, onOpenSettings, onOpenFeedback,
     onDeleteNote, onArchiveNote, onUnarchiveNote,
-    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
+    onCommitPush, onPull, onResolveConflicts, onSetViewMode, onToggleInspector, onToggleDiff, onToggleRawEditor, noteLayout, onToggleNoteLayout, onToggleAIChat, onOpenGraph, onToggleKeyboardShortcuts, onOpenVault, onCreateEmptyVault, config.canAddRemote, config.onAddRemote,
     onCheckForUpdates,
     onZoomIn, onZoomOut, onZoomReset, zoomLevel,
     onSelect, onRenameFolder, onDeleteFolder,

@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { StatusBarHint } from './StatusBarHint'
 import { StatusBarGroup } from './StatusBarGroup'
+import { PanchangamSignal } from './PanchangamSignal'
 
 const ZOOM_RESET_TOOLTIP = {
   label: 'Reset the zoom level',
@@ -68,6 +69,7 @@ interface StatusBarSecondarySectionProps {
   onOpenSettings?: () => void
   stacked?: boolean
   compact?: boolean
+  panchangamEnabled?: boolean
 }
 
 function handleOptionalSelect(action?: () => void) {
@@ -314,6 +316,7 @@ export function StatusBarSecondarySection({
   onOpenSettings,
   stacked = false,
   compact = false,
+  panchangamEnabled = true,
 }: StatusBarSecondarySectionProps) {
   void noteCount
 
@@ -328,6 +331,11 @@ export function StatusBarSecondarySection({
         width: stacked ? '100%' : 'auto',
       }}
     >
+      {panchangamEnabled ? (
+        <StatusBarGroup compact={compact} testId="status-panchangam-group">
+          <PanchangamSignal />
+        </StatusBarGroup>
+      ) : null}
       <StatusBarGroup compact={compact} testId="status-utility-group">
         <StatusUtilityMenu
           conflictCount={conflictCount}

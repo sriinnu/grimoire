@@ -13,6 +13,16 @@ export const APP_STORAGE_KEYS = {
   objectStorageLiveProofReport: 'grimoire:object-storage-live-proof-report',
   objectStorageLiveProofReportHistory: 'grimoire:object-storage-live-proof-report-history',
   welcomeDismissed: 'grimoire_welcome_dismissed',
+  sessionMemory: 'grimoire:session',
+  inspectorOpen: 'grimoire:inspector-open',
+  inspectorSections: 'grimoire:inspector-sections',
+  connectionsFilter: 'grimoire:connections-filter',
+  typewriterMode: 'grimoire:typewriter-mode',
+  editorSpellcheck: 'grimoire:editor-spellcheck',
+  noteListLayout: 'grimoire:note-list-layout',
+  headingOutline: 'grimoire:heading-outline',
+  readingWidth: 'grimoire:reading-width',
+  quickCaptureDraft: 'grimoire:quick-capture-draft',
 } as const
 
 export const LEGACY_APP_STORAGE_KEYS = {

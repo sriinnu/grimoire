@@ -21,6 +21,8 @@ interface NativeSettingsSectionProps {
   t: Translate
   menuBarIconEnabled: boolean
   setMenuBarIconEnabled: (value: boolean) => void
+  panchangamEnabled: boolean
+  setPanchangamEnabled: (value: boolean) => void
   nativeShellMaterial: NativeShellMaterial
   setNativeShellMaterial: (value: NativeShellMaterial) => void
 }
@@ -30,6 +32,8 @@ export function NativeSettingsSection({
   t,
   menuBarIconEnabled,
   setMenuBarIconEnabled,
+  panchangamEnabled,
+  setPanchangamEnabled,
   nativeShellMaterial,
   setNativeShellMaterial,
 }: NativeSettingsSectionProps) {
@@ -68,6 +72,17 @@ export function NativeSettingsSection({
             }}
             aria-label={menuBarLabel}
             disabled={!menuBarSupported}
+          />
+        </SettingsRow>
+        <SettingsRow
+          label={t('settings.native.panchangam')}
+          description={t('settings.native.panchangamDescription')}
+          testId="settings-panchangam-enabled"
+        >
+          <Switch
+            checked={panchangamEnabled}
+            onCheckedChange={setPanchangamEnabled}
+            aria-label={t('settings.native.panchangam')}
           />
         </SettingsRow>
         <SettingsRow label={t('settings.native.shellMaterial')}>

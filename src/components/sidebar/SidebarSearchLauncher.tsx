@@ -24,11 +24,11 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
   const searchShortcut = getAppCommandShortcutDisplay(APP_COMMAND_IDS.editFindInVault)
 
   return (
-    <div className="border-b border-border px-2.5 py-2" data-testid="sidebar-search-launcher">
+    <div className="border-b border-border px-2 py-2" data-testid="sidebar-search-launcher">
       <div className="relative">
         <Glyph
           name="search"
-          size={15}
+          size={16}
           className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-muted-foreground"
           aria-hidden="true"
         />
@@ -45,7 +45,7 @@ export function SidebarSearchLauncher({ onOpenSearch }: SidebarSearchLauncherPro
           readOnly
           value=""
           placeholder="Search"
-          className="h-10 cursor-pointer rounded-xl border-border/75 bg-background/75 pl-9 pr-16 text-[12px] font-semibold text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
+          className="h-9 cursor-pointer rounded-lg border-border/75 bg-background/75 pl-9 pr-16 text-[13px] font-medium text-foreground shadow-[0_10px_28px_-24px_var(--shadow-dialog)] placeholder:text-muted-foreground hover:border-primary/45 hover:bg-accent/70 focus-visible:border-primary/50 focus-visible:ring-1 focus-visible:ring-primary/25"
           onClick={() => onOpenSearch()}
           onKeyDown={(event) => {
             const seed = keyboardSeed(event)

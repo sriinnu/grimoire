@@ -1,7 +1,8 @@
 import { createRef } from 'react'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { EditorContentLayout } from './EditorContentLayout'
+import { setReadingWidth } from '../../lib/readingWidthPreference'
 
 vi.mock('../BreadcrumbBar', () => ({
   BreadcrumbBar: ({ noteLayout }: { noteLayout?: string }) => <div data-testid="breadcrumb-bar" data-note-layout={noteLayout} />,
@@ -106,6 +107,21 @@ describe('EditorContentLayout', () => {
 
     expect(screen.getByTestId('editor-loading-state')).toBeInTheDocument()
     expect(screen.queryByTestId('title-field-input')).not.toBeInTheDocument()
+  })
+
+  it('carries the reading width on the canvas root and sets the measure variable when it differs from the theme', () => {
+    const { unmount } = render(<EditorContentLayout {...createModel()} />)
+    const root = document.querySelector('.editor-canvas') as HTMLElement
+    expect(root).toHaveAttribute('data-reading-width', 'comfortable')
+    expect(root.style.getPropertyValue('--editor-max-width')).toBe('')
+    unmount()
+
+    act(() => setReadingWidth('wide'))
+    render(<EditorContentLayout {...createModel()} />)
+    const wide = document.querySelector('.editor-canvas') as HTMLElement
+    expect(wide).toHaveAttribute('data-reading-width', 'wide')
+    expect(wide.style.getPropertyValue('--editor-max-width')).toBe('920px')
+    act(() => setReadingWidth('comfortable'))
   })
 
   it('marks the editor content root and breadcrumb with the note layout preference', () => {

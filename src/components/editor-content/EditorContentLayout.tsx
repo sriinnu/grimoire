@@ -12,6 +12,10 @@ import { VaultImagePreview } from './VaultImagePreview'
 import { EditorLoadingState } from '../EditorLoadingState'
 import { EditorConstellationMeta } from '../EditorConstellationMeta'
 import { EditorAgentComposerBar } from '../EditorAgentComposerBar'
+import { HeadingOutlineRail } from '../heading-outline/HeadingOutlineRail'
+import { useHeadingOutline, type HeadingOutlineState } from '../heading-outline/useOutlineHeadings'
+import { useReadingWidth } from './useReadingWidth'
+import { useTypewriterMode } from './useTypewriterMode'
 
 const RawEditorViewSurface = lazy(async () => ({
   default: (await import('../RawEditorView')).RawEditorView,
@@ -181,6 +185,7 @@ function EditorCanvas({
   isDeletedPreview,
   vaultPath,
   activeTab,
+  outline,
 }: Pick<
   EditorContentModel,
   | 'showEditor'
@@ -193,23 +198,26 @@ function EditorCanvas({
   | 'isDeletedPreview'
   | 'vaultPath'
   | 'activeTab'
->) {
+> & { outline: HeadingOutlineState }) {
   if (!showEditor) return null
 
   return (
-    <div className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
-      <div className="editor-content-wrapper">
-        <SingleEditorView
-          activeContent={activeTab?.content ?? ''}
-          editor={editor}
-          entries={entries}
-          onNavigateWikilink={onNavigateWikilink}
-          onCreateAndOpenNote={onCreateAndOpenNote}
-          onChange={onEditorChange}
-          vaultPath={vaultPath}
-          editable={!isDeletedPreview}
-        />
+    <div className="editor-canvas-frame">
+      <div ref={outline.scrollRef} className="editor-scroll-area grimoire-ink-settle" style={cssVars as React.CSSProperties}>
+        <div className="editor-content-wrapper">
+          <SingleEditorView
+            activeContent={activeTab?.content ?? ''}
+            editor={editor}
+            entries={entries}
+            onNavigateWikilink={onNavigateWikilink}
+            onCreateAndOpenNote={onCreateAndOpenNote}
+            onChange={onEditorChange}
+            vaultPath={vaultPath}
+            editable={!isDeletedPreview}
+          />
+        </div>
       </div>
+      {outline.visible ? <HeadingOutlineRail outline={outline} editor={editor} /> : null}
     </div>
   )
 }
@@ -244,6 +252,9 @@ export function EditorContentLayout(model: EditorContentModel) {
     rawModeContent,
     noteLayout,
   } = model
+  const outline = useHeadingOutline(activeTab?.content ?? '', showEditor && !effectiveRawMode)
+  useTypewriterMode(outline.scrollRef, showEditor && !effectiveRawMode)
+  const readingWidth = useReadingWidth(showEditor)
   const rootClassName = cn(
     'editor-canvas flex flex-1 flex-col min-w-0 min-h-0',
     noteLayout === 'left' ? 'editor-content-layout--left' : 'editor-content-layout--centered',
@@ -251,14 +262,20 @@ export function EditorContentLayout(model: EditorContentModel) {
 
   if (!activeTab) {
     return (
-      <div className={rootClassName}>
+      <div ref={outline.rootRef} className={rootClassName} style={readingWidth.style} data-reading-width={readingWidth.width}>
         {isLoadingNewTab && showEditor && <EditorLoadingSkeleton />}
       </div>
     )
   }
 
   return (
-    <div className={rootClassName}>
+    <div
+      ref={outline.rootRef}
+      className={rootClassName}
+      style={readingWidth.style}
+      data-reading-width={readingWidth.width}
+      data-outline-rail={outline.visible ? 'visible' : undefined}
+    >
       <ActiveTabBreadcrumb
         activeTab={activeTab}
         barRef={breadcrumbBarRef}
@@ -322,10 +339,10 @@ export function EditorContentLayout(model: EditorContentModel) {
         onNavigateWikilink={onNavigateWikilink}
         onEditorChange={onEditorChange}
         isDeletedPreview={isDeletedPreview}
+        outline={outline}
       />
       {!diffMode && !effectiveRawMode && !model.isImagePreview && !model.isHtmlPreview ? (
         <EditorAgentComposerBar
-          content={activeTab.content}
           disabled={model.showAIChat}
           onOpen={model.onToggleAIChat}
         />

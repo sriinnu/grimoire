@@ -51,7 +51,8 @@
   }
 }
 
-/* ---- 3. macOS-style focus rings — thinner, accent-coloured ---- */
+/* ---- 3. macOS-style focus rings — thinner,
+accent-coloured ---- */
 
 :where([data-theme-preset]) :focus-visible {
   outline: 2px solid color-mix(in srgb, var(--primary) 58%, var(--accent-blue, #4a9eff));
@@ -222,16 +223,6 @@ body.window-inactive .inspector-header {
 @keyframes grimoire-sidebar-breathe {
   0%, 100% { opacity: 0.72; }
   50% { opacity: 0.84; }
-}
-
-[data-theme-preset="constellation"] .app-sidebar-panel::before {
-  animation: grimoire-sidebar-breathe 4.2s var(--motion-ease-cinematic) infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-theme-preset="constellation"] .app-sidebar-panel::before {
-    animation: none;
-  }
 }
 
 /* ---- 13. Ambient: status bar tone line subtle pulse ---- */

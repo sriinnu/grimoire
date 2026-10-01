@@ -13,21 +13,43 @@ async function insertWikilink(page: Page) {
   await expect(
     firstParagraph,
   ).toContainText('Build a sustainable audience through high-quality weekly essays', { timeout: 5000 })
+  const paragraphsBefore = await editor.locator('p').count()
   await firstParagraph.click()
-  await page.keyboard.press('End')
+  // The paragraph wraps, and End only reaches the end of the visual line, so
+  // Enter would split mid-sentence and the query would run into the tail of
+  // the paragraph. Put the caret at the true end of the block instead.
+  await firstParagraph.evaluate((element) => {
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    range.collapse(false)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  })
   await page.keyboard.press('Enter')
-  await page.waitForTimeout(200)
+  // The new block exists, and is empty, before we type into it; no fixed sleep.
+  await expect(editor.locator('p')).toHaveCount(paragraphsBefore + 1, { timeout: 5000 })
+  await expect(editor.locator('p').nth(1)).toHaveText('', { timeout: 5000 })
 
   await page.keyboard.type(INSERTED_WIKILINK_QUERY)
 
   const suggestionMenu = page.locator('.wikilink-menu')
   await expect(suggestionMenu).toBeVisible({ timeout: 5000 })
+  const item = suggestionMenu.getByText(INSERTED_WIKILINK_TITLE, { exact: true })
+  await expect(item).toBeVisible({ timeout: 5000 })
+  // Let the menu settle: the item sits in the same place on two consecutive frames.
+  await expect.poll(async () => {
+    const before = await item.boundingBox()
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))
+    const after = await item.boundingBox()
+    return Boolean(before && after && before.x === after.x && before.y === after.y)
+  }, { timeout: 5000 }).toBe(true)
   const matchingWikilinks = editor.locator('.wikilink').filter({ hasText: INSERTED_WIKILINK_TITLE })
   const existingCount = await matchingWikilinks.count()
-  await suggestionMenu.getByText(INSERTED_WIKILINK_TITLE, { exact: true }).click()
-  await page.waitForTimeout(500)
+  await item.click()
 
-  await expect(matchingWikilinks).toHaveCount(existingCount + 1)
+  // Assert on the inserted node itself rather than sleeping.
+  await expect(matchingWikilinks).toHaveCount(existingCount + 1, { timeout: 5000 })
   return matchingWikilinks.nth(existingCount)
 }
 
@@ -37,7 +59,7 @@ async function openNote(page: Page, title: string) {
   const quickOpenInput = page.getByTestId('quick-open-input')
   await expect(quickOpenInput).toBeVisible({ timeout: 5_000 })
   await quickOpenInput.fill(title)
-  const selectedResult = page.getByTestId('quick-open-palette').locator('[class*="bg-accent"]').first()
+  const selectedResult = page.getByTestId('quick-open-palette').locator('[data-selected="true"]').first()
   const selectedTitle = selectedResult.locator('span.truncate').first()
   await expect(selectedTitle).toHaveText(title, { timeout: 5_000 })
   await selectedResult.click()

@@ -1,3 +1,5 @@
+import { LayoutList, Table2 } from 'lucide-react'
+import type { NoteListLayout } from './noteListLayoutPreference'
 import { lazy, Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Glyph } from '@/components/glyphs/Glyph'
@@ -14,7 +16,7 @@ const ListPropertiesPopoverSurface = lazy(async () => ({
   default: (await import('./ListPropertiesPopover')).ListPropertiesPopover,
 }))
 
-export function NoteListHeader({ title, createNoteLabel, searchActionLabel, searchPlaceholder, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown }: {
+export function NoteListHeader({ title, createNoteLabel, searchActionLabel, searchPlaceholder, typeDocument, isEntityView, listSort, listDirection, customProperties, sidebarCollapsed, searchVisible, search, isSearching, searchInputRef, propertyPicker, onSortChange, onCreateNote, onOpenType, onToggleSearch, onSearchChange, onSearchKeyDown, layout = 'list', onToggleLayout }: {
   title: string
   createNoteLabel: string
   searchActionLabel: string
@@ -36,6 +38,8 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
   onToggleSearch: () => void
   onSearchChange: (value: string) => void
   onSearchKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  layout?: NoteListLayout
+  onToggleLayout?: () => void
 }) {
   const { onMouseDown: onDragMouseDown } = useDragRegion()
   return (
@@ -60,6 +64,22 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
               onChange={onSortChange}
             />
           )}
+          {!isEntityView && onToggleLayout ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className={NOTE_LIST_ACTION_BUTTON_CLASSNAME}
+              onClick={onToggleLayout}
+              title={layout === 'table' ? 'Show as list' : 'Show as table'}
+              aria-label={layout === 'table' ? 'Show as list' : 'Show as table'}
+              aria-pressed={layout === 'table'}
+              data-testid="note-list-layout-toggle"
+              data-icon-intent="navigation"
+            >
+              {layout === 'table' ? <LayoutList className="size-4" /> : <Table2 className="size-4" />}
+            </Button>
+          ) : null}
           <Button type="button" variant="ghost" size="icon-xs" className={NOTE_LIST_ACTION_BUTTON_CLASSNAME} onClick={onToggleSearch} title={searchActionLabel} aria-label={searchActionLabel} data-icon-intent="navigation">
             <Glyph name="search" size={16} />
           </Button>
@@ -74,7 +94,7 @@ export function NoteListHeader({ title, createNoteLabel, searchActionLabel, sear
         </div>
       </div>
       {searchVisible && (
-        <div className="note-list-search-row border-b px-3 py-2">
+        <div className="note-list-search-row border-b px-4 py-2">
           <div className="relative flex-1" aria-live="polite">
             <Input
               ref={searchInputRef}

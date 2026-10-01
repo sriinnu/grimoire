@@ -60,8 +60,8 @@ If you want to contribute a feature, the best place to start is here: <https://g
 
 Unless agreed otherwise in writing, contributions are accepted under the license that applies to the files being changed:
 
-- code contributions: AGPL-3.0-or-later
-- documentation prose: AGPL-3.0-or-later and CC BY-SA 4.0
+- code contributions: MIT
+- documentation prose: MIT
 - demo vault content: CC BY-NC-SA 4.0
 
 By contributing, you certify that you have the right to submit the work under the [Developer Certificate of Origin 1.1](https://developercertificate.org/). Add this line to every commit:

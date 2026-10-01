@@ -1,5 +1,4 @@
 import {
-  AddBlockButton,
   DragHandleMenu,
   RemoveBlockItem,
   SideMenu,
@@ -13,7 +12,9 @@ import {
   useExtensionState,
 } from '@blocknote/react'
 import type { PartialBlock } from '@blocknote/core'
-import { SideMenuExtension } from '@blocknote/core/extensions'
+import { SideMenuExtension, SuggestionMenu } from '@blocknote/core/extensions'
+import { applyTurnInto, type TurnIntoEditor } from './turnIntoPlan'
+import { blockHandleGlyph } from './blockHandleGlyph'
 import {
   Code,
   GripVertical,
@@ -24,6 +25,7 @@ import {
   ListChecks,
   ListOrdered,
   Pilcrow,
+  Plus,
   Repeat,
   TextQuote,
   type LucideIcon,
@@ -73,7 +75,7 @@ function turnIntoOptions(dict: ReturnType<typeof useDictionary>): TurnIntoOption
 }
 
 /** Block as seen by the side menu: only the fields the turn-into matcher reads. */
-type SideMenuBlock = { type: string; props?: Record<string, unknown> }
+type SideMenuBlock = { id?: string; type: string; props?: Record<string, unknown>; children?: unknown[] }
 
 /** True when the focused block already matches a turn-into target's type and props. */
 function isActiveOption(block: SideMenuBlock, update: PartialBlock): boolean {
@@ -104,16 +106,18 @@ function GrimoireTurnIntoItem() {
     (option) => typeof option.update.type === 'string' && option.update.type in editor.schema.blockSpecs,
   )
   if (options.length === 0) return null
+  const current = options.find((option) => isActiveOption(block, option.update))
 
   return (
     <Components.Generic.Menu.Root position="right" sub>
       <Components.Generic.Menu.Trigger sub>
         <Components.Generic.Menu.Item
-          className="bn-menu-item"
+          className="bn-menu-item bn-menu-item--turn-into"
           subTrigger
           icon={<Repeat size={16} />}
         >
-          Turn into
+          <span>Turn into</span>
+          {current ? <span className="bn-menu-item__hint" aria-hidden="true">{current.label}</span> : null}
         </Components.Generic.Menu.Item>
       </Components.Generic.Menu.Trigger>
       <Components.Generic.Menu.Dropdown sub className="bn-menu-dropdown">
@@ -125,7 +129,7 @@ function GrimoireTurnIntoItem() {
               className="bn-menu-item"
               icon={<OptionIcon size={16} />}
               checked={isActiveOption(block, option.update)}
-              onClick={() => editor.updateBlock(block, option.update)}
+              onClick={() => applyTurnInto(editor as unknown as TurnIntoEditor, block, option.update)}
             >
               {option.label}
             </Components.Generic.Menu.Item>
@@ -160,6 +164,7 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
   const Component = props.dragHandleMenu || GrimoireDragHandleMenu
 
   if (!Components || block === undefined) return null
+  const glyph = blockHandleGlyph(block)
 
   return (
     <Components.Generic.Menu.Root
@@ -175,8 +180,18 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
           draggable
           onDragStart={(event) => sideMenu.blockDragStart(event, block)}
           onDragEnd={sideMenu.blockDragEnd}
-          className="bn-button"
-          icon={<GripVertical size={20} strokeWidth={2.4} data-test="dragHandle" />}
+          className="bn-button bn-block-handle-button"
+          icon={
+            <span
+              className="bn-block-handle"
+              data-block-type={block?.type}
+              aria-label={glyph.label}
+              data-test="dragHandle"
+            >
+              <glyph.Icon className="bn-block-handle__glyph" size={14} strokeWidth={2.25} aria-hidden="true" />
+              <GripVertical className="bn-block-handle__grip" size={16} strokeWidth={2.4} aria-hidden="true" />
+            </span>
+          }
         />
       </Components.Generic.Menu.Trigger>
       <Component />
@@ -184,11 +199,47 @@ function GrimoireDragHandleButton(props: SideMenuProps) {
   )
 }
 
+/**
+ * ＋ with the same 16px glyph weight as the handle. Mirrors BlockNote's own
+ * add button: an empty block gets the slash menu in place; otherwise a new
+ * paragraph is inserted after the block and the slash menu opens there.
+ */
+function GrimoireAddBlockButton() {
+  const Components = useComponentsContext()
+  const dict = useDictionary()
+  const editor = useBlockNoteEditor()
+  const suggestionMenu = useExtension(SuggestionMenu)
+  const block = useExtensionState(SideMenuExtension, {
+    selector: (state) => state?.block,
+  })
+
+  if (!Components || block === undefined) return null
+
+  const addBlock = () => {
+    const content = block.content
+    if (content !== undefined && Array.isArray(content) && content.length === 0) {
+      editor.setTextCursorPosition(block)
+    } else {
+      const inserted = editor.insertBlocks([{ type: 'paragraph' }], block, 'after')[0]
+      editor.setTextCursorPosition(inserted)
+    }
+    suggestionMenu.openSuggestionMenu('/')
+  }
+
+  return (
+    <Components.SideMenu.Button
+      className="bn-button bn-block-add-button"
+      label={dict.side_menu.add_block_label}
+      icon={<Plus size={18} strokeWidth={2.5} onClick={addBlock} data-test="dragHandleAdd" aria-hidden="true" />}
+    />
+  )
+}
+
 /** Renders Grimoire's BlockNote side controls without clipping the drag-handle menu. */
 export function GrimoireSideMenu(props: SideMenuProps) {
   return (
     <SideMenu {...props}>
-      <AddBlockButton />
+      <GrimoireAddBlockButton />
       <GrimoireDragHandleButton dragHandleMenu={props.dragHandleMenu ?? GrimoireDragHandleMenu} />
     </SideMenu>
   )

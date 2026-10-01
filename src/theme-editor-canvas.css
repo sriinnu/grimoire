@@ -21,7 +21,7 @@
 }
 
 :is(.editor-scroll-area, [data-theme-preset] .editor-scroll-area) .editor__blocknote-container .bn-editor {
-  max-width: min(var(--editor-max-width, 860px), 100%);
+  max-width: min(var(--editor-max-width), 100%);
   width: 100%;
 }
 

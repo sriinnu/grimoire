@@ -45,7 +45,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('shows the ready state when at least one agent is installed', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'installed', version: '1.0.20' },
           codex: { status: 'missing', version: null },
@@ -68,7 +68,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('shows the optional-helper state when no agents are installed', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -93,7 +93,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('opens the agent install links', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -114,7 +114,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('surfaces native discovery details when a CLI scan fails', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null, detail: 'Claude CLI not found in login shell.' },
           codex: { status: 'missing', version: null, detail: 'Codex CLI not found in PATH.' },
@@ -135,7 +135,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('treats a failed scan as retry-needed instead of missing installs', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
           codex: { status: 'missing', version: null, detail: AI_AGENTS_STATUS_SCAN_FAILED_DETAIL },
@@ -163,7 +163,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('shows scan progress while statuses are still checking', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'checking', version: null },
           codex: { status: 'checking', version: null },
@@ -184,7 +184,7 @@ describe('AiAgentsOnboardingPrompt', () => {
     setPlatform('Win32', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)')
 
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -205,7 +205,7 @@ describe('AiAgentsOnboardingPrompt', () => {
     window.addEventListener(AI_AGENTS_STATUS_REFRESH_EVENT, onRefresh)
 
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -223,7 +223,7 @@ describe('AiAgentsOnboardingPrompt', () => {
 
   it('explains browser preview instead of showing fake installed agents', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: 'Live local helpers run in the native Grimoire app.' },
           codex: { status: 'missing', version: 'Live local helpers run in the native Grimoire app.' },
@@ -245,16 +245,16 @@ describe('AiAgentsOnboardingPrompt', () => {
     expect(screen.queryByTestId('ai-agent-status-claude_code')).not.toBeInTheDocument()
   })
 
-  it('surfaces the daemon state and one-click pairing when Chitragupta is installed', async () => {
+  it('surfaces pairing for the selected vault when Chitragupta is installed', async () => {
     mockInvoke.mockImplementation(async (cmd: string) => {
       if (cmd === 'get_chitragupta_socket_status') {
-        return { healthy: true, version: '0.1.16', token_present: false, token_source: 'missing', base_url: 'http://127.0.0.1:3141' }
+        return { contractVersion: 1, state: 'pairing_required', projectPath: '/vault' }
       }
       throw new Error(`unexpected command ${cmd}`)
     })
 
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -264,11 +264,11 @@ describe('AiAgentsOnboardingPrompt', () => {
       />,
     )
 
-    expect(screen.getByTestId('ai-agents-onboarding-chitragupta-pairing')).toBeInTheDocument()
+    expect(screen.getByTestId('settings-chitragupta-socket')).toBeInTheDocument()
     await waitFor(() =>
-      expect(screen.getByTestId('chitragupta-pairing-daemon')).toHaveTextContent('Daemon reachable · v0.1.16'))
-    expect(screen.getByTestId('chitragupta-pairing-connect')).toHaveTextContent('Connect automatically')
-    expect(screen.getByTestId('ai-agents-onboarding-chitragupta-pairing')).toHaveTextContent('Optional — you can pair later in Settings.')
+      expect(screen.getByTestId('settings-chitragupta-socket-status')).toHaveTextContent('Pairing required'))
+    expect(screen.getByTestId('settings-chitragupta-socket-connect')).toHaveTextContent('Connect Chitragupta')
+    expect(screen.getByTestId('settings-chitragupta-socket')).toHaveTextContent('six-digit code')
     // Pairing never blocks the step.
     expect(screen.getByTestId('ai-agents-onboarding-continue').querySelector('button')).toBeEnabled()
   })
@@ -276,13 +276,13 @@ describe('AiAgentsOnboardingPrompt', () => {
   it('shows the daemon-unreachable state without blocking onboarding', async () => {
     mockInvoke.mockImplementation(async (cmd: string) => {
       if (cmd === 'get_chitragupta_socket_status') {
-        return { healthy: false, version: null, token_present: false, token_source: 'missing', base_url: 'http://127.0.0.1:3141' }
+        return { contractVersion: 1, state: 'approval_required', projectPath: '/vault' }
       }
       throw new Error(`unexpected command ${cmd}`)
     })
 
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -293,21 +293,21 @@ describe('AiAgentsOnboardingPrompt', () => {
     )
 
     await waitFor(() =>
-      expect(screen.getByTestId('chitragupta-pairing-daemon')).toHaveTextContent('Daemon not running'))
-    expect(screen.getByTestId('chitragupta-pairing-connect')).toBeInTheDocument()
+      expect(screen.getByTestId('settings-chitragupta-socket-status')).toHaveTextContent('Workspace approval required'))
+    expect(screen.getByTestId('settings-chitragupta-socket-connect')).toBeInTheDocument()
     expect(screen.getByTestId('ai-agents-onboarding-continue').querySelector('button')).toBeEnabled()
   })
 
-  it('shows already-paired daemons as connected and hides the connect button', async () => {
+  it('shows approved vaults as ready and hides the connect button', async () => {
     mockInvoke.mockImplementation(async (cmd: string) => {
       if (cmd === 'get_chitragupta_socket_status') {
-        return { healthy: true, version: '0.1.16', token_present: true, token_source: 'keychain', base_url: 'http://127.0.0.1:3141' }
+        return { contractVersion: 1, state: 'ready', projectPath: '/vault' }
       }
       throw new Error(`unexpected command ${cmd}`)
     })
 
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -318,13 +318,13 @@ describe('AiAgentsOnboardingPrompt', () => {
     )
 
     await waitFor(() =>
-      expect(screen.getByTestId('chitragupta-pairing-connected')).toHaveTextContent('Daemon connected'))
-    expect(screen.queryByTestId('chitragupta-pairing-connect')).not.toBeInTheDocument()
+      expect(screen.getByTestId('settings-chitragupta-socket-status')).toHaveTextContent('Connected to this vault'))
+    expect(screen.queryByTestId('settings-chitragupta-socket-connect')).not.toBeInTheDocument()
   })
 
   it('never renders the pairing panel when the Chitragupta CLI is missing', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'missing', version: null },
           codex: { status: 'missing', version: null },
@@ -334,13 +334,13 @@ describe('AiAgentsOnboardingPrompt', () => {
       />,
     )
 
-    expect(screen.queryByTestId('ai-agents-onboarding-chitragupta-pairing')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('settings-chitragupta-socket')).not.toBeInTheDocument()
     expect(mockInvoke).not.toHaveBeenCalled()
   })
 
   it('uses the surrounding surface as a drag region and excludes the card', () => {
     render(
-      <AiAgentsOnboardingPrompt
+      <AiAgentsOnboardingPrompt vaultPath="/vault"
         statuses={{
           claude_code: { status: 'installed', version: '1.0.20' },
           codex: { status: 'missing', version: null },

@@ -19,10 +19,15 @@ export interface AppCommandsConfig {
   selection: SidebarSelection
   onQuickOpen: () => void
   onCommandPalette: () => void
+  onToggleKeyboardShortcuts?: () => void
   onSearch: () => void
   onCreateNote: () => void
   onCaptureThought?: () => void
   onCaptureJournal?: () => void
+  /** Open today's journal entry, creating it if it doesn't exist yet. */
+  onOpenTodayJournal?: () => void
+  /** Open the quick-capture sheet (appends to today's journal). */
+  onQuickCapture?: () => void
   onCaptureDream?: () => void
   onCreateNoteOfType: (type: string) => void
   onSave: () => void
@@ -60,6 +65,7 @@ export interface AppCommandsConfig {
   onAddRemote?: () => void
   canAddRemote?: boolean
   onCreateType?: () => void
+  onImportFiles?: () => void
   onToggleAIChat?: () => void
   onOpenGraph?: () => void
   onCheckForUpdates?: () => void
@@ -136,6 +142,8 @@ export type CommandRegistryCoreActions = Pick<
   | 'onCreateNote'
   | 'onCaptureThought'
   | 'onCaptureJournal'
+  | 'onOpenTodayJournal'
+  | 'onQuickCapture'
   | 'onCaptureDream'
   | 'onCreateNoteOfType'
   | 'onSave'
@@ -155,6 +163,7 @@ export type CommandRegistryCoreActions = Pick<
   | 'onToggleNoteLayout'
   | 'onToggleAIChat'
   | 'onOpenGraph'
+  | 'onToggleKeyboardShortcuts'
 >
 export type CommandRegistryVaultActions = Pick<
   CommandRegistryConfig,
@@ -164,6 +173,7 @@ export type CommandRegistryVaultActions = Pick<
   | 'canAddRemote'
   | 'onCheckForUpdates'
   | 'onCreateType'
+  | 'onImportFiles'
   | 'locale'
   | 'systemLocale'
   | 'selectedUiLanguage'

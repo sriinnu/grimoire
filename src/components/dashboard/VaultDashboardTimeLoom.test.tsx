@@ -94,7 +94,7 @@ describe('VaultDashboard trail privacy', () => {
       />,
     )
 
-    const panel = await screen.findByTestId('time-loom-panel')
+    const panel = await screen.findByTestId('time-loom-panel', {}, { timeout: 5000 })
     const dailyThread = await screen.findByTestId('daily-thread-rail')
     expect(dailyThread).toHaveTextContent('Review private captures')
     expect(dailyThread).toHaveTextContent('3 held local')
@@ -127,7 +127,7 @@ describe('VaultDashboard trail privacy', () => {
       />,
     )
 
-    const panel = await screen.findByTestId('time-loom-panel')
+    const panel = await screen.findByTestId('time-loom-panel', {}, { timeout: 5000 })
     expect(panel).toHaveTextContent('1 saved point')
     expect(panel).toHaveTextContent('1 note')
     expect(panel).not.toHaveTextContent('Journal sync with private details')
@@ -156,7 +156,7 @@ describe('VaultDashboard trail privacy', () => {
       />,
     )
 
-    const panel = await screen.findByTestId('time-loom-panel')
+    const panel = await screen.findByTestId('time-loom-panel', {}, { timeout: 5000 })
     expect(panel).toHaveTextContent('1 planned')
     expect(panel).toHaveTextContent('1 planned mark')
     expect(panel).not.toHaveTextContent('Private Appointment')

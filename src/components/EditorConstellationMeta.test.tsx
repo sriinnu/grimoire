@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
-import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { makeEntry } from '../test-utils/noteListTestUtils'
 import { EditorConstellationMeta } from './EditorConstellationMeta'
 
@@ -53,6 +53,24 @@ describe('EditorConstellationMeta', () => {
     expect(editorMetaCss).toContain('.editor-meta-strip__spacer')
   })
 
+  it('adds a reading time once a note is long enough, and follows the editor after a debounce', () => {
+    vi.useFakeTimers()
+    const words = Array.from({ length: 480 }, (_, index) => `word${index}`).join(' ')
+    const { rerender } = render(
+      <EditorConstellationMeta content="# Draft" entry={makeEntry({ isA: 'Project', wordCount: 12 })} />,
+    )
+    // Saved count first, so nothing flashes on open; too short for a reading time.
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('12 words')
+    expect(screen.queryByTestId('editor-meta-readingtime')).toBeNull()
+
+    rerender(<EditorConstellationMeta content={`# Draft\n\n${words}`} entry={makeEntry({ isA: 'Project', wordCount: 12 })} />)
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('12 words')
+    act(() => { vi.advanceTimersByTime(300) })
+    expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('480 words')
+    expect(screen.getByTestId('editor-meta-readingtime')).toHaveTextContent('2 min read')
+    vi.useRealTimers()
+  })
+
   it('singularises the word count for a one-word note', () => {
     render(
       <EditorConstellationMeta
@@ -62,6 +80,15 @@ describe('EditorConstellationMeta', () => {
     )
 
     expect(screen.getByTestId('editor-meta-wordcount')).toHaveTextContent('1 word')
+  })
+
+  it('shows no pills that would read the same on every note', () => {
+    render(<EditorConstellationMeta content="# Plain" entry={makeEntry({ isA: 'Note', status: null })} />)
+
+    const strip = screen.getByTestId('editor-meta-strip')
+    expect(within(strip).queryByText('local markdown')).toBeNull()
+    expect(strip.querySelector('[data-field="status"]')).toBeNull()
+    expect(within(strip).getByText('Note')).toBeInTheDocument()
   })
 
   it('honors theme-pack metadata field visibility', () => {
@@ -87,5 +114,19 @@ describe('EditorConstellationMeta', () => {
     expect(within(strip).queryByText('Active')).toBeNull()
     expect(within(strip).queryByText('Sriinnu')).toBeNull()
     expect(within(strip).queryByText('High')).toBeNull()
+  })
+
+  it('chips ask the Second Brain to edit their property', () => {
+    const opened = vi.fn()
+    const focused = vi.fn()
+    const jumped = vi.fn()
+    window.addEventListener('grimoire:open-inspector', opened)
+    window.addEventListener('grimoire:focus-note-property', (event) => focused((event as CustomEvent<{ key: string }>).detail.key))
+    window.addEventListener('grimoire:inspector-jump', (event) => jumped((event as CustomEvent<{ section: string }>).detail.section))
+    render(<EditorConstellationMeta content="" entry={makeEntry({ title: 'Plan', isA: 'Project', status: 'Active' })} />)
+    fireEvent.click(within(screen.getByTestId('editor-meta-strip')).getByRole('button', { name: /^status/ }))
+    expect(opened).toHaveBeenCalledOnce()
+    expect(focused).toHaveBeenCalledWith('status')
+    expect(jumped).toHaveBeenCalledWith('about')
   })
 })

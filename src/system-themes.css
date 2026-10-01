@@ -1,6 +1,5 @@
 @import './theme-system-tokens.css';
 @import './theme-semantic-tokens.css';
-@import './theme-constellation.css';
 @import './theme-flagship-shared.css';
 @import './theme-editor-navigator.css';
 @import './theme-coherence.css';
@@ -22,82 +21,18 @@
 @import './theme-native-media.css';
 @import './theme-accessibility.css';
 
-[data-theme-preset-preview="constellation"] {
-  --surface-editor: #07111a;
-  --foreground: #e8f0ff;
-  --muted-foreground: #a2b3c6;
-  --border: #26364a;
-  --primary: #78a6ff;
-}
-
-[data-theme-preset-preview="daylight-notebook"] {
-  --surface-editor: #fffdf8;
-  --foreground: #26313a;
-  --muted-foreground: #606f7c;
-  --border: #d7dee7;
-  --primary: #2f668e;
-}
-
-[data-theme-preset-preview="daylight-notebook"][data-theme-preview="dark"] {
-  --surface-editor: #13171c;
-  --foreground: #e8eaed;
-  --muted-foreground: #adb4bd;
-  --border: #30363d;
-  --primary: #aab6c5;
-}
-
 [data-theme-preset-preview="morning-notebook"] {
-  --surface-editor: #fdfdff;
-  --foreground: #24313a;
-  --muted-foreground: #607080;
-  --border: #d9dee7;
-  --primary: #2f668e;
+  --surface-editor: #fffdf9;
+  --foreground: #1f1c18;
+  --muted-foreground: #5c554b;
+  --border: #e6e1d6;
+  --primary: #3a4ba8;
 }
 
 [data-theme-preset-preview="morning-notebook"][data-theme-preview="dark"] {
-  --surface-editor: #13171c;
-  --foreground: #e8eaed;
-  --muted-foreground: #adb4bd;
-  --border: #30363d;
-  --primary: #aab6c5;
-}
-
-[data-theme-preset-preview="living-archive"] {
-  --surface-editor: #fbfcfd;
-  --foreground: #27313a;
-  --muted-foreground: #5f6e7a;
-  --border: #d7dde5;
-  --primary: #557a95;
-}
-
-[data-theme-preset-preview="living-archive"][data-theme-preview="dark"] {
-  --surface-editor: #191d22;
-  --foreground: #e1e7ec;
-  --muted-foreground: #a8b4bd;
-  --border: #3a3f46;
-  --primary: #9abbd0;
-}
-
-[data-theme-preset-preview="nocturne"] {
-  --surface-editor: #121416;
-  --foreground: #e9ecef;
-  --muted-foreground: #aeb4bc;
-  --border: #30343a;
-  --primary: #86aee8;
-}
-
-[data-theme-preset-preview="nocturne"][data-theme-preview="light"] {
-  --surface-editor: #fdfdff;
-  --foreground: #24313a;
-  --muted-foreground: #607080;
-  --border: #d9dee7;
-  --primary: #2f668e;
-}
-
-[data-theme-preset-preview="code-notebook"] {
-  --surface-editor: #0a0c11;
-  --foreground: #e7ebf2;
-  --muted-foreground: #aab2bf;
-  --border: #303641;
-  --primary: #8fa8ff;
+  --surface-editor: #12110f;
+  --foreground: #f5f2ea;
+  --muted-foreground: #b5aea2;
+  --border: #2c2925;
+  --primary: #9aa8ff;
 }

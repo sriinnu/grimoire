@@ -31,6 +31,7 @@ vi.mock('@tauri-apps/api/event', () => ({
 }))
 
 import { streamAiAgent } from './streamAiAgent'
+import { CHITRAGUPTA_HISTORY_REFRESH_EVENT } from '../lib/chitraguptaSocket'
 
 describe('streamAiAgent', () => {
   beforeEach(() => {
@@ -40,6 +41,7 @@ describe('streamAiAgent', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   it('reports native-app requirement when Tauri is unavailable', async () => {
@@ -131,6 +133,7 @@ describe('streamAiAgent', () => {
 
   it('surfaces backend invocation failures and still closes the stream', async () => {
     isTauriState.value = true
+    const dispatch = vi.spyOn(window, 'dispatchEvent')
     const unlistenMock = vi.fn()
 
     listenMock.mockResolvedValue(unlistenMock)
@@ -146,19 +149,25 @@ describe('streamAiAgent', () => {
     }
 
     await streamAiAgent({
-      agent: 'codex',
+      agent: 'chitragupta',
       message: 'Explain this',
       vaultPath: '/vault',
+      notePath: 'notes/alpha.md',
       callbacks,
     })
 
     expect(callbacks.onError).toHaveBeenCalledWith('backend boom')
     expect(callbacks.onDone).toHaveBeenCalledTimes(1)
     expect(unlistenMock).toHaveBeenCalledTimes(1)
+    const historyRefreshes = dispatch.mock.calls.filter(([event]) => event.type === CHITRAGUPTA_HISTORY_REFRESH_EVENT)
+    expect(historyRefreshes).toHaveLength(1)
+    expect((historyRefreshes[0][0] as CustomEvent).detail).toEqual({ vaultPath: '/vault', notePath: 'notes/alpha.md' })
+
   })
 
   it('closes the stream when the backend returns before a done event is observed', async () => {
     isTauriState.value = true
+    const dispatch = vi.spyOn(window, 'dispatchEvent')
     const unlistenMock = vi.fn()
     let eventHandler: ((event: { payload: unknown }) => void) | undefined
 
@@ -181,14 +190,19 @@ describe('streamAiAgent', () => {
     }
 
     await streamAiAgent({
-      agent: 'claude_code',
+      agent: 'chitragupta',
       message: 'Reply with done',
       vaultPath: '/vault',
+      notePath: 'notes/alpha.md',
       callbacks,
     })
 
     expect(callbacks.onText).toHaveBeenCalledWith('done')
     expect(callbacks.onDone).toHaveBeenCalledTimes(1)
     expect(unlistenMock).toHaveBeenCalledTimes(1)
+    const historyRefreshes = dispatch.mock.calls.filter(([event]) => event.type === CHITRAGUPTA_HISTORY_REFRESH_EVENT)
+    expect(historyRefreshes).toHaveLength(1)
+    expect((historyRefreshes[0][0] as CustomEvent).detail).toEqual({ vaultPath: '/vault', notePath: 'notes/alpha.md' })
+
   })
 })

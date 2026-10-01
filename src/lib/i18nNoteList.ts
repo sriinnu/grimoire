@@ -9,7 +9,7 @@ const EN_NOTE_LIST_TRANSLATIONS = {
   'noteList.title.notes': 'Pages',
   'noteList.title.journal': 'Journal',
   'noteList.title.dreams': 'Dreams',
-  'noteList.searchPlaceholder': 'Search pages...',
+  'noteList.searchPlaceholder': 'Search pages',
   'noteList.searchTypedPlaceholder': 'Search {type}...',
   'noteList.searchJournalPlaceholder': 'Search journal entries...',
   'noteList.searchDreamPlaceholder': 'Search dreams...',

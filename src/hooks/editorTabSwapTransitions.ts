@@ -184,6 +184,20 @@ function cacheStableActiveTabAndClearPending(options: {
   return true
 }
 
+function isEchoOfLocalEdit(options: {
+  activeTabPath: string | null
+  activeTab: Tab | undefined
+  pendingLocalContentRef: MutableRefObject<PendingLocalContent | null>
+}) {
+  const pending = options.pendingLocalContentRef.current
+  return Boolean(
+    options.activeTabPath
+      && options.activeTab
+      && pending?.path === options.activeTabPath
+      && pending.content === options.activeTab.content,
+  )
+}
+
 function shouldKeepPendingLocalContent(options: {
   activeTabPath: string | null
   activeTab: Tab | undefined
@@ -256,7 +270,11 @@ export function handleStableActivePath(options: {
   if (rawModeJustEnded) {
     return !markRawModeReswapPending({ activeTabPath, cache, rawSwapPendingRef })
   }
-  if (currentEditorMatchesActiveTab({ activeTabPath, activeTab, editor, editorMountedRef })) {
+  // The common case while typing: this tabs update is the echo of our own
+  // editor change, so the editor matches the tab by construction. Skip
+  // re-serializing the whole document just to prove it.
+  if (isEchoOfLocalEdit({ activeTabPath, activeTab, pendingLocalContentRef })
+    || currentEditorMatchesActiveTab({ activeTabPath, activeTab, editor, editorMountedRef })) {
     return cacheStableActiveTabAndClearPending({
       cache,
       activeTabPath,

@@ -25,7 +25,7 @@ function BacklinkEntry({ entry, context, onNavigate }: {
         className="flex items-center gap-1 text-xs text-primary"
         style={isDimmed ? { color: 'var(--muted-foreground)' } : undefined}
       >
-        <NoteTitleIcon icon={entry.icon} size={14} />
+        <NoteTitleIcon icon={entry.icon} size={16} />
         {entry.title}
         <StatusSuffix isArchived={entry.archived} />
       </span>
@@ -50,7 +50,7 @@ export function BacklinksPanel({ backlinks, onNavigate }: {
         <ArrowUpRight size={12} className="shrink-0" />
         Backlinks
       </h4>
-      <div className="flex flex-col gap-1.5" data-testid="backlinks-list">
+      <div className="flex flex-col gap-1" data-testid="backlinks-list">
         {backlinks.map(({ entry, context }) => (
           <BacklinkEntry
             key={entry.path}

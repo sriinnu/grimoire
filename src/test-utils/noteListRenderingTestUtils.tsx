@@ -116,9 +116,9 @@ export function renderBookNoteList({
 
 /** Enters a NoteList search query and waits for the debounce spinner to settle. */
 export async function searchNoteList(query: string) {
-  const searchInput = screen.queryByPlaceholderText('Search pages...')
+  const searchInput = screen.queryByPlaceholderText('Search pages')
   if (!searchInput) fireEvent.click(screen.getByTitle('Search pages'))
-  fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: query } })
+  fireEvent.change(screen.getByPlaceholderText('Search pages'), { target: { value: query } })
   await waitFor(() => {
     expect(screen.getByTestId('note-list-search-loading')).toBeInTheDocument()
   })

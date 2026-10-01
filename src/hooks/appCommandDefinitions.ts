@@ -15,6 +15,10 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
     menuOwned: true,
     shortcut: { combo: 'command-or-ctrl', key: 'n', code: 'KeyN', display: '⌘N' },
   },
+  [APP_COMMAND_IDS.fileImportFiles]: {
+    route: { kind: 'handler', handler: 'onImportFiles' },
+    menuOwned: false,
+  },
   [APP_COMMAND_IDS.fileCaptureThought]: {
     route: { kind: 'handler', handler: 'onCaptureThought' },
     menuOwned: true,
@@ -95,6 +99,11 @@ export const APP_COMMAND_DEFINITIONS: Record<AppCommandId, AppCommandDefinition>
     route: { kind: 'handler', handler: 'onCommandPalette' },
     menuOwned: true,
     shortcut: { combo: 'command-or-ctrl', key: 'k', code: 'KeyK', display: '⌘K' },
+  },
+  [APP_COMMAND_IDS.viewKeyboardShortcuts]: {
+    route: { kind: 'handler', handler: 'onToggleKeyboardShortcuts' },
+    menuOwned: false,
+    shortcut: { combo: 'command-or-ctrl', key: '/', code: 'Slash', display: '⌘/' },
   },
   [APP_COMMAND_IDS.viewZoomIn]: {
     route: { kind: 'handler', handler: 'onZoomIn' },

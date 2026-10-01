@@ -38,6 +38,7 @@ fn test_settings_json_roundtrip() {
         editor_line_height: Some("compact".to_string()),
         ui_language: Some("zh-Hans".to_string()),
         menu_bar_icon_enabled: Some(true),
+        panchangam_enabled: Some(false),
         native_shell_material: Some("unified".to_string()),
         initial_h1_auto_rename_enabled: Some(false),
         default_ai_agent: Some("codex".to_string()),
@@ -48,6 +49,10 @@ fn test_settings_json_roundtrip() {
         ai_agent_providers: Some(BTreeMap::from([(
             "chitragupta".to_string(),
             "openai".to_string(),
+        )])),
+        ai_agent_auth_modes: Some(BTreeMap::from([(
+            "codex".to_string(),
+            "api_key".to_string(),
         )])),
         transcription_provider: Some("local_voice_model".to_string()),
         cloud_transcription_enabled: Some(false),

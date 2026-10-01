@@ -58,6 +58,16 @@ describe('NoteList rendering', () => {
     expect(chrome.querySelector('.project-workspace-chrome__search-actions')).toBeInTheDocument()
   })
 
+  it('hides the Open/Archived toggle when nothing is archived', () => {
+    renderNoteList({
+      selection: { kind: 'folder', path: 'project' },
+      entries: [makeEntry({ path: '/vault/project/README.md', filename: 'README.md', title: 'README' })],
+    })
+
+    expect(screen.queryByTestId('note-list-state-filter-group')).toBeNull()
+    expect(screen.getByTestId('note-list-file-scope-group')).toBeInTheDocument()
+  })
+
   it('renders folder filters in the upper chrome instead of the list footer', () => {
     renderNoteList({
       selection: { kind: 'folder', path: 'project' },
@@ -66,6 +76,12 @@ describe('NoteList rendering', () => {
           path: '/vault/project/README.md',
           filename: 'README.md',
           title: 'README',
+        }),
+        makeEntry({
+          path: '/vault/project/old-plan.md',
+          filename: 'old-plan.md',
+          title: 'Old plan',
+          archived: true,
         }),
       ],
     })
@@ -149,9 +165,9 @@ describe('NoteList rendering', () => {
 
   it('toggles the search input from the header action', () => {
     renderNoteList()
-    expect(screen.queryByPlaceholderText('Search pages...')).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Search pages')).not.toBeInTheDocument()
     fireEvent.click(screen.getByTitle('Search pages'))
-    expect(screen.getByPlaceholderText('Search pages...')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Search pages')).toBeInTheDocument()
   })
 
   it('filters by a case-insensitive search query', async () => {
@@ -255,9 +271,9 @@ describe('NoteList rendering', () => {
       })
 
       fireEvent.click(screen.getByTitle('Search pages'))
-      fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'strategy' } })
+      fireEvent.change(screen.getByPlaceholderText('Search pages'), { target: { value: 'strategy' } })
 
-      const searchInput = screen.getByPlaceholderText('Search pages...')
+      const searchInput = screen.getByPlaceholderText('Search pages')
       expect(searchInput).toHaveClass('pr-8')
       expect(searchInput.parentElement).toHaveClass('relative', 'flex-1')
       expect(screen.getByTestId('note-list-search-loading')).toBeInTheDocument()

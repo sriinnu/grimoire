@@ -1,7 +1,8 @@
 import type { ComponentProps, ReactElement } from 'react'
 import { render as rtlRender, screen, fireEvent, within } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import { Inspector } from './Inspector'
+import { resetInspectorSectionStateForTests, type InspectorSectionId } from './inspector/inspectorSectionState'
 import type { VaultEntry, GitCommit } from '../types'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
@@ -96,6 +97,18 @@ const defaultProps = {
 
 type InspectorProps = ComponentProps<typeof Inspector>
 
+/** Sections closed by default (History, Details) keep their panels mounted but hidden; open one to query by role. */
+function openSection(id: InspectorSectionId) {
+  const section = screen.getByTestId(`inspector-section-${id}`)
+  const toggle = within(section).getByRole('button', { expanded: false })
+  fireEvent.click(toggle)
+  return section
+}
+
+function section(id: InspectorSectionId) {
+  return screen.getByTestId(`inspector-section-${id}`)
+}
+
 function renderInspector(overrides: Partial<InspectorProps> = {}) {
   return render(<Inspector {...defaultProps} {...overrides} />)
 }
@@ -109,10 +122,12 @@ function renderSelectedInspector(overrides: Partial<InspectorProps> = {}) {
 }
 
 describe('Inspector', () => {
+  afterEach(() => resetInspectorSectionStateForTests())
+
   it('renders expanded state with "no note selected"', () => {
     render(<Inspector {...defaultProps} />)
-    // Header now says "Properties" (not "Inspector")
-    expect(screen.getAllByText('Properties').length).toBeGreaterThan(0)
+    expect(screen.getByTestId('inspector-header-title')).toHaveTextContent('Second Brain')
+    expect(screen.queryByTestId('inspector-header-subtitle')).not.toBeInTheDocument()
     expect(document.querySelector('[data-panel-role="inspector"]')).toHaveClass('grimoire-inspector-stage')
     expect(document.querySelector('.inspector-body')).toHaveClass('grimoire-panel-reveal')
     expect(screen.getByText('No note selected')).toBeInTheDocument()
@@ -156,6 +171,7 @@ describe('Inspector', () => {
       onNavigate,
     })
 
+    openSection('details')
     const panel = screen.getByTestId('second-brain-panel')
     fireEvent.click(within(panel).getByRole('button', { name: 'Software Development' }))
 
@@ -166,6 +182,7 @@ describe('Inspector', () => {
     const onOpenSecondBrain = vi.fn()
     renderSelectedInspector({ onOpenSecondBrain })
 
+    openSection('details')
     const panel = screen.getByTestId('second-brain-panel')
     expect(within(panel).getByText('Second Brain')).toBeInTheDocument()
     expect(within(panel).getByText('Local note context')).toBeInTheDocument()
@@ -185,6 +202,7 @@ describe('Inspector', () => {
       ],
     })
 
+    openSection('details')
     const panel = screen.getByTestId('second-brain-panel')
     expect(within(panel).getByRole('heading', { name: 'Neighborhood' })).toBeInTheDocument()
     // A real inbound wikilink is not invention: it appears in the incoming column.
@@ -208,9 +226,9 @@ owner: Sriinnu
       onUpdateFrontmatter,
     })
 
-    const panel = screen.getByTestId('living-frontmatter-panel')
-    expect(within(panel).getByText('Markdown-owned')).toBeInTheDocument()
-    fireEvent.click(within(panel).getByRole('button', { name: 'Apply' }))
+    const statusHint = within(section('about')).getAllByTestId('living-frontmatter-hint').find((hint) => hint.getAttribute('data-field') === 'status')!
+    expect(statusHint).toHaveTextContent('Active')
+    fireEvent.click(within(statusHint).getByRole('button', { name: 'Apply' }))
     expect(onUpdateFrontmatter).toHaveBeenCalledWith(mockEntry.path, 'status', 'Active')
   })
 
@@ -237,6 +255,8 @@ owner: Sriinnu
       chitraguptaAvailability: { status: 'installed', version: '0.1.0' },
     })
 
+    expect(section('history')).toContainElement(screen.getByTestId('memory-panel'))
+    openSection('history')
     const panel = screen.getByTestId('memory-panel')
     expect(panel).toBeInTheDocument()
     expect(screen.getByTestId('memory-signal')).toBeInTheDocument()
@@ -252,9 +272,11 @@ owner: Sriinnu
     expect(within(panel).getByText('Remember the project launch constraints.')).toBeInTheDocument()
   })
 
-  it('shows the per-note Locality Firewall before the memory lane', () => {
+  it('keeps the per-note Locality Firewall reachable under Details', () => {
     renderSelectedInspector()
 
+    expect(section('details')).toContainElement(screen.getByTestId('note-locality-firewall'))
+    openSection('details')
     const panel = screen.getByTestId('note-locality-firewall')
     expect(within(panel).getByRole('heading', { name: 'Firewall' })).toBeInTheDocument()
     expect(within(panel).getByText('Vault context')).toBeInTheDocument()
@@ -309,25 +331,90 @@ owner: Sriinnu
     expect(screen.getByText('Weekly')).toBeInTheDocument()
   })
 
-  it('shows a separator between properties and relationships', () => {
-    render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
-    expect(screen.getByTestId('inspector-properties-relationships-separator')).toBeInTheDocument()
+  it('asks three questions in order: About, Connections, History, then Details', () => {
+    renderSelectedInspector({ entries: [mockEntry, referrerEntry], gitHistory: mockGitHistory })
+    const ids = Array.from(document.querySelectorAll('[data-section]')).map((node) => node.getAttribute('data-section'))
+    expect(ids).toEqual(['about', 'connections', 'history', 'details'])
+    expect(section('about')).toHaveAttribute('data-open', 'true')
+    expect(section('connections')).toHaveAttribute('data-open', 'true')
+    expect(section('history')).toHaveAttribute('data-open', 'false')
+    expect(section('details')).toHaveAttribute('data-open', 'false')
+    expect(screen.getByTestId('inspector-header-subtitle')).toHaveTextContent('Test Project')
   })
 
-  it('shows relationships with clickable links', () => {
-    render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
-    const relationshipsPanel = screen.getByTestId('relationships-panel-grid')
-    expect(within(relationshipsPanel).getByText('Belongs to')).toBeInTheDocument()
-    expect(within(relationshipsPanel).getByText('Grow Newsletter')).toBeInTheDocument()
-    expect(within(relationshipsPanel).getByText('Related to')).toBeInTheDocument()
-    expect(within(relationshipsPanel).getByText('Software Development')).toBeInTheDocument()
+  it('counts connections in the section heading and remembers a toggled section', () => {
+    const { unmount } = renderSelectedInspector({ entries: [mockEntry, referrerEntry], gitHistory: mockGitHistory })
+    // Belongs to + Related to (2 out) + 1 backlink in.
+    expect(screen.getByTestId('inspector-section-connections-count')).toHaveTextContent('3')
+    expect(screen.getByTestId('inspector-section-history-count')).toHaveTextContent('3')
+    openSection('history')
+    expect(section('history')).toHaveAttribute('data-open', 'true')
+    unmount()
+    renderSelectedInspector({ gitHistory: mockGitHistory })
+    expect(section('history')).toHaveAttribute('data-open', 'true')
   })
 
-  it('navigates when a relationship link is clicked', () => {
+  it('closes on Escape from plain focus but not from a text field', () => {
+    const onToggle = vi.fn()
+    renderSelectedInspector({ onToggle, onAddProperty: vi.fn() })
+    fireEvent.keyDown(screen.getByTestId('inspector-section-about'), { key: 'Escape' })
+    expect(onToggle).toHaveBeenCalledOnce()
+    fireEvent.click(screen.getByRole('button', { name: 'Add property' }))
+    const field = screen.getAllByRole('textbox')[0]
+    fireEvent.keyDown(field, { key: 'Escape' })
+    expect(onToggle).toHaveBeenCalledOnce()
+  })
+
+  it('jumps to a section on ⌃3, opening it and moving focus to its heading', () => {
+    renderSelectedInspector({ gitHistory: mockGitHistory })
+    expect(section('history')).toHaveAttribute('data-open', 'false')
+    fireEvent.keyDown(section('about'), { key: '3', code: 'Digit3', ctrlKey: true })
+    expect(section('history')).toHaveAttribute('data-open', 'true')
+    expect(document.activeElement).toBe(within(section('history')).getByRole('button', { expanded: true }))
+  })
+
+  it('says so when a page has no connections yet', () => {
+    renderSelectedInspector({
+      entry: { ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] },
+      content: '---\ntitle: Test Project\nis_a: Project\n---\n\n# Test Project\n',
+      entries: [{ ...mockEntry, belongsTo: [], relatedTo: [], outgoingLinks: [] }],
+    })
+    expect(screen.getByTestId('inspector-connections-empty')).toHaveTextContent('No connections yet')
+    expect(screen.queryByTestId('inspector-section-connections-count')).not.toBeInTheDocument()
+  })
+
+  it('lists typed relationships as outgoing connections with their labels', () => {
+    render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} />)
+    const list = screen.getByTestId('connections-list')
+    const rows = within(list).getAllByTestId('connection-row')
+    expect(rows.map((row) => row.getAttribute('data-direction'))).toEqual(['out', 'out'])
+    expect(within(list).getByText('Grow Newsletter').closest('[data-testid="connection-row"]')).toHaveTextContent('Belongs to')
+    expect(within(list).getByText('Software Development').closest('[data-testid="connection-row"]')).toHaveTextContent('Related to')
+  })
+
+  it('navigates when a connection is clicked', () => {
     const onNavigate = vi.fn()
     render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} onNavigate={onNavigate} />)
-    fireEvent.click(within(screen.getByTestId('relationships-panel-grid')).getByText('Grow Newsletter'))
+    fireEvent.click(within(screen.getByTestId('connections-list')).getByText('Grow Newsletter'))
     expect(onNavigate).toHaveBeenCalledWith('responsibility/grow-newsletter')
+  })
+
+  it('filters connections by direction and remembers the choice', () => {
+    const { unmount } = renderSelectedInspector({ entries: [mockEntry, referrerEntry] })
+    fireEvent.click(screen.getByTestId('connections-filter-in'))
+    expect(screen.getAllByTestId('connection-row').map((row) => row.textContent)).toEqual([expect.stringContaining('Referrer Note')])
+    unmount()
+    renderSelectedInspector({ entries: [mockEntry, referrerEntry] })
+    expect(screen.getByTestId('connections-filter-in')).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('opens the relationship editor on demand', () => {
+    render(<Inspector {...defaultProps} entry={mockEntry} content={mockContent} onAddProperty={vi.fn()} />)
+    expect(screen.queryByTestId('relationships-panel-grid')).toBeNull()
+    fireEvent.click(screen.getByTestId('connections-edit-toggle'))
+    const grid = screen.getByTestId('relationships-panel-grid')
+    expect(within(grid).getAllByText('Belongs to').length).toBeGreaterThan(0)
+    expect(within(grid).getByText('Grow Newsletter')).toBeInTheDocument()
   })
 
   it('hides relationships label when entry has no belongsTo/relatedTo', () => {
@@ -355,8 +442,8 @@ This is a test note with some words to count.
         entries={[mockEntry, referrerEntry]}
       />
     )
-    expect(screen.getByText('Backlinks')).toBeInTheDocument()
-    expect(screen.getAllByText('Referrer Note').length).toBeGreaterThan(0)
+    const row = within(screen.getByTestId('connections-list')).getByText('Referrer Note').closest('[data-testid="connection-row"]')
+    expect(row).toHaveAttribute('data-direction', 'in')
   })
 
   it('updates backlinks reactively when outgoingLinks changes', () => {
@@ -368,7 +455,7 @@ This is a test note with some words to count.
         entries={[mockEntry, { ...referrerEntry, outgoingLinks: [] }]}
       />
     )
-    expect(screen.queryByText('Backlinks')).not.toBeInTheDocument()
+    expect(screen.queryAllByTestId('connection-row').filter((row) => row.getAttribute('data-direction') !== 'out')).toEqual([])
 
     rerender(
       <Inspector
@@ -378,13 +465,12 @@ This is a test note with some words to count.
         entries={[mockEntry, { ...referrerEntry, outgoingLinks: ['Test Project'] }]}
       />
     )
-    expect(screen.getByText('Backlinks')).toBeInTheDocument()
-    expect(screen.getAllByText('Referrer Note').length).toBeGreaterThan(0)
+    expect(within(screen.getByTestId('connections-list')).getByText('Referrer Note').closest('[data-testid="connection-row"]')).toHaveAttribute('data-direction', 'in')
   })
 
-  it('hides backlinks section when no notes reference the current note', () => {
+  it('shows no incoming connections when no notes reference the current note', () => {
     renderSelectedInspector({ entries: [mockEntry] })
-    expect(screen.queryByText('Backlinks')).not.toBeInTheDocument()
+    expect(screen.queryAllByTestId('connection-row').filter((row) => row.getAttribute('data-direction') !== 'out')).toEqual([])
   })
 
   it('navigates when a backlink is clicked', () => {
@@ -399,7 +485,8 @@ This is a test note with some words to count.
 
   it('shows git history with commit hashes and messages', () => {
     renderSelectedInspector({ gitHistory: mockGitHistory })
-    expect(screen.getByText('History')).toBeInTheDocument()
+    openSection('history')
+    expect(within(section('history')).getByTestId('git-timeline')).toBeInTheDocument()
     expect(screen.getByText('a1b2c3d')).toBeInTheDocument()
     expect(screen.getByText('e4f5g6h')).toBeInTheDocument()
     expect(screen.getByText('i7j8k9l')).toBeInTheDocument()
@@ -418,9 +505,10 @@ This is a test note with some words to count.
     expect(onViewCommitDiff).toHaveBeenCalledWith('a1b2c3d4e5f6a7b8')
   })
 
-  it('hides history section when no commits', () => {
+  it('shows no commit list or count when there are no commits', () => {
     renderSelectedInspector({ gitHistory: [] })
-    expect(screen.queryByText('History')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('inspector-section-history-count')).not.toBeInTheDocument()
+    expect(screen.queryByText('a1b2c3d')).not.toBeInTheDocument()
   })
 
   it('shows separate Info section with read-only metadata', () => {
@@ -741,7 +829,7 @@ Status: Active
       isA: null,
     }
 
-    it('shows "Initialize properties" button when note has no frontmatter', () => {
+    it('offers to add properties when a note has no frontmatter', () => {
       render(
         <Inspector
           {...defaultProps}
@@ -750,11 +838,11 @@ Status: Active
           onInitializeProperties={vi.fn()}
         />
       )
-      expect(screen.getByText('Initialize properties')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Add properties' })).toBeInTheDocument()
       expect(screen.queryByText('Type')).not.toBeInTheDocument()
     })
 
-    it('shows "Initialize properties" button when frontmatter is empty', () => {
+    it('offers to add properties when frontmatter is empty', () => {
       render(
         <Inspector
           {...defaultProps}
@@ -763,7 +851,7 @@ Status: Active
           onInitializeProperties={vi.fn()}
         />
       )
-      expect(screen.getByText('Initialize properties')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Add properties' })).toBeInTheDocument()
     })
 
     it('calls onInitializeProperties when button is clicked', () => {
@@ -776,7 +864,7 @@ Status: Active
           onInitializeProperties={onInit}
         />
       )
-      fireEvent.click(screen.getByText('Initialize properties'))
+      fireEvent.click(screen.getByRole('button', { name: 'Add properties' }))
       expect(onInit).toHaveBeenCalledWith('/vault/plain-note.md')
     })
 
@@ -789,7 +877,7 @@ Status: Active
           onToggleRawEditor={vi.fn()}
         />
       )
-      expect(screen.getByText('Invalid properties')).toBeInTheDocument()
+      expect(screen.getByTestId('invalid-frontmatter-notice')).toHaveTextContent('Invalid properties')
       expect(screen.getByText('Fix in editor')).toBeInTheDocument()
     })
 
@@ -818,9 +906,9 @@ Status: Active
           onInitializeProperties={vi.fn()}
         />
       )
-      expect(screen.getByText('Initialize properties')).toBeInTheDocument()
-      expect(screen.getByText('Backlinks')).toBeInTheDocument()
-      expect(screen.getByText('History')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Add properties' })).toBeInTheDocument()
+      expect(within(screen.getByTestId('connections-list')).getByText('Referrer Note').closest('[data-testid="connection-row"]')).toHaveAttribute('data-direction', 'in')
+      expect(screen.getByText('a1b2c3d')).toBeInTheDocument()
     })
   })
 })

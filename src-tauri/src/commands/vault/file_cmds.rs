@@ -236,6 +236,26 @@ pub fn copy_image_to_vault(
     })
 }
 
+/// Copies files from anywhere on disk into a folder of the vault (or its
+/// root). Notes stay notes, everything else becomes an attachment of that
+/// folder; see `vault::import_files_into_folder` for the rules.
+#[tauri::command]
+pub fn import_files_into_vault(
+    vault_path: PathBuf,
+    folder: Option<PathBuf>,
+    sources: Vec<PathBuf>,
+) -> Result<Vec<vault::ImportedFile>, String> {
+    with_requested_root_path(vault_path.as_path(), |requested_root| match &folder {
+        Some(folder) => with_validated_path(
+            folder.to_string_lossy().as_ref(),
+            Some(requested_root),
+            ValidatedPathMode::Existing,
+            |validated_folder| vault::import_files_into_folder(validated_folder, &sources),
+        ),
+        None => vault::import_files_into_folder(requested_root, &sources),
+    })
+}
+
 #[tauri::command]
 pub fn list_vault(path: PathBuf) -> Result<Vec<VaultEntry>, String> {
     with_expanded_vault_root(path.as_path(), vault::scan_vault_cached)

@@ -18,9 +18,11 @@ import {
   LazyDeleteProgressNotice as DeleteProgressNotice,
   LazyFeedbackDialog as FeedbackDialog,
   LazyGraphModal as GraphModal,
+  LazyKeyboardShortcutsDialog as KeyboardShortcutsDialog,
   LazyMcpSetupDialog as McpSetupDialog,
   LazyNoteRetargetingDialogs as NoteRetargetingDialogs,
   LazyPulseView as PulseView,
+  LazyQuickCaptureSheet as QuickCaptureSheet,
   LazyQuickOpenPalette as QuickOpenPalette,
   LazyRenameDetectedBanner as RenameDetectedBanner,
   LazySearchPanel as SearchPanel,
@@ -33,8 +35,7 @@ import {
 import { NoteRetargetingProvider } from './components/note-retargeting/noteRetargetingContext'
 import { MoveFolderDialog } from './components/folder-tree/MoveFolderDialog'
 import type { VaultEntry } from './types'
-import type { NoteListItem } from './utils/ai-context'
-import { filterEntries, filterInboxEntries } from './utils/noteListHelpers'
+import { filterInboxEntries } from './utils/noteListHelpers'
 import { useAppBootstrap } from './app/useAppBootstrap'
 import { useAppCommandRegistry } from './app/useAppCommandRegistry'
 import { useAppShellState } from './app/useAppShellState'
@@ -46,6 +47,8 @@ import { useKnowledgeOrganization } from './app/useKnowledgeOrganization'
 import { useNativeIntegrations } from './app/useNativeIntegrations'
 import { useNoteWorkspace } from './app/useNoteWorkspace'
 import { useVaultFoundation } from './app/useVaultFoundation'
+import { useAiNoteList } from './app/useAiNoteList'
+import { useBodyIndexSync } from './app/useBodyIndexSync'
 import './App.css'
 
 // Type declarations for mock content storage and test overrides
@@ -96,7 +99,7 @@ function App() {
   const {
     handleInitializeProperties,
     handleUpdateAllNotesNoteListProperties, handleUpdateInboxNoteListProperties, handleCreateFolder,
-    folderActions, handleOpenEntryInNewWindow, handleRevealNoteInFinder, handleRevealFolderInFinder,
+    folderActions, handleOpenEntryInNewWindow, handleRevealNoteInFinder, handleRevealFolderInFinder, handleImportFiles,
     handleDiscardFile, handleOpenDeletedNote, handleReplaceActiveTabWithQueuedDiff,
   } = entryWorkspace
 
@@ -117,7 +120,7 @@ function App() {
     noteLayout, toggleNoteLayout, zoom, buildNumber, handleSetViewMode, handleToggleInspector,
     handleSetSidebarColumnCollapsed, updateStatus, updateActions, handleCheckForUpdates,
     restoreVaultAiGuidance, activeDeletedFile, noteRetargetingUi,
-    toggleOrganizedCommand, audioTranscription, handleOpenGraphNote,
+    toggleOrganizedCommand, audioTranscription, handleOpenGraphNote, quickCapture,
   } = shell
 
   const commands = useAppCommandRegistry(foundation, noteWorkspace, entryWorkspace, gitWorkflow, shell)
@@ -132,15 +135,9 @@ function App() {
     handleRevealNoteInFinder(entry.path)
   }, [handleRevealNoteInFinder])
 
+  const tagSnapshot = useBodyIndexSync(vault.entries, resolvedPath ?? null)
   const inboxCount = useMemo(() => filterInboxEntries(vault.entries, inboxPeriod).length, [vault.entries, inboxPeriod])
-
-  const aiNoteList = useMemo<NoteListItem[]>(() => {
-    const isInbox = effectiveSelection.kind === 'filter' && effectiveSelection.filter === 'inbox'
-    const filtered = isInbox ? filterInboxEntries(vault.entries, inboxPeriod) : filterEntries(vault.entries, effectiveSelection, undefined, vault.views)
-    return filtered.map(e => ({
-      path: e.path, title: e.title, type: e.isA ?? 'Note',
-    }))
-  }, [vault.entries, vault.views, effectiveSelection, inboxPeriod])
+  const aiNoteList = useAiNoteList({ entries: vault.entries, views: vault.views, selection: effectiveSelection, inboxPeriod, tagSnapshot })
 
   const aiNoteListFilter = useMemo(() => {
     if (effectiveSelection.kind === 'sectionGroup') return { type: effectiveSelection.type, query: '' }
@@ -150,6 +147,12 @@ function App() {
   const dashboardSelected = effectiveSelection.kind === 'dashboard'
 
   if (startupGate) return startupGate
+
+  // Quick Open and Search share one way of turning a typed title into a page.
+  const createPageFromQuery = (title: string) => {
+    if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' })
+    void notes.handleCreateNote(title, 'Note')
+  }
 
   return (
     <NoteRetargetingProvider value={noteRetargetingUi.contextValue}>
@@ -161,7 +164,7 @@ function App() {
                 className={`app__sidebar${sidebarColumnCollapsed ? ' app__sidebar--collapsed' : ''}`}
                 style={{ width: sidebarColumnCollapsed ? 68 : layout.sidebarWidth }}
               >
-                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSidebarSelect} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} onMoveFolder={folderActions.startFolderMove} onRevealFolder={handleRevealFolderInFinder} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
+                <Sidebar entries={vault.entries} folders={vault.folders} views={vault.views} selection={effectiveSelection} onSelect={handleSidebarSelect} onSelectNote={notes.handleSelectNote} onSelectFavorite={handleOpenFavorite} onReorderFavorites={entryActions.handleReorderFavorites} onCreateType={notes.handleCreateNoteImmediate} onCreateNewType={dialogs.openCreateType} onCustomizeType={entryActions.handleCustomizeType} onUpdateTypeTemplate={entryActions.handleUpdateTypeTemplate} onReorderSections={entryActions.handleReorderSections} onRenameSection={entryActions.handleRenameSection} onToggleTypeVisibility={entryActions.handleToggleTypeVisibility} onCreateFolder={handleCreateFolder} onRenameFolder={folderActions.renameFolder} onDeleteFolder={folderActions.requestDeleteFolder} onMoveFolder={folderActions.startFolderMove} onRevealFolder={handleRevealFolderInFinder} onImportFilesToFolder={(folderPath) => { void handleImportFiles(folderPath) }} renamingFolderPath={folderActions.renamingFolderPath} onStartRenameFolder={folderActions.startFolderRename} onCancelRenameFolder={folderActions.cancelFolderRename} onCreateView={dialogs.openCreateView} onEditView={handleEditView} onDeleteView={handleDeleteView} showInbox={explicitOrganizationEnabled} inboxCount={inboxCount} collapsed={sidebarColumnCollapsed} onCollapse={() => handleSetSidebarColumnCollapsed(true)} onExpand={() => handleSetSidebarColumnCollapsed(false)} onOpenSearch={dialogs.openSearch} onOpenGraph={openGraphModal} />
               </div>
               {!sidebarColumnCollapsed && <ResizeHandle onResize={layout.handleSidebarResize} />}
             </>
@@ -271,21 +274,25 @@ function App() {
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />
-        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} openingVault={vaultFolderPickerPending ? { label: 'Choose vault folder', path: '' } : null} onSwitchVault={handleStatusBarSwitchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={handleStatusBarOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
+        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} openingVault={vaultFolderPickerPending ? { label: 'Choose vault folder', path: '' } : null} onSwitchVault={handleStatusBarSwitchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={handleStatusBarOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} panchangamEnabled={settings.panchangam_enabled !== false} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-        <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} />
+        <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={createPageFromQuery} />
+        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} />
         <CommandPalette
           open={dialogs.showCommandPalette}
           commands={commands}
           entries={vault.entries}
+          recentEntries={noteWorkspace.recentEntries}
+          onOpenEntry={handleDashboardOpenNote}
           aiAgentReady={aiAgentPreferences.defaultAiAgentReady}
           aiAgentLabel={aiAgentPreferences.defaultAiAgentLabel}
           locale={appLocale}
           onClose={dialogs.closeCommandPalette}
         />
-        <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onClose={dialogs.closeSearch} />
+        <SearchPanel open={dialogs.showSearch} vaultPath={resolvedPath} vaultScopes={searchVaultScopes} initialQuery={dialogs.searchInitialQuery} openKey={dialogs.searchOpenKey} entries={vault.entries} onSelectNote={notes.handleSelectNote} onSelectSearchResult={handleSearchResultSelect} onCreate={createPageFromQuery} onClose={dialogs.closeSearch} />
+        <KeyboardShortcutsDialog open={dialogs.showKeyboardShortcuts} onClose={dialogs.closeKeyboardShortcuts} />
         <GraphModal open={showGraphModal} entries={vault.entries} activePath={notes.activeTabPath} onOpenNote={handleOpenGraphNote} onClose={closeGraphModal} />
         <WeatherSnapshotDialog open={showWeatherSnapshotDialog} onInsert={handleInsertWeatherSnapshot} onClose={closeWeatherSnapshotDialog} />
         <AudioRecordingDialog open={showAudioRecordingDialog} vaultPath={resolvedPath} onClose={closeAudioRecordingDialog} onRecordingSaved={audioTranscription.transcribeRecordedAudio} />

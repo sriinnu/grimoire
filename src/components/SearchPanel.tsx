@@ -7,6 +7,7 @@ import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
 import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
+import { hasExactTitle, splitByTerms } from '../utils/searchHighlight'
 import { NoteTitleIcon } from './NoteTitleIcon'
 import { Input } from './ui/input'
 import type { SearchVaultScope } from '../hooks/useUnifiedSearch'
@@ -21,6 +22,8 @@ interface SearchPanelProps {
   entries: VaultEntry[]
   onSelectNote: (entry: VaultEntry) => void
   onSelectSearchResult?: (result: SearchResult) => void
+  /** Creates a page titled with the query when no result carries that exact title. */
+  onCreate?: (title: string) => void
   onClose: () => void
 }
 
@@ -57,19 +60,29 @@ function resolveResultType(entry: VaultEntry | undefined, result: SearchResult):
   return entry?.isA ?? result.noteType ?? null
 }
 
-/** Interleaves plain snippet text with quiet <mark> spans over matched terms. */
-function renderSnippetWithMarks(snippet: string, matches?: SnippetMatch[]): React.ReactNode {
-  if (!matches?.length) return snippet
+const MARK_CLASS_NAME = 'bg-transparent text-inherit underline decoration-dotted decoration-muted-foreground/70 underline-offset-2'
+
+/** Marks the query's terms in any text, client side, by slicing strings; never innerHTML. */
+function renderWithQueryMarks(text: string, query: string): React.ReactNode {
+  const segments = splitByTerms(text, query)
+  if (!segments.some((segment) => segment.match)) return text
+  return segments.map((segment, index) =>
+    segment.match
+      ? <mark key={index} className={MARK_CLASS_NAME}>{segment.text}</mark>
+      : segment.text,
+  )
+}
+
+/** Interleaves plain snippet text with quiet <mark> spans over backend-matched terms. */
+function renderSnippetWithMarks(snippet: string, query: string, matches?: SnippetMatch[]): React.ReactNode {
+  if (!matches?.length) return renderWithQueryMarks(snippet, query)
   const parts: React.ReactNode[] = []
   let cursor = 0
   for (const match of matches) {
     if (match.start >= match.end || match.start < cursor || match.end > snippet.length) continue
     if (match.start > cursor) parts.push(snippet.slice(cursor, match.start))
     parts.push(
-      <mark
-        key={match.start}
-        className="bg-transparent text-inherit underline decoration-dotted decoration-muted-foreground/70 underline-offset-2"
-      >
+      <mark key={match.start} className={MARK_CLASS_NAME}>
         {snippet.slice(match.start, match.end)}
       </mark>,
     )
@@ -88,6 +101,7 @@ export function SearchPanel({
   entries,
   onSelectNote,
   onSelectSearchResult,
+  onCreate,
   onClose,
 }: SearchPanelProps) {
   const {
@@ -128,6 +142,12 @@ export function SearchPanel({
   }, [results, availableTypes, activeTypes, entryLookup])
 
   const resultsRef = useRef(visibleResults)
+  const createTitle = query.trim()
+  const showCreateRow = Boolean(onCreate) && createTitle.length > 0 && !loading
+    && !hasExactTitle(visibleResults.map((result) => entryLookup.get(result.path)?.title ?? result.title), createTitle)
+  const rowCount = visibleResults.length + (showCreateRow ? 1 : 0)
+  const rowCountRef = useRef(rowCount)
+  const showCreateRowRef = useRef(showCreateRow)
 
   const handleToggleType = useCallback((type: string) => {
     setActiveTypes(prev => {
@@ -159,7 +179,15 @@ export function SearchPanel({
   useLayoutEffect(() => {
     resultsRef.current = visibleResults
     selectedIndexRef.current = selectedIndex
-  }, [visibleResults, selectedIndex])
+    rowCountRef.current = rowCount
+    showCreateRowRef.current = showCreateRow
+  }, [visibleResults, selectedIndex, rowCount, showCreateRow])
+
+  const handleCreate = useCallback(() => {
+    if (!onCreate || !createTitle) return
+    onCreate(createTitle)
+    onClose()
+  }, [createTitle, onCreate, onClose])
 
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 50)
@@ -171,7 +199,7 @@ export function SearchPanel({
       onClose()
     } else if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelectedIndex(i => Math.min(i + 1, resultsRef.current.length - 1))
+      setSelectedIndex(i => Math.min(i + 1, rowCountRef.current - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setSelectedIndex(i => Math.max(i - 1, 0))
@@ -179,8 +207,9 @@ export function SearchPanel({
       e.preventDefault()
       const result = resultsRef.current[selectedIndexRef.current]
       if (result) handleSelect(result)
+      else if (showCreateRowRef.current && selectedIndexRef.current === resultsRef.current.length) handleCreate()
     }
-  }, [handleSelect, onClose, setSelectedIndex])
+  }, [handleCreate, handleSelect, onClose, setSelectedIndex])
 
   useEffect(() => {
     if (!open) return
@@ -229,8 +258,10 @@ export function SearchPanel({
           listRef={listRef}
           onSelect={handleSelect}
           onHover={setSelectedIndex}
+          createTitle={showCreateRow ? createTitle : null}
+          onCreate={handleCreate}
         />
-        {visibleResults.length > 0 && (
+        {rowCount > 0 && (
           <div className="shrink-0 border-t border-border/50 px-4 py-1.5 text-[10.5px] text-muted-foreground/60">
             ↑↓ navigate · ↵ open · esc close
           </div>
@@ -305,11 +336,35 @@ interface SearchContentProps {
   listRef: React.RefObject<HTMLDivElement | null>
   onSelect: (result: SearchResult) => void
   onHover: (index: number) => void
+  /** Title for the trailing "Create" row, or null when a result already has that exact title. */
+  createTitle: string | null
+  onCreate: () => void
 }
 
 function SearchContent({
-  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, availableTypes, activeTypes, onToggleType, listRef, onSelect, onHover,
+  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, availableTypes, activeTypes, onToggleType, listRef, onSelect, onHover, createTitle, onCreate,
 }: SearchContentProps) {
+  const createIndex = results.length
+  const createRow = createTitle ? (
+    <div
+      key="create"
+      className={cn(
+        'cursor-pointer rounded-xl px-3 py-2.5 transition-colors',
+        selectedIndex === createIndex ? 'bg-accent shadow-[inset_0_0_0_1px_var(--border)]' : 'hover:bg-secondary',
+      )}
+      role="option"
+      aria-selected={selectedIndex === createIndex}
+      data-testid="search-create-row"
+      onClick={onCreate}
+      onMouseEnter={() => onHover(createIndex)}
+    >
+      <div className="flex items-center gap-2 text-[13px]">
+        <Glyph name="sparkle" size={14} className="shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1 truncate text-foreground">Create &lsquo;{createTitle}&rsquo;</span>
+        <span className="shrink-0 text-[11px] text-muted-foreground/70">New page</span>
+      </div>
+    </div>
+  ) : null
   return (
     <div className="flex-1 overflow-y-auto">
       {!query.trim() && (
@@ -335,10 +390,17 @@ function SearchContent({
       )}
 
       {query.trim() && results.length === 0 && !loading && (
-        <div className="flex flex-col items-center px-4 py-8 text-center">
-          <Glyph name="file" size={36} className="text-muted-foreground/30 mb-3" />
-          <p className="text-[13px] text-muted-foreground">No results found</p>
-        </div>
+        <>
+          <div className="flex flex-col items-center px-4 pt-8 pb-3 text-center">
+            <Glyph name="file" size={36} className="text-muted-foreground/30 mb-3" />
+            <p className="text-[13px] text-muted-foreground">No results found</p>
+          </div>
+          {createRow && (
+            <div ref={listRef} role="listbox" aria-label="Search results" className="p-2">
+              {createRow}
+            </div>
+          )}
+        </>
       )}
 
       {results.length > 0 && (
@@ -407,7 +469,7 @@ function SearchContent({
                     <TypeIcon width={14} height={14} className="shrink-0" style={{ color: typeColor ?? 'var(--muted-foreground)' }} />
                     <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-foreground">
                       <NoteTitleIcon icon={entry?.icon} size={14} className="mr-1" />
-                      {entry?.title ?? result.title}
+                      {renderWithQueryMarks(entry?.title ?? result.title, query)}
                     </span>
                     {(noteType || vaultLabel) && (
                       <span className="shrink-0 text-[11px] text-muted-foreground/70">
@@ -422,12 +484,13 @@ function SearchContent({
                   )}
                   {result.snippet && (
                     <p className="mt-1 truncate pl-[22px] text-[11px] leading-snug text-muted-foreground/80">
-                      {renderSnippetWithMarks(result.snippet, result.snippetMatches)}
+                      {renderSnippetWithMarks(result.snippet, query, result.snippetMatches)}
                     </p>
                   )}
                 </div>
               )
             })}
+            {createRow}
           </div>
         </>
       )}

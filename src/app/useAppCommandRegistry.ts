@@ -26,13 +26,13 @@ export function useAppCommandRegistry(
   const {
     folderActions, handleCustomizeNoteListColumns, handleOpenInNewWindow,
     handlePreviewNoteWithQuickLook, handleRemoveNoteIconCommand, handleRevealNoteInFinder,
-    handleRevealVaultInFinder, handleSetNoteIconCommand,
+    handleRevealVaultInFinder, handleSetNoteIconCommand, handleImportFiles,
   } = entryWorkspace
   const { deleteActions, entryActions, handleCommitPush } = gitWorkflow
   const {
     activeDeletedFile, activeNoteHasIcon, activeNoteModified, audioTranscription,
     canCustomizeNoteListColumns, changeNoteTypeCommand, handleCaptureDreamCommand,
-    handleCaptureJournalCommand, handleCaptureThoughtCommand, handleCheckForUpdates,
+    handleCaptureJournalCommand, handleCaptureThoughtCommand, handleCheckForUpdates, handleOpenTodayJournalCommand,
     handleRepairVault, handleSetViewMode, handleToggleInspector, insertWeatherSnapshotCommand,
     moveNoteToFolderCommand, noteLayout, noteListColumnsLabel, removeActiveVaultCommand,
     restoreDeletedNoteCommand, restoreVaultAiGuidanceCommand, toggleDiffCommand,
@@ -48,12 +48,15 @@ export function useAppCommandRegistry(
     activeNoteModified,
     selection: effectiveSelection,
     onQuickOpen: dialogs.openQuickOpen, onCommandPalette: dialogs.openCommandPalette,
-    onSearch: dialogs.openSearch,
+    onSearch: dialogs.openSearch, onToggleKeyboardShortcuts: dialogs.toggleKeyboardShortcuts,
     onCreateNote: notes.handleCreateNoteImmediate,
     onCaptureThought: handleCaptureThoughtCommand,
     onCaptureJournal: handleCaptureJournalCommand,
+    onOpenTodayJournal: handleOpenTodayJournalCommand,
+    onQuickCapture: shell.quickCapture.openQuickCapture,
     onCaptureDream: handleCaptureDreamCommand,
     onCreateNoteOfType: notes.handleCreateNoteImmediate,
+    onImportFiles: () => { void handleImportFiles() },
     onSave: appSave.handleSave,
     onOpenSettings: dialogs.openSettings,
     onOpenFeedback: openFeedback,

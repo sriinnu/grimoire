@@ -1,0 +1,157 @@
+/* Note context menu, built on macOS menu rules.
+   Surface: 8px radius, 4px inset, hairline, soft shadow, translucent material.
+   Rows: 24px tall, 13px text, 4px radius, a 16px leading column reserved for
+   the check so labels line up whether or not a row is checkable. Hover fills
+   the row with the accent and flips the text to white, the way a native menu
+   highlights. No icons; the words carry the meaning. Colors are a row of dots,
+   like Finder tags. */
+.note-menu {
+  position: fixed;
+  z-index: 50;
+  max-height: min(360px, calc(100vh - 16px));
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--grimoire-hairline, var(--border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--popover) 92%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  color: var(--foreground);
+  box-shadow:
+    0 0 0 0.5px color-mix(in srgb, var(--foreground) 8%, transparent),
+    0 8px 24px color-mix(in srgb, #000 18%, transparent);
+  font-family: var(--grimoire-ui-font-family);
+  font-size: 13px;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.note-menu__item {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 4px;
+  width: 100%;
+  height: 24px;
+  padding: 0 8px 0 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.note-menu__item:hover,
+.note-menu__item:focus-visible {
+  background: var(--primary);
+  color: var(--primary-foreground, #fff);
+  outline: none;
+}
+
+.note-menu__item:disabled {
+  color: var(--text-muted);
+}
+
+.note-menu__item:disabled:hover {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.note-menu__check {
+  width: 16px;
+  height: 16px;
+  justify-self: center;
+  stroke-width: 2.25;
+}
+
+.note-menu__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-menu__separator {
+  height: 1px;
+  margin: 4px 8px;
+  background: color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+/* Colors: five 12px dots on 24px targets, spaced like Finder's tag row. */
+.note-menu__colors {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  padding: 0 4px 0 20px;
+}
+
+.note-menu__swatch {
+  position: relative;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: default;
+  color: var(--primary-foreground, #fff);
+}
+
+.note-menu__swatch::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 0.5px color-mix(in srgb, #000 22%, transparent);
+}
+
+.note-menu__swatch--none::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--foreground) 36%, transparent);
+}
+
+.note-menu__swatch--none {
+  color: var(--foreground);
+}
+
+.note-menu__swatch:hover,
+.note-menu__swatch:focus-visible {
+  background: color-mix(in srgb, var(--foreground) 8%, transparent);
+  outline: none;
+}
+
+.note-menu__swatch[data-active='true']::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--foreground);
+}
+
+.note-menu__swatch-check {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  stroke-width: 3.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .note-menu {
+    animation: note-menu-in 100ms ease-out;
+  }
+}
+
+@keyframes note-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}

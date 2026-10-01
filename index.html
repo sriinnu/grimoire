@@ -7,13 +7,13 @@
     <style nonce="grimoire-runtime-style">
       :root {
         color-scheme: light;
-        background: #FFFFFF;
-        color: #37352F;
+        background: #FAF8F3;
+        color: #1F1C18;
       }
       :root[data-theme="dark"] {
         color-scheme: dark;
-        background: #1F1E1B;
-        color: #E6E1D8;
+        background: #141311;
+        color: #F5F2EA;
       }
       body {
         background: inherit;
@@ -31,8 +31,15 @@
         function normalizeTheme(value) {
           return value === 'dark' || value === 'light' ? value : null;
         }
+        function systemTheme() {
+          try {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          } catch (err) {
+            return 'light';
+          }
+        }
         function applyTheme(value) {
-          var mode = normalizeTheme(value) || 'light';
+          var mode = normalizeTheme(value) || systemTheme();
           document.documentElement.setAttribute('data-theme', mode);
           document.documentElement.classList.toggle('dark', mode === 'dark');
         }

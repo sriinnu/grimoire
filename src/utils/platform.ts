@@ -27,6 +27,15 @@ export function getDesktopPlatform(): DesktopPlatform {
   return 'unknown'
 }
 
+/** iPhone, iPad (which claims to be a Mac) and Android: no hardware chord to advertise. */
+export function isTouchPlatform(): boolean {
+  const userAgent = getUserAgent()
+  if (/iPhone|iPad|iPod|Android/i.test(userAgent)) return true
+  if (typeof navigator === 'undefined') return false
+  const touchPoints = (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints ?? 0
+  return userAgent.includes('Macintosh') && touchPoints > 1
+}
+
 export function isLinux(): boolean {
   return getDesktopPlatform() === 'linux'
 }

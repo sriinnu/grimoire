@@ -1,0 +1,74 @@
+/* Print / Save as PDF: the note, and only the note. Tokens only; the page decides its colours. */
+@media print {
+  @page {
+    margin: 20mm;
+  }
+
+  html,
+  body,
+  .app {
+    height: auto !important;
+    overflow: visible !important;
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+  }
+
+  /* Everything that is chrome, not paper. */
+  .app-sidebar-panel,
+  .app-sidebar-rail,
+  .note-list-panel,
+  .inspector-panel,
+  .ai-panel,
+  .status-bar,
+  .breadcrumb-bar,
+  .editor-meta-strip,
+  .editor-agent-composer,
+  .heading-outline,
+  .wikilink-peek,
+  .resize-handle,
+  [data-panel-role='inspector'],
+  [data-tauri-drag-region] {
+    display: none !important;
+  }
+
+  .editor,
+  .editor-canvas,
+  .editor-canvas-frame,
+  .editor-scroll-area {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .editor-content-wrapper {
+    max-width: 70ch !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    font-family: var(--font-serif, Georgia, serif) !important;
+  }
+
+  /* External links show where they go; internal wikilinks stay as text. */
+  .editor-content-wrapper a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  pre,
+  table,
+  img,
+  blockquote {
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+}

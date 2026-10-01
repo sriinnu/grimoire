@@ -3,7 +3,7 @@ name = "grimoire"
 version = "0.1.467"
 description = "Personal knowledge and life management app"
 authors = ["Srinivas Pendela"]
-license = "AGPL-3.0-or-later"
+license = "MIT"
 repository = ""
 edition = "2021"
 rust-version = "1.77.2"
@@ -32,7 +32,7 @@ walkdir = "2"
 chrono = { version = "0.4", features = ["serde"] }
 # IANA timezone lookup for Day One entries archived with NSTimeZone names.
 chrono-tz = "0.10"
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "time"] }
 futures-util = "0.3"
 base64 = "0.22"
 regex = "1"
@@ -63,9 +63,23 @@ tree-sitter-python = "0.25.0"
 tree-sitter-rust = "0.24.2"
 tree-sitter-typescript = "0.23.2"
 
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-global-shortcut = "2"
+notify = "8.2"
+notify-debouncer-full = "0.6"
+
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.4"
 objc2-app-kit = "0.3.2"
 security-framework = "3.7.0"
 
 [dev-dependencies]
+
+# Debug builds of a Tauri app carry ~740 crates. Full debug info for all of
+# them was a 10 GB target folder. Line tables keep backtraces readable for our
+# code; dependencies are never stepped into, so they get none.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false

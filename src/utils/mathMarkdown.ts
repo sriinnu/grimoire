@@ -1,4 +1,4 @@
-import katex from 'katex'
+import { getLoadedKatex } from './katexLoader'
 import { MATH_BLOCK_TYPE, MATH_INLINE_TYPE } from '@grimoire/markdown-editor/math'
 
 export { MATH_BLOCK_TYPE, MATH_INLINE_TYPE }
@@ -328,7 +328,13 @@ function escapeHtml({ text }: { text: string }): string {
     .replace(/"/g, '&quot;')
 }
 
+/**
+ * Renders with KaTeX once it's loaded (see katexLoader); until then the
+ * escaped source shows, and MathRender re-renders when the load resolves.
+ */
 export function renderMathToHtml({ latex, displayMode }: MathRenderRequest): string {
+  const katex = getLoadedKatex()
+  if (!katex) return escapeHtml({ text: latex })
   try {
     return katex.renderToString(latex, {
       displayMode,

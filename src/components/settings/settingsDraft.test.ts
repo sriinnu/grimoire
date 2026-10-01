@@ -3,6 +3,8 @@ import type { Settings } from '../../types'
 import {
   buildSettingsFromDraft,
   createSettingsDraft,
+  hiddenProviderKeyIds,
+  updateAiAgentAuthModeDraft,
   updateAiAgentProviderDraft,
 } from './settingsDraft'
 
@@ -32,6 +34,16 @@ describe('settingsDraft', () => {
     })
     expect(updateAiAgentProviderDraft({ chitragupta: 'openai' }, 'chitragupta', ' google ')).toEqual({
       chitragupta: 'google',
+    })
+  })
+
+  describe('auth modes', () => {
+    it('persists only explicit API-key choices and hides the matching key rows otherwise', () => {
+      expect(updateAiAgentAuthModeDraft({}, 'codex', 'api_key')).toEqual({ codex: 'api_key' })
+      expect(updateAiAgentAuthModeDraft({ codex: 'api_key' }, 'codex', 'subscription')).toEqual({})
+      expect(updateAiAgentAuthModeDraft({}, 'chitragupta', 'api_key')).toEqual({})
+      expect(hiddenProviderKeyIds({})).toEqual(['anthropic', 'openai'])
+      expect(hiddenProviderKeyIds({ claude_code: 'api_key' })).toEqual(['openai'])
     })
   })
 })

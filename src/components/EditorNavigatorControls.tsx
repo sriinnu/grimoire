@@ -1,3 +1,4 @@
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { ListTree } from 'lucide-react'
 import { Glyph } from './glyphs/Glyph'
@@ -89,6 +90,12 @@ function countLabel(count: number, singular: string, plural = `${singular}s`): s
   return `${count} ${count === 1 ? singular : plural}`
 }
 
+/** A count only earns its place when there is something to count. */
+function NavigatorCount({ variant, count }: { variant: 'composer' | 'meta'; count: number }) {
+  if (variant !== 'meta' || count === 0) return null
+  return <span className="editor-navigator-controls__count">{count}</span>
+}
+
 interface EditorNavigatorControlsProps {
   content: string
   enableFindShortcut?: boolean
@@ -103,7 +110,13 @@ export function EditorNavigatorControls({
 }: EditorNavigatorControlsProps) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<EditorNavigatorMode>('search')
+  const [pane, setPane] = useState<HTMLElement | null>(null)
   const summary = useMemo(() => summarizeNavigatorContent(content), [content])
+  // The popover is portaled to <body>; the editor pane is its collision
+  // boundary so it never spills over the note list or the inspector.
+  const anchorRef = useCallback((node: HTMLDivElement | null) => {
+    setPane(node?.closest<HTMLElement>('.app__editor') ?? null)
+  }, [])
 
   const openNavigator = useCallback((nextMode: EditorNavigatorMode) => {
     setMode(nextMode)
@@ -126,42 +139,37 @@ export function EditorNavigatorControls({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
-        <div className={cn('editor-navigator-controls', `editor-navigator-controls--${variant}`)}>
+        <div ref={anchorRef} className={cn('editor-navigator-controls', `editor-navigator-controls--${variant}`)}>
           <Button
             type="button"
             variant="ghost"
-            size={variant === 'meta' ? 'sm' : 'icon-sm'}
+            size="icon-sm"
             className="editor-navigator-controls__button"
-            title="Search this note"
+            title={`Search this note (${formatShortcutDisplay({ display: '⌘F' })})`}
             aria-label="Search this note"
             data-icon-intent="navigation"
             onClick={() => openNavigator('search')}
           >
             <Glyph name="search" size={16} />
-            {variant === 'meta' ? <span>Find</span> : null}
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size={variant === 'meta' ? 'sm' : 'icon-sm'}
+            size={variant === 'meta' && summary.headingCount > 0 ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
             title="Table of contents"
             aria-label={`Table of contents, ${countLabel(summary.headingCount, 'heading')}`}
             data-icon-intent="structure"
+            data-navigator-mode="toc"
             onClick={() => openNavigator('toc')}
           >
-            <ListTree className="size-4" />
-            {variant === 'meta' ? <span>TOC</span> : null}
-            {variant === 'meta' ? (
-              <span className="editor-navigator-controls__count" data-empty={summary.headingCount === 0 ? 'true' : 'false'}>
-                {summary.headingCount}
-              </span>
-            ) : null}
+            <ListTree className="size-[15px]" />
+            <NavigatorCount variant={variant} count={summary.headingCount} />
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size={variant === 'meta' ? 'sm' : 'icon-sm'}
+            size={variant === 'meta' && summary.linkCount > 0 ? 'sm' : 'icon-sm'}
             className="editor-navigator-controls__button"
             title="Note links in this note"
             aria-label={`Note links in this note, ${countLabel(summary.linkCount, 'link')}`}
@@ -169,16 +177,18 @@ export function EditorNavigatorControls({
             onClick={() => openNavigator('links')}
           >
             <Glyph name="link" size={16} />
-            {variant === 'meta' ? <span>Links</span> : null}
-            {variant === 'meta' ? (
-              <span className="editor-navigator-controls__count" data-empty={summary.linkCount === 0 ? 'true' : 'false'}>
-                {summary.linkCount}
-              </span>
-            ) : null}
+            <NavigatorCount variant={variant} count={summary.linkCount} />
           </Button>
         </div>
       </PopoverAnchor>
-      <PopoverContent className="editor-navigator-popover-shell grimoire-panel-reveal" align="center" side="top" sideOffset={10}>
+      <PopoverContent
+        className="editor-navigator-popover-shell grimoire-panel-reveal"
+        align="center"
+        side="top"
+        sideOffset={8}
+        collisionBoundary={pane ?? undefined}
+        collisionPadding={12}
+      >
         <Suspense fallback={<EditorNavigatorFallback />}>
           <EditorNavigatorPopoverSurface content={content} mode={mode} onModeChange={setMode} />
         </Suspense>

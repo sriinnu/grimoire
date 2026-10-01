@@ -2,7 +2,6 @@ import { useRef, useEffect, useCallback, memo } from 'react'
 import { useEditorTabSwap } from '../hooks/useEditorTabSwap'
 import { useCreateBlockNote } from '@blocknote/react'
 import '@blocknote/mantine/style.css'
-import 'katex/dist/katex.min.css'
 import { uploadImageFile } from '../hooks/useImageDrop'
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import { RUNTIME_STYLE_NONCE } from '../lib/runtimeStyleNonce'
@@ -158,6 +157,8 @@ function useEditorSetup({
     uploadFile: (file: File) => uploadImageFile(file, vaultPathRef.current),
     _tiptapOptions: { injectNonce: RUNTIME_STYLE_NONCE },
     extensions: [createArrowLigaturesExtension()],
+    // A human invitation instead of BlockNote's "Enter text or type '/' for commands".
+    placeholders: { default: 'Start writing, or press / for blocks' },
   })
   useFilenameAutolinkGuard(editor)
   const activeTab = tabs.find((t) => t.entry.path === activeTabPath) ?? null

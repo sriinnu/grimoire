@@ -1,6 +1,7 @@
 mod ai;
 mod code_intelligence;
 mod delete;
+pub mod export_file;
 mod folders;
 mod git;
 pub mod git_clone;
@@ -17,6 +18,7 @@ use std::borrow::Cow;
 pub use ai::*;
 pub use code_intelligence::*;
 pub use delete::*;
+pub use export_file::*;
 pub use folders::*;
 pub use git::*;
 pub use git_connect::*;
@@ -95,4 +97,141 @@ mod tests {
         let result = expand_tilde("/home/~user/path");
         assert_eq!(result, "/home/~user/path");
     }
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub fn watch_vault(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, crate::vault_watch::VaultWatchState>,
+    vault_path: String,
+) -> Result<(), String> {
+    crate::vault_watch::watch_vault(app, state, vault_path)
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub fn unwatch_vault(
+    state: tauri::State<'_, crate::vault_watch::VaultWatchState>,
+) -> Result<(), String> {
+    crate::vault_watch::unwatch_vault(state)
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn watch_vault(_vault_path: String) -> Result<(), String> {
+    Ok(())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn unwatch_vault() -> Result<(), String> {
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn index_refresh(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+) -> Result<crate::vault_index::IndexRefreshReport, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::refresh(&state, std::path::Path::new(&vault_path))
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_search(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+    query: String,
+    limit: Option<usize>,
+) -> Result<crate::vault_index::IndexSearchResponse, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::search(
+            &state,
+            std::path::Path::new(&vault_path),
+            &query,
+            limit.unwrap_or(50).clamp(1, 500),
+        )
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_tags(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+) -> Result<crate::vault_index::IndexTagSnapshot, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::tags(&state, std::path::Path::new(&vault_path))
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_mentions(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+    phrase: String,
+    limit: Option<usize>,
+) -> Result<Vec<String>, String> {
+    let vault_path = vault_path.clone();
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::mentions(
+            &state,
+            std::path::Path::new(&vault_path),
+            &phrase,
+            limit.unwrap_or(100).clamp(1, 1000),
+        )
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_backlinks(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+    path: String,
+) -> Result<Vec<String>, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::backlinks(&state, std::path::Path::new(&vault_path), &path)
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+#[tauri::command]
+pub async fn index_manifest(
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
+    vault_path: String,
+) -> Result<Vec<crate::vault_index::ManifestEntry>, String> {
+    let state = state.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        crate::vault_index::manifest(&state, std::path::Path::new(&vault_path))
+    })
+    .await
+    .map_err(|error| format!("Index task failed: {error}"))?
+}
+
+/// Pure: decide what to pull, push, keep as conflicts, or delete. No I/O.
+#[tauri::command]
+pub fn sync_plan(
+    local: Vec<crate::vault_index::ManifestEntry>,
+    remote: Vec<crate::vault_index::ManifestEntry>,
+    base: Option<Vec<crate::vault_index::ManifestEntry>>,
+) -> crate::vault_index::SyncPlan {
+    crate::vault_index::sync_plan(&local, &remote, base.as_deref())
 }

@@ -58,6 +58,7 @@ let mockSettings: Settings = {
   editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: false,
+  panchangam_enabled: true,
   default_ai_agent: 'claude_code',
   ai_agent_models: null,
   ai_agent_providers: null,
@@ -255,12 +256,11 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   save_ai_provider_api_key: saveMockAiProviderApiKey,
   clear_ai_provider_api_key: clearMockAiProviderApiKey,
   // Browser mode has no local Chitragupta daemon; the socket stays quiet.
-  get_chitragupta_socket_status: () => ({
-    healthy: false,
-    version: null,
-    token_present: false,
-    token_source: 'missing',
-    base_url: 'http://127.0.0.1:3141',
+  get_chitragupta_socket_status: (args: { vaultPath?: string }) => ({
+    contractVersion: 1,
+    state: 'pairing_required',
+    baseUrl: 'http://127.0.0.1:3141',
+    projectPath: args.vaultPath ?? '',
   }),
   provision_chitragupta_socket_token: () => {
     throw new Error('Chitragupta daemon pairing is not available in the browser.')
@@ -269,6 +269,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   clear_chitragupta_socket_token: () => ({ token_present: false, token_source: 'missing' }),
   list_chitragupta_note_sessions: () => [],
   get_chitragupta_session: () => ({}),
+  acknowledge_chitragupta_request: () => { throw new Error('Chitragupta session recovery is not available in the browser.') },
   get_vault_ai_guidance_status: () => getMockVaultAiGuidanceStatus(),
   restore_vault_ai_guidance: () => restoreMockVaultAiGuidance(),
   stream_claude_chat: () => 'mock-session',
@@ -345,6 +346,14 @@ export const mockHandlers: Record<string, (args: any) => any> = {
     return `${vault}/Private/attachments/recordings/${Date.now()}-${args.filename}`
   },
   save_canvas_preview: () => null,
+  import_files_into_vault: (args: { vault_path?: string; folder?: string | null; sources: string[] }) => {
+    const target = args.folder ?? args.vault_path ?? '/Users/mock/Grimoire'
+    return args.sources.map((source) => {
+      const name = source.split('/').pop() ?? 'file'
+      const note = /\.(md|markdown|txt)$/i.test(name)
+      return { source, path: note ? `${target}/${name.replace(/\.(markdown|txt)$/i, '.md')}` : `${target}/attachments/${name}`, kind: note ? 'note' : 'attachment' }
+    })
+  },
   copy_image_to_vault: (args: { vault_path?: string; source_path: string }) => {
     const vault = args.vault_path ?? '/Users/mock/Grimoire'
     const filename = args.source_path.split('/').pop() ?? 'image.png'
@@ -370,6 +379,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
       editor_line_height: s.editor_line_height ?? null,
       ui_language: s.ui_language ?? null,
       menu_bar_icon_enabled: s.menu_bar_icon_enabled ?? false,
+      panchangam_enabled: s.panchangam_enabled ?? true,
       default_ai_agent: s.default_ai_agent ?? null,
       ai_agent_models: s.ai_agent_models ?? null,
       ai_agent_providers: s.ai_agent_providers ?? null,

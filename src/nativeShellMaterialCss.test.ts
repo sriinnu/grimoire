@@ -64,6 +64,9 @@ describe('native shell material CSS', () => {
     expect(glassPreview).toContain('var(--surface-app)')
     expect(glassPreview.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).not.toContain('var(--surface-sidebar)')
 
-    expect(darkOverride.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]).toContain('#122832')
+    // Dark chrome comes from Lamplight tokens; no literal (old Aurora teal-navy) colours.
+    const darkTitlebar = darkOverride.match(/--grimoire-native-titlebar-material:[\s\S]*?;/u)?.[0]
+    expect(darkTitlebar).toContain('var(--surface-sidebar)')
+    expect(darkOverride).not.toMatch(/#[0-9a-f]{6}/iu)
   })
 })

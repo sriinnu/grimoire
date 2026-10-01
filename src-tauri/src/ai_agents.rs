@@ -1,13 +1,14 @@
 mod args;
-mod chitragupta_events;
+mod auth_status;
 mod discovery;
 mod events;
 mod pairing;
 mod path_env;
 mod process_stream;
 
+pub use auth_status::{get_ai_agent_auth_status, AiAgentsAuthStatus};
 #[cfg(desktop)]
-pub use pairing::rotate_chitragupta_socket_secret;
+pub use pairing::{canonical_project_path, vertical_request, vertical_status, VerticalStatus};
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -15,12 +16,9 @@ use std::process::Stdio;
 #[cfg(desktop)]
 use std::time::Duration;
 
-use args::{build_chitragupta_args, build_codex_args, build_codex_prompt};
-use chitragupta_events::dispatch_chitragupta_event;
+use args::{build_codex_args, build_codex_prompt};
 use discovery::{find_chitragupta_binary, find_codex_binary, version_for_binary};
-use events::{
-    dispatch_codex_event, format_chitragupta_error, format_codex_error, map_claude_event,
-};
+use events::{dispatch_codex_event, format_codex_error, map_claude_event};
 use path_env::command_for_binary;
 use process_stream::{agent_stream_idle_timeout, run_command_line_stream};
 
@@ -318,24 +316,17 @@ where
     Ok(thread_id)
 }
 
-/// Prefer the local Chitragupta daemon socket when it is healthy and a token
-/// exists; otherwise fall through to the CLI. Returns `None` when the socket
-/// route is unavailable (caller should run the CLI path), and `Some(result)`
-/// when the socket handled — or definitively failed — this message.
-fn run_chitragupta_socket_stream<F>(
+/// The connector owns pairing and authorization. A failure ends this turn;
+/// it must never resend through the legacy CLI or bearer-token route.
+fn run_chitragupta_connector_stream<F>(
     request: &AiAgentStreamRequest,
     emit: &mut F,
-) -> Option<Result<String, String>>
+) -> Result<String, String>
 where
     F: FnMut(AiAgentStreamEvent),
 {
     use crate::chitragupta_socket as socket;
-
-    let base = socket::socket_base_url();
-    if !socket::cached_health(&base).healthy {
-        return None;
-    }
-    let token = socket::SocketToken::new(crate::ai_provider_keys::chitragupta_socket_token()?);
+    let base_url = socket::socket_base_url();
 
     let note_path = request
         .note_path
@@ -345,7 +336,7 @@ where
         .unwrap_or("");
     let chat_request = socket::SocketChatRequest {
         message: build_codex_prompt(request),
-        session_id: socket::remembered_session_id(&request.vault_path, note_path),
+        session_id: socket::remembered_session_id(&base_url, &request.vault_path, note_path),
         project_path: Some(request.vault_path.clone()),
         title: Some(chitragupta_socket_title(note_path)),
         provider: normalized_route_override(request.provider.as_deref()),
@@ -356,11 +347,17 @@ where
         session_lineage_key: (!note_path.is_empty()).then(|| note_path.to_string()),
     };
 
-    match socket::chat(&base, &token, &chat_request) {
+    match pairing::vertical_request(
+        &request.vault_path,
+        "chat",
+        serde_json::to_value(&chat_request).expect("serializable chat request"),
+    )
+    .map(|data| socket::parse_chat_reply(&data))
+    {
         Ok(reply) => {
             let session_id = reply.session_id.clone().unwrap_or_default();
             if !session_id.is_empty() {
-                socket::remember_session_id(&request.vault_path, note_path, &session_id);
+                socket::remember_session_id(&base_url, &request.vault_path, note_path, &session_id);
                 emit(AiAgentStreamEvent::Init {
                     session_id: session_id.clone(),
                 });
@@ -368,13 +365,13 @@ where
             emit(AiAgentStreamEvent::RouteResolved {
                 provider: reply.provider,
                 model: reply.model,
-                source: "chitragupta-socket".to_string(),
+                source: "chitragupta-connector".to_string(),
             });
             match reply.text {
                 Some(text) => {
                     emit(AiAgentStreamEvent::TextDelta { text });
                     emit(AiAgentStreamEvent::Done);
-                    Some(Ok(session_id))
+                    Ok(session_id)
                 }
                 None => {
                     // The daemon answered but with a shape we don't recognize.
@@ -387,20 +384,17 @@ where
                         message: message.clone(),
                     });
                     emit(AiAgentStreamEvent::Done);
-                    Some(Err(message))
+                    Err(message)
                 }
             }
         }
         Err(error) => {
-            // Mark unhealthy so the NEXT message routes through the CLI.
-            // Never auto-retry this one — a chat message must not double-send.
-            socket::mark_socket_unhealthy(&base);
-            let message = format!("{error} The next message will use the Chitragupta CLI instead.");
+            let message = error;
             emit(AiAgentStreamEvent::Error {
                 message: message.clone(),
             });
             emit(AiAgentStreamEvent::Done);
-            Some(Err(message))
+            Err(message)
         }
     }
 }
@@ -431,48 +425,7 @@ fn run_chitragupta_agent_stream<F>(
 where
     F: FnMut(AiAgentStreamEvent),
 {
-    if let Some(outcome) = run_chitragupta_socket_stream(&request, &mut emit) {
-        return outcome;
-    }
-
-    let binary = find_chitragupta_binary()?;
-    let args = build_chitragupta_args(&request);
-
-    let mut command = command_for_binary(&binary);
-    command
-        .args(args)
-        .current_dir(&request.vault_path)
-        .env("CHITRAGUPTA_PRINT_LOGS", "0")
-        .env("CHITRAGUPTA_PRINT_NIDRA", "0")
-        .env("LOG_LEVEL", "fatal")
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped());
-    crate::ai_provider_keys::apply_provider_keys_to_command(&mut command, AiAgentId::Chitragupta);
-
-    let idle_timeout = agent_stream_idle_timeout("GRIMOIRE_CHITRAGUPTA_STREAM_IDLE_TIMEOUT_SECS");
-    let outcome = match run_command_line_stream(command, idle_timeout, "chitragupta", |line| {
-        dispatch_chitragupta_event(line, &mut emit);
-    }) {
-        Ok(outcome) => outcome,
-        Err(message) => {
-            emit(AiAgentStreamEvent::Error {
-                message: message.clone(),
-            });
-            emit(AiAgentStreamEvent::Done);
-            return Err(message);
-        }
-    };
-
-    if !outcome.status.success() {
-        emit(AiAgentStreamEvent::Error {
-            message: format_chitragupta_error(outcome.stderr_output, outcome.status.to_string()),
-        });
-    }
-
-    emit(AiAgentStreamEvent::Done);
-
-    Ok(String::new())
+    run_chitragupta_connector_stream(&request, &mut emit)
 }
 
 #[cfg(test)]

@@ -88,9 +88,9 @@ describe('theme settings CSS', () => {
     expect(coherenceCss).toContain('grid-template-columns: repeat(auto-fit, minmax(112px, 1fr))')
     expect(coherenceCss).toContain('white-space: nowrap')
     expect(coherenceCss).not.toContain('settings-theme-preset-card__trait span {\n  min-width: 0;\n  overflow: hidden;')
-    expect(settingsCss).toContain('padding: 22px clamp(18px, 3vw, 32px) 26px')
+    expect(settingsCss).toContain('padding: 24px clamp(16px, 3vw, 32px) 24px')
     expect(settingsCss).toContain('.settings-content-stack')
-    expect(settingsCss).toContain('width: min(100%, 880px)')
+    expect(settingsCss).toContain('width: min(100%, 860px)')
     expect(settingsCss).toContain('.settings-section:first-child')
     expect(settingsCss).toContain('.settings-field-control')
     expect(settingsCss).toContain('.settings-section-divider')
@@ -110,11 +110,10 @@ describe('theme settings CSS', () => {
     // Tokens derive from surface tokens with LITERAL fallbacks (WKWebView-safe,
     // one level deep — this file is intentionally exempt from the no-hex rule).
     expect(settingsGroupsCss).toContain('--settings-group-bg: var(--surface-card, #ffffff)')
-    expect(settingsGroupsCss).toContain('--settings-group-bg: var(--surface-card, #0d1c23)')
+    expect(settingsGroupsCss).toContain('--settings-group-bg: var(--surface-card, #1c1a17)')
     expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #e7e2da)')
-    expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #1e3a43)')
+    expect(settingsGroupsCss).toContain('--settings-hairline: var(--border-default, #2c2925)')
     expect(settingsGroupsCss).toContain('--settings-group-radius: 8px')
-    expect(settingsGroupsCss).toContain('[data-theme-preset="constellation"]')
 
     // The primitive classes: title above, footnote below, inset row dividers.
     for (const hook of [

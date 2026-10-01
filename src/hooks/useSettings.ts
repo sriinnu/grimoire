@@ -44,6 +44,7 @@ const EMPTY_SETTINGS: Settings = {
   editor_line_height: null,
   ui_language: null,
   menu_bar_icon_enabled: null,
+  panchangam_enabled: null,
   native_shell_material: null,
   default_ai_agent: null,
   transcription_provider: null,

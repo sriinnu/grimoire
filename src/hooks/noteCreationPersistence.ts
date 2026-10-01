@@ -1,4 +1,5 @@
 import { invoke } from '../lib/tauriRuntime'
+import { markLocalWrite } from '../lib/localWriteLedger'
 import { trackEvent } from '../lib/telemetry'
 import { addMockEntry, isTauri } from '../mock-tauri'
 import type { VaultEntry } from '../types'
@@ -44,6 +45,7 @@ interface TypeCreationRequest extends CreationDeps {
 
 /** Persist a newly created note to disk. Returns a Promise for error handling. */
 export function persistNewNote(path: string, content: string): Promise<void> {
+  markLocalWrite(path)
   if (!isTauri()) return Promise.resolve()
   return invoke<void>('create_note_content', { path, content }).then(() => {})
 }

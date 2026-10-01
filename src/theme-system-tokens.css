@@ -1,10 +1,5 @@
 :where(
-  [data-theme-preset="constellation"],
-  [data-theme-preset="daylight-notebook"],
-  [data-theme-preset="morning-notebook"],
-  [data-theme-preset="living-archive"],
-  [data-theme-preset="nocturne"],
-  [data-theme-preset="code-notebook"]
+  [data-theme-preset="morning-notebook"]
 ) {
   --grimoire-shell-radius: 8px;
   --grimoire-panel-shadow: 0 18px 46px color-mix(in srgb, #000 18%, transparent);
@@ -35,367 +30,91 @@
   --sidebar: var(--surface-sidebar);
 }
 
-[data-theme-preset="constellation"] {
-  color-scheme: dark;
-  --surface-app: #060b12;
-  --surface-sidebar: #040a11;
-  --surface-panel: #09131d;
-  --surface-card: #0d1a27;
-  --surface-popover: #101f2d;
-  --surface-input: #0a1520;
-  --surface-editor: #07111a;
-  --text-primary: #e1ebf8;
-  --text-secondary: #a2b3c6;
-  --text-heading: #f6f9ff;
-  --border-default: #26364a;
-  --border-subtle: #182633;
-  --border-strong: #3c5672;
-  --state-hover: #142433;
-  --state-hover-subtle: #0f1c29;
-  --state-selected: #172b45;
-  --accent-blue: #78a6ff;
-  --accent-blue-hover: #9fc0ff;
-  --accent-blue-light: rgba(120, 166, 255, 0.14);
-  --accent-green: var(--accent-blue);
-  --accent-purple: #a78bfa;
-  --accent-yellow: #f2c46d;
-  --accent-orange: #ffb86b;
-  --syntax-heading: #b6ceff;
-  --syntax-link: #9fc0ff;
-  --sidebar-foreground: #e8f0ff;
-  --sidebar-primary: #9cb8df;
-  --sidebar-primary-foreground: #061217;
-  --sidebar-accent: rgba(120, 166, 255, 0.14);
-  --sidebar-accent-foreground: #f0f6ff;
-  --sidebar-border: rgba(156, 184, 223, 0.2);
-}
-
-[data-theme-preset="daylight-notebook"][data-theme="light"] {
-  color-scheme: light;
-  --surface-app: #f6f7f9;
-  --surface-sidebar: #2f3742;
-  --surface-panel: #fbfcfe;
-  --surface-card: #ffffff;
-  --surface-popover: #ffffff;
-  --surface-input: #ffffff;
-  --surface-editor: #fffdf8;
-  --text-primary: #26313a;
-  --text-secondary: #606f7c;
-  --text-heading: #17252f;
-  --border-default: #d7dee7;
-  --border-subtle: #e7ebf1;
-  --border-strong: #a8b5c3;
-  --state-hover: #eef2f6;
-  --state-hover-subtle: #f8f9fb;
-  --state-selected: #e5edf6;
-  --accent-blue: #2f668e;
-  --accent-blue-hover: #24597f;
-  --accent-blue-light: rgba(47, 102, 142, 0.12);
-  --primary-foreground: #fffdfb;
-  --accent-green: var(--accent-blue);
-  --accent-orange: #d06b56;
-  --accent-purple: #7464d8;
-  --syntax-heading: #2b5d86;
-  --syntax-link: #2f668e;
-  --sidebar-foreground: #f4f6f8;
-  --sidebar-primary: #2f668e;
-  --sidebar-primary-foreground: #fffdfb;
-  --sidebar-accent: rgba(47, 102, 142, 0.13);
-  --sidebar-accent-foreground: #f4f6f8;
-  --sidebar-border: rgba(235, 239, 244, 0.18);
-}
-
-[data-theme-preset="daylight-notebook"][data-theme="dark"] {
-  color-scheme: dark;
-  --surface-app: #111316;
-  --surface-sidebar: #0f1114;
-  --surface-panel: #171a1f;
-  --surface-card: #1d2228;
-  --surface-popover: #20252c;
-  --surface-input: #171c22;
-  --surface-editor: #13171c;
-  --text-primary: #e8eaed;
-  --text-secondary: #adb4bd;
-  --text-heading: #f8fafc;
-  --border-default: #30363d;
-  --border-subtle: #242a31;
-  --border-strong: #4b5563;
-  --state-hover: #20242a;
-  --state-hover-subtle: #181c21;
-  --state-selected: #2a3038;
-  --accent-blue: #aab6c5;
-  --accent-blue-hover: #d0d7df;
-  --accent-blue-light: rgba(170, 182, 197, 0.14);
-  --primary-foreground: #0d1116;
-  --accent-green: var(--accent-blue);
-  --accent-orange: #f2a06f;
-  --accent-purple: #b7a8ff;
-  --syntax-heading: #d0d7df;
-  --syntax-link: #aab6c5;
-  --sidebar-foreground: #eaedf1;
-  --sidebar-primary: #b6c2d0;
-  --sidebar-primary-foreground: #0d1116;
-  --sidebar-accent: rgba(182, 194, 208, 0.12);
-  --sidebar-accent-foreground: #f2f4f7;
-  --sidebar-border: rgba(182, 194, 208, 0.16);
-}
-
-/* Midnight Aurora — the default identity. Airy off-white surfaces by day, deep
-   navy-black with a teal glow by night. Tokens flow to every surface (editor,
-   sidebar, panels, cards, dialogs), so the theme runs through the whole app,
-   not a wrapper. --primary/--ring derive from --accent-blue, so the teal reaches
-   buttons, focus rings, and selection too. */
+/* Vellum & Lamplight — the default identity. Manuscript paper and iron-gall
+   ink by day,
+warm charcoal under a lamp by night,
+one lapis accent in both.
+   Tokens flow to every surface (editor, sidebar, panels, cards, dialogs).
+   --primary/--ring derive from --accent-blue,
+so lapis reaches buttons,
+focus
+   rings,
+and selection. Teal is kept for its semantic job only (local/safe). */
 [data-theme-preset="morning-notebook"][data-theme="light"] {
   color-scheme: light;
-  --surface-app: #fbfaf7;
-  --surface-sidebar: #f6f2ea;
-  --surface-panel: #f7f3ec;
+  --surface-app: #faf8f3;
+  --surface-sidebar: #f4f1ea;
+  --surface-panel: #f5f2eb;
   --surface-card: #ffffff;
   --surface-popover: #ffffff;
   --surface-input: #ffffff;
-  --surface-editor: #fffdfc;
-  --text-primary: #17242f;
-  --text-secondary: #516270;
-  --text-heading: #112030;
+  --surface-editor: #fffdf9;
+  --text-primary: #1f1c18;
+  --text-secondary: #5c554b;
+  --text-heading: #16130f;
   --border-default: #e7e2da;
   --border-subtle: #ece8e1;
   --border-strong: #d8d1c7;
   --state-hover: #f1ece3;
-  --state-hover-subtle: #f6f2ea;
-  --state-selected: #ddf4f1;
-  --accent-blue: #0e7c78;
-  --accent-blue-hover: #0b6660;
-  --accent-blue-light: rgba(14, 124, 120, 0.12);
+  --state-hover-subtle: #f4f1ea;
+  --state-selected: #e9ebfa;
+  --accent-blue: #3a4ba8;
+  --accent-blue-hover: #2f3e8f;
+  --accent-blue-light: rgba(58, 75, 168, 0.12);
   --primary-foreground: #ffffff;
-  --accent-green: var(--accent-blue);
+  --accent-green: var(--accent-teal);
   --accent-orange: #cf6a45;
   --accent-purple: #7667d8;
   --accent-yellow: #a07b1c;
-  --state-focus-ring: #0e7c78;
-  --border-focus: #0e7c78;
-  --syntax-heading: #0b6660;
-  --syntax-link: #0e7c78;
-  --sidebar-foreground: #2c3742;
-  --sidebar-primary: #0e7c78;
+  --state-focus-ring: #3a4ba8;
+  --border-focus: #3a4ba8;
+  --syntax-heading: #2f3e8f;
+  --syntax-link: #3a4ba8;
+  --sidebar-foreground: #3a352e;
+  --sidebar-primary: #3a4ba8;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: rgba(14, 124, 120, 0.13);
-  --sidebar-accent-foreground: #17242f;
+  --sidebar-accent: rgba(58, 75, 168, 0.13);
+  --sidebar-accent-foreground: #1f1c18;
   --sidebar-border: #e3ddd2;
 }
 
-/* Nocturne Aurora — deep ink with warm off-white text, teal glow, iris accent. */
+/* Lamplight — warm charcoal,
+paper-white text,
+lapis glow. Never teal-black. */
 [data-theme-preset="morning-notebook"][data-theme="dark"] {
   color-scheme: dark;
-  --surface-app: #071217;
-  --surface-sidebar: #081a21;
-  --surface-panel: #0a1a21;
-  --surface-card: #0d1c23;
-  --surface-popover: #122832;
-  --surface-input: #0c1a20;
-  --surface-editor: #050d12;
+  --surface-app: #141311;
+  --surface-sidebar: #11100e;
+  --surface-panel: #171614;
+  --surface-card: #1c1a17;
+  --surface-popover: #23211d;
+  --surface-input: #1a1815;
+  --surface-editor: #12110f;
   --text-primary: #f5f2ea;
-  --text-secondary: #b7c8cc;
+  --text-secondary: #b5aea2;
   --text-heading: #f7f4ec;
-  --border-default: #1e3a43;
-  --border-subtle: #16323b;
-  --border-strong: #315c65;
-  --state-hover: #0e2129;
-  --state-hover-subtle: #0b1a21;
-  --state-selected: #123e42;
-  --accent-blue: #26d6c9;
-  --accent-blue-hover: #5fe3d2;
-  --accent-blue-light: rgba(38, 214, 201, 0.16);
-  --primary-foreground: #04201d;
-  --accent-green: var(--accent-blue);
+  --border-default: #2c2925;
+  --border-subtle: #2a2723;
+  --border-strong: #413c36;
+  --state-hover: #201e1b;
+  --state-hover-subtle: #1a1916;
+  --state-selected: #2a2e4a;
+  --accent-blue: #9aa8ff;
+  --accent-blue-hover: #b8c2ff;
+  --accent-blue-light: rgba(154, 168, 255, 0.16);
+  --primary-foreground: #10132b;
+  --accent-green: var(--accent-teal);
   --accent-orange: #ff8b70;
   --accent-purple: #9b87ff;
   --accent-yellow: #f6b64b;
-  --state-focus-ring: #26d6c9;
-  --border-focus: #26d6c9;
-  --syntax-heading: #5fe3d2;
-  --syntax-link: #26d6c9;
-  --sidebar-foreground: #cbd8d8;
-  --sidebar-primary: #26d6c9;
-  --sidebar-primary-foreground: #04201d;
-  --sidebar-accent: rgba(38, 214, 201, 0.14);
+  --state-focus-ring: #9aa8ff;
+  --border-focus: #9aa8ff;
+  --syntax-heading: #b8c2ff;
+  --syntax-link: #9aa8ff;
+  --sidebar-foreground: #d6d0c5;
+  --sidebar-primary: #9aa8ff;
+  --sidebar-primary-foreground: #10132b;
+  --sidebar-accent: rgba(154, 168, 255, 0.14);
   --sidebar-accent-foreground: #f5f2ea;
-  --sidebar-border: rgba(38, 214, 201, 0.16);
-}
-
-[data-theme-preset="living-archive"][data-theme="light"] {
-  --surface-app: #f5f6f8;
-  --surface-sidebar: #3a424b;
-  --surface-panel: #f9fafb;
-  --surface-card: #ffffff;
-  --surface-popover: #ffffff;
-  --surface-input: #ffffff;
-  --surface-editor: #fbfcfd;
-  --text-primary: #27313a;
-  --text-secondary: #5f6e7a;
-  --text-heading: #1e2933;
-  --border-default: #d7dde5;
-  --border-subtle: #e8ecf2;
-  --border-strong: #9eacbb;
-  --state-hover: #eef2f6;
-  --state-hover-subtle: #f8f9fb;
-  --state-selected: #dfe8f0;
-  --accent-blue: #557a95;
-  --accent-blue-hover: #3f6380;
-  --accent-blue-light: rgba(85, 122, 149, 0.12);
-  --primary-foreground: #ffffff;
-  --accent-green: var(--accent-blue);
-  --accent-orange: #b06e36;
-  --accent-yellow: #8f6f38;
-  --syntax-heading: #3f6380;
-  --syntax-link: #4f738d;
-  --sidebar-foreground: #f2f5f7;
-  --sidebar-primary: #8eb1c9;
-  --sidebar-primary-foreground: #101820;
-  --sidebar-accent: rgba(142, 177, 201, 0.16);
-  --sidebar-accent-foreground: #f8fbfd;
-  --sidebar-border: rgba(215, 221, 229, 0.22);
-}
-
-[data-theme-preset="living-archive"][data-theme="dark"] {
-  --surface-app: #151719;
-  --surface-sidebar: #171b20;
-  --surface-panel: #1e2227;
-  --surface-card: #262b31;
-  --surface-popover: #262b31;
-  --surface-input: #242930;
-  --surface-editor: #191d22;
-  --text-primary: #e1e7ec;
-  --text-secondary: #a8b4bd;
-  --text-heading: #f3f6f8;
-  --border-default: #3a3f46;
-  --border-subtle: #292e34;
-  --border-strong: #526170;
-  --state-hover: #2a2f35;
-  --state-hover-subtle: #20252b;
-  --state-selected: #343a42;
-  --accent-blue: #9abbd0;
-  --accent-blue-hover: #c4deeb;
-  --accent-blue-light: rgba(154, 187, 208, 0.14);
-  --accent-green: var(--accent-blue);
-  --accent-orange: #d59a5d;
-  --accent-yellow: #d3b56f;
-  --syntax-heading: #c4deeb;
-  --syntax-link: #9abbd0;
-  --sidebar-foreground: #e5edf3;
-  --sidebar-primary: #9abbd0;
-  --sidebar-primary-foreground: #0f1418;
-  --sidebar-accent: rgba(154, 187, 208, 0.14);
-  --sidebar-accent-foreground: #f1f7fb;
-  --sidebar-border: rgba(154, 187, 208, 0.18);
-}
-
-[data-theme-preset="nocturne"][data-theme="light"] {
-  --surface-app: #f8f9fb;
-  --surface-sidebar: #eef2f6;
-  --surface-panel: #fcfdff;
-  --surface-card: #ffffff;
-  --surface-popover: #ffffff;
-  --surface-input: #ffffff;
-  --surface-editor: #fdfdff;
-  --text-primary: #24313a;
-  --text-secondary: #607080;
-  --text-heading: #17252f;
-  --border-default: #d9dee7;
-  --border-subtle: #e9edf3;
-  --border-strong: #aeb9c8;
-  --state-hover: #f1f4f8;
-  --state-hover-subtle: #f8f9fb;
-  --state-selected: #e6eef7;
-  --state-selected-strong: #cfdfef;
-  --accent-blue: #2f668e;
-  --accent-blue-bg: rgba(47, 102, 142, 0.14);
-  --accent-blue-hover: #24597f;
-  --accent-blue-light: rgba(47, 102, 142, 0.12);
-  --accent-green: var(--accent-blue);
-  --primary-foreground: #fdfdff;
-  --accent-orange: #b86d2d;
-  --accent-orange-light: rgba(184, 109, 45, 0.11);
-  --accent-purple: #755aa6;
-  --accent-purple-light: rgba(117, 90, 166, 0.11);
-  --syntax-heading: #2b5d86;
-  --syntax-link: #2f668e;
-  --sidebar-foreground: #24313a;
-  --sidebar-primary: #2f668e;
-  --sidebar-primary-foreground: #fdfdff;
-  --sidebar-accent: rgba(47, 102, 142, 0.13);
-  --sidebar-accent-foreground: #24313a;
-  --sidebar-border: #dce2ea;
-}
-
-[data-theme-preset="nocturne"][data-theme="dark"] {
-  --surface-app: #101113;
-  --surface-sidebar: #0d0e10;
-  --surface-panel: #151719;
-  --surface-card: #1b1d20;
-  --surface-popover: #202328;
-  --surface-input: #181b1f;
-  --surface-editor: #121416;
-  --text-primary: #e9ecef;
-  --text-secondary: #aeb4bc;
-  --text-heading: #f7f8fa;
-  --border-default: #30343a;
-  --border-subtle: #24282d;
-  --border-strong: #565d67;
-  --state-hover: #20242a;
-  --state-hover-subtle: #171a1e;
-  --state-selected: #29313c;
-  --state-selected-strong: #3c4653;
-  --accent-blue: #86aee8;
-  --accent-blue-bg: rgba(134, 174, 232, 0.16);
-  --accent-blue-hover: #a9c6f4;
-  --accent-blue-light: rgba(134, 174, 232, 0.15);
-  --accent-green: var(--accent-blue);
-  --accent-orange: #f0ae72;
-  --accent-orange-light: rgba(240, 174, 114, 0.15);
-  --accent-purple: #c6b0f3;
-  --accent-purple-light: rgba(198, 176, 243, 0.14);
-  --syntax-heading: #d6e4fb;
-  --syntax-link: #a9c6f4;
-  --sidebar-foreground: #eceff3;
-  --sidebar-primary: #9bb8e2;
-  --sidebar-primary-foreground: #0b0d10;
-  --sidebar-accent: rgba(134, 174, 232, 0.14);
-  --sidebar-accent-foreground: #f4f7fb;
-  --sidebar-border: rgba(170, 186, 211, 0.17);
-}
-
-[data-theme-preset="code-notebook"] {
-  color-scheme: dark;
-  --surface-app: #08090d;
-  --surface-sidebar: #090a0f;
-  --surface-panel: #11141a;
-  --surface-card: #171b22;
-  --surface-popover: #1c2029;
-  --surface-input: #0d1016;
-  --surface-editor: #0a0c11;
-  --text-primary: #e7ebf2;
-  --text-secondary: #aab2bf;
-  --text-heading: #f5f7fb;
-  --border-default: #303641;
-  --border-subtle: #20252d;
-  --border-strong: #556273;
-  --state-hover: #1b2028;
-  --state-hover-subtle: #11151b;
-  --state-selected: #222b3a;
-  --accent-blue: #8fa8ff;
-  --accent-blue-hover: #b6c6ff;
-  --accent-blue-light: rgba(143, 168, 255, 0.14);
-  --accent-green: var(--accent-blue);
-  --accent-orange: #f2a86d;
-  --accent-yellow: #d9c47a;
-  --accent-purple: #c3b4ff;
-  --accent-red: #ff7a7a;
-  --syntax-heading: #dbe5ff;
-  --syntax-link: #9fcfff;
-  --sidebar-foreground: #e7ebf2;
-  --sidebar-primary: #9cadff;
-  --sidebar-primary-foreground: #090b10;
-  --sidebar-accent: rgba(143, 168, 255, 0.13);
-  --sidebar-accent-foreground: #f5f7fb;
-  --sidebar-border: rgba(151, 166, 194, 0.18);
+  --sidebar-border: rgba(154, 168, 255, 0.16);
 }

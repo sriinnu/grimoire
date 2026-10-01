@@ -22,6 +22,7 @@ function createKeyboardActions(
   return {
     onQuickOpen: config.onQuickOpen,
     onCommandPalette: config.onCommandPalette,
+    onToggleKeyboardShortcuts: config.onToggleKeyboardShortcuts,
     onSearch: config.onSearch,
     onCreateNote: config.onCreateNote,
     onSave: config.onSave,
@@ -209,6 +210,8 @@ function createCommandRegistryCoreConfig(
     onCreateNote: config.onCreateNote,
     onCaptureThought: config.onCaptureThought,
     onCaptureJournal: config.onCaptureJournal,
+    onOpenTodayJournal: config.onOpenTodayJournal,
+    onQuickCapture: config.onQuickCapture,
     onCaptureDream: config.onCaptureDream,
     onCreateNoteOfType: config.onCreateNoteOfType,
     onSave: config.onSave,
@@ -228,6 +231,7 @@ function createCommandRegistryCoreConfig(
     onToggleNoteLayout: config.onToggleNoteLayout,
     onToggleAIChat: config.onToggleAIChat,
     onOpenGraph: config.onOpenGraph,
+    onToggleKeyboardShortcuts: config.onToggleKeyboardShortcuts,
   }
 }
 
@@ -243,6 +247,7 @@ function createCommandRegistryVaultConfig(
     canAddRemote: !isGitVault || (config.canAddRemote ?? true),
     onCheckForUpdates: config.onCheckForUpdates,
     onCreateType: config.onCreateType,
+    onImportFiles: config.onImportFiles,
     locale: config.locale,
     systemLocale: config.systemLocale,
     selectedUiLanguage: config.selectedUiLanguage,

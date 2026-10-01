@@ -73,7 +73,7 @@ describe('NoteList virtualized datasets', () => {
 
       renderNoteList({ entries })
       fireEvent.click(screen.getByTitle('Search pages'))
-      fireEvent.change(screen.getByPlaceholderText('Search pages...'), { target: { value: 'Strategy' } })
+      fireEvent.change(screen.getByPlaceholderText('Search pages'), { target: { value: 'Strategy' } })
 
       await act(async () => {
         vi.advanceTimersByTime(200)
@@ -343,6 +343,26 @@ describe('NoteList filter pills', () => {
   })
 })
 
+describe('NoteList table layout', () => {
+  it('switches the list to a table and remembers it for that place', () => {
+    localStorage.removeItem('grimoire:note-list-layout')
+    const entries = [
+      makeEntry({ path: '/vault/alpha.md', title: 'Alpha', status: 'Active' }),
+      makeEntry({ path: '/vault/beta.md', title: 'Beta', status: 'Done' }),
+    ]
+    const { unmount } = renderNoteList({ entries })
+    expect(screen.queryByTestId('note-table')).toBeNull()
+    fireEvent.click(screen.getByTestId('note-list-layout-toggle'))
+    expect(screen.getAllByTestId('note-table-row')).toHaveLength(2)
+    expect(screen.getByTestId('note-list-layout-toggle')).toHaveAttribute('aria-pressed', 'true')
+    unmount()
+    renderNoteList({ entries })
+    expect(screen.getByTestId('note-table')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('note-list-layout-toggle'))
+    expect(screen.queryByTestId('note-table')).toBeNull()
+  })
+})
+
 describe('NoteList note context menu', () => {
   it('offers right-click organization actions for normal note rows', () => {
     const onUpdateFrontmatter = vi.fn()
@@ -354,12 +374,14 @@ describe('NoteList note context menu', () => {
 
     fireEvent.contextMenu(screen.getByText('Alpha'))
     const menu = screen.getByTestId('note-context-menu')
-    expect(menu).toHaveClass('w-[216px]')
-    expect(menu).toHaveTextContent('Note actions')
-    expect(menu).toHaveTextContent('Status')
-    expect(menu).toHaveTextContent('Color')
-    expect(screen.getByRole('menuitem', { name: 'Status: Active' })).toHaveClass('bg-accent/70')
-    expect(screen.getByTestId('note-context-color-green')).toHaveClass('ring-1')
+    expect(menu).toHaveClass('note-menu')
+    expect(menu).toHaveAttribute('aria-label', 'Actions for Alpha')
+    expect(menu).not.toHaveTextContent('Alpha')
+    expect(menu).not.toHaveTextContent('Note actions')
+    expect(screen.getByRole('menuitemradio', { name: 'Active' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByRole('menuitemradio', { name: 'Done' })).not.toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByTestId('note-context-color-green')).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByTestId('note-context-color-clear')).toHaveAttribute('aria-checked', 'false')
 
     fireEvent.click(screen.getByTestId('note-context-make-project'))
     expect(onUpdateFrontmatter).toHaveBeenCalledWith('/vault/alpha.md', 'type', 'Project')

@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect } from 'vitest'
+import { act } from '@testing-library/react'
+import { APP_STORAGE_KEYS } from '../constants/appStorage'
 import { renderHook, act } from '@testing-library/react'
 import { useLayoutPanels, COLUMN_MIN_WIDTHS } from './useLayoutPanels'
 
@@ -6,6 +8,8 @@ const wideViewport = 1920
 const fullLayoutResizeHandlesWidth = 12
 
 describe('useLayoutPanels', () => {
+  afterEach(() => localStorage.clear())
+
   it('exports column minimum widths', () => {
     expect(COLUMN_MIN_WIDTHS.sidebar).toBe(180)
     expect(COLUMN_MIN_WIDTHS.noteList).toBe(220)
@@ -15,12 +19,13 @@ describe('useLayoutPanels', () => {
 
   it('returns default widths', () => {
     const { result } = renderHook(() => useLayoutPanels({ viewportWidth: wideViewport }))
-    expect(result.current.sidebarWidth).toBe(284)
-    expect(result.current.noteListWidth).toBe(450)
+    expect(result.current.sidebarWidth).toBe(256)
+    expect(result.current.noteListWidth).toBe(340)
     expect(result.current.inspectorWidth).toBe(280)
   })
 
-  it('uses laptop defaults that keep the Second Brain rail visible', () => {
+  it('uses laptop defaults that fit the Second Brain rail when it was left open', () => {
+    localStorage.setItem(APP_STORAGE_KEYS.inspectorOpen, '1')
     const { result } = renderHook(() => useLayoutPanels({ viewportWidth: 1440 }))
 
     expect(result.current.inspectorCollapsed).toBe(false)
@@ -36,7 +41,8 @@ describe('useLayoutPanels', () => {
     expect(result.current.noteListWidth).toBeGreaterThanOrEqual(COLUMN_MIN_WIDTHS.noteList)
   })
 
-  it('collapses the inspector only when the native rail cannot fit', () => {
+  it('collapses the inspector when the native rail cannot fit, even if left open', () => {
+    localStorage.setItem(APP_STORAGE_KEYS.inspectorOpen, '1')
     const { result } = renderHook(() => useLayoutPanels({ viewportWidth: 1180 }))
 
     expect(result.current.inspectorCollapsed).toBe(true)
@@ -51,6 +57,7 @@ describe('useLayoutPanels', () => {
   })
 
   it('keeps compact navigation beside the rail on smaller desktop windows', () => {
+    localStorage.setItem(APP_STORAGE_KEYS.inspectorOpen, '1')
     const { result } = renderHook(() => useLayoutPanels({ viewportWidth: 1280 }))
 
     expect(result.current.inspectorCollapsed).toBe(false)
@@ -123,9 +130,24 @@ describe('useLayoutPanels', () => {
     expect(result.current.inspectorWidth).toBe(500)
   })
 
-  it('defaults inspector to visible on wide viewports', () => {
+  it('starts with the inspector closed on first launch, even on wide viewports', () => {
     const { result } = renderHook(() => useLayoutPanels({ viewportWidth: wideViewport }))
-    expect(result.current.inspectorCollapsed).toBe(false)
+    expect(result.current.inspectorCollapsed).toBe(true)
+  })
+
+  it('remembers the inspector choice across launches', () => {
+    const first = renderHook(() => useLayoutPanels({ viewportWidth: wideViewport }))
+    act(() => first.result.current.setInspectorCollapsed((collapsed) => !collapsed))
+    expect(localStorage.getItem(APP_STORAGE_KEYS.inspectorOpen)).toBe('1')
+
+    const second = renderHook(() => useLayoutPanels({ viewportWidth: wideViewport }))
+    expect(second.result.current.inspectorCollapsed).toBe(false)
+  })
+
+  it('never persists the choice from note windows that force a layout', () => {
+    const { result } = renderHook(() => useLayoutPanels({ initialInspectorCollapsed: true, viewportWidth: wideViewport }))
+    act(() => result.current.setInspectorCollapsed(false))
+    expect(localStorage.getItem(APP_STORAGE_KEYS.inspectorOpen)).toBeNull()
   })
 
   it('accepts initial inspector collapsed override', () => {

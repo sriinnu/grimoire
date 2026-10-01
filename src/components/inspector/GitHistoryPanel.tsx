@@ -1,43 +1,37 @@
-import { Glyph } from '@/components/glyphs/Glyph'
 import type { GitCommit } from '../../types'
 
-function formatRelativeDate(timestamp: number): string {
-  const now = Math.floor(Date.now() / 1000)
-  const days = Math.floor((now - timestamp) / 86400)
+function formatRelativeCommitDate(timestamp: number, nowSeconds = Math.floor(Date.now() / 1000)): string {
+  const days = Math.floor((nowSeconds - timestamp) / 86400)
   if (days < 1) return 'today'
   if (days === 1) return 'yesterday'
   if (days < 30) return `${days}d ago`
   const months = Math.floor(days / 30)
-  return months === 1 ? '1mo ago' : `${months}mo ago`
+  if (months < 12) return months === 1 ? '1mo ago' : `${months}mo ago`
+  const years = Math.floor(months / 12)
+  return years === 1 ? '1y ago' : `${years}y ago`
 }
 
+/** Edits as a timeline: when, then what. The hash is in the tooltip; clicking opens the diff. */
 export function GitHistoryPanel({ commits, onViewCommitDiff }: { commits: GitCommit[]; onViewCommitDiff?: (commitHash: string) => void }) {
   if (commits.length === 0) return null
 
   return (
-    <div>
-      <h4 className="font-mono-overline mb-2 flex items-center gap-1 text-muted-foreground">
-        <Glyph name="history" size={12} />
-        History
-      </h4>
-      <div className="flex flex-col gap-2.5">
-        {commits.map((c) => (
-          <div key={c.hash} style={{ borderLeft: '2px solid var(--border)', paddingLeft: 10 }}>
-            <button
-              className="mb-0.5 w-full cursor-pointer truncate border-none bg-transparent p-0 text-left text-xs text-primary hover:underline"
-              onClick={() => onViewCommitDiff?.(c.hash)}
-              title={`View diff for ${c.shortHash}`}
-            >
-              <span className="font-mono" style={{ fontSize: 11 }}>{c.shortHash}</span>
-              {' · '}
-              {c.message}
-            </button>
-            <div className="text-muted-foreground" style={{ fontSize: 10 }}>
-              {formatRelativeDate(c.date)}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <ol className="git-timeline" data-testid="git-timeline" aria-label="Edits">
+      {commits.map((commit) => (
+        <li key={commit.hash} className="git-timeline__item">
+          <button
+            type="button"
+            className="git-timeline__commit"
+            onClick={() => onViewCommitDiff?.(commit.hash)}
+            title={`${commit.shortHash} · view diff`}
+            disabled={!onViewCommitDiff}
+          >
+            <span className="git-timeline__when">{formatRelativeCommitDate(commit.date)}</span>
+            <span className="git-timeline__message">{commit.message}</span>
+            <span className="git-timeline__hash">{commit.shortHash}</span>
+          </button>
+        </li>
+      ))}
+    </ol>
   )
 }

@@ -31,14 +31,6 @@ pub(super) fn format_codex_error(stderr_output: String, status: String) -> Strin
     }
 }
 
-pub(super) fn format_chitragupta_error(stderr_output: String, status: String) -> String {
-    if stderr_output.trim().is_empty() {
-        format!("chitragupta exited with status {status}")
-    } else {
-        stderr_output.lines().take(3).collect::<Vec<_>>().join("\n")
-    }
-}
-
 pub(super) fn map_claude_event(
     event: crate::claude_cli::ClaudeStreamEvent,
 ) -> Option<AiAgentStreamEvent> {

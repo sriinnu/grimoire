@@ -48,7 +48,8 @@ function typeNoun(label: string, count: number): string {
   if (lower === 'voice') return count === 1 ? 'voice capture' : 'voice captures'
   if (lower === 'memory') return count === 1 ? 'memory' : 'memories'
   if (count === 1) return lower
-  if (lower.endsWith('y')) return `${lower.slice(0, -1)}ies`
+  // Consonant + y -> ies (story -> stories); vowel + y just adds s (essay -> essays).
+  if (/[^aeiou]y$/u.test(lower)) return `${lower.slice(0, -1)}ies`
   if (lower.endsWith('s')) return lower
   return `${lower}s`
 }
