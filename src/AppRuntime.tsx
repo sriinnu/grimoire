@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { LazyNoteList as NoteList } from './components/LazyNoteList'
 import { LazyEditor as Editor } from './components/LazyEditor'
@@ -50,6 +50,9 @@ import { useVaultFoundation } from './app/useVaultFoundation'
 import { useAiNoteList } from './app/useAiNoteList'
 import { useBodyIndexSync } from './app/useBodyIndexSync'
 import './App.css'
+
+// Dev-only design artifact route (#design-lab); code-split so it never ships in the bundle.
+const DesignLab = lazy(() => import('./design-lab/DesignLab'))
 
 // Type declarations for mock content storage and test overrides
 declare global {
@@ -145,6 +148,23 @@ function App() {
     return { type: null, query: '' }
   }, [effectiveSelection])
   const dashboardSelected = effectiveSelection.kind === 'dashboard'
+  const [designLabHashActive, setDesignLabHashActive] = useState(
+    () => import.meta.env.DEV && window.location.hash === '#design-lab',
+  )
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    const sync = () => setDesignLabHashActive(window.location.hash === '#design-lab')
+    window.addEventListener('hashchange', sync)
+    return () => window.removeEventListener('hashchange', sync)
+  }, [])
+
+  if (designLabHashActive) {
+    return (
+      <Suspense fallback={null}>
+        <DesignLab />
+      </Suspense>
+    )
+  }
 
   if (startupGate) return startupGate
 
