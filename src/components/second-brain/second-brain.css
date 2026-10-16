@@ -166,16 +166,49 @@
 .sb-graphsnap__edge {
   stroke: var(--border-strong);
   stroke-width: 0.45;
+  fill: none;
 }
 
-.sb-graphsnap__edge--hot {
+/* Edge semantics: solid teal = mutual, dashed = this note links out, dotted = backlink. */
+.sb-graphsnap__edge--both {
   stroke: var(--tone);
-  stroke-opacity: 0.55;
+  stroke-opacity: 0.6;
+}
+
+.sb-graphsnap__edge--out {
+  stroke-dasharray: 2.2 1.6;
+}
+
+.sb-graphsnap__edge--in {
+  stroke-dasharray: 0.7 1.4;
 }
 
 .sb-graphsnap__node {
   stroke: var(--border-strong);
   stroke-width: 0.5;
+  transition: stroke 120ms ease, stroke-width 120ms ease;
+}
+
+.sb-graphsnap__group {
+  cursor: pointer;
+  outline: none;
+}
+
+.sb-graphsnap__group:hover .sb-graphsnap__node,
+.sb-graphsnap__group:focus-visible .sb-graphsnap__node {
+  stroke: var(--text-primary);
+  stroke-width: 0.9;
+}
+
+.sb-graphsnap__group:hover .sb-graphsnap__edge,
+.sb-graphsnap__group:focus-visible .sb-graphsnap__edge {
+  opacity: 1;
+}
+
+.sb-graphsnap__nodelabel {
+  font-size: 2.8px;
+  fill: currentColor;
+  opacity: 0.6;
 }
 
 .sb-graphsnap__halo {
@@ -187,6 +220,62 @@
 
 .sb-graphsnap__caption {
   padding: 4px 4px 0;
+  line-height: 1.5;
+}
+
+.sb-graphsnap__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 6px 4px 0;
+  font-size: 9.5px;
+  color: var(--text-tertiary);
+}
+
+.sb-graphsnap__legenditem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sb-graphsnap__legenditem i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.sb-graphsnap__edgekey {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sb-graphsnap__edgekey svg {
+  width: 12px;
+  height: 4px;
+  display: inline-block;
+}
+
+.sb-graphsnap__edgekey svg line {
+  stroke: var(--border-strong);
+}
+
+.sb-graphsnap__edgekey svg line.sb-graphsnap__edge--both {
+  stroke: var(--tone);
+}
+
+.sb-graphsnap__insight {
+  margin: 7px 4px 0;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+.sb-graphsnap__insight strong {
+  font-weight: 650;
+  color: var(--text-primary);
 }
 
 /* ---------- Vault stats ---------- */

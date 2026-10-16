@@ -29,15 +29,8 @@ export interface SecondBrainRailProps {
   onShowInspector: () => void
 }
 
-/** Vision-palette fills for neighbor nodes, keyed by Type accent color. */
-const TYPE_FILL: Record<string, string> = {
-  red: '#ea7a61',
-  purple: '#7667d8',
-  blue: '#5ba8e5',
-  green: '#0e7c78',
-  yellow: '#e8a23a',
-  orange: '#ea7a61',
-}
+/** Tones for types without an accent color; teal stays reserved for the active note. */
+const TYPE_TONE_FILLS = ['#7667d8', '#e8a23a', '#ea7a61', '#5ba8e5', '#a878e6']
 
 const LANE_TONES = ['sb-tone-teal', 'sb-tone-iris', 'sb-tone-amber', 'sb-tone-coral'] as const
 
@@ -64,63 +57,149 @@ interface GraphNeighbor {
   row: ConnectionRow
   x: number
   y: number
+  r: number
+  fill: string
+  typeName: string
+  degree: number
 }
 
 const GRAPH_CENTER = { x: 50, y: 31 }
 const NEIGHBOR_CAP = 8
 
-function layoutNeighbors(rows: ConnectionRow[]): GraphNeighbor[] {
+const RELATION_LABEL: Record<ConnectionRow['direction'], string> = {
+  both: 'mutual',
+  out: 'this note links',
+  in: 'backlink',
+}
+
+/**
+ * Stable type → fill map, one distinct tone per type. Types present in the current
+ * neighborhood rank first (maximally distinct colors where it matters), then by vault
+ * frequency. Teal stays reserved for the active note.
+ */
+function buildTypeFills(entries: VaultEntry[], preferred: string[]): Map<string, string> {
+  const counts = new Map<string, number>()
+  for (const e of entries) {
+    const name = e.isA ?? 'Note'
+    counts.set(name, (counts.get(name) ?? 0) + 1)
+  }
+  const preferredSet = new Set(preferred)
+  const names = [...counts.entries()]
+    .sort((a, b) => {
+      const rank = (entry: [string, number]) => (preferredSet.has(entry[0]) ? 0 : 1)
+      return rank(a) - rank(b) || b[1] - a[1] || a[0].localeCompare(b[0])
+    })
+    .map(([name]) => name)
+  return new Map(names.map((name, index) => [name, TYPE_TONE_FILLS[index % TYPE_TONE_FILLS.length]]))
+}
+
+function layoutNeighbors(rows: ConnectionRow[], fills: Map<string, string>): GraphNeighbor[] {
   const neighbors = rows.filter((row) => row.entry && row.entry.path).slice(0, NEIGHBOR_CAP)
   const count = neighbors.length
   return neighbors.map((row, index) => {
     const angle = (index / Math.max(1, count)) * 2 * Math.PI - Math.PI / 2
+    const degree = row.entry?.outgoingLinks?.length ?? 0
+    const typeName = row.entry?.isA ?? 'Note'
     return {
       row,
       x: GRAPH_CENTER.x + 38 * Math.cos(angle),
       y: GRAPH_CENTER.y + 23 * Math.sin(angle),
+      r: 3.1 + Math.min(2.2, degree * 0.4),
+      fill: fills.get(typeName) ?? TYPE_TONE_FILLS[0],
+      typeName,
+      degree,
     }
   })
 }
 
-function GraphSnap({ entry, connections }: { entry: VaultEntry; connections: ConnectionRow[] }) {
-  const neighbors = useMemo(() => layoutNeighbors(connections), [connections])
+function GraphSnap({ entry, connections, entries, onNavigate }: {
+  entry: VaultEntry
+  connections: ConnectionRow[]
+  entries: VaultEntry[]
+  onNavigate: (target: string) => void
+}) {
+  const preferredTypes = useMemo(
+    () => [...new Set(connections.filter((row) => row.entry).map((row) => row.entry?.isA ?? 'Note'))],
+    [connections],
+  )
+  const fills = useMemo(() => buildTypeFills(entries, preferredTypes), [entries, preferredTypes])
+  const neighbors = useMemo(() => layoutNeighbors(connections, fills), [connections, fills])
+
+  const counts = { both: 0, out: 0, in: 0 }
+  for (const { row } of neighbors) counts[row.direction] += 1
+  const hub = neighbors.length > 1 ? [...neighbors].sort((a, b) => b.degree - a.degree)[0] : null
+  const legendTypes = [...new Set(neighbors.map((n) => n.typeName))].slice(0, 4)
+  const extraTypes = new Set(neighbors.map((n) => n.typeName)).size - legendTypes.length
+  const hubLabelCount = neighbors.length <= 4 ? neighbors.length : 2
+  const hubLabels = new Set(
+    [...neighbors].sort((a, b) => b.degree - a.degree).slice(0, hubLabelCount).map((n) => n.row.key),
+  )
+
+  const insightParts = [
+    counts.out > 0 ? `${counts.out} linked` : null,
+    counts.in > 0 ? `${counts.in} backlink${counts.in === 1 ? '' : 's'}` : null,
+    counts.both > 0 ? `${counts.both} mutual` : null,
+  ].filter(Boolean)
 
   return (
     <>
       <div className="sb-graphsnap">
         <svg viewBox="0 0 100 62" role="img" aria-label="Graph snapshot of linked notes">
-          {neighbors.map(({ row, x, y }) => {
-            const strength = row.direction === 'both' ? 0.85 : row.direction === 'out' ? 0.55 : 0.5
-            return (
-              <line
-                key={row.key}
-                className={row.direction === 'both'
-                  ? 'sb-graphsnap__edge sb-graphsnap__edge--hot sb-tone-teal'
-                  : 'sb-graphsnap__edge sb-tone-teal'}
-                x1={GRAPH_CENTER.x}
-                y1={GRAPH_CENTER.y}
-                x2={x}
-                y2={y}
-                strokeWidth={0.3 + strength * 0.5}
-                opacity={0.5 + strength * 0.5}
-              />
-            )
-          })}
           <circle
             className="sb-graphsnap__halo sb-tone-teal"
             cx={GRAPH_CENTER.x}
             cy={GRAPH_CENTER.y}
             r={12}
           />
-          {neighbors.map(({ row, x, y }) => (
-            <circle
-              key={`node-${row.key}`}
-              className="sb-graphsnap__node"
-              cx={x}
-              cy={y}
-              r={4.2}
-              style={{ fill: TYPE_FILL[row.entry?.color ?? ''] ?? '#7667d8' }}
-            />
+          {neighbors.map(({ row, x, y }) => {
+            const strength = row.direction === 'both' ? 0.9 : row.direction === 'out' ? 0.6 : 0.5
+            return (
+              <line
+                key={`edge-${row.key}`}
+                className={`sb-graphsnap__edge sb-graphsnap__edge--${row.direction}`}
+                x1={GRAPH_CENTER.x}
+                y1={GRAPH_CENTER.y}
+                x2={x}
+                y2={y}
+                strokeWidth={0.3 + strength * 0.5}
+                opacity={0.45 + strength * 0.55}
+              />
+            )
+          })}
+          {neighbors.map((neighbor) => (
+            <g
+              key={neighbor.row.key}
+              className="sb-graphsnap__group"
+              role="link"
+              tabIndex={0}
+              aria-label={`${neighbor.row.entry?.title ?? 'Note'} · ${neighbor.typeName} · ${RELATION_LABEL[neighbor.row.direction]}`}
+              onClick={() => neighbor.row.target && onNavigate(neighbor.row.target)}
+              onKeyDown={(event) => {
+                if ((event.key === 'Enter' || event.key === ' ') && neighbor.row.target) {
+                  event.preventDefault()
+                  onNavigate(neighbor.row.target)
+                }
+              }}
+            >
+              <title>{`${neighbor.row.entry?.title ?? 'Note'} · ${neighbor.typeName} · ${RELATION_LABEL[neighbor.row.direction]}`}</title>
+              <circle
+                className="sb-graphsnap__node"
+                cx={neighbor.x}
+                cy={neighbor.y}
+                r={neighbor.r}
+                style={{ fill: neighbor.fill }}
+              />
+              {hubLabels.has(neighbor.row.key) && (
+                <text
+                  className="sb-graphsnap__nodelabel"
+                  x={neighbor.x}
+                  y={neighbor.y + neighbor.r + 3.4}
+                  textAnchor="middle"
+                >
+                  {truncateLabel(neighbor.row.entry?.title ?? '', 14)}
+                </text>
+              )}
+            </g>
           ))}
           <circle
             className="sb-graphsnap__node sb-tone-teal"
@@ -141,8 +220,40 @@ function GraphSnap({ entry, connections }: { entry: VaultEntry; connections: Con
           </text>
         </svg>
       </div>
-      {neighbors.length === 0 && (
-        <p className="sb-empty sb-graphsnap__caption">No links yet</p>
+      {neighbors.length === 0 ? (
+        <p className="sb-empty sb-graphsnap__caption">
+          No links yet — mention another note with [[ ]] to start this note&apos;s graph.
+        </p>
+      ) : (
+        <>
+          <div className="sb-graphsnap__legend">
+            {legendTypes.map((typeName) => (
+              <span key={typeName} className="sb-graphsnap__legenditem">
+                <i style={{ background: fills.get(typeName) ?? TYPE_TONE_FILLS[0] }} />
+                {typeName}
+              </span>
+            ))}
+            {extraTypes > 0 && <span className="sb-graphsnap__legenditem">+{extraTypes}</span>}
+            <span className="sb-graphsnap__edgekey">
+              <svg viewBox="0 0 12 4" aria-hidden="true"><line x1="0" y1="2" x2="12" y2="2" className="sb-graphsnap__edge sb-graphsnap__edge--both" strokeWidth="0.9" /></svg>
+              mutual
+            </span>
+            <span className="sb-graphsnap__edgekey">
+              <svg viewBox="0 0 12 4" aria-hidden="true"><line x1="0" y1="2" x2="12" y2="2" className="sb-graphsnap__edge sb-graphsnap__edge--out" strokeWidth="0.9" /></svg>
+              this note links
+            </span>
+            <span className="sb-graphsnap__edgekey">
+              <svg viewBox="0 0 12 4" aria-hidden="true"><line x1="0" y1="2" x2="12" y2="2" className="sb-graphsnap__edge sb-graphsnap__edge--in" strokeWidth="0.9" /></svg>
+              backlink
+            </span>
+          </div>
+          <p className="sb-graphsnap__insight">
+            {insightParts.join(' · ')}
+            {hub && hub.degree > 0 && (
+              <> · hub <strong>{truncateLabel(hub.row.entry?.title ?? '', 18)}</strong>{'\u00A0'}({hub.degree}{'\u00A0'}links)</>
+            )}
+          </p>
+        </>
       )}
     </>
   )
@@ -374,7 +485,7 @@ export function SecondBrainRail({
               {connections.length} {connections.length === 1 ? 'link' : 'links'}
             </span>
           </div>
-          <GraphSnap entry={entry} connections={connections} />
+          <GraphSnap entry={entry} connections={connections} entries={entries} onNavigate={onNavigate} />
         </div>
       ) : (
         <div className="sb-card sb-tone-teal">
