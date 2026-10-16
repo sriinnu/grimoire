@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { NotebookTabs } from 'lucide-react'
+import { AuroraCanvas } from '../ambient/AuroraCanvas'
+import { useDocumentTheme } from '../ambient/webgl'
 import './DashboardHero.css'
 
 interface DashboardHeroProps {
@@ -22,9 +24,12 @@ interface DashboardHeroProps {
  * surface.
  */
 export function DashboardHero({ eyebrowLabel, title, tagline, action, children }: DashboardHeroProps) {
+  const theme = useDocumentTheme()
+
   return (
     <section className="dashboard-hero" data-testid="dashboard-hero">
       <div className="dashboard-hero__aurora" aria-hidden="true" />
+      <AuroraCanvas palette={theme} className="dashboard-hero__glow" />
       <div className="dashboard-hero__top">
         <div className="dashboard-hero__copy">
           <div className="dashboard-hero__eyebrow">

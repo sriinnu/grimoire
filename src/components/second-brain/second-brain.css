@@ -154,7 +154,17 @@
 /* ---------- Graph snapshot ---------- */
 
 .sb-graphsnap {
+  position: relative;
+  aspect-ratio: 100 / 62;
   padding: 6px 4px 0;
+}
+
+.sb-graphsnap canvas {
+  position: absolute;
+  inset: 6px 4px 0;
+  width: calc(100% - 8px);
+  height: calc(100% - 6px);
+  display: block;
 }
 
 .sb-graphsnap svg {
@@ -543,4 +553,19 @@
   cursor: pointer;
   box-shadow: 0 6px 16px -6px rgb(14 124 120 / 0.65);
   z-index: 10;
+}
+
+/* ---------- Accessibility utility ---------- */
+
+.sb-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   BookOpen,
   Brain,
@@ -16,6 +16,11 @@ import { relativeDate } from '../../utils/noteListHelpers'
 import { scrollToNoteHeading } from '../../utils/noteNavigation'
 import { useBacklinks, useReferencedBy } from '../inspector/useInspectorData'
 import { buildConnections, type ConnectionRow } from '../inspector/connectionsModel'
+import {
+  ConstellationCanvas,
+  type ConstellationNode,
+} from '../ambient/ConstellationCanvas'
+import { isWebGLAvailable, prefersReducedMotion, useDocumentTheme } from '../ambient/webgl'
 import './second-brain.css'
 
 export interface SecondBrainRailProps {
@@ -125,6 +130,33 @@ function GraphSnap({ entry, connections, entries, onNavigate }: {
   const fills = useMemo(() => buildTypeFills(entries, preferredTypes), [entries, preferredTypes])
   const neighbors = useMemo(() => layoutNeighbors(connections, fills), [connections, fills])
 
+  const [canvasFailed, setCanvasFailed] = useState(false)
+  const handleCanvasUnavailable = useCallback(() => setCanvasFailed(true), [])
+  const theme = useDocumentTheme()
+  const borderColor = useMemo(() => {
+    // `theme` is read (below) only to re-run this memo after the
+    // MutationObserver flips it — getComputedStyle then returns the new
+    // token value for the freshly applied data-theme.
+    void theme
+    const value = getComputedStyle(document.documentElement).getPropertyValue('--border-strong').trim()
+    return value || '#8a8f98'
+  }, [theme])
+
+  const constellationNodes: ConstellationNode[] = useMemo(() => neighbors.map((neighbor) => ({
+    key: neighbor.row.key,
+    title: neighbor.row.entry?.title ?? 'Note',
+    typeName: neighbor.typeName,
+    fill: neighbor.fill,
+    direction: neighbor.row.direction,
+    degree: neighbor.degree,
+    target: neighbor.row.target,
+  })), [neighbors])
+
+  const useCanvas = neighbors.length > 0 &&
+    !canvasFailed &&
+    isWebGLAvailable() &&
+    !prefersReducedMotion()
+
   const counts = { both: 0, out: 0, in: 0 }
   for (const { row } of neighbors) counts[row.direction] += 1
   const hub = neighbors.length > 1 ? [...neighbors].sort((a, b) => b.degree - a.degree)[0] : null
@@ -144,6 +176,16 @@ function GraphSnap({ entry, connections, entries, onNavigate }: {
   return (
     <>
       <div className="sb-graphsnap">
+        {useCanvas ? (
+          <ConstellationCanvas
+            centerTitle={entry.title}
+            nodes={constellationNodes}
+            centerFill="#0e7c78"
+            borderColor={borderColor}
+            onSelect={onNavigate}
+            onUnavailable={handleCanvasUnavailable}
+          />
+        ) : (
         <svg viewBox="0 0 100 62" role="img" aria-label="Graph snapshot of linked notes">
           <circle
             className="sb-graphsnap__halo sb-tone-teal"
@@ -219,6 +261,7 @@ function GraphSnap({ entry, connections, entries, onNavigate }: {
             {truncateLabel(entry.title)}
           </text>
         </svg>
+        )}
       </div>
       {neighbors.length === 0 ? (
         <p className="sb-empty sb-graphsnap__caption">
