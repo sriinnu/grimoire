@@ -28,7 +28,7 @@
         "titleBarStyle": "Overlay",
         "hiddenTitle": true,
         "backgroundColor": "#071217",
-        "transparent": true,
+        "transparent": false,
         "contentProtected": false,
         "shadow": true,
         "dragDropEnabled": true
