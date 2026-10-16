@@ -1,0 +1,116 @@
+/* Vision home restyle: warm aurora hero + sparkline stat band.
+   Scoped overrides layered over DashboardHero.css — the serif wordmark lives
+   here (never in DashboardHero.css, which stays serif-free by contract), and
+   every color comes from app tokens so light and dark themes both hold. */
+
+/* Hero card: 16px radius with a diagonal amber → teal → iris wash built from
+   color-mix on the accent tokens over the card surface. */
+.vault-dashboard .dashboard-hero {
+  border-radius: 16px;
+  padding: clamp(22px, 2.6vw, 26px);
+  background: linear-gradient(
+    132deg,
+    color-mix(in srgb, var(--accent-yellow) 10%, var(--surface-card)) 0%,
+    color-mix(in srgb, var(--accent-teal) 8%, var(--surface-card)) 52%,
+    color-mix(in srgb, var(--accent-purple) 10%, var(--surface-card)) 100%
+  );
+}
+
+/* Serif wordmark hook from the vision mockup. */
+.dashboard-hero__wordmark {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-hero__wordmark-line {
+  margin: 0;
+  font-family: var(--grimoire-wordmark-font-family);
+  font-size: clamp(21px, 2.2vw, 24px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--text-heading);
+}
+
+.dashboard-hero__subline {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+
+/* The notebook tagline stays as the quiet caption under the title. */
+.vault-dashboard .dashboard-hero__tagline {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Stats band: four hairline cards, serif numerals, teal sparklines. */
+.dashboard-hero-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dashboard-hero-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 13px 16px;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 14px;
+  background: var(--surface-card);
+}
+
+.dashboard-hero-stat__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dashboard-hero-stat__value {
+  font-family: var(--grimoire-wordmark-font-family);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+
+.dashboard-hero-stat__label {
+  font-size: 11px;
+  font-weight: 640;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dashboard-hero-stat__spark {
+  width: 56px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.dashboard-hero-stat__spark polyline {
+  stroke: var(--accent-teal);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+@container vault-dashboard (max-width: 720px) {
+  .dashboard-hero-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container vault-dashboard (max-width: 420px) {
+  .dashboard-hero-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

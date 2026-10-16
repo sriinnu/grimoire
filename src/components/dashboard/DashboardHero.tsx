@@ -17,7 +17,9 @@ interface DashboardHeroProps {
 
 /**
  * Full-width hero band: warm card material with an aurora art layer at the
- * top-right, the living notebook title, and a Local & Private status pill.
+ * top-right, the living notebook title, a Local & Private status pill, and
+ * the serif wordmark hook ("Capture. Connect. Remember.") above the capture
+ * surface.
  */
 export function DashboardHero({ eyebrowLabel, title, tagline, action, children }: DashboardHeroProps) {
   return (
@@ -39,6 +41,10 @@ export function DashboardHero({ eyebrowLabel, title, tagline, action, children }
           </span>
           {action}
         </div>
+      </div>
+      <div className="dashboard-hero__wordmark">
+        <p className="dashboard-hero__wordmark-line">Capture. Connect. Remember.</p>
+        <p className="dashboard-hero__subline">One living notebook. Private by design. Powered by you.</p>
       </div>
       {children ? <div className="dashboard-hero__capture-slot">{children}</div> : null}
     </section>

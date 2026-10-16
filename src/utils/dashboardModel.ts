@@ -208,6 +208,70 @@ function buildDailyBrief(input: {
   }
 }
 
+export interface DashboardVaultStats {
+  /** Active content entries that are not journals. */
+  pages: number
+  /** Active entries typed as Journal. */
+  journals: number
+  /** Active entries typed as Dream. */
+  dreams: number
+  /** Total outgoing wikilinks across active content entries. */
+  links: number
+  /** Entries touched per day for the last 14 days (oldest → newest). */
+  pagesSeries: number[]
+  journalsSeries: number[]
+  dreamsSeries: number[]
+  linksSeries: number[]
+}
+
+const STATS_SPARKLINE_DAYS = 14
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function sparklineDayIndex(timestampSeconds: number | null | undefined, nowMs: number): number | null {
+  if (typeof timestampSeconds !== 'number' || !Number.isFinite(timestampSeconds)) return null
+  const daysAgo = Math.floor((nowMs - timestampSeconds * 1000) / DAY_MS)
+  if (daysAgo < 0 || daysAgo >= STATS_SPARKLINE_DAYS) return null
+  return STATS_SPARKLINE_DAYS - 1 - daysAgo
+}
+
+/**
+ * Honest big-number stats for the dashboard hero band: counts and per-day
+ * buckets only, never titles, so private note labels cannot leak through it.
+ */
+export function computeDashboardStats(entries: VaultEntry[], now: Date = new Date()): DashboardVaultStats {
+  const nowMs = now.getTime()
+  const pagesSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  const journalsSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  const dreamsSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  const linksSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  let pages = 0
+  let journals = 0
+  let dreams = 0
+  let links = 0
+
+  for (const entry of entries) {
+    if (!isContentEntry(entry) || entry.archived) continue
+    const index = sparklineDayIndex(entry.modifiedAt ?? entry.createdAt, nowMs)
+    const linkCount = entry.outgoingLinks.length
+
+    if (typeIs(entry, 'Journal')) {
+      journals += 1
+      if (index !== null) journalsSeries[index] += 1
+    } else {
+      pages += 1
+      if (index !== null) pagesSeries[index] += 1
+    }
+    if (typeIs(entry, 'Dream')) {
+      dreams += 1
+      if (index !== null) dreamsSeries[index] += 1
+    }
+    links += linkCount
+    if (index !== null) linksSeries[index] += linkCount
+  }
+
+  return { pages, journals, dreams, links, pagesSeries, journalsSeries, dreamsSeries, linksSeries }
+}
+
 /** Builds the local vault dashboard summary without reading note bodies. */
 export function buildDashboardSummary(entries: VaultEntry[], now: Date = new Date()): DashboardSummary {
   const activeContent = entries.filter((entry) => isContentEntry(entry) && !entry.archived)

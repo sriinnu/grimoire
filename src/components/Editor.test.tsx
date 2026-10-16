@@ -365,7 +365,7 @@ describe('Editor', () => {
     expect(diffBtn).toBeInTheDocument()
   })
 
-  it('includes inspector panel', async () => {
+  it('shows the Second Brain rail by default with the inspector one toggle away', async () => {
     render(
       <Editor
         {...defaultProps}
@@ -374,9 +374,20 @@ describe('Editor', () => {
         inspectorContent={mockContent}
       />
     )
-    // The lazy inspector shows the Second Brain header with the note title beneath it.
-    expect(await screen.findByTestId('inspector-header-title', {}, { timeout: 5000 })).toHaveTextContent('Second Brain')
-    expect(screen.getByTestId('inspector-header-subtitle')).toHaveTextContent(mockEntry.title)
+    // The right panel opens on the Second Brain rail.
+    expect(
+      await screen.findByRole('img', { name: 'Graph snapshot of linked notes' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    // The legacy inspector stays one toggle away.
+    fireEvent.click(screen.getByRole('button', { name: 'Show legacy inspector' }))
+    expect(await screen.findByTestId('inspector-header-title', {}, { timeout: 5000 })).toHaveTextContent(
+      'Second Brain',
+    )
+    // And the rail is one toggle back.
+    fireEvent.click(screen.getByRole('button', { name: 'Show Second Brain rail' }))
+    expect(
+      await screen.findByRole('img', { name: 'Graph snapshot of linked notes' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
   })
 
   // Regression: editor content did not appear on first load because BlockNote's
