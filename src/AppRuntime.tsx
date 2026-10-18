@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { LazyNoteList as NoteList } from './components/LazyNoteList'
 import { LazyEditor as Editor } from './components/LazyEditor'
@@ -49,10 +49,8 @@ import { useNoteWorkspace } from './app/useNoteWorkspace'
 import { useVaultFoundation } from './app/useVaultFoundation'
 import { useAiNoteList } from './app/useAiNoteList'
 import { useBodyIndexSync } from './app/useBodyIndexSync'
+import { useDesignLabRoute } from './app/useDesignLabRoute'
 import './App.css'
-
-// Dev-only design artifact route (#design-lab); code-split so it never ships in the bundle.
-const DesignLab = lazy(() => import('./design-lab/DesignLab'))
 
 // Type declarations for mock content storage and test overrides
 declare global {
@@ -148,23 +146,8 @@ function App() {
     return { type: null, query: '' }
   }, [effectiveSelection])
   const dashboardSelected = effectiveSelection.kind === 'dashboard'
-  const [designLabHashActive, setDesignLabHashActive] = useState(
-    () => import.meta.env.DEV && window.location.hash === '#design-lab',
-  )
-  useEffect(() => {
-    if (!import.meta.env.DEV) return
-    const sync = () => setDesignLabHashActive(window.location.hash === '#design-lab')
-    window.addEventListener('hashchange', sync)
-    return () => window.removeEventListener('hashchange', sync)
-  }, [])
-
-  if (designLabHashActive) {
-    return (
-      <Suspense fallback={null}>
-        <DesignLab />
-      </Suspense>
-    )
-  }
+  const designLabRoute = useDesignLabRoute()
+  if (designLabRoute) return designLabRoute
 
   if (startupGate) return startupGate
 
@@ -299,7 +282,7 @@ function App() {
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
         <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={createPageFromQuery} />
-        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} />
+        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} onPromote={quickCapture.promoteQuickCapture} />
         <CommandPalette
           open={dialogs.showCommandPalette}
           commands={commands}
