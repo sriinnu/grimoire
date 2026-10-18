@@ -2411,7 +2411,7 @@ dependencies = [
 
 [[package]]
 name = "grimoire"
-version = "0.1.467"
+version = "0.1.468"
 dependencies = [
  "aws-config",
  "aws-sdk-s3",
