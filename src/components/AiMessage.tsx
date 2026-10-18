@@ -1,10 +1,11 @@
-import { lazy, Suspense, useState, useCallback, useEffect, useRef, type CSSProperties } from 'react'
-import { CaretRight, CaretDown, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { lazy, Suspense, useState, useCallback, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react'
+import { CaretRight, CaretDown, ArrowCounterClockwise, Check, CircleDashed, X } from '@phosphor-icons/react'
 import { Glyph } from './glyphs/Glyph'
 import { AiActionCard, type AiActionStatus } from './AiActionCard'
 import { AI_AGENT_CLI_DEFAULT_ROUTE, getAiAgentDefinition, type AiAgentRuntimeRoute } from '../lib/aiAgents'
 import type { NoteReference } from '../utils/ai-context'
 import { getTypeColor } from '../utils/typeColors'
+import './ai-communication.css'
 
 const MarkdownContentSurface = lazy(async () => ({
   default: (await import('./MarkdownContent')).MarkdownContent,
@@ -74,10 +75,11 @@ function UserBubble({ content, references, onOpenNote }: {
     <div className="flex justify-end" style={{ marginBottom: 8 }}>
       <div
         data-ai-message-bubble="user"
+        className="aic-bubble--user"
         style={{
-          background: 'var(--ai-message-user-bg, var(--muted))',
+          background: 'var(--ai-message-user-bg, linear-gradient(135deg, #173b34, #0e7c78))',
           border: '1px solid var(--ai-message-user-border, transparent)',
-          color: 'var(--ai-message-user-fg, var(--foreground))',
+          color: 'var(--ai-message-user-fg, #ffffff)',
           borderRadius: '12px 12px 2px 12px',
           maxWidth: '85%',
           padding: '8px 12px',
@@ -190,6 +192,12 @@ function RouteDisclosureChip({ route }: { route: RouteDisclosure | AiAgentRuntim
   )
 }
 
+function ActionStatusIcon({ status }: { status: AiActionStatus }): ReactNode {
+  if (status === 'done') return <Check size={9} className="aic-tool__icon--done" aria-hidden="true" />
+  if (status === 'error') return <X size={9} className="aic-tool__icon--error" aria-hidden="true" />
+  return <CircleDashed size={9} className="aic-tool__icon--pending" aria-hidden="true" />
+}
+
 function ActionCardsList({ actions, onOpenNote, expandedIds, onToggleExpand }: {
   actions: AiAction[]
   onOpenNote?: (path: string) => void
@@ -198,6 +206,21 @@ function ActionCardsList({ actions, onOpenNote, expandedIds, onToggleExpand }: {
 }) {
   return (
     <div className="flex flex-col gap-2" style={{ marginBottom: 8 }}>
+      <div className="aic-toolrow" data-testid="ai-tool-trace">
+        {actions.map((action) => (
+          <button
+            key={action.toolId}
+            type="button"
+            className="aic-tool"
+            title={action.tool}
+            aria-expanded={expandedIds.has(action.toolId)}
+            onClick={() => onToggleExpand(action.toolId)}
+          >
+            <ActionStatusIcon status={action.status} />
+            {action.label}
+          </button>
+        ))}
+      </div>
       {actions.map((action) => (
         <AiActionCard
           key={action.toolId}
@@ -216,12 +239,45 @@ function ActionCardsList({ actions, onOpenNote, expandedIds, onToggleExpand }: {
   )
 }
 
+type CitationSegment = { kind: 'text'; value: string } | { kind: 'citation'; index: string }
+
+/** Split assistant prose into text + [n] citation segments. Markdown link and
+ *  footnote syntax ([x](…), [x]: …, ![…]) is left untouched. */
+function splitCitationSegments(text: string): CitationSegment[] {
+  const pattern = /\[(\d{1,2})\]/g
+  const segments: CitationSegment[] = []
+  let last = 0
+  let match: RegExpExecArray | null
+  while ((match = pattern.exec(text)) !== null) {
+    const before = text[match.index - 1]
+    const after = text[match.index + match[0].length]
+    if (before === '!' || before === ']' || after === '(' || after === ':') continue
+    if (match.index > last) segments.push({ kind: 'text', value: text.slice(last, match.index) })
+    segments.push({ kind: 'citation', index: match[1] })
+    last = match.index + match[0].length
+  }
+  if (segments.length === 0) return [{ kind: 'text', value: text }]
+  if (last < text.length) segments.push({ kind: 'text', value: text.slice(last) })
+  return segments
+}
+
 function ResponseBlock({ text, onNavigateWikilink }: { text: string; onNavigateWikilink?: (target: string) => void }) {
+  const segments = useMemo(() => splitCitationSegments(text), [text])
   return (
-    <div style={{ marginBottom: 4 }}>
-      <Suspense fallback={<ResponsePlainTextFallback text={text} />}>
-        <MarkdownContentSurface content={text} onWikilinkClick={onNavigateWikilink} />
-      </Suspense>
+    <div className="aic-bubble--agent" style={{ marginBottom: 4 }} data-ai-message-bubble="assistant">
+      {segments.map((segment, index) => segment.kind === 'citation' ? (
+        <span
+          key={`ref-${index}`}
+          className="aic-ref aic-tone-iris"
+          aria-label={`reference ${segment.index}`}
+        >
+          {segment.index}
+        </span>
+      ) : (
+        <Suspense key={`text-${index}`} fallback={<ResponsePlainTextFallback text={segment.value} />}>
+          <MarkdownContentSurface content={segment.value} onWikilinkClick={onNavigateWikilink} />
+        </Suspense>
+      ))}
       <button
         className="flex items-center gap-2 border-none bg-transparent p-0 text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
         style={{ fontSize: 12, marginTop: 4 }}

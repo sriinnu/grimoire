@@ -27,6 +27,8 @@ import {
   summarizeCrystallizeProposal,
 } from '../lib/crystallizeProposal'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
+import { AiCommunicationStrip } from './AiCommunicationStrip'
+import { AiCrystallizeLoopCard } from './AiCrystallizeLoopCard'
 import { AiPanelIntelligenceRail } from './AiPanelIntelligenceRail'
 import type { ChitraguptaRecallAttachment } from '../lib/chitraguptaContext'
 import type { ContextManifestV1 } from '../lib/contextManifest'
@@ -115,6 +117,7 @@ export function AiPanelView({
   const [askContextPackage, setAskContextPackage] = useState<AskContextPackage | null>(null)
   const [chitraguptaRecall, setChitraguptaRecall] = useState<ChitraguptaRecallAttachment | null>(null)
   const [contextManifest, setContextManifest] = useState<ContextManifestV1 | null>(null)
+  const [declinedReceipt, setDeclinedReceipt] = useState<string | null>(null)
   const agentLabel = getAiAgentDefinition(defaultAiAgent).label
   const agentRouteLabel = describeAiAgentRoute(defaultAiAgent, defaultAiProvider, defaultAiModel)
   const {
@@ -172,6 +175,8 @@ export function AiPanelView({
     [crystallizeProposal],
   )
   const canCrystallize = !!crystallizeProposal && !crystallizeBlockedReason
+  const proposalReceipt = crystallizeProposalSummary?.loopReceipt ?? null
+  const writeReviewVisible = proposalReceipt === null || proposalReceipt !== declinedReceipt
 
   function handleOpenLatestCrystallize(): void {
     setCrystallizeOpen(true)
@@ -243,6 +248,13 @@ export function AiPanelView({
           onCrystallize={handleOpenLatestCrystallize}
           onNewChat={handlePanelNewChat}
         />
+        <AiCommunicationStrip
+          agent={defaultAiAgent}
+          provider={defaultAiProvider}
+          model={defaultAiModel}
+          availability={providedAiAgentsStatus?.[defaultAiAgent] ?? null}
+          agentStatus={agent.status}
+        />
         {activeEntry ? <AiPanelContextBar activeEntry={activeEntry} linkedCount={linkedEntries.length} /> : null}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto" data-testid="ai-panel-scroll-region">
           <AiPanelIntelligenceRail
@@ -272,6 +284,19 @@ export function AiPanelView({
             onUseContextManifest={setContextManifest}
             onUseChitraguptaRecall={setChitraguptaRecall}
           />
+          {writeReviewVisible && (
+            <AiCrystallizeLoopCard
+              activeContextProtected={activePolicy?.localOnly === true}
+              blockedReason={crystallizeBlockedReason}
+              canCrystallize={canCrystallize}
+              hasContext={hasContext}
+              hasLatestResponse={!!latestResponse}
+              linkedCount={linkedEntries.length}
+              onCrystallize={handleOpenLatestCrystallize}
+              onDecline={proposalReceipt ? () => setDeclinedReceipt(proposalReceipt) : undefined}
+              proposalSummary={crystallizeProposalSummary}
+            />
+          )}
           <AiPanelMessageHistory
             agentLabel={agentLabel}
             agentReady={defaultAiAgentReady}

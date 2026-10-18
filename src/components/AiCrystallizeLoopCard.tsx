@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'
 import { Glyph } from './glyphs/Glyph'
 import { Badge } from './ui/badge'
-import { Button } from './ui/button'
+import './ai-communication.css'
 
 interface AiCrystallizeLoopCardProps {
   activeContextProtected: boolean
@@ -12,6 +12,8 @@ interface AiCrystallizeLoopCardProps {
   hasLatestResponse: boolean
   linkedCount: number
   onCrystallize: () => void
+  /** Dismiss the current proposal; omit to hide the Decline action. */
+  onDecline?: () => void
   proposalSummary: CrystallizeProposalSummary | null
 }
 
@@ -24,6 +26,7 @@ export function AiCrystallizeLoopCard({
   hasLatestResponse,
   linkedCount,
   onCrystallize,
+  onDecline,
   proposalSummary,
 }: AiCrystallizeLoopCardProps) {
   const status = statusCopy({ activeContextProtected, blockedReason, canCrystallize, hasLatestResponse })
@@ -32,22 +35,40 @@ export function AiCrystallizeLoopCard({
 
   return (
     <section className="border-b border-border px-4 py-3" data-testid="crystallize-loop-card">
-      <div className="rounded-xl border border-border bg-muted/30 p-3.5">
+      <div className="aic-remember rounded-xl border p-3.5">
         <div className="flex items-center justify-between gap-2.5">
-          <div className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-foreground">
-            <Glyph name="sparkle" size={16} className="shrink-0 text-muted-foreground" />
+          <div className="aic-remember__head">
+            <Glyph name="sparkle" size={12} className="shrink-0" />
             <span>Crystallize Memory</span>
           </div>
-          <Button
+        </div>
+        <div className="aic-remember__actions">
+          <button
             type="button"
-            variant={canCrystallize ? 'default' : 'outline'}
-            size="xs"
+            className="aic-btn aic-btn--primary"
             disabled={!canCrystallize}
             onClick={onCrystallize}
             data-testid="crystallize-loop-action"
           >
-            {canCrystallize ? 'Review memory' : reviewState}
-          </Button>
+            {canCrystallize ? 'Accept' : reviewState}
+          </button>
+          <button
+            type="button"
+            className="aic-btn"
+            disabled={!canCrystallize}
+            onClick={onCrystallize}
+          >
+            Edit
+          </button>
+          {onDecline && canCrystallize ? (
+            <button
+              type="button"
+              className="aic-btn aic-btn--ghost"
+              onClick={onDecline}
+            >
+              Decline
+            </button>
+          ) : null}
         </div>
         <p className="mt-2 text-[13px] leading-snug text-muted-foreground">{status}</p>
         <ol className="mt-3 grid grid-cols-4 gap-2" aria-label="Crystallize loop" data-testid="crystallize-loop-trail">
