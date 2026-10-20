@@ -42,6 +42,7 @@ import {
   shouldUseMacOverlayChrome,
 } from './utils/platform'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { installAppContextMenuGuard } from './lib/nativeContextMenu'
 import { installWritingFocus } from './lib/writingFocus'
 import { hasRememberedNote } from './app/sessionMemory'
@@ -196,7 +197,9 @@ createRoot(document.getElementById('root')!, {
   <StrictMode>
     <TooltipProvider>
       <PlatformChrome />
-      <App />
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </TooltipProvider>
   </StrictMode>,
 )
