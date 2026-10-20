@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import type React from 'react'
 import { cn } from '@/lib/utils'
 import { DiffView } from '../DiffView'
@@ -17,7 +18,7 @@ import { useHeadingOutline, type HeadingOutlineState } from '../heading-outline/
 import { useReadingWidth } from './useReadingWidth'
 import { useTypewriterMode } from './useTypewriterMode'
 
-const RawEditorViewSurface = lazy(async () => ({
+const RawEditorViewSurface = lazyWithRetry(async () => ({
   default: (await import('../RawEditorView')).RawEditorView,
 }))
 

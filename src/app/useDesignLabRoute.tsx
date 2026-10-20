@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
-
+import { Suspense, useEffect, useState, type ReactNode } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 // Dev-only design artifact route (#design-lab); code-split so it never ships in the bundle.
-const DesignLab = lazy(() => import('../design-lab/DesignLab'))
+const DesignLab = lazyWithRetry(() => import('../design-lab/DesignLab'))
 
 /** Renders the #design-lab route while the DEV-only hash is active, else null. */
 export function useDesignLabRoute(): ReactNode {

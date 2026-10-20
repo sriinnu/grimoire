@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import {
   CalendarDays,
   Check,
@@ -49,7 +50,7 @@ import './VaultDashboard.css'
 import './vault-dashboard-hero.css'
 import './WeeklyReviewCard.css'
 
-const DashboardInsightPanels = lazy(async () => ({
+const DashboardInsightPanels = lazyWithRetry(async () => ({
   default: (await import('./DashboardInsightPanels')).DashboardInsightPanels,
 }))
 

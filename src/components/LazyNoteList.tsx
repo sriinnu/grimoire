@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import type { NoteListSurfaceProps } from './NoteList'
 import { useStableFunctionProps } from '../hooks/useStableHandlers'
 
-const NoteListSurface = lazy(async () => {
+const NoteListSurface = lazyWithRetry(async () => {
   const module = await import('./NoteList')
   return { default: module.NoteList }
 })

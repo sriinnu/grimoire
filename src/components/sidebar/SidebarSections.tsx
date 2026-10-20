@@ -1,6 +1,5 @@
-import {
-  lazy, Suspense, type Dispatch, type Ref, type RefObject, type SetStateAction,
-} from 'react'
+import { Suspense, type Dispatch, type Ref, type RefObject, type SetStateAction,  } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import type { VaultEntry, SidebarSelection, ViewFile } from '../../types'
 import { PanelLeftClose, SlidersHorizontal } from 'lucide-react'
 import {
@@ -25,9 +24,9 @@ import { SIDEBAR_SECTION_INSET } from './sidebarStyles'
 export { SidebarTopNav } from './SidebarTopNav'
 export { FavoritesSection } from './FavoritesSection'
 
-const LazySortableTypesSection = lazy(() => import('./SortableTypesSection')
+const LazySortableTypesSection = lazyWithRetry(() => import('./SortableTypesSection')
   .then((module) => ({ default: module.SortableTypesSection })))
-const LazyTypeCustomizePopover = lazy(() => import('../TypeCustomizePopover')
+const LazyTypeCustomizePopover = lazyWithRetry(() => import('../TypeCustomizePopover')
   .then((module) => ({ default: module.TypeCustomizePopover })))
 
 export interface SidebarSectionProps {

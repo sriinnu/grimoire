@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { Brain } from 'lucide-react'
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
@@ -11,7 +12,7 @@ import { useAiPanelController } from './useAiPanelController'
 import { NEW_AI_CHAT_EVENT } from '../utils/aiPromptBridge'
 import type { AiChatRightPanelProps } from './AiChatRightPanel'
 
-const AiChatRightPanelSurface = lazy(async () => ({
+const AiChatRightPanelSurface = lazyWithRetry(async () => ({
   default: (await import('./AiChatRightPanel')).AiChatRightPanel,
 }))
 

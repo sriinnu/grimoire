@@ -1,9 +1,10 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import type { FolderNode, VaultEntry } from '../../types'
 import { LocalityMoveConfirmDialog } from '../note-retargeting/LocalityMoveConfirmDialog'
 import { buildMoveFolderOptions, summarizeFolderMoveLocality } from './moveFolderOptions'
 
-const RetargetNoteDialogSurface = lazy(async () => ({
+const RetargetNoteDialogSurface = lazyWithRetry(async () => ({
   default: (await import('../note-retargeting/RetargetNoteDialog')).RetargetNoteDialog,
 }))
 

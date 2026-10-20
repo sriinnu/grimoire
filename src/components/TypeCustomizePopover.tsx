@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { Suspense, useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { MagnifyingGlass, Smiley } from '@phosphor-icons/react'
 import { useIconOptions } from '../hooks/useIconOptions'
 import type { IconEntry } from '../utils/iconRegistry'
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { TypeImagePicker } from './TypeImagePicker'
 
-const EmojiPicker = lazy(() => import('./EmojiPicker').then((module) => ({ default: module.EmojiPicker })))
+const EmojiPicker = lazyWithRetry(() => import('./EmojiPicker').then((module) => ({ default: module.EmojiPicker })))
 
 const COMMON_EMOJI_OPTIONS = [
   { emoji: '🔥', label: 'fire' },

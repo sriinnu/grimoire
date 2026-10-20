@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type RefObject } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState, type RefObject } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import { PenLine, Shapes } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -7,7 +8,7 @@ import {
   type CanvasAttachment,
 } from '../../utils/canvasAttachments'
 
-const LazyCanvasAttachmentDialog = lazy(() => import('./CanvasAttachmentDialog').then((module) => ({
+const LazyCanvasAttachmentDialog = lazyWithRetry(() => import('./CanvasAttachmentDialog').then((module) => ({
   default: module.CanvasAttachmentDialog,
 })))
 

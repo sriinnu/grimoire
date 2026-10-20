@@ -1,7 +1,8 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { shouldUseLinuxWindowChrome } from '../utils/platform'
 
-const LinuxTitlebar = lazy(async () => ({
+const LinuxTitlebar = lazyWithRetry(async () => ({
   default: (await import('./LinuxTitlebar')).LinuxTitlebar,
 }))
 

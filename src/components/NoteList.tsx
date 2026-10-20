@@ -1,4 +1,5 @@
-import { lazy, memo, Suspense, useCallback, useEffect, type ReactNode } from 'react'
+import { memo, Suspense, useCallback, useEffect, type ReactNode } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { NoteListLayout } from './note-list/NoteListLayout'
 import { useNoteListModel, type NoteListProps } from './note-list/useNoteListModel'
 import type { NoteListMultiSelectionCommands } from './note-list/multiSelectionCommands'
@@ -7,7 +8,7 @@ import './note-list/NoteListChrome.css'
 import './note-list/ProjectWorkspaceChrome.css'
 import './note-list/NoteListFilterRail.css'
 
-const ProjectIntelligenceStrip = lazy(() =>
+const ProjectIntelligenceStrip = lazyWithRetry(() =>
   import('./ProjectIntelligenceStrip').then((module) => ({ default: module.ProjectIntelligenceStrip })),
 )
 

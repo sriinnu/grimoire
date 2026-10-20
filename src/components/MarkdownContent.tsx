@@ -1,11 +1,12 @@
-import { lazy, memo, Suspense, useMemo, useCallback, type MouseEvent } from 'react'
+import { memo, Suspense, useMemo, useCallback, type MouseEvent } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import Markdown, { defaultUrlTransform, type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { preprocessWikilinks, WIKILINK_SCHEME } from '../utils/chatWikilinks'
 import { resolveImageUrls } from '../utils/vaultImages'
 
 const REMARK_PLUGINS = [remarkGfm]
-const MarkdownContentRich = lazy(async () => ({
+const MarkdownContentRich = lazyWithRetry(async () => ({
   default: (await import('./MarkdownContentRich')).MarkdownContentRich,
 }))
 

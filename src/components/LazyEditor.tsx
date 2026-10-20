@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import type { EditorProps } from './Editor'
 import { EditorEmptyState } from './EditorEmptyState'
 import { EditorLoadingState } from './EditorLoadingState'
 import { preloadEditor } from './editorPreload'
 
-const EditorSurface = lazy(async () => {
+const EditorSurface = lazyWithRetry(async () => {
   const module = await preloadEditor()
   return { default: module.Editor }
 })

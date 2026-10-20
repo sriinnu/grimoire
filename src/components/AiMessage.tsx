@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useCallback, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react'
+import { Suspense, useState, useCallback, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { CaretRight, CaretDown, ArrowCounterClockwise, Check, CircleDashed, X } from '@phosphor-icons/react'
 import { Glyph } from './glyphs/Glyph'
 import { AiActionCard, type AiActionStatus } from './AiActionCard'
@@ -7,7 +8,7 @@ import type { NoteReference } from '../utils/ai-context'
 import { getTypeColor } from '../utils/typeColors'
 import './ai-communication.css'
 
-const MarkdownContentSurface = lazy(async () => ({
+const MarkdownContentSurface = lazyWithRetry(async () => ({
   default: (await import('./MarkdownContent')).MarkdownContent,
 }))
 

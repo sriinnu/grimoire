@@ -8,9 +8,9 @@ import type { MouseEvent } from 'react'
 const PLAIN_CLICK = { metaKey: false, ctrlKey: false, shiftKey: false, altKey: false, button: 0, preventDefault() {}, stopPropagation() {} } as unknown as MouseEvent
 import { useNoteListLayout, type NoteListLayout as NoteListLayoutMode } from './noteListLayoutPreference'
 import type { useNoteListModel } from './useNoteListModel'
-import { lazy, Suspense, type ReactNode } from 'react'
-
-const EntityView = lazy(async () => ({
+import { Suspense, type ReactNode } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
+const EntityView = lazyWithRetry(async () => ({
   default: (await import('./EntityView')).EntityView,
 }))
 

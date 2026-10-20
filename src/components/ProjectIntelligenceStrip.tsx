@@ -1,5 +1,6 @@
 import { Eye } from 'lucide-react'
-import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { memo, Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { Button } from '@/components/ui/button'
 import type { SidebarSelection, VaultEntry } from '../types'
 import { buildGrimoireProjectIntelligence } from '../project-intelligence/grimoireAdapter'
@@ -32,9 +33,9 @@ function projectScopeLabel(selection: SidebarSelection): string {
   return parts.slice(-4).join(' / ') || 'Vault folder'
 }
 
-const MarkdownContentPreview = lazy(async () => ({ default: (await import('./MarkdownContent')).MarkdownContent }))
-const ProjectLinkGraphPanel = lazy(async () => ({ default: (await import('./ProjectLinkGraph')).ProjectLinkGraph }))
-const ProjectTaskListPanel = lazy(async () => ({ default: (await import('./ProjectTaskList')).ProjectTaskList }))
+const MarkdownContentPreview = lazyWithRetry(async () => ({ default: (await import('./MarkdownContent')).MarkdownContent }))
+const ProjectLinkGraphPanel = lazyWithRetry(async () => ({ default: (await import('./ProjectLinkGraph')).ProjectLinkGraph }))
+const ProjectTaskListPanel = lazyWithRetry(async () => ({ default: (await import('./ProjectTaskList')).ProjectTaskList }))
 
 interface ProjectIntelligenceStripProps {
   entries: VaultEntry[]

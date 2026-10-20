@@ -1,5 +1,6 @@
 import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { ListTree } from 'lucide-react'
 import { Glyph } from './glyphs/Glyph'
 import { Button } from './ui/button'
@@ -13,7 +14,7 @@ interface EditorNavigatorSummary {
   linkCount: number
 }
 
-const EditorNavigatorPopoverSurface = lazy(async () => ({
+const EditorNavigatorPopoverSurface = lazyWithRetry(async () => ({
   default: (await import('./EditorNavigatorPopover')).EditorNavigatorPopover,
 }))
 
