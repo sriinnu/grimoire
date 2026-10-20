@@ -357,12 +357,12 @@ export function computeWeeklyReview(entries: VaultEntry[], now: Date = new Date(
       prevWordCount += entry.wordCount
     }
 
-    if (secondsInWindow(touched, weekStartMs, weekEndMs)) {
+    if (touched != null && secondsInWindow(touched, weekStartMs, weekEndMs)) {
       entriesModifiedThisWeek += 1
       const touchedKey = localDateKey(new Date(touched * 1000))
       weekDayCounts.set(touchedKey, (weekDayCounts.get(touchedKey) ?? 0) + 1)
       if (typeIs(entry, 'Journal')) journalDayKeys.add(touchedKey)
-    } else if (secondsInWindow(touched, prevWeekStartMs, weekStartMs)) {
+    } else if (touched != null && secondsInWindow(touched, prevWeekStartMs, weekStartMs)) {
       prevModified += 1
       if (typeIs(entry, 'Journal')) prevJournalDayKeys.add(localDateKey(new Date(touched * 1000)))
     }

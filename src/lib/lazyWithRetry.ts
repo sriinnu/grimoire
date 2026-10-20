@@ -9,7 +9,9 @@ const RETRY_DELAY_MS = 800
  * error boundary, the whole app) dies until reload. On final failure the
  * ORIGINAL error is rethrown so the boundary reports the first failure.
  */
-export function lazyWithRetry<T extends ComponentType<unknown>>(
+// Matches React's own lazy() generic (ComponentType<any>) so specific prop types survive.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- mirrors React.lazy<T> typing
+export function lazyWithRetry<T extends ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
 ): LazyExoticComponent<T> {
   return lazy(async () => {
