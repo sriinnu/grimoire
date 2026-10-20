@@ -1,0 +1,154 @@
+.weekly-review {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  border-radius: 14px;
+}
+
+.weekly-review .vault-dashboard__panel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.weekly-review__range {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monday–Sunday activity strip. */
+.weekly-review__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekly-review__day {
+  display: grid;
+  grid-template-rows: 44px auto;
+  gap: 4px;
+  min-width: 0;
+}
+
+.weekly-review__day-track {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+}
+
+.weekly-review__day-bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  background: color-mix(in srgb, var(--primary) 45%, transparent);
+  transition: height var(--motion-duration-control, 150ms) ease;
+}
+
+.weekly-review__day[data-today="true"] .weekly-review__day-bar {
+  background: var(--primary);
+}
+
+.weekly-review__day-initial {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 640;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.weekly-review__day[data-today="true"] .weekly-review__day-initial {
+  color: var(--primary);
+}
+
+/* Headline mini-row: New · Touched · Journal days · Streak. */
+.weekly-review__stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  padding-top: 10px;
+  border-top: 1px solid var(--grimoire-hairline);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.weekly-review__stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.weekly-review__stat + .weekly-review__stat::before {
+  content: '·';
+  margin: 0 12px;
+  color: var(--text-muted);
+}
+
+.weekly-review__stat-value {
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+
+.weekly-review__delta {
+  font-size: 11px;
+  font-weight: 620;
+}
+
+.weekly-review__delta[data-direction="up"] {
+  color: var(--accent-teal);
+}
+
+.weekly-review__delta[data-direction="down"] {
+  color: var(--text-muted);
+}
+
+/* Top-3 type chips. */
+.weekly-review__mix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.weekly-review__chip {
+  padding: 3px 10px;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Calm blank-week state. */
+.weekly-review__empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.weekly-review__empty-line {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.weekly-review__action {
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weekly-review__day-bar {
+    transition: none;
+  }
+}
+
+@container vault-dashboard (max-width: 520px) {
+  .weekly-review__day {
+    grid-template-rows: 34px auto;
+  }
+}
