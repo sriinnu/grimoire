@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import {
   BookOpen,
   Brain,
@@ -386,11 +386,127 @@ function OutlineCard({ content, onShowInspector }: {
   )
 }
 
+function TimeTravelCard({ gitHistory, onViewCommitDiff }: {
+  gitHistory: GitCommit[]
+  onViewCommitDiff?: (commitHash: string) => void
+}) {
+  // gitHistory is newest-first; position 0 (rightmost on the track) is "now".
+  const [position, setPosition] = useState(0)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const draggingRef = useRef(false)
+  const count = gitHistory.length
+  const commit = gitHistory[Math.min(position, count - 1)]
+  const positionLabel = position === 0 ? 'now' : relativeDate(commit.date)
+
+  const positionFromClientX = (clientX: number): number => {
+    const track = trackRef.current
+    if (!track || count < 2) return 0
+    const rect = track.getBoundingClientRect()
+    const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+    return Math.round((1 - ratio) * (count - 1))
+  }
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    draggingRef.current = true
+    event.currentTarget.setPointerCapture(event.pointerId)
+    setPosition(positionFromClientX(event.clientX))
+  }
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!draggingRef.current) return
+    setPosition(positionFromClientX(event.clientX))
+  }
+
+  const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    draggingRef.current = false
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+  }
+
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setPosition((current) => Math.max(0, current - 1))
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      setPosition((current) => Math.min(count - 1, current + 1))
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      setPosition(0)
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      setPosition(count - 1)
+    }
+  }
+
+  return (
+    <div className="sb-card sb-tone-teal">
+      <div className="sb-card__head">
+        <span className="sb-overline">Time travel</span>
+        <span className="sb-card__link" aria-hidden="true">{positionLabel}</span>
+      </div>
+      <div className="sb-body">
+        <div
+          ref={trackRef}
+          className="sb-tt__track"
+          role="slider"
+          tabIndex={0}
+          data-testid="history-scrubber"
+          aria-label="Version history"
+          aria-valuemin={0}
+          aria-valuemax={count - 1}
+          aria-valuenow={position}
+          aria-valuetext={`${positionLabel} · ${commit.shortHash} · ${commit.message}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onKeyDown={handleKeyDown}
+        >
+          <span className="sb-tt__line" aria-hidden="true" />
+          {gitHistory.map((item, index) => (
+            <span
+              key={item.hash}
+              aria-hidden="true"
+              className={index === position ? 'sb-tt__dot sb-tt__dot--active' : 'sb-tt__dot'}
+              style={{ left: `${count > 1 ? ((count - 1 - index) / (count - 1)) * 100 : 50}%` }}
+            />
+          ))}
+        </div>
+        <p className="sb-tt__readout" data-testid="history-readout">
+          <span className="sb-tt__when">{positionLabel}</span>
+          <span className="sb-tt__hash">{commit.shortHash}</span>
+          <span className="sb-tt__msg">{commit.message}</span>
+        </p>
+        <button
+          type="button"
+          className="sb-quietrow sb-tt__open"
+          disabled={!onViewCommitDiff}
+          title={onViewCommitDiff ? `${commit.shortHash} · view diff` : 'Diff view unavailable'}
+          onClick={() => onViewCommitDiff?.(commit.hash)}
+          data-testid="history-open-version"
+        >
+          View this version
+        </button>
+        <ul className="sb-sr-only">
+          {gitHistory.map((item) => (
+            <li key={item.hash}>{`${item.shortHash} · ${relativeDate(item.date)} · ${item.message}`}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 function HistoryCard({ gitHistory, onViewCommitDiff }: {
   gitHistory: GitCommit[]
   onViewCommitDiff?: (commitHash: string) => void
 }) {
   if (gitHistory.length === 0) return null
+  if (gitHistory.length >= 2) {
+    return <TimeTravelCard gitHistory={gitHistory} onViewCommitDiff={onViewCommitDiff} />
+  }
 
   return (
     <div className="sb-card">

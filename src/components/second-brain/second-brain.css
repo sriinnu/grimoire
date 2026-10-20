@@ -569,3 +569,108 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------- Time travel ---------- */
+
+.sb-tt__track {
+  position: relative;
+  height: 26px;
+  margin: 4px 6px 2px;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  border-radius: 8px;
+}
+
+.sb-tt__track:focus-visible {
+  outline: 2px solid var(--tone);
+  outline-offset: 2px;
+}
+
+.sb-tt__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border-strong) 70%, transparent);
+}
+
+.sb-tt__dot {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-strong);
+  transition:
+    width var(--motion-duration-control, 160ms) var(--motion-ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    height var(--motion-duration-control, 160ms) var(--motion-ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    background var(--motion-duration-control, 160ms) var(--motion-ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--motion-duration-control, 160ms) var(--motion-ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.sb-tt__dot--active {
+  width: 11px;
+  height: 11px;
+  background: var(--tone);
+  border-color: var(--tone);
+}
+
+.sb-tt__readout {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 4px 0 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  min-width: 0;
+}
+
+.sb-tt__when {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.sb-tt__hash {
+  font-family: var(--grimoire-mono-font-family, monospace);
+  font-size: 9.5px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.sb-tt__msg {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+}
+
+.sb-tt__open {
+  width: auto;
+  font-weight: 600;
+  color: var(--tone);
+}
+
+.sb-tt__open:hover {
+  color: var(--tone);
+  text-decoration: underline;
+}
+
+.sb-tt__open:disabled {
+  color: var(--text-faint);
+  cursor: default;
+  text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-tt__dot {
+    transition: none;
+  }
+}
