@@ -22,6 +22,7 @@ import { SidebarRail } from './sidebar/SidebarRail'
 import { SidebarSearchLauncher } from './sidebar/SidebarSearchLauncher'
 import { TagsSection } from './sidebar/TagsSection'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
+import '../sidebar-vision.css'
 
 interface SidebarProps {
   entries: VaultEntry[]
