@@ -190,7 +190,7 @@
       "hono": ">=4.13.7",
       "ip-address": ">=10.7.1",
       "js-yaml": ">=4.2.0",
-      "markdown-it": ">=14.3.1",
+      "markdown-it": ">=14.3.1 <15",
       "path-to-regexp": ">=8.4.0",
       "picomatch": ">=4.0.4",
       "postcss": ">=8.5.23",
@@ -203,7 +203,8 @@
       "ws": ">=8.21.0",
       "@tiptap/core": "3.19.0",
       "@tiptap/pm": "3.19.0",
-      "prosemirror-model": "1.25.4"
+      "prosemirror-model": "1.25.4",
+      "linkify-it": "5.0.1"
     }
   }
 }
