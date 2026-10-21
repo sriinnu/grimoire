@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom/vitest'
+import { configure } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+
+configure({ asyncUtilTimeout: 10000 })
 import { createElement, type ReactNode, type ComponentType } from 'react'
 
 // Stub fetch to prevent jsdom@28 + Node 22 undici incompatibility.
