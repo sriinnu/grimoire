@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom/vitest'
+import { configure } from '@testing-library/react'
 import { afterEach, vi } from 'vitest'
+
+// Gate machines run this suite while cargo/vite builds hammer the CPU; the
+// RTL default 1s async timeout is the flake source for startup-style tests
+// (vault switches, status-bar signals). Waits still resolve as soon as the
+// condition holds, so this only widens failure tolerance.
+configure({ asyncUtilTimeout: 10000 })
 import { createElement, type ReactNode, type ComponentType } from 'react'
 
 // Stub fetch to prevent jsdom@28 + Node 22 undici incompatibility.

@@ -552,7 +552,15 @@ describe('Editor', () => {
         {},
         { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS },
       )
-      expect(rawEditor.textContent).toContain('owner: [[Alice]]')
+      // CodeMirror mounts the container before it sets content; on slow
+      // runners the element exists while still empty.
+      await vi.waitFor(
+        () => {
+          expect(screen.getByTestId('raw-editor-codemirror').textContent).toContain('owner: [[Alice]]')
+        },
+        { timeout: WAIT_FOR_EDITOR_TIMEOUT_MS },
+      )
+      expect(rawEditor).toBeInTheDocument()
 
       rerender(
         <Editor
