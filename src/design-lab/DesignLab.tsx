@@ -131,8 +131,6 @@ export default function DesignLab() {
           </ThemeFrame>
         </div>
       </section>
-
-      <Suspense fallback={null} />
     </div>
   )
 }
