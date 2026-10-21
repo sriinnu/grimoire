@@ -182,6 +182,34 @@ describe('AiMessage', () => {
     expect(screen.queryAllByTestId('message-reference-pill')).toHaveLength(0)
   })
 
+  it('renders bracketed citation refs as superscript chips', () => {
+    render(
+      <AiMessage
+        userMessage="What did I decide?"
+        actions={[]}
+        response="You decided to keep the memory layer append-only [2], with morning briefings first [1]."
+      />,
+    )
+    const refs = screen.getAllByLabelText(/^reference /)
+    expect(refs).toHaveLength(2)
+    expect(refs[0].textContent).toBe('2')
+    expect(refs[1].textContent).toBe('1')
+    expect(refs[0].className).toContain('aic-ref')
+    expect(screen.getByLabelText('reference 2')).not.toHaveTextContent('[2]')
+  })
+
+  it('leaves markdown link and footnote syntax untouched', () => {
+    render(
+      <AiMessage
+        userMessage="Links?"
+        actions={[]}
+        response="See [the docs](https://example.com) and footnote [1]: https://example.com"
+      />,
+    )
+    expect(screen.queryAllByLabelText(/^reference /)).toHaveLength(0)
+    expect(screen.getByTestId('markdown-content')).toHaveTextContent('[the docs](https://example.com)')
+  })
+
   it('calls onOpenNote when a reference pill is clicked', () => {
     const onOpenNote = vi.fn()
     render(

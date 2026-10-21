@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import { NotebookTabs } from 'lucide-react'
+import { AuroraCanvas } from '../ambient/AuroraCanvas'
+import { useDocumentTheme } from '../ambient/webgl'
 import './DashboardHero.css'
 
 interface DashboardHeroProps {
@@ -17,12 +19,17 @@ interface DashboardHeroProps {
 
 /**
  * Full-width hero band: warm card material with an aurora art layer at the
- * top-right, the living notebook title, and a Local & Private status pill.
+ * top-right, the living notebook title, a Local & Private status pill, and
+ * the serif wordmark hook ("Capture. Connect. Remember.") above the capture
+ * surface.
  */
 export function DashboardHero({ eyebrowLabel, title, tagline, action, children }: DashboardHeroProps) {
+  const theme = useDocumentTheme()
+
   return (
     <section className="dashboard-hero" data-testid="dashboard-hero">
       <div className="dashboard-hero__aurora" aria-hidden="true" />
+      <AuroraCanvas palette={theme} className="dashboard-hero__glow" />
       <div className="dashboard-hero__top">
         <div className="dashboard-hero__copy">
           <div className="dashboard-hero__eyebrow">
@@ -39,6 +46,10 @@ export function DashboardHero({ eyebrowLabel, title, tagline, action, children }
           </span>
           {action}
         </div>
+      </div>
+      <div className="dashboard-hero__wordmark">
+        <p className="dashboard-hero__wordmark-line">Capture. Connect. Remember.</p>
+        <p className="dashboard-hero__subline">One living notebook. Private by design. Powered by you.</p>
       </div>
       {children ? <div className="dashboard-hero__capture-slot">{children}</div> : null}
     </section>

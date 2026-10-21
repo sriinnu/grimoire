@@ -1,6 +1,7 @@
 import { LayoutList, Table2 } from 'lucide-react'
 import type { NoteListLayout } from './noteListLayoutPreference'
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import { Loader2 } from 'lucide-react'
 import { Glyph } from '@/components/glyphs/Glyph'
 import type { VaultEntry } from '../../types'
@@ -12,7 +13,7 @@ import { SortDropdown } from '../SortDropdown'
 import type { ListPropertiesPopoverProps } from './ListPropertiesPopover'
 
 const NOTE_LIST_ACTION_BUTTON_CLASSNAME = 'note-list-chrome-action'
-const ListPropertiesPopoverSurface = lazy(async () => ({
+const ListPropertiesPopoverSurface = lazyWithRetry(async () => ({
   default: (await import('./ListPropertiesPopover')).ListPropertiesPopover,
 }))
 

@@ -32,6 +32,16 @@
   opacity: 0.12;
 }
 
+/* Living aurora layer — WebGL canvas, sits above the static wash, never
+   intercepts input. Absent (no WebGL / reduced motion) the gradient above
+   is the whole story. */
+.dashboard-hero__glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .dashboard-hero__top {
   position: relative;
   z-index: 1;

@@ -1,0 +1,96 @@
+/**
+ * Quick Capture auto-promotion strip (`.qcp-` scoped).
+ * Matches the sheet's visual context: app semantic tokens, hairline borders,
+ * rounded-md geometry. Tone accents reuse the vision teal/amber pair only.
+ */
+
+.qcp-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle, color-mix(in srgb, var(--border) 70%, transparent));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface-card, var(--background)) 72%, transparent);
+}
+
+.qcp-strip__label {
+  font-size: 11px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.qcp-strip__label b {
+  color: var(--foreground);
+  font-weight: 650;
+}
+
+.qcp-strip__promote {
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #0e7c78, #14948f);
+  border: none;
+  border-radius: 999px;
+  padding: 3px 11px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px -5px rgb(14 124 120 / 0.7);
+}
+
+.qcp-strip__promote:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.qcp-strip__alt {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary, var(--muted-foreground));
+  background: var(--surface-card, var(--background));
+  border: 1px solid var(--border-subtle, var(--border));
+  border-radius: 999px;
+  padding: 2px 9px;
+  cursor: pointer;
+}
+
+.qcp-strip__alt:hover {
+  color: var(--foreground);
+}
+
+.qcp-strip__dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.qcp-strip__dismiss:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--border) 35%, transparent);
+}
+
+.qcp-strip__status {
+  margin-left: auto;
+  font-family: var(--grimoire-mono-font-family, monospace);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.qcp-strip__hint {
+  flex-basis: 100%;
+  margin: 2px 0 0;
+  font-size: 9.5px;
+  color: var(--muted-foreground);
+  text-align: right;
+}

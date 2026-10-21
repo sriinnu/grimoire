@@ -1,14 +1,18 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
+import { Brain } from 'lucide-react'
 import { DEFAULT_AI_AGENT, type AiAgentId, type AiAgentsStatus } from '../lib/aiAgents'
 import type { ChitraguptaStatusPayload } from '../lib/chitraguptaIntegration'
 import type { VaultEntry, GitCommit, ModifiedFile } from '../types'
 import type { NoteListItem } from '../utils/ai-context'
 import { Inspector, type FrontmatterValue } from './Inspector'
+import { SecondBrainRail } from './second-brain/SecondBrainRail'
+import './second-brain/second-brain.css'
 import { useAiPanelController } from './useAiPanelController'
 import { NEW_AI_CHAT_EVENT } from '../utils/aiPromptBridge'
 import type { AiChatRightPanelProps } from './AiChatRightPanel'
 
-const AiChatRightPanelSurface = lazy(async () => ({
+const AiChatRightPanelSurface = lazyWithRetry(async () => ({
   default: (await import('./AiChatRightPanel')).AiChatRightPanel,
 }))
 
@@ -16,6 +20,8 @@ interface EditorRightPanelProps {
   showAIChat?: boolean
   inspectorCollapsed: boolean
   inspectorWidth: number
+  /** Initial view for the non-AI right panel. Defaults to 'inspector' (legacy). */
+  initialSecondBrainView?: SecondBrainView
   defaultAiAgent?: AiAgentId
   defaultAiAgentReady?: boolean
   aiAgentsStatus?: AiAgentsStatus
@@ -50,6 +56,8 @@ interface EditorRightPanelProps {
   onVaultChanged?: () => void
 }
 
+export type SecondBrainView = 'rail' | 'inspector'
+
 function AiChatRightPanelFallback({ width }: { width: number }) {
   return (
     <div
@@ -62,6 +70,7 @@ function AiChatRightPanelFallback({ width }: { width: number }) {
 
 export function EditorRightPanel({
   showAIChat, inspectorCollapsed, inspectorWidth,
+  initialSecondBrainView = 'rail',
   defaultAiAgent = DEFAULT_AI_AGENT, defaultAiAgentReady = true,
   aiAgentsStatus,
   chitraguptaStatus,
@@ -91,6 +100,7 @@ export function EditorRightPanel({
     onVaultChanged,
   })
   const { handleNewChat } = aiPanelController
+  const [secondBrainView, setSecondBrainView] = useState<SecondBrainView>(initialSecondBrainView)
 
   useEffect(() => {
     const handleRequestedNewChat = () => {
@@ -136,10 +146,30 @@ export function EditorRightPanel({
 
   if (inspectorCollapsed) return null
 
+  if (secondBrainView === 'rail') {
+    return (
+      <div
+        className="shrink-0 flex flex-col min-h-0"
+        style={{ width: `min(${inspectorWidth}px, 45vw)`, minWidth: 240, height: '100%' }}
+      >
+        <SecondBrainRail
+          entry={inspectorEntry}
+          content={inspectorContent}
+          entries={entries}
+          gitHistory={gitHistory}
+          onNavigate={onNavigateWikilink}
+          onViewCommitDiff={onViewCommitDiff}
+          onAsk={onToggleAIChat}
+          onShowInspector={() => setSecondBrainView('inspector')}
+        />
+      </div>
+    )
+  }
+
   return (
     <div
       className="shrink-0 flex flex-col min-h-0"
-      style={{ width: `min(${inspectorWidth}px, 45vw)`, minWidth: 240, height: '100%' }}
+      style={{ width: `min(${inspectorWidth}px, 45vw)`, minWidth: 240, height: '100%', position: 'relative' }}
     >
       <Inspector
         collapsed={inspectorCollapsed}
@@ -164,6 +194,15 @@ export function EditorRightPanel({
         onReplaceContent={onReplaceContent}
         onFileModified={onFileModified}
       />
+      <button
+        type="button"
+        className="sb-rail-toggle"
+        onClick={() => setSecondBrainView('rail')}
+        title="Second Brain rail"
+        aria-label="Show Second Brain rail"
+      >
+        <Brain size={15} />
+      </button>
     </div>
   )
 }

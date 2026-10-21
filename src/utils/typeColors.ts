@@ -71,6 +71,11 @@ export function getTypeColor(isA: string | null, customColorKey?: string | null)
   return (isA && TYPE_COLOR_MAP[isA]) ?? DEFAULT_COLOR
 }
 
+/** True when a type resolves to a real accent color rather than the neutral fallback. */
+export function hasTypeAccentColor(isA: string | null, customColorKey?: string | null): boolean {
+  return Boolean((customColorKey && COLOR_KEY_TO_CSS[customColorKey]) || (isA && TYPE_COLOR_MAP[isA]))
+}
+
 /** Returns the CSS variable for the light/background variant of a given note type's color */
 export function getTypeLightColor(isA: string | null, customColorKey?: string | null): string {
   if (customColorKey && COLOR_KEY_TO_CSS_LIGHT[customColorKey]) return COLOR_KEY_TO_CSS_LIGHT[customColorKey]

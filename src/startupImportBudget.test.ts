@@ -139,6 +139,7 @@ describe('startup import budget', () => {
     expect(lazyImports).toEqual(expect.arrayContaining(COLD_SURFACE_IMPORTS))
     expect(runtimeStaticImports('src/components/AppLazySurfaces.tsx')).toEqual([
       'react',
+      '../lib/lazyWithRetry',
       '../hooks/visibleDocument',
     ])
   })
@@ -166,8 +167,13 @@ describe('startup import budget', () => {
     expect(runtimeStaticImports('src/App.tsx')).not.toContain('./components/NoteList')
     expect(startupFiles).not.toEqual(expect.arrayContaining(NOTE_LIST_ROUTE_COLD_FILES))
     expect(startupSpecifiers).not.toContain('react-virtuoso')
-    // Only react plus the tiny stable-handler hook (already in the shell via Sidebar).
-    expect(runtimeStaticImports('src/components/LazyNoteList.tsx')).toEqual(['react', '../hooks/useStableHandlers'])
+    // Only react, the tiny stable-handler hook (already in the shell via
+    // Sidebar), and the retry wrapper for the lazy boundary itself.
+    expect(runtimeStaticImports('src/components/LazyNoteList.tsx')).toEqual([
+      'react',
+      '../lib/lazyWithRetry',
+      '../hooks/useStableHandlers',
+    ])
     expect(runtimeDynamicImports('src/components/LazyNoteList.tsx')).toContain('./NoteList')
   })
 

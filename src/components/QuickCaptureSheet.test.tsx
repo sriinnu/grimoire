@@ -5,9 +5,9 @@ import { QuickCaptureSheet } from './QuickCaptureSheet'
 
 const DRAFT_KEY = APP_STORAGE_KEYS.quickCaptureDraft
 
-function renderSheet(onSave = vi.fn(async () => true), onClose = vi.fn()) {
-  render(<QuickCaptureSheet open onClose={onClose} onSave={onSave} />)
-  return { onSave, onClose, textarea: screen.getByPlaceholderText('Capture a thought…') as HTMLTextAreaElement }
+function renderSheet(onSave = vi.fn(async () => true), onClose = vi.fn(), onPromote?: (text: string, lane: string) => Promise<boolean>) {
+  render(<QuickCaptureSheet open onClose={onClose} onSave={onSave} onPromote={onPromote} />)
+  return { onSave, onClose, onPromote, textarea: screen.getByPlaceholderText('Capture a thought…') as HTMLTextAreaElement }
 }
 
 describe('QuickCaptureSheet', () => {
@@ -77,5 +77,70 @@ describe('QuickCaptureSheet', () => {
     fireEvent.change(textarea, { target: { value: 'still here' } })
     fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true })
     await waitFor(() => expect(onSave).toHaveBeenCalledWith('still here'))
+  })
+
+  const TASK_DRAFT = '- [ ] buy oat milk and also pick up the dry cleaning and finish the draft proposal notes before the standup'
+
+  it('shows the promotion strip past the threshold with the inferred lane, without stealing focus', async () => {
+    const { textarea } = renderSheet(vi.fn(async () => true), vi.fn(), vi.fn(async () => true))
+    expect(TASK_DRAFT.length).toBeGreaterThanOrEqual(100)
+    fireEvent.change(textarea, { target: { value: TASK_DRAFT } })
+
+    const strip = await screen.findByTestId('quick-capture-promotion', {}, { timeout: 2000 })
+    expect(strip).toHaveTextContent('Looks like:')
+    expect(strip).toHaveTextContent('Next')
+    expect(strip).toHaveTextContent('local only')
+    expect(textarea).toHaveFocus()
+  })
+
+  it('does not show the strip below the threshold', async () => {
+    const { textarea } = renderSheet()
+    fireEvent.change(textarea, { target: { value: '- [ ] buy oat milk' } })
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(screen.queryByTestId('quick-capture-promotion')).not.toBeInTheDocument()
+  })
+
+  it('promote invokes the creation handler with the lane, clears the draft, and closes', async () => {
+    const onPromote = vi.fn(async () => true)
+    const onClose = vi.fn()
+    const { textarea } = renderSheet(vi.fn(async () => true), onClose, onPromote)
+    fireEvent.change(textarea, { target: { value: TASK_DRAFT } })
+    await screen.findByTestId('quick-capture-promotion', {}, { timeout: 2000 })
+
+    fireEvent.click(screen.getByTestId('quick-capture-promote'))
+
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1))
+    expect(onPromote).toHaveBeenCalledWith(TASK_DRAFT, 'task')
+    expect(localStorage.getItem(DRAFT_KEY)).toBeNull()
+  })
+
+  it('Cmd+Enter promotes when the strip is visible', async () => {
+    const onPromote = vi.fn(async () => true)
+    const onSave = vi.fn(async () => true)
+    const { textarea } = renderSheet(onSave, vi.fn(), onPromote)
+    fireEvent.change(textarea, { target: { value: TASK_DRAFT } })
+    await screen.findByTestId('quick-capture-promotion', {}, { timeout: 2000 })
+
+    fireEvent.keyDown(textarea, { key: 'Enter', metaKey: true })
+
+    await waitFor(() => expect(onPromote).toHaveBeenCalledWith(TASK_DRAFT, 'task'))
+    expect(onSave).not.toHaveBeenCalled()
+  })
+
+  it('stays dismissed for the draft once the suggestion is closed', async () => {
+    const { textarea } = renderSheet(vi.fn(async () => true), vi.fn(), vi.fn(async () => true))
+    fireEvent.change(textarea, { target: { value: TASK_DRAFT } })
+    await screen.findByTestId('quick-capture-promotion', {}, { timeout: 2000 })
+
+    fireEvent.click(screen.getByTestId('quick-capture-dismiss'))
+    expect(screen.queryByTestId('quick-capture-promotion')).not.toBeInTheDocument()
+
+    fireEvent.change(textarea, { target: { value: `${TASK_DRAFT} and a little more` } })
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    expect(screen.queryByTestId('quick-capture-promotion')).not.toBeInTheDocument()
+
+    fireEvent.change(textarea, { target: { value: '' } })
+    fireEvent.change(textarea, { target: { value: TASK_DRAFT } })
+    await screen.findByTestId('quick-capture-promotion', {}, { timeout: 2000 })
   })
 })

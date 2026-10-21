@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import {
   CalendarDays,
   Check,
@@ -18,7 +19,7 @@ import {
   type DashboardCaptureRequest,
 } from '../../utils/dashboardCapture'
 import type { DashboardCaptureTemplateId, DreamTemplateId, JournalTemplateId } from '../../utils/noteTemplates'
-import { buildDashboardSummary } from '../../utils/dashboardModel'
+import { buildDashboardSummary, computeDashboardStats, computeWeeklyReview } from '../../utils/dashboardModel'
 import { formatTypeCount } from '../../utils/notebookCountLabels'
 import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
 import { DashboardOnThisDay } from './DashboardOnThisDay'
@@ -35,6 +36,8 @@ import {
 import { captureDateForOffset, type CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
 import { DashboardHero } from './DashboardHero'
+import { DashboardHeroStats } from './DashboardHeroStats'
+import { WeeklyReviewCard } from './WeeklyReviewCard'
 import { DashboardCalendarCard } from './DashboardCalendarCard'
 import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
@@ -44,8 +47,10 @@ import { getNotebookVaultDisplayName } from '../../utils/vaultDisplayName'
 import './VaultDashboardLayout.css'
 import './VaultDashboardResponsive.css'
 import './VaultDashboard.css'
+import './vault-dashboard-hero.css'
+import './WeeklyReviewCard.css'
 
-const DashboardInsightPanels = lazy(async () => ({
+const DashboardInsightPanels = lazyWithRetry(async () => ({
   default: (await import('./DashboardInsightPanels')).DashboardInsightPanels,
 }))
 
@@ -211,6 +216,8 @@ export function VaultDashboard({
     return buckets
   }, [entries])
   const hasActivity = activitySeries.some((value) => value > 0)
+  const vaultStats = useMemo(() => computeDashboardStats(entries), [entries])
+  const weeklyReview = useMemo(() => computeWeeklyReview(entries), [entries])
   const heroStats: DashboardStat[] = useMemo(() => [
     { id: 'pages', value: summary.activeNotes, label: 'Pages', delta: 'active local notes' },
     { id: 'journals', value: summary.journalCount, label: 'Journals', delta: 'private by default' },
@@ -354,6 +361,10 @@ export function VaultDashboard({
             onSubmit={handleSubmit}
           />
         </DashboardHero>
+
+        <DashboardHeroStats stats={vaultStats} />
+
+        <WeeklyReviewCard review={weeklyReview} onStartJournal={() => seedPrompt('journal')} />
 
         <DashboardPinnedRow entries={pinnedEntries} onOpenNote={onOpenNote} />
 

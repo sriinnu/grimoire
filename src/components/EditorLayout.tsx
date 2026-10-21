@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import type React from 'react'
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { FrontmatterValue } from './Inspector'
@@ -10,7 +11,7 @@ import { EditorEmptyState } from './EditorEmptyState'
 import type { useCreateBlockNote } from '@blocknote/react'
 import { persistContent } from '../hooks/useSaveNote'
 
-const EditorRightPanelSurface = lazy(async () => ({
+const EditorRightPanelSurface = lazyWithRetry(async () => ({
   default: (await import('./EditorRightPanel')).EditorRightPanel,
 }))
 

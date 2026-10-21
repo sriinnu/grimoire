@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useCallback, useRef, useState, useSyncExternalStore } from 'react'
+import { Suspense, useEffect, useCallback, useRef, useState, useSyncExternalStore } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import {
   useCreateBlockNote,
   SuggestionMenuController,
@@ -36,7 +37,7 @@ import {
   type CodeLanguageDetectionEditor,
 } from './codeBlockLanguageDetection'
 
-const GrimoireFormattingToolbarSurface = lazy(async () => ({
+const GrimoireFormattingToolbarSurface = lazyWithRetry(async () => ({
   default: (await import('./GrimoireFormattingToolbarSurface')).GrimoireFormattingToolbarSurface,
 }))
 

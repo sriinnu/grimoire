@@ -2,7 +2,7 @@
   "name": "grimoire",
   "private": true,
   "license": "MIT",
-  "version": "0.1.467",
+  "version": "0.1.468",
   "packageManager": "pnpm@10.33.0",
   "type": "module",
   "scripts": {

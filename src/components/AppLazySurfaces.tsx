@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
+import { Suspense, useEffect, useState, type ComponentProps, type ReactNode } from 'react'
+import { lazyWithRetry } from '../lib/lazyWithRetry'
 import { isDocumentVisible, scheduleVisibleWork } from '../hooks/visibleDocument'
 import type { CloneVaultModal } from './CloneVaultModal'
 import type { CommandPalette } from './CommandPalette'
@@ -30,34 +31,34 @@ import type { VaultRebuildProgressNotice } from './VaultRebuildProgressNotice'
 import type { WelcomeScreen } from './WelcomeScreen'
 import type { WeatherSnapshotDialog } from './WeatherSnapshotDialog'
 
-const CloneVaultModalSurface = lazy(async () => ({ default: (await import('./CloneVaultModal')).CloneVaultModal }))
-const CommandPaletteSurface = lazy(async () => ({ default: (await import('./CommandPalette')).CommandPalette }))
-const CommitDialogSurface = lazy(async () => ({ default: (await import('./CommitDialog')).CommitDialog }))
-const ConfirmDeleteDialogSurface = lazy(async () => ({ default: (await import('./ConfirmDeleteDialog')).ConfirmDeleteDialog }))
-const ConflictResolverModalSurface = lazy(async () => ({ default: (await import('./ConflictResolverModal')).ConflictResolverModal }))
-const CreateTypeDialogSurface = lazy(async () => ({ default: (await import('./CreateTypeDialog')).CreateTypeDialog }))
-const CreateVaultDialogSurface = lazy(async () => ({ default: (await import('./CreateVaultDialog')).CreateVaultDialog }))
-const CreateViewDialogSurface = lazy(async () => ({ default: (await import('./CreateViewDialog')).CreateViewDialog }))
-const DashboardRouteSurface = lazy(async () => ({ default: (await import('./dashboard/DashboardRoute')).DashboardRoute }))
-const DeleteProgressNoticeSurface = lazy(async () => ({ default: (await import('./DeleteProgressNotice')).DeleteProgressNotice }))
-const FeedbackDialogSurface = lazy(async () => ({ default: (await import('./FeedbackDialog')).FeedbackDialog }))
-const GraphModalSurface = lazy(async () => ({ default: (await import('./GraphModal')).GraphModal }))
-const KeyboardShortcutsDialogSurface = lazy(async () => ({ default: (await import('./KeyboardShortcutsDialog')).KeyboardShortcutsDialog }))
-const McpSetupDialogSurface = lazy(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
-const NoteRetargetingDialogsSurface = lazy(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
-const PulseViewSurface = lazy(async () => ({ default: (await import('./PulseView')).PulseView }))
-const QuickCaptureSheetSurface = lazy(async () => ({ default: (await import('./QuickCaptureSheet')).QuickCaptureSheet }))
-const QuickOpenPaletteSurface = lazy(async () => ({ default: (await import('./QuickOpenPalette')).QuickOpenPalette }))
-const RenameDetectedBannerSurface = lazy(async () => ({ default: (await import('./RenameDetectedBanner')).RenameDetectedBanner }))
-const SearchPanelSurface = lazy(async () => ({ default: (await import('./SearchPanel')).SearchPanel }))
-const SettingsPanelSurface = lazy(async () => ({ default: (await import('./SettingsPanel')).SettingsPanel }))
-const StatusBarSurface = lazy(async () => ({ default: (await import('./StatusBar')).StatusBar }))
-const AiAgentsOnboardingPromptSurface = lazy(async () => ({ default: (await import('./AiAgentsOnboardingPrompt')).AiAgentsOnboardingPrompt }))
-const AudioRecordingDialogSurface = lazy(async () => ({ default: (await import('./AudioRecordingDialog')).AudioRecordingDialog }))
-const TelemetryConsentDialogSurface = lazy(async () => ({ default: (await import('./TelemetryConsentDialog')).TelemetryConsentDialog }))
-const UpdateBannerSurface = lazy(async () => ({ default: (await import('./UpdateBanner')).UpdateBanner }))
-const VaultRebuildProgressNoticeSurface = lazy(async () => ({ default: (await import('./VaultRebuildProgressNotice')).VaultRebuildProgressNotice }))
-const WeatherSnapshotDialogSurface = lazy(async () => ({ default: (await import('./WeatherSnapshotDialog')).WeatherSnapshotDialog }))
+const CloneVaultModalSurface = lazyWithRetry(async () => ({ default: (await import('./CloneVaultModal')).CloneVaultModal }))
+const CommandPaletteSurface = lazyWithRetry(async () => ({ default: (await import('./CommandPalette')).CommandPalette }))
+const CommitDialogSurface = lazyWithRetry(async () => ({ default: (await import('./CommitDialog')).CommitDialog }))
+const ConfirmDeleteDialogSurface = lazyWithRetry(async () => ({ default: (await import('./ConfirmDeleteDialog')).ConfirmDeleteDialog }))
+const ConflictResolverModalSurface = lazyWithRetry(async () => ({ default: (await import('./ConflictResolverModal')).ConflictResolverModal }))
+const CreateTypeDialogSurface = lazyWithRetry(async () => ({ default: (await import('./CreateTypeDialog')).CreateTypeDialog }))
+const CreateVaultDialogSurface = lazyWithRetry(async () => ({ default: (await import('./CreateVaultDialog')).CreateVaultDialog }))
+const CreateViewDialogSurface = lazyWithRetry(async () => ({ default: (await import('./CreateViewDialog')).CreateViewDialog }))
+const DashboardRouteSurface = lazyWithRetry(async () => ({ default: (await import('./dashboard/DashboardRoute')).DashboardRoute }))
+const DeleteProgressNoticeSurface = lazyWithRetry(async () => ({ default: (await import('./DeleteProgressNotice')).DeleteProgressNotice }))
+const FeedbackDialogSurface = lazyWithRetry(async () => ({ default: (await import('./FeedbackDialog')).FeedbackDialog }))
+const GraphModalSurface = lazyWithRetry(async () => ({ default: (await import('./GraphModal')).GraphModal }))
+const KeyboardShortcutsDialogSurface = lazyWithRetry(async () => ({ default: (await import('./KeyboardShortcutsDialog')).KeyboardShortcutsDialog }))
+const McpSetupDialogSurface = lazyWithRetry(async () => ({ default: (await import('./McpSetupDialog')).McpSetupDialog }))
+const NoteRetargetingDialogsSurface = lazyWithRetry(async () => ({ default: (await import('./note-retargeting/NoteRetargetingDialogs')).NoteRetargetingDialogs }))
+const PulseViewSurface = lazyWithRetry(async () => ({ default: (await import('./PulseView')).PulseView }))
+const QuickCaptureSheetSurface = lazyWithRetry(async () => ({ default: (await import('./QuickCaptureSheet')).QuickCaptureSheet }))
+const QuickOpenPaletteSurface = lazyWithRetry(async () => ({ default: (await import('./QuickOpenPalette')).QuickOpenPalette }))
+const RenameDetectedBannerSurface = lazyWithRetry(async () => ({ default: (await import('./RenameDetectedBanner')).RenameDetectedBanner }))
+const SearchPanelSurface = lazyWithRetry(async () => ({ default: (await import('./SearchPanel')).SearchPanel }))
+const SettingsPanelSurface = lazyWithRetry(async () => ({ default: (await import('./SettingsPanel')).SettingsPanel }))
+const StatusBarSurface = lazyWithRetry(async () => ({ default: (await import('./StatusBar')).StatusBar }))
+const AiAgentsOnboardingPromptSurface = lazyWithRetry(async () => ({ default: (await import('./AiAgentsOnboardingPrompt')).AiAgentsOnboardingPrompt }))
+const AudioRecordingDialogSurface = lazyWithRetry(async () => ({ default: (await import('./AudioRecordingDialog')).AudioRecordingDialog }))
+const TelemetryConsentDialogSurface = lazyWithRetry(async () => ({ default: (await import('./TelemetryConsentDialog')).TelemetryConsentDialog }))
+const UpdateBannerSurface = lazyWithRetry(async () => ({ default: (await import('./UpdateBanner')).UpdateBanner }))
+const VaultRebuildProgressNoticeSurface = lazyWithRetry(async () => ({ default: (await import('./VaultRebuildProgressNotice')).VaultRebuildProgressNotice }))
+const WeatherSnapshotDialogSurface = lazyWithRetry(async () => ({ default: (await import('./WeatherSnapshotDialog')).WeatherSnapshotDialog }))
 
 type WelcomeScreenSurfaceModule = { default: typeof WelcomeScreen }
 
@@ -68,7 +69,7 @@ function loadWelcomeScreenSurface(): Promise<WelcomeScreenSurfaceModule> {
   return welcomeScreenImport
 }
 
-const WelcomeScreenSurface = lazy(loadWelcomeScreenSurface)
+const WelcomeScreenSurface = lazyWithRetry(loadWelcomeScreenSurface)
 
 function VisibleSurface({ open, children }: { open: boolean; children: ReactNode }) {
   if (!open) return null

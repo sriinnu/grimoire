@@ -12,7 +12,7 @@ import type { SidebarSelection } from '../../types'
 import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
 import { TypeIconMark } from '../TypeIconMark'
-import { getTypeColor, getTypeLightColor } from '../../utils/typeColors'
+import { getTypeColor, getTypeLightColor, hasTypeAccentColor } from '../../utils/typeColors'
 import { SidebarCountPill } from './SidebarNavItem'
 import { isSelectionActive } from './sidebarSelection'
 import type { SectionGroup } from './sidebarSectionTypes'
@@ -31,10 +31,26 @@ export interface SectionContentProps {
   onRenameCancel?: () => void
 }
 
+const VISION_TONE_NAMES = ['teal', 'iris', 'amber', 'coral', 'sky', 'lilac'] as const
+
+/** Deterministic vision tone for types without a mapped or custom accent color. */
+function hashTypeVisionTone(type: string): string {
+  let hash = 0
+  for (let i = 0; i < type.length; i++) hash = (hash * 31 + type.charCodeAt(i)) | 0
+  return VISION_TONE_NAMES[Math.abs(hash) % VISION_TONE_NAMES.length]
+}
+
 function resolveSectionColors(type: string, customColor?: string | null) {
+  if (hasTypeAccentColor(type, customColor)) {
+    return {
+      sectionColor: getTypeColor(type, customColor),
+      sectionLightColor: getTypeLightColor(type, customColor),
+    }
+  }
+  const tone = `var(--sidebar-vision-${hashTypeVisionTone(type)})`
   return {
-    sectionColor: getTypeColor(type, customColor),
-    sectionLightColor: getTypeLightColor(type, customColor),
+    sectionColor: tone,
+    sectionLightColor: `color-mix(in srgb, ${tone} 12%, transparent)`,
   }
 }
 

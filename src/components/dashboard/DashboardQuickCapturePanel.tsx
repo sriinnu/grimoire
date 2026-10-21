@@ -1,4 +1,5 @@
-import { lazy, Suspense, type RefObject } from 'react'
+import { Suspense, type RefObject } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import { Bold, Heading2, List, ListChecks, PenLine, Quote } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,7 +10,7 @@ import { DashboardCaptureDatePicker } from './DashboardCaptureDatePicker'
 import type { CaptureDateOffset } from './DashboardCaptureDatePickerModel'
 import { DashboardTemplatePicker } from './DashboardTemplatePicker'
 
-const DashboardAskContextPreview = lazy(async () => ({
+const DashboardAskContextPreview = lazyWithRetry(async () => ({
   default: (await import('./DashboardAskContextPreview')).DashboardAskContextPreview,
 }))
 

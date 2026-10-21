@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useMemo, useCallback, useEffect, useId, useRef, type KeyboardEvent, type RefObject } from 'react'
+import { Suspense, useState, useMemo, useCallback, useEffect, useId, useRef, type KeyboardEvent, type RefObject } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import { SlidersHorizontal } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -15,7 +16,7 @@ import {
   type NoteListPropertyKey,
 } from './listPropertiesOptions'
 
-const LazyListPropertiesSortableOptions = lazy(() => import('./ListPropertiesSortableOptions')
+const LazyListPropertiesSortableOptions = lazyWithRetry(() => import('./ListPropertiesSortableOptions')
   .then((module) => ({ default: module.ListPropertiesSortableOptions })))
 
 /** Props for the note-list column/property picker trigger and panel. */

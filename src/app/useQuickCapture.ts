@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isTauri } from '../mock-tauri'
+import { useDashboardCapture } from '../hooks/useDashboardCapture'
+import type { CaptureLane } from '../lib/quickCapturePromotion'
 import type { NoteWorkspace } from './useNoteWorkspace'
 import type { VaultFoundation } from './useVaultFoundation'
 
@@ -46,7 +48,7 @@ function useQuickCaptureTriggers(openQuickCapture: () => void, enabled: boolean)
 /** Open state, triggers and the save path for the quick-capture sheet. */
 export function useQuickCapture(foundation: VaultFoundation, workspace: NoteWorkspace) {
   const { noteWindowParams, resolvedPath, setToastMessage, vault } = foundation
-  const { appSave, flushPendingRawContentRef, notes } = workspace
+  const { appSave, flushPendingRawContentRef, notes, openTabWithContent } = workspace
   const [showQuickCapture, setShowQuickCapture] = useState(false)
   const openQuickCapture = useCallback(() => setShowQuickCapture(true), [])
   const closeQuickCapture = useCallback(() => setShowQuickCapture(false), [])
@@ -54,6 +56,31 @@ export function useQuickCapture(foundation: VaultFoundation, workspace: NoteWork
   useQuickCaptureTriggers(openQuickCapture, !noteWindowParams)
 
   const { setTabs, tabs } = notes
+
+  // The auto-promotion strip promotes through the exact same local-first
+  // creation path as the dashboard capture (frontmatter gates included);
+  // the resolved note opens in the richer editor via openTabWithContent.
+  const promoteCapture = useDashboardCapture({
+    addEntry: vault.addEntry,
+    addPendingSave: vault.addPendingSave,
+    createTypeEntry: notes.createTypeEntrySilent,
+    entries: vault.entries,
+    loadModifiedFiles: vault.loadModifiedFiles,
+    openTabWithContent,
+    removeEntry: vault.removeEntry,
+    removePendingSave: vault.removePendingSave,
+    setToastMessage,
+    vaultPath: resolvedPath ?? '',
+  })
+
+  const promoteQuickCapture = useCallback(async (text: string, lane: CaptureLane): Promise<boolean> => {
+    if (!resolvedPath) {
+      setToastMessage('Open a vault to capture')
+      return false
+    }
+    const result = await promoteCapture(text, lane)
+    return result.status !== 'blocked'
+  }, [promoteCapture, resolvedPath, setToastMessage])
   const saveQuickCapture = useCallback(async (text: string): Promise<boolean> => {
     if (!resolvedPath) {
       setToastMessage('Open a vault to capture')
@@ -92,5 +119,5 @@ export function useQuickCapture(foundation: VaultFoundation, workspace: NoteWork
     }
   }, [appSave, flushPendingRawContentRef, resolvedPath, setTabs, setToastMessage, tabs, vault])
 
-  return { showQuickCapture, openQuickCapture, closeQuickCapture, saveQuickCapture }
+  return { showQuickCapture, openQuickCapture, closeQuickCapture, saveQuickCapture, promoteQuickCapture }
 }

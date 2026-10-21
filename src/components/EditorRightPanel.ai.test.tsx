@@ -117,6 +117,7 @@ describe('EditorRightPanel AI chat lifecycle', () => {
         aiAgentsStatus={installedAiAgentsStatus}
         entries={[entry]}
         gitHistory={[]}
+        initialSecondBrainView="inspector"
         inspectorCollapsed={false}
         inspectorContent="hello"
         inspectorEntry={entry}
@@ -138,6 +139,7 @@ describe('EditorRightPanel AI chat lifecycle', () => {
       <EditorRightPanel
         entries={[entry]}
         gitHistory={[]}
+        initialSecondBrainView="inspector"
         inspectorCollapsed={false}
         inspectorContent="hello"
         inspectorEntry={entry}
@@ -166,6 +168,7 @@ describe('EditorRightPanel AI chat lifecycle', () => {
       <EditorRightPanel
         entries={[entry]}
         gitHistory={[]}
+        initialSecondBrainView="inspector"
         inspectorCollapsed={false}
         inspectorContent="hello"
         inspectorEntry={entry}
@@ -194,6 +197,7 @@ describe('EditorRightPanel AI chat lifecycle', () => {
         }}
         entries={[entry]}
         gitHistory={[]}
+        initialSecondBrainView="inspector"
         inspectorCollapsed={false}
         inspectorContent="hello"
         inspectorEntry={entry}

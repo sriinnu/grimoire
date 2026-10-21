@@ -1,0 +1,222 @@
+/*
+ * Sidebar vision port — the committed design-lab sidebar language
+ * (src/design-lab/sidebar/SidebarLab.tsx) applied to the real sidebar.
+ *
+ * Everything here is scoped under .app-sidebar-panel / .app-sidebar-rail so it
+ * wins over the legacy sidebar-*.css sheets by specificity at equal-or-later
+ * source order, without !important. Inline styles (row padding, pill metrics)
+ * still win where they exist; this sheet only restyles what CSS can reach.
+ */
+
+/* ---- Vision tones: teal / iris / amber / coral / sky / lilac ---- */
+/* Teal and iris ride the app's theme-aware accent tokens (their light values
+   match the vision palette exactly); the remaining tones are the vision hexes
+   with the vision dark-mode overrides. */
+
+.app-sidebar-panel,
+.app-sidebar-rail {
+  --sidebar-vision-teal: var(--accent-teal, #0e7c78);
+  --sidebar-vision-iris: var(--accent-purple, #7667d8);
+  --sidebar-vision-amber: #e8a23a;
+  --sidebar-vision-coral: #ea7a61;
+  --sidebar-vision-sky: #5ba8e5;
+  --sidebar-vision-lilac: #a878e6;
+}
+
+[data-theme='dark'] .app-sidebar-panel,
+[data-theme='dark'] .app-sidebar-rail {
+  --sidebar-vision-amber: #f0b968;
+  --sidebar-vision-coral: #f0937d;
+  --sidebar-vision-sky: #7fbcec;
+  --sidebar-vision-lilac: #c09bf2;
+}
+
+/* ---- Nav tones remapped onto the vision palette ---- */
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-sidebar-nav-tone='aura'],
+.app-sidebar-rail .sidebar-rail__tone[data-sidebar-rail-tone='aura'] {
+  --sidebar-nav-tone: var(--sidebar-vision-teal);
+}
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-sidebar-nav-tone='amber'],
+.app-sidebar-rail .sidebar-rail__tone[data-sidebar-rail-tone='amber'] {
+  --sidebar-nav-tone: var(--sidebar-vision-amber);
+}
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-sidebar-nav-tone='blue'],
+.app-sidebar-rail .sidebar-rail__tone[data-sidebar-rail-tone='blue'] {
+  --sidebar-nav-tone: var(--sidebar-vision-sky);
+}
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-sidebar-nav-tone='violet'],
+.app-sidebar-rail .sidebar-rail__tone[data-sidebar-rail-tone='violet'] {
+  --sidebar-nav-tone: var(--sidebar-vision-iris);
+}
+
+/* Sea-glass materials derived from each row's tone. */
+
+.app-sidebar-panel .sidebar-top-nav__tone,
+.app-sidebar-rail .sidebar-rail__tone {
+  --sidebar-vision-glass: color-mix(in srgb, var(--sidebar-nav-tone) 12%, transparent);
+  --sidebar-vision-glass-line: color-mix(in srgb, var(--sidebar-nav-tone) 22%, transparent);
+  --sidebar-vision-tone-ink: color-mix(in srgb, var(--sidebar-nav-tone) 82%, var(--sidebar-foreground));
+}
+
+[data-theme='dark'] .app-sidebar-panel .sidebar-top-nav__tone,
+[data-theme='dark'] .app-sidebar-rail .sidebar-rail__tone {
+  --sidebar-vision-glass: color-mix(in srgb, var(--sidebar-nav-tone) 16%, transparent);
+  --sidebar-vision-glass-line: color-mix(in srgb, var(--sidebar-nav-tone) 30%, transparent);
+  --sidebar-vision-tone-ink: color-mix(in srgb, var(--sidebar-nav-tone) 70%, var(--sidebar-foreground));
+}
+
+/* ---- (a) Nav rows: quiet glyphs, sea-glass active with tone-tinted ink ---- */
+
+.app-sidebar-panel .sidebar-top-nav__tone .sidebar-nav-glyph {
+  color: var(--text-tertiary, var(--muted-foreground));
+}
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-active='true'] > :is(button, div) {
+  background: var(--sidebar-vision-glass);
+  border-color: var(--sidebar-vision-glass-line);
+  box-shadow: none;
+  color: var(--sidebar-vision-tone-ink);
+}
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-active='true'] .sidebar-nav-glyph {
+  background: color-mix(in srgb, var(--sidebar-nav-tone) 18%, transparent);
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--sidebar-vision-tone-ink);
+}
+
+.app-sidebar-panel .sidebar-top-nav__tone[data-active='true'] > :is(button, div) > .truncate {
+  font-weight: 600;
+}
+
+/* Collapsed rail reads the same language. */
+
+.app-sidebar-rail .sidebar-rail__glyph {
+  color: var(--text-tertiary, var(--muted-foreground));
+}
+
+.app-sidebar-rail .sidebar-rail__tone[data-active='true'] {
+  background: var(--sidebar-vision-glass);
+  box-shadow: inset 0 0 0 1px var(--sidebar-vision-glass-line);
+}
+
+.app-sidebar-rail .sidebar-rail__tone[data-active='true'] .sidebar-rail__glyph {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--sidebar-vision-tone-ink);
+}
+
+/* ---- (c) Type/space glyphs: small colored circles tinted by the section tone ---- */
+
+.app-sidebar-panel .sidebar-section-glyph {
+  background: color-mix(in srgb, var(--sidebar-section-tone) 14%, transparent);
+  border-color: color-mix(in srgb, var(--sidebar-section-tone) 22%, transparent);
+  border-radius: 999px;
+  box-shadow: none;
+  color: color-mix(in srgb, var(--sidebar-section-tone) 88%, var(--sidebar-foreground));
+}
+
+.app-sidebar-panel .sidebar-section-glyph[data-active='true'] {
+  background: color-mix(in srgb, var(--sidebar-section-tone) 20%, transparent);
+  border-color: color-mix(in srgb, var(--sidebar-section-tone) 28%, transparent);
+  color: var(--sidebar-section-tone);
+}
+
+[data-theme='dark'] .app-sidebar-panel .sidebar-section-glyph {
+  background: color-mix(in srgb, var(--sidebar-section-tone) 18%, transparent);
+  border-color: color-mix(in srgb, var(--sidebar-section-tone) 30%, transparent);
+  color: color-mix(in srgb, var(--sidebar-section-tone) 78%, var(--sidebar-foreground));
+}
+
+/* ---- (b) Count pills: soft chip outline (metrics stay inline) ---- */
+
+.app-sidebar-panel [data-testid='sidebar-count-chip'],
+.app-sidebar-panel [data-testid='view-count-chip'] {
+  border: 1px solid var(--border-subtle, color-mix(in srgb, currentColor 14%, transparent));
+  font-weight: 600;
+}
+
+/* ---- (d) Section headers: small caps, tracked, faint ---- */
+
+.app-sidebar-panel .sidebar-group-header__toggle > span {
+  color: var(--text-faint, var(--muted-foreground));
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---- (e) Search launcher: calm field + kbd chip ---- */
+
+.app-sidebar-panel [data-testid='sidebar-search-input'] {
+  background: var(--surface-card, var(--background));
+  border-color: var(--border-subtle, var(--border));
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.app-sidebar-panel [data-testid='sidebar-search-input']:hover {
+  background: var(--surface-card, var(--background));
+  border-color: color-mix(in srgb, var(--sidebar-vision-teal) 35%, var(--border-subtle, var(--border)));
+}
+
+.app-sidebar-panel [data-testid='sidebar-search-shortcut'] {
+  background: var(--surface-app, transparent);
+  border-color: var(--border-subtle, var(--border));
+  border-radius: 5px;
+  box-shadow: none;
+  color: var(--text-faint, var(--muted-foreground));
+  font-size: 9.5px;
+}
+
+/* ---- (f) Brand lockup: vision spacing and wordmark sizing ---- */
+
+.app-sidebar-panel .sidebar-brand {
+  gap: 10px;
+}
+
+.app-sidebar-panel .sidebar-brand-mark {
+  border-radius: 10px;
+  height: 34px;
+  width: 34px;
+}
+
+.app-sidebar-panel .sidebar-brand-wordmark {
+  font-size: 18px;
+  font-weight: 600;
+  height: auto;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  width: auto;
+}
+
+.app-sidebar-panel .sidebar-brand-wordmark + span {
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+}
+
+/* ---- Motion: reuse the app motion tokens; no new animations ---- */
+
+.app-sidebar-panel .sidebar-top-nav__tone > :is(button, div),
+.app-sidebar-panel .sidebar-section-glyph,
+.app-sidebar-panel [data-testid='sidebar-search-input'],
+.app-sidebar-rail .sidebar-rail__tone,
+.app-sidebar-rail .sidebar-rail__glyph {
+  transition-duration: var(--motion-duration-hover, 180ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar-panel .sidebar-top-nav__tone > :is(button, div),
+  .app-sidebar-panel .sidebar-section-glyph,
+  .app-sidebar-panel [data-testid='sidebar-search-input'],
+  .app-sidebar-rail .sidebar-rail__tone,
+  .app-sidebar-rail .sidebar-rail__glyph {
+    transition-duration: 0ms;
+  }
+}

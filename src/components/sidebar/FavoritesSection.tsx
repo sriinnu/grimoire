@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { Suspense, useCallback, useMemo } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import type { VaultEntry, SidebarSelection } from '../../types'
 import { buildTypeEntryMap } from '../../utils/typeColors'
 import { isSelectionActive } from '../SidebarParts'
@@ -9,7 +10,7 @@ import {
 } from './favoritesSectionContent'
 import { SIDEBAR_SECTION_INSET } from './sidebarStyles'
 
-const LazyFavoritesSortableList = lazy(() => import('./FavoritesSortableList')
+const LazyFavoritesSortableList = lazyWithRetry(() => import('./FavoritesSortableList')
   .then((module) => ({ default: module.FavoritesSortableList })))
 
 interface FavoritesSectionProps {

@@ -32,7 +32,7 @@ export function SidebarGroupHeader({
         onClick={onToggle}
       >
         {collapsed ? <CaretRight size={12} /> : <CaretDown size={12} />}
-        <span className="text-[11px] font-semibold leading-4" style={{ letterSpacing: 0 }}>{label}</span>
+        <span className="text-[11px] font-semibold leading-4">{label}</span>
       </button>
       {children ? (
         <span className="sidebar-group-header__actions">

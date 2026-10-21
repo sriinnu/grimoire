@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import {
   AlertTriangle,
   ArrowDown,
@@ -23,7 +24,7 @@ import type { VaultOption } from './types'
 import type { VaultOpeningState } from './VaultMenu'
 import { VaultMenu } from './VaultMenu'
 
-const AddRemoteModalSurface = lazy(async () => ({ default: (await import('../AddRemoteModal')).AddRemoteModal }))
+const AddRemoteModalSurface = lazyWithRetry(async () => ({ default: (await import('../AddRemoteModal')).AddRemoteModal }))
 
 function formatLocalEdits(modifiedCount: number) {
   return modifiedCount === 1 ? 'Edit waiting' : 'Edits waiting'

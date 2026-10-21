@@ -49,6 +49,7 @@ import { useNoteWorkspace } from './app/useNoteWorkspace'
 import { useVaultFoundation } from './app/useVaultFoundation'
 import { useAiNoteList } from './app/useAiNoteList'
 import { useBodyIndexSync } from './app/useBodyIndexSync'
+import { useDesignLabRoute } from './app/useDesignLabRoute'
 import './App.css'
 
 // Type declarations for mock content storage and test overrides
@@ -145,6 +146,8 @@ function App() {
     return { type: null, query: '' }
   }, [effectiveSelection])
   const dashboardSelected = effectiveSelection.kind === 'dashboard'
+  const designLabRoute = useDesignLabRoute()
+  if (designLabRoute) return designLabRoute
 
   if (startupGate) return startupGate
 
@@ -279,7 +282,7 @@ function App() {
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
         <QuickOpenPalette open={dialogs.showQuickOpen} entries={vault.entries} onSelect={handleDashboardOpenNote} onClose={dialogs.closeQuickOpen} onCreate={createPageFromQuery} />
-        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} />
+        <QuickCaptureSheet open={quickCapture.showQuickCapture} onClose={quickCapture.closeQuickCapture} onSave={quickCapture.saveQuickCapture} onPromote={quickCapture.promoteQuickCapture} />
         <CommandPalette
           open={dialogs.showCommandPalette}
           commands={commands}

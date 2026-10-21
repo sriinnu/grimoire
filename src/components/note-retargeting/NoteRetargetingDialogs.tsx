@@ -1,10 +1,11 @@
-import { lazy, Suspense } from 'react'
+import { Suspense } from 'react'
+import { lazyWithRetry } from '../../lib/lazyWithRetry'
 import type { NoteRetargetDialogState } from '../../hooks/useNoteRetargetingUi'
 import type { VaultEntry } from '../../types'
 import { LocalityMoveConfirmDialog } from './LocalityMoveConfirmDialog'
 import type { RetargetOption } from './RetargetNoteDialog'
 
-const RetargetNoteDialogSurface = lazy(async () => ({
+const RetargetNoteDialogSurface = lazyWithRetry(async () => ({
   default: (await import('./RetargetNoteDialog')).RetargetNoteDialog,
 }))
 

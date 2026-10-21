@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/grimoire-logo.svg" alt="Grimoire — Local-first markdown workspace" width="480" />
+  <img src="assets/app-logo.png" alt="Grimoire logo" width="128" />
 </p>
 
 # Grimoire

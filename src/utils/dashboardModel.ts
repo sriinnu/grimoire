@@ -208,6 +208,210 @@ function buildDailyBrief(input: {
   }
 }
 
+export interface DashboardVaultStats {
+  /** Active content entries that are not journals. */
+  pages: number
+  /** Active entries typed as Journal. */
+  journals: number
+  /** Active entries typed as Dream. */
+  dreams: number
+  /** Total outgoing wikilinks across active content entries. */
+  links: number
+  /** Entries touched per day for the last 14 days (oldest → newest). */
+  pagesSeries: number[]
+  journalsSeries: number[]
+  dreamsSeries: number[]
+  linksSeries: number[]
+}
+
+const STATS_SPARKLINE_DAYS = 14
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function sparklineDayIndex(timestampSeconds: number | null | undefined, nowMs: number): number | null {
+  if (typeof timestampSeconds !== 'number' || !Number.isFinite(timestampSeconds)) return null
+  const daysAgo = Math.floor((nowMs - timestampSeconds * 1000) / DAY_MS)
+  if (daysAgo < 0 || daysAgo >= STATS_SPARKLINE_DAYS) return null
+  return STATS_SPARKLINE_DAYS - 1 - daysAgo
+}
+
+/**
+ * Honest big-number stats for the dashboard hero band: counts and per-day
+ * buckets only, never titles, so private note labels cannot leak through it.
+ */
+export function computeDashboardStats(entries: VaultEntry[], now: Date = new Date()): DashboardVaultStats {
+  const nowMs = now.getTime()
+  const pagesSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  const journalsSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  const dreamsSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  const linksSeries = new Array<number>(STATS_SPARKLINE_DAYS).fill(0)
+  let pages = 0
+  let journals = 0
+  let dreams = 0
+  let links = 0
+
+  for (const entry of entries) {
+    if (!isContentEntry(entry) || entry.archived) continue
+    const index = sparklineDayIndex(entry.modifiedAt ?? entry.createdAt, nowMs)
+    const linkCount = entry.outgoingLinks.length
+
+    if (typeIs(entry, 'Journal')) {
+      journals += 1
+      if (index !== null) journalsSeries[index] += 1
+    } else {
+      pages += 1
+      if (index !== null) pagesSeries[index] += 1
+    }
+    if (typeIs(entry, 'Dream')) {
+      dreams += 1
+      if (index !== null) dreamsSeries[index] += 1
+    }
+    links += linkCount
+    if (index !== null) linksSeries[index] += linkCount
+  }
+
+  return { pages, journals, dreams, links, pagesSeries, journalsSeries, dreamsSeries, linksSeries }
+}
+
+export interface WeeklyReviewTypeCount {
+  type: string
+  count: number
+}
+
+export interface WeeklyReviewDay {
+  dateKey: string
+  count: number
+  isToday: boolean
+}
+
+export interface WeeklyReviewLastWeek {
+  entriesCreated: number
+  entriesModified: number
+  journalDaysActive: number
+  wordCountDelta: number
+}
+
+export interface WeeklyReview {
+  weekStartKey: string
+  weekEndKey: string
+  /** Monday → Sunday of the current week with per-day activity counts. */
+  days: WeeklyReviewDay[]
+  entriesCreatedThisWeek: number
+  entriesModifiedThisWeek: number
+  journalDaysActive: number
+  /** Consecutive days with any activity, ending today (or yesterday). */
+  streakDays: number
+  wordCountDelta: number
+  typeMix: WeeklyReviewTypeCount[]
+  lastWeek: WeeklyReviewLastWeek
+}
+
+function startOfWeekMonday(date: Date): Date {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7))
+  return start
+}
+
+function secondsInWindow(timestamp: number | null, startMs: number, endMs: number): boolean {
+  return typeof timestamp === 'number'
+    && Number.isFinite(timestamp)
+    && timestamp * 1000 >= startMs
+    && timestamp * 1000 < endMs
+}
+
+/**
+ * This-week review band for the dashboard: created/touched counts, journal
+ * days, streak, word-count delta, top types, and last week's comparison
+ * numbers. Counts and day buckets only — never note titles.
+ */
+export function computeWeeklyReview(entries: VaultEntry[], now: Date = new Date()): WeeklyReview {
+  const weekStart = startOfWeekMonday(now)
+  const weekStartMs = weekStart.getTime()
+  const weekEndMs = weekStartMs + 7 * DAY_MS
+  const prevWeekStartMs = weekStartMs - 7 * DAY_MS
+  const todayKey = localDateKey(now)
+
+  let entriesCreatedThisWeek = 0
+  let entriesModifiedThisWeek = 0
+  let wordCountDelta = 0
+  let prevCreated = 0
+  let prevModified = 0
+  let prevWordCount = 0
+  const typeCounts = new Map<string, number>()
+  const journalDayKeys = new Set<string>()
+  const prevJournalDayKeys = new Set<string>()
+  const weekDayCounts = new Map<string, number>()
+  const activityDayKeys = new Set<string>()
+
+  for (const entry of entries) {
+    if (!isContentEntry(entry) || entry.archived) continue
+    const created = entry.createdAt
+    const touched = entry.modifiedAt ?? entry.createdAt
+
+    if (secondsInWindow(created, weekStartMs, weekEndMs)) {
+      entriesCreatedThisWeek += 1
+      wordCountDelta += entry.wordCount
+      const type = entry.isA?.trim() || 'Note'
+      typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1)
+    } else if (secondsInWindow(created, prevWeekStartMs, weekStartMs)) {
+      prevCreated += 1
+      prevWordCount += entry.wordCount
+    }
+
+    if (touched != null && secondsInWindow(touched, weekStartMs, weekEndMs)) {
+      entriesModifiedThisWeek += 1
+      const touchedKey = localDateKey(new Date(touched * 1000))
+      weekDayCounts.set(touchedKey, (weekDayCounts.get(touchedKey) ?? 0) + 1)
+      if (typeIs(entry, 'Journal')) journalDayKeys.add(touchedKey)
+    } else if (touched != null && secondsInWindow(touched, prevWeekStartMs, weekStartMs)) {
+      prevModified += 1
+      if (typeIs(entry, 'Journal')) prevJournalDayKeys.add(localDateKey(new Date(touched * 1000)))
+    }
+
+    for (const timestamp of [created, touched]) {
+      if (typeof timestamp !== 'number' || !Number.isFinite(timestamp)) continue
+      const key = localDateKey(new Date(timestamp * 1000))
+      if (key <= todayKey) activityDayKeys.add(key)
+    }
+  }
+
+  let streakDays = 0
+  const streakCursor = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  if (!activityDayKeys.has(todayKey)) streakCursor.setDate(streakCursor.getDate() - 1)
+  while (activityDayKeys.has(localDateKey(streakCursor))) {
+    streakDays += 1
+    streakCursor.setDate(streakCursor.getDate() - 1)
+  }
+
+  const days: WeeklyReviewDay[] = []
+  for (let offset = 0; offset < 7; offset += 1) {
+    const day = new Date(weekStart)
+    day.setDate(day.getDate() + offset)
+    const dateKey = localDateKey(day)
+    days.push({ dateKey, count: weekDayCounts.get(dateKey) ?? 0, isToday: dateKey === todayKey })
+  }
+
+  return {
+    weekStartKey: localDateKey(weekStart),
+    weekEndKey: days[6].dateKey,
+    days,
+    entriesCreatedThisWeek,
+    entriesModifiedThisWeek,
+    journalDaysActive: journalDayKeys.size,
+    streakDays,
+    wordCountDelta,
+    typeMix: [...typeCounts.entries()]
+      .map(([type, count]) => ({ type, count }))
+      .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type))
+      .slice(0, 3),
+    lastWeek: {
+      entriesCreated: prevCreated,
+      entriesModified: prevModified,
+      journalDaysActive: prevJournalDayKeys.size,
+      wordCountDelta: prevWordCount,
+    },
+  }
+}
+
 /** Builds the local vault dashboard summary without reading note bodies. */
 export function buildDashboardSummary(entries: VaultEntry[], now: Date = new Date()): DashboardSummary {
   const activeContent = entries.filter((entry) => isContentEntry(entry) && !entry.archived)
