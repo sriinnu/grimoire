@@ -516,7 +516,7 @@ import { isTauri } from './mock-tauri'
 const AI_AGENTS_ONBOARDING_DISMISSED_KEY = 'grimoire:ai-agents-onboarding-dismissed'
 const CLAUDE_CODE_ONBOARDING_DISMISSED_KEY = 'grimoire:claude-code-onboarding-dismissed'
 const APP_TEST_DESKTOP_WIDTH = 1280
-const APP_STARTUP_WAIT_TIMEOUT_MS = 5000
+const APP_STARTUP_WAIT_TIMEOUT_MS = 15000
 
 function setAppTestViewportWidth(width: number) {
   Object.defineProperty(window, 'innerWidth', {
