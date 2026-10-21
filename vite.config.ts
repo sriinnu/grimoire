@@ -181,6 +181,9 @@ export default defineConfig(({ command }) => ({
   test: {
     globals: true,
     environment: 'jsdom',
+    // App-level integration tests legitimately take several seconds on slow CI
+    // runners (full app render + mocked IPC); vitest's 5s default kills them.
+    testTimeout: 20000,
     // Node 26 can crash during V8 concurrent marking when the full jsdom suite
     // runs in worker threads. Forks isolate each worker process and keep the
     // pre-push lane deterministic.
