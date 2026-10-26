@@ -221,7 +221,8 @@
       "prosemirror-state": "1.4.4",
       "prosemirror-trailing-node": "3.0.0",
       "prosemirror-transform": "1.11.0",
-      "prosemirror-view": "1.41.6"
+      "prosemirror-view": "1.41.6",
+      "gray-matter>js-yaml": "^3.14.2"
     }
   }
 }
