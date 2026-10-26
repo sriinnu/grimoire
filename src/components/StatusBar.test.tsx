@@ -78,6 +78,7 @@ describe('StatusBar', () => {
     setWindowWidth(DEFAULT_WINDOW_WIDTH)
   })
 
+
   it('shows a quiet syncing signal while the vault pulls', () => {
     render(
       <StatusBar

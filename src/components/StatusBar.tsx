@@ -1,6 +1,6 @@
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { VaultAiGuidanceStatus } from '../lib/vaultAiGuidance'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { memo, useEffect, useState, type CSSProperties } from 'react'
 import type { ClaudeCodeStatus } from '../hooks/useClaudeCodeStatus'
 import type { McpStatus } from '../hooks/useMcpStatus'
 import type { ThemeMode } from '../lib/themeMode'
@@ -343,10 +343,17 @@ function StatusBarFooter({
   )
 }
 
-/** Renders the quiet notebook footer for local state and overflow controls. */
-export function StatusBar(props: StatusBarProps) {
+/**
+ * Renders the quiet notebook footer for local state and overflow controls.
+ *
+ * Memoized: AppRuntime re-renders on every keystroke (tabs state), and this
+ * tree is ~45 props wide. The memo only holds because the parent stabilizes
+ * callbacks via useStableFunctionProps and memoizes object props — see
+ * AppRuntime's statusBarProps.
+ */
+export const StatusBar = memo(function StatusBar(props: StatusBarProps) {
   useStatusBarTicker()
   const { compact, stacked } = useStatusBarLayout()
 
   return <StatusBarFooter {...props} compact={compact} stacked={stacked} />
-}
+})

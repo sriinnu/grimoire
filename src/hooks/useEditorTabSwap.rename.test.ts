@@ -105,6 +105,8 @@ async function expectRenameSessionContinues(options: { renamedTabArrivesLate: bo
   act(() => {
     result.current.handleEditorChange()
   })
+  // FLUSH CONTRACT: serialization is debounced; the flush emits the content.
+  result.current.flushPendingSerialization()
 
   expect(onContentChange).toHaveBeenCalledWith(
     'fresh-title.md',
@@ -171,6 +173,8 @@ describe('useEditorTabSwap untitled rename continuity', () => {
     act(() => {
       result.current.handleEditorChange()
     })
+    // FLUSH CONTRACT: serialization is debounced; the flush emits the content.
+    result.current.flushPendingSerialization()
 
     const syncedContent = onContentChange.mock.calls.at(-1)?.[1]
     expect(typeof syncedContent).toBe('string')
@@ -244,6 +248,8 @@ describe('useEditorTabSwap untitled rename continuity', () => {
     act(() => {
       result.current.handleEditorChange()
     })
+    // FLUSH CONTRACT: serialization is debounced; the flush emits the content.
+    result.current.flushPendingSerialization()
     const queryContent = onContentChange.mock.calls.at(-1)?.[1]
     expect(typeof queryContent).toBe('string')
 
@@ -251,6 +257,7 @@ describe('useEditorTabSwap untitled rename continuity', () => {
     act(() => {
       result.current.handleEditorChange()
     })
+    result.current.flushPendingSerialization()
     const insertedContent = onContentChange.mock.calls.at(-1)?.[1]
     expect(typeof insertedContent).toBe('string')
 

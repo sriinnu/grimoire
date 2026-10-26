@@ -30,6 +30,7 @@ export function useNoteWorkspace(
   } = foundation
   const { conflictResolver } = native
   const flushPendingRawContentRef = useRef<((path: string) => void) | null>(null)
+  const flushPendingEditorChangeRef = useRef<(() => void) | null>(null)
   const flushEditorStateBeforeAction = (path: string) => deferred.flushEditorState.current(path)
 
   const notes = useNoteActions({
@@ -294,8 +295,13 @@ export function useNoteWorkspace(
     handleRenameNote: notes.handleRenameNote, handleRenameFilename: notes.handleRenameFilename,
     replaceEntry: vault.replaceEntry, resolvedPath,
     initialH1AutoRenameEnabled: settings.initial_h1_auto_rename_enabled !== false,
+    flushEditorChange: () => flushPendingEditorChangeRef.current?.(),
   })
   deferred.flushEditorState.current = async (path) => {
+    // FLUSH CONTRACT: the debounced markdown serialization must land before
+    // any pre-action flush reads tab/pending content (note switches, renames,
+    // git operations). Raw-mode buffering follows the same ordering.
+    flushPendingEditorChangeRef.current?.()
     flushPendingRawContentRef.current?.(path)
     await appSave.flushBeforeAction(path)
   }
@@ -327,7 +333,7 @@ export function useNoteWorkspace(
   })
 
   return {
-    flushPendingRawContentRef, notes, handleSelectNote, handleReplaceActiveTab, closeAllTabs,
+    flushPendingRawContentRef, flushPendingEditorChangeRef, notes, handleSelectNote, handleReplaceActiveTab, closeAllTabs,
     openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote,
     handleSearchResultSelect, autoSync, effectiveRemoteStatus, canAddRemote, pendingDiffRequest,
     handlePendingDiffHandled, queuePendingDiff, handlePulseOpenNote, handleOpenFavorite, vaultBridge, conflictFlow,

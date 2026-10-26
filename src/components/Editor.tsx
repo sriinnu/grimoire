@@ -97,6 +97,12 @@ export interface EditorProps {
   onKeepTheirs?: (path: string) => void
   /** Registers a hook that flushes the raw editor buffer into app state before external actions. */
   flushPendingRawContentRef?: React.MutableRefObject<((path: string) => void) | null>
+  /**
+   * Registers a hook that forces the debounced rich-editor serialization into
+   * onContentChange before any consumer reads serialized content (save, tab
+   * switch, git operations). See the FLUSH CONTRACT in useEditorTabSwap.
+   */
+  flushPendingEditorChangeRef?: React.MutableRefObject<(() => void) | null>
 }
 
 function useEditorModeExclusion({
@@ -142,12 +148,13 @@ interface EditorSetupParams {
   getNoteStatus?: (path: string) => NoteStatus
   rawToggleRef?: React.MutableRefObject<() => void>
   diffToggleRef?: React.MutableRefObject<() => void>
+  flushPendingEditorChangeRef?: React.MutableRefObject<(() => void) | null>
 }
 
 function useEditorSetup({
   tabs, activeTabPath, vaultPath, onContentChange,
   onLoadDiff, onLoadDiffAtCommit, pendingCommitDiffRequest, onPendingCommitDiffHandled, getNoteStatus,
-  rawToggleRef, diffToggleRef,
+  rawToggleRef, diffToggleRef, flushPendingEditorChangeRef,
 }: EditorSetupParams) {
   const vaultPathRef = useRef(vaultPath)
   useEffect(() => { vaultPathRef.current = vaultPath }, [vaultPath])
@@ -187,9 +194,21 @@ function useEditorSetup({
     }))
   }, [activeTabPath, setPendingRawExitContent, tabs])
 
-  const { handleEditorChange, editorMountedRef } = useEditorTabSwap({
+  const { handleEditorChange, editorMountedRef, flushPendingSerialization } = useEditorTabSwap({
     tabs: tabsForEditorSwap, activeTabPath, editor, onContentChange, rawMode, vaultPath,
   })
+  // FLUSH CONTRACT: expose the serialization flush app-side so save requests,
+  // pre-action flushes, and raw-mode exits force debounced editor content into
+  // onContentChange before anything reads serialized state.
+  useEffect(() => {
+    if (!flushPendingEditorChangeRef) return
+    flushPendingEditorChangeRef.current = flushPendingSerialization
+    return () => {
+      if (flushPendingEditorChangeRef.current === flushPendingSerialization) {
+        flushPendingEditorChangeRef.current = null
+      }
+    }
+  }, [flushPendingEditorChangeRef, flushPendingSerialization])
   useEditorFocus(editor, editorMountedRef)
 
   const { diffMode, diffContent, diffLoading, handleToggleDiff, handleViewCommitDiff } = useDiffMode({
@@ -270,7 +289,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
     noteLayout, onToggleNoteLayout,
     onFileCreated, onFileModified, onVaultChanged,
     isConflicted, onKeepMine, onKeepTheirs,
-    flushPendingRawContentRef,
+    flushPendingRawContentRef, flushPendingEditorChangeRef,
   } = props
 
   const {
@@ -287,6 +306,7 @@ export const Editor = memo(function Editor(props: EditorProps) {
     onPendingCommitDiffHandled: props.onPendingCommitDiffHandled,
     getNoteStatus,
     rawToggleRef: props.rawToggleRef, diffToggleRef: props.diffToggleRef,
+    flushPendingEditorChangeRef,
   })
   useRegisterRawContentFlush({
     activeTab,

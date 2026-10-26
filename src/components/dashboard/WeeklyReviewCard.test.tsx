@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
 import type { VaultEntry } from '../../types'
 import { VaultDashboard } from './VaultDashboard'
 
@@ -64,7 +64,20 @@ function localTodayKey(now = new Date()): string {
 }
 
 const DAY_SECONDS = 24 * 60 * 60
-const nowSeconds = Math.floor(Date.now() / 1000)
+let nowSeconds = 0
+
+beforeEach(() => {
+  // Anchor both the fixtures and the component's internal clock to a fixed
+  // mid-week date — relative "yesterday" fixtures straddle week boundaries
+  // and the cross-month range label breaks naive assertions otherwise.
+  vi.useFakeTimers()
+  vi.setSystemTime(new Date('2026-10-21T12:00:00'))
+  nowSeconds = Math.floor(Date.now() / 1000)
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 describe('VaultDashboard weekly review', () => {
   it('shows this-week numbers, a day strip with today highlighted, and type chips', () => {

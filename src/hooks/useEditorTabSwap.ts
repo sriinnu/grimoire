@@ -10,6 +10,9 @@ import type { CachedTabState, Editor, PendingLocalContent, Tab } from './editorT
 
 export { extractEditorBody, getH1TextFromBlocks, replaceTitleInFrontmatter } from './editorTabContent'
 
+/** Idle delay before the debounced markdown serialization runs. */
+const SERIALIZE_DEBOUNCE_MS = 200
+
 interface UseEditorTabSwapOptions {
   tabs: Tab[]
   activeTabPath: string | null
@@ -52,22 +55,19 @@ function useEditorMountState(
 function useEditorChangeHandler(options: {
   editor: Editor
   tabsRef: MutableRefObject<Tab[]>
-  onContentChangeRef: MutableRefObject<((path: string, content: string) => void) | undefined>
   prevActivePathRef: MutableRefObject<string | null>
   suppressChangeRef: MutableRefObject<boolean>
-  tabCacheRef: MutableRefObject<Map<string, CachedTabState>>
-  pendingLocalContentRef: MutableRefObject<PendingLocalContent | null>
-  vaultPathRef: MutableRefObject<string | undefined>
+  serializeTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>
+  pendingEditRef: MutableRefObject<{ path: string; tab: Tab } | null>
+  flushRef: MutableRefObject<(() => void) | null>
 }) {
   const {
-    editor,
-    tabsRef,
-    onContentChangeRef,
     prevActivePathRef,
     suppressChangeRef,
-    tabCacheRef,
-    pendingLocalContentRef,
-    vaultPathRef,
+    serializeTimerRef,
+    pendingEditRef,
+    flushRef,
+    tabsRef,
   } = options
 
   return useCallback(() => {
@@ -78,26 +78,21 @@ function useEditorChangeHandler(options: {
     const tab = tabsRef.current.find(t => t.entry.path === path)
     if (!tab) return
 
-    const blocks = editor.document
-    // Detected code languages are display-only; keep them out of saved markdown.
-    const restored = restoreWikilinksInBlocks(stripInjectedCodeLanguages(blocks))
-    const rawBodyMarkdown = compactMarkdown(serializeMathAwareBlocks(editor, restored as typeof blocks))
-    const bodyMarkdown = vaultPathRef.current
-      ? portableImageUrls(rawBodyMarkdown, vaultPathRef.current)
-      : rawBodyMarkdown
-    const [frontmatter] = splitFrontmatter(tab.content)
-    const nextContent = `${frontmatter}${bodyMarkdown}`
-    pendingLocalContentRef.current = { path, content: nextContent }
-    cacheEditorState(tabCacheRef.current, path, {
-      blocks,
-      // Reading scrollTop right after a DOM mutation forces a synchronous
-      // layout on every keystroke. Tab swaps and raw-mode toggles re-read the
-      // live scroll position themselves, so keep the last known value here.
-      scrollTop: tabCacheRef.current.get(path)?.scrollTop ?? 0,
-      sourceContent: nextContent,
-    })
-    onContentChangeRef.current?.(path, nextContent)
-  }, [editor, onContentChangeRef, pendingLocalContentRef, prevActivePathRef, suppressChangeRef, tabCacheRef, tabsRef, vaultPathRef])
+    // FLUSH CONTRACT: this handler only records the keystroke. The expensive
+    // markdown serialization (block transforms → serialize → compact → image
+    // urls → frontmatter split) runs in flushPendingSerialization(), which MUST
+    // run before anything reads serialized content: the 200ms idle timer here,
+    // plus tab swap (runTabSwapEffect), editor blur, save requests
+    // (useEditorSave.flushPending via beforeFlushPending), and unmount.
+    // pendingLocalContentRef, the tab cache, and onContentChange consumers all
+    // observe content only through that flush.
+    pendingEditRef.current = { path, tab }
+    if (serializeTimerRef.current) clearTimeout(serializeTimerRef.current)
+    serializeTimerRef.current = setTimeout(() => {
+      serializeTimerRef.current = null
+      flushRef.current?.()
+    }, SERIALIZE_DEBOUNCE_MS)
+  }, [flushRef, pendingEditRef, prevActivePathRef, serializeTimerRef, suppressChangeRef, tabsRef])
 }
 
 function useTabSwapEffect(options: {
@@ -114,6 +109,7 @@ function useTabSwapEffect(options: {
   suppressChangeRef: MutableRefObject<boolean>
   pendingLocalContentRef: MutableRefObject<PendingLocalContent | null>
   vaultPathRef: MutableRefObject<string | undefined>
+  flushPendingSerialization: () => void
 }) {
   const {
     tabs,
@@ -129,6 +125,7 @@ function useTabSwapEffect(options: {
     suppressChangeRef,
     pendingLocalContentRef,
     vaultPathRef,
+    flushPendingSerialization,
   } = options
 
   useEffect(() => {
@@ -146,11 +143,13 @@ function useTabSwapEffect(options: {
       suppressChangeRef,
       pendingLocalContentRef,
       vaultPath: vaultPathRef.current,
+      flushPendingSerialization,
     })
   }, [
     activeTabPath,
     editor,
     editorMountedRef,
+    flushPendingSerialization,
     pendingSwapRef,
     prevActivePathRef,
     prevRawModeRef,
@@ -180,15 +179,72 @@ export function useEditorTabSwap({ tabs, activeTabPath, editor, onContentChange,
   const onContentChangeRef = useLatestRef(onContentChange)
   const tabsRef = useLatestRef(tabs)
   const vaultPathRef = useLatestRef(vaultPath)
+  const serializeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingEditRef = useRef<{ path: string; tab: Tab } | null>(null)
+  const flushRef = useRef<(() => void) | null>(null)
+
+  const flushPendingSerialization = useCallback(() => {
+    if (serializeTimerRef.current) {
+      clearTimeout(serializeTimerRef.current)
+      serializeTimerRef.current = null
+    }
+    const pending = pendingEditRef.current
+    if (!pending) return
+    pendingEditRef.current = null
+    const { path, tab } = pending
+    // The document is re-read here rather than at keystroke time: between the
+    // last change event and this flush there is no tab swap (swaps flush
+    // first), so editor.document is still the pending edit's document — and it
+    // may include trailing micro-edits made within the same frame.
+    const blocks = editor.document
+    // Detected code languages are display-only; keep them out of saved markdown.
+    const restored = restoreWikilinksInBlocks(stripInjectedCodeLanguages(blocks))
+    const rawBodyMarkdown = compactMarkdown(serializeMathAwareBlocks(editor, restored as typeof blocks))
+    const bodyMarkdown = vaultPathRef.current
+      ? portableImageUrls(rawBodyMarkdown, vaultPathRef.current)
+      : rawBodyMarkdown
+    const [frontmatter] = splitFrontmatter(tab.content)
+    const nextContent = `${frontmatter}${bodyMarkdown}`
+    pendingLocalContentRef.current = { path, content: nextContent }
+    cacheEditorState(tabCacheRef.current, path, {
+      blocks,
+      // Reading scrollTop right after a DOM mutation forces a synchronous
+      // layout on every keystroke. Tab swaps and raw-mode toggles re-read the
+      // live scroll position themselves, so keep the last known value here.
+      scrollTop: tabCacheRef.current.get(path)?.scrollTop ?? 0,
+      sourceContent: nextContent,
+    })
+    onContentChangeRef.current?.(path, nextContent)
+  }, [editor, onContentChangeRef, pendingLocalContentRef, tabCacheRef, vaultPathRef])
+  useEffect(() => {
+    flushRef.current = flushPendingSerialization
+  }, [flushPendingSerialization])
+
+  useEffect(() => () => {
+    // Unmount flush: serialized state must be pushed to the save pipeline even
+    // if the editor disappears before the idle timer fires (e.g. closing the
+    // last tab unmounts the editor surface).
+    flushRef.current?.()
+  }, [])
+
+  useEffect(() => {
+    const dom = editor.dom
+    if (!dom) return
+    // Blur flush: leaving the editor is an explicit "done typing" signal; push
+    // pending serialization immediately so saves and panel reads that follow
+    // the blur never see pre-debounce content.
+    dom.addEventListener('blur', flushPendingSerialization, true)
+    return () => dom.removeEventListener('blur', flushPendingSerialization, true)
+  }, [editor, flushPendingSerialization])
+
   const handleEditorChange = useEditorChangeHandler({
     editor,
-    tabsRef,
-    onContentChangeRef,
     prevActivePathRef,
     suppressChangeRef,
-    tabCacheRef,
-    pendingLocalContentRef,
-    vaultPathRef,
+    serializeTimerRef,
+    pendingEditRef,
+    flushRef,
+    tabsRef,
   })
 
   useEditorMountState(editor, editorMountedRef, pendingSwapRef)
@@ -206,7 +262,8 @@ export function useEditorTabSwap({ tabs, activeTabPath, editor, onContentChange,
     suppressChangeRef,
     pendingLocalContentRef,
     vaultPathRef,
+    flushPendingSerialization,
   })
 
-  return { handleEditorChange, editorMountedRef }
+  return { handleEditorChange, editorMountedRef, flushPendingSerialization }
 }

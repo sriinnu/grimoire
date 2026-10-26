@@ -356,6 +356,23 @@ describe('useVaultLoader', () => {
 
       expect(result.current.entries).toBe(entriesBefore)
     })
+
+    it('preserves entries reference when the patch is a semantic no-op', async () => {
+      const { result } = await renderVaultLoader()
+      const entriesBefore = result.current.entries
+      const existing = entriesBefore[0]
+
+      // Fresh array/object references with identical content must not rebuild
+      // the entries array (that recompute cascades through every note-list memo).
+      act(() => { result.current.updateEntry(existing.path, { outgoingLinks: [...existing.outgoingLinks], archived: existing.archived }) })
+
+      expect(result.current.entries).toBe(entriesBefore)
+
+      // A real change still patches and returns a new array.
+      act(() => { result.current.updateEntry(existing.path, { archived: true }) })
+      expect(result.current.entries).not.toBe(entriesBefore)
+      expect(result.current.entries[0].archived).toBe(true)
+    })
   })
 
   describe('getNoteStatus', () => {

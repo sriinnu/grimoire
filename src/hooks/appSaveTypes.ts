@@ -38,6 +38,8 @@ export interface AppSaveDeps {
   unsavedPaths: Set<string>
   tabs: AppSaveTabState[]
   activeTabPath: string | null
+  /** FLUSH CONTRACT: forces debounced editor serialization into onContentChange before saves. */
+  flushEditorChange?: () => void
   handleRenameNote: (
     path: string,
     newTitle: string,

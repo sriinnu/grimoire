@@ -19,6 +19,14 @@ interface EditorSaveConfig {
   resolvePath?: (path: string) => string
   /** Wait for an in-flight path change to settle before persisting buffered content. */
   resolvePathBeforeSave?: (path: string) => Promise<string>
+  /**
+   * FLUSH CONTRACT: the editor debounces markdown serialization, so pending
+   * content can lag the document by up to the serialization debounce. This hook
+   * runs synchronously at the start of every pending-content read (autosave
+   * flush, Cmd+S, savePendingForPath, savePending) and must force the pending
+   * serialization into onContentChange first.
+   */
+  beforeFlushPending?: () => void
 }
 
 /**
@@ -119,14 +127,20 @@ function usePendingContentFlush({
   onNotePersisted,
   resolvePath,
   resolvePathBeforeSave,
+  beforeFlushPending,
 }: {
   pendingContentRef: MutableRefObject<PendingContent | null>
   saveNote: (path: string, content: string) => Promise<void>
   onNotePersisted?: EditorSaveConfig['onNotePersisted']
   resolvePath?: EditorSaveConfig['resolvePath']
   resolvePathBeforeSave?: EditorSaveConfig['resolvePathBeforeSave']
+  beforeFlushPending?: EditorSaveConfig['beforeFlushPending']
 }) {
   return useCallback(async (pathFilter?: string): Promise<boolean> => {
+    // FLUSH CONTRACT: force any debounced editor serialization into
+    // onContentChange before reading the pending buffer, so this save persists
+    // the document as it is, not as of the last serialization flush.
+    beforeFlushPending?.()
     const pending = pendingContentRef.current
     if (!matchesPendingPath(pending, pathFilter, resolvePath)) return false
     const { path, content } = pending
@@ -140,7 +154,7 @@ function usePendingContentFlush({
     })
     pendingContentRef.current = null
     return true
-  }, [onNotePersisted, pendingContentRef, resolvePath, resolvePathBeforeSave, saveNote])
+  }, [beforeFlushPending, onNotePersisted, pendingContentRef, resolvePath, resolvePathBeforeSave, saveNote])
 }
 
 function useCancelAutoSave(autoSaveTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>) {
@@ -261,6 +275,7 @@ function useEditorSaveCommands({
   onNotePersisted,
   resolvePath,
   resolvePathBeforeSave,
+  beforeFlushPending,
 }: {
   pendingContentRef: MutableRefObject<PendingContent | null>
   autoSaveTimerRef: MutableRefObject<ReturnType<typeof setTimeout> | null>
@@ -272,6 +287,7 @@ function useEditorSaveCommands({
   onNotePersisted?: EditorSaveConfig['onNotePersisted']
   resolvePath?: EditorSaveConfig['resolvePath']
   resolvePathBeforeSave?: EditorSaveConfig['resolvePathBeforeSave']
+  beforeFlushPending?: EditorSaveConfig['beforeFlushPending']
 }) {
   const flushPending = usePendingContentFlush({
     pendingContentRef,
@@ -279,6 +295,7 @@ function useEditorSaveCommands({
     onNotePersisted,
     resolvePath,
     resolvePathBeforeSave,
+    beforeFlushPending,
   })
   const cancelAutoSave = useCancelAutoSave(autoSaveTimerRef)
   const { handleSave, savePendingForPath, savePending } = useImmediateSaveCommands({
@@ -311,6 +328,7 @@ export function useEditorSave({
   onNotePersisted,
   resolvePath,
   resolvePathBeforeSave,
+  beforeFlushPending,
 }: EditorSaveConfig) {
   const pendingContentRef = useRef<{ path: string; content: string } | null>(null)
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -334,5 +352,6 @@ export function useEditorSave({
     onNotePersisted,
     resolvePath,
     resolvePathBeforeSave,
+    beforeFlushPending,
   })
 }
