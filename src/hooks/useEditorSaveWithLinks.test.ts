@@ -179,6 +179,21 @@ describe('useEditorSaveWithLinks', () => {
     expect(updateEntry).toHaveBeenCalledTimes(callCount)
   })
 
+  it('emits the frontmatter patch once while only the body keeps changing', () => {
+    const { result } = renderHookWithLinks()
+
+    act(() => { result.current.handleContentChange('/note.md', '---\ntype: Essay\n---\nBody one') })
+    expect(updateEntry).toHaveBeenCalledWith('/note.md', expect.objectContaining({ isA: 'Essay' }))
+    const callCount = updateEntry.mock.calls.length
+
+    act(() => { result.current.handleContentChange('/note.md', '---\ntype: Essay\n---\nBody two') })
+    act(() => { result.current.handleContentChange('/note.md', '---\ntype: Essay\n---\nBody three') })
+
+    // Frontmatter prefix unchanged across all three drafts: the YAML re-parse
+    // is skipped and no further entry patches are emitted.
+    expect(updateEntry).toHaveBeenCalledTimes(callCount)
+  })
+
   it('handleContentChange updates entry when type changes in frontmatter', () => {
     const { result } = renderHookWithLinks()
 

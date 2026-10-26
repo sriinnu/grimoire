@@ -191,6 +191,7 @@ export function useEditorPersistence({
   scheduleUntitledRename,
   resolveCurrentPath,
   resolvePathBeforeSave,
+  flushEditorChange,
 }: {
   updateEntry: AppSaveDeps['updateEntry']
   setTabs: AppSaveDeps['setTabs']
@@ -202,6 +203,8 @@ export function useEditorPersistence({
   scheduleUntitledRename: (path: string, content: string) => void
   resolveCurrentPath: (path: string) => string
   resolvePathBeforeSave: (path: string) => Promise<string>
+  /** FLUSH CONTRACT: forces debounced editor serialization into onContentChange before reads. */
+  flushEditorChange?: () => void
 }) {
   const onAfterSave = useCallback(() => {
     loadModifiedFiles()
@@ -226,6 +229,7 @@ export function useEditorPersistence({
     onNotePersisted,
     resolvePath: resolveCurrentPath,
     resolvePathBeforeSave,
+    beforeFlushPending: flushEditorChange,
   })
 
   const handleContentChange = useCallback((path: string, content: string) => {

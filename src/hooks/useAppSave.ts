@@ -20,7 +20,7 @@ export function useAppSave({
   updateEntry, setTabs, handleSwitchTab, setToastMessage, loadModifiedFiles, reloadViews,
   trackUnsaved, clearUnsaved, unsavedPaths, tabs, activeTabPath, handleRenameNote,
   handleRenameFilename: handleRenameFilenameRaw, replaceEntry, resolvedPath,
-  initialH1AutoRenameEnabled,
+  initialH1AutoRenameEnabled, flushEditorChange,
 }: AppSaveDeps) {
   const contentChangeRef = useRef<(path: string, content: string) => void>(() => {})
   const { tabsRef, activeTabPathRef, unsavedPathsRef } = useAppSaveStateRefs({ tabs, activeTabPath, unsavedPaths })
@@ -48,6 +48,7 @@ export function useAppSave({
     scheduleUntitledRename,
     resolveCurrentPath,
     resolvePathBeforeSave,
+    flushEditorChange,
   })
   const replaceRenamedEntry = useReplaceRenamedEntry({ registerRenamedPath, replaceEntry })
   const { handleFilenameRename, handleSave, handleTitleSync, flushBeforeAction } = useAppSaveHandlers({

@@ -270,14 +270,34 @@ export function useVaultLoader(vaultPath: string, options: VaultLoaderOptions = 
     tracker.trackNew(entry.path)
   }, [tracker])
 
-  const updateEntry = useCallback((path: string, patch: Partial<VaultEntry>) => {
+  /** True when a patch value is semantically identical to the existing value. */
+function patchValueEquals(existing: unknown, next: unknown): boolean {
+  if (existing === next) return true
+  if (Array.isArray(existing) && Array.isArray(next)) {
+    return existing.length === next.length && existing.every((value, index) => value === next[index])
+  }
+  if (existing !== null && next !== null && typeof existing === 'object' && typeof next === 'object') {
+    return JSON.stringify(existing) === JSON.stringify(next)
+  }
+  return false
+}
+
+const updateEntry = useCallback((path: string, patch: Partial<VaultEntry>) => {
     setEntries((prev) => {
-      let changed = false
-      const next = prev.map((e) => {
-        if (e.path === path) { changed = true; return { ...e, ...patch } }
-        return e
-      })
-      return changed ? next : prev
+      const index = prev.findIndex(e => e.path === path)
+      if (index === -1) return prev
+      const existing = prev[index]
+      // Semantic no-op bail: rebuilding the entries array (and bumping
+      // modifiedAt downstream) for a patch that changes nothing invalidates
+      // every memoized note-list derivation and re-renders the app root.
+      // Fresh arrays/objects from the save pipeline compare by content here.
+      const patchKeys = Object.keys(patch) as Array<keyof VaultEntry>
+      if (!patchKeys.some((key) => !patchValueEquals(existing[key], patch[key]))) {
+        return prev
+      }
+      const next = prev.slice()
+      next[index] = { ...existing, ...patch }
+      return next
     })
   }, [])
 

@@ -297,6 +297,8 @@ export function runTabSwapEffect(options: {
   suppressChangeRef: MutableRefObject<boolean>
   pendingLocalContentRef: MutableRefObject<PendingLocalContent | null>
   vaultPath?: string
+  /** Forces any debounced serialization to land before the swap reads state. */
+  flushPendingSerialization: () => void
 }) {
   const {
     tabs,
@@ -312,8 +314,14 @@ export function runTabSwapEffect(options: {
     suppressChangeRef,
     pendingLocalContentRef,
     vaultPath,
+    flushPendingSerialization,
   } = options
 
+  // FLUSH CONTRACT: a swap (or any tabs/activePath reaction) may cache the
+  // outgoing tab or clear pendingLocalContentRef, so the debounced
+  // serialization must land first — otherwise the last ≤200ms of edits would
+  // be serialized against the wrong tab or dropped.
+  flushPendingSerialization()
   const rawModeJustEnded = consumeRawModeTransition(prevRawModeRef, rawMode)
   if (rawMode) return
   const state = resolveTabSwapState({

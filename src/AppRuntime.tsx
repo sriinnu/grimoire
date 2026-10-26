@@ -50,6 +50,7 @@ import { useVaultFoundation } from './app/useVaultFoundation'
 import { useAiNoteList } from './app/useAiNoteList'
 import { useBodyIndexSync } from './app/useBodyIndexSync'
 import { useDesignLabRoute } from './app/useDesignLabRoute'
+import { useStatusBarProps } from './app/useStatusBarProps'
 import './App.css'
 
 // Type declarations for mock content storage and test overrides
@@ -71,18 +72,17 @@ function App() {
     handleEnterNeighborhood, clearPendingDashboardCapture, layout,
     visibleNotesRef, multiSelectionCommandRef, toastMessage, setToastMessage,
     dialogs, showFeedback, showMcpSetupDialog, showGraphModal, showWeatherSnapshotDialog,
-    showAudioRecordingDialog, mcpDialogAction, openFeedback, closeFeedback, openGraphModal,
+    showAudioRecordingDialog, mcpDialogAction, closeFeedback, openGraphModal,
     closeGraphModal, closeWeatherSnapshotDialog,
-    closeAudioRecordingDialog, networkStatus, vaultFolderPickerPending,
-    vaultSwitcher, settings, settingsLoaded, saveSettings,
-    cloneGettingStartedVault, showCreateVaultDialog, openCreateVaultDialog,
+    closeAudioRecordingDialog,
+    vaultSwitcher, settings, saveSettings,
+    showCreateVaultDialog, openCreateVaultDialog,
     closeCreateVaultDialog, handleCreateVaultFromDialog, aiAgentsStatus,
     resolvedPath, activeVaultOption, searchVaultScopes, gitCapabilityUpdating, hasGitMetadata,
-    isGitVault, handleSetGitEnabled, vault, handleStatusBarSwitchVault,
-    handleStatusBarOpenLocalFolder, handleGitInitialized, vaultAiGuidanceStatus,
+    isGitVault, handleSetGitEnabled, vault,
     vaultConfig, explicitOrganizationEnabled,
     effectiveSelection, handleSaveExplicitOrganization,
-    systemLocale, appLocale, documentThemeMode, handleToggleThemeMode,
+    systemLocale, appLocale,
     aiAgentPreferences, mcpStatus, openMcpSetupDialog,
     closeMcpSetupDialog, handleConnectMcp, handleDisconnectMcp,
   } = foundation
@@ -90,9 +90,9 @@ function App() {
   const { detectedRenames, handleUpdateWikilinks, handleDismissRenames, conflictResolver } = native
   const noteWorkspace = useNoteWorkspace(foundation, native, deferred)
   const {
-    flushPendingRawContentRef, notes,
+    flushPendingRawContentRef, flushPendingEditorChangeRef, notes,
     openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote,
-    handleSearchResultSelect, autoSync, effectiveRemoteStatus, pendingDiffRequest,
+    handleSearchResultSelect, autoSync, pendingDiffRequest,
     handlePendingDiffHandled, handlePulseOpenNote, handleOpenFavorite, vaultBridge, conflictFlow,
     appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward,
   } = noteWorkspace
@@ -106,7 +106,7 @@ function App() {
 
   const gitWorkflow = useGitWorkflow(foundation, noteWorkspace)
   const {
-    commitFlow, suggestedCommitMessage, handleCommitPush, handleTrackedContentChange,
+    commitFlow, suggestedCommitMessage, handleTrackedContentChange,
     handleInsertWeatherSnapshot, handleTrackedSave, entryActions, deleteActions,
   } = gitWorkflow
   const knowledge = useKnowledgeOrganization(foundation, noteWorkspace, gitWorkflow)
@@ -118,9 +118,9 @@ function App() {
   const shell = useAppShellState(foundation, noteWorkspace, entryWorkspace, gitWorkflow)
   const {
     rawToggleRef, diffToggleRef, sidebarVisible, noteListVisible, sidebarColumnCollapsed,
-    noteLayout, toggleNoteLayout, zoom, buildNumber, handleSetViewMode, handleToggleInspector,
-    handleSetSidebarColumnCollapsed, updateStatus, updateActions, handleCheckForUpdates,
-    restoreVaultAiGuidance, activeDeletedFile, noteRetargetingUi,
+    noteLayout, toggleNoteLayout, handleSetViewMode, handleToggleInspector,
+    handleSetSidebarColumnCollapsed, updateStatus, updateActions,
+    activeDeletedFile, noteRetargetingUi,
     toggleOrganizedCommand, audioTranscription, handleOpenGraphNote, quickCapture,
   } = shell
 
@@ -147,11 +147,12 @@ function App() {
   }, [effectiveSelection])
   const dashboardSelected = effectiveSelection.kind === 'dashboard'
   const designLabRoute = useDesignLabRoute()
+  const statusBarProps = useStatusBarProps({ foundation, noteWorkspace, gitWorkflow, shell })
+
   if (designLabRoute) return designLabRoute
 
   if (startupGate) return startupGate
 
-  // Quick Open and Search share one way of turning a typed title into a page.
   const createPageFromQuery = (title: string) => {
     if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' })
     void notes.handleCreateNote(title, 'Note')
@@ -271,13 +272,14 @@ function App() {
               onKeepMine={conflictFlow.handleKeepMine}
               onKeepTheirs={conflictFlow.handleKeepTheirs}
               flushPendingRawContentRef={flushPendingRawContentRef}
+              flushPendingEditorChangeRef={flushPendingEditorChangeRef}
             />
             </div>
           )}
         </div>
         <UpdateBanner status={updateStatus} actions={updateActions} />
         <RenameDetectedBanner renames={detectedRenames} onUpdate={handleUpdateWikilinks} onDismiss={handleDismissRenames} />
-        <StatusBar noteCount={vault.entries.length} modifiedCount={isGitVault ? vault.modifiedFiles.length : 0} vaultPath={resolvedPath} vaults={vaultSwitcher.allVaults} openingVault={vaultFolderPickerPending ? { label: 'Choose vault folder', path: '' } : null} onSwitchVault={handleStatusBarSwitchVault} onOpenSettings={dialogs.openSettings} onOpenFeedback={openFeedback} onOpenLocalFolder={handleStatusBarOpenLocalFolder} onCreateEmptyVault={openCreateVaultDialog} onCloneVault={dialogs.openCloneVault} onCloneGettingStarted={cloneGettingStartedVault} onGitInitialized={handleGitInitialized} onClickPending={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'changes' }) : undefined} onClickPulse={isGitVault ? () => handleSetSelection({ kind: 'filter', filter: 'pulse' }) : undefined} onCommitPush={isGitVault ? handleCommitPush : undefined} isOffline={networkStatus.isOffline} isGitVault={isGitVault} syncStatus={autoSync.syncStatus} lastSyncTime={autoSync.lastSyncTime} conflictCount={isGitVault ? autoSync.conflictFiles.length : 0} remoteStatus={isGitVault ? effectiveRemoteStatus : null} onTriggerSync={isGitVault ? autoSync.triggerSync : undefined} onPullAndPush={isGitVault ? autoSync.pullAndPush : undefined} onOpenConflictResolver={isGitVault ? conflictFlow.handleOpenConflictResolver : undefined} zoomLevel={zoom.zoomLevel} themeMode={documentThemeMode} onZoomReset={zoom.zoomReset} onToggleThemeMode={settingsLoaded ? handleToggleThemeMode : undefined} buildNumber={buildNumber} panchangamEnabled={settings.panchangam_enabled !== false} onCheckForUpdates={handleCheckForUpdates} onRemoveVault={vaultSwitcher.removeVault} mcpStatus={mcpStatus} onInstallMcp={openMcpSetupDialog} aiAgentsStatus={aiAgentsStatus} vaultAiGuidanceStatus={vaultAiGuidanceStatus} defaultAiAgent={aiAgentPreferences.defaultAiAgent} defaultAiProvider={aiAgentPreferences.defaultAiProvider} defaultAiModel={aiAgentPreferences.defaultAiModel} onSetDefaultAiAgent={aiAgentPreferences.setDefaultAiAgent} onRestoreVaultAiGuidance={() => { void restoreVaultAiGuidance() }} />
+        <StatusBar {...statusBarProps} />
         <DeleteProgressNotice count={deleteActions.pendingDeleteCount} />
         <VaultRebuildProgressNotice progress={vault.rebuildProgress} onCancel={() => { void vault.cancelVaultReload() }} />
         <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />

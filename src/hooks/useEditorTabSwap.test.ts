@@ -534,11 +534,64 @@ describe('useEditorTabSwap raw mode sync', () => {
     act(() => {
       result.current.handleEditorChange()
     })
+    // FLUSH CONTRACT: serialization is debounced off the keystroke path; the
+    // flush (idle timer, tab swap, blur, save, unmount) is what emits content.
+    result.current.flushPendingSerialization()
 
     expect(onContentChange).toHaveBeenCalledWith(
       'a.md',
       expect.stringContaining('$$\nE=mc^2\n$$'),
     )
+  })
+
+  it('debounces serialization: no onContentChange synchronously, one flush after the idle window', async () => {
+    const onContentChange = vi.fn()
+    const tabA = makeTab('a.md', 'Note A')
+    const { result, mockEditor } = await createSwapHarness({
+      initialProps: { tabs: [tabA], activeTabPath: 'a.md', rawMode: false },
+      onContentChange,
+    })
+
+    vi.useFakeTimers()
+    try {
+      mockEditor._docRef.current = [{ type: 'paragraph', content: [{ type: 'text', text: 'edit 1' }] }]
+
+      act(() => { result.current.handleEditorChange() })
+      expect(onContentChange).not.toHaveBeenCalled()
+
+      // A further keystroke within the window resets the timer — still silent.
+      mockEditor._docRef.current = [{ type: 'paragraph', content: [{ type: 'text', text: 'edit 2' }] }]
+      act(() => { result.current.handleEditorChange() })
+      act(() => { vi.advanceTimersByTime(150) })
+      expect(onContentChange).not.toHaveBeenCalled()
+
+      act(() => { vi.advanceTimersByTime(50) })
+      expect(onContentChange).toHaveBeenCalledTimes(1)
+      expect(onContentChange).toHaveBeenCalledWith('a.md', expect.stringContaining('title: Note A'))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('flushes pending serialization synchronously before a tab swap consumes state', async () => {
+    const onContentChange = vi.fn()
+    const tabA = makeTab('a.md', 'Note A')
+    const tabB = makeTab('b.md', 'Note B')
+
+    const { result, mockEditor, rerenderWith } = await createSwapHarness({
+      initialProps: { tabs: [tabA], activeTabPath: 'a.md', rawMode: false },
+      onContentChange,
+    })
+    mockEditor._docRef.current = [{ type: 'paragraph', content: [{ type: 'text', text: 'pending edit' }] }]
+
+    act(() => { result.current.handleEditorChange() })
+    expect(onContentChange).not.toHaveBeenCalled()
+
+    await rerenderWith({ tabs: [tabB], activeTabPath: 'b.md' })
+
+    // The swap effect force-flushed, so the outgoing tab's edit landed first.
+    expect(onContentChange).toHaveBeenCalledTimes(1)
+    expect(onContentChange).toHaveBeenCalledWith('a.md', expect.stringContaining('title: Note A'))
   })
 
   it('re-parses from tab.content when rawMode transitions from true to false', async () => {
