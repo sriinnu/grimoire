@@ -54,6 +54,15 @@ The program moved in five waves, each PR-gated with the full suite (5,261+ tests
 
 **R4. Editor measure + typography polish.** Define `--editor-font-size`, clamp content to the spec's max-width, and audit the serif/sans pairing against the Clearly-grade writing surface.
 
+### Chitragupta live-testing evidence (2026-11-12)
+
+The AI communication surface was exercised against the real running daemon (not mocks):
+
+- **Daemon live**: `chitragupta-mcp` (pid 6695), the stdio proxy, and the installed `/Applications/Chitragupta.app` runtime all running; `~/.chitragupta/agent.db` present.
+- **CLI detectable**: `chitragupta` resolves on PATH (`~/.nvm/versions/node/v22.22.0/bin/chitragupta`), version **v0.1.10** — so the app's agent detection (`src/lib/aiAgents.ts`) reports it `installed` and the AI panel route strip renders the live orb instead of the degraded state.
+- **Tauri integration**: the dev instance spawned the ws-bridge (`grimoire_lib::mcp`) cleanly at boot; the route-disclosure/comms layer reads the real `AiAgentsStatus` on this setup.
+- Browser-mock mode intentionally reports agents `missing` (no real CLI in jsdom) — the degraded comms rendering was separately verified in `design/lab/ai-comms-dark.png`.
+
 ## Program Artifacts
 
 - Design lab: `localhost:5203/#design-lab` (dev-only)
