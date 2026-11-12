@@ -44,6 +44,16 @@ The program moved in five waves, each PR-gated with the full suite (5,261+ tests
 10. **CSS cascade consolidation** — 91 stylesheets, 987 custom properties, 998 `color-mix` uses; the `!important` enforcers in `theme-grimoire-panels.css` (63) and `theme-status-bar.css` (46) should become cascade layers.
 11. **Motion tokens actually govern** — components still hardcode durations (140/150/320 ms) despite the token vocabulary; a lint rule would close it.
 
+### Scoped roadmaps for the large items (committed 2026-11-12)
+
+**R1. iOS / Android native shells** (the "all OS" endgame). Phase it: (a) token consolidation first (R2) so the SwiftUI shell inherits one theme; (b) iOS capture-first app from the `design/lab/iphone-*.png` contract — share sheet, widgets, offline vault via the Rust kernel over UniFFI; (c) Android Compose shell over the same kernel. Gate each phase on `NATIVE-APPLE-CAPABILITY-PARITY.md` — a pretty shell is not parity.
+
+**R2. Design-system token consolidation.** One `tokens.json` source generates `theme-base.css`, the Swift palette, and the preset JSON; retire the three hand-authored copies. Sequenced after the current UI work stabilizes; the parity tests (`themeBaseCss.test.ts`, `systemThemesCss.test.ts`) become the migration guard.
+
+**R3. glib / tauri stack upgrade.** glib 0.20 needs a tauri/gtk bump; schedule with the next tauri minor. Until then the alert stays open-by-design (Linux tray path only, documented in #88).
+
+**R4. Editor measure + typography polish.** Define `--editor-font-size`, clamp content to the spec's max-width, and audit the serif/sans pairing against the Clearly-grade writing surface.
+
 ## Program Artifacts
 
 - Design lab: `localhost:5203/#design-lab` (dev-only)
