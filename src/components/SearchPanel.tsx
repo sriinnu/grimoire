@@ -4,6 +4,7 @@ import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { SearchResult, SnippetMatch, VaultEntry } from '../types'
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
@@ -263,7 +264,7 @@ export function SearchPanel({
         />
         {rowCount > 0 && (
           <div className="shrink-0 border-t border-border/50 px-4 py-1.5 text-[10.5px] text-muted-foreground/60">
-            ↑↓ navigate · ↵ open · esc close
+            {formatShortcutDisplay({ display: '↑↓' })} navigate · {formatShortcutDisplay({ display: '↵' })} open · esc close
           </div>
         )}
       </div>

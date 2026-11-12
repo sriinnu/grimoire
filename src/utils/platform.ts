@@ -12,6 +12,17 @@ function getNavigatorPlatform(): string {
   return navigator.platform
 }
 
+/**
+ * Runtime desktop-platform detection.
+ *
+ * Tauri does not bundle the `os` plugin, so inside a Tauri webview the signal
+ * is the WebView user agent plus `navigator.platform`:
+ * - WKWebView (macOS): UA carries "Macintosh"/"Mac OS X"; platform "MacIntel".
+ * - WebView2 (Windows): UA carries "Windows NT"; platform "Win32"/"Win64".
+ * - WebKitGTK (Linux): UA carries "Linux"; platform "Linux x86_64".
+ * UAs can be sparse, so `navigator.platform` is always consulted as a fallback;
+ * an unknown result degrades to 'unknown' and the platform labels say "this OS".
+ */
 export function getDesktopPlatform(): DesktopPlatform {
   const userAgent = getUserAgent()
   const platform = getNavigatorPlatform()
@@ -21,7 +32,8 @@ export function getDesktopPlatform(): DesktopPlatform {
   if (userAgent.includes('Windows') || platform.includes('Win')) {
     return 'windows'
   }
-  if (userAgent.includes('Linux') && !userAgent.includes('Android')) {
+  const mentionsLinux = userAgent.includes('Linux') || platform.includes('Linux')
+  if (mentionsLinux && !userAgent.includes('Android')) {
     return 'linux'
   }
   return 'unknown'

@@ -276,6 +276,13 @@ describe('PortabilitySettingsSection', () => {
   })
 
   it('runs the import actions when available', async () => {
+    // Bear and Apple Journal rows are macOS-gated; exercise the full wiring
+    // surface from a macOS platform so every action is available.
+    const originalUserAgent = navigator.userAgent
+    const originalPlatform = navigator.platform
+    Object.defineProperty(window.navigator, 'userAgent', { configurable: true, value: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)' })
+    Object.defineProperty(window.navigator, 'platform', { configurable: true, value: 'MacIntel' })
+    try {
     const onPreviewMarkdownFolder = vi.fn()
     const onImportMarkdownFolder = vi.fn()
     const onPreviewMarkdownZip = vi.fn()
@@ -494,6 +501,41 @@ describe('PortabilitySettingsSection', () => {
     expect(onApplyAzureMirrorPush).toHaveBeenCalledTimes(1)
     expect(onPreviewAzureMirrorPull).toHaveBeenCalledTimes(1)
     expect(onApplyAzureMirrorPull).toHaveBeenCalledTimes(1)
+    } finally {
+      Object.defineProperty(window.navigator, 'userAgent', { configurable: true, value: originalUserAgent })
+      Object.defineProperty(window.navigator, 'platform', { configurable: true, value: originalPlatform })
+    }
+  })
+
+  it('gates macOS-only importers off-macOS with a caption instead of active buttons', () => {
+    // jsdom's default user agent resolves to the 'unknown' desktop platform —
+    // exactly the degradation path a Windows/Linux build must handle.
+    const onPreviewBear = vi.fn()
+    const onImportBear = vi.fn()
+    const onPreviewAppleJournal = vi.fn()
+    render(
+      <PortabilitySettingsSection
+        t={createTranslator('en')}
+        vaultPath="/vault"
+        onPreviewBear={onPreviewBear}
+        onImportBear={onImportBear}
+        onPreviewAppleJournal={onPreviewAppleJournal}
+        onPreviewObsidian={vi.fn()}
+        onPreviewDayOne={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByTestId('settings-preview-bear')).toBeDisabled()
+    expect(screen.getByTestId('settings-import-bear')).toBeDisabled()
+    expect(screen.getByTestId('settings-preview-apple-journal')).toBeDisabled()
+    expect(screen.getByTestId('settings-import-apple-journal')).toBeDisabled()
+
+    fireEvent.click(screen.getByTestId('settings-preview-bear'))
+    expect(onPreviewBear).not.toHaveBeenCalled()
+
+    // Cross-platform sources stay enabled.
+    expect(screen.getByTestId('settings-preview-obsidian')).not.toBeDisabled()
+    expect(screen.getByTestId('settings-preview-day-one')).not.toBeDisabled()
   })
 
   it('unlocks only the matching capsule export after a reviewed preview', () => {

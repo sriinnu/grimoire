@@ -163,6 +163,7 @@ export const EN_PORTABILITY_TRANSLATIONS = {
   'settings.portability.actionDeckTitle': 'Move vault data',
   'settings.portability.actionDeckDescription': 'Pick one lane at a time. Previews show the write plan first, and local-only files stay behind the firewall.',
   'settings.portability.reviewGate': 'Preview first to unlock the matching import. Writes reuse the reviewed no-write source.',
+  'settings.portability.macosOnly': 'macOS only',
   'settings.portability.actionLaneMarkdown': 'Markdown',
   'settings.portability.actionLaneMarkdownDescription': 'Folders, ZIP archives, and Bear exports that land as local Markdown.',
   'settings.portability.actionLaneApps': 'Apps',

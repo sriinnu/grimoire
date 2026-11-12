@@ -1,4 +1,5 @@
 import { Glyph } from './glyphs/Glyph'
+import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import type { VaultEntry } from '../types'
 import type { NoteReference } from '../utils/ai-context'
 import { InlineWikilinkInput } from './InlineWikilinkInput'
@@ -67,7 +68,7 @@ export function CommandPaletteAiMode({
       paletteFooter={(
         <div className="flex items-center gap-4 border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground">
           <span>{aiAgentLabel} mode</span>
-          <span>↵ send</span>
+          <span>{formatShortcutDisplay({ display: '↵' })} send</span>
           <span>esc close</span>
         </div>
       )}

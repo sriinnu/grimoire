@@ -5,6 +5,7 @@ import {
   listVaultImportSources,
   type VaultPortabilityActionId,
 } from '../lib/vaultPortability'
+import { getDesktopPlatform, type DesktopPlatform } from '../utils/platform'
 import { Glyph } from './glyphs/Glyph'
 import { InstalledAppImportActions } from './InstalledAppImportActions'
 import { ObjectStoragePrototypeActions } from './ObjectStoragePrototypeActions'
@@ -41,6 +42,8 @@ const DEFAULT_SHORT_LABEL: Record<DeckActionButton['kind'], DeckLabelKey> = {
 
 interface DeckActionRow {
   sourceId: string
+  /** Restrict the row to these desktop platforms; other platforms see it disabled with a caption. */
+  platforms?: readonly DesktopPlatform[]
   buttons: DeckActionButton[]
 }
 
@@ -130,6 +133,7 @@ export function PortabilityActionDeck({
   const importSources = new Map(listVaultImportSources().map((source) => [source.id, source]))
   const exportTargets = listVaultExportTargets()
   const previewing = t('settings.portability.previewing')
+  const desktopPlatform = getDesktopPlatform()
 
   const importRows: DeckActionRow[] = [
     {
@@ -148,6 +152,7 @@ export function PortabilityActionDeck({
     },
     {
       sourceId: 'bear',
+      platforms: ['macos'],
       buttons: [
         { labelKey: 'settings.portability.previewBear', testId: 'settings-preview-bear', actionId: 'bear-preview', kind: 'preview', onClick: onPreviewBear },
         { labelKey: 'settings.portability.importBear', testId: 'settings-import-bear', actionId: 'bear', kind: 'import', onClick: onImportBear },
@@ -178,6 +183,7 @@ export function PortabilityActionDeck({
     },
     {
       sourceId: 'apple-journal',
+      platforms: ['macos'],
       buttons: [
         { labelKey: 'settings.portability.previewAppleJournal', testId: 'settings-preview-apple-journal', actionId: 'apple-journal-preview', kind: 'preview', onClick: onPreviewAppleJournal },
         { labelKey: 'settings.portability.importAppleJournal', testId: 'settings-import-apple-journal', actionId: 'apple-journal', kind: 'import', onClick: onImportAppleJournal },
@@ -280,14 +286,20 @@ export function PortabilityActionDeck({
         {importRows.map((row) => {
           const source = importSources.get(row.sourceId)
           if (!source) return null
+          // macOS-only sources (Bear, Apple Journal exports) stay visible on
+          // other platforms but render disabled with a caption instead of
+          // erroring inside the importer.
+          const platformGated = row.platforms !== undefined && !row.platforms.includes(desktopPlatform)
           return (
             <SettingsActionRow
               key={row.sourceId}
               stacked
               label={source.label}
               badge={<PortabilityStatusBadge status={source.status} t={t} />}
-              description={source.description}
-              actions={row.buttons.map(renderImportButton)}
+              description={platformGated
+                ? `${source.description} · ${t('settings.portability.macosOnly')}`
+                : source.description}
+              actions={row.buttons.map((button) => renderImportButton(button, platformGated))}
             />
           )
         })}
@@ -370,7 +382,7 @@ export function PortabilityActionDeck({
     </div>
   )
 
-  function renderImportButton(button: DeckActionButton): ReactNode {
+  function renderImportButton(button: DeckActionButton, platformGated = false): ReactNode {
     return (
       <PortabilityImportButton
         key={button.actionId}
@@ -379,7 +391,7 @@ export function PortabilityActionDeck({
         testId={button.testId}
         busy={busyAction === button.actionId}
         busyLabel={button.kind === 'preview' ? previewing : undefined}
-        disabled={isPortabilityActionDisabled(
+        disabled={platformGated || isPortabilityActionDisabled(
           busyAction,
           vaultReady,
           button.onClick,
