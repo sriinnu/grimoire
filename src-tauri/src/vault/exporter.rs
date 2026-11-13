@@ -4,7 +4,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tempfile::TempPath;
 use walkdir::{DirEntry, WalkDir};
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 
 use super::locality::is_local_only_export_file;
 use super::locality_attachments::local_only_referenced_attachments;
@@ -47,7 +47,7 @@ pub fn export_markdown_zip(
     let temp_path = create_export_temp_path(&target)?;
     let file = File::create(&temp_path).map_err(|e| format!("Failed to create ZIP export: {e}"))?;
     let mut zip = zip::ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
 
@@ -173,7 +173,7 @@ pub(super) fn add_file_to_zip(
     vault_root: &Path,
     source_path: &Path,
     zip: &mut zip::ZipWriter<File>,
-    options: FileOptions,
+    options: SimpleFileOptions,
 ) -> Result<(), String> {
     let relative_path = source_path
         .strip_prefix(vault_root)
@@ -366,7 +366,7 @@ mod tests {
         let file = File::open(path).unwrap();
         let mut archive = ZipArchive::new(file).unwrap();
         let mut names = (0..archive.len())
-            .map(|index| archive.by_index(index).unwrap().name().to_string())
+            .map(|index| archive.by_index(index).unwrap().name().unwrap().into_owned())
             .collect::<Vec<_>>();
         names.sort();
         names
