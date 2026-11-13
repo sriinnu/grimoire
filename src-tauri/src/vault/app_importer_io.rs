@@ -162,7 +162,7 @@ fn extract_zip(zip_path: &Path, target_root: &Path) -> Result<usize, String> {
         let mut zipped = archive
             .by_index(index)
             .map_err(|e| format!("Failed to inspect ZIP entry: {e}"))?;
-        let Some(enclosed) = zipped.enclosed_name().map(PathBuf::from) else {
+        let Some(enclosed) = zipped.enclosed_name() else {
             skipped_entries += 1;
             continue;
         };

@@ -174,7 +174,7 @@
   "pnpm": {
     "overrides": {
       "@babel/core": ">=7.29.6",
-      "@hono/node-server": ">=2.0.10",
+      "@hono/node-server": ">=2.1.6",
       "@opentelemetry/core": ">=2.8.0",
       "baseline-browser-mapping": ">=2.11.0",
       "body-parser": ">=2.4.0",

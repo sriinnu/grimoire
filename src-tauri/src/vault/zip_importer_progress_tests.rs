@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::atomic::AtomicBool;
 use std::sync::Mutex;
 use tempfile::TempDir;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 
 #[test]
 fn imports_markdown_zip_with_progress_and_adjusted_skip_count() {
@@ -63,7 +63,7 @@ fn cancels_markdown_zip_before_writing_to_vault() {
 fn write_zip(path: &Path, entries: &[(&str, &[u8])]) {
     let file = File::create(path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
 

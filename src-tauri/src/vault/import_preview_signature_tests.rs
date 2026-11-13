@@ -3,7 +3,7 @@ use std::io;
 use std::path::Path;
 
 use tempfile::TempDir;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 
 use super::app_importer_preview::preview_app_export;
 use super::import_preview_signature::{
@@ -149,7 +149,7 @@ fn write_day_one_export(path: &Path, text: &str) {
 fn write_zip(path: &Path, entries: &[(&str, &[u8])]) {
     let file = File::create(path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
     for (name, body) in entries {

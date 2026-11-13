@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use walkdir::WalkDir;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 
 use super::exporter::{
     add_file_to_zip, canonical_dir, create_export_temp_path, persist_export_temp_path,
@@ -56,7 +56,7 @@ where
     let temp_path = create_export_temp_path(&target)?;
     let file = File::create(&temp_path).map_err(|e| format!("Failed to create ZIP export: {e}"))?;
     let mut zip = zip::ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
     for (index, source_path) in files.iter().enumerate() {

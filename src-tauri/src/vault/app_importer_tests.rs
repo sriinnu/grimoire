@@ -359,7 +359,7 @@ fn import_rejects_sources_inside_the_active_vault() {
 fn create_zip(source: &Path, zip_path: &Path) {
     let file = fs::File::create(zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    let options = zip::write::FileOptions::default();
+    let options = zip::write::SimpleFileOptions::default();
     for entry in walkdir::WalkDir::new(source) {
         let entry = entry.unwrap();
         if !entry.file_type().is_file() {
@@ -376,7 +376,7 @@ fn create_zip(source: &Path, zip_path: &Path) {
 fn write_zip_entries(zip_path: &Path, entries: &[(&str, &[u8])]) {
     let file = fs::File::create(zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    let options = zip::write::FileOptions::default();
+    let options = zip::write::SimpleFileOptions::default();
     for (name, body) in entries {
         zip.start_file(*name, options).unwrap();
         let mut reader = *body;

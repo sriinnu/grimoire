@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use tempfile::TempDir;
-use zip::write::FileOptions;
+use zip::write::SimpleFileOptions;
 
 use super::import_manifest::ImportAutopsyManifestKind;
 use super::{import_markdown_zip, preview_markdown_zip_import};
@@ -108,7 +108,7 @@ fn imports_large_mixed_markdown_zip_without_copying_unsupported_binaries() {
 fn write_fixture_zip(zip_path: &Path, fixture_root: &Path) {
     let file = File::create(zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
 
@@ -132,7 +132,7 @@ fn write_fixture_zip(zip_path: &Path, fixture_root: &Path) {
 fn write_zip_entries(zip_path: &Path, entries: &[(&str, &[u8])]) {
     let file = File::create(zip_path).unwrap();
     let mut zip = zip::ZipWriter::new(file);
-    let options = FileOptions::default()
+    let options = SimpleFileOptions::default()
         .compression_method(zip::CompressionMethod::Deflated)
         .unix_permissions(0o644);
 

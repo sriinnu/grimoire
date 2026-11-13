@@ -153,6 +153,16 @@ impl ZipExtractionSummary {
     }
 }
 
+/// Display name for audit/progress output. zip 0.6's `name()` returned the
+/// metadata-decoded name infallibly; zip 9's `name()` is fallible, so decode
+/// the raw bytes as a lossy fallback (these names were already rejected by
+/// `enclosed_name` and are only recorded, never joined against the vault).
+fn zip_entry_display_name<R: io::Read + ?Sized>(file: &zip::read::ZipFile<'_, R>) -> String {
+    file.name()
+        .map(|name| name.into_owned())
+        .unwrap_or_else(|_| String::from_utf8_lossy(file.name_raw()).into_owned())
+}
+
 fn extract_zip_archive(
     zip_file: &Path,
     target_root: &Path,
@@ -166,8 +176,10 @@ fn extract_zip_archive(
         let mut zipped = archive
             .by_index(index)
             .map_err(|e| format!("Failed to read ZIP entry: {e}"))?;
-        let Some(enclosed_name) = zipped.enclosed_name().map(PathBuf::from) else {
-            summary.skipped_entries.push(zipped.name().to_string());
+        let Some(enclosed_name) = zipped.enclosed_name() else {
+            summary
+                .skipped_entries
+                .push(zip_entry_display_name(&zipped));
             continue;
         };
         let output_path = target_root.join(enclosed_name);
@@ -210,8 +222,8 @@ where
         let mut zipped = archive
             .by_index(index)
             .map_err(|e| format!("Failed to read ZIP entry: {e}"))?;
-        let current_path = zipped.name().to_string();
-        let Some(enclosed_name) = zipped.enclosed_name().map(PathBuf::from) else {
+        let current_path = zip_entry_display_name(&zipped);
+        let Some(enclosed_name) = zipped.enclosed_name() else {
             summary.skipped_entries.push(current_path.clone());
             on_progress(MarkdownFolderImportProgressEvent::Progress {
                 processed_files: index + 1,
@@ -280,7 +292,7 @@ where
 mod tests {
     use super::*;
     use tempfile::TempDir;
-    use zip::write::FileOptions;
+    use zip::write::SimpleFileOptions;
 
     #[test]
     fn imports_markdown_zip_with_assets() {
@@ -380,7 +392,7 @@ mod tests {
     fn write_zip(path: &Path, entries: &[(&str, &[u8])]) {
         let file = File::create(path).unwrap();
         let mut zip = zip::ZipWriter::new(file);
-        let options = FileOptions::default()
+        let options = SimpleFileOptions::default()
             .compression_method(zip::CompressionMethod::Deflated)
             .unix_permissions(0o644);
 
