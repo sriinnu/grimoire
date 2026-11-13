@@ -177,7 +177,9 @@ fn extract_zip_archive(
             .by_index(index)
             .map_err(|e| format!("Failed to read ZIP entry: {e}"))?;
         let Some(enclosed_name) = zipped.enclosed_name() else {
-            summary.skipped_entries.push(zip_entry_display_name(&zipped));
+            summary
+                .skipped_entries
+                .push(zip_entry_display_name(&zipped));
             continue;
         };
         let output_path = target_root.join(enclosed_name);

@@ -366,7 +366,14 @@ mod tests {
         let file = File::open(path).unwrap();
         let mut archive = ZipArchive::new(file).unwrap();
         let mut names = (0..archive.len())
-            .map(|index| archive.by_index(index).unwrap().name().unwrap().into_owned())
+            .map(|index| {
+                archive
+                    .by_index(index)
+                    .unwrap()
+                    .name()
+                    .unwrap()
+                    .into_owned()
+            })
             .collect::<Vec<_>>();
         names.sort();
         names
