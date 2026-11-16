@@ -105,7 +105,7 @@
 
 .note-table__row:hover td,
 .note-table__row:focus-visible td {
-  background: var(--accent);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .note-table__row:focus-visible {
@@ -113,7 +113,8 @@
 }
 
 .note-table__row[data-selected='true'] td {
-  background: var(--accent);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  box-shadow: inset 2px 0 0 var(--primary);
 }
 
 .note-table__more {

@@ -7,7 +7,7 @@
 .editor__blocknote-container .bn-editor {
   font-family: var(--grimoire-editor-font-family, var(--editor-font-family));
   font-size: var(--editor-font-size);
-  line-height: var(--editor-line-height, 1.44);
+  line-height: var(--editor-line-height, 1.5);
   max-width: var(--editor-max-width);
   margin: 0 auto;  /* Center the editor body */
   padding: var(--editor-padding-vertical) var(--editor-padding-horizontal);
@@ -17,7 +17,7 @@
 
 /* Override BlockNote's default line-height on block-outer so our theme controls it */
 .editor__blocknote-container .bn-block-outer {
-  line-height: var(--editor-line-height, 1.44) !important;
+  line-height: var(--editor-line-height, 1.5) !important;
 }
 
 /* Stack handle buttons horizontally instead of vertically to reduce height,
@@ -257,13 +257,6 @@
   margin-left: var(--editor-block-inset);
 }
 
-.editor__blocknote-container .bn-editor ::selection {
-  /* Tinted lapis, text keeps its own colour — the global ::selection rule
-     paints text white, which vanished on this pale tint. */
-  background: color-mix(in srgb, var(--primary) 20%, transparent);
-  color: inherit;
-}
-
 /* Keep BlockNote toolbar/menu icons at a stable size.
    Some default React Icons-based controls inherit `1em` sizing and can blow up
    when upstream toolbar styling changes. */
@@ -290,6 +283,11 @@
   /* No rule under the title: it started 8px off the text column and doubled
      the H1's own weight. Space does the separating. */
   margin-bottom: var(--headings-h1-margin-bottom) !important;
+}
+/* The first block of the document carries no dead air above the title —
+   margin-top belongs between blocks, not between the paper edge and the H1. */
+.editor__blocknote-container .bn-block-group > .bn-block-outer:first-child:has(h1) {
+  margin-top: 0 !important;
 }
 .editor__blocknote-container [data-content-type="heading"]:not([data-level]) .bn-inline-content,
 .editor__blocknote-container [data-content-type="heading"][data-level="1"] .bn-inline-content {
@@ -361,7 +359,7 @@
   min-width: var(--lists-indent-size) !important;
   width: var(--lists-indent-size) !important;
   /* Align bullet with first line of text */
-  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.44)) !important;
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.5)) !important;
   align-items: center !important;
   flex-shrink: 0 !important;
 }
@@ -388,7 +386,7 @@
   font-size: var(--editor-font-size) !important;
   min-width: var(--lists-indent-size) !important;
   width: var(--lists-indent-size) !important;
-  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.44)) !important;
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.5)) !important;
   align-items: center !important;
   flex-shrink: 0 !important;
 }
@@ -415,7 +413,7 @@
 .editor__blocknote-container [data-content-type="checkListItem"] > div[contenteditable="false"] {
   width: var(--lists-indent-size) !important;
   min-width: var(--lists-indent-size) !important;
-  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.44)) !important;
+  height: calc(var(--editor-font-size) * var(--editor-line-height, 1.5)) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;

@@ -19,7 +19,7 @@ export function Toast({ message, onDismiss }: ToastProps) {
     <div
       className={cn(
         "fixed bottom-8 left-1/2 -translate-x-1/2 z-[1100]",
-        "px-5 py-2.5 rounded-lg text-[13px] font-medium",
+        "px-5 py-2.5 rounded-md font-medium",
         "border border-[var(--border-strong)]",
         "shadow-[var(--elevation-4)]",
         "animate-in slide-in-from-bottom-2 fade-in duration-200"
@@ -27,6 +27,7 @@ export function Toast({ message, onDismiss }: ToastProps) {
       style={{
         background: 'var(--surface-popover)',
         color: 'var(--text-primary)',
+        fontSize: 'var(--font-size-secondary)',
       }}
     >
       {message}

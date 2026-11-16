@@ -72,14 +72,18 @@
   margin: 0 !important;
 }
 
-:root[data-theme-preset] .note-list-panel [data-note-path]:not([data-selected="true"]):hover {
+:root[data-theme-preset] .note-list-panel [data-note-path]:not([data-selected="true"]):not([data-multi-selected="true"]):hover {
   background: var(--grimoire-row-hover) !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
 :root[data-theme-preset] .note-list-panel [data-note-path][data-selected="true"] {
-  background: color-mix(in srgb, var(--primary) 12%, var(--surface-panel)) !important;
+  background: var(--grimoire-row-selected) !important;
+  box-shadow: inset 2px 0 0 var(--primary) !important;
+}
+
+:root[data-theme-preset] .note-list-panel [data-note-path][data-multi-selected="true"] {
   box-shadow: inset 2px 0 0 var(--primary) !important;
 }
 

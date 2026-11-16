@@ -27,20 +27,17 @@
   --status-bar-badge-bg: color-mix(in srgb, var(--status-bar-warning-fg) 22%, transparent);
   --status-bar-badge-fg: var(--status-bar-foreground);
   --status-bar-popover-bg: color-mix(in srgb, var(--surface-sidebar) 82%, var(--surface-popover));
-  /* Literal-backed solid for popup panels: WKWebView drops the whole
-   * background when nested var()/color-mix chains fail to parse, and the
-   * native shell material can make derived tokens translucent. Panels float
-   * over dense content, so this must never be see-through. Themes may
-   * override it, but only with an opaque colour. */
-  --status-bar-popover-solid: #f7f4ec;
+  /* Opaque solid for popup panels: WKWebView drops the whole background when
+   * nested var()/color-mix chains fail to parse, and the native shell material
+   * can make derived tokens translucent. Panels float over dense content, so
+   * this must never be see-through. Derived from --surface-popover with a
+   * whisper of foreground: color-mix of two opaque colours stays opaque, and
+   * the value tracks whichever theme/mode is active. Themes may override it,
+   * but only with an opaque colour. */
+  --status-bar-popover-solid: color-mix(in srgb, var(--surface-popover) 96%, var(--status-bar-foreground));
   --status-bar-popover-fg: var(--status-bar-foreground);
   --status-bar-hover: color-mix(in srgb, var(--sidebar-primary) 12%, transparent);
   --status-bar-tone-line: color-mix(in srgb, var(--status-bar-hairline) 82%, transparent);
-}
-
-[data-theme="dark"],
-:root[data-theme="dark"] {
-  --status-bar-popover-solid: #1c1a17;
 }
 
 .status-bar {

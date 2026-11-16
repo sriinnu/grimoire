@@ -109,11 +109,11 @@ describe('EditorContentLayout', () => {
     expect(screen.queryByTestId('title-field-input')).not.toBeInTheDocument()
   })
 
-  it('carries the reading width on the canvas root and sets the measure variable when it differs from the theme', () => {
+  it('carries the reading width on the canvas root and sets the measure variable', () => {
     const { unmount } = render(<EditorContentLayout {...createModel()} />)
     const root = document.querySelector('.editor-canvas') as HTMLElement
     expect(root).toHaveAttribute('data-reading-width', 'comfortable')
-    expect(root.style.getPropertyValue('--editor-max-width')).toBe('')
+    expect(root.style.getPropertyValue('--editor-max-width')).toBe('880px')
     unmount()
 
     act(() => setReadingWidth('wide'))

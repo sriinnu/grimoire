@@ -16,14 +16,15 @@ export const READING_WIDTH_LABELS: Record<ReadingWidth, string> = {
 export const DEFAULT_READING_WIDTH: ReadingWidth = 'comfortable'
 
 /**
- * The value the editor canvas sets for `--editor-max-width`. Comfortable
- * returns null: it keeps the theme preset's own measure (820px in Vellum)
- * rather than overriding it with a second opinion. Full is the pane width
- * minus gutters; the wrapper already caps that at 1320px.
+ * The value the editor canvas sets for `--editor-max-width`. The canvas CSS
+ * guards every value with `calc(100vw - 96px)`, so the fixed measures below
+ * are upper bounds, not promises. Full is the pane width minus gutters; the
+ * wrapper already caps that at 1320px.
  */
 export function readingWidthCssValue(width: ReadingWidth): string | null {
   switch (width) {
     case 'narrow': return '620px'
+    case 'comfortable': return '880px'
     case 'wide': return '920px'
     case 'full': return '100%'
     default: return null
