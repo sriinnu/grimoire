@@ -1,10 +1,14 @@
 import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { Search } from 'lucide-react'
 import type { VaultEntry } from '../types'
 import { NoteSearchList } from './NoteSearchList'
 import { Glyph } from '@/components/glyphs/Glyph'
 import { Input } from './ui/input'
 import { useNoteSearch } from '../hooks/useNoteSearch'
+import { PaletteShell } from './palette/PaletteShell'
+import { PaletteEmpty } from './palette/PaletteEmpty'
+import { PaletteFooter } from './palette/PaletteFooter'
 
 interface QuickOpenPaletteProps {
   open: boolean
@@ -67,37 +71,22 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
   return (
     <div
       data-testid="quick-open-palette"
-      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[var(--palette-offset)]"
       onClick={onClose}
     >
-      <div
-        className="grimoire-command-stage grimoire-command-surface flex w-[520px] max-w-[90vw] max-h-[440px] flex-col self-start overflow-hidden border"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <PaletteShell className="max-h-[440px]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 border-b border-border px-4">
           <Glyph name="search" size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
           <Input
             ref={inputRef}
             data-testid="quick-open-input"
-            className="h-12 flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0 md:text-[16px]"
+            className="h-[var(--palette-input-height)] flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0"
             type="text"
             placeholder="Search pages"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <NoteSearchList
-          items={results}
-          selectedIndex={selectedIndex}
-          getItemKey={(item) => item.entry.path}
-          onItemClick={(item) => {
-            onSelect(item.entry)
-            onClose()
-          }}
-          onItemHover={(i) => setSelectedIndex(i)}
-          emptyMessage={showCreateRow ? '' : 'No matching pages'}
-          className={showCreateRow ? 'hidden' : 'flex-1 overflow-y-auto'}
-        />
         {showCreateRow ? (
           <button
             type="button"
@@ -112,14 +101,30 @@ export function QuickOpenPalette({ open, entries, onSelect, onClose, onCreate }:
             <span className="font-semibold">Create “{createTitle}”</span>
             <kbd className="ml-auto text-[11px] text-muted-foreground">{formatShortcutDisplay({ display: '↵' })}</kbd>
           </button>
-        ) : null}
-        <div className="flex items-center gap-4 border-t border-border px-4 py-2 text-[11px] text-muted-foreground" aria-hidden="true">
-          <span><kbd className="font-medium text-foreground/70">↑↓</kbd> Navigate</span>
-          <span><kbd className="font-medium text-foreground/70">{formatShortcutDisplay({ display: '↵' })}</kbd> Open</span>
-          {onCreate ? <span><kbd className="font-medium text-foreground/70">{formatShortcutDisplay({ display: '↵' })}</kbd> Create when nothing matches</span> : null}
-          <span className="ml-auto"><kbd className="font-medium text-foreground/70">esc</kbd> Close</span>
-        </div>
-      </div>
+        ) : results.length === 0 ? (
+          <PaletteEmpty icon={Search} title="No matching pages" className="flex-1" />
+        ) : (
+          <NoteSearchList
+            items={results}
+            selectedIndex={selectedIndex}
+            getItemKey={(item) => item.entry.path}
+            onItemClick={(item) => {
+              onSelect(item.entry)
+              onClose()
+            }}
+            onItemHover={(i) => setSelectedIndex(i)}
+            className="flex-1 overflow-y-auto"
+          />
+        )}
+        <PaletteFooter
+          hints={[
+            { keys: '↑↓', label: 'Navigate' },
+            { keys: '↵', label: 'Open' },
+            ...(onCreate ? [{ keys: '↵', label: 'Create when nothing matches' }] : []),
+            { keys: 'esc', label: 'Close' },
+          ]}
+        />
+      </PaletteShell>
     </div>
   )
 }

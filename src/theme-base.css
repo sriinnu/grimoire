@@ -51,6 +51,16 @@
   --grimoire-dialog-overlay: var(--shadow-overlay);
   --grimoire-dialog-shadow: 0 18px 54px color-mix(in srgb, #000 18%, transparent);
   --grimoire-overlay-blur: 10px;
+  /* Command-palette geometry — one visual language for CommandPalette,
+     QuickOpenPalette, and SearchPanel. Geometry only; colour stays on the
+     theme contracts above. */
+  --palette-width: 640px;
+  /* SearchPanel renders result snippets, type chips, and vault labels inside
+     the sheet, so it keeps a wider sheet than the command palettes. */
+  --palette-width-search: 720px;
+  --palette-offset: 14vh;
+  --palette-radius: 14px;
+  --palette-input-height: 40px;
   --grimoire-portability-material: var(--surface-card);
   --grimoire-portability-preview-material: color-mix(in srgb, var(--surface-card) 78%, var(--surface-panel));
   --grimoire-portability-rail-material: color-mix(in srgb, var(--surface-card) 62%, var(--surface-panel));

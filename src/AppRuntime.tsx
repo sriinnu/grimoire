@@ -68,7 +68,7 @@ function App() {
   const foundation = useVaultFoundation(useAppBootstrap(deferred))
   const {
     pendingDashboardCaptureRequest, noteListFilter,
-    setNoteListFilter, inboxPeriod, handleSetSelection,
+    setNoteListFilter, inboxPeriod,
     handleEnterNeighborhood, clearPendingDashboardCapture, layout,
     visibleNotesRef, multiSelectionCommandRef, toastMessage, setToastMessage,
     dialogs, showFeedback, showMcpSetupDialog, showGraphModal, showWeatherSnapshotDialog,
@@ -92,7 +92,7 @@ function App() {
   const {
     flushPendingRawContentRef, flushPendingEditorChangeRef, notes,
     openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote,
-    handleSearchResultSelect, autoSync, pendingDiffRequest,
+    handleSearchResultSelect, createPageFromQuery, autoSync, pendingDiffRequest,
     handlePendingDiffHandled, handlePulseOpenNote, handleOpenFavorite, vaultBridge, conflictFlow,
     appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward,
   } = noteWorkspace
@@ -152,11 +152,6 @@ function App() {
   if (designLabRoute) return designLabRoute
 
   if (startupGate) return startupGate
-
-  const createPageFromQuery = (title: string) => {
-    if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' })
-    void notes.handleCreateNote(title, 'Note')
-  }
 
   return (
     <NoteRetargetingProvider value={noteRetargetingUi.contextValue}>
@@ -291,6 +286,7 @@ function App() {
           entries={vault.entries}
           recentEntries={noteWorkspace.recentEntries}
           onOpenEntry={handleDashboardOpenNote}
+          onCreate={createPageFromQuery}
           aiAgentReady={aiAgentPreferences.defaultAiAgentReady}
           aiAgentLabel={aiAgentPreferences.defaultAiAgentLabel}
           locale={appLocale}

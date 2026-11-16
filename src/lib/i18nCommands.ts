@@ -2,6 +2,7 @@ import { interpolate, localeDisplayName, type AppLocale, type TranslationValues 
 
 const EN_COMMAND_TRANSLATIONS = {
   'command.noMatches': 'No matching commands',
+  'command.createFromQuery': 'Create “{query}”',
   'command.palettePlaceholder': 'Type a command...',
   'command.footerNavigate': '↑↓ navigate',
   'command.footerSelect': '↵ select',
@@ -25,6 +26,7 @@ export type CommandTranslationKey = keyof typeof EN_COMMAND_TRANSLATIONS
 
 const ZH_HANS_COMMAND_TRANSLATIONS: Partial<Record<CommandTranslationKey, string>> = {
   'command.noMatches': '没有匹配的命令',
+  'command.createFromQuery': '创建“{query}”',
   'command.palettePlaceholder': '输入命令...',
   'command.footerNavigate': '↑↓ 导航',
   'command.footerSelect': '↵ 选择',

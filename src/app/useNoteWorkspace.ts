@@ -105,6 +105,10 @@ export function useNoteWorkspace(
       : { kind: 'filter', filter: 'all' })
     void handleSelectNote(entry)
   }, [handleSelectNote, handleSetSelection])
+  const createPageFromQuery = useCallback((title: string) => {
+    if (effectiveSelection.kind === 'dashboard') handleSetSelection({ kind: 'filter', filter: 'all' })
+    void notes.handleCreateNote(title, 'Note')
+  }, [effectiveSelection, handleSetSelection, notes])
   const handleSearchResultSelect = useSearchResultNavigation({
     entries: vault.entries,
     isLoading: vault.isLoading,
@@ -334,7 +338,7 @@ export function useNoteWorkspace(
 
   return {
     flushPendingRawContentRef, flushPendingEditorChangeRef, notes, handleSelectNote, handleReplaceActiveTab, closeAllTabs,
-    openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote,
+    openTabWithContent, handleSidebarSelect, handleDashboardCaptureCreated, handleDashboardOpenNote, createPageFromQuery,
     handleSearchResultSelect, autoSync, effectiveRemoteStatus, canAddRemote, pendingDiffRequest,
     handlePendingDiffHandled, queuePendingDiff, handlePulseOpenNote, handleOpenFavorite, vaultBridge, conflictFlow,
     appSave, aiActivity, handleGoBack, handleGoForward, canGoBack, canGoForward, recentEntries,
