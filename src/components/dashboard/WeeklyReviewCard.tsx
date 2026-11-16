@@ -1,6 +1,7 @@
 import { CalendarDays } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { WeeklyReview } from '../../utils/dashboardModel'
+import type { MoodDistribution, WeeklyReview } from '../../utils/dashboardModel'
+import { MoodChipRow } from './MoodChipRow'
 import './WeeklyReviewCard.css'
 
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -60,11 +61,14 @@ function WeekStat({
 export function WeeklyReviewCard({
   review,
   now = new Date(),
+  mood,
   onStartJournal,
 }: {
   review: WeeklyReview
   /** Injectable clock for deterministic tests. */
   now?: Date
+  /** Optional weekly journal mood strip; read-only. */
+  mood?: MoodDistribution
   onStartJournal?: () => void
 }) {
   const hasWeekActivity = review.entriesCreatedThisWeek > 0 || review.entriesModifiedThisWeek > 0
@@ -81,6 +85,8 @@ export function WeeklyReviewCard({
           <h2 className="weekly-review__range">{formatWeekRange(review.weekStartKey, review.weekEndKey, now)}</h2>
         </div>
       </div>
+
+      {mood ? <MoodChipRow distribution={mood} /> : null}
 
       {hasWeekActivity ? (
         <>

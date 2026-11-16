@@ -1,0 +1,85 @@
+/* Weekly mood strip: one dot per day, colored by journal mood tone. */
+.mood-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.mood-strip__dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.mood-strip__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-muted) 20%, transparent);
+}
+
+.mood-strip__dot[data-tone="great"] {
+  background: var(--accent-teal);
+}
+
+.mood-strip__dot[data-tone="good"] {
+  background: var(--accent-blue);
+}
+
+.mood-strip__dot[data-tone="okay"] {
+  background: var(--accent-yellow);
+}
+
+.mood-strip__dot[data-tone="low"] {
+  background: var(--accent-orange);
+}
+
+.mood-strip__dot[data-tone="rough"] {
+  background: var(--accent-purple);
+}
+
+.mood-strip__dot[data-today="true"] {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.mood-strip__legend {
+  display: inline-flex;
+  gap: 10px;
+}
+
+.mood-strip__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mood-strip__legend-item::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-muted) 20%, transparent);
+}
+
+.mood-strip__legend-item[data-tone="great"]::before {
+  background: var(--accent-teal);
+}
+
+.mood-strip__legend-item[data-tone="good"]::before {
+  background: var(--accent-blue);
+}
+
+.mood-strip__legend-item[data-tone="okay"]::before {
+  background: var(--accent-yellow);
+}
+
+.mood-strip__legend-item[data-tone="low"]::before {
+  background: var(--accent-orange);
+}
+
+.mood-strip__legend-item[data-tone="rough"]::before {
+  background: var(--accent-purple);
+}

@@ -98,3 +98,9 @@
   color: var(--muted-foreground);
   font-size: 12px;
 }
+
+.dashboard-on-this-day__reason {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}

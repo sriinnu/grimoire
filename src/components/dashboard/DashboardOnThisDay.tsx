@@ -44,6 +44,7 @@ export function DashboardOnThisDay({
                 {isPrivate ? <Lock size={11} aria-hidden="true" /> : null}
                 <span>{title}</span>
               </span>
+              <span className="dashboard-on-this-day__reason">{item.reason}</span>
               <span className="dashboard-on-this-day__date">{formatDay(item.day)}</span>
             </button>
           )
