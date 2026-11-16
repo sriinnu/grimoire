@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { VaultEntry } from '../types'
 import { fuzzyMatch } from '../utils/fuzzyMatch'
@@ -11,6 +12,8 @@ import { createCommandTranslator } from '../lib/i18nCommands'
 import { CommandPaletteAiMode } from './CommandPaletteAiMode'
 import { buildEmptyQueryGroups, buildRecentCommands, registerPaletteOpen } from './commandPaletteDefaults'
 import { CommandPaletteFooter, CommandPaletteInput, CommandPaletteResults, type CommandPaletteFooterText } from './CommandPaletteParts'
+import { PaletteShell } from './palette/PaletteShell'
+import { PaletteEmpty } from './palette/PaletteEmpty'
 
 interface CommandPaletteProps {
   open: boolean
@@ -23,6 +26,8 @@ interface CommandPaletteProps {
   /** Recently visited pages, most recent first; shown before you type. */
   recentEntries?: VaultEntry[]
   onOpenEntry?: (entry: VaultEntry) => void
+  /** Creates a page titled with the query; backs the empty-state create action. */
+  onCreate?: (title: string) => void
   onClose: () => void
 }
 
@@ -135,6 +140,7 @@ function OpenCommandPalette({
   locale = 'en',
   recentEntries,
   onOpenEntry,
+  onCreate,
   onClose,
 }: Omit<CommandPaletteProps, 'open'>) {
   const [query, setQuery] = useState('')
@@ -243,6 +249,13 @@ function OpenCommandPalette({
     command.execute()
   }
 
+  const handleCreateFromQuery = () => {
+    const title = query.trim()
+    if (!title || !onCreate) return
+    onCreate(title)
+    onClose()
+  }
+
   const handleSubmitAiPrompt = (text: string, references: NoteReference[]) => {
     if (!text.trim()) {
       onClose()
@@ -258,14 +271,11 @@ function OpenCommandPalette({
 
   return (
     <div
-      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[15vh]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[var(--palette-offset)]"
       onClick={onClose}
     >
-      <div
-        className={cn(
-          'grimoire-command-stage grimoire-command-surface flex w-[520px] max-h-[440px] max-w-[90vw] flex-col self-start overflow-hidden border',
-          aiMode && 'min-h-[220px]',
-        )}
+      <PaletteShell
+        className={cn('max-h-[440px]', aiMode && 'min-h-[220px]')}
         data-testid="command-palette-surface"
         onClick={(event) => event.stopPropagation()}
       >
@@ -293,13 +303,26 @@ function OpenCommandPalette({
               selectedIndex={selectedIndex}
               listRef={listRef}
               emptyText={t('command.noMatches')}
+              empty={(
+                <PaletteEmpty icon={Search} title={t('command.noMatches')}>
+                  {onCreate && query.trim() ? (
+                    <button
+                      type="button"
+                      className="rounded-md bg-primary px-3 py-1.5 text-[12px] font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                      onClick={handleCreateFromQuery}
+                    >
+                      {t('command.createFromQuery', { query: query.trim() })}
+                    </button>
+                  ) : null}
+                </PaletteEmpty>
+              )}
               onHover={setSelectedIndex}
               onSelect={handleSelectCommand}
             />
             <CommandPaletteFooter aiMode={false} aiAgentLabel={aiAgentLabel} footerText={footerText} />
           </>
         )}
-      </div>
+      </PaletteShell>
     </div>
   )
 }

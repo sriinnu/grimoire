@@ -5,6 +5,8 @@ import { formatDroppedPathList } from './inlineWikilinkDropText'
 import { Glyph } from '@/components/glyphs/Glyph'
 import { Input } from './ui/input'
 import { useNativePathDrop } from './useNativePathDrop'
+import { PaletteFooter } from './palette/PaletteFooter'
+import { splitShortcutHint } from './palette/splitShortcutHint'
 
 /** Localized shortcut strings displayed in the command-palette footer. */
 export interface CommandPaletteFooterText {
@@ -62,7 +64,7 @@ export function CommandPaletteInput({
     <Glyph name="search" size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
     <Input
       ref={inputRef}
-      className="h-12 flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none transition-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0 md:text-[16px]"
+      className="h-[var(--palette-input-height)] flex-1 rounded-none border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none transition-none outline-none placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-0"
       type="text"
       placeholder={placeholder}
       value={query}
@@ -82,6 +84,7 @@ export function CommandPaletteResults({
   selectedIndex,
   listRef,
   emptyText,
+  empty,
   onHover,
   onSelect,
 }: {
@@ -89,6 +92,8 @@ export function CommandPaletteResults({
   selectedIndex: number
   listRef: React.RefObject<HTMLDivElement | null>
   emptyText: string
+  /** Structured dead-end state; falls back to the plain emptyText sentence. */
+  empty?: React.ReactNode
   onHover: (index: number) => void
   onSelect: (command: CommandAction) => void
 }) {
@@ -97,9 +102,11 @@ export function CommandPaletteResults({
   if (flatList.length === 0) {
     return (
       <div className="flex-1 overflow-y-auto py-1" ref={listRef}>
-        <div className="px-4 py-6 text-center text-[13px] text-muted-foreground">
-          {emptyText}
-        </div>
+        {empty ?? (
+          <div className="px-4 py-6 text-center text-[13px] text-muted-foreground">
+            {emptyText}
+          </div>
+        )}
       </div>
     )
   }
@@ -153,13 +160,18 @@ export function CommandPaletteFooter({
   aiAgentLabel?: string
   footerText: CommandPaletteFooterText
 }) {
-  return (
-    <div className="flex items-center gap-4 border-t border-border px-4 py-1.5 text-[11px] text-muted-foreground">
-      <span>{aiMode ? footerText.aiMode.replace('{agent}', aiAgentLabel) : footerText.navigate}</span>
-      <span>{aiMode ? footerText.send : footerText.select}</span>
-      <span>{footerText.close}</span>
-    </div>
-  )
+  const hints = aiMode
+    ? [
+        { label: footerText.aiMode.replace('{agent}', aiAgentLabel) },
+        splitShortcutHint(footerText.send),
+        splitShortcutHint(footerText.close),
+      ]
+    : [
+        splitShortcutHint(footerText.navigate),
+        splitShortcutHint(footerText.select),
+        splitShortcutHint(footerText.close),
+      ]
+  return <PaletteFooter hints={hints} />
 }
 
 function CommandRow({

@@ -1,10 +1,9 @@
 import { useRef, useEffect, useCallback, useLayoutEffect, useState } from 'react'
 import { useMemo } from 'react'
-import { Search } from 'lucide-react'
+import { File, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { SearchResult, SnippetMatch, VaultEntry } from '../types'
 import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
-import { formatShortcutDisplay } from '../hooks/appCommandCatalog'
 import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
@@ -13,6 +12,9 @@ import { NoteTitleIcon } from './NoteTitleIcon'
 import { Input } from './ui/input'
 import type { SearchVaultScope } from '../hooks/useUnifiedSearch'
 import { Glyph } from '@/components/glyphs/Glyph'
+import { PaletteShell } from './palette/PaletteShell'
+import { PaletteEmpty } from './palette/PaletteEmpty'
+import { PaletteFooter } from './palette/PaletteFooter'
 
 interface SearchPanelProps {
   open: boolean
@@ -225,11 +227,12 @@ export function SearchPanel({
 
   return (
     <div
-      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[12vh] backdrop-blur-[10px]"
+      className="grimoire-dialog-overlay fixed inset-0 z-[1000] flex justify-center bg-[var(--grimoire-dialog-overlay,var(--shadow-dialog))] pt-[var(--palette-offset)] backdrop-blur-[10px]"
       onClick={onClose}
     >
-      <div
-        className="grimoire-command-stage grimoire-command-surface flex max-h-[min(620px,72vh)] w-[min(680px,calc(100vw-32px))] flex-col self-start overflow-hidden rounded-2xl border border-border/70 bg-popover/95 shadow-2xl"
+      <PaletteShell
+        className="max-h-[min(620px,72vh)]"
+        width="var(--palette-width-search)"
         data-testid="search-panel-surface"
         role="dialog"
         aria-modal="true"
@@ -263,11 +266,15 @@ export function SearchPanel({
           onCreate={handleCreate}
         />
         {rowCount > 0 && (
-          <div className="shrink-0 border-t border-border/50 px-4 py-1.5 text-[10.5px] text-muted-foreground/60">
-            {formatShortcutDisplay({ display: '↑↓' })} navigate · {formatShortcutDisplay({ display: '↵' })} open · esc close
-          </div>
+          <PaletteFooter
+            hints={[
+              { keys: '↑↓', label: 'navigate' },
+              { keys: '↵', label: 'open' },
+              { keys: 'esc', label: 'close' },
+            ]}
+          />
         )}
-      </div>
+      </PaletteShell>
     </div>
   )
 }
@@ -284,14 +291,14 @@ interface SearchInputProps {
 const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
   function SearchInput({ query, loading, onChange, onKeyDown }, ref) {
     return (
-      <div className="border-b border-border/70 px-4 py-3">
+      <div className="border-b border-border/70 px-4">
         <div className="flex items-center gap-3">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-border/70 bg-background/80 text-muted-foreground shadow-xs">
             <Search size={18} strokeWidth={2.2} aria-hidden="true" />
           </span>
           <Input
             ref={ref}
-            className="h-auto flex-1 border-0 bg-transparent px-0 py-0 text-[17px] font-medium text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-[var(--palette-input-height)] flex-1 border-0 bg-transparent px-0 text-[16px] text-foreground shadow-none outline-none placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
             type="text"
             placeholder="Search pages, docs, and project files..."
             value={query}
@@ -392,10 +399,7 @@ function SearchContent({
 
       {query.trim() && results.length === 0 && !loading && (
         <>
-          <div className="flex flex-col items-center px-4 pt-8 pb-3 text-center">
-            <Glyph name="file" size={36} className="text-muted-foreground/30 mb-3" />
-            <p className="text-[13px] text-muted-foreground">No results found</p>
-          </div>
+          <PaletteEmpty icon={File} title="No results found" />
           {createRow && (
             <div ref={listRef} role="listbox" aria-label="Search results" className="p-2">
               {createRow}

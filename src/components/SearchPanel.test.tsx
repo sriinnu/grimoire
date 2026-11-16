@@ -682,13 +682,16 @@ describe('SearchPanel', () => {
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
 
-    expect(screen.queryByText(/navigate · .* open · esc close/)).not.toBeInTheDocument()
+    expect(screen.queryByText('navigate')).not.toBeInTheDocument()
 
     fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'content' } })
 
     await waitFor(() => {
-      expect(screen.getByText(/navigate · .* open · esc close/)).toBeInTheDocument()
+      expect(screen.getByText('navigate')).toBeInTheDocument()
+      expect(screen.getByText('open')).toBeInTheDocument()
+      expect(screen.getByText('close')).toBeInTheDocument()
     })
+    expect(screen.getByTestId('search-panel-surface').querySelectorAll('kbd').length).toBeGreaterThan(0)
   })
 
   it('cancels inflight searches when panel closes', async () => {

@@ -254,7 +254,7 @@ describe('CommandPalette', () => {
     fireEvent.change(input, { target: { value: 'zzzzzzz' } })
 
     expect(screen.getByText('没有匹配的命令')).toBeInTheDocument()
-    expect(screen.getByText('↑↓ 导航')).toBeInTheDocument()
+    expect(screen.getByText('导航')).toBeInTheDocument()
   })
 
   it('calls onClose when pressing Escape', () => {
@@ -353,9 +353,29 @@ describe('CommandPalette', () => {
 
   it('shows footer hints', () => {
     render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
-    expect(screen.getByText('↑↓ navigate')).toBeInTheDocument()
-    expect(screen.getByText('↵ select')).toBeInTheDocument()
-    expect(screen.getByText('esc close')).toBeInTheDocument()
+    expect(screen.getByText('navigate')).toBeInTheDocument()
+    expect(screen.getByText('select')).toBeInTheDocument()
+    expect(screen.getByText('close')).toBeInTheDocument()
+    // Hints render as kbd chips (OS-aware key glyphs) in the shared footer.
+    expect(screen.getByTestId('command-palette-surface').querySelectorAll('kbd').length).toBeGreaterThan(0)
+  })
+
+  it('offers to create a page from the query when nothing matches', () => {
+    const onCreate = vi.fn()
+    render(<CommandPalette open={true} commands={commands} onCreate={onCreate} onClose={onClose} />)
+    fireEvent.change(screen.getByPlaceholderText('Type a command...'), { target: { value: 'Garden plans' } })
+
+    fireEvent.click(screen.getByText('Create “Garden plans”'))
+    expect(onCreate).toHaveBeenCalledWith('Garden plans')
+    expect(onClose).toHaveBeenCalled()
+  })
+
+  it('omits the empty-state create action without an onCreate handler', () => {
+    render(<CommandPalette open={true} commands={commands} onClose={onClose} />)
+    fireEvent.change(screen.getByPlaceholderText('Type a command...'), { target: { value: 'Garden plans' } })
+
+    expect(screen.getByText('No matching commands')).toBeInTheDocument()
+    expect(screen.queryByText('Create “Garden plans”')).not.toBeInTheDocument()
   })
 
   it('switches into AI mode when the query starts with a leading space', () => {
