@@ -7,6 +7,7 @@ import {
 } from '../lib/mobileCaptureMetadata'
 import { resolveEntryLocalityPolicy } from '../lib/localityPolicy'
 import { getDisplayDate } from './noteListHelpers'
+import { entryLocalDay } from './onThisDay'
 import { sortByModified } from './noteListSorting'
 import { formatTypeCount, pluralizeCount } from './notebookCountLabels'
 
@@ -318,6 +319,55 @@ function secondsInWindow(timestamp: number | null, startMs: number, endMs: numbe
     && timestamp * 1000 < endMs
 }
 
+interface WindowActivity {
+  entriesCreated: number
+  entriesModified: number
+  wordCountDelta: number
+  journalDayKeys: Set<string>
+  /** Distinct days with any touched activity, keyed by local date. */
+  dayCounts: Map<string, number>
+  typeCounts: Map<string, number>
+}
+
+/** Counts created/touched activity inside [startMs, endMs) — shared by the weekly and monthly reviews. */
+function collectWindowActivity(entries: VaultEntry[], startMs: number, endMs: number): WindowActivity {
+  let entriesCreated = 0
+  let entriesModified = 0
+  let wordCountDelta = 0
+  const journalDayKeys = new Set<string>()
+  const dayCounts = new Map<string, number>()
+  const typeCounts = new Map<string, number>()
+
+  for (const entry of entries) {
+    if (!isContentEntry(entry) || entry.archived) continue
+    const created = entry.createdAt
+    const touched = entry.modifiedAt ?? entry.createdAt
+
+    if (secondsInWindow(created, startMs, endMs)) {
+      entriesCreated += 1
+      wordCountDelta += entry.wordCount
+      const type = entry.isA?.trim() || 'Note'
+      typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1)
+    }
+
+    if (touched != null && secondsInWindow(touched, startMs, endMs)) {
+      entriesModified += 1
+      const touchedKey = localDateKey(new Date(touched * 1000))
+      dayCounts.set(touchedKey, (dayCounts.get(touchedKey) ?? 0) + 1)
+      if (typeIs(entry, 'Journal')) journalDayKeys.add(touchedKey)
+    }
+  }
+
+  return { entriesCreated, entriesModified, wordCountDelta, journalDayKeys, dayCounts, typeCounts }
+}
+
+function sortedTypeMix(typeCounts: Map<string, number>): WeeklyReviewTypeCount[] {
+  return [...typeCounts.entries()]
+    .map(([type, count]) => ({ type, count }))
+    .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type))
+    .slice(0, 3)
+}
+
 /**
  * This-week review band for the dashboard: created/touched counts, journal
  * days, streak, word-count delta, top types, and last week's comparison
@@ -330,44 +380,13 @@ export function computeWeeklyReview(entries: VaultEntry[], now: Date = new Date(
   const prevWeekStartMs = weekStartMs - 7 * DAY_MS
   const todayKey = localDateKey(now)
 
-  let entriesCreatedThisWeek = 0
-  let entriesModifiedThisWeek = 0
-  let wordCountDelta = 0
-  let prevCreated = 0
-  let prevModified = 0
-  let prevWordCount = 0
-  const typeCounts = new Map<string, number>()
-  const journalDayKeys = new Set<string>()
-  const prevJournalDayKeys = new Set<string>()
-  const weekDayCounts = new Map<string, number>()
-  const activityDayKeys = new Set<string>()
+  const current = collectWindowActivity(entries, weekStartMs, weekEndMs)
+  const previous = collectWindowActivity(entries, prevWeekStartMs, weekStartMs)
 
+  const activityDayKeys = new Set<string>()
   for (const entry of entries) {
     if (!isContentEntry(entry) || entry.archived) continue
-    const created = entry.createdAt
-    const touched = entry.modifiedAt ?? entry.createdAt
-
-    if (secondsInWindow(created, weekStartMs, weekEndMs)) {
-      entriesCreatedThisWeek += 1
-      wordCountDelta += entry.wordCount
-      const type = entry.isA?.trim() || 'Note'
-      typeCounts.set(type, (typeCounts.get(type) ?? 0) + 1)
-    } else if (secondsInWindow(created, prevWeekStartMs, weekStartMs)) {
-      prevCreated += 1
-      prevWordCount += entry.wordCount
-    }
-
-    if (touched != null && secondsInWindow(touched, weekStartMs, weekEndMs)) {
-      entriesModifiedThisWeek += 1
-      const touchedKey = localDateKey(new Date(touched * 1000))
-      weekDayCounts.set(touchedKey, (weekDayCounts.get(touchedKey) ?? 0) + 1)
-      if (typeIs(entry, 'Journal')) journalDayKeys.add(touchedKey)
-    } else if (touched != null && secondsInWindow(touched, prevWeekStartMs, weekStartMs)) {
-      prevModified += 1
-      if (typeIs(entry, 'Journal')) prevJournalDayKeys.add(localDateKey(new Date(touched * 1000)))
-    }
-
-    for (const timestamp of [created, touched]) {
+    for (const timestamp of [entry.createdAt, entry.modifiedAt ?? entry.createdAt]) {
       if (typeof timestamp !== 'number' || !Number.isFinite(timestamp)) continue
       const key = localDateKey(new Date(timestamp * 1000))
       if (key <= todayKey) activityDayKeys.add(key)
@@ -387,31 +406,183 @@ export function computeWeeklyReview(entries: VaultEntry[], now: Date = new Date(
     const day = new Date(weekStart)
     day.setDate(day.getDate() + offset)
     const dateKey = localDateKey(day)
-    days.push({ dateKey, count: weekDayCounts.get(dateKey) ?? 0, isToday: dateKey === todayKey })
+    days.push({ dateKey, count: current.dayCounts.get(dateKey) ?? 0, isToday: dateKey === todayKey })
   }
 
   return {
     weekStartKey: localDateKey(weekStart),
     weekEndKey: days[6].dateKey,
     days,
-    entriesCreatedThisWeek,
-    entriesModifiedThisWeek,
-    journalDaysActive: journalDayKeys.size,
+    entriesCreatedThisWeek: current.entriesCreated,
+    entriesModifiedThisWeek: current.entriesModified,
+    journalDaysActive: current.journalDayKeys.size,
     streakDays,
-    wordCountDelta,
-    typeMix: [...typeCounts.entries()]
-      .map(([type, count]) => ({ type, count }))
-      .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type))
-      .slice(0, 3),
+    wordCountDelta: current.wordCountDelta,
+    typeMix: sortedTypeMix(current.typeCounts),
     lastWeek: {
-      entriesCreated: prevCreated,
-      entriesModified: prevModified,
-      journalDaysActive: prevJournalDayKeys.size,
-      wordCountDelta: prevWordCount,
+      entriesCreated: previous.entriesCreated,
+      entriesModified: previous.entriesModified,
+      journalDaysActive: previous.journalDayKeys.size,
+      wordCountDelta: previous.wordCountDelta,
     },
   }
 }
 
+export type MoodTone = 'great' | 'good' | 'okay' | 'low' | 'rough'
+
+export interface MoodDay {
+  dateKey: string
+  mood: MoodTone | null
+  isToday: boolean
+}
+
+export interface MoodDistribution {
+  /** Monday → Sunday of the current week, one dot per day. */
+  days: MoodDay[]
+  /** Mood recorded on today's journal, when one is set. */
+  todayMood: MoodTone | null
+}
+
+/** Liberal mood matching: common synonyms fold into the five tones, everything else is null. */
+const MOOD_TONE_ALIASES: Record<string, MoodTone> = {
+  great: 'great', amazing: 'great', excellent: 'great', wonderful: 'great', energized: 'great', awesome: 'great',
+  good: 'good', happy: 'good', calm: 'good', fine: 'good', content: 'good', positive: 'good', steady: 'good',
+  okay: 'okay', ok: 'okay', meh: 'okay', neutral: 'okay', average: 'okay', 'so-so': 'okay', middling: 'okay',
+  low: 'low', down: 'low', tired: 'low', sad: 'low', drained: 'low', blue: 'low', flat: 'low',
+  rough: 'rough', awful: 'rough', terrible: 'rough', anxious: 'rough', stressed: 'rough', bad: 'rough', hard: 'rough', dark: 'rough',
+}
+
+/** Parses a raw frontmatter `mood:` value into a tone; unknown values map to null. */
+export function parseMoodTone(value: VaultEntry['properties'][string] | undefined): MoodTone | null {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (raw === null || raw === undefined) return null
+  const key = String(raw).trim().toLowerCase()
+  if (!key) return null
+  return MOOD_TONE_ALIASES[key] ?? null
+}
+
+function entryMood(entry: VaultEntry): MoodTone | null {
+  for (const [key, value] of Object.entries(entry.properties)) {
+    if (key.trim().toLowerCase() === 'mood') return parseMoodTone(value)
+  }
+  return null
+}
+
+/**
+ * Mood dots for the current week: each day's tone comes from that day's
+ * journal frontmatter (`mood:`), matched liberally. Days without a mood stay
+ * null. Tones and date keys only — never journal titles or bodies.
+ */
+export function computeMoodDistribution(entries: VaultEntry[], now: Date = new Date()): MoodDistribution {
+  const weekStart = startOfWeekMonday(now)
+  const weekStartMs = weekStart.getTime()
+  const weekEndMs = weekStartMs + 7 * DAY_MS
+  const todayKey = localDateKey(now)
+  // Several journals can land on one day; the last-touched one wins.
+  const moodByDay = new Map<string, { mood: MoodTone; touched: number }>()
+
+  for (const entry of entries) {
+    if (!isContentEntry(entry) || entry.archived) continue
+    if (!typeIs(entry, 'Journal')) continue
+    const day = entryLocalDay(entry)
+    if (!day) continue
+    const dayDate = new Date(day.year, day.month - 1, day.day)
+    if (dayDate.getTime() < weekStartMs || dayDate.getTime() >= weekEndMs) continue
+    const mood = entryMood(entry)
+    if (mood === null) continue
+    const touched = entry.modifiedAt ?? entry.createdAt ?? 0
+    const dateKey = localDateKey(dayDate)
+    const existing = moodByDay.get(dateKey)
+    if (!existing || touched >= existing.touched) moodByDay.set(dateKey, { mood, touched })
+  }
+
+  const days: MoodDay[] = []
+  for (let offset = 0; offset < 7; offset += 1) {
+    const day = new Date(weekStart)
+    day.setDate(day.getDate() + offset)
+    const dateKey = localDateKey(day)
+    days.push({ dateKey, mood: moodByDay.get(dateKey)?.mood ?? null, isToday: dateKey === todayKey })
+  }
+
+  return { days, todayMood: moodByDay.get(todayKey)?.mood ?? null }
+}
+
+export interface MonthlyReviewDay {
+  dateKey: string
+  count: number
+  isToday: boolean
+}
+
+export interface MonthlyReviewLastMonth {
+  entriesCreated: number
+  entriesModified: number
+  journalDaysActive: number
+  /** Distinct days with any activity in the previous month. */
+  activeDays: number
+}
+
+export interface MonthlyReview {
+  year: number
+  /** 1-based month number. */
+  month: number
+  monthStartKey: string
+  monthEndKey: string
+  /** Day 1 → last day of the month with per-day activity counts. */
+  days: MonthlyReviewDay[]
+  entriesCreatedThisMonth: number
+  entriesModifiedThisMonth: number
+  journalDaysActive: number
+  /** Distinct days with any created or touched activity this month. */
+  activeDays: number
+  typeMix: WeeklyReviewTypeCount[]
+  lastMonth: MonthlyReviewLastMonth
+}
+
+/**
+ * This-month review band: same windowing as the weekly review over a calendar
+ * month, with previous-month comparison numbers. Counts and day buckets only —
+ * never note titles.
+ */
+export function computeMonthlyReview(entries: VaultEntry[], now: Date = new Date()): MonthlyReview {
+  const year = now.getFullYear()
+  const monthIndex = now.getMonth()
+  const monthStart = new Date(year, monthIndex, 1)
+  const nextMonthStart = new Date(year, monthIndex + 1, 1)
+  const prevMonthStart = new Date(year, monthIndex - 1, 1)
+  const monthStartMs = monthStart.getTime()
+  const monthEndMs = nextMonthStart.getTime()
+  const todayKey = localDateKey(now)
+
+  const current = collectWindowActivity(entries, monthStartMs, monthEndMs)
+  const previous = collectWindowActivity(entries, prevMonthStart.getTime(), monthStartMs)
+
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+  const days: MonthlyReviewDay[] = []
+  for (let dayOfMonth = 1; dayOfMonth <= daysInMonth; dayOfMonth += 1) {
+    const date = new Date(year, monthIndex, dayOfMonth)
+    const dateKey = localDateKey(date)
+    days.push({ dateKey, count: current.dayCounts.get(dateKey) ?? 0, isToday: dateKey === todayKey })
+  }
+
+  return {
+    year,
+    month: monthIndex + 1,
+    monthStartKey: localDateKey(monthStart),
+    monthEndKey: localDateKey(new Date(year, monthIndex, daysInMonth)),
+    days,
+    entriesCreatedThisMonth: current.entriesCreated,
+    entriesModifiedThisMonth: current.entriesModified,
+    journalDaysActive: current.journalDayKeys.size,
+    activeDays: current.dayCounts.size,
+    typeMix: sortedTypeMix(current.typeCounts),
+    lastMonth: {
+      entriesCreated: previous.entriesCreated,
+      entriesModified: previous.entriesModified,
+      journalDaysActive: previous.journalDayKeys.size,
+      activeDays: previous.dayCounts.size,
+    },
+  }
+}
 /** Builds the local vault dashboard summary without reading note bodies. */
 export function buildDashboardSummary(entries: VaultEntry[], now: Date = new Date()): DashboardSummary {
   const activeContent = entries.filter((entry) => isContentEntry(entry) && !entry.archived)

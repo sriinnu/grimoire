@@ -19,7 +19,7 @@ import {
   type DashboardCaptureRequest,
 } from '../../utils/dashboardCapture'
 import type { DashboardCaptureTemplateId, DreamTemplateId, JournalTemplateId } from '../../utils/noteTemplates'
-import { buildDashboardSummary, computeDashboardStats, computeWeeklyReview } from '../../utils/dashboardModel'
+import { buildDashboardSummary, computeDashboardStats, computeMonthlyReview, computeMoodDistribution, computeWeeklyReview } from '../../utils/dashboardModel'
 import { formatTypeCount } from '../../utils/notebookCountLabels'
 import { DashboardRecentNotesPanel } from './DashboardRecentNotesPanel'
 import { DashboardOnThisDay } from './DashboardOnThisDay'
@@ -38,6 +38,7 @@ import { DashboardQuickCapturePanel } from './DashboardQuickCapturePanel'
 import { DashboardHero } from './DashboardHero'
 import { DashboardHeroStats } from './DashboardHeroStats'
 import { WeeklyReviewCard } from './WeeklyReviewCard'
+import { MonthlyReviewCard } from './MonthlyReviewCard'
 import { DashboardCalendarCard } from './DashboardCalendarCard'
 import { DashboardStatRow, type DashboardStat } from './DashboardStatRow'
 import { notebookTitle } from './vaultDashboardHeaderModel'
@@ -49,6 +50,7 @@ import './VaultDashboardResponsive.css'
 import './VaultDashboard.css'
 import './vault-dashboard-hero.css'
 import './WeeklyReviewCard.css'
+import './MonthlyReviewCard.css'
 
 const DashboardInsightPanels = lazyWithRetry(async () => ({
   default: (await import('./DashboardInsightPanels')).DashboardInsightPanels,
@@ -218,6 +220,8 @@ export function VaultDashboard({
   const hasActivity = activitySeries.some((value) => value > 0)
   const vaultStats = useMemo(() => computeDashboardStats(entries), [entries])
   const weeklyReview = useMemo(() => computeWeeklyReview(entries), [entries])
+  const monthlyReview = useMemo(() => computeMonthlyReview(entries), [entries])
+  const moodDistribution = useMemo(() => computeMoodDistribution(entries), [entries])
   const heroStats: DashboardStat[] = useMemo(() => [
     { id: 'pages', value: summary.activeNotes, label: 'Pages', delta: 'active local notes' },
     { id: 'journals', value: summary.journalCount, label: 'Journals', delta: 'private by default' },
@@ -364,7 +368,9 @@ export function VaultDashboard({
 
         <DashboardHeroStats stats={vaultStats} />
 
-        <WeeklyReviewCard review={weeklyReview} onStartJournal={() => seedPrompt('journal')} />
+        <WeeklyReviewCard review={weeklyReview} mood={moodDistribution} onStartJournal={() => seedPrompt('journal')} />
+
+        <MonthlyReviewCard review={monthlyReview} />
 
         <DashboardPinnedRow entries={pinnedEntries} onOpenNote={onOpenNote} />
 

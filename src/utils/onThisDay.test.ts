@@ -83,6 +83,45 @@ describe('selectOnThisDay', () => {
   it('returns nothing for an empty vault', () => {
     expect(selectOnThisDay([], now)).toEqual([])
   })
+
+  it('adds a counts-only reason: age bucket plus backlink count', () => {
+    const target = note('hub page', localSeconds(2025, 9, 26))
+    const linker = note('linker', localSeconds(2026, 9, 20), { outgoingLinks: ['hub page'] })
+    const [item] = selectOnThisDay([target, linker], now)
+
+    expect(item.reason).toBe('last touched over a year ago · 1 backlink')
+  })
+
+  it('buckets the touched age at 7/30/90/180 days and a year', () => {
+    const aged = (daysAgo: number) => {
+      const touched = new Date(2026, 8, 26, 9)
+      touched.setDate(touched.getDate() - daysAgo)
+      return note('anniversary', localSeconds(2025, 9, 26), { modifiedAt: Math.floor(touched.getTime() / 1000) })
+    }
+    expect(selectOnThisDay([aged(5)], now)[0].reason).toContain('last touched this week')
+    expect(selectOnThisDay([aged(20)], now)[0].reason).toContain('last touched this month')
+    expect(selectOnThisDay([aged(90)], now)[0].reason).toContain('last touched 90 days ago')
+    expect(selectOnThisDay([aged(150)], now)[0].reason).toContain('last touched 180 days ago')
+    expect(selectOnThisDay([aged(400)], now)[0].reason).toContain('last touched over a year ago')
+  })
+
+  it('counts multiple distinct backlinking pages and keeps titles out of the reason', () => {
+    const target = note('hub page', localSeconds(2025, 9, 26))
+    const linkers = [
+      note('linker a', localSeconds(2026, 9, 20), { outgoingLinks: ['hub page'] }),
+      note('linker b', localSeconds(2026, 9, 21), { outgoingLinks: ['hub page'] }),
+    ]
+    const [item] = selectOnThisDay([target, ...linkers], now)
+
+    expect(item.reason).toContain('2 backlinks')
+    expect(item.reason).not.toContain('hub page')
+    expect(item.reason).not.toContain('linker')
+  })
+
+  it('still surfaces a reason when the entry has no touch timestamp', () => {
+    const untimed = note('Journal 2024-09-26', null, { isA: 'Journal' })
+    expect(selectOnThisDay([untimed], now)[0].reason).toBe('0 backlinks')
+  })
 })
 
 describe('leap days', () => {

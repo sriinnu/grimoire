@@ -1,0 +1,115 @@
+.monthly-review {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  border-radius: 14px;
+}
+
+.monthly-review .vault-dashboard__panel-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+/* Month heat strip: 1.6rem squares, activity-scaled teal fill, today outlined. */
+.monthly-review__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1.6rem);
+  gap: 5px;
+}
+
+.monthly-review__pad {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+.monthly-review__cell {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--text-muted) 9%, transparent);
+}
+
+.monthly-review__cell[data-activity="true"] {
+  background: color-mix(in srgb, var(--accent-teal) 45%, transparent);
+}
+
+.monthly-review__cell[data-today="true"] {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* Headline mini-row: New · Touched · Journal days · Active days. */
+.monthly-review__stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  padding-top: 10px;
+  border-top: 1px solid var(--grimoire-hairline);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.monthly-review__stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.monthly-review__stat + .monthly-review__stat::before {
+  content: '·';
+  margin: 0 12px;
+  color: var(--text-muted);
+}
+
+.monthly-review__stat-value {
+  font-weight: 640;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+
+.monthly-review__delta {
+  font-size: 11px;
+  font-weight: 620;
+}
+
+.monthly-review__delta[data-direction="up"] {
+  color: var(--accent-teal);
+}
+
+.monthly-review__delta[data-direction="down"] {
+  color: var(--text-muted);
+}
+
+/* Top-3 type chips. */
+.monthly-review__mix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.monthly-review__chip {
+  padding: 3px 10px;
+  border: 1px solid var(--grimoire-hairline);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 7%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Calm quiet-month state. */
+.monthly-review__empty {
+  display: grid;
+  justify-items: start;
+  padding: 4px 0;
+}
+
+.monthly-review__empty-line {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}

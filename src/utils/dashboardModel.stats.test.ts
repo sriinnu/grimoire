@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { VaultEntry } from '../types'
-import { computeDashboardStats, computeWeeklyReview } from './dashboardModel'
+import { computeDashboardStats, computeMonthlyReview, computeMoodDistribution, computeWeeklyReview } from './dashboardModel'
 
 function entry(patch: Partial<VaultEntry> & { title: string; type: string }): VaultEntry {
   return {
@@ -312,6 +312,157 @@ describe('computeWeeklyReview', () => {
     const payload = JSON.stringify(review)
 
     expect(review.entriesCreatedThisWeek).toBe(1)
+    expect(review.typeMix).toEqual([{ type: 'Dream', count: 1 }])
+    expect(payload).not.toContain('Secret River Dream')
+    expect(payload).not.toContain('/vault/')
+  })
+})
+
+describe('computeMoodDistribution', () => {
+  const at = (date: Date): number => Math.floor(date.getTime() / 1000)
+  /** Thursday 2026-10-15 → week Mon Oct 12 – Sun Oct 18. */
+  const now = new Date(2026, 9, 15, 12)
+
+  it('maps journal moods onto Monday–Sunday dots and flags today', () => {
+    const mood = computeMoodDistribution([
+      entry({ title: 'Journal 2026-10-13', type: 'Journal', createdAt: at(new Date(2026, 9, 13, 8)), properties: { mood: 'great' } }),
+      entry({ title: 'Journal 2026-10-14', type: 'Journal', createdAt: at(new Date(2026, 9, 14, 8)), properties: { mood: 'good' } }),
+      entry({ title: 'Field notes', type: 'Note', createdAt: at(new Date(2026, 9, 14, 9)), properties: { mood: 'rough' } }),
+    ], now)
+
+    expect(mood.days).toHaveLength(7)
+    expect(mood.days.map((day) => day.dateKey)).toEqual([
+      '2026-10-12',
+      '2026-10-13',
+      '2026-10-14',
+      '2026-10-15',
+      '2026-10-16',
+      '2026-10-17',
+      '2026-10-18',
+    ])
+    expect(mood.days[1].mood).toBe('great')
+    expect(mood.days[2].mood).toBe('good')
+    expect(mood.days[3].isToday).toBe(true)
+    expect(mood.days[3].mood).toBeNull()
+    expect(mood.todayMood).toBeNull()
+  })
+
+  it('matches liberally and case-insensitively, mapping unknown values to null', () => {
+    const mood = computeMoodDistribution([
+      entry({ title: 'Journal 2026-10-13', type: 'Journal', createdAt: at(new Date(2026, 9, 13, 8)), properties: { mood: '  GREAT ' } }),
+      entry({ title: 'Journal 2026-10-14', type: 'Journal', createdAt: at(new Date(2026, 9, 14, 8)), properties: { Mood: ['Ok'] } }),
+      entry({ title: 'Journal 2026-10-15', type: 'Journal', createdAt: at(new Date(2026, 9, 15, 8)), properties: { mood: 'inexplicable' } }),
+    ], now)
+
+    expect(mood.days[1].mood).toBe('great')
+    expect(mood.days[2].mood).toBe('okay')
+    expect(mood.days[3].mood).toBeNull()
+    expect(mood.todayMood).toBeNull()
+  })
+
+  it('lets the last-touched journal win when two land on the same day', () => {
+    const mood = computeMoodDistribution([
+      entry({ title: 'Journal 2026-10-13', type: 'Journal', createdAt: at(new Date(2026, 9, 13, 8)), modifiedAt: at(new Date(2026, 9, 13, 9)), properties: { mood: 'good' } }),
+      entry({ title: 'Journal 2026-10-13 evening', type: 'Journal', createdAt: at(new Date(2026, 9, 13, 20)), modifiedAt: at(new Date(2026, 9, 13, 21)), properties: { mood: 'rough' } }),
+    ], now)
+
+    expect(mood.days[1].mood).toBe('rough')
+  })
+
+  it('keeps journal titles out of the mood payload', () => {
+    const mood = computeMoodDistribution([
+      entry({
+        title: 'Secret River Journal',
+        type: 'Journal',
+        path: '/vault/journals/secret-river.md',
+        createdAt: at(new Date(2026, 9, 13)),
+        properties: { locality: 'local', mood: 'low' },
+      }),
+    ], now)
+    const payload = JSON.stringify(mood)
+
+    expect(mood.days[1].mood).toBe('low')
+    expect(payload).not.toContain('Secret River Journal')
+    expect(payload).not.toContain('/vault/')
+  })
+})
+
+describe('computeMonthlyReview', () => {
+  const at = (date: Date): number => Math.floor(date.getTime() / 1000)
+  /** Thursday 2026-10-15 → October 2026; previous month September 2026. */
+  const now = new Date(2026, 9, 15, 12)
+
+  it('covers the calendar month with today flagged', () => {
+    const review = computeMonthlyReview([], now)
+
+    expect(review.monthStartKey).toBe('2026-10-01')
+    expect(review.monthEndKey).toBe('2026-10-31')
+    expect(review.days).toHaveLength(31)
+    expect(review.days[14].dateKey).toBe('2026-10-15')
+    expect(review.days[14].isToday).toBe(true)
+    expect(review.days.filter((day) => day.isToday)).toHaveLength(1)
+  })
+
+  it('counts created and touched entries, journal days, and distinct active days', () => {
+    const review = computeMonthlyReview([
+      entry({ title: 'Oct 10 note', type: 'Note', createdAt: at(new Date(2026, 9, 10, 9)) }),
+      entry({ title: 'Oct 14 note', type: 'Note', createdAt: at(new Date(2026, 7, 20)), modifiedAt: at(new Date(2026, 9, 14, 8)) }),
+      entry({ title: 'Oct 14 journal', type: 'Journal', createdAt: at(new Date(2026, 7, 20)), modifiedAt: at(new Date(2026, 9, 14, 21)) }),
+      entry({ title: 'Sept note', type: 'Note', createdAt: at(new Date(2026, 8, 28, 9)) }),
+    ], now)
+
+    expect(review.entriesCreatedThisMonth).toBe(1)
+    expect(review.entriesModifiedThisMonth).toBe(3)
+    expect(review.journalDaysActive).toBe(1)
+    // Two entries touched Oct 14, but it is one distinct active day.
+    expect(review.activeDays).toBe(2)
+    expect(review.days[13].count).toBe(2)
+    expect(review.lastMonth.entriesCreated).toBe(1)
+  })
+
+  it('builds the top-3 type mix from entries created this month', () => {
+    const review = computeMonthlyReview([
+      entry({ title: 'N1', type: 'Note', createdAt: at(new Date(2026, 9, 2)) }),
+      entry({ title: 'N2', type: 'Note', createdAt: at(new Date(2026, 9, 3)) }),
+      entry({ title: 'N3', type: 'Note', createdAt: at(new Date(2026, 9, 4)) }),
+      entry({ title: 'D1', type: 'Dream', createdAt: at(new Date(2026, 9, 2)) }),
+      entry({ title: 'D2', type: 'Dream', createdAt: at(new Date(2026, 9, 3)) }),
+      entry({ title: 'J1', type: 'Journal', createdAt: at(new Date(2026, 9, 4)) }),
+      entry({ title: 'T1', type: 'Task', createdAt: at(new Date(2026, 9, 5)) }),
+    ], now)
+
+    expect(review.typeMix).toEqual([
+      { type: 'Note', count: 3 },
+      { type: 'Dream', count: 2 },
+      { type: 'Journal', count: 1 },
+    ])
+  })
+
+  it('crosses a year boundary for the previous-month comparison', () => {
+    const january = new Date(2026, 0, 10, 12)
+    const review = computeMonthlyReview([
+      entry({ title: 'Dec note', type: 'Note', createdAt: at(new Date(2025, 11, 20, 9)) }),
+      entry({ title: 'Jan note', type: 'Note', createdAt: at(new Date(2026, 0, 5, 9)) }),
+    ], january)
+
+    expect(review.monthStartKey).toBe('2026-01-01')
+    expect(review.entriesCreatedThisMonth).toBe(1)
+    expect(review.lastMonth.entriesCreated).toBe(1)
+  })
+
+  it('keeps private note labels out of the monthly payload', () => {
+    const review = computeMonthlyReview([
+      entry({
+        title: 'Secret River Dream',
+        type: 'Dream',
+        path: '/vault/dreams/secret-river.md',
+        createdAt: at(new Date(2026, 9, 13)),
+        properties: { locality: 'local' },
+      }),
+    ], now)
+    const payload = JSON.stringify(review)
+
+    expect(review.entriesCreatedThisMonth).toBe(1)
     expect(review.typeMix).toEqual([{ type: 'Dream', count: 1 }])
     expect(payload).not.toContain('Secret River Dream')
     expect(payload).not.toContain('/vault/')
