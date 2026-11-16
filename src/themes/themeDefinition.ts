@@ -38,6 +38,8 @@ export { REQUIRED_THEME_TOKEN_KEYS } from './themeTokens'
 export interface ThemeEditorDefinition {
   codeBlockStyle: ThemeCodeBlockStyle
   headingStyle: 'graph' | 'manuscript' | 'system' | 'terminal'
+  /** Base editor font size in px; authored theme.json and presets ship 17. */
+  fontSize: number
   lineHeight: number
   maxWidth: number
 }
@@ -128,6 +130,11 @@ function readNumber(record: RawRecord, key: string, path: string, errors: string
   if (typeof value === 'number' && Number.isFinite(value)) return value
   errors.push(`${path}.${key} must be a finite number.`)
   return 0
+}
+
+function readNumberWithDefault(record: RawRecord, key: string, fallback: number, path: string, errors: string[]): number {
+  if (!(key in record)) return fallback
+  return readNumber(record, key, path, errors)
 }
 
 function readEnum<T extends string>(
@@ -323,6 +330,7 @@ export function parseThemeDefinition(value: unknown): ThemeDefinitionParseResult
     editor: {
       codeBlockStyle: readOptionalEnum(editor, 'codeBlockStyle', CODE_BLOCK_STYLES, 'notebook', 'editor', errors),
       headingStyle: readEnum(editor, 'headingStyle', HEADING_STYLES, 'editor', errors),
+      fontSize: readNumberWithDefault(editor, 'fontSize', 17, 'editor', errors),
       lineHeight: readNumber(editor, 'lineHeight', 'editor', errors),
       maxWidth: readNumber(editor, 'maxWidth', 'editor', errors),
     },
@@ -394,6 +402,7 @@ export function applyThemeDefinitionToRoot(
   root.setAttribute('data-sidebar-artwork', definition.sidebar.artwork)
   root.style.setProperty('--editor-max-width', `${definition.editor.maxWidth}px`)
   root.style.setProperty('--editor-line-height', String(definition.editor.lineHeight))
+  root.style.setProperty('--editor-font-size', `${definition.editor.fontSize}px`)
   root.style.setProperty('--sidebar-artwork-opacity', String(definition.sidebar.artworkOpacity))
 
   for (const [property, value] of Object.entries(DENSITY_TOKENS[definition.density.scale])) {

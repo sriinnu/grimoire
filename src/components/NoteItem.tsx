@@ -23,6 +23,7 @@ type NoteItemSurfaceProps = {
   onMouseEnter?: () => void
   title?: string
   testId?: string
+  multiSelected?: boolean
 }
 
 const NOTE_ITEM_BASE_CLASS_NAME = 'relative border-b border-[var(--border)] transition-colors'
@@ -31,8 +32,8 @@ const NOTE_ITEM_ROW_CLASS_NAMES: Record<NoteItemRowState, string> = {
   binary: 'cursor-default opacity-50',
   multiSelected: 'cursor-pointer',
   selected: 'cursor-pointer',
-  highlighted: 'cursor-pointer bg-muted hover:bg-muted',
-  default: 'cursor-pointer hover:bg-muted',
+  highlighted: 'cursor-pointer bg-muted',
+  default: 'cursor-pointer',
 }
 
 function resolveNoteItemRowState({ isBinary, isSelected, isMultiSelected, isHighlighted }: NoteItemVisualState): NoteItemRowState {
@@ -54,7 +55,7 @@ function noteItemStyle(isMultiSelected: boolean, typeColor: string): NoteItemSty
     '--note-type-color': typeColor,
     padding: '12px 16px',
   }
-  if (isMultiSelected) base.backgroundColor = 'color-mix(in srgb, var(--accent-blue) 10%, transparent)'
+  if (isMultiSelected) base.backgroundColor = 'var(--grimoire-row-selected)'
   return base
 }
 
@@ -118,6 +119,7 @@ function resolveNoteItemSurfaceProps({
     onContextMenu: onContextMenu ? (event) => onContextMenu(entry, event) : undefined,
     onMouseEnter: !isBinary && onPrefetch ? () => onPrefetch(entry.path) : undefined,
     testId: isMultiSelected ? 'multi-selected-item' : isBinary ? 'binary-file-item' : undefined,
+    multiSelected: isMultiSelected || undefined,
     title: isBinary ? 'Cannot open this file type' : undefined,
   }
 }
@@ -148,6 +150,7 @@ function NoteItemRow({
       onMouseEnter={surfaceProps.onMouseEnter}
       data-testid={surfaceProps.testId}
       data-selected={isSelected || undefined}
+      data-multi-selected={surfaceProps.multiSelected}
       data-highlighted={isHighlighted || undefined}
       data-note-path={entryPath}
       data-note-location={locationLabel}

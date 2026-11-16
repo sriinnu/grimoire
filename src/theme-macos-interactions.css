@@ -64,7 +64,6 @@ accent-coloured ---- */
 :where([data-theme-preset]) :is(button, [role="button"], [data-slot="button"], input, select, textarea):focus-visible {
   outline: 2px solid color-mix(in srgb, var(--primary) 62%, var(--accent-blue, #4a9eff));
   outline-offset: 1px;
-  border-radius: 3px;
 }
 
 /* Kill the default heavy ring on the note list container — it gets focus but shouldn't show */
@@ -75,12 +74,8 @@ accent-coloured ---- */
 /* ---- 4. Native-feeling text selection ---- */
 
 :where([data-theme-preset]) ::selection {
-  background: color-mix(in srgb, var(--primary) 42%, var(--accent-blue, #4a9eff));
-  color: var(--primary-foreground, white);
-}
-
-:where([data-theme-preset]) .editor__blocknote-container ::selection {
-  background: color-mix(in srgb, var(--primary) 38%, var(--accent-blue, #4a9eff));
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+  color: inherit;
 }
 
 /* ---- 5. Dialog entrance/exit animations (macOS sheet-style) ---- */

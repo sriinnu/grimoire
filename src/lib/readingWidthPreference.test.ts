@@ -16,9 +16,9 @@ describe('readingWidthPreference', () => {
     resetReadingWidthForTests()
   })
 
-  it('defaults to Comfortable, which leaves the theme measure alone', () => {
+  it('defaults to Comfortable at the 880px measure', () => {
     expect(getReadingWidth()).toBe('comfortable')
-    expect(readingWidthCssValue('comfortable')).toBeNull()
+    expect(readingWidthCssValue('comfortable')).toBe('880px')
   })
 
   it('persists a chosen width and notifies subscribers', () => {
