@@ -42,8 +42,6 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
     selection,
     selectionRef,
     setMcpDialogAction,
-    setNoteListFilter,
-    setSelection,
     setShowMcpSetupDialog,
     setToastMessage,
     settings,
@@ -69,7 +67,14 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
     allVaults: vaultSwitcher.allVaults,
     resolvedPath,
   })
+  // Git capability invariant: the persisted vault-list `syncProvider` is the
+  // source of truth ('git' or 'none' both decisive). `gitRepoState` is a
+  // transient probe mirror with exactly ONE writer — the probe effect below —
+  // consulted only while `syncProvider` is unset (legacy vaults). Nothing else
+  // may set it; after initializing a repo we bump the probe epoch and let the
+  // probe re-run instead of writing the mirror directly.
   const [gitRepoState, setGitRepoState] = useState<'checking' | 'required' | 'ready'>('checking')
+  const [gitProbeEpoch, setGitProbeEpoch] = useState(0)
   const [gitCapabilityUpdating, setGitCapabilityUpdating] = useState(false)
   useEffect(() => {
     if (!resolvedPath) return
@@ -82,7 +87,7 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
       .then(isGit => { if (!cancelled) setGitRepoState(isGit ? 'ready' : 'required') })
       .catch(() => { if (!cancelled) setGitRepoState('ready') })
     return () => { cancelled = true }
-  }, [resolvedPath])
+  }, [resolvedPath, gitProbeEpoch])
 
   const hasGitMetadata = gitRepoState === 'ready'
   const gitSyncProvider = activeVaultOption?.syncProvider
@@ -100,11 +105,13 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
     if (!resolvedPath || gitCapabilityUpdating) return
     setGitCapabilityUpdating(true)
     try {
+      let initializedRepo = false
       if (enabled && !hasGitMetadata) {
         await invokeAppCommand('init_git_repo', { vaultPath: resolvedPath })
-        setGitRepoState('ready')
+        initializedRepo = true
       }
       await persistActiveVaultSyncProvider(enabled ? 'git' : 'none')
+      if (initializedRepo) setGitProbeEpoch((epoch) => epoch + 1)
       setToastMessage(enabled
         ? 'Git is on for this vault. Commits and sync stay under your control.'
         : 'Git is off for this vault. Grimoire will keep it local-only.')
@@ -138,7 +145,10 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
     setVaultSwitchTarget(null)
   }, [resolvedPath, setToastMessage, setVaultSwitchTarget, vault.isLoading, vault.loadError, vaultSwitchTarget])
   const handleGitInitialized = useCallback(() => {
-    setGitRepoState('ready')
+    // Persisted syncProvider becomes 'git'; the probe re-run confirms the
+    // local mirror instead of this handler writing it (see the invariant
+    // above the probe effect).
+    setGitProbeEpoch((epoch) => epoch + 1)
     void persistActiveVaultSyncProvider('git')
   }, [persistActiveVaultSyncProvider])
   const { status: vaultAiGuidanceStatus, refresh: refreshVaultAiGuidance } = useVaultAiGuidanceStatus(
@@ -147,15 +157,14 @@ export function useVaultFoundation(bootstrap: AppBootstrap) {
   )
   const { config: vaultConfig, updateConfig } = useVaultConfig(resolvedPath)
   const explicitOrganizationEnabled = isExplicitOrganizationEnabled(vaultConfig.inbox?.explicitOrganization)
+  // Selection invariant: the raw `selection` state plus the vault config are
+  // the single source of truth. `effectiveSelection` is a pure read-time
+  // derivation — it is NEVER written back into `selection`. The only writer of
+  // `selection` is `handleSetSelection` (explicit user/session actions, which
+  // also reset the note filter). Consumers read `effectiveSelection`.
   const effectiveSelection = sanitizeSelectionForOrganization(selection, vaultConfig.inbox?.explicitOrganization)
 
   useEffect(() => { selectionRef.current = effectiveSelection }, [effectiveSelection, selectionRef])
-  useEffect(() => {
-    if (effectiveSelection === selection) return
-    if (effectiveSelection.kind !== 'entity') neighborhoodHistoryRef.current = []
-    setSelection(effectiveSelection)
-    setNoteListFilter('open')
-  }, [effectiveSelection, neighborhoodHistoryRef, selection, setNoteListFilter, setSelection])
   const handleNeighborhoodHistoryBack = useCallback(() => {
     const { previousSelection, nextHistory } = popNeighborhoodHistory(neighborhoodHistoryRef.current)
     if (!previousSelection) return false
