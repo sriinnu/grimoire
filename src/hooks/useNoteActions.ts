@@ -78,6 +78,9 @@ async function renameAfterTitleChange({ path, newTitle, deps }: RenameAfterTitle
     const newFilename = result.new_path.split('/').pop() ?? ''
     deps.onPathRenamed?.(path, result.new_path)
     deps.replaceEntry?.(path, { path: result.new_path, filename: newFilename, title: newTitle } as Partial<VaultEntry> & { path: string })
+    // Identity-only write (path/filename/title + freshly loaded content): the
+    // one sanctioned exception to the tab-entry sync invariant. Freshness
+    // fields stay owned by the vault-entries sync effect in useNoteWorkspace.
     const newContent = await loadNoteContent({ path: result.new_path })
     deps.setTabs(prev => prev.map(t => t.entry.path === path
       ? { entry: { ...t.entry, path: result.new_path, filename: newFilename, title: newTitle }, content: newContent }

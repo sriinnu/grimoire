@@ -195,8 +195,14 @@ export function useNoteWorkspace(
     }).catch((err) => console.warn('[window] Failed to update note window title:', err))
   }, [noteWindowParams, notes.tabs, notes.activeTabPath])
 
-  // Keep note entry in sync with vault entries so banners (trash/archive)
-  // and read-only state react immediately without reopening the note.
+  // Tab-entry invariant: tab `entry` snapshots are required by the editor
+  // swap-cache (content semantics depend on the snapshot shape). Freshness
+  // fields (archived/status/flags) on a tab's entry have exactly ONE writer —
+  // this sync effect, which mirrors them from `vault.entries` (the source of
+  // truth). The sole exception is the rename flow in useNoteActions, which
+  // owns IDENTITY fields (path/filename/title) until `vault.entries` reflects
+  // the rename; this effect resumes freshness ownership afterwards. No other
+  // code may patch `tab.entry`.
   useEffect(() => {
     notes.setTabs(prev => {
       let changed = false
