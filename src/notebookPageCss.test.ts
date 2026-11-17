@@ -6,7 +6,12 @@ const main = readFileSync(`${process.cwd()}/src/main.tsx`, 'utf8')
 
 describe('notebook page CSS', () => {
   it('loads after the editor page layer so it wins by order, not !important', () => {
-    expect(main.indexOf("import './notebook-page.css'")).toBeGreaterThan(main.indexOf("import './editor-page.css'"))
+    // editor-page.css moved to the lazy Editor chunk (src/components/Editor.tsx);
+    // the dashboard layer stays at boot. The two share no selectors, so boot
+    // order no longer matters — the contract that remains is "no !important".
+    expect(main).toContain("import './notebook-page.css'")
+    expect(readFileSync(`${process.cwd()}/src/components/Editor.tsx`, 'utf8'))
+      .toContain("import '../editor-page.css'")
     expect(css).not.toContain('!important')
   })
 
