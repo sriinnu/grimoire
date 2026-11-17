@@ -2,8 +2,10 @@ import { useRef, useEffect, useCallback, useLayoutEffect, useState } from 'react
 import { useMemo } from 'react'
 import { File, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { SearchResult, SnippetMatch, VaultEntry } from '../types'
-import { useUnifiedSearch } from '../hooks/useUnifiedSearch'
+import type { SearchMode, SearchResult, SnippetMatch, VaultEntry } from '../types'
+import { useUnifiedSearch, type SearchRecallState } from '../hooks/useUnifiedSearch'
+import { SearchRecallSection } from './SearchRecallSection'
+import { createTranslator, type AppLocale } from '../lib/i18n'
 import { getTypeColor, buildTypeEntryMap } from '../utils/typeColors'
 import { formatSearchSubtitle } from '../utils/noteListHelpers'
 import { getTypeIcon } from './note-item/typeIcon'
@@ -16,12 +18,37 @@ import { PaletteShell } from './palette/PaletteShell'
 import { PaletteEmpty } from './palette/PaletteEmpty'
 import { PaletteFooter } from './palette/PaletteFooter'
 
+const SEARCH_MODE_STORAGE_PREFIX = 'grimoire:search-mode:'
+
+function searchModeStorageKey(vaultPath: string): string {
+  return `${SEARCH_MODE_STORAGE_PREFIX}${vaultPath}`
+}
+
+function readStoredSearchMode(vaultPath: string): SearchMode {
+  try {
+    const raw = localStorage.getItem(searchModeStorageKey(vaultPath))
+    if (raw === 'hybrid' || raw === 'keyword') return raw
+  } catch {
+    // Storage may be unavailable; the default still applies.
+  }
+  return 'keyword'
+}
+
+function writeStoredSearchMode(vaultPath: string, mode: SearchMode): void {
+  try {
+    localStorage.setItem(searchModeStorageKey(vaultPath), mode)
+  } catch {
+    // Storage may be unavailable; the in-memory choice still applies.
+  }
+}
+
 interface SearchPanelProps {
   open: boolean
   vaultPath: string
   vaultScopes?: SearchVaultScope[]
   initialQuery?: string
   openKey?: number
+  locale?: AppLocale
   entries: VaultEntry[]
   onSelectNote: (entry: VaultEntry) => void
   onSelectSearchResult?: (result: SearchResult) => void
@@ -101,15 +128,27 @@ export function SearchPanel({
   vaultScopes,
   initialQuery = '',
   openKey = 0,
+  locale = 'en',
   entries,
   onSelectNote,
   onSelectSearchResult,
   onCreate,
   onClose,
 }: SearchPanelProps) {
+  const t = createTranslator(locale)
+  const [mode, setMode] = useState<SearchMode>(() => readStoredSearchMode(vaultPath))
   const {
-    query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs,
-  } = useUnifiedSearch(vaultPath, open, vaultScopes, initialQuery, openKey)
+    query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs, recall,
+  } = useUnifiedSearch(vaultPath, open, vaultScopes, initialQuery, openKey, { mode })
+
+  useEffect(() => {
+    setMode(readStoredSearchMode(vaultPath))
+  }, [vaultPath])
+
+  const handleModeChange = useCallback((next: SearchMode) => {
+    setMode(next)
+    writeStoredSearchMode(vaultPath, next)
+  }, [vaultPath])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -243,6 +282,11 @@ export function SearchPanel({
           ref={inputRef}
           query={query}
           loading={loading}
+          mode={mode}
+          modeLabel={t('search.mode.label')}
+          keywordLabel={t('search.mode.keyword')}
+          deepRecallLabel={t('search.mode.deepRecall')}
+          onModeChange={handleModeChange}
           onChange={setQuery}
           onKeyDown={handleKeyDown}
         />
@@ -264,6 +308,9 @@ export function SearchPanel({
           onHover={setSelectedIndex}
           createTitle={showCreateRow ? createTitle : null}
           onCreate={handleCreate}
+          recallMode={mode === 'hybrid'}
+          recall={recall}
+          recallLocale={locale}
         />
         {rowCount > 0 && (
           <PaletteFooter
@@ -284,12 +331,22 @@ import { forwardRef } from 'react'
 interface SearchInputProps {
   query: string
   loading: boolean
+  mode: SearchMode
+  modeLabel: string
+  keywordLabel: string
+  deepRecallLabel: string
+  onModeChange: (mode: SearchMode) => void
   onChange: (value: string) => void
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>
 }
 
+const SEARCH_MODE_OPTIONS: { mode: SearchMode; labelKey: 'keywordLabel' | 'deepRecallLabel'; testId: string }[] = [
+  { mode: 'keyword', labelKey: 'keywordLabel', testId: 'search-mode-keyword' },
+  { mode: 'hybrid', labelKey: 'deepRecallLabel', testId: 'search-mode-hybrid' },
+]
+
 const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-  function SearchInput({ query, loading, onChange, onKeyDown }, ref) {
+  function SearchInput({ query, loading, mode, modeLabel, keywordLabel, deepRecallLabel, onModeChange, onChange, onKeyDown }, ref) {
     return (
       <div className="border-b border-border/70 px-4">
         <div className="flex items-center gap-3">
@@ -317,11 +374,34 @@ const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             </svg>
           )}
         </div>
-        <div className="mt-2 flex flex-wrap gap-1.5 pl-12 text-[10.5px] font-semibold text-muted-foreground">
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 pl-12 text-[10.5px] font-semibold text-muted-foreground">
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Notebooks</span>
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Filenames</span>
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Contents</span>
           <span className="rounded-full border border-border/60 bg-muted/45 px-2 py-0.5">Markdown + text</span>
+          <div
+            className="ml-auto flex items-center gap-0.5 rounded-full border border-border/60 bg-muted/45 p-0.5"
+            role="group"
+            aria-label={modeLabel}
+          >
+            {SEARCH_MODE_OPTIONS.map(({ mode: optionMode, labelKey, testId }) => (
+              <button
+                key={optionMode}
+                type="button"
+                aria-pressed={mode === optionMode}
+                data-testid={testId}
+                className={cn(
+                  'rounded-full px-2 py-0.5 transition-colors',
+                  mode === optionMode
+                    ? 'bg-accent text-foreground shadow-[inset_0_0_0_1px_var(--border)]'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                )}
+                onClick={() => onModeChange(optionMode)}
+              >
+                {labelKey === 'keywordLabel' ? keywordLabel : deepRecallLabel}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -347,10 +427,13 @@ interface SearchContentProps {
   /** Title for the trailing "Create" row, or null when a result already has that exact title. */
   createTitle: string | null
   onCreate: () => void
+  recallMode: boolean
+  recall: SearchRecallState
+  recallLocale: AppLocale
 }
 
 function SearchContent({
-  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, availableTypes, activeTypes, onToggleType, listRef, onSelect, onHover, createTitle, onCreate,
+  query, results, selectedIndex, loading, elapsedMs, activeVaultPath, vaultCount, entryLookup, typeEntryMap, availableTypes, activeTypes, onToggleType, listRef, onSelect, onHover, createTitle, onCreate, recallMode, recall, recallLocale,
 }: SearchContentProps) {
   const createIndex = results.length
   const createRow = createTitle ? (
@@ -387,6 +470,12 @@ function SearchContent({
           <p className="mx-auto mt-3 max-w-[360px] text-[11px] leading-relaxed text-muted-foreground/70">
             Searches note bodies, filenames, paths, docs, code, and editable text files.
           </p>
+        </div>
+      )}
+
+      {query.trim() && recallMode && (
+        <div className="px-2 pt-2">
+          <SearchRecallSection recall={recall} locale={recallLocale} />
         </div>
       )}
 

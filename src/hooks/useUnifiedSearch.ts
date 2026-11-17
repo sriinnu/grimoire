@@ -1,7 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { SearchResult } from '../types'
+import type { SearchMode, SearchResult } from '../types'
 import { invoke } from '../lib/tauriRuntime'
 import { isTauri, mockInvoke } from '../mock-tauri'
+import {
+  buildChitraguptaContext,
+  createChitraguptaRecallAttachment,
+  type ChitraguptaRecallAttachment,
+} from '../lib/chitraguptaContext'
 
 interface SearchResultData {
   title: string
@@ -24,6 +29,27 @@ export interface SearchVaultScope {
 }
 
 const DEBOUNCE_MS = 300
+
+export interface SearchRecallState {
+  status: 'ready' | 'loading' | 'unavailable'
+  attachment: ChitraguptaRecallAttachment | null
+}
+
+export interface UseUnifiedSearchOptions {
+  /**
+   * 'hybrid' keeps the keyword scopes unchanged and adds the agent-backed
+   * Chitragupta recall seam alongside them. 'semantic' is reserved and
+   * behaves like 'keyword' until it is wired.
+   */
+  mode?: SearchMode
+}
+
+const EMPTY_RECALL: SearchRecallState = { status: 'ready', attachment: null }
+
+function newRecallRequestId(): string {
+  const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  return `grimoire:search:${id}`
+}
 
 /** Native: the SQLite FTS index, ranked and highlighted; the walking scanner only if the index errors. */
 async function searchCall(args: { vaultPath: string; query: string; mode: string; limit: number }): Promise<SearchResponseData> {
@@ -93,12 +119,15 @@ export function useUnifiedSearch(
   vaultScopes?: SearchVaultScope[],
   initialQuery = '',
   openKey = 0,
+  options?: UseUnifiedSearchOptions,
 ) {
+  const mode = options?.mode ?? 'keyword'
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [elapsedMs, setElapsedMs] = useState<number | null>(null)
+  const [recall, setRecall] = useState<SearchRecallState>(EMPTY_RECALL)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchGenRef = useRef(0)
 
@@ -108,6 +137,7 @@ export function useUnifiedSearch(
     setSelectedIndex(0)
     setElapsedMs(null)
     setLoading(false)
+    setRecall(EMPTY_RECALL)
     searchGenRef.current++
   }, [])
 
@@ -120,13 +150,32 @@ export function useUnifiedSearch(
   }, [active, initialQuery, openKey, reset])
 
   const performSearch = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); setElapsedMs(null); setLoading(false); return }
+    if (!q.trim()) { setResults([]); setElapsedMs(null); setLoading(false); setRecall(EMPTY_RECALL); return }
     searchGenRef.current++
     const gen = searchGenRef.current
     setLoading(true)
-    const scopedResponses = await Promise.all(
-      normalizeScopes(vaultPath, vaultScopes).map((scope) => searchScope(scope, q)),
-    )
+
+    // In hybrid mode the recall seam runs in parallel with the keyword
+    // scopes. It sends the question and vault path only — note bodies never
+    // leave the Rust privacy contract. A failure downgrades to 'unavailable'
+    // and never touches the keyword results.
+    const recallPromise = mode === 'hybrid'
+      ? buildChitraguptaContext({
+          query: q,
+          project: vaultPath,
+          requestId: newRecallRequestId(),
+          intent: 'recall',
+          limit: 5,
+        })
+          .then(createChitraguptaRecallAttachment)
+          .catch(() => null)
+      : null
+    if (recallPromise) setRecall({ status: 'loading', attachment: null })
+
+    const [scopedResponses, recallAttachment] = await Promise.all([
+      Promise.all(normalizeScopes(vaultPath, vaultScopes).map((scope) => searchScope(scope, q))),
+      recallPromise ?? Promise.resolve<ChitraguptaRecallAttachment | null>(null),
+    ])
     if (gen !== searchGenRef.current) return
 
     const successfulResponses = scopedResponses.filter((result): result is {
@@ -145,8 +194,11 @@ export function useUnifiedSearch(
     setResults(mergedResults)
     setElapsedMs(elapsed)
     setSelectedIndex(0)
+    setRecall(recallPromise
+      ? { status: recallAttachment === null ? 'unavailable' : 'ready', attachment: recallAttachment }
+      : EMPTY_RECALL)
     if (gen === searchGenRef.current) setLoading(false)
-  }, [vaultPath, vaultScopes])
+  }, [vaultPath, vaultScopes, mode])
 
   useEffect(() => {
     clearTimeout(debounceRef.current ?? undefined)
@@ -156,6 +208,7 @@ export function useUnifiedSearch(
       setElapsedMs(null)
       searchGenRef.current++
       setLoading(false)
+      setRecall(EMPTY_RECALL)
       return
     }
     debounceRef.current = setTimeout(() => performSearch(query), DEBOUNCE_MS)
@@ -165,5 +218,5 @@ export function useUnifiedSearch(
     }
   }, [query, performSearch])
 
-  return { query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs }
+  return { query, setQuery, results, selectedIndex, setSelectedIndex, loading, elapsedMs, recall }
 }

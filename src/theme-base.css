@@ -114,6 +114,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Deep-recall section inside the SearchPanel sheet: agent-backed memory
+   output rendered above the keyword result list. Same tinted-surface
+   language as the context-inspector recall card. */
+.search-recall {
+  background: color-mix(in srgb, var(--surface-card, var(--background)) 94%, var(--primary) 6%);
+  border-color: color-mix(in srgb, var(--text-primary) 22%, var(--border));
+}
+
+.search-recall .search-recall__footnote {
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
 [data-editor-font="serif"] {
   --grimoire-editor-font-family: 'Literata', 'New York', 'Iowan Old Style', Charter, Georgia, ui-serif, serif;
 }
