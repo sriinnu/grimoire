@@ -1,4 +1,6 @@
 import { useRef, useEffect, useCallback, memo } from 'react'
+import '../theme-editor-canvas.css'
+import '../editor-page.css'
 import { useEditorTabSwap } from '../hooks/useEditorTabSwap'
 import { useCreateBlockNote } from '@blocknote/react'
 import '@blocknote/mantine/style.css'

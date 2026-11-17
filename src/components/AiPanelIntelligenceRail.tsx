@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import '../context-inspector.css'
 import type { AiAgentId, AiAgentsStatus } from '../lib/aiAgents'
 import type { AskContextPackage } from '../lib/askContextPackage'
 import type { CrystallizeProposalSummary } from '../lib/crystallizeProposal'

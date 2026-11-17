@@ -23,6 +23,13 @@ import { SidebarSearchLauncher } from './sidebar/SidebarSearchLauncher'
 import { TagsSection } from './sidebar/TagsSection'
 import { useSidebarTypeInteractions } from './sidebar/useSidebarTypeInteractions'
 import '../sidebar-vision.css'
+import '../sidebar-brand.css'
+import '../sidebar-appearance.css'
+import '../sidebar-glyph-polish.css'
+import '../sidebar-glyph-refinement.css'
+import '../sidebar-artwork-themes.css'
+import '../sidebar-artwork-atlas.css'
+import '../sidebar-artwork-polish.css'
 
 interface SidebarProps {
   entries: VaultEntry[]

@@ -286,6 +286,41 @@ describe('startup import budget', () => {
     ]))
   })
 
+  it('keeps surface stylesheets with their lazy or static owners, not in main.tsx', () => {
+    // Correction #7 phase 1: boot CSS shrinks by co-locating surface sheets.
+    // Editor theme layers ride the lazy Editor chunk; the context-inspector
+    // contract rides the lazy AI rail; sidebar art layers ride static Sidebar.
+    const mainImports = runtimeStaticImports('src/main.tsx')
+
+    expect(mainImports).not.toEqual(expect.arrayContaining([
+      './theme-editor-canvas.css',
+      './editor-page.css',
+      './context-inspector.css',
+      './sidebar-brand.css',
+      './sidebar-appearance.css',
+      './sidebar-glyph-polish.css',
+      './sidebar-glyph-refinement.css',
+      './sidebar-artwork-themes.css',
+      './sidebar-artwork-atlas.css',
+      './sidebar-artwork-polish.css',
+    ]))
+    expect(runtimeStaticImports('src/components/Editor.tsx')).toEqual(expect.arrayContaining([
+      '../theme-editor-canvas.css',
+      '../editor-page.css',
+    ]))
+    expect(runtimeStaticImports('src/components/AiPanelIntelligenceRail.tsx'))
+      .toContain('../context-inspector.css')
+    expect(runtimeStaticImports('src/components/Sidebar.tsx')).toEqual(expect.arrayContaining([
+      '../sidebar-brand.css',
+      '../sidebar-appearance.css',
+      '../sidebar-glyph-polish.css',
+      '../sidebar-glyph-refinement.css',
+      '../sidebar-artwork-themes.css',
+      '../sidebar-artwork-atlas.css',
+      '../sidebar-artwork-polish.css',
+    ]))
+  })
+
   it('keeps the editor right panel behind a session-activated lazy boundary', () => {
     const editorLayoutImports = runtimeDynamicImports('src/components/EditorLayout.tsx')
     const editorFiles = staticImportGraph('src/components/Editor.tsx')
