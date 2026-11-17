@@ -9,6 +9,16 @@ vi.mock('../mock-tauri', () => ({
   isTauri: () => false,
 }))
 
+const { buildChitraguptaContextMock } = vi.hoisted(() => ({
+  buildChitraguptaContextMock: vi.fn(),
+}))
+
+// Keep the real attachment mapper; only the seam call is mocked.
+vi.mock('../lib/chitraguptaContext', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/chitraguptaContext')>()
+  return { ...actual, buildChitraguptaContext: buildChitraguptaContextMock }
+})
+
 import { mockInvoke } from '../mock-tauri'
 const mockInvokeFn = vi.mocked(mockInvoke)
 
@@ -76,6 +86,7 @@ const titleText = (title: string) => (_content: string, el: Element | null) =>
 describe('SearchPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
   })
 
   it('renders nothing when closed', () => {
@@ -101,11 +112,13 @@ describe('SearchPanel', () => {
     expect(screen.getByText('Enter to open · Esc to close')).toBeInTheDocument()
   })
 
-  it('has no keyword/semantic toggle', () => {
+  it('exposes a keyword/deep-recall mode toggle without a semantic option', () => {
     render(
       <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
     )
-    expect(screen.queryByText('Keyword')).not.toBeInTheDocument()
+    expect(screen.getByTestId('search-mode-keyword')).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByTestId('search-mode-hybrid')).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByTestId('search-mode-hybrid')).toHaveTextContent('Deep recall')
     expect(screen.queryByText('Semantic')).not.toBeInTheDocument()
   })
 
@@ -692,6 +705,112 @@ describe('SearchPanel', () => {
       expect(screen.getByText('close')).toBeInTheDocument()
     })
     expect(screen.getByTestId('search-panel-surface').querySelectorAll('kbd').length).toBeGreaterThan(0)
+  })
+
+  describe('deep recall mode', () => {
+    const RECALL_RESULT = {
+      schemaVersion: 'chitragupta.context-build.v1',
+      requestId: 'req-search',
+      recalled: [
+        { answer: 'Ship the local-first build.', primarySource: 'Smriti', score: 0.91, snippet: 'Snippet excerpt' },
+        { answer: 'Keep recall reviewed.', primarySource: 'Smriti', score: 0.8, snippet: null },
+      ],
+      live: { predictions: [], guidanceBlock: 'Prefer the reviewed manifest.', predictionsBlock: null },
+      degraded: true,
+      warnings: ['Lucy offline'],
+    }
+
+    it('does not call the recall seam in keyword mode', async () => {
+      mockInvokeFn.mockResolvedValue({
+        results: [
+          { title: 'How to Design AI-first APIs', path: '/vault/essay/ai-apis.md', snippet: 'hit', score: 0.9, note_type: 'Essay' },
+        ],
+        elapsed_ms: 20,
+      })
+
+      render(
+        <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+      )
+
+      fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
+
+      await waitFor(() => {
+        expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
+      })
+      expect(buildChitraguptaContextMock).not.toHaveBeenCalled()
+      expect(screen.queryByTestId('search-recall')).not.toBeInTheDocument()
+    })
+
+    it('fires the recall seam and renders recalled memories above keyword results', async () => {
+      mockInvokeFn.mockResolvedValue({
+        results: [
+          { title: 'How to Design AI-first APIs', path: '/vault/essay/ai-apis.md', snippet: 'keyword hit', score: 0.9, note_type: 'Essay' },
+        ],
+        elapsed_ms: 20,
+      })
+      buildChitraguptaContextMock.mockResolvedValue(RECALL_RESULT)
+
+      render(
+        <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+      )
+
+      fireEvent.click(screen.getByTestId('search-mode-hybrid'))
+      expect(localStorage.getItem('grimoire:search-mode:/vault')).toBe('hybrid')
+      expect(screen.getByTestId('search-mode-hybrid')).toHaveAttribute('aria-pressed', 'true')
+
+      fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api design' } })
+
+      await waitFor(() => {
+        expect(buildChitraguptaContextMock).toHaveBeenCalledWith(expect.objectContaining({
+          query: 'api design',
+          project: '/vault',
+          intent: 'recall',
+          limit: 5,
+        }))
+      })
+
+      const section = await screen.findByTestId('search-recall')
+      expect(section).toHaveTextContent('2 memories')
+      expect(section).toHaveTextContent('Degraded')
+      expect(section).toHaveTextContent('Prefer the reviewed manifest.')
+      expect(section).toHaveTextContent('Ship the local-first build.')
+      expect(section).toHaveTextContent('Snippet excerpt')
+      expect(section).toHaveTextContent('Smriti')
+      expect(section).toHaveTextContent('Lucy offline')
+
+      // Keyword results are unchanged below the recall section.
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
+    })
+
+    it('restores deep recall mode from localStorage per vault', () => {
+      localStorage.setItem('grimoire:search-mode:/vault', 'hybrid')
+      render(
+        <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+      )
+      expect(screen.getByTestId('search-mode-hybrid')).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('shows the unavailable footnote and keeps keyword results when the seam rejects', async () => {
+      mockInvokeFn.mockResolvedValue({
+        results: [
+          { title: 'How to Design AI-first APIs', path: '/vault/essay/ai-apis.md', snippet: 'keyword hit', score: 0.9, note_type: 'Essay' },
+        ],
+        elapsed_ms: 20,
+      })
+      buildChitraguptaContextMock.mockRejectedValue(new Error('Chitragupta recall is available in the desktop app only.'))
+
+      render(
+        <SearchPanel open={true} vaultPath="/vault" entries={MOCK_ENTRIES} onSelectNote={vi.fn()} onClose={vi.fn()} />,
+      )
+
+      fireEvent.click(screen.getByTestId('search-mode-hybrid'))
+      fireEvent.change(screen.getByPlaceholderText('Search pages, docs, and project files...'), { target: { value: 'api' } })
+
+      await waitFor(() => {
+        expect(screen.getByTestId('search-recall')).toHaveTextContent('Memory recall unavailable — showing keyword results')
+      })
+      expect(screen.getByText(titleText('How to Design AI-first APIs'))).toBeInTheDocument()
+    })
   })
 
   it('cancels inflight searches when panel closes', async () => {
