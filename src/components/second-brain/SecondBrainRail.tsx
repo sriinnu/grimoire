@@ -22,6 +22,7 @@ import {
 } from '../ambient/ConstellationCanvas'
 import { isWebGLAvailable, prefersReducedMotion, useDocumentTheme } from '../ambient/webgl'
 import './second-brain.css'
+import { TimeTravelPreview } from './TimeTravelPreview'
 
 export interface SecondBrainRailProps {
   entry: VaultEntry | null
@@ -386,8 +387,9 @@ function OutlineCard({ content, onShowInspector }: {
   )
 }
 
-function TimeTravelCard({ gitHistory, onViewCommitDiff }: {
+function TimeTravelCard({ gitHistory, notePath, onViewCommitDiff }: {
   gitHistory: GitCommit[]
+  notePath?: string
   onViewCommitDiff?: (commitHash: string) => void
 }) {
   // gitHistory is newest-first; position 0 (rightmost on the track) is "now".
@@ -479,6 +481,9 @@ function TimeTravelCard({ gitHistory, onViewCommitDiff }: {
           <span className="sb-tt__hash">{commit.shortHash}</span>
           <span className="sb-tt__msg">{commit.message}</span>
         </p>
+        {position > 0 && notePath && (
+          <TimeTravelPreview notePath={notePath} commitHash={commit.hash} />
+        )}
         <button
           type="button"
           className="sb-quietrow sb-tt__open"
@@ -499,13 +504,14 @@ function TimeTravelCard({ gitHistory, onViewCommitDiff }: {
   )
 }
 
-function HistoryCard({ gitHistory, onViewCommitDiff }: {
+function HistoryCard({ gitHistory, notePath, onViewCommitDiff }: {
   gitHistory: GitCommit[]
+  notePath?: string
   onViewCommitDiff?: (commitHash: string) => void
 }) {
   if (gitHistory.length === 0) return null
   if (gitHistory.length >= 2) {
-    return <TimeTravelCard gitHistory={gitHistory} onViewCommitDiff={onViewCommitDiff} />
+    return <TimeTravelCard gitHistory={gitHistory} notePath={notePath} onViewCommitDiff={onViewCommitDiff} />
   }
 
   return (
@@ -702,7 +708,7 @@ export function SecondBrainRail({
 
       {entry && <OutlineCard content={content} onShowInspector={onShowInspector} />}
 
-      <HistoryCard gitHistory={gitHistory} onViewCommitDiff={onViewCommitDiff} />
+      <HistoryCard gitHistory={gitHistory} notePath={entry?.path} onViewCommitDiff={onViewCommitDiff} />
 
       <div className="sb-card sb-privacy sb-tone-teal">
         <div className="sb-privacy__icon">

@@ -13,6 +13,7 @@ import { MOCK_ENTRIES } from './mock-entries'
 import {
   commitMockChanges,
   getMockModifiedFiles,
+  mockFileContentAtCommit,
   mockFileDiff,
   mockFileDiffAtCommit,
   mockFileHistory,
@@ -200,6 +201,7 @@ export const mockHandlers: Record<string, (args: any) => any> = {
   get_modified_files: () => getMockModifiedFiles(),
   get_file_diff: (args: { path: string }) => mockFileDiff(args.path),
   get_file_diff_at_commit: (args: { path: string; commitHash: string }) => mockFileDiffAtCommit(args.path, args.commitHash),
+  get_file_content_at_commit: (args: { path: string; commitHash: string }) => mockFileContentAtCommit(args.path, args.commitHash),
   git_discard_file: () => {},
   git_commit: (args: { message: string }) => commitMockChanges(args.message),
   get_build_number: () => 'bDEV',

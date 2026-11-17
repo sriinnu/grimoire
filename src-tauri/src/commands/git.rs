@@ -63,6 +63,18 @@ pub fn get_file_diff_at_commit(
 
 #[cfg(desktop)]
 #[tauri::command]
+pub fn get_file_content_at_commit(
+    vault_path: VaultPathArg,
+    path: NotePathArg,
+    commit_hash: CommitHashArg,
+) -> Result<String, String> {
+    let vault_path = expand_tilde(&vault_path);
+    let path = expand_tilde(&path);
+    crate::git::get_file_content_at_commit(&vault_path, &path, &commit_hash)
+}
+
+#[cfg(desktop)]
+#[tauri::command]
 pub fn get_vault_pulse(
     vault_path: VaultPathArg,
     limit: Option<usize>,
@@ -211,6 +223,16 @@ pub fn get_file_diff_at_commit(
     _commit_hash: CommitHashArg,
 ) -> Result<String, String> {
     Err("Git diff is not available on mobile".into())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub fn get_file_content_at_commit(
+    _vault_path: VaultPathArg,
+    _path: NotePathArg,
+    _commit_hash: CommitHashArg,
+) -> Result<String, String> {
+    Err("Git history is not available on mobile".into())
 }
 
 #[cfg(mobile)]

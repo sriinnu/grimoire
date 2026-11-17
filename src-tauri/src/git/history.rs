@@ -182,6 +182,47 @@ pub fn get_file_diff_at_commit(
     Ok(stdout)
 }
 
+/// Get the full file content at a given commit.
+pub fn get_file_content_at_commit(
+    vault_path: &str,
+    file_path: &str,
+    commit_hash: &str,
+) -> Result<String, String> {
+    let vault = Path::new(vault_path);
+    let file = Path::new(file_path);
+
+    let relative = file
+        .strip_prefix(vault)
+        .map_err(|_| format!("File {} is not inside vault {}", file_path, vault_path))?;
+
+    let relative_str = relative
+        .to_str()
+        .ok_or_else(|| "Invalid UTF-8 in path".to_string())?;
+
+    let output = git_command()
+        .args(["show", &format!("{}:{}", commit_hash, relative_str)])
+        .current_dir(vault)
+        .output()
+        .map_err(|e| format!("Failed to run git show: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let detail = stderr.trim();
+        if detail.contains("pathspec")
+            || detail.contains("invalid object")
+            || detail.contains("does not exist in")
+        {
+            return Err(format!(
+                "File {} did not exist at this commit",
+                relative_str
+            ));
+        }
+        return Err(format!("git show failed: {}", detail));
+    }
+
+    String::from_utf8(output.stdout).map_err(|_| "Invalid UTF-8 in file content".to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::git_command;
@@ -345,5 +386,77 @@ mod tests {
         assert!(!diff.is_empty());
         assert!(diff.contains("+# Initial"));
         assert!(diff.contains("+Hello world."));
+    }
+
+    #[test]
+    fn test_get_file_content_at_commit() {
+        let dir = setup_git_repo();
+        let vault = dir.path();
+        let file = vault.join("content-at-commit.md");
+
+        fs::write(&file, "# First\n\nOriginal content.").unwrap();
+        git_command()
+            .args(["add", "content-at-commit.md"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+        git_command()
+            .args(["commit", "-m", "First commit"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+
+        fs::write(&file, "# First\n\nModified content.").unwrap();
+        git_command()
+            .args(["add", "content-at-commit.md"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+        git_command()
+            .args(["commit", "-m", "Second commit"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+
+        let log = git_command()
+            .args(["log", "--format=%H", "--reverse"])
+            .current_dir(vault)
+            .output()
+            .unwrap();
+        let hashes: Vec<String> = String::from_utf8_lossy(&log.stdout)
+            .lines()
+            .map(|line| line.trim().to_string())
+            .filter(|line| !line.is_empty())
+            .collect();
+        assert_eq!(hashes.len(), 2);
+
+        let content =
+            get_file_content_at_commit(vault.to_str().unwrap(), file.to_str().unwrap(), &hashes[0])
+                .unwrap();
+        assert!(content.contains("# First"));
+        assert!(content.contains("Original content."));
+        assert!(!content.contains("Modified content."));
+
+        // Path that never existed at this commit
+        let missing = vault.join("ghost.md");
+        let err = get_file_content_at_commit(
+            vault.to_str().unwrap(),
+            missing.to_str().unwrap(),
+            &hashes[0],
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("did not exist at this commit"),
+            "unexpected: {err}"
+        );
+
+        // Hash that does not exist
+        let err = get_file_content_at_commit(
+            vault.to_str().unwrap(),
+            file.to_str().unwrap(),
+            "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+        )
+        .unwrap_err();
+        assert!(!err.is_empty());
     }
 }

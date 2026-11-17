@@ -38,6 +38,11 @@ describe('mockHandlers additional coverage', () => {
       commitHash: 'abcdef1234567890',
     })).toContain('Updated paragraph at commit abcdef1.')
 
+    expect(mockHandlers.get_file_content_at_commit({
+      path: '/vault/notes/strategy.md',
+      commitHash: 'abcdef1234567890',
+    })).toContain('commit abcdef1')
+
     expect(mockHandlers.search_vault({ query: '', mode: 'title' })).toEqual({
       results: [],
       elapsed_ms: 0,

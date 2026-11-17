@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GitCommit, VaultEntry } from '../../types'
+import { mockHandlers } from '../../mock-tauri/mock-handlers'
+import { setCurrentVaultPath } from '../../utils/currentVaultPath'
 import { SecondBrainRail } from './SecondBrainRail'
 
 const NOW = Math.floor(Date.now() / 1000)
@@ -22,10 +24,45 @@ const COMMITS: GitCommit[] = [
   makeCommit({ hash: 'ccc333', shortHash: 'ccc333', message: 'First draft', date: NOW - 6 * 86400 }),
 ]
 
-function renderRail(gitHistory: GitCommit[], onViewCommitDiff?: (hash: string) => void) {
+function makeEntry(path: string): VaultEntry {
+  return {
+    path,
+    filename: path.split('/').pop() ?? 'note.md',
+    title: 'Note',
+    isA: 'Note',
+    aliases: [],
+    belongsTo: [],
+    relatedTo: [],
+    status: null,
+    archived: false,
+    modifiedAt: NOW,
+    createdAt: NOW - 6 * 86400,
+    fileSize: 128,
+    snippet: '',
+    wordCount: 10,
+    relationships: {},
+    icon: null,
+    color: null,
+    order: null,
+    sidebarLabel: null,
+    template: null,
+    sort: null,
+    view: null,
+    visible: null,
+    organized: true,
+    favorite: false,
+    favoriteIndex: null,
+    listPropertiesDisplay: [],
+    outgoingLinks: [],
+    properties: {},
+    hasH1: true,
+  }
+}
+
+function renderRail(gitHistory: GitCommit[], onViewCommitDiff?: (hash: string) => void, entry: VaultEntry | null = null) {
   return render(
     <SecondBrainRail
-      entry={null}
+      entry={entry}
       content={null}
       entries={[] as VaultEntry[]}
       gitHistory={gitHistory}
@@ -37,6 +74,13 @@ function renderRail(gitHistory: GitCommit[], onViewCommitDiff?: (hash: string) =
 }
 
 describe('SecondBrainRail time travel', () => {
+  beforeEach(() => {
+    setCurrentVaultPath('/Users/mock/Grimoire')
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
   it('renders the scrubber with one tick per commit and the default position at "now"', () => {
     renderRail(COMMITS)
 
@@ -124,5 +168,37 @@ describe('SecondBrainRail time travel', () => {
     const { container } = renderRail([])
     expect(container.querySelector('.sb-historyrow')).toBeNull()
     expect(screen.queryByTestId('history-scrubber')).not.toBeInTheDocument()
+  })
+
+  it('renders a live preview of the note content at a past commit', async () => {
+    renderRail(COMMITS, undefined, makeEntry('/Users/mock/Grimoire/notes/strategy.md'))
+
+    fireEvent.keyDown(screen.getByTestId('history-scrubber'), { key: 'ArrowLeft' })
+
+    const preview = await screen.findByTestId('history-version-preview')
+    expect(preview).toHaveAttribute('aria-live', 'polite')
+    // Mock content is keyed by commit hash; wait for the fetch to resolve.
+    expect(await screen.findByText(/read at commit bbb222/)).toBeInTheDocument()
+    // Frontmatter from the mock is stripped before rendering.
+    expect(preview).not.toHaveTextContent('title: strategy')
+  })
+
+  it('shows no preview while positioned at "now" (position 0)', () => {
+    renderRail(COMMITS, undefined, makeEntry('/Users/mock/Grimoire/notes/strategy.md'))
+
+    expect(screen.getByTestId('history-readout')).toHaveTextContent('now')
+    expect(screen.queryByTestId('history-version-preview')).not.toBeInTheDocument()
+  })
+
+  it('shows a quiet message when the note did not exist at the positioned commit', async () => {
+    vi.spyOn(mockHandlers, 'get_file_content_at_commit').mockImplementation(() => {
+      throw new Error("fatal: path 'notes/strategy.md' does not exist in 'bbb222'")
+    })
+    renderRail(COMMITS, undefined, makeEntry('/Users/mock/Grimoire/notes/strategy.md'))
+
+    fireEvent.keyDown(screen.getByTestId('history-scrubber'), { key: 'ArrowLeft' })
+
+    expect(await screen.findByText(/didn't exist at this commit/)).toBeInTheDocument()
+    expect(screen.getByTestId('history-version-preview')).toHaveAttribute('aria-live', 'polite')
   })
 })
