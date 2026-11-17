@@ -1,7 +1,6 @@
 use crate::commands::expand_tilde;
-use crate::search::SearchResponse;
 use crate::vault::{VaultEntry, VaultRebuildProgressEvent};
-use crate::{search, vault, vault_list};
+use crate::{vault, vault_list};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
@@ -194,17 +193,20 @@ pub async fn reload_vault_with_progress(
 
 #[tauri::command]
 pub async fn search_vault(
-    state: tauri::State<'_, search::SearchCacheState>,
+    state: tauri::State<'_, crate::vault_index::VaultIndexState>,
     vault_path: String,
     query: String,
     mode: String,
     limit: Option<usize>,
-) -> Result<SearchResponse, String> {
+) -> Result<crate::vault_index::IndexSearchResponse, String> {
     let vault_path = expand_tilde(&vault_path).into_owned();
-    let limit = limit.unwrap_or(20);
-    let cache = state.0.clone();
+    let limit = limit.unwrap_or(50).clamp(1, 500);
+    let state = state.inner().clone();
     tokio::task::spawn_blocking(move || {
-        search::search_vault(&vault_path, &query, &mode, limit, &cache)
+        let mut response =
+            crate::vault_index::search(&state, Path::new(&vault_path), &query, limit)?;
+        response.mode = mode;
+        Ok(response)
     })
     .await
     .map_err(|e| format!("Search task failed: {}", e))?
