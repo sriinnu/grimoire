@@ -30,6 +30,7 @@ macro_rules! app_invoke_handler {
             commands::get_modified_files,
             commands::get_file_diff,
             commands::get_file_diff_at_commit,
+            commands::get_file_content_at_commit,
             commands::get_vault_pulse,
             commands::git_commit,
             commands::get_build_number,

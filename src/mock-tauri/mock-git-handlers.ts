@@ -102,3 +102,21 @@ index abc1234..${shortHash} 100644
 +
 +New content added in this commit.`
 }
+
+
+/** Returns a deterministic mock note body for a specific commit. */
+export function mockFileContentAtCommit(path: string, commitHash: string): string {
+  const filename = path.split('/').pop()?.replace(/\.md$/, '') ?? 'unknown'
+  const shortHash = commitHash.slice(0, 7)
+  return `---
+title: ${filename}
+type: Note
+---
+
+# ${filename}
+
+This is how the note read at commit ${shortHash}.
+
+- Wording as of ${shortHash}
+- References and links from that version`
+}

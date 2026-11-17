@@ -47,6 +47,15 @@ async fn desktop_git_commands_route_to_git_backend() {
     .unwrap();
     assert!(commit_diff.contains("# Updated"));
 
+    let commit_content = get_file_content_at_commit(
+        vault.clone(),
+        note.clone(),
+        history.first().unwrap().hash.clone(),
+    )
+    .unwrap();
+    assert!(commit_content.contains("# Updated"));
+    assert!(get_file_content_at_commit(vault.clone(), note.clone(), "0".repeat(40)).is_err());
+
     let pulse = get_vault_pulse(vault.clone(), Some(5), Some(0)).unwrap();
     assert!(!pulse.is_empty());
 
