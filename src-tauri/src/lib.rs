@@ -21,7 +21,6 @@ mod menu_bar_window;
 mod native_startup_smoke;
 #[cfg(desktop)]
 mod quick_capture_shortcut;
-pub mod search;
 pub mod settings;
 pub mod telemetry;
 pub mod transcription;
@@ -451,9 +450,7 @@ pub fn run() {
         return;
     }
 
-    let builder = tauri::Builder::default()
-        .manage(search::SearchCacheState::default())
-        .manage(vault_index::VaultIndexState::default());
+    let builder = tauri::Builder::default().manage(vault_index::VaultIndexState::default());
 
     #[cfg(desktop)]
     let builder = builder
